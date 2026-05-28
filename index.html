@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.0 - GitHub modular browser mastering console" />
+<title>FoxBear AI Mastering Studio Pro v1.0</title>
+<link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
+<link rel="stylesheet" href="assets/css/studio.css" />
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="src/app.js"></script>
+</head>
+<body>
+<div class="app-shell">
+    <header class="studio-hero">
+        <section class="brand-panel" aria-label="앱 소개">
+            <div class="brand-kicker">
+                <span class="badge">FoxBear Original Console</span>
+                <span class="badge violet">AI Music Mastering Pro v1.0</span>
+                <span class="badge rose">Local Browser Renderer</span>
+            </div>
+            <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
+            <p>브라우저 안에서 분석, 피치/속도 보정, 금속성 공진 감쇄, 앨범 매칭, True Peak 보호까지 한 번에 처리하는 로컬 오디오 마스터링 콘솔입니다.</p>
+            <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </section>
+        <aside class="creator-panel" aria-label="개발자 정보">
+            <div>
+                <div class="creator-title">DESIGNED BY</div>
+                <div class="creator-name"><span>곰같은여우</span> with AI</div>
+                <a class="creator-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer">youtube.com/@FoxBearMusic</a>
+                <div class="creator-note">구독자가 아니여도 <BR> 음악을 사랑하는 여러분을 위한<BR> 무료배포 버전입니다.</div>
+                <a class="creator-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer">🦊 구독은 사랑입니다</a>
+            </div>
+            <div class="version-chip">무압축 24-bit WAV 출력 · PC/모바일 호환 · Pro v1.0</div>
+        </aside>
+    </header>
+
+    <main class="studio-grid">
+        <section class="console-panel" aria-label="마스터링 컨트롤">
+            <div class="panel-head">
+                <strong>컨트롤 콘솔</strong>
+                <span id="selectedBadge" class="badge">선택 없음</span>
+            </div>
+
+            <div class="upload-stage">
+                <div id="fileDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 파일 업로드">
+                    <div>
+                        <div class="upload-icon">🎛️</div>
+                        <strong>파일 업로드</strong>
+                        <span>여러 오디오 파일</span>
+                    </div>
+                </div>
+                <div id="folderDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 폴더 업로드">
+                    <div>
+                        <div class="upload-icon">🗂️</div>
+                        <strong>폴더 업로드</strong>
+                        <span>상대 경로 보존</span>
+                    </div>
+                </div>
+            </div>
+
+            <input type="file" id="fileInput" class="hidden" multiple accept="audio/*,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm" />
+            <input type="file" id="folderInput" class="hidden" multiple webkitdirectory directory />
+
+            <div class="panel-head" style="margin-top:4px">
+                <strong>버튼형 적용 기능</strong>
+                <small id="featureCount">0개 활성</small>
+            </div>
+            <div id="featureDock" class="feature-dock"></div>
+
+            <div id="intensityField" class="priority-slider" aria-label="마스터링 강도"></div>
+
+            <div class="field">
+                <div class="field-row">
+                    <label for="genreSelect">장르 프리셋</label>
+                    <span id="confidenceText" class="rec-value">추천 없음</span>
+                </div>
+                <select id="genreSelect">
+                    <option value="custom">커스텀</option>
+                    <option value="pop">Pop / Vocal Pop</option>
+                    <option value="kpop">K-POP / Idol Pop</option>
+                    <option value="kballad">K-Pop Ballad</option>
+                    <option value="rnb">R&amp;B / Soul</option>
+                    <option value="ballad">BALLAD</option>
+                    <option value="acoustic">Acoustic / Singer-Songwriter</option>
+                    <option value="citypop">City Pop / Retro Pop</option>
+                    <option value="dance">Dance / Electronic Pop</option>
+                    <option value="synthpop">Synth Pop</option>
+                    <option value="house">House / Club</option>
+                    <option value="futurebass">Future Bass</option>
+                    <option value="edm">EDM</option>
+                    <option value="trap">Trap / 808</option>
+                    <option value="drill">Drill</option>
+                    <option value="hiphop">HIPHOP</option>
+                    <option value="boombap">Boom Bap</option>
+                    <option value="globalpop">Global / Ethnic Pop</option>
+                    <option value="lofi">LO-FI</option>
+                    <option value="rock">ROCK</option>
+                </select>
+            </div>
+
+            <section class="dsp-settings" aria-label="마스터링 설정">
+                <div class="dsp-settings-head">
+                    <strong>마스터링 설정</strong>
+                    <small>톤 · 공간 · 질감</small>
+                </div>
+                <div id="sliderFields"></div>
+            </section>
+
+            <div class="tool-block pitch-tool" aria-label="피치 및 속도 조절">
+                <div class="tool-title">
+                    <strong>피치 / 속도</strong>
+                </div>
+                <div class="pitch-grid pitch-grid-clean">
+                    <div class="pitch-control">
+                        <div class="mini-field-row">
+                            <label for="pitchSlider">피치</label>
+                            <b id="pitchValue">0.00 반음</b>
+                        </div>
+                        <input type="range" id="pitchSlider" min="-12" max="12" step="0.01" value="0" />
+                        <div id="pitchHint" class="control-hint">반음 고정 ON · 원본 키 유지</div>
+                    </div>
+                    <div class="pitch-control">
+                        <div class="mini-field-row">
+                            <label for="speedSlider">속도</label>
+                            <b id="speedValue">1.00x</b>
+                        </div>
+                        <input type="range" id="speedSlider" min="0.5" max="1.5" step="0.01" value="1" />
+                        <div id="speedHint" class="control-hint">원본 100% · 길이 변화 없음</div>
+                    </div>
+                </div>
+                <div class="pitch-action-row">
+                    <label class="mini-check"><input type="checkbox" id="snapSemitone" checked /> 반음 고정</label>
+                    <span id="pitchSpeedBadge" class="rec-value">원본 유지</span>
+                    <button id="resetPitchSpeedBtn" class="btn-secondary btn-mini" type="button">초기화</button>
+                </div>
+                <span id="keyReadout" class="hidden">0.00</span>
+                <span id="tempoReadout" class="hidden">1.00x</span>
+                <span id="tempoPercent" class="hidden">원본 100%</span>
+            </div>
+
+        </section>
+
+        <div class="workspace-stack" aria-label="작업 및 분석 영역">
+        <div class="queue-action-stack" aria-label="작업 대기열 및 실행">
+        <section class="queue-panel" aria-label="작업 대기열">
+            <div class="stat-strip">
+                <div class="stat-card"><span>트랙</span><strong id="statTracks">0</strong></div>
+                <div class="stat-card"><span>완료</span><strong id="statDone">0</strong></div>
+                <div class="stat-card"><span>총 파일 용량</span><strong id="statSize">0 MB</strong></div>
+                <div class="stat-card"><span>상태</span><strong id="statState">대기</strong></div>
+            </div>
+            <div id="albumStatus" class="album-note">앨범 단위 볼륨/톤 통일은 2곡 이상 분석된 뒤 더 자연스럽게 작동합니다.</div>
+            <div class="panel-head">
+                <strong>작업 대기열</strong>
+                <span id="queueCount" class="badge">0개</span>
+            </div>
+            <div id="trackList" class="track-list"></div>
+        </section>
+
+        <section class="action-panel" aria-label="작업 실행">
+            <div class="panel-head">
+                <strong>작업 실행</strong>
+                <small>선택 · 전체 · 다운로드</small>
+            </div>
+            <div class="button-grid">
+                <button id="aiApplyBtn" class="btn-secondary" disabled>AI 추천 프리셋 다시 적용</button>
+                <button id="masterSelectedBtn" class="btn-primary" disabled>선택 트랙 마스터링</button>
+                <button id="masterAllBtn" class="btn-primary" disabled>전체 마스터링</button>
+                <button id="zipBtn" class="btn-secondary" disabled>ZIP 다운로드</button>
+                <button id="clearBtn" class="btn-danger" disabled>초기화</button>
+            </div>
+        </section>
+        </div>
+
+        <aside class="inspect-panel" aria-label="분석 및 프리뷰">
+            <div class="panel-head">
+                <strong>분석 / 프리뷰</strong>
+                <span id="detailStatus" class="status-pill">선택 없음</span>
+            </div>
+            <div id="trackDetail" class="detail-box"></div>
+        </aside>
+        </div>
+    </main>
+    <p class="bottom-safe-note">모든 처리는 브라우저 내부에서 실행됩니다. 전체 로컬 경로는 보안 정책상 표시하지 않고, 파일명과 폴더 상대 경로만 표시합니다.</p>
+</div>
+
+
+<div id="subscribeNudge" class="subscribe-nudge" role="status" aria-live="polite">
+    <div class="subscribe-mini-face" aria-hidden="true">🦊</div>
+    <div class="subscribe-mini-copy">
+        <strong>구독은 사랑입니다</strong>
+        <span>FoxBear Music도 살짝 응원해주세요.</span>
+    </div>
+    <button id="subscribeNudgeAction" class="subscribe-mini-action" type="button">채널</button>
+    <button id="subscribeNudgeClose" class="subscribe-mini-close" type="button" aria-label="구독 안내 닫기">×</button>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
