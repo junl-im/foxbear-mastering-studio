@@ -1,8 +1,10 @@
-// FoxBear AI Mastering Studio Pro v1.0 - modular GitHub build
+// FoxBear AI Mastering Studio Pro v2.0 - modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.0';
-const ENCODE_WORKER_URL = 'src/workers/wav-encoder.worker.js';
+const APP_VERSION = 'Pro v2.0';
+const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
+const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
+const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -116,7 +118,8 @@ const state = {
         albumMatch: false,
         truePeakGuard: true
     },
-    albumProfile: null
+    albumProfile: null,
+    outputFormat: 'wav24'
 };
 
 const el = {};
@@ -142,7 +145,7 @@ function cacheElements() {
         'pitchHint', 'speedHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge', 'resetPitchSpeedBtn',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
+        'albumStatus', 'toast', 'outputFormatSelect', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -285,6 +288,15 @@ function bindEvents() {
     el.masterAllBtn.addEventListener('click', masterAllTracks);
     el.zipBtn.addEventListener('click', downloadZip);
     el.clearBtn.addEventListener('click', clearQueue);
+    if (el.outputFormatSelect) {
+        state.outputFormat = el.outputFormatSelect.value || state.outputFormat;
+        el.outputFormatSelect.addEventListener('change', () => {
+            state.outputFormat = el.outputFormatSelect.value || 'wav24';
+            invalidateAllMasteredOutput('출력 포맷이 변경되었습니다. 다시 마스터링하세요.');
+            renderAll({ keepDetailAudio: true });
+            showToast(getOutputFormatLabel(state.outputFormat) + ' 출력으로 변경했습니다.');
+        });
+    }
     if (el.subscribeNudgeAction) {
         el.subscribeNudgeAction.addEventListener('click', () => {
             markSubscribePromptSeen();
@@ -493,7 +505,7 @@ async function analyzeTrack(track) {
     track.report = '밝기, 스테레오 폭, 공진 힌트 분석 중';
     renderAll();
 
-    const analysis = analyzeBuffer(buffer);
+    const analysis = await analyzeBufferAsync(buffer);
     const recommendation = recommendPreset(track.name, analysis);
     const settings = makeRecommendedSettings(recommendation.preset, analysis);
 
@@ -525,6 +537,46 @@ async function decodeAudio(file) {
         throw new Error('오디오 파일 복원에 실패했습니다. 손상되었거나 브라우저 미지원 코덱일 수 있습니다.');
     } finally {
         if (audioContext.close) await audioContext.close().catch(() => {});
+    }
+}
+
+
+async function analyzeBufferAsync(buffer) {
+    if (!window.Worker) return analyzeBuffer(buffer);
+    try {
+        const worker = new Worker(ANALYSIS_WORKER_URL);
+        const channels = buffer.numberOfChannels;
+        const channelBuffers = [];
+        for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
+        const payload = {
+            sampleRate: buffer.sampleRate,
+            duration: buffer.duration,
+            channels,
+            length: buffer.length,
+            channelBuffers
+        };
+        const result = await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                worker.terminate();
+                reject(new Error('분석 워커 시간이 초과되어 메인 분석으로 전환합니다.'));
+            }, 30000);
+            worker.onmessage = event => {
+                clearTimeout(timer);
+                worker.terminate();
+                if (event.data && event.data.ok) resolve(event.data.analysis);
+                else reject(new Error(event.data?.error || '분석 워커 실패'));
+            };
+            worker.onerror = error => {
+                clearTimeout(timer);
+                worker.terminate();
+                reject(error);
+            };
+            worker.postMessage(payload, channelBuffers);
+        });
+        return result;
+    } catch (error) {
+        console.warn('Analysis worker fallback:', error);
+        return analyzeBuffer(buffer);
     }
 }
 
@@ -616,6 +668,8 @@ function analyzeBuffer(buffer) {
     const peakDb = 20 * Math.log10(Math.max(0.000001, peak));
     const metallicHint = clamp01(brightness * 0.65 + (highFreqEnergy / Math.max(1, midHighEnergy)) * 0.3 + zcr * 1.5);
     const silence = rms < 0.00008 || peak < 0.0005;
+    const loudnessIntegrated = loudnessHint - 0.691;
+    const headroomDb = -1.0 - peakDb;
     const spectralTotal = Math.max(0.000000001, bassSq + lowMidSq + midBandSq + highBandSq);
     const bassRatio = clamp01(bassSq / spectralTotal);
     const lowMidRatio = clamp01(lowMidSq / spectralTotal);
@@ -641,6 +695,8 @@ function analyzeBuffer(buffer) {
         stereoWidth,
         metallicHint,
         zeroCrossRate: zcr,
+        loudnessIntegrated,
+        headroomDb,
         bassRatio,
         lowMidRatio,
         midRatio,
@@ -1069,7 +1125,7 @@ async function masterTrack(track, calledFromBatch = false) {
             track.progress = 14;
             track.report = '분석 정보가 없어 마스터링 직전 긴급 분석을 실행 중';
             renderAll();
-            const analysis = analyzeBuffer(currentSourceBuffer);
+            const analysis = await analyzeBufferAsync(currentSourceBuffer);
             const recommendation = recommendPreset(track.name, analysis);
             track.analysis = analysis;
             track.recommendedPreset = recommendation.preset;
@@ -1104,7 +1160,8 @@ async function masterTrack(track, calledFromBatch = false) {
         const masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
 
         track.progress = 88;
-        track.report = state.featureFlags.truePeakGuard ? 'True Peak 가드 및 WAV 인코딩 중' : '샘플 피크 가드 및 WAV 인코딩 중';
+        const requestedOutputFormat = state.outputFormat || 'wav24';
+        track.report = state.featureFlags.truePeakGuard ? `True Peak 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중` : `샘플 피크 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중`;
         renderAll();
 
         if (state.featureFlags.truePeakGuard) track.truePeakInfo = applyTruePeakGuard(masteredBuffer, -1.0);
@@ -1112,13 +1169,14 @@ async function masterTrack(track, calledFromBatch = false) {
 
         if (albumProfile && track.analysis) track.albumApplied = createAlbumAppliedInfo(track.analysis, albumProfile);
 
-        const wavBlob = await encodeWavAsync(masteredBuffer);
-        if (!wavBlob || wavBlob.size <= 44) throw new Error('WAV 렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
+        const encoded = await encodeMasterOutputAsync(masteredBuffer, requestedOutputFormat);
+        if (!encoded.blob || encoded.blob.size <= 44) throw new Error('렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
 
         if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
-        track.outBlob = wavBlob;
-        track.outName = `${safeBaseName(track.name)}_mastered.wav`;
-        track.masteredUrl = URL.createObjectURL(wavBlob);
+        track.outBlob = encoded.blob;
+        track.outFormat = encoded.format;
+        track.outName = `${safeBaseName(track.name)}_mastered.${encoded.extension}`;
+        track.masteredUrl = URL.createObjectURL(encoded.blob);
         track.status = 'done';
         track.progress = 100;
         track.report = createDoneReport(track);
@@ -1794,21 +1852,71 @@ function softCeilingSample(value, ceiling) {
     return sign * Math.min(ceiling, limited);
 }
 
-async function encodeWavAsync(buffer) {
+async function encodeMasterOutputAsync(buffer, requestedFormat = 'wav24') {
+    const format = requestedFormat || 'wav24';
+    if (format === 'mp3_192' || format === 'mp3_320') {
+        const bitrate = format === 'mp3_320' ? 320000 : 192000;
+        try {
+            const blob = await encodeMp3Async(buffer, bitrate);
+            return { blob, format, extension: 'mp3', mime: 'audio/mpeg' };
+        } catch (error) {
+            console.warn('MP3 encoder fallback:', error);
+            showToast('이 브라우저는 MP3 네이티브 인코딩을 지원하지 않아 24-bit WAV로 저장합니다.');
+            const blob = await encodeWavAsync(buffer, 'wav24');
+            return { blob, format: 'wav24', extension: 'wav', mime: 'audio/wav' };
+        }
+    }
+    const blob = await encodeWavAsync(buffer, format);
+    return { blob, format, extension: 'wav', mime: 'audio/wav' };
+}
+
+async function encodeMp3Async(buffer, bitrate) {
+    if (!window.Worker) throw new Error('MP3 워커를 사용할 수 없습니다.');
+    const worker = new Worker(MP3_ENCODER_WORKER_URL);
+    const channels = Math.min(2, buffer.numberOfChannels);
+    const channelBuffers = [];
+    for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
+    const payload = {
+        sampleRate: buffer.sampleRate,
+        channels,
+        length: buffer.length,
+        bitrate,
+        channelBuffers
+    };
+    const arrayBuffer = await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            worker.terminate();
+            reject(new Error('MP3 인코딩 시간이 초과되었습니다.'));
+        }, 90000);
+        worker.onmessage = event => {
+            clearTimeout(timer);
+            worker.terminate();
+            if (event.data && event.data.ok) resolve(event.data.arrayBuffer);
+            else reject(new Error(event.data?.error || 'MP3 인코딩 실패'));
+        };
+        worker.onerror = error => {
+            clearTimeout(timer);
+            worker.terminate();
+            reject(error);
+        };
+        worker.postMessage(payload, channelBuffers);
+    });
+    return new Blob([arrayBuffer], { type: 'audio/mpeg' });
+}
+
+async function encodeWavAsync(buffer, format = 'wav24') {
     if (window.Worker) {
         try {
-            const worker = new Worker(ENCODE_WORKER_URL);
+            const worker = new Worker(WAV_ENCODER_WORKER_URL);
             const channels = Math.min(2, buffer.numberOfChannels);
             const channelBuffers = [];
-            for (let ch = 0; ch < channels; ch += 1) {
-                channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
-            }
+            for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
             const payload = {
                 sampleRate: buffer.sampleRate,
                 channels,
                 length: buffer.length,
                 channelBuffers,
-                bitDepth: 24
+                format
             };
             const arrayBuffer = await new Promise((resolve, reject) => {
                 const timer = setTimeout(() => {
@@ -1833,15 +1941,17 @@ async function encodeWavAsync(buffer) {
             console.warn('Worker WAV encoder fallback:', error);
         }
     }
-    return encodeWav(buffer);
+    return encodeWav(buffer, format);
 }
 
-function encodeWav(buffer) {
+function encodeWav(buffer, format = 'wav24') {
     const channels = Math.min(2, buffer.numberOfChannels);
     const sampleRate = buffer.sampleRate;
     const length = buffer.length;
-    const bytesPerSample = 3;
-    const bitDepth = 24;
+    const float32 = format === 'wav32float';
+    const bytesPerSample = float32 ? 4 : 3;
+    const bitDepth = float32 ? 32 : 24;
+    const audioFormat = float32 ? 3 : 1;
     const blockAlign = channels * bytesPerSample;
     const dataSize = length * blockAlign;
     const arrayBuffer = new ArrayBuffer(44 + dataSize);
@@ -1852,7 +1962,7 @@ function encodeWav(buffer) {
     writeString(view, 8, 'WAVE');
     writeString(view, 12, 'fmt ');
     view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
+    view.setUint16(20, audioFormat, true);
     view.setUint16(22, channels, true);
     view.setUint32(24, sampleRate, true);
     view.setUint32(28, sampleRate * blockAlign, true);
@@ -1867,10 +1977,15 @@ function encodeWav(buffer) {
     let offset = 44;
     for (let i = 0; i < length; i += 1) {
         for (let ch = 0; ch < channels; ch += 1) {
-            const dither = (Math.random() - Math.random()) / 8388608;
-            const sample = clamp((channelData[ch][i] || 0) + dither, -1, 1);
-            writeInt24(view, offset, sample);
-            offset += 3;
+            if (float32) {
+                view.setFloat32(offset, clamp(channelData[ch][i] || 0, -1, 1), true);
+                offset += 4;
+            } else {
+                const dither = (Math.random() - Math.random()) / 8388608;
+                const sample = clamp((channelData[ch][i] || 0) + dither, -1, 1);
+                writeInt24(view, offset, sample);
+                offset += 3;
+            }
         }
     }
     return new Blob([arrayBuffer], { type: 'audio/wav' });
@@ -1905,10 +2020,10 @@ async function downloadZip() {
         zip.file(fileName, track.outBlob);
     });
 
-    showToast(`${completed.length}개 마스터 WAV만 ZIP으로 압축 중...`);
+    showToast(`${completed.length}개 마스터 파일만 ZIP으로 압축 중...`);
     const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 5 } });
-    downloadBlob(blob, `foxbear_mastered_wav_only_${timestampForFile()}.zip`);
-    showToast('마스터 WAV 전용 ZIP 다운로드를 시작했습니다.');
+    downloadBlob(blob, `foxbear_mastered_${timestampForFile()}.zip`);
+    showToast('마스터 파일 ZIP 다운로드를 시작했습니다.');
 }
 
 function makeUniqueZipName(fileName, usedNames) {
@@ -1951,6 +2066,7 @@ function invalidateMasteredOutput(track, report) {
     if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
     track.outBlob = null;
     track.outName = '';
+    track.outFormat = null;
     track.masteredUrl = null;
     track.truePeakInfo = null;
     track.albumApplied = null;
@@ -2131,6 +2247,8 @@ function renderDetail(options = {}) {
     addDetailRow('파일 형식', track.type);
     addDetailRow('파일 용량', formatBytes(track.size));
     addDetailRow('프리셋 상태', `${PRESET_LABELS[track.preset] || track.preset} · 신뢰지수 ${track.confidence || 0}%`);
+    if (track.outName) addDetailRow('출력 파일', track.outName);
+    addDetailRow('출력 포맷', getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'));
     if (track.genreReason) addDetailRow('장르 판단 근거', track.genreReason);
     addDetailRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
     addDetailRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
@@ -2156,6 +2274,7 @@ function renderDetail(options = {}) {
         addDetailRow('채널 수', `${track.analysis.channels} ch`);
         addDetailRow('피크 레벨', `${track.analysis.peakDb.toFixed(1)} dBFS`);
         addDetailRow('RMS 레벨', `${track.analysis.loudnessHint.toFixed(1)} dB`);
+        if (Number.isFinite(track.analysis.loudnessIntegrated)) addDetailRow('예상 통합 라우드니스', `${track.analysis.loudnessIntegrated.toFixed(1)} LUFS 유사`);
         addDetailRow('밝기/스테레오 폭', `${Math.round(track.analysis.brightness * 100)}% / ${Math.round(track.analysis.stereoWidth * 100)}%`);
         addDetailRow('저역/중역/고역', `${Math.round((track.analysis.bassRatio || 0) * 100)}% / ${Math.round((track.analysis.midRatio || 0) * 100)}% / ${Math.round((track.analysis.highRatio || 0) * 100)}%`);
         addDetailRow('트랜지언트 밀도', `${Math.round((track.analysis.transientDensity || 0) * 100)}%`);
@@ -2338,7 +2457,7 @@ function buildReport(track) {
 }
 
 function createDoneReport(track) {
-    const parts = [`마스터링 완료: ${track.outName}`, `강도 ${track.settings.intensity ?? 100}%`];
+    const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`];
     if (track.trimInfo && track.trimInfo.applied) parts.push(`무음 정리 앞 ${track.trimInfo.startTrimSec.toFixed(2)}초/뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초`);
     if (track.albumApplied) parts.push(`앨범 통일 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB`);
     if (track.truePeakInfo) parts.push(track.truePeakInfo.mode === 'truePeak' ? 'True Peak 보호' : 'Sample Peak 보호');
@@ -2347,12 +2466,13 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.0',
+        app: 'FoxBear AI Mastering Studio Pro v2.0',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
         visiblePath: track.path,
         exportedFile: track.outName,
+        outputFormat: track.outFormat,
         preset: track.preset,
         recommendedPreset: track.recommendedPreset,
         confidence: track.confidence,
@@ -2419,6 +2539,17 @@ function clampToStep(value, min, max, step) {
     const safeStep = Number(step || 1);
     const clamped = clamp(Number(value), min, max);
     return Math.round(clamped / safeStep) * safeStep;
+}
+
+
+function getOutputFormatLabel(format) {
+    const labels = {
+        wav24: '24-bit PCM WAV',
+        wav32float: '32-bit Float WAV',
+        mp3_192: 'MP3 192 kbps',
+        mp3_320: 'MP3 320 kbps'
+    };
+    return labels[format] || labels.wav24;
 }
 
 function formatSliderValue(slider, value) {
