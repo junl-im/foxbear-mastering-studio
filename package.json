@@ -1,0 +1,10 @@
+{
+  "name": "foxbear-ai-mastering-studio-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FoxBear AI Mastering Studio Pro - modular GitHub Pages build",
+  "scripts": {
+    "serve": "python3 -m http.server 8080"
+  },
+  "license": "UNLICENSED"
+}
