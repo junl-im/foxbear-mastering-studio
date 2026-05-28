@@ -1,10 +1,10 @@
 {
   "name": "foxbear-mastering-studio-pro",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v2.0 - browser mastering console with workers, 24-bit/32-float WAV and MP3 compatibility",
+  "description": "FoxBear AI Mastering Studio Pro v3.0 - browser mastering console with workers, 24-bit/32-float WAV and MP3 compatibility",
   "scripts": {
     "serve": "python3 -m http.server 8080",
-    "check": "node --check src/app.js && node --check src/workers/analysis.worker.js && node --check src/workers/wav-encoder.worker.js && node --check src/workers/mp3-encoder.worker.js"
+    "check": "node --check src/app.js && node --check src/workers/analysis.worker.js && node --check src/workers/wav-encoder.worker.js && node --check src/workers/mp3-encoder.worker.js && node --check src/workers/master-finalizer.worker.js && node --check src/workers/pitch-wsola.worker.js"
   }
 }
