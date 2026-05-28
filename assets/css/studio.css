@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v2.0 - modular GitHub build */
+/* FoxBear AI Mastering Studio Pro v3.0 - modular GitHub build */
 :root {
     color-scheme: dark;
     --bg: #070711;
@@ -986,7 +986,7 @@ audio { width: 100%; }
 }
 
 
-/* v2.0 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
+/* v3.0 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
    Queue, action, and preview remain separate panels while following each other naturally. */
 .studio-grid {
     display: grid !important;
@@ -1079,7 +1079,7 @@ audio { width: 100%; }
 @media (max-width: 390px) {
     .studio-grid { grid-template-columns: minmax(136px, 0.84fr) minmax(164px, 1.16fr) !important; }
 }
-/* Pro v2.0 output / performance controls */
+/* Pro v3.0 output / performance controls */
 .output-format-box {
     margin-bottom: 12px;
     padding: 11px;
@@ -1106,4 +1106,39 @@ audio { width: 100%; }
 }
 .detail-row span:last-child {
     font-size: 0.86rem;
+}
+
+/* Pro v3.0 engine controls */
+.pro-engine-box {
+    padding: 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(127,255,212,0.16);
+    background: rgba(127,255,212,0.045);
+}
+.engine-control-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+}
+.engine-control-grid label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+.engine-control-grid select {
+    padding: 10px 11px;
+    border-radius: 14px;
+    font-size: 0.82rem;
+}
+.pro-engine-box small {
+    display: block;
+    margin-top: 9px;
+    color: var(--subtle);
+    font-size: 0.70rem;
+    line-height: 1.42;
+}
+@media (max-width: 640px) {
+    .engine-control-grid { grid-template-columns: 1fr; }
 }
