@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.0 - GitHub modular browser mastering console" />
-<title>FoxBear AI Mastering Studio Pro v1.0</title>
+<meta name="description" content="FoxBear AI Mastering Studio Pro v2.0 - GitHub modular browser mastering console" />
+<title>FoxBear AI Mastering Studio Pro v2.0</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
 <link rel="stylesheet" href="assets/css/studio.css" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -16,7 +16,7 @@
         <section class="brand-panel" aria-label="앱 소개">
             <div class="brand-kicker">
                 <span class="badge">FoxBear Original Console</span>
-                <span class="badge violet">AI Music Mastering Pro v1.0</span>
+                <span class="badge violet">AI Music Mastering Pro v2.0</span>
                 <span class="badge rose">Local Browser Renderer</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
@@ -31,7 +31,7 @@
                 <div class="creator-note">구독자가 아니여도 <BR> 음악을 사랑하는 여러분을 위한<BR> 무료배포 버전입니다.</div>
                 <a class="creator-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer">🦊 구독은 사랑입니다</a>
             </div>
-            <div class="version-chip">무압축 24-bit WAV 출력 · PC/모바일 호환 · Pro v1.0</div>
+            <div class="version-chip">24-bit/32-float WAV · MP3 호환 출력 · PC/모바일 · Pro v2.0</div>
         </aside>
     </header>
 
@@ -163,8 +163,18 @@
                 <strong>작업 실행</strong>
                 <small>선택 · 전체 · 다운로드</small>
             </div>
-            <div class="button-grid">
-                <button id="aiApplyBtn" class="btn-secondary" disabled>AI 추천 프리셋 다시 적용</button>
+            <div class="output-format-box" aria-label="출력 포맷 선택">
+                <label for="outputFormatSelect">출력 포맷</label>
+                <select id="outputFormatSelect">
+                    <option value="wav24">24-bit PCM WAV · 안정 추천</option>
+                    <option value="wav32float">32-bit Float WAV · 최고 보존</option>
+                    <option value="mp3_320">MP3 320 kbps · 호환 우선</option>
+                    <option value="mp3_192">MP3 192 kbps · 용량 절약</option>
+                </select>
+                <small>MP3는 브라우저 네이티브 인코더 지원 시 사용되며, 미지원 환경은 WAV로 자동 대체됩니다.</small>
+            </div>
+            <div class="button-grid action-grid-pro">
+                <button id="aiApplyBtn" class="btn-secondary full" disabled>AI 추천 프리셋 다시 적용</button>
                 <button id="masterSelectedBtn" class="btn-primary" disabled>선택 트랙 마스터링</button>
                 <button id="masterAllBtn" class="btn-primary" disabled>전체 마스터링</button>
                 <button id="zipBtn" class="btn-secondary" disabled>ZIP 다운로드</button>
