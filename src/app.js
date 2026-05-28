@@ -1,10 +1,12 @@
-// FoxBear AI Mastering Studio Pro v2.0 - modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v3.0 - modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v2.0';
+const APP_VERSION = 'Pro v3.0';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
+const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
+const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -119,7 +121,10 @@ const state = {
         truePeakGuard: true
     },
     albumProfile: null,
-    outputFormat: 'wav24'
+    outputFormat: 'wav24',
+    targetLufs: -14,
+    ceilingDb: -1.0,
+    qualityMode: 'balanced'
 };
 
 const el = {};
@@ -145,7 +150,7 @@ function cacheElements() {
         'pitchHint', 'speedHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge', 'resetPitchSpeedBtn',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'outputFormatSelect', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
+        'albumStatus', 'toast', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -295,6 +300,33 @@ function bindEvents() {
             invalidateAllMasteredOutput('출력 포맷이 변경되었습니다. 다시 마스터링하세요.');
             renderAll({ keepDetailAudio: true });
             showToast(getOutputFormatLabel(state.outputFormat) + ' 출력으로 변경했습니다.');
+        });
+    }
+    if (el.targetLufsSelect) {
+        state.targetLufs = Number(el.targetLufsSelect.value || state.targetLufs);
+        el.targetLufsSelect.addEventListener('change', () => {
+            state.targetLufs = Number(el.targetLufsSelect.value || -14);
+            invalidateAllMasteredOutput(`${state.targetLufs} LUFS 타깃으로 변경되었습니다. 다시 마스터링하세요.`);
+            renderAll({ keepDetailAudio: true });
+            showToast(`${state.targetLufs} LUFS 타깃으로 변경했습니다.`);
+        });
+    }
+    if (el.ceilingSelect) {
+        state.ceilingDb = Number(el.ceilingSelect.value || state.ceilingDb);
+        el.ceilingSelect.addEventListener('change', () => {
+            state.ceilingDb = Number(el.ceilingSelect.value || -1.0);
+            invalidateAllMasteredOutput(`${state.ceilingDb} dBTP 피크 천장으로 변경되었습니다. 다시 마스터링하세요.`);
+            renderAll({ keepDetailAudio: true });
+            showToast(`${state.ceilingDb} dBTP 피크 천장으로 변경했습니다.`);
+        });
+    }
+    if (el.qualityModeSelect) {
+        state.qualityMode = el.qualityModeSelect.value || state.qualityMode;
+        el.qualityModeSelect.addEventListener('change', () => {
+            state.qualityMode = el.qualityModeSelect.value || 'balanced';
+            invalidateAllMasteredOutput(`${getQualityModeLabel(state.qualityMode)} 엔진 모드로 변경되었습니다. 다시 마스터링하세요.`);
+            renderAll({ keepDetailAudio: true });
+            showToast(`${getQualityModeLabel(state.qualityMode)} 엔진 모드로 변경했습니다.`);
         });
     }
     if (el.subscribeNudgeAction) {
@@ -485,6 +517,7 @@ function createTrack(file) {
         trimInfo: null,
         albumApplied: null,
         truePeakInfo: null,
+        finalizeInfo: null,
         report: '대기 중',
         outBlob: null,
         outName: '',
@@ -1115,6 +1148,7 @@ async function masterTrack(track, calledFromBatch = false) {
     track.trimInfo = null;
     track.albumApplied = null;
     track.truePeakInfo = null;
+    track.finalizeInfo = null;
     track.report = '온디맨드 디코더 구동 중...';
     renderAll();
 
@@ -1149,7 +1183,7 @@ async function masterTrack(track, calledFromBatch = false) {
         }
 
         track.progress = 38;
-        track.report = '피치 변환 및 오버랩 평활 위상 정렬 중';
+        track.report = '피치/BPM 워커 변환 및 오버랩 위상 정렬 중';
         renderAll();
         const preparedBuffer = await preparePitchSpeedBuffer(currentSourceBuffer, track.transform);
 
@@ -1164,12 +1198,25 @@ async function masterTrack(track, calledFromBatch = false) {
         track.report = state.featureFlags.truePeakGuard ? `True Peak 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중` : `샘플 피크 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중`;
         renderAll();
 
-        if (state.featureFlags.truePeakGuard) track.truePeakInfo = applyTruePeakGuard(masteredBuffer, -1.0);
-        else track.truePeakInfo = applyPeakGuard(masteredBuffer, 0.94);
+        const finalization = await finalizeMasterBufferAsync(masteredBuffer, {
+            targetLufs: state.targetLufs,
+            ceilingDb: state.ceilingDb,
+            qualityMode: state.qualityMode,
+            truePeak: state.featureFlags.truePeakGuard
+        });
+        const finalBuffer = finalization.buffer;
+        track.finalizeInfo = finalization.info;
+        track.truePeakInfo = {
+            mode: state.featureFlags.truePeakGuard ? 'truePeak' : 'samplePeak',
+            targetDbTP: state.ceilingDb,
+            peakBefore: finalization.info.peakBefore,
+            peakAfter: finalization.info.peakAfter,
+            gain: Math.pow(10, (finalization.info.gainDb || 0) / 20)
+        };
 
         if (albumProfile && track.analysis) track.albumApplied = createAlbumAppliedInfo(track.analysis, albumProfile);
 
-        const encoded = await encodeMasterOutputAsync(masteredBuffer, requestedOutputFormat);
+        const encoded = await encodeMasterOutputAsync(finalBuffer, requestedOutputFormat);
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
 
         if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
@@ -1304,6 +1351,46 @@ function applyEdgeFade(buffer, fadeSeconds) {
 async function preparePitchSpeedBuffer(sourceBuffer, transform) {
     const value = cloneTransform(transform || DEFAULT_TRANSFORM);
     if (isDefaultTransform(value)) return sourceBuffer;
+
+    if (window.Worker) {
+        try {
+            const worker = new Worker(PITCH_WSOLA_WORKER_URL);
+            const channels = Math.min(2, sourceBuffer.numberOfChannels);
+            const channelBuffers = [];
+            for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(sourceBuffer.getChannelData(ch).slice().buffer);
+            const payload = {
+                sampleRate: sourceBuffer.sampleRate,
+                channels,
+                length: sourceBuffer.length,
+                transform: value,
+                channelBuffers
+            };
+            const result = await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => {
+                    worker.terminate();
+                    reject(new Error('피치/BPM 워커 시간이 초과되어 기본 엔진으로 전환합니다.'));
+                }, 120000);
+                worker.onmessage = event => {
+                    clearTimeout(timer);
+                    worker.terminate();
+                    if (event.data && event.data.ok) resolve(event.data);
+                    else reject(new Error(event.data?.error || '피치/BPM 워커 처리 실패'));
+                };
+                worker.onerror = error => {
+                    clearTimeout(timer);
+                    worker.terminate();
+                    reject(error);
+                };
+                worker.postMessage(payload, channelBuffers);
+            });
+            const output = makeAudioBuffer(result.channels, result.length, result.sampleRate);
+            (result.channelBuffers || []).forEach((buf, ch) => output.copyToChannel(new Float32Array(buf), ch));
+            return output;
+        } catch (error) {
+            console.warn('Pitch worker fallback:', error);
+            showToast('피치/BPM 워커가 실패해 기본 엔진으로 전환합니다.');
+        }
+    }
 
     const pitchFactor = Math.pow(2, value.pitchSemitones / 12);
     const speedRatio = clamp(value.speedRatio, 0.5, 1.5);
@@ -1852,6 +1939,79 @@ function softCeilingSample(value, ceiling) {
     return sign * Math.min(ceiling, limited);
 }
 
+
+async function finalizeMasterBufferAsync(buffer, options = {}) {
+    const fallback = () => {
+        const working = cloneAudioBuffer(buffer);
+        const targetDb = Number(options.ceilingDb ?? -1.0);
+        const info = options.truePeak === false ? applyPeakGuard(working, Math.pow(10, targetDb / 20)) : applyTruePeakGuard(working, targetDb);
+        return {
+            buffer: working,
+            info: {
+                mode: options.truePeak === false ? 'sample peak fallback' : 'true peak fallback',
+                qualityMode: options.qualityMode || 'balanced',
+                targetLufs: Number(options.targetLufs ?? -14),
+                ceilingDb: targetDb,
+                loudnessBefore: NaN,
+                loudnessAfter: NaN,
+                peakBefore: info.peakBefore,
+                peakAfter: info.peakAfter,
+                gainDb: 20 * Math.log10(Math.max(1e-9, info.gain || 1)),
+                oversample: 4
+            }
+        };
+    };
+
+    if (!window.Worker) return fallback();
+    const worker = new Worker(MASTER_FINALIZER_WORKER_URL);
+    const channels = Math.min(2, buffer.numberOfChannels);
+    const channelBuffers = [];
+    for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
+    const payload = {
+        sampleRate: buffer.sampleRate,
+        channels,
+        length: buffer.length,
+        targetLufs: Number(options.targetLufs ?? -14),
+        ceilingDb: Number(options.ceilingDb ?? -1.0),
+        qualityMode: options.qualityMode || 'balanced',
+        truePeak: options.truePeak !== false,
+        channelBuffers
+    };
+    try {
+        const result = await new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                worker.terminate();
+                reject(new Error('마스터 파이널라이저 시간이 초과되어 기본 피크 가드로 전환합니다.'));
+            }, 90000);
+            worker.onmessage = event => {
+                clearTimeout(timer);
+                worker.terminate();
+                if (event.data && event.data.ok) resolve(event.data);
+                else reject(new Error(event.data?.error || '마스터 파이널라이저 실패'));
+            };
+            worker.onerror = error => {
+                clearTimeout(timer);
+                worker.terminate();
+                reject(error);
+            };
+            worker.postMessage(payload, channelBuffers);
+        });
+        const output = makeAudioBuffer(result.channels, result.length, result.sampleRate);
+        (result.channelBuffers || []).forEach((buf, ch) => output.copyToChannel(new Float32Array(buf), ch));
+        return { buffer: output, info: result.info || {} };
+    } catch (error) {
+        console.warn('Master finalizer fallback:', error);
+        showToast('파이널라이저 워커가 실패해 기본 피크 가드로 전환합니다.');
+        return fallback();
+    }
+}
+
+function cloneAudioBuffer(buffer) {
+    const output = makeAudioBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) output.copyToChannel(buffer.getChannelData(ch).slice(), ch);
+    return output;
+}
+
 async function encodeMasterOutputAsync(buffer, requestedFormat = 'wav24') {
     const format = requestedFormat || 'wav24';
     if (format === 'mp3_192' || format === 'mp3_320') {
@@ -2069,6 +2229,7 @@ function invalidateMasteredOutput(track, report) {
     track.outFormat = null;
     track.masteredUrl = null;
     track.truePeakInfo = null;
+    track.finalizeInfo = null;
     track.albumApplied = null;
     if (track.status === 'done') {
         track.status = 'ready';
@@ -2266,6 +2427,12 @@ function renderDetail(options = {}) {
         const beforeDb = ampToDb(track.truePeakInfo.peakBefore).toFixed(2);
         const afterDb = ampToDb(track.truePeakInfo.peakAfter).toFixed(2);
         addDetailRow('피크 가드', `${track.truePeakInfo.mode === 'truePeak' ? 'True Peak' : 'Sample Peak'} · 전 ${beforeDb} dB · 후 ${afterDb} dB`);
+    }
+    if (track.finalizeInfo) {
+        const before = Number.isFinite(track.finalizeInfo.loudnessBefore) ? `${track.finalizeInfo.loudnessBefore.toFixed(1)} LUFS` : '-';
+        const after = Number.isFinite(track.finalizeInfo.loudnessAfter) ? `${track.finalizeInfo.loudnessAfter.toFixed(1)} LUFS` : '-';
+        addDetailRow('2-Pass 라우드니스', `${before} → ${after} · 목표 ${track.finalizeInfo.targetLufs} LUFS`);
+        addDetailRow('엔진 품질 모드', `${getQualityModeLabel(track.finalizeInfo.qualityMode)} · ${track.finalizeInfo.oversample || 4}x 피크 검사`);
     }
 
     if (track.analysis) {
@@ -2466,7 +2633,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v2.0',
+        app: 'FoxBear AI Mastering Studio Pro v3.0',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -2484,6 +2651,8 @@ function createExportReport(track) {
         trimInfo: track.trimInfo,
         albumApplied: track.albumApplied,
         truePeakInfo: track.truePeakInfo,
+        finalizeInfo: track.finalizeInfo,
+        outputTarget: { targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
         albumProfile: state.albumProfile,
         analysis: track.analysis,
         createdAt: new Date().toISOString()
@@ -2495,6 +2664,11 @@ function featureLabelText() {
         .filter(([, value]) => value)
         .map(([key]) => FEATURE_DEFINITIONS[key].label);
     return active.length ? active.join(' · ') : '기능 미사용';
+}
+
+function getQualityModeLabel(mode) {
+    const labels = { fast: 'Fast', balanced: 'Balanced Pro', max: 'Max Quality' };
+    return labels[mode] || labels.balanced;
 }
 
 function statusLabel(status) {
