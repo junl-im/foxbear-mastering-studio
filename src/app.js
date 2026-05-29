@@ -1,14 +1,14 @@
-// FoxBear AI Mastering Studio Pro v4.7 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v1.1 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v4.7';
+const APP_VERSION = 'Pro v1.1';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v46';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v11';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -169,7 +169,31 @@ const el = {};
 
 document.addEventListener('DOMContentLoaded', init);
 
+function runSiteAccessGuard() {
+    const allowedHosts = new Set(['junl-im.github.io', 'localhost', '127.0.0.1', '0.0.0.0']);
+    const protocol = window.location.protocol;
+    const host = window.location.hostname;
+    const isLocalFile = protocol === 'file:';
+    const isAllowed = isLocalFile || allowedHosts.has(host);
+    if (isAllowed) return false;
+    document.documentElement.innerHTML = `
+        <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>FoxBear Music</title>
+            <style>
+                body{margin:0;min-height:100vh;display:grid;place-items:center;background:#070711;color:#f3f0e8;font-family:system-ui,-apple-system,Segoe UI,sans-serif;text-align:center;padding:24px;}
+                section{max-width:520px;border:1px solid rgba(255,255,255,.14);border-radius:28px;background:rgba(20,18,33,.78);padding:28px;box-shadow:0 26px 80px rgba(0,0,0,.34)}
+                h1{margin:0 0 10px;font-size:1.4rem}p{color:#a49fae;line-height:1.6}
+            </style>
+        </head>
+        <body><section><h1>FoxBear Music</h1><p>정식 배포 주소에서만 실행되는 보호 모드입니다.<br>공식 페이지에서 다시 접속해주세요.</p></section></body>`;
+    return true;
+}
+
+
 function init() {
+    if (runSiteAccessGuard()) return;
     cacheElements();
     renderSliders();
     renderFeatureButtons();
@@ -1236,7 +1260,7 @@ function setTransformControls(transform) {
     el.tempoReadout.textContent = `${value.speedRatio.toFixed(2)}x`;
     el.tempoPercent.textContent = value.speedRatio.toFixed(2);
     if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? 'st 단위 고정 ON' : 'cent 미세 조정 ON'} · ${isDefaultTransform(value) ? '원본 키 유지' : 'Pitch 변경 적용'}`;
-    if (el.speedHint) el.speedHint.textContent = `BPM/Speed ${value.speedRatio.toFixed(2)}x · ${Math.abs(value.speedRatio - 1) < 0.001 ? '기본 속도' : '길이/템포 변경'}`;
+    if (el.speedHint) el.speedHint.textContent = `BPM ${value.speedRatio.toFixed(2)}x · ${Math.abs(value.speedRatio - 1) < 0.001 ? '기본 속도' : '길이/템포 변경'}`;
     el.pitchSpeedBadge.textContent = isDefaultTransform(value) ? '기본값' : '변경 적용';
     state.programmatic = false;
 }
@@ -2826,7 +2850,7 @@ function renderQueuePreview() {
     const head = document.createElement('div');
     head.className = 'queue-preview-head';
     const title = document.createElement('strong');
-    title.textContent = '선택 트랙 프리뷰';
+    title.textContent = '선택 트랙 미리듣기';
     const sub = document.createElement('span');
     sub.textContent = track ? (PRESET_LABELS[track.preset] || track.preset || '프리셋 대기') : '트랙 선택 대기';
     head.append(title, sub);
@@ -2834,7 +2858,7 @@ function renderQueuePreview() {
     if (!track) {
         const empty = document.createElement('div');
         empty.className = 'preview-empty';
-        empty.textContent = '불러온 곡을 선택하면 원본/마스터본 플레이어가 여기에 표시됩니다.';
+        empty.textContent = '불러온 곡을 선택하면 원본/마스터본 미리듣기가 여기에 표시됩니다.';
         el.queuePreview.appendChild(empty);
         return;
     }
@@ -3415,7 +3439,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v4.7',
+        app: 'FoxBear AI Mastering Studio Pro v1.1',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
