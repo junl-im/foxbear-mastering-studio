@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v4.2 - GitHub modular browser mastering console" />
-<title>FoxBear AI Mastering Studio Pro v4.2</title>
+<meta name="description" content="FoxBear AI Mastering Studio Pro v4.4 - GitHub modular browser mastering console" />
+<title>FoxBear AI Mastering Studio Pro v4.4</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
 <link rel="stylesheet" href="assets/css/studio.css" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -16,11 +16,11 @@
         <section class="brand-panel" aria-label="앱 소개">
             <div class="brand-kicker">
                 <span class="badge">곰같은여우 콘솔</span>
-                <span class="badge violet">Pro v4.2</span>
+                <span class="badge violet">Pro v4.4</span>
                 <span class="badge rose">PC & 모바일 호환</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
-            <p>브라우저 안에서 분석, 피치/속도 보정, 금속성 공진 감쇄, 앨범 매칭, True Peak 보호까지 한 번에 처리하는 로컬 오디오 마스터링 콘솔입니다.</p>
+            <p>브라우저 안에서 분석, 피치/속도 보정, 금속성 공진 감쇄, 보컬 보호, 앨범 매칭, True Peak 보호까지 한 번에 처리하는 로컬 오디오 마스터링 콘솔입니다.</p>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </section>
         <aside class="creator-panel" aria-label="개발자 정보">
@@ -130,8 +130,7 @@
                 </div>
                 <div class="pitch-action-row">
                     <label class="mini-check"><input type="checkbox" id="snapSemitone" checked /> 반음 고정</label>
-                    <span id="pitchSpeedBadge" class="rec-value">원본 유지</span>
-                    <button id="resetPitchSpeedBtn" class="btn-secondary btn-mini" type="button">초기화</button>
+                    <span id="pitchSpeedBadge" class="rec-value">기본값</span>
                 </div>
                 <span id="keyReadout" class="hidden">0.00</span>
                 <span id="tempoReadout" class="hidden">1.00x</span>
@@ -209,7 +208,7 @@
                         </select>
                     </div>
                 </div>
-                <small>v4.2는 AI 티 완화 엔진, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
+                <small>v4.4는 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
             </div>
             <div class="button-grid action-grid-pro">
                 <button id="aiApplyBtn" class="btn-secondary full" disabled>AI 추천 프리셋 다시 적용</button>
