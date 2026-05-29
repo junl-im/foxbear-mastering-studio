@@ -1,14 +1,14 @@
-// FoxBear AI Mastering Studio Pro v4.1 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v4.2 - adaptive modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v4.1';
+const APP_VERSION = 'Pro v4.2';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v41';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v42';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -28,6 +28,14 @@ const FEATURE_DEFINITIONS = {
     truePeakGuard: {
         label: 'True Peak 가드 적용',
         short: '인터샘플 피크를 확인해 -1 dBTP 근처에서 안전하게 보호합니다.'
+    },
+    aiHumanize: {
+        label: 'AI 티 완화 엔진',
+        short: '치찰음·쇳소리·초고역 피로감을 줄이고 250~500Hz 질감을 보강합니다.'
+    },
+    smartGuard: {
+        label: '스마트 과처리 방지',
+        short: '고강도 설정에서도 밝기·저역·피크를 감시해 멜로디 손상을 줄입니다.'
     }
 };
 
@@ -121,7 +129,9 @@ const state = {
     featureFlags: {
         trimSilence: false,
         albumMatch: false,
-        truePeakGuard: true
+        truePeakGuard: true,
+        aiHumanize: true,
+        smartGuard: true
     },
     albumProfile: null,
     outputFormat: 'wav24',
@@ -1687,7 +1697,8 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     const length = Math.max(1, sourceBuffer.length);
     const renderChannels = Math.max(1, Math.min(2, sourceBuffer.numberOfChannels || 1));
     const context = createOfflineAudioContext(renderChannels, length, sampleRate);
-    const intensity = getMasteringIntensity(settings);
+    const effectiveSettings = makeEffectiveMasterSettings(settings, analysis, preset);
+    const intensity = getMasteringIntensity(effectiveSettings);
 
     const source = context.createBufferSource();
     source.buffer = sourceBuffer;
@@ -1704,19 +1715,19 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node.connect(highPass);
     node = highPass;
 
-    node = createMetallicRemovalNode(context, node, settings.metallicRemoval, analysis, intensity);
-    node = createAiHumanizeNode(context, node, preset, settings, intensity);
+    node = createMetallicRemovalNode(context, node, effectiveSettings.metallicRemoval, analysis, intensity);
+    node = createAiHumanizeNode(context, node, preset, effectiveSettings, intensity);
     node = createProfileEqChain(context, node, preset, intensity);
-    const widthBase = map(settings.width, 0, 100, 0.82, 1.25);
+    const widthBase = map(effectiveSettings.width, 0, 100, 0.82, 1.25);
     const widthScaled = 1 + (widthBase - 1) * clamp(intensity.amount, 0.65, 1.85);
     node = createStereoWidthNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, widthScaled);
-    node = createStereoGrooveNode(context, node, settings.stereoGroove, intensity);
-    node = createSaturationNode(context, node, settings.analogGroove, settings.warmth, intensity);
-    node = createToneChain(context, node, settings, intensity);
-    node = createHighFrequencyExciterNode(context, node, settings, intensity);
-    node = createCompressionNode(context, node, settings.dynamicPunch, intensity);
+    node = createStereoGrooveNode(context, node, effectiveSettings.stereoGroove, intensity);
+    node = createSaturationNode(context, node, effectiveSettings.analogGroove, effectiveSettings.warmth, intensity);
+    node = createToneChain(context, node, effectiveSettings, intensity);
+    node = createHighFrequencyExciterNode(context, node, effectiveSettings, intensity);
+    node = createCompressionNode(context, node, effectiveSettings.dynamicPunch, intensity);
     node = createAlbumMatchNode(context, node, analysis, albumProfile);
-    node = createLoudnessLiftNode(context, node, settings, analysis, intensity);
+    node = createLoudnessLiftNode(context, node, effectiveSettings, analysis, intensity);
     node = createLimiterNode(context, node, intensity);
 
     node.connect(context.destination);
@@ -1724,8 +1735,43 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     return context.startRendering();
 }
 
+
+function makeEffectiveMasterSettings(settings, analysis, preset) {
+    const out = cloneSettings(settings || GENRE_PRESETS.custom);
+    if (settings && Number.isFinite(Number(settings.intensity))) out.intensity = Number(settings.intensity);
+    if (!state.featureFlags.smartGuard || !analysis) return out;
+
+    const brightness = Number(analysis.brightness || 0);
+    const metallic = Number(analysis.metallicHint || 0);
+    const bass = Number(analysis.bassRatio || 0);
+    const high = Number(analysis.highRatio || 0);
+    const transient = Number(analysis.transientDensity || 0);
+    const isCustom = preset === 'custom';
+    const guardStrength = isCustom ? 0.55 : 1;
+
+    if (brightness > 0.68 || high > 0.42) {
+        out.clarity = clamp(Math.round(out.clarity - (brightness > 0.78 ? 7 : 4) * guardStrength), 5, 92);
+        out.metallicRemoval = clamp(Math.round(out.metallicRemoval + (high > 0.48 ? 8 : 5) * guardStrength), 18, 88);
+    }
+    if (metallic > 0.66) {
+        out.metallicRemoval = clamp(Math.round(out.metallicRemoval + (metallic - 0.6) * 28 * guardStrength), 20, 90);
+        out.clarity = clamp(Math.round(out.clarity - (metallic - 0.6) * 12 * guardStrength), 5, 88);
+    }
+    if (bass > 0.55) {
+        out.warmth = clamp(Math.round(out.warmth - (bass - 0.52) * 18 * guardStrength), 10, 86);
+        out.dynamicPunch = clamp(Math.round(out.dynamicPunch - (bass - 0.52) * 10 * guardStrength), 8, 82);
+    }
+    if (transient > 0.62 && out.dynamicPunch > 58) {
+        out.dynamicPunch = clamp(Math.round(out.dynamicPunch - (transient - 0.58) * 18 * guardStrength), 10, 78);
+    }
+    if (Number(out.intensity) >= 170 && (metallic > 0.7 || high > 0.48)) {
+        out.intensity = clamp(Math.round(Number(out.intensity) - 10), 50, 200);
+    }
+    return out;
+}
+
 function shouldApplyAiHumanizer(preset) {
-    return Boolean(preset && preset !== 'custom');
+    return Boolean(preset && preset !== 'custom' && state.featureFlags.aiHumanize !== false);
 }
 
 function createAiHumanizeNode(context, input, preset, settings, intensity = getMasteringIntensity(settings)) {
@@ -2683,7 +2729,8 @@ function renderDetail(options = {}) {
     addDetailRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
     addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} 반음 · ${(track.transform?.speedRatio || 1).toFixed(2)}x`);
     addDetailRow('활성 기능', featureLabelText());
-    addDetailRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? '기본 적용 · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : '커스텀 프리셋에서는 수동 설정 우선');
+    addDetailRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
+    addDetailRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
     addDetailRow('실시간 엔진 로그', track.report || '-');
 
     if (track.trimInfo) {
