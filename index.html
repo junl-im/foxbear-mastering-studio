@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v4.4 - GitHub modular browser mastering console" />
-<title>FoxBear AI Mastering Studio Pro v4.4</title>
+<meta name="description" content="FoxBear AI Mastering Studio Pro v4.5 - GitHub modular browser mastering console" />
+<title>FoxBear AI Mastering Studio Pro v4.5</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
 <link rel="stylesheet" href="assets/css/studio.css" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -15,12 +15,12 @@
     <header class="studio-hero">
         <section class="brand-panel" aria-label="앱 소개">
             <div class="brand-kicker">
-                <span class="badge">곰같은여우 콘솔</span>
-                <span class="badge violet">Pro v4.4</span>
+                <span class="badge">곰같은여우 뮤직</span>
                 <span class="badge rose">PC & 모바일 호환</span>
+                <span class="badge violet">마스터링 PRO v4.5</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
-            <p>브라우저 안에서 분석, 피치/속도 보정, 금속성 공진 감쇄, 보컬 보호, 앨범 매칭, True Peak 보호까지 한 번에 처리하는 로컬 오디오 마스터링 콘솔입니다.</p>
+            <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM 보정, 금속성 공진 감쇄, 보컬 보호, 앨범 매칭, True Peak 보호까지 로컬로 처리합니다.</p>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </section>
         <aside class="creator-panel" aria-label="개발자 정보">
@@ -29,7 +29,7 @@
                 <div class="creator-name"><span>곰같은여우</span> with AI</div>
                 <a class="creator-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer">youtube.com/@FoxBearMusic</a>
                 <div class="creator-note">구독자가 아니여도 <BR> 음악을 사랑하는 여러분을 위한<BR> 무료배포 버전입니다.</div>
-                <a class="creator-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer">🦊 구독은 사랑입니다</a>
+                <a class="creator-subscribe youtube-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer"><span class="yt-mark" aria-hidden="true">▶</span><span>구독은 사랑입니다</span></a>
             </div>
         </aside>
     </header>
@@ -67,8 +67,6 @@
             </div>
             <div id="featureDock" class="feature-dock"></div>
 
-            <div id="intensityField" class="priority-slider" aria-label="마스터링 강도"></div>
-
             <div class="field">
                 <div class="field-row">
                     <label for="genreSelect">장르 프리셋</label>
@@ -98,6 +96,8 @@
                 </select>
             </div>
 
+            <div id="intensityField" class="priority-slider" aria-label="마스터링 강도"></div>
+
             <section class="dsp-settings" aria-label="마스터링 설정">
                 <div class="dsp-settings-head">
                     <strong>마스터링 설정</strong>
@@ -113,19 +113,19 @@
                 <div class="pitch-grid pitch-grid-clean">
                     <div class="pitch-control">
                         <div class="mini-field-row">
-                            <label for="pitchSlider">피치</label>
-                            <b id="pitchValue">0.00 반음</b>
+                            <label for="pitchSlider">피치 (Pitch)</label>
+                            <b id="pitchValue">0 st</b>
                         </div>
                         <input type="range" id="pitchSlider" min="-12" max="12" step="0.01" value="0" />
-                        <div id="pitchHint" class="control-hint">반음 고정 ON · 원본 키 유지</div>
+                        <div id="pitchHint" class="control-hint">st는 반음(semitone) 단위 · 원본 키 유지</div>
                     </div>
                     <div class="pitch-control">
                         <div class="mini-field-row">
-                            <label for="speedSlider">속도</label>
-                            <b id="speedValue">1.00x</b>
+                            <label for="speedSlider">속도 (BPM/Speed)</label>
+                            <b id="speedValue">1.00x / 100%</b>
                         </div>
                         <input type="range" id="speedSlider" min="0.5" max="1.5" step="0.01" value="1" />
-                        <div id="speedHint" class="control-hint">원본 100% · 길이 변화 없음</div>
+                        <div id="speedHint" class="control-hint">BPM/재생 길이 비율 · 기본 속도</div>
                     </div>
                 </div>
                 <div class="pitch-action-row">
@@ -142,6 +142,7 @@
         <div class="workspace-stack" aria-label="작업 및 분석 영역">
         <div class="queue-action-stack" aria-label="작업 대기열 및 실행">
         <section class="queue-panel" aria-label="작업 대기열">
+            <div class="summary-head"><strong>작업 요약</strong><small>총 파일 · 완료 · 용량 · 상태</small></div>
             <div class="stat-strip">
                 <div class="stat-card"><span>트랙</span><strong id="statTracks">0</strong></div>
                 <div class="stat-card"><span>완료</span><strong id="statDone">0</strong></div>
@@ -208,7 +209,7 @@
                         </select>
                     </div>
                 </div>
-                <small>v4.4는 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
+                <small>v4.5는 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
             </div>
             <div class="button-grid action-grid-pro">
                 <button id="aiApplyBtn" class="btn-secondary full" disabled>AI 추천 프리셋 다시 적용</button>
@@ -219,16 +220,16 @@
             </div>
             <div class="pro-tools-grid" aria-label="정밀 비교 및 잠금">
                 <button id="abMatchBtn" class="btn-secondary" type="button">A/B 레벨 매칭 OFF</button>
-                <button id="genreLockBtn" class="btn-secondary" type="button">장르 잠금</button>
                 <button id="clearCacheBtn" class="btn-secondary" type="button">분석 캐시 정리</button>
+                <span class="genre-lock-help">장르 잠금은 각 곡 카드에서 설정합니다. 잠그면 AI 재적용 시 선택한 장르 기준값을 유지합니다.</span>
             </div>
-            <div id="globalDiffMeter" class="diff-meter compact">마스터링 전후 비교는 렌더 후 분석 / 프리뷰에서 표시됩니다.</div>
+            <div id="globalDiffMeter" class="diff-meter compact">마스터링 전후 비교는 렌더 후 분석에서 표시됩니다.</div>
         </section>
         </div>
 
-        <aside class="inspect-panel" aria-label="분석 및 프리뷰">
+        <aside class="inspect-panel" aria-label="분석">
             <div class="panel-head">
-                <strong>분석 / 프리뷰</strong>
+                <strong>분석</strong>
                 <span id="detailStatus" class="status-pill">선택 없음</span>
             </div>
             <div id="trackDetail" class="detail-box"></div>
