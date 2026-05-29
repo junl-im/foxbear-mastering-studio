@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v4.5 - GitHub modular browser mastering console" />
-<title>FoxBear AI Mastering Studio Pro v4.5</title>
+<meta name="description" content="FoxBear AI Mastering Studio Pro v4.7 - GitHub modular browser mastering console" />
+<title>FoxBear AI Mastering Studio Pro v4.7</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
 <link rel="stylesheet" href="assets/css/studio.css" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -17,7 +17,7 @@
             <div class="brand-kicker">
                 <span class="badge">곰같은여우 뮤직</span>
                 <span class="badge rose">PC & 모바일 호환</span>
-                <span class="badge violet">마스터링 PRO v4.5</span>
+                <span class="badge violet">마스터링 PRO v4.7</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
             <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM 보정, 금속성 공진 감쇄, 보컬 보호, 앨범 매칭, True Peak 보호까지 로컬로 처리합니다.</p>
@@ -117,15 +117,15 @@
                             <b id="pitchValue">0 st</b>
                         </div>
                         <input type="range" id="pitchSlider" min="-12" max="12" step="0.01" value="0" />
-                        <div id="pitchHint" class="control-hint">st는 반음(semitone) 단위 · 원본 키 유지</div>
+                        <div id="pitchHint" class="control-hint">st 단위 · 원본 키 유지</div>
                     </div>
                     <div class="pitch-control">
                         <div class="mini-field-row">
                             <label for="speedSlider">속도 (BPM/Speed)</label>
-                            <b id="speedValue">1.00x / 100%</b>
+                            <b id="speedValue">1.00x</b>
                         </div>
                         <input type="range" id="speedSlider" min="0.5" max="1.5" step="0.01" value="1" />
-                        <div id="speedHint" class="control-hint">BPM/재생 길이 비율 · 기본 속도</div>
+                        <div id="speedHint" class="control-hint">BPM/Speed 비율 · 기본 속도</div>
                     </div>
                 </div>
                 <div class="pitch-action-row">
@@ -142,7 +142,7 @@
         <div class="workspace-stack" aria-label="작업 및 분석 영역">
         <div class="queue-action-stack" aria-label="작업 대기열 및 실행">
         <section class="queue-panel" aria-label="작업 대기열">
-            <div class="summary-head"><strong>작업 요약</strong><small>총 파일 · 완료 · 용량 · 상태</small></div>
+            <div class="summary-head"><strong>작업 요약</strong></div>
             <div class="stat-strip">
                 <div class="stat-card"><span>트랙</span><strong id="statTracks">0</strong></div>
                 <div class="stat-card"><span>완료</span><strong id="statDone">0</strong></div>
@@ -165,6 +165,14 @@
             </div>
             <div class="output-format-box pro-engine-box" aria-label="출력 및 엔진 선택">
                 <div class="engine-control-grid">
+                    <div class="master-goal-control">
+                        <label for="masterGoalSelect">마스터링 목표</label>
+                        <select id="masterGoalSelect">
+                            <option value="melody">멜로디 보존 우선 · 감정선/악기 보호</option>
+                            <option value="natural" selected>자연스러움 우선 · 균형 추천</option>
+                            <option value="loud">음압 우선 · 강한 체감</option>
+                        </select>
+                    </div>
                     <div>
                         <label for="outputFormatSelect">출력 포맷</label>
                         <select id="outputFormatSelect">
@@ -209,7 +217,7 @@
                         </select>
                     </div>
                 </div>
-                <small>v4.5는 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
+                <small>v4.7은 마스터링 목표 모드(멜로디 보존·자연스러움·음압), 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
             </div>
             <div class="button-grid action-grid-pro">
                 <button id="aiApplyBtn" class="btn-secondary full" disabled>AI 추천 프리셋 다시 적용</button>
@@ -236,7 +244,7 @@
         </aside>
         </div>
     </main>
-    <p class="bottom-safe-note">모든 처리는 브라우저 내부에서 실행됩니다. 전체 로컬 경로는 보안 정책상 표시하지 않고, 파일명과 폴더 상대 경로만 표시합니다.</p>
+    <p class="bottom-safe-note"><span>모든 처리는 브라우저 내부에서 실행됩니다.</span><span>전체 로컬 경로는 보안 정책상 표시하지 않고, 파일명과 폴더 상대 경로만 표시합니다.</span></p>
 </div>
 
 
@@ -250,6 +258,7 @@
     <button id="subscribeNudgeClose" class="subscribe-mini-close" type="button" aria-label="구독 안내 닫기">×</button>
 </div>
 
+<div id="featureTooltip" class="feature-tooltip" role="tooltip" aria-hidden="true"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
