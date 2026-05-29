@@ -1,14 +1,14 @@
-// FoxBear AI Mastering Studio Pro v4.2 - adaptive modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v4.4 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v4.2';
+const APP_VERSION = 'Pro v4.4';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v42';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v44';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -33,9 +33,25 @@ const FEATURE_DEFINITIONS = {
         label: 'AI 티 완화 엔진',
         short: '치찰음·쇳소리·초고역 피로감을 줄이고 250~500Hz 질감을 보강합니다.'
     },
+    vocalProtect: {
+        label: '보컬 보호 모드',
+        short: '보컬 중심 곡에서 De-esser와 Exciter를 섬세하게 조절해 감정선과 멜로디를 보존합니다.'
+    },
     smartGuard: {
         label: '스마트 과처리 방지',
         short: '고강도 설정에서도 밝기·저역·피크를 감시해 멜로디 손상을 줄입니다.'
+    },
+    lowEndAnchor: {
+        label: '저역 중심 고정',
+        short: '저역을 중앙에 단단히 묶어 킥·베이스 흔들림과 모바일 번짐을 줄입니다.'
+    },
+    melodyPreserve: {
+        label: '멜로디 보호 엔진',
+        short: '보컬·리드·악기 멜로디 대역을 과한 Exciter와 압축으로부터 보호합니다.'
+    },
+    transientRefine: {
+        label: '트랜지언트 정리',
+        short: '하이햇·클랩·타격음의 날카로운 순간 피크를 다듬어 자연스럽게 만듭니다.'
     }
 };
 
@@ -131,7 +147,11 @@ const state = {
         albumMatch: false,
         truePeakGuard: true,
         aiHumanize: true,
-        smartGuard: true
+        vocalProtect: true,
+        smartGuard: true,
+        lowEndAnchor: true,
+        melodyPreserve: true,
+        transientRefine: true
     },
     albumProfile: null,
     outputFormat: 'wav24',
@@ -164,7 +184,7 @@ function cacheElements() {
     const ids = [
         'fileDrop', 'folderDrop', 'fileInput', 'folderInput', 'featureDock', 'featureCount',
         'genreSelect', 'confidenceText', 'intensityField', 'sliderFields', 'pitchSlider', 'speedSlider', 'pitchValue', 'speedValue',
-        'pitchHint', 'speedHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge', 'resetPitchSpeedBtn',
+        'pitchHint', 'speedHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
         'albumStatus', 'toast', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
@@ -294,18 +314,6 @@ function bindEvents() {
         setTransformControls(transform);
         renderAll({ keepDetailAudio: true });
     });
-    el.resetPitchSpeedBtn.addEventListener('click', () => {
-        const track = getSelectedTrack();
-        const transform = cloneTransform(DEFAULT_TRANSFORM);
-        if (track) {
-            track.transform = transform;
-            invalidateMasteredOutput(track, '피치와 속도를 원본 값으로 되돌렸습니다.', true);
-        }
-        setTransformControls(transform);
-        renderAll({ keepDetailAudio: true });
-        showToast('피치와 속도를 원본 값으로 되돌렸습니다.');
-    });
-
     el.aiApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
     el.masterSelectedBtn.addEventListener('click', masterSelectedTracks);
     el.masterAllBtn.addEventListener('click', masterAllTracks);
@@ -1179,7 +1187,7 @@ function setTransformControls(transform) {
     el.tempoPercent.textContent = `원본 ${Math.round(value.speedRatio * 100)}%`;
     if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? '반음 고정 ON' : '미세 조정 ON'} · ${isDefaultTransform(value) ? '원본 키 유지' : '키 변경 적용'}`;
     if (el.speedHint) el.speedHint.textContent = `원본 ${Math.round(value.speedRatio * 100)}% · ${Math.abs(value.speedRatio - 1) < 0.001 ? '길이 변화 없음' : '재생 길이 변경'}`;
-    el.pitchSpeedBadge.textContent = isDefaultTransform(value) ? '원본 유지' : '변경 적용';
+    el.pitchSpeedBadge.textContent = isDefaultTransform(value) ? '기본값' : '변경 적용';
     state.programmatic = false;
 }
 
@@ -1519,6 +1527,7 @@ async function preparePitchSpeedBuffer(sourceBuffer, transform) {
                 channels,
                 length: sourceBuffer.length,
                 transform: value,
+                qualityMode: state.qualityMode || 'balanced',
                 channelBuffers
             };
             const result = await new Promise((resolve, reject) => {
@@ -1715,8 +1724,11 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node.connect(highPass);
     node = highPass;
 
+    node = createLowEndAnchorNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, effectiveSettings, analysis, intensity);
     node = createMetallicRemovalNode(context, node, effectiveSettings.metallicRemoval, analysis, intensity);
     node = createAiHumanizeNode(context, node, preset, effectiveSettings, intensity);
+    node = createVocalProtectionNode(context, node, preset, effectiveSettings, analysis, intensity);
+    node = createMelodyPreserveNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createProfileEqChain(context, node, preset, intensity);
     const widthBase = map(effectiveSettings.width, 0, 100, 0.82, 1.25);
     const widthScaled = 1 + (widthBase - 1) * clamp(intensity.amount, 0.65, 1.85);
@@ -1725,6 +1737,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createSaturationNode(context, node, effectiveSettings.analogGroove, effectiveSettings.warmth, intensity);
     node = createToneChain(context, node, effectiveSettings, intensity);
     node = createHighFrequencyExciterNode(context, node, effectiveSettings, intensity);
+    node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
     node = createCompressionNode(context, node, effectiveSettings.dynamicPunch, intensity);
     node = createAlbumMatchNode(context, node, analysis, albumProfile);
     node = createLoudnessLiftNode(context, node, effectiveSettings, analysis, intensity);
@@ -1768,6 +1781,79 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
         out.intensity = clamp(Math.round(Number(out.intensity) - 10), 50, 200);
     }
     return out;
+}
+
+
+function createLowEndAnchorNode(context, input, isStereo, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!state.featureFlags.lowEndAnchor || !isStereo) return input;
+    const bassRatio = clamp01(Number(analysis?.bassRatio ?? 0.28));
+    const anchorAmount = clamp(0.18 + bassRatio * 0.34 + Math.max(0, intensity.raw - 120) * 0.002, 0.16, 0.58);
+    const splitFrequency = clamp(120 + bassRatio * 80, 115, 190);
+
+    const output = context.createGain();
+    const highPath = context.createBiquadFilter();
+    highPath.type = 'highpass';
+    highPath.frequency.value = splitFrequency;
+    highPath.Q.value = 0.707;
+
+    const splitter = context.createChannelSplitter(2);
+    const left = context.createGain();
+    const right = context.createGain();
+    const lowPass = context.createBiquadFilter();
+    const lowGain = context.createGain();
+
+    left.gain.value = 0.5;
+    right.gain.value = 0.5;
+    lowPass.type = 'lowpass';
+    lowPass.frequency.value = splitFrequency;
+    lowPass.Q.value = 0.707;
+    lowGain.gain.value = anchorAmount;
+
+    input.connect(highPath).connect(output);
+    input.connect(splitter);
+    splitter.connect(left, 0);
+    splitter.connect(right, 1);
+    left.connect(lowPass);
+    right.connect(lowPass);
+    lowPass.connect(lowGain).connect(output);
+    return output;
+}
+
+function shouldApplyMelodyPreserve(preset, analysis) {
+    if (state.featureFlags.melodyPreserve === false) return false;
+    if (!preset || preset === 'custom') return false;
+    const melodicPresets = new Set(['pop','kpop','kballad','rnb','ballad','acoustic','citypop','globalpop','rock']);
+    const mid = Number(analysis?.midRatio || 0);
+    const lowMid = Number(analysis?.lowMidRatio || 0);
+    return melodicPresets.has(preset) || mid > 0.30 || lowMid > 0.28;
+}
+
+function createMelodyPreserveNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!shouldApplyMelodyPreserve(preset, analysis)) return input;
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const scale = clamp(0.65 + (100 - Math.min(100, clarity)) / 180 + Math.max(0, intensity.raw - 120) / 260, 0.55, 1.28);
+    const output = context.createGain();
+
+    const bodyGuard = context.createBiquadFilter();
+    bodyGuard.type = 'peaking';
+    bodyGuard.frequency.value = 780;
+    bodyGuard.Q.value = 0.75;
+    bodyGuard.gain.value = clamp(0.12 * scale, 0.04, 0.32);
+
+    const melodyForward = context.createBiquadFilter();
+    melodyForward.type = 'peaking';
+    melodyForward.frequency.value = 1450;
+    melodyForward.Q.value = 0.82;
+    melodyForward.gain.value = clamp(0.18 * scale, 0.05, 0.42);
+
+    const harshGuard = context.createBiquadFilter();
+    harshGuard.type = 'peaking';
+    harshGuard.frequency.value = 3650;
+    harshGuard.Q.value = 1.45;
+    harshGuard.gain.value = clamp(-0.12 * scale - Math.max(0, clarity - 62) * 0.008, -0.85, -0.04);
+
+    input.connect(bodyGuard).connect(melodyForward).connect(harshGuard).connect(output);
+    return output;
 }
 
 function shouldApplyAiHumanizer(preset) {
@@ -1829,6 +1915,50 @@ function createAiHumanizeNode(context, input, preset, settings, intensity = getM
 
     input.connect(warm250).connect(warm400).connect(body500).connect(deEsser).connect(hatTamer).connect(air125).connect(antiFizz16).connect(lowPass);
     return lowPass;
+}
+
+
+function shouldApplyVocalProtection(preset, analysis) {
+    if (state.featureFlags.vocalProtect === false) return false;
+    if (!preset || preset === 'custom') return false;
+    const vocalPresets = new Set(['pop','kpop','kballad','rnb','ballad','acoustic','citypop','globalpop']);
+    if (vocalPresets.has(preset)) return true;
+    const mid = Number(analysis?.midRatio || 0);
+    const high = Number(analysis?.highRatio || 0);
+    return mid > 0.34 && high < 0.55;
+}
+
+function createVocalProtectionNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!shouldApplyVocalProtection(preset, analysis)) return input;
+    const scale = clamp(intensity.amount, 0.7, 1.45);
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const output = context.createGain();
+    const body = context.createBiquadFilter();
+    const nasalGuard = context.createBiquadFilter();
+    const deEsserSoft = context.createBiquadFilter();
+    const airBalance = context.createBiquadFilter();
+
+    body.type = 'peaking';
+    body.frequency.value = 900;
+    body.Q.value = 0.95;
+    body.gain.value = clamp(0.22 * scale, 0.08, 0.55);
+
+    nasalGuard.type = 'peaking';
+    nasalGuard.frequency.value = 2400;
+    nasalGuard.Q.value = 1.25;
+    nasalGuard.gain.value = clamp(-0.18 * scale, -0.55, -0.05);
+
+    deEsserSoft.type = 'peaking';
+    deEsserSoft.frequency.value = 7200;
+    deEsserSoft.Q.value = 2.8;
+    deEsserSoft.gain.value = clamp(-0.28 - Math.max(0, clarity - 58) * 0.012 * scale, -1.25, -0.16);
+
+    airBalance.type = 'highshelf';
+    airBalance.frequency.value = 11800;
+    airBalance.gain.value = clamp(-0.10 * scale, -0.45, 0);
+
+    input.connect(body).connect(nasalGuard).connect(deEsserSoft).connect(airBalance).connect(output);
+    return output;
 }
 
 function createProfileEqChain(context, input, preset, intensity = getMasteringIntensity({ intensity: 100 })) {
@@ -2008,6 +2138,40 @@ function createLoudnessLiftNode(context, input, settings, analysis, intensity = 
     const gainDb = clamp(baseLift + extraDrive, -2.0, intensity.raw >= 160 ? 8.5 : 6.0);
     output.gain.value = dbToAmp(gainDb);
     input.connect(output);
+    return output;
+}
+
+
+function createTransientRefineNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.transientRefine === false) return input;
+    const transient = clamp01(Number(analysis?.transientDensity ?? 0.35));
+    const punch = clamp(Number(settings.dynamicPunch || 50), 0, 100);
+    const high = clamp01(Number(analysis?.highRatio ?? 0.28));
+    const need = transient > 0.42 || punch > 54 || intensity.raw > 135;
+    if (!need) return input;
+
+    const snapScale = clamp((transient - 0.36) * 2.0 + Math.max(0, punch - 50) / 120 + Math.max(0, intensity.raw - 130) / 180, 0.1, 1.25);
+    const output = context.createGain();
+    const clickGuard = context.createBiquadFilter();
+    const hatGuard = context.createBiquadFilter();
+    const bodyKeep = context.createBiquadFilter();
+
+    bodyKeep.type = 'peaking';
+    bodyKeep.frequency.value = 1850;
+    bodyKeep.Q.value = 0.9;
+    bodyKeep.gain.value = clamp(0.06 * snapScale, 0, 0.20);
+
+    clickGuard.type = 'peaking';
+    clickGuard.frequency.value = 4700;
+    clickGuard.Q.value = 2.2;
+    clickGuard.gain.value = clamp(-0.18 * snapScale, -0.85, -0.03);
+
+    hatGuard.type = 'peaking';
+    hatGuard.frequency.value = high > 0.38 ? 9500 : 7800;
+    hatGuard.Q.value = 1.8;
+    hatGuard.gain.value = clamp(-0.12 * snapScale, -0.65, -0.02);
+
+    input.connect(bodyKeep).connect(clickGuard).connect(hatGuard).connect(output);
     return output;
 }
 
@@ -2657,6 +2821,12 @@ function renderTrackList() {
         presetChip.className = 'track-preset-chip';
         presetChip.textContent = `프리셋 · ${PRESET_LABELS[track.preset] || track.preset}${track.genreLocked ? ' · 잠금' : ''}`;
         titleWrap.append(title, meta, presetChip);
+        if (shouldApplyVocalProtection(track.preset, track.analysis)) {
+            const vocalChip = document.createElement('div');
+            vocalChip.className = 'vocal-safe-chip';
+            vocalChip.textContent = '보컬 보호 ON';
+            titleWrap.appendChild(vocalChip);
+        }
 
         const status = document.createElement('span');
         status.className = `status-pill status-${track.status}`;
@@ -2730,6 +2900,7 @@ function renderDetail(options = {}) {
     addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} 반음 · ${(track.transform?.speedRatio || 1).toFixed(2)}x`);
     addDetailRow('활성 기능', featureLabelText());
     addDetailRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
+    addDetailRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
     addDetailRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
     addDetailRow('실시간 엔진 로그', track.report || '-');
 
@@ -2813,7 +2984,8 @@ function createPreviewPlayer(src, gainDb = 0) {
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'player-toggle';
-    toggle.textContent = '재생';
+    toggle.textContent = '▶';
+    toggle.setAttribute('aria-label', '재생');
 
     const seek = document.createElement('input');
     seek.type = 'range';
@@ -2833,10 +3005,13 @@ function createPreviewPlayer(src, gainDb = 0) {
     });
     audio.addEventListener('play', () => {
         bindExclusivePreview(audio);
-        toggle.textContent = '정지';
+        toggle.textContent = 'Ⅱ';
+        toggle.setAttribute('aria-label', '정지');
     });
-    audio.addEventListener('pause', () => { toggle.textContent = '재생'; });
-    audio.addEventListener('ended', () => { toggle.textContent = '재생'; seek.value = '0'; });
+    audio.addEventListener('pause', () => { toggle.textContent = '▶';
+    toggle.setAttribute('aria-label', '재생'); });
+    audio.addEventListener('ended', () => { toggle.textContent = '▶';
+    toggle.setAttribute('aria-label', '재생'); seek.value = '0'; });
     audio.addEventListener('timeupdate', () => {
         if (Number.isFinite(audio.duration) && audio.duration > 0) seek.value = String(Math.round(audio.currentTime / audio.duration * 1000));
         time.textContent = formatTime(audio.currentTime || 0);
