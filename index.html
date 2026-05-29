@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v3.0 - GitHub modular browser mastering console" />
-<title>FoxBear AI Mastering Studio Pro v3.0</title>
+<meta name="description" content="FoxBear AI Mastering Studio Pro v4.1 - GitHub modular browser mastering console" />
+<title>FoxBear AI Mastering Studio Pro v4.1</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
 <link rel="stylesheet" href="assets/css/studio.css" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -15,9 +15,9 @@
     <header class="studio-hero">
         <section class="brand-panel" aria-label="앱 소개">
             <div class="brand-kicker">
-                <span class="badge">FoxBear Original Console</span>
-                <span class="badge violet">AI Music Mastering Pro v3.0</span>
-                <span class="badge rose">Local Browser Renderer</span>
+                <span class="badge">곰같은여우 콘솔</span>
+                <span class="badge violet">Pro v4.1</span>
+                <span class="badge rose">PC & 모바일 호환</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
             <p>브라우저 안에서 분석, 피치/속도 보정, 금속성 공진 감쇄, 앨범 매칭, True Peak 보호까지 한 번에 처리하는 로컬 오디오 마스터링 콘솔입니다.</p>
@@ -31,7 +31,6 @@
                 <div class="creator-note">구독자가 아니여도 <BR> 음악을 사랑하는 여러분을 위한<BR> 무료배포 버전입니다.</div>
                 <a class="creator-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer">🦊 구독은 사랑입니다</a>
             </div>
-            <div class="version-chip">24-bit/32-float WAV · MP3 호환 출력 · PC/모바일 · Pro v3.0</div>
         </aside>
     </header>
 
@@ -155,6 +154,7 @@
                 <strong>작업 대기열</strong>
                 <span id="queueCount" class="badge">0개</span>
             </div>
+            <div id="queuePreview" class="queue-preview"></div>
             <div id="trackList" class="track-list"></div>
         </section>
 
@@ -200,8 +200,16 @@
                             <option value="max">Max Quality · 최고 검사</option>
                         </select>
                     </div>
+                    <div>
+                        <label for="pitchEngineSelect">피치/BPM 엔진</label>
+                        <select id="pitchEngineSelect">
+                            <option value="auto" selected>Auto · WASM 가능 시 우선</option>
+                            <option value="wsola">WSOLA Worker · 안정</option>
+                            <option value="external">External WASM · 설치 시 최고</option>
+                        </select>
+                    </div>
                 </div>
-                <small>v3.0은 피치/BPM 워커, 2-Pass 라우드니스, 오버샘플 피크 파이널라이저를 사용합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
+                <small>v4.0은 분석 캐시, A/B 레벨 매칭, LUFS 비교, 클리핑 위험 표시, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
             </div>
             <div class="button-grid action-grid-pro">
                 <button id="aiApplyBtn" class="btn-secondary full" disabled>AI 추천 프리셋 다시 적용</button>
@@ -210,6 +218,12 @@
                 <button id="zipBtn" class="btn-secondary" disabled>ZIP 다운로드</button>
                 <button id="clearBtn" class="btn-danger" disabled>초기화</button>
             </div>
+            <div class="pro-tools-grid" aria-label="정밀 비교 및 잠금">
+                <button id="abMatchBtn" class="btn-secondary" type="button">A/B 레벨 매칭 OFF</button>
+                <button id="genreLockBtn" class="btn-secondary" type="button">장르 잠금</button>
+                <button id="clearCacheBtn" class="btn-secondary" type="button">분석 캐시 정리</button>
+            </div>
+            <div id="globalDiffMeter" class="diff-meter compact">마스터링 전후 비교는 렌더 후 분석 / 프리뷰에서 표시됩니다.</div>
         </section>
         </div>
 
