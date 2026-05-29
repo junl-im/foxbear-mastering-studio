@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v3.0 - modular GitHub build */
+/* FoxBear AI Mastering Studio Pro v4.1 - modular GitHub build */
 :root {
     color-scheme: dark;
     --bg: #070711;
@@ -986,7 +986,7 @@ audio { width: 100%; }
 }
 
 
-/* v3.0 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
+/* v4.0 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
    Queue, action, and preview remain separate panels while following each other naturally. */
 .studio-grid {
     display: grid !important;
@@ -1079,7 +1079,7 @@ audio { width: 100%; }
 @media (max-width: 390px) {
     .studio-grid { grid-template-columns: minmax(136px, 0.84fr) minmax(164px, 1.16fr) !important; }
 }
-/* Pro v3.0 output / performance controls */
+/* Pro v4.0 output / performance controls */
 .output-format-box {
     margin-bottom: 12px;
     padding: 11px;
@@ -1108,7 +1108,7 @@ audio { width: 100%; }
     font-size: 0.86rem;
 }
 
-/* Pro v3.0 engine controls */
+/* Pro v4.0 engine controls */
 .pro-engine-box {
     padding: 12px;
     border-radius: 20px;
@@ -1141,4 +1141,131 @@ audio { width: 100%; }
 }
 @media (max-width: 640px) {
     .engine-control-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Pro v4.0 precision tools */
+.pro-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+.pro-tools-grid button {
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: 0.74rem;
+}
+.diff-meter {
+    margin-top: 10px;
+    padding: 10px 11px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.11);
+    background: rgba(0,0,0,0.17);
+    color: var(--muted);
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+.diff-meter.compact { font-size: 0.68rem; }
+.compare-panel {
+    margin: 10px 0 12px;
+    padding: 11px;
+    border-radius: 20px;
+    border: 1px solid rgba(143,233,255,0.16);
+    background: linear-gradient(135deg, rgba(143,233,255,0.06), rgba(184,156,255,0.045));
+}
+.compare-panel strong { display:block; margin-bottom:8px; font-size:0.82rem; }
+.compare-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:7px; }
+.compare-chip {
+    padding: 8px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(0,0,0,0.16);
+    min-width:0;
+}
+.compare-chip span { display:block; color:var(--muted); font-size:0.62rem; }
+.compare-chip b { display:block; margin-top:2px; font-size:0.78rem; }
+.lufs-bars { display:grid; gap:6px; margin-top:10px; }
+.lufs-row { display:grid; grid-template-columns: 54px 1fr 58px; align-items:center; gap:7px; font-size:0.66rem; color:var(--muted); }
+.lufs-track { height:7px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,0.08); }
+.lufs-fill { height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg, var(--mint), var(--violet)); }
+.risk-low { color: var(--mint); font-weight:900; }
+.risk-mid { color: var(--amber); font-weight:900; }
+.risk-high { color: var(--danger); font-weight:900; }
+.track-card.genre-locked { border-color: rgba(255,210,122,0.42); }
+.track-card.genre-locked .track-name::after { content:'  🔒'; font-size:.8em; }
+@media (max-width: 640px) {
+    .pro-tools-grid { grid-template-columns: 1fr; gap:5px; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .lufs-row { grid-template-columns: 44px 1fr 48px; font-size:0.56rem; }
+}
+
+
+/* Pro v4.1 interface refinements */
+.queue-preview {
+    margin: 0 0 12px;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(127,255,212,0.18);
+    background: radial-gradient(circle at 92% 8%, rgba(127,255,212,0.10), transparent 36%), rgba(255,255,255,0.035);
+}
+.queue-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.queue-preview-head strong { font-size: 0.86rem; letter-spacing: -0.02em; }
+.queue-preview-head span { color: var(--muted); font-size: 0.68rem; font-weight: 850; text-align: right; }
+.queue-preview .preview-grid { margin-bottom: 0; }
+.queue-preview .preview-card { padding: 8px; border-radius: 16px; }
+.queue-preview .custom-player { grid-template-columns: 48px minmax(0, 1fr) 38px; }
+.track-preset-chip {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: 7px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(184,156,255,0.22);
+    background: rgba(184,156,255,0.08);
+    color: #e5dbff;
+    font-size: 0.66rem;
+    font-weight: 950;
+    letter-spacing: -0.01em;
+}
+.bottom-safe-note {
+    max-width: 760px;
+    margin: 34px auto 0 !important;
+    text-align: center;
+    line-height: 1.65;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    color: rgba(243,240,232,0.58);
+}
+@keyframes foxWaveBreathMobile {
+    0%, 100% { transform: scaleY(0.72); opacity: 0.58; }
+    50% { transform: scaleY(1.04); opacity: 0.92; }
+}
+@media (max-width: 640px) {
+    .brand-panel { min-height: auto; }
+    .brand-kicker .badge { font-size: 0.48rem; padding: 3px 5px; }
+    .mini-wave { height: 16px !important; margin-top: 5px !important; overflow: hidden; align-items: end; }
+    .mini-wave i { width: 3px !important; animation-name: foxWaveBreathMobile !important; }
+    .creator-panel { justify-content: center; }
+    .creator-note { display: none; }
+    .queue-preview { padding: 6px; border-radius: 13px; margin-bottom: 6px; }
+    .queue-preview-head { margin-bottom: 5px; gap: 4px; }
+    .queue-preview-head strong { font-size: 0.62rem; }
+    .queue-preview-head span { font-size: 0.50rem; }
+    .queue-preview .preview-grid { gap: 5px; }
+    .queue-preview .preview-card { padding: 5px; }
+    .queue-preview .custom-player { grid-template-columns: 34px minmax(0, 1fr) 28px; gap: 4px; }
+    .track-preset-chip { font-size: 0.50rem; padding: 3px 6px; margin-top: 4px; }
+    .bottom-safe-note {
+        max-width: calc(100% - 22px);
+        margin-top: 24px !important;
+        font-size: 0.64rem;
+        line-height: 1.7;
+    }
 }
