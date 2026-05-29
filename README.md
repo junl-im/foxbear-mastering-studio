@@ -1,39 +1,33 @@
-# FoxBear AI Mastering Studio Pro v3.0
+# FoxBear AI Mastering Studio Pro v4.1
 
-GitHub Pages compatible modular browser mastering studio by 곰같은여우 with AI.
+GitHub Pages-ready modular browser mastering studio.
 
-## Pro v3.0 upgrades
+## v4.1 upgrades
 
-- Modular HTML/CSS/JS project for GitHub instead of single-file HTML
-- Analysis Worker for large-file feature extraction
-- Pitch/BPM WSOLA Worker for off-main-thread pitch and time preparation
-- 2-Pass Master Finalizer Worker
-  - LUFS-like target loudness
-  - oversampled true-peak ceiling
-  - final soft ceiling protection
-- 24-bit PCM WAV export
-- 32-bit Float WAV export
-- MP3 320/192 kbps compatibility path with WAV fallback when native browser MP3 encoding is unavailable
-- GitHub Pages workflow included
+- IndexedDB analysis cache for faster repeat loads
+- Optional external WASM pitch engine adapter with WSOLA Worker fallback
+- A/B level-matched preview mode
+- Mastering difference meter and LUFS before/after graph
+- Clipping-risk indicator
+- Genre preset lock for manual genre corrections
+- 24-bit WAV, 32-bit float WAV, and MP3 compatibility output
+- 2-pass loudness finalizer and oversampled peak guard
 
 ## Run locally
-
-Workers need an HTTP server. Do not open `index.html` with `file://`.
 
 ```bash
 python3 -m http.server 8080
 ```
 
-Then open:
+Open `http://localhost:8080`.
 
-```txt
-http://localhost:8080
-```
+## Optional external pitch engine
 
-## GitHub Pages
+Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app uses its built-in WSOLA Worker.
 
-Push this project to GitHub. The included `.github/workflows/pages.yml` can publish the project with GitHub Pages Actions.
 
-## Notes
-
-Browser-based mastering can be powerful, but pitch/BPM processing is never mathematically lossless when speed or pitch changes are applied. Pro v3.0 uses a Worker-based SOLA-style engine and 2-pass finalizer to reduce UI blocking and improve final loudness/peak consistency.
+## Pro v4.1
+- Queue preview moved above loaded tracks.
+- AI humanize mastering chain added: mid warmth, de-esser, high-frequency taming, 16 kHz musical low-pass.
+- Track card mastering button restored.
+- Auto remaster refresh after completed-track parameter edits.
