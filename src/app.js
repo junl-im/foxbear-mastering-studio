@@ -1,14 +1,14 @@
-// FoxBear AI Mastering Studio Pro v4.5 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v4.7 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v4.5';
+const APP_VERSION = 'Pro v4.7';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v45';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v46';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -155,6 +155,7 @@ const state = {
     },
     albumProfile: null,
     outputFormat: 'wav24',
+    masterGoal: 'natural',
     targetLufs: -14,
     ceilingDb: -1.0,
     qualityMode: 'balanced',
@@ -187,7 +188,7 @@ function cacheElements() {
         'pitchHint', 'speedHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
+        'albumStatus', 'toast', 'featureTooltip', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -253,7 +254,14 @@ function renderFeatureButtons() {
         status.textContent = state.featureFlags[key] ? 'ON' : 'OFF';
 
         button.append(title, status);
-        button.addEventListener('click', () => toggleFeature(key));
+        button.addEventListener('mouseenter', () => showFeatureTooltip(button, info.short));
+        button.addEventListener('focus', () => showFeatureTooltip(button, info.short));
+        button.addEventListener('mouseleave', hideFeatureTooltip);
+        button.addEventListener('blur', hideFeatureTooltip);
+        button.addEventListener('click', () => {
+            showFeatureTooltip(button, info.short, 1800);
+            toggleFeature(key);
+        });
         el.featureDock.appendChild(button);
     });
     updateFeatureSummary();
@@ -264,7 +272,37 @@ function updateFeatureSummary() {
     el.featureCount.textContent = `${active}개 활성`;
 }
 
+
+function showFeatureTooltip(target, text, autoHideMs = 0) {
+    if (!el.featureTooltip || !target || !text) return;
+    el.featureTooltip.textContent = text;
+    el.featureTooltip.classList.add('show');
+    el.featureTooltip.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => {
+        const rect = target.getBoundingClientRect();
+        const tip = el.featureTooltip.getBoundingClientRect();
+        const margin = 8;
+        let left = rect.left + rect.width / 2 - tip.width / 2;
+        left = clamp(left, margin, Math.max(margin, window.innerWidth - tip.width - margin));
+        let top = rect.top - tip.height - 9;
+        if (top < margin) top = rect.bottom + 9;
+        if (top + tip.height > window.innerHeight - margin) top = Math.max(margin, window.innerHeight - tip.height - margin);
+        el.featureTooltip.style.left = `${left}px`;
+        el.featureTooltip.style.top = `${top}px`;
+    });
+    clearTimeout(state.featureTooltipTimer);
+    if (autoHideMs) state.featureTooltipTimer = setTimeout(hideFeatureTooltip, autoHideMs);
+}
+
+function hideFeatureTooltip() {
+    if (!el.featureTooltip) return;
+    el.featureTooltip.classList.remove('show');
+    el.featureTooltip.setAttribute('aria-hidden', 'true');
+}
+
 function bindEvents() {
+    window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
+    window.addEventListener('resize', hideFeatureTooltip);
     el.fileDrop.addEventListener('click', () => el.fileInput.click());
     el.folderDrop.addEventListener('click', () => el.folderInput.click());
     el.fileDrop.addEventListener('keydown', e => activateByKeyboard(e, () => el.fileInput.click()));
@@ -320,6 +358,17 @@ function bindEvents() {
     el.masterAllBtn.addEventListener('click', masterAllTracks);
     el.zipBtn.addEventListener('click', downloadZip);
     el.clearBtn.addEventListener('click', clearQueue);
+    if (el.masterGoalSelect) {
+        state.masterGoal = el.masterGoalSelect.value || state.masterGoal;
+        applyMasterGoalDefaults(state.masterGoal, false);
+        el.masterGoalSelect.addEventListener('change', () => {
+            state.masterGoal = el.masterGoalSelect.value || 'natural';
+            applyMasterGoalDefaults(state.masterGoal, true);
+            invalidateAllMasteredOutput(`${getMasterGoalLabel(state.masterGoal)} 목표 모드로 변경되었습니다. 다시 마스터링하세요.`);
+            renderAll({ keepDetailAudio: true });
+            showToast(`${getMasterGoalLabel(state.masterGoal)} 목표 모드로 변경했습니다.`);
+        });
+    }
     if (el.outputFormatSelect) {
         state.outputFormat = el.outputFormatSelect.value || state.outputFormat;
         el.outputFormatSelect.addEventListener('change', () => {
@@ -1182,12 +1231,12 @@ function setTransformControls(transform) {
     el.pitchSlider.value = String(value.pitchSemitones);
     el.speedSlider.value = String(value.speedRatio);
     el.pitchValue.textContent = `${formatSigned(value.pitchSemitones, value.snapSemitone ? 0 : 2)} st`;
-    el.speedValue.textContent = `${value.speedRatio.toFixed(2)}x / ${Math.round(value.speedRatio * 100)}%`;
+    el.speedValue.textContent = `${value.speedRatio.toFixed(2)}x`;
     el.keyReadout.textContent = formatSigned(value.pitchSemitones, value.snapSemitone ? 0 : 2);
     el.tempoReadout.textContent = `${value.speedRatio.toFixed(2)}x`;
-    el.tempoPercent.textContent = `원본 ${Math.round(value.speedRatio * 100)}%`;
-    if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? 'st 반음 고정 ON' : 'cent 미세 조정 ON'} · ${isDefaultTransform(value) ? '원본 키 유지' : 'Pitch 변경 적용'}`;
-    if (el.speedHint) el.speedHint.textContent = `BPM/Speed ${Math.round(value.speedRatio * 100)}% · ${Math.abs(value.speedRatio - 1) < 0.001 ? '기본 속도' : '길이/템포 변경'}`;
+    el.tempoPercent.textContent = value.speedRatio.toFixed(2);
+    if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? 'st 단위 고정 ON' : 'cent 미세 조정 ON'} · ${isDefaultTransform(value) ? '원본 키 유지' : 'Pitch 변경 적용'}`;
+    if (el.speedHint) el.speedHint.textContent = `BPM/Speed ${value.speedRatio.toFixed(2)}x · ${Math.abs(value.speedRatio - 1) < 0.001 ? '기본 속도' : '길이/템포 변경'}`;
     el.pitchSpeedBadge.textContent = isDefaultTransform(value) ? '기본값' : '변경 적용';
     state.programmatic = false;
 }
@@ -1342,6 +1391,7 @@ async function masterTrack(track, calledFromBatch = false) {
             targetLufs: state.targetLufs,
             ceilingDb: state.ceilingDb,
             qualityMode: state.qualityMode,
+            masterGoal: state.masterGoal,
             truePeak: state.featureFlags.truePeakGuard
         });
         const finalBuffer = finalization.buffer;
@@ -1753,6 +1803,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
 function makeEffectiveMasterSettings(settings, analysis, preset) {
     const out = cloneSettings(settings || GENRE_PRESETS.custom);
     if (settings && Number.isFinite(Number(settings.intensity))) out.intensity = Number(settings.intensity);
+    applyMasterGoalToSettings(out, analysis, preset);
     if (!state.featureFlags.smartGuard || !analysis) return out;
 
     const brightness = Number(analysis.brightness || 0);
@@ -2897,6 +2948,7 @@ function renderDetail(options = {}) {
     addDetailRow('분석 캐시', track.analysisCacheHit ? '사용됨 · 재분석 시간 절약' : '신규 분석');
     if (track.outName) addDetailRow('출력 파일', track.outName);
     addDetailRow('출력 포맷', getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'));
+    addDetailRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
     if (track.genreReason) addDetailRow('장르 판단 근거', track.genreReason);
     addDetailRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
     addDetailRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
@@ -3169,6 +3221,97 @@ function toggleGenreLockForSelected() {
     toggleGenreLockForTrack(getSelectedTrack());
 }
 
+
+function getMasterGoalProfile(goal = state.masterGoal) {
+    const profiles = {
+        melody: {
+            label: '멜로디 보존 우선',
+            description: '보컬·리드·어쿠스틱 악기 보호',
+            targetLufs: -16,
+            ceilingDb: -1.5,
+            qualityMode: 'max',
+            clarityDelta: -5,
+            warmthDelta: 4,
+            widthDelta: -3,
+            punchDelta: -7,
+            metallicDelta: 6,
+            intensityScale: 0.90
+        },
+        natural: {
+            label: '자연스러움 우선',
+            description: '원본 질감과 체감 보정의 균형',
+            targetLufs: -14,
+            ceilingDb: -1.0,
+            qualityMode: 'balanced',
+            clarityDelta: 0,
+            warmthDelta: 1,
+            widthDelta: 0,
+            punchDelta: 0,
+            metallicDelta: 2,
+            intensityScale: 1.0
+        },
+        loud: {
+            label: '음압 우선',
+            description: '더 강한 존재감과 큰 체감',
+            targetLufs: -12,
+            ceilingDb: -0.8,
+            qualityMode: 'max',
+            clarityDelta: 4,
+            warmthDelta: -2,
+            widthDelta: 2,
+            punchDelta: 8,
+            metallicDelta: 4,
+            intensityScale: 1.12
+        }
+    };
+    return profiles[goal] || profiles.natural;
+}
+
+function getMasterGoalLabel(goal = state.masterGoal) {
+    return getMasterGoalProfile(goal).label;
+}
+
+function getMasterGoalDescription(goal = state.masterGoal) {
+    return getMasterGoalProfile(goal).description;
+}
+
+function applyMasterGoalDefaults(goal, updateControls) {
+    const profile = getMasterGoalProfile(goal);
+    state.targetLufs = profile.targetLufs;
+    state.ceilingDb = profile.ceilingDb;
+    state.qualityMode = profile.qualityMode;
+    if (updateControls || el.targetLufsSelect) {
+        if (el.targetLufsSelect) el.targetLufsSelect.value = String(profile.targetLufs);
+        if (el.ceilingSelect) el.ceilingSelect.value = String(profile.ceilingDb);
+        if (el.qualityModeSelect) el.qualityModeSelect.value = profile.qualityMode;
+    }
+}
+
+function applyMasterGoalToSettings(out, analysis, preset) {
+    const profile = getMasterGoalProfile(state.masterGoal);
+    const isCustom = preset === 'custom';
+    const customScale = isCustom ? 0.55 : 1;
+    out.clarity = clamp(Math.round(out.clarity + profile.clarityDelta * customScale), 5, 95);
+    out.warmth = clamp(Math.round(out.warmth + profile.warmthDelta * customScale), 5, 95);
+    out.width = clamp(Math.round(out.width + profile.widthDelta * customScale), 5, 86);
+    out.dynamicPunch = clamp(Math.round(out.dynamicPunch + profile.punchDelta * customScale), 5, 90);
+    out.metallicRemoval = clamp(Math.round(out.metallicRemoval + profile.metallicDelta * customScale), 18, 92);
+    out.intensity = clampToStep(Number(out.intensity || 100) * profile.intensityScale, 50, 200, 5);
+
+    if (state.masterGoal === 'melody') {
+        const mid = Number(analysis?.midRatio || 0);
+        if (mid > 0.28 || shouldApplyVocalProtection(preset, analysis)) {
+            out.clarity = clamp(out.clarity - 3, 5, 90);
+            out.warmth = clamp(out.warmth + 2, 5, 96);
+            out.dynamicPunch = clamp(out.dynamicPunch - 4, 5, 85);
+        }
+    }
+    if (state.masterGoal === 'loud') {
+        const metallic = Number(analysis?.metallicHint || 0);
+        if (metallic > 0.62) out.metallicRemoval = clamp(out.metallicRemoval + 6, 18, 94);
+    }
+}
+
 function getPitchEngineLabel(mode) {
     const labels = { auto: 'Auto/WASM 우선', wsola: 'WSOLA Worker', external: 'External WASM' };
     return labels[mode] || mode;
@@ -3263,7 +3406,7 @@ function buildReport(track) {
 }
 
 function createDoneReport(track) {
-    const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`];
+    const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`, getMasterGoalLabel(state.masterGoal)];
     if (track.trimInfo && track.trimInfo.applied) parts.push(`무음 정리 앞 ${track.trimInfo.startTrimSec.toFixed(2)}초/뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초`);
     if (track.albumApplied) parts.push(`앨범 통일 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB`);
     if (track.truePeakInfo) parts.push(track.truePeakInfo.mode === 'truePeak' ? 'True Peak 보호' : 'Sample Peak 보호');
@@ -3272,7 +3415,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v4.1',
+        app: 'FoxBear AI Mastering Studio Pro v4.7',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -3291,7 +3434,7 @@ function createExportReport(track) {
         albumApplied: track.albumApplied,
         truePeakInfo: track.truePeakInfo,
         finalizeInfo: track.finalizeInfo,
-        outputTarget: { targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
+        outputTarget: { masterGoal: state.masterGoal, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
         albumProfile: state.albumProfile,
         analysis: track.analysis,
         createdAt: new Date().toISOString()
