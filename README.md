@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v4.5
+# FoxBear AI Mastering Studio Pro v4.7
 
 GitHub Pages-ready modular browser mastering studio.
 
-## v4.5 upgrades
+## v4.7 upgrades
 
 - IndexedDB analysis cache for faster repeat loads
 - Optional external WASM pitch engine adapter with WSOLA Worker fallback
@@ -26,19 +26,19 @@ Open `http://localhost:8080`.
 Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app uses its built-in WSOLA Worker.
 
 
-## Pro v4.5
+## Pro v4.7
 - Queue preview moved above loaded tracks.
 - AI humanize mastering chain added: mid warmth, de-esser, high-frequency taming, 16 kHz musical low-pass.
 - Track card mastering button restored.
 - Auto remaster refresh after completed-track parameter edits.
 
-## Pro v4.5 additional refinements
+## Pro v4.7 additional refinements
 - AI 티 완화 엔진을 버튼형 기능으로 분리해 필요 시 ON/OFF할 수 있습니다.
 - 스마트 과처리 방지를 추가해 고강도 마스터링에서도 밝기, 저역, 피크 과잉을 렌더 직전에 보정합니다.
 - 금속성·초고역이 강한 소스는 Clarity/Intensity가 자동으로 살짝 완화되어 멜로디 손상을 줄입니다.
 
 
-## Pro v4.5 refinements
+## Pro v4.7 refinements
 - 피치/속도 기본값 배지 정리 및 초기화 버튼 제거
 - 커스텀 프리뷰 플레이어 버튼을 아이콘형 컨트롤로 정리
 - 모바일 플레이 게이지 및 상단 웨이브 반응형 개선
@@ -46,10 +46,25 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - 상단 설명 문단 자동 줄바꿈 및 모바일 가독성 개선
 
 
-## Pro v4.5 advanced engine upgrades
+## Pro v4.7 advanced engine upgrades
 
 - Phase-coherent WSOLA pitch/BPM worker: stereo channels share one SOLA alignment plan to reduce image smear.
 - Low-End Anchor: keeps low frequency energy more centered and stable for mobile playback.
 - Melody Preserve Engine: protects vocal/lead/acoustic melody bands from over-exciting and over-compression.
 - Transient Refine: softens brittle hi-hat, clap, and click peaks while keeping punch.
 - DC-safe 2-pass finalizer with higher max-quality oversampling.
+
+
+## Pro v4.7 UI stability patch
+- 피치/BPM 영역의 퍼센트 표기를 제거하고 모바일에서 영역을 벗어나지 않도록 압축했습니다.
+- 버튼형 적용 기능은 모바일에서도 3열을 유지하고 설명 말풍선은 화면 밖으로 나가지 않게 고정 위치로 계산합니다.
+- 파일/폴더 업로드는 모바일에서도 2열 고정입니다.
+- 모바일 상단 웨이브와 소개 패널 정렬을 안정화했습니다.
+- 하단 브라우저 내부 처리 안내는 두 줄 문단으로 분리했습니다.
+
+## Pro v4.7 mastering goal modes
+- Added Mastering Goal selector: Melody Preserve, Natural Balance, and Loudness Focus.
+- Goal mode automatically tunes target LUFS, true-peak ceiling, quality mode, intensity scaling, warmth, clarity, punch, and metallic removal behavior.
+- Melody Preserve protects vocal/lead/acoustic lines with gentler punch and safer high-frequency behavior.
+- Natural Balance keeps the recommended default for general release work.
+- Loudness Focus increases punch and perceived loudness while adding extra metallic protection when needed.
