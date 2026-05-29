@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker - 2-pass loudness target + oversampled peak ceiling
+// FoxBear Pro finalizer worker - 2-pass loudness target + DC-safe oversampled peak ceiling
 'use strict';
 
 self.onmessage = event => {
@@ -14,9 +14,10 @@ self.onmessage = event => {
         const channelBuffers = (payload.channelBuffers || []).map(buf => new Float32Array(buf));
         if (!channelBuffers.length) throw new Error('마스터 파이널라이저 입력이 비어 있습니다.');
 
-        const oversample = qualityMode === 'max' ? 8 : 4;
+        const oversample = qualityMode === 'max' ? 16 : qualityMode === 'fast' ? 4 : 8;
         const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
         const data = channelBuffers.map(src => new Float32Array(src));
+        removeDcOffset(data, length);
 
         const loudnessBefore = measureGatedLoudness(data, sampleRate, length, channels);
         const peakBefore = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
@@ -29,6 +30,7 @@ self.onmessage = event => {
         const ceilingGain = preCeilingPeak > ceiling ? ceiling / Math.max(1e-9, preCeilingPeak) : 1;
         if (ceilingGain < 1) applyGain(data, length, ceilingGain);
         applySoftCeiling(data, length, ceiling);
+        removeDcOffset(data, length);
 
         const peakAfter = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
         if (peakAfter > ceiling * 1.001) {
@@ -61,6 +63,17 @@ self.onmessage = event => {
         self.postMessage({ ok: false, error: error.message || String(error) });
     }
 };
+
+
+function removeDcOffset(buffers, length) {
+    for (const data of buffers) {
+        let sum = 0;
+        for (let i = 0; i < length; i += 1) sum += data[i] || 0;
+        const mean = sum / Math.max(1, length);
+        if (Math.abs(mean) < 1e-7) continue;
+        for (let i = 0; i < length; i += 1) data[i] = (data[i] || 0) - mean;
+    }
+}
 
 function measureGatedLoudness(buffers, sampleRate, length, channels) {
     const frameSize = Math.max(1024, Math.round(sampleRate * 0.400));
