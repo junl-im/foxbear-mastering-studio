@@ -1,8 +1,8 @@
 {
   "name": "foxbear-github-pro-v4",
-  "version": "4.2.0",
+  "version": "4.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v4.2 modular GitHub Pages build",
+  "description": "FoxBear AI Mastering Studio Pro v4.4 modular GitHub Pages build",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node --check src/app.js && node --check src/workers/analysis.worker.js && node --check src/workers/wav-encoder.worker.js && node --check src/workers/mp3-encoder.worker.js && node --check src/workers/master-finalizer.worker.js && node --check src/workers/pitch-wsola.worker.js"
