@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v4.6 - modular GitHub build */
+/* FoxBear AI Mastering Studio Pro v1.1 - modular GitHub build */
 :root {
     color-scheme: dark;
     --bg: #070711;
@@ -1056,7 +1056,7 @@ audio { width: 100%; }
 }
 
 
-/* v4.0 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
+/* v1.1 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
    Queue, action, and preview remain separate panels while following each other naturally. */
 .studio-grid {
     display: grid !important;
@@ -1149,7 +1149,7 @@ audio { width: 100%; }
 @media (max-width: 390px) {
     .studio-grid { grid-template-columns: minmax(136px, 0.84fr) minmax(164px, 1.16fr) !important; }
 }
-/* Pro v4.0 output / performance controls */
+/* Pro v1.1 output / performance controls */
 .output-format-box {
     margin-bottom: 12px;
     padding: 11px;
@@ -1178,7 +1178,7 @@ audio { width: 100%; }
     font-size: 0.86rem;
 }
 
-/* Pro v4.0 engine controls */
+/* Pro v1.1 engine controls */
 .pro-engine-box {
     padding: 12px;
     border-radius: 20px;
@@ -1214,7 +1214,7 @@ audio { width: 100%; }
 }
 
 
-/* Pro v4.0 precision tools */
+/* Pro v1.1 precision tools */
 .pro-tools-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1271,7 +1271,7 @@ audio { width: 100%; }
 }
 
 
-/* Pro v4.6 interface refinements */
+/* Pro v1.1 interface refinements */
 .queue-preview {
     margin: 0 0 12px;
     padding: 10px;
@@ -1341,7 +1341,7 @@ audio { width: 100%; }
 }
 
 
-/* Pro v4.6 refined mobile flow, player controls, and pitch layout */
+/* Pro v1.1 refined mobile flow, player controls, and pitch layout */
 .brand-panel p {
     font-size: 0.92rem;
     line-height: 1.55;
@@ -1503,7 +1503,7 @@ audio { width: 100%; }
     .player-time { font-size: 0.55rem; }
 }
 
-/* Pro v4.6 UI stability patch: tooltip clamp, pitch overflow fix, mobile consistency */
+/* Pro v1.1 UI stability patch: tooltip clamp, pitch overflow fix, mobile consistency */
 .feature-card::after { content: none !important; display: none !important; }
 .feature-tooltip {
     position: fixed;
@@ -1581,4 +1581,47 @@ audio { width: 100%; }
     .action-panel select { font-size: .58rem !important; padding: 7px 7px !important; }
     .action-panel label, .pro-engine-box small { font-size: .52rem !important; }
     .bottom-safe-note { gap: 5px; font-size: .58rem !important; line-height: 1.55 !important; }
+}
+
+/* Pro v1.1 layout and clarity patch */
+.pitch-grid-clean { grid-template-columns: 1fr !important; gap: 8px !important; }
+.pitch-control { padding: 10px 11px !important; }
+.pitch-tool .mini-field-row label { font-size: .76rem; white-space: normal; }
+.pitch-tool .mini-field-row b { max-width: none !important; min-width: 62px; text-align: right; }
+.pitch-action-row { grid-template-columns: minmax(0, 1fr) minmax(74px, 0.42fr) !important; gap: 8px !important; }
+.pitch-action-row .mini-check { width: 100%; justify-content: center !important; min-width: 0; }
+.pitch-action-row .rec-value { width: 100%; max-width: none !important; justify-content: center; }
+#tempoPercent { display: none !important; }
+
+/* Make tooltip stay readable and never exceed viewport */
+.feature-tooltip {
+    max-width: min(280px, calc(100vw - 24px)) !important;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: keep-all;
+}
+
+/* Smoother page interactions */
+.track-card,
+.feature-card,
+.preview-card,
+.stat-card,
+.detail-row {
+    contain: layout paint;
+}
+.progress-bar,
+.player-seek,
+.mini-wave i {
+    will-change: transform, width;
+}
+.queue-preview-head strong::after { content: none; }
+
+@media (max-width: 640px) {
+    .pitch-grid-clean { grid-template-columns: 1fr !important; gap: 6px !important; }
+    .pitch-control { padding: 7px !important; border-radius: 13px !important; }
+    .pitch-tool .mini-field-row label { font-size: .58rem !important; line-height: 1.15 !important; }
+    .pitch-tool .mini-field-row b { font-size: .62rem !important; min-width: 48px !important; max-width: none !important; }
+    .control-hint { font-size: .50rem !important; }
+    .pitch-action-row { grid-template-columns: minmax(0, 1fr) minmax(58px, .42fr) !important; gap: 5px !important; }
+    .pitch-action-row .rec-value { max-width: none !important; width: 100% !important; }
 }
