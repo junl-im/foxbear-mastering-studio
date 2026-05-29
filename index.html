@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.1 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.2 - browser based AI music mastering console" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.1</title>
+<title>FoxBear Mastering PRO v1.2</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
 <link rel="stylesheet" href="assets/css/studio.css" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -19,7 +19,7 @@
             <div class="brand-kicker">
                 <span class="badge">곰같은여우 뮤직</span>
                 <span class="badge rose">PC & 모바일 호환</span>
-                <span class="badge violet">마스터링 PRO v1.1</span>
+                <span class="badge violet">마스터링 PRO v1.2</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
             <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM 보정, 금속성 공진 감쇄, 보컬 보호, 앨범 매칭, True Peak 보호까지 로컬로 처리합니다.</p>
@@ -168,7 +168,7 @@
             <div class="output-format-box pro-engine-box" aria-label="출력 및 엔진 선택">
                 <div class="engine-control-grid">
                     <div class="master-goal-control">
-                        <label for="masterGoalSelect">마스터링 목표</label>
+                        <label for="masterGoalSelect">마스터링 목표 (Mastering Goal)</label>
                         <select id="masterGoalSelect">
                             <option value="melody">멜로디 보존 우선 · 감정선/악기 보호</option>
                             <option value="natural" selected>자연스러움 우선 · 균형 추천</option>
@@ -176,7 +176,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="outputFormatSelect">출력 포맷</label>
+                        <label for="outputFormatSelect">출력 포맷 (Output Format)</label>
                         <select id="outputFormatSelect">
                             <option value="wav24">24-bit PCM WAV · 안정 추천</option>
                             <option value="wav32float">32-bit Float WAV · 최고 보존</option>
@@ -185,7 +185,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="targetLufsSelect">라우드니스 타깃</label>
+                        <label for="targetLufsSelect">라우드니스 타깃 (Loudness Target)</label>
                         <select id="targetLufsSelect">
                             <option value="-16">-16 LUFS · 스트리밍 여유</option>
                             <option value="-14" selected>-14 LUFS · 표준 밸런스</option>
@@ -197,13 +197,13 @@
                         <label for="ceilingSelect">피크 천장 (Peak Ceiling)</label>
                         <select id="ceilingSelect">
                             <option value="-1.5">-1.5 dBTP · 보수적</option>
-                            <option value="-1.0" selected>-1.0 dBTP · 기본 타깃</option>
+                            <option value="-1" selected>-1.0 dBTP · 기본 타깃</option>
                             <option value="-0.8">-0.8 dBTP · 조금 더 크게</option>
                             <option value="-0.3">-0.3 dBTP · 최대 음압</option>
                         </select>
                     </div>
                     <div>
-                        <label for="qualityModeSelect">엔진 품질</label>
+                        <label for="qualityModeSelect">엔진 품질 (Engine Quality)</label>
                         <select id="qualityModeSelect">
                             <option value="fast">Fast · 빠른 확인</option>
                             <option value="balanced" selected>Balanced Pro · 추천</option>
@@ -211,7 +211,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="pitchEngineSelect">피치/속도 엔진</label>
+                        <label for="pitchEngineSelect">피치/속도 엔진 (Pitch/BPM Engine)</label>
                         <select id="pitchEngineSelect">
                             <option value="auto" selected>Auto · WASM 가능 시 우선</option>
                             <option value="wsola">WSOLA Worker · 안정</option>
@@ -219,7 +219,7 @@
                         </select>
                     </div>
                 </div>
-                <small>v1.1은 마스터링 목표 모드(멜로디 보존·자연스러움·음압), 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
+                <small>v1.2는 마스터링 목표 모드(멜로디 보존·자연스러움·음압), 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
             </div>
             <div class="button-grid action-grid-pro">
                 <button id="aiApplyBtn" class="btn-secondary full" disabled>AI 추천 프리셋 다시 적용</button>
