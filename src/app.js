@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.1 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.1';
+const APP_VERSION = 'Pro v1.2';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -433,9 +433,9 @@ function bindEvents() {
         state.pitchEngine = el.pitchEngineSelect.value || state.pitchEngine;
         el.pitchEngineSelect.addEventListener('change', () => {
             state.pitchEngine = el.pitchEngineSelect.value || 'auto';
-            invalidateAllMasteredOutput(`${getPitchEngineLabel(state.pitchEngine)} 피치/BPM 엔진으로 변경되었습니다. 다시 마스터링하세요.`);
+            invalidateAllMasteredOutput(`${getPitchEngineLabel(state.pitchEngine)} 피치/속도 엔진으로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
-            showToast(`${getPitchEngineLabel(state.pitchEngine)} 피치/BPM 엔진으로 변경했습니다.`);
+            showToast(`${getPitchEngineLabel(state.pitchEngine)} 피치/속도 엔진으로 변경했습니다.`);
         });
     }
     if (el.abMatchBtn) {
@@ -2976,7 +2976,7 @@ function renderDetail(options = {}) {
     if (track.genreReason) addDetailRow('장르 판단 근거', track.genreReason);
     addDetailRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
     addDetailRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
-    addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} st · BPM/Speed ${Math.round((track.transform?.speedRatio || 1) * 100)}%`);
+    addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} st · BPM ${(track.transform?.speedRatio || 1).toFixed(2)}x`);
     addDetailRow('활성 기능', featureLabelText());
     addDetailRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
     addDetailRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
@@ -3299,6 +3299,10 @@ function getMasterGoalDescription(goal = state.masterGoal) {
     return getMasterGoalProfile(goal).description;
 }
 
+function formatCeilingSelectValue(value) {
+    return Number(value).toFixed(1).replace(/\.0$/, '');
+}
+
 function applyMasterGoalDefaults(goal, updateControls) {
     const profile = getMasterGoalProfile(goal);
     state.targetLufs = profile.targetLufs;
@@ -3306,7 +3310,7 @@ function applyMasterGoalDefaults(goal, updateControls) {
     state.qualityMode = profile.qualityMode;
     if (updateControls || el.targetLufsSelect) {
         if (el.targetLufsSelect) el.targetLufsSelect.value = String(profile.targetLufs);
-        if (el.ceilingSelect) el.ceilingSelect.value = String(profile.ceilingDb);
+        if (el.ceilingSelect) el.ceilingSelect.value = formatCeilingSelectValue(profile.ceilingDb);
         if (el.qualityModeSelect) el.qualityModeSelect.value = profile.qualityMode;
     }
 }
@@ -3439,7 +3443,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.1',
+        app: 'FoxBear AI Mastering Studio Pro v1.2',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
