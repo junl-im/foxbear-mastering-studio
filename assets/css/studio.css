@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v1.1 - modular GitHub build */
+/* FoxBear AI Mastering Studio Pro v1.2 - modular GitHub build */
 :root {
     color-scheme: dark;
     --bg: #070711;
@@ -1056,7 +1056,7 @@ audio { width: 100%; }
 }
 
 
-/* v1.1 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
+/* v1.2 layout lock: PC = 3 visual columns, mobile = 2 visual columns.
    Queue, action, and preview remain separate panels while following each other naturally. */
 .studio-grid {
     display: grid !important;
@@ -1149,7 +1149,7 @@ audio { width: 100%; }
 @media (max-width: 390px) {
     .studio-grid { grid-template-columns: minmax(136px, 0.84fr) minmax(164px, 1.16fr) !important; }
 }
-/* Pro v1.1 output / performance controls */
+/* Pro v1.2 output / performance controls */
 .output-format-box {
     margin-bottom: 12px;
     padding: 11px;
@@ -1178,7 +1178,7 @@ audio { width: 100%; }
     font-size: 0.86rem;
 }
 
-/* Pro v1.1 engine controls */
+/* Pro v1.2 engine controls */
 .pro-engine-box {
     padding: 12px;
     border-radius: 20px;
@@ -1214,7 +1214,7 @@ audio { width: 100%; }
 }
 
 
-/* Pro v1.1 precision tools */
+/* Pro v1.2 precision tools */
 .pro-tools-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1271,7 +1271,7 @@ audio { width: 100%; }
 }
 
 
-/* Pro v1.1 interface refinements */
+/* Pro v1.2 interface refinements */
 .queue-preview {
     margin: 0 0 12px;
     padding: 10px;
@@ -1341,7 +1341,7 @@ audio { width: 100%; }
 }
 
 
-/* Pro v1.1 refined mobile flow, player controls, and pitch layout */
+/* Pro v1.2 refined mobile flow, player controls, and pitch layout */
 .brand-panel p {
     font-size: 0.92rem;
     line-height: 1.55;
@@ -1503,7 +1503,7 @@ audio { width: 100%; }
     .player-time { font-size: 0.55rem; }
 }
 
-/* Pro v1.1 UI stability patch: tooltip clamp, pitch overflow fix, mobile consistency */
+/* Pro v1.2 UI stability patch: tooltip clamp, pitch overflow fix, mobile consistency */
 .feature-card::after { content: none !important; display: none !important; }
 .feature-tooltip {
     position: fixed;
@@ -1583,7 +1583,7 @@ audio { width: 100%; }
     .bottom-safe-note { gap: 5px; font-size: .58rem !important; line-height: 1.55 !important; }
 }
 
-/* Pro v1.1 layout and clarity patch */
+/* Pro v1.2 layout and clarity patch */
 .pitch-grid-clean { grid-template-columns: 1fr !important; gap: 8px !important; }
 .pitch-control { padding: 10px 11px !important; }
 .pitch-tool .mini-field-row label { font-size: .76rem; white-space: normal; }
@@ -1624,4 +1624,45 @@ audio { width: 100%; }
     .control-hint { font-size: .50rem !important; }
     .pitch-action-row { grid-template-columns: minmax(0, 1fr) minmax(58px, .42fr) !important; gap: 5px !important; }
     .pitch-action-row .rec-value { max-width: none !important; width: 100% !important; }
+}
+
+/* Pro v1.2 label clarity and mobile wave alignment patch */
+.engine-control-grid label {
+    line-height: 1.25;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+}
+#ceilingSelect {
+    color: var(--ink) !important;
+}
+#ceilingSelect option {
+    color: var(--ink);
+    background: #11101b;
+}
+@media (max-width: 640px) {
+    .brand-panel {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 142px;
+    }
+    .brand-panel .brand-kicker,
+    .brand-panel h1,
+    .brand-panel p {
+        flex: 0 0 auto;
+    }
+    .brand-panel .mini-wave {
+        margin-top: auto !important;
+        margin-bottom: 0 !important;
+        height: 20px !important;
+        overflow: hidden !important;
+        align-items: flex-end !important;
+    }
+    .brand-panel .mini-wave i {
+        transform-origin: bottom center !important;
+        animation-name: foxWaveBreathMobile !important;
+        animation-duration: 4.5s !important;
+    }
+    .engine-control-grid label {
+        font-size: .50rem !important;
+    }
 }
