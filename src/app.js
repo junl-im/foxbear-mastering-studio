@@ -1,14 +1,14 @@
-// FoxBear AI Mastering Studio Pro v4.4 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v4.5 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v4.4';
+const APP_VERSION = 'Pro v4.5';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v44';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v45';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -241,17 +241,18 @@ function renderFeatureButtons() {
         button.type = 'button';
         button.className = `feature-card ${state.featureFlags[key] ? 'active' : ''}`;
         button.dataset.feature = key;
+        button.dataset.tooltip = info.short;
+        button.title = info.short;
         button.setAttribute('aria-pressed', String(Boolean(state.featureFlags[key])));
+        button.setAttribute('aria-label', `${info.label}: ${info.short}`);
 
         const title = document.createElement('b');
         title.textContent = info.label;
-        const desc = document.createElement('span');
-        desc.textContent = info.short;
         const status = document.createElement('span');
         status.className = 'feature-status';
         status.textContent = state.featureFlags[key] ? 'ON' : 'OFF';
 
-        button.append(title, desc, status);
+        button.append(title, status);
         button.addEventListener('click', () => toggleFeature(key));
         el.featureDock.appendChild(button);
     });
@@ -472,7 +473,7 @@ function toggleFeature(key) {
     invalidateAllMasteredOutput(`${FEATURE_DEFINITIONS[key].label} 설정이 변경되었습니다. 다시 마스터링하세요.`);
     renderFeatureButtons();
     renderAll({ keepDetailAudio: true });
-    showToast(`${FEATURE_DEFINITIONS[key].label}: ${state.featureFlags[key] ? '켜짐' : '꺼짐'}`);
+    showToast(`${FEATURE_DEFINITIONS[key].label}: ${state.featureFlags[key] ? '켜짐' : '꺼짐'} · ${FEATURE_DEFINITIONS[key].short}`);
 }
 
 function activateByKeyboard(event, callback) {
@@ -1180,13 +1181,13 @@ function setTransformControls(transform) {
     el.pitchSlider.step = value.snapSemitone ? '1' : '0.01';
     el.pitchSlider.value = String(value.pitchSemitones);
     el.speedSlider.value = String(value.speedRatio);
-    el.pitchValue.textContent = `${formatSigned(value.pitchSemitones, value.snapSemitone ? 0 : 2)} 반음`;
-    el.speedValue.textContent = `${value.speedRatio.toFixed(2)}x`;
+    el.pitchValue.textContent = `${formatSigned(value.pitchSemitones, value.snapSemitone ? 0 : 2)} st`;
+    el.speedValue.textContent = `${value.speedRatio.toFixed(2)}x / ${Math.round(value.speedRatio * 100)}%`;
     el.keyReadout.textContent = formatSigned(value.pitchSemitones, value.snapSemitone ? 0 : 2);
     el.tempoReadout.textContent = `${value.speedRatio.toFixed(2)}x`;
     el.tempoPercent.textContent = `원본 ${Math.round(value.speedRatio * 100)}%`;
-    if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? '반음 고정 ON' : '미세 조정 ON'} · ${isDefaultTransform(value) ? '원본 키 유지' : '키 변경 적용'}`;
-    if (el.speedHint) el.speedHint.textContent = `원본 ${Math.round(value.speedRatio * 100)}% · ${Math.abs(value.speedRatio - 1) < 0.001 ? '길이 변화 없음' : '재생 길이 변경'}`;
+    if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? 'st 반음 고정 ON' : 'cent 미세 조정 ON'} · ${isDefaultTransform(value) ? '원본 키 유지' : 'Pitch 변경 적용'}`;
+    if (el.speedHint) el.speedHint.textContent = `BPM/Speed ${Math.round(value.speedRatio * 100)}% · ${Math.abs(value.speedRatio - 1) < 0.001 ? '기본 속도' : '길이/템포 변경'}`;
     el.pitchSpeedBadge.textContent = isDefaultTransform(value) ? '기본값' : '변경 적용';
     state.programmatic = false;
 }
@@ -2845,6 +2846,8 @@ function renderTrackList() {
         const isPicked = state.selectedIds.has(track.id);
         actions.append(
             makeMiniButton(isPicked ? '해제' : '선택', isPicked ? 'btn-primary' : 'btn-secondary', () => toggleTrackSelection(track.id), state.busy),
+            makeMiniButton(track.genreLocked ? '잠금 해제' : '장르 잠금', track.genreLocked ? 'btn-primary' : 'btn-secondary', () => toggleGenreLockForTrack(track), state.busy || !track.analysis),
+            makeMiniButton('AI 프리셋', 'btn-secondary', () => applyAIRecommendationToTrack(track), state.busy || !track.analysis),
             makeMiniButton('마스터링', 'btn-primary', () => masterTrack(track), ['analyzing', 'processing'].includes(track.status) || state.busy || Boolean(track.error)),
             makeMiniButton('삭제', 'btn-danger', () => removeTrack(track.id), state.busy)
         );
@@ -2873,7 +2876,7 @@ function renderDetail(options = {}) {
         el.detailStatus.textContent = '선택 없음';
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = '트랙을 선택하면 원본/마스터본 프리뷰와 분석 리포트가 표시됩니다.';
+        empty.textContent = '트랙을 선택하면 분석 리포트와 정밀 비교 정보가 표시됩니다.';
         el.trackDetail.appendChild(empty);
         updateConfidenceUI(null);
         return;
@@ -2897,7 +2900,7 @@ function renderDetail(options = {}) {
     if (track.genreReason) addDetailRow('장르 판단 근거', track.genreReason);
     addDetailRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
     addDetailRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
-    addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} 반음 · ${(track.transform?.speedRatio || 1).toFixed(2)}x`);
+    addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} st · BPM/Speed ${Math.round((track.transform?.speedRatio || 1) * 100)}%`);
     addDetailRow('활성 기능', featureLabelText());
     addDetailRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
     addDetailRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
@@ -3125,22 +3128,45 @@ function buildTrackDiffText(track) {
 
 function buildGlobalDiffText() {
     const done = state.tracks.filter(track => track.outBlob && track.finalizeInfo);
-    if (!done.length) return '마스터링 전후 비교는 렌더 후 분석 / 프리뷰에서 표시됩니다.';
+    if (!done.length) return '마스터링 전후 비교는 렌더 후 분석에서 표시됩니다.';
     const avg = done.reduce((sum, track) => sum + (track.comparison?.loudnessDelta || 0), 0) / done.length;
     const risky = done.filter(track => /높음|중간/.test(getClippingRiskText(track))).length;
     return `${done.length}곡 비교 완료 · 평균 라우드니스 변화 ${formatSigned(avg, 1)} LUFS · 주의 필요 ${risky}곡`;
 }
 
-function toggleGenreLockForSelected() {
-    const track = getSelectedTrack();
+function applyAIRecommendationToTrack(track) {
+    if (!track || !track.analysis) {
+        showToast('분석이 완료된 곡에서만 AI 프리셋을 적용할 수 있습니다.');
+        return;
+    }
+    if (track.genreLocked) {
+        track.settings = cloneSettings(makeRecommendedSettings(track.preset || 'custom', track.analysis));
+        invalidateMasteredOutput(track, `${PRESET_LABELS[track.preset] || track.preset} 잠금 장르 기준 추천값을 적용했습니다.`, true);
+    } else {
+        track.preset = track.recommendedPreset || 'custom';
+        track.settings = cloneSettings(track.recommendedSettings || GENRE_PRESETS.custom);
+        invalidateMasteredOutput(track, `${PRESET_LABELS[track.preset] || track.preset} AI 추천값을 다시 적용했습니다.`, true);
+    }
+    state.selectedId = track.id;
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast(`${track.name}: AI 프리셋을 적용했습니다.`);
+}
+
+function toggleGenreLockForTrack(track) {
     if (!track) return;
     track.genreLocked = !track.genreLocked;
     if (track.genreLocked && track.analysis) {
         track.settings = cloneSettings(makeRecommendedSettings(track.preset || 'custom', track.analysis));
         invalidateMasteredOutput(track, `${PRESET_LABELS[track.preset] || track.preset} 장르를 잠금 처리했습니다.`, true);
     }
+    state.selectedId = track.id;
     renderAll({ keepDetailAudio: true });
-    showToast(track.genreLocked ? '선택 트랙 장르를 잠금 처리했습니다.' : '선택 트랙 장르 잠금을 해제했습니다.');
+    showToast(track.genreLocked ? '이 곡의 장르를 잠금 처리했습니다. AI 재적용 시 이 장르 기준을 유지합니다.' : '이 곡의 장르 잠금을 해제했습니다. AI 추천 장르가 다시 적용될 수 있습니다.');
+}
+
+function toggleGenreLockForSelected() {
+    toggleGenreLockForTrack(getSelectedTrack());
 }
 
 function getPitchEngineLabel(mode) {
