@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2.4';
+const APP_VERSION = 'Pro v1.2.5';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -227,8 +227,10 @@ function init() {
     cacheElements();
     renderSliders();
     renderFeatureButtons();
-    bindEvents();
     enhanceActionSelects();
+    bindEvents();
+    requestAnimationFrame(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); });
+    setTimeout(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); }, 350);
     applyPresetToControlsOnly('custom');
     setTransformControls(DEFAULT_TRANSFORM);
     setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
@@ -508,9 +510,40 @@ function bindEvents() {
 
 
 function enhanceActionSelects() {
-    if (state.selectPopup) return;
-    const selects = ACTION_SELECT_IDS.map(id => el[id]).filter(Boolean);
+    const selects = ACTION_SELECT_IDS.map(id => el[id] || document.getElementById(id)).filter(Boolean);
     if (!selects.length) return;
+    ensureSelectPopupScaffold();
+
+    selects.forEach(select => {
+        const existing = document.querySelector(`.select-popup-trigger[data-select-for="${select.id}"]`);
+        select.classList.add('native-select-hidden');
+        select.dataset.fbEnhanced = 'true';
+        select.setAttribute('tabindex', '-1');
+        if (existing) {
+            updateSelectTrigger(select);
+            return;
+        }
+
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'select-popup-trigger';
+        trigger.dataset.selectFor = select.id;
+        trigger.setAttribute('aria-haspopup', 'dialog');
+        trigger.addEventListener('click', event => {
+            event.preventDefault();
+            openSelectPopup(select, trigger);
+        });
+        select.insertAdjacentElement('afterend', trigger);
+        select.addEventListener('change', () => updateSelectTrigger(select));
+        updateSelectTrigger(select);
+    });
+}
+
+function ensureSelectPopupScaffold() {
+    if (state.selectPopup && document.body.contains(state.selectPopup.backdrop)) return state.selectPopup;
+
+    const stale = document.querySelector('.select-popup-backdrop');
+    if (stale && stale.parentNode) stale.parentNode.removeChild(stale);
 
     const backdrop = document.createElement('div');
     backdrop.className = 'select-popup-backdrop';
@@ -527,25 +560,17 @@ function enhanceActionSelects() {
     backdrop.appendChild(panel);
     document.body.appendChild(backdrop);
 
-    state.selectPopup = { backdrop, panel, activeSelect: null, lastTrigger: null };
-
-    selects.forEach(select => {
-        const trigger = document.createElement('button');
-        trigger.type = 'button';
-        trigger.className = 'select-popup-trigger';
-        trigger.dataset.selectFor = select.id;
-        trigger.setAttribute('aria-haspopup', 'dialog');
-        trigger.addEventListener('click', () => openSelectPopup(select, trigger));
-        select.classList.add('native-select-hidden');
-        select.setAttribute('tabindex', '-1');
-        select.insertAdjacentElement('afterend', trigger);
-        select.addEventListener('change', () => updateSelectTrigger(select));
-        updateSelectTrigger(select);
-    });
-
-    document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && state.selectPopup?.activeSelect) closeSelectPopup();
-    });
+    state.selectPopup = { backdrop, panel, activeSelect: null, lastTrigger: null, keyBound: false };
+    if (!state.selectPopupKeyBound) {
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && state.selectPopup?.activeSelect) closeSelectPopup();
+        });
+        window.addEventListener('resize', () => {
+            if (state.selectPopup?.activeSelect) positionPopupPanel();
+        }, { passive: true });
+        state.selectPopupKeyBound = true;
+    }
+    return state.selectPopup;
 }
 
 function openSelectPopup(select, trigger) {
@@ -553,10 +578,13 @@ function openSelectPopup(select, trigger) {
     if (!popup || !select) return;
     popup.activeSelect = select;
     popup.lastTrigger = trigger || null;
+    ensureSelectPopupScaffold();
     popup.panel.textContent = '';
     popup.panel.dataset.select = select.id;
+    popup.panel.className = 'select-popup-panel';
     popup.panel.classList.toggle('select-popup-dense', select.options.length >= 6);
     popup.panel.classList.toggle('select-popup-compact', select.options.length <= 4);
+    popup.panel.classList.toggle('select-popup-genre', select.id === 'genreSelect');
 
     const label = getSelectLabel(select);
     const title = document.createElement('div');
@@ -589,6 +617,7 @@ function openSelectPopup(select, trigger) {
     lockPageForPopup();
     popup.backdrop.classList.add('show');
     popup.backdrop.setAttribute('aria-hidden', 'false');
+    positionPopupPanel();
     popup.panel.focus({ preventScroll: true });
 }
 
@@ -601,7 +630,7 @@ function closeSelectPopup() {
     popup.activeSelect = null;
     popup.lastTrigger = null;
     popup.panel.dataset.select = '';
-    popup.panel.classList.remove('select-popup-dense', 'select-popup-compact');
+    popup.panel.classList.remove('select-popup-dense', 'select-popup-compact', 'select-popup-genre');
     unlockPageForPopup();
     if (lastTrigger && document.contains(lastTrigger)) lastTrigger.focus({ preventScroll: true });
 }
@@ -612,22 +641,28 @@ function lockPageForPopup() {
     const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
     state.popupScrollY = scrollY;
     state.popupScrollbarCompensation = scrollbarWidth;
-    document.body.style.setProperty('--popup-scroll-y', `${scrollY}px`);
-    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
-    document.body.style.top = `-${scrollY}px`;
+    if (scrollbarWidth > 0 && window.matchMedia('(min-width: 641px)').matches) {
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+    document.documentElement.classList.add('select-popup-open');
     document.body.classList.add('select-popup-open');
 }
 
 function unlockPageForPopup() {
     if (!document.body.classList.contains('select-popup-open')) return;
     const scrollY = state.popupScrollY || 0;
+    document.documentElement.classList.remove('select-popup-open');
     document.body.classList.remove('select-popup-open');
-    document.body.style.top = '';
     document.body.style.paddingRight = '';
-    document.body.style.removeProperty('--popup-scroll-y');
     state.popupScrollY = 0;
     state.popupScrollbarCompensation = 0;
     window.scrollTo({ top: scrollY, left: 0, behavior: 'auto' });
+}
+
+function positionPopupPanel() {
+    const popup = state.selectPopup;
+    if (!popup || !popup.panel) return;
+    popup.panel.style.transform = 'translate3d(0,0,0)';
 }
 
 function getSelectLabel(select) {
@@ -1417,6 +1452,7 @@ function setControlsFromSettings(settings, preset, recommended) {
         else recEl.textContent = '';
         updateSliderHint(slider.id);
     });
+    syncEnhancedSelectButtons();
 }
 
 function handlePitchSpeedChange() {
@@ -1456,6 +1492,7 @@ function setTransformControls(transform) {
     if (el.beatHint) el.beatHint.textContent = value.beatPreset === 'custom' ? '슬라이더로 직접 만든 커스텀 박자 비율입니다.' : `${getBeatPresetLabel(value.beatPreset)} · 속도 슬라이더와 연동됩니다.`;
     el.pitchSpeedBadge.textContent = isDefaultTransform(value) ? '기본값' : '변경 적용';
     state.programmatic = false;
+    syncEnhancedSelectButtons();
 }
 
 function handleBeatChangeSelect() {
@@ -1499,6 +1536,7 @@ function setInstrumentControls(layer) {
     if (el.instrumentBadge) el.instrumentBadge.textContent = value.mode === 'off' ? 'OFF' : `${getInstrumentLayerLabel(value.mode)} · ${getInstrumentAmountLabel(value.amount)}`;
     if (el.instrumentHint) el.instrumentHint.textContent = value.mode === 'off' ? '악기 추가를 끄면 원본 오디오만 마스터링합니다.' : '자동 추정 BPM에 맞춰 합성 킥/하이햇/클랩을 아주 작게 섞습니다.';
     state.programmatic = false;
+    syncEnhancedSelectButtons();
 }
 
 function updateSliderHint(id) {
