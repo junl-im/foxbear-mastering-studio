@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.2 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.2.2 - browser based AI music mastering console" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.2</title>
+<title>FoxBear Mastering PRO v1.2.2</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
 <link rel="stylesheet" href="assets/css/studio.css" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -19,10 +19,10 @@
             <div class="brand-kicker">
                 <span class="badge">곰같은여우 뮤직</span>
                 <span class="badge rose">PC & 모바일 호환</span>
-                <span class="badge violet">마스터링 PRO v1.2</span>
+                <span class="badge violet">마스터링 PRO v1.2.2</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
-            <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM 보정, 금속성 공진 감쇄, 보컬 보호, 앨범 매칭, True Peak 보호까지 로컬로 처리합니다.</p>
+            <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM/박자 보정, MP4 오디오 추출, 간단 리듬 악기 추가, 금속성 공진 감쇄, True Peak 보호까지 로컬로 처리합니다.</p>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </section>
         <aside class="creator-panel" aria-label="개발자 정보">
@@ -48,7 +48,7 @@
                     <div>
                         <div class="upload-icon">🎛️</div>
                         <strong>파일 업로드</strong>
-                        <span>여러 오디오 파일</span>
+                        <span>오디오/MP4 파일</span>
                     </div>
                 </div>
                 <div id="folderDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 폴더 업로드">
@@ -60,7 +60,7 @@
                 </div>
             </div>
 
-            <input type="file" id="fileInput" class="hidden" multiple accept="audio/*,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm" />
+            <input type="file" id="fileInput" class="hidden" multiple accept="audio/*,video/mp4,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm,.mp4,.m4v,.mov" />
             <input type="file" id="folderInput" class="hidden" multiple webkitdirectory directory />
 
             <div class="panel-head" style="margin-top:4px">
@@ -130,6 +130,23 @@
                         <div id="speedHint" class="control-hint">BPM 1.00x · 기본 속도</div>
                     </div>
                 </div>
+                <div class="pitch-control beat-change-control">
+                    <div class="mini-field-row">
+                        <label for="beatChangeSelect">박자 변경</label>
+                        <b id="beatValue">원본</b>
+                    </div>
+                    <select id="beatChangeSelect">
+                        <option value="original" selected>원본 박자 유지</option>
+                        <option value="custom">커스텀 박자 · 슬라이더 직접 조정</option>
+                        <option value="slow5">느리게 -5%</option>
+                        <option value="slow10">느리게 -10%</option>
+                        <option value="fast5">빠르게 +5%</option>
+                        <option value="fast10">빠르게 +10%</option>
+                        <option value="half">하프타임 0.50x</option>
+                        <option value="double">더블타임 1.50x</option>
+                    </select>
+                    <div id="beatHint" class="control-hint">선택하면 BPM 속도 슬라이더에 자동 반영됩니다.</div>
+                </div>
                 <div class="pitch-action-row">
                     <label class="mini-check"><input type="checkbox" id="snapSemitone" checked /> 반음 고정</label>
                     <span id="pitchSpeedBadge" class="rec-value">기본값</span>
@@ -137,6 +154,35 @@
                 <span id="keyReadout" class="hidden">0.00</span>
                 <span id="tempoReadout" class="hidden">1.00x</span>
                 <span id="tempoPercent" class="hidden">원본 100%</span>
+            </div>
+
+            <div class="tool-block instrument-tool" aria-label="악기 추가">
+                <div class="tool-title">
+                    <strong>악기 추가</strong>
+                    <span id="instrumentBadge" class="rec-value">OFF</span>
+                </div>
+                <div class="instrument-grid">
+                    <div class="instrument-control">
+                        <label for="instrumentLayerSelect">리듬 악기</label>
+                        <select id="instrumentLayerSelect">
+                            <option value="off" selected>추가 안 함</option>
+                            <option value="kick">킥 · 박자 맞춤</option>
+                            <option value="hat">하이햇 · 8분 리듬</option>
+                            <option value="kick_hat">킥 + 하이햇</option>
+                            <option value="clap">클랩 · 2/4박</option>
+                            <option value="kick_hat_clap">킥 + 하이햇 + 클랩</option>
+                        </select>
+                    </div>
+                    <div class="instrument-control">
+                        <label for="instrumentAmountSelect">추가 강도</label>
+                        <select id="instrumentAmountSelect">
+                            <option value="light" selected>가볍게 · 자연스럽게</option>
+                            <option value="normal">보통 · 리듬 보강</option>
+                            <option value="bold">강하게 · 데모용</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="instrumentHint" class="control-hint">자동 추정 BPM에 맞춰 아주 작게 섞고, 마지막 피크 가드에서 안전하게 정리합니다.</div>
             </div>
 
         </section>
@@ -163,7 +209,6 @@
         <section class="action-panel" aria-label="작업 실행">
             <div class="panel-head">
                 <strong>작업 실행</strong>
-                <small>선택 · 전체 · 다운로드</small>
             </div>
             <div class="output-format-box pro-engine-box" aria-label="출력 및 엔진 선택">
                 <div class="engine-control-grid">
@@ -219,7 +264,6 @@
                         </select>
                     </div>
                 </div>
-                <small>v1.2는 마스터링 목표 모드(멜로디 보존·자연스러움·음압), 보컬 보호, AI 티 완화, 저역 중심 고정, 멜로디 보호, 트랜지언트 정리, 스마트 과처리 방지, 분석 캐시, A/B 레벨 매칭, LUFS 비교, 장르 잠금, 선택형 WASM 피치 어댑터를 포함합니다. MP3 미지원 브라우저는 WAV로 자동 대체됩니다.</small>
             </div>
             <div class="button-grid action-grid-pro">
                 <button id="aiApplyBtn" class="btn-secondary full" disabled>AI 추천 프리셋 다시 적용</button>
