@@ -14,7 +14,7 @@ self.onmessage = event => {
         const channelBuffers = (payload.channelBuffers || []).map(buf => new Float32Array(buf));
         if (!channelBuffers.length) throw new Error('마스터 파이널라이저 입력이 비어 있습니다.');
 
-        const oversample = qualityMode === 'max' ? 16 : qualityMode === 'fast' ? 4 : 8;
+        const oversample = qualityMode === 'max' ? 12 : qualityMode === 'fast' ? 2 : 6;
         const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
         const data = channelBuffers.map(src => new Float32Array(src));
         removeDcOffset(data, length);
@@ -113,18 +113,23 @@ function measureSamplePeak(buffers, length) {
 }
 
 function measureInterpolatedPeak(buffers, length, factor) {
+    if (factor <= 1) return measureSamplePeak(buffers, length);
     let peak = 0;
+    const inv = 1 / factor;
     for (const data of buffers) {
         for (let i = 0; i < length - 1; i += 1) {
             const a = data[i] || 0;
             const b = data[i + 1] || 0;
-            peak = Math.max(peak, Math.abs(a));
+            const delta = b - a;
+            const absA = Math.abs(a);
+            if (absA > peak) peak = absA;
             for (let k = 1; k < factor; k += 1) {
-                const t = k / factor;
-                peak = Math.max(peak, Math.abs(a * (1 - t) + b * t));
+                const candidate = Math.abs(a + delta * k * inv);
+                if (candidate > peak) peak = candidate;
             }
         }
-        peak = Math.max(peak, Math.abs(data[length - 1] || 0));
+        const last = Math.abs(data[length - 1] || 0);
+        if (last > peak) peak = last;
     }
     return peak;
 }
