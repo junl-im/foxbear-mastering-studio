@@ -1,7 +1,15 @@
-# FoxBear AI Mastering Studio Pro v1.2.3
+# FoxBear AI Mastering Studio Pro v1.2.4
 
 GitHub Pages-ready modular browser mastering studio.
 
+
+## Pro v1.2.4 popup/UI refinement
+
+- 장르 프리셋까지 버튼형 팝업 선택 UI로 통일했습니다.
+- 모바일에서도 선택 팝업이 화면 하단이 아닌 중앙에 뜨도록 조정했습니다.
+- 팝업 오픈 시 페이지 스크롤 위치를 고정/복원해 화면이 살짝 밀리는 현상을 줄였습니다.
+- 옵션 팝업은 공간을 더 잘 쓰도록 2열/3열 버튼 그리드로 표시됩니다.
+- 좌측 패널 제목을 `컨트롤 콘솔`에서 `불러오기`로 정리했습니다.
 
 ## Pro v1.2.3 rhythm/performance refinement
 
@@ -94,7 +102,7 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - 서브 클린업, 적응형 공진 스무더, 마이크로 다이내믹 글루를 마스터링 체인에 추가했습니다.
 
 
-## Pro v1.2.3 rhythm/input/engine patch
+## Pro v1.2.2 rhythm/input/engine patch
 - 피치/속도 영역에 박자 변경 버튼형 프리셋을 추가했습니다: 원본, -5%, -10%, +5%, +10%, 하프타임, 더블타임, 커스텀.
 - 파일 입력에서 MP4/M4V/MOV 컨테이너를 허용합니다. 브라우저가 지원하는 오디오 트랙이 들어 있는 파일은 마스터링 대상으로 불러올 수 있습니다.
 - 악기 추가 영역을 추가했습니다. 킥, 하이햇, 클랩, 킥+하이햇, 킥+하이햇+클랩을 자동 추정 BPM에 맞춰 가볍게 합성합니다.
