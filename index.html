@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.2.5 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.2.6 - browser based AI music mastering console" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.2.5</title>
+<title>FoxBear Mastering PRO v1.2.6</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.2.5" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.2.6" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.2.5"></script>
+<script defer src="src/app.js?v=1.2.6"></script>
 </head>
-<body data-build="1.2.5">
+<body data-build="1.2.6">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel" aria-label="앱 소개">
             <div class="brand-kicker">
                 <span class="badge">곰같은여우 뮤직</span>
                 <span class="badge rose">PC & 모바일 호환</span>
-                <span class="badge violet">마스터링 PRO v1.2.5</span>
+                <span class="badge violet">마스터링 PRO v1.2.6</span>
             </div>
             <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
             <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM/박자 보정, MP4 오디오 추출, 간단 리듬 악기 추가, 금속성 공진 감쇄, True Peak 보호까지 로컬로 처리합니다.</p>
@@ -31,7 +31,7 @@
                 <div class="creator-name"><span>곰같은여우</span> with AI</div>
                 <a class="creator-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer">youtube.com/@FoxBearMusic</a>
                 <div class="creator-note">구독자가 아니여도 <BR> 음악을 사랑하는 여러분을 위한<BR> 무료배포 버전입니다.</div>
-                <a class="creator-subscribe youtube-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer"><span class="yt-mark" aria-hidden="true">▶</span><span>구독은 사랑입니다</span></a>
+                <a class="creator-subscribe youtube-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer"><span class="yt-mark" aria-hidden="true">▶</span><span class="subscribe-main">구독</span><small>은 사랑입니다</small></a>
             </div>
         </aside>
     </header>
@@ -110,24 +110,24 @@
 
             <div class="tool-block pitch-tool" aria-label="피치 및 속도 조절">
                 <div class="tool-title">
-                    <strong>피치 (Pitch) / 속도 (BPM)</strong>
+                    <strong>피치 / 속도 / 박자</strong>
                 </div>
                 <div class="pitch-grid pitch-grid-clean">
                     <div class="pitch-control">
                         <div class="mini-field-row">
-                            <label for="pitchSlider">피치 (Pitch)</label>
+                            <label for="pitchSlider">피치</label>
                             <b id="pitchValue">0 st</b>
                         </div>
                         <input type="range" id="pitchSlider" min="-12" max="12" step="0.01" value="0" />
-                        <div id="pitchHint" class="control-hint">st 단위 · 원본 키 유지</div>
+                        <div id="pitchHint" class="control-hint">Pitch: st 단위 · 원본 키 유지</div>
                     </div>
                     <div class="pitch-control">
                         <div class="mini-field-row">
-                            <label for="speedSlider">속도 (BPM)</label>
+                            <label for="speedSlider">속도</label>
                             <b id="speedValue">1.00x</b>
                         </div>
                         <input type="range" id="speedSlider" min="0.5" max="1.5" step="0.01" value="1" />
-                        <div id="speedHint" class="control-hint">BPM 1.00x · 기본 속도</div>
+                        <div id="speedHint" class="control-hint">BPM: 1.00x · 기본 속도</div>
                     </div>
                 </div>
                 <div class="pitch-control beat-change-control">
@@ -148,7 +148,7 @@
                     <div id="beatHint" class="control-hint">선택하면 BPM 속도 슬라이더에 자동 반영됩니다.</div>
                 </div>
                 <div class="pitch-action-row">
-                    <label class="mini-check"><input type="checkbox" id="snapSemitone" checked /> 반음 고정</label>
+                    <label class="mini-check"><input type="checkbox" id="snapSemitone" checked /> 반음씩</label>
                     <span id="pitchSpeedBadge" class="rec-value">기본값</span>
                 </div>
                 <span id="keyReadout" class="hidden">0.00</span>
@@ -297,7 +297,7 @@
 <div id="subscribeNudge" class="subscribe-nudge" role="status" aria-live="polite">
     <div class="subscribe-mini-face" aria-hidden="true">🦊</div>
     <div class="subscribe-mini-copy">
-        <strong>구독은 사랑입니다</strong>
+        <strong><span class="subscribe-main">구독</span><small>은 사랑입니다</small></strong>
         <span>FoxBear Music도 살짝 응원해주세요.</span>
     </div>
     <button id="subscribeNudgeAction" class="subscribe-mini-action" type="button">채널</button>
