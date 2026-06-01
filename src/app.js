@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2.5';
+const APP_VERSION = 'Pro v1.2.6';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -41,6 +41,14 @@ const INSTRUMENT_AMOUNT_LEVELS = {
 };
 const CURVE_CACHE = new Map();
 const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
+const MASTER_FLOW_STEPS = [
+    { at: 6, label: '준비', hint: '디코딩' },
+    { at: 22, label: '정리', hint: '무음/변환' },
+    { at: 50, label: '리듬', hint: '박자/악기' },
+    { at: 60, label: '마스터', hint: '톤/공간' },
+    { at: 88, label: '피크', hint: 'True Peak' },
+    { at: 98, label: '완료', hint: '인코딩' }
+];
 
 
 const FEATURE_DEFINITIONS = {
@@ -191,6 +199,7 @@ const state = {
     cacheReady: false,
     autoRemasterTimers: new Map(),
     selectPopup: null,
+    expandedDetailIds: new Set(),
     popupScrollY: 0,
     popupScrollbarCompensation: 0
 };
@@ -252,6 +261,23 @@ function cacheElements() {
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
 
+
+function decorateSliderLabel(label, text) {
+    const value = String(text || '');
+    const match = value.match(/^(.+?)\s*\((.+)\)$/);
+    label.textContent = '';
+    const ko = document.createElement('span');
+    ko.className = 'slider-label-ko';
+    ko.textContent = match ? match[1].trim() : value;
+    label.appendChild(ko);
+    if (match) {
+        const en = document.createElement('small');
+        en.className = 'slider-label-en';
+        en.textContent = match[2].trim();
+        label.appendChild(en);
+    }
+}
+
 function renderSliders() {
     el.sliderFields.textContent = '';
     if (el.intensityField) el.intensityField.textContent = '';
@@ -264,7 +290,7 @@ function renderSliders() {
 
         const label = document.createElement('label');
         label.htmlFor = slider.id;
-        label.textContent = slider.label;
+        decorateSliderLabel(label, slider.label);
 
         const rec = document.createElement('span');
         rec.className = 'rec-value';
@@ -1736,6 +1762,7 @@ async function masterTrack(track, calledFromBatch = false) {
         track.outFormat = encoded.format;
         track.outName = `${safeBaseName(track.name)}_mastered.${encoded.extension}`;
         track.masteredUrl = URL.createObjectURL(encoded.blob);
+        track.masteredDurationSec = finalBuffer.duration || 0;
         finishPerformanceProfile(track, finalBuffer, encoded.blob);
         track.status = 'done';
         track.progress = 100;
@@ -2101,6 +2128,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createLowEndAnchorNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, effectiveSettings, analysis, intensity);
     node = createMetallicRemovalNode(context, node, effectiveSettings.metallicRemoval, analysis, intensity);
     node = createAdaptiveResonanceSmootherNode(context, node, effectiveSettings, analysis, intensity);
+    node = createDeMaskingPolishNode(context, node, effectiveSettings, analysis, intensity);
     node = createAiHumanizeNode(context, node, preset, effectiveSettings, intensity);
     node = createVocalProtectionNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createMelodyPreserveNode(context, node, preset, effectiveSettings, analysis, intensity);
@@ -2215,6 +2243,39 @@ function createAdaptiveResonanceSmootherNode(context, input, settings, analysis,
 
     input.connect(dynamicNotch).connect(glassGuard).connect(airRecover);
     return airRecover;
+}
+
+function createDeMaskingPolishNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!analysis) return input;
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const transient = clamp01(Number(analysis.transientDensity ?? 0.35));
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const removal = clamp(Number(settings.metallicRemoval || 42), 0, 100);
+    const need = brightness > 0.56 || metallic > 0.42 || transient > 0.54 || clarity > 58 || removal > 54 || intensity.raw > 135;
+    if (!need) return input;
+
+    const scale = clamp(intensity.amount, 0.65, 1.75);
+    const deMask = context.createBiquadFilter();
+    deMask.type = 'peaking';
+    deMask.frequency.value = 1850;
+    deMask.Q.value = 0.82;
+    deMask.gain.value = clamp((0.30 - Number(analysis.midRatio || 0.28)) * 0.42 * scale, -0.22, 0.28);
+
+    const glare = context.createBiquadFilter();
+    glare.type = 'peaking';
+    glare.frequency.value = clamp(Number(analysis.targetDynamicFreq || 5200) * 0.62, 2800, 5200);
+    glare.Q.value = 1.42;
+    glare.gain.value = clamp(-(Math.max(0, brightness - 0.58) * 0.52 + Math.max(0, metallic - 0.40) * 0.38 + Math.max(0, transient - 0.55) * 0.26) * scale, -0.85, -0.02);
+
+    const edge = context.createBiquadFilter();
+    edge.type = 'peaking';
+    edge.frequency.value = clamp(Number(analysis.targetDynamicFreq || 6200), 5200, 9200);
+    edge.Q.value = 2.05;
+    edge.gain.value = clamp(-(Math.max(0, metallic - 0.46) * 0.60 + Math.max(0, removal - 60) * 0.005) * scale, -0.80, -0.01);
+
+    input.connect(deMask).connect(glare).connect(edge);
+    return edge;
 }
 
 function createMicroDynamicsGlueNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
@@ -3636,6 +3697,7 @@ function invalidateMasteredOutput(track, report, autoRefresh = false) {
     track.outName = '';
     track.outFormat = null;
     track.masteredUrl = null;
+    track.masteredDurationSec = 0;
     track.truePeakInfo = null;
     track.finalizeInfo = null;
     track.albumApplied = null;
@@ -3681,6 +3743,7 @@ function clearQueue() {
     state.tracks = [];
     state.selectedId = null;
     state.selectedIds.clear();
+    if (state.expandedDetailIds) state.expandedDetailIds.clear();
     state.busy = false;
     state.albumProfile = null;
     clearFileInputs();
@@ -3907,6 +3970,9 @@ function renderTrackList() {
         progressBar.className = 'progress-bar';
         progressBar.style.width = `${track.progress || 0}%`;
         progressShell.appendChild(progressBar);
+        const progressCaption = document.createElement('div');
+        progressCaption.className = 'progress-caption';
+        progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? '완료 · 미리듣기/다운로드 가능' : (track.report || '대기 중'));
 
         const actions = document.createElement('div');
         actions.className = 'track-actions';
@@ -3920,7 +3986,7 @@ function renderTrackList() {
         );
         if (track.outBlob) actions.append(makeMiniButton('파일 다운로드', 'btn-secondary', () => downloadTrack(track), false));
 
-        card.append(top, progressShell, actions);
+        card.append(top, progressShell, progressCaption, actions);
         el.trackList.appendChild(card);
     });
 }
@@ -3943,7 +4009,7 @@ function renderDetail(options = {}) {
         el.detailStatus.textContent = '선택 없음';
         const empty = document.createElement('div');
         empty.className = 'empty';
-        empty.textContent = '트랙을 선택하면 분석 리포트와 정밀 비교 정보가 표시됩니다.';
+        empty.textContent = '트랙을 선택하면 정밀 비교와 진행 상태가 표시됩니다.';
         el.trackDetail.appendChild(empty);
         updateConfidenceUI(null);
         return;
@@ -3955,68 +4021,85 @@ function renderDetail(options = {}) {
     const title = document.createElement('h3');
     title.textContent = track.name;
     el.trackDetail.appendChild(title);
+
     renderMasterComparisonPanel(track);
+    renderProcessingFlowPanel(track);
 
-    addDetailRow('파일명', track.name);
-    addDetailRow('파일 형식', track.type);
-    addDetailRow('파일 용량', formatBytes(track.size));
-    addDetailRow('프리셋 상태', `${PRESET_LABELS[track.preset] || track.preset} · 신뢰지수 ${track.confidence || 0}%${track.genreLocked ? ' · 잠금' : ''}`);
-    addDetailRow('분석 캐시', track.analysisCacheHit ? '사용됨 · 재분석 시간 절약' : '신규 분석');
-    if (track.outName) addDetailRow('출력 파일', track.outName);
-    addDetailRow('출력 포맷', getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'));
-    addDetailRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
-    if (track.genreReason) addDetailRow('장르 판단 근거', track.genreReason);
-    addDetailRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
-    addDetailRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
-    addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} st · BPM ${(track.transform?.speedRatio || 1).toFixed(2)}x · ${getBeatPresetLabel(track.transform?.beatPreset || getBeatPresetForRatio(track.transform?.speedRatio || 1))}`);
-    addDetailRow('악기 추가', getInstrumentDetailText(track));
-    addDetailRow('활성 기능', featureLabelText());
-    addDetailRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
-    addDetailRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
-    addDetailRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
-    addDetailRow('실시간 엔진 로그', track.report || '-');
+    const isOpen = state.expandedDetailIds && state.expandedDetailIds.has(track.id);
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'analysis-detail-toggle btn-secondary';
+    toggle.textContent = isOpen ? '분석 상세 닫기' : '분석 상세보기';
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.addEventListener('click', () => {
+        if (!state.expandedDetailIds) state.expandedDetailIds = new Set();
+        if (state.expandedDetailIds.has(track.id)) state.expandedDetailIds.delete(track.id);
+        else state.expandedDetailIds.add(track.id);
+        renderAll({ keepDetailAudio: true });
+    });
+    el.trackDetail.appendChild(toggle);
 
-    if (track.instrumentInfo && track.instrumentInfo.applied) {
-        addDetailRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
-    }
-    if (track.performanceInfo) {
-        addDetailRow('처리 성능 체크', formatPerformanceInfo(track.performanceInfo));
-        const heavy = getHeaviestPerformanceStage(track.performanceInfo);
-        if (heavy) addDetailRow('가장 무거운 단계', `${heavy.label} · ${formatDurationMs(heavy.ms)}`);
-    }
-    if (track.trimInfo) {
-        addDetailRow('무음 정리', track.trimInfo.applied ? `앞 ${track.trimInfo.startTrimSec.toFixed(2)}초 · 뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초 정리` : '정리할 무음 구간 없음');
-    }
-    if (track.albumApplied) {
-        addDetailRow('앨범 통일', `레벨 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB · 톤 ${formatSigned(track.albumApplied.toneDelta * 100, 1)}%`);
-    }
-    if (track.truePeakInfo) {
-        const beforeDb = ampToDb(track.truePeakInfo.peakBefore).toFixed(2);
-        const afterDb = ampToDb(track.truePeakInfo.peakAfter).toFixed(2);
-        addDetailRow('피크 가드', `${track.truePeakInfo.mode === 'truePeak' ? 'True Peak' : 'Sample Peak'} · 전 ${beforeDb} dB · 후 ${afterDb} dB`);
-    }
-    if (track.finalizeInfo) {
-        addDetailRow('클리핑 위험', getClippingRiskText(track));
-        const before = Number.isFinite(track.finalizeInfo.loudnessBefore) ? `${track.finalizeInfo.loudnessBefore.toFixed(1)} LUFS` : '-';
-        const after = Number.isFinite(track.finalizeInfo.loudnessAfter) ? `${track.finalizeInfo.loudnessAfter.toFixed(1)} LUFS` : '-';
-        addDetailRow('2-Pass 라우드니스', `${before} → ${after} · 목표 ${track.finalizeInfo.targetLufs} LUFS`);
-        addDetailRow('엔진 품질 모드', `${getQualityModeLabel(track.finalizeInfo.qualityMode)} · ${track.finalizeInfo.oversample || 4}x 피크 검사`);
-    }
+    if (isOpen) {
+        const detailsWrap = document.createElement('div');
+        detailsWrap.className = 'analysis-detail-list';
+        const addRow = (label, value) => addDetailRow(label, value, detailsWrap);
 
-    if (track.analysis) {
-        addDetailRow('재생 시간', formatTime(track.analysis.duration));
-        addDetailRow('원본 샘플레이트', `${track.analysis.sampleRate.toLocaleString()} Hz`);
-        addDetailRow('채널 수', `${track.analysis.channels} ch`);
-        addDetailRow('피크 레벨', `${track.analysis.peakDb.toFixed(1)} dBFS`);
-        addDetailRow('RMS 레벨', `${track.analysis.loudnessHint.toFixed(1)} dB`);
-        if (Number.isFinite(track.analysis.loudnessIntegrated)) addDetailRow('예상 통합 라우드니스', `${track.analysis.loudnessIntegrated.toFixed(1)} LUFS 유사`);
-        addDetailRow('밝기/스테레오 폭', `${Math.round(track.analysis.brightness * 100)}% / ${Math.round(track.analysis.stereoWidth * 100)}%`);
-        addDetailRow('저역/중역/고역', `${Math.round((track.analysis.bassRatio || 0) * 100)}% / ${Math.round((track.analysis.midRatio || 0) * 100)}% / ${Math.round((track.analysis.highRatio || 0) * 100)}%`);
-        addDetailRow('트랜지언트 밀도', `${Math.round((track.analysis.transientDensity || 0) * 100)}%`);
-        addDetailRow('금속성 지수', `${Math.round(track.analysis.metallicHint * 100)}%`);
-        addDetailRow('공진 추적 주파수', `${track.analysis.targetDynamicFreq} Hz`);
+        addRow('파일명', track.name);
+        addRow('파일 형식', track.type);
+        addRow('파일 용량', formatBytes(track.size));
+        addRow('프리셋 상태', `${PRESET_LABELS[track.preset] || track.preset} · 신뢰지수 ${track.confidence || 0}%${track.genreLocked ? ' · 잠금' : ''}`);
+        addRow('분석 캐시', track.analysisCacheHit ? '사용됨 · 재분석 시간 절약' : '신규 분석');
+        if (track.outName) addRow('출력 파일', track.outName);
+        addRow('출력 포맷', getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'));
+        addRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
+        if (track.genreReason) addRow('장르 판단 근거', track.genreReason);
+        addRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
+        addRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
+        addRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} st · BPM ${(track.transform?.speedRatio || 1).toFixed(2)}x · ${getBeatPresetLabel(track.transform?.beatPreset || getBeatPresetForRatio(track.transform?.speedRatio || 1))}`);
+        addRow('악기 추가', getInstrumentDetailText(track));
+        addRow('활성 기능', featureLabelText());
+        addRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
+        addRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
+        addRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
+        addRow('실시간 엔진 로그', track.report || '-');
+
+        if (track.instrumentInfo && track.instrumentInfo.applied) addRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
+        if (track.performanceInfo) {
+            addRow('처리 성능 체크', formatPerformanceInfo(track.performanceInfo));
+            const heavy = getHeaviestPerformanceStage(track.performanceInfo);
+            if (heavy) addRow('가장 무거운 단계', `${heavy.label} · ${formatDurationMs(heavy.ms)}`);
+        }
+        if (track.trimInfo) addRow('무음 정리', track.trimInfo.applied ? `앞 ${track.trimInfo.startTrimSec.toFixed(2)}초 · 뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초 정리` : '정리할 무음 구간 없음');
+        if (track.albumApplied) addRow('앨범 통일', `레벨 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB · 톤 ${formatSigned(track.albumApplied.toneDelta * 100, 1)}%`);
+        if (track.truePeakInfo) {
+            const beforeDb = ampToDb(track.truePeakInfo.peakBefore).toFixed(2);
+            const afterDb = ampToDb(track.truePeakInfo.peakAfter).toFixed(2);
+            addRow('피크 가드', `${track.truePeakInfo.mode === 'truePeak' ? 'True Peak' : 'Sample Peak'} · 전 ${beforeDb} dB · 후 ${afterDb} dB`);
+        }
+        if (track.finalizeInfo) {
+            addRow('클리핑 위험', getClippingRiskText(track));
+            const before = Number.isFinite(track.finalizeInfo.loudnessBefore) ? `${track.finalizeInfo.loudnessBefore.toFixed(1)} LUFS` : '-';
+            const after = Number.isFinite(track.finalizeInfo.loudnessAfter) ? `${track.finalizeInfo.loudnessAfter.toFixed(1)} LUFS` : '-';
+            addRow('2-Pass 라우드니스', `${before} → ${after} · 목표 ${track.finalizeInfo.targetLufs} LUFS`);
+            addRow('엔진 품질 모드', `${getQualityModeLabel(track.finalizeInfo.qualityMode)} · ${track.finalizeInfo.oversample || 4}x 피크 검사`);
+        }
+
+        if (track.analysis) {
+            addRow('재생 시간', formatTime(track.analysis.duration));
+            addRow('원본 샘플레이트', `${track.analysis.sampleRate.toLocaleString()} Hz`);
+            addRow('채널 수', `${track.analysis.channels} ch`);
+            addRow('피크 레벨', `${track.analysis.peakDb.toFixed(1)} dBFS`);
+            addRow('RMS 레벨', `${track.analysis.loudnessHint.toFixed(1)} dB`);
+            if (Number.isFinite(track.analysis.loudnessIntegrated)) addRow('예상 통합 라우드니스', `${track.analysis.loudnessIntegrated.toFixed(1)} LUFS 유사`);
+            addRow('밝기/스테레오 폭', `${Math.round(track.analysis.brightness * 100)}% / ${Math.round(track.analysis.stereoWidth * 100)}%`);
+            addRow('저역/중역/고역', `${Math.round((track.analysis.bassRatio || 0) * 100)}% / ${Math.round((track.analysis.midRatio || 0) * 100)}% / ${Math.round((track.analysis.highRatio || 0) * 100)}%`);
+            addRow('트랜지언트 밀도', `${Math.round((track.analysis.transientDensity || 0) * 100)}%`);
+            addRow('금속성 지수', `${Math.round(track.analysis.metallicHint * 100)}%`);
+            addRow('공진 추적 주파수', `${track.analysis.targetDynamicFreq} Hz`);
+        }
+        if (track.error) addRow('오류 내용', track.error);
+        el.trackDetail.appendChild(detailsWrap);
     }
-    if (track.error) addDetailRow('오류 내용', track.error);
 
     updateConfidenceUI(track);
     if (!options.keepDetailAudio) applyTrackToControls(track);
@@ -4028,17 +4111,15 @@ function renderPreviewPlayers(track, target = el.trackDetail) {
 
     const originalCard = document.createElement('div');
     originalCard.className = 'preview-card';
-    const originalLabel = document.createElement('strong');
-    originalLabel.textContent = '원본 프리뷰';
-    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl));
+    const originalLabel = makePreviewTitle('원본 프리뷰', track.analysis?.duration);
+    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration));
 
     const masteredCard = document.createElement('div');
     masteredCard.className = 'preview-card';
-    const masteredLabel = document.createElement('strong');
-    masteredLabel.textContent = '마스터링 프리뷰';
+    const masteredLabel = makePreviewTitle('마스터링 프리뷰', track.masteredDurationSec || null);
     masteredCard.appendChild(masteredLabel);
     if (track.masteredUrl) {
-        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track)));
+        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec));
     } else {
         const empty = document.createElement('div');
         empty.className = 'preview-empty';
@@ -4050,7 +4131,26 @@ function renderPreviewPlayers(track, target = el.trackDetail) {
     target.appendChild(previewGrid);
 }
 
-function createPreviewPlayer(src, gainDb = 0) {
+function makePreviewTitle(label, durationSec) {
+    const title = document.createElement('strong');
+    const main = document.createElement('span');
+    main.textContent = label;
+    title.appendChild(main);
+    if (Number.isFinite(Number(durationSec)) && Number(durationSec) > 0) {
+        const small = document.createElement('small');
+        small.className = 'preview-runtime';
+        small.textContent = `총 ${formatTime(Number(durationSec))}`;
+        title.appendChild(small);
+    }
+    return title;
+}
+
+function formatPlayerTime(current, duration) {
+    if (Number.isFinite(Number(duration)) && Number(duration) > 0) return `${formatTime(current || 0)} / ${formatTime(duration)}`;
+    return formatTime(current || 0);
+}
+
+function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0) {
     const wrap = document.createElement('div');
     wrap.className = 'custom-player';
 
@@ -4064,7 +4164,7 @@ function createPreviewPlayer(src, gainDb = 0) {
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'player-toggle';
-    toggle.textContent = '▶';
+    toggle.innerHTML = '<span class="player-icon player-icon-play" aria-hidden="true"></span>';
     toggle.setAttribute('aria-label', '재생');
 
     const seek = document.createElement('input');
@@ -4077,27 +4177,41 @@ function createPreviewPlayer(src, gainDb = 0) {
 
     const time = document.createElement('span');
     time.className = 'player-time';
-    time.textContent = '0:00';
+    const initialDuration = Number(knownDurationSec || 0);
+    time.textContent = formatPlayerTime(0, initialDuration);
+
+    const setPlaying = isPlaying => {
+        toggle.classList.toggle('playing', Boolean(isPlaying));
+        toggle.innerHTML = isPlaying ? '<span class="player-icon player-icon-pause" aria-hidden="true"></span>' : '<span class="player-icon player-icon-play" aria-hidden="true"></span>';
+        toggle.setAttribute('aria-label', isPlaying ? '일시정지' : '재생');
+    };
+    const getDuration = () => Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : initialDuration;
 
     toggle.addEventListener('click', () => {
         if (audio.paused) audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
         else audio.pause();
     });
+    audio.addEventListener('loadedmetadata', () => {
+        time.textContent = formatPlayerTime(audio.currentTime || 0, getDuration());
+    });
     audio.addEventListener('play', () => {
         bindExclusivePreview(audio);
-        toggle.textContent = 'Ⅱ';
-        toggle.setAttribute('aria-label', '정지');
+        setPlaying(true);
     });
-    audio.addEventListener('pause', () => { toggle.textContent = '▶';
-    toggle.setAttribute('aria-label', '재생'); });
-    audio.addEventListener('ended', () => { toggle.textContent = '▶';
-    toggle.setAttribute('aria-label', '재생'); seek.value = '0'; });
+    audio.addEventListener('pause', () => setPlaying(false));
+    audio.addEventListener('ended', () => {
+        setPlaying(false);
+        seek.value = '0';
+        time.textContent = formatPlayerTime(0, getDuration());
+    });
     audio.addEventListener('timeupdate', () => {
-        if (Number.isFinite(audio.duration) && audio.duration > 0) seek.value = String(Math.round(audio.currentTime / audio.duration * 1000));
-        time.textContent = formatTime(audio.currentTime || 0);
+        const duration = getDuration();
+        if (Number.isFinite(duration) && duration > 0) seek.value = String(Math.round(audio.currentTime / duration * 1000));
+        time.textContent = formatPlayerTime(audio.currentTime || 0, duration);
     });
     seek.addEventListener('input', () => {
-        if (Number.isFinite(audio.duration) && audio.duration > 0) audio.currentTime = Number(seek.value) / 1000 * audio.duration;
+        const duration = getDuration();
+        if (Number.isFinite(duration) && duration > 0) audio.currentTime = Number(seek.value) / 1000 * duration;
     });
 
     wrap.append(toggle, seek, time, audio);
@@ -4110,6 +4224,50 @@ function bindExclusivePreview(audio) {
     });
 }
 
+
+function renderProcessingFlowPanel(track) {
+    if (!track) return;
+    const panel = document.createElement('div');
+    panel.className = `processing-flow-panel ${track.status === 'processing' ? 'is-running' : ''}`;
+
+    const head = document.createElement('div');
+    head.className = 'processing-flow-head';
+    const title = document.createElement('strong');
+    title.textContent = track.status === 'processing' ? '진행 흐름 표시' : '처리 흐름';
+    const pct = document.createElement('span');
+    pct.textContent = `${Math.round(Number(track.progress || 0))}%`;
+    head.append(title, pct);
+
+    const rail = document.createElement('div');
+    rail.className = 'processing-flow-rail';
+    const fill = document.createElement('i');
+    fill.style.width = `${clamp(Number(track.progress || 0), 0, 100)}%`;
+    rail.appendChild(fill);
+
+    const steps = document.createElement('div');
+    steps.className = 'processing-flow-steps';
+    const progress = Number(track.progress || 0);
+    MASTER_FLOW_STEPS.forEach((step, index) => {
+        const item = document.createElement('div');
+        item.className = 'processing-step';
+        if (progress >= step.at || track.status === 'done') item.classList.add('done');
+        const next = MASTER_FLOW_STEPS[index + 1];
+        if (track.status === 'processing' && progress >= step.at && (!next || progress < next.at)) item.classList.add('active');
+        const b = document.createElement('b');
+        b.textContent = step.label;
+        const small = document.createElement('small');
+        small.textContent = step.hint;
+        item.append(b, small);
+        steps.appendChild(item);
+    });
+
+    const report = document.createElement('div');
+    report.className = 'processing-flow-report';
+    report.textContent = track.report || (track.status === 'done' ? '마스터링 완료' : '마스터링을 실행하면 단계별 진행이 표시됩니다.');
+
+    panel.append(head, rail, steps, report);
+    el.trackDetail.appendChild(panel);
+}
 
 function renderMasterComparisonPanel(track) {
     if (!track || !track.analysis) return;
@@ -4138,6 +4296,26 @@ function renderMasterComparisonPanel(track) {
         grid.appendChild(chip);
     });
     panel.appendChild(grid);
+    if (track.performanceInfo) {
+        const perf = document.createElement('div');
+        perf.className = 'performance-meter-row';
+        const heavy = getHeaviestPerformanceStage(track.performanceInfo);
+        const chips = [
+            ['처리 시간', formatPerformanceInfo(track.performanceInfo)],
+            ['무거운 단계', heavy ? `${heavy.label} · ${formatDurationMs(heavy.ms)}` : '측정 전']
+        ];
+        chips.forEach(([label, value]) => {
+            const chip = document.createElement('div');
+            chip.className = 'performance-meter-chip';
+            const span = document.createElement('span');
+            span.textContent = label;
+            const b = document.createElement('b');
+            b.textContent = value;
+            chip.append(span, b);
+            perf.appendChild(chip);
+        });
+        panel.appendChild(perf);
+    }
     const bars = document.createElement('div');
     bars.className = 'lufs-bars';
     bars.appendChild(makeLufsBar('원본', before));
@@ -4346,7 +4524,7 @@ function getPitchEngineLabel(mode) {
     return labels[mode] || mode;
 }
 
-function addDetailRow(label, value) {
+function addDetailRow(label, value, target = el.trackDetail) {
     const row = document.createElement('div');
     row.className = 'detail-row';
     const left = document.createElement('span');
@@ -4354,7 +4532,7 @@ function addDetailRow(label, value) {
     left.textContent = label;
     right.textContent = value == null || value === '' ? '-' : String(value);
     row.append(left, right);
-    el.trackDetail.appendChild(row);
+    target.appendChild(row);
 }
 
 function renderSelectedBadge() {
@@ -4448,7 +4626,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.2',
+        app: 'FoxBear AI Mastering Studio Pro v1.2.6',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -4462,6 +4640,7 @@ function createExportReport(track) {
         genreAlternatives: track.genreAlternatives,
         settings: track.settings,
         pitchSpeed: track.transform,
+        masteredDurationSec: track.masteredDurationSec || null,
         instrument: track.instrument,
         instrumentInfo: track.instrumentInfo,
         enabledFeatures: { ...state.featureFlags },
