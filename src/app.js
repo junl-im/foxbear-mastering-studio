@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2.3';
+const APP_VERSION = 'Pro v1.2.4';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -40,7 +40,7 @@ const INSTRUMENT_AMOUNT_LEVELS = {
     bold: { label: '강하게', gain: 1.15 }
 };
 const CURVE_CACHE = new Map();
-const ACTION_SELECT_IDS = ['masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
+const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
 
 
 const FEATURE_DEFINITIONS = {
@@ -190,7 +190,9 @@ const state = {
     abLevelMatch: true,
     cacheReady: false,
     autoRemasterTimers: new Map(),
-    selectPopup: null
+    selectPopup: null,
+    popupScrollY: 0,
+    popupScrollbarCompensation: 0
 };
 
 const el = {};
@@ -521,6 +523,7 @@ function enhanceActionSelects() {
     panel.className = 'select-popup-panel';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('tabindex', '-1');
     backdrop.appendChild(panel);
     document.body.appendChild(backdrop);
 
@@ -551,6 +554,9 @@ function openSelectPopup(select, trigger) {
     popup.activeSelect = select;
     popup.lastTrigger = trigger || null;
     popup.panel.textContent = '';
+    popup.panel.dataset.select = select.id;
+    popup.panel.classList.toggle('select-popup-dense', select.options.length >= 6);
+    popup.panel.classList.toggle('select-popup-compact', select.options.length <= 4);
 
     const label = getSelectLabel(select);
     const title = document.createElement('div');
@@ -580,13 +586,10 @@ function openSelectPopup(select, trigger) {
     });
     popup.panel.appendChild(list);
 
+    lockPageForPopup();
     popup.backdrop.classList.add('show');
     popup.backdrop.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('select-popup-open');
-    requestAnimationFrame(() => {
-        const active = popup.panel.querySelector('.select-popup-option.active') || popup.panel.querySelector('.select-popup-option');
-        if (active) active.focus({ preventScroll: true });
-    });
+    popup.panel.focus({ preventScroll: true });
 }
 
 function closeSelectPopup() {
@@ -594,11 +597,37 @@ function closeSelectPopup() {
     if (!popup) return;
     popup.backdrop.classList.remove('show');
     popup.backdrop.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('select-popup-open');
     const lastTrigger = popup.lastTrigger;
     popup.activeSelect = null;
     popup.lastTrigger = null;
+    popup.panel.dataset.select = '';
+    popup.panel.classList.remove('select-popup-dense', 'select-popup-compact');
+    unlockPageForPopup();
     if (lastTrigger && document.contains(lastTrigger)) lastTrigger.focus({ preventScroll: true });
+}
+
+function lockPageForPopup() {
+    if (document.body.classList.contains('select-popup-open')) return;
+    const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+    state.popupScrollY = scrollY;
+    state.popupScrollbarCompensation = scrollbarWidth;
+    document.body.style.setProperty('--popup-scroll-y', `${scrollY}px`);
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    document.body.style.top = `-${scrollY}px`;
+    document.body.classList.add('select-popup-open');
+}
+
+function unlockPageForPopup() {
+    if (!document.body.classList.contains('select-popup-open')) return;
+    const scrollY = state.popupScrollY || 0;
+    document.body.classList.remove('select-popup-open');
+    document.body.style.top = '';
+    document.body.style.paddingRight = '';
+    document.body.style.removeProperty('--popup-scroll-y');
+    state.popupScrollY = 0;
+    state.popupScrollbarCompensation = 0;
+    window.scrollTo({ top: scrollY, left: 0, behavior: 'auto' });
 }
 
 function getSelectLabel(select) {
