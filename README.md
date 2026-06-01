@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.2
+# FoxBear AI Mastering Studio Pro v1.2.2
 
 GitHub Pages-ready modular browser mastering studio.
 
@@ -76,3 +76,19 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - Pitch/BPM controls are stacked one per line for PC and mobile.
 - Queue preview is renamed to 미리듣기.
 - robots.txt and a host guard are included as deterrents against crawler/code reuse, but public client-side code cannot be fully hidden.
+
+## Pro v1.2.1 cleanup patch
+- 작업 실행 영역의 기본 셀렉트 박스를 버튼형 팝업 선택 UI로 개선했습니다. 선택 후 팝업이 자동으로 닫힙니다.
+- 작업 실행 제목 옆의 "선택 · 전체 · 다운로드" 문구와 출력/엔진 박스 하단의 긴 버전 설명 문구를 제거했습니다.
+- 모바일에서 퍼센트/상태/분석 값이 영역 밖으로 밀리지 않도록 숫자 폭, 줄바꿈, 상세 행 overflow를 보정했습니다.
+- 모바일 렌더링 부담을 줄이기 위해 배경 장식, blur, hover transform, will-change 사용을 줄였습니다.
+- 서브 클린업, 적응형 공진 스무더, 마이크로 다이내믹 글루를 마스터링 체인에 추가했습니다.
+
+
+## Pro v1.2.2 rhythm/input/engine patch
+- 피치/속도 영역에 박자 변경 버튼형 프리셋을 추가했습니다: 원본, -5%, -10%, +5%, +10%, 하프타임, 더블타임, 커스텀.
+- 파일 입력에서 MP4/M4V/MOV 컨테이너를 허용합니다. 브라우저가 지원하는 오디오 트랙이 들어 있는 파일은 마스터링 대상으로 불러올 수 있습니다.
+- 악기 추가 영역을 추가했습니다. 킥, 하이햇, 클랩, 킥+하이햇, 킥+하이햇+클랩을 자동 추정 BPM에 맞춰 가볍게 합성합니다.
+- 악기 레이어는 렌더 직전 소스에 소량 믹스하고, 마지막 2-pass 파이널라이저와 피크 가드에서 안전하게 정리합니다.
+- 마스터링 체인에 스펙트럴 밸런서와 새츄레이션 커브 캐시를 추가해 톤 보정은 더 섬세하게, 반복 렌더 부담은 더 낮췄습니다.
+- 파이널라이저의 true-peak 검사 루프를 최적화해 Fast/Balanced 처리 속도를 개선했습니다.
