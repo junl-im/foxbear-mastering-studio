@@ -1,14 +1,14 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2.2';
+const APP_VERSION = 'Pro v1.2.3';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v11';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v12';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -802,6 +802,7 @@ function createTrack(file) {
         albumApplied: null,
         truePeakInfo: null,
         finalizeInfo: null,
+        performanceInfo: null,
         report: '대기 중',
         outBlob: null,
         outName: '',
@@ -1569,11 +1570,13 @@ async function masterTrack(track, calledFromBatch = false) {
     track.albumApplied = null;
     track.truePeakInfo = null;
     track.finalizeInfo = null;
+    track.performanceInfo = beginPerformanceProfile();
     track.report = '온디맨드 디코더 구동 중...';
     renderAll();
 
     try {
         let currentSourceBuffer = await decodeAudio(track.file);
+        markPerformanceStage(track, '디코딩');
         await yieldToBrowser();
 
         if (!track.analysis) {
@@ -1592,6 +1595,7 @@ async function masterTrack(track, calledFromBatch = false) {
                 track.settings = makeRecommendedSettings(recommendation.preset, analysis);
                 track.recommendedSettings = cloneSettings(track.settings);
             }
+            markPerformanceStage(track, '긴급 분석');
         }
 
         if (state.featureFlags.trimSilence) {
@@ -1601,12 +1605,14 @@ async function masterTrack(track, calledFromBatch = false) {
             const trimResult = autoTrimSilenceBuffer(currentSourceBuffer);
             currentSourceBuffer = trimResult.buffer;
             track.trimInfo = trimResult.info;
+            markPerformanceStage(track, '무음 정리');
         }
 
         track.progress = 38;
         track.report = '피치/BPM 워커 변환 및 오버랩 위상 정렬 중';
         renderAll();
         let preparedBuffer = await preparePitchSpeedBuffer(currentSourceBuffer, track.transform);
+        markPerformanceStage(track, '피치/BPM');
         await yieldToBrowser();
 
         if (shouldUseInstrumentLayer(track.instrument)) {
@@ -1616,6 +1622,7 @@ async function masterTrack(track, calledFromBatch = false) {
             const layered = mixInstrumentLayerBuffer(preparedBuffer, track.instrument, track.analysis);
             preparedBuffer = layered.buffer;
             track.instrumentInfo = layered.info;
+            markPerformanceStage(track, '리듬 레이어');
             await yieldToBrowser();
         }
 
@@ -1624,6 +1631,7 @@ async function masterTrack(track, calledFromBatch = false) {
         renderAll();
         const albumProfile = getActiveAlbumProfile();
         const masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
+        markPerformanceStage(track, '마스터 체인');
         await yieldToBrowser();
 
         track.progress = 88;
@@ -1639,6 +1647,7 @@ async function masterTrack(track, calledFromBatch = false) {
             truePeak: state.featureFlags.truePeakGuard
         });
         const finalBuffer = finalization.buffer;
+        markPerformanceStage(track, '파이널라이저');
         track.finalizeInfo = finalization.info;
         track.comparison = createComparisonInfo(track, finalization.info);
         track.truePeakInfo = {
@@ -1652,6 +1661,7 @@ async function masterTrack(track, calledFromBatch = false) {
         if (albumProfile && track.analysis) track.albumApplied = createAlbumAppliedInfo(track.analysis, albumProfile);
 
         const encoded = await encodeMasterOutputAsync(finalBuffer, requestedOutputFormat);
+        markPerformanceStage(track, '인코딩');
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
 
         if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
@@ -1659,6 +1669,7 @@ async function masterTrack(track, calledFromBatch = false) {
         track.outFormat = encoded.format;
         track.outName = `${safeBaseName(track.name)}_mastered.${encoded.extension}`;
         track.masteredUrl = URL.createObjectURL(encoded.blob);
+        finishPerformanceProfile(track, finalBuffer, encoded.blob);
         track.status = 'done';
         track.progress = 100;
         track.report = createDoneReport(track);
@@ -2033,6 +2044,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createStereoGrooveNode(context, node, effectiveSettings.stereoGroove, intensity);
     node = createSaturationNode(context, node, effectiveSettings.analogGroove, effectiveSettings.warmth, intensity);
     node = createSpectralBalancerNode(context, node, effectiveSettings, analysis, intensity);
+    node = createPerceptualPolishNode(context, node, effectiveSettings, analysis, intensity);
     node = createToneChain(context, node, effectiveSettings, intensity);
     node = createHighFrequencyExciterNode(context, node, effectiveSettings, intensity);
     node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
@@ -2431,6 +2443,45 @@ function createSpectralBalancerNode(context, input, settings, analysis, intensit
     return output;
 }
 
+
+function createPerceptualPolishNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!analysis) return input;
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const warmth = clamp(Number(settings.warmth || 55), 0, 100);
+    const removal = clamp(Number(settings.metallicRemoval || 42), 0, 100);
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const high = clamp01(Number(analysis.highRatio ?? 0.22));
+    const mid = clamp01(Number(analysis.midRatio ?? 0.28));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const scale = clamp(intensity.amount, 0.65, 1.75);
+
+    const bodyFocus = context.createBiquadFilter();
+    bodyFocus.type = 'peaking';
+    bodyFocus.frequency.value = 520;
+    bodyFocus.Q.value = 0.88;
+    bodyFocus.gain.value = clamp((warmth - 55) * 0.006 * scale + (0.27 - mid) * 0.30, -0.28, 0.42);
+
+    const presenceFocus = context.createBiquadFilter();
+    presenceFocus.type = 'peaking';
+    presenceFocus.frequency.value = 2450;
+    presenceFocus.Q.value = 1.05;
+    presenceFocus.gain.value = clamp((clarity - 50) * 0.0045 * scale - metallic * 0.18, -0.48, 0.38);
+
+    const biteGuard = context.createBiquadFilter();
+    biteGuard.type = 'peaking';
+    biteGuard.frequency.value = clamp(Number(analysis.targetDynamicFreq || 5200) * 0.82, 3600, 6800);
+    biteGuard.Q.value = 2.35;
+    biteGuard.gain.value = clamp(-Math.max(0, metallic - 0.42) * 0.72 * scale - Math.max(0, removal - 58) * 0.006, -1.10, -0.03);
+
+    const silkShelf = context.createBiquadFilter();
+    silkShelf.type = 'highshelf';
+    silkShelf.frequency.value = 13500;
+    silkShelf.gain.value = clamp((0.48 - brightness) * 0.62 * scale - Math.max(0, high - 0.38) * 0.55, -0.55, 0.42);
+
+    input.connect(bodyFocus).connect(presenceFocus).connect(biteGuard).connect(silkShelf);
+    return silkShelf;
+}
+
 function createToneChain(context, input, settings, intensity = getMasteringIntensity(settings)) {
     const toneScale = clamp(intensity.amount, 0.65, 2.25);
     const highAggression = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.55) * 0.9 : 1;
@@ -2701,43 +2752,68 @@ function mixInstrumentLayerBuffer(buffer, layer, analysis) {
     const value = cloneInstrumentLayer(layer || DEFAULT_INSTRUMENT_LAYER);
     const preset = INSTRUMENT_LAYER_PRESETS[value.mode] || INSTRUMENT_LAYER_PRESETS.off;
     if (value.mode === 'off') {
-        return { buffer, info: { applied: false, label: 'OFF', bpm: 0, events: 0, gainDb: 0 } };
+        return { buffer, info: { applied: false, label: 'OFF', bpm: 0, events: 0, gainDb: 0, confidence: 0 } };
     }
 
     const bpmInfo = estimateTempoFromBuffer(buffer, analysis);
-    const bpm = clamp(Number(bpmInfo.bpm || 120), 70, 180);
+    const bpm = clamp(Number(bpmInfo.bpm || 120), 60, 190);
     const amount = INSTRUMENT_AMOUNT_LEVELS[value.amount] || INSTRUMENT_AMOUNT_LEVELS.light;
     const sourcePeak = measureSamplePeak(buffer);
-    const peakRoomScale = clamp((0.96 - sourcePeak) / 0.36, 0.34, 1.0);
-    const naturalScale = amount.gain * peakRoomScale;
+    const bassDucking = preset.hasKick ? clamp(1 - Number(analysis?.bassRatio || 0.28) * 0.20, 0.76, 1.0) : 1;
+    const transientDucking = clamp(1.06 - Number(analysis?.transientDensity || 0.35) * 0.32, 0.72, 1.02);
+    const confidenceScale = clamp(0.72 + Number(bpmInfo.confidence || 0.4) * 0.36, 0.70, 1.05);
+    const peakRoomScale = clamp((0.965 - sourcePeak) / 0.34, 0.34, 1.0);
+    const naturalScale = amount.gain * peakRoomScale * bassDucking * transientDucking * confidenceScale;
     const output = cloneAudioBuffer(buffer);
+    const channels = getMutableChannelViews(output);
     const beatSamples = Math.max(1, Math.round(buffer.sampleRate * 60 / bpm));
     const firstBeat = detectFirstTransientSample(buffer, beatSamples);
     const durationBeats = Math.ceil((buffer.length + beatSamples) / beatSamples);
+    const swing = value.amount === 'light' ? 0.018 : value.amount === 'normal' ? 0.026 : 0.034;
+    const microHumanize = value.amount === 'bold' ? 0.008 : 0.005;
     let events = 0;
+    let weightedGain = 0;
 
     for (let beat = 0; beat < durationBeats; beat += 1) {
-        const start = firstBeat + beat * beatSamples;
-        if (start >= 0 && start < output.length) {
+        const barBeat = beat % 4;
+        const baseStart = firstBeat + beat * beatSamples;
+        const human = Math.round(beatSamples * microHumanize * pseudoNoise(beat * 19.17));
+        if (baseStart >= -beatSamples && baseStart < output.length) {
             if (preset.hasKick) {
-                addKickToBuffer(output, start, 0.052 * naturalScale);
-                events += 1;
+                const velocity = barBeat === 0 ? 1.0 : barBeat === 2 ? 0.72 : 0.36;
+                const start = baseStart + human;
+                if (start >= 0 && start < output.length) {
+                    const amp = 0.050 * naturalScale * velocity;
+                    addKickToChannels(channels, output.sampleRate, start, amp);
+                    weightedGain += amp;
+                    events += 1;
+                }
             }
-            if (preset.hasClap && (beat % 4 === 1 || beat % 4 === 3)) {
-                addClapToBuffer(output, start + Math.round(beatSamples * 0.02), 0.030 * naturalScale);
-                events += 1;
+            if (preset.hasClap && (barBeat === 1 || barBeat === 3)) {
+                const start = baseStart + Math.round(beatSamples * 0.018) + Math.round(human * 0.45);
+                if (start >= 0 && start < output.length) {
+                    const amp = 0.029 * naturalScale * (barBeat === 1 ? 0.92 : 1.0);
+                    addClapToChannels(channels, output.sampleRate, start, amp);
+                    weightedGain += amp;
+                    events += 1;
+                }
             }
         }
         if (preset.hasHat) {
-            const hat1 = start + Math.round(beatSamples * 0.50);
+            const offbeatSwing = Math.round(beatSamples * (0.50 + swing));
+            const hat1 = baseStart + offbeatSwing + Math.round(human * 0.35);
             if (hat1 >= 0 && hat1 < output.length) {
-                addHatToBuffer(output, hat1, 0.018 * naturalScale, beat);
+                const amp = 0.016 * naturalScale * (barBeat === 0 ? 0.82 : 1.0);
+                addHatToChannels(channels, output.sampleRate, hat1, amp, beat, beat % 2 ? 0.94 : 1.06);
+                weightedGain += amp;
                 events += 1;
             }
             if (value.amount !== 'light') {
-                const hat2 = start + Math.round(beatSamples * 0.25);
+                const hat2 = baseStart + Math.round(beatSamples * 0.25) - Math.round(beatSamples * swing * 0.33);
                 if (hat2 >= 0 && hat2 < output.length) {
-                    addHatToBuffer(output, hat2, 0.010 * naturalScale, beat + 17);
+                    const amp = 0.0085 * naturalScale * (barBeat === 2 ? 0.9 : 0.7);
+                    addHatToChannels(channels, output.sampleRate, hat2, amp, beat + 17, beat % 2 ? 1.05 : 0.96);
+                    weightedGain += amp;
                     events += 1;
                 }
             }
@@ -2745,9 +2821,9 @@ function mixInstrumentLayerBuffer(buffer, layer, analysis) {
     }
 
     applyEdgeFade(output, 0.004);
-    const afterPeak = measureSamplePeak(output);
+    const afterPeak = measureSamplePeakFast(channels);
     const safeGain = afterPeak > 0.94 ? 0.94 / Math.max(1e-9, afterPeak) : 1;
-    if (safeGain < 1) applyBufferGain(output, safeGain);
+    if (safeGain < 1) applyBufferGainFast(channels, safeGain);
 
     return {
         buffer: output,
@@ -2757,90 +2833,301 @@ function mixInstrumentLayerBuffer(buffer, layer, analysis) {
             amount: value.amount,
             bpm,
             confidence: bpmInfo.confidence,
+            candidates: bpmInfo.candidates || [],
+            gridQuality: bpmInfo.gridQuality,
             firstBeatSec: firstBeat / buffer.sampleRate,
             events,
+            averageEventGain: events ? weightedGain / events : 0,
             gainDb: 20 * Math.log10(Math.max(1e-9, safeGain * naturalScale))
         }
     };
 }
 
 function estimateTempoFromBuffer(buffer, analysis) {
+    const tempoData = buildOnsetEnvelope(buffer, 132);
+    const envelope = tempoData.envelope;
     const sampleRate = buffer.sampleRate;
-    const frameSize = Math.max(512, Math.round(sampleRate * 0.023));
-    const hop = Math.max(256, Math.round(frameSize / 2));
-    const frames = Math.min(4096, Math.ceil(buffer.length / hop));
+    const hopSeconds = tempoData.hop / sampleRate;
+    if (!envelope.length) return { bpm: 120, confidence: 0, candidates: [], gridQuality: 0 };
+
+    const candidates = [];
+    for (let bpm = 60; bpm <= 190; bpm += 0.5) {
+        const lag = Math.max(1, Math.round((60 / bpm) / hopSeconds));
+        const score = scoreTempoLag(envelope, lag);
+        candidates.push({ bpm, score });
+    }
+    candidates.sort((a, b) => b.score - a.score);
+    let best = candidates[0] || { bpm: 120, score: 0 };
+
+    const folded = foldTempoCandidate(best.bpm, analysis);
+    let bestBpm = folded;
+    const foldedHit = candidates.find(item => Math.abs(foldTempoCandidate(item.bpm, analysis) - folded) < 0.6);
+    if (foldedHit && foldedHit.score > best.score * 0.82) best = foldedHit;
+
+    bestBpm = refineTempoWithNeighborhood(envelope, hopSeconds, bestBpm);
+    const runnerUp = candidates.find(item => Math.abs(foldTempoCandidate(item.bpm, analysis) - bestBpm) > 3) || candidates[1] || best;
+    const transient = Number(analysis?.transientDensity ?? 0.35);
+    const separation = best.score / Math.max(1e-9, runnerUp.score || 1e-9);
+    const rawConfidence = (best.score * 120) + clamp((separation - 1) * 0.42, 0, 0.36) + transient * 0.22;
+    const confidence = clamp01(rawConfidence);
+    const gridQuality = clamp01(scoreTempoLag(envelope, Math.max(1, Math.round((60 / bestBpm) / hopSeconds))) * 150);
+    return {
+        bpm: clamp(bestBpm, 60, 190),
+        confidence,
+        gridQuality,
+        candidates: candidates.slice(0, 4).map(item => ({ bpm: Math.round(foldTempoCandidate(item.bpm, analysis) * 10) / 10, score: Math.round(item.score * 100000) / 100000 }))
+    };
+}
+
+function buildOnsetEnvelope(buffer, maxSeconds = 120) {
+    const sampleRate = buffer.sampleRate;
+    const frameSize = Math.max(768, Math.round(sampleRate * 0.026));
+    const hop = Math.max(384, Math.round(sampleRate * 0.0125));
+    const maxLength = Math.min(buffer.length, Math.round(sampleRate * maxSeconds));
+    const frames = Math.max(0, Math.ceil(maxLength / hop));
     const envelope = new Float32Array(frames);
-    let previous = 0;
+    const channels = getReadableChannelViews(buffer);
+    let prevEnergy = 0;
+    let prevPeak = 0;
+    let running = 0;
     for (let frame = 0; frame < frames; frame += 1) {
         const start = frame * hop;
-        const end = Math.min(buffer.length, start + frameSize);
+        const end = Math.min(maxLength, start + frameSize);
         let sum = 0;
+        let peak = 0;
+        let zc = 0;
+        let prev = 0;
         let count = 0;
-        for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-            const data = buffer.getChannelData(ch);
+        for (let ch = 0; ch < channels.length; ch += 1) {
+            const data = channels[ch];
             for (let i = start; i < end; i += 4) {
-                sum += Math.abs(data[i] || 0);
+                const sample = data[i] || 0;
+                const abs = Math.abs(sample);
+                sum += abs;
+                if (abs > peak) peak = abs;
+                if (count > 0 && Math.sign(sample) !== Math.sign(prev)) zc += 1;
+                prev = sample;
                 count += 1;
             }
         }
-        const value = sum / Math.max(1, count);
-        envelope[frame] = Math.max(0, value - previous * 0.92);
-        previous = value;
+        const energy = sum / Math.max(1, count);
+        const rise = Math.max(0, energy - prevEnergy * 0.86);
+        const peakRise = Math.max(0, peak - prevPeak * 0.82);
+        const zcBoost = clamp01(zc / Math.max(1, count) * 7.5);
+        const raw = rise * 0.88 + peakRise * 0.38 + energy * zcBoost * 0.08;
+        running = running * 0.985 + raw * 0.015;
+        envelope[frame] = Math.max(0, raw - running * 0.16);
+        prevEnergy = energy;
+        prevPeak = peak;
     }
+    normalizeEnvelopeInPlace(envelope);
+    return { envelope, hop, frameSize };
+}
 
-    let bestBpm = 120;
-    let bestScore = 0;
-    const hopSeconds = hop / sampleRate;
-    for (let bpm = 70; bpm <= 180; bpm += 1) {
-        const lag = Math.max(1, Math.round((60 / bpm) / hopSeconds));
-        let score = 0;
-        let count = 0;
-        for (let i = lag; i < frames; i += 1) {
-            score += envelope[i] * envelope[i - lag];
-            count += 1;
-        }
-        score /= Math.max(1, count);
+function normalizeEnvelopeInPlace(envelope) {
+    let max = 0;
+    let sum = 0;
+    for (let i = 0; i < envelope.length; i += 1) {
+        max = Math.max(max, envelope[i]);
+        sum += envelope[i];
+    }
+    const mean = sum / Math.max(1, envelope.length);
+    const scale = 1 / Math.max(1e-9, Math.max(max * 0.55, mean * 6));
+    for (let i = 0; i < envelope.length; i += 1) {
+        envelope[i] = Math.min(1, envelope[i] * scale);
+    }
+}
+
+function scoreTempoLag(envelope, lag) {
+    if (!envelope.length || lag <= 0 || lag >= envelope.length) return 0;
+    let score = 0;
+    let count = 0;
+    const lag2 = lag * 2;
+    const halfLag = Math.max(1, Math.round(lag / 2));
+    for (let i = lag2; i < envelope.length; i += 1) {
+        const current = envelope[i];
+        score += current * envelope[i - lag];
+        if (i - lag2 >= 0) score += current * envelope[i - lag2] * 0.42;
+        if (i - halfLag >= 0) score += current * envelope[i - halfLag] * 0.18;
+        count += 1.6;
+    }
+    return score / Math.max(1, count);
+}
+
+function refineTempoWithNeighborhood(envelope, hopSeconds, bpm) {
+    let bestBpm = bpm;
+    let bestScore = -Infinity;
+    for (let candidate = bpm - 1.5; candidate <= bpm + 1.5; candidate += 0.25) {
+        const lag = Math.max(1, Math.round((60 / candidate) / hopSeconds));
+        const score = scoreTempoLag(envelope, lag);
         if (score > bestScore) {
             bestScore = score;
-            bestBpm = bpm;
+            bestBpm = candidate;
         }
     }
+    return Math.round(bestBpm * 10) / 10;
+}
 
-    if (bestBpm < 88 && bestScore > 0) bestBpm *= 2;
-    if (bestBpm > 170) bestBpm /= 2;
+function foldTempoCandidate(bpm, analysis) {
+    let value = Number(bpm || 120);
     const transient = Number(analysis?.transientDensity ?? 0.35);
-    const confidence = clamp01(bestScore * 160 + transient * 0.35);
-    return { bpm: clamp(bestBpm, 70, 180), confidence };
+    const bass = Number(analysis?.bassRatio ?? 0.28);
+    while (value < 78 && (transient > 0.22 || bass > 0.24)) value *= 2;
+    while (value > 174 && transient < 0.58) value /= 2;
+    if (value < 92 && transient > 0.46 && bass > 0.24) value *= 2;
+    if (value > 156 && transient < 0.30) value /= 2;
+    return clamp(value, 60, 190);
 }
 
 function detectFirstTransientSample(buffer, beatSamples) {
     const sampleRate = buffer.sampleRate;
-    const start = Math.round(sampleRate * 0.04);
-    const end = Math.min(buffer.length, Math.round(sampleRate * 2.5));
-    const frame = Math.max(256, Math.round(sampleRate * 0.012));
-    let bestSample = 0;
-    let bestScore = 0;
-    let prev = 0;
-    for (let pos = start; pos < end; pos += frame) {
+    const activeStart = findActiveAudioStartSample(buffer);
+    const searchStart = Math.max(0, activeStart - Math.round(sampleRate * 0.08));
+    const maxBeats = Math.min(16, Math.ceil((buffer.length - searchStart) / Math.max(1, beatSamples)));
+    const step = Math.max(128, Math.round(sampleRate * 0.006));
+    let bestOffset = 0;
+    let bestScore = -Infinity;
+    for (let offset = 0; offset < beatSamples; offset += step) {
+        let score = 0;
+        let weight = 1;
+        for (let beat = 0; beat < maxBeats; beat += 1) {
+            const pos = searchStart + offset + beat * beatSamples;
+            if (pos >= buffer.length) break;
+            score += measureTransientAtSample(buffer, pos) * weight;
+            weight *= 0.94;
+        }
+        if (score > bestScore) {
+            bestScore = score;
+            bestOffset = offset;
+        }
+    }
+    return clamp(searchStart + bestOffset - Math.round(beatSamples * 0.015), 0, Math.max(0, buffer.length - 1));
+}
+
+function findActiveAudioStartSample(buffer) {
+    const sampleRate = buffer.sampleRate;
+    const channels = getReadableChannelViews(buffer);
+    const frame = Math.max(512, Math.round(sampleRate * 0.02));
+    const threshold = 0.006;
+    const max = Math.min(buffer.length, Math.round(sampleRate * 12));
+    for (let start = 0; start < max; start += frame) {
         let sum = 0;
         let count = 0;
-        for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-            const data = buffer.getChannelData(ch);
-            const frameEnd = Math.min(buffer.length, pos + frame);
-            for (let i = pos; i < frameEnd; i += 2) {
+        for (let ch = 0; ch < channels.length; ch += 1) {
+            const data = channels[ch];
+            const end = Math.min(buffer.length, start + frame);
+            for (let i = start; i < end; i += 8) {
                 sum += Math.abs(data[i] || 0);
                 count += 1;
             }
         }
-        const level = sum / Math.max(1, count);
-        const score = Math.max(0, level - prev * 0.75);
-        if (score > bestScore) {
-            bestScore = score;
-            bestSample = pos;
-        }
-        prev = level;
+        if (sum / Math.max(1, count) > threshold) return start;
     }
-    return clamp(bestSample - Math.round(beatSamples * 0.02), 0, Math.max(0, buffer.length - 1));
+    return 0;
+}
+
+function measureTransientAtSample(buffer, sample) {
+    const channels = getReadableChannelViews(buffer);
+    const frame = Math.max(128, Math.round(buffer.sampleRate * 0.006));
+    const beforeStart = Math.max(0, sample - frame);
+    const afterEnd = Math.min(buffer.length, sample + frame);
+    let before = 0;
+    let after = 0;
+    let beforeCount = 0;
+    let afterCount = 0;
+    for (let ch = 0; ch < channels.length; ch += 1) {
+        const data = channels[ch];
+        for (let i = beforeStart; i < sample; i += 4) {
+            before += Math.abs(data[i] || 0);
+            beforeCount += 1;
+        }
+        for (let i = sample; i < afterEnd; i += 4) {
+            after += Math.abs(data[i] || 0);
+            afterCount += 1;
+        }
+    }
+    return Math.max(0, after / Math.max(1, afterCount) - before / Math.max(1, beforeCount) * 0.72);
+}
+
+function getReadableChannelViews(buffer) {
+    const channels = [];
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) channels.push(buffer.getChannelData(ch));
+    return channels;
+}
+
+function getMutableChannelViews(buffer) {
+    return getReadableChannelViews(buffer);
+}
+
+function addKickToChannels(channels, sampleRate, start, amp) {
+    const length = Math.min((channels[0]?.length || 0) - start, Math.round(sampleRate * 0.18));
+    if (length <= 0) return;
+    let phase = 0;
+    for (let i = 0; i < length; i += 1) {
+        const t = i / sampleRate;
+        const norm = i / Math.max(1, length);
+        const freq = 76 - 39 * Math.pow(norm, 0.70);
+        phase += 2 * Math.PI * freq / sampleRate;
+        const body = Math.sin(phase) * Math.exp(-t * 18.5);
+        const click = Math.exp(-t * 190) * 0.18;
+        addToChannels(channels, start + i, (body + click) * amp, 1);
+    }
+}
+
+function addHatToChannels(channels, sampleRate, start, amp, seed, panLean) {
+    const length = Math.min((channels[0]?.length || 0) - start, Math.round(sampleRate * 0.052));
+    if (length <= 0) return;
+    let hp1 = 0;
+    let hp2 = 0;
+    for (let i = 0; i < length; i += 1) {
+        const t = i / sampleRate;
+        const raw = pseudoNoise(start + i * 2.3 + seed * 101.7);
+        const high = raw - hp1 * 0.72 + (hp1 - hp2) * 0.24;
+        hp2 = hp1;
+        hp1 = raw;
+        const env = Math.exp(-t * 78);
+        addToChannels(channels, start + i, high * env * amp, panLean || 1);
+    }
+}
+
+function addClapToChannels(channels, sampleRate, start, amp) {
+    const length = Math.min((channels[0]?.length || 0) - start, Math.round(sampleRate * 0.108));
+    if (length <= 0) return;
+    let hp = 0;
+    for (let i = 0; i < length; i += 1) {
+        const t = i / sampleRate;
+        const burst = Math.exp(-Math.max(0, t) * 34) + 0.62 * Math.exp(-Math.max(0, t - 0.014) * 42) + 0.50 * Math.exp(-Math.max(0, t - 0.031) * 52);
+        const raw = pseudoNoise(start * 0.37 + i * 2.1);
+        const high = raw - hp * 0.42;
+        hp = raw;
+        addToChannels(channels, start + i, high * burst * amp * 0.42, 0.96);
+    }
+}
+
+function addToChannels(channels, index, value, panLean = 1) {
+    if (index < 0 || !channels.length || index >= channels[0].length) return;
+    if (channels.length < 2) {
+        channels[0][index] += value;
+        return;
+    }
+    channels[0][index] += value * panLean;
+    channels[1][index] += value * (2 - panLean);
+}
+
+function measureSamplePeakFast(channels) {
+    let peak = 0;
+    for (let ch = 0; ch < channels.length; ch += 1) {
+        const data = channels[ch];
+        for (let i = 0; i < data.length; i += 1) peak = Math.max(peak, Math.abs(data[i]));
+    }
+    return peak;
+}
+
+function applyBufferGainFast(channels, gain) {
+    for (let ch = 0; ch < channels.length; ch += 1) {
+        const data = channels[ch];
+        for (let i = 0; i < data.length; i += 1) data[i] *= gain;
+    }
 }
 
 function addKickToBuffer(buffer, start, amp) {
@@ -3332,6 +3619,7 @@ function clearQueue() {
     clearFileInputs();
     applyPresetToControlsOnly('custom');
     setTransformControls(DEFAULT_TRANSFORM);
+    setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
     renderAll();
     showToast('작업 큐를 초기화했습니다.');
 }
@@ -3339,6 +3627,73 @@ function clearQueue() {
 function clearFileInputs() {
     el.fileInput.value = '';
     el.folderInput.value = '';
+}
+
+
+function beginPerformanceProfile() {
+    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    return {
+        running: true,
+        startedAt: new Date().toISOString(),
+        startMs: now,
+        lastMs: now,
+        stages: [],
+        totalMs: 0,
+        realtimeRatio: 0,
+        outputSize: 0
+    };
+}
+
+function markPerformanceStage(track, label) {
+    if (!track || !track.performanceInfo) return;
+    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const elapsed = Math.max(0, now - Number(track.performanceInfo.lastMs || now));
+    const existing = track.performanceInfo.stages.find(stage => stage.label === label);
+    if (existing) existing.ms += elapsed;
+    else track.performanceInfo.stages.push({ label, ms: elapsed });
+    track.performanceInfo.lastMs = now;
+}
+
+function finishPerformanceProfile(track, buffer, blob) {
+    if (!track || !track.performanceInfo) return;
+    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const totalMs = Math.max(0, now - Number(track.performanceInfo.startMs || now));
+    const durationMs = buffer?.duration ? buffer.duration * 1000 : track.analysis?.duration ? track.analysis.duration * 1000 : 0;
+    track.performanceInfo.running = false;
+    track.performanceInfo.totalMs = totalMs;
+    track.performanceInfo.realtimeRatio = durationMs > 0 ? totalMs / durationMs : 0;
+    track.performanceInfo.outputSize = blob?.size || 0;
+    track.performanceInfo.completedAt = new Date().toISOString();
+}
+
+function getHeaviestPerformanceStage(info) {
+    if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
+    return info.stages.slice().sort((a, b) => Number(b.ms || 0) - Number(a.ms || 0))[0];
+}
+
+function formatPerformanceInfo(info) {
+    if (!info) return '-';
+    if (info.running) return '처리 중 · 단계별 시간 측정 중';
+    const ratio = Number(info.realtimeRatio || 0);
+    const speedText = ratio > 0 ? `${ratio.toFixed(2)}x 실시간` : '실시간 배율 계산 전';
+    const size = info.outputSize ? ` · 출력 ${formatBytes(info.outputSize)}` : '';
+    return `${formatDurationMs(info.totalMs)} · ${speedText}${size}`;
+}
+
+function formatDurationMs(ms) {
+    const value = Math.max(0, Number(ms || 0));
+    if (value < 1000) return `${Math.round(value)} ms`;
+    if (value < 60000) return `${(value / 1000).toFixed(value < 10000 ? 2 : 1)}초`;
+    const minutes = Math.floor(value / 60000);
+    const seconds = Math.round((value % 60000) / 1000).toString().padStart(2, '0');
+    return `${minutes}분 ${seconds}초`;
+}
+
+function formatInstrumentLayerResult(info) {
+    const confidence = Number.isFinite(Number(info.confidence)) ? ` · 신뢰 ${Math.round(Number(info.confidence) * 100)}%` : '';
+    const grid = Number.isFinite(Number(info.gridQuality)) ? ` · 그리드 ${Math.round(Number(info.gridQuality) * 100)}%` : '';
+    const gain = Number.isFinite(Number(info.gainDb)) ? ` · ${info.gainDb.toFixed(1)} dB` : '';
+    return `${info.label} · 추정 ${Number(info.bpm || 0).toFixed(1)} BPM · ${info.events || 0} hits${confidence}${grid}${gain}`;
 }
 
 function yieldToBrowser() {
@@ -3461,6 +3816,12 @@ function renderTrackList() {
         presetChip.className = 'track-preset-chip';
         presetChip.textContent = `프리셋 · ${PRESET_LABELS[track.preset] || track.preset}${track.genreLocked ? ' · 잠금' : ''}`;
         titleWrap.append(title, meta, presetChip);
+        if (track.performanceInfo && !track.performanceInfo.running && track.performanceInfo.totalMs) {
+            const perfChip = document.createElement('div');
+            perfChip.className = 'performance-chip';
+            perfChip.textContent = `성능 · ${formatDurationMs(track.performanceInfo.totalMs)} · ${(track.performanceInfo.realtimeRatio || 0).toFixed(2)}x`;
+            titleWrap.appendChild(perfChip);
+        }
         if (shouldApplyVocalProtection(track.preset, track.analysis)) {
             const vocalChip = document.createElement('div');
             vocalChip.className = 'vocal-safe-chip';
@@ -3549,7 +3910,12 @@ function renderDetail(options = {}) {
     addDetailRow('실시간 엔진 로그', track.report || '-');
 
     if (track.instrumentInfo && track.instrumentInfo.applied) {
-        addDetailRow('리듬 레이어 결과', `${track.instrumentInfo.label} · 추정 ${track.instrumentInfo.bpm.toFixed(0)} BPM · ${track.instrumentInfo.events} hits · ${track.instrumentInfo.gainDb.toFixed(1)} dB`);
+        addDetailRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
+    }
+    if (track.performanceInfo) {
+        addDetailRow('처리 성능 체크', formatPerformanceInfo(track.performanceInfo));
+        const heavy = getHeaviestPerformanceStage(track.performanceInfo);
+        if (heavy) addDetailRow('가장 무거운 단계', `${heavy.label} · ${formatDurationMs(heavy.ms)}`);
     }
     if (track.trimInfo) {
         addDetailRow('무음 정리', track.trimInfo.applied ? `앞 ${track.trimInfo.startTrimSec.toFixed(2)}초 · 뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초 정리` : '정리할 무음 구간 없음');
@@ -4009,6 +4375,7 @@ function createDoneReport(track) {
     if (track.trimInfo && track.trimInfo.applied) parts.push(`무음 정리 앞 ${track.trimInfo.startTrimSec.toFixed(2)}초/뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초`);
     if (track.albumApplied) parts.push(`앨범 통일 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB`);
     if (track.truePeakInfo) parts.push(track.truePeakInfo.mode === 'truePeak' ? 'True Peak 보호' : 'Sample Peak 보호');
+    if (track.performanceInfo?.totalMs) parts.push(`처리 ${formatDurationMs(track.performanceInfo.totalMs)}`);
     return parts.join(' · ');
 }
 
@@ -4035,6 +4402,7 @@ function createExportReport(track) {
         albumApplied: track.albumApplied,
         truePeakInfo: track.truePeakInfo,
         finalizeInfo: track.finalizeInfo,
+        performanceInfo: track.performanceInfo,
         outputTarget: { masterGoal: state.masterGoal, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
         albumProfile: state.albumProfile,
         analysis: track.analysis,
