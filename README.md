@@ -1,9 +1,9 @@
-# FoxBear AI Mastering Studio Pro v1.2.5
+# FoxBear AI Mastering Studio Pro v1.2.6
 
 GitHub Pages-ready modular browser mastering studio.
 
 
-## Pro v1.2.5 popup/UI refinement
+## Pro v1.2.6 popup/UI refinement
 
 - 장르 프리셋까지 버튼형 팝업 선택 UI로 통일했습니다.
 - 모바일에서도 선택 팝업이 화면 하단이 아닌 중앙에 뜨도록 조정했습니다.
