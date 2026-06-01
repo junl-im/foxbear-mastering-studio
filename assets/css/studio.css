@@ -1666,3 +1666,311 @@ audio { width: 100%; }
         font-size: .50rem !important;
     }
 }
+
+/* v1.2.1 cleanup: button-style popup selectors, mobile overflow, and lighter mobile rendering */
+.native-select-hidden {
+    position: absolute !important;
+    inline-size: 1px !important;
+    block-size: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+}
+.select-popup-trigger {
+    width: 100%;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 13px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.13);
+    color: var(--ink);
+    background:
+        linear-gradient(135deg, rgba(127,255,212,0.10), rgba(184,156,255,0.06)),
+        rgba(5, 8, 17, 0.68);
+    text-align: left;
+    line-height: 1.25;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+.select-popup-trigger::after {
+    content: "⌄";
+    flex: 0 0 auto;
+    color: var(--mint);
+    font-size: 0.82rem;
+    opacity: 0.9;
+}
+.select-popup-trigger:hover:not(:disabled) {
+    border-color: rgba(127,255,212,0.46);
+    background: rgba(127,255,212,0.075);
+}
+.select-popup-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(0,0,0,0.48);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .14s ease;
+}
+.select-popup-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.select-popup-panel {
+    width: min(520px, calc(100vw - 28px));
+    max-height: min(76vh, 620px);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    padding: 14px;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(15, 14, 25, 0.98);
+    box-shadow: 0 28px 90px rgba(0,0,0,0.48);
+    transform: translateY(8px) scale(0.985);
+    transition: transform .14s ease;
+}
+.select-popup-backdrop.show .select-popup-panel {
+    transform: translateY(0) scale(1);
+}
+.select-popup-title {
+    padding: 2px 3px 10px;
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 950;
+}
+.select-popup-list {
+    display: grid;
+    gap: 7px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 2px;
+}
+.select-popup-option {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.10);
+    color: var(--ink);
+    background: rgba(255,255,255,0.055);
+    text-align: left;
+    line-height: 1.28;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+.select-popup-option.active {
+    border-color: rgba(127,255,212,0.56);
+    background: linear-gradient(135deg, rgba(127,255,212,0.18), rgba(143,233,255,0.08));
+    color: #dffff6;
+}
+.select-popup-option:focus-visible {
+    outline: 2px solid rgba(127,255,212,0.65);
+    outline-offset: 2px;
+}
+body.select-popup-open { overflow: hidden; }
+
+.range-head,
+.mini-field-row,
+.detail-row,
+.compare-chip,
+.track-top,
+.engine-control-grid > div,
+.pro-tools-grid,
+.queue-preview-head {
+    min-width: 0;
+}
+.range-head > *,
+.mini-field-row > *,
+.detail-row span,
+.compare-chip b,
+.track-name,
+.track-meta,
+.track-preset-chip,
+.diff-meter,
+.album-note,
+.status-pill,
+.rec-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.detail-row span:last-child,
+.compare-chip b,
+.diff-meter,
+.album-note {
+    word-break: keep-all;
+}
+#value-clarity,
+#value-warmth,
+#value-width,
+#value-stereoGroove,
+#value-analogGroove,
+#value-dynamicPunch,
+#value-metallicRemoval,
+#value-intensity,
+.rec-value,
+.status-pill {
+    font-variant-numeric: tabular-nums;
+}
+
+@media (hover: none) {
+    button:hover:not(:disabled),
+    .track-card:hover,
+    .upload-tile:hover,
+    .creator-subscribe:hover {
+        transform: none !important;
+    }
+}
+
+@media (max-width: 640px) {
+    html { scroll-behavior: auto; }
+    body::before,
+    body::after { display: none; }
+    .brand-panel,
+    .creator-panel,
+    .console-panel,
+    .queue-panel,
+    .action-panel,
+    .inspect-panel {
+        backdrop-filter: none !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.26) !important;
+    }
+    .select-popup-backdrop {
+        place-items: end center;
+        padding: 10px;
+        background: rgba(0,0,0,0.56);
+    }
+    .select-popup-panel {
+        width: min(100%, 520px);
+        max-height: 72vh;
+        padding: 10px;
+        border-radius: 20px 20px 16px 16px;
+    }
+    .select-popup-title { font-size: .62rem; padding-bottom: 7px; }
+    .select-popup-option { min-height: 38px; padding: 8px 10px; border-radius: 13px; font-size: .64rem; }
+    .select-popup-trigger {
+        min-height: 34px;
+        padding: 7px 8px !important;
+        border-radius: 12px;
+        font-size: .58rem !important;
+    }
+    .engine-control-grid { gap: 6px !important; }
+    .engine-control-grid label { margin-bottom: 4px !important; }
+    .range-head {
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 4px !important;
+    }
+    .range-head label { font-size: .56rem !important; line-height: 1.16; }
+    .range-head .rec-value { max-width: 54px; padding: 2px 4px !important; font-size: .46rem !important; }
+    .range-head b { max-width: 42px; text-align: right; font-size: .58rem !important; }
+    .detail-row { overflow: hidden; }
+    .detail-row span:last-child { font-size: .55rem !important; }
+    .compare-chip { overflow: hidden; }
+    .track-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .track-actions button { min-width: 0; white-space: normal; }
+    .mini-wave i { animation-duration: 6.5s !important; will-change: auto !important; }
+    .progress-bar,
+    .player-seek { will-change: auto !important; }
+    .track-card,
+    .feature-card,
+    .preview-card,
+    .stat-card,
+    .detail-row {
+        transition: background .12s ease, border-color .12s ease, opacity .12s ease !important;
+    }
+}
+
+@media (max-width: 390px) {
+    .range-head .rec-value { max-width: 46px; font-size: .42rem !important; }
+    .range-head b { max-width: 36px; font-size: .54rem !important; }
+    .select-popup-trigger { font-size: .54rem !important; }
+    .detail-row span:last-child { font-size: .52rem !important; }
+}
+
+/* v1.2.2 rhythm controls and lightweight instrument layer */
+.beat-change-control {
+    grid-column: 1 / -1;
+}
+.beat-change-control .select-popup-trigger,
+.instrument-control .select-popup-trigger {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: .68rem;
+}
+.instrument-tool {
+    overflow: hidden;
+}
+.instrument-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .78fr);
+    gap: 8px;
+}
+.instrument-control {
+    min-width: 0;
+    padding: 9px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.09);
+    background: rgba(0,0,0,0.13);
+}
+.instrument-control label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: .68rem;
+    font-weight: 950;
+    overflow-wrap: anywhere;
+}
+.instrument-tool .tool-title {
+    align-items: center;
+}
+.instrument-tool .rec-value,
+#instrumentBadge {
+    max-width: min(48vw, 210px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 981px) {
+    .pitch-grid-clean {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .beat-change-control {
+        padding: 7px !important;
+        border-radius: 13px !important;
+    }
+    .instrument-grid {
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+    }
+    .instrument-control {
+        padding: 7px !important;
+        border-radius: 13px !important;
+    }
+    .instrument-control label {
+        font-size: .58rem !important;
+        margin-bottom: 4px !important;
+    }
+    .instrument-tool .tool-title {
+        gap: 6px;
+    }
+    .instrument-tool .tool-title strong {
+        font-size: .74rem !important;
+    }
+    #instrumentBadge {
+        max-width: 42vw;
+        font-size: .50rem !important;
+        padding: 2px 5px !important;
+    }
+    #beatValue {
+        min-width: 58px !important;
+    }
+}
