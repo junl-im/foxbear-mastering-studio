@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2';
+const APP_VERSION = 'Pro v1.2.2';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -13,8 +13,35 @@ const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
-const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.flac', '.ogg', '.m4a', '.aac', '.aif', '.aiff', '.webm'];
-const DEFAULT_TRANSFORM = { pitchSemitones: 0, speedRatio: 1, snapSemitone: true };
+const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.flac', '.ogg', '.m4a', '.aac', '.aif', '.aiff', '.webm', '.mp4', '.m4v', '.mov'];
+const VIDEO_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov'];
+const DEFAULT_TRANSFORM = { pitchSemitones: 0, speedRatio: 1, snapSemitone: true, beatPreset: 'original' };
+const DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' };
+const BEAT_CHANGE_PRESETS = {
+    original: { ratio: 1, label: '원본 박자 유지' },
+    slow5: { ratio: 0.95, label: '느리게 -5%' },
+    slow10: { ratio: 0.90, label: '느리게 -10%' },
+    fast5: { ratio: 1.05, label: '빠르게 +5%' },
+    fast10: { ratio: 1.10, label: '빠르게 +10%' },
+    half: { ratio: 0.50, label: '하프타임 0.50x' },
+    double: { ratio: 1.50, label: '더블타임 1.50x' }
+};
+const INSTRUMENT_LAYER_PRESETS = {
+    off: { label: 'OFF', hasKick: false, hasHat: false, hasClap: false },
+    kick: { label: '킥', hasKick: true, hasHat: false, hasClap: false },
+    hat: { label: '하이햇', hasKick: false, hasHat: true, hasClap: false },
+    kick_hat: { label: '킥 + 하이햇', hasKick: true, hasHat: true, hasClap: false },
+    clap: { label: '클랩', hasKick: false, hasHat: false, hasClap: true },
+    kick_hat_clap: { label: '킥 + 하이햇 + 클랩', hasKick: true, hasHat: true, hasClap: true }
+};
+const INSTRUMENT_AMOUNT_LEVELS = {
+    light: { label: '가볍게', gain: 0.62 },
+    normal: { label: '보통', gain: 0.88 },
+    bold: { label: '강하게', gain: 1.15 }
+};
+const CURVE_CACHE = new Map();
+const ACTION_SELECT_IDS = ['masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
+
 
 const FEATURE_DEFINITIONS = {
     trimSilence: {
@@ -162,7 +189,8 @@ const state = {
     pitchEngine: 'auto',
     abLevelMatch: true,
     cacheReady: false,
-    autoRemasterTimers: new Map()
+    autoRemasterTimers: new Map(),
+    selectPopup: null
 };
 
 const el = {};
@@ -198,8 +226,10 @@ function init() {
     renderSliders();
     renderFeatureButtons();
     bindEvents();
+    enhanceActionSelects();
     applyPresetToControlsOnly('custom');
     setTransformControls(DEFAULT_TRANSFORM);
+    setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
     renderAll();
     initUiGuards();
     maybeShowSubscribePrompt();
@@ -209,7 +239,8 @@ function cacheElements() {
     const ids = [
         'fileDrop', 'folderDrop', 'fileInput', 'folderInput', 'featureDock', 'featureCount',
         'genreSelect', 'confidenceText', 'intensityField', 'sliderFields', 'pitchSlider', 'speedSlider', 'pitchValue', 'speedValue',
-        'pitchHint', 'speedHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
+        'pitchHint', 'speedHint', 'beatChangeSelect', 'beatValue', 'beatHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
+        'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
         'albumStatus', 'toast', 'featureTooltip', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
@@ -365,6 +396,9 @@ function bindEvents() {
 
     el.pitchSlider.addEventListener('input', handlePitchSpeedChange);
     el.speedSlider.addEventListener('input', handlePitchSpeedChange);
+    if (el.beatChangeSelect) el.beatChangeSelect.addEventListener('change', handleBeatChangeSelect);
+    if (el.instrumentLayerSelect) el.instrumentLayerSelect.addEventListener('change', handleInstrumentLayerChange);
+    if (el.instrumentAmountSelect) el.instrumentAmountSelect.addEventListener('change', handleInstrumentLayerChange);
     el.snapSemitone.addEventListener('change', () => {
         const track = getSelectedTrack();
         const transform = track ? cloneTransform(track.transform) : cloneTransform(DEFAULT_TRANSFORM);
@@ -469,6 +503,124 @@ function bindEvents() {
     }
 }
 
+
+
+function enhanceActionSelects() {
+    if (state.selectPopup) return;
+    const selects = ACTION_SELECT_IDS.map(id => el[id]).filter(Boolean);
+    if (!selects.length) return;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'select-popup-backdrop';
+    backdrop.setAttribute('aria-hidden', 'true');
+    backdrop.addEventListener('click', event => {
+        if (event.target === backdrop) closeSelectPopup();
+    });
+
+    const panel = document.createElement('div');
+    panel.className = 'select-popup-panel';
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    backdrop.appendChild(panel);
+    document.body.appendChild(backdrop);
+
+    state.selectPopup = { backdrop, panel, activeSelect: null, lastTrigger: null };
+
+    selects.forEach(select => {
+        const trigger = document.createElement('button');
+        trigger.type = 'button';
+        trigger.className = 'select-popup-trigger';
+        trigger.dataset.selectFor = select.id;
+        trigger.setAttribute('aria-haspopup', 'dialog');
+        trigger.addEventListener('click', () => openSelectPopup(select, trigger));
+        select.classList.add('native-select-hidden');
+        select.setAttribute('tabindex', '-1');
+        select.insertAdjacentElement('afterend', trigger);
+        select.addEventListener('change', () => updateSelectTrigger(select));
+        updateSelectTrigger(select);
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && state.selectPopup?.activeSelect) closeSelectPopup();
+    });
+}
+
+function openSelectPopup(select, trigger) {
+    const popup = state.selectPopup;
+    if (!popup || !select) return;
+    popup.activeSelect = select;
+    popup.lastTrigger = trigger || null;
+    popup.panel.textContent = '';
+
+    const label = getSelectLabel(select);
+    const title = document.createElement('div');
+    title.className = 'select-popup-title';
+    title.textContent = label;
+    popup.panel.appendChild(title);
+
+    const list = document.createElement('div');
+    list.className = 'select-popup-list';
+    list.setAttribute('role', 'listbox');
+    Array.from(select.options).forEach(option => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = `select-popup-option${option.value === select.value ? ' active' : ''}`;
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', option.value === select.value ? 'true' : 'false');
+        item.textContent = option.textContent.trim();
+        item.addEventListener('click', () => {
+            if (select.value !== option.value) {
+                select.value = option.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            closeSelectPopup();
+            syncEnhancedSelectButtons();
+        });
+        list.appendChild(item);
+    });
+    popup.panel.appendChild(list);
+
+    popup.backdrop.classList.add('show');
+    popup.backdrop.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('select-popup-open');
+    requestAnimationFrame(() => {
+        const active = popup.panel.querySelector('.select-popup-option.active') || popup.panel.querySelector('.select-popup-option');
+        if (active) active.focus({ preventScroll: true });
+    });
+}
+
+function closeSelectPopup() {
+    const popup = state.selectPopup;
+    if (!popup) return;
+    popup.backdrop.classList.remove('show');
+    popup.backdrop.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('select-popup-open');
+    const lastTrigger = popup.lastTrigger;
+    popup.activeSelect = null;
+    popup.lastTrigger = null;
+    if (lastTrigger && document.contains(lastTrigger)) lastTrigger.focus({ preventScroll: true });
+}
+
+function getSelectLabel(select) {
+    if (!select) return '선택';
+    const label = document.querySelector(`label[for="${select.id}"]`);
+    return label ? label.textContent.trim() : '선택';
+}
+
+function updateSelectTrigger(select) {
+    if (!select) return;
+    const trigger = document.querySelector(`.select-popup-trigger[data-select-for="${select.id}"]`);
+    if (!trigger) return;
+    const selected = select.options[select.selectedIndex];
+    const label = getSelectLabel(select);
+    const value = selected ? selected.textContent.trim() : '선택';
+    trigger.textContent = value;
+    trigger.setAttribute('aria-label', `${label}: ${value}`);
+}
+
+function syncEnhancedSelectButtons() {
+    ACTION_SELECT_IDS.forEach(id => updateSelectTrigger(el[id]));
+}
 
 
 function initUiGuards() {
@@ -610,8 +762,10 @@ async function handleFiles(fileList) {
 function validateAudioFile(file) {
     const lower = file.name.toLowerCase();
     const hasAudioType = file.type ? file.type.startsWith('audio/') : false;
+    const hasVideoAudioType = file.type ? file.type === 'video/mp4' || file.type === 'video/quicktime' || file.type.startsWith('video/') : false;
     const hasAudioExt = AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
-    if (!hasAudioType && !hasAudioExt) return { ok: false, reason: '오디오 파일 형식이 아닙니다.' };
+    const hasVideoAudioExt = VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
+    if (!hasAudioType && !hasAudioExt && !(hasVideoAudioType && hasVideoAudioExt)) return { ok: false, reason: '지원 입력 형식이 아닙니다. WAV/MP3/FLAC/OGG/M4A/AAC/WEBM/MP4 계열을 권장합니다.' };
     if (file.size <= 0) return { ok: false, reason: '빈 파일입니다.' };
     if (file.size > MAX_FILE_SIZE) return { ok: false, reason: `파일이 너무 큽니다. 최대 ${formatBytes(MAX_FILE_SIZE)}까지 권장합니다.` };
     return { ok: true };
@@ -642,6 +796,8 @@ function createTrack(file) {
         recommendedSettings: cloneSettings(GENRE_PRESETS.custom),
         transform: cloneTransform(DEFAULT_TRANSFORM),
         analysis: null,
+        instrument: cloneInstrumentLayer(DEFAULT_INSTRUMENT_LAYER),
+        instrumentInfo: null,
         trimInfo: null,
         albumApplied: null,
         truePeakInfo: null,
@@ -704,7 +860,9 @@ async function decodeAudio(file) {
     try {
         return await audioContext.decodeAudioData(arrayBuffer);
     } catch (error) {
-        throw new Error('오디오 파일 복원에 실패했습니다. 손상되었거나 브라우저 미지원 코덱일 수 있습니다.');
+        const lower = String(file?.name || '').toLowerCase();
+        const mp4Hint = VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext)) ? ' MP4는 브라우저가 지원하는 AAC/오디오 트랙일 때만 불러올 수 있습니다.' : '';
+        throw new Error('오디오 파일 복원에 실패했습니다. 손상되었거나 브라우저 미지원 코덱일 수 있습니다.' + mp4Hint);
     } finally {
         if (audioContext.close) await audioContext.close().catch(() => {});
     }
@@ -1208,6 +1366,7 @@ function applyTrackToControls(track) {
     el.genreSelect.value = track.preset || 'custom';
     setControlsFromSettings(track.settings, track.preset, track.recommendedSettings);
     setTransformControls(track.transform || DEFAULT_TRANSFORM);
+    setInstrumentControls(track.instrument || DEFAULT_INSTRUMENT_LAYER);
     state.programmatic = false;
 }
 
@@ -1239,6 +1398,7 @@ function handlePitchSpeedChange() {
     if (transform.snapSemitone) transform.pitchSemitones = Math.round(transform.pitchSemitones);
     transform.pitchSemitones = clamp(transform.pitchSemitones, -12, 12);
     transform.speedRatio = clamp(transform.speedRatio, 0.5, 1.5);
+    transform.beatPreset = getBeatPresetForRatio(transform.speedRatio);
     if (track) {
         track.transform = transform;
         invalidateMasteredOutput(track, '피치/속도 조정값이 적용되었습니다. 다시 마스터링하세요.', true);
@@ -1256,12 +1416,58 @@ function setTransformControls(transform) {
     el.speedSlider.value = String(value.speedRatio);
     el.pitchValue.textContent = `${formatSigned(value.pitchSemitones, value.snapSemitone ? 0 : 2)} st`;
     el.speedValue.textContent = `${value.speedRatio.toFixed(2)}x`;
+    if (el.beatChangeSelect) el.beatChangeSelect.value = value.beatPreset || getBeatPresetForRatio(value.speedRatio);
+    if (el.beatValue) el.beatValue.textContent = getBeatPresetLabel(value.beatPreset || getBeatPresetForRatio(value.speedRatio));
     el.keyReadout.textContent = formatSigned(value.pitchSemitones, value.snapSemitone ? 0 : 2);
     el.tempoReadout.textContent = `${value.speedRatio.toFixed(2)}x`;
-    el.tempoPercent.textContent = value.speedRatio.toFixed(2);
-    if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? 'st 단위 고정 ON' : 'cent 미세 조정 ON'} · ${isDefaultTransform(value) ? '원본 키 유지' : 'Pitch 변경 적용'}`;
+    el.tempoPercent.textContent = `${Math.round(value.speedRatio * 100)}%`;
+    if (el.pitchHint) el.pitchHint.textContent = `${value.snapSemitone ? 'st 단위 고정 ON' : 'cent 미세 조정 ON'} · ${Math.abs(value.pitchSemitones) < 0.001 ? '원본 키 유지' : 'Pitch 변경 적용'}`;
     if (el.speedHint) el.speedHint.textContent = `BPM ${value.speedRatio.toFixed(2)}x · ${Math.abs(value.speedRatio - 1) < 0.001 ? '기본 속도' : '길이/템포 변경'}`;
+    if (el.beatHint) el.beatHint.textContent = value.beatPreset === 'custom' ? '슬라이더로 직접 만든 커스텀 박자 비율입니다.' : `${getBeatPresetLabel(value.beatPreset)} · 속도 슬라이더와 연동됩니다.`;
     el.pitchSpeedBadge.textContent = isDefaultTransform(value) ? '기본값' : '변경 적용';
+    state.programmatic = false;
+}
+
+function handleBeatChangeSelect() {
+    if (state.programmatic || !el.beatChangeSelect) return;
+    const presetKey = el.beatChangeSelect.value || 'original';
+    const preset = BEAT_CHANGE_PRESETS[presetKey] || null;
+    const track = getSelectedTrack();
+    const transform = track ? cloneTransform(track.transform) : cloneTransform(DEFAULT_TRANSFORM);
+    if (preset) transform.speedRatio = clamp(preset.ratio, 0.5, 1.5);
+    transform.beatPreset = presetKey === 'custom' ? 'custom' : (presetKey in BEAT_CHANGE_PRESETS ? presetKey : 'original');
+    if (track) {
+        track.transform = transform;
+        invalidateMasteredOutput(track, `${getBeatPresetLabel(transform.beatPreset)} 박자 변경값이 적용되었습니다. 다시 마스터링하세요.`, true);
+    }
+    setTransformControls(transform);
+    renderAll({ keepDetailAudio: true });
+    showToast(`${getBeatPresetLabel(transform.beatPreset)} 적용`);
+}
+
+function handleInstrumentLayerChange() {
+    if (state.programmatic) return;
+    const track = getSelectedTrack();
+    const layer = cloneInstrumentLayer({
+        mode: el.instrumentLayerSelect ? el.instrumentLayerSelect.value : 'off',
+        amount: el.instrumentAmountSelect ? el.instrumentAmountSelect.value : 'light'
+    });
+    if (track) {
+        track.instrument = layer;
+        track.instrumentInfo = null;
+        invalidateMasteredOutput(track, `${getInstrumentLayerLabel(layer.mode)} 악기 추가 설정이 변경되었습니다. 다시 마스터링하세요.`, true);
+    }
+    setInstrumentControls(layer);
+    renderAll({ keepDetailAudio: true });
+}
+
+function setInstrumentControls(layer) {
+    const value = cloneInstrumentLayer(layer || DEFAULT_INSTRUMENT_LAYER);
+    state.programmatic = true;
+    if (el.instrumentLayerSelect) el.instrumentLayerSelect.value = value.mode;
+    if (el.instrumentAmountSelect) el.instrumentAmountSelect.value = value.amount;
+    if (el.instrumentBadge) el.instrumentBadge.textContent = value.mode === 'off' ? 'OFF' : `${getInstrumentLayerLabel(value.mode)} · ${getInstrumentAmountLabel(value.amount)}`;
+    if (el.instrumentHint) el.instrumentHint.textContent = value.mode === 'off' ? '악기 추가를 끄면 원본 오디오만 마스터링합니다.' : '자동 추정 BPM에 맞춰 합성 킥/하이햇/클랩을 아주 작게 섞습니다.';
     state.programmatic = false;
 }
 
@@ -1359,6 +1565,7 @@ async function masterTrack(track, calledFromBatch = false) {
     track.progress = 6;
     track.error = null;
     track.trimInfo = null;
+    track.instrumentInfo = null;
     track.albumApplied = null;
     track.truePeakInfo = null;
     track.finalizeInfo = null;
@@ -1367,6 +1574,7 @@ async function masterTrack(track, calledFromBatch = false) {
 
     try {
         let currentSourceBuffer = await decodeAudio(track.file);
+        await yieldToBrowser();
 
         if (!track.analysis) {
             track.progress = 14;
@@ -1398,13 +1606,25 @@ async function masterTrack(track, calledFromBatch = false) {
         track.progress = 38;
         track.report = '피치/BPM 워커 변환 및 오버랩 위상 정렬 중';
         renderAll();
-        const preparedBuffer = await preparePitchSpeedBuffer(currentSourceBuffer, track.transform);
+        let preparedBuffer = await preparePitchSpeedBuffer(currentSourceBuffer, track.transform);
+        await yieldToBrowser();
+
+        if (shouldUseInstrumentLayer(track.instrument)) {
+            track.progress = 50;
+            track.report = '박자 감지 및 리듬 악기 레이어 자연 믹싱 중';
+            renderAll();
+            const layered = mixInstrumentLayerBuffer(preparedBuffer, track.instrument, track.analysis);
+            preparedBuffer = layered.buffer;
+            track.instrumentInfo = layered.info;
+            await yieldToBrowser();
+        }
 
         track.progress = 60;
         track.report = '공진 감쇄, 톤 체인, 다이나믹 체인 렌더링 중';
         renderAll();
         const albumProfile = getActiveAlbumProfile();
         const masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
+        await yieldToBrowser();
 
         track.progress = 88;
         const requestedOutputFormat = state.outputFormat || 'wav24';
@@ -1799,8 +2019,10 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node.connect(highPass);
     node = highPass;
 
+    node = createSubCleanNode(context, node, effectiveSettings, analysis, intensity);
     node = createLowEndAnchorNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, effectiveSettings, analysis, intensity);
     node = createMetallicRemovalNode(context, node, effectiveSettings.metallicRemoval, analysis, intensity);
+    node = createAdaptiveResonanceSmootherNode(context, node, effectiveSettings, analysis, intensity);
     node = createAiHumanizeNode(context, node, preset, effectiveSettings, intensity);
     node = createVocalProtectionNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createMelodyPreserveNode(context, node, preset, effectiveSettings, analysis, intensity);
@@ -1810,9 +2032,11 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createStereoWidthNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, widthScaled);
     node = createStereoGrooveNode(context, node, effectiveSettings.stereoGroove, intensity);
     node = createSaturationNode(context, node, effectiveSettings.analogGroove, effectiveSettings.warmth, intensity);
+    node = createSpectralBalancerNode(context, node, effectiveSettings, analysis, intensity);
     node = createToneChain(context, node, effectiveSettings, intensity);
     node = createHighFrequencyExciterNode(context, node, effectiveSettings, intensity);
     node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
+    node = createMicroDynamicsGlueNode(context, node, effectiveSettings, analysis, intensity);
     node = createCompressionNode(context, node, effectiveSettings.dynamicPunch, intensity);
     node = createAlbumMatchNode(context, node, analysis, albumProfile);
     node = createLoudnessLiftNode(context, node, effectiveSettings, analysis, intensity);
@@ -1857,6 +2081,79 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
         out.intensity = clamp(Math.round(Number(out.intensity) - 10), 50, 200);
     }
     return out;
+}
+
+
+function createSubCleanNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    const bass = clamp01(Number(analysis?.bassRatio ?? 0.28));
+    const warmth = clamp(Number(settings.warmth || 55), 0, 100);
+    const punch = clamp(Number(settings.dynamicPunch || 35), 0, 100);
+    const need = bass > 0.36 || warmth > 64 || punch > 56 || intensity.raw > 135;
+    if (!need) return input;
+
+    const subGuard = context.createBiquadFilter();
+    subGuard.type = 'highpass';
+    subGuard.frequency.value = clamp(24 + bass * 14 + Math.max(0, intensity.raw - 120) * 0.05, 24, 42);
+    subGuard.Q.value = 0.72;
+
+    const mudGuard = context.createBiquadFilter();
+    mudGuard.type = 'peaking';
+    mudGuard.frequency.value = bass > 0.46 ? 235 : 285;
+    mudGuard.Q.value = 0.95;
+    mudGuard.gain.value = clamp(-0.18 - bass * 0.62 - Math.max(0, warmth - 62) * 0.012, -1.6, -0.08);
+
+    input.connect(subGuard).connect(mudGuard);
+    return mudGuard;
+}
+
+function createAdaptiveResonanceSmootherNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    const metallic = clamp01(Number(analysis?.metallicHint ?? 0.35));
+    const brightness = clamp01(Number(analysis?.brightness ?? 0.45));
+    const high = clamp01(Number(analysis?.highRatio ?? 0.24));
+    const removal = clamp(Number(settings.metallicRemoval || 42), 0, 100);
+    const need = metallic > 0.42 || brightness > 0.62 || high > 0.34 || removal > 58 || intensity.raw > 145;
+    if (!need) return input;
+
+    const target = clamp(Number(analysis?.targetDynamicFreq || 5200), 2600, 8800);
+    const amount = clamp((metallic * 0.75 + brightness * 0.35 + high * 0.35 + removal / 180) * clamp(intensity.amount, 0.65, 1.65), 0.18, 1.65);
+
+    const dynamicNotch = context.createBiquadFilter();
+    dynamicNotch.type = 'peaking';
+    dynamicNotch.frequency.value = target;
+    dynamicNotch.Q.value = clamp(3.2 + amount * 1.7, 3.0, 6.8);
+    dynamicNotch.gain.value = clamp(-0.28 * amount, -1.25, -0.08);
+
+    const glassGuard = context.createBiquadFilter();
+    glassGuard.type = 'peaking';
+    glassGuard.frequency.value = target < 5200 ? 6400 : 9200;
+    glassGuard.Q.value = 2.2;
+    glassGuard.gain.value = clamp(-0.16 * amount, -0.9, -0.04);
+
+    const airRecover = context.createBiquadFilter();
+    airRecover.type = 'highshelf';
+    airRecover.frequency.value = 13200;
+    airRecover.gain.value = clamp((brightness < 0.54 && removal > 44 ? 0.12 : -0.08) * amount, -0.35, 0.28);
+
+    input.connect(dynamicNotch).connect(glassGuard).connect(airRecover);
+    return airRecover;
+}
+
+function createMicroDynamicsGlueNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    const loudMode = state.masterGoal === 'loud';
+    const punch = clamp(Number(settings.dynamicPunch || 35), 0, 100);
+    const transient = clamp01(Number(analysis?.transientDensity ?? 0.35));
+    const need = loudMode || punch > 58 || transient > 0.56 || intensity.raw > 150;
+    if (!need) return input;
+
+    const compressor = context.createDynamicsCompressor();
+    const drive = clamp((punch - 45) / 100 + transient * 0.22 + Math.max(0, intensity.raw - 130) / 260, 0.08, 0.62);
+    compressor.threshold.value = clamp(-13 - drive * 8, -20, -10);
+    compressor.knee.value = 18;
+    compressor.ratio.value = clamp(1.28 + drive * 1.25, 1.25, 2.05);
+    compressor.attack.value = 0.018;
+    compressor.release.value = 0.18;
+    input.connect(compressor);
+    return compressor;
 }
 
 
@@ -2098,6 +2395,42 @@ function createStereoGrooveNode(context, input, amount, intensity = getMastering
     return output;
 }
 
+function createSpectralBalancerNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!analysis) return input;
+    const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? 0.24));
+    const mid = clamp01(Number(analysis.midRatio ?? 0.28));
+    const high = clamp01(Number(analysis.highRatio ?? 0.22));
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const scale = clamp(intensity.amount, 0.65, 1.7);
+    const output = context.createGain();
+
+    const subShelf = context.createBiquadFilter();
+    subShelf.type = 'lowshelf';
+    subShelf.frequency.value = 95;
+    subShelf.gain.value = clamp((0.30 - bass) * 1.35 * scale, -0.75, 0.65);
+
+    const mudScoop = context.createBiquadFilter();
+    mudScoop.type = 'peaking';
+    mudScoop.frequency.value = 260;
+    mudScoop.Q.value = 0.82;
+    mudScoop.gain.value = clamp((0.22 - lowMid) * 1.55 * scale, -0.95, 0.45);
+
+    const vocalKeep = context.createBiquadFilter();
+    vocalKeep.type = 'peaking';
+    vocalKeep.frequency.value = 1650;
+    vocalKeep.Q.value = 0.72;
+    vocalKeep.gain.value = clamp((0.30 - mid) * 0.62 * scale, -0.32, 0.45);
+
+    const airTrim = context.createBiquadFilter();
+    airTrim.type = 'highshelf';
+    airTrim.frequency.value = brightness > 0.66 || high > 0.36 ? 9800 : 11800;
+    airTrim.gain.value = clamp((0.27 - high) * 1.2 * scale - Math.max(0, brightness - 0.62) * 1.25, -0.95, 0.55);
+
+    input.connect(subShelf).connect(mudScoop).connect(vocalKeep).connect(airTrim).connect(output);
+    return output;
+}
+
 function createToneChain(context, input, settings, intensity = getMasteringIntensity(settings)) {
     const toneScale = clamp(intensity.amount, 0.65, 2.25);
     const highAggression = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.55) * 0.9 : 1;
@@ -2297,13 +2630,17 @@ function createSaturationNode(context, input, analogGroove, warmth, intensity = 
 }
 
 function makeSaturationCurve(amount) {
-    const samples = 44100;
+    const key = `sat:${Math.round(Number(amount || 1) * 100)}`;
+    if (CURVE_CACHE.has(key)) return CURVE_CACHE.get(key);
+    const samples = 4096;
     const curve = new Float32Array(samples);
     const k = amount * 18;
     for (let i = 0; i < samples; i += 1) {
-        const x = i * 2 / samples - 1;
+        const x = i * 2 / (samples - 1) - 1;
         curve[i] = (1 + k) * x / (1 + k * Math.abs(x));
     }
+    if (CURVE_CACHE.size > 24) CURVE_CACHE.clear();
+    CURVE_CACHE.set(key, curve);
     return curve;
 }
 
@@ -2358,6 +2695,228 @@ function createAlbumAppliedInfo(analysis, profile) {
         referenceLoudness: profile.loudnessHint,
         referenceBrightness: profile.brightness
     };
+}
+
+function mixInstrumentLayerBuffer(buffer, layer, analysis) {
+    const value = cloneInstrumentLayer(layer || DEFAULT_INSTRUMENT_LAYER);
+    const preset = INSTRUMENT_LAYER_PRESETS[value.mode] || INSTRUMENT_LAYER_PRESETS.off;
+    if (value.mode === 'off') {
+        return { buffer, info: { applied: false, label: 'OFF', bpm: 0, events: 0, gainDb: 0 } };
+    }
+
+    const bpmInfo = estimateTempoFromBuffer(buffer, analysis);
+    const bpm = clamp(Number(bpmInfo.bpm || 120), 70, 180);
+    const amount = INSTRUMENT_AMOUNT_LEVELS[value.amount] || INSTRUMENT_AMOUNT_LEVELS.light;
+    const sourcePeak = measureSamplePeak(buffer);
+    const peakRoomScale = clamp((0.96 - sourcePeak) / 0.36, 0.34, 1.0);
+    const naturalScale = amount.gain * peakRoomScale;
+    const output = cloneAudioBuffer(buffer);
+    const beatSamples = Math.max(1, Math.round(buffer.sampleRate * 60 / bpm));
+    const firstBeat = detectFirstTransientSample(buffer, beatSamples);
+    const durationBeats = Math.ceil((buffer.length + beatSamples) / beatSamples);
+    let events = 0;
+
+    for (let beat = 0; beat < durationBeats; beat += 1) {
+        const start = firstBeat + beat * beatSamples;
+        if (start >= 0 && start < output.length) {
+            if (preset.hasKick) {
+                addKickToBuffer(output, start, 0.052 * naturalScale);
+                events += 1;
+            }
+            if (preset.hasClap && (beat % 4 === 1 || beat % 4 === 3)) {
+                addClapToBuffer(output, start + Math.round(beatSamples * 0.02), 0.030 * naturalScale);
+                events += 1;
+            }
+        }
+        if (preset.hasHat) {
+            const hat1 = start + Math.round(beatSamples * 0.50);
+            if (hat1 >= 0 && hat1 < output.length) {
+                addHatToBuffer(output, hat1, 0.018 * naturalScale, beat);
+                events += 1;
+            }
+            if (value.amount !== 'light') {
+                const hat2 = start + Math.round(beatSamples * 0.25);
+                if (hat2 >= 0 && hat2 < output.length) {
+                    addHatToBuffer(output, hat2, 0.010 * naturalScale, beat + 17);
+                    events += 1;
+                }
+            }
+        }
+    }
+
+    applyEdgeFade(output, 0.004);
+    const afterPeak = measureSamplePeak(output);
+    const safeGain = afterPeak > 0.94 ? 0.94 / Math.max(1e-9, afterPeak) : 1;
+    if (safeGain < 1) applyBufferGain(output, safeGain);
+
+    return {
+        buffer: output,
+        info: {
+            applied: true,
+            label: getInstrumentLayerLabel(value.mode),
+            amount: value.amount,
+            bpm,
+            confidence: bpmInfo.confidence,
+            firstBeatSec: firstBeat / buffer.sampleRate,
+            events,
+            gainDb: 20 * Math.log10(Math.max(1e-9, safeGain * naturalScale))
+        }
+    };
+}
+
+function estimateTempoFromBuffer(buffer, analysis) {
+    const sampleRate = buffer.sampleRate;
+    const frameSize = Math.max(512, Math.round(sampleRate * 0.023));
+    const hop = Math.max(256, Math.round(frameSize / 2));
+    const frames = Math.min(4096, Math.ceil(buffer.length / hop));
+    const envelope = new Float32Array(frames);
+    let previous = 0;
+    for (let frame = 0; frame < frames; frame += 1) {
+        const start = frame * hop;
+        const end = Math.min(buffer.length, start + frameSize);
+        let sum = 0;
+        let count = 0;
+        for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+            const data = buffer.getChannelData(ch);
+            for (let i = start; i < end; i += 4) {
+                sum += Math.abs(data[i] || 0);
+                count += 1;
+            }
+        }
+        const value = sum / Math.max(1, count);
+        envelope[frame] = Math.max(0, value - previous * 0.92);
+        previous = value;
+    }
+
+    let bestBpm = 120;
+    let bestScore = 0;
+    const hopSeconds = hop / sampleRate;
+    for (let bpm = 70; bpm <= 180; bpm += 1) {
+        const lag = Math.max(1, Math.round((60 / bpm) / hopSeconds));
+        let score = 0;
+        let count = 0;
+        for (let i = lag; i < frames; i += 1) {
+            score += envelope[i] * envelope[i - lag];
+            count += 1;
+        }
+        score /= Math.max(1, count);
+        if (score > bestScore) {
+            bestScore = score;
+            bestBpm = bpm;
+        }
+    }
+
+    if (bestBpm < 88 && bestScore > 0) bestBpm *= 2;
+    if (bestBpm > 170) bestBpm /= 2;
+    const transient = Number(analysis?.transientDensity ?? 0.35);
+    const confidence = clamp01(bestScore * 160 + transient * 0.35);
+    return { bpm: clamp(bestBpm, 70, 180), confidence };
+}
+
+function detectFirstTransientSample(buffer, beatSamples) {
+    const sampleRate = buffer.sampleRate;
+    const start = Math.round(sampleRate * 0.04);
+    const end = Math.min(buffer.length, Math.round(sampleRate * 2.5));
+    const frame = Math.max(256, Math.round(sampleRate * 0.012));
+    let bestSample = 0;
+    let bestScore = 0;
+    let prev = 0;
+    for (let pos = start; pos < end; pos += frame) {
+        let sum = 0;
+        let count = 0;
+        for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+            const data = buffer.getChannelData(ch);
+            const frameEnd = Math.min(buffer.length, pos + frame);
+            for (let i = pos; i < frameEnd; i += 2) {
+                sum += Math.abs(data[i] || 0);
+                count += 1;
+            }
+        }
+        const level = sum / Math.max(1, count);
+        const score = Math.max(0, level - prev * 0.75);
+        if (score > bestScore) {
+            bestScore = score;
+            bestSample = pos;
+        }
+        prev = level;
+    }
+    return clamp(bestSample - Math.round(beatSamples * 0.02), 0, Math.max(0, buffer.length - 1));
+}
+
+function addKickToBuffer(buffer, start, amp) {
+    const sampleRate = buffer.sampleRate;
+    const length = Math.min(buffer.length - start, Math.round(sampleRate * 0.18));
+    if (length <= 0) return;
+    let phase = 0;
+    for (let i = 0; i < length; i += 1) {
+        const t = i / sampleRate;
+        const norm = i / Math.max(1, length);
+        const freq = 72 - 34 * Math.pow(norm, 0.72);
+        phase += 2 * Math.PI * freq / sampleRate;
+        const body = Math.sin(phase) * Math.exp(-t * 19);
+        const click = Math.exp(-t * 180) * 0.22;
+        mixMonoSample(buffer, start + i, (body + click) * amp);
+    }
+}
+
+function addHatToBuffer(buffer, start, amp, seed) {
+    const sampleRate = buffer.sampleRate;
+    const length = Math.min(buffer.length - start, Math.round(sampleRate * 0.055));
+    if (length <= 0) return;
+    let prev = 0;
+    for (let i = 0; i < length; i += 1) {
+        const t = i / sampleRate;
+        const raw = pseudoNoise(start + i + seed * 101);
+        const high = raw - prev * 0.58;
+        prev = raw;
+        const env = Math.exp(-t * 72);
+        mixStereoAccent(buffer, start + i, high * env * amp, seed % 2 ? 0.92 : 1.08);
+    }
+}
+
+function addClapToBuffer(buffer, start, amp) {
+    const sampleRate = buffer.sampleRate;
+    const length = Math.min(buffer.length - start, Math.round(sampleRate * 0.105));
+    if (length <= 0) return;
+    let prev = 0;
+    for (let i = 0; i < length; i += 1) {
+        const t = i / sampleRate;
+        const burst = Math.exp(-Math.max(0, t - 0.000) * 36) + 0.65 * Math.exp(-Math.max(0, t - 0.014) * 44) + 0.52 * Math.exp(-Math.max(0, t - 0.030) * 50);
+        const raw = pseudoNoise(start * 0.37 + i * 2.1);
+        const high = raw - prev * 0.35;
+        prev = raw;
+        mixStereoAccent(buffer, start + i, high * burst * amp * 0.42, 0.96);
+    }
+}
+
+function pseudoNoise(x) {
+    const n = Math.sin(x * 12.9898 + 78.233) * 43758.5453123;
+    return (n - Math.floor(n)) * 2 - 1;
+}
+
+function mixMonoSample(buffer, index, value) {
+    if (index < 0 || index >= buffer.length) return;
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        data[index] += value;
+    }
+}
+
+function mixStereoAccent(buffer, index, value, panLean) {
+    if (index < 0 || index >= buffer.length) return;
+    if (buffer.numberOfChannels < 2) {
+        buffer.getChannelData(0)[index] += value;
+        return;
+    }
+    buffer.getChannelData(0)[index] += value * panLean;
+    buffer.getChannelData(1)[index] += value * (2 - panLean);
+}
+
+function applyBufferGain(buffer, gain) {
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        for (let i = 0; i < data.length; i += 1) data[i] *= gain;
+    }
 }
 
 function applyPeakGuard(buffer, targetPeak) {
@@ -2782,6 +3341,10 @@ function clearFileInputs() {
     el.folderInput.value = '';
 }
 
+function yieldToBrowser() {
+    return new Promise(resolve => setTimeout(resolve, 0));
+}
+
 function renderAll(options = {}) {
     renderStats();
     renderButtons();
@@ -2791,6 +3354,7 @@ function renderAll(options = {}) {
     renderSelectedBadge();
     renderAlbumStatus();
     updateFeatureSummary();
+    syncEnhancedSelectButtons();
 }
 
 function renderStats() {
@@ -2976,13 +3540,17 @@ function renderDetail(options = {}) {
     if (track.genreReason) addDetailRow('장르 판단 근거', track.genreReason);
     addDetailRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
     addDetailRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
-    addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} st · BPM ${(track.transform?.speedRatio || 1).toFixed(2)}x`);
+    addDetailRow('피치/속도', `${formatSigned(track.transform?.pitchSemitones || 0, 2)} st · BPM ${(track.transform?.speedRatio || 1).toFixed(2)}x · ${getBeatPresetLabel(track.transform?.beatPreset || getBeatPresetForRatio(track.transform?.speedRatio || 1))}`);
+    addDetailRow('악기 추가', getInstrumentDetailText(track));
     addDetailRow('활성 기능', featureLabelText());
     addDetailRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
     addDetailRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
     addDetailRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
     addDetailRow('실시간 엔진 로그', track.report || '-');
 
+    if (track.instrumentInfo && track.instrumentInfo.applied) {
+        addDetailRow('리듬 레이어 결과', `${track.instrumentInfo.label} · 추정 ${track.instrumentInfo.bpm.toFixed(0)} BPM · ${track.instrumentInfo.events} hits · ${track.instrumentInfo.gainDb.toFixed(1)} dB`);
+    }
     if (track.trimInfo) {
         addDetailRow('무음 정리', track.trimInfo.applied ? `앞 ${track.trimInfo.startTrimSec.toFixed(2)}초 · 뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초 정리` : '정리할 무음 구간 없음');
     }
@@ -3391,6 +3959,7 @@ function removeTrack(id) {
         else {
             applyPresetToControlsOnly('custom');
             setTransformControls(DEFAULT_TRANSFORM);
+            setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
         }
     }
     if (!state.selectedIds.size && state.selectedId) state.selectedIds.add(state.selectedId);
@@ -3401,6 +3970,7 @@ function removeTrack(id) {
 function applyPresetToControlsOnly(preset) {
     state.programmatic = true;
     setControlsFromSettings(GENRE_PRESETS[preset] || GENRE_PRESETS.custom, preset, GENRE_PRESETS[preset] || GENRE_PRESETS.custom);
+    setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
     el.confidenceText.textContent = '추천 없음';
     state.programmatic = false;
 }
@@ -3435,6 +4005,7 @@ function buildReport(track) {
 
 function createDoneReport(track) {
     const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`, getMasterGoalLabel(state.masterGoal)];
+    if (track.instrumentInfo && track.instrumentInfo.applied) parts.push(`${track.instrumentInfo.label} 레이어 ${track.instrumentInfo.bpm.toFixed(0)} BPM`);
     if (track.trimInfo && track.trimInfo.applied) parts.push(`무음 정리 앞 ${track.trimInfo.startTrimSec.toFixed(2)}초/뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초`);
     if (track.albumApplied) parts.push(`앨범 통일 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB`);
     if (track.truePeakInfo) parts.push(track.truePeakInfo.mode === 'truePeak' ? 'True Peak 보호' : 'Sample Peak 보호');
@@ -3457,6 +4028,8 @@ function createExportReport(track) {
         genreAlternatives: track.genreAlternatives,
         settings: track.settings,
         pitchSpeed: track.transform,
+        instrument: track.instrument,
+        instrumentInfo: track.instrumentInfo,
         enabledFeatures: { ...state.featureFlags },
         trimInfo: track.trimInfo,
         albumApplied: track.albumApplied,
@@ -3500,11 +4073,60 @@ function cloneSettings(settings) {
 }
 
 function cloneTransform(transform) {
+    const pitchSemitones = clamp(Number(transform?.pitchSemitones ?? DEFAULT_TRANSFORM.pitchSemitones), -12, 12);
+    const speedRatio = clamp(Number(transform?.speedRatio ?? DEFAULT_TRANSFORM.speedRatio), 0.5, 1.5);
+    const beatPreset = transform?.beatPreset === 'custom' ? 'custom' : (transform?.beatPreset && BEAT_CHANGE_PRESETS[transform.beatPreset] ? transform.beatPreset : getBeatPresetForRatio(speedRatio));
     return {
-        pitchSemitones: Number(transform?.pitchSemitones ?? DEFAULT_TRANSFORM.pitchSemitones),
-        speedRatio: Number(transform?.speedRatio ?? DEFAULT_TRANSFORM.speedRatio),
-        snapSemitone: transform?.snapSemitone !== undefined ? Boolean(transform.snapSemitone) : DEFAULT_TRANSFORM.snapSemitone
+        pitchSemitones,
+        speedRatio,
+        snapSemitone: transform?.snapSemitone !== undefined ? Boolean(transform.snapSemitone) : DEFAULT_TRANSFORM.snapSemitone,
+        beatPreset
     };
+}
+
+function cloneInstrumentLayer(layer) {
+    const mode = layer?.mode && INSTRUMENT_LAYER_PRESETS[layer.mode] ? layer.mode : DEFAULT_INSTRUMENT_LAYER.mode;
+    const amount = layer?.amount && INSTRUMENT_AMOUNT_LEVELS[layer.amount] ? layer.amount : DEFAULT_INSTRUMENT_LAYER.amount;
+    return { mode, amount };
+}
+
+function getBeatPresetForRatio(ratio) {
+    const value = Number(ratio || 1);
+    let bestKey = 'custom';
+    let bestDelta = Infinity;
+    Object.entries(BEAT_CHANGE_PRESETS).forEach(([key, preset]) => {
+        const delta = Math.abs(value - preset.ratio);
+        if (delta < bestDelta) {
+            bestDelta = delta;
+            bestKey = key;
+        }
+    });
+    return bestDelta < 0.006 ? bestKey : 'custom';
+}
+
+function getBeatPresetLabel(key) {
+    if (key === 'custom') return '커스텀 박자';
+    return BEAT_CHANGE_PRESETS[key]?.label || BEAT_CHANGE_PRESETS.original.label;
+}
+
+function getInstrumentLayerLabel(mode) {
+    return INSTRUMENT_LAYER_PRESETS[mode]?.label || INSTRUMENT_LAYER_PRESETS.off.label;
+}
+
+function getInstrumentAmountLabel(amount) {
+    return INSTRUMENT_AMOUNT_LEVELS[amount]?.label || INSTRUMENT_AMOUNT_LEVELS.light.label;
+}
+
+function shouldUseInstrumentLayer(layer) {
+    const value = cloneInstrumentLayer(layer || DEFAULT_INSTRUMENT_LAYER);
+    return value.mode !== 'off';
+}
+
+function getInstrumentDetailText(track) {
+    const layer = cloneInstrumentLayer(track?.instrument || DEFAULT_INSTRUMENT_LAYER);
+    if (layer.mode === 'off') return 'OFF · 원본만 처리';
+    const rendered = track?.instrumentInfo?.applied ? ` · 렌더 ${track.instrumentInfo.bpm.toFixed(0)} BPM` : ' · 렌더 전';
+    return `${getInstrumentLayerLabel(layer.mode)} · ${getInstrumentAmountLabel(layer.amount)}${rendered}`;
 }
 
 function median(values) {
