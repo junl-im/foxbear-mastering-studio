@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2.7';
+const APP_VERSION = 'Pro v1.2.8';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -3733,7 +3733,8 @@ function downloadTrack(track) {
 
 function downloadBlob(blob, fileName) {
     if (!blob) return;
-    const safeName = sanitizeDownloadFileName(fileName || `foxbear_mastered_${timestampForFile()}.wav`);
+    const normalizedName = normalizeDownloadFileNameForBlob(fileName || `foxbear_mastered_${timestampForFile()}.wav`, blob);
+    const safeName = sanitizeDownloadFileName(normalizedName);
     const url = URL.createObjectURL(blob);
     state.activeDownloadUrls.add(url);
 
@@ -3799,6 +3800,25 @@ function supportsAnchorDownload() {
 function isRestrictedDownloadBrowser() {
     const ua = navigator.userAgent || '';
     return /KAKAOTALK|KakaoTalk|NAVER\(inapp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+}
+
+function normalizeDownloadFileNameForBlob(fileName, blob) {
+    const rawName = String(fileName || 'download').trim() || 'download';
+    const mime = String(blob?.type || '').toLowerCase();
+    let expectedExt = '';
+    if (mime.includes('mpeg') || mime.includes('mp3')) expectedExt = 'mp3';
+    else if (mime.includes('wav') || mime.includes('wave')) expectedExt = 'wav';
+    else if (mime.includes('zip')) expectedExt = 'zip';
+    if (!expectedExt) return rawName;
+
+    const lower = rawName.toLowerCase();
+    if (lower.endsWith(`.${expectedExt}`)) return rawName;
+
+    const dot = rawName.lastIndexOf('.');
+    if (dot > 0 && rawName.length - dot <= 7) {
+        return `${rawName.slice(0, dot)}.${expectedExt}`;
+    }
+    return `${rawName}.${expectedExt}`;
 }
 
 function sanitizeDownloadFileName(fileName) {
@@ -4798,7 +4818,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.2.7',
+        app: 'FoxBear AI Mastering Studio Pro v1.2.8',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
