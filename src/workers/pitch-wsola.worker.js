@@ -35,14 +35,38 @@ function resampleChannel(input, targetLength) {
         output[0] = input[0] || 0;
         return output;
     }
+    if (input.length < 4) {
+        const ratio = (input.length - 1) / Math.max(1, output.length - 1);
+        for (let i = 0; i < output.length; i += 1) {
+            const position = i * ratio;
+            const index = Math.floor(position);
+            const fraction = position - index;
+            output[i] = (input[index] || 0) * (1 - fraction) + (input[Math.min(input.length - 1, index + 1)] || 0) * fraction;
+        }
+        return output;
+    }
     const ratio = (input.length - 1) / Math.max(1, output.length - 1);
     for (let i = 0; i < output.length; i += 1) {
         const position = i * ratio;
         const index = Math.floor(position);
-        const fraction = position - index;
-        output[i] = (input[index] || 0) * (1 - fraction) + (input[Math.min(input.length - 1, index + 1)] || 0) * fraction;
+        const t = position - index;
+        output[i] = cubicInterpolate(
+            input[Math.max(0, index - 1)] || 0,
+            input[index] || 0,
+            input[Math.min(input.length - 1, index + 1)] || 0,
+            input[Math.min(input.length - 1, index + 2)] || 0,
+            t
+        );
     }
     return output;
+}
+
+function cubicInterpolate(y0, y1, y2, y3, t) {
+    const a0 = -0.5 * y0 + 1.5 * y1 - 1.5 * y2 + 0.5 * y3;
+    const a1 = y0 - 2.5 * y1 + 2 * y2 - 0.5 * y3;
+    const a2 = -0.5 * y0 + 0.5 * y2;
+    const a3 = y1;
+    return clamp(a0 * t * t * t + a1 * t * t + a2 * t + a3, -1.2, 1.2);
 }
 
 function solaStretchBuffers(inputBuffers, targetLength, sampleRate, qualityMode) {
