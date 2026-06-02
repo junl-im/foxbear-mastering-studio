@@ -1,8 +1,16 @@
-# FoxBear AI Mastering Studio Pro v1.3.4
+# FoxBear AI Mastering Studio Pro v1.3.5
 
 GitHub Pages-ready modular browser mastering studio.
 
-## Pro v1.3.4 preset/research engine upgrade
+## Pro v1.3.5 feature popup and readability upgrade
+- 버튼형 적용 기능을 기본 화면에서 숨기고, `기능 보기` 팝업 안에서 한눈에 켜고 끌 수 있도록 개편했습니다. 꺼진 기능은 앞쪽, 켜진 기능은 뒤쪽에 정렬됩니다.
+- 모바일에서 기능 버튼 글자와 ON/OFF 배지가 겹치지 않도록 팝업 그리드, 줄바꿈, 글자 크기를 다시 조정했습니다.
+- 일반 프로그램에서 많이 쓰는 시스템 UI 계열 글꼴 스택으로 정리해 PC/모바일 가독성을 맞췄습니다.
+- 마스터링 설정 영역은 기능 명칭이 더 잘 보이고 설명/선택 텍스트는 과하게 커지지 않도록 보정했습니다.
+- 상단 소개 카드 테두리에 느리게 도는 음악적 하이라이트 라이트를 추가했습니다. 움직임 줄이기 설정에서는 애니메이션을 완화합니다.
+- 새 UI 구조에서도 CSS/JS 캐시 버전을 v1.3.5로 갱신했습니다.
+
+## Pro v1.3.5 preset/research engine upgrade
 - BandLab/LANDR/CloudBounce류 온라인 마스터링 도구의 흐름을 참고해, 빠른 프리셋 선택 + 강도 조절 + A/B 비교 + 레퍼런스 성향 보정 방향을 강화했습니다.
 - 장르 프리셋에 `Cinematic / OST`, `Spatial / Wide Mix`, `Tape Warmth`, `Punch / Live Energy` 스타일을 추가했습니다.
 - `프리셋 레퍼런스 매처` 엔진을 추가해 선택 프리셋의 목표 저역/저중역/중역/고역 밸런스에 더 가깝게 미세 보정합니다.
@@ -153,13 +161,13 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - Pitch/BPM render output now receives a light transform safety polish: edge fade, DC-offset cleanup, and extra boundary smoothing for extreme pitch/speed settings.
 
 
-## v1.3.4 Intelligent UI Planning Update
+## v1.3.5 Intelligent UI Planning Update
 
 - 상단 소개 영역을 단일 통합 헤더로 개편했습니다. 모바일에서 배지, 버전, 구독 문구가 밀리지 않도록 `DESIGNED BY 곰같은여우 with AI` 정보를 작은 내부 카드로 합쳤습니다.
 - 버튼형 적용 기능은 OFF 상태 항목을 앞쪽에, ON 상태 항목을 뒤쪽에 정렬합니다. 꺼진 기능을 먼저 찾고 켤 수 있어 실험 흐름이 더 빠릅니다.
 - 기능 추가는 성능을 해치지 않는 것을 원칙으로 합니다. 다음 개발 방향은 무거운 실시간 모델보다 로컬 분석 결과를 재사용하는 지능형 추천, A/B 비교 개선, 안전한 엔진 가드 중심으로 진행합니다.
 
-## v1.3.4 Smart Guard / Safety Upgrade
+## v1.3.5 Smart Guard / Safety Upgrade
 
 - Added Smart Performance Guard as a button-style utility feature. It keeps normal quality on PC, but can automatically reduce only the heaviest peak-check mode on older mobile devices or very long files.
 - Added Engine Safety Score. The app now estimates over-processing risk from intensity, width, punch, clarity, pitch/BPM extremes, true-peak status, and vocal/phase/low-end protection.
