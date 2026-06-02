@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2.6';
+const APP_VERSION = 'Pro v1.2.7';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -201,7 +201,8 @@ const state = {
     selectPopup: null,
     expandedDetailIds: new Set(),
     popupScrollY: 0,
-    popupScrollbarCompensation: 0
+    popupScrollbarCompensation: 0,
+    activeDownloadUrls: new Set()
 };
 
 const el = {};
@@ -704,7 +705,18 @@ function updateSelectTrigger(select) {
     const selected = select.options[select.selectedIndex];
     const label = getSelectLabel(select);
     const value = selected ? selected.textContent.trim() : '선택';
-    trigger.textContent = value;
+    let valueEl = trigger.querySelector('.select-trigger-value');
+    if (!valueEl) {
+        trigger.textContent = '';
+        valueEl = document.createElement('span');
+        valueEl.className = 'select-trigger-value';
+        const icon = document.createElement('span');
+        icon.className = 'select-trigger-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = '⌄';
+        trigger.append(valueEl, icon);
+    }
+    valueEl.textContent = value;
     trigger.setAttribute('aria-label', `${label}: ${value}`);
 }
 
@@ -1914,7 +1926,7 @@ async function preparePitchSpeedBuffer(sourceBuffer, transform) {
     if (isDefaultTransform(value)) return sourceBuffer;
 
     const externalResult = await tryExternalPitchEngine(sourceBuffer, value);
-    if (externalResult) return externalResult;
+    if (externalResult) return applyTransformSafetyPolish(externalResult, value);
 
     if (window.Worker) {
         try {
@@ -1950,7 +1962,7 @@ async function preparePitchSpeedBuffer(sourceBuffer, transform) {
             });
             const output = makeAudioBuffer(result.channels, result.length, result.sampleRate);
             (result.channelBuffers || []).forEach((buf, ch) => output.copyToChannel(new Float32Array(buf), ch));
-            return output;
+            return applyTransformSafetyPolish(output, value);
         } catch (error) {
             console.warn('Pitch worker fallback:', error);
             showToast('피치/BPM 워커가 실패해 기본 엔진으로 전환합니다.');
@@ -1970,7 +1982,48 @@ async function preparePitchSpeedBuffer(sourceBuffer, transform) {
     if (Math.abs(workingBuffer.length - targetLength) > 4) {
         workingBuffer = timeStretchAudioBuffer(workingBuffer, targetLength);
     }
-    return workingBuffer;
+    return applyTransformSafetyPolish(workingBuffer, value);
+}
+
+function applyTransformSafetyPolish(buffer, transform) {
+    if (!buffer || !transform || isDefaultTransform(transform)) return buffer;
+    const extreme = Math.abs(Number(transform.pitchSemitones || 0)) >= 7 || Math.abs(Number(transform.speedRatio || 1) - 1) >= 0.28;
+    const fadeSeconds = extreme ? 0.010 : 0.005;
+    applyEdgeFade(buffer, fadeSeconds);
+    removeDcOffset(buffer, extreme ? 3 : 5);
+    if (extreme) smoothBoundaryClicks(buffer, 0.0035);
+    return buffer;
+}
+
+function removeDcOffset(buffer, stride = 4) {
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        let sum = 0;
+        let count = 0;
+        for (let i = 0; i < data.length; i += stride) {
+            sum += data[i] || 0;
+            count += 1;
+        }
+        const offset = sum / Math.max(1, count);
+        if (Math.abs(offset) < 0.00003) continue;
+        const correction = clamp(offset, -0.006, 0.006);
+        for (let i = 0; i < data.length; i += 1) data[i] = clamp(data[i] - correction, -1, 1);
+    }
+}
+
+function smoothBoundaryClicks(buffer, seconds) {
+    const samples = Math.min(Math.round(buffer.sampleRate * seconds), Math.floor(buffer.length / 4));
+    if (samples < 8) return;
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        for (let i = 1; i < samples; i += 1) {
+            const inWeight = i / samples;
+            const outWeight = (samples - i) / samples;
+            data[i] = data[i] * inWeight + data[i - 1] * (1 - inWeight) * 0.35;
+            const j = data.length - 1 - i;
+            if (j > 0) data[j] = data[j] * outWeight + data[j + 1] * (1 - outWeight) * 0.35;
+        }
+    }
 }
 
 function resampleAudioBuffer(buffer, targetLength) {
@@ -3489,7 +3542,7 @@ async function encodeMasterOutputAsync(buffer, requestedFormat = 'wav24') {
             return { blob, format, extension: 'mp3', mime: 'audio/mpeg' };
         } catch (error) {
             console.warn('MP3 encoder fallback:', error);
-            showToast('이 브라우저는 MP3 네이티브 인코딩을 지원하지 않아 24-bit WAV로 저장합니다.');
+            showToast('MP3 인코더를 사용할 수 없어 24-bit WAV로 저장합니다.');
             const blob = await encodeWavAsync(buffer, 'wav24');
             return { blob, format: 'wav24', extension: 'wav', mime: 'audio/wav' };
         }
@@ -3515,7 +3568,7 @@ async function encodeMp3Async(buffer, bitrate) {
         const timer = setTimeout(() => {
             worker.terminate();
             reject(new Error('MP3 인코딩 시간이 초과되었습니다.'));
-        }, 90000);
+        }, 180000);
         worker.onmessage = event => {
             clearTimeout(timer);
             worker.terminate();
@@ -3679,14 +3732,133 @@ function downloadTrack(track) {
 }
 
 function downloadBlob(blob, fileName) {
-    const a = document.createElement('a');
+    if (!blob) return;
+    const safeName = sanitizeDownloadFileName(fileName || `foxbear_mastered_${timestampForFile()}.wav`);
     const url = URL.createObjectURL(blob);
+    state.activeDownloadUrls.add(url);
+
+    const restricted = isRestrictedDownloadBrowser();
+    if (restricted && tryShareDownloadFile(blob, safeName, url)) {
+        showDownloadAssist(url, safeName, blob.type || 'audio/*');
+        showToast('인앱 브라우저용 공유/저장 창을 열었습니다. 안 되면 도움창의 파일 다시 열기를 눌러주세요.');
+        return;
+    }
+
+    const a = document.createElement('a');
     a.href = url;
-    a.download = fileName;
+    a.download = safeName;
+    a.rel = 'noopener noreferrer';
+    a.target = '_blank';
+    a.style.position = 'fixed';
+    a.style.left = '-9999px';
+    a.style.top = '0';
     document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
+
+    try {
+        a.click();
+    } catch (error) {
+        console.warn('download click fallback:', error);
+    }
+
+    if (restricted || !supportsAnchorDownload()) {
+        showDownloadAssist(url, safeName, blob.type || 'audio/*');
+        showToast('인앱 브라우저는 저장이 막힐 수 있습니다. 다운로드 도움창에서 다시 열어주세요.');
+    } else {
+        showToast(`${safeName} 다운로드를 시작했습니다.`);
+    }
+
+    setTimeout(() => {
+        a.remove();
+        if (!restricted) revokeDownloadUrl(url);
+    }, restricted ? 10 * 60 * 1000 : 90 * 1000);
+}
+
+function tryShareDownloadFile(blob, fileName, url) {
+    if (!navigator.share || typeof File === 'undefined') return false;
+    try {
+        const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+        const payload = { files: [file], title: fileName, text: 'FoxBear Music 마스터링 파일' };
+        if (navigator.canShare && !navigator.canShare({ files: payload.files })) return false;
+        navigator.share(payload).then(() => {
+            setTimeout(() => revokeDownloadUrl(url), 30000);
+        }).catch(error => {
+            console.warn('share download fallback:', error);
+        });
+        return true;
+    } catch (error) {
+        console.warn('share download unavailable:', error);
+        return false;
+    }
+}
+
+function supportsAnchorDownload() {
+    const a = document.createElement('a');
+    return 'download' in a;
+}
+
+function isRestrictedDownloadBrowser() {
+    const ua = navigator.userAgent || '';
+    return /KAKAOTALK|KakaoTalk|NAVER\(inapp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+}
+
+function sanitizeDownloadFileName(fileName) {
+    const cleaned = String(fileName || 'download').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, ' ').trim();
+    return cleaned || 'download';
+}
+
+function revokeDownloadUrl(url) {
+    if (!url || !state.activeDownloadUrls.has(url)) return;
+    URL.revokeObjectURL(url);
+    state.activeDownloadUrls.delete(url);
+}
+
+function showDownloadAssist(url, fileName, mimeType) {
+    let panel = document.getElementById('downloadAssist');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.id = 'downloadAssist';
+        panel.className = 'download-assist';
+        document.body.appendChild(panel);
+    }
+    panel.textContent = '';
+
+    const title = document.createElement('strong');
+    title.textContent = '다운로드가 안 보이나요?';
+
+    const message = document.createElement('p');
+    const inApp = isRestrictedDownloadBrowser();
+    message.textContent = inApp
+        ? '카카오톡 같은 인앱 브라우저는 파일 저장을 막는 경우가 있습니다. 아래 버튼으로 새 탭을 열거나, 외부 브라우저에서 다시 열어주세요.'
+        : '자동 저장이 시작되지 않으면 아래 버튼으로 파일을 직접 열어 저장해주세요.';
+
+    const file = document.createElement('span');
+    file.className = 'download-assist-file';
+    file.textContent = `${fileName} · ${mimeType || 'audio'}`;
+
+    const actions = document.createElement('div');
+    actions.className = 'download-assist-actions';
+
+    const open = document.createElement('a');
+    open.className = 'btn-primary';
+    open.href = url;
+    open.download = fileName;
+    open.target = '_blank';
+    open.rel = 'noopener noreferrer';
+    open.textContent = '파일 다시 열기';
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'btn-secondary';
+    close.textContent = '닫기';
+    close.addEventListener('click', () => {
+        panel.classList.remove('show');
+        panel.remove();
+        revokeDownloadUrl(url);
+    });
+
+    actions.append(open, close);
+    panel.append(title, message, file, actions);
+    requestAnimationFrame(() => panel.classList.add('show'));
 }
 
 function invalidateMasteredOutput(track, report, autoRefresh = false) {
@@ -4626,7 +4798,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.2.6',
+        app: 'FoxBear AI Mastering Studio Pro v1.2.7',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
