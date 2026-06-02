@@ -1,14 +1,14 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.2.8';
+const APP_VERSION = 'Pro v1.3.0';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v12';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v13';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -87,6 +87,37 @@ const FEATURE_DEFINITIONS = {
     transientRefine: {
         label: '트랜지언트 정리',
         short: '하이햇·클랩·타격음의 날카로운 순간 피크를 다듬어 자연스럽게 만듭니다.'
+    },
+    vocalFocusPlus: {
+        label: '보컬 포커스 플러스',
+        short: '피치/BPM 극단값이나 강한 마스터링에서도 보컬·리드 중심 대역을 더 안정적으로 붙잡습니다.'
+    },
+    adaptiveAir: {
+        label: '실키 에어 밸런서',
+        short: '어두운 곡은 아주 살짝 열고, 밝은 곡은 초고역 피로감을 부드럽게 정리합니다.'
+    },
+    translationGuard: {
+        label: '모바일 번역 보정',
+        short: '폰 스피커와 이어폰에서 저역 번짐·중역 묻힘을 줄이도록 아주 얇게 보정합니다.'
+    },
+    openMixGuard: {
+        label: '개방감 리커버리',
+        short: '추가 마스터링이나 강한 세팅에서 답답하게 막히는 저중역을 살짝 열고 보컬 존재감을 회복합니다.'
+    }
+};
+
+const UTILITY_FEATURE_DEFINITIONS = {
+    abLevelMatch: {
+        label: 'A/B 레벨 매칭',
+        short: '원본과 마스터링 프리뷰의 체감 볼륨을 맞춰 더 공정하게 비교합니다.'
+    },
+    abLoopMode: {
+        label: '5초 A/B 루프',
+        short: '같은 구간을 짧게 반복해 피치/BPM과 마스터링 차이를 빠르게 확인합니다.'
+    },
+    autoCacheClean: {
+        label: '분석 캐시 자동정리',
+        short: '켜두면 오래된 분석 캐시를 주기적으로 정리합니다. 끄면 캐시를 그대로 보존합니다.'
     }
 };
 
@@ -186,7 +217,11 @@ const state = {
         smartGuard: true,
         lowEndAnchor: true,
         melodyPreserve: true,
-        transientRefine: true
+        transientRefine: true,
+        vocalFocusPlus: true,
+        adaptiveAir: true,
+        translationGuard: true,
+        openMixGuard: true
     },
     albumProfile: null,
     outputFormat: 'wav24',
@@ -196,6 +231,8 @@ const state = {
     qualityMode: 'balanced',
     pitchEngine: 'auto',
     abLevelMatch: true,
+    abLoopMode: false,
+    autoCacheClean: true,
     cacheReady: false,
     autoRemasterTimers: new Map(),
     selectPopup: null,
@@ -239,8 +276,10 @@ function init() {
     renderFeatureButtons();
     enhanceActionSelects();
     bindEvents();
-    requestAnimationFrame(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); });
-    setTimeout(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); }, 350);
+    initActionHelpTooltips();
+    maybeAutoCleanAnalysisCache();
+    requestAnimationFrame(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); initActionHelpTooltips(); });
+    setTimeout(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); initActionHelpTooltips(); }, 350);
     applyPresetToControlsOnly('custom');
     setTransformControls(DEFAULT_TRANSFORM);
     setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
@@ -257,7 +296,7 @@ function cacheElements() {
         'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
+        'albumStatus', 'toast', 'featureTooltip', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -322,40 +361,73 @@ function renderSliders() {
 }
 
 function renderFeatureButtons() {
+    if (!el.featureDock) return;
     el.featureDock.textContent = '';
-    Object.entries(FEATURE_DEFINITIONS).forEach(([key, info]) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = `feature-card ${state.featureFlags[key] ? 'active' : ''}`;
-        button.dataset.feature = key;
-        button.dataset.tooltip = info.short;
-        button.title = info.short;
-        button.setAttribute('aria-pressed', String(Boolean(state.featureFlags[key])));
-        button.setAttribute('aria-label', `${info.label}: ${info.short}`);
+    const groups = [
+        ['engine', FEATURE_DEFINITIONS],
+        ['utility', UTILITY_FEATURE_DEFINITIONS]
+    ];
+    groups.forEach(([kind, definitions]) => {
+        Object.entries(definitions).forEach(([key, info]) => {
+            const active = getFeatureToggleState(kind, key);
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `feature-card ${active ? 'active' : ''}`;
+            button.dataset.feature = key;
+            button.dataset.kind = kind;
+            button.dataset.tooltip = info.short;
+            button.dataset.help = info.short;
+            button.title = info.short;
+            button.setAttribute('aria-pressed', String(Boolean(active)));
+            button.setAttribute('aria-label', `${info.label}: ${info.short}`);
 
-        const title = document.createElement('b');
-        title.textContent = info.label;
-        const status = document.createElement('span');
-        status.className = 'feature-status';
-        status.textContent = state.featureFlags[key] ? 'ON' : 'OFF';
+            const title = document.createElement('b');
+            title.textContent = info.label;
+            const status = document.createElement('span');
+            status.className = 'feature-status';
+            status.textContent = active ? 'ON' : 'OFF';
 
-        button.append(title, status);
-        button.addEventListener('mouseenter', () => showFeatureTooltip(button, info.short));
-        button.addEventListener('focus', () => showFeatureTooltip(button, info.short));
-        button.addEventListener('mouseleave', hideFeatureTooltip);
-        button.addEventListener('blur', hideFeatureTooltip);
-        button.addEventListener('click', () => {
-            showFeatureTooltip(button, info.short, 1800);
-            toggleFeature(key);
+            button.append(title, status);
+            button.addEventListener('mouseenter', () => showFeatureTooltip(button, info.short));
+            button.addEventListener('focus', () => showFeatureTooltip(button, info.short));
+            button.addEventListener('mouseleave', hideFeatureTooltip);
+            button.addEventListener('blur', hideFeatureTooltip);
+            button.addEventListener('click', () => {
+                showFeatureTooltip(button, info.short, 1800);
+                if (kind === 'utility') toggleUtilityFeature(key);
+                else toggleFeature(key);
+            });
+            el.featureDock.appendChild(button);
         });
-        el.featureDock.appendChild(button);
     });
     updateFeatureSummary();
 }
 
+function getFeatureToggleState(kind, key) {
+    if (kind === 'utility') return Boolean(state[key]);
+    return Boolean(state.featureFlags[key]);
+}
+
+function toggleUtilityFeature(key) {
+    if (!Object.prototype.hasOwnProperty.call(UTILITY_FEATURE_DEFINITIONS, key)) return;
+    if (key === 'autoCacheClean') {
+        state.autoCacheClean = !state.autoCacheClean;
+        if (state.autoCacheClean) maybeAutoCleanAnalysisCache(true);
+    } else if (key === 'abLevelMatch') {
+        state.abLevelMatch = !state.abLevelMatch;
+    } else if (key === 'abLoopMode') {
+        state.abLoopMode = !state.abLoopMode;
+    }
+    renderFeatureButtons();
+    renderAll({ keepDetailAudio: true });
+    const info = UTILITY_FEATURE_DEFINITIONS[key];
+    showToast(`${info.label}: ${state[key] ? '켜짐' : '꺼짐'} · ${info.short}`);
+}
+
 function updateFeatureSummary() {
-    const active = Object.values(state.featureFlags).filter(Boolean).length;
-    el.featureCount.textContent = `${active}개 활성`;
+    const engineActive = Object.values(state.featureFlags).filter(Boolean).length;
+    const utilityActive = ['abLevelMatch', 'abLoopMode', 'autoCacheClean'].filter(key => Boolean(state[key])).length;
+    if (el.featureCount) el.featureCount.textContent = `${engineActive + utilityActive}개 활성`;
 }
 
 
@@ -384,6 +456,69 @@ function hideFeatureTooltip() {
     if (!el.featureTooltip) return;
     el.featureTooltip.classList.remove('show');
     el.featureTooltip.setAttribute('aria-hidden', 'true');
+}
+
+
+const ACTION_HELP_TEXTS = {
+    fileDrop: '파일 하나 또는 여러 개를 불러옵니다. MP3/WAV/MP4 오디오를 지원합니다.',
+    folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
+    aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
+    masterSelectedBtn: '선택한 트랙만 현재 설정으로 마스터링합니다.',
+    masterAllBtn: '대기열의 모든 트랙을 순서대로 마스터링합니다.',
+    zipBtn: '완료된 결과물을 ZIP 파일로 묶어 다운로드합니다.',
+    clearBtn: '작업 대기열과 미리듣기 결과를 초기화합니다.',
+    clearCacheBtn: '저장된 분석 캐시를 즉시 비웁니다.',
+    abMatchBtn: '원본/마스터링 프리뷰 볼륨을 맞춰 비교합니다.',
+    abLoopBtn: '같은 구간을 5초씩 반복해 차이를 빠르게 비교합니다.'
+};
+
+function initActionHelpTooltips() {
+    Object.entries(ACTION_HELP_TEXTS).forEach(([id, text]) => {
+        const target = el[id] || document.getElementById(id);
+        if (target) attachHelpTooltip(target, text);
+    });
+    document.querySelectorAll('.select-popup-trigger').forEach(trigger => {
+        const id = trigger.dataset.selectFor;
+        const select = id ? document.getElementById(id) : null;
+        const label = select ? getSelectLabel(select) : '선택';
+        attachHelpTooltip(trigger, `${label} 옵션을 버튼형 팝업으로 선택합니다.`);
+    });
+    document.querySelectorAll('.player-toggle').forEach(button => attachHelpTooltip(button, '프리뷰를 재생하거나 일시정지합니다.'));
+    document.querySelectorAll('[data-help]').forEach(node => attachHelpTooltip(node, node.dataset.help));
+}
+
+function attachHelpTooltip(target, text) {
+    if (!target || !text || target.dataset.helpBound === 'true') return;
+    target.dataset.helpBound = 'true';
+    target.dataset.help = text;
+    target.addEventListener('mouseenter', () => showFeatureTooltip(target, text));
+    target.addEventListener('focus', () => showFeatureTooltip(target, text));
+    target.addEventListener('mouseleave', hideFeatureTooltip);
+    target.addEventListener('blur', hideFeatureTooltip);
+    target.addEventListener('click', () => showFeatureTooltip(target, text, 1200));
+    target.addEventListener('touchstart', () => showFeatureTooltip(target, text, 1300), { passive: true });
+}
+
+async function maybeAutoCleanAnalysisCache(force = false) {
+    if (!state.autoCacheClean) return;
+    try {
+        const key = 'foxbearAutoCacheCleanLastRun';
+        const now = Date.now();
+        const last = Number(localStorage.getItem(key) || '0');
+        const interval = 48 * 60 * 60 * 1000;
+        if (!force && last && now - last < interval) return;
+        await clearAnalysisCache({ silent: true, skipRender: true });
+        localStorage.setItem(key, String(now));
+        if (force) showToast('분석 캐시 자동정리를 실행했습니다.');
+    } catch (error) {
+        console.warn('Auto cache clean skipped:', error);
+    }
+}
+
+function pauseAllPreviewAudio() {
+    document.querySelectorAll('.custom-player audio').forEach(audio => {
+        try { audio.pause(); } catch (error) {}
+    });
 }
 
 function bindEvents() {
@@ -510,13 +645,19 @@ function bindEvents() {
             showToast(state.abLevelMatch ? 'A/B 레벨 매칭을 켰습니다.' : 'A/B 레벨 매칭을 껐습니다.');
         });
     }
+    if (el.abLoopBtn) {
+        el.abLoopBtn.addEventListener('click', () => {
+            state.abLoopMode = !state.abLoopMode;
+            renderAll({ keepDetailAudio: true });
+            showToast(state.abLoopMode ? '5초 A/B 루프 비교를 켰습니다.' : '5초 A/B 루프 비교를 껐습니다.');
+        });
+    }
     if (el.genreLockBtn) {
         el.genreLockBtn.addEventListener('click', toggleGenreLockForSelected);
     }
     if (el.clearCacheBtn) {
         el.clearCacheBtn.addEventListener('click', async () => {
             await clearAnalysisCache();
-            showToast('분석 캐시를 정리했습니다.');
         });
     }
     if (el.subscribeNudgeAction) {
@@ -548,6 +689,7 @@ function enhanceActionSelects() {
         select.setAttribute('tabindex', '-1');
         if (existing) {
             updateSelectTrigger(select);
+            attachHelpTooltip(existing, `${getSelectLabel(select)} 옵션을 버튼형 팝업으로 선택합니다.`);
             return;
         }
 
@@ -563,6 +705,7 @@ function enhanceActionSelects() {
         select.insertAdjacentElement('afterend', trigger);
         select.addEventListener('change', () => updateSelectTrigger(select));
         updateSelectTrigger(select);
+        attachHelpTooltip(trigger, `${getSelectLabel(select)} 옵션을 버튼형 팝업으로 선택합니다.`);
     });
 }
 
@@ -1025,7 +1168,7 @@ async function writeAnalysisCache(track, analysis) {
     }
 }
 
-async function clearAnalysisCache() {
+async function clearAnalysisCache(options = {}) {
     try {
         const db = await openAnalysisCacheDb();
         if (!db) return;
@@ -1036,7 +1179,8 @@ async function clearAnalysisCache() {
             tx.onerror = () => { db.close(); resolve(); };
         });
         state.tracks.forEach(track => { track.analysisCacheHit = false; });
-        renderAll({ keepDetailAudio: true });
+        if (!options.skipRender) renderAll({ keepDetailAudio: true });
+        if (!options.silent) showToast('분석 캐시를 정리했습니다.');
     } catch (error) {
         console.warn('Analysis cache clear failed:', error);
     }
@@ -1662,6 +1806,8 @@ async function masterTrack(track, calledFromBatch = false) {
     if (!track || track.status === 'processing' || track.status === 'analyzing') return;
     if (!calledFromBatch && state.busy) return;
 
+    pauseAllPreviewAudio();
+
     if (!calledFromBatch) {
         state.busy = true;
         if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
@@ -2037,13 +2183,37 @@ function resampleChannel(input, output) {
         output[0] = input[0] || 0;
         return;
     }
-    const ratio = (input.length - 1) / (output.length - 1);
+    if (input.length < 4) {
+        const ratio = (input.length - 1) / Math.max(1, output.length - 1);
+        for (let i = 0; i < output.length; i += 1) {
+            const position = i * ratio;
+            const index = Math.floor(position);
+            const fraction = position - index;
+            output[i] = (input[index] || 0) * (1 - fraction) + (input[Math.min(input.length - 1, index + 1)] || 0) * fraction;
+        }
+        return;
+    }
+    const ratio = (input.length - 1) / Math.max(1, output.length - 1);
     for (let i = 0; i < output.length; i += 1) {
         const position = i * ratio;
         const index = Math.floor(position);
-        const fraction = position - index;
-        output[i] = (input[index] || 0) * (1 - fraction) + (input[Math.min(input.length - 1, index + 1)] || 0) * fraction;
+        const t = position - index;
+        output[i] = cubicInterpolate(
+            input[Math.max(0, index - 1)] || 0,
+            input[index] || 0,
+            input[Math.min(input.length - 1, index + 1)] || 0,
+            input[Math.min(input.length - 1, index + 2)] || 0,
+            t
+        );
     }
+}
+
+function cubicInterpolate(y0, y1, y2, y3, t) {
+    const a0 = -0.5 * y0 + 1.5 * y1 - 1.5 * y2 + 0.5 * y3;
+    const a1 = y0 - 2.5 * y1 + 2 * y2 - 0.5 * y3;
+    const a2 = -0.5 * y0 + 0.5 * y2;
+    const a3 = y1;
+    return clamp(a0 * t * t * t + a1 * t * t + a2 * t + a3, -1.2, 1.2);
 }
 
 function timeStretchAudioBuffer(buffer, targetLength) {
@@ -2184,6 +2354,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createDeMaskingPolishNode(context, node, effectiveSettings, analysis, intensity);
     node = createAiHumanizeNode(context, node, preset, effectiveSettings, intensity);
     node = createVocalProtectionNode(context, node, preset, effectiveSettings, analysis, intensity);
+    node = createVocalFocusPlusNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createMelodyPreserveNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createProfileEqChain(context, node, preset, intensity);
     const widthBase = map(effectiveSettings.width, 0, 100, 0.82, 1.25);
@@ -2192,11 +2363,14 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createStereoGrooveNode(context, node, effectiveSettings.stereoGroove, intensity);
     node = createSaturationNode(context, node, effectiveSettings.analogGroove, effectiveSettings.warmth, intensity);
     node = createSpectralBalancerNode(context, node, effectiveSettings, analysis, intensity);
+    node = createAdaptiveAirBalanceNode(context, node, effectiveSettings, analysis, intensity);
+    node = createOpenMixRecoveryNode(context, node, effectiveSettings, analysis, intensity);
     node = createPerceptualPolishNode(context, node, effectiveSettings, analysis, intensity);
     node = createToneChain(context, node, effectiveSettings, intensity);
     node = createHighFrequencyExciterNode(context, node, effectiveSettings, intensity);
     node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
     node = createMicroDynamicsGlueNode(context, node, effectiveSettings, analysis, intensity);
+    node = createTranslationGuardNode(context, node, effectiveSettings, analysis, intensity);
     node = createCompressionNode(context, node, effectiveSettings.dynamicPunch, intensity);
     node = createAlbumMatchNode(context, node, analysis, albumProfile);
     node = createLoudnessLiftNode(context, node, effectiveSettings, analysis, intensity);
@@ -2483,6 +2657,141 @@ function createAiHumanizeNode(context, input, preset, settings, intensity = getM
     return lowPass;
 }
 
+
+
+function createVocalFocusPlusNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.vocalFocusPlus === false || !analysis) return input;
+    const vocalLikely = shouldApplyVocalProtection(preset, analysis) || Number(analysis.midRatio || 0) > 0.30 || Number(analysis.lowMidRatio || 0) > 0.28;
+    if (!vocalLikely && intensity.raw < 135) return input;
+    const scale = clamp(0.55 + intensity.amount * 0.32, 0.55, 1.18);
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const output = context.createGain();
+
+    const focusBody = context.createBiquadFilter();
+    focusBody.type = 'peaking';
+    focusBody.frequency.value = 1180;
+    focusBody.Q.value = 0.78;
+    focusBody.gain.value = clamp(0.10 * scale, 0.03, 0.25);
+
+    const lyricForward = context.createBiquadFilter();
+    lyricForward.type = 'peaking';
+    lyricForward.frequency.value = 2150;
+    lyricForward.Q.value = 0.92;
+    lyricForward.gain.value = clamp((clarity < 64 ? 0.11 : 0.04) * scale, 0.02, 0.24);
+
+    const vowelGuard = context.createBiquadFilter();
+    vowelGuard.type = 'peaking';
+    vowelGuard.frequency.value = 3250;
+    vowelGuard.Q.value = 1.55;
+    vowelGuard.gain.value = clamp(-(Math.max(0, brightness - 0.56) * 0.40 + Math.max(0, clarity - 62) * 0.006) * scale, -0.55, -0.02);
+
+    const sibilanceFuse = context.createBiquadFilter();
+    sibilanceFuse.type = 'peaking';
+    sibilanceFuse.frequency.value = 7600;
+    sibilanceFuse.Q.value = 2.25;
+    sibilanceFuse.gain.value = clamp(-0.08 * scale - Math.max(0, brightness - 0.62) * 0.32, -0.62, -0.02);
+
+    input.connect(focusBody).connect(lyricForward).connect(vowelGuard).connect(sibilanceFuse).connect(output);
+    return output;
+}
+
+function createAdaptiveAirBalanceNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.adaptiveAir === false || !analysis) return input;
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const high = clamp01(Number(analysis.highRatio ?? 0.24));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const scale = clamp(intensity.amount, 0.65, 1.55);
+    const output = context.createGain();
+
+    const silkShelf = context.createBiquadFilter();
+    silkShelf.type = 'highshelf';
+    silkShelf.frequency.value = brightness > 0.66 || high > 0.38 ? 11800 : 13200;
+    const openAmount = brightness < 0.42 && high < 0.28 ? 0.22 : 0.04;
+    const trimAmount = Math.max(0, brightness - 0.64) * 0.55 + Math.max(0, high - 0.36) * 0.45 + Math.max(0, clarity - 68) * 0.006;
+    silkShelf.gain.value = clamp((openAmount - trimAmount) * scale, -0.78, 0.34);
+
+    const glassFuse = context.createBiquadFilter();
+    glassFuse.type = 'peaking';
+    glassFuse.frequency.value = 9800;
+    glassFuse.Q.value = 1.45;
+    glassFuse.gain.value = clamp(-(Math.max(0, metallic - 0.48) * 0.45 + Math.max(0, brightness - 0.70) * 0.28) * scale, -0.65, 0);
+
+    input.connect(silkShelf).connect(glassFuse).connect(output);
+    return output;
+}
+
+function createOpenMixRecoveryNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.openMixGuard === false || !analysis) return input;
+    const warmth = clamp(Number(settings.warmth || 55), 0, 100);
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? 0.24));
+    const mid = clamp01(Number(analysis.midRatio ?? 0.28));
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const needsAir = brightness < 0.50 || clarity < 52 || warmth > 62 || lowMid > 0.28 || intensity.raw > 125;
+    if (!needsAir) return input;
+
+    const scale = clamp(0.55 + intensity.amount * 0.32, 0.58, 1.22);
+    const output = context.createGain();
+
+    const cloudCut = context.createBiquadFilter();
+    cloudCut.type = 'peaking';
+    cloudCut.frequency.value = lowMid > 0.30 ? 330 : 410;
+    cloudCut.Q.value = 0.72;
+    cloudCut.gain.value = clamp(-(Math.max(0, lowMid - 0.22) * 0.95 + Math.max(0, warmth - 62) * 0.008) * scale, -0.85, -0.04);
+
+    const windowLift = context.createBiquadFilter();
+    windowLift.type = 'peaking';
+    windowLift.frequency.value = mid < 0.28 ? 1900 : 2450;
+    windowLift.Q.value = 0.82;
+    windowLift.gain.value = clamp((Math.max(0, 0.34 - mid) * 0.55 + Math.max(0, 56 - clarity) * 0.004) * scale, 0.02, 0.30);
+
+    const airWindow = context.createBiquadFilter();
+    airWindow.type = 'highshelf';
+    airWindow.frequency.value = 10800;
+    airWindow.gain.value = clamp((0.42 - brightness) * 0.48 * scale - Math.max(0, metallic - 0.54) * 0.28, -0.24, 0.32);
+
+    input.connect(cloudCut).connect(windowLift).connect(airWindow).connect(output);
+    return output;
+}
+
+function createTranslationGuardNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.translationGuard === false || !analysis) return input;
+    const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? 0.24));
+    const mid = clamp01(Number(analysis.midRatio ?? 0.28));
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const scale = clamp(intensity.amount, 0.65, 1.5);
+    const output = context.createGain();
+
+    const subPocket = context.createBiquadFilter();
+    subPocket.type = 'lowshelf';
+    subPocket.frequency.value = 88;
+    subPocket.gain.value = clamp(-(Math.max(0, bass - 0.38) * 0.75) * scale, -0.65, 0.10);
+
+    const mudPocket = context.createBiquadFilter();
+    mudPocket.type = 'peaking';
+    mudPocket.frequency.value = 245;
+    mudPocket.Q.value = 0.88;
+    mudPocket.gain.value = clamp(-(Math.max(0, lowMid - 0.27) * 0.80) * scale, -0.75, 0.02);
+
+    const smallSpeakerFocus = context.createBiquadFilter();
+    smallSpeakerFocus.type = 'peaking';
+    smallSpeakerFocus.frequency.value = 1350;
+    smallSpeakerFocus.Q.value = 0.82;
+    smallSpeakerFocus.gain.value = clamp((0.31 - mid) * 0.35 * scale, -0.12, 0.26);
+
+    const phoneHarshGuard = context.createBiquadFilter();
+    phoneHarshGuard.type = 'peaking';
+    phoneHarshGuard.frequency.value = 4100;
+    phoneHarshGuard.Q.value = 1.35;
+    phoneHarshGuard.gain.value = clamp(-Math.max(0, brightness - 0.62) * 0.32 * scale, -0.42, 0);
+
+    input.connect(subPocket).connect(mudPocket).connect(smallSpeakerFocus).connect(phoneHarshGuard).connect(output);
+    return output;
+}
 
 function shouldApplyVocalProtection(preset, analysis) {
     if (state.featureFlags.vocalProtect === false) return false;
@@ -4025,6 +4334,7 @@ function yieldToBrowser() {
 function renderAll(options = {}) {
     renderStats();
     renderButtons();
+    initActionHelpTooltips();
     renderQueuePreview();
     renderTrackList();
     renderDetail(options);
@@ -4075,6 +4385,7 @@ function renderButtons() {
     el.clearBtn.disabled = !hasTracks || state.busy;
     if (el.masterSelectedBtn) el.masterSelectedBtn.textContent = selectedTracks.length > 1 ? `선택 ${selectedTracks.length}곡 마스터링` : '선택 트랙 마스터링';
     if (el.abMatchBtn) el.abMatchBtn.textContent = state.abLevelMatch ? 'A/B 레벨 매칭 ON' : 'A/B 레벨 매칭 OFF';
+    if (el.abLoopBtn) el.abLoopBtn.textContent = state.abLoopMode ? '5초 A/B 루프 ON' : '5초 A/B 루프 OFF';
     if (el.genreLockBtn) {
         const active = getSelectedTrack();
         el.genreLockBtn.textContent = active && active.genreLocked ? '장르 잠금 해제' : '장르 잠금';
@@ -4190,7 +4501,21 @@ function makeMiniButton(label, className, onClick, disabled = false) {
     button.textContent = label;
     button.disabled = Boolean(disabled);
     button.addEventListener('click', onClick);
+    const help = getMiniButtonHelp(label);
+    if (help) attachHelpTooltip(button, help);
     return button;
+}
+
+function getMiniButtonHelp(label) {
+    if (label.includes('선택')) return '이 곡을 선택 목록에 추가합니다.';
+    if (label.includes('해제')) return '선택 목록에서 이 곡을 제외합니다.';
+    if (label.includes('장르 잠금')) return 'AI 재적용 시 현재 장르 프리셋을 유지합니다.';
+    if (label.includes('잠금 해제')) return '장르 프리셋을 다시 자동 추천 대상에 포함합니다.';
+    if (label.includes('AI 프리셋')) return '분석 결과 기준 추천 프리셋을 다시 적용합니다.';
+    if (label.includes('마스터링')) return '이 트랙만 현재 설정으로 다시 렌더링합니다.';
+    if (label.includes('다운로드')) return '완료된 마스터링 파일을 저장합니다.';
+    if (label.includes('삭제')) return '이 트랙을 대기열에서 제거합니다.';
+    return '';
 }
 
 function renderDetail(options = {}) {
@@ -4253,6 +4578,7 @@ function renderDetail(options = {}) {
         addRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
         addRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
         addRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
+        addRow('신규 플러그인', `${state.featureFlags.vocalFocusPlus ? '보컬+' : '보컬 OFF'} · ${state.featureFlags.adaptiveAir ? '에어+' : '에어 OFF'} · ${state.featureFlags.translationGuard ? '모바일+' : '모바일 OFF'}`);
         addRow('실시간 엔진 로그', track.report || '-');
 
         if (track.instrumentInfo && track.instrumentInfo.applied) addRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
@@ -4304,14 +4630,14 @@ function renderPreviewPlayers(track, target = el.trackDetail) {
     const originalCard = document.createElement('div');
     originalCard.className = 'preview-card';
     const originalLabel = makePreviewTitle('원본 프리뷰', track.analysis?.duration);
-    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration));
+    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode));
 
     const masteredCard = document.createElement('div');
     masteredCard.className = 'preview-card';
     const masteredLabel = makePreviewTitle('마스터링 프리뷰', track.masteredDurationSec || null);
     masteredCard.appendChild(masteredLabel);
     if (track.masteredUrl) {
-        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec));
+        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec, state.abLoopMode));
     } else {
         const empty = document.createElement('div');
         empty.className = 'preview-empty';
@@ -4342,9 +4668,9 @@ function formatPlayerTime(current, duration) {
     return formatTime(current || 0);
 }
 
-function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0) {
+function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare = false) {
     const wrap = document.createElement('div');
-    wrap.className = 'custom-player';
+    wrap.className = `custom-player ${loopCompare ? 'ab-loop-player' : ''}`;
 
     const audio = document.createElement('audio');
     audio.preload = 'metadata';
@@ -4358,6 +4684,7 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0) {
     toggle.className = 'player-toggle';
     toggle.innerHTML = '<span class="player-icon player-icon-play" aria-hidden="true"></span>';
     toggle.setAttribute('aria-label', '재생');
+    attachHelpTooltip(toggle, '프리뷰를 재생하거나 일시정지합니다.');
 
     const seek = document.createElement('input');
     seek.type = 'range';
@@ -4372,22 +4699,41 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0) {
     const initialDuration = Number(knownDurationSec || 0);
     time.textContent = formatPlayerTime(0, initialDuration);
 
+    const loopBadge = document.createElement('span');
+    loopBadge.className = 'ab-loop-badge';
+    loopBadge.textContent = '5초 루프';
+    if (!loopCompare) loopBadge.hidden = true;
+    let loopStart = NaN;
+
     const setPlaying = isPlaying => {
         toggle.classList.toggle('playing', Boolean(isPlaying));
         toggle.innerHTML = isPlaying ? '<span class="player-icon player-icon-pause" aria-hidden="true"></span>' : '<span class="player-icon player-icon-play" aria-hidden="true"></span>';
         toggle.setAttribute('aria-label', isPlaying ? '일시정지' : '재생');
     };
     const getDuration = () => Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : initialDuration;
+    const getLoopBounds = () => {
+        const duration = getDuration();
+        if (!loopCompare || !Number.isFinite(duration) || duration <= 6) return null;
+        const length = 5;
+        const maxStart = Math.max(0, duration - length);
+        if (!Number.isFinite(loopStart)) loopStart = clamp(duration * 0.33, 0, maxStart);
+        loopStart = clamp(loopStart, 0, maxStart);
+        return { start: loopStart, end: Math.min(duration, loopStart + length) };
+    };
 
     toggle.addEventListener('click', () => {
         if (audio.paused) audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
         else audio.pause();
     });
     audio.addEventListener('loadedmetadata', () => {
+        const bounds = getLoopBounds();
+        if (bounds && audio.currentTime < bounds.start) audio.currentTime = bounds.start;
         time.textContent = formatPlayerTime(audio.currentTime || 0, getDuration());
     });
     audio.addEventListener('play', () => {
         bindExclusivePreview(audio);
+        const bounds = getLoopBounds();
+        if (bounds && (audio.currentTime < bounds.start || audio.currentTime >= bounds.end)) audio.currentTime = bounds.start;
         setPlaying(true);
     });
     audio.addEventListener('pause', () => setPlaying(false));
@@ -4398,15 +4744,23 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0) {
     });
     audio.addEventListener('timeupdate', () => {
         const duration = getDuration();
+        const bounds = getLoopBounds();
+        if (bounds && audio.currentTime >= bounds.end) {
+            audio.currentTime = bounds.start;
+            return;
+        }
         if (Number.isFinite(duration) && duration > 0) seek.value = String(Math.round(audio.currentTime / duration * 1000));
         time.textContent = formatPlayerTime(audio.currentTime || 0, duration);
     });
     seek.addEventListener('input', () => {
         const duration = getDuration();
-        if (Number.isFinite(duration) && duration > 0) audio.currentTime = Number(seek.value) / 1000 * duration;
+        if (Number.isFinite(duration) && duration > 0) {
+            audio.currentTime = Number(seek.value) / 1000 * duration;
+            if (loopCompare) loopStart = audio.currentTime;
+        }
     });
 
-    wrap.append(toggle, seek, time, audio);
+    wrap.append(toggle, seek, time, loopBadge, audio);
     return wrap;
 }
 
@@ -4818,7 +5172,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.2.8',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.0',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
