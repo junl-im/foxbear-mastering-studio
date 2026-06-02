@@ -1,9 +1,9 @@
-# FoxBear AI Mastering Studio Pro v1.2.6
+# FoxBear AI Mastering Studio Pro v1.2.7
 
 GitHub Pages-ready modular browser mastering studio.
 
 
-## Pro v1.2.6 popup/UI refinement
+## Pro v1.2.7 popup/UI refinement
 
 - 장르 프리셋까지 버튼형 팝업 선택 UI로 통일했습니다.
 - 모바일에서도 선택 팝업이 화면 하단이 아닌 중앙에 뜨도록 조정했습니다.
@@ -109,3 +109,11 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - 악기 레이어는 렌더 직전 소스에 소량 믹스하고, 마지막 2-pass 파이널라이저와 피크 가드에서 안전하게 정리합니다.
 - 마스터링 체인에 스펙트럴 밸런서와 새츄레이션 커브 캐시를 추가해 톤 보정은 더 섬세하게, 반복 렌더 부담은 더 낮췄습니다.
 - 파이널라이저의 true-peak 검사 루프를 최적화해 Fast/Balanced 처리 속도를 개선했습니다.
+
+## Pro v1.2.7 download/mobile UI patch
+- MP3 output path now tries the bundled worker first with lamejs CDN fallback, then WebCodecs, and only falls back to WAV when both MP3 encoders are unavailable.
+- Added in-app browser download assist for KakaoTalk/Naver/Instagram/Line style WebViews. If automatic saving is blocked, a persistent help panel opens with a direct file link; supported mobile browsers can also use the native share/save sheet.
+- Popup trigger buttons no longer show the extra "선택" text. A small chevron icon indicates popup behavior without taking text space.
+- Instrument add UI was rebuilt so the two selects no longer collapse vertically on mobile/narrow columns.
+- Creator/subscription text stays visible on mobile. Only the YouTube-style "구독" pill is red; "은 사랑입니다" is shown as smaller regular text.
+- Pitch/BPM render output now receives a light transform safety polish: edge fade, DC-offset cleanup, and extra boundary smoothing for extreme pitch/speed settings.
