@@ -1,14 +1,14 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.2';
+const APP_VERSION = 'Pro v1.3.4';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v132';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v133';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -134,6 +134,14 @@ const UTILITY_FEATURE_DEFINITIONS = {
     autoHighlightAB: {
         label: '자동 하이라이트 A/B',
         short: '곡에서 차이가 잘 들리는 5초 구간을 찾아 A/B 루프 시작점으로 사용합니다.'
+    },
+    smartPerformanceGuard: {
+        label: '스마트 성능 가드',
+        short: '모바일·긴 파일·저메모리 환경에서 품질 손상 없이 가장 무거운 검사만 자동으로 가볍게 조절합니다.'
+    },
+    engineSafetyMeter: {
+        label: '엔진 안전 점수',
+        short: '현재 설정이 과한지, 보컬/피크/공간감 보호가 충분한지 점수로 보여줍니다.'
     }
 };
 
@@ -281,6 +289,8 @@ const state = {
     abLoopMode: false,
     autoCacheClean: true,
     autoHighlightAB: true,
+    smartPerformanceGuard: true,
+    engineSafetyMeter: true,
     cacheReady: false,
     autoRemasterTimers: new Map(),
     selectPopup: null,
@@ -344,7 +354,7 @@ function cacheElements() {
         'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
+        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -477,6 +487,10 @@ function toggleUtilityFeature(key) {
         state.abLoopMode = !state.abLoopMode;
     } else if (key === 'autoHighlightAB') {
         state.autoHighlightAB = !state.autoHighlightAB;
+    } else if (key === 'smartPerformanceGuard') {
+        state.smartPerformanceGuard = !state.smartPerformanceGuard;
+    } else if (key === 'engineSafetyMeter') {
+        state.engineSafetyMeter = !state.engineSafetyMeter;
     }
     renderFeatureButtons();
     renderAll({ keepDetailAudio: true });
@@ -486,7 +500,7 @@ function toggleUtilityFeature(key) {
 
 function updateFeatureSummary() {
     const engineActive = Object.values(state.featureFlags).filter(Boolean).length;
-    const utilityActive = ['abLevelMatch', 'abLoopMode', 'autoCacheClean', 'autoHighlightAB'].filter(key => Boolean(state[key])).length;
+    const utilityActive = ['abLevelMatch', 'abLoopMode', 'autoCacheClean', 'autoHighlightAB', 'smartPerformanceGuard', 'engineSafetyMeter'].filter(key => Boolean(state[key])).length;
     if (el.featureCount) el.featureCount.textContent = `${engineActive + utilityActive}개 활성`;
 }
 
@@ -519,7 +533,26 @@ function hideFeatureTooltip() {
 }
 
 
+
+function openProgramInfoDialog() {
+    if (!el.programInfoDialog) return;
+    el.programInfoDialog.classList.add('show');
+    el.programInfoDialog.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('program-info-open');
+    const panel = el.programInfoDialog.querySelector('.program-info-panel');
+    if (panel) panel.focus({ preventScroll: true });
+}
+
+function closeProgramInfoDialog() {
+    if (!el.programInfoDialog) return;
+    el.programInfoDialog.classList.remove('show');
+    el.programInfoDialog.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('program-info-open');
+    if (el.programInfoBtn) el.programInfoBtn.focus({ preventScroll: true });
+}
+
 const ACTION_HELP_TEXTS = {
+    programInfoBtn: '프로그램의 핵심 기능, 안전 처리 방식, 개발 방향을 확인합니다.',
     fileDrop: '파일 하나 또는 여러 개를 불러옵니다. MP3/WAV/MP4 오디오를 지원합니다.',
     folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
     aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
@@ -584,6 +617,16 @@ function pauseAllPreviewAudio() {
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
     window.addEventListener('resize', hideFeatureTooltip);
+    if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
+    if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
+    if (el.programInfoDialog) {
+        el.programInfoDialog.addEventListener('click', event => {
+            if (event.target === el.programInfoDialog) closeProgramInfoDialog();
+        });
+    }
+    window.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
+    });
     el.fileDrop.addEventListener('click', () => el.fileInput.click());
     el.folderDrop.addEventListener('click', () => el.folderInput.click());
     el.fileDrop.addEventListener('keydown', e => activateByKeyboard(e, () => el.fileInput.click()));
@@ -1465,6 +1508,167 @@ function estimateABHighlightStart(buffer) {
     return Number(clamp(bestStart, 0, startMax).toFixed(2));
 }
 
+
+function estimateABHighlightStartFromPair(beforeBuffer, afterBuffer, analysis) {
+    const beforeDuration = Number(beforeBuffer?.duration || 0);
+    const afterDuration = Number(afterBuffer?.duration || 0);
+    const duration = Math.min(beforeDuration, afterDuration);
+    if (!beforeBuffer || !afterBuffer || !Number.isFinite(duration) || duration <= 8) {
+        return estimateABHighlightStart(beforeBuffer || afterBuffer);
+    }
+    const sampleRate = Math.min(beforeBuffer.sampleRate || 44100, afterBuffer.sampleRate || 44100);
+    const windowSec = 5;
+    const startMin = Math.max(0, duration * 0.10);
+    const startMax = Math.max(0, duration - windowSec - Math.min(2, duration * 0.04));
+    const hopSec = duration > 240 ? 1.5 : 1;
+    const step = Math.max(512, Math.floor(sampleRate * 0.022));
+    const beforeChannels = Math.min(2, beforeBuffer.numberOfChannels || 1);
+    const afterChannels = Math.min(2, afterBuffer.numberOfChannels || 1);
+    const beforeRate = beforeBuffer.sampleRate || sampleRate;
+    const afterRate = afterBuffer.sampleRate || sampleRate;
+    const beforeData = Array.from({ length: beforeChannels }, (_, ch) => beforeBuffer.getChannelData(ch));
+    const afterData = Array.from({ length: afterChannels }, (_, ch) => afterBuffer.getChannelData(ch));
+    let bestStart = Number.isFinite(Number(analysis?.abHighlightStartSec)) ? Number(analysis.abHighlightStartSec) : clamp(duration * 0.33, 0, startMax);
+    let bestScore = -Infinity;
+
+    for (let startSec = startMin; startSec <= startMax; startSec += hopSec) {
+        const endSec = Math.min(duration, startSec + windowSec);
+        let energy = 0;
+        let diff = 0;
+        let transient = 0;
+        let count = 0;
+        let lastDiff = 0;
+        for (let sec = startSec; sec < endSec; sec += step / sampleRate) {
+            const beforeIndex = Math.min(beforeBuffer.length - 1, Math.max(0, Math.floor(sec * beforeRate)));
+            const afterIndex = Math.min(afterBuffer.length - 1, Math.max(0, Math.floor(sec * afterRate)));
+            let beforeMono = 0;
+            let afterMono = 0;
+            for (let ch = 0; ch < beforeChannels; ch += 1) beforeMono += beforeData[ch][beforeIndex] || 0;
+            for (let ch = 0; ch < afterChannels; ch += 1) afterMono += afterData[ch][afterIndex] || 0;
+            beforeMono /= Math.max(1, beforeChannels);
+            afterMono /= Math.max(1, afterChannels);
+            const d = Math.abs(afterMono - beforeMono);
+            energy += Math.abs(beforeMono) + Math.abs(afterMono);
+            diff += d;
+            transient += Math.abs(d - lastDiff);
+            lastDiff = d;
+            count += 1;
+        }
+        if (!count) continue;
+        const avgEnergy = energy / count;
+        const avgDiff = diff / count;
+        const avgTransient = transient / count;
+        const centerWeight = 1 - Math.abs((startSec + windowSec * 0.5) / duration - 0.52) * 0.30;
+        const introPenalty = startSec < duration * 0.15 ? 0.90 : 1;
+        const score = (avgDiff * 0.56 + avgEnergy * 0.32 + avgTransient * 0.26) * centerWeight * introPenalty;
+        if (score > bestScore) {
+            bestScore = score;
+            bestStart = startSec;
+        }
+    }
+    return Number(clamp(bestStart, 0, startMax).toFixed(2));
+}
+
+function getDevicePerformanceTier() {
+    const memory = Number(navigator.deviceMemory || 0);
+    const cores = Number(navigator.hardwareConcurrency || 0);
+    const ua = navigator.userAgent || '';
+    const mobile = /Android|iPhone|iPad|iPod|Mobile|KAKAOTALK|NAVER|Instagram|Line/i.test(ua) || (window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+    let tier = 'desktop';
+    if (mobile) tier = 'mobile';
+    if ((memory && memory <= 3) || (cores && cores <= 4)) tier = mobile ? 'mobile-lite' : 'desktop-lite';
+    return { tier, mobile, memory, cores };
+}
+
+function getSmartPerformanceGuardDecision(track, buffer, requestedOutputFormat) {
+    const device = getDevicePerformanceTier();
+    const duration = Number(buffer?.duration || track?.analysis?.duration || 0);
+    const sourceMode = state.qualityMode || 'balanced';
+    const mp3 = String(requestedOutputFormat || '').startsWith('mp3');
+    const longFile = duration >= 8 * 60;
+    const veryLongFile = duration >= 15 * 60;
+    let qualityMode = sourceMode;
+    const reasons = [];
+    if (state.smartPerformanceGuard) {
+        if (device.tier === 'mobile-lite' && sourceMode === 'max') {
+            qualityMode = 'balanced';
+            reasons.push('구형/저메모리 모바일 Max 검사 완화');
+        }
+        if (device.mobile && veryLongFile && sourceMode !== 'fast') {
+            qualityMode = 'fast';
+            reasons.push('긴 파일 모바일 처리 보호');
+        } else if (device.mobile && longFile && sourceMode === 'max') {
+            qualityMode = 'balanced';
+            reasons.push('긴 파일 모바일 Max 검사 균형화');
+        }
+        if (mp3 && device.mobile && duration >= 10 * 60 && qualityMode === 'max') {
+            qualityMode = 'balanced';
+            reasons.push('MP3 인코딩 여유 확보');
+        }
+    }
+    const truePeak = state.featureFlags.truePeakGuard !== false;
+    if (!reasons.length) reasons.push(state.smartPerformanceGuard ? '원래 품질 유지' : '성능 가드 OFF');
+    return {
+        enabled: Boolean(state.smartPerformanceGuard),
+        sourceQualityMode: sourceMode,
+        qualityMode,
+        truePeak,
+        duration,
+        deviceTier: device.tier,
+        mobile: device.mobile,
+        memory: device.memory,
+        cores: device.cores,
+        changed: qualityMode !== sourceMode,
+        reasons
+    };
+}
+
+function computeEngineSafetyInfo(track, buffer, finalizeInfo) {
+    const analysis = track?.analysis || {};
+    const settings = track?.settings || GENRE_PRESETS.custom;
+    let score = 100;
+    const notes = [];
+    const intensity = Number(settings.intensity || 100);
+    const width = Number(settings.width || 50);
+    const clarity = Number(settings.clarity || 50);
+    const punch = Number(settings.dynamicPunch || 35);
+    const removal = Number(settings.metallicRemoval || 42);
+    const pitch = Math.abs(Number(track?.transform?.pitchSemitones || 0));
+    const speedDelta = Math.abs(Number(track?.transform?.speedRatio || 1) - 1);
+    const peakAfterDb = Number.isFinite(finalizeInfo?.peakAfter) ? ampToDb(finalizeInfo.peakAfter) : NaN;
+    const metallic = Number(analysis.metallicHint || 0);
+    const high = Number(analysis.highRatio || 0);
+    const bass = Number(analysis.bassRatio || 0);
+
+    if (intensity > 140) { score -= Math.min(20, (intensity - 140) * 0.25); notes.push('강도 높음'); }
+    if (width > 72 && !state.featureFlags.phaseSafe) { score -= 12; notes.push('공간감 보호 OFF'); }
+    if (clarity > 70 && (high > 0.38 || metallic > 0.55)) { score -= 10; notes.push('고역 피로 가능'); }
+    if (punch > 68 && Number(analysis.transientDensity || 0) > 0.55) { score -= 8; notes.push('트랜지언트 과다 가능'); }
+    if (bass > 0.48 && !state.featureFlags.lowEndAnchor) { score -= 10; notes.push('저역 고정 OFF'); }
+    if (metallic > 0.62 && removal < 48) { score -= 8; notes.push('금속성 제거 약함'); }
+    if (pitch >= 7 || speedDelta >= 0.25) {
+        const protectedBy = state.featureFlags.vocalProtect && state.featureFlags.melodyPreserve && state.featureFlags.vocalFocusPlus;
+        score -= protectedBy ? 3 : 12;
+        notes.push(protectedBy ? '극단 피치/BPM 보호 ON' : '극단 피치/BPM 보호 약함');
+    }
+    if (!state.featureFlags.truePeakGuard) { score -= 12; notes.push('True Peak OFF'); }
+    if (Number.isFinite(peakAfterDb) && peakAfterDb > -0.6) { score -= 8; notes.push('피크 여유 적음'); }
+    if (state.smartPerformanceGuard && track?.performanceGuardInfo?.changed) { score += 2; notes.push('성능 가드 품질 균형'); }
+
+    score = Math.round(clamp(score, 0, 100));
+    const label = score >= 86 ? '안전' : score >= 72 ? '주의 낮음' : score >= 58 ? '주의' : '과처리 위험';
+    const tone = score >= 86 ? 'safe' : score >= 72 ? 'good' : score >= 58 ? 'warn' : 'danger';
+    if (!notes.length) notes.push('현재 설정 안정적');
+    return { score, label, tone, notes: notes.slice(0, 4), peakAfterDb };
+}
+
+function formatPerformanceGuardInfo(info) {
+    if (!info) return state.smartPerformanceGuard ? '대기 · 렌더 시 자동 판단' : 'OFF';
+    const mode = `${getQualityModeLabel(info.sourceQualityMode)} → ${getQualityModeLabel(info.qualityMode)}`;
+    const changed = info.changed ? '조정됨' : '유지';
+    return `${changed} · ${mode} · ${info.reasons.join(', ')}`;
+}
+
 function recommendPreset(fileName, analysis) {
     const name = fileName.toLowerCase();
     const scores = {};
@@ -1950,6 +2154,9 @@ async function masterTrack(track, calledFromBatch = false) {
     track.albumApplied = null;
     track.truePeakInfo = null;
     track.finalizeInfo = null;
+    track.performanceGuardInfo = null;
+    track.safetyInfo = null;
+    track.remasterCount = Number(track.remasterCount || 0) + 1;
     track.performanceInfo = beginPerformanceProfile();
     track.report = '온디맨드 디코더 구동 중...';
     renderAll();
@@ -2021,19 +2228,27 @@ async function masterTrack(track, calledFromBatch = false) {
         track.report = state.featureFlags.truePeakGuard ? `True Peak 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중` : `샘플 피크 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중`;
         renderAll();
 
+        const guardDecision = getSmartPerformanceGuardDecision(track, masteredBuffer, requestedOutputFormat);
+        track.performanceGuardInfo = guardDecision;
+        track.report = guardDecision.changed ? `스마트 성능 가드 적용 · ${getQualityModeLabel(guardDecision.sourceQualityMode)} → ${getQualityModeLabel(guardDecision.qualityMode)} · ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중` : track.report;
+        renderAll();
         const finalization = await finalizeMasterBufferAsync(masteredBuffer, {
             targetLufs: state.targetLufs,
             ceilingDb: state.ceilingDb,
-            qualityMode: state.qualityMode,
+            qualityMode: guardDecision.qualityMode,
             masterGoal: state.masterGoal,
-            truePeak: state.featureFlags.truePeakGuard
+            truePeak: guardDecision.truePeak
         });
         const finalBuffer = finalization.buffer;
+        if (state.autoHighlightAB) {
+            track.abHighlightStartSec = estimateABHighlightStartFromPair(preparedBuffer, finalBuffer, track.analysis);
+        }
+        track.safetyInfo = computeEngineSafetyInfo(track, finalBuffer, finalization.info);
         markPerformanceStage(track, '파이널라이저');
         track.finalizeInfo = finalization.info;
         track.comparison = createComparisonInfo(track, finalization.info);
         track.truePeakInfo = {
-            mode: state.featureFlags.truePeakGuard ? 'truePeak' : 'samplePeak',
+            mode: guardDecision.truePeak ? 'truePeak' : 'samplePeak',
             targetDbTP: state.ceilingDb,
             peakBefore: finalization.info.peakBefore,
             peakAfter: finalization.info.peakAfter,
@@ -4724,6 +4939,13 @@ function renderTrackList() {
             vocalChip.textContent = '보컬 보호 ON';
             titleWrap.appendChild(vocalChip);
         }
+        if (state.engineSafetyMeter && (track.analysis || track.safetyInfo)) {
+            const safety = track.safetyInfo || computeEngineSafetyInfo(track, null, track.finalizeInfo || null);
+            const safetyChip = document.createElement('div');
+            safetyChip.className = `engine-safe-chip engine-safe-${safety.tone}`;
+            safetyChip.textContent = `안전 ${safety.score}점`;
+            titleWrap.appendChild(safetyChip);
+        }
 
         const status = document.createElement('span');
         status.className = `status-pill status-${track.status}`;
@@ -4804,6 +5026,7 @@ function renderDetail(options = {}) {
 
     renderMasterComparisonPanel(track);
     renderProcessingFlowPanel(track);
+    renderEngineSafetyPanel(track);
 
     const isOpen = state.expandedDetailIds && state.expandedDetailIds.has(track.id);
     const toggle = document.createElement('button');
@@ -4842,6 +5065,8 @@ function renderDetail(options = {}) {
         addRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
         addRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
         addRow('신규 플러그인', `${state.featureFlags.vocalFocusPlus ? '보컬+' : '보컬 OFF'} · ${state.featureFlags.adaptiveAir ? '에어+' : '에어 OFF'} · ${state.featureFlags.translationGuard ? '모바일+' : '모바일 OFF'} · ${state.featureFlags.referenceMatch ? '레퍼런스+' : '레퍼런스 OFF'} · ${state.featureFlags.earFatigueGuard ? '피로가드+' : '피로가드 OFF'}`);
+        addRow('스마트 성능 가드', formatPerformanceGuardInfo(track.performanceGuardInfo));
+        if (track.safetyInfo) addRow('엔진 안전 점수', `${track.safetyInfo.score}점 · ${track.safetyInfo.label} · ${track.safetyInfo.notes.join(', ')}`);
         addRow('실시간 엔진 로그', track.report || '-');
 
         if (track.instrumentInfo && track.instrumentInfo.applied) addRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
@@ -5089,6 +5314,38 @@ function renderProcessingFlowPanel(track) {
     report.textContent = track.report || (track.status === 'done' ? '마스터링 완료' : '마스터링을 실행하면 단계별 진행이 표시됩니다.');
 
     panel.append(head, rail, steps, report);
+    el.trackDetail.appendChild(panel);
+}
+
+
+function renderEngineSafetyPanel(track) {
+    if (!state.engineSafetyMeter || !track) return;
+    const info = track.safetyInfo || computeEngineSafetyInfo(track, null, track.finalizeInfo || null);
+    const panel = document.createElement('div');
+    panel.className = `engine-safety-panel engine-safety-${info.tone}`;
+    const head = document.createElement('div');
+    head.className = 'engine-safety-head';
+    const title = document.createElement('strong');
+    title.textContent = '엔진 안전 점수';
+    const score = document.createElement('b');
+    score.textContent = `${info.score}점 · ${info.label}`;
+    head.append(title, score);
+
+    const bar = document.createElement('div');
+    bar.className = 'engine-safety-bar';
+    const fill = document.createElement('i');
+    fill.style.width = `${clamp(info.score, 0, 100)}%`;
+    bar.appendChild(fill);
+
+    const notes = document.createElement('div');
+    notes.className = 'engine-safety-notes';
+    notes.textContent = info.notes.join(' · ');
+
+    const guard = document.createElement('small');
+    guard.className = 'engine-safety-guard';
+    guard.textContent = `성능 가드: ${formatPerformanceGuardInfo(track.performanceGuardInfo)}`;
+
+    panel.append(head, bar, notes, guard);
     el.trackDetail.appendChild(panel);
 }
 
@@ -5449,7 +5706,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.2',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.4',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
