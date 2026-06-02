@@ -1,6 +1,14 @@
-# FoxBear AI Mastering Studio Pro v1.3.0
+# FoxBear AI Mastering Studio Pro v1.3.2
 
 GitHub Pages-ready modular browser mastering studio.
+
+## Pro v1.3.2 preset/research engine upgrade
+- BandLab/LANDR/CloudBounce류 온라인 마스터링 도구의 흐름을 참고해, 빠른 프리셋 선택 + 강도 조절 + A/B 비교 + 레퍼런스 성향 보정 방향을 강화했습니다.
+- 장르 프리셋에 `Cinematic / OST`, `Spatial / Wide Mix`, `Tape Warmth`, `Punch / Live Energy` 스타일을 추가했습니다.
+- `프리셋 레퍼런스 매처` 엔진을 추가해 선택 프리셋의 목표 저역/저중역/중역/고역 밸런스에 더 가깝게 미세 보정합니다.
+- `스테레오 위상 세이프` 엔진을 추가해 넓은 공간감에서도 중앙 보컬과 저역이 흐려지는 것을 줄입니다.
+- `청감 피로 가드` 엔진을 추가해 강한 피치/BPM, 고음압, 밝은 곡에서 오래 들으면 피곤한 고역을 더 섬세하게 정리합니다.
+- `자동 하이라이트 A/B` 기능을 추가해 분석 시 차이가 잘 들리는 5초 구간을 찾아 A/B 루프 시작점으로 사용합니다.
 
 
 
@@ -143,3 +151,10 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - Instrument add UI was rebuilt so the two selects no longer collapse vertically on mobile/narrow columns.
 - Creator/subscription text stays visible on mobile. Only the YouTube-style "구독" pill is red; "은 사랑입니다" is shown as smaller regular text.
 - Pitch/BPM render output now receives a light transform safety polish: edge fade, DC-offset cleanup, and extra boundary smoothing for extreme pitch/speed settings.
+
+
+## v1.3.2 Intelligent UI Planning Update
+
+- 상단 소개 영역을 단일 통합 헤더로 개편했습니다. 모바일에서 배지, 버전, 구독 문구가 밀리지 않도록 `DESIGNED BY 곰같은여우 with AI` 정보를 작은 내부 카드로 합쳤습니다.
+- 버튼형 적용 기능은 OFF 상태 항목을 앞쪽에, ON 상태 항목을 뒤쪽에 정렬합니다. 꺼진 기능을 먼저 찾고 켤 수 있어 실험 흐름이 더 빠릅니다.
+- 기능 추가는 성능을 해치지 않는 것을 원칙으로 합니다. 다음 개발 방향은 무거운 실시간 모델보다 로컬 분석 결과를 재사용하는 지능형 추천, A/B 비교 개선, 안전한 엔진 가드 중심으로 진행합니다.
