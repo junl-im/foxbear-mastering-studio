@@ -3,37 +3,36 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.2 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.4 - browser based AI music mastering console" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.2</title>
+<title>FoxBear Mastering PRO v1.3.4</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.2" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.4" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.2"></script>
+<script defer src="src/app.js?v=1.3.4"></script>
 </head>
-<body data-build="1.3.2">
+<body data-build="1.3.4">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <span class="badge">곰같은여우 뮤직</span>
-                    <span class="badge rose">PC & 모바일 호환</span>
-                    <span class="badge violet">마스터링 PRO v1.3.2</span>
+                    <span class="badge badge-music">곰같은여우 뮤직</span>
+                    <span class="badge badge-device">PC & 모바일 호환</span>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.4</button>
                 </div>
-                <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널을 구독하고 다음 업데이트를 응원합니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span><small>은 사랑입니다</small></a>
+                <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널 구독 페이지를 엽니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span></a>
             </div>
             <div class="hero-mainline">
                 <div class="hero-copy">
                     <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
-                    <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM/박자 보정, MP4 오디오 추출, 간단 리듬 악기 추가, 자동 하이라이트 A/B, 레퍼런스 매처, 금속성 공진 감쇄, True Peak 보호까지 로컬로 처리합니다.</p>
+                    <p>분석, 장르 추천, 피치·BPM/박자 보정, MP4 오디오 추출, 리듬 악기 추가, A/B 비교, True Peak 보호까지 브라우저 내부에서 로컬 처리합니다.</p>
                 </div>
-                <aside class="designer-mini" aria-label="개발자 정보">
+                <a class="designer-mini designer-mini-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer" aria-label="곰같은여우 유튜브 채널 열기" data-help="곰같은여우 유튜브 채널을 새 창으로 엽니다.">
                     <span>DESIGNED BY</span>
                     <strong>곰같은여우 <em>with AI</em></strong>
-                    <small>음악을 사랑하는 모두를 위한 무료배포 버전</small>
-                </aside>
+                </a>
             </div>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </section>
@@ -310,6 +309,23 @@
     </div>
     <button id="subscribeNudgeAction" class="subscribe-mini-action" type="button" data-help="구독 페이지를 새 창으로 엽니다."><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></button>
     <button id="subscribeNudgeClose" class="subscribe-mini-close" type="button" aria-label="구독 안내 닫기" data-help="구독 안내를 닫습니다.">×</button>
+</div>
+
+
+<div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
+    <section class="program-info-panel" tabindex="-1">
+        <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.4</span>
+        <h2 id="programInfoTitle">AI 음악 마스터링 스튜디오</h2>
+        <p>서버 업로드 없이 브라우저 내부에서 오디오를 분석하고, 장르 성향·피치/BPM·마스터링 목표에 맞춰 안전하게 처리하는 로컬형 음악 마스터링 도구입니다.</p>
+        <div class="program-info-grid">
+            <div><strong>로컬 처리</strong><span>파일은 사용자의 브라우저 안에서 처리되어 서버 트래픽과 개인정보 부담을 줄입니다.</span></div>
+            <div><strong>보컬 보호</strong><span>극단 피치/BPM 설정에서도 보컬·리드 대역이 과하게 눌리지 않도록 보호합니다.</span></div>
+            <div><strong>True Peak 가드</strong><span>마지막 피크와 출력 포맷을 확인해 다운로드 결과를 안정적으로 만듭니다.</span></div>
+            <div><strong>스마트 비교</strong><span>A/B 루프와 자동 하이라이트로 마스터링 전후 차이를 빠르게 확인합니다.</span></div>
+        </div>
+        <p class="program-info-note">성능을 해치는 무거운 기능보다, 기존 분석값을 재사용하는 지능형 보정과 안전 가드를 우선으로 발전합니다.</p>
+    </section>
 </div>
 
 <div id="featureTooltip" class="feature-tooltip" role="tooltip" aria-hidden="true"></div>
