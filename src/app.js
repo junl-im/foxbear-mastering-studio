@@ -1,14 +1,14 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.4';
+const APP_VERSION = 'Pro v1.3.5';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v133';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v135';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -348,7 +348,7 @@ function init() {
 
 function cacheElements() {
     const ids = [
-        'fileDrop', 'folderDrop', 'fileInput', 'folderInput', 'featureDock', 'featureCount',
+        'fileDrop', 'folderDrop', 'fileInput', 'folderInput', 'featureDock', 'featureCount', 'featureOpenBtn', 'featureDialog', 'featureDialogClose', 'featureDialogList',
         'genreSelect', 'confidenceText', 'intensityField', 'sliderFields', 'pitchSlider', 'speedSlider', 'pitchValue', 'speedValue',
         'pitchHint', 'speedHint', 'beatChangeSelect', 'beatValue', 'beatHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
         'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
@@ -419,8 +419,10 @@ function renderSliders() {
 }
 
 function renderFeatureButtons() {
-    if (!el.featureDock) return;
-    el.featureDock.textContent = '';
+    const featureContainer = el.featureDialogList || el.featureDock;
+    if (!featureContainer) return;
+    if (el.featureDock) el.featureDock.textContent = '';
+    featureContainer.textContent = '';
     const groups = [
         ['engine', FEATURE_DEFINITIONS],
         ['utility', UTILITY_FEATURE_DEFINITIONS]
@@ -440,7 +442,7 @@ function renderFeatureButtons() {
     cards.forEach(({ kind, key, info, active }) => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `feature-card ${active ? 'active' : ''}`;
+        button.className = `feature-card feature-dialog-card ${active ? 'active' : ''}`;
         button.dataset.feature = key;
         button.dataset.kind = kind;
         button.dataset.state = active ? 'on' : 'off';
@@ -466,7 +468,7 @@ function renderFeatureButtons() {
             if (kind === 'utility') toggleUtilityFeature(key);
             else toggleFeature(key);
         });
-        el.featureDock.appendChild(button);
+        featureContainer.appendChild(button);
     });
     updateFeatureSummary();
 }
@@ -551,8 +553,27 @@ function closeProgramInfoDialog() {
     if (el.programInfoBtn) el.programInfoBtn.focus({ preventScroll: true });
 }
 
+function openFeatureDialog() {
+    if (!el.featureDialog) return;
+    renderFeatureButtons();
+    el.featureDialog.classList.add('show');
+    el.featureDialog.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('feature-dialog-open');
+    const panel = el.featureDialog.querySelector('.feature-dialog-panel');
+    if (panel) panel.focus({ preventScroll: true });
+}
+
+function closeFeatureDialog() {
+    if (!el.featureDialog) return;
+    el.featureDialog.classList.remove('show');
+    el.featureDialog.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('feature-dialog-open');
+    if (el.featureOpenBtn) el.featureOpenBtn.focus({ preventScroll: true });
+}
+
 const ACTION_HELP_TEXTS = {
     programInfoBtn: '프로그램의 핵심 기능, 안전 처리 방식, 개발 방향을 확인합니다.',
+    featureOpenBtn: '버튼형 적용 기능을 팝업으로 열어 필요한 기능만 켜고 끕니다.',
     fileDrop: '파일 하나 또는 여러 개를 불러옵니다. MP3/WAV/MP4 오디오를 지원합니다.',
     folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
     aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
@@ -624,8 +645,16 @@ function bindEvents() {
             if (event.target === el.programInfoDialog) closeProgramInfoDialog();
         });
     }
+    if (el.featureOpenBtn) el.featureOpenBtn.addEventListener('click', openFeatureDialog);
+    if (el.featureDialogClose) el.featureDialogClose.addEventListener('click', closeFeatureDialog);
+    if (el.featureDialog) {
+        el.featureDialog.addEventListener('click', event => {
+            if (event.target === el.featureDialog) closeFeatureDialog();
+        });
+    }
     window.addEventListener('keydown', event => {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
+        if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog();
     });
     el.fileDrop.addEventListener('click', () => el.fileInput.click());
     el.folderDrop.addEventListener('click', () => el.folderInput.click());
@@ -5706,7 +5735,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.4',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.5',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
