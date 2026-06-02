@@ -1,14 +1,14 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.0';
+const APP_VERSION = 'Pro v1.3.2';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v13';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v132';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -103,6 +103,18 @@ const FEATURE_DEFINITIONS = {
     openMixGuard: {
         label: '개방감 리커버리',
         short: '추가 마스터링이나 강한 세팅에서 답답하게 막히는 저중역을 살짝 열고 보컬 존재감을 회복합니다.'
+    },
+    referenceMatch: {
+        label: '프리셋 레퍼런스 매처',
+        short: '선택한 프리셋의 목표 저역·중역·고역 밸런스에 맞춰 아주 얇게 톤을 보정합니다.'
+    },
+    phaseSafe: {
+        label: '스테레오 위상 세이프',
+        short: '넓은 공간감에서도 중앙 보컬과 저역이 흐려지지 않도록 좌우 위상 위험을 줄입니다.'
+    },
+    earFatigueGuard: {
+        label: '청감 피로 가드',
+        short: '강한 피치/BPM·고음압 설정에서 오래 들으면 피곤한 3~10kHz 거친 대역을 미세 정리합니다.'
     }
 };
 
@@ -118,6 +130,10 @@ const UTILITY_FEATURE_DEFINITIONS = {
     autoCacheClean: {
         label: '분석 캐시 자동정리',
         short: '켜두면 오래된 분석 캐시를 주기적으로 정리합니다. 끄면 캐시를 그대로 보존합니다.'
+    },
+    autoHighlightAB: {
+        label: '자동 하이라이트 A/B',
+        short: '곡에서 차이가 잘 들리는 5초 구간을 찾아 A/B 루프 시작점으로 사용합니다.'
     }
 };
 
@@ -141,7 +157,11 @@ const PRESET_LABELS = {
     boombap: 'Boom Bap',
     globalpop: 'Global / Ethnic Pop',
     lofi: 'LO-FI',
-    rock: 'ROCK'
+    rock: 'ROCK',
+    cinematic: 'Cinematic / OST',
+    spatial: 'Spatial / Wide Mix',
+    tape: 'Tape Warmth',
+    punch: 'Punch / Live Energy'
 };
 
 const GENRE_PRESETS = {
@@ -164,7 +184,11 @@ const GENRE_PRESETS = {
     boombap: { clarity: 40, warmth: 70, width: 30, stereoGroove: 5, analogGroove: 12, dynamicPunch: 48, metallicRemoval: 42, intensity: 102 },
     globalpop: { clarity: 56, warmth: 58, width: 50, stereoGroove: 12, analogGroove: 5, dynamicPunch: 44, metallicRemoval: 56, intensity: 105 },
     lofi: { clarity: 28, warmth: 72, width: 26, stereoGroove: 5, analogGroove: 18, dynamicPunch: 20, metallicRemoval: 52, intensity: 95 },
-    rock: { clarity: 50, warmth: 54, width: 30, stereoGroove: 8, analogGroove: 5, dynamicPunch: 48, metallicRemoval: 45, intensity: 108 }
+    rock: { clarity: 50, warmth: 54, width: 30, stereoGroove: 8, analogGroove: 5, dynamicPunch: 48, metallicRemoval: 45, intensity: 108 },
+    cinematic: { clarity: 48, warmth: 62, width: 58, stereoGroove: 9, analogGroove: 7, dynamicPunch: 34, metallicRemoval: 48, intensity: 102 },
+    spatial: { clarity: 54, warmth: 56, width: 64, stereoGroove: 18, analogGroove: 4, dynamicPunch: 36, metallicRemoval: 50, intensity: 104 },
+    tape: { clarity: 42, warmth: 72, width: 34, stereoGroove: 6, analogGroove: 24, dynamicPunch: 30, metallicRemoval: 54, intensity: 96 },
+    punch: { clarity: 52, warmth: 56, width: 38, stereoGroove: 8, analogGroove: 6, dynamicPunch: 70, metallicRemoval: 46, intensity: 116 }
 };
 
 const PROFILE_EQ_FILTERS = {
@@ -187,6 +211,26 @@ const PROFILE_EQ_FILTERS = {
         { type: 'peaking', frequency: 4000, q: 2.5, gain: -1.8 },
         { type: 'peaking', frequency: 10000, q: 1.0, gain: -1.0 },
         { type: 'highshelf', frequency: 16000, q: 0.7, gain: 0.8 }
+    ],
+    cinematic: [
+        { type: 'peaking', frequency: 280, q: 0.75, gain: 0.5 },
+        { type: 'peaking', frequency: 3200, q: 1.1, gain: -0.4 },
+        { type: 'highshelf', frequency: 12500, q: 0.7, gain: 0.45 }
+    ],
+    spatial: [
+        { type: 'peaking', frequency: 240, q: 0.8, gain: -0.35 },
+        { type: 'peaking', frequency: 2200, q: 1.0, gain: 0.25 },
+        { type: 'highshelf', frequency: 14000, q: 0.7, gain: 0.35 }
+    ],
+    tape: [
+        { type: 'peaking', frequency: 350, q: 0.85, gain: 0.6 },
+        { type: 'peaking', frequency: 5200, q: 1.7, gain: -0.55 },
+        { type: 'highshelf', frequency: 12000, q: 0.7, gain: -0.35 }
+    ],
+    punch: [
+        { type: 'peaking', frequency: 95, q: 1.0, gain: 0.45 },
+        { type: 'peaking', frequency: 1800, q: 0.9, gain: 0.35 },
+        { type: 'peaking', frequency: 7200, q: 1.6, gain: -0.25 }
     ]
 };
 
@@ -221,7 +265,10 @@ const state = {
         vocalFocusPlus: true,
         adaptiveAir: true,
         translationGuard: true,
-        openMixGuard: true
+        openMixGuard: true,
+        referenceMatch: true,
+        phaseSafe: true,
+        earFatigueGuard: true
     },
     albumProfile: null,
     outputFormat: 'wav24',
@@ -233,6 +280,7 @@ const state = {
     abLevelMatch: true,
     abLoopMode: false,
     autoCacheClean: true,
+    autoHighlightAB: true,
     cacheReady: false,
     autoRemasterTimers: new Map(),
     selectPopup: null,
@@ -367,38 +415,48 @@ function renderFeatureButtons() {
         ['engine', FEATURE_DEFINITIONS],
         ['utility', UTILITY_FEATURE_DEFINITIONS]
     ];
+    const cards = [];
+    let order = 0;
     groups.forEach(([kind, definitions]) => {
         Object.entries(definitions).forEach(([key, info]) => {
             const active = getFeatureToggleState(kind, key);
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = `feature-card ${active ? 'active' : ''}`;
-            button.dataset.feature = key;
-            button.dataset.kind = kind;
-            button.dataset.tooltip = info.short;
-            button.dataset.help = info.short;
-            button.title = info.short;
-            button.setAttribute('aria-pressed', String(Boolean(active)));
-            button.setAttribute('aria-label', `${info.label}: ${info.short}`);
-
-            const title = document.createElement('b');
-            title.textContent = info.label;
-            const status = document.createElement('span');
-            status.className = 'feature-status';
-            status.textContent = active ? 'ON' : 'OFF';
-
-            button.append(title, status);
-            button.addEventListener('mouseenter', () => showFeatureTooltip(button, info.short));
-            button.addEventListener('focus', () => showFeatureTooltip(button, info.short));
-            button.addEventListener('mouseleave', hideFeatureTooltip);
-            button.addEventListener('blur', hideFeatureTooltip);
-            button.addEventListener('click', () => {
-                showFeatureTooltip(button, info.short, 1800);
-                if (kind === 'utility') toggleUtilityFeature(key);
-                else toggleFeature(key);
-            });
-            el.featureDock.appendChild(button);
+            cards.push({ kind, key, info, active, order: order++ });
         });
+    });
+    cards.sort((a, b) => {
+        if (a.active !== b.active) return a.active ? 1 : -1;
+        return a.order - b.order;
+    });
+    cards.forEach(({ kind, key, info, active }) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `feature-card ${active ? 'active' : ''}`;
+        button.dataset.feature = key;
+        button.dataset.kind = kind;
+        button.dataset.state = active ? 'on' : 'off';
+        button.dataset.tooltip = info.short;
+        button.dataset.help = info.short;
+        button.title = info.short;
+        button.setAttribute('aria-pressed', String(Boolean(active)));
+        button.setAttribute('aria-label', `${info.label}: ${info.short}`);
+
+        const title = document.createElement('b');
+        title.textContent = info.label;
+        const status = document.createElement('span');
+        status.className = 'feature-status';
+        status.textContent = active ? 'ON' : 'OFF';
+
+        button.append(title, status);
+        button.addEventListener('mouseenter', () => showFeatureTooltip(button, info.short));
+        button.addEventListener('focus', () => showFeatureTooltip(button, info.short));
+        button.addEventListener('mouseleave', hideFeatureTooltip);
+        button.addEventListener('blur', hideFeatureTooltip);
+        button.addEventListener('click', () => {
+            showFeatureTooltip(button, info.short, 1800);
+            if (kind === 'utility') toggleUtilityFeature(key);
+            else toggleFeature(key);
+        });
+        el.featureDock.appendChild(button);
     });
     updateFeatureSummary();
 }
@@ -417,6 +475,8 @@ function toggleUtilityFeature(key) {
         state.abLevelMatch = !state.abLevelMatch;
     } else if (key === 'abLoopMode') {
         state.abLoopMode = !state.abLoopMode;
+    } else if (key === 'autoHighlightAB') {
+        state.autoHighlightAB = !state.autoHighlightAB;
     }
     renderFeatureButtons();
     renderAll({ keepDetailAudio: true });
@@ -426,7 +486,7 @@ function toggleUtilityFeature(key) {
 
 function updateFeatureSummary() {
     const engineActive = Object.values(state.featureFlags).filter(Boolean).length;
-    const utilityActive = ['abLevelMatch', 'abLoopMode', 'autoCacheClean'].filter(key => Boolean(state[key])).length;
+    const utilityActive = ['abLevelMatch', 'abLoopMode', 'autoCacheClean', 'autoHighlightAB'].filter(key => Boolean(state[key])).length;
     if (el.featureCount) el.featureCount.textContent = `${engineActive + utilityActive}개 활성`;
 }
 
@@ -1043,6 +1103,7 @@ function createTrack(file) {
         analysis: null,
         instrument: cloneInstrumentLayer(DEFAULT_INSTRUMENT_LAYER),
         instrumentInfo: null,
+        abHighlightStartSec: null,
         trimInfo: null,
         albumApplied: null,
         truePeakInfo: null,
@@ -1075,9 +1136,12 @@ async function analyzeTrack(track) {
         track.report = '밝기, 스테레오 폭, 공진 힌트 분석 중';
         renderAll();
         analysis = await analyzeBufferAsync(buffer);
+        analysis.abHighlightStartSec = estimateABHighlightStart(buffer);
+        track.abHighlightStartSec = analysis.abHighlightStartSec;
         track.analysisCacheHit = false;
         await writeAnalysisCache(track, analysis);
     }
+    if (analysis && Number.isFinite(Number(analysis.abHighlightStartSec))) track.abHighlightStartSec = Number(analysis.abHighlightStartSec);
     const recommendation = recommendPreset(track.name, analysis);
     const settings = makeRecommendedSettings(recommendation.preset, analysis);
 
@@ -1352,6 +1416,55 @@ function analyzeBuffer(buffer) {
     };
 }
 
+
+function estimateABHighlightStart(buffer) {
+    if (!buffer || !Number.isFinite(buffer.duration) || buffer.duration <= 8) return 0;
+    const sampleRate = buffer.sampleRate || 44100;
+    const channels = Math.min(2, buffer.numberOfChannels || 1);
+    const windowSec = 5;
+    const startMin = Math.max(0, buffer.duration * 0.12);
+    const startMax = Math.max(0, buffer.duration - windowSec - Math.min(2, buffer.duration * 0.05));
+    const hopSec = buffer.duration > 240 ? 1.5 : 1;
+    const sampleStep = Math.max(256, Math.floor(sampleRate * 0.018));
+    let bestStart = clamp(buffer.duration * 0.33, 0, startMax);
+    let bestScore = -Infinity;
+    let prevAvg = 0;
+
+    for (let startSec = startMin; startSec <= startMax; startSec += hopSec) {
+        const start = Math.floor(startSec * sampleRate);
+        const end = Math.min(buffer.length, start + Math.floor(windowSec * sampleRate));
+        if (end <= start + sampleStep) continue;
+        let sumSq = 0;
+        let sumAbs = 0;
+        let transient = 0;
+        let count = 0;
+        let last = 0;
+        for (let i = start; i < end; i += sampleStep) {
+            let mono = 0;
+            for (let ch = 0; ch < channels; ch += 1) mono += buffer.getChannelData(ch)[i] || 0;
+            mono /= channels;
+            const abs = Math.abs(mono);
+            sumSq += mono * mono;
+            sumAbs += abs;
+            transient += Math.abs(abs - last);
+            last = abs;
+            count += 1;
+        }
+        const rms = Math.sqrt(sumSq / Math.max(1, count));
+        const avgAbs = sumAbs / Math.max(1, count);
+        const contrast = Math.abs(avgAbs - prevAvg);
+        prevAvg = avgAbs;
+        const centerWeight = 1 - Math.abs((startSec + windowSec * 0.5) / buffer.duration - 0.52) * 0.34;
+        const introPenalty = startSec < buffer.duration * 0.18 ? 0.88 : 1;
+        const score = (rms * 0.72 + transient * 0.22 + contrast * 0.12) * centerWeight * introPenalty;
+        if (score > bestScore) {
+            bestScore = score;
+            bestStart = startSec;
+        }
+    }
+    return Number(clamp(bestStart, 0, startMax).toFixed(2));
+}
+
 function recommendPreset(fileName, analysis) {
     const name = fileName.toLowerCase();
     const scores = {};
@@ -1383,7 +1496,11 @@ function recommendPreset(fileName, analysis) {
         boombap:    { b: 0.34, w: 0.26, p: 0.52, d: 0.66, m: 0.28, l: 0.48, prior: 0.08 },
         globalpop:  { b: 0.56, w: 0.46, p: 0.44, d: 0.44, m: 0.52, l: 0.52, prior: 0.06 },
         lofi:       { b: 0.26, w: 0.24, p: 0.20, d: 0.74, m: 0.30, l: 0.32, prior: 0.06 },
-        rock:       { b: 0.56, w: 0.28, p: 0.60, d: 0.44, m: 0.42, l: 0.58, prior: 0.30 }
+        rock:       { b: 0.56, w: 0.28, p: 0.60, d: 0.44, m: 0.42, l: 0.58, prior: 0.30 },
+        cinematic:  { b: 0.48, w: 0.58, p: 0.34, d: 0.54, m: 0.38, l: 0.48, prior: -0.10 },
+        spatial:    { b: 0.54, w: 0.66, p: 0.36, d: 0.44, m: 0.44, l: 0.50, prior: -0.18 },
+        tape:       { b: 0.36, w: 0.30, p: 0.30, d: 0.68, m: 0.32, l: 0.38, prior: -0.08 },
+        punch:      { b: 0.54, w: 0.34, p: 0.72, d: 0.42, m: 0.42, l: 0.64, prior: -0.04 }
     };
 
     Object.entries(profiles).forEach(([key, p]) => {
@@ -1431,7 +1548,11 @@ function recommendPreset(fileName, analysis) {
         boombap: ['boom bap', 'boombap'],
         globalpop: ['ethnic', 'latin', 'afro', 'percussion', 'world', 'hindi', 'india'],
         lofi: ['lofi', 'lo-fi', 'chill', 'study', 'vinyl'],
-        rock: ['rock', 'metal', 'punk', 'band']
+        rock: ['rock', 'metal', 'punk', 'band'],
+        cinematic: ['cinematic', 'ost', 'score', 'orchestra', 'film'],
+        spatial: ['spatial', 'wide', 'ambient', 'atmospheric'],
+        tape: ['tape', 'analog', 'cassette', 'warm'],
+        punch: ['punch', 'live', 'festival', 'power']
     };
     const explicit = {};
     Object.entries(keywordMap).forEach(([preset, words]) => {
@@ -1439,8 +1560,8 @@ function recommendPreset(fileName, analysis) {
         if (explicit[preset]) scores[preset] += ['pop', 'dance', 'ballad'].includes(preset) ? 2.6 : 4.4;
     });
 
-    const broadPresets = ['pop', 'kpop', 'kballad', 'rnb', 'ballad', 'dance', 'trap', 'hiphop', 'rock', 'edm'];
-    const guardedPresets = ['futurebass', 'house', 'synthpop', 'citypop', 'drill', 'boombap', 'globalpop', 'lofi', 'acoustic'];
+    const broadPresets = ['pop', 'kpop', 'kballad', 'rnb', 'ballad', 'dance', 'trap', 'hiphop', 'rock', 'edm', 'punch'];
+    const guardedPresets = ['futurebass', 'house', 'synthpop', 'citypop', 'drill', 'boombap', 'globalpop', 'lofi', 'acoustic', 'cinematic', 'spatial', 'tape'];
     const gatePass = {
         futurebass: bright > 0.68 && wide > 0.62 && punch > 0.32 && punch < 0.58 && metallic > 0.50 && loud > 0.52 && bass > 0.22 && high > 0.16,
         house: punch > 0.54 && loud > 0.58 && wide > 0.40 && bright > 0.48,
@@ -1450,7 +1571,11 @@ function recommendPreset(fileName, analysis) {
         boombap: punch > 0.44 && punch < 0.64 && dark > 0.55 && wide < 0.38,
         globalpop: wide > 0.38 && metallic > 0.46 && bright > 0.48,
         lofi: bright < 0.36 && punch < 0.36 && dark > 0.60,
-        acoustic: wide < 0.34 && punch < 0.34 && loud < 0.48 && metallic < 0.44
+        acoustic: wide < 0.34 && punch < 0.34 && loud < 0.48 && metallic < 0.44,
+        cinematic: wide > 0.48 && soft > 0.42 && lowMid > 0.20,
+        spatial: wide > 0.58 && high > 0.20 && punch < 0.58,
+        tape: dark > 0.56 && lowMid > 0.22 && metallic < 0.48,
+        punch: punch > 0.62 && transient > 0.36
     };
 
     guardedPresets.forEach(preset => {
@@ -1564,6 +1689,10 @@ function makeRecommendedSettings(preset, analysis) {
     if (preset === 'dance' || preset === 'house' || preset === 'edm') base.dynamicPunch = clamp(base.dynamicPunch + 4, 35, 78);
     if (preset === 'acoustic') base.dynamicPunch = clamp(base.dynamicPunch - 5, 10, 50);
     if (preset === 'futurebass' || preset === 'synthpop') base.metallicRemoval = clamp(base.metallicRemoval + 4, 20, 82);
+    if (preset === 'cinematic') base.width = clamp(base.width + 5, 36, 78);
+    if (preset === 'spatial') base.stereoGroove = clamp(base.stereoGroove + 3, 8, 24);
+    if (preset === 'tape') base.analogGroove = clamp(base.analogGroove + 4, 18, 36);
+    if (preset === 'punch') base.dynamicPunch = clamp(base.dynamicPunch + 5, 45, 82);
     if (analysis.metallicHint > 0.72) base.clarity = clamp(base.clarity - 4, 8, 78);
     if (analysis.crest > 5.8) base.intensity = clamp(base.intensity + 5, 50, 200);
     if (analysis.metallicHint > 0.7) base.intensity = clamp(base.intensity + 5, 50, 200);
@@ -1835,6 +1964,8 @@ async function masterTrack(track, calledFromBatch = false) {
             track.report = '분석 정보가 없어 마스터링 직전 긴급 분석을 실행 중';
             renderAll();
             const analysis = await analyzeBufferAsync(currentSourceBuffer);
+            analysis.abHighlightStartSec = estimateABHighlightStart(currentSourceBuffer);
+            track.abHighlightStartSec = analysis.abHighlightStartSec;
             const recommendation = recommendPreset(track.name, analysis);
             track.analysis = analysis;
             track.recommendedPreset = recommendation.preset;
@@ -2352,6 +2483,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createMetallicRemovalNode(context, node, effectiveSettings.metallicRemoval, analysis, intensity);
     node = createAdaptiveResonanceSmootherNode(context, node, effectiveSettings, analysis, intensity);
     node = createDeMaskingPolishNode(context, node, effectiveSettings, analysis, intensity);
+    node = createPresetReferenceMatchNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createAiHumanizeNode(context, node, preset, effectiveSettings, intensity);
     node = createVocalProtectionNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createVocalFocusPlusNode(context, node, preset, effectiveSettings, analysis, intensity);
@@ -2361,6 +2493,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     const widthScaled = 1 + (widthBase - 1) * clamp(intensity.amount, 0.65, 1.85);
     node = createStereoWidthNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, widthScaled);
     node = createStereoGrooveNode(context, node, effectiveSettings.stereoGroove, intensity);
+    node = createPhaseSafeNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, effectiveSettings, analysis, intensity);
     node = createSaturationNode(context, node, effectiveSettings.analogGroove, effectiveSettings.warmth, intensity);
     node = createSpectralBalancerNode(context, node, effectiveSettings, analysis, intensity);
     node = createAdaptiveAirBalanceNode(context, node, effectiveSettings, analysis, intensity);
@@ -2368,6 +2501,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createPerceptualPolishNode(context, node, effectiveSettings, analysis, intensity);
     node = createToneChain(context, node, effectiveSettings, intensity);
     node = createHighFrequencyExciterNode(context, node, effectiveSettings, intensity);
+    node = createEarFatigueGuardNode(context, node, effectiveSettings, analysis, intensity);
     node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
     node = createMicroDynamicsGlueNode(context, node, effectiveSettings, analysis, intensity);
     node = createTranslationGuardNode(context, node, effectiveSettings, analysis, intensity);
@@ -2659,6 +2793,71 @@ function createAiHumanizeNode(context, input, preset, settings, intensity = getM
 
 
 
+
+const PRESET_REFERENCE_TARGETS = {
+    pop: { bass: 0.24, lowMid: 0.22, mid: 0.32, high: 0.24, brightness: 0.55 },
+    kpop: { bass: 0.24, lowMid: 0.20, mid: 0.31, high: 0.27, brightness: 0.60 },
+    kballad: { bass: 0.22, lowMid: 0.29, mid: 0.34, high: 0.17, brightness: 0.45 },
+    rnb: { bass: 0.29, lowMid: 0.30, mid: 0.27, high: 0.14, brightness: 0.40 },
+    ballad: { bass: 0.22, lowMid: 0.28, mid: 0.34, high: 0.16, brightness: 0.46 },
+    acoustic: { bass: 0.18, lowMid: 0.25, mid: 0.36, high: 0.18, brightness: 0.43 },
+    citypop: { bass: 0.24, lowMid: 0.29, mid: 0.28, high: 0.19, brightness: 0.50 },
+    dance: { bass: 0.30, lowMid: 0.18, mid: 0.25, high: 0.27, brightness: 0.60 },
+    synthpop: { bass: 0.24, lowMid: 0.18, mid: 0.27, high: 0.31, brightness: 0.58 },
+    house: { bass: 0.32, lowMid: 0.18, mid: 0.24, high: 0.26, brightness: 0.56 },
+    futurebass: { bass: 0.29, lowMid: 0.17, mid: 0.25, high: 0.29, brightness: 0.62 },
+    edm: { bass: 0.33, lowMid: 0.16, mid: 0.23, high: 0.28, brightness: 0.64 },
+    trap: { bass: 0.36, lowMid: 0.23, mid: 0.25, high: 0.16, brightness: 0.42 },
+    drill: { bass: 0.35, lowMid: 0.24, mid: 0.25, high: 0.16, brightness: 0.39 },
+    hiphop: { bass: 0.31, lowMid: 0.27, mid: 0.27, high: 0.15, brightness: 0.42 },
+    boombap: { bass: 0.28, lowMid: 0.31, mid: 0.27, high: 0.14, brightness: 0.36 },
+    globalpop: { bass: 0.24, lowMid: 0.22, mid: 0.30, high: 0.24, brightness: 0.56 },
+    lofi: { bass: 0.26, lowMid: 0.34, mid: 0.27, high: 0.10, brightness: 0.30 },
+    rock: { bass: 0.27, lowMid: 0.26, mid: 0.30, high: 0.17, brightness: 0.52 },
+    cinematic: { bass: 0.25, lowMid: 0.30, mid: 0.28, high: 0.17, brightness: 0.48 },
+    spatial: { bass: 0.22, lowMid: 0.21, mid: 0.30, high: 0.27, brightness: 0.56 },
+    tape: { bass: 0.27, lowMid: 0.34, mid: 0.27, high: 0.12, brightness: 0.36 },
+    punch: { bass: 0.30, lowMid: 0.22, mid: 0.29, high: 0.19, brightness: 0.53 }
+};
+
+function createPresetReferenceMatchNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.referenceMatch === false || !analysis || !preset || preset === 'custom') return input;
+    const target = PRESET_REFERENCE_TARGETS[preset];
+    if (!target) return input;
+    const bass = clamp01(Number(analysis.bassRatio ?? target.bass));
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? target.lowMid));
+    const mid = clamp01(Number(analysis.midRatio ?? target.mid));
+    const high = clamp01(Number(analysis.highRatio ?? target.high));
+    const brightness = clamp01(Number(analysis.brightness ?? target.brightness));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const scale = clamp(0.38 + intensity.amount * 0.23, 0.42, 0.92);
+
+    const low = context.createBiquadFilter();
+    low.type = 'lowshelf';
+    low.frequency.value = preset === 'edm' || preset === 'trap' || preset === 'drill' ? 92 : 125;
+    low.gain.value = clamp((target.bass - bass) * 3.2 * scale, -0.75, 0.78);
+
+    const body = context.createBiquadFilter();
+    body.type = 'peaking';
+    body.frequency.value = target.lowMid > 0.30 ? 360 : 420;
+    body.Q.value = 0.82;
+    body.gain.value = clamp((target.lowMid - lowMid) * 2.1 * scale, -0.62, 0.58);
+
+    const presence = context.createBiquadFilter();
+    presence.type = 'peaking';
+    presence.frequency.value = preset === 'punch' || preset === 'rock' ? 1800 : 2350;
+    presence.Q.value = 0.92;
+    presence.gain.value = clamp((target.mid - mid) * 1.65 * scale - Math.max(0, metallic - 0.58) * 0.18, -0.52, 0.48);
+
+    const air = context.createBiquadFilter();
+    air.type = 'highshelf';
+    air.frequency.value = target.high > 0.25 ? 9600 : 11200;
+    air.gain.value = clamp((target.high - high) * 1.85 * scale + (target.brightness - brightness) * 0.40 * scale, -0.68, 0.58);
+
+    input.connect(low).connect(body).connect(presence).connect(air);
+    return air;
+}
+
 function createVocalFocusPlusNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.vocalFocusPlus === false || !analysis) return input;
     const vocalLikely = shouldApplyVocalProtection(preset, analysis) || Number(analysis.midRatio || 0) > 0.30 || Number(analysis.lowMidRatio || 0) > 0.28;
@@ -2857,6 +3056,36 @@ function createStereoWidthNode(context, input, isStereo, widthFactor) {
     const merger = context.createChannelMerger(2);
     const output = context.createGain();
     const side = widthFactor;
+    const routes = [
+        [0, 0, 0.5 + 0.5 * side],
+        [1, 0, 0.5 - 0.5 * side],
+        [0, 1, 0.5 - 0.5 * side],
+        [1, 1, 0.5 + 0.5 * side]
+    ];
+    input.connect(splitter);
+    routes.forEach(([from, to, gainValue]) => {
+        const gain = context.createGain();
+        gain.gain.value = gainValue;
+        splitter.connect(gain, from);
+        gain.connect(merger, 0, to);
+    });
+    merger.connect(output);
+    return output;
+}
+
+
+function createPhaseSafeNode(context, input, isStereo, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.phaseSafe === false || !isStereo) return input;
+    const width = clamp(Number(settings.width || 28), 0, 100);
+    const groove = clamp(Number(settings.stereoGroove || 0), 0, 100);
+    const measuredWidth = clamp01(Number(analysis?.stereoWidth ?? 0.38));
+    const bass = clamp01(Number(analysis?.bassRatio ?? 0.26));
+    const risk = Math.max(0, width - 58) / 42 * 0.42 + Math.max(0, groove - 14) / 86 * 0.22 + Math.max(0, measuredWidth - 0.60) * 0.45 + Math.max(0, bass - 0.36) * 0.18;
+    if (risk < 0.035) return input;
+    const side = clamp(1 - risk * clamp(intensity.amount, 0.65, 1.6) * 0.18, 0.86, 1);
+    const splitter = context.createChannelSplitter(2);
+    const merger = context.createChannelMerger(2);
+    const output = context.createGain();
     const routes = [
         [0, 0, 0.5 + 0.5 * side],
         [1, 0, 0.5 - 0.5 * side],
@@ -3077,6 +3306,40 @@ function makeExciterCurve(amount) {
         curve[i] = (shaped - x * 0.35) * 0.72;
     }
     return curve;
+}
+
+
+function createEarFatigueGuardNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (state.featureFlags.earFatigueGuard === false || !analysis) return input;
+    const clarity = clamp(Number(settings.clarity || 50), 0, 100);
+    const removal = clamp(Number(settings.metallicRemoval || 42), 0, 100);
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const high = clamp01(Number(analysis.highRatio ?? 0.22));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const fatigue = Math.max(0, brightness - 0.58) * 0.50 + Math.max(0, high - 0.34) * 0.45 + Math.max(0, metallic - 0.48) * 0.60 + Math.max(0, clarity - 64) * 0.006 + Math.max(0, intensity.raw - 135) * 0.0025;
+    if (fatigue < 0.035 && removal < 62) return input;
+    const scale = clamp(0.65 + fatigue * 1.3, 0.65, 1.35);
+
+    const glare = context.createBiquadFilter();
+    glare.type = 'peaking';
+    glare.frequency.value = 3600;
+    glare.Q.value = 1.65;
+    glare.gain.value = clamp(-fatigue * 0.70 * scale, -0.95, -0.02);
+
+    const edge = context.createBiquadFilter();
+    edge.type = 'peaking';
+    edge.frequency.value = clamp(Number(analysis.targetDynamicFreq || 6200), 4800, 7800);
+    edge.Q.value = 2.4;
+    edge.gain.value = clamp(-(fatigue * 0.88 + Math.max(0, removal - 65) * 0.006) * scale, -1.25, -0.02);
+
+    const airFuse = context.createBiquadFilter();
+    airFuse.type = 'peaking';
+    airFuse.frequency.value = 9800;
+    airFuse.Q.value = 1.55;
+    airFuse.gain.value = clamp(-fatigue * 0.62 * scale, -0.95, 0);
+
+    input.connect(glare).connect(edge).connect(airFuse);
+    return airFuse;
 }
 
 function createLoudnessLiftNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
@@ -4578,7 +4841,7 @@ function renderDetail(options = {}) {
         addRow('AI 티 완화 엔진', shouldApplyAiHumanizer(track.preset) ? 'ON · 250/400/500Hz 온기 보강 · De-esser · 16kHz 하이컷' : 'OFF 또는 커스텀 수동 우선');
         addRow('보컬 보호 모드', shouldApplyVocalProtection(track.preset, track.analysis) ? 'ON · 감정선/멜로디 보존 · 치찰음 섬세 제어' : 'OFF 또는 비보컬/커스텀 우선');
         addRow('스마트 과처리 방지', state.featureFlags.smartGuard ? 'ON · 밝기/저역/피크 과잉을 렌더 직전 보정' : 'OFF · 설정값 그대로 렌더');
-        addRow('신규 플러그인', `${state.featureFlags.vocalFocusPlus ? '보컬+' : '보컬 OFF'} · ${state.featureFlags.adaptiveAir ? '에어+' : '에어 OFF'} · ${state.featureFlags.translationGuard ? '모바일+' : '모바일 OFF'}`);
+        addRow('신규 플러그인', `${state.featureFlags.vocalFocusPlus ? '보컬+' : '보컬 OFF'} · ${state.featureFlags.adaptiveAir ? '에어+' : '에어 OFF'} · ${state.featureFlags.translationGuard ? '모바일+' : '모바일 OFF'} · ${state.featureFlags.referenceMatch ? '레퍼런스+' : '레퍼런스 OFF'} · ${state.featureFlags.earFatigueGuard ? '피로가드+' : '피로가드 OFF'}`);
         addRow('실시간 엔진 로그', track.report || '-');
 
         if (track.instrumentInfo && track.instrumentInfo.applied) addRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
@@ -4630,14 +4893,14 @@ function renderPreviewPlayers(track, target = el.trackDetail) {
     const originalCard = document.createElement('div');
     originalCard.className = 'preview-card';
     const originalLabel = makePreviewTitle('원본 프리뷰', track.analysis?.duration);
-    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode));
+    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track)));
 
     const masteredCard = document.createElement('div');
     masteredCard.className = 'preview-card';
     const masteredLabel = makePreviewTitle('마스터링 프리뷰', track.masteredDurationSec || null);
     masteredCard.appendChild(masteredLabel);
     if (track.masteredUrl) {
-        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec, state.abLoopMode));
+        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec, state.abLoopMode, getTrackHighlightStart(track)));
     } else {
         const empty = document.createElement('div');
         empty.className = 'preview-empty';
@@ -4668,7 +4931,21 @@ function formatPlayerTime(current, duration) {
     return formatTime(current || 0);
 }
 
-function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare = false) {
+
+function getTrackHighlightStart(track) {
+    if (!state.autoHighlightAB || !track) return NaN;
+    const directRaw = track.abHighlightStartSec;
+    const direct = Number(directRaw);
+    if (directRaw !== null && directRaw !== undefined && Number.isFinite(direct) && direct >= 0) return direct;
+    const analysisRaw = track.analysis?.abHighlightStartSec;
+    const fromAnalysis = Number(analysisRaw);
+    if (analysisRaw !== null && analysisRaw !== undefined && Number.isFinite(fromAnalysis) && fromAnalysis >= 0) return fromAnalysis;
+    const duration = Number(track.analysis?.duration || track.masteredDurationSec || 0);
+    if (!Number.isFinite(duration) || duration <= 8) return NaN;
+    return clamp(duration * 0.33, 0, Math.max(0, duration - 5));
+}
+
+function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare = false, loopStartHint = NaN) {
     const wrap = document.createElement('div');
     wrap.className = `custom-player ${loopCompare ? 'ab-loop-player' : ''}`;
 
@@ -4701,9 +4978,9 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
 
     const loopBadge = document.createElement('span');
     loopBadge.className = 'ab-loop-badge';
-    loopBadge.textContent = '5초 루프';
+    loopBadge.textContent = state.autoHighlightAB ? '하이라이트 5초' : '5초 루프';
     if (!loopCompare) loopBadge.hidden = true;
-    let loopStart = NaN;
+    let loopStart = Number.isFinite(Number(loopStartHint)) ? Number(loopStartHint) : NaN;
 
     const setPlaying = isPlaying => {
         toggle.classList.toggle('playing', Boolean(isPlaying));
@@ -5172,7 +5449,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.0',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.2',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
