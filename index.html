@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.4 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.5 - browser based AI music mastering console" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.4</title>
+<title>FoxBear Mastering PRO v1.3.5</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.4" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.5" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.4"></script>
+<script defer src="src/app.js?v=1.3.5"></script>
 </head>
-<body data-build="1.3.4">
+<body data-build="1.3.5">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
@@ -20,7 +20,7 @@
                 <div class="brand-kicker">
                     <span class="badge badge-music">곰같은여우 뮤직</span>
                     <span class="badge badge-device">PC & 모바일 호환</span>
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.4</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.5</button>
                 </div>
                 <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널 구독 페이지를 엽니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span></a>
             </div>
@@ -65,11 +65,14 @@
             <input type="file" id="fileInput" class="hidden" multiple accept="audio/*,video/mp4,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm,.mp4,.m4v,.mov" />
             <input type="file" id="folderInput" class="hidden" multiple webkitdirectory directory />
 
-            <div class="panel-head" style="margin-top:4px">
+            <div class="panel-head feature-summary-head" style="margin-top:4px">
                 <strong>버튼형 적용 기능</strong>
-                <small id="featureCount">0개 활성</small>
+                <div class="feature-summary-actions">
+                    <small id="featureCount">0개 활성</small>
+                    <button id="featureOpenBtn" class="feature-open-btn" type="button" data-help="버튼형 기능을 팝업으로 열어 켜고 끕니다.">기능 보기</button>
+                </div>
             </div>
-            <div id="featureDock" class="feature-dock"></div>
+            <div id="featureDock" class="feature-dock feature-dock-hidden" aria-hidden="true"></div>
 
             <div class="field">
                 <div class="field-row">
@@ -315,7 +318,7 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.4</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.5</span>
         <h2 id="programInfoTitle">AI 음악 마스터링 스튜디오</h2>
         <p>서버 업로드 없이 브라우저 내부에서 오디오를 분석하고, 장르 성향·피치/BPM·마스터링 목표에 맞춰 안전하게 처리하는 로컬형 음악 마스터링 도구입니다.</p>
         <div class="program-info-grid">
@@ -325,6 +328,21 @@
             <div><strong>스마트 비교</strong><span>A/B 루프와 자동 하이라이트로 마스터링 전후 차이를 빠르게 확인합니다.</span></div>
         </div>
         <p class="program-info-note">성능을 해치는 무거운 기능보다, 기존 분석값을 재사용하는 지능형 보정과 안전 가드를 우선으로 발전합니다.</p>
+    </section>
+</div>
+
+
+<div id="featureDialog" class="feature-dialog-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="featureDialogTitle">
+    <section class="feature-dialog-panel" tabindex="-1">
+        <div class="feature-dialog-head">
+            <div>
+                <span class="feature-dialog-eyebrow">Button Engine</span>
+                <h2 id="featureDialogTitle">버튼형 적용 기능</h2>
+                <p>꺼진 기능이 앞쪽, 켜진 기능이 뒤쪽에 정렬됩니다. 필요한 기능만 켜서 성능과 음질 밸런스를 유지하세요.</p>
+            </div>
+            <button id="featureDialogClose" class="feature-dialog-close" type="button" aria-label="버튼형 기능 창 닫기">×</button>
+        </div>
+        <div id="featureDialogList" class="feature-dialog-list"></div>
     </section>
 </div>
 
