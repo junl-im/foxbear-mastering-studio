@@ -3,37 +3,40 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.0 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.2 - browser based AI music mastering console" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.0</title>
+<title>FoxBear Mastering PRO v1.3.2</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.0" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.2" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.0"></script>
+<script defer src="src/app.js?v=1.3.2"></script>
 </head>
-<body data-build="1.3.0">
+<body data-build="1.3.2">
 <div class="app-shell">
     <header class="studio-hero">
-        <section class="brand-panel" aria-label="앱 소개">
-            <div class="brand-kicker">
-                <span class="badge">곰같은여우 뮤직</span>
-                <span class="badge rose">PC & 모바일 호환</span>
-                <span class="badge violet">마스터링 PRO v1.3.0</span>
+        <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
+            <div class="brand-topline">
+                <div class="brand-kicker">
+                    <span class="badge">곰같은여우 뮤직</span>
+                    <span class="badge rose">PC & 모바일 호환</span>
+                    <span class="badge violet">마스터링 PRO v1.3.2</span>
+                </div>
                 <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널을 구독하고 다음 업데이트를 응원합니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span><small>은 사랑입니다</small></a>
             </div>
-            <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
-            <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM/박자 보정, MP4 오디오 추출, 간단 리듬 악기 추가, 금속성 공진 감쇄, True Peak 보호까지 로컬로 처리합니다.</p>
+            <div class="hero-mainline">
+                <div class="hero-copy">
+                    <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
+                    <p>브라우저 안에서 분석, 장르 추천, 피치(Pitch)·BPM/박자 보정, MP4 오디오 추출, 간단 리듬 악기 추가, 자동 하이라이트 A/B, 레퍼런스 매처, 금속성 공진 감쇄, True Peak 보호까지 로컬로 처리합니다.</p>
+                </div>
+                <aside class="designer-mini" aria-label="개발자 정보">
+                    <span>DESIGNED BY</span>
+                    <strong>곰같은여우 <em>with AI</em></strong>
+                    <small>음악을 사랑하는 모두를 위한 무료배포 버전</small>
+                </aside>
+            </div>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </section>
-        <aside class="creator-panel" aria-label="개발자 정보">
-            <div>
-                <div class="creator-title">DESIGNED BY</div>
-                <div class="creator-name"><span>곰같은여우</span> with AI</div>
-                <a class="creator-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer">youtube.com/@FoxBearMusic</a>
-                <div class="creator-note">구독자가 아니여도 <BR> 음악을 사랑하는 여러분을 위한<BR> 무료배포 버전입니다.</div>
-            </div>
-        </aside>
     </header>
 
     <main class="studio-grid">
@@ -95,6 +98,10 @@
                     <option value="globalpop">Global / Ethnic Pop</option>
                     <option value="lofi">LO-FI</option>
                     <option value="rock">ROCK</option>
+                    <option value="cinematic">Cinematic / OST</option>
+                    <option value="spatial">Spatial / Wide Mix</option>
+                    <option value="tape">Tape Warmth</option>
+                    <option value="punch">Punch / Live Energy</option>
                 </select>
             </div>
 
