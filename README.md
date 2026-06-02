@@ -1,9 +1,17 @@
-# FoxBear AI Mastering Studio Pro v1.2.7
+# FoxBear AI Mastering Studio Pro v1.2.8
 
 GitHub Pages-ready modular browser mastering studio.
 
 
-## Pro v1.2.7 popup/UI refinement
+## Pro v1.2.8 subscribe/wave/check patch
+- 우측 하단 구독 유도 알림은 상단 소개 버튼과 분리해, 작은 알림창에 맞는 심플한 `▶ 구독` 액션 버튼으로 정리했습니다.
+- 모바일 상단 좌측 미니 웨이브는 더 빠르고 눈에 띄는 전용 애니메이션으로 조정했습니다. 단, 기기 접근성 설정에서 움직임 줄이기가 켜져 있으면 애니메이션을 과하게 강제하지 않습니다.
+- 다운로드 파일명 안전 장치를 추가해 Blob MIME 타입과 확장자가 어긋날 경우 `.mp3`, `.wav`, `.zip` 확장자를 한 번 더 맞춥니다.
+- v1.2.8 캐시 버스터를 적용해 GitHub Pages/모바일 브라우저가 이전 CSS/JS를 계속 물고 있는 문제 가능성을 줄였습니다.
+- JavaScript/Worker 문법 검사를 두 번 반복하고, CSS 중괄호 균형과 버전 캐시 경로를 함께 점검했습니다.
+
+
+## Pro v1.2.8 popup/UI refinement
 
 - 장르 프리셋까지 버튼형 팝업 선택 UI로 통일했습니다.
 - 모바일에서도 선택 팝업이 화면 하단이 아닌 중앙에 뜨도록 조정했습니다.
@@ -110,7 +118,7 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - 마스터링 체인에 스펙트럴 밸런서와 새츄레이션 커브 캐시를 추가해 톤 보정은 더 섬세하게, 반복 렌더 부담은 더 낮췄습니다.
 - 파이널라이저의 true-peak 검사 루프를 최적화해 Fast/Balanced 처리 속도를 개선했습니다.
 
-## Pro v1.2.7 download/mobile UI patch
+## Pro v1.2.8 download/mobile UI patch
 - MP3 output path now tries the bundled worker first with lamejs CDN fallback, then WebCodecs, and only falls back to WAV when both MP3 encoders are unavailable.
 - Added in-app browser download assist for KakaoTalk/Naver/Instagram/Line style WebViews. If automatic saving is blocked, a persistent help panel opens with a direct file link; supported mobile browsers can also use the native share/save sheet.
 - Popup trigger buttons no longer show the extra "선택" text. A small chevron icon indicates popup behavior without taking text space.
