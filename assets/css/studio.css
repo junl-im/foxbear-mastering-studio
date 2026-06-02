@@ -2065,7 +2065,7 @@ body.select-popup-open {
 }
 
 
-/* v1.2.6 mobile polish, analysis folding, progress flow, and preview controls */
+/* v1.2.7 mobile polish, analysis folding, progress flow, and preview controls */
 .creator-subscribe .subscribe-main { font-weight: 950; }
 .creator-subscribe small {
     font-size: 0.66em;
@@ -2385,4 +2385,231 @@ body.select-popup-open {
     .range-head b { max-width: 36px !important; }
     .slider-label-ko { font-size: .52rem !important; }
     .slider-label-en { font-size: .40rem !important; }
+}
+
+/* v1.2.7 download safety, popup trigger cleanup, subscribe polish, instrument layout fix */
+.select-popup-trigger::before,
+.select-popup-trigger::after {
+    content: none !important;
+    display: none !important;
+}
+.select-popup-trigger {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    writing-mode: horizontal-tb !important;
+}
+.select-trigger-value {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.22;
+}
+.select-trigger-icon {
+    flex: 0 0 22px;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #f6f2ff;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.74rem;
+    font-weight: 950;
+}
+.select-popup-trigger:hover .select-trigger-icon,
+.select-popup-trigger:focus-visible .select-trigger-icon {
+    color: #09121a;
+    background: linear-gradient(135deg, var(--mint), var(--violet));
+}
+
+.instrument-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    align-items: stretch;
+}
+.instrument-control {
+    min-width: 0 !important;
+    overflow: hidden;
+}
+.instrument-control .select-popup-trigger {
+    min-height: 42px !important;
+    padding: 9px 10px !important;
+    font-size: .72rem !important;
+}
+.instrument-control .select-trigger-value {
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+}
+@media (max-width: 980px) {
+    .instrument-grid { grid-template-columns: 1fr !important; }
+    .instrument-control .select-popup-trigger { font-size: .64rem !important; min-height: 38px !important; }
+    .instrument-control .select-trigger-value { white-space: nowrap; }
+}
+
+.creator-subscribe {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    gap: 4px !important;
+    color: var(--muted) !important;
+    overflow: visible !important;
+    white-space: nowrap;
+}
+.creator-subscribe-core,
+.subscribe-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    color: #fff;
+    background: linear-gradient(135deg, #ff0033, #cc001f);
+    box-shadow: 0 8px 22px rgba(255,0,51,0.20);
+    font-weight: 950;
+    line-height: 1;
+}
+.creator-subscribe .yt-mark,
+.subscribe-pill .yt-mark {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+}
+.creator-subscribe small {
+    display: inline-block;
+    margin-left: 1px !important;
+    color: var(--muted);
+    background: transparent;
+    font-size: .66em !important;
+    font-weight: 750 !important;
+    opacity: .95 !important;
+}
+.subscribe-mini-copy strong {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+.subscribe-mini-copy strong small {
+    font-size: .70em !important;
+    font-weight: 750;
+    color: var(--muted);
+    white-space: nowrap;
+}
+.subscribe-pill {
+    padding: 5px 8px;
+    font-size: .78rem;
+    box-shadow: none;
+}
+.subscribe-pill .yt-mark {
+    width: 17px;
+    height: 12px;
+    font-size: .48rem;
+}
+
+.download-assist {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 25000;
+    width: min(390px, calc(100% - 32px));
+    padding: 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(16, 15, 27, .985);
+    box-shadow: 0 22px 70px rgba(0,0,0,.46), 0 0 30px rgba(120,215,255,.08);
+    transform: translateY(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .14s ease, transform .14s ease;
+}
+.download-assist.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.download-assist strong {
+    display: block;
+    font-size: .86rem;
+    margin-bottom: 5px;
+}
+.download-assist p {
+    margin: 0 0 7px;
+    color: var(--muted);
+    font-size: .70rem;
+    line-height: 1.45;
+}
+.download-assist-file {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--subtle);
+    font-size: .64rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.download-assist-actions {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 7px;
+}
+.download-assist-actions a,
+.download-assist-actions button {
+    min-height: 34px;
+    padding: 8px 11px;
+    font-size: .70rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.download-assist-actions a:hover { text-decoration: none; }
+
+@media (max-width: 640px) {
+    .creator-panel { padding: 7px !important; }
+    .creator-note {
+        display: block !important;
+        margin-top: 3px !important;
+        color: var(--muted) !important;
+        font-size: .42rem !important;
+        line-height: 1.18 !important;
+        letter-spacing: -0.02em;
+    }
+    .creator-subscribe {
+        right: 6px !important;
+        bottom: 6px !important;
+        font-size: .52rem !important;
+        gap: 3px !important;
+    }
+    .creator-subscribe-core {
+        padding: 4px 7px !important;
+        gap: 3px !important;
+    }
+    .creator-subscribe .yt-mark {
+        width: 16px !important;
+        height: 11px !important;
+        font-size: .46rem !important;
+    }
+    .creator-subscribe small { font-size: .58em !important; }
+    .select-trigger-icon {
+        flex-basis: 18px;
+        width: 18px;
+        height: 18px;
+        font-size: .62rem;
+    }
+    .select-trigger-value { font-size: .98em; }
+    .download-assist {
+        right: 8px;
+        bottom: 8px;
+        width: min(320px, calc(100% - 16px));
+        padding: 11px;
+        border-radius: 16px;
+    }
+    .download-assist p { font-size: .62rem; }
+    .download-assist-actions a,
+    .download-assist-actions button { font-size: .62rem; min-height: 32px; }
 }
