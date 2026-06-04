@@ -17,6 +17,7 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
     const channelData = channelBuffers.map(buf => new Float32Array(buf));
     let peak = 0, sumSq = 0, count = 0, diffSum = 0, zeroCrossings = 0, prevMono = 0;
     let midSq = 0, sideSq = 0, stereoCount = 0, highFreqEnergy = 0, midHighEnergy = 0;
+    let lowLeftLp = 0, lowRightLp = 0, lowLeftSq = 0, lowRightSq = 0, lowCrossSq = 0, lowMidMonoSq = 0, lowSideMonoSq = 0;
     const effectiveRate = Math.max(1000, sampleRate / step);
     const lpCoeff = freq => clamp(1 - Math.exp(-2 * Math.PI * freq / effectiveRate), 0.001, 0.98);
     const c120 = lpCoeff(120), c700 = lpCoeff(700), c3500 = lpCoeff(3500);
@@ -62,6 +63,15 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
             const side = (left - right) * 0.5;
             midSq += mid * mid;
             sideSq += side * side;
+            lowLeftLp += c120 * (left - lowLeftLp);
+            lowRightLp += c120 * (right - lowRightLp);
+            const lowMid = (lowLeftLp + lowRightLp) * 0.5;
+            const lowSide = (lowLeftLp - lowRightLp) * 0.5;
+            lowLeftSq += lowLeftLp * lowLeftLp;
+            lowRightSq += lowRightLp * lowRightLp;
+            lowCrossSq += lowLeftLp * lowRightLp;
+            lowMidMonoSq += lowMid * lowMid;
+            lowSideMonoSq += lowSide * lowSide;
             stereoCount += 1;
         }
     }
@@ -84,6 +94,10 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
     const midRatio = clamp01(midBandSq / spectralTotal);
     const highRatio = clamp01(highBandSq / spectralTotal);
     const transientDensity = clamp01(transientHits / Math.max(1, bandCount) * 4.0);
+    const lowMonoCorrelation = channels >= 2 && stereoCount ? clamp(lowCrossSq / Math.sqrt(Math.max(1e-12, lowLeftSq * lowRightSq)), -1, 1) : 1;
+    const lowSideRatio = channels >= 2 && stereoCount ? Math.sqrt(lowSideMonoSq / Math.max(1, stereoCount)) / Math.max(0.000001, Math.sqrt(lowMidMonoSq / Math.max(1, stereoCount))) : 0;
+    const lowMonoScore = channels >= 2 ? Math.round(clamp(((lowMonoCorrelation + 1) * 0.5) * 72 + (1 - clamp01(lowSideRatio)) * 28, 0, 100)) : 100;
+    const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
     let estimatedTargetFreq = 5200;
     if (zcr > 0.42) estimatedTargetFreq = 7400;
     else if (zcr < 0.18) estimatedTargetFreq = 3100;
@@ -91,7 +105,7 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
         duration, sampleRate, channels, totalSamples, peak, peakDb, rms, loudnessHint,
         loudnessIntegrated, headroomDb, crest, brightness, stereoWidth, metallicHint,
         zeroCrossRate: zcr, bassRatio, lowMidRatio, midRatio, highRatio,
-        transientDensity, silence, targetDynamicFreq: estimatedTargetFreq
+        transientDensity, lowMonoCorrelation, lowSideRatio, lowMonoScore, lowMonoRisk, silence, targetDynamicFreq: estimatedTargetFreq
     };
 }
 
