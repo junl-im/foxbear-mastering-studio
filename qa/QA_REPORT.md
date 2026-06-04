@@ -1,20 +1,14 @@
-# FoxBear v1.3.11 QA Report
+# FoxBear v1.3.12 QA Report
 
 ## Applied fixes
-- Preview pop-up now shows a compact selected-song info strip: title, duration, size, type, and preset.
-- Preview pop-up keeps the same custom player interface as the work queue preview.
-- Realtime preview faders keep Mastering Strength first and include Pitch and BPM controls.
-- Realtime fader number inputs hide browser spinner arrows so the value/% area no longer covers the control.
-- Mobile preview faders use a fixed 5-column compact grid so the 10 controls form two rows on normal mobile widths.
-- Track queue cards have stronger active/selected border distinction and lower emphasis for unselected cards.
-- Work summary stat cards, action buttons, output settings, and snapshot/pro tools panels have balanced breathing room again.
-- Parent/child border spacing was softened: closer than the original wide layout, but not as compressed as v1.3.9.
-- File upload labels changed to `파일열기`; folder upload labels changed to `폴더열기`.
-- Program intro copy now breaks lines after the main studio sentence for cleaner readability.
-- Hero analog knobs were redrawn with tick marks, deeper shadows, and inner highlights.
-- Creator nametag hover transform was removed to prevent subtle shaking.
-- Mobile creator nametag width was reduced; `DESIGNED BY` aligns left while `곰같은여우 with AI` stays centered.
-- Large section labels remain only slightly larger than normal body text, including Genre Preset.
+- 작업 요약 제목을 4개 상태 카드와 같은 요약 스트립 안으로 이동해 별도 테두리처럼 보이던 문제를 정리했습니다.
+- 트랙/완료/총 파일 용량/상태 카드와 부모 요약 테두리 사이의 내부 여백을 늘리고 카드 간격을 재조정했습니다.
+- 작업 요약 제목을 왼쪽 정렬로 고정했습니다.
+- 대분류 제목과 모바일 라벨/버튼 글자 크기를 낮춰 v1.3.11 후반 오버라이드가 다시 크게 보이던 문제를 보정했습니다.
+- 미리듣기 팝업 제목 위 영어 배지 `Realtime Preview`를 제거했습니다.
+- AI 추천 프리셋/선택 트랙/전체 마스터링 버튼 묶음의 부모-자식 테두리 간격과 버튼 밀도를 재조정했습니다.
+- 상단 아날로그 노브에 매우 느린 회전 애니메이션을 추가했고 `prefers-reduced-motion` 환경에서는 애니메이션을 끕니다.
+- 앱 버전, 캐시 버스터, 패키지 버전을 v1.3.12로 갱신했습니다.
 
 ## Checks performed
 - npm run check: passed twice.
@@ -26,5 +20,8 @@
 - CSS brace balance: matched.
 - ZIP integrity: passed after packaging.
 
-## Runtime note
-Audio-device playback and subjective sound-quality checks still require a real browser on desktop/mobile, because this container cannot verify actual speaker output or touch interaction.
+## Compatibility / security notes
+- JSZip 3.10.1 is still the current published JSZip version, so there is no dependency upgrade required for that library.
+- External CDN scripts are still allowed by the current CSP. For stricter production hardening, vendor JSZip/lamejs locally or add SRI where possible.
+- The host guard still limits execution to the configured GitHub Pages host plus local development; add any new custom domain before deployment.
+- Full audio playback/touch QA still needs a real desktop/mobile browser because this static container cannot verify device audio output or touch behavior.
