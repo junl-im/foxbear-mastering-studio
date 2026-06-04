@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.5 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.6 - browser based AI music mastering console" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.5</title>
+<title>FoxBear Mastering PRO v1.3.6</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.5" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.6" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.5"></script>
+<script defer src="src/app.js?v=1.3.6"></script>
 </head>
-<body data-build="1.3.5">
+<body data-build="1.3.6">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
@@ -20,19 +20,21 @@
                 <div class="brand-kicker">
                     <span class="badge badge-music">곰같은여우 뮤직</span>
                     <span class="badge badge-device">PC & 모바일 호환</span>
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.5</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.6</button>
                 </div>
-                <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널 구독 페이지를 엽니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span></a>
+                <div class="brand-right-actions" aria-label="채널 및 제작자">
+                    <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널 구독 페이지를 엽니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span></a>
+                    <a class="designer-mini designer-mini-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer" aria-label="곰같은여우 유튜브 채널 열기" data-help="곰같은여우 유튜브 채널을 새 창으로 엽니다.">
+                        <span>DESIGNED BY</span>
+                        <strong>곰같은여우 <em>with AI</em></strong>
+                    </a>
+                </div>
             </div>
             <div class="hero-mainline">
                 <div class="hero-copy">
                     <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
                     <p>분석, 장르 추천, 피치·BPM/박자 보정, MP4 오디오 추출, 리듬 악기 추가, A/B 비교, True Peak 보호까지 브라우저 내부에서 로컬 처리합니다.</p>
                 </div>
-                <a class="designer-mini designer-mini-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer" aria-label="곰같은여우 유튜브 채널 열기" data-help="곰같은여우 유튜브 채널을 새 창으로 엽니다.">
-                    <span>DESIGNED BY</span>
-                    <strong>곰같은여우 <em>with AI</em></strong>
-                </a>
             </div>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         </section>
@@ -40,46 +42,49 @@
 
     <main class="studio-grid">
         <section class="console-panel" aria-label="마스터링 컨트롤">
-            <div class="panel-head">
-                <strong>불러오기</strong>
-                <span id="selectedBadge" class="badge">선택 없음</span>
-            </div>
+            <section class="control-zone control-zone-load" aria-label="불러오기 영역">
+                <div class="panel-head">
+                    <strong>불러오기</strong>
+                    <span id="selectedBadge" class="badge">선택 없음</span>
+                </div>
 
-            <div class="upload-stage">
-                <div id="fileDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 파일 업로드">
-                    <div>
-                        <div class="upload-icon">🎛️</div>
-                        <strong>파일 업로드</strong>
-                        <span>오디오/MP4 파일</span>
+                <div class="upload-stage">
+                    <div id="fileDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 파일 업로드">
+                        <div>
+                            <div class="upload-icon">🎛️</div>
+                            <strong>파일 업로드</strong>
+                            <span>오디오/MP4 파일</span>
+                        </div>
+                    </div>
+                    <div id="folderDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 폴더 업로드">
+                        <div>
+                            <div class="upload-icon">🗂️</div>
+                            <strong>폴더 업로드</strong>
+                            <span>상대 경로 보존</span>
+                        </div>
                     </div>
                 </div>
-                <div id="folderDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 폴더 업로드">
-                    <div>
-                        <div class="upload-icon">🗂️</div>
-                        <strong>폴더 업로드</strong>
-                        <span>상대 경로 보존</span>
-                    </div>
-                </div>
-            </div>
 
-            <input type="file" id="fileInput" class="hidden" multiple accept="audio/*,video/mp4,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm,.mp4,.m4v,.mov" />
-            <input type="file" id="folderInput" class="hidden" multiple webkitdirectory directory />
+                <input type="file" id="fileInput" class="hidden" multiple accept="audio/*,video/mp4,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm,.mp4,.m4v,.mov" />
+                <input type="file" id="folderInput" class="hidden" multiple webkitdirectory directory />
+            </section>
 
-            <div class="panel-head feature-summary-head" style="margin-top:4px">
-                <strong>버튼형 적용 기능</strong>
-                <div class="feature-summary-actions">
+            <section class="control-zone control-zone-feature" aria-label="버튼형 적용 기능 영역">
+                <div class="panel-head feature-summary-head">
+                    <strong>버튼형 적용 기능</strong>
                     <small id="featureCount">0개 활성</small>
-                    <button id="featureOpenBtn" class="feature-open-btn" type="button" data-help="버튼형 기능을 팝업으로 열어 켜고 끕니다.">기능 보기</button>
                 </div>
-            </div>
-            <div id="featureDock" class="feature-dock feature-dock-hidden" aria-hidden="true"></div>
+                <button id="featureOpenBtn" class="feature-open-btn feature-open-wide" type="button" data-help="버튼형 기능을 팝업으로 열어 켜고 끕니다.">기능 더 보기</button>
+                <div id="featureDock" class="feature-dock feature-dock-hidden" aria-hidden="true"></div>
+            </section>
 
-            <div class="field">
-                <div class="field-row">
-                    <label for="genreSelect">장르 프리셋</label>
-                    <span id="confidenceText" class="rec-value">추천 없음</span>
-                </div>
-                <select id="genreSelect">
+            <section class="control-zone control-zone-genre" aria-label="장르 프리셋 및 스마트 추천 영역">
+                <div class="field">
+                    <div class="field-row">
+                        <label for="genreSelect">장르 프리셋</label>
+                        <span id="confidenceText" class="rec-value">추천 없음</span>
+                    </div>
+                    <select id="genreSelect">
                     <option value="custom">커스텀</option>
                     <option value="pop">Pop / Vocal Pop</option>
                     <option value="kpop">K-POP / Idol Pop</option>
@@ -104,15 +109,31 @@
                     <option value="spatial">Spatial / Wide Mix</option>
                     <option value="tape">Tape Warmth</option>
                     <option value="punch">Punch / Live Energy</option>
-                </select>
-            </div>
+                    </select>
+                </div>
 
-            <div id="intensityField" class="priority-slider" aria-label="마스터링 강도"></div>
+                <section id="smartSuggestPanel" class="smart-suggest-panel" aria-label="스마트 추천 패널">
+                    <div class="smart-suggest-head">
+                        <strong>스마트 추천</strong>
+                        <span id="smartSuggestStatus" class="rec-value">파일 대기</span>
+                    </div>
+                    <p id="smartSuggestSummary">곡을 불러오면 분석값 기준으로 장르, 강도, 안전 옵션을 추천합니다.</p>
+                    <div id="smartSuggestList" class="smart-suggest-list"></div>
+                    <button id="smartSuggestApplyBtn" class="btn-secondary smart-suggest-apply" type="button" disabled data-help="선택 트랙의 AI 추천 프리셋과 추천값을 다시 적용합니다.">추천값 적용</button>
+                </section>
+            </section>
+
+            <section class="control-zone control-zone-intensity" aria-label="마스터링 강도 영역">
+                <div id="intensityField" class="priority-slider" aria-label="마스터링 강도"></div>
+            </section>
 
             <section class="dsp-settings" aria-label="마스터링 설정">
                 <div class="dsp-settings-head">
                     <strong>마스터링 설정</strong>
-                    <small>톤 · 공간 · 질감</small>
+                    <div class="dsp-head-actions">
+                        <small>톤 · 공간 · 질감</small>
+                        <button id="previewOpenBtn" class="preview-open-btn" type="button" disabled data-help="음악 파일을 불러온 뒤 원본/마스터본 미리듣기 팝업을 엽니다.">미리듣기</button>
+                    </div>
                 </div>
                 <div id="sliderFields"></div>
             </section>
@@ -318,7 +339,7 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.5</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.6</span>
         <h2 id="programInfoTitle">AI 음악 마스터링 스튜디오</h2>
         <p>서버 업로드 없이 브라우저 내부에서 오디오를 분석하고, 장르 성향·피치/BPM·마스터링 목표에 맞춰 안전하게 처리하는 로컬형 음악 마스터링 도구입니다.</p>
         <div class="program-info-grid">
@@ -344,6 +365,32 @@
         </div>
         <div id="featureDialogList" class="feature-dialog-list"></div>
     </section>
+</div>
+
+<div id="previewDialog" class="preview-dialog-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="previewDialogTitle">
+    <section class="preview-dialog-panel" tabindex="-1">
+        <div class="preview-dialog-head">
+            <div>
+                <span class="preview-dialog-eyebrow">Realtime Preview</span>
+                <h2 id="previewDialogTitle">미리듣기</h2>
+                <p id="previewDialogCaption">불러온 파일의 원본과 마스터링 결과를 위아래로 비교합니다.</p>
+            </div>
+            <button id="previewDialogClose" class="preview-dialog-close" type="button" aria-label="미리듣기 창 닫기">×</button>
+        </div>
+        <div id="previewDialogBody" class="preview-dialog-body"></div>
+    </section>
+</div>
+
+<div id="processingHud" class="processing-hud" role="status" aria-live="polite" aria-hidden="true">
+    <div class="processing-hud-card">
+        <div class="processing-hud-face" aria-hidden="true">🦊</div>
+        <div class="processing-hud-copy">
+            <strong id="processingHudTitle">마스터링 진행 중</strong>
+            <span id="processingHudText">처리 상태를 준비 중입니다.</span>
+        </div>
+        <div class="processing-hud-percent" id="processingHudPercent">0%</div>
+        <div class="processing-hud-bar"><i id="processingHudBar"></i></div>
+    </div>
 </div>
 
 <div id="featureTooltip" class="feature-tooltip" role="tooltip" aria-hidden="true"></div>
