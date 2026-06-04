@@ -6135,3 +6135,243 @@ body {
         font-size: .50rem !important;
     }
 }
+
+/* v1.3.13 track focus and hidden statistics patch */
+.track-card,
+.track-card:hover,
+.track-card:active,
+.track-card:focus-within {
+    transform: none !important;
+    animation: none !important;
+    transition: border-color .14s ease, background .14s ease, box-shadow .14s ease, opacity .14s ease !important;
+    will-change: auto !important;
+}
+.track-card:not(.selected):not(.active-track) {
+    border-color: #000 !important;
+    background: rgba(255,255,255,.030) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.018) !important;
+    opacity: .82 !important;
+}
+.track-card:not(.selected):not(.active-track):hover {
+    border-color: #000 !important;
+    background: rgba(255,255,255,.038) !important;
+    opacity: .88 !important;
+}
+.track-card.selected {
+    border-color: rgba(139,214,255,.86) !important;
+    background: linear-gradient(135deg, rgba(139,214,255,.120), rgba(151,255,222,.050)) !important;
+    box-shadow: inset 0 0 0 1px rgba(139,214,255,.22), 0 0 0 2px rgba(139,214,255,.045) !important;
+    opacity: 1 !important;
+}
+.track-card.active-track {
+    border-color: rgba(141,245,232,.96) !important;
+    background: linear-gradient(135deg, rgba(141,245,232,.150), rgba(157,168,255,.062)) !important;
+    box-shadow: inset 0 0 0 1px rgba(141,245,232,.42), 0 0 0 2px rgba(141,245,232,.07) !important;
+    opacity: 1 !important;
+}
+.track-card.selected:hover,
+.track-card.active-track:hover {
+    transform: none !important;
+}
+.badge-device {
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.badge-device:focus-visible {
+    outline: 2px solid rgba(141,245,232,.72);
+    outline-offset: 3px;
+}
+.admin-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(0,0,0,.66);
+    backdrop-filter: blur(18px) saturate(1.15);
+}
+.admin-dialog-backdrop.show { display: flex; }
+body.admin-dialog-open { overflow: hidden; }
+.admin-dialog-panel {
+    position: relative;
+    width: min(720px, 100%);
+    max-height: min(86vh, 760px);
+    overflow: auto;
+    padding: 18px;
+    border-radius: 24px;
+    border: 1px solid rgba(141,245,232,.20);
+    background:
+        radial-gradient(circle at 16% 10%, rgba(141,245,232,.13), transparent 32%),
+        radial-gradient(circle at 86% 5%, rgba(157,168,255,.13), transparent 34%),
+        rgba(13,14,25,.96);
+    box-shadow: 0 28px 90px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.08);
+    color: var(--text);
+}
+.admin-password-panel { width: min(420px, 100%); }
+.admin-stats-panel { width: min(920px, 100%); }
+.admin-dialog-close {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.070);
+    color: var(--text);
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+.admin-dialog-eyebrow {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 8px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(141,245,232,.22);
+    background: rgba(141,245,232,.080);
+    color: #dffff7;
+    font-size: .58rem;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.admin-dialog-panel h2 {
+    margin: 0 40px 8px 0;
+    font-size: 1.05rem;
+    letter-spacing: -.03em;
+}
+.admin-dialog-panel p {
+    margin: 0 0 13px;
+    color: rgba(221,230,241,.76);
+    font-size: .72rem;
+    line-height: 1.45;
+}
+.admin-password-field {
+    display: grid;
+    gap: 6px;
+    margin: 10px 0;
+    color: rgba(221,230,241,.78);
+    font-size: .70rem;
+    font-weight: 850;
+}
+.admin-password-field input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.16);
+    background: rgba(0,0,0,.22);
+    color: var(--text);
+    font-size: .96rem;
+    outline: none;
+}
+.admin-password-field input:focus {
+    border-color: rgba(141,245,232,.55);
+    box-shadow: 0 0 0 3px rgba(141,245,232,.10);
+}
+.admin-password-error {
+    min-height: 18px;
+    color: #ffc9ce;
+    font-size: .66rem;
+    font-weight: 800;
+}
+.admin-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+.admin-dialog-actions button {
+    min-height: 36px;
+    padding: 8px 12px;
+    border-radius: 13px;
+}
+.admin-stats-summary {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px;
+    margin: 12px 0;
+}
+.admin-stat-card {
+    min-height: 66px;
+    padding: 11px;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.11);
+    background: rgba(255,255,255,.045);
+}
+.admin-stat-card span {
+    display: block;
+    color: rgba(221,230,241,.68);
+    font-size: .58rem;
+    font-weight: 820;
+}
+.admin-stat-card strong {
+    display: block;
+    margin-top: 5px;
+    font-size: .96rem;
+    letter-spacing: -.02em;
+}
+.admin-stats-table-wrap {
+    overflow: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.16);
+}
+.admin-stats-table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: .68rem;
+}
+.admin-stats-table th,
+.admin-stats-table td {
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    text-align: left;
+    vertical-align: top;
+}
+.admin-stats-table th {
+    color: #dffff7;
+    background: rgba(141,245,232,.070);
+    font-size: .58rem;
+    letter-spacing: .02em;
+}
+.admin-stats-table td {
+    color: rgba(236,244,255,.84);
+    word-break: break-word;
+}
+.admin-stats-table tr:last-child td { border-bottom: 0; }
+.admin-stats-notice {
+    padding: 9px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,210,122,.18);
+    background: rgba(255,210,122,.055);
+}
+@media (max-width: 720px) {
+    .track-card:not(.selected):not(.active-track) { opacity: .80 !important; }
+    .track-card:not(.selected):not(.active-track):hover { opacity: .84 !important; }
+    .admin-dialog-backdrop { padding: 10px; }
+    .admin-dialog-panel {
+        padding: 13px;
+        border-radius: 19px;
+        max-height: 88dvh;
+    }
+    .admin-dialog-panel h2 { font-size: .88rem; }
+    .admin-dialog-panel p { font-size: .58rem; }
+    .admin-dialog-eyebrow { font-size: .47rem; padding: 3px 7px; }
+    .admin-dialog-close { width: 30px; height: 30px; }
+    .admin-password-field { font-size: .58rem; }
+    .admin-password-field input { min-height: 38px; font-size: .80rem; }
+    .admin-dialog-actions button { min-height: 32px; padding: 7px 9px; font-size: .56rem; }
+    .admin-stats-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+    .admin-stat-card { min-height: 52px; padding: 8px; border-radius: 12px; }
+    .admin-stat-card span { font-size: .48rem; }
+    .admin-stat-card strong { font-size: .76rem; }
+    .admin-stats-table { min-width: 560px; font-size: .56rem; }
+    .admin-stats-table th,
+    .admin-stats-table td { padding: 7px 8px; }
+}
