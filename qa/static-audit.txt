@@ -1,4 +1,4 @@
-FoxBear v1.3.11 static audit
+FoxBear v1.3.12 static audit
 
 Checks:
 - HTML duplicate IDs: PASS
@@ -8,10 +8,10 @@ Checks:
 - ZIP integrity: PASS
 
 Focus areas patched:
-- Balanced UI density
-- Mobile upload/mastering settings spacing
-- Queue/preview player parity
-- Realtime preview EQ-grid controls
-- Direct value entry for realtime controls
-- Reduced duplicate visible info
-- Header cleanup and designer nametag polish
+- Summary title/stat-card inline layout
+- Parent/child border spacing density
+- Mobile title/button/card font balance
+- Preview popup English eyebrow removal
+- Action button group breathing room
+- Slow analog knob animation
+- v1.3.12 cache/version bump
