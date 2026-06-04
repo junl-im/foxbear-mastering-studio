@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.5';
+const APP_VERSION = 'Pro v1.3.6';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -352,6 +352,9 @@ function cacheElements() {
         'genreSelect', 'confidenceText', 'intensityField', 'sliderFields', 'pitchSlider', 'speedSlider', 'pitchValue', 'speedValue',
         'pitchHint', 'speedHint', 'beatChangeSelect', 'beatValue', 'beatHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
         'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
+        'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
+        'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
+        'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
         'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
@@ -571,9 +574,128 @@ function closeFeatureDialog() {
     if (el.featureOpenBtn) el.featureOpenBtn.focus({ preventScroll: true });
 }
 
+function openPreviewDialog() {
+    const track = getSelectedTrack();
+    if (!track || !el.previewDialog) return;
+    renderPreviewDialog(track);
+    el.previewDialog.classList.add('show');
+    el.previewDialog.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('preview-dialog-open');
+    const panel = el.previewDialog.querySelector('.preview-dialog-panel');
+    if (panel) panel.focus({ preventScroll: true });
+}
+
+function closePreviewDialog() {
+    if (!el.previewDialog) return;
+    pauseAllPreviewAudio();
+    el.previewDialog.classList.remove('show');
+    el.previewDialog.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('preview-dialog-open');
+    if (el.previewDialogBody) el.previewDialogBody.textContent = '';
+    if (el.previewOpenBtn) el.previewOpenBtn.focus({ preventScroll: true });
+}
+
+function renderPreviewDialog(track) {
+    if (!el.previewDialogBody || !track) return;
+    el.previewDialogBody.textContent = '';
+    if (el.previewDialogCaption) {
+        const preset = PRESET_LABELS[track.preset] || track.preset || '프리셋 대기';
+        const done = track.masteredUrl ? '마스터본까지 비교할 수 있습니다.' : '마스터링 전이라 원본 미리듣기만 활성화됩니다.';
+        el.previewDialogCaption.textContent = `${track.name} · ${preset} · ${done}`;
+    }
+    const note = document.createElement('div');
+    note.className = 'preview-dialog-note';
+    note.textContent = '현재 버전은 로컬 파일 원본/마스터본 비교형 미리듣기입니다. WebAudio + WASM 실시간 컨트롤 미리듣기는 같은 팝업 구조에 AudioWorklet 체인을 연결하면 확장할 수 있습니다.';
+    el.previewDialogBody.appendChild(note);
+    renderPreviewPlayers(track, el.previewDialogBody, { vertical: true });
+}
+
+function updatePreviewButton() {
+    if (!el.previewOpenBtn) return;
+    const track = getSelectedTrack();
+    el.previewOpenBtn.disabled = !track;
+}
+
+function updateSmartRecommendationPanel() {
+    if (!el.smartSuggestPanel) return;
+    const track = getSelectedTrack();
+    const hasAnalysis = Boolean(track && track.analysis);
+    if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.disabled = !hasAnalysis || state.busy;
+    if (!track) {
+        if (el.smartSuggestStatus) el.smartSuggestStatus.textContent = '파일 대기';
+        if (el.smartSuggestSummary) el.smartSuggestSummary.textContent = '곡을 불러오면 분석값 기준으로 장르, 강도, 안전 옵션을 추천합니다.';
+        if (el.smartSuggestList) el.smartSuggestList.textContent = '';
+        return;
+    }
+    if (el.smartSuggestStatus) el.smartSuggestStatus.textContent = hasAnalysis ? `${track.confidence || 0}% 추천` : statusLabel(track.status);
+    if (el.smartSuggestSummary) {
+        if (hasAnalysis) {
+            const preset = PRESET_LABELS[track.recommendedPreset || track.preset] || track.recommendedPreset || track.preset || '커스텀';
+            const reason = track.genreReason ? ` · ${track.genreReason}` : '';
+            el.smartSuggestSummary.textContent = `${preset} 기준 추천값을 사용할 수 있습니다${reason}`;
+        } else {
+            el.smartSuggestSummary.textContent = '분석이 끝나면 장르와 안전 옵션 추천이 표시됩니다.';
+        }
+    }
+    if (!el.smartSuggestList) return;
+    el.smartSuggestList.textContent = '';
+    buildSmartSuggestionItems(track).forEach(item => el.smartSuggestList.appendChild(makeSmartSuggestionPill(item.label, item.value, item.tone)));
+}
+
+function buildSmartSuggestionItems(track) {
+    const items = [];
+    const analysis = track.analysis || {};
+    const preset = PRESET_LABELS[track.recommendedPreset || track.preset] || track.recommendedPreset || track.preset || '커스텀';
+    items.push({ label: '장르', value: preset, tone: 'cyan' });
+    if (Number.isFinite(Number(track.confidence))) items.push({ label: '신뢰도', value: `${Math.round(Number(track.confidence))}%`, tone: track.confidence >= 70 ? 'ok' : 'warn' });
+    if (Number.isFinite(Number(analysis.loudnessHint))) items.push({ label: '원본 RMS', value: `${Number(analysis.loudnessHint).toFixed(1)} dB`, tone: 'neutral' });
+    if (Number.isFinite(Number(analysis.brightness))) items.push({ label: '밝기', value: `${Math.round(Number(analysis.brightness) * 100)}%`, tone: analysis.brightness > .68 ? 'warn' : 'neutral' });
+    if (Number.isFinite(Number(analysis.stereoWidth))) items.push({ label: '공간', value: `${Math.round(Number(analysis.stereoWidth) * 100)}%`, tone: analysis.stereoWidth > .74 ? 'warn' : 'neutral' });
+    const safety = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
+    if (safety) items.push({ label: '안전', value: `${safety.score}점`, tone: safety.tone || 'ok' });
+    const activeGuards = [
+        state.featureFlags.truePeakGuard ? '피크' : '',
+        state.featureFlags.vocalProtect ? '보컬' : '',
+        state.featureFlags.earFatigueGuard ? '피로' : ''
+    ].filter(Boolean).join(' · ') || '수동';
+    items.push({ label: '가드', value: activeGuards, tone: 'ok' });
+    return items;
+}
+
+function makeSmartSuggestionPill(label, value, tone = 'neutral') {
+    const item = document.createElement('div');
+    item.className = `smart-suggest-pill smart-suggest-${tone}`;
+    const name = document.createElement('span');
+    name.textContent = label;
+    const val = document.createElement('b');
+    val.textContent = value;
+    item.append(name, val);
+    return item;
+}
+
+function updateProcessingHud() {
+    if (!el.processingHud) return;
+    const running = state.tracks.find(track => track.status === 'processing') || null;
+    if (!running) {
+        el.processingHud.classList.remove('show');
+        el.processingHud.setAttribute('aria-hidden', 'true');
+        if (el.processingHudBar) el.processingHudBar.style.width = '0%';
+        return;
+    }
+    const progress = clamp(Number(running.progress || 0), 0, 100);
+    el.processingHud.classList.add('show');
+    el.processingHud.setAttribute('aria-hidden', 'false');
+    if (el.processingHudTitle) el.processingHudTitle.textContent = '마스터링 진행 중';
+    if (el.processingHudText) el.processingHudText.textContent = `${running.name} · ${running.report || '처리 중'}`;
+    if (el.processingHudPercent) el.processingHudPercent.textContent = `${Math.round(progress)}%`;
+    if (el.processingHudBar) el.processingHudBar.style.width = `${progress}%`;
+}
+
 const ACTION_HELP_TEXTS = {
     programInfoBtn: '프로그램의 핵심 기능, 안전 처리 방식, 개발 방향을 확인합니다.',
     featureOpenBtn: '버튼형 적용 기능을 팝업으로 열어 필요한 기능만 켜고 끕니다.',
+    previewOpenBtn: '불러온 트랙의 원본과 마스터링 결과를 위아래 미리듣기 팝업으로 비교합니다.',
+    smartSuggestApplyBtn: '분석 결과 기준 추천 프리셋과 추천값을 선택 트랙에 다시 적용합니다.',
     fileDrop: '파일 하나 또는 여러 개를 불러옵니다. MP3/WAV/MP4 오디오를 지원합니다.',
     folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
     aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
@@ -652,9 +774,18 @@ function bindEvents() {
             if (event.target === el.featureDialog) closeFeatureDialog();
         });
     }
+    if (el.previewOpenBtn) el.previewOpenBtn.addEventListener('click', openPreviewDialog);
+    if (el.previewDialogClose) el.previewDialogClose.addEventListener('click', closePreviewDialog);
+    if (el.previewDialog) {
+        el.previewDialog.addEventListener('click', event => {
+            if (event.target === el.previewDialog) closePreviewDialog();
+        });
+    }
+    if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
     window.addEventListener('keydown', event => {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
         if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog();
+        if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog();
     });
     el.fileDrop.addEventListener('click', () => el.fileInput.click());
     el.folderDrop.addEventListener('click', () => el.folderInput.click());
@@ -4521,6 +4652,7 @@ async function downloadZip() {
     const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 5 } });
     downloadBlob(blob, `foxbear_mastered_${timestampForFile()}.zip`);
     showToast('마스터 파일 ZIP 다운로드를 시작했습니다.');
+    renderAll({ keepDetailAudio: true });
 }
 
 function makeUniqueZipName(fileName, usedNames) {
@@ -4545,6 +4677,8 @@ function makeUniqueZipName(fileName, usedNames) {
 function downloadTrack(track) {
     if (!track || !track.outBlob) return;
     downloadBlob(track.outBlob, track.outName);
+    state.busy = false;
+    renderAll({ keepDetailAudio: true });
 }
 
 function downloadBlob(blob, fileName) {
@@ -4848,6 +4982,9 @@ function renderAll(options = {}) {
     renderSelectedBadge();
     renderAlbumStatus();
     updateFeatureSummary();
+    updateSmartRecommendationPanel();
+    updatePreviewButton();
+    updateProcessingHud();
     syncEnhancedSelectButtons();
 }
 
@@ -5140,9 +5277,9 @@ function renderDetail(options = {}) {
     if (!options.keepDetailAudio) applyTrackToControls(track);
 }
 
-function renderPreviewPlayers(track, target = el.trackDetail) {
+function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
     const previewGrid = document.createElement('div');
-    previewGrid.className = 'preview-grid';
+    previewGrid.className = `preview-grid ${options.vertical ? 'preview-grid-vertical' : ''}`;
 
     const originalCard = document.createElement('div');
     originalCard.className = 'preview-card';
