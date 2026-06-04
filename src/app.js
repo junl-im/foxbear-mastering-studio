@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.9';
+const APP_VERSION = 'Pro v1.3.10';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -620,14 +620,7 @@ function renderPreviewDialog(track) {
     if (!el.previewDialogBody || !track) return;
     cleanupRealtimePreview();
     el.previewDialogBody.textContent = '';
-    if (el.previewDialogCaption) {
-        const preset = PRESET_LABELS[track.preset] || track.preset || '프리셋 대기';
-        el.previewDialogCaption.textContent = `${track.name} · ${preset} · 저장 전 실시간 컨트롤 프리뷰`;
-    }
-    const note = document.createElement('div');
-    note.className = 'preview-dialog-note realtime-note';
-    note.textContent = '재생을 누른 뒤 아래 컨트롤을 움직이면 저장 렌더링 없이 WebAudio 마스터링 체인에 바로 반영됩니다. 완료본 비교가 필요한 경우 마스터링 후 아래 A/B 영역도 함께 표시됩니다.';
-    el.previewDialogBody.appendChild(note);
+    if (el.previewDialogCaption) el.previewDialogCaption.textContent = '실시간 미리듣기';
     renderRealtimePreviewConsole(track, el.previewDialogBody);
     if (track.masteredUrl) {
         const compareTitle = document.createElement('div');
@@ -653,104 +646,172 @@ function renderRealtimePreviewConsole(track, target) {
 
     const playerCard = document.createElement('div');
     playerCard.className = 'preview-card realtime-player-card';
-    playerCard.appendChild(makePreviewTitle('선택 트랙 프리뷰', track.analysis?.duration));
     const previewPlayer = createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track));
     previewPlayer.classList.add('realtime-custom-player');
     const audio = previewPlayer.querySelector('audio');
     if (audio) audio.setAttribute('aria-label', '실시간 마스터링 프리뷰 재생');
-    const playerHelp = document.createElement('small');
-    playerHelp.textContent = '작업 대기열과 같은 플레이어입니다. 재생 후 아래 EQ형 컨트롤을 움직이면 저장 없이 바로 반영됩니다.';
-    playerCard.append(previewPlayer, playerHelp);
+    playerCard.append(previewPlayer);
 
     const controls = document.createElement('div');
     controls.className = 'realtime-control-stack realtime-eq-strip';
     controls.setAttribute('aria-label', '실시간 마스터링 컨트롤');
-    SLIDERS.forEach(slider => controls.appendChild(createRealtimeSliderRow(slider, track)));
+    getRealtimeControlDefinitions(track).forEach(control => controls.appendChild(createRealtimeSliderRow(control, track)));
 
-    const liveHint = document.createElement('div');
-    liveHint.className = 'realtime-live-hint';
-    liveHint.textContent = '컨트롤을 움직이면 이곳에 변화 설명이 표시됩니다. 피치/BPM은 음질 보호를 위해 최종 렌더 단계에서 처리합니다.';
-
-    const footer = document.createElement('div');
-    footer.className = 'realtime-preview-footer';
-    footer.innerHTML = '<span>실시간: 톤 · 공간 · 질감 · 압축</span><span>최종 저장: 피치/BPM · True Peak · 고품질 렌더</span>';
-
-    wrap.append(head, playerCard, controls, liveHint, footer);
+    wrap.append(head, playerCard, controls);
     target.appendChild(wrap);
 
     if (audio) setupRealtimePreviewEngine(track, audio, status);
     else if (status) status.textContent = '플레이어 생성 실패';
 }
 
-function createRealtimeSliderRow(slider, track) {
-    const value = clampToStep(Number(track.settings?.[slider.id] ?? GENRE_PRESETS.custom[slider.id]), slider.min ?? 0, slider.max ?? 100, slider.step ?? 1);
+function getRealtimeControlDefinitions(track) {
+    const ordered = [];
+    const intensity = SLIDERS.find(slider => slider.id === 'intensity');
+    if (intensity) ordered.push({ kind: 'slider', ...intensity });
+    SLIDERS.filter(slider => slider.id !== 'intensity').forEach(slider => ordered.push({ kind: 'slider', ...slider }));
+    const transform = cloneTransform(track?.transform || DEFAULT_TRANSFORM);
+    ordered.push(
+        { kind: 'pitch', id: 'pitchSemitones', label: '피치 (Pitch)', min: -12, max: 12, step: transform.snapSemitone ? 1 : 0.01, unit: ' st', low: '키를 낮춰 더 묵직하게 만듭니다.', neutral: '원본 키를 유지합니다.', high: '키를 올려 더 밝고 가볍게 만듭니다.' },
+        { kind: 'bpm', id: 'speedPercent', label: 'BPM (%)', min: 50, max: 150, step: 1, unit: '%', low: '템포를 느리게 미리듣습니다.', neutral: '원본 템포를 유지합니다.', high: '템포를 빠르게 미리듣습니다.' }
+    );
+    return ordered;
+}
+
+function createRealtimeSliderRow(control, track) {
+    const value = getRealtimeControlValue(control, track);
     const row = document.createElement('div');
     row.className = 'realtime-slider-row realtime-fader';
-    row.dataset.slider = slider.id;
-    row.dataset.hint = customHintText(slider, value);
+    row.dataset.slider = control.id;
+    row.dataset.kind = control.kind || 'slider';
+    row.dataset.hint = customHintText(control, value);
 
     const label = document.createElement('label');
     label.className = 'realtime-fader-label';
-    label.htmlFor = `rt-${slider.id}`;
-    decorateSliderLabel(label, slider.label);
+    label.htmlFor = `rt-${control.id}`;
+    decorateSliderLabel(label, control.label);
 
     const input = document.createElement('input');
     input.type = 'range';
-    input.id = `rt-${slider.id}`;
-    input.min = String(slider.min ?? 0);
-    input.max = String(slider.max ?? 100);
-    input.step = String(slider.step ?? 1);
+    input.id = `rt-${control.id}`;
+    input.min = String(control.min ?? 0);
+    input.max = String(control.max ?? 100);
+    input.step = String(control.step ?? 1);
     input.value = String(value);
-    input.dataset.sliderId = slider.id;
+    input.dataset.sliderId = control.id;
+    input.dataset.controlKind = control.kind || 'slider';
     input.addEventListener('input', handleRealtimePreviewSliderInput);
 
-    const valueEl = document.createElement('b');
-    valueEl.id = `rt-value-${slider.id}`;
-    valueEl.className = 'realtime-fader-value';
-    valueEl.textContent = formatSliderValue(slider, value);
+    const valueWrap = document.createElement('div');
+    valueWrap.className = 'realtime-fader-value-wrap';
+    const valueEl = document.createElement('input');
+    valueEl.type = 'number';
+    valueEl.id = `rt-value-${control.id}`;
+    valueEl.className = 'realtime-fader-value realtime-fader-number';
+    valueEl.min = String(control.min ?? 0);
+    valueEl.max = String(control.max ?? 100);
+    valueEl.step = String(control.step ?? 1);
+    valueEl.value = formatRealtimeNumber(control, value);
+    valueEl.dataset.sliderId = control.id;
+    valueEl.dataset.controlKind = control.kind || 'slider';
+    valueEl.setAttribute('aria-label', `${plainSliderLabel(control.label)} 값 직접 입력`);
+    valueEl.addEventListener('change', handleRealtimePreviewNumberInput);
+    valueEl.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            valueEl.blur();
+        }
+    });
+    const unit = document.createElement('span');
+    unit.textContent = String(control.unit || '').trim();
+    valueWrap.append(valueEl, unit);
 
     const hint = document.createElement('small');
     hint.className = 'realtime-slider-hint';
-    hint.textContent = customHintText(slider, value);
-    row.append(label, input, valueEl, hint);
+    hint.textContent = customHintText(control, value);
+    row.append(label, input, valueWrap, hint);
     return row;
 }
 
+function getRealtimeControlValue(control, track) {
+    const kind = control.kind || 'slider';
+    if (kind === 'pitch') return clampToStep(Number(track?.transform?.pitchSemitones ?? 0), control.min, control.max, control.step || 1);
+    if (kind === 'bpm') return clampToStep(Number(track?.transform?.speedRatio ?? 1) * 100, control.min, control.max, control.step || 1);
+    return clampToStep(Number(track?.settings?.[control.id] ?? GENRE_PRESETS.custom[control.id]), control.min ?? 0, control.max ?? 100, control.step ?? 1);
+}
+
+function formatRealtimeNumber(control, value) {
+    const step = Number(control.step ?? 1);
+    if (step < 1) return Number(value).toFixed(2).replace(/\.00$/, '');
+    return String(Math.round(Number(value)));
+}
+
+function findRealtimeControl(id, kind = 'slider') {
+    return getRealtimeControlDefinitions(getSelectedTrack()).find(control => control.id === id && (control.kind || 'slider') === kind)
+        || getRealtimeControlDefinitions(getSelectedTrack()).find(control => control.id === id)
+        || null;
+}
+
 function handleRealtimePreviewSliderInput(event) {
-    const input = event.currentTarget;
-    const id = input.dataset.sliderId;
-    const slider = SLIDERS.find(item => item.id === id);
+    applyRealtimeControlValue(event.currentTarget, Number(event.currentTarget.value));
+}
+
+function handleRealtimePreviewNumberInput(event) {
+    const number = event.currentTarget;
+    const control = findRealtimeControl(number.dataset.sliderId, number.dataset.controlKind);
+    if (!control) return;
+    const value = clampToStep(Number(number.value), control.min ?? 0, control.max ?? 100, control.step ?? 1);
+    number.value = formatRealtimeNumber(control, value);
+    const range = document.getElementById(`rt-${control.id}`);
+    if (range) range.value = String(value);
+    applyRealtimeControlValue(number, value);
+}
+
+function applyRealtimeControlValue(source, rawValue) {
+    const id = source.dataset.sliderId;
+    const kind = source.dataset.controlKind || 'slider';
+    const control = findRealtimeControl(id, kind);
     const track = getSelectedTrack();
-    if (!slider || !track) return;
-    const min = slider.min ?? 0;
-    const max = slider.max ?? 100;
-    const step = slider.step ?? 1;
-    const value = clampToStep(Number(input.value), min, max, step);
-    input.value = String(value);
-    if (!track.settings) track.settings = cloneSettings(GENRE_PRESETS.custom);
-    track.settings[id] = value;
-    track.preset = 'custom';
-    track.genreLocked = true;
+    if (!control || !track) return;
+    const min = control.min ?? 0;
+    const max = control.max ?? 100;
+    const step = control.step ?? 1;
+    const value = clampToStep(Number(rawValue), min, max, step);
+    const range = document.getElementById(`rt-${id}`);
+    if (range) range.value = String(value);
+
+    if (kind === 'pitch' || kind === 'bpm') {
+        const transform = cloneTransform(track.transform || DEFAULT_TRANSFORM);
+        if (kind === 'pitch') transform.pitchSemitones = value;
+        if (kind === 'bpm') {
+            transform.speedRatio = clamp(value / 100, 0.5, 1.5);
+            transform.beatPreset = getBeatPresetForRatio(transform.speedRatio);
+        }
+        track.transform = cloneTransform(transform);
+        setTransformControls(track.transform);
+        invalidateMasteredOutput(track, '피치/BPM 조정값이 적용되었습니다. 최종 저장 시 고품질 렌더 경로로 처리됩니다.', false);
+    } else {
+        if (!track.settings) track.settings = cloneSettings(GENRE_PRESETS.custom);
+        track.settings[id] = value;
+        track.preset = 'custom';
+        track.genreLocked = true;
+        const mainInput = document.getElementById(id);
+        if (mainInput) mainInput.value = String(value);
+        const mainValue = document.getElementById(`value-${id}`);
+        if (mainValue) mainValue.textContent = formatSliderValue(control, value);
+        const recEl = document.getElementById(`rec-${id}`);
+        if (recEl) recEl.textContent = '';
+        updateSliderHint(id);
+        invalidateMasteredOutput(track, '실시간 미리듣기에서 사용자 커스텀 값이 적용되었습니다. 저장하려면 다시 마스터링하세요.', false);
+    }
 
     const localValue = document.getElementById(`rt-value-${id}`);
-    if (localValue) localValue.textContent = formatSliderValue(slider, value);
-    const row = input.closest('.realtime-slider-row');
-    const newHint = customHintText(slider, value);
+    if (localValue) localValue.value = formatRealtimeNumber(control, value);
+    const row = source.closest('.realtime-slider-row') || document.querySelector(`.realtime-slider-row[data-slider="${id}"]`);
+    const newHint = customHintText(control, value);
     const hint = row ? row.querySelector('.realtime-slider-hint') : null;
     if (hint) hint.textContent = newHint;
     if (row) row.dataset.hint = newHint;
-    const liveHint = el.previewDialog ? el.previewDialog.querySelector('.realtime-live-hint') : null;
-    if (liveHint) liveHint.textContent = `${plainSliderLabel(slider.label)} · ${newHint}`;
 
-    const mainInput = document.getElementById(id);
-    if (mainInput) mainInput.value = String(value);
-    const mainValue = document.getElementById(`value-${id}`);
-    if (mainValue) mainValue.textContent = formatSliderValue(slider, value);
-    const recEl = document.getElementById(`rec-${id}`);
-    if (recEl) recEl.textContent = '';
-    updateSliderHint(id);
-
-    invalidateMasteredOutput(track, '실시간 미리듣기에서 사용자 커스텀 값이 적용되었습니다. 저장하려면 다시 마스터링하세요.', false);
     updateRealtimePreviewSettings(track);
     schedulePreviewUiRefresh();
 }
@@ -901,20 +962,27 @@ function updateRealtimePreviewSettings(track = getSelectedTrack()) {
     setAudioParam(nodes.limiter.release, .065, now);
     setAudioParam(nodes.outputGain.gain, dbToAmp(clamp(map(intensity.raw, 50, 200, -1.8, 2.8), -2.2, 3.0)), now);
 
+    if (preview.audio) {
+        const speed = clamp(Number(track.transform?.speedRatio || 1), 0.5, 1.5);
+        preview.audio.playbackRate = speed;
+        if ('preservesPitch' in preview.audio) preview.audio.preservesPitch = true;
+        if ('mozPreservesPitch' in preview.audio) preview.audio.mozPreservesPitch = true;
+        if ('webkitPreservesPitch' in preview.audio) preview.audio.webkitPreservesPitch = true;
+    }
     if (preview.statusEl) preview.statusEl.textContent = preview.audio && !preview.audio.paused ? '실시간 적용 중' : '재생 준비';
 }
 
 function syncRealtimePreviewControls(track) {
     if (!track || !el.previewDialog?.classList.contains('show')) return;
-    SLIDERS.forEach(slider => {
-        const input = document.getElementById(`rt-${slider.id}`);
-        const valueEl = document.getElementById(`rt-value-${slider.id}`);
+    getRealtimeControlDefinitions(track).forEach(control => {
+        const input = document.getElementById(`rt-${control.id}`);
+        const valueEl = document.getElementById(`rt-value-${control.id}`);
         if (!input) return;
-        const value = clampToStep(Number(track.settings?.[slider.id] ?? GENRE_PRESETS.custom[slider.id]), slider.min ?? 0, slider.max ?? 100, slider.step ?? 1);
+        const value = getRealtimeControlValue(control, track);
         if (document.activeElement !== input) input.value = String(value);
-        if (valueEl) valueEl.textContent = formatSliderValue(slider, value);
+        if (valueEl && document.activeElement !== valueEl) valueEl.value = formatRealtimeNumber(control, value);
         const hint = input.closest('.realtime-slider-row')?.querySelector('.realtime-slider-hint');
-        if (hint && document.activeElement !== input) hint.textContent = customHintText(slider, value);
+        if (hint && document.activeElement !== input && document.activeElement !== valueEl) hint.textContent = customHintText(control, value);
     });
 }
 
@@ -1076,7 +1144,7 @@ function updateProcessingHud() {
 
 const ACTION_HELP_TEXTS = {
     programInfoBtn: '프로그램의 핵심 기능, 안전 처리 방식, 개발 방향을 확인합니다.',
-    featureOpenBtn: '버튼형 적용 기능 창을 열어 필요한 버튼을 활성화합니다.',
+    featureOpenBtn: '버튼형 적용 기능 창을 열어 필요한 버튼을 확인합니다.',
     previewOpenBtn: '불러온 트랙을 저장 전 WebAudio 실시간 체인으로 미리듣습니다.',
     smartSuggestApplyBtn: '분석 결과 기준 추천 프리셋과 추천값을 선택 트랙에 다시 적용합니다.',
     referenceLoadBtn: '목표 사운드가 될 레퍼런스 트랙을 분석합니다.',
@@ -1665,9 +1733,9 @@ async function handleFiles(fileList) {
         }
         const track = createTrack(file);
         state.tracks.push(track);
+        state.selectedIds.add(track.id);
         if (!state.selectedId) {
             state.selectedId = track.id;
-            state.selectedIds.add(track.id);
         }
         added += 1;
         renderAll();
@@ -2716,13 +2784,24 @@ function updateSliderHint(id) {
 }
 
 function customHintText(slider, value) {
-    if (slider.id === 'intensity') {
-        if (value < 90) return slider.low;
-        if (value >= 140) return slider.high;
+    const numeric = Number(value);
+    if (slider.kind === 'pitch') {
+        if (numeric < -0.25) return slider.low;
+        if (numeric > 0.25) return slider.high;
         return slider.neutral;
     }
-    if (value < 35) return slider.low;
-    if (value > 65) return slider.high;
+    if (slider.kind === 'bpm') {
+        if (numeric < 98) return slider.low;
+        if (numeric > 102) return slider.high;
+        return slider.neutral;
+    }
+    if (slider.id === 'intensity') {
+        if (numeric < 90) return slider.low;
+        if (numeric >= 140) return slider.high;
+        return slider.neutral;
+    }
+    if (numeric < 35) return slider.low;
+    if (numeric > 65) return slider.high;
     return slider.neutral;
 }
 
@@ -5816,25 +5895,6 @@ function renderTrackList() {
         presetChip.className = 'track-preset-chip';
         presetChip.textContent = `프리셋 · ${PRESET_LABELS[track.preset] || track.preset}${track.genreLocked ? ' · 잠금' : ''}`;
         titleWrap.append(title, meta, presetChip);
-        if (track.performanceInfo && !track.performanceInfo.running && track.performanceInfo.totalMs) {
-            const perfChip = document.createElement('div');
-            perfChip.className = 'performance-chip';
-            perfChip.textContent = `성능 · ${formatDurationMs(track.performanceInfo.totalMs)} · ${(track.performanceInfo.realtimeRatio || 0).toFixed(2)}x`;
-            titleWrap.appendChild(perfChip);
-        }
-        if (shouldApplyVocalProtection(track.preset, track.analysis)) {
-            const vocalChip = document.createElement('div');
-            vocalChip.className = 'vocal-safe-chip';
-            vocalChip.textContent = '보컬 보호 ON';
-            titleWrap.appendChild(vocalChip);
-        }
-        if (state.engineSafetyMeter && (track.analysis || track.safetyInfo)) {
-            const safety = track.safetyInfo || computeEngineSafetyInfo(track, null, track.finalizeInfo || null);
-            const safetyChip = document.createElement('div');
-            safetyChip.className = `engine-safe-chip engine-safe-${safety.tone}`;
-            safetyChip.textContent = `안전 ${safety.score}점`;
-            titleWrap.appendChild(safetyChip);
-        }
 
         const status = document.createElement('span');
         status.className = `status-pill status-${track.status}`;
@@ -5849,7 +5909,7 @@ function renderTrackList() {
         progressShell.appendChild(progressBar);
         const progressCaption = document.createElement('div');
         progressCaption.className = 'progress-caption';
-        progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? '완료 · 미리듣기/다운로드 가능' : (track.report || '대기 중'));
+        progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? '완료 · 미리듣기/다운로드 가능' : '대기 중');
 
         const actions = document.createElement('div');
         actions.className = 'track-actions';
@@ -5913,10 +5973,12 @@ function renderDetail(options = {}) {
     title.textContent = track.name;
     el.trackDetail.appendChild(title);
 
-    renderMasterComparisonPanel(track);
-    renderProcessingFlowPanel(track);
-    renderEngineSafetyPanel(track);
-    renderLowMonoPanel(track);
+    const compact = document.createElement('div');
+    compact.className = 'detail-compact-summary';
+    const presetText = PRESET_LABELS[track.preset] || track.preset || '커스텀';
+    const safetyInfo = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
+    compact.textContent = track.analysis ? `${presetText} · ${track.status === 'done' ? '완료' : statusLabel(track.status)}${safetyInfo ? ` · 안전 ${safetyInfo.score}점` : ''}` : statusLabel(track.status);
+    el.trackDetail.appendChild(compact);
 
     const isOpen = state.expandedDetailIds && state.expandedDetailIds.has(track.id);
     const toggle = document.createElement('button');
@@ -5933,6 +5995,10 @@ function renderDetail(options = {}) {
     el.trackDetail.appendChild(toggle);
 
     if (isOpen) {
+        renderMasterComparisonPanel(track);
+        renderProcessingFlowPanel(track);
+        renderEngineSafetyPanel(track);
+        renderLowMonoPanel(track);
         const detailsWrap = document.createElement('div');
         detailsWrap.className = 'analysis-detail-list';
         const addRow = (label, value) => addDetailRow(label, value, detailsWrap);
@@ -6208,7 +6274,7 @@ function renderProcessingFlowPanel(track) {
 
     const report = document.createElement('div');
     report.className = 'processing-flow-report';
-    report.textContent = track.report || (track.status === 'done' ? '마스터링 완료' : '마스터링을 실행하면 단계별 진행이 표시됩니다.');
+    report.textContent = track.status === 'processing' ? '현재 렌더링 단계만 표시합니다. 자세한 분석값은 분석 상세보기에서 확인하세요.' : (track.status === 'done' ? '마스터링 완료 · 다운로드 또는 재마스터링 가능' : '마스터링을 실행하면 단계별 진행이 표시됩니다.');
 
     panel.append(head, rail, steps, report);
     el.trackDetail.appendChild(panel);
@@ -6636,7 +6702,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.9',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.10',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
