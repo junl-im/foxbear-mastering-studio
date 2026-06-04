@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.10 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.11 - browser based AI music mastering console" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.10</title>
+<title>FoxBear Mastering PRO v1.3.11</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.10" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.11" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.10"></script>
+<script defer src="src/app.js?v=1.3.11"></script>
 </head>
-<body data-build="1.3.10">
+<body data-build="1.3.11">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.10</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.11</button>
                     <span class="badge badge-device">PC · 모바일 호환</span>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
@@ -33,7 +33,7 @@
             <div class="hero-mainline">
                 <div class="hero-copy">
                     <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
-                    <p>무료로 누구나 쉽게 음질을 개선하고 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다. 파일은 업로드 없이 내 기기 안에서 분석하고 처리합니다.</p>
+                    <p>무료로 누구나 쉽게 음질을 개선하고 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.<br>파일은 업로드 없이 내 기기 안에서 분석하고 처리합니다.</p>
                 </div>
             </div>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -50,17 +50,17 @@
                 </div>
 
                 <div class="upload-stage">
-                    <div id="fileDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 파일 업로드">
+                    <div id="fileDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 파일열기">
                         <div>
                             <div class="upload-icon">🎛️</div>
-                            <strong>파일 업로드</strong>
+                            <strong>파일열기</strong>
                             <span>오디오/MP4 파일</span>
                         </div>
                     </div>
-                    <div id="folderDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 폴더 업로드">
+                    <div id="folderDrop" class="upload-tile" role="button" tabindex="0" aria-label="오디오 폴더열기">
                         <div>
                             <div class="upload-icon">🗂️</div>
-                            <strong>폴더 업로드</strong>
+                            <strong>폴더열기</strong>
                             <span>상대 경로 보존</span>
                         </div>
                     </div>
@@ -387,9 +387,9 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.10</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.11</span>
         <h2 id="programInfoTitle">무료로 쉽게 완성하는 음질 개선과 마스터링</h2>
-        <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.</p>
+        <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.<br>작업은 내 브라우저 안에서 진행되어 파일을 서버로 올리지 않고도 빠르게 확인할 수 있습니다.</p>
         <div class="program-info-grid program-info-roadmap">
             <div><strong>기본 기능</strong><span>파일/폴더 불러오기, 장르 프리셋, 원본·마스터본 A/B 프리뷰, WAV/MP3 저장, 작업 대기열 처리.</span></div>
             <div><strong>도입된 기능</strong><span>스마트 추천, 레퍼런스 트랙, 플랫폼 저장 프리셋, 실시간 미리듣기, 스냅샷, 안전 점수, 저역 모노 체크.</span></div>
