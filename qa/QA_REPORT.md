@@ -1,25 +1,29 @@
-# FoxBear Pro v1.3.8 QA Report
+# FoxBear v1.3.9 QA Report
 
-## Scope
-- UI text patch: `기능 더 보기` -> `버튼 활성화`
-- Mastering settings header microcopy removal
-- Mobile reference track layout optimization
-- Realtime preview popup with stacked mastering controls
-- Popup transparency/alignment polish
-- Typography normalization
-- ZIP fallback when external JSZip cannot load
+## Applied focus
+- Preview pop-up player now matches the work-queue custom preview interface.
+- Realtime preview controls are EQ-style vertical faders with PC one-line layout and mobile horizontal compact scrolling.
+- Mobile mastering-setting typography and value alignment were tightened to reduce line wrapping.
+- Inner borders and margins were reduced to avoid border-within-border space loss.
+- Top subscribe button was removed.
+- Program/version dialog now explains core purpose, base features, introduced features, quality guards, and planned features.
+- Track-card click now also adds the clicked track to the selected work target set.
+- Smart recommendation pills were reduced to core non-duplicated information.
 
-## Automated Checks
-- `npm run check`: PASS
-- `npm run check` second pass: PASS
-- `node --check src/app.js`: PASS
-- Worker syntax checks: PASS
-- Duplicate HTML ID check: PASS
-- Local asset existence check: PASS
-- CSS brace balance check: PASS
-- Realtime preview function presence check: PASS
+## Static checks
+- HTML IDs: 99 found, duplicates: none
+- CSS brace balance: 1395 opening / 1395 closing
+- Local asset references: checked from index.html
+- Button-type functional label duplicates: none
 
-## Notes
-- The realtime popup uses a WebAudio live chain for EQ, warmth, width matrix, metallic reduction, compressor, limiter, and gain preview. It does not replace the final high-quality offline render path.
-- Pitch/BPM transformation remains in the final render path through WSOLA worker or optional external WASM adapter. This is safer for vocal quality than forcing browser realtime pitch shifting in the preview popup.
-- Headless Chromium in this container timed out before completing visual capture, so real audio device playback still needs a local browser smoke test with actual audio files.
+## Runtime syntax checks
+- npm run check: passed twice after patch.
+- src/app.js: node --check passed.
+- workers: analysis, wav, mp3, finalizer, pitch-wsola passed.
+- optional pitch adapter: node --check passed.
+
+## Remaining manual browser checks
+- Load 2+ audio files, click the second/third track card, confirm each card becomes an active work target.
+- Open preview dialog and confirm the player UI matches the work queue preview.
+- Move realtime faders while playing and confirm WebAudio changes are audible.
+- Mobile viewport: confirm mastering strength/value alignment does not push labels to a second line unnecessarily.
