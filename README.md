@@ -1,19 +1,29 @@
-# FoxBear AI Mastering Studio Pro v1.3.10
+# FoxBear AI Mastering Studio Pro v1.3.11
 
 GitHub Pages-ready modular browser mastering studio.
 
 
-## Pro v1.3.10 realtime preview / density polish
+
+## Pro v1.3.11 mobile balance follow-up
+- 미리듣기 팝업에 현재 곡 정보 줄을 추가했습니다. 곡명, 시간, 용량, 형식, 프리셋을 한 줄로 확인할 수 있습니다.
+- 여러 곡을 불러왔을 때 현재 작업 트랙과 선택된 작업 대상 카드의 테두리 색상 차이를 더 분명하게 조정했습니다.
+- 작업 요약 4개 카드와 작업 실행 버튼 영역의 여백을 다시 늘려 너무 붙어 보이는 문제를 완화했습니다.
+- `파일 업로드/폴더 업로드` 표기를 `파일열기/폴더열기`로 변경했습니다.
+- 상단 아날로그 노브를 더 실제 노브처럼 보이도록 눈금, 하이라이트, 포인터, 입체 그림자를 보강했습니다.
+- 제작자 네임텍 hover 시 위치가 흔들리지 않도록 transform 효과를 제거했습니다.
+- 모바일 제작자 네임텍은 폭을 줄이고 DESIGNED BY는 좌측, 곰같은여우 with AI는 중앙 정렬되도록 보정했습니다.
+
+## Pro v1.3.11 realtime preview / density polish
 - 미리듣기 팝업 플레이어를 작업 대기열 프리뷰와 같은 커스텀 플레이어 인터페이스로 통일했습니다.
-- 미리듣기 컨트롤을 EQ처럼 위아래형 세로 페이더로 재배치했습니다. PC에서는 한 줄 전체 폭으로, 모바일에서는 가로 스크롤형 컴팩트 페이더로 표시됩니다.
+- 미리듣기 컨트롤을 EQ처럼 위아래형 세로 페이더로 재배치했습니다. PC에서는 한 줄 전체 폭으로, 모바일에서는 5열 x 2줄 컴팩트 페이더로 표시됩니다.
 - 실시간 컨트롤 조작 중 전체 화면을 과하게 재렌더링하지 않도록 갱신 범위를 줄였습니다.
 - 카드 클릭 시 현재 활성 트랙뿐 아니라 작업 대상 선택 상태에도 반영되도록 개선했습니다. 여러 곡 추가 시 첫 곡만 선택된 것처럼 보이는 문제를 줄였습니다.
 - 스마트 추천 패널은 추천 장르, 안전 점수, 저역 모노, 보호 가드 중심으로 축약해 대기열/분석 정보와의 중복을 줄였습니다.
 - 상단 구독 버튼을 제거하고, 프로그램 설명 팝업을 기본 기능/도입 기능/음질 보호/예정 기능 중심으로 재정리했습니다.
-- 내부 테두리와 여백을 줄여 테두리 속 테두리 구조의 공간 낭비를 완화했습니다.
+- 부모/자식 카드 간격을 균형 있게 재조정해 테두리 속 테두리 구조의 공간 낭비를 줄이되 너무 붙지 않게 보정했습니다.
 - 마스터링 설정과 마스터링 강도 모바일 글자/퍼센트 정렬을 보정해 줄 밀림을 줄였습니다.
 
-## Pro v1.3.10 reliability / mastering workflow upgrade
+## Pro v1.3.11 reliability / mastering workflow upgrade
 - 레퍼런스 트랙 업로드 패널을 추가했습니다. 목표 음원의 저역/저중역/중역/고역, 밝기, 폭, 트랜지언트 성향을 분석해 추천값과 프리셋 레퍼런스 매처에 반영합니다.
 - 플랫폼별 저장 프리셋을 추가했습니다: Streaming Safe, YouTube/MV, Apple/Hi-Fi, SNS/Shorts, Loud Demo, Archive Master. 선택 시 출력 포맷, LUFS, 피크 천장, 품질 모드가 함께 맞춰집니다.
 - 되돌리기/스냅샷 패널을 추가했습니다. 선택 트랙의 장르, 슬라이더, 피치/BPM, 악기, 출력 목표, 성능 모드를 저장하고 최근 스냅샷으로 복원할 수 있습니다.
@@ -22,15 +32,15 @@ GitHub Pages-ready modular browser mastering studio.
 - 엔진 안전 점수에 저역 모노 위험을 반영해, 과한 공간감 또는 저역 위상 문제를 더 일찍 감지합니다.
 - `npm run check` 범위를 외부 WASM 피치 어댑터까지 확장했습니다.
 
-## Pro v1.3.10 feature popup and readability upgrade
-- 버튼형 적용 기능을 기본 화면에서 숨기고, `기능 보기` 팝업 안에서 한눈에 켜고 끌 수 있도록 개편했습니다. 꺼진 기능은 앞쪽, 켜진 기능은 뒤쪽에 정렬됩니다.
+## Pro v1.3.11 feature popup and readability upgrade
+- 버튼형 적용 기능을 기본 화면에서 숨기고, `버튼 보기` 팝업 안에서 한눈에 켜고 끌 수 있도록 개편했습니다. 꺼진 기능은 앞쪽, 켜진 기능은 뒤쪽에 정렬됩니다.
 - 모바일에서 기능 버튼 글자와 ON/OFF 배지가 겹치지 않도록 팝업 그리드, 줄바꿈, 글자 크기를 다시 조정했습니다.
 - 일반 프로그램에서 많이 쓰는 시스템 UI 계열 글꼴 스택으로 정리해 PC/모바일 가독성을 맞췄습니다.
 - 마스터링 설정 영역은 기능 명칭이 더 잘 보이고 설명/선택 텍스트는 과하게 커지지 않도록 보정했습니다.
 - 상단 소개 카드 테두리에 느리게 도는 음악적 하이라이트 라이트를 추가했습니다. 움직임 줄이기 설정에서는 애니메이션을 완화합니다.
-- 새 UI 구조에서도 CSS/JS 캐시 버전을 v1.3.10로 갱신했습니다.
+- 새 UI 구조에서도 CSS/JS 캐시 버전을 v1.3.11로 갱신했습니다.
 
-## Pro v1.3.10 preset/research engine upgrade
+## Pro v1.3.11 preset/research engine upgrade
 - BandLab/LANDR/CloudBounce류 온라인 마스터링 도구의 흐름을 참고해, 빠른 프리셋 선택 + 강도 조절 + A/B 비교 + 레퍼런스 성향 보정 방향을 강화했습니다.
 - 장르 프리셋에 `Cinematic / OST`, `Spatial / Wide Mix`, `Tape Warmth`, `Punch / Live Energy` 스타일을 추가했습니다.
 - `프리셋 레퍼런스 매처` 엔진을 추가해 선택 프리셋의 목표 저역/저중역/중역/고역 밸런스에 더 가깝게 미세 보정합니다.
@@ -181,13 +191,13 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - Pitch/BPM render output now receives a light transform safety polish: edge fade, DC-offset cleanup, and extra boundary smoothing for extreme pitch/speed settings.
 
 
-## v1.3.10 Intelligent UI Planning Update
+## v1.3.11 Intelligent UI Planning Update
 
 - 상단 소개 영역을 단일 통합 헤더로 개편했습니다. 모바일에서 배지, 버전, 구독 문구가 밀리지 않도록 `DESIGNED BY 곰같은여우 with AI` 정보를 작은 내부 카드로 합쳤습니다.
 - 버튼형 적용 기능은 OFF 상태 항목을 앞쪽에, ON 상태 항목을 뒤쪽에 정렬합니다. 꺼진 기능을 먼저 찾고 켤 수 있어 실험 흐름이 더 빠릅니다.
 - 기능 추가는 성능을 해치지 않는 것을 원칙으로 합니다. 다음 개발 방향은 무거운 실시간 모델보다 로컬 분석 결과를 재사용하는 지능형 추천, A/B 비교 개선, 안전한 엔진 가드 중심으로 진행합니다.
 
-## v1.3.10 Smart Guard / Safety Upgrade
+## v1.3.11 Smart Guard / Safety Upgrade
 
 - Added Smart Performance Guard as a button-style utility feature. It keeps normal quality on PC, but can automatically reduce only the heaviest peak-check mode on older mobile devices or very long files.
 - Added Engine Safety Score. The app now estimates over-processing risk from intensity, width, punch, clarity, pitch/BPM extremes, true-peak status, and vocal/phase/low-end protection.
