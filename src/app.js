@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.8';
+const APP_VERSION = 'Pro v1.3.9';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -652,45 +652,47 @@ function renderRealtimePreviewConsole(track, target) {
     head.append(title, status);
 
     const playerCard = document.createElement('div');
-    playerCard.className = 'realtime-player-card';
-    const audio = document.createElement('audio');
-    audio.controls = true;
-    audio.preload = 'metadata';
-    audio.src = track.originalUrl;
-    audio.setAttribute('aria-label', '실시간 마스터링 프리뷰 재생');
+    playerCard.className = 'preview-card realtime-player-card';
+    playerCard.appendChild(makePreviewTitle('선택 트랙 프리뷰', track.analysis?.duration));
+    const previewPlayer = createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track));
+    previewPlayer.classList.add('realtime-custom-player');
+    const audio = previewPlayer.querySelector('audio');
+    if (audio) audio.setAttribute('aria-label', '실시간 마스터링 프리뷰 재생');
     const playerHelp = document.createElement('small');
-    playerHelp.textContent = '재생 후 아래 컨트롤을 조절하세요. 피치/BPM은 저장 렌더 단계에서 고품질 WSOLA/WASM 경로로 처리됩니다.';
-    playerCard.append(audio, playerHelp);
+    playerHelp.textContent = '작업 대기열과 같은 플레이어입니다. 재생 후 아래 EQ형 컨트롤을 움직이면 저장 없이 바로 반영됩니다.';
+    playerCard.append(previewPlayer, playerHelp);
 
     const controls = document.createElement('div');
-    controls.className = 'realtime-control-stack';
+    controls.className = 'realtime-control-stack realtime-eq-strip';
+    controls.setAttribute('aria-label', '실시간 마스터링 컨트롤');
     SLIDERS.forEach(slider => controls.appendChild(createRealtimeSliderRow(slider, track)));
+
+    const liveHint = document.createElement('div');
+    liveHint.className = 'realtime-live-hint';
+    liveHint.textContent = '컨트롤을 움직이면 이곳에 변화 설명이 표시됩니다. 피치/BPM은 음질 보호를 위해 최종 렌더 단계에서 처리합니다.';
 
     const footer = document.createElement('div');
     footer.className = 'realtime-preview-footer';
-    footer.innerHTML = '<span>실시간: EQ · 공간 · 질감 · 컴프/리미터</span><span>최종 저장: 고품질 렌더 + 피크 가드</span>';
+    footer.innerHTML = '<span>실시간: 톤 · 공간 · 질감 · 압축</span><span>최종 저장: 피치/BPM · True Peak · 고품질 렌더</span>';
 
-    wrap.append(head, playerCard, controls, footer);
+    wrap.append(head, playerCard, controls, liveHint, footer);
     target.appendChild(wrap);
 
-    setupRealtimePreviewEngine(track, audio, status);
+    if (audio) setupRealtimePreviewEngine(track, audio, status);
+    else if (status) status.textContent = '플레이어 생성 실패';
 }
 
 function createRealtimeSliderRow(slider, track) {
     const value = clampToStep(Number(track.settings?.[slider.id] ?? GENRE_PRESETS.custom[slider.id]), slider.min ?? 0, slider.max ?? 100, slider.step ?? 1);
     const row = document.createElement('div');
-    row.className = 'realtime-slider-row';
+    row.className = 'realtime-slider-row realtime-fader';
     row.dataset.slider = slider.id;
+    row.dataset.hint = customHintText(slider, value);
 
-    const top = document.createElement('div');
-    top.className = 'realtime-slider-top';
     const label = document.createElement('label');
+    label.className = 'realtime-fader-label';
     label.htmlFor = `rt-${slider.id}`;
     decorateSliderLabel(label, slider.label);
-    const valueEl = document.createElement('b');
-    valueEl.id = `rt-value-${slider.id}`;
-    valueEl.textContent = formatSliderValue(slider, value);
-    top.append(label, valueEl);
 
     const input = document.createElement('input');
     input.type = 'range';
@@ -702,10 +704,15 @@ function createRealtimeSliderRow(slider, track) {
     input.dataset.sliderId = slider.id;
     input.addEventListener('input', handleRealtimePreviewSliderInput);
 
+    const valueEl = document.createElement('b');
+    valueEl.id = `rt-value-${slider.id}`;
+    valueEl.className = 'realtime-fader-value';
+    valueEl.textContent = formatSliderValue(slider, value);
+
     const hint = document.createElement('small');
     hint.className = 'realtime-slider-hint';
     hint.textContent = customHintText(slider, value);
-    row.append(top, input, hint);
+    row.append(label, input, valueEl, hint);
     return row;
 }
 
@@ -728,8 +735,12 @@ function handleRealtimePreviewSliderInput(event) {
     const localValue = document.getElementById(`rt-value-${id}`);
     if (localValue) localValue.textContent = formatSliderValue(slider, value);
     const row = input.closest('.realtime-slider-row');
+    const newHint = customHintText(slider, value);
     const hint = row ? row.querySelector('.realtime-slider-hint') : null;
-    if (hint) hint.textContent = customHintText(slider, value);
+    if (hint) hint.textContent = newHint;
+    if (row) row.dataset.hint = newHint;
+    const liveHint = el.previewDialog ? el.previewDialog.querySelector('.realtime-live-hint') : null;
+    if (liveHint) liveHint.textContent = `${plainSliderLabel(slider.label)} · ${newHint}`;
 
     const mainInput = document.getElementById(id);
     if (mainInput) mainInput.value = String(value);
@@ -748,7 +759,13 @@ function schedulePreviewUiRefresh() {
     clearTimeout(state.previewRenderTimer);
     state.previewRenderTimer = setTimeout(() => {
         state.previewRenderTimer = null;
-        renderAll({ keepDetailAudio: true });
+        renderButtons();
+        renderTrackList();
+        renderDetail({ keepDetailAudio: true });
+        renderSelectedBadge();
+        updateSmartRecommendationPanel();
+        renderSnapshotPanel();
+        updatePreviewButton();
     }, REALTIME_PREVIEW_RENDER_DELAY);
 }
 
@@ -969,20 +986,16 @@ function buildSmartSuggestionItems(track) {
     const items = [];
     const analysis = track.analysis || {};
     const preset = PRESET_LABELS[track.recommendedPreset || track.preset] || track.recommendedPreset || track.preset || '커스텀';
-    items.push({ label: '장르', value: preset, tone: 'cyan' });
-    if (Number.isFinite(Number(track.confidence))) items.push({ label: '신뢰도', value: `${Math.round(Number(track.confidence))}%`, tone: track.confidence >= 70 ? 'ok' : 'warn' });
-    if (Number.isFinite(Number(analysis.loudnessHint))) items.push({ label: '원본 RMS', value: `${Number(analysis.loudnessHint).toFixed(1)} dB`, tone: 'neutral' });
-    if (Number.isFinite(Number(analysis.brightness))) items.push({ label: '밝기', value: `${Math.round(Number(analysis.brightness) * 100)}%`, tone: analysis.brightness > .68 ? 'warn' : 'neutral' });
-    if (Number.isFinite(Number(analysis.stereoWidth))) items.push({ label: '공간', value: `${Math.round(Number(analysis.stereoWidth) * 100)}%`, tone: analysis.stereoWidth > .74 ? 'warn' : 'neutral' });
-    if (Number.isFinite(Number(analysis.lowMonoScore))) items.push({ label: '저역모노', value: `${Math.round(Number(analysis.lowMonoScore))}점`, tone: analysis.lowMonoScore >= 80 ? 'ok' : analysis.lowMonoScore >= 62 ? 'warn' : 'danger' });
+    items.push({ label: '추천 장르', value: preset, tone: 'cyan' });
     const safety = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
-    if (safety) items.push({ label: '안전', value: `${safety.score}점`, tone: safety.tone || 'ok' });
+    if (safety) items.push({ label: '안전 점수', value: `${safety.score}점`, tone: safety.tone || 'ok' });
+    if (Number.isFinite(Number(analysis.lowMonoScore))) items.push({ label: '저역 모노', value: `${Math.round(Number(analysis.lowMonoScore))}점`, tone: analysis.lowMonoScore >= 80 ? 'ok' : analysis.lowMonoScore >= 62 ? 'warn' : 'danger' });
     const activeGuards = [
         state.featureFlags.truePeakGuard ? '피크' : '',
         state.featureFlags.vocalProtect ? '보컬' : '',
         state.featureFlags.earFatigueGuard ? '피로' : ''
     ].filter(Boolean).join(' · ') || '수동';
-    items.push({ label: '가드', value: activeGuards, tone: 'ok' });
+    items.push({ label: '보호 가드', value: activeGuards, tone: 'ok' });
     return items;
 }
 
@@ -6036,6 +6049,10 @@ function formatPlayerTime(current, duration) {
     return formatTime(current || 0);
 }
 
+function plainSliderLabel(label) {
+    return String(label || '').replace(/\s*\([^)]*\)/g, '').trim() || '컨트롤';
+}
+
 
 function getTrackHighlightStart(track) {
     if (!state.autoHighlightAB || !track) return NaN;
@@ -6542,9 +6559,10 @@ function updateConfidenceUI(track) {
 
 function selectTrack(id) {
     state.selectedId = id;
+    if (id) state.selectedIds.add(id);
     const track = getSelectedTrack();
     if (track) applyTrackToControls(track);
-    renderAll();
+    renderAll({ keepDetailAudio: true });
 }
 
 function removeTrack(id) {
@@ -6618,7 +6636,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.8',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.9',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
