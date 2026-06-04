@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v1.3.12 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.11';
+const APP_VERSION = 'Pro v1.3.12';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -6724,7 +6724,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.11',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.12',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
