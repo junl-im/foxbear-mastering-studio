@@ -1,17 +1,17 @@
-FoxBear v1.3.12 static audit
+FoxBear v1.3.13 static audit
 
 Checks:
+- npm run check: PASS
 - HTML duplicate IDs: PASS
 - Local asset references: PASS
 - CSS brace balance: PASS
-- npm run check x2: PASS
 - ZIP integrity: PASS
 
 Focus areas patched:
-- Summary title/stat-card inline layout
-- Parent/child border spacing density
-- Mobile title/button/card font balance
-- Preview popup English eyebrow removal
-- Action button group breathing room
-- Slow analog knob animation
-- v1.3.12 cache/version bump
+- Non-selected track border color fixed to black
+- Selected/current-track emphasis kept while separating visual states
+- Track card hover/click transform removed to prevent jitter
+- Hidden statistics trigger on PC/mobile compatibility badge double tap
+- Password-protected statistics panel with password 8605
+- Local visitor/referrer/today/total statistics with backend API hook
+- v1.3.13 cache/version bump
