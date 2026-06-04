@@ -1,16 +1,6 @@
-FoxBear v1.3.8 static audit
-- version: 1.3.8
-- html_ids: 99
-- duplicate_ids: []
-- css_braces_balanced: True
-- local_assets_ok: True
-- preview_dialog_count: 1
-- feature_button_label_ok: True
-- mastering_head_microcopy_removed: True
-- realtime_preview_functions: True
-- reference_mobile_labels: True
-- zip_fallback_present: True
-- local assets:
-  - assets/icons/foxbear.svg: OK
-  - assets/css/studio.css: OK
-  - src/app.js: OK
+ids=99
+duplicate_ids=[]
+css_braces=1395/1395
+button_function_label_duplicates=[]
+js_bytes=308765
+css_bytes=162812
