@@ -1,4 +1,4 @@
-FoxBear v1.3.10 static audit
+FoxBear v1.3.11 static audit
 
 Checks:
 - HTML duplicate IDs: PASS
