@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.7 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.8 - browser based AI music mastering console" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.7</title>
+<title>FoxBear Mastering PRO v1.3.8</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.7" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.8" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.7"></script>
+<script defer src="src/app.js?v=1.3.8"></script>
 </head>
-<body data-build="1.3.7">
+<body data-build="1.3.8">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
@@ -22,7 +22,7 @@
                 <div class="brand-kicker">
                     <span class="badge badge-music">곰같은여우 뮤직</span>
                     <span class="badge badge-device">PC & 모바일 호환</span>
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.7</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.8</button>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
                     <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널 구독 페이지를 엽니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span></a>
@@ -76,7 +76,7 @@
                     <strong>버튼형 적용 기능</strong>
                     <small id="featureCount">0개 활성</small>
                 </div>
-                <button id="featureOpenBtn" class="feature-open-btn feature-open-wide" type="button" data-help="버튼형 기능을 팝업으로 열어 켜고 끕니다.">기능 더 보기</button>
+                <button id="featureOpenBtn" class="feature-open-btn feature-open-wide" type="button" data-help="버튼형 적용 기능을 팝업으로 열어 필요한 버튼을 활성화합니다.">버튼 활성화</button>
                 <div id="featureDock" class="feature-dock feature-dock-hidden" aria-hidden="true"></div>
             </section>
 
@@ -132,9 +132,9 @@
                     <p id="referenceSummary">상업 음원이나 목표 사운드를 1곡 불러오면 톤 밸런스와 폭을 추천/렌더에 참고합니다.</p>
                     <div id="referenceMetrics" class="reference-metrics"></div>
                     <div class="reference-actions">
-                        <button id="referenceLoadBtn" class="btn-secondary" type="button" data-help="목표 사운드가 될 레퍼런스 오디오 파일을 1곡 분석합니다.">레퍼런스 업로드</button>
-                        <button id="referenceApplyBtn" class="btn-secondary" type="button" disabled data-help="레퍼런스 분석값을 현재 선택 트랙 추천값에 반영합니다.">현재 곡에 반영</button>
-                        <button id="referenceClearBtn" class="btn-secondary" type="button" disabled data-help="레퍼런스 분석값을 해제합니다.">해제</button>
+                        <button id="referenceLoadBtn" class="btn-secondary" type="button" data-mobile-label="업로드" data-help="목표 사운드가 될 레퍼런스 오디오 파일을 1곡 분석합니다.">레퍼런스 업로드</button>
+                        <button id="referenceApplyBtn" class="btn-secondary" type="button" disabled data-mobile-label="반영" data-help="레퍼런스 분석값을 현재 선택 트랙 추천값에 반영합니다.">현재 곡에 반영</button>
+                        <button id="referenceClearBtn" class="btn-secondary" type="button" disabled data-mobile-label="해제" data-help="레퍼런스 분석값을 해제합니다.">해제</button>
                     </div>
                     <input type="file" id="referenceInput" class="hidden" accept="audio/*,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm" />
                 </section>
@@ -148,8 +148,7 @@
                 <div class="dsp-settings-head">
                     <strong>마스터링 설정</strong>
                     <div class="dsp-head-actions">
-                        <small>톤 · 공간 · 질감</small>
-                        <button id="previewOpenBtn" class="preview-open-btn" type="button" disabled data-help="음악 파일을 불러온 뒤 원본/마스터본 미리듣기 팝업을 엽니다.">미리듣기</button>
+                        <button id="previewOpenBtn" class="preview-open-btn" type="button" disabled data-help="음악 파일을 불러온 뒤 실시간 마스터링 미리듣기 팝업을 엽니다.">미리듣기</button>
                     </div>
                 </div>
                 <div id="sliderFields"></div>
@@ -389,7 +388,7 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.7</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.8</span>
         <h2 id="programInfoTitle">AI 음악 마스터링 스튜디오</h2>
         <p>서버 업로드 없이 브라우저 내부에서 오디오를 분석하고, 장르 성향·피치/BPM·마스터링 목표에 맞춰 안전하게 처리하는 로컬형 음악 마스터링 도구입니다.</p>
         <div class="program-info-grid">
@@ -423,7 +422,7 @@
             <div>
                 <span class="preview-dialog-eyebrow">Realtime Preview</span>
                 <h2 id="previewDialogTitle">미리듣기</h2>
-                <p id="previewDialogCaption">불러온 파일의 원본과 마스터링 결과를 위아래로 비교합니다.</p>
+                <p id="previewDialogCaption">저장 전에도 컨트롤을 움직여 실시간 마스터링 변화를 들어봅니다.</p>
             </div>
             <button id="previewDialogClose" class="preview-dialog-close" type="button" aria-label="미리듣기 창 닫기">×</button>
         </div>
