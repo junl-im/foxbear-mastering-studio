@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.12 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v1.3.13 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.12';
+const APP_VERSION = 'Pro v1.3.13';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -62,6 +62,10 @@ const PLATFORM_EXPORT_PRESETS = {
 
 const MAX_SNAPSHOTS_PER_TRACK = 12;
 const REALTIME_PREVIEW_RENDER_DELAY = 160;
+const ADMIN_STATS_PASSWORD = '8605';
+const ADMIN_STATS_VISITOR_KEY = 'foxbear-admin-visitor-id-v1';
+const ADMIN_STATS_STORAGE_KEY = 'foxbear-admin-local-stats-v1';
+const ADMIN_STATS_MAX_EVENTS = 120;
 
 
 const FEATURE_DEFINITIONS = {
@@ -315,7 +319,10 @@ const state = {
     popupScrollbarCompensation: 0,
     activeDownloadUrls: new Set(),
     realtimePreview: null,
-    previewRenderTimer: null
+    previewRenderTimer: null,
+    adminTapLastAt: 0,
+    adminTapCount: 0,
+    adminStatsRemoteError: ''
 };
 
 const el = {};
@@ -352,6 +359,7 @@ function init() {
     renderFeatureButtons();
     enhanceActionSelects();
     bindEvents();
+    registerAdminVisit();
     initActionHelpTooltips();
     maybeAutoCleanAnalysisCache();
     requestAnimationFrame(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); initActionHelpTooltips(); });
@@ -373,6 +381,7 @@ function cacheElements() {
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
+        'adminStatsTrigger', 'adminPasswordDialog', 'adminPasswordClose', 'adminPasswordCancel', 'adminPasswordSubmit', 'adminPasswordInput', 'adminPasswordError', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
@@ -1236,6 +1245,292 @@ function pauseAllPreviewAudio() {
     });
 }
 
+
+function bindAdminStatsEvents() {
+    if (el.adminStatsTrigger) {
+        el.adminStatsTrigger.addEventListener('click', handleAdminStatsTriggerTap);
+        el.adminStatsTrigger.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleAdminStatsTriggerTap();
+            }
+        });
+    }
+    if (el.adminPasswordDialog) {
+        el.adminPasswordDialog.addEventListener('click', event => {
+            if (event.target === el.adminPasswordDialog) closeAdminPasswordDialog();
+        });
+    }
+    if (el.adminPasswordClose) el.adminPasswordClose.addEventListener('click', closeAdminPasswordDialog);
+    if (el.adminPasswordCancel) el.adminPasswordCancel.addEventListener('click', closeAdminPasswordDialog);
+    if (el.adminPasswordSubmit) el.adminPasswordSubmit.addEventListener('click', submitAdminPassword);
+    if (el.adminPasswordInput) {
+        el.adminPasswordInput.addEventListener('keydown', event => {
+            if (event.key === 'Enter') submitAdminPassword();
+        });
+    }
+    if (el.adminStatsDialog) {
+        el.adminStatsDialog.addEventListener('click', event => {
+            if (event.target === el.adminStatsDialog) closeAdminStatsDialog();
+        });
+    }
+    if (el.adminStatsClose) el.adminStatsClose.addEventListener('click', closeAdminStatsDialog);
+    if (el.adminStatsCloseBottom) el.adminStatsCloseBottom.addEventListener('click', closeAdminStatsDialog);
+    if (el.adminStatsRefresh) el.adminStatsRefresh.addEventListener('click', () => renderAdminStatsDialog(true));
+}
+
+function handleAdminStatsTriggerTap() {
+    const now = Date.now();
+    state.adminTapCount = now - state.adminTapLastAt < 620 ? state.adminTapCount + 1 : 1;
+    state.adminTapLastAt = now;
+    if (state.adminTapCount >= 2) {
+        state.adminTapCount = 0;
+        openAdminPasswordDialog();
+    }
+}
+
+function openAdminPasswordDialog() {
+    if (!el.adminPasswordDialog) return;
+    el.adminPasswordDialog.classList.add('show');
+    el.adminPasswordDialog.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('admin-dialog-open');
+    if (el.adminPasswordError) el.adminPasswordError.textContent = '';
+    if (el.adminPasswordInput) {
+        el.adminPasswordInput.value = '';
+        setTimeout(() => el.adminPasswordInput.focus({ preventScroll: true }), 30);
+    }
+}
+
+function closeAdminPasswordDialog() {
+    if (!el.adminPasswordDialog) return;
+    el.adminPasswordDialog.classList.remove('show');
+    el.adminPasswordDialog.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('admin-dialog-open');
+}
+
+function submitAdminPassword() {
+    const value = String(el.adminPasswordInput?.value || '').trim();
+    if (value !== ADMIN_STATS_PASSWORD) {
+        if (el.adminPasswordError) el.adminPasswordError.textContent = '암호가 맞지 않습니다.';
+        if (el.adminPasswordInput) el.adminPasswordInput.select();
+        return;
+    }
+    closeAdminPasswordDialog();
+    openAdminStatsDialog();
+}
+
+function openAdminStatsDialog() {
+    if (!el.adminStatsDialog) return;
+    el.adminStatsDialog.classList.add('show');
+    el.adminStatsDialog.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('admin-dialog-open');
+    renderAdminStatsDialog(false);
+    const panel = el.adminStatsDialog.querySelector('.admin-dialog-panel');
+    setTimeout(() => panel?.focus({ preventScroll: true }), 30);
+}
+
+function closeAdminStatsDialog() {
+    if (!el.adminStatsDialog) return;
+    el.adminStatsDialog.classList.remove('show');
+    el.adminStatsDialog.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('admin-dialog-open');
+}
+
+function registerAdminVisit() {
+    const now = new Date();
+    const visitorId = getOrCreateAdminVisitorId();
+    const stats = readAdminLocalStats();
+    const dateKey = formatAdminDateKey(now);
+    const referrer = normalizeReferrer(document.referrer);
+    const event = {
+        at: now.toISOString(),
+        date: dateKey,
+        visitorId,
+        ip: '백엔드 미연결',
+        referrer,
+        page: `${location.pathname || '/'}${location.search || ''}`,
+        screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
+        language: navigator.language || '',
+        userAgent: navigator.userAgent || ''
+    };
+    stats.version = 1;
+    stats.totalVisits = Number(stats.totalVisits || 0) + 1;
+    stats.firstSeen = stats.firstSeen || event.at;
+    stats.lastSeen = event.at;
+    stats.visitors = stats.visitors && typeof stats.visitors === 'object' ? stats.visitors : {};
+    const visitor = stats.visitors[visitorId] || { firstSeen: event.at, visits: 0, referrers: [] };
+    visitor.lastSeen = event.at;
+    visitor.visits = Number(visitor.visits || 0) + 1;
+    visitor.referrers = Array.from(new Set([...(visitor.referrers || []), referrer])).slice(0, 12);
+    stats.visitors[visitorId] = visitor;
+    stats.events = Array.isArray(stats.events) ? stats.events : [];
+    stats.events.push(event);
+    stats.events = stats.events.slice(-ADMIN_STATS_MAX_EVENTS);
+    stats.daily = stats.daily && typeof stats.daily === 'object' ? stats.daily : {};
+    stats.daily[dateKey] = buildDailyStats(stats.events, dateKey);
+    writeAdminLocalStats(stats);
+}
+
+function readAdminLocalStats() {
+    try {
+        return JSON.parse(localStorage.getItem(ADMIN_STATS_STORAGE_KEY) || '{}') || {};
+    } catch (error) {
+        return {};
+    }
+}
+
+function writeAdminLocalStats(stats) {
+    try {
+        localStorage.setItem(ADMIN_STATS_STORAGE_KEY, JSON.stringify(stats));
+    } catch (error) {
+        console.warn('Local statistics unavailable:', error);
+    }
+}
+
+function getOrCreateAdminVisitorId() {
+    try {
+        const current = localStorage.getItem(ADMIN_STATS_VISITOR_KEY);
+        if (current) return current;
+        const id = `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+        localStorage.setItem(ADMIN_STATS_VISITOR_KEY, id);
+        return id;
+    } catch (error) {
+        return `session-${Math.random().toString(36).slice(2, 8)}`;
+    }
+}
+
+function formatAdminDateKey(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function buildDailyStats(events, dateKey) {
+    const todayEvents = (events || []).filter(item => item.date === dateKey);
+    return {
+        visits: todayEvents.length,
+        unique: new Set(todayEvents.map(item => item.visitorId)).size,
+        referrers: Array.from(new Set(todayEvents.map(item => item.referrer))).slice(0, 12)
+    };
+}
+
+function normalizeReferrer(referrer) {
+    if (!referrer) return '직접 접속 / 비공개';
+    try {
+        const url = new URL(referrer);
+        if (url.hostname === location.hostname) return '내부 이동';
+        return url.hostname;
+    } catch (error) {
+        return referrer.slice(0, 80);
+    }
+}
+
+async function renderAdminStatsDialog(forceRemote) {
+    if (!el.adminStatsSummary || !el.adminStatsRows) return;
+    const localStats = readAdminLocalStats();
+    let remoteStats = null;
+    if (forceRemote || window.FOXBEAR_STATS_ENDPOINT) {
+        remoteStats = await fetchAdminRemoteStats();
+    }
+    const model = remoteStats || makeAdminStatsModel(localStats);
+    el.adminStatsSummary.textContent = '';
+    makeAdminSummaryCard('오늘 접속', `${model.todayVisits}회`, model.mode).forEach(node => el.adminStatsSummary.appendChild(node));
+    makeAdminSummaryCard('오늘 고유 방문자', `${model.todayUnique}명`, model.mode).forEach(node => el.adminStatsSummary.appendChild(node));
+    makeAdminSummaryCard('누적 접속', `${model.totalVisits}회`, model.mode).forEach(node => el.adminStatsSummary.appendChild(node));
+    makeAdminSummaryCard('통계 방식', model.modeLabel, model.mode).forEach(node => el.adminStatsSummary.appendChild(node));
+
+    if (el.adminStatsNotice) {
+        el.adminStatsNotice.textContent = model.notice || '방문 통계입니다.';
+    }
+    el.adminStatsRows.textContent = '';
+    const events = model.events.slice().reverse().slice(0, 50);
+    if (!events.length) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 4;
+        cell.textContent = '아직 표시할 방문 기록이 없습니다.';
+        row.appendChild(cell);
+        el.adminStatsRows.appendChild(row);
+        return;
+    }
+    events.forEach(item => {
+        const row = document.createElement('tr');
+        [formatAdminEventTime(item.at), item.ip || maskAdminVisitorId(item.visitorId), item.referrer || '직접 접속 / 비공개', item.page || '/'].forEach(text => {
+            const cell = document.createElement('td');
+            cell.textContent = text;
+            row.appendChild(cell);
+        });
+        el.adminStatsRows.appendChild(row);
+    });
+}
+
+function makeAdminSummaryCard(label, value, mode) {
+    const card = document.createElement('div');
+    card.className = `admin-stat-card admin-stat-${mode || 'local'}`;
+    const span = document.createElement('span');
+    span.textContent = label;
+    const strong = document.createElement('strong');
+    strong.textContent = value;
+    card.append(span, strong);
+    return [card];
+}
+
+function makeAdminStatsModel(stats) {
+    const dateKey = formatAdminDateKey(new Date());
+    const events = Array.isArray(stats.events) ? stats.events : [];
+    const todayEvents = events.filter(item => item.date === dateKey);
+    return {
+        mode: 'local',
+        modeLabel: '로컬 기록',
+        notice: `현재는 브라우저 localStorage 기준입니다. 실제 전체 방문자 IP/누적 접속자 집계는 같은 도메인의 통계 API(window.FOXBEAR_STATS_ENDPOINT) 연결 시 표시됩니다.${state.adminStatsRemoteError ? ' 서버 API 확인 실패: ' + state.adminStatsRemoteError : ''}`,
+        totalVisits: Number(stats.totalVisits || events.length || 0),
+        todayVisits: todayEvents.length,
+        todayUnique: new Set(todayEvents.map(item => item.visitorId)).size,
+        events: events.map(item => ({ ...item, ip: item.ip || maskAdminVisitorId(item.visitorId) }))
+    };
+}
+
+async function fetchAdminRemoteStats() {
+    const endpoint = typeof window.FOXBEAR_STATS_ENDPOINT === 'string' ? window.FOXBEAR_STATS_ENDPOINT.trim() : '';
+    if (!endpoint || typeof fetch !== 'function') return null;
+    try {
+        const response = await fetch(endpoint, { method: 'GET', credentials: 'same-origin', headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        const events = Array.isArray(data.events) ? data.events : [];
+        return {
+            mode: 'remote',
+            modeLabel: '서버 API',
+            notice: '서버 통계 API에서 받은 방문자 IP, 유입 사이트, 누적 접속자 기준으로 표시 중입니다.',
+            totalVisits: Number(data.totalVisits || events.length || 0),
+            todayVisits: Number(data.todayVisits || 0),
+            todayUnique: Number(data.todayUnique || data.uniqueVisitors || 0),
+            events: events.map(item => ({
+                at: item.at || item.createdAt || item.time || '',
+                ip: item.ip || item.ipAddress || 'IP 없음',
+                visitorId: item.visitorId || '',
+                referrer: item.referrer || item.referer || '직접 접속 / 비공개',
+                page: item.page || item.path || '/'
+            }))
+        };
+    } catch (error) {
+        state.adminStatsRemoteError = error.message || String(error);
+        return null;
+    }
+}
+
+function maskAdminVisitorId(visitorId) {
+    const value = String(visitorId || 'local');
+    return value.startsWith('local-') ? `local:${value.slice(-6)}` : value;
+}
+
+function formatAdminEventTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value || '-';
+    return date.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
     window.addEventListener('resize', hideFeatureTooltip);
@@ -1260,6 +1555,7 @@ function bindEvents() {
             if (event.target === el.previewDialog) closePreviewDialog();
         });
     }
+    bindAdminStatsEvents();
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
     if (el.referenceLoadBtn) el.referenceLoadBtn.addEventListener('click', () => el.referenceInput?.click());
     if (el.referenceInput) el.referenceInput.addEventListener('change', e => handleReferenceFiles(e.target.files));
@@ -1272,6 +1568,8 @@ function bindEvents() {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
         if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog();
         if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog();
+        if (event.key === 'Escape' && el.adminPasswordDialog?.classList.contains('show')) closeAdminPasswordDialog();
+        if (event.key === 'Escape' && el.adminStatsDialog?.classList.contains('show')) closeAdminStatsDialog();
     });
     el.fileDrop.addEventListener('click', () => el.fileInput.click());
     el.folderDrop.addEventListener('click', () => el.folderInput.click());
@@ -6724,7 +7022,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.12',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.13',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
