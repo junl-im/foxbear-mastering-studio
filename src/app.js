@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.10';
+const APP_VERSION = 'Pro v1.3.11';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -644,12 +644,14 @@ function renderRealtimePreviewConsole(track, target) {
     status.textContent = 'WebAudio 대기';
     head.append(title, status);
 
+    const trackInfo = makeRealtimePreviewTrackInfo(track);
+
     const playerCard = document.createElement('div');
     playerCard.className = 'preview-card realtime-player-card';
     const previewPlayer = createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track));
     previewPlayer.classList.add('realtime-custom-player');
     const audio = previewPlayer.querySelector('audio');
-    if (audio) audio.setAttribute('aria-label', '실시간 마스터링 프리뷰 재생');
+    if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} 실시간 마스터링 프리뷰 재생`);
     playerCard.append(previewPlayer);
 
     const controls = document.createElement('div');
@@ -657,11 +659,31 @@ function renderRealtimePreviewConsole(track, target) {
     controls.setAttribute('aria-label', '실시간 마스터링 컨트롤');
     getRealtimeControlDefinitions(track).forEach(control => controls.appendChild(createRealtimeSliderRow(control, track)));
 
-    wrap.append(head, playerCard, controls);
+    wrap.append(head, trackInfo, playerCard, controls);
     target.appendChild(wrap);
 
     if (audio) setupRealtimePreviewEngine(track, audio, status);
     else if (status) status.textContent = '플레이어 생성 실패';
+}
+
+function makeRealtimePreviewTrackInfo(track) {
+    const info = document.createElement('div');
+    info.className = 'realtime-track-info';
+
+    const name = document.createElement('strong');
+    name.textContent = track?.name || '선택한 곡';
+
+    const meta = document.createElement('span');
+    const parts = [];
+    if (Number.isFinite(Number(track?.analysis?.duration))) parts.push(formatTime(Number(track.analysis.duration)));
+    if (track?.size) parts.push(formatBytes(track.size));
+    parts.push(track?.type || 'audio');
+    const preset = PRESET_LABELS[track?.preset] || track?.preset || '커스텀';
+    parts.push(preset);
+    meta.textContent = parts.filter(Boolean).join(' · ');
+
+    info.append(name, meta);
+    return info;
 }
 
 function getRealtimeControlDefinitions(track) {
@@ -6702,7 +6724,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.10',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.11',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
