@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.6';
+const APP_VERSION = 'Pro v1.3.7';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -40,7 +40,7 @@ const INSTRUMENT_AMOUNT_LEVELS = {
     bold: { label: '강하게', gain: 1.15 }
 };
 const CURVE_CACHE = new Map();
-const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
+const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
 const MASTER_FLOW_STEPS = [
     { at: 6, label: '준비', hint: '디코딩' },
     { at: 22, label: '정리', hint: '무음/변환' },
@@ -49,6 +49,18 @@ const MASTER_FLOW_STEPS = [
     { at: 88, label: '피크', hint: 'True Peak' },
     { at: 98, label: '완료', hint: '인코딩' }
 ];
+
+const PLATFORM_EXPORT_PRESETS = {
+    custom: { label: '직접 설정', outputFormat: null, targetLufs: null, ceilingDb: null, qualityMode: null, note: '사용자가 고른 출력 설정을 유지합니다.' },
+    streaming: { label: 'Streaming Safe', outputFormat: 'wav24', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '대부분의 스트리밍 업로드에 안정적인 기본값입니다.' },
+    youtube: { label: 'YouTube/MV', outputFormat: 'wav24', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '영상 편집 재인코딩을 고려해 피크 여유를 둡니다.' },
+    apple: { label: 'Apple/Hi-Fi', outputFormat: 'wav24', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'max', note: '다이내믹과 피크 여유를 더 보존합니다.' },
+    social: { label: 'SNS/Shorts', outputFormat: 'mp3_320', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '모바일 업로드/공유 호환성을 우선합니다.' },
+    loud_demo: { label: 'Loud Demo', outputFormat: 'mp3_320', targetLufs: -12, ceilingDb: -0.8, qualityMode: 'balanced', note: '짧은 데모 확인용으로 체감 음압을 조금 더 올립니다.' },
+    archive: { label: 'Archive Master', outputFormat: 'wav32float', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'max', note: '후속 편집과 보관을 위한 최고 보존 프리셋입니다.' }
+};
+
+const MAX_SNAPSHOTS_PER_TRACK = 12;
 
 
 const FEATURE_DEFINITIONS = {
@@ -279,11 +291,14 @@ const state = {
         earFatigueGuard: true
     },
     albumProfile: null,
+    referenceProfile: null,
     outputFormat: 'wav24',
     masterGoal: 'natural',
     targetLufs: -14,
     ceilingDb: -1.0,
     qualityMode: 'balanced',
+    platformPreset: 'custom',
+    performanceMode: 'auto',
     pitchEngine: 'auto',
     abLevelMatch: true,
     abLoopMode: false,
@@ -353,11 +368,13 @@ function cacheElements() {
         'pitchHint', 'speedHint', 'beatChangeSelect', 'beatValue', 'beatHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
         'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
+        'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
+        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
+        'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotClearBtn', 'snapshotStatus', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -651,6 +668,7 @@ function buildSmartSuggestionItems(track) {
     if (Number.isFinite(Number(analysis.loudnessHint))) items.push({ label: '원본 RMS', value: `${Number(analysis.loudnessHint).toFixed(1)} dB`, tone: 'neutral' });
     if (Number.isFinite(Number(analysis.brightness))) items.push({ label: '밝기', value: `${Math.round(Number(analysis.brightness) * 100)}%`, tone: analysis.brightness > .68 ? 'warn' : 'neutral' });
     if (Number.isFinite(Number(analysis.stereoWidth))) items.push({ label: '공간', value: `${Math.round(Number(analysis.stereoWidth) * 100)}%`, tone: analysis.stereoWidth > .74 ? 'warn' : 'neutral' });
+    if (Number.isFinite(Number(analysis.lowMonoScore))) items.push({ label: '저역모노', value: `${Math.round(Number(analysis.lowMonoScore))}점`, tone: analysis.lowMonoScore >= 80 ? 'ok' : analysis.lowMonoScore >= 62 ? 'warn' : 'danger' });
     const safety = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
     if (safety) items.push({ label: '안전', value: `${safety.score}점`, tone: safety.tone || 'ok' });
     const activeGuards = [
@@ -671,6 +689,52 @@ function makeSmartSuggestionPill(label, value, tone = 'neutral') {
     val.textContent = value;
     item.append(name, val);
     return item;
+}
+
+function renderReferencePanel() {
+    if (!el.referencePanel) return;
+    const profile = state.referenceProfile;
+    const ready = profile?.status === 'ready' && profile.analysis;
+    if (el.referenceStatus) {
+        el.referenceStatus.textContent = !profile ? '미등록' : profile.status === 'analyzing' ? '분석 중' : profile.status === 'error' ? '오류' : '적용 가능';
+    }
+    if (el.referenceSummary) {
+        if (!profile) el.referenceSummary.textContent = '상업 음원이나 목표 사운드를 1곡 불러오면 톤 밸런스와 폭을 추천/렌더에 참고합니다.';
+        else if (profile.status === 'analyzing') el.referenceSummary.textContent = `${profile.name} 분석 중입니다. 완료되면 추천값과 레퍼런스 매처에 반영됩니다.`;
+        else if (profile.status === 'error') el.referenceSummary.textContent = `${profile.name} · ${profile.report}`;
+        else el.referenceSummary.textContent = `${profile.name} · ${profile.report} · ${formatBytes(profile.size || 0)}`;
+    }
+    if (el.referenceMetrics) {
+        el.referenceMetrics.textContent = '';
+        if (ready) {
+            const a = profile.analysis;
+            [
+                ['저역', `${Math.round(Number(a.bassRatio || 0) * 100)}%`],
+                ['밝기', `${Math.round(Number(a.brightness || 0) * 100)}%`],
+                ['공간', `${Math.round(Number(a.stereoWidth || 0) * 100)}%`],
+                ['모노', formatMonoScore(a)]
+            ].forEach(([label, value]) => el.referenceMetrics.appendChild(makeSmartSuggestionPill(label, value, 'neutral')));
+        }
+    }
+    if (el.referenceApplyBtn) el.referenceApplyBtn.disabled = !ready || !getSelectedTrack()?.analysis || state.busy;
+    if (el.referenceClearBtn) el.referenceClearBtn.disabled = !profile || state.busy;
+}
+
+function renderSnapshotPanel() {
+    const track = getSelectedTrack();
+    const count = Array.isArray(track?.snapshots) ? track.snapshots.length : 0;
+    if (el.snapshotStatus) {
+        el.snapshotStatus.textContent = !track ? '트랙 선택 대기' : count ? `${count}개 저장` : '스냅샷 없음';
+    }
+    if (el.snapshotSaveBtn) el.snapshotSaveBtn.disabled = !track || state.busy;
+    if (el.snapshotUndoBtn) el.snapshotUndoBtn.disabled = !track || state.busy || count < 1;
+    if (el.snapshotClearBtn) el.snapshotClearBtn.disabled = !track || state.busy || count < 1;
+}
+
+function formatMonoScore(analysis) {
+    const score = Number(analysis?.lowMonoScore);
+    if (!Number.isFinite(score)) return 'N/A';
+    return `${Math.round(score)}점`;
 }
 
 function updateProcessingHud() {
@@ -696,6 +760,12 @@ const ACTION_HELP_TEXTS = {
     featureOpenBtn: '버튼형 적용 기능을 팝업으로 열어 필요한 기능만 켜고 끕니다.',
     previewOpenBtn: '불러온 트랙의 원본과 마스터링 결과를 위아래 미리듣기 팝업으로 비교합니다.',
     smartSuggestApplyBtn: '분석 결과 기준 추천 프리셋과 추천값을 선택 트랙에 다시 적용합니다.',
+    referenceLoadBtn: '목표 사운드가 될 레퍼런스 트랙을 분석합니다.',
+    referenceApplyBtn: '레퍼런스 톤을 현재 선택 트랙 추천값에 반영합니다.',
+    referenceClearBtn: '레퍼런스 트랙 분석값을 해제합니다.',
+    snapshotSaveBtn: '현재 선택 트랙의 설정 상태를 저장합니다.',
+    snapshotUndoBtn: '최근 저장 스냅샷으로 되돌립니다.',
+    snapshotClearBtn: '선택 트랙의 스냅샷 기록을 삭제합니다.',
     fileDrop: '파일 하나 또는 여러 개를 불러옵니다. MP3/WAV/MP4 오디오를 지원합니다.',
     folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
     aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
@@ -782,6 +852,13 @@ function bindEvents() {
         });
     }
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
+    if (el.referenceLoadBtn) el.referenceLoadBtn.addEventListener('click', () => el.referenceInput?.click());
+    if (el.referenceInput) el.referenceInput.addEventListener('change', e => handleReferenceFiles(e.target.files));
+    if (el.referenceApplyBtn) el.referenceApplyBtn.addEventListener('click', applyReferenceToSelected);
+    if (el.referenceClearBtn) el.referenceClearBtn.addEventListener('click', clearReferenceProfile);
+    if (el.snapshotSaveBtn) el.snapshotSaveBtn.addEventListener('click', saveSnapshotForSelected);
+    if (el.snapshotUndoBtn) el.snapshotUndoBtn.addEventListener('click', restoreLatestSnapshotForSelected);
+    if (el.snapshotClearBtn) el.snapshotClearBtn.addEventListener('click', clearSnapshotsForSelected);
     window.addEventListener('keydown', event => {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
         if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog();
@@ -860,6 +937,7 @@ function bindEvents() {
         state.outputFormat = el.outputFormatSelect.value || state.outputFormat;
         el.outputFormatSelect.addEventListener('change', () => {
             state.outputFormat = el.outputFormatSelect.value || 'wav24';
+            setPlatformPresetCustomFromManualChange();
             invalidateAllMasteredOutput('출력 포맷이 변경되었습니다. 다시 마스터링하세요.');
             renderAll({ keepDetailAudio: true });
             showToast(getOutputFormatLabel(state.outputFormat) + ' 출력으로 변경했습니다.');
@@ -869,6 +947,7 @@ function bindEvents() {
         state.targetLufs = Number(el.targetLufsSelect.value || state.targetLufs);
         el.targetLufsSelect.addEventListener('change', () => {
             state.targetLufs = Number(el.targetLufsSelect.value || -14);
+            setPlatformPresetCustomFromManualChange();
             invalidateAllMasteredOutput(`${state.targetLufs} LUFS 타깃으로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
             showToast(`${state.targetLufs} LUFS 타깃으로 변경했습니다.`);
@@ -878,6 +957,7 @@ function bindEvents() {
         state.ceilingDb = Number(el.ceilingSelect.value || state.ceilingDb);
         el.ceilingSelect.addEventListener('change', () => {
             state.ceilingDb = Number(el.ceilingSelect.value || -1.0);
+            setPlatformPresetCustomFromManualChange();
             invalidateAllMasteredOutput(`${state.ceilingDb} dBTP 피크 천장으로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
             showToast(`${state.ceilingDb} dBTP 피크 천장으로 변경했습니다.`);
@@ -887,9 +967,26 @@ function bindEvents() {
         state.qualityMode = el.qualityModeSelect.value || state.qualityMode;
         el.qualityModeSelect.addEventListener('change', () => {
             state.qualityMode = el.qualityModeSelect.value || 'balanced';
+            if (el.platformPresetSelect && state.platformPreset !== 'custom') {
+                state.platformPreset = 'custom';
+                el.platformPresetSelect.value = 'custom';
+            }
             invalidateAllMasteredOutput(`${getQualityModeLabel(state.qualityMode)} 엔진 모드로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
             showToast(`${getQualityModeLabel(state.qualityMode)} 엔진 모드로 변경했습니다.`);
+        });
+    }
+    if (el.platformPresetSelect) {
+        state.platformPreset = el.platformPresetSelect.value || state.platformPreset;
+        el.platformPresetSelect.addEventListener('change', () => applyPlatformExportPreset(el.platformPresetSelect.value || 'custom', true));
+    }
+    if (el.performanceModeSelect) {
+        state.performanceMode = el.performanceModeSelect.value || state.performanceMode;
+        el.performanceModeSelect.addEventListener('change', () => {
+            state.performanceMode = el.performanceModeSelect.value || 'auto';
+            invalidateAllMasteredOutput(`${getPerformanceModeLabel(state.performanceMode)} 성능 모드로 변경되었습니다. 다시 마스터링하세요.`);
+            renderAll({ keepDetailAudio: true });
+            showToast(`${getPerformanceModeLabel(state.performanceMode)} 성능 모드로 변경했습니다.`);
         });
     }
     if (el.pitchEngineSelect) {
@@ -1281,7 +1378,7 @@ function validateAudioFile(file) {
 
 function createTrack(file) {
     const path = file.webkitRelativePath || file.name;
-    const id = crypto.randomUUID ? crypto.randomUUID() : `track-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `track-${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const url = URL.createObjectURL(file);
     return {
         id,
@@ -1312,6 +1409,7 @@ function createTrack(file) {
         truePeakInfo: null,
         finalizeInfo: null,
         performanceInfo: null,
+        snapshots: [],
         report: '대기 중',
         outBlob: null,
         outName: '',
@@ -1508,6 +1606,13 @@ function analyzeBuffer(buffer) {
     let midSq = 0;
     let sideSq = 0;
     let stereoCount = 0;
+    let lowLeftLp = 0;
+    let lowRightLp = 0;
+    let lowLeftSq = 0;
+    let lowRightSq = 0;
+    let lowCrossSq = 0;
+    let lowMidMonoSq = 0;
+    let lowSideMonoSq = 0;
     let highFreqEnergy = 0;
     let midHighEnergy = 0;
     const effectiveRate = Math.max(1000, buffer.sampleRate / step);
@@ -1566,6 +1671,15 @@ function analyzeBuffer(buffer) {
             const side = (left - right) * 0.5;
             midSq += mid * mid;
             sideSq += side * side;
+            lowLeftLp += c120 * (left - lowLeftLp);
+            lowRightLp += c120 * (right - lowRightLp);
+            const lowMid = (lowLeftLp + lowRightLp) * 0.5;
+            const lowSide = (lowLeftLp - lowRightLp) * 0.5;
+            lowLeftSq += lowLeftLp * lowLeftLp;
+            lowRightSq += lowRightLp * lowRightLp;
+            lowCrossSq += lowLeftLp * lowRightLp;
+            lowMidMonoSq += lowMid * lowMid;
+            lowSideMonoSq += lowSide * lowSide;
             stereoCount += 1;
         }
     }
@@ -1588,6 +1702,10 @@ function analyzeBuffer(buffer) {
     const midRatio = clamp01(midBandSq / spectralTotal);
     const highRatio = clamp01(highBandSq / spectralTotal);
     const transientDensity = clamp01(transientHits / Math.max(1, bandCount) * 4.0);
+    const lowMonoCorrelation = channels >= 2 && stereoCount ? clamp(lowCrossSq / Math.sqrt(Math.max(1e-12, lowLeftSq * lowRightSq)), -1, 1) : 1;
+    const lowSideRatio = channels >= 2 && stereoCount ? Math.sqrt(lowSideMonoSq / Math.max(1, stereoCount)) / Math.max(0.000001, Math.sqrt(lowMidMonoSq / Math.max(1, stereoCount))) : 0;
+    const lowMonoScore = channels >= 2 ? Math.round(clamp(((lowMonoCorrelation + 1) * 0.5) * 72 + (1 - clamp01(lowSideRatio)) * 28, 0, 100)) : 100;
+    const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
 
     let estimatedTargetFreq = 5200;
     if (zcr > 0.42) estimatedTargetFreq = 7400;
@@ -1614,6 +1732,10 @@ function analyzeBuffer(buffer) {
         midRatio,
         highRatio,
         transientDensity,
+        lowMonoCorrelation,
+        lowSideRatio,
+        lowMonoScore,
+        lowMonoRisk,
         silence,
         targetDynamicFreq: estimatedTargetFreq
     };
@@ -1741,7 +1863,10 @@ function getDevicePerformanceTier() {
 }
 
 function getSmartPerformanceGuardDecision(track, buffer, requestedOutputFormat) {
-    const device = getDevicePerformanceTier();
+    const rawDevice = getDevicePerformanceTier();
+    const forcedMobile = state.performanceMode === 'mobile';
+    const qualityLock = state.performanceMode === 'quality';
+    const device = forcedMobile ? { ...rawDevice, mobile: true, tier: rawDevice.tier === 'desktop' ? 'mobile' : rawDevice.tier } : rawDevice;
     const duration = Number(buffer?.duration || track?.analysis?.duration || 0);
     const sourceMode = state.qualityMode || 'balanced';
     const mp3 = String(requestedOutputFormat || '').startsWith('mp3');
@@ -1749,10 +1874,12 @@ function getSmartPerformanceGuardDecision(track, buffer, requestedOutputFormat) 
     const veryLongFile = duration >= 15 * 60;
     let qualityMode = sourceMode;
     const reasons = [];
-    if (state.smartPerformanceGuard) {
-        if (device.tier === 'mobile-lite' && sourceMode === 'max') {
+    const guardEnabled = Boolean(state.smartPerformanceGuard) && !qualityLock;
+    if (qualityLock) reasons.push('품질 우선 잠금');
+    if (guardEnabled) {
+        if ((device.tier === 'mobile-lite' || forcedMobile) && sourceMode === 'max') {
             qualityMode = 'balanced';
-            reasons.push('구형/저메모리 모바일 Max 검사 완화');
+            reasons.push(forcedMobile ? 'Mobile Safe Max 검사 균형화' : '구형/저메모리 모바일 Max 검사 완화');
         }
         if (device.mobile && veryLongFile && sourceMode !== 'fast') {
             qualityMode = 'fast';
@@ -1767,9 +1894,10 @@ function getSmartPerformanceGuardDecision(track, buffer, requestedOutputFormat) 
         }
     }
     const truePeak = state.featureFlags.truePeakGuard !== false;
-    if (!reasons.length) reasons.push(state.smartPerformanceGuard ? '원래 품질 유지' : '성능 가드 OFF');
+    if (!reasons.length) reasons.push(guardEnabled ? '원래 품질 유지' : '성능 가드 OFF');
     return {
-        enabled: Boolean(state.smartPerformanceGuard),
+        enabled: guardEnabled,
+        mode: state.performanceMode,
         sourceQualityMode: sourceMode,
         qualityMode,
         truePeak,
@@ -1799,12 +1927,15 @@ function computeEngineSafetyInfo(track, buffer, finalizeInfo) {
     const metallic = Number(analysis.metallicHint || 0);
     const high = Number(analysis.highRatio || 0);
     const bass = Number(analysis.bassRatio || 0);
+    const lowMonoScore = Number(analysis.lowMonoScore);
 
     if (intensity > 140) { score -= Math.min(20, (intensity - 140) * 0.25); notes.push('강도 높음'); }
     if (width > 72 && !state.featureFlags.phaseSafe) { score -= 12; notes.push('공간감 보호 OFF'); }
     if (clarity > 70 && (high > 0.38 || metallic > 0.55)) { score -= 10; notes.push('고역 피로 가능'); }
     if (punch > 68 && Number(analysis.transientDensity || 0) > 0.55) { score -= 8; notes.push('트랜지언트 과다 가능'); }
     if (bass > 0.48 && !state.featureFlags.lowEndAnchor) { score -= 10; notes.push('저역 고정 OFF'); }
+    if (Number.isFinite(lowMonoScore) && lowMonoScore < 64) { score -= 12; notes.push('저역 모노 호환 위험'); }
+    else if (Number.isFinite(lowMonoScore) && lowMonoScore < 82) { score -= 5; notes.push('저역 모노 점검'); }
     if (metallic > 0.62 && removal < 48) { score -= 8; notes.push('금속성 제거 약함'); }
     if (pitch >= 7 || speedDelta >= 0.25) {
         const protectedBy = state.featureFlags.vocalProtect && state.featureFlags.melodyPreserve && state.featureFlags.vocalFocusPlus;
@@ -1826,7 +1957,7 @@ function formatPerformanceGuardInfo(info) {
     if (!info) return state.smartPerformanceGuard ? '대기 · 렌더 시 자동 판단' : 'OFF';
     const mode = `${getQualityModeLabel(info.sourceQualityMode)} → ${getQualityModeLabel(info.qualityMode)}`;
     const changed = info.changed ? '조정됨' : '유지';
-    return `${changed} · ${mode} · ${info.reasons.join(', ')}`;
+    return `${getPerformanceModeLabel(info.mode || state.performanceMode)} · ${changed} · ${mode} · ${info.reasons.join(', ')}`;
 }
 
 function recommendPreset(fileName, analysis) {
@@ -2060,7 +2191,24 @@ function makeRecommendedSettings(preset, analysis) {
     if (analysis.metallicHint > 0.72) base.clarity = clamp(base.clarity - 4, 8, 78);
     if (analysis.crest > 5.8) base.intensity = clamp(base.intensity + 5, 50, 200);
     if (analysis.metallicHint > 0.7) base.intensity = clamp(base.intensity + 5, 50, 200);
+    applyReferenceToSettings(base, analysis);
     return base;
+}
+
+function applyReferenceToSettings(settings, analysis) {
+    const ref = state.referenceProfile?.status === 'ready' ? state.referenceProfile.target : null;
+    if (!settings || !analysis || !ref) return settings;
+    const brightDelta = clamp(Number(ref.brightness || 0.5) - Number(analysis.brightness || 0.5), -0.55, 0.55);
+    const widthDelta = clamp(Number(ref.stereoWidth || 0.35) - Number(analysis.stereoWidth || 0.35), -0.50, 0.50);
+    const bassDelta = clamp(Number(ref.bass || 0.25) - Number(analysis.bassRatio || 0.25), -0.45, 0.45);
+    const punchDelta = clamp(Number(ref.transientDensity || 0.35) - Number(analysis.transientDensity || 0.35), -0.50, 0.50);
+    const metallicDelta = clamp(Number(ref.metallicHint || 0.4) - Number(analysis.metallicHint || 0.4), -0.50, 0.50);
+    settings.clarity = clamp(Math.round(settings.clarity + brightDelta * 12), 8, 82);
+    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 10 - brightDelta * 3), 10, 86);
+    settings.width = clamp(Math.round(settings.width + widthDelta * 16), 10, 78);
+    settings.dynamicPunch = clamp(Math.round(settings.dynamicPunch + punchDelta * 12), 10, 82);
+    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 8), 18, 82);
+    return settings;
 }
 
 function applyPresetToSelected(preset, userInitiated) {
@@ -2424,7 +2572,7 @@ async function masterTrack(track, calledFromBatch = false) {
         if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
         track.outBlob = encoded.blob;
         track.outFormat = encoded.format;
-        track.outName = `${safeBaseName(track.name)}_mastered.${encoded.extension}`;
+        track.outName = `${safeBaseName(track.name)}_mastered${getPlatformFileSuffix()}.${encoded.extension}`;
         track.masteredUrl = URL.createObjectURL(encoded.blob);
         track.masteredDurationSec = finalBuffer.duration || 0;
         finishPerformanceProfile(track, finalBuffer, encoded.blob);
@@ -3196,8 +3344,8 @@ const PRESET_REFERENCE_TARGETS = {
 };
 
 function createPresetReferenceMatchNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
-    if (state.featureFlags.referenceMatch === false || !analysis || !preset || preset === 'custom') return input;
-    const target = PRESET_REFERENCE_TARGETS[preset];
+    if (state.featureFlags.referenceMatch === false || !analysis || !preset) return input;
+    const target = getActiveReferenceTarget(preset);
     if (!target) return input;
     const bass = clamp01(Number(analysis.bassRatio ?? target.bass));
     const lowMid = clamp01(Number(analysis.lowMidRatio ?? target.lowMid));
@@ -4899,6 +5047,254 @@ function clearQueue() {
 function clearFileInputs() {
     el.fileInput.value = '';
     el.folderInput.value = '';
+    if (el.referenceInput) el.referenceInput.value = '';
+}
+
+async function handleReferenceFiles(fileList) {
+    const [file] = Array.from(fileList || []);
+    if (!file) return;
+    const validation = validateAudioFile(file);
+    if (!validation.ok) {
+        showToast(`레퍼런스 ${file.name}: ${validation.reason}`);
+        if (el.referenceInput) el.referenceInput.value = '';
+        return;
+    }
+    state.referenceProfile = {
+        name: file.name,
+        size: file.size,
+        status: 'analyzing',
+        report: '레퍼런스 분석 중',
+        analysis: null,
+        target: null
+    };
+    renderAll({ keepDetailAudio: true });
+    try {
+        const buffer = await decodeAudio(file);
+        const analysis = await analyzeBufferAsync(buffer);
+        const recommendation = recommendPreset(file.name, analysis);
+        state.referenceProfile = {
+            name: file.name,
+            size: file.size,
+            status: 'ready',
+            report: `${PRESET_LABELS[recommendation.preset] || recommendation.preset} 성향 레퍼런스`,
+            analysis,
+            recommendedPreset: recommendation.preset,
+            confidence: recommendation.confidence,
+            target: makeReferenceTargetFromAnalysis(analysis)
+        };
+        applyReferenceToReadyTracks(false);
+        invalidateAllMasteredOutput('레퍼런스 트랙이 변경되었습니다. 다시 마스터링하세요.');
+        showToast(`레퍼런스 분석 완료: ${file.name}`);
+    } catch (error) {
+        state.referenceProfile = { name: file.name, size: file.size, status: 'error', report: error.message || '레퍼런스 분석 실패', analysis: null, target: null };
+        showToast(`레퍼런스 분석 실패: ${state.referenceProfile.report}`);
+    } finally {
+        if (el.referenceInput) el.referenceInput.value = '';
+        renderAll({ keepDetailAudio: true });
+    }
+}
+
+function makeReferenceTargetFromAnalysis(analysis) {
+    if (!analysis || analysis.silence) return null;
+    return {
+        bass: clamp01(Number(analysis.bassRatio ?? 0.25)),
+        lowMid: clamp01(Number(analysis.lowMidRatio ?? 0.25)),
+        mid: clamp01(Number(analysis.midRatio ?? 0.25)),
+        high: clamp01(Number(analysis.highRatio ?? 0.20)),
+        brightness: clamp01(Number(analysis.brightness ?? 0.50)),
+        stereoWidth: clamp01(Number(analysis.stereoWidth ?? 0.35)),
+        transientDensity: clamp01(Number(analysis.transientDensity ?? 0.35)),
+        metallicHint: clamp01(Number(analysis.metallicHint ?? 0.40)),
+        loudnessHint: Number(analysis.loudnessHint || -18)
+    };
+}
+
+function getActiveReferenceTarget(preset) {
+    const presetTarget = PRESET_REFERENCE_TARGETS[preset] || null;
+    const refTarget = state.referenceProfile?.status === 'ready' ? state.referenceProfile.target : null;
+    if (!refTarget) return presetTarget;
+    if (!presetTarget) return refTarget;
+    const amount = 0.62;
+    return {
+        bass: blend(presetTarget.bass, refTarget.bass, amount),
+        lowMid: blend(presetTarget.lowMid, refTarget.lowMid, amount),
+        mid: blend(presetTarget.mid, refTarget.mid, amount),
+        high: blend(presetTarget.high, refTarget.high, amount),
+        brightness: blend(presetTarget.brightness, refTarget.brightness, amount),
+        stereoWidth: refTarget.stereoWidth,
+        transientDensity: refTarget.transientDensity,
+        metallicHint: refTarget.metallicHint
+    };
+}
+
+function blend(a, b, amount) {
+    const av = Number.isFinite(Number(a)) ? Number(a) : 0;
+    const bv = Number.isFinite(Number(b)) ? Number(b) : av;
+    return av + (bv - av) * clamp(Number(amount || 0), 0, 1);
+}
+
+function applyReferenceToReadyTracks(show = true) {
+    if (!state.referenceProfile?.analysis) return 0;
+    let count = 0;
+    state.tracks.forEach(track => {
+        if (!track.analysis || track.genreLocked) return;
+        track.recommendedSettings = makeRecommendedSettings(track.recommendedPreset || track.preset || 'custom', track.analysis);
+        if (!track.outBlob || track.preset === track.recommendedPreset) track.settings = cloneSettings(track.recommendedSettings);
+        count += 1;
+    });
+    if (show && count) showToast(`${count}개 트랙 추천값에 레퍼런스를 반영했습니다.`);
+    return count;
+}
+
+function applyReferenceToSelected() {
+    const track = getSelectedTrack();
+    if (!track || !track.analysis || !state.referenceProfile?.analysis) {
+        showToast('분석 완료 트랙과 레퍼런스를 먼저 준비하세요.');
+        return;
+    }
+    saveSnapshot(track, '레퍼런스 적용 전');
+    const preset = track.preset === 'custom' ? (track.recommendedPreset || 'custom') : track.preset;
+    track.settings = makeRecommendedSettings(preset, track.analysis);
+    track.recommendedSettings = cloneSettings(track.settings);
+    track.report = '레퍼런스 톤을 현재 곡 추천값에 반영했습니다.';
+    invalidateMasteredOutput(track, '레퍼런스 톤이 반영되었습니다. 다시 마스터링하세요.', true);
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast('레퍼런스 추천값을 현재 곡에 반영했습니다.');
+}
+
+function clearReferenceProfile() {
+    state.referenceProfile = null;
+    invalidateAllMasteredOutput('레퍼런스가 해제되었습니다. 다시 마스터링하세요.');
+    renderAll({ keepDetailAudio: true });
+    showToast('레퍼런스 트랙을 해제했습니다.');
+}
+
+function applyPlatformExportPreset(value, userInitiated = false) {
+    const preset = PLATFORM_EXPORT_PRESETS[value] ? value : 'custom';
+    state.platformPreset = preset;
+    if (el.platformPresetSelect) el.platformPresetSelect.value = preset;
+    const config = PLATFORM_EXPORT_PRESETS[preset];
+    if (preset !== 'custom') {
+        state.outputFormat = config.outputFormat;
+        state.targetLufs = config.targetLufs;
+        state.ceilingDb = config.ceilingDb;
+        state.qualityMode = config.qualityMode;
+        syncOutputControlValues();
+        invalidateAllMasteredOutput(`${config.label} 저장 프리셋으로 변경되었습니다. 다시 마스터링하세요.`);
+    }
+    renderAll({ keepDetailAudio: true });
+    if (userInitiated) showToast(`${config.label} 프리셋 적용 · ${config.note}`);
+}
+
+function syncOutputControlValues() {
+    if (el.outputFormatSelect) el.outputFormatSelect.value = state.outputFormat;
+    if (el.targetLufsSelect) el.targetLufsSelect.value = String(state.targetLufs);
+    if (el.ceilingSelect) el.ceilingSelect.value = String(state.ceilingDb);
+    if (el.qualityModeSelect) el.qualityModeSelect.value = state.qualityMode;
+    if (el.performanceModeSelect) el.performanceModeSelect.value = state.performanceMode;
+    syncEnhancedSelectButtons();
+}
+
+function setPlatformPresetCustomFromManualChange() {
+    if (!el.platformPresetSelect || state.platformPreset === 'custom') return;
+    state.platformPreset = 'custom';
+    el.platformPresetSelect.value = 'custom';
+    syncEnhancedSelectButtons();
+}
+
+function getPlatformPresetLabel(value = state.platformPreset) {
+    return PLATFORM_EXPORT_PRESETS[value]?.label || '직접 설정';
+}
+
+function getPlatformFileSuffix() {
+    const value = state.platformPreset || 'custom';
+    if (!value || value === 'custom') return '';
+    return '_' + value.replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+}
+
+function getPerformanceModeLabel(value = state.performanceMode) {
+    if (value === 'mobile') return 'Mobile Safe';
+    if (value === 'quality') return 'Quality Lock';
+    return 'Auto';
+}
+
+function captureTrackSnapshot(track, label = '스냅샷') {
+    return {
+        label,
+        savedAt: new Date().toISOString(),
+        preset: track.preset,
+        recommendedPreset: track.recommendedPreset,
+        genreLocked: Boolean(track.genreLocked),
+        settings: cloneSettings(track.settings),
+        recommendedSettings: cloneSettings(track.recommendedSettings || GENRE_PRESETS.custom),
+        transform: cloneTransform(track.transform || DEFAULT_TRANSFORM),
+        instrument: cloneInstrumentLayer(track.instrument || DEFAULT_INSTRUMENT_LAYER),
+        masterGoal: state.masterGoal,
+        outputFormat: state.outputFormat,
+        targetLufs: state.targetLufs,
+        ceilingDb: state.ceilingDb,
+        qualityMode: state.qualityMode,
+        platformPreset: state.platformPreset,
+        performanceMode: state.performanceMode
+    };
+}
+
+function saveSnapshot(track, label = '사용자 스냅샷') {
+    if (!track) return null;
+    if (!Array.isArray(track.snapshots)) track.snapshots = [];
+    const snapshot = captureTrackSnapshot(track, label);
+    track.snapshots.push(snapshot);
+    while (track.snapshots.length > MAX_SNAPSHOTS_PER_TRACK) track.snapshots.shift();
+    return snapshot;
+}
+
+function saveSnapshotForSelected() {
+    const track = getSelectedTrack();
+    if (!track || state.busy) return;
+    saveSnapshot(track, '사용자 저장');
+    renderAll({ keepDetailAudio: true });
+    showToast('현재 설정 스냅샷을 저장했습니다.');
+}
+
+function restoreLatestSnapshotForSelected() {
+    const track = getSelectedTrack();
+    if (!track || state.busy || !Array.isArray(track.snapshots) || !track.snapshots.length) return;
+    const snapshot = track.snapshots.pop();
+    restoreSnapshot(track, snapshot);
+    invalidateMasteredOutput(track, '저장된 스냅샷으로 되돌렸습니다. 다시 마스터링하세요.', true);
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast('최근 스냅샷으로 되돌렸습니다.');
+}
+
+function restoreSnapshot(track, snapshot) {
+    if (!track || !snapshot) return;
+    track.preset = snapshot.preset || 'custom';
+    track.recommendedPreset = snapshot.recommendedPreset || track.recommendedPreset || 'custom';
+    track.genreLocked = Boolean(snapshot.genreLocked);
+    track.settings = cloneSettings(snapshot.settings || GENRE_PRESETS.custom);
+    track.recommendedSettings = cloneSettings(snapshot.recommendedSettings || track.settings);
+    track.transform = cloneTransform(snapshot.transform || DEFAULT_TRANSFORM);
+    track.instrument = cloneInstrumentLayer(snapshot.instrument || DEFAULT_INSTRUMENT_LAYER);
+    state.masterGoal = snapshot.masterGoal || state.masterGoal;
+    state.outputFormat = snapshot.outputFormat || state.outputFormat;
+    state.targetLufs = Number(snapshot.targetLufs ?? state.targetLufs);
+    state.ceilingDb = Number(snapshot.ceilingDb ?? state.ceilingDb);
+    state.qualityMode = snapshot.qualityMode || state.qualityMode;
+    state.platformPreset = snapshot.platformPreset || 'custom';
+    state.performanceMode = snapshot.performanceMode || state.performanceMode;
+    if (el.masterGoalSelect) el.masterGoalSelect.value = state.masterGoal;
+    if (el.platformPresetSelect) el.platformPresetSelect.value = state.platformPreset;
+    syncOutputControlValues();
+}
+
+function clearSnapshotsForSelected() {
+    const track = getSelectedTrack();
+    if (!track || state.busy) return;
+    track.snapshots = [];
+    renderAll({ keepDetailAudio: true });
+    showToast('선택 트랙의 스냅샷 기록을 지웠습니다.');
 }
 
 
@@ -4983,6 +5379,8 @@ function renderAll(options = {}) {
     renderAlbumStatus();
     updateFeatureSummary();
     updateSmartRecommendationPanel();
+    renderReferencePanel();
+    renderSnapshotPanel();
     updatePreviewButton();
     updateProcessingHud();
     syncEnhancedSelectButtons();
@@ -5193,6 +5591,7 @@ function renderDetail(options = {}) {
     renderMasterComparisonPanel(track);
     renderProcessingFlowPanel(track);
     renderEngineSafetyPanel(track);
+    renderLowMonoPanel(track);
 
     const isOpen = state.expandedDetailIds && state.expandedDetailIds.has(track.id);
     const toggle = document.createElement('button');
@@ -5221,6 +5620,8 @@ function renderDetail(options = {}) {
         if (track.outName) addRow('출력 파일', track.outName);
         addRow('출력 포맷', getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'));
         addRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
+        addRow('플랫폼 저장 프리셋', `${getPlatformPresetLabel()} · ${PLATFORM_EXPORT_PRESETS[state.platformPreset]?.note || '직접 설정 유지'}`);
+        if (state.referenceProfile?.status === 'ready') addRow('레퍼런스 트랙', `${state.referenceProfile.name} · ${state.referenceProfile.report}`);
         if (track.genreReason) addRow('장르 판단 근거', track.genreReason);
         addRow('마스터링 강도', `${track.settings.intensity ?? 100}% · ${getMasteringIntensity(track.settings).high ? 'HIGH 비선형' : 'NORMAL'}`);
         addRow('금속성 제거', `${track.settings.metallicRemoval ?? 0}% · 높일수록 더 많이 제거`);
@@ -5264,6 +5665,7 @@ function renderDetail(options = {}) {
             addRow('RMS 레벨', `${track.analysis.loudnessHint.toFixed(1)} dB`);
             if (Number.isFinite(track.analysis.loudnessIntegrated)) addRow('예상 통합 라우드니스', `${track.analysis.loudnessIntegrated.toFixed(1)} LUFS 유사`);
             addRow('밝기/스테레오 폭', `${Math.round(track.analysis.brightness * 100)}% / ${Math.round(track.analysis.stereoWidth * 100)}%`);
+            if (Number.isFinite(track.analysis.lowMonoScore)) addRow('저역 모노 호환', `${Math.round(track.analysis.lowMonoScore)}점 · 상관도 ${Number(track.analysis.lowMonoCorrelation || 0).toFixed(2)} · ${getLowMonoRiskLabel(track.analysis.lowMonoRisk)}`);
             addRow('저역/중역/고역', `${Math.round((track.analysis.bassRatio || 0) * 100)}% / ${Math.round((track.analysis.midRatio || 0) * 100)}% / ${Math.round((track.analysis.highRatio || 0) * 100)}%`);
             addRow('트랜지언트 밀도', `${Math.round((track.analysis.transientDensity || 0) * 100)}%`);
             addRow('금속성 지수', `${Math.round(track.analysis.metallicHint * 100)}%`);
@@ -5513,6 +5915,38 @@ function renderEngineSafetyPanel(track) {
 
     panel.append(head, bar, notes, guard);
     el.trackDetail.appendChild(panel);
+}
+
+function renderLowMonoPanel(track) {
+    if (!track || !track.analysis || !Number.isFinite(Number(track.analysis.lowMonoScore))) return;
+    const score = Math.round(Number(track.analysis.lowMonoScore));
+    const risk = track.analysis.lowMonoRisk || (score >= 82 ? 'safe' : score >= 64 ? 'watch' : 'risk');
+    const panel = document.createElement('div');
+    panel.className = `low-mono-panel low-mono-${risk}`;
+    const head = document.createElement('div');
+    head.className = 'low-mono-head';
+    const title = document.createElement('strong');
+    title.textContent = '저역 모노 호환 체크';
+    const value = document.createElement('b');
+    value.textContent = `${score}점 · ${getLowMonoRiskLabel(risk)}`;
+    head.append(title, value);
+    const bar = document.createElement('div');
+    bar.className = 'low-mono-bar';
+    const fill = document.createElement('i');
+    fill.style.width = `${clamp(score, 0, 100)}%`;
+    bar.appendChild(fill);
+    const note = document.createElement('small');
+    const corr = Number(track.analysis.lowMonoCorrelation || 0);
+    const ratio = Number(track.analysis.lowSideRatio || 0);
+    note.textContent = `120Hz 이하 L/R 상관도 ${corr.toFixed(2)} · 사이드 비율 ${ratio.toFixed(2)} · 저역 중심 고정 ${state.featureFlags.lowEndAnchor ? 'ON' : 'OFF'}`;
+    panel.append(head, bar, note);
+    el.trackDetail.appendChild(panel);
+}
+
+function getLowMonoRiskLabel(risk) {
+    if (risk === 'safe') return '안정';
+    if (risk === 'watch') return '점검';
+    return '위험';
 }
 
 function renderMasterComparisonPanel(track) {
