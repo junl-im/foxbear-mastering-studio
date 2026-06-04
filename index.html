@@ -3,26 +3,25 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.9 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.10 - browser based AI music mastering console" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.9</title>
+<title>FoxBear Mastering PRO v1.3.10</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.9" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.10" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.9"></script>
+<script defer src="src/app.js?v=1.3.10"></script>
 </head>
-<body data-build="1.3.9">
+<body data-build="1.3.10">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <span class="badge badge-music">곰같은여우 뮤직</span>
-                    <span class="badge badge-device">PC & 모바일 호환</span>
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.9</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.10</button>
+                    <span class="badge badge-device">PC · 모바일 호환</span>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
                     <a class="designer-mini designer-mini-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer" aria-label="곰같은여우 유튜브 채널 열기" data-help="곰같은여우 유튜브 채널을 새 창으로 엽니다.">
@@ -34,10 +33,11 @@
             <div class="hero-mainline">
                 <div class="hero-copy">
                     <h1>AI 음악 마스터링 <span>스튜디오</span></h1>
-                    <p>분석, 장르 추천, 피치·BPM/박자 보정, MP4 오디오 추출, 리듬 악기 추가, A/B 비교, True Peak 보호까지 브라우저 내부에서 로컬 처리합니다.</p>
+                    <p>무료로 누구나 쉽게 음질을 개선하고 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다. 파일은 업로드 없이 내 기기 안에서 분석하고 처리합니다.</p>
                 </div>
             </div>
             <div class="mini-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="hero-knobs" aria-hidden="true"><i></i><i></i></div>
         </section>
     </header>
 
@@ -75,7 +75,7 @@
                     <strong>버튼형 적용 기능</strong>
                     <small id="featureCount">0개 활성</small>
                 </div>
-                <button id="featureOpenBtn" class="feature-open-btn feature-open-wide" type="button" data-help="버튼형 적용 기능을 팝업으로 열어 필요한 버튼을 활성화합니다.">버튼 활성화</button>
+                <button id="featureOpenBtn" class="feature-open-btn feature-open-wide" type="button" data-help="버튼형 적용 기능을 팝업으로 열어 필요한 버튼을 봅니다.">버튼 보기</button>
                 <div id="featureDock" class="feature-dock feature-dock-hidden" aria-hidden="true"></div>
             </section>
 
@@ -387,16 +387,16 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.9</span>
-        <h2 id="programInfoTitle">누구나 쉽게 쓰는 무료 마스터링 도구</h2>
-        <p>FoxBear는 무료 프로그램이어도 누구나 자신의 음악을 쉽게 음질 개선하고 마스터링할 수 있도록 만든 브라우저 기반 로컬 오디오 스튜디오입니다. 업로드 없이 파일을 분석하고, 추천값·실시간 미리듣기·안전 가드로 결과를 확인하며 저장합니다.</p>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.10</span>
+        <h2 id="programInfoTitle">무료로 쉽게 완성하는 음질 개선과 마스터링</h2>
+        <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.</p>
         <div class="program-info-grid program-info-roadmap">
             <div><strong>기본 기능</strong><span>파일/폴더 불러오기, 장르 프리셋, 원본·마스터본 A/B 프리뷰, WAV/MP3 저장, 작업 대기열 처리.</span></div>
             <div><strong>도입된 기능</strong><span>스마트 추천, 레퍼런스 트랙, 플랫폼 저장 프리셋, 실시간 미리듣기, 스냅샷, 안전 점수, 저역 모노 체크.</span></div>
             <div><strong>음질 보호</strong><span>보컬 보호, True Peak 가드, 과처리 방지, 피치/BPM 고품질 렌더 경로, 모바일 성능 가드.</span></div>
             <div><strong>추후 예정</strong><span>레퍼런스 매칭 고도화, 악기 레이어 샘플 선택, 보컬 구간 회피, WASM DSP 확장, 프리셋 공유.</span></div>
         </div>
-        <p class="program-info-note">목표는 복잡한 전문 용어를 줄이고, 핵심 컨트롤만으로 유료급 결과에 가까운 안정적인 마스터링 흐름을 만드는 것입니다.</p>
+        <p class="program-info-note">핵심 목표는 쉬운 조작, 안전한 음질 보호, 빠른 미리듣기, 그리고 무료 프로그램답지 않은 완성도입니다.</p>
     </section>
 </div>
 
@@ -421,7 +421,7 @@
             <div>
                 <span class="preview-dialog-eyebrow">Realtime Preview</span>
                 <h2 id="previewDialogTitle">미리듣기</h2>
-                <p id="previewDialogCaption">저장 전에도 컨트롤을 움직여 실시간 마스터링 변화를 들어봅니다.</p>
+                <p id="previewDialogCaption" class="visually-hidden">실시간 미리듣기</p>
             </div>
             <button id="previewDialogClose" class="preview-dialog-close" type="button" aria-label="미리듣기 창 닫기">×</button>
         </div>
