@@ -1,14 +1,14 @@
 // FoxBear AI Mastering Studio Pro v1.2 - advanced modular GitHub DSP build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.7';
+const APP_VERSION = 'Pro v1.3.8';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v135';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v138';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -61,6 +61,7 @@ const PLATFORM_EXPORT_PRESETS = {
 };
 
 const MAX_SNAPSHOTS_PER_TRACK = 12;
+const REALTIME_PREVIEW_RENDER_DELAY = 160;
 
 
 const FEATURE_DEFINITIONS = {
@@ -312,7 +313,9 @@ const state = {
     expandedDetailIds: new Set(),
     popupScrollY: 0,
     popupScrollbarCompensation: 0,
-    activeDownloadUrls: new Set()
+    activeDownloadUrls: new Set(),
+    realtimePreview: null,
+    previewRenderTimer: null
 };
 
 const el = {};
@@ -605,6 +608,7 @@ function openPreviewDialog() {
 function closePreviewDialog() {
     if (!el.previewDialog) return;
     pauseAllPreviewAudio();
+    cleanupRealtimePreview();
     el.previewDialog.classList.remove('show');
     el.previewDialog.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('preview-dialog-open');
@@ -614,17 +618,319 @@ function closePreviewDialog() {
 
 function renderPreviewDialog(track) {
     if (!el.previewDialogBody || !track) return;
+    cleanupRealtimePreview();
     el.previewDialogBody.textContent = '';
     if (el.previewDialogCaption) {
         const preset = PRESET_LABELS[track.preset] || track.preset || '프리셋 대기';
-        const done = track.masteredUrl ? '마스터본까지 비교할 수 있습니다.' : '마스터링 전이라 원본 미리듣기만 활성화됩니다.';
-        el.previewDialogCaption.textContent = `${track.name} · ${preset} · ${done}`;
+        el.previewDialogCaption.textContent = `${track.name} · ${preset} · 저장 전 실시간 컨트롤 프리뷰`;
     }
     const note = document.createElement('div');
-    note.className = 'preview-dialog-note';
-    note.textContent = '현재 버전은 로컬 파일 원본/마스터본 비교형 미리듣기입니다. WebAudio + WASM 실시간 컨트롤 미리듣기는 같은 팝업 구조에 AudioWorklet 체인을 연결하면 확장할 수 있습니다.';
+    note.className = 'preview-dialog-note realtime-note';
+    note.textContent = '재생을 누른 뒤 아래 컨트롤을 움직이면 저장 렌더링 없이 WebAudio 마스터링 체인에 바로 반영됩니다. 완료본 비교가 필요한 경우 마스터링 후 아래 A/B 영역도 함께 표시됩니다.';
     el.previewDialogBody.appendChild(note);
-    renderPreviewPlayers(track, el.previewDialogBody, { vertical: true });
+    renderRealtimePreviewConsole(track, el.previewDialogBody);
+    if (track.masteredUrl) {
+        const compareTitle = document.createElement('div');
+        compareTitle.className = 'preview-section-title';
+        compareTitle.textContent = '완료본 A/B 비교';
+        el.previewDialogBody.appendChild(compareTitle);
+        renderPreviewPlayers(track, el.previewDialogBody, { vertical: true });
+    }
+}
+
+function renderRealtimePreviewConsole(track, target) {
+    const wrap = document.createElement('section');
+    wrap.className = 'realtime-preview-console';
+
+    const head = document.createElement('div');
+    head.className = 'realtime-preview-head';
+    const title = document.createElement('strong');
+    title.textContent = '실시간 마스터링 프리뷰';
+    const status = document.createElement('span');
+    status.className = 'realtime-preview-status';
+    status.textContent = 'WebAudio 대기';
+    head.append(title, status);
+
+    const playerCard = document.createElement('div');
+    playerCard.className = 'realtime-player-card';
+    const audio = document.createElement('audio');
+    audio.controls = true;
+    audio.preload = 'metadata';
+    audio.src = track.originalUrl;
+    audio.setAttribute('aria-label', '실시간 마스터링 프리뷰 재생');
+    const playerHelp = document.createElement('small');
+    playerHelp.textContent = '재생 후 아래 컨트롤을 조절하세요. 피치/BPM은 저장 렌더 단계에서 고품질 WSOLA/WASM 경로로 처리됩니다.';
+    playerCard.append(audio, playerHelp);
+
+    const controls = document.createElement('div');
+    controls.className = 'realtime-control-stack';
+    SLIDERS.forEach(slider => controls.appendChild(createRealtimeSliderRow(slider, track)));
+
+    const footer = document.createElement('div');
+    footer.className = 'realtime-preview-footer';
+    footer.innerHTML = '<span>실시간: EQ · 공간 · 질감 · 컴프/리미터</span><span>최종 저장: 고품질 렌더 + 피크 가드</span>';
+
+    wrap.append(head, playerCard, controls, footer);
+    target.appendChild(wrap);
+
+    setupRealtimePreviewEngine(track, audio, status);
+}
+
+function createRealtimeSliderRow(slider, track) {
+    const value = clampToStep(Number(track.settings?.[slider.id] ?? GENRE_PRESETS.custom[slider.id]), slider.min ?? 0, slider.max ?? 100, slider.step ?? 1);
+    const row = document.createElement('div');
+    row.className = 'realtime-slider-row';
+    row.dataset.slider = slider.id;
+
+    const top = document.createElement('div');
+    top.className = 'realtime-slider-top';
+    const label = document.createElement('label');
+    label.htmlFor = `rt-${slider.id}`;
+    decorateSliderLabel(label, slider.label);
+    const valueEl = document.createElement('b');
+    valueEl.id = `rt-value-${slider.id}`;
+    valueEl.textContent = formatSliderValue(slider, value);
+    top.append(label, valueEl);
+
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.id = `rt-${slider.id}`;
+    input.min = String(slider.min ?? 0);
+    input.max = String(slider.max ?? 100);
+    input.step = String(slider.step ?? 1);
+    input.value = String(value);
+    input.dataset.sliderId = slider.id;
+    input.addEventListener('input', handleRealtimePreviewSliderInput);
+
+    const hint = document.createElement('small');
+    hint.className = 'realtime-slider-hint';
+    hint.textContent = customHintText(slider, value);
+    row.append(top, input, hint);
+    return row;
+}
+
+function handleRealtimePreviewSliderInput(event) {
+    const input = event.currentTarget;
+    const id = input.dataset.sliderId;
+    const slider = SLIDERS.find(item => item.id === id);
+    const track = getSelectedTrack();
+    if (!slider || !track) return;
+    const min = slider.min ?? 0;
+    const max = slider.max ?? 100;
+    const step = slider.step ?? 1;
+    const value = clampToStep(Number(input.value), min, max, step);
+    input.value = String(value);
+    if (!track.settings) track.settings = cloneSettings(GENRE_PRESETS.custom);
+    track.settings[id] = value;
+    track.preset = 'custom';
+    track.genreLocked = true;
+
+    const localValue = document.getElementById(`rt-value-${id}`);
+    if (localValue) localValue.textContent = formatSliderValue(slider, value);
+    const row = input.closest('.realtime-slider-row');
+    const hint = row ? row.querySelector('.realtime-slider-hint') : null;
+    if (hint) hint.textContent = customHintText(slider, value);
+
+    const mainInput = document.getElementById(id);
+    if (mainInput) mainInput.value = String(value);
+    const mainValue = document.getElementById(`value-${id}`);
+    if (mainValue) mainValue.textContent = formatSliderValue(slider, value);
+    const recEl = document.getElementById(`rec-${id}`);
+    if (recEl) recEl.textContent = '';
+    updateSliderHint(id);
+
+    invalidateMasteredOutput(track, '실시간 미리듣기에서 사용자 커스텀 값이 적용되었습니다. 저장하려면 다시 마스터링하세요.', false);
+    updateRealtimePreviewSettings(track);
+    schedulePreviewUiRefresh();
+}
+
+function schedulePreviewUiRefresh() {
+    clearTimeout(state.previewRenderTimer);
+    state.previewRenderTimer = setTimeout(() => {
+        state.previewRenderTimer = null;
+        renderAll({ keepDetailAudio: true });
+    }, REALTIME_PREVIEW_RENDER_DELAY);
+}
+
+function setupRealtimePreviewEngine(track, audio, statusEl) {
+    cleanupRealtimePreview();
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) {
+        if (statusEl) statusEl.textContent = 'WebAudio 미지원';
+        return;
+    }
+    try {
+        const context = new AudioContextClass({ latencyHint: 'interactive' });
+        const source = context.createMediaElementSource(audio);
+        const nodes = createRealtimeMasteringNodes(context, source, track);
+        state.realtimePreview = { context, audio, nodes, statusEl, trackId: track.id };
+        updateRealtimePreviewSettings(track);
+        audio.addEventListener('play', () => {
+            context.resume().catch(() => {});
+            if (statusEl) statusEl.textContent = '실시간 적용 중';
+        });
+        audio.addEventListener('pause', () => {
+            if (statusEl) statusEl.textContent = '일시정지';
+        });
+        audio.addEventListener('ended', () => {
+            if (statusEl) statusEl.textContent = '재생 완료';
+        });
+        if (statusEl) statusEl.textContent = '재생 준비';
+    } catch (error) {
+        console.warn('Realtime preview unavailable:', error);
+        if (statusEl) statusEl.textContent = '일반 재생 모드';
+    }
+}
+
+function createRealtimeMasteringNodes(context, source, track) {
+    const inputGain = context.createGain();
+    const highPass = context.createBiquadFilter();
+    const lowShelf = context.createBiquadFilter();
+    const lowMid = context.createBiquadFilter();
+    const presence = context.createBiquadFilter();
+    const highShelf = context.createBiquadFilter();
+    const metallic = context.createBiquadFilter();
+    const compressor = context.createDynamicsCompressor();
+    const width = createRealtimeWidthMatrix(context, Number(track.analysis?.channels || 2) >= 2);
+    const limiter = context.createDynamicsCompressor();
+    const outputGain = context.createGain();
+
+    highPass.type = 'highpass';
+    lowShelf.type = 'lowshelf';
+    lowMid.type = 'peaking';
+    presence.type = 'peaking';
+    highShelf.type = 'highshelf';
+    metallic.type = 'peaking';
+
+    source.connect(inputGain).connect(highPass).connect(lowShelf).connect(lowMid).connect(presence).connect(highShelf).connect(metallic).connect(compressor).connect(width.input);
+    width.output.connect(limiter).connect(outputGain).connect(context.destination);
+    return { inputGain, highPass, lowShelf, lowMid, presence, highShelf, metallic, compressor, width, limiter, outputGain };
+}
+
+function createRealtimeWidthMatrix(context, enabled) {
+    const input = context.createGain();
+    const output = context.createGain();
+    if (!enabled || !context.createChannelSplitter || !context.createChannelMerger) {
+        input.connect(output);
+        return { input, output, directLeft: null, directRight: null, crossLR: null, crossRL: null, enabled: false };
+    }
+    const splitter = context.createChannelSplitter(2);
+    const merger = context.createChannelMerger(2);
+    const directLeft = context.createGain();
+    const directRight = context.createGain();
+    const crossLR = context.createGain();
+    const crossRL = context.createGain();
+    input.connect(splitter);
+    splitter.connect(directLeft, 0);
+    directLeft.connect(merger, 0, 0);
+    splitter.connect(crossLR, 0);
+    crossLR.connect(merger, 0, 1);
+    splitter.connect(directRight, 1);
+    directRight.connect(merger, 0, 1);
+    splitter.connect(crossRL, 1);
+    crossRL.connect(merger, 0, 0);
+    merger.connect(output);
+    return { input, output, directLeft, directRight, crossLR, crossRL, enabled: true };
+}
+
+function updateRealtimePreviewSettings(track = getSelectedTrack()) {
+    const preview = state.realtimePreview;
+    if (!preview || !preview.nodes || !preview.context || !track || preview.trackId !== track.id) return;
+    syncRealtimePreviewControls(track);
+    const context = preview.context;
+    const now = context.currentTime || 0;
+    const nodes = preview.nodes;
+    const settings = makeEffectiveMasterSettings(track.settings || GENRE_PRESETS.custom, track.analysis, track.preset || 'custom');
+    const intensity = getMasteringIntensity(settings);
+    const analysis = track.analysis || {};
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallicHint = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
+
+    setAudioParam(nodes.inputGain.gain, intensity.raw >= 160 ? 0.82 : 0.90, now);
+    setAudioParam(nodes.highPass.frequency, clamp(22 + bass * 18 + Math.max(0, intensity.raw - 120) * 0.08, 22, 48), now);
+    setAudioParam(nodes.highPass.Q, 0.707, now);
+
+    setAudioParam(nodes.lowShelf.frequency, 160, now);
+    setAudioParam(nodes.lowShelf.gain, clamp(map(settings.warmth, 0, 100, -2.0, 2.2) * clamp(intensity.amount, .65, 1.85), -3.6, 3.8), now);
+    setAudioParam(nodes.lowMid.frequency, 330, now);
+    setAudioParam(nodes.lowMid.Q, 0.78, now);
+    setAudioParam(nodes.lowMid.gain, clamp(map(settings.warmth, 0, 100, -0.8, 1.1) * clamp(intensity.amount, .65, 1.7), -2.2, 2.4), now);
+
+    setAudioParam(nodes.presence.frequency, 3000, now);
+    setAudioParam(nodes.presence.Q, 0.95, now);
+    setAudioParam(nodes.presence.gain, clamp(map(settings.clarity, 0, 100, -1.4, 1.8) * clamp(intensity.amount, .65, 1.95) - metallicHint * .22, -3.3, 3.6), now);
+    setAudioParam(nodes.highShelf.frequency, 7600, now);
+    setAudioParam(nodes.highShelf.gain, clamp(map(settings.clarity, 0, 100, -2.0, 2.4) * clamp(intensity.amount, .65, 2.0) - Math.max(0, brightness - .68) * 1.6, -4.3, 4.8), now);
+
+    setAudioParam(nodes.metallic.frequency, clamp(Number(analysis.targetDynamicFreq || 5200), 2600, 8200), now);
+    setAudioParam(nodes.metallic.Q, intensity.raw >= 150 ? 5.8 : 4.2, now);
+    setAudioParam(nodes.metallic.gain, clamp(map(settings.metallicRemoval, 0, 100, 0, -3.8) * clamp(intensity.amount, .7, 1.8), -6.4, 0), now);
+
+    const punch = clamp(Number(settings.dynamicPunch || 50), 0, 100);
+    setAudioParam(nodes.compressor.threshold, clamp(map(punch, 0, 100, -14, -27) - Math.max(0, intensity.raw - 120) * .05, -34, -10), now);
+    setAudioParam(nodes.compressor.knee, clamp(map(punch, 0, 100, 18, 8), 6, 22), now);
+    setAudioParam(nodes.compressor.ratio, clamp(map(punch, 0, 100, 1.4, 3.2) + Math.max(0, intensity.raw - 140) * .012, 1.2, 4.4), now);
+    setAudioParam(nodes.compressor.attack, clamp(map(punch, 0, 100, .020, .006), .003, .026), now);
+    setAudioParam(nodes.compressor.release, clamp(map(punch, 0, 100, .22, .12), .08, .32), now);
+
+    const widthValue = map(settings.width, 0, 100, 0.72, 1.42);
+    setRealtimeWidth(nodes.width, widthValue, now);
+
+    setAudioParam(nodes.limiter.threshold, intensity.raw >= 155 ? -5.0 : -3.2, now);
+    setAudioParam(nodes.limiter.knee, 1.2, now);
+    setAudioParam(nodes.limiter.ratio, 16, now);
+    setAudioParam(nodes.limiter.attack, .002, now);
+    setAudioParam(nodes.limiter.release, .065, now);
+    setAudioParam(nodes.outputGain.gain, dbToAmp(clamp(map(intensity.raw, 50, 200, -1.8, 2.8), -2.2, 3.0)), now);
+
+    if (preview.statusEl) preview.statusEl.textContent = preview.audio && !preview.audio.paused ? '실시간 적용 중' : '재생 준비';
+}
+
+function syncRealtimePreviewControls(track) {
+    if (!track || !el.previewDialog?.classList.contains('show')) return;
+    SLIDERS.forEach(slider => {
+        const input = document.getElementById(`rt-${slider.id}`);
+        const valueEl = document.getElementById(`rt-value-${slider.id}`);
+        if (!input) return;
+        const value = clampToStep(Number(track.settings?.[slider.id] ?? GENRE_PRESETS.custom[slider.id]), slider.min ?? 0, slider.max ?? 100, slider.step ?? 1);
+        if (document.activeElement !== input) input.value = String(value);
+        if (valueEl) valueEl.textContent = formatSliderValue(slider, value);
+        const hint = input.closest('.realtime-slider-row')?.querySelector('.realtime-slider-hint');
+        if (hint && document.activeElement !== input) hint.textContent = customHintText(slider, value);
+    });
+}
+
+function setRealtimeWidth(widthNode, widthValue, now) {
+    if (!widthNode || !widthNode.enabled) return;
+    const width = clamp(Number(widthValue || 1), 0.5, 1.55);
+    const direct = clamp((1 + width) / 2, 0, 1.35);
+    const cross = clamp((1 - width) / 2, -0.28, 0.25);
+    setAudioParam(widthNode.directLeft.gain, direct, now);
+    setAudioParam(widthNode.directRight.gain, direct, now);
+    setAudioParam(widthNode.crossLR.gain, cross, now);
+    setAudioParam(widthNode.crossRL.gain, cross, now);
+}
+
+function setAudioParam(param, value, now) {
+    if (!param) return;
+    const safe = Number.isFinite(Number(value)) ? Number(value) : 0;
+    try {
+        param.cancelScheduledValues(now);
+        param.setTargetAtTime(safe, now, 0.018);
+    } catch (error) {
+        try { param.value = safe; } catch (_) {}
+    }
+}
+
+function cleanupRealtimePreview() {
+    clearTimeout(state.previewRenderTimer);
+    state.previewRenderTimer = null;
+    const preview = state.realtimePreview;
+    if (!preview) return;
+    try { if (preview.audio) { preview.audio.pause(); preview.audio.removeAttribute('src'); preview.audio.load(); } } catch (error) {}
+    try { if (preview.context && preview.context.state !== 'closed') preview.context.close(); } catch (error) {}
+    state.realtimePreview = null;
 }
 
 function updatePreviewButton() {
@@ -757,8 +1063,8 @@ function updateProcessingHud() {
 
 const ACTION_HELP_TEXTS = {
     programInfoBtn: '프로그램의 핵심 기능, 안전 처리 방식, 개발 방향을 확인합니다.',
-    featureOpenBtn: '버튼형 적용 기능을 팝업으로 열어 필요한 기능만 켜고 끕니다.',
-    previewOpenBtn: '불러온 트랙의 원본과 마스터링 결과를 위아래 미리듣기 팝업으로 비교합니다.',
+    featureOpenBtn: '버튼형 적용 기능 창을 열어 필요한 버튼을 활성화합니다.',
+    previewOpenBtn: '불러온 트랙을 저장 전 WebAudio 실시간 체인으로 미리듣습니다.',
     smartSuggestApplyBtn: '분석 결과 기준 추천 프리셋과 추천값을 선택 트랙에 다시 적용합니다.',
     referenceLoadBtn: '목표 사운드가 될 레퍼런스 트랙을 분석합니다.',
     referenceApplyBtn: '레퍼런스 톤을 현재 선택 트랙 추천값에 반영합니다.',
@@ -4784,7 +5090,12 @@ async function downloadZip() {
     const completed = state.tracks.filter(track => track.outBlob);
     if (!completed.length) return;
     if (!window.JSZip) {
-        showToast('ZIP 라이브러리를 불러오지 못했습니다.');
+        if (completed.length === 1) {
+            downloadTrack(completed[0]);
+            showToast('ZIP 라이브러리 없이 단일 파일로 저장했습니다.');
+        } else {
+            showToast('ZIP 라이브러리를 불러오지 못했습니다. 각 트랙 카드의 파일 다운로드를 사용하세요.');
+        }
         return;
     }
 
@@ -5382,6 +5693,7 @@ function renderAll(options = {}) {
     renderReferencePanel();
     renderSnapshotPanel();
     updatePreviewButton();
+    updateRealtimePreviewSettings();
     updateProcessingHud();
     syncEnhancedSelectButtons();
 }
@@ -6306,7 +6618,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.5',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.8',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
