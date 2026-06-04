@@ -4510,7 +4510,7 @@ body.preview-dialog-open { overflow: hidden; }
     .snapshot-actions { grid-template-columns: 1fr; }
 }
 
-/* v1.3.9 realtime preview, mobile reference polish, typography consistency */
+/* v1.3.10 realtime preview, mobile reference polish, typography consistency */
 :root {
     --program-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
 }
@@ -4746,7 +4746,7 @@ body { font-size: 14.5px; letter-spacing: -0.012em; }
     .realtime-preview-footer { display: none; }
 }
 
-/* v1.3.9 density, queue-player parity, EQ-style realtime preview, calmer pro theme */
+/* v1.3.10 density, queue-player parity, EQ-style realtime preview, calmer pro theme */
 :root {
     --bg: #060913;
     --panel: rgba(15, 19, 31, 0.80);
@@ -5125,4 +5125,372 @@ body {
     .realtime-fader-value { font-size: .49rem !important; }
     .custom-player { grid-template-columns: 32px minmax(0,1fr) 38px !important; }
     .player-time { min-width: 36px; }
+}
+
+
+/* v1.3.10 balanced density and mobile-first preview correction */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+}
+.app-shell {
+    width: min(1540px, calc(100% - 22px)) !important;
+    padding-top: 22px !important;
+}
+.studio-grid {
+    gap: 12px !important;
+}
+.console-panel,
+.queue-panel,
+.action-panel,
+.inspect-panel {
+    padding: 15px !important;
+    border-radius: 24px !important;
+}
+.control-zone,
+.dsp-settings,
+.priority-slider,
+.tool-block {
+    padding: 12px !important;
+    margin-bottom: 10px !important;
+    border-radius: 17px !important;
+    border-color: rgba(255,255,255,.095) !important;
+    background: rgba(255,255,255,.032) !important;
+}
+.smart-suggest-panel,
+.reference-panel,
+.snapshot-panel,
+.output-format-box,
+.pro-tools-grid,
+.low-mono-panel,
+.engine-safety-panel,
+.compare-panel,
+.detail-box,
+.queue-preview,
+.track-list {
+    padding: 10px !important;
+    margin-bottom: 9px !important;
+    border-radius: 16px !important;
+    border-color: rgba(255,255,255,.085) !important;
+    background: rgba(255,255,255,.030) !important;
+}
+.panel-head,
+.summary-head,
+.dsp-settings-head,
+.tool-title,
+.reference-head,
+.snapshot-head,
+.smart-suggest-head {
+    margin-bottom: 9px !important;
+}
+.panel-head strong,
+.summary-head strong,
+.dsp-settings-head strong,
+.tool-title strong,
+.reference-head strong,
+.snapshot-head strong,
+.smart-suggest-head strong,
+.field-row label {
+    font-size: .88rem !important;
+    font-weight: 850 !important;
+    letter-spacing: -.015em !important;
+}
+.brand-kicker .badge,
+.version-info-trigger,
+.badge-device {
+    min-height: 30px !important;
+    padding: 6px 11px !important;
+    font-size: .74rem !important;
+    line-height: 1 !important;
+}
+.version-info-trigger {
+    border-color: rgba(114,221,255,.32) !important;
+    background: rgba(114,221,255,.10) !important;
+}
+.brand-right-actions .designer-mini,
+.designer-mini {
+    position: relative;
+    isolation: isolate;
+    width: auto !important;
+    min-width: 150px !important;
+    max-width: 230px !important;
+    padding: 8px 12px !important;
+    border-radius: 15px !important;
+    border: 1px solid rgba(255,255,255,.20) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.055)) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.20), 0 12px 30px rgba(0,0,0,.20) !important;
+    backdrop-filter: blur(16px) saturate(1.15) !important;
+}
+.designer-mini::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(120deg, rgba(133,240,219,.16), transparent 42%, rgba(157,168,255,.12));
+    z-index: -1;
+}
+.designer-mini strong { font-size: .86rem !important; }
+.designer-mini span { font-size: .54rem !important; letter-spacing: .08em !important; }
+.brand-panel { position: relative; }
+.mini-wave { width: fit-content; }
+.hero-knobs {
+    position: absolute;
+    right: 30px;
+    bottom: 24px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    pointer-events: none;
+    opacity: .86;
+}
+.hero-knobs i {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: block;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.14) 0 17%, transparent 18%),
+        conic-gradient(from 38deg, rgba(133,240,219,.85), rgba(157,168,255,.28), rgba(255,255,255,.08), rgba(133,240,219,.85)),
+        rgba(4,8,17,.58);
+    border: 1px solid rgba(255,255,255,.18);
+    box-shadow: inset 0 0 0 6px rgba(0,0,0,.23), 0 10px 22px rgba(0,0,0,.25);
+}
+.hero-knobs i::after {
+    content: "";
+    display: block;
+    width: 3px;
+    height: 15px;
+    margin: 7px auto 0;
+    border-radius: 999px;
+    background: rgba(255,255,255,.85);
+    transform: rotate(34deg);
+    transform-origin: 50% 14px;
+}
+.hero-knobs i:nth-child(2)::after { transform: rotate(-28deg); }
+.upload-stage { gap: 9px !important; }
+.upload-tile { min-height: 104px !important; padding: 11px !important; }
+.feature-open-wide { min-height: 36px !important; font-size: .72rem !important; }
+.range-head {
+    grid-template-columns: minmax(0, 1fr) auto auto !important;
+    gap: 7px !important;
+}
+.range-head label {
+    font-size: .74rem !important;
+    line-height: 1.14 !important;
+    min-width: 0 !important;
+}
+.range-head > b {
+    min-width: 48px !important;
+    justify-self: end !important;
+    text-align: right !important;
+    font-size: .70rem !important;
+}
+.range-head .rec-value {
+    justify-self: end !important;
+    max-width: 86px !important;
+}
+.priority-slider .field,
+.priority-slider .range-head { margin-bottom: 4px !important; }
+.priority-slider .range-head label { font-size: .76rem !important; }
+.priority-slider .range-head > b { min-width: 54px !important; }
+.smart-suggest-summary,
+.smart-suggest-panel p,
+.reference-panel p,
+.snapshot-panel p,
+.album-note,
+.progress-caption,
+.slider-hint,
+.control-hint {
+    font-size: .64rem !important;
+    line-height: 1.36 !important;
+}
+.track-card {
+    padding: 11px !important;
+    border-radius: 18px !important;
+    border-color: rgba(255,255,255,.095) !important;
+}
+.track-card.selected,
+.track-card.active-track {
+    border-color: rgba(133,240,219,.32) !important;
+    background: linear-gradient(135deg, rgba(133,240,219,.070), rgba(157,168,255,.038)) !important;
+}
+.track-card.active-track::after {
+    content: "현재 작업";
+    position: absolute;
+    right: 10px;
+    top: 9px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    font-size: .52rem;
+    font-weight: 900;
+    color: #dffff7;
+    background: rgba(133,240,219,.12);
+    border: 1px solid rgba(133,240,219,.22);
+}
+.track-card.selected::before { content: none !important; }
+.track-top { padding-right: 72px; }
+.detail-compact-summary {
+    padding: 9px 10px;
+    margin-bottom: 9px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.032);
+    color: rgba(236,244,255,.86);
+    font-size: .68rem;
+    line-height: 1.36;
+}
+.preview-dialog-panel { width: min(1040px, 100%) !important; padding: 16px !important; }
+.preview-dialog-head { margin-bottom: 8px !important; align-items: center !important; }
+.preview-dialog-head h2 { margin: 5px 0 0 !important; }
+.preview-dialog-head p,
+.preview-dialog-note,
+.realtime-preview-footer,
+.realtime-live-hint,
+.realtime-player-card small { display: none !important; }
+.realtime-preview-console { gap: 8px !important; padding: 10px !important; }
+.realtime-player-card { padding: 8px !important; }
+.realtime-eq-strip {
+    display: grid !important;
+    grid-template-columns: repeat(10, minmax(58px, 1fr)) !important;
+    gap: 6px !important;
+}
+.realtime-fader {
+    grid-template-rows: 34px 104px 25px !important;
+    padding: 7px 4px !important;
+    min-width: 0 !important;
+}
+.realtime-fader-label { font-size: .58rem !important; }
+.realtime-fader input[type="range"] { height: 100px !important; width: 24px !important; }
+.realtime-fader-value-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 100%;
+    color: #dffff7;
+    font-size: .56rem;
+    font-weight: 900;
+}
+.realtime-fader-number {
+    width: 38px !important;
+    height: 22px !important;
+    padding: 2px 3px !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255,255,255,.10) !important;
+    background: rgba(0,0,0,.18) !important;
+    color: #dffff7 !important;
+    text-align: center !important;
+    font-size: .58rem !important;
+    font-weight: 900 !important;
+    font-variant-numeric: tabular-nums;
+}
+.realtime-fader-number::-webkit-outer-spin-button,
+.realtime-fader-number::-webkit-inner-spin-button { margin: 0; }
+.feature-dialog-list .feature-card,
+.feature-card.feature-dialog-card {
+    min-height: 38px !important;
+    padding: 5px 6px !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.feature-dialog-list .feature-card b,
+.feature-card.feature-dialog-card b {
+    min-height: 22px !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+@media (max-width: 720px) {
+    .app-shell { width: min(100% - 10px, 1540px) !important; padding-top: 10px !important; }
+    .studio-grid { gap: 8px !important; }
+    .console-panel,
+    .queue-panel,
+    .action-panel,
+    .inspect-panel { padding: 9px !important; border-radius: 18px !important; }
+    .control-zone,
+    .dsp-settings,
+    .priority-slider,
+    .tool-block { padding: 8px !important; margin-bottom: 7px !important; border-radius: 14px !important; }
+    .smart-suggest-panel,
+    .reference-panel,
+    .snapshot-panel,
+    .queue-preview,
+    .track-list { padding: 8px !important; margin-bottom: 7px !important; border-radius: 13px !important; }
+    .panel-head strong,
+    .summary-head strong,
+    .dsp-settings-head strong,
+    .tool-title strong,
+    .reference-head strong,
+    .snapshot-head strong,
+    .smart-suggest-head strong,
+    .field-row label { font-size: .74rem !important; }
+    .brand-panel { padding: 14px !important; }
+    .brand-kicker { gap: 5px !important; margin-bottom: 8px !important; }
+    .brand-kicker .badge,
+    .version-info-trigger,
+    .badge-device { min-height: 26px !important; padding: 5px 8px !important; font-size: .58rem !important; }
+    .designer-mini { min-width: 108px !important; max-width: 38vw !important; padding: 6px 8px !important; }
+    .designer-mini span { font-size: .38rem !important; }
+    .designer-mini strong { font-size: .58rem !important; line-height: 1.08 !important; }
+    .hero-knobs { right: 14px; bottom: 16px; gap: 7px; }
+    .hero-knobs i { width: 30px; height: 30px; box-shadow: inset 0 0 0 4px rgba(0,0,0,.23), 0 6px 14px rgba(0,0,0,.22); }
+    .hero-knobs i::after { height: 10px; margin-top: 5px; transform-origin: 50% 9px; }
+    .upload-stage { grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 6px !important; }
+    .upload-tile { min-height: 76px !important; padding: 7px 5px !important; border-radius: 13px !important; }
+    .upload-icon { font-size: 1.08rem !important; }
+    .upload-tile strong { font-size: .62rem !important; }
+    .upload-tile span { font-size: .48rem !important; }
+    .range-head { grid-template-columns: minmax(0,1fr) minmax(42px, auto) !important; gap: 4px !important; }
+    .range-head .rec-value { display: none !important; }
+    .range-head label { font-size: .58rem !important; line-height: 1.04 !important; }
+    .range-head > b { min-width: 42px !important; font-size: .58rem !important; text-align: right !important; }
+    .priority-slider .range-head label { font-size: .60rem !important; }
+    .priority-slider .range-head > b { min-width: 45px !important; }
+    .smart-suggest-panel p,
+    .reference-panel p,
+    .snapshot-panel p,
+    .album-note,
+    .progress-caption,
+    .slider-hint,
+    .control-hint { font-size: .53rem !important; line-height: 1.26 !important; }
+    .reference-actions { grid-template-columns: repeat(3, minmax(0,1fr)) !important; gap: 5px !important; }
+    .reference-actions .btn-secondary { min-height: 28px !important; padding: 5px 4px !important; font-size: 0 !important; }
+    .reference-actions .btn-secondary::after { font-size: .54rem !important; }
+    .preview-dialog-panel { padding: 9px !important; border-radius: 18px !important; max-height: 90dvh !important; }
+    .preview-dialog-head { margin-bottom: 6px !important; }
+    .preview-dialog-eyebrow { font-size: .48rem !important; padding: 3px 6px !important; }
+    .preview-dialog-head h2 { font-size: .88rem !important; }
+    .realtime-preview-head strong { font-size: .64rem !important; }
+    .realtime-preview-status { font-size: .50rem !important; min-height: 20px !important; }
+    .realtime-player-card { padding: 6px !important; }
+    .realtime-eq-strip {
+        grid-template-columns: repeat(5, minmax(48px, 1fr)) !important;
+        gap: 5px !important;
+        overflow: visible !important;
+    }
+    .realtime-fader {
+        grid-template-rows: 30px 74px 23px !important;
+        padding: 5px 2px !important;
+        border-radius: 10px !important;
+    }
+    .realtime-fader-label { font-size: .42rem !important; line-height: 1.03 !important; }
+    .realtime-fader-label .slider-label-en { display: none !important; }
+    .realtime-fader input[type="range"] { height: 70px !important; width: 20px !important; }
+    .realtime-fader-number { width: 30px !important; height: 20px !important; font-size: .48rem !important; padding: 1px !important; }
+    .realtime-fader-value-wrap { gap: 1px; font-size: .45rem; }
+    .track-top { padding-right: 58px; }
+    .track-card.active-track::after { right: 8px; top: 8px; font-size: .46rem; padding: 2px 5px; }
+    .track-name { font-size: .68rem !important; }
+    .track-meta { font-size: .52rem !important; }
+}
+
+@media (max-width: 420px) {
+    .realtime-eq-strip { grid-template-columns: repeat(4, minmax(50px, 1fr)) !important; }
+    .brand-topline { grid-template-columns: minmax(0,1fr) auto !important; }
+    .brand-right-actions .designer-mini { min-width: 96px !important; max-width: 34vw !important; }
 }
