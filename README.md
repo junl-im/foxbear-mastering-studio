@@ -1,8 +1,16 @@
-# FoxBear AI Mastering Studio Pro v1.3.12
+# FoxBear AI Mastering Studio Pro v1.3.13
 
 GitHub Pages-ready modular browser mastering studio.
 
 
+
+## Pro v1.3.13 selected track focus / hidden stats patch
+
+- 여러 곡을 불러왔을 때 비선택 트랙 카드의 테두리를 검정 계열로 고정해 선택/비선택 대비를 더 분명하게 조정했습니다.
+- 선택된 트랙에 마우스를 올리거나 클릭할 때 발생하던 흔들림을 막기 위해 트랙 카드의 hover/active transform을 제거했습니다.
+- `PC · 모바일 호환` 배지를 PC/모바일 공통 숨겨진 관리자 트리거로 연결했습니다. 텍스트를 두 번 누르면 암호창이 열리고, 암호 `8605` 입력 시 통계 패널이 표시됩니다.
+- 통계 패널은 오늘 접속, 오늘 고유 방문자, 누적 접속, 유입 사이트를 표시합니다. 정적 GitHub Pages 단독 배포에서는 실제 전체 방문자 IP를 수집할 수 없으므로 기본값은 브라우저 localStorage 기반 로컬 기록이며, 같은 도메인의 `window.FOXBEAR_STATS_ENDPOINT` JSON API를 연결하면 서버 통계로 확장할 수 있습니다.
+- 앱 버전, 캐시 버스터, 패키지 버전을 v1.3.13으로 갱신했습니다.
 
 ## Pro v1.3.12 requested UI density patch
 - 작업 요약 제목과 트랙/완료/총 파일 용량/상태 카드를 하나의 요약 스트립으로 묶어 제목만 따로 떨어져 보이던 테두리 문제를 정리했습니다.
