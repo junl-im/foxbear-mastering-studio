@@ -1,29 +1,25 @@
-# FoxBear Pro v1.3.7 QA Report
+# FoxBear Pro v1.3.8 QA Report
 
 ## Scope
-- Static JavaScript syntax check across main app, all workers, and optional WASM pitch adapter.
-- HTML ID/cache binding consistency check.
-- Local asset reference check.
-- CSS brace-balance check.
-- Feature-presence check for the newly requested mastering workflow upgrades.
+- UI text patch: `기능 더 보기` -> `버튼 활성화`
+- Mastering settings header microcopy removal
+- Mobile reference track layout optimization
+- Realtime preview popup with stacked mastering controls
+- Popup transparency/alignment polish
+- Typography normalization
+- ZIP fallback when external JSZip cannot load
 
-## Results
-- `npm run check`: PASS, repeated twice after final patch.
-- Cached element IDs: PASS, no missing cached IDs.
-- Duplicate HTML IDs: PASS, none found.
-- Local assets: PASS, `assets/icons/foxbear.svg`, `assets/css/studio.css`, and `src/app.js` are present.
-- CSS brace balance: PASS, zero imbalance.
-- CSP/referrer hardening: PASS, added meta Content Security Policy and strict-origin referrer policy.
-- Compatibility fallback: PASS, `crypto.randomUUID` now has a safe browser fallback guard.
+## Automated Checks
+- `npm run check`: PASS
+- `npm run check` second pass: PASS
+- `node --check src/app.js`: PASS
+- Worker syntax checks: PASS
+- Duplicate HTML ID check: PASS
+- Local asset existence check: PASS
+- CSS brace balance check: PASS
+- Realtime preview function presence check: PASS
 
-## Newly added/verified features
-- Reference track upload and analysis panel.
-- Reference target blend into recommendation and preset reference matcher.
-- Platform export presets for Streaming, YouTube/MV, Apple/Hi-Fi, SNS/Shorts, Loud Demo, Archive Master.
-- Undo/snapshot panel per selected track.
-- Engine safety score now includes low-end mono compatibility risk.
-- Mobile performance mode: Auto, Mobile Safe, Quality Lock.
-- Low-end mono compatibility analysis in both main fallback analyzer and analysis worker.
-
-## Known limitation
-This QA run validates syntax/static wiring inside the container. It does not replace a real browser audio smoke test with actual WAV/MP3/MP4 files, because browser playback/decoding is environment-dependent.
+## Notes
+- The realtime popup uses a WebAudio live chain for EQ, warmth, width matrix, metallic reduction, compressor, limiter, and gain preview. It does not replace the final high-quality offline render path.
+- Pitch/BPM transformation remains in the final render path through WSOLA worker or optional external WASM adapter. This is safer for vocal quality than forcing browser realtime pitch shifting in the preview popup.
+- Headless Chromium in this container timed out before completing visual capture, so real audio device playback still needs a local browser smoke test with actual audio files.
