@@ -4509,3 +4509,239 @@ body.preview-dialog-open { overflow: hidden; }
     .reference-actions,
     .snapshot-actions { grid-template-columns: 1fr; }
 }
+
+/* v1.3.8 realtime preview, mobile reference polish, typography consistency */
+:root {
+    --program-font: -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+}
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--program-font) !important;
+    font-feature-settings: "kern" 1;
+    text-rendering: geometricPrecision;
+}
+body { font-size: 14.5px; letter-spacing: -0.012em; }
+.brand-panel-unified p,
+.smart-suggest-panel p,
+.reference-panel p,
+.snapshot-panel p,
+.preview-dialog-head p,
+.preview-dialog-note,
+.program-info-panel p,
+.feature-dialog-head p,
+.control-hint,
+.slider-hint {
+    font-size: clamp(.62rem, .72vw, .70rem) !important;
+    line-height: 1.46 !important;
+}
+.feature-open-wide {
+    justify-content: center;
+    min-height: 38px;
+    letter-spacing: -.01em;
+}
+.dsp-head-actions small { display: none !important; }
+.program-info-backdrop,
+.feature-dialog-backdrop,
+.preview-dialog-backdrop,
+.select-popup-backdrop {
+    background: rgba(2, 4, 10, .24) !important;
+    backdrop-filter: blur(10px) saturate(1.08) !important;
+}
+.program-info-panel,
+.feature-dialog-panel,
+.preview-dialog-panel,
+.select-popup-panel,
+.download-assist {
+    border-color: rgba(255,255,255,.17) !important;
+    background:
+        radial-gradient(circle at 14% 0%, rgba(109,224,255,.12), transparent 34%),
+        radial-gradient(circle at 88% 8%, rgba(184,156,255,.11), transparent 34%),
+        linear-gradient(145deg, rgba(18,21,36,.82), rgba(9,11,22,.78)) !important;
+    backdrop-filter: blur(22px) saturate(1.12) !important;
+    box-shadow: 0 28px 90px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,255,255,.035) !important;
+}
+.preview-dialog-panel { width: min(760px, 100%) !important; }
+.preview-section-title {
+    margin: 12px 0 7px;
+    color: #eafcff;
+    font-size: .76rem;
+    font-weight: 900;
+    letter-spacing: -.02em;
+}
+.realtime-preview-console {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid rgba(141,245,232,.18);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(120,215,255,.075), rgba(184,156,255,.045)), rgba(255,255,255,.035);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
+}
+.realtime-preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.realtime-preview-head strong {
+    font-size: .88rem;
+    letter-spacing: -.025em;
+}
+.realtime-preview-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 24px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: #dffff7;
+    background: rgba(141,245,232,.10);
+    border: 1px solid rgba(141,245,232,.18);
+    font-size: .62rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+.realtime-preview-status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 14px rgba(141,245,232,.55);
+}
+.realtime-player-card {
+    display: grid;
+    gap: 7px;
+    padding: 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(3,6,15,.34);
+}
+.realtime-player-card audio { width: 100%; min-height: 34px; }
+.realtime-player-card small,
+.realtime-preview-footer {
+    color: rgba(210,207,220,.78);
+    font-size: .61rem;
+    line-height: 1.38;
+}
+.realtime-control-stack {
+    display: grid;
+    gap: 9px;
+}
+.realtime-slider-row {
+    display: grid;
+    gap: 6px;
+    padding: 9px;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.035);
+}
+.realtime-slider-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: start;
+}
+.realtime-slider-top label {
+    min-width: 0;
+    color: #f5f7ff;
+    font-size: .70rem;
+    font-weight: 850;
+    line-height: 1.15;
+}
+.realtime-slider-top b {
+    justify-self: end;
+    min-width: 46px;
+    text-align: right;
+    color: #dffff7;
+    font-size: .68rem;
+    font-variant-numeric: tabular-nums;
+}
+.realtime-slider-row input[type="range"] {
+    margin: 0;
+    height: 22px;
+}
+.realtime-slider-hint {
+    color: rgba(164,159,174,.86);
+    font-size: .58rem;
+    line-height: 1.32;
+}
+.realtime-preview-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 10px;
+    padding-top: 2px;
+}
+.reference-actions .btn-secondary::after,
+.snapshot-actions .btn-secondary::after { font-weight: 900; }
+
+@media (max-width: 720px) {
+    body { font-size: 13px; }
+    .feature-open-wide { min-height: 34px; font-size: .64rem !important; }
+    .reference-panel {
+        padding: 8px !important;
+        border-radius: 15px !important;
+    }
+    .reference-head strong { font-size: .72rem !important; }
+    .reference-head .rec-value { font-size: .50rem !important; padding-inline: 6px; }
+    .reference-panel p { font-size: .54rem !important; line-height: 1.34 !important; margin: 5px 0 7px !important; }
+    .reference-metrics {
+        grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+        gap: 5px !important;
+    }
+    .reference-actions {
+        grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+        gap: 5px !important;
+    }
+    .reference-actions .btn-secondary {
+        min-height: 32px !important;
+        padding: 6px 4px !important;
+        font-size: 0 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+    }
+    .reference-actions .btn-secondary::after {
+        content: attr(data-mobile-label);
+        font-size: .60rem;
+        letter-spacing: -.02em;
+    }
+    .program-info-panel,
+    .feature-dialog-panel,
+    .preview-dialog-panel,
+    .select-popup-panel {
+        border-color: rgba(255,255,255,.16) !important;
+    }
+    .preview-dialog-panel {
+        width: min(520px, 100%) !important;
+        max-height: 86dvh !important;
+        padding: 12px !important;
+    }
+    .preview-dialog-head { gap: 8px !important; margin-bottom: 10px !important; }
+    .preview-dialog-head h2 { font-size: .98rem !important; }
+    .preview-dialog-head p,
+    .preview-dialog-note { font-size: .58rem !important; line-height: 1.34 !important; }
+    .realtime-preview-console { gap: 8px; padding: 9px; border-radius: 17px; }
+    .realtime-preview-head strong { font-size: .74rem; }
+    .realtime-preview-status { min-height: 22px; padding: 2px 7px; font-size: .54rem; }
+    .realtime-player-card { padding: 8px; border-radius: 14px; }
+    .realtime-player-card small,
+    .realtime-preview-footer { font-size: .52rem; }
+    .realtime-control-stack { gap: 7px; }
+    .realtime-slider-row { padding: 7px; border-radius: 13px; gap: 5px; }
+    .realtime-slider-top { gap: 7px; }
+    .realtime-slider-top label { font-size: .60rem !important; }
+    .realtime-slider-top .slider-label-en { font-size: .43rem !important; }
+    .realtime-slider-top b { min-width: 39px; font-size: .58rem; }
+    .realtime-slider-hint { display: none; }
+}
+
+@media (max-width: 380px) {
+    .reference-actions,
+    .snapshot-actions { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
+    .reference-actions .btn-secondary::after { font-size: .56rem; }
+    .realtime-preview-footer { display: none; }
+}
