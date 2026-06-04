@@ -1,6 +1,17 @@
-ids=99
-duplicate_ids=[]
-css_braces=1395/1395
-button_function_label_duplicates=[]
-js_bytes=308765
-css_bytes=162812
+FoxBear v1.3.10 static audit
+
+Checks:
+- HTML duplicate IDs: PASS
+- Local asset references: PASS
+- CSS brace balance: PASS
+- npm run check x2: PASS
+- ZIP integrity: PASS
+
+Focus areas patched:
+- Balanced UI density
+- Mobile upload/mastering settings spacing
+- Queue/preview player parity
+- Realtime preview EQ-grid controls
+- Direct value entry for realtime controls
+- Reduced duplicate visible info
+- Header cleanup and designer nametag polish
