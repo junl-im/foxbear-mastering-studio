@@ -4391,3 +4391,121 @@ body.preview-dialog-open { overflow: hidden; }
     .brand-right-actions .designer-mini { min-width: 76px !important; max-width: 35vw !important; }
     .brand-right-actions { gap: 3px; }
 }
+
+/* v1.3.7 reliability upgrade: reference upload, export presets, snapshots, low mono check */
+.reference-panel,
+.snapshot-panel {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid rgba(141,245,232,.13);
+    border-radius: 18px;
+    background: linear-gradient(135deg, rgba(120,215,255,.075), rgba(184,156,255,.045));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+.reference-head,
+.snapshot-head,
+.low-mono-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.reference-head strong,
+.snapshot-head strong,
+.low-mono-head strong {
+    font-size: .84rem;
+    letter-spacing: -.02em;
+}
+.reference-panel p,
+.snapshot-panel p {
+    margin: 6px 0 8px;
+    color: var(--muted);
+    font-size: .66rem;
+    line-height: 1.45;
+}
+.reference-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.reference-actions,
+.snapshot-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+}
+.reference-actions .btn-secondary,
+.snapshot-actions .btn-secondary {
+    min-height: 34px;
+    padding: 7px 9px;
+    font-size: .62rem;
+    white-space: normal;
+    line-height: 1.18;
+}
+.snapshot-panel {
+    margin: 10px 0;
+    border-color: rgba(255,210,122,.13);
+    background: linear-gradient(135deg, rgba(255,210,122,.065), rgba(255,143,179,.04));
+}
+.low-mono-panel {
+    padding: 10px;
+    margin: 9px 0;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.11);
+    background: rgba(255,255,255,.045);
+}
+.low-mono-head b {
+    font-size: .78rem;
+    color: #dffff6;
+    text-align: right;
+}
+.low-mono-bar {
+    height: 7px;
+    margin: 8px 0 6px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,.08);
+}
+.low-mono-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--cyan), var(--mint));
+    transition: width .24s ease;
+}
+.low-mono-watch .low-mono-bar i { background: linear-gradient(90deg, var(--amber), var(--mint)); }
+.low-mono-risk .low-mono-bar i { background: linear-gradient(90deg, var(--danger), var(--rose)); }
+.low-mono-panel small {
+    display: block;
+    color: var(--muted);
+    font-size: .62rem;
+    line-height: 1.36;
+}
+@media (max-width: 720px) {
+    .reference-panel,
+    .snapshot-panel {
+        padding: 8px;
+        border-radius: 15px;
+    }
+    .reference-metrics { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .reference-actions,
+    .snapshot-actions { gap: 5px; }
+    .reference-actions .btn-secondary,
+    .snapshot-actions .btn-secondary {
+        min-height: 30px;
+        padding: 6px 5px;
+        font-size: .52rem;
+    }
+    .reference-panel p,
+    .snapshot-panel p { font-size: .55rem; }
+    .low-mono-panel { padding: 8px; border-radius: 14px; }
+    .low-mono-head strong { font-size: .64rem; }
+    .low-mono-head b { font-size: .60rem; }
+    .low-mono-panel small { font-size: .52rem; }
+}
+
+@media (max-width: 380px) {
+    .reference-actions,
+    .snapshot-actions { grid-template-columns: 1fr; }
+}
