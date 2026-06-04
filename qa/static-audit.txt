@@ -1,0 +1,18 @@
+FoxBear v1.3.7 static audit
+html_ids= 99
+cached_ids= 96
+missing_cached_ids= []
+duplicate_ids= []
+new_ids_present= {'referenceInput': True, 'referenceLoadBtn': True, 'referenceApplyBtn': True, 'referenceClearBtn': True, 'platformPresetSelect': True, 'performanceModeSelect': True, 'snapshotSaveBtn': True, 'snapshotUndoBtn': True, 'snapshotClearBtn': True, 'genreLockBtn': True, 'referencePanel': True, 'referenceMetrics': True, 'snapshotStatus': True}
+css_brace_balance= 0
+missing_local_assets= []
+csp_present= True
+crypto_fallback_safe= True
+handleReferenceFiles present= True
+applyPlatformExportPreset present= True
+saveSnapshotForSelected present= True
+restoreLatestSnapshotForSelected present= True
+renderLowMonoPanel present= True
+lowMonoScore present= True
+getSmartPerformanceGuardDecision present= True
+getActiveReferenceTarget present= True
