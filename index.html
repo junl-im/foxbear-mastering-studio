@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.8 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.9 - browser based AI music mastering console" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.8</title>
+<title>FoxBear Mastering PRO v1.3.9</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.8" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.9" />
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script defer src="src/app.js?v=1.3.8"></script>
+<script defer src="src/app.js?v=1.3.9"></script>
 </head>
-<body data-build="1.3.8">
+<body data-build="1.3.9">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
@@ -22,10 +22,9 @@
                 <div class="brand-kicker">
                     <span class="badge badge-music">곰같은여우 뮤직</span>
                     <span class="badge badge-device">PC & 모바일 호환</span>
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.8</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">마스터링 PRO v1.3.9</button>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
-                    <a class="hero-subscribe" href="https://www.youtube.com/@FoxBearMusic?sub_confirmation=1" target="_blank" rel="noopener noreferrer" data-help="FoxBear Music 채널 구독 페이지를 엽니다."><span class="hero-subscribe-core"><span class="yt-mark" aria-hidden="true">▶</span><span>구독</span></span></a>
                     <a class="designer-mini designer-mini-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer" aria-label="곰같은여우 유튜브 채널 열기" data-help="곰같은여우 유튜브 채널을 새 창으로 엽니다.">
                         <span>DESIGNED BY</span>
                         <strong>곰같은여우 <em>with AI</em></strong>
@@ -388,16 +387,16 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.8</span>
-        <h2 id="programInfoTitle">AI 음악 마스터링 스튜디오</h2>
-        <p>서버 업로드 없이 브라우저 내부에서 오디오를 분석하고, 장르 성향·피치/BPM·마스터링 목표에 맞춰 안전하게 처리하는 로컬형 음악 마스터링 도구입니다.</p>
-        <div class="program-info-grid">
-            <div><strong>로컬 처리</strong><span>파일은 사용자의 브라우저 안에서 처리되어 서버 트래픽과 개인정보 부담을 줄입니다.</span></div>
-            <div><strong>보컬 보호</strong><span>극단 피치/BPM 설정에서도 보컬·리드 대역이 과하게 눌리지 않도록 보호합니다.</span></div>
-            <div><strong>True Peak 가드</strong><span>마지막 피크와 출력 포맷을 확인해 다운로드 결과를 안정적으로 만듭니다.</span></div>
-            <div><strong>스마트 비교</strong><span>A/B 루프와 자동 하이라이트로 마스터링 전후 차이를 빠르게 확인합니다.</span></div>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.9</span>
+        <h2 id="programInfoTitle">누구나 쉽게 쓰는 무료 마스터링 도구</h2>
+        <p>FoxBear는 무료 프로그램이어도 누구나 자신의 음악을 쉽게 음질 개선하고 마스터링할 수 있도록 만든 브라우저 기반 로컬 오디오 스튜디오입니다. 업로드 없이 파일을 분석하고, 추천값·실시간 미리듣기·안전 가드로 결과를 확인하며 저장합니다.</p>
+        <div class="program-info-grid program-info-roadmap">
+            <div><strong>기본 기능</strong><span>파일/폴더 불러오기, 장르 프리셋, 원본·마스터본 A/B 프리뷰, WAV/MP3 저장, 작업 대기열 처리.</span></div>
+            <div><strong>도입된 기능</strong><span>스마트 추천, 레퍼런스 트랙, 플랫폼 저장 프리셋, 실시간 미리듣기, 스냅샷, 안전 점수, 저역 모노 체크.</span></div>
+            <div><strong>음질 보호</strong><span>보컬 보호, True Peak 가드, 과처리 방지, 피치/BPM 고품질 렌더 경로, 모바일 성능 가드.</span></div>
+            <div><strong>추후 예정</strong><span>레퍼런스 매칭 고도화, 악기 레이어 샘플 선택, 보컬 구간 회피, WASM DSP 확장, 프리셋 공유.</span></div>
         </div>
-        <p class="program-info-note">성능을 해치는 무거운 기능보다, 기존 분석값을 재사용하는 지능형 보정과 안전 가드를 우선으로 발전합니다.</p>
+        <p class="program-info-note">목표는 복잡한 전문 용어를 줄이고, 핵심 컨트롤만으로 유료급 결과에 가까운 안정적인 마스터링 흐름을 만드는 것입니다.</p>
     </section>
 </div>
 
