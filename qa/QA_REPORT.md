@@ -1,31 +1,51 @@
-# FoxBear v1.3.13 QA Report
+# FoxBear Pro v1.3.16 QA Report
 
-## Applied fixes
-- 작업 요약 제목을 4개 상태 카드와 같은 요약 스트립 안으로 이동해 별도 테두리처럼 보이던 문제를 정리했습니다.
-- 트랙/완료/총 파일 용량/상태 카드와 부모 요약 테두리 사이의 내부 여백을 늘리고 카드 간격을 재조정했습니다.
-- 작업 요약 제목을 왼쪽 정렬로 고정했습니다.
-- 대분류 제목과 모바일 라벨/버튼 글자 크기를 낮춰 v1.3.11 후반 오버라이드가 다시 크게 보이던 문제를 보정했습니다.
-- 미리듣기 팝업 제목 위 영어 배지 `Realtime Preview`를 제거했습니다.
-- AI 추천 프리셋/선택 트랙/전체 마스터링 버튼 묶음의 부모-자식 테두리 간격과 버튼 밀도를 재조정했습니다.
-- 상단 아날로그 노브에 매우 느린 회전 애니메이션을 추가했고 `prefers-reduced-motion` 환경에서는 애니메이션을 끕니다.
-- 비선택 트랙 카드 테두리를 검정색으로 고정하고 선택/현재 작업 카드의 강조를 더 분명하게 분리했습니다.
-- 트랙 카드 hover/active transform을 제거해 선택된 음악에 마우스를 올리거나 클릭할 때 떨림이 생기지 않도록 했습니다.
-- `PC · 모바일 호환` 더블탭 숨겨진 통계 진입점과 암호 `8605` 관리자 패널을 추가했습니다.
-- 앱 버전, 캐시 버스터, 패키지 버전을 v1.3.13으로 갱신했습니다.
+## Scope
 
-## Checks performed
-- npm run check: passed.
-- src/app.js syntax: passed.
-- all worker syntax checks: passed.
-- optional pitch adapter syntax check: passed.
-- HTML duplicate ID scan: no duplicates.
-- local asset reference scan: no missing local files.
-- CSS brace balance: matched.
-- ZIP integrity: passed after packaging.
+- Selection/non-selection visual contrast
+- Track click vs explicit selection behavior
+- Action panel naming polish
+- Popup close button centering
+- In-app browser download alternatives
+- CSP/security hardening and Firebase Hosting header readiness
 
-## Compatibility / security notes
-- JSZip 3.10.1 is still the current published JSZip version, so there is no dependency upgrade required for that library.
-- External CDN scripts are still allowed by the current CSP. For stricter production hardening, vendor JSZip/lamejs locally or add SRI where possible.
-- The host guard still limits execution to the configured GitHub Pages host plus local development; add any new custom domain before deployment.
-- Full audio playback/touch QA still needs a real desktop/mobile browser because this static container cannot verify device audio output or touch behavior.
-- GitHub Pages 정적 배포만으로는 실제 전체 방문자 IP 집계가 불가능합니다. 이번 통계 패널은 localStorage 기반 로컬 통계와 서버 API 연동 훅을 제공합니다.
+## Changes verified statically
+
+- Non-selected `.track-card` variants, including `active-track` and `genre-locked`, end with black border rules and no colored outer shadow.
+- Selected track cards keep colored borders so selected/non-selected states are visually distinct.
+- Card click calls `activateTrackOnly()` only; selection is handled by `작업 선택` / `선택 해제` buttons.
+- Double-click, Delete, and Backspace still clear selection.
+- `masterSelectedTracks()` no longer falls back to the active/current track when no explicit selection exists.
+- `작업 실행` section label changed to `마스터링 엔진` with an Engine / Export badge.
+- Close buttons use flex centering and line-height normalization.
+- Download helper now includes direct-save, native-share, file-open, and page-url-copy alternatives when browser support is available.
+- `firebase.json` added with strict deploy-time HTTP security headers.
+
+## Command checks
+
+```bash
+npm run check
+```
+
+Passed:
+
+- `src/app.js`
+- `src/workers/analysis.worker.js`
+- `src/workers/wav-encoder.worker.js`
+- `src/workers/mp3-encoder.worker.js`
+- `src/workers/master-finalizer.worker.js`
+- `src/workers/pitch-wsola.worker.js`
+- `src/engines/pitch-engine-adapter.js`
+
+## Security checks
+
+- CSP keeps `script-src 'self'`, `style-src 'self'`, `connect-src 'self'`, `worker-src 'self'`.
+- No CDN script dependency is required for JSZip/lamejs.
+- Local CSS/JS SRI hashes refreshed after edits.
+- Firebase Hosting config includes deploy-time HTTP headers that cannot be fully delivered by GitHub Pages meta tags alone.
+
+## Manual checks still recommended
+
+- KakaoTalk in-app browser download behavior must be verified on a real device because WebView download permissions vary by OS/browser build.
+- Direct Save uses the File System Access API where available; unsupported browsers will show the other fallback buttons.
+- Firebase Hosting headers should be checked after deployment with browser DevTools or an HTTP header scanner.
