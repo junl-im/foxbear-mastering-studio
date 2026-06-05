@@ -1,0 +1,68 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/siteAdmins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/siteAdmins/$(request.auth.uid)).data.active == true;
+    }
+
+    function validShortString(field, maxSize) {
+      return field is string && field.size() <= maxSize;
+    }
+
+    function validVisitCreate() {
+      return signedIn()
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'visitorId',
+          'createdAt',
+          'clientAt',
+          'dateKey',
+          'referrer',
+          'page',
+          'path',
+          'language',
+          'userAgent',
+          'screen',
+          'appVersion',
+          'source',
+          'storageUsed'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.visitorId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && validShortString(request.resource.data.clientAt, 40)
+        && validShortString(request.resource.data.dateKey, 10)
+        && validShortString(request.resource.data.referrer, 160)
+        && validShortString(request.resource.data.page, 180)
+        && validShortString(request.resource.data.path, 160)
+        && validShortString(request.resource.data.language, 24)
+        && validShortString(request.resource.data.userAgent, 220)
+        && validShortString(request.resource.data.screen, 32)
+        && validShortString(request.resource.data.appVersion, 24)
+        && request.resource.data.source == 'foxbear-web-client'
+        && request.resource.data.storageUsed == false;
+    }
+
+    match /siteVisits/{visitId} {
+      allow create: if validVisitCreate();
+      allow get, list: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /siteAdmins/{uid} {
+      allow get: if signedIn() && uid == request.auth.uid;
+      allow list, create, update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
