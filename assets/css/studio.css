@@ -6375,3 +6375,210 @@ body.admin-dialog-open { overflow: hidden; }
     .admin-stats-table th,
     .admin-stats-table td { padding: 7px 8px; }
 }
+
+/* v1.3.14 security/CSP-safe fallback screens */
+.security-message-page {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: radial-gradient(circle at 20% 15%, rgba(127,255,212,.14), transparent 32%), linear-gradient(135deg, #070711, #11101b);
+    color: #f3f0e8;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-align: center;
+}
+.security-message-wrap {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    width: 100%;
+}
+.security-message-card {
+    width: min(520px, 100%);
+    padding: 28px;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(20,18,33,.86);
+    box-shadow: 0 26px 80px rgba(0,0,0,.38);
+}
+.security-message-card h1 {
+    margin: 0 0 10px;
+    font-size: 1.55rem;
+    letter-spacing: -.04em;
+}
+.security-message-card p {
+    margin: 0;
+    color: #a49fae;
+    line-height: 1.55;
+}
+.security-message-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+/* v1.3.16: separate current-track focus from batch selection, keep unselected borders black */
+.track-card,
+.track-card:hover,
+.track-card:active,
+.track-card:focus,
+.track-card:focus-within {
+    transform: none !important;
+    animation: none !important;
+    will-change: auto !important;
+}
+.track-card:not(.selected),
+.track-card.active-track:not(.selected),
+.track-card.genre-locked:not(.selected),
+.track-card:not(.selected):hover,
+.track-card.active-track:not(.selected):hover,
+.track-card.genre-locked:not(.selected):hover {
+    border-color: #000 !important;
+    outline: none !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.014) !important;
+}
+.track-card.active-track:not(.selected) {
+    background: linear-gradient(135deg, rgba(255,255,255,.040), rgba(141,245,232,.026)) !important;
+    opacity: .94 !important;
+}
+.track-card.selected,
+.track-card.selected:hover,
+.track-card.selected.active-track,
+.track-card.selected.active-track:hover {
+    border-color: rgba(139,214,255,.88) !important;
+    outline: none !important;
+    box-shadow: inset 0 0 0 1px rgba(139,214,255,.24), 0 0 0 2px rgba(139,214,255,.05) !important;
+    opacity: 1 !important;
+}
+.track-card.selected.active-track {
+    border-color: rgba(141,245,232,.96) !important;
+    box-shadow: inset 0 0 0 1px rgba(141,245,232,.42), 0 0 0 2px rgba(141,245,232,.07) !important;
+}
+.track-card:focus-visible {
+    outline: 2px solid rgba(141,245,232,.55) !important;
+    outline-offset: 2px !important;
+}
+.track-card.active-track:not(.selected)::after {
+    color: rgba(236,244,255,.82) !important;
+    background: rgba(255,255,255,.070) !important;
+    border-color: rgba(255,255,255,.14) !important;
+}
+.track-card.selected.active-track::after {
+    color: #eafffb !important;
+    background: rgba(141,245,232,.18) !important;
+    border-color: rgba(141,245,232,.45) !important;
+}
+.track-card .btn-mini {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* v1.3.16: stronger selection contrast, centered close buttons, safer download helper */
+.panel-head-engine {
+    align-items: center;
+}
+.engine-badge {
+    border-color: rgba(141,245,232,.26) !important;
+    background: rgba(141,245,232,.085) !important;
+    color: #ddfff8 !important;
+}
+.hidden-download-link {
+    position: fixed !important;
+    left: -9999px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+}
+.track-card,
+.track-card:hover,
+.track-card:active,
+.track-card:focus,
+.track-card:focus-visible,
+.track-card:focus-within {
+    transform: none !important;
+    animation: none !important;
+    translate: none !important;
+    will-change: auto !important;
+}
+.track-card:not(.selected),
+.track-card.active-track:not(.selected),
+.track-card.genre-locked:not(.selected),
+.track-card.active-track.genre-locked:not(.selected),
+.track-card:not(.selected):hover,
+.track-card.active-track:not(.selected):hover,
+.track-card.genre-locked:not(.selected):hover,
+.track-card.active-track.genre-locked:not(.selected):hover,
+.track-card:not(.selected):focus,
+.track-card.active-track:not(.selected):focus,
+.track-card.genre-locked:not(.selected):focus,
+.track-card:not(.selected):focus-within,
+.track-card.active-track:not(.selected):focus-within,
+.track-card.genre-locked:not(.selected):focus-within {
+    border-color: #050505 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    opacity: .86 !important;
+}
+.track-card.active-track:not(.selected),
+.track-card.active-track.genre-locked:not(.selected) {
+    background: linear-gradient(135deg, rgba(255,255,255,.038), rgba(255,255,255,.018)) !important;
+}
+.track-card:not(.selected) .progress-bar {
+    filter: saturate(.55) brightness(.86) !important;
+    opacity: .68 !important;
+}
+.track-card.selected,
+.track-card.selected:hover,
+.track-card.selected:focus,
+.track-card.selected:focus-within {
+    border-color: rgba(116,234,255,.96) !important;
+    box-shadow: inset 0 0 0 1px rgba(116,234,255,.30), 0 0 0 2px rgba(116,234,255,.065) !important;
+    opacity: 1 !important;
+}
+.track-card.selected.active-track,
+.track-card.selected.active-track:hover,
+.track-card.selected.active-track:focus,
+.track-card.selected.active-track:focus-within {
+    border-color: rgba(141,245,232,.98) !important;
+    box-shadow: inset 0 0 0 1px rgba(141,245,232,.44), 0 0 0 2px rgba(141,245,232,.08) !important;
+}
+.track-card:focus-visible {
+    outline: 2px solid rgba(255,255,255,.26) !important;
+    outline-offset: 2px !important;
+}
+.program-info-close,
+.feature-dialog-close,
+.preview-dialog-close,
+.admin-dialog-close,
+.subscribe-mini-close {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    padding: 0 !important;
+    text-align: center !important;
+}
+.program-info-close,
+.feature-dialog-close,
+.preview-dialog-close,
+.admin-dialog-close {
+    font-size: 1.16rem !important;
+}
+.download-assist-actions {
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+}
+.download-assist-actions button,
+.download-assist-actions a {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+@media (max-width: 720px) {
+    .track-card:not(.selected),
+    .track-card.active-track:not(.selected),
+    .track-card.genre-locked:not(.selected) {
+        opacity: .84 !important;
+    }
+    .engine-badge { font-size: .48rem !important; }
+}
