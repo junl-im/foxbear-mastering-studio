@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.13 - advanced modular GitHub DSP build
+// FoxBear AI Mastering Studio Pro v1.3.17 - Firebase Firestore-ready static build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.13';
+const APP_VERSION = 'Pro v1.3.17';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -322,7 +322,14 @@ const state = {
     previewRenderTimer: null,
     adminTapLastAt: 0,
     adminTapCount: 0,
-    adminStatsRemoteError: ''
+    adminStatsRemoteError: '',
+    firebaseReady: false,
+    firebaseUserId: '',
+    firebaseError: '',
+    firebaseVisitLogged: false,
+    firebaseRemoteNotice: '',
+    firebaseNoticeShown: false,
+    lastAdminVisitEvent: null
 };
 
 const el = {};
@@ -330,27 +337,44 @@ const el = {};
 document.addEventListener('DOMContentLoaded', init);
 
 function runSiteAccessGuard() {
-    const allowedHosts = new Set(['junl-im.github.io', 'localhost', '127.0.0.1', '0.0.0.0']);
+    const allowedHosts = new Set(['junl-im.github.io', 'foxbear-music.web.app', 'foxbear-music.firebaseapp.com', 'localhost', '127.0.0.1', '0.0.0.0']);
     const protocol = window.location.protocol;
     const host = window.location.hostname;
     const isLocalFile = protocol === 'file:';
     const isAllowed = isLocalFile || allowedHosts.has(host);
     if (isAllowed) return false;
-    document.documentElement.innerHTML = `
-        <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>FoxBear Music</title>
-            <style>
-                body{margin:0;min-height:100vh;display:grid;place-items:center;background:#070711;color:#f3f0e8;font-family:system-ui,-apple-system,Segoe UI,sans-serif;text-align:center;padding:24px;}
-                section{max-width:520px;border:1px solid rgba(255,255,255,.14);border-radius:28px;background:rgba(20,18,33,.78);padding:28px;box-shadow:0 26px 80px rgba(0,0,0,.34)}
-                h1{margin:0 0 10px;font-size:1.4rem}p{color:#a49fae;line-height:1.6}
-            </style>
-        </head>
-        <body><section><h1>FoxBear Music</h1><p>정식 배포 주소에서만 실행되는 보호 모드입니다.<br>공식 페이지에서 다시 접속해주세요.</p></section></body>`;
+    renderSecurityMessage('FoxBear Music', '정식 배포 주소에서만 실행되는 보호 모드입니다.', '공식 페이지에서 다시 접속해주세요.');
     return true;
 }
 
+function renderSecurityMessage(titleText, ...lines) {
+    document.head.textContent = '';
+    const charset = document.createElement('meta');
+    charset.setAttribute('charset', 'UTF-8');
+    const viewport = document.createElement('meta');
+    viewport.name = 'viewport';
+    viewport.content = 'width=device-width, initial-scale=1.0';
+    const title = document.createElement('title');
+    title.textContent = 'FoxBear Music';
+    const styleLink = document.createElement('link');
+    styleLink.rel = 'stylesheet';
+    styleLink.href = 'assets/css/studio.css?v=1.3.17';
+    document.head.append(charset, viewport, title, styleLink);
+
+    document.body.textContent = '';
+    document.body.className = 'security-message-page';
+    const section = document.createElement('section');
+    section.className = 'security-message-card';
+    const heading = document.createElement('h1');
+    heading.textContent = titleText;
+    const paragraph = document.createElement('p');
+    lines.forEach((line, index) => {
+        if (index) paragraph.appendChild(document.createElement('br'));
+        paragraph.append(line);
+    });
+    section.append(heading, paragraph);
+    document.body.appendChild(section);
+}
 
 function init() {
     if (runSiteAccessGuard()) return;
@@ -359,6 +383,7 @@ function init() {
     renderFeatureButtons();
     enhanceActionSelects();
     bindEvents();
+    initFirebaseBridge();
     registerAdminVisit();
     initActionHelpTooltips();
     maybeAutoCleanAnalysisCache();
@@ -1349,9 +1374,11 @@ function registerAdminVisit() {
         ip: '백엔드 미연결',
         referrer,
         page: `${location.pathname || '/'}${location.search || ''}`,
+        path: location.pathname || '/',
         screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
         language: navigator.language || '',
-        userAgent: navigator.userAgent || ''
+        userAgent: navigator.userAgent || '',
+        appVersion: document.body?.dataset?.build || ''
     };
     stats.version = 1;
     stats.totalVisits = Number(stats.totalVisits || 0) + 1;
@@ -1369,6 +1396,82 @@ function registerAdminVisit() {
     stats.daily = stats.daily && typeof stats.daily === 'object' ? stats.daily : {};
     stats.daily[dateKey] = buildDailyStats(stats.events, dateKey);
     writeAdminLocalStats(stats);
+    state.lastAdminVisitEvent = event;
+    registerFirebaseVisit(event);
+}
+
+function initFirebaseBridge() {
+    window.addEventListener('foxbear:firebase-ready', event => handleFirebaseBridgeReady(event.detail));
+    window.addEventListener('foxbear:firebase-auth', event => handleFirebaseBridgeReady(event.detail));
+    window.addEventListener('foxbear:firebase-error', event => handleFirebaseBridgeError(event.detail));
+    if (window.FoxBearFirebase) handleFirebaseBridgeReady(window.FoxBearFirebase);
+}
+
+function handleFirebaseBridgeReady(detail = {}) {
+    const bridge = window.FoxBearFirebase || detail || {};
+    state.firebaseReady = Boolean(bridge.ready);
+    state.firebaseUserId = bridge.uid || (typeof bridge.getUid === 'function' ? bridge.getUid() : '') || state.firebaseUserId;
+    state.firebaseError = bridge.error || '';
+    state.firebaseRemoteNotice = bridge.remoteConfig?.foxbear_notice || state.firebaseRemoteNotice || '';
+    applyFirebaseRemoteConfig(bridge.remoteConfig || {});
+    if (state.lastAdminVisitEvent) registerFirebaseVisit(state.lastAdminVisitEvent);
+}
+
+
+function applyFirebaseRemoteConfig(config = {}) {
+    const youtubeUrl = normalizeRemoteHttpsUrl(config.foxbear_youtube_url, 'www.youtube.com');
+    if (youtubeUrl) {
+        document.querySelectorAll('.designer-mini-link').forEach(link => {
+            link.href = youtubeUrl;
+        });
+    }
+    const notice = limitAdminText(config.foxbear_notice || '', 120);
+    if (notice && !state.firebaseNoticeShown) {
+        state.firebaseNoticeShown = true;
+        showToast(notice);
+    }
+}
+
+function normalizeRemoteHttpsUrl(value, allowedHost) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try {
+        const url = new URL(raw);
+        if (url.protocol !== 'https:' || url.hostname !== allowedHost) return '';
+        url.hash = '';
+        return url.toString();
+    } catch (error) {
+        return '';
+    }
+}
+
+function handleFirebaseBridgeError(detail = {}) {
+    state.firebaseReady = false;
+    state.firebaseError = detail.error || window.FoxBearFirebase?.error || 'Firebase 연결 실패';
+}
+
+function registerFirebaseVisit(event) {
+    if (state.firebaseVisitLogged) return;
+    const bridge = window.FoxBearFirebase;
+    if (!bridge || typeof bridge.logVisit !== 'function') return;
+    state.firebaseVisitLogged = true;
+    bridge.logVisit({
+        dateKey: event.date,
+        referrer: event.referrer,
+        page: event.page,
+        path: event.path,
+        screen: event.screen,
+        language: event.language,
+        userAgent: event.userAgent,
+        appVersion: event.appVersion
+    }).then(() => {
+        state.firebaseReady = true;
+        state.firebaseUserId = bridge.getUid ? bridge.getUid() : state.firebaseUserId;
+    }).catch(error => {
+        state.firebaseVisitLogged = false;
+        state.firebaseError = error.message || String(error);
+        console.warn('Firebase visit log skipped:', error);
+    });
 }
 
 function readAdminLocalStats() {
@@ -1430,7 +1533,10 @@ async function renderAdminStatsDialog(forceRemote) {
     if (!el.adminStatsSummary || !el.adminStatsRows) return;
     const localStats = readAdminLocalStats();
     let remoteStats = null;
-    if (forceRemote || window.FOXBEAR_STATS_ENDPOINT) {
+    if (forceRemote || window.FoxBearFirebase?.ready) {
+        remoteStats = await fetchAdminFirebaseStats();
+    }
+    if (!remoteStats && (forceRemote || window.FOXBEAR_STATS_ENDPOINT)) {
         remoteStats = await fetchAdminRemoteStats();
     }
     const model = remoteStats || makeAdminStatsModel(localStats);
@@ -1483,7 +1589,7 @@ function makeAdminStatsModel(stats) {
     return {
         mode: 'local',
         modeLabel: '로컬 기록',
-        notice: `현재는 브라우저 localStorage 기준입니다. 실제 전체 방문자 IP/누적 접속자 집계는 같은 도메인의 통계 API(window.FOXBEAR_STATS_ENDPOINT) 연결 시 표시됩니다.${state.adminStatsRemoteError ? ' 서버 API 확인 실패: ' + state.adminStatsRemoteError : ''}`,
+        notice: `현재는 브라우저 localStorage 기준입니다. Firebase Firestore 연결 후 관리자 UID를 siteAdmins에 등록하면 원격 방문 통계를 표시합니다.${getFirebaseStatusNotice()}${state.adminStatsRemoteError ? ' 원격 통계 확인 실패: ' + state.adminStatsRemoteError : ''}`,
         totalVisits: Number(stats.totalVisits || events.length || 0),
         todayVisits: todayEvents.length,
         todayUnique: new Set(todayEvents.map(item => item.visitorId)).size,
@@ -1491,33 +1597,117 @@ function makeAdminStatsModel(stats) {
     };
 }
 
+
+async function fetchAdminFirebaseStats() {
+    const bridge = window.FoxBearFirebase;
+    if (!bridge || typeof bridge.getAdminStats !== 'function') return null;
+    try {
+        const data = await bridge.getAdminStats({ limit: 80, todayLimit: 500 });
+        const uid = data.uid || bridge.uid || (bridge.getUid ? bridge.getUid() : '') || '';
+        state.firebaseReady = true;
+        state.firebaseUserId = uid;
+        state.adminStatsRemoteError = '';
+        return {
+            mode: 'firebase',
+            modeLabel: 'Firebase',
+            notice: `Firebase Firestore 원격 통계입니다. 오디오는 업로드하지 않고 방문 이벤트만 저장합니다. 관리자 UID: ${uid || '확인 중'}`,
+            totalVisits: safeAdminNumber(data.totalVisits, 0),
+            todayVisits: safeAdminNumber(data.todayVisits, 0),
+            todayUnique: safeAdminNumber(data.todayUnique, 0),
+            events: Array.isArray(data.events) ? data.events.map(item => ({
+                at: limitAdminText(item.at || '', 40),
+                ip: limitAdminText(item.ip || '클라이언트 Firestore 모드', 64),
+                visitorId: limitAdminText(item.visitorId || item.uid || '', 80),
+                referrer: limitAdminText(item.referrer || '직접 접속 / 비공개', 160),
+                page: limitAdminText(item.page || '/', 160)
+            })) : []
+        };
+    } catch (error) {
+        const uid = bridge.uid || (bridge.getUid ? bridge.getUid() : '') || state.firebaseUserId || '';
+        state.firebaseUserId = uid;
+        state.adminStatsRemoteError = makeFirebaseStatsErrorMessage(error, uid);
+        return null;
+    }
+}
+
+function makeFirebaseStatsErrorMessage(error, uid) {
+    const raw = error?.message || String(error || '');
+    if (/permission|Missing or insufficient permissions|PERMISSION_DENIED/i.test(raw)) {
+        return `Firestore 읽기 권한이 없습니다. Firebase Console에서 siteAdmins/${uid || '현재_UID'} 문서를 먼저 만들어주세요.`;
+    }
+    return raw;
+}
+
+function getFirebaseStatusNotice() {
+    const bridge = window.FoxBearFirebase;
+    const uid = state.firebaseUserId || bridge?.uid || (bridge?.getUid ? bridge.getUid() : '');
+    if (uid) return ` 현재 Firebase UID: ${uid}.`;
+    if (state.firebaseError || bridge?.error) return ` Firebase 연결 상태: ${state.firebaseError || bridge.error}.`;
+    return ' Firebase 연결 대기 중입니다.';
+}
+
 async function fetchAdminRemoteStats() {
     const endpoint = typeof window.FOXBEAR_STATS_ENDPOINT === 'string' ? window.FOXBEAR_STATS_ENDPOINT.trim() : '';
     if (!endpoint || typeof fetch !== 'function') return null;
+    let endpointUrl;
     try {
-        const response = await fetch(endpoint, { method: 'GET', credentials: 'same-origin', headers: { Accept: 'application/json' } });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        const events = Array.isArray(data.events) ? data.events : [];
-        return {
-            mode: 'remote',
-            modeLabel: '서버 API',
-            notice: '서버 통계 API에서 받은 방문자 IP, 유입 사이트, 누적 접속자 기준으로 표시 중입니다.',
-            totalVisits: Number(data.totalVisits || events.length || 0),
-            todayVisits: Number(data.todayVisits || 0),
-            todayUnique: Number(data.todayUnique || data.uniqueVisitors || 0),
-            events: events.map(item => ({
-                at: item.at || item.createdAt || item.time || '',
-                ip: item.ip || item.ipAddress || 'IP 없음',
-                visitorId: item.visitorId || '',
-                referrer: item.referrer || item.referer || '직접 접속 / 비공개',
-                page: item.page || item.path || '/'
-            }))
-        };
+        endpointUrl = new URL(endpoint, window.location.origin);
+        if (endpointUrl.origin !== window.location.origin || !endpointUrl.pathname.startsWith('/')) {
+            throw new Error('통계 API는 같은 도메인의 절대 경로만 허용됩니다.');
+        }
+        endpointUrl.hash = '';
     } catch (error) {
         state.adminStatsRemoteError = error.message || String(error);
         return null;
     }
+
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 5000) : null;
+    try {
+        const response = await fetch(endpointUrl.toString(), {
+            method: 'GET',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            redirect: 'error',
+            referrerPolicy: 'no-referrer',
+            headers: { Accept: 'application/json' },
+            signal: controller ? controller.signal : undefined
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const length = Number(response.headers.get('content-length') || 0);
+        if (length > 262144) throw new Error('통계 응답이 너무 큽니다.');
+        const data = await response.json();
+        const events = Array.isArray(data.events) ? data.events.slice(0, 100) : [];
+        return {
+            mode: 'remote',
+            modeLabel: '서버 API',
+            notice: '서버 통계 API에서 받은 방문자 IP, 유입 사이트, 누적 접속자 기준으로 표시 중입니다.',
+            totalVisits: safeAdminNumber(data.totalVisits, events.length),
+            todayVisits: safeAdminNumber(data.todayVisits, 0),
+            todayUnique: safeAdminNumber(data.todayUnique ?? data.uniqueVisitors, 0),
+            events: events.map(item => ({
+                at: limitAdminText(item.at || item.createdAt || item.time || '', 40),
+                ip: limitAdminText(item.ip || item.ipAddress || 'IP 없음', 64),
+                visitorId: limitAdminText(item.visitorId || '', 80),
+                referrer: limitAdminText(item.referrer || item.referer || '직접 접속 / 비공개', 160),
+                page: limitAdminText(item.page || item.path || '/', 160)
+            }))
+        };
+    } catch (error) {
+        state.adminStatsRemoteError = error.name === 'AbortError' ? '요청 시간 초과' : (error.message || String(error));
+        return null;
+    } finally {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+}
+
+function safeAdminNumber(value, fallback = 0) {
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? Math.floor(number) : fallback;
+}
+
+function limitAdminText(value, maxLength) {
+    return String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, '').slice(0, maxLength);
 }
 
 function maskAdminVisitorId(visitorId) {
@@ -1960,16 +2150,26 @@ function initUiGuards() {
 
 function showDecoyPage() {
     try {
-        document.body.innerHTML = `
-            <main style="min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 20% 15%, rgba(127,255,212,.14), transparent 32%),linear-gradient(135deg,#070711,#11101b);color:#f3f0e8;font-family:system-ui,-apple-system,Segoe UI,sans-serif;">
-                <section style="width:min(520px,100%);padding:28px;border-radius:28px;border:1px solid rgba(255,255,255,.14);background:rgba(20,18,33,.86);box-shadow:0 26px 80px rgba(0,0,0,.38);text-align:center;">
-                    <div style="font-size:3rem;margin-bottom:10px;">🦊</div>
-                    <h1 style="margin:0 0 10px;font-size:1.55rem;letter-spacing:-.04em;">FoxBear Studio Preview</h1>
-                    <p style="margin:0;color:#a49fae;line-height:1.55;">이 화면은 보호 모드 미리보기입니다.<br>작업 화면으로 돌아가려면 페이지를 새로고침하세요.</p>
-                </section>
-            </main>`;
+        document.body.textContent = '';
+        document.body.classList.add('security-message-page');
+        const main = document.createElement('main');
+        main.className = 'security-message-wrap';
+        const section = document.createElement('section');
+        section.className = 'security-message-card';
+        const mark = document.createElement('div');
+        mark.className = 'security-message-icon';
+        mark.textContent = '🦊';
+        const title = document.createElement('h1');
+        title.textContent = 'FoxBear Studio Preview';
+        const paragraph = document.createElement('p');
+        paragraph.append('이 화면은 보호 모드 미리보기입니다.');
+        paragraph.appendChild(document.createElement('br'));
+        paragraph.append('작업 화면으로 돌아가려면 페이지를 새로고침하세요.');
+        section.append(mark, title, paragraph);
+        main.appendChild(section);
+        document.body.appendChild(main);
     } catch (error) {
-        document.documentElement.innerHTML = '<body style="background:#070711;color:#f3f0e8;font-family:sans-serif;display:grid;place-items:center;min-height:100vh;">FoxBear Studio Preview</body>';
+        renderSecurityMessage('FoxBear Studio Preview', '보호 모드 화면입니다.');
     }
 }
 
@@ -2053,9 +2253,9 @@ async function handleFiles(fileList) {
         }
         const track = createTrack(file);
         state.tracks.push(track);
-        state.selectedIds.add(track.id);
         if (!state.selectedId) {
             state.selectedId = track.id;
+            applyTrackToControls(track);
         }
         added += 1;
         renderAll();
@@ -3127,10 +3327,11 @@ function customHintText(slider, value) {
 
 async function masterSelectedTracks() {
     if (state.busy) return;
-    const selectedTracks = getSelectedTracks().filter(track => !['analyzing', 'processing'].includes(track.status) && !track.error);
-    const fallback = getSelectedTrack();
-    const candidates = selectedTracks.length ? selectedTracks : (fallback && !fallback.error ? [fallback] : []);
-    if (!candidates.length) return;
+    const candidates = getSelectedTracks().filter(track => !['analyzing', 'processing'].includes(track.status) && !track.error);
+    if (!candidates.length) {
+        showToast('작업 선택 버튼으로 마스터링할 곡을 먼저 선택해주세요.');
+        return;
+    }
 
     state.busy = true;
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
@@ -5560,20 +5761,14 @@ function downloadBlob(blob, fileName) {
     state.activeDownloadUrls.add(url);
 
     const restricted = isRestrictedDownloadBrowser();
-    if (restricted && tryShareDownloadFile(blob, safeName, url)) {
-        showDownloadAssist(url, safeName, blob.type || 'audio/*');
-        showToast('인앱 브라우저용 공유/저장 창을 열었습니다. 안 되면 도움창의 파일 다시 열기를 눌러주세요.');
-        return;
-    }
+    const shouldOpenAssist = restricted || !supportsAnchorDownload();
 
     const a = document.createElement('a');
     a.href = url;
     a.download = safeName;
     a.rel = 'noopener noreferrer';
     a.target = '_blank';
-    a.style.position = 'fixed';
-    a.style.left = '-9999px';
-    a.style.top = '0';
+    a.className = 'hidden-download-link';
     document.body.appendChild(a);
 
     try {
@@ -5582,9 +5777,9 @@ function downloadBlob(blob, fileName) {
         console.warn('download click fallback:', error);
     }
 
-    if (restricted || !supportsAnchorDownload()) {
-        showDownloadAssist(url, safeName, blob.type || 'audio/*');
-        showToast('인앱 브라우저는 저장이 막힐 수 있습니다. 다운로드 도움창에서 다시 열어주세요.');
+    if (shouldOpenAssist) {
+        showDownloadAssist(url, safeName, blob.type || 'audio/*', blob);
+        showToast('인앱 브라우저는 저장이 막힐 수 있습니다. 도움창의 직접 저장/공유 버튼을 사용해보세요.');
     } else {
         showToast(`${safeName} 다운로드를 시작했습니다.`);
     }
@@ -5611,6 +5806,51 @@ function tryShareDownloadFile(blob, fileName, url) {
         console.warn('share download unavailable:', error);
         return false;
     }
+}
+
+function supportsWebShareFiles(blob, fileName) {
+    if (!navigator.share || typeof File === 'undefined') return false;
+    try {
+        const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+        return !navigator.canShare || navigator.canShare({ files: [file] });
+    } catch (error) {
+        return false;
+    }
+}
+
+async function shareDownloadFile(blob, fileName) {
+    const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+    await navigator.share({ files: [file], title: fileName, text: 'FoxBear Music 마스터링 파일' });
+    showToast('공유/저장 요청을 보냈습니다.');
+}
+
+function supportsFileSystemSave() {
+    return typeof window.showSaveFilePicker === 'function';
+}
+
+async function saveBlobWithPicker(blob, fileName) {
+    if (!supportsFileSystemSave()) throw new Error('File System Access API unsupported');
+    const ext = fileName.includes('.') ? fileName.split('.').pop().toLowerCase() : '';
+    const picker = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{
+            description: 'FoxBear mastered file',
+            accept: { [blob.type || 'application/octet-stream']: ext ? [`.${ext}`] : ['.wav'] }
+        }]
+    });
+    const writable = await picker.createWritable();
+    await writable.write(blob);
+    await writable.close();
+    showToast(`${fileName} 직접 저장을 완료했습니다.`);
+}
+
+function copyCurrentPageUrl() {
+    const text = location.href.split('#')[0];
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => showToast('페이지 주소를 복사했습니다. 카카오톡 메뉴에서 외부 브라우저로 열어주세요.')).catch(() => showToast(text));
+        return;
+    }
+    showToast(text);
 }
 
 function supportsAnchorDownload() {
@@ -5653,7 +5893,7 @@ function revokeDownloadUrl(url) {
     state.activeDownloadUrls.delete(url);
 }
 
-function showDownloadAssist(url, fileName, mimeType) {
+function showDownloadAssist(url, fileName, mimeType, blob = null) {
     let panel = document.getElementById('downloadAssist');
     if (!panel) {
         panel = document.createElement('div');
@@ -5679,13 +5919,43 @@ function showDownloadAssist(url, fileName, mimeType) {
     const actions = document.createElement('div');
     actions.className = 'download-assist-actions';
 
+    if (blob && supportsFileSystemSave()) {
+        const save = document.createElement('button');
+        save.type = 'button';
+        save.className = 'btn-primary';
+        save.textContent = '직접 저장';
+        save.addEventListener('click', () => saveBlobWithPicker(blob, fileName).catch(error => {
+            console.warn('file picker save failed:', error);
+            showToast('직접 저장이 취소되었거나 이 브라우저에서 막혔습니다.');
+        }));
+        actions.appendChild(save);
+    }
+
+    if (blob && supportsWebShareFiles(blob, fileName)) {
+        const share = document.createElement('button');
+        share.type = 'button';
+        share.className = 'btn-primary';
+        share.textContent = '공유/저장';
+        share.addEventListener('click', () => shareDownloadFile(blob, fileName).catch(error => {
+            console.warn('share download failed:', error);
+            showToast('공유/저장이 취소되었거나 이 브라우저에서 막혔습니다.');
+        }));
+        actions.appendChild(share);
+    }
+
     const open = document.createElement('a');
-    open.className = 'btn-primary';
+    open.className = 'btn-secondary';
     open.href = url;
     open.download = fileName;
     open.target = '_blank';
     open.rel = 'noopener noreferrer';
-    open.textContent = '파일 다시 열기';
+    open.textContent = '파일 열기';
+
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.className = 'btn-secondary';
+    copy.textContent = '페이지 주소 복사';
+    copy.addEventListener('click', () => copyCurrentPageUrl());
 
     const close = document.createElement('button');
     close.type = 'button';
@@ -5697,7 +5967,7 @@ function showDownloadAssist(url, fileName, mimeType) {
         revokeDownloadUrl(url);
     });
 
-    actions.append(open, close);
+    actions.append(open, copy, close);
     panel.append(title, message, file, actions);
     requestAnimationFrame(() => panel.classList.add('show'));
 }
@@ -6138,18 +6408,18 @@ function renderAlbumStatus() {
 function renderButtons() {
     const hasTracks = state.tracks.length > 0;
     const selectedTracks = getSelectedTracks();
-    const fallback = getSelectedTrack();
-    const processTargets = selectedTracks.length ? selectedTracks : (fallback ? [fallback] : []);
+    const activeTrack = getSelectedTrack();
+    const aiTargets = selectedTracks.length ? selectedTracks : (activeTrack ? [activeTrack] : []);
     const hasCompleted = state.tracks.some(track => track.outBlob);
-    const canApplyAI = processTargets.some(track => track.analysis) && !state.busy;
-    const canProcessSelected = processTargets.some(track => !['analyzing', 'processing'].includes(track.status) && !track.error) && !state.busy;
+    const canApplyAI = aiTargets.some(track => track.analysis) && !state.busy;
+    const canProcessSelected = selectedTracks.some(track => !['analyzing', 'processing'].includes(track.status) && !track.error) && !state.busy;
     const canProcessAll = hasTracks && !state.busy && state.tracks.some(track => !['analyzing', 'processing'].includes(track.status) && !track.error);
     el.aiApplyBtn.disabled = !canApplyAI;
     el.masterSelectedBtn.disabled = !canProcessSelected;
     el.masterAllBtn.disabled = !canProcessAll;
     el.zipBtn.disabled = !hasCompleted || state.busy;
     el.clearBtn.disabled = !hasTracks || state.busy;
-    if (el.masterSelectedBtn) el.masterSelectedBtn.textContent = selectedTracks.length > 1 ? `선택 ${selectedTracks.length}곡 마스터링` : '선택 트랙 마스터링';
+    if (el.masterSelectedBtn) el.masterSelectedBtn.textContent = selectedTracks.length > 1 ? `선택 ${selectedTracks.length}곡 마스터링` : (selectedTracks.length === 1 ? '선택 1곡 마스터링' : '선택 트랙 마스터링');
     if (el.abMatchBtn) el.abMatchBtn.textContent = state.abLevelMatch ? 'A/B 레벨 매칭 ON' : 'A/B 레벨 매칭 OFF';
     if (el.abLoopBtn) el.abLoopBtn.textContent = state.abLoopMode ? '5초 A/B 루프 ON' : '5초 A/B 루프 OFF';
     if (el.genreLockBtn) {
@@ -6196,9 +6466,28 @@ function renderTrackList() {
     state.tracks.forEach(track => {
         const card = document.createElement('article');
         card.className = `track-card ${state.selectedIds.has(track.id) ? 'selected' : ''} ${track.id === state.selectedId ? 'active-track' : ''} ${track.genreLocked ? 'genre-locked' : ''}`;
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-pressed', state.selectedIds.has(track.id) ? 'true' : 'false');
+        card.setAttribute('aria-label', `${track.name} 현재 작업으로 열기. 작업 선택 버튼으로만 마스터링 대상을 지정하고, 더블클릭하면 선택을 해제합니다.`);
         card.addEventListener('click', event => {
             if (event.target.closest('button')) return;
-            selectTrack(track.id);
+            activateTrackOnly(track.id);
+        });
+        card.addEventListener('dblclick', event => {
+            if (event.target.closest('button')) return;
+            clearTrackSelection(track.id);
+        });
+        card.addEventListener('keydown', event => {
+            if (event.target.closest('button')) return;
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                activateTrackOnly(track.id);
+            }
+            if (event.key === 'Backspace' || event.key === 'Delete') {
+                event.preventDefault();
+                clearTrackSelection(track.id);
+            }
         });
 
         const top = document.createElement('div');
@@ -6235,7 +6524,7 @@ function renderTrackList() {
         actions.className = 'track-actions';
         const isPicked = state.selectedIds.has(track.id);
         actions.append(
-            makeMiniButton(isPicked ? '해제' : '선택', isPicked ? 'btn-primary' : 'btn-secondary', () => toggleTrackSelection(track.id), state.busy),
+            makeMiniButton(isPicked ? '선택 해제' : '작업 선택', isPicked ? 'btn-primary' : 'btn-secondary', () => toggleTrackSelection(track.id), state.busy),
             makeMiniButton(track.genreLocked ? '잠금 해제' : '장르 잠금', track.genreLocked ? 'btn-primary' : 'btn-secondary', () => toggleGenreLockForTrack(track), state.busy || !track.analysis),
             makeMiniButton('AI 프리셋', 'btn-secondary', () => applyAIRecommendationToTrack(track), state.busy || !track.analysis),
             makeMiniButton('마스터링', 'btn-primary', () => masterTrack(track), ['analyzing', 'processing'].includes(track.status) || state.busy || Boolean(track.error)),
@@ -6261,16 +6550,17 @@ function makeMiniButton(label, className, onClick, disabled = false) {
 }
 
 function getMiniButtonHelp(label) {
-    if (label.includes('선택')) return '이 곡을 선택 목록에 추가합니다.';
-    if (label.includes('해제')) return '선택 목록에서 이 곡을 제외합니다.';
-    if (label.includes('장르 잠금')) return 'AI 재적용 시 현재 장르 프리셋을 유지합니다.';
+    if (label.includes('선택 해제')) return '선택 목록에서 이 곡을 제외합니다.';
+    if (label.includes('작업 선택') || label === '선택') return '이 곡을 선택 목록에 추가합니다.';
     if (label.includes('잠금 해제')) return '장르 프리셋을 다시 자동 추천 대상에 포함합니다.';
+    if (label.includes('장르 잠금')) return 'AI 재적용 시 현재 장르 프리셋을 유지합니다.';
     if (label.includes('AI 프리셋')) return '분석 결과 기준 추천 프리셋을 다시 적용합니다.';
     if (label.includes('마스터링')) return '이 트랙만 현재 설정으로 다시 렌더링합니다.';
     if (label.includes('다운로드')) return '완료된 마스터링 파일을 저장합니다.';
     if (label.includes('삭제')) return '이 트랙을 대기열에서 제거합니다.';
     return '';
 }
+
 
 function renderDetail(options = {}) {
     const track = getSelectedTrack();
@@ -6453,6 +6743,15 @@ function getTrackHighlightStart(track) {
     return clamp(duration * 0.33, 0, Math.max(0, duration - 5));
 }
 
+function setPlayerToggleIcon(button, isPlaying) {
+    if (!button) return;
+    button.textContent = '';
+    const icon = document.createElement('span');
+    icon.className = isPlaying ? 'player-icon player-icon-pause' : 'player-icon player-icon-play';
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+}
+
 function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare = false, loopStartHint = NaN) {
     const wrap = document.createElement('div');
     wrap.className = `custom-player ${loopCompare ? 'ab-loop-player' : ''}`;
@@ -6467,7 +6766,7 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'player-toggle';
-    toggle.innerHTML = '<span class="player-icon player-icon-play" aria-hidden="true"></span>';
+    setPlayerToggleIcon(toggle, false);
     toggle.setAttribute('aria-label', '재생');
     attachHelpTooltip(toggle, '프리뷰를 재생하거나 일시정지합니다.');
 
@@ -6492,7 +6791,7 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
 
     const setPlaying = isPlaying => {
         toggle.classList.toggle('playing', Boolean(isPlaying));
-        toggle.innerHTML = isPlaying ? '<span class="player-icon player-icon-pause" aria-hidden="true"></span>' : '<span class="player-icon player-icon-play" aria-hidden="true"></span>';
+        setPlayerToggleIcon(toggle, Boolean(isPlaying));
         toggle.setAttribute('aria-label', isPlaying ? '일시정지' : '재생');
     };
     const getDuration = () => Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : initialDuration;
@@ -6944,11 +7243,21 @@ function updateConfidenceUI(track) {
 }
 
 function selectTrack(id) {
+    activateTrackOnly(id);
+}
+
+function activateTrackOnly(id) {
     state.selectedId = id;
-    if (id) state.selectedIds.add(id);
     const track = getSelectedTrack();
     if (track) applyTrackToControls(track);
     renderAll({ keepDetailAudio: true });
+}
+
+function clearTrackSelection(id) {
+    if (!id || !state.selectedIds.has(id)) return;
+    state.selectedIds.delete(id);
+    renderAll({ keepDetailAudio: true });
+    showToast('선택이 해제되었습니다.');
 }
 
 function removeTrack(id) {
@@ -6969,7 +7278,6 @@ function removeTrack(id) {
             setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
         }
     }
-    if (!state.selectedIds.size && state.selectedId) state.selectedIds.add(state.selectedId);
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     renderAll();
 }
@@ -6993,12 +7301,13 @@ function getSelectedTracks() {
 function toggleTrackSelection(id) {
     if (state.selectedIds.has(id)) {
         state.selectedIds.delete(id);
-    } else {
-        state.selectedIds.add(id);
-        state.selectedId = id;
-        const track = getSelectedTrack();
-        if (track) applyTrackToControls(track);
+        renderAll({ keepDetailAudio: true });
+        return;
     }
+    state.selectedIds.add(id);
+    state.selectedId = id;
+    const track = getSelectedTrack();
+    if (track) applyTrackToControls(track);
     renderAll({ keepDetailAudio: true });
 }
 
@@ -7022,7 +7331,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.13',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.17',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
