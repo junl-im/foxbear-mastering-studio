@@ -1,8 +1,44 @@
-# FoxBear AI Mastering Studio Pro v1.3.13
+# FoxBear AI Mastering Studio Pro v1.3.17
 
 GitHub Pages-ready modular browser mastering studio.
 
 
+
+## Pro v1.3.17 Firebase Firestore setup patch
+
+- Firebase Web SDK v12.14.0 CDN 모듈 부트스트랩을 추가했습니다.
+- Spark 무료 요금제 제약을 반영해 Cloud Storage SDK는 불러오지 않고, 오디오 파일은 기존처럼 브라우저 로컬 처리만 유지합니다.
+- Anonymous Auth + Firestore 기반 방문 이벤트 기록을 추가했습니다.
+- 숨겨진 통계창은 `siteAdmins/{uid}`에 등록된 관리자 UID에서만 Firestore 원격 통계를 읽도록 구성했습니다.
+- Firebase Hosting CSP를 gstatic Firebase SDK와 Auth/Firestore/Remote Config 연결 도메인만 허용하도록 확장했습니다.
+- Firebase Hosting 배포 도메인 `foxbear-music.web.app`, `foxbear-music.firebaseapp.com`을 실행 허용 호스트에 추가했습니다.
+- Firestore Security Rules, 인덱스 파일, `.firebaserc`, `FIREBASE_SETUP.md`를 추가했습니다.
+- GitHub Pages 워크플로가 `vendor/` 폴더도 배포하도록 보정했습니다.
+
+
+## Pro v1.3.16 selection behavior / CSP final hardening patch
+
+- 트랙 카드 클릭은 이제 작업 패널을 여는 **현재 작업 지정**만 수행하고, 다중 작업 대상 선택은 카드 안의 `작업 선택` 버튼만 수행하도록 분리했습니다.
+- 여러 곡을 불러와도 모든 트랙이 자동 선택되지 않도록 바꿨습니다. 첫 곡은 현재 작업으로만 열리고, 선택 목록은 사용자가 버튼으로 직접 지정합니다.
+- 트랙 카드를 더블클릭하거나 키보드 Delete/Backspace로 해당 곡의 선택 상태를 해제할 수 있게 했습니다.
+- 비선택 트랙은 현재 작업/장르 잠금 상태와 겹쳐도 외곽 테두리가 검정색으로 유지되도록 최종 CSS 오버라이드를 추가했습니다.
+- 선택/현재 작업 카드의 hover/active transform을 제거해 클릭 시 흔들림이 생기지 않도록 유지했습니다.
+- CSP에 `form-action 'none'`, `require-trusted-types-for 'script'`, `trusted-types foxbear`를 추가하고, DOM XSS sink 사용을 줄이기 위해 `innerHTML` 기반 렌더링을 DOM 생성 방식으로 교체했습니다.
+- 로컬 CSS/JS 리소스에 SHA-384 Subresource Integrity 값을 추가했습니다.
+- 숨겨진 통계 API 호출은 same-origin 절대 경로만 허용하고, `no-store`, redirect 차단, 5초 타임아웃, 응답 크기 제한, 표시 문자열 길이 제한을 추가했습니다.
+- 앱 버전, 캐시 버스터, 패키지 버전을 v1.3.16로 갱신했습니다.
+
+## Pro v1.3.14 CSP/security hardening patch
+
+- JSZip 3.10.1을 CDN에서 제거하고 `vendor/jszip/jszip.min.js` 로컬 파일로 번들링했습니다.
+- lamejs 1.2.1 MP3 인코더를 `vendor/lamejs/lame.min.js` 로컬 파일로 번들링하고 MP3 Worker의 `importScripts()` 경로를 같은 출처 파일로 변경했습니다.
+- 메인 CSP를 `script-src 'self'`, `style-src 'self'`, `connect-src 'self'`, `worker-src 'self'` 중심으로 강화하고 `unsafe-inline`, 외부 CDN, blob worker 허용을 제거했습니다.
+- `object-src 'none'`, `frame-src 'none'`, `script-src-attr 'none'`, `style-src-attr 'none'`, `frame-ancestors 'none'`, `upgrade-insecure-requests`를 추가했습니다.
+- referrer policy를 `no-referrer`로 강화했습니다.
+- 보호/미끼 화면의 인라인 스타일을 제거하고 외부 CSS 클래스 기반 렌더링으로 바꿨습니다.
+- 디자인 미리보기 페이지도 인라인 `<style>`을 `assets/css/design-preview.css`로 분리하고 별도 CSP를 적용했습니다.
+- 숨겨진 통계 API 훅은 같은 도메인 URL만 허용하도록 검증을 추가했습니다.
+- 앱 버전, 캐시 버스터, 패키지 버전을 v1.3.14로 갱신했습니다.
 
 ## Pro v1.3.13 selected track focus / hidden stats patch
 
@@ -202,7 +238,7 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - 파이널라이저의 true-peak 검사 루프를 최적화해 Fast/Balanced 처리 속도를 개선했습니다.
 
 ## Pro v1.2.8 download/mobile UI patch
-- MP3 output path now tries the bundled worker first with lamejs CDN fallback, then WebCodecs, and only falls back to WAV when both MP3 encoders are unavailable.
+- MP3 output path now uses the bundled lamejs worker first, then WebCodecs, and only falls back to WAV when both MP3 encoders are unavailable.
 - Added in-app browser download assist for KakaoTalk/Naver/Instagram/Line style WebViews. If automatic saving is blocked, a persistent help panel opens with a direct file link; supported mobile browsers can also use the native share/save sheet.
 - Popup trigger buttons no longer show the extra "선택" text. A small chevron icon indicates popup behavior without taking text space.
 - Instrument add UI was rebuilt so the two selects no longer collapse vertically on mobile/narrow columns.
@@ -223,3 +259,27 @@ Put a compatible bridge at `vendor/wasm/pitch-engine.js`. If absent, the app use
 - Upgraded Auto Highlight A/B. After mastering, the highlight point can be selected from an original-vs-mastered pair scan, so A/B loop comparison tends to start at a section where the change is easier to hear.
 - Re-master flow now records repeat runs and labels performance guard decisions in the detail panel, making it clearer that repeated mastering is rendered from the original source path rather than blindly stacking output-on-output.
 - Preview player visuals and utility feature cards received a small design refresh without adding heavy runtime effects.
+
+## v1.3.16 Selection, download fallback, Firebase-ready security patch
+
+- 트랙 카드 클릭과 작업 대상 선택의 역할을 분리했습니다. 카드 클릭은 현재 작업 트랙만 열고, 실제 배치 마스터링 대상은 `작업 선택` 버튼으로만 지정됩니다.
+- 선택하지 않은 트랙은 현재 작업/장르 잠금 상태가 겹쳐도 외곽 테두리를 검정 계열로 고정했습니다. 선택 트랙만 색상 테두리를 사용합니다.
+- `선택 트랙 마스터링`은 명시적으로 선택한 곡이 없으면 실행되지 않도록 바꿨습니다.
+- 트랙 란 더블클릭, Delete, Backspace로 선택 해제를 유지했습니다.
+- `작업 실행` 섹션명을 `마스터링 엔진`으로 바꿔 출력/엔진 설정 구역의 의미를 더 전문적으로 표현했습니다.
+- 팝업 닫기 X 버튼을 flex 중앙 정렬로 통일했습니다.
+- 카카오톡/인앱 브라우저 다운로드 실패 대응을 보강했습니다. 자동 저장이 막히면 도움창에서 `직접 저장`, `공유/저장`, `파일 열기`, `페이지 주소 복사` 대안을 제공합니다.
+- GitHub Pages에서는 meta CSP가 유지되고, Firebase Hosting 배포 시 실제 HTTP 보안 헤더를 적용할 수 있도록 `firebase.json`을 추가했습니다.
+
+## Firebase Hosting option
+
+`firebase.json` includes strict HTTP headers for Firebase Hosting: CSP, Referrer-Policy, X-Content-Type-Options, COOP, CORP, Origin-Agent-Cluster, Permissions-Policy, HSTS, and cache headers. Replace `.firebaserc.example` with your project id before deploying.
+
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init hosting
+firebase deploy
+```
+
+Firebase Hosting can later be combined with Cloud Functions, Firestore, Storage, and Authentication for real server-side visitor statistics, admin authentication, managed downloads, and protected APIs. The current static app intentionally does not include Firebase SDK calls by default so the CSP can stay strict until the backend design is finalized.
