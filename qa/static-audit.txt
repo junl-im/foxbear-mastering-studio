@@ -1,17 +1,28 @@
-FoxBear v1.3.13 static audit
+FoxBear v1.3.16 static audit
 
-Checks:
+Checks run:
+- npm run check
+- duplicate HTML id scan
+- local asset reference scan
+- CSS brace balance
+- SRI hash verification
+- CSP unsafe-inline/CDN string scan
+- Firebase config JSON validation
+
+Results:
 - npm run check: PASS
-- HTML duplicate IDs: PASS
-- Local asset references: PASS
-- CSS brace balance: PASS
-- ZIP integrity: PASS
+- Duplicate IDs: none
+- Missing local refs: none
+- CSS brace balance: 0
+- SRI errors: none
+- CSP unsafe-inline: false
+- CSP CDN references: false
+- firebase.json: valid
 
-Focus areas patched:
-- Non-selected track border color fixed to black
-- Selected/current-track emphasis kept while separating visual states
-- Track card hover/click transform removed to prevent jitter
-- Hidden statistics trigger on PC/mobile compatibility badge double tap
-- Password-protected statistics panel with password 8605
-- Local visitor/referrer/today/total statistics with backend API hook
-- v1.3.13 cache/version bump
+Patch notes:
+- Explicit selection only; active/current track no longer acts as selected batch target.
+- Non-selected track card border forced to black even when active or genre-locked.
+- Action section renamed to 마스터링 엔진.
+- Popup close buttons centered.
+- In-app browser download helper expanded with direct-save/share/open/copy options.
+- Firebase Hosting header config added for stronger deploy-time security.
