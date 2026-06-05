@@ -1,9 +1,9 @@
 // FoxBear MP3 encoder worker
-// Primary path: lamejs CDN encoder for broad browser support.
+// Primary path: bundled lamejs encoder for broad browser support.
 // Fallback path: WebCodecs MP3 AudioEncoder when available.
 'use strict';
 
-const LAMEJS_CDN_URL = 'https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js';
+const LAMEJS_VENDOR_URL = '../../vendor/lamejs/lame.min.js';
 let lameLoadPromise = null;
 
 self.onmessage = async event => {
@@ -32,7 +32,7 @@ async function ensureLameJs() {
     if (!lameLoadPromise) {
         lameLoadPromise = new Promise((resolve, reject) => {
             try {
-                importScripts(LAMEJS_CDN_URL);
+                importScripts(LAMEJS_VENDOR_URL);
                 if (self.lamejs && self.lamejs.Mp3Encoder) resolve(self.lamejs);
                 else reject(new Error('lamejs 로드 후 MP3 인코더를 찾을 수 없습니다.'));
             } catch (error) {
