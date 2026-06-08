@@ -1,4 +1,4 @@
-// FoxBear WAV encoder worker - 24-bit PCM and 32-bit float WAV
+// FoxBear WAV encoder worker - 16/24-bit PCM and 32-bit float WAV
 'use strict';
 
 self.onmessage = event => {
@@ -14,8 +14,9 @@ self.onmessage = event => {
 
 function encodeWav({ sampleRate, channels, length, channelBuffers, format }) {
     const float32 = format === 'wav32float';
-    const bytesPerSample = float32 ? 4 : 3;
-    const bitDepth = float32 ? 32 : 24;
+    const pcm16 = format === 'wav16';
+    const bytesPerSample = float32 ? 4 : (pcm16 ? 2 : 3);
+    const bitDepth = float32 ? 32 : (pcm16 ? 16 : 24);
     const audioFormat = float32 ? 3 : 1;
     const blockAlign = channels * bytesPerSample;
     const dataSize = length * blockAlign;
@@ -43,6 +44,11 @@ function encodeWav({ sampleRate, channels, length, channelBuffers, format }) {
             if (float32) {
                 view.setFloat32(offset, clamp(channelData[ch][i] || 0, -1, 1), true);
                 offset += 4;
+            } else if (pcm16) {
+                const dither = (Math.random() - Math.random()) / 32768;
+                const sample = clamp((channelData[ch][i] || 0) + dither, -1, 1);
+                view.setInt16(offset, sample < 0 ? Math.round(sample * 0x8000) : Math.round(sample * 0x7fff), true);
+                offset += 2;
             } else {
                 const dither = (Math.random() - Math.random()) / 8388608;
                 const sample = clamp((channelData[ch][i] || 0) + dither, -1, 1);

@@ -1,10 +1,8 @@
-FoxBear Pro v1.3.19 static audit
-
-PASS npm run check
+FoxBear Pro v1.3.20 static audit
+PASS duplicate HTML id check
+PASS local asset reference check
 PASS index.html/design-preview.html SHA-384 SRI validation
-PASS duplicate HTML id audit
-PASS local static asset reference audit
-PASS CSS brace balance audit
-PASS master-finalizer.worker.js synthetic harness
-PASS wav-encoder.worker.js synthetic harness
-NOTE headless Chromium local smoke timed out in container with environment-level DBus/crashpad/inotify errors
+PASS CSS brace balance
+PASS v1.3.20 version markers
+PASS master-finalizer synthetic render
+PASS wav-encoder synthetic encode wav16/wav24/wav32

@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.19 - Mastering Pro upgrade static build
+// FoxBear AI Mastering Studio Pro v1.3.20 - Mastering Studio upgrade static build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.19';
+const APP_VERSION = 'Pro v1.3.20';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v139';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1320';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -59,6 +59,15 @@ const MASTER_FLOW_STEPS = [
     { at: 88, label: '피크', hint: 'LUFS/TP' },
     { at: 98, label: '완료', hint: '인코딩' }
 ];
+
+const QUALITY_GATE_RULES = {
+    lufsToleranceDb: 1.6,
+    peakMarginDb: 0.15,
+    warnGainDb: 8,
+    maxDcOffset: 0.006,
+    minUsefulDurationSec: 1.0
+};
+const WAVEFORM_OVERVIEW_BINS = 96;
 
 const PLATFORM_EXPORT_PRESETS = {
     custom: { label: '직접 설정', outputFormat: null, targetLufs: null, ceilingDb: null, qualityMode: null, note: '사용자가 고른 출력 설정을 유지합니다.' },
@@ -426,7 +435,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.19';
+    styleLink.href = 'assets/css/studio.css?v=1.3.20';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -3465,6 +3474,10 @@ async function masterTrack(track, calledFromBatch = false) {
     track.finalizeInfo = null;
     track.performanceGuardInfo = null;
     track.safetyInfo = null;
+    track.qualityGate = null;
+    track.waveformOverview = null;
+    track.exportFallbackInfo = null;
+    track.masterReport = null;
     track.remasterCount = Number(track.remasterCount || 0) + 1;
     track.performanceInfo = beginPerformanceProfile();
     track.report = '온디맨드 디코더 구동 중...';
@@ -3559,6 +3572,7 @@ async function masterTrack(track, calledFromBatch = false) {
         });
         const finalBuffer = finalization.buffer;
         sanitizeAudioBuffer(finalBuffer, 'finalizer');
+        track.waveformOverview = createWaveformOverview(preparedBuffer, finalBuffer);
         if (state.autoHighlightAB) {
             track.abHighlightStartSec = estimateABHighlightStartFromPair(preparedBuffer, finalBuffer, track.analysis);
         }
@@ -3579,13 +3593,15 @@ async function masterTrack(track, calledFromBatch = false) {
         const encoded = await encodeMasterOutputAsync(finalBuffer, requestedOutputFormat);
         track.exportFallbackInfo = encoded.fallbackFrom ? { from: encoded.fallbackFrom, to: encoded.format, reason: encoded.fallbackReason || '' } : null;
         track.masterReport = createMasterReport(track, preparedBuffer, finalBuffer, finalization.info, encoded);
+        track.qualityGate = createQualityGateReport(track, track.masterReport, finalization.info, encoded);
+        track.masterReport.qualityGate = track.qualityGate;
         markPerformanceStage(track, '인코딩');
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
 
         if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
         track.outBlob = encoded.blob;
         track.outFormat = encoded.format;
-        track.outName = `${safeBaseName(track.name)}_mastered${getPlatformFileSuffix()}.${encoded.extension}`;
+        track.outName = buildMasteredFileName(track, encoded);
         track.masteredUrl = URL.createObjectURL(encoded.blob);
         track.masteredDurationSec = finalBuffer.duration || 0;
         finishPerformanceProfile(track, finalBuffer, encoded.blob);
@@ -5682,12 +5698,15 @@ function calculateAudioStats(buffer) {
     let sumSq = 0;
     let count = 0;
     let clippedSamples = 0;
+    let invalidSamples = 0;
     let dcSumAbs = 0;
     for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
         const data = buffer.getChannelData(ch);
         let sum = 0;
         for (let i = 0; i < data.length; i += 1) {
-            const value = Number.isFinite(data[i]) ? data[i] : 0;
+            const finite = Number.isFinite(data[i]);
+            if (!finite) invalidSamples += 1;
+            const value = finite ? data[i] : 0;
             const abs = Math.abs(value);
             if (abs > peak) peak = abs;
             if (abs >= 0.999) clippedSamples += 1;
@@ -5712,7 +5731,8 @@ function calculateAudioStats(buffer) {
         approxLufs: lufs,
         crestDb: Number.isFinite(peakDb) && Number.isFinite(rmsDb) ? peakDb - rmsDb : NaN,
         dcOffsetAvg: dcSumAbs / Math.max(1, buffer.numberOfChannels),
-        clippedSamples
+        clippedSamples,
+        invalidSamples
     };
 }
 
@@ -5877,8 +5897,8 @@ function cloneAudioBuffer(buffer) {
 
 async function encodeMasterOutputAsync(buffer, requestedFormat = 'wav24') {
     const format = requestedFormat || 'wav24';
-    if (format === 'mp3_192' || format === 'mp3_320') {
-        const bitrate = format === 'mp3_320' ? 320000 : 192000;
+    if (/^mp3_(128|192|256|320)$/.test(format)) {
+        const bitrate = Number(format.split('_')[1]) * 1000;
         try {
             const blob = await encodeMp3Async(buffer, bitrate);
             return { blob, format, extension: 'mp3', mime: 'audio/mpeg' };
@@ -5973,8 +5993,9 @@ function encodeWav(buffer, format = 'wav24') {
     const sampleRate = buffer.sampleRate;
     const length = buffer.length;
     const float32 = format === 'wav32float';
-    const bytesPerSample = float32 ? 4 : 3;
-    const bitDepth = float32 ? 32 : 24;
+    const pcm16 = format === 'wav16';
+    const bytesPerSample = float32 ? 4 : (pcm16 ? 2 : 3);
+    const bitDepth = float32 ? 32 : (pcm16 ? 16 : 24);
     const audioFormat = float32 ? 3 : 1;
     const blockAlign = channels * bytesPerSample;
     const dataSize = length * blockAlign;
@@ -6004,6 +6025,11 @@ function encodeWav(buffer, format = 'wav24') {
             if (float32) {
                 view.setFloat32(offset, clamp(channelData[ch][i] || 0, -1, 1), true);
                 offset += 4;
+            } else if (pcm16) {
+                const dither = (Math.random() - Math.random()) / 32768;
+                const sample = clamp((channelData[ch][i] || 0) + dither, -1, 1);
+                view.setInt16(offset, sample < 0 ? Math.round(sample * 0x8000) : Math.round(sample * 0x7fff), true);
+                offset += 2;
             } else {
                 const dither = (Math.random() - Math.random()) / 8388608;
                 const sample = clamp((channelData[ch][i] || 0) + dither, -1, 1);
@@ -6047,6 +6073,8 @@ async function downloadZip() {
     completed.forEach(track => {
         const fileName = makeUniqueZipName(track.outName || `${safeBaseName(track.name)}_mastered.wav`, usedNames);
         zip.file(fileName, track.outBlob);
+        const reportName = makeUniqueZipName(buildExportReportFileName(track), usedNames);
+        zip.file(reportName, JSON.stringify(createExportReport(track), null, 2));
     });
 
     showToast(`${completed.length}개 마스터 파일만 ZIP으로 압축 중...`);
@@ -6080,6 +6108,17 @@ function downloadTrack(track) {
     downloadBlob(track.outBlob, track.outName);
     state.busy = false;
     renderAll({ keepDetailAudio: true });
+}
+
+function downloadTrackReport(track) {
+    if (!track) return;
+    const report = createExportReport(track);
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    downloadBlob(blob, buildExportReportFileName(track));
+}
+
+function buildExportReportFileName(track) {
+    return `${safeBaseName(track?.name || 'track')}_foxbear_report_${timestampForFile()}.json`;
 }
 
 function downloadBlob(blob, fileName) {
@@ -6851,7 +6890,7 @@ function renderTrackList() {
         progressShell.appendChild(progressBar);
         const progressCaption = document.createElement('div');
         progressCaption.className = 'progress-caption';
-        progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? '완료 · 미리듣기/다운로드 가능' : '대기 중');
+        progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? `완료 · ${track.qualityGate ? '품질 ' + track.qualityGate.label + ' · ' : ''}미리듣기/다운로드 가능` : '대기 중');
 
         const actions = document.createElement('div');
         actions.className = 'track-actions';
@@ -6863,7 +6902,10 @@ function renderTrackList() {
             makeMiniButton('마스터링', 'btn-primary', () => masterTrack(track), ['analyzing', 'processing'].includes(track.status) || state.busy || Boolean(track.error)),
             makeMiniButton('삭제', 'btn-danger', () => removeTrack(track.id), state.busy)
         );
-        if (track.outBlob) actions.append(makeMiniButton('파일 다운로드', 'btn-secondary', () => downloadTrack(track), false));
+        if (track.outBlob) {
+            actions.append(makeMiniButton('파일 다운로드', 'btn-secondary', () => downloadTrack(track), false));
+            actions.append(makeMiniButton('리포트 저장', 'btn-secondary', () => downloadTrackReport(track), false));
+        }
 
         card.append(top, progressShell, progressCaption, actions);
         el.trackList.appendChild(card);
@@ -6890,6 +6932,7 @@ function getMiniButtonHelp(label) {
     if (label.includes('AI 프리셋')) return '분석 결과 기준 추천 프리셋을 다시 적용합니다.';
     if (label.includes('마스터링')) return '이 트랙만 현재 설정으로 다시 렌더링합니다.';
     if (label.includes('다운로드')) return '완료된 마스터링 파일을 저장합니다.';
+    if (label.includes('리포트')) return '마스터링 설정, 품질 게이트, 전후 분석을 JSON 리포트로 저장합니다.';
     if (label.includes('삭제')) return '이 트랙을 대기열에서 제거합니다.';
     return '';
 }
@@ -6939,7 +6982,10 @@ function renderDetail(options = {}) {
 
     if (isOpen) {
         renderMasterComparisonPanel(track);
+        renderABStudioPanel(track);
+        renderWaveformPanel(track);
         renderMasterReportPanel(track);
+        renderQualityGatePanel(track);
         renderProcessingFlowPanel(track);
         renderEngineSafetyPanel(track);
         renderLowMonoPanel(track);
@@ -6970,6 +7016,8 @@ function renderDetail(options = {}) {
         addRow('신규 플러그인', `${state.featureFlags.vocalFocusPlus ? '보컬+' : '보컬 OFF'} · ${state.featureFlags.adaptiveAir ? '에어+' : '에어 OFF'} · ${state.featureFlags.translationGuard ? '모바일+' : '모바일 OFF'} · ${state.featureFlags.referenceMatch ? '레퍼런스+' : '레퍼런스 OFF'} · ${state.featureFlags.earFatigueGuard ? '피로가드+' : '피로가드 OFF'}`);
         addRow('스마트 성능 가드', formatPerformanceGuardInfo(track.performanceGuardInfo));
         if (track.safetyInfo) addRow('엔진 안전 점수', `${track.safetyInfo.score}점 · ${track.safetyInfo.label} · ${track.safetyInfo.notes.join(', ')}`);
+        if (track.qualityGate) addRow('품질 게이트', `${track.qualityGate.label} · ${track.qualityGate.summary}`);
+        if (track.masterReport) addRow('리포트 저장', '트랙 카드의 리포트 저장 버튼 또는 ZIP 다운로드에 포함');
         addRow('실시간 엔진 로그', track.report || '-');
 
         if (track.instrumentInfo && track.instrumentInfo.applied) addRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
@@ -7018,6 +7066,7 @@ function renderDetail(options = {}) {
 }
 
 function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
+    if (track && track.masteredUrl) target.appendChild(createABSwitchPlayer(track));
     const previewGrid = document.createElement('div');
     previewGrid.className = `preview-grid ${options.vertical ? 'preview-grid-vertical' : ''}`;
 
@@ -7186,11 +7235,304 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
 }
 
 function bindExclusivePreview(audio) {
-    document.querySelectorAll('.custom-player audio').forEach(other => {
+    document.querySelectorAll('.custom-player audio, .ab-switch-deck audio').forEach(other => {
         if (other !== audio) other.pause();
     });
 }
 
+
+function createABSwitchPlayer(track) {
+    const deck = document.createElement('section');
+    deck.className = 'ab-switch-deck';
+    deck.setAttribute('aria-label', '원본과 마스터링본을 같은 위치에서 비교');
+
+    const head = document.createElement('div');
+    head.className = 'ab-switch-head';
+    const title = document.createElement('strong');
+    title.textContent = 'A/B 스위치 비교';
+    const sourceBadge = document.createElement('span');
+    sourceBadge.textContent = '원본 A';
+    head.append(title, sourceBadge);
+
+    const originalAudio = document.createElement('audio');
+    originalAudio.preload = 'metadata';
+    originalAudio.src = track.originalUrl;
+    const masteredAudio = document.createElement('audio');
+    masteredAudio.preload = 'metadata';
+    masteredAudio.src = track.masteredUrl;
+    const matchGainDb = getABMatchGainDb(track);
+    if (state.abLevelMatch && Number.isFinite(matchGainDb)) masteredAudio.volume = clamp(Math.pow(10, matchGainDb / 20), 0.02, 1);
+
+    let active = 'original';
+    let loopStart = getTrackHighlightStart(track);
+    const activeAudio = () => active === 'original' ? originalAudio : masteredAudio;
+    const inactiveAudio = () => active === 'original' ? masteredAudio : originalAudio;
+    const durationSec = Number(track.analysis?.duration || track.masteredDurationSec || 0);
+
+    const controls = document.createElement('div');
+    controls.className = 'ab-switch-controls';
+    const play = document.createElement('button');
+    play.type = 'button';
+    play.className = 'player-toggle';
+    setPlayerToggleIcon(play, false);
+    play.setAttribute('aria-label', 'A/B 재생');
+    const swap = document.createElement('button');
+    swap.type = 'button';
+    swap.className = 'btn-secondary ab-swap-btn';
+    swap.textContent = '마스터 B로 전환';
+    const seek = document.createElement('input');
+    seek.type = 'range';
+    seek.min = '0';
+    seek.max = '1000';
+    seek.step = '1';
+    seek.value = '0';
+    seek.className = 'player-seek';
+    const time = document.createElement('span');
+    time.className = 'player-time';
+    time.textContent = formatPlayerTime(0, durationSec);
+    controls.append(play, swap, seek, time);
+
+    const hint = document.createElement('small');
+    hint.className = 'ab-switch-hint';
+    hint.textContent = state.abLevelMatch ? `마스터본을 ${formatSigned(matchGainDb, 1)} dB로 레벨 매칭해 비교합니다.` : '레벨 매칭 OFF · 실제 마스터링 체감 음량으로 비교합니다.';
+
+    const syncUi = () => {
+        const audio = activeAudio();
+        const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : durationSec;
+        if (Number.isFinite(duration) && duration > 0) seek.value = String(Math.round((audio.currentTime || 0) / duration * 1000));
+        time.textContent = formatPlayerTime(audio.currentTime || 0, duration);
+        sourceBadge.textContent = active === 'original' ? '원본 A' : '마스터 B';
+        swap.textContent = active === 'original' ? '마스터 B로 전환' : '원본 A로 전환';
+        setPlayerToggleIcon(play, !audio.paused);
+    };
+    const getLoopBounds = () => {
+        if (!state.abLoopMode) return null;
+        const duration = Number(activeAudio().duration || durationSec || 0);
+        if (!Number.isFinite(duration) || duration <= 6) return null;
+        const length = 5;
+        if (!Number.isFinite(loopStart)) loopStart = clamp(duration * 0.33, 0, Math.max(0, duration - length));
+        loopStart = clamp(loopStart, 0, Math.max(0, duration - length));
+        return { start: loopStart, end: Math.min(duration, loopStart + length) };
+    };
+    const switchTo = next => {
+        const oldAudio = activeAudio();
+        const wasPlaying = !oldAudio.paused;
+        const position = oldAudio.currentTime || 0;
+        oldAudio.pause();
+        active = next;
+        const nextAudio = activeAudio();
+        nextAudio.currentTime = Math.min(position, Number(nextAudio.duration || durationSec || position));
+        if (wasPlaying) nextAudio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+        syncUi();
+    };
+
+    play.addEventListener('click', () => {
+        const audio = activeAudio();
+        if (audio.paused) {
+            bindExclusivePreview(audio);
+            const bounds = getLoopBounds();
+            if (bounds && (audio.currentTime < bounds.start || audio.currentTime >= bounds.end)) audio.currentTime = bounds.start;
+            audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+        } else {
+            audio.pause();
+        }
+        syncUi();
+    });
+    swap.addEventListener('click', () => switchTo(active === 'original' ? 'mastered' : 'original'));
+    seek.addEventListener('input', () => {
+        const duration = Number(activeAudio().duration || durationSec || 0);
+        if (Number.isFinite(duration) && duration > 0) {
+            const position = Number(seek.value) / 1000 * duration;
+            originalAudio.currentTime = Math.min(position, Number(originalAudio.duration || duration));
+            masteredAudio.currentTime = Math.min(position, Number(masteredAudio.duration || duration));
+            if (state.abLoopMode) loopStart = position;
+            syncUi();
+        }
+    });
+    [originalAudio, masteredAudio].forEach(audio => {
+        audio.addEventListener('play', syncUi);
+        audio.addEventListener('pause', syncUi);
+        audio.addEventListener('loadedmetadata', syncUi);
+        audio.addEventListener('timeupdate', () => {
+            if (audio !== activeAudio()) return;
+            const bounds = getLoopBounds();
+            if (bounds && audio.currentTime >= bounds.end) {
+                audio.currentTime = bounds.start;
+                return;
+            }
+            inactiveAudio().currentTime = Math.min(audio.currentTime || 0, Number(inactiveAudio().duration || durationSec || audio.currentTime || 0));
+            syncUi();
+        });
+        audio.addEventListener('ended', syncUi);
+    });
+
+    deck.append(head, controls, hint, originalAudio, masteredAudio);
+    return deck;
+}
+
+function createWaveformOverview(beforeBuffer, afterBuffer, bins = WAVEFORM_OVERVIEW_BINS) {
+    return {
+        bins,
+        before: sampleWaveformOverview(beforeBuffer, bins),
+        after: sampleWaveformOverview(afterBuffer, bins),
+        peakMarkers: samplePeakMarkers(afterBuffer, bins),
+        createdAt: new Date().toISOString()
+    };
+}
+
+function sampleWaveformOverview(buffer, bins = WAVEFORM_OVERVIEW_BINS) {
+    if (!buffer || !buffer.length) return [];
+    const channels = Math.max(1, buffer.numberOfChannels || 1);
+    const binSize = Math.max(1, Math.floor(buffer.length / bins));
+    const result = [];
+    for (let b = 0; b < bins; b += 1) {
+        const start = b * binSize;
+        const end = b === bins - 1 ? buffer.length : Math.min(buffer.length, start + binSize);
+        let peak = 0;
+        for (let ch = 0; ch < channels; ch += 1) {
+            const data = buffer.getChannelData(ch);
+            const step = Math.max(1, Math.floor((end - start) / 96));
+            for (let i = start; i < end; i += step) {
+                const abs = Math.abs(Number.isFinite(data[i]) ? data[i] : 0);
+                if (abs > peak) peak = abs;
+            }
+        }
+        result.push(Number(clamp(peak, 0, 1).toFixed(3)));
+    }
+    return result;
+}
+
+function samplePeakMarkers(buffer, bins = WAVEFORM_OVERVIEW_BINS) {
+    const overview = sampleWaveformOverview(buffer, bins);
+    return overview.map(value => value >= 0.985 ? 'clip' : (value >= 0.92 ? 'hot' : 'ok'));
+}
+
+function renderWaveformPanel(track) {
+    if (!track || !track.waveformOverview) return;
+    const panel = document.createElement('section');
+    panel.className = 'waveform-panel';
+    const head = document.createElement('div');
+    head.className = 'waveform-head';
+    const title = document.createElement('strong');
+    title.textContent = '파형 / 피크 미니뷰';
+    const badge = document.createElement('span');
+    badge.textContent = 'Before / After';
+    head.append(title, badge);
+    panel.appendChild(head);
+    panel.appendChild(makeWaveformRow('원본', track.waveformOverview.before, []));
+    panel.appendChild(makeWaveformRow('마스터', track.waveformOverview.after, track.waveformOverview.peakMarkers || []));
+    const hint = document.createElement('small');
+    hint.className = 'waveform-hint';
+    hint.textContent = '막대가 높을수록 해당 구간의 피크가 큽니다. 붉은 표시는 클리핑 근접 구간입니다.';
+    panel.appendChild(hint);
+    el.trackDetail.appendChild(panel);
+}
+
+function makeWaveformRow(label, values = [], markers = []) {
+    const row = document.createElement('div');
+    row.className = 'waveform-row';
+    const span = document.createElement('span');
+    span.textContent = label;
+    const bars = document.createElement('div');
+    bars.className = 'waveform-bars';
+    values.forEach((value, index) => {
+        const bar = document.createElement('i');
+        const marker = markers[index] || 'ok';
+        bar.className = `waveform-bar waveform-${marker}`;
+        bar.style.height = `${Math.max(5, Math.round(clamp(value, 0, 1) * 100))}%`;
+        bars.appendChild(bar);
+    });
+    row.append(span, bars);
+    return row;
+}
+
+function createQualityGateReport(track, report, finalizeInfo, encoded) {
+    const items = [];
+    const target = Number(report?.target?.lufs ?? state.targetLufs);
+    const afterLufs = Number(report?.after?.approxLufs);
+    const lufsDiff = Number.isFinite(target) && Number.isFinite(afterLufs) ? afterLufs - target : NaN;
+    addQualityGateItem(items, '라우드니스 목표', Math.abs(lufsDiff) <= QUALITY_GATE_RULES.lufsToleranceDb ? 'pass' : 'warn', Number.isFinite(lufsDiff) ? `목표 대비 ${formatSigned(lufsDiff, 1)} LUFS` : '측정값 없음');
+    const peakDb = Number(report?.after?.peakDb);
+    const ceiling = Number(report?.target?.ceilingDb ?? state.ceilingDb);
+    addQualityGateItem(items, '피크 천장', Number.isFinite(peakDb) && peakDb <= ceiling + QUALITY_GATE_RULES.peakMarginDb ? 'pass' : 'warn', Number.isFinite(peakDb) ? `최종 ${peakDb.toFixed(2)} dBFS · 천장 ${ceiling.toFixed(1)} dB` : '측정값 없음');
+    const invalid = Number(report?.after?.invalidSamples || 0);
+    addQualityGateItem(items, 'Invalid sample scan', invalid === 0 ? 'pass' : 'fail', invalid === 0 ? 'NaN/Infinity 없음' : `${invalid}개 비정상 샘플 감지`);
+    const clipped = Number(report?.after?.clippedSamples || 0);
+    addQualityGateItem(items, '클리핑 샘플', clipped === 0 ? 'pass' : (clipped < 8 ? 'warn' : 'fail'), clipped === 0 ? '0개' : `${clipped}개`);
+    const gainDb = Number(finalizeInfo?.gainDb || 0);
+    addQualityGateItem(items, '보정 게인', Math.abs(gainDb) <= QUALITY_GATE_RULES.warnGainDb ? 'pass' : 'warn', `${formatSigned(gainDb, 1)} dB`);
+    const duration = Number(report?.after?.durationSec || track?.masteredDurationSec || 0);
+    addQualityGateItem(items, '재생 길이', duration >= QUALITY_GATE_RULES.minUsefulDurationSec ? 'pass' : 'warn', `${duration.toFixed(2)}초`);
+    const dc = Number(report?.after?.dcOffsetAvg || 0);
+    addQualityGateItem(items, 'DC offset', Math.abs(dc) <= QUALITY_GATE_RULES.maxDcOffset ? 'pass' : 'warn', `${dc.toFixed(5)}`);
+    if (encoded?.fallbackFrom) addQualityGateItem(items, '출력 fallback', 'warn', `${getOutputFormatLabel(encoded.fallbackFrom)} 실패 → ${getOutputFormatLabel(encoded.format)} 저장`);
+    if (track?.performanceGuardInfo?.changed) addQualityGateItem(items, '성능 가드', 'warn', formatPerformanceGuardInfo(track.performanceGuardInfo));
+
+    const fail = items.filter(item => item.status === 'fail').length;
+    const warn = items.filter(item => item.status === 'warn').length;
+    const pass = items.filter(item => item.status === 'pass').length;
+    const score = clamp(Math.round(100 - fail * 30 - warn * 9), 0, 100);
+    const status = fail ? 'fail' : (warn ? 'warn' : 'pass');
+    const label = status === 'pass' ? 'PASS' : (status === 'warn' ? 'CHECK' : 'FAIL');
+    const summary = `${pass} 통과 · ${warn} 주의 · ${fail} 실패`;
+    return { status, label, score, summary, items, createdAt: new Date().toISOString() };
+}
+
+function addQualityGateItem(items, label, status, detail) {
+    items.push({ label, status, detail });
+}
+
+function renderQualityGatePanel(track) {
+    if (!track || !track.qualityGate) return;
+    const gate = track.qualityGate;
+    const panel = document.createElement('section');
+    panel.className = `quality-gate-panel quality-gate-${gate.status}`;
+    const head = document.createElement('div');
+    head.className = 'quality-gate-head';
+    const title = document.createElement('strong');
+    title.textContent = '마스터링 품질 게이트';
+    const score = document.createElement('b');
+    score.textContent = `${gate.label} · ${gate.score}점`;
+    head.append(title, score);
+    const summary = document.createElement('p');
+    summary.textContent = gate.summary;
+    const list = document.createElement('div');
+    list.className = 'quality-gate-list';
+    gate.items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = `quality-gate-item gate-${item.status}`;
+        const status = document.createElement('span');
+        status.textContent = item.status === 'pass' ? '통과' : (item.status === 'warn' ? '주의' : '실패');
+        const label = document.createElement('b');
+        label.textContent = item.label;
+        const detail = document.createElement('small');
+        detail.textContent = item.detail;
+        row.append(status, label, detail);
+        list.appendChild(row);
+    });
+    panel.append(head, summary, list);
+    el.trackDetail.appendChild(panel);
+}
+
+function renderABStudioPanel(track) {
+    if (!track || !track.masteredUrl) return;
+    const panel = document.createElement('section');
+    panel.className = 'ab-studio-panel';
+    const title = document.createElement('strong');
+    title.textContent = '전/후 비교 플레이어';
+    const deck = createABSwitchPlayer(track);
+    panel.append(title, deck);
+    el.trackDetail.appendChild(panel);
+}
+
+function buildMasteredFileName(track, encoded) {
+    const lufs = Number(state.targetLufs);
+    const lufsPart = Number.isFinite(lufs) ? `${Math.abs(Math.round(lufs))}LUFS` : 'target';
+    const style = String(state.masterStyle || 'master').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+    const format = String(encoded?.format || state.outputFormat || 'wav24').replace(/[^a-z0-9]+/gi, '').toLowerCase();
+    const platform = getPlatformFileSuffix();
+    return `${safeBaseName(track.name)}_mastered_${lufsPart}_${style}_${format}${platform}.${encoded?.extension || 'wav'}`;
+}
 
 
 function renderMasterReportPanel(track) {
@@ -7766,13 +8108,14 @@ function createDoneReport(track) {
     if (track.exportFallbackInfo) parts.push(`${getOutputFormatLabel(track.exportFallbackInfo.from)} 실패 → ${getOutputFormatLabel(track.exportFallbackInfo.to)} 저장`);
     if (track.albumApplied) parts.push(`앨범 통일 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB`);
     if (track.truePeakInfo) parts.push(track.truePeakInfo.mode === 'truePeak' ? 'True Peak 보호' : 'Sample Peak 보호');
+    if (track.qualityGate) parts.push(`품질 ${track.qualityGate.label}`);
     if (track.performanceInfo?.totalMs) parts.push(`처리 ${formatDurationMs(track.performanceInfo.totalMs)}`);
     return parts.join(' · ');
 }
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.19',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.20',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -7797,6 +8140,8 @@ function createExportReport(track) {
         dcInfo: track.dcInfo,
         masterReport: track.masterReport,
         exportFallbackInfo: track.exportFallbackInfo,
+        qualityGate: track.qualityGate,
+        waveformOverview: track.waveformOverview,
         performanceInfo: track.performanceInfo,
         outputTarget: { masterGoal: state.masterGoal, masterStyle: state.masterStyle, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
         albumProfile: state.albumProfile,
@@ -7913,9 +8258,12 @@ function clampToStep(value, min, max, step) {
 
 function getOutputFormatLabel(format) {
     const labels = {
+        wav16: '16-bit PCM WAV',
         wav24: '24-bit PCM WAV',
         wav32float: '32-bit Float WAV',
+        mp3_128: 'MP3 128 kbps',
         mp3_192: 'MP3 192 kbps',
+        mp3_256: 'MP3 256 kbps',
         mp3_320: 'MP3 320 kbps'
     };
     return labels[format] || labels.wav24;

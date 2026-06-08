@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.3.19 - 2-pass loudness target + DC-safe transparent limiter
+// FoxBear Pro finalizer worker v1.3.20 - 2-pass loudness target + DC-safe transparent limiter
 'use strict';
 
 self.onmessage = event => {

@@ -1,4 +1,11 @@
-# FoxBear AI Mastering Studio Pro v1.3.19
+# FoxBear AI Mastering Studio Pro
+
+## v1.3.20 Mastering Studio Upgrade
+
+- 마스터링 품질 게이트(PASS/CHECK/FAIL)와 JSON export report 저장을 추가했습니다.
+- 원본/마스터본을 같은 위치에서 전환하는 A/B 스위치 플레이어와 파형/피크 미니뷰를 추가했습니다.
+- WAV 16-bit, MP3 128/256 kbps 출력 옵션을 확장했습니다.
+- ZIP 다운로드에 각 트랙별 마스터링 리포트를 자동 포함합니다.
 
 GitHub Pages-ready modular browser mastering studio.
 
