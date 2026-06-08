@@ -1,10 +1,21 @@
-# FoxBear AI Mastering Studio Pro v1.3.17
+# FoxBear AI Mastering Studio Pro v1.3.18
 
 GitHub Pages-ready modular browser mastering studio.
 
 
 
-## Pro v1.3.17 Firebase Firestore setup patch
+## Pro v1.3.18 mastering hotfix
+
+- Firebase Hosting/Chromium의 강한 CSP + Trusted Types 환경에서 마스터링 워커 생성이 막힐 수 있는 경로를 보정했습니다.
+- 모든 마스터링/분석/피치/인코딩 워커는 같은 출처의 허용된 경로만 `foxbear` Trusted Types 정책으로 생성합니다.
+- 마스터 파이널라이저 워커 생성 실패가 전체 마스터링 실패로 바로 이어지지 않도록 fallback 보호 범위 안으로 이동했습니다.
+- 워커 fallback은 단순 피크 가드만 하지 않고, 대략 LUFS 타깃 보정과 True Peak/Sample Peak 가드를 함께 적용합니다.
+- MP3 워커의 `lamejs` 로컬 import도 worker-side Trusted Types 정책으로 보호했습니다.
+- NaN/Infinity/과도한 샘플 값을 파이널라이즈와 인코딩 직전에 정리하는 오디오 안전 수리 단계를 추가했습니다.
+- `npm run check`, SRI 검증, 정적 HTML/CSS 검사, finalizer/WAV worker synthetic harness를 통과했습니다.
+
+
+## Pro v1.3.18 Firebase Firestore setup patch
 
 - Firebase Web SDK v12.14.0 CDN 모듈 부트스트랩을 추가했습니다.
 - Spark 무료 요금제 제약을 반영해 Cloud Storage SDK는 불러오지 않고, 오디오 파일은 기존처럼 브라우저 로컬 처리만 유지합니다.

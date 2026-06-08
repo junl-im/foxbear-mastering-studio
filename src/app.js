@@ -1,13 +1,22 @@
-// FoxBear AI Mastering Studio Pro v1.3.17 - Firebase Firestore-ready static build
+// FoxBear AI Mastering Studio Pro v1.3.18 - Firebase Firestore-ready static build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.17';
+const APP_VERSION = 'Pro v1.3.18';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
 const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
 const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
 const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
+const TRUSTED_SCRIPT_PATHS = Object.freeze([
+    WAV_ENCODER_WORKER_URL,
+    MP3_ENCODER_WORKER_URL,
+    ANALYSIS_WORKER_URL,
+    MASTER_FINALIZER_WORKER_URL,
+    PITCH_WSOLA_WORKER_URL
+]);
+const TRUSTED_SCRIPT_URLS = new Set();
+const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v138';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
@@ -66,6 +75,53 @@ const ADMIN_STATS_PASSWORD = '8605';
 const ADMIN_STATS_VISITOR_KEY = 'foxbear-admin-visitor-id-v1';
 const ADMIN_STATS_STORAGE_KEY = 'foxbear-admin-local-stats-v1';
 const ADMIN_STATS_MAX_EVENTS = 120;
+
+TRUSTED_SCRIPT_PATHS.forEach(path => {
+    try {
+        TRUSTED_SCRIPT_URLS.add(new URL(path, document.baseURI).href);
+    } catch (error) {
+        console.warn('Trusted script URL registration skipped:', path, error);
+    }
+});
+
+function createFoxBearTrustedTypesPolicy() {
+    if (!window.trustedTypes || typeof window.trustedTypes.createPolicy !== 'function') return null;
+    try {
+        return window.trustedTypes.createPolicy('foxbear', {
+            createScriptURL(value) {
+                const url = new URL(String(value), document.baseURI);
+                if (url.origin !== window.location.origin || !TRUSTED_SCRIPT_URLS.has(url.href)) {
+                    throw new TypeError('허용되지 않은 스크립트 URL입니다.');
+                }
+                return url.href;
+            }
+        });
+    } catch (error) {
+        console.warn('Trusted Types policy unavailable:', error);
+        return null;
+    }
+}
+
+function resolveFoxBearScriptUrl(path) {
+    const url = new URL(String(path || ''), document.baseURI);
+    if (url.origin !== window.location.origin || !TRUSTED_SCRIPT_URLS.has(url.href)) {
+        throw new TypeError('허용되지 않은 워커/엔진 스크립트 경로입니다.');
+    }
+    return FOXBEAR_TRUSTED_TYPES_POLICY ? FOXBEAR_TRUSTED_TYPES_POLICY.createScriptURL(url.href) : url.href;
+}
+
+function createFoxBearWorker(path, options) {
+    return new Worker(resolveFoxBearScriptUrl(path), options);
+}
+
+function getErrorMessage(error, fallback = '알 수 없는 오류') {
+    if (!error) return fallback;
+    if (typeof error === 'string') return error;
+    if (error.message) return error.message;
+    if (error.error && error.error.message) return error.error.message;
+    if (error.reason && error.reason.message) return error.reason.message;
+    try { return String(error); } catch (stringifyError) { return fallback; }
+}
 
 
 const FEATURE_DEFINITIONS = {
@@ -358,7 +414,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.17';
+    styleLink.href = 'assets/css/studio.css?v=1.3.18';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2261,7 +2317,7 @@ async function handleFiles(fileList) {
         renderAll();
         analyzeTrack(track).catch(error => {
             track.status = 'error';
-            track.error = error.message || '분석 실패';
+            track.error = getErrorMessage(error, '분석 실패');
             track.report = track.error;
             renderAll();
         });
@@ -2461,7 +2517,7 @@ async function clearAnalysisCache(options = {}) {
 async function analyzeBufferAsync(buffer) {
     if (!window.Worker) return analyzeBuffer(buffer);
     try {
-        const worker = new Worker(ANALYSIS_WORKER_URL);
+        const worker = createFoxBearWorker(ANALYSIS_WORKER_URL);
         const channels = buffer.numberOfChannels;
         const channelBuffers = [];
         for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
@@ -2486,7 +2542,7 @@ async function analyzeBufferAsync(buffer) {
             worker.onerror = error => {
                 clearTimeout(timer);
                 worker.terminate();
-                reject(error);
+                reject(new Error(getErrorMessage(error, '워커 실행 오류')));
             };
             worker.postMessage(payload, channelBuffers);
         });
@@ -3447,6 +3503,7 @@ async function masterTrack(track, calledFromBatch = false) {
         renderAll();
         const albumProfile = getActiveAlbumProfile();
         const masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
+        sanitizeAudioBuffer(masteredBuffer, 'master-chain');
         markPerformanceStage(track, '마스터 체인');
         await yieldToBrowser();
 
@@ -3467,6 +3524,7 @@ async function masterTrack(track, calledFromBatch = false) {
             truePeak: guardDecision.truePeak
         });
         const finalBuffer = finalization.buffer;
+        sanitizeAudioBuffer(finalBuffer, 'finalizer');
         if (state.autoHighlightAB) {
             track.abHighlightStartSec = estimateABHighlightStartFromPair(preparedBuffer, finalBuffer, track.analysis);
         }
@@ -3502,7 +3560,7 @@ async function masterTrack(track, calledFromBatch = false) {
     } catch (error) {
         console.error('Mastering error:', error);
         track.status = 'error';
-        track.error = error.message || '마스터링 실패';
+        track.error = getErrorMessage(error, '마스터링 실패');
         track.report = `마스터링 실패: ${track.error}`;
         showToast(`${track.name}: ${track.error}`);
     } finally {
@@ -3649,7 +3707,7 @@ async function preparePitchSpeedBuffer(sourceBuffer, transform) {
 
     if (window.Worker) {
         try {
-            const worker = new Worker(PITCH_WSOLA_WORKER_URL);
+            const worker = createFoxBearWorker(PITCH_WSOLA_WORKER_URL);
             const channels = Math.min(2, sourceBuffer.numberOfChannels);
             const channelBuffers = [];
             for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(sourceBuffer.getChannelData(ch).slice().buffer);
@@ -3675,7 +3733,7 @@ async function preparePitchSpeedBuffer(sourceBuffer, transform) {
                 worker.onerror = error => {
                     clearTimeout(timer);
                     worker.terminate();
-                    reject(error);
+                    reject(new Error(getErrorMessage(error, '워커 실행 오류')));
                 };
                 worker.postMessage(payload, channelBuffers);
             });
@@ -5474,45 +5532,121 @@ function softCeilingSample(value, ceiling) {
     return sign * Math.min(ceiling, limited);
 }
 
+function sanitizeAudioBuffer(buffer, label = 'audio') {
+    if (!buffer || !buffer.numberOfChannels || !buffer.length) return { repaired: 0, clipped: 0, peakBefore: 0, peakAfter: 0 };
+    let repaired = 0;
+    let clipped = 0;
+    let peak = 0;
+    const hardLimit = 8;
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        for (let i = 0; i < data.length; i += 1) {
+            let value = data[i];
+            if (!Number.isFinite(value)) {
+                value = 0;
+                repaired += 1;
+            }
+            if (value > hardLimit || value < -hardLimit) {
+                value = clamp(value, -hardLimit, hardLimit);
+                clipped += 1;
+            }
+            data[i] = value;
+            const abs = Math.abs(value);
+            if (abs > peak) peak = abs;
+        }
+    }
+    const peakBefore = peak;
+    if (peak > 4) {
+        const gain = 4 / peak;
+        applyBufferGain(buffer, gain);
+        clipped += 1;
+        peak = measureSamplePeak(buffer);
+    }
+    if (repaired || clipped) console.warn(`Audio safety repair applied (${label}):`, { repaired, clipped, peakBefore, peakAfter: peak });
+    return { repaired, clipped, peakBefore, peakAfter: peak };
+}
+
+function measureApproxGatedLoudness(buffer) {
+    if (!buffer || !buffer.length) return -90;
+    const sampleRate = Math.max(3000, buffer.sampleRate || 44100);
+    const frameSize = Math.max(1024, Math.round(sampleRate * 0.400));
+    const hopSize = Math.max(512, Math.round(frameSize / 2));
+    const channels = Math.max(1, buffer.numberOfChannels || 1);
+    const powers = [];
+    for (let start = 0; start < buffer.length; start += hopSize) {
+        const end = Math.min(buffer.length, start + frameSize);
+        let sum = 0;
+        let count = 0;
+        for (let i = start; i < end; i += 1) {
+            let monoPower = 0;
+            for (let ch = 0; ch < channels; ch += 1) {
+                const sample = buffer.getChannelData(ch)[i] || 0;
+                monoPower += sample * sample;
+            }
+            sum += monoPower / channels;
+            count += 1;
+        }
+        const power = sum / Math.max(1, count);
+        const db = -0.691 + 10 * Math.log10(Math.max(1e-12, power));
+        if (db > -70) powers.push(power);
+    }
+    if (!powers.length) return -90;
+    const ungatedMean = powers.reduce((sum, item) => sum + item, 0) / powers.length;
+    const relativeGate = -0.691 + 10 * Math.log10(Math.max(1e-12, ungatedMean)) - 10;
+    const gated = powers.filter(power => (-0.691 + 10 * Math.log10(Math.max(1e-12, power))) >= relativeGate);
+    const selected = gated.length ? gated : powers;
+    const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
+    return -0.691 + 10 * Math.log10(Math.max(1e-12, mean));
+}
+
 
 async function finalizeMasterBufferAsync(buffer, options = {}) {
     const fallback = () => {
         const working = cloneAudioBuffer(buffer);
+        sanitizeAudioBuffer(working, 'finalizer-fallback-input');
         const targetDb = Number(options.ceilingDb ?? -1.0);
-        const info = options.truePeak === false ? applyPeakGuard(working, Math.pow(10, targetDb / 20)) : applyTruePeakGuard(working, targetDb);
+        const targetLufs = Number(options.targetLufs ?? -14);
+        const qualityMode = options.qualityMode || 'balanced';
+        const maxGainDb = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 4.5 : 6;
+        const loudnessBefore = measureApproxGatedLoudness(working);
+        const loudnessGainDb = clamp(targetLufs - loudnessBefore, -8, maxGainDb);
+        applyBufferGain(working, Math.pow(10, loudnessGainDb / 20));
+        const peakInfo = options.truePeak === false ? applyPeakGuard(working, Math.pow(10, targetDb / 20)) : applyTruePeakGuard(working, targetDb);
+        sanitizeAudioBuffer(working, 'finalizer-fallback-output');
+        const loudnessAfter = measureApproxGatedLoudness(working);
         return {
             buffer: working,
             info: {
                 mode: options.truePeak === false ? 'sample peak fallback' : 'true peak fallback',
-                qualityMode: options.qualityMode || 'balanced',
-                targetLufs: Number(options.targetLufs ?? -14),
+                qualityMode,
+                targetLufs,
                 ceilingDb: targetDb,
-                loudnessBefore: NaN,
-                loudnessAfter: NaN,
-                peakBefore: info.peakBefore,
-                peakAfter: info.peakAfter,
-                gainDb: 20 * Math.log10(Math.max(1e-9, info.gain || 1)),
+                loudnessBefore,
+                loudnessAfter,
+                peakBefore: peakInfo.peakBefore,
+                peakAfter: peakInfo.peakAfter,
+                gainDb: loudnessGainDb + 20 * Math.log10(Math.max(1e-9, peakInfo.gain || 1)),
                 oversample: 4
             }
         };
     };
 
     if (!window.Worker) return fallback();
-    const worker = new Worker(MASTER_FINALIZER_WORKER_URL);
-    const channels = Math.min(2, buffer.numberOfChannels);
-    const channelBuffers = [];
-    for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
-    const payload = {
-        sampleRate: buffer.sampleRate,
-        channels,
-        length: buffer.length,
-        targetLufs: Number(options.targetLufs ?? -14),
-        ceilingDb: Number(options.ceilingDb ?? -1.0),
-        qualityMode: options.qualityMode || 'balanced',
-        truePeak: options.truePeak !== false,
-        channelBuffers
-    };
     try {
+        const worker = createFoxBearWorker(MASTER_FINALIZER_WORKER_URL);
+        const channels = Math.min(2, buffer.numberOfChannels);
+        const channelBuffers = [];
+        for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
+        const payload = {
+            sampleRate: buffer.sampleRate,
+            channels,
+            length: buffer.length,
+            targetLufs: Number(options.targetLufs ?? -14),
+            ceilingDb: Number(options.ceilingDb ?? -1.0),
+            qualityMode: options.qualityMode || 'balanced',
+            truePeak: options.truePeak !== false,
+            channelBuffers
+        };
         const result = await new Promise((resolve, reject) => {
             const timer = setTimeout(() => {
                 worker.terminate();
@@ -5527,7 +5661,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
             worker.onerror = error => {
                 clearTimeout(timer);
                 worker.terminate();
-                reject(error);
+                reject(new Error(getErrorMessage(error, '워커 실행 오류')));
             };
             worker.postMessage(payload, channelBuffers);
         });
@@ -5567,7 +5701,7 @@ async function encodeMasterOutputAsync(buffer, requestedFormat = 'wav24') {
 
 async function encodeMp3Async(buffer, bitrate) {
     if (!window.Worker) throw new Error('MP3 워커를 사용할 수 없습니다.');
-    const worker = new Worker(MP3_ENCODER_WORKER_URL);
+    const worker = createFoxBearWorker(MP3_ENCODER_WORKER_URL);
     const channels = Math.min(2, buffer.numberOfChannels);
     const channelBuffers = [];
     for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
@@ -5592,7 +5726,7 @@ async function encodeMp3Async(buffer, bitrate) {
         worker.onerror = error => {
             clearTimeout(timer);
             worker.terminate();
-            reject(error);
+            reject(new Error(getErrorMessage(error, 'MP3 워커 실행 오류')));
         };
         worker.postMessage(payload, channelBuffers);
     });
@@ -5602,7 +5736,7 @@ async function encodeMp3Async(buffer, bitrate) {
 async function encodeWavAsync(buffer, format = 'wav24') {
     if (window.Worker) {
         try {
-            const worker = new Worker(WAV_ENCODER_WORKER_URL);
+            const worker = createFoxBearWorker(WAV_ENCODER_WORKER_URL);
             const channels = Math.min(2, buffer.numberOfChannels);
             const channelBuffers = [];
             for (let ch = 0; ch < channels; ch += 1) channelBuffers.push(buffer.getChannelData(ch).slice().buffer);
@@ -5627,7 +5761,7 @@ async function encodeWavAsync(buffer, format = 'wav24') {
                 worker.onerror = error => {
                     clearTimeout(timer);
                     worker.terminate();
-                    reject(error);
+                    reject(new Error(getErrorMessage(error, '워커 실행 오류')));
                 };
                 worker.postMessage(payload, channelBuffers);
             });
@@ -6006,7 +6140,7 @@ function scheduleAutoRemaster(track) {
         }
         masterTrack(track).catch(error => {
             track.status = 'error';
-            track.error = error.message || '자동 갱신 실패';
+            track.error = getErrorMessage(error, '자동 갱신 실패');
             renderAll();
         });
     }, 900);
@@ -6079,7 +6213,7 @@ async function handleReferenceFiles(fileList) {
         invalidateAllMasteredOutput('레퍼런스 트랙이 변경되었습니다. 다시 마스터링하세요.');
         showToast(`레퍼런스 분석 완료: ${file.name}`);
     } catch (error) {
-        state.referenceProfile = { name: file.name, size: file.size, status: 'error', report: error.message || '레퍼런스 분석 실패', analysis: null, target: null };
+        state.referenceProfile = { name: file.name, size: file.size, status: 'error', report: getErrorMessage(error, '레퍼런스 분석 실패'), analysis: null, target: null };
         showToast(`레퍼런스 분석 실패: ${state.referenceProfile.report}`);
     } finally {
         if (el.referenceInput) el.referenceInput.value = '';
@@ -7331,7 +7465,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.17',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.18',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -4,19 +4,21 @@
 self.onmessage = event => {
     try {
         const payload = event.data || {};
-        const sampleRate = Number(payload.sampleRate || 44100);
+        const sampleRate = Math.max(3000, Math.min(384000, Number(payload.sampleRate || 44100)));
         const channels = Math.max(1, Math.min(2, Number(payload.channels || 1)));
-        const length = Math.max(1, Number(payload.length || 1));
+        const requestedLength = Math.max(1, Number(payload.length || 1));
         const targetLufs = Number(payload.targetLufs ?? -14);
         const ceilingDb = Number(payload.ceilingDb ?? -1.0);
         const qualityMode = String(payload.qualityMode || 'balanced');
         const truePeak = payload.truePeak !== false;
-        const channelBuffers = (payload.channelBuffers || []).map(buf => new Float32Array(buf));
-        if (!channelBuffers.length) throw new Error('마스터 파이널라이저 입력이 비어 있습니다.');
+        const channelBuffers = (payload.channelBuffers || []).slice(0, channels).map(buf => new Float32Array(buf));
+        if (channelBuffers.length < channels) throw new Error('마스터 파이널라이저 채널 입력이 부족합니다.');
+        const length = Math.max(1, Math.min(requestedLength, ...channelBuffers.map(buf => buf.length)));
 
         const oversample = qualityMode === 'max' ? 12 : qualityMode === 'fast' ? 2 : 6;
         const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
-        const data = channelBuffers.map(src => new Float32Array(src));
+        const data = channelBuffers.map(src => new Float32Array(src.slice(0, length)));
+        sanitizeBuffers(data, length);
         removeDcOffset(data, length);
 
         const loudnessBefore = measureGatedLoudness(data, sampleRate, length, channels);
@@ -31,6 +33,7 @@ self.onmessage = event => {
         if (ceilingGain < 1) applyGain(data, length, ceilingGain);
         applySoftCeiling(data, length, ceiling);
         removeDcOffset(data, length);
+        sanitizeBuffers(data, length);
 
         const peakAfter = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
         if (peakAfter > ceiling * 1.001) {
@@ -64,6 +67,19 @@ self.onmessage = event => {
     }
 };
 
+
+function sanitizeBuffers(buffers, length) {
+    const hardLimit = 8;
+    for (const data of buffers) {
+        for (let i = 0; i < length; i += 1) {
+            let value = data[i];
+            if (!Number.isFinite(value)) value = 0;
+            if (value > hardLimit) value = hardLimit;
+            else if (value < -hardLimit) value = -hardLimit;
+            data[i] = value;
+        }
+    }
+}
 
 function removeDcOffset(buffers, length) {
     for (const data of buffers) {

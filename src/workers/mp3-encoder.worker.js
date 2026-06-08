@@ -4,7 +4,35 @@
 'use strict';
 
 const LAMEJS_VENDOR_URL = '../../vendor/lamejs/lame.min.js';
+const TRUSTED_IMPORT_URLS = new Set([new URL(LAMEJS_VENDOR_URL, self.location.href).href]);
+const FOXBEAR_WORKER_TRUSTED_TYPES_POLICY = createWorkerTrustedTypesPolicy();
 let lameLoadPromise = null;
+
+function createWorkerTrustedTypesPolicy() {
+    if (!self.trustedTypes || typeof self.trustedTypes.createPolicy !== 'function') return null;
+    try {
+        return self.trustedTypes.createPolicy('foxbear', {
+            createScriptURL(value) {
+                const url = new URL(String(value), self.location.href);
+                if (url.origin !== self.location.origin || !TRUSTED_IMPORT_URLS.has(url.href)) {
+                    throw new TypeError('허용되지 않은 MP3 인코더 스크립트 URL입니다.');
+                }
+                return url.href;
+            }
+        });
+    } catch (error) {
+        console.warn('Worker Trusted Types policy unavailable:', error);
+        return null;
+    }
+}
+
+function resolveWorkerImportUrl(path) {
+    const url = new URL(String(path || ''), self.location.href);
+    if (url.origin !== self.location.origin || !TRUSTED_IMPORT_URLS.has(url.href)) {
+        throw new TypeError('허용되지 않은 MP3 인코더 경로입니다.');
+    }
+    return FOXBEAR_WORKER_TRUSTED_TYPES_POLICY ? FOXBEAR_WORKER_TRUSTED_TYPES_POLICY.createScriptURL(url.href) : url.href;
+}
 
 self.onmessage = async event => {
     try {
@@ -32,7 +60,7 @@ async function ensureLameJs() {
     if (!lameLoadPromise) {
         lameLoadPromise = new Promise((resolve, reject) => {
             try {
-                importScripts(LAMEJS_VENDOR_URL);
+                importScripts(resolveWorkerImportUrl(LAMEJS_VENDOR_URL));
                 if (self.lamejs && self.lamejs.Mp3Encoder) resolve(self.lamejs);
                 else reject(new Error('lamejs 로드 후 MP3 인코더를 찾을 수 없습니다.'));
             } catch (error) {
