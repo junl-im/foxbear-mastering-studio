@@ -1,28 +1,10 @@
-FoxBear v1.3.16 static audit
+FoxBear Pro v1.3.19 static audit
 
-Checks run:
-- npm run check
-- duplicate HTML id scan
-- local asset reference scan
-- CSS brace balance
-- SRI hash verification
-- CSP unsafe-inline/CDN string scan
-- Firebase config JSON validation
-
-Results:
-- npm run check: PASS
-- Duplicate IDs: none
-- Missing local refs: none
-- CSS brace balance: 0
-- SRI errors: none
-- CSP unsafe-inline: false
-- CSP CDN references: false
-- firebase.json: valid
-
-Patch notes:
-- Explicit selection only; active/current track no longer acts as selected batch target.
-- Non-selected track card border forced to black even when active or genre-locked.
-- Action section renamed to 마스터링 엔진.
-- Popup close buttons centered.
-- In-app browser download helper expanded with direct-save/share/open/copy options.
-- Firebase Hosting header config added for stronger deploy-time security.
+PASS npm run check
+PASS index.html/design-preview.html SHA-384 SRI validation
+PASS duplicate HTML id audit
+PASS local static asset reference audit
+PASS CSS brace balance audit
+PASS master-finalizer.worker.js synthetic harness
+PASS wav-encoder.worker.js synthetic harness
+NOTE headless Chromium local smoke timed out in container with environment-level DBus/crashpad/inotify errors

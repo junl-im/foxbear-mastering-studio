@@ -3,25 +3,25 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.18 - browser based AI music mastering console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.19 - browser based AI music mastering console" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://www.gstatic.com/firebasejs/; script-src-elem 'self' https://www.gstatic.com/firebasejs/; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com https://www.googleapis.com; worker-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types foxbear; upgrade-insecure-requests" />
 <meta name="referrer" content="no-referrer" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.18</title>
+<title>FoxBear Mastering PRO v1.3.19</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.18" integrity="sha384-zx2yKp2WofPkhBUEXv/eQX1G8goN8w67JeCXk8o+NwJX248tlTDKnum4tIgxfoQH" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.19" integrity="sha384-wpNN2rdAQxQtar4XdwmTkmejdJH0zG/L1m1lpI0OwyLibFYBXeGfjr0GJp/jhPt1" />
 <script defer src="vendor/jszip/jszip.min.js?v=3.10.1" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"></script>
-<script type="module" src="src/firebase-bootstrap.js?v=1.3.18" integrity="sha384-S0zAg0q6Hy3Sb9LLdiXLHerjOYbHqkretIPoRQfYM/mHmMx3eakA2kvOq/gLOAaQ"></script>
-<script defer src="src/app.js?v=1.3.18" integrity="sha384-ri4foLOS5dcvY0TwNwrLH+KzdW22qvZuIhcCEU1OwPefjjWCO3yxbGDYM8kxI5Mh"></script>
+<script type="module" src="src/firebase-bootstrap.js?v=1.3.19" integrity="sha384-S0zAg0q6Hy3Sb9LLdiXLHerjOYbHqkretIPoRQfYM/mHmMx3eakA2kvOq/gLOAaQ"></script>
+<script defer src="src/app.js?v=1.3.19" integrity="sha384-mbMkOQJi7vzA3s99/M365Iio74oCZngx7eVnOAPwSOR9dlUKzUy5NFimIkdGPumz"></script>
 </head>
-<body data-build="1.3.18">
+<body data-build="1.3.19">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.18</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.19</button>
                     <span id="adminStatsTrigger" class="badge badge-device" role="button" tabindex="0" aria-label="숨겨진 통계 관리자 열기">PC · 모바일 호환</span>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
@@ -270,6 +270,18 @@
                         </select>
                     </div>
                     <div>
+                        <label for="masterStyleSelect">마스터링 스타일 프리셋</label>
+                        <select id="masterStyleSelect">
+                            <option value="transparent">Transparent Clean · 원본 보존</option>
+                            <option value="streaming" selected>Streaming Polish · 표준 추천</option>
+                            <option value="club">Club / Loud · 강한 음압</option>
+                            <option value="vocal">Vocal Focus · 보컬 보호</option>
+                            <option value="podcast">Podcast / Voice · 말소리 중심</option>
+                            <option value="warm_analog">Warm Analog · 따뜻한 질감</option>
+                            <option value="clean_loud">Clean Loud · 깨끗한 고음압</option>
+                        </select>
+                    </div>
+                    <div>
                         <label for="platformPresetSelect">플랫폼 저장 프리셋</label>
                         <select id="platformPresetSelect">
                             <option value="custom" selected>직접 설정 유지</option>
@@ -301,10 +313,13 @@
                     <div>
                         <label for="targetLufsSelect">라우드니스 타깃 (Loudness Target)</label>
                         <select id="targetLufsSelect">
+                            <option value="-18">-18 LUFS · 보이스/보수적</option>
                             <option value="-16">-16 LUFS · 스트리밍 여유</option>
                             <option value="-14" selected>-14 LUFS · 표준 밸런스</option>
                             <option value="-12">-12 LUFS · 강한 팝/댄스</option>
                             <option value="-10">-10 LUFS · 고강도 테스트</option>
+                            <option value="-9">-9 LUFS · Club/Loud</option>
+                            <option value="-8">-8 LUFS · 최대 음압 점검</option>
                         </select>
                     </div>
                     <div>
@@ -313,6 +328,7 @@
                             <option value="-1.5">-1.5 dBTP · 보수적</option>
                             <option value="-1" selected>-1.0 dBTP · 기본 타깃</option>
                             <option value="-0.8">-0.8 dBTP · 조금 더 크게</option>
+                            <option value="-0.5">-0.5 dBTP · 고음압 안전</option>
                             <option value="-0.3">-0.3 dBTP · 최대 음압</option>
                         </select>
                     </div>
@@ -391,13 +407,13 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.18</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.19</span>
         <h2 id="programInfoTitle">무료로 쉽게 완성하는 음질 개선과 마스터링</h2>
         <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.<br>작업은 내 브라우저 안에서 진행되어 파일을 서버로 올리지 않고도 빠르게 확인할 수 있습니다.</p>
         <div class="program-info-grid program-info-roadmap">
             <div><strong>기본 기능</strong><span>파일/폴더 불러오기, 장르 프리셋, 원본·마스터본 A/B 프리뷰, WAV/MP3 저장, 작업 대기열 처리.</span></div>
-            <div><strong>도입된 기능</strong><span>스마트 추천, 레퍼런스 트랙, 플랫폼 저장 프리셋, 실시간 미리듣기, 스냅샷, 안전 점수, 저역 모노 체크.</span></div>
-            <div><strong>음질 보호</strong><span>보컬 보호, True Peak 가드, 과처리 방지, 피치/BPM 고품질 렌더 경로, 모바일 성능 가드.</span></div>
+            <div><strong>도입된 기능</strong><span>스마트 추천, 레퍼런스 트랙, 스타일 프리셋, 플랫폼 저장 프리셋, 전후 리포트, 실시간 미리듣기, 스냅샷, 안전 점수, 저역 모노 체크.</span></div>
+            <div><strong>음질 보호</strong><span>보컬 보호, True Peak 가드, DC offset 제거, 자동 무음 정리, MP3 실패 시 WAV fallback, 피치/BPM 고품질 렌더 경로, 모바일 성능 가드.</span></div>
             <div><strong>추후 예정</strong><span>레퍼런스 매칭 고도화, 악기 레이어 샘플 선택, 보컬 구간 회피, WASM DSP 확장, 프리셋 공유.</span></div>
         </div>
         <p class="program-info-note">핵심 목표는 쉬운 조작, 안전한 음질 보호, 빠른 미리듣기, 그리고 무료 프로그램답지 않은 완성도입니다.</p>

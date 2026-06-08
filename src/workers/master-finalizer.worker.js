@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker - 2-pass loudness target + DC-safe oversampled peak ceiling
+// FoxBear Pro finalizer worker v1.3.19 - 2-pass loudness target + DC-safe transparent limiter
 'use strict';
 
 self.onmessage = event => {
@@ -31,6 +31,7 @@ self.onmessage = event => {
         const preCeilingPeak = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
         const ceilingGain = preCeilingPeak > ceiling ? ceiling / Math.max(1e-9, preCeilingPeak) : 1;
         if (ceilingGain < 1) applyGain(data, length, ceilingGain);
+        const limiterInfo = applyTransparentLimiter(data, length, ceiling, sampleRate, qualityMode);
         applySoftCeiling(data, length, ceiling);
         removeDcOffset(data, length);
         sanitizeBuffers(data, length);
@@ -59,6 +60,7 @@ self.onmessage = event => {
                 peakBefore,
                 peakAfter: finalPeak,
                 gainDb: targetGainDb + 20 * Math.log10(Math.max(1e-9, ceilingGain)),
+                limiterReductionDb: limiterInfo.reductionDb,
                 oversample
             }
         }, transfers);
@@ -154,6 +156,29 @@ function applyGain(buffers, length, gain) {
     for (const data of buffers) {
         for (let i = 0; i < length; i += 1) data[i] = (data[i] || 0) * gain;
     }
+}
+
+
+function applyTransparentLimiter(buffers, length, ceiling, sampleRate, qualityMode) {
+    const releaseMs = qualityMode === 'max' ? 90 : qualityMode === 'fast' ? 36 : 58;
+    const release = Math.exp(-1 / Math.max(1, sampleRate * releaseMs / 1000));
+    let gain = 1;
+    let minGain = 1;
+    for (let i = 0; i < length; i += 1) {
+        let peak = 0;
+        for (const data of buffers) {
+            const abs = Math.abs(data[i] || 0);
+            if (abs > peak) peak = abs;
+        }
+        const desired = peak > ceiling ? ceiling / Math.max(1e-9, peak) : 1;
+        if (desired < gain) gain = desired;
+        else gain = Math.min(1, gain * release + (1 - release));
+        if (gain < minGain) minGain = gain;
+        if (gain < 0.999999) {
+            for (const data of buffers) data[i] = (data[i] || 0) * gain;
+        }
+    }
+    return { minGain, reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0 };
 }
 
 function applySoftCeiling(buffers, length, ceiling) {

@@ -1,8 +1,15 @@
-# FoxBear AI Mastering Studio Pro v1.3.18
+# FoxBear AI Mastering Studio Pro v1.3.19
 
 GitHub Pages-ready modular browser mastering studio.
 
 
+
+## Pro v1.3.19 mastering pro upgrade
+
+- Added mastering style presets: Transparent Clean, Streaming Polish, Club/Loud, Vocal Focus, Podcast/Voice, Warm Analog, Clean Loud.
+- Added extended LUFS / peak ceiling choices and detailed before/after mastering report metrics.
+- Strengthened MP3 export fallback so failed MP3 encoding is recorded and saved as 24-bit WAV automatically.
+- Improved processing-stage messages, friendly failure guidance, DC offset cleanup, default silence trim, and transparent final limiter guard.
 
 ## Pro v1.3.18 mastering hotfix
 

@@ -6582,3 +6582,61 @@ body.admin-dialog-open { overflow: hidden; }
     }
     .engine-badge { font-size: .48rem !important; }
 }
+
+/* v1.3.19 Mastering Pro report upgrade */
+.master-report-panel {
+    margin: 10px 0;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(52,211,153,.10), rgba(59,130,246,.08));
+}
+.master-report-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.master-report-head strong { font-size: .84rem; }
+.master-report-head span {
+    font-size: .68rem;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.10);
+    color: rgba(255,255,255,.82);
+}
+.master-report-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+.master-report-card {
+    min-width: 0;
+    padding: 9px;
+    border-radius: 13px;
+    background: rgba(0,0,0,.18);
+    border: 1px solid rgba(255,255,255,.08);
+}
+.master-report-card span,
+.master-report-card small {
+    display: block;
+    color: rgba(255,255,255,.68);
+    font-size: .65rem;
+}
+.master-report-card b {
+    display: block;
+    margin: 3px 0;
+    font-size: .78rem;
+    color: rgba(255,255,255,.94);
+}
+.master-report-note {
+    margin-top: 9px;
+    color: rgba(255,255,255,.72);
+    font-size: .68rem;
+    line-height: 1.45;
+}
+@media (max-width: 560px) {
+    .master-report-grid { grid-template-columns: 1fr; }
+    .master-report-head { align-items: flex-start; flex-direction: column; }
+}

@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.18 - Firebase Firestore-ready static build
+// FoxBear AI Mastering Studio Pro v1.3.19 - Mastering Pro upgrade static build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.18';
+const APP_VERSION = 'Pro v1.3.19';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v138';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v139';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -49,13 +49,14 @@ const INSTRUMENT_AMOUNT_LEVELS = {
     bold: { label: '강하게', gain: 1.15 }
 };
 const CURVE_CACHE = new Map();
-const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
+const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'masterStyleSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
 const MASTER_FLOW_STEPS = [
     { at: 6, label: '준비', hint: '디코딩' },
-    { at: 22, label: '정리', hint: '무음/변환' },
+    { at: 18, label: '분석', hint: '추천/검사' },
+    { at: 28, label: '정리', hint: '무음/DC' },
     { at: 50, label: '리듬', hint: '박자/악기' },
     { at: 60, label: '마스터', hint: '톤/공간' },
-    { at: 88, label: '피크', hint: 'True Peak' },
+    { at: 88, label: '피크', hint: 'LUFS/TP' },
     { at: 98, label: '완료', hint: '인코딩' }
 ];
 
@@ -67,6 +68,16 @@ const PLATFORM_EXPORT_PRESETS = {
     social: { label: 'SNS/Shorts', outputFormat: 'mp3_320', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '모바일 업로드/공유 호환성을 우선합니다.' },
     loud_demo: { label: 'Loud Demo', outputFormat: 'mp3_320', targetLufs: -12, ceilingDb: -0.8, qualityMode: 'balanced', note: '짧은 데모 확인용으로 체감 음압을 조금 더 올립니다.' },
     archive: { label: 'Archive Master', outputFormat: 'wav32float', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'max', note: '후속 편집과 보관을 위한 최고 보존 프리셋입니다.' }
+};
+
+const MASTER_STYLE_PRESETS = {
+    transparent: { label: 'Transparent Clean', description: '원본 질감을 보존하며 깨끗하게 정리', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', clarityDelta: 1, warmthDelta: 0, widthDelta: 0, punchDelta: -2, metallicDelta: 3, analogDelta: -2, intensityScale: 0.96 },
+    streaming: { label: 'Streaming Polish', description: '플랫폼 업로드용 안전 라우드니스와 밸런스', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', clarityDelta: 2, warmthDelta: 1, widthDelta: 1, punchDelta: 1, metallicDelta: 3, analogDelta: 0, intensityScale: 1.00 },
+    club: { label: 'Club / Loud', description: '댄스/클럽 데모용 강한 체감 음압', targetLufs: -9, ceilingDb: -0.5, qualityMode: 'max', clarityDelta: 3, warmthDelta: -2, widthDelta: 3, punchDelta: 10, metallicDelta: 5, analogDelta: 0, intensityScale: 1.16 },
+    vocal: { label: 'Vocal Focus', description: '보컬·리드 멜로디 보호와 치찰음 완화', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'max', clarityDelta: -2, warmthDelta: 4, widthDelta: -4, punchDelta: -6, metallicDelta: 8, analogDelta: 1, intensityScale: 0.94 },
+    podcast: { label: 'Podcast / Voice', description: '말소리 명료도와 모노 호환성 우선', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'balanced', clarityDelta: 6, warmthDelta: -2, widthDelta: -18, punchDelta: -10, metallicDelta: 6, analogDelta: -5, intensityScale: 0.88 },
+    warm_analog: { label: 'Warm Analog', description: '따뜻한 질감과 부드러운 고역', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', clarityDelta: -4, warmthDelta: 10, widthDelta: -1, punchDelta: -2, metallicDelta: 6, analogDelta: 18, intensityScale: 0.98 },
+    clean_loud: { label: 'Clean Loud', description: '과한 왜곡 없이 큰 체감 음압', targetLufs: -10, ceilingDb: -0.8, qualityMode: 'max', clarityDelta: 2, warmthDelta: -1, widthDelta: 1, punchDelta: 7, metallicDelta: 7, analogDelta: -1, intensityScale: 1.10 }
 };
 
 const MAX_SNAPSHOTS_PER_TRACK = 12;
@@ -334,7 +345,7 @@ const state = {
     programmatic: false,
     lastToastTimer: null,
     featureFlags: {
-        trimSilence: false,
+        trimSilence: true,
         albumMatch: false,
         truePeakGuard: true,
         aiHumanize: true,
@@ -355,6 +366,7 @@ const state = {
     referenceProfile: null,
     outputFormat: 'wav24',
     masterGoal: 'natural',
+    masterStyle: 'streaming',
     targetLufs: -14,
     ceilingDb: -1.0,
     qualityMode: 'balanced',
@@ -414,7 +426,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.18';
+    styleLink.href = 'assets/css/studio.css?v=1.3.19';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -466,7 +478,7 @@ function cacheElements() {
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
+        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
         'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotClearBtn', 'snapshotStatus', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
@@ -1886,6 +1898,17 @@ function bindEvents() {
             showToast(`${getMasterGoalLabel(state.masterGoal)} 목표 모드로 변경했습니다.`);
         });
     }
+    if (el.masterStyleSelect) {
+        state.masterStyle = el.masterStyleSelect.value || state.masterStyle;
+        applyMasterStyleDefaults(state.masterStyle, false);
+        el.masterStyleSelect.addEventListener('change', () => {
+            state.masterStyle = el.masterStyleSelect.value || 'streaming';
+            applyMasterStyleDefaults(state.masterStyle, true);
+            invalidateAllMasteredOutput(`${getMasterStyleLabel(state.masterStyle)} 스타일로 변경되었습니다. 다시 마스터링하세요.`);
+            renderAll({ keepDetailAudio: true });
+            showToast(`${getMasterStyleLabel(state.masterStyle)} 스타일을 적용했습니다.`);
+        });
+    }
     if (el.outputFormatSelect) {
         state.outputFormat = el.outputFormatSelect.value || state.outputFormat;
         el.outputFormatSelect.addEventListener('change', () => {
@@ -2371,6 +2394,9 @@ function createTrack(file) {
         albumApplied: null,
         truePeakInfo: null,
         finalizeInfo: null,
+        dcInfo: null,
+        masterReport: null,
+        exportFallbackInfo: null,
         performanceInfo: null,
         snapshots: [],
         report: '대기 중',
@@ -3480,6 +3506,14 @@ async function masterTrack(track, calledFromBatch = false) {
             markPerformanceStage(track, '무음 정리');
         }
 
+        track.progress = 28;
+        track.report = 'DC offset 제거 및 비정상 샘플 안전 점검 중';
+        renderAll();
+        track.dcInfo = removeDcOffsetAudioBuffer(currentSourceBuffer);
+        sanitizeAudioBuffer(currentSourceBuffer, 'pre-pitch-cleanup');
+        markPerformanceStage(track, 'DC 정리');
+        await yieldToBrowser();
+
         track.progress = 38;
         track.report = '피치/BPM 워커 변환 및 오버랩 위상 정렬 중';
         renderAll();
@@ -3543,6 +3577,8 @@ async function masterTrack(track, calledFromBatch = false) {
         if (albumProfile && track.analysis) track.albumApplied = createAlbumAppliedInfo(track.analysis, albumProfile);
 
         const encoded = await encodeMasterOutputAsync(finalBuffer, requestedOutputFormat);
+        track.exportFallbackInfo = encoded.fallbackFrom ? { from: encoded.fallbackFrom, to: encoded.format, reason: encoded.fallbackReason || '' } : null;
+        track.masterReport = createMasterReport(track, preparedBuffer, finalBuffer, finalization.info, encoded);
         markPerformanceStage(track, '인코딩');
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
 
@@ -3560,9 +3596,10 @@ async function masterTrack(track, calledFromBatch = false) {
     } catch (error) {
         console.error('Mastering error:', error);
         track.status = 'error';
-        track.error = getErrorMessage(error, '마스터링 실패');
-        track.report = `마스터링 실패: ${track.error}`;
-        showToast(`${track.name}: ${track.error}`);
+        const friendly = createUserFriendlyMasteringError(error);
+        track.error = friendly.message;
+        track.report = friendly.report;
+        showToast(`${track.name}: ${friendly.message}`);
     } finally {
         if (!calledFromBatch) state.busy = false;
         renderAll();
@@ -4020,6 +4057,7 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
     const out = cloneSettings(settings || GENRE_PRESETS.custom);
     if (settings && Number.isFinite(Number(settings.intensity))) out.intensity = Number(settings.intensity);
     applyMasterGoalToSettings(out, analysis, preset);
+    applyMasterStyleToSettings(out, analysis, preset);
     if (!state.featureFlags.smartGuard || !analysis) return out;
 
     const brightness = Number(analysis.brightness || 0);
@@ -5566,6 +5604,159 @@ function sanitizeAudioBuffer(buffer, label = 'audio') {
     return { repaired, clipped, peakBefore, peakAfter: peak };
 }
 
+
+function removeDcOffsetAudioBuffer(buffer) {
+    if (!buffer || !buffer.length || !buffer.numberOfChannels) return { applied: false, offsets: [], maxOffset: 0, maxOffsetDb: -120 };
+    const offsets = [];
+    let maxOffset = 0;
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        let sum = 0;
+        for (let i = 0; i < data.length; i += 1) sum += Number.isFinite(data[i]) ? data[i] : 0;
+        const mean = sum / Math.max(1, data.length);
+        offsets.push(mean);
+        maxOffset = Math.max(maxOffset, Math.abs(mean));
+    }
+    const threshold = 1e-6;
+    if (maxOffset <= threshold) return { applied: false, offsets, maxOffset, maxOffsetDb: ampToDb(maxOffset) };
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        const mean = offsets[ch] || 0;
+        for (let i = 0; i < data.length; i += 1) data[i] = (Number.isFinite(data[i]) ? data[i] : 0) - mean;
+    }
+    return { applied: true, offsets, maxOffset, maxOffsetDb: ampToDb(maxOffset) };
+}
+
+function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true, qualityMode = 'balanced') {
+    const ceiling = Math.pow(10, Number(targetDbTP || -1) / 20);
+    const oversample = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 2 : 4;
+    const peakBefore = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
+    if (peakBefore < 0.000001) return { mode: truePeak ? 'truePeakLimiter' : 'samplePeakLimiter', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1, limiterReductionDb: 0 };
+    const preGain = Math.min(1, ceiling / Math.max(1e-9, peakBefore));
+    if (preGain < 1) applyBufferGain(buffer, preGain);
+    const limiterInfo = applyEnvelopeLimiter(buffer, ceiling, qualityMode);
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        for (let i = 0; i < data.length; i += 1) data[i] = softCeilingSample(data[i], ceiling);
+    }
+    removeDcOffsetAudioBuffer(buffer);
+    let peakAfter = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
+    let finalGain = 1;
+    if (peakAfter > ceiling * 1.0005) {
+        finalGain = ceiling / Math.max(1e-9, peakAfter);
+        applyBufferGain(buffer, finalGain);
+        peakAfter = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
+    }
+    return { mode: truePeak ? 'truePeakLimiter' : 'samplePeakLimiter', targetDbTP, peakBefore, peakAfter, gain: preGain * finalGain, limiterReductionDb: limiterInfo.reductionDb };
+}
+
+function applyEnvelopeLimiter(buffer, ceiling, qualityMode = 'balanced') {
+    const sampleRate = Math.max(3000, Number(buffer.sampleRate || 44100));
+    const releaseMs = qualityMode === 'max' ? 85 : qualityMode === 'fast' ? 38 : 58;
+    const release = Math.exp(-1 / Math.max(1, sampleRate * releaseMs / 1000));
+    let gain = 1;
+    let minGain = 1;
+    for (let i = 0; i < buffer.length; i += 1) {
+        let peak = 0;
+        for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+            const v = Math.abs(buffer.getChannelData(ch)[i] || 0);
+            if (v > peak) peak = v;
+        }
+        const desired = peak > ceiling ? ceiling / Math.max(1e-9, peak) : 1;
+        if (desired < gain) gain = desired;
+        else gain = Math.min(1, gain * release + (1 - release));
+        if (gain < minGain) minGain = gain;
+        if (gain < 0.999999) {
+            for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+                const data = buffer.getChannelData(ch);
+                data[i] = (data[i] || 0) * gain;
+            }
+        }
+    }
+    return { minGain, reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0 };
+}
+
+function calculateAudioStats(buffer) {
+    if (!buffer || !buffer.length) return null;
+    let peak = 0;
+    let sumSq = 0;
+    let count = 0;
+    let clippedSamples = 0;
+    let dcSumAbs = 0;
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const data = buffer.getChannelData(ch);
+        let sum = 0;
+        for (let i = 0; i < data.length; i += 1) {
+            const value = Number.isFinite(data[i]) ? data[i] : 0;
+            const abs = Math.abs(value);
+            if (abs > peak) peak = abs;
+            if (abs >= 0.999) clippedSamples += 1;
+            sumSq += value * value;
+            sum += value;
+            count += 1;
+        }
+        dcSumAbs += Math.abs(sum / Math.max(1, data.length));
+    }
+    const rms = Math.sqrt(sumSq / Math.max(1, count));
+    const peakDb = ampToDb(peak);
+    const rmsDb = ampToDb(rms);
+    const lufs = measureApproxGatedLoudness(buffer);
+    return {
+        sampleRate: buffer.sampleRate,
+        channels: buffer.numberOfChannels,
+        durationSec: buffer.duration || buffer.length / Math.max(1, buffer.sampleRate),
+        peak,
+        peakDb,
+        rms,
+        rmsDb,
+        approxLufs: lufs,
+        crestDb: Number.isFinite(peakDb) && Number.isFinite(rmsDb) ? peakDb - rmsDb : NaN,
+        dcOffsetAvg: dcSumAbs / Math.max(1, buffer.numberOfChannels),
+        clippedSamples
+    };
+}
+
+function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, encoded) {
+    const before = calculateAudioStats(beforeBuffer);
+    const after = calculateAudioStats(finalBuffer);
+    const beforeLufs = Number.isFinite(track?.analysis?.loudnessIntegrated) ? track.analysis.loudnessIntegrated : before?.approxLufs;
+    const afterLufs = Number.isFinite(finalizeInfo?.loudnessAfter) ? finalizeInfo.loudnessAfter : after?.approxLufs;
+    return {
+        before: { ...before, approxLufs: beforeLufs },
+        after: { ...after, approxLufs: afterLufs },
+        target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle },
+        delta: {
+            lufs: Number.isFinite(beforeLufs) && Number.isFinite(afterLufs) ? afterLufs - beforeLufs : NaN,
+            rmsDb: Number.isFinite(before?.rmsDb) && Number.isFinite(after?.rmsDb) ? after.rmsDb - before.rmsDb : NaN,
+            crestDb: Number.isFinite(before?.crestDb) && Number.isFinite(after?.crestDb) ? after.crestDb - before.crestDb : NaN
+        },
+        clippingRisk: stripTags(getClippingRiskText(track)),
+        output: { format: encoded?.format || track?.outFormat || state.outputFormat, extension: encoded?.extension || '', fallbackFrom: encoded?.fallbackFrom || null, fallbackReason: encoded?.fallbackReason || '' },
+        createdAt: new Date().toISOString()
+    };
+}
+
+function createUserFriendlyMasteringError(error) {
+    const raw = getErrorMessage(error, '마스터링 실패');
+    const lower = raw.toLowerCase();
+    let message = raw;
+    let hint = '파일을 다시 불러온 뒤 WAV 24bit 출력으로 재시도해 보세요.';
+    if (/decode|decoding|unsupported|not supported|audio/.test(lower)) {
+        message = '오디오 파일을 디코딩하지 못했습니다.';
+        hint = '브라우저가 지원하지 않는 코덱이거나 손상된 파일일 수 있습니다. WAV 또는 MP3로 변환한 뒤 다시 시도하세요.';
+    } else if (/memory|allocation|arraybuffer|too large|out of memory/.test(lower)) {
+        message = '브라우저 메모리가 부족해 렌더링을 중단했습니다.';
+        hint = 'Mobile Safe 모드, Fast 엔진, WAV 24bit 출력으로 낮춘 뒤 다시 시도하세요.';
+    } else if (/worker|timeout|시간이 초과|script/.test(lower)) {
+        message = '브라우저 워커 처리 시간이 초과되었거나 보안 정책에 막혔습니다.';
+        hint = '페이지를 새로고침하고 WAV 24bit 출력으로 재시도하세요. 배포 환경의 CSP 설정도 확인이 필요합니다.';
+    } else if (/mp3/.test(lower)) {
+        message = 'MP3 인코딩 단계에서 문제가 발생했습니다.';
+        hint = '앱은 가능한 경우 WAV로 자동 저장합니다. 계속 실패하면 출력 포맷을 WAV 24bit로 바꾸세요.';
+    }
+    return { message, report: `마스터링 실패: ${message} · 해결 제안: ${hint} · 원문: ${raw}` };
+}
+
 function measureApproxGatedLoudness(buffer) {
     if (!buffer || !buffer.length) return -90;
     const sampleRate = Math.max(3000, buffer.sampleRate || 44100);
@@ -5604,6 +5795,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
     const fallback = () => {
         const working = cloneAudioBuffer(buffer);
         sanitizeAudioBuffer(working, 'finalizer-fallback-input');
+        const dcInfo = removeDcOffsetAudioBuffer(working);
         const targetDb = Number(options.ceilingDb ?? -1.0);
         const targetLufs = Number(options.targetLufs ?? -14);
         const qualityMode = options.qualityMode || 'balanced';
@@ -5611,7 +5803,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         const loudnessBefore = measureApproxGatedLoudness(working);
         const loudnessGainDb = clamp(targetLufs - loudnessBefore, -8, maxGainDb);
         applyBufferGain(working, Math.pow(10, loudnessGainDb / 20));
-        const peakInfo = options.truePeak === false ? applyPeakGuard(working, Math.pow(10, targetDb / 20)) : applyTruePeakGuard(working, targetDb);
+        const peakInfo = applyTransparentLimiterGuard(working, targetDb, options.truePeak !== false, qualityMode);
         sanitizeAudioBuffer(working, 'finalizer-fallback-output');
         const loudnessAfter = measureApproxGatedLoudness(working);
         return {
@@ -5626,6 +5818,8 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 peakBefore: peakInfo.peakBefore,
                 peakAfter: peakInfo.peakAfter,
                 gainDb: loudnessGainDb + 20 * Math.log10(Math.max(1e-9, peakInfo.gain || 1)),
+                limiterReductionDb: peakInfo.limiterReductionDb || 0,
+                dcRemoved: dcInfo,
                 oversample: 4
             }
         };
@@ -5690,9 +5884,10 @@ async function encodeMasterOutputAsync(buffer, requestedFormat = 'wav24') {
             return { blob, format, extension: 'mp3', mime: 'audio/mpeg' };
         } catch (error) {
             console.warn('MP3 encoder fallback:', error);
-            showToast('MP3 인코더를 사용할 수 없어 24-bit WAV로 저장합니다.');
+            const reason = getErrorMessage(error, 'MP3 인코더 실패');
+            showToast('MP3 인코더가 실패해 24-bit WAV로 자동 저장합니다.');
             const blob = await encodeWavAsync(buffer, 'wav24');
-            return { blob, format: 'wav24', extension: 'wav', mime: 'audio/wav' };
+            return { blob, format: 'wav24', extension: 'wav', mime: 'audio/wav', fallbackFrom: format, fallbackReason: reason };
         }
     }
     const blob = await encodeWavAsync(buffer, format);
@@ -6320,6 +6515,7 @@ function syncOutputControlValues() {
     if (el.ceilingSelect) el.ceilingSelect.value = String(state.ceilingDb);
     if (el.qualityModeSelect) el.qualityModeSelect.value = state.qualityMode;
     if (el.performanceModeSelect) el.performanceModeSelect.value = state.performanceMode;
+    if (el.masterStyleSelect) el.masterStyleSelect.value = state.masterStyle;
     syncEnhancedSelectButtons();
 }
 
@@ -6358,6 +6554,7 @@ function captureTrackSnapshot(track, label = '스냅샷') {
         transform: cloneTransform(track.transform || DEFAULT_TRANSFORM),
         instrument: cloneInstrumentLayer(track.instrument || DEFAULT_INSTRUMENT_LAYER),
         masterGoal: state.masterGoal,
+        masterStyle: state.masterStyle,
         outputFormat: state.outputFormat,
         targetLufs: state.targetLufs,
         ceilingDb: state.ceilingDb,
@@ -6405,6 +6602,7 @@ function restoreSnapshot(track, snapshot) {
     track.transform = cloneTransform(snapshot.transform || DEFAULT_TRANSFORM);
     track.instrument = cloneInstrumentLayer(snapshot.instrument || DEFAULT_INSTRUMENT_LAYER);
     state.masterGoal = snapshot.masterGoal || state.masterGoal;
+    state.masterStyle = snapshot.masterStyle || state.masterStyle;
     state.outputFormat = snapshot.outputFormat || state.outputFormat;
     state.targetLufs = Number(snapshot.targetLufs ?? state.targetLufs);
     state.ceilingDb = Number(snapshot.ceilingDb ?? state.ceilingDb);
@@ -6412,6 +6610,7 @@ function restoreSnapshot(track, snapshot) {
     state.platformPreset = snapshot.platformPreset || 'custom';
     state.performanceMode = snapshot.performanceMode || state.performanceMode;
     if (el.masterGoalSelect) el.masterGoalSelect.value = state.masterGoal;
+    if (el.masterStyleSelect) el.masterStyleSelect.value = state.masterStyle;
     if (el.platformPresetSelect) el.platformPresetSelect.value = state.platformPreset;
     syncOutputControlValues();
 }
@@ -6740,6 +6939,7 @@ function renderDetail(options = {}) {
 
     if (isOpen) {
         renderMasterComparisonPanel(track);
+        renderMasterReportPanel(track);
         renderProcessingFlowPanel(track);
         renderEngineSafetyPanel(track);
         renderLowMonoPanel(track);
@@ -6755,6 +6955,7 @@ function renderDetail(options = {}) {
         if (track.outName) addRow('출력 파일', track.outName);
         addRow('출력 포맷', getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'));
         addRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
+        addRow('스타일 프리셋', `${getMasterStyleLabel(state.masterStyle)} · ${getMasterStyleDescription(state.masterStyle)}`);
         addRow('플랫폼 저장 프리셋', `${getPlatformPresetLabel()} · ${PLATFORM_EXPORT_PRESETS[state.platformPreset]?.note || '직접 설정 유지'}`);
         if (state.referenceProfile?.status === 'ready') addRow('레퍼런스 트랙', `${state.referenceProfile.name} · ${state.referenceProfile.report}`);
         if (track.genreReason) addRow('장르 판단 근거', track.genreReason);
@@ -6778,6 +6979,8 @@ function renderDetail(options = {}) {
             if (heavy) addRow('가장 무거운 단계', `${heavy.label} · ${formatDurationMs(heavy.ms)}`);
         }
         if (track.trimInfo) addRow('무음 정리', track.trimInfo.applied ? `앞 ${track.trimInfo.startTrimSec.toFixed(2)}초 · 뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초 정리` : '정리할 무음 구간 없음');
+        if (track.dcInfo) addRow('DC offset 정리', track.dcInfo.applied ? `최대 ${track.dcInfo.maxOffsetDb.toFixed(1)} dBFS offset 제거` : '유의미한 DC offset 없음');
+        if (track.exportFallbackInfo) addRow('출력 fallback', `${getOutputFormatLabel(track.exportFallbackInfo.from)} 실패 → ${getOutputFormatLabel(track.exportFallbackInfo.to)} 저장 · ${track.exportFallbackInfo.reason}`);
         if (track.albumApplied) addRow('앨범 통일', `레벨 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB · 톤 ${formatSigned(track.albumApplied.toneDelta * 100, 1)}%`);
         if (track.truePeakInfo) {
             const beforeDb = ampToDb(track.truePeakInfo.peakBefore).toFixed(2);
@@ -6989,6 +7192,55 @@ function bindExclusivePreview(audio) {
 }
 
 
+
+function renderMasterReportPanel(track) {
+    if (!track || !track.masterReport) return;
+    const report = track.masterReport;
+    const panel = document.createElement('div');
+    panel.className = 'master-report-panel';
+    const head = document.createElement('div');
+    head.className = 'master-report-head';
+    const title = document.createElement('strong');
+    title.textContent = '마스터링 전/후 리포트';
+    const badge = document.createElement('span');
+    badge.textContent = `${getMasterStyleLabel(report.target?.masterStyle)} · 목표 ${Number(report.target?.lufs ?? state.targetLufs).toFixed(0)} LUFS`;
+    head.append(title, badge);
+    const grid = document.createElement('div');
+    grid.className = 'master-report-grid';
+    const rows = [
+        ['LUFS', report.before?.approxLufs, report.after?.approxLufs, ' LUFS'],
+        ['RMS', report.before?.rmsDb, report.after?.rmsDb, ' dB'],
+        ['Peak', report.before?.peakDb, report.after?.peakDb, ' dBFS'],
+        ['Crest', report.before?.crestDb, report.after?.crestDb, ' dB']
+    ];
+    rows.forEach(([label, before, after, unit]) => {
+        const card = document.createElement('div');
+        card.className = 'master-report-card';
+        const span = document.createElement('span');
+        span.textContent = label;
+        const value = document.createElement('b');
+        value.textContent = `${formatMetric(before, unit)} → ${formatMetric(after, unit)}`;
+        const delta = document.createElement('small');
+        const d = Number(after) - Number(before);
+        delta.textContent = Number.isFinite(d) ? `변화 ${formatSigned(d, 1)}${unit}` : '변화 -';
+        card.append(span, value, delta);
+        grid.appendChild(card);
+    });
+    const note = document.createElement('div');
+    note.className = 'master-report-note';
+    const fallback = report.output?.fallbackFrom ? ` · ${getOutputFormatLabel(report.output.fallbackFrom)} 실패로 ${getOutputFormatLabel(report.output.format)} 저장` : '';
+    const clipped = Number(report.after?.clippedSamples || 0);
+    note.textContent = `클리핑 위험: ${report.clippingRisk} · 최종 clipped sample ${clipped}개${fallback}`;
+    panel.append(head, grid, note);
+    el.trackDetail.appendChild(panel);
+}
+
+function formatMetric(value, unit = '') {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '-';
+    return `${n.toFixed(1)}${unit}`;
+}
+
 function renderProcessingFlowPanel(track) {
     if (!track) return;
     const panel = document.createElement('div');
@@ -7027,7 +7279,7 @@ function renderProcessingFlowPanel(track) {
 
     const report = document.createElement('div');
     report.className = 'processing-flow-report';
-    report.textContent = track.status === 'processing' ? '현재 렌더링 단계만 표시합니다. 자세한 분석값은 분석 상세보기에서 확인하세요.' : (track.status === 'done' ? '마스터링 완료 · 다운로드 또는 재마스터링 가능' : '마스터링을 실행하면 단계별 진행이 표시됩니다.');
+    report.textContent = track.status === 'processing' ? (track.report || '현재 렌더링 단계를 표시합니다.') : (track.status === 'done' ? (track.report || '마스터링 완료 · 다운로드 또는 재마스터링 가능') : (track.status === 'error' ? (track.report || '오류 내용을 확인하세요.') : '마스터링을 실행하면 단계별 진행이 표시됩니다.'));
 
     panel.append(head, rail, steps, report);
     el.trackDetail.appendChild(panel);
@@ -7347,6 +7599,59 @@ function applyMasterGoalToSettings(out, analysis, preset) {
     }
 }
 
+
+function getMasterStyleProfile(style = state.masterStyle) {
+    return MASTER_STYLE_PRESETS[style] || MASTER_STYLE_PRESETS.streaming;
+}
+
+function getMasterStyleLabel(style = state.masterStyle) {
+    return getMasterStyleProfile(style).label;
+}
+
+function getMasterStyleDescription(style = state.masterStyle) {
+    return getMasterStyleProfile(style).description;
+}
+
+function applyMasterStyleDefaults(style, updateControls) {
+    const profile = getMasterStyleProfile(style);
+    state.targetLufs = profile.targetLufs;
+    state.ceilingDb = profile.ceilingDb;
+    state.qualityMode = profile.qualityMode;
+    if (state.platformPreset !== 'custom' && updateControls) {
+        state.platformPreset = 'custom';
+        if (el.platformPresetSelect) el.platformPresetSelect.value = 'custom';
+    }
+    if (updateControls || el.targetLufsSelect) {
+        if (el.targetLufsSelect) el.targetLufsSelect.value = String(profile.targetLufs);
+        if (el.ceilingSelect) el.ceilingSelect.value = formatCeilingSelectValue(profile.ceilingDb);
+        if (el.qualityModeSelect) el.qualityModeSelect.value = profile.qualityMode;
+    }
+    syncEnhancedSelectButtons();
+}
+
+function applyMasterStyleToSettings(out, analysis, preset) {
+    const profile = getMasterStyleProfile(state.masterStyle);
+    const isCustom = preset === 'custom';
+    const customScale = isCustom ? 0.60 : 1;
+    out.clarity = clamp(Math.round(out.clarity + profile.clarityDelta * customScale), 5, 96);
+    out.warmth = clamp(Math.round(out.warmth + profile.warmthDelta * customScale), 5, 96);
+    out.width = clamp(Math.round(out.width + profile.widthDelta * customScale), 3, 88);
+    out.dynamicPunch = clamp(Math.round(out.dynamicPunch + profile.punchDelta * customScale), 4, 94);
+    out.metallicRemoval = clamp(Math.round(out.metallicRemoval + profile.metallicDelta * customScale), 16, 96);
+    out.analogGroove = clamp(Math.round((out.analogGroove || 0) + profile.analogDelta * customScale), 0, 80);
+    out.intensity = clampToStep(Number(out.intensity || 100) * profile.intensityScale, 50, 200, 5);
+
+    if (state.masterStyle === 'vocal' && shouldApplyVocalProtection(preset, analysis)) {
+        out.clarity = clamp(out.clarity - 2, 5, 92);
+        out.warmth = clamp(out.warmth + 2, 5, 96);
+        out.metallicRemoval = clamp(out.metallicRemoval + 4, 18, 96);
+    }
+    if (state.masterStyle === 'podcast') {
+        out.stereoGroove = clamp(Math.round((out.stereoGroove || 0) * 0.35), 0, 24);
+        out.width = clamp(out.width, 3, 24);
+    }
+}
+
 function getPitchEngineLabel(mode) {
     const labels = { auto: 'Auto/WASM 우선', wsola: 'WSOLA Worker', external: 'External WASM' };
     return labels[mode] || mode;
@@ -7454,9 +7759,11 @@ function buildReport(track) {
 }
 
 function createDoneReport(track) {
-    const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`, getMasterGoalLabel(state.masterGoal)];
+    const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`, getMasterGoalLabel(state.masterGoal), getMasterStyleLabel(state.masterStyle)];
     if (track.instrumentInfo && track.instrumentInfo.applied) parts.push(`${track.instrumentInfo.label} 레이어 ${track.instrumentInfo.bpm.toFixed(0)} BPM`);
     if (track.trimInfo && track.trimInfo.applied) parts.push(`무음 정리 앞 ${track.trimInfo.startTrimSec.toFixed(2)}초/뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초`);
+    if (track.dcInfo && track.dcInfo.applied) parts.push('DC offset 정리');
+    if (track.exportFallbackInfo) parts.push(`${getOutputFormatLabel(track.exportFallbackInfo.from)} 실패 → ${getOutputFormatLabel(track.exportFallbackInfo.to)} 저장`);
     if (track.albumApplied) parts.push(`앨범 통일 ${formatSigned(track.albumApplied.levelDeltaDb, 2)} dB`);
     if (track.truePeakInfo) parts.push(track.truePeakInfo.mode === 'truePeak' ? 'True Peak 보호' : 'Sample Peak 보호');
     if (track.performanceInfo?.totalMs) parts.push(`처리 ${formatDurationMs(track.performanceInfo.totalMs)}`);
@@ -7465,7 +7772,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.18',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.19',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -7487,8 +7794,11 @@ function createExportReport(track) {
         albumApplied: track.albumApplied,
         truePeakInfo: track.truePeakInfo,
         finalizeInfo: track.finalizeInfo,
+        dcInfo: track.dcInfo,
+        masterReport: track.masterReport,
+        exportFallbackInfo: track.exportFallbackInfo,
         performanceInfo: track.performanceInfo,
-        outputTarget: { masterGoal: state.masterGoal, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
+        outputTarget: { masterGoal: state.masterGoal, masterStyle: state.masterStyle, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
         albumProfile: state.albumProfile,
         analysis: track.analysis,
         createdAt: new Date().toISOString()
