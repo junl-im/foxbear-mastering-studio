@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.48 - dock waveform and transport hotfix
+// FoxBear AI Mastering Studio Pro v1.3.49 - dock cleanup and floating HUD anchor
 'use strict';
 
 
@@ -16,7 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 
-const APP_VERSION = 'Pro v1.3.48';
+const APP_VERSION = 'Pro v1.3.49';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -32,9 +32,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1348';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1349';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.48-dock-waveform-hotfix';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.49-dock-cleanup';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -228,7 +228,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.48';
+    styleLink.href = 'assets/css/studio.css?v=1.3.49';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -276,7 +276,7 @@ function cacheElements() {
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
-        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewCompareTools', 'bottomPreviewAbMatchBtn', 'bottomPreviewDifferenceBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -1749,6 +1749,7 @@ function formatAdminEventTime(value) {
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
     window.addEventListener('resize', hideFeatureTooltip);
+    window.addEventListener('resize', () => requestAnimationFrame(syncBottomPreviewFloatingOffset));
     if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
     if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
     if (el.programInfoDialog) {
@@ -1772,8 +1773,6 @@ function bindEvents() {
     }
     if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', openWaveformCompareDialog);
     if (el.bottomPreviewTranslationModes) el.bottomPreviewTranslationModes.addEventListener('click', handlePreviewTranslationModeClick);
-    if (el.bottomPreviewAbMatchBtn) el.bottomPreviewAbMatchBtn.addEventListener('click', toggleDockAbLevelMatch);
-    if (el.bottomPreviewDifferenceBtn) el.bottomPreviewDifferenceBtn.addEventListener('click', toggleDockDifferenceListen);
     if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', () => renderMasterPreviewForSelected('dock'));
     if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', masterBottomPreviewTrack);
     if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false));
@@ -9931,6 +9930,7 @@ function renderBottomPreviewDock(options = {}) {
         el.bottomPreviewDock.classList.remove('show');
         el.bottomPreviewDock.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('bottom-preview-active');
+        syncBottomPreviewFloatingOffset();
         state.bottomPreviewMode = 'original';
         state.bottomPreviewTrackId = null;
         state.bottomPreviewAutoplayTrackId = null;
@@ -9951,9 +9951,12 @@ function renderBottomPreviewDock(options = {}) {
     const useMasterPreview = mode === 'masterPreview' && masterPreviewAvailable;
     const src = useMastered ? track.masteredUrl : (useMasterPreview ? track.masterPreviewUrl : track.originalUrl);
     const duration = useMastered ? (track.masteredDurationSec || track.analysis?.duration) : (useMasterPreview ? (track.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC) : track.analysis?.duration);
-    const differenceReady = Boolean(state.abDifferenceListen && (useMastered || useMasterPreview) && track.originalUrl && src);
-    const gainDb = useMastered ? getABMatchGainDb(track) : 0;
-    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|${state.abLevelMatch ? 'match' : 'raw'}|${state.abDifferenceListen ? 'diff' : 'normal'}|${differenceReady ? 'difference' : getPreviewTranslationMode().id}`;
+    // v1.3.49: Dock is now a compact transport only.
+    // Keep A/B level match and difference listen in the full comparison UI,
+    // but do not let hidden Dock compare state affect Dock playback.
+    const differenceReady = false;
+    const gainDb = 0;
+    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|dock-clean|${getPreviewTranslationMode().id}`;
 
     el.bottomPreviewDock.classList.add('show');
     el.bottomPreviewDock.setAttribute('aria-hidden', 'false');
@@ -9976,8 +9979,8 @@ function renderBottomPreviewDock(options = {}) {
     setBottomPreviewMasterButtonState(track);
     setBottomPreviewTabState(mode, masteredAvailable);
     renderPreviewTranslationModeControls(mode);
-    syncBottomCompareTools();
     renderBottomWaveformMini(track, mode);
+    requestAnimationFrame(syncBottomPreviewFloatingOffset);
 
     const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && el.bottomPreviewPlayer.querySelector('audio');
     let shouldResume = false;
@@ -10016,6 +10019,24 @@ function renderBottomPreviewDock(options = {}) {
     }
 }
 
+function syncBottomPreviewFloatingOffset() {
+    const root = document.documentElement;
+    const dock = el.bottomPreviewDock;
+    const visible = Boolean(dock && dock.classList.contains('show') && document.body.classList.contains('bottom-preview-active'));
+    if (!visible) {
+        root.style.removeProperty('--bottom-preview-height');
+        root.style.removeProperty('--bottom-preview-floating-bottom');
+        root.style.removeProperty('--bottom-preview-hud-bottom');
+        return;
+    }
+    const rect = dock.getBoundingClientRect ? dock.getBoundingClientRect() : { height: 0 };
+    const measured = Math.ceil(Math.max(rect.height || 0, dock.offsetHeight || 0));
+    const fallback = window.matchMedia && window.matchMedia('(max-width: 720px)').matches ? 190 : 168;
+    const height = Math.max(measured, fallback);
+    root.style.setProperty('--bottom-preview-height', `${height}px`);
+    root.style.setProperty('--bottom-preview-floating-bottom', `${height + 28}px`);
+    root.style.setProperty('--bottom-preview-hud-bottom', `${height + 22}px`);
+}
 
 function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPreviewMode) {
     if (!el.bottomPreviewMasterPreviewBtn) return;
@@ -11404,7 +11425,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.48',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.49',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

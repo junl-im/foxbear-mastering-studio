@@ -8795,3 +8795,41 @@ body.bottom-preview-active .processing-hud {
         bottom: calc(210px + env(safe-area-inset-bottom)) !important;
     }
 }
+
+
+/* v1.3.49 Dock cleanup + floating overlay anchor */
+.bottom-preview-compare-tools {
+    display: none !important;
+}
+.bottom-preview-core {
+    gap: 6px !important;
+}
+body.bottom-preview-active .app-shell {
+    padding-bottom: calc(var(--bottom-preview-height, 168px) + 22px + env(safe-area-inset-bottom)) !important;
+}
+body.bottom-preview-active .toast,
+body.bottom-preview-active .download-assist,
+body.bottom-preview-active .download-help {
+    bottom: calc(var(--bottom-preview-floating-bottom, 210px) + env(safe-area-inset-bottom)) !important;
+    z-index: 23600 !important;
+}
+body.bottom-preview-active .processing-hud {
+    bottom: calc(var(--bottom-preview-hud-bottom, 204px) + env(safe-area-inset-bottom)) !important;
+    z-index: 23550 !important;
+}
+body.bottom-preview-active .processing-hud.show {
+    transform: translateX(-50%) translateY(0) !important;
+}
+@media (max-width: 720px) {
+    body.bottom-preview-active .app-shell {
+        padding-bottom: calc(var(--bottom-preview-height, 190px) + 24px + env(safe-area-inset-bottom)) !important;
+    }
+    body.bottom-preview-active .toast,
+    body.bottom-preview-active .download-assist,
+    body.bottom-preview-active .download-help {
+        bottom: calc(var(--bottom-preview-floating-bottom, 238px) + env(safe-area-inset-bottom)) !important;
+    }
+    body.bottom-preview-active .processing-hud {
+        bottom: calc(var(--bottom-preview-hud-bottom, 226px) + env(safe-area-inset-bottom)) !important;
+    }
+}

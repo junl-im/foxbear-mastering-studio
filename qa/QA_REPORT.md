@@ -1,4 +1,16 @@
-# FoxBear Pro v1.3.48 QA Report
+# FoxBear Pro v1.3.49 QA Report
+
+## Pro v1.3.49 Dock Cleanup + Floating HUD Anchor
+
+- Dock의 레벨매칭/차이듣기 버튼 라인 제거 확인.
+- 숨겨진 A/B 비교 상태가 Dock 재생에 개입하지 않도록 Dock playback key/gain/difference path 정리.
+- 실제 Dock 높이를 측정해 `--bottom-preview-height`, `--bottom-preview-floating-bottom`, `--bottom-preview-hud-bottom` CSS 변수를 갱신하도록 보정.
+- Toast/다운로드 도움창/마스터링 진행 HUD가 Dock 높이와 위치 변경을 따라 위쪽에 뜨는지 정적 검사 추가.
+- PASS: `npm run check`
+- PASS: SRI validation
+- PASS: dock cleanup overlay smoke
+
+See `qa/QA_REPORT_DOCK_CLEANUP_OVERLAY_1.3.49.md`.
 
 ## Pro v1.3.48 Dock Waveform / Transport Hotfix
 

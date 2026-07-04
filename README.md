@@ -1,4 +1,11 @@
-# FoxBear Mastering Studio Pro v1.3.48
+# FoxBear Mastering Studio Pro v1.3.49
+
+## Pro v1.3.49 Dock Cleanup + Floating HUD Anchor
+
+- Dock의 레벨매칭/차이듣기 버튼 라인을 제거해 transport 영역을 더 단순하게 정리했습니다.
+- Dock 플레이어는 원본/결과/마스터 프리뷰 전환과 재생환경 전환 시 기존 타임라인 유지 구조를 유지합니다.
+- Toast, 다운로드 도움창, 마스터링 진행 HUD가 실제 Dock 높이를 기준으로 자동 계산된 위치에 뜨도록 `--bottom-preview-height`, `--bottom-preview-floating-bottom`, `--bottom-preview-hud-bottom` CSS 변수를 동기화합니다.
+- v1.3.49 버전, 캐시버스터, SRI, Dock cleanup smoke test를 갱신했습니다.
 
 ## Pro v1.3.48 Dock Waveform / Transport Hotfix
 
