@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.29 - FFT analyzer + phase-safe reference matching update
+// FoxBear AI Mastering Studio Pro v1.3.30 - 4x FIR True Peak + gentle multiband dynamics update
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.29';
+const APP_VERSION = 'Pro v1.3.30';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1329';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1330';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -442,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.29';
+    styleLink.href = 'assets/css/studio.css?v=1.3.30';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -3901,7 +3901,8 @@ async function masterTrack(track, calledFromBatch = false) {
             ceilingDb: state.ceilingDb,
             qualityMode: guardDecision.qualityMode,
             masterGoal: state.masterGoal,
-            truePeak: guardDecision.truePeak
+            truePeak: guardDecision.truePeak,
+            analysis: track.analysis || {}
         });
         const finalBuffer = finalization.buffer;
         sanitizeAudioBuffer(finalBuffer, 'finalizer');
@@ -4399,6 +4400,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createEarFatigueGuardNode(context, node, effectiveSettings, analysis, intensity);
     node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
     node = createMicroDynamicsGlueNode(context, node, effectiveSettings, analysis, intensity);
+    node = createGentleMultibandDynamicsNode(context, node, effectiveSettings, analysis, intensity);
     node = createTranslationGuardNode(context, node, effectiveSettings, analysis, intensity);
     node = createCompressionNode(context, node, effectiveSettings.dynamicPunch, intensity);
     node = createAlbumMatchNode(context, node, analysis, albumProfile);
@@ -4540,6 +4542,70 @@ function createDeMaskingPolishNode(context, input, settings, analysis, intensity
 
     input.connect(deMask).connect(glare).connect(edge);
     return edge;
+}
+
+
+function createGentleMultibandDynamicsNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!analysis || intensity.raw < 95) return input;
+    const normalized = normalizeFinalizerAnalysis(analysis);
+    const punch = clamp(Number(settings.dynamicPunch || 45), 0, 100);
+    const lowNeed = clamp01(Math.max(0, normalized.bassRatio - 0.31) * 1.7 + Math.max(0, 80 - normalized.lowMonoScore) / 80 * 0.65 + normalized.spatialExcessRisk * 0.34);
+    const highNeed = clamp01(Math.max(0, normalized.presenceRatio - 0.18) * 1.5 + Math.max(0, normalized.airRatio - 0.14) * 1.4 + Math.max(0, normalized.metallicHint - 0.45) * 0.95 + Math.max(0, normalized.brightness - 0.60) * 0.65);
+    const midNeed = clamp01(Math.max(0, normalized.lowMidRatio - 0.30) * 0.95 + Math.max(0, punch - 62) / 140);
+    const need = lowNeed > 0.05 || highNeed > 0.05 || midNeed > 0.06 || punch > 68 || state.masterGoal === 'loud';
+    if (!need) return input;
+
+    const output = context.createGain();
+    const dry = context.createGain();
+    const wet = context.createGain();
+    const lowPath = context.createBiquadFilter();
+    const midHp = context.createBiquadFilter();
+    const midLp = context.createBiquadFilter();
+    const highPath = context.createBiquadFilter();
+    const lowComp = context.createDynamicsCompressor();
+    const midComp = context.createDynamicsCompressor();
+    const highComp = context.createDynamicsCompressor();
+
+    const amount = clamp(0.12 + lowNeed * 0.08 + highNeed * 0.08 + midNeed * 0.06 + Math.max(0, intensity.raw - 125) * 0.001, 0.10, 0.30);
+    dry.gain.value = 1 - amount * 0.18;
+    wet.gain.value = amount;
+
+    lowPath.type = 'lowpass';
+    lowPath.frequency.value = 170;
+    lowPath.Q.value = 0.707;
+    lowComp.threshold.value = clamp(-23 + lowNeed * 4, -24, -17);
+    lowComp.knee.value = 16;
+    lowComp.ratio.value = clamp(1.35 + lowNeed * 1.35, 1.25, 2.8);
+    lowComp.attack.value = 0.020;
+    lowComp.release.value = 0.185;
+
+    midHp.type = 'highpass';
+    midHp.frequency.value = 180;
+    midHp.Q.value = 0.707;
+    midLp.type = 'lowpass';
+    midLp.frequency.value = 4200;
+    midLp.Q.value = 0.707;
+    midComp.threshold.value = clamp(-19 + midNeed * 3, -22, -15);
+    midComp.knee.value = 18;
+    midComp.ratio.value = clamp(1.18 + midNeed * 0.82, 1.15, 2.0);
+    midComp.attack.value = 0.014;
+    midComp.release.value = 0.135;
+
+    highPath.type = 'highpass';
+    highPath.frequency.value = 5200;
+    highPath.Q.value = 0.707;
+    highComp.threshold.value = clamp(-30 + highNeed * 4, -31, -22);
+    highComp.knee.value = 10;
+    highComp.ratio.value = clamp(1.25 + highNeed * 1.55, 1.18, 2.9);
+    highComp.attack.value = 0.004;
+    highComp.release.value = 0.075;
+
+    input.connect(dry).connect(output);
+    input.connect(lowPath).connect(lowComp).connect(wet);
+    input.connect(midHp).connect(midLp).connect(midComp).connect(wet);
+    input.connect(highPath).connect(highComp).connect(wet);
+    wet.connect(output);
+    return output;
 }
 
 function createMicroDynamicsGlueNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
@@ -5900,14 +5966,14 @@ function applyPeakGuard(buffer, targetPeak) {
 function applyTruePeakGuard(buffer, targetDbTP) {
     const target = Math.pow(10, targetDbTP / 20);
     const peakBefore = measureInterpolatedPeak(buffer, 4);
-    if (peakBefore < 0.000001) return { mode: 'truePeak', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1 };
+    if (peakBefore < 0.000001) return { mode: 'firTruePeak4x', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1 };
     const gain = Math.min(1, target / peakBefore);
     for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
         const data = buffer.getChannelData(ch);
         for (let i = 0; i < data.length; i += 1) data[i] = softCeilingSample(data[i] * gain, target);
     }
     const peakAfter = measureInterpolatedPeak(buffer, 4);
-    return { mode: 'truePeak', targetDbTP, peakBefore, peakAfter, gain };
+    return { mode: 'firTruePeak4x', targetDbTP, peakBefore, peakAfter, gain };
 }
 
 function measureSamplePeak(buffer) {
@@ -5920,21 +5986,79 @@ function measureSamplePeak(buffer) {
 }
 
 function measureInterpolatedPeak(buffer, factor) {
-    let peak = 0;
+    return measureFirTruePeakAudioBuffer(buffer, factor);
+}
+
+function measureFirTruePeakAudioBuffer(buffer, factor = 4) {
+    const safeFactor = Math.max(1, Math.min(8, Math.round(Number(factor || 1))));
+    const samplePeak = measureSamplePeak(buffer);
+    if (safeFactor <= 1 || samplePeak <= 0) return samplePeak;
+    const radius = 6;
+    const kernels = getFirTruePeakKernels(safeFactor, radius);
+    const candidateFloor = samplePeak * 0.28;
+    let peak = samplePeak;
     for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
         const data = buffer.getChannelData(ch);
-        for (let i = 0; i < data.length - 1; i += 1) {
-            const a = data[i] || 0;
-            const b = data[i + 1] || 0;
-            peak = Math.max(peak, Math.abs(a));
-            for (let k = 1; k < factor; k += 1) {
-                const t = k / factor;
-                peak = Math.max(peak, Math.abs(a * (1 - t) + b * t));
+        const length = data.length;
+        for (let i = 0; i < length - 1; i += 1) {
+            const a = Math.abs(data[i] || 0);
+            const b = Math.abs(data[i + 1] || 0);
+            if (Math.max(a, b) < candidateFloor) continue;
+            for (let phase = 1; phase < safeFactor; phase += 1) {
+                const kernel = kernels[phase];
+                let value = 0;
+                let norm = 0;
+                for (let k = 0; k < kernel.coeffs.length; k += 1) {
+                    const n = i + kernel.offsets[k];
+                    if (n < 0 || n >= length) continue;
+                    const coeff = kernel.coeffs[k];
+                    value += (data[n] || 0) * coeff;
+                    norm += coeff;
+                }
+                const candidate = Math.abs(norm ? value / norm : value);
+                if (candidate > peak) peak = candidate;
             }
         }
-        peak = Math.max(peak, Math.abs(data[data.length - 1] || 0));
     }
     return peak;
+}
+
+
+
+function getFirTruePeakKernels(factor, radius) {
+    const key = `${factor}:${radius}`;
+    const cache = getFirTruePeakKernels.cache || (getFirTruePeakKernels.cache = new Map());
+    if (cache.has(key)) return cache.get(key);
+    const kernels = [null];
+    for (let phase = 1; phase < factor; phase += 1) {
+        const frac = phase / factor;
+        const offsets = [];
+        const coeffs = [];
+        for (let offset = -radius + 1; offset <= radius; offset += 1) {
+            const t = frac - offset;
+            const coeff = sinc(t) * blackmanWindow(t / radius);
+            if (Math.abs(coeff) > 1e-8) {
+                offsets.push(offset);
+                coeffs.push(coeff);
+            }
+        }
+        kernels[phase] = { offsets, coeffs };
+    }
+    cache.set(key, kernels);
+    return kernels;
+}
+
+function sinc(x) {
+    if (Math.abs(x) < 1e-8) return 1;
+    const pix = Math.PI * x;
+    return Math.sin(pix) / pix;
+}
+
+function blackmanWindow(x) {
+    const ax = Math.abs(x);
+    if (ax >= 1) return 0;
+    const phase = Math.PI * ax;
+    return 0.42 + 0.5 * Math.cos(phase) + 0.08 * Math.cos(2 * phase);
 }
 
 function softLimitSample(value) {
@@ -6014,10 +6138,10 @@ function removeDcOffsetAudioBuffer(buffer) {
 
 function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true, qualityMode = 'balanced') {
     const ceiling = Math.pow(10, Number(targetDbTP || -1) / 20);
-    const oversample = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 2 : 4;
+    const oversample = truePeak ? 4 : 1;
     const peakBefore = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
     if (peakBefore < 0.000001) {
-        return { mode: truePeak ? 'lookaheadTruePeakLimiter' : 'lookaheadSamplePeakLimiter', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1, limiterReductionDb: 0, lookaheadMs: getLimiterLookaheadMs(qualityMode) };
+        return { mode: truePeak ? 'lookaheadFirTruePeakLimiter4x' : 'lookaheadSamplePeakLimiter', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1, limiterReductionDb: 0, lookaheadMs: getLimiterLookaheadMs(qualityMode) };
     }
     const limiterInfo = applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode);
     for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
@@ -6033,7 +6157,7 @@ function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true
         peakAfter = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
     }
     return {
-        mode: truePeak ? 'lookaheadTruePeakLimiter' : 'lookaheadSamplePeakLimiter',
+        mode: truePeak ? 'lookaheadFirTruePeakLimiter4x' : 'lookaheadSamplePeakLimiter',
         targetDbTP,
         peakBefore,
         peakAfter,
@@ -6044,6 +6168,168 @@ function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true
         lookaheadSamples: limiterInfo.lookaheadSamples,
         preLimiterPeak: peakBefore
     };
+}
+
+
+function createFinalizerAnalysisPayload(analysis) {
+    const normalized = normalizeFinalizerAnalysis(analysis || {});
+    return {
+        bassRatio: normalized.bassRatio,
+        lowMidRatio: normalized.lowMidRatio,
+        midRatio: normalized.midRatio,
+        highRatio: normalized.highRatio,
+        presenceRatio: normalized.presenceRatio,
+        airRatio: normalized.airRatio,
+        brightness: normalized.brightness,
+        metallicHint: normalized.metallicHint,
+        transientDensity: normalized.transientDensity,
+        spatialExcessRisk: normalized.spatialExcessRisk,
+        lowMonoScore: normalized.lowMonoScore,
+        spectrumBands: analysis?.spectrumBands || null
+    };
+}
+
+function normalizeFinalizerAnalysis(analysis) {
+    const bands = analysis && analysis.spectrumBands ? analysis.spectrumBands : {};
+    return {
+        bassRatio: clamp01(Number(analysis.bassRatio ?? bands.low ?? 0.25)),
+        lowMidRatio: clamp01(Number(analysis.lowMidRatio ?? bands.lowMid ?? 0.22)),
+        midRatio: clamp01(Number(analysis.midRatio ?? bands.mid ?? 0.25)),
+        highRatio: clamp01(Number(analysis.highRatio ?? bands.high ?? 0.22)),
+        presenceRatio: clamp01(Number(analysis.presenceRatio ?? bands.presence ?? 0.16)),
+        airRatio: clamp01(Number(analysis.airRatio ?? bands.air ?? 0.10)),
+        brightness: clamp01(Number(analysis.brightness ?? 0.45)),
+        metallicHint: clamp01(Number(analysis.metallicHint ?? 0.35)),
+        transientDensity: clamp01(Number(analysis.transientDensity ?? 0.35)),
+        spatialExcessRisk: clamp01(Number(analysis.spatialExcessRisk ?? 0)),
+        lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100)
+    };
+}
+
+function applyGentleMultibandDynamicsBuffer(buffer, qualityMode = 'balanced', analysis = {}) {
+    if (!buffer || !buffer.length || !buffer.numberOfChannels) return { mode: 'bypass', reductionDb: 0, bands: {} };
+    const normalized = normalizeFinalizerAnalysis(analysis || {});
+    const sampleRate = Math.max(3000, Math.min(384000, Number(buffer.sampleRate || 44100)));
+    const channels = [];
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) channels.push(buffer.getChannelData(ch));
+    const length = buffer.length;
+    const amount = qualityMode === 'fast' ? 0.72 : qualityMode === 'max' ? 1.08 : 0.92;
+    const lowNeed = clamp01(Math.max(0, normalized.bassRatio - 0.31) * 2.2 + Math.max(0, 78 - normalized.lowMonoScore) / 78 * 0.80 + normalized.spatialExcessRisk * 0.30);
+    const midNeed = clamp01(Math.max(0, normalized.lowMidRatio - 0.30) * 1.3 + Math.max(0, 0.48 - normalized.midRatio) * 0.35 + Math.max(0, normalized.transientDensity - 0.58) * 0.25);
+    const highNeed = clamp01(Math.max(0, normalized.presenceRatio - 0.18) * 2.0 + Math.max(0, normalized.airRatio - 0.14) * 1.8 + Math.max(0, normalized.metallicHint - 0.45) * 1.1 + Math.max(0, normalized.brightness - 0.60) * 0.75);
+    const wetLow = clamp((0.16 + lowNeed * 0.18) * amount, 0.10, 0.34);
+    const wetMid = clamp((0.08 + midNeed * 0.13) * amount, 0.05, 0.22);
+    const wetHigh = clamp((0.10 + highNeed * 0.20) * amount, 0.06, 0.30);
+    const maxLowDb = 0.7 + lowNeed * 2.2;
+    const maxMidDb = 0.45 + midNeed * 1.25;
+    const maxHighDb = 0.55 + highNeed * 1.85;
+    const lowFilters = channels.map(() => createGenericLowpassFilter(sampleRate, 170, 0.707));
+    const midHp = channels.map(() => createGenericHighpassFilter(sampleRate, 180, 0.707));
+    const midLp = channels.map(() => createGenericLowpassFilter(sampleRate, 4200, 0.707));
+    const highFilters = channels.map(() => createGenericHighpassFilter(sampleRate, 5200, 0.707));
+    const lowDetector = createBandEnvelopeFollower(sampleRate, 7, 155);
+    const midDetector = createBandEnvelopeFollower(sampleRate, 12, 115);
+    const highDetector = createBandEnvelopeFollower(sampleRate, 4, 82);
+    const lowThresh = dbToAmp(-18.5 + lowNeed * 2.0);
+    const midThresh = dbToAmp(-16.0 + midNeed * 1.6);
+    const highThresh = dbToAmp(-25.0 + highNeed * 2.4);
+    let minLowGain = 1;
+    let minMidGain = 1;
+    let minHighGain = 1;
+    let activeSamples = 0;
+    const scratch = channels.map(() => ({ x: 0, low: 0, mid: 0, high: 0 }));
+    for (let i = 0; i < length; i += 1) {
+        let lowAbs = 0;
+        let midAbs = 0;
+        let highAbs = 0;
+        for (let ch = 0; ch < channels.length; ch += 1) {
+            const x = Number.isFinite(channels[ch][i]) ? channels[ch][i] : 0;
+            const low = processKWeightBiquad(lowFilters[ch], x);
+            const mid = processKWeightBiquad(midLp[ch], processKWeightBiquad(midHp[ch], x));
+            const high = processKWeightBiquad(highFilters[ch], x);
+            scratch[ch].x = x;
+            scratch[ch].low = low;
+            scratch[ch].mid = mid;
+            scratch[ch].high = high;
+            lowAbs = Math.max(lowAbs, Math.abs(low));
+            midAbs = Math.max(midAbs, Math.abs(mid));
+            highAbs = Math.max(highAbs, Math.abs(high));
+        }
+        const lowGain = computeDynamicBandGain(updateBandEnvelope(lowDetector, lowAbs), lowThresh, 2.0, maxLowDb);
+        const midGain = computeDynamicBandGain(updateBandEnvelope(midDetector, midAbs), midThresh, 1.55, maxMidDb);
+        const highGain = computeDynamicBandGain(updateBandEnvelope(highDetector, highAbs), highThresh, 2.15, maxHighDb);
+        minLowGain = Math.min(minLowGain, lowGain);
+        minMidGain = Math.min(minMidGain, midGain);
+        minHighGain = Math.min(minHighGain, highGain);
+        if (lowGain < 0.999 || midGain < 0.999 || highGain < 0.999) activeSamples += 1;
+        for (let ch = 0; ch < channels.length; ch += 1) {
+            const item = scratch[ch];
+            channels[ch][i] = item.x
+                - item.low * (1 - lowGain) * wetLow
+                - item.mid * (1 - midGain) * wetMid
+                - item.high * (1 - highGain) * wetHigh;
+        }
+    }
+    const bands = {
+        low: gainToReductionDb(minLowGain),
+        mid: gainToReductionDb(minMidGain),
+        high: gainToReductionDb(minHighGain),
+        activePct: Math.round(activeSamples / Math.max(1, length) * 1000) / 10
+    };
+    return { mode: 'gentle3BandDynamicControl', reductionDb: Math.min(0, Math.min(bands.low, bands.mid, bands.high)), bands };
+}
+
+function createBandEnvelopeFollower(sampleRate, attackMs, releaseMs) {
+    return {
+        value: 0,
+        attack: Math.exp(-1 / Math.max(1, sampleRate * attackMs / 1000)),
+        release: Math.exp(-1 / Math.max(1, sampleRate * releaseMs / 1000))
+    };
+}
+
+function updateBandEnvelope(detector, input) {
+    const coeff = input > detector.value ? detector.attack : detector.release;
+    detector.value = coeff * detector.value + (1 - coeff) * input;
+    return detector.value;
+}
+
+function computeDynamicBandGain(env, threshold, ratio, maxReductionDb) {
+    if (!(env > threshold)) return 1;
+    const overDb = 20 * Math.log10(Math.max(1e-9, env / Math.max(1e-9, threshold)));
+    const reductionDb = Math.min(Math.max(0, overDb * (1 - 1 / Math.max(1.01, ratio))), Math.max(0, maxReductionDb));
+    return dbToAmp(-reductionDb);
+}
+
+function gainToReductionDb(gain) {
+    return gain < 1 ? 20 * Math.log10(Math.max(1e-9, gain)) : 0;
+}
+
+function createGenericLowpassFilter(sampleRate, frequency, q) {
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const alpha = sin / (2 * Math.max(0.001, q));
+    const b0 = (1 - cos) / 2;
+    const b1 = 1 - cos;
+    const b2 = (1 - cos) / 2;
+    const a0 = 1 + alpha;
+    const a1 = -2 * cos;
+    const a2 = 1 - alpha;
+    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+function createGenericHighpassFilter(sampleRate, frequency, q) {
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const alpha = sin / (2 * Math.max(0.001, q));
+    const b0 = (1 + cos) / 2;
+    const b1 = -(1 + cos);
+    const b2 = (1 + cos) / 2;
+    const a0 = 1 + alpha;
+    const a1 = -2 * cos;
+    const a2 = 1 - alpha;
+    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
 }
 
 function getLimiterLookaheadMs(qualityMode) {
@@ -6069,9 +6355,8 @@ function applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode = 'balanced'
         peaks[i] = peak;
     }
 
-    const deque = new Int32Array(buffer.length);
+    const deque = [];
     let head = 0;
-    let tail = 0;
     let addedUntil = -1;
     let gain = 1;
     let minGain = 1;
@@ -6170,6 +6455,10 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
             limiterReductionDb: Number(finalizeInfo?.limiterReductionDb || 0),
             preLimiterPeak: Number(finalizeInfo?.preLimiterPeak || 0),
             oversample: Number(finalizeInfo?.oversample || 0),
+            oversampleMode: finalizeInfo?.oversampleMode || '',
+            multibandMode: finalizeInfo?.multibandMode || '',
+            multibandReductionDb: Number(finalizeInfo?.multibandReductionDb || 0),
+            multibandBands: finalizeInfo?.multibandBands || null,
             loudnessStandard: finalizeInfo?.loudnessStandard || ''
         },
         delta: {
@@ -6316,6 +6605,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         const targetDb = Number(options.ceilingDb ?? -1.0);
         const targetLufs = Number(options.targetLufs ?? -14);
         const qualityMode = options.qualityMode || 'balanced';
+        const multibandInfo = applyGentleMultibandDynamicsBuffer(working, qualityMode, options.analysis || {});
         const maxGainDb = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 4.5 : 6;
         const loudnessBefore = measureApproxGatedLoudness(working);
         const loudnessGainDb = clamp(targetLufs - loudnessBefore, -8, maxGainDb);
@@ -6326,7 +6616,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         return {
             buffer: working,
             info: {
-                mode: options.truePeak === false ? 'K-weighted lookahead sample peak fallback' : 'K-weighted lookahead true peak fallback',
+                mode: options.truePeak === false ? 'K-weighted multiband lookahead sample peak fallback' : 'K-weighted multiband + 4x FIR true peak fallback',
                 qualityMode,
                 targetLufs,
                 ceilingDb: targetDb,
@@ -6338,6 +6628,10 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 limiterReductionDb: peakInfo.limiterReductionDb || 0,
                 dcRemoved: dcInfo,
                 oversample: 4,
+                oversampleMode: options.truePeak === false ? 'sample peak' : '4x windowed-sinc FIR true peak',
+                multibandMode: multibandInfo.mode,
+                multibandReductionDb: multibandInfo.reductionDb,
+                multibandBands: multibandInfo.bands,
                 limiterMode: peakInfo.limiterMode,
                 lookaheadMs: peakInfo.lookaheadMs,
                 lookaheadSamples: peakInfo.lookaheadSamples,
@@ -6361,6 +6655,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
             ceilingDb: Number(options.ceilingDb ?? -1.0),
             qualityMode: options.qualityMode || 'balanced',
             truePeak: options.truePeak !== false,
+            analysis: createFinalizerAnalysisPayload(options.analysis || {}),
             channelBuffers
         };
         const result = await new Promise((resolve, reject) => {
@@ -7772,14 +8067,18 @@ function renderDetail(options = {}) {
         if (track.truePeakInfo) {
             const beforeDb = ampToDb(track.truePeakInfo.peakBefore).toFixed(2);
             const afterDb = ampToDb(track.truePeakInfo.peakAfter).toFixed(2);
-            addRow('피크 가드', `${track.truePeakInfo.mode === 'truePeak' ? 'True Peak' : 'Sample Peak'} · 전 ${beforeDb} dB · 후 ${afterDb} dB`);
+            addRow('피크 가드', `${track.truePeakInfo.mode === 'truePeak' ? '4x FIR True Peak' : 'Sample Peak'} · 전 ${beforeDb} dB · 후 ${afterDb} dB`);
         }
         if (track.finalizeInfo) {
             addRow('클리핑 위험', getClippingRiskText(track));
             const before = Number.isFinite(track.finalizeInfo.loudnessBefore) ? `${track.finalizeInfo.loudnessBefore.toFixed(1)} LUFS` : '-';
             const after = Number.isFinite(track.finalizeInfo.loudnessAfter) ? `${track.finalizeInfo.loudnessAfter.toFixed(1)} LUFS` : '-';
             addRow('K-weighted 2-Pass 라우드니스', `${before} → ${after} · 목표 ${track.finalizeInfo.targetLufs} LUFS`);
-            addRow('엔진 품질 모드', `${getQualityModeLabel(track.finalizeInfo.qualityMode)} · ${track.finalizeInfo.oversample || 4}x 피크 검사`);
+            addRow('엔진 품질 모드', `${getQualityModeLabel(track.finalizeInfo.qualityMode)} · ${track.finalizeInfo.oversampleMode || `${track.finalizeInfo.oversample || 4}x 피크 검사`}`);
+            if (track.finalizeInfo.multibandMode) {
+                const bands = track.finalizeInfo.multibandBands || {};
+                addRow('멀티밴드 다이내믹스', `Low ${formatSigned(Number(bands.low || 0), 2)} dB · Mid ${formatSigned(Number(bands.mid || 0), 2)} dB · High ${formatSigned(Number(bands.high || 0), 2)} dB`);
+            }
         }
 
         if (track.analysis) {
@@ -9343,7 +9642,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.29',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.30',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

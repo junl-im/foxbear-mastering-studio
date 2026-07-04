@@ -1,5 +1,12 @@
 # FoxBear AI Mastering Studio Pro
 
+## Pro v1.3.30 4x FIR True Peak + gentle multiband dynamics update
+
+- Final true-peak measurement now uses 4x windowed-sinc FIR oversampling instead of linear interpolation.
+- The finalizer and fallback path share the same 4x FIR true-peak metadata so reports identify the oversampling mode clearly.
+- Added gentle 3-band dynamic control before loudness normalization to tame excess low-end, low-mid density, and harsh presence/air without over-coloring the master.
+- The offline master chain also includes a lightweight multiband glue node so preview-style rendering and finalization feel closer.
+- Mastering reports now include multiband reduction details and the true-peak oversampling mode.
 
 ## Pro v1.3.29 FFT analyzer update
 

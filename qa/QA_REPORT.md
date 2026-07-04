@@ -1,4 +1,12 @@
-# FoxBear Pro v1.3.29 QA Report
+# FoxBear Pro v1.3.30 QA Report
+
+## Pro v1.3.30 4x FIR True Peak + gentle multiband dynamics update
+- Replaced final true-peak interpolation with 4x windowed-sinc FIR oversampling.
+- Added gentle 3-band dynamic control to the finalizer and browser fallback path.
+- Added a lightweight multiband dynamics node to the offline mastering chain.
+- Added finalizer report fields for oversample mode and multiband band reductions.
+- Refreshed app version, cache busters, and SRI hash.
+- Detailed report: `qa/QA_REPORT_TRUEPEAK_MULTIBAND_1.3.30.md`.
 
 ## Pro v1.3.29 FFT analyzer update
 - Added 4096-point FFT analysis with Hann windowing and 75% overlap frame sampling.
@@ -18,6 +26,6 @@
 - `package.json`
 - `README.md`
 - `src/app.js`
-- `src/workers/analysis.worker.js`
+- `src/workers/master-finalizer.worker.js`
 - `qa/QA_REPORT.md`
-- `qa/QA_REPORT_FFT_ANALYZER_1.3.29.md`
+- `qa/QA_REPORT_TRUEPEAK_MULTIBAND_1.3.30.md`
