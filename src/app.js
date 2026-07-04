@@ -1199,13 +1199,13 @@ function renderSmartCandidatePresets(track, target) {
     candidates.forEach(candidate => {
         const button = document.createElement('button');
         button.type = 'button';
-        const recommended = candidate.preset === (track.recommendedPreset || track.preset);
+        const recommended = Boolean(candidate.recommended);
         const active = candidate.preset === track.preset;
         button.className = `smart-candidate-chip ${active ? 'active' : ''} ${recommended ? 'recommended' : ''}`;
         const label = document.createElement('span');
         label.textContent = candidate.label;
         const badge = document.createElement('b');
-        badge.textContent = recommended ? `추천 ${track.confidence || 0}%` : '후보';
+        badge.textContent = recommended ? `추천 ${candidate.percent}%` : `${candidate.percent}%`;
         button.append(label, badge);
         button.disabled = state.busy || !track.analysis;
         button.addEventListener('click', () => applyAiPresetCandidate(track, candidate.preset));
@@ -1252,15 +1252,18 @@ function showAiRecommendationDialog(track) {
     getAiCandidatePresets(track).slice(0, 4).forEach(candidate => {
         const row = document.createElement('button');
         row.type = 'button';
-        const recommended = candidate.preset === (track.recommendedPreset || track.preset);
+        const recommended = Boolean(candidate.recommended);
         row.className = `ai-recommend-preset ${recommended ? 'recommended' : ''} ${candidate.preset === track.preset ? 'active' : ''}`;
         const name = document.createElement('strong');
         name.textContent = candidate.label;
         const meta = document.createElement('span');
-        meta.textContent = recommended ? `추천 · ${track.confidence || 0}%` : '대안 프리셋';
-        const mark = document.createElement('em');
-        mark.textContent = recommended ? '추천' : '선택';
-        row.append(name, meta, mark);
+        meta.textContent = `${candidate.percent}%`;
+        row.append(name, meta);
+        if (recommended) {
+            const mark = document.createElement('em');
+            mark.textContent = '추천';
+            row.appendChild(mark);
+        }
         row.addEventListener('click', () => {
             applyAiPresetCandidate(track, candidate.preset);
             closeAiRecommendationDialog(backdrop);
@@ -1268,27 +1271,9 @@ function showAiRecommendationDialog(track) {
         list.appendChild(row);
     });
 
-    const actions = document.createElement('div');
-    actions.className = 'ai-recommend-dialog-actions';
-    const later = document.createElement('button');
-    later.type = 'button';
-    later.className = 'btn-secondary';
-    later.textContent = '나중에 보기';
-    later.addEventListener('click', () => closeAiRecommendationDialog(backdrop));
-    const start = document.createElement('button');
-    start.type = 'button';
-    start.className = 'btn-primary';
-    start.textContent = '추천 설정으로 마스터링';
-    start.disabled = !canStartAiMastering(track);
-    start.addEventListener('click', async () => {
-        closeAiRecommendationDialog(backdrop);
-        await masterTrackWithAiRecommendation(track);
-    });
-    actions.append(later, start);
-
     close.addEventListener('click', () => closeAiRecommendationDialog(backdrop));
     backdrop.addEventListener('click', event => { if (event.target === backdrop) closeAiRecommendationDialog(backdrop); });
-    panel.append(close, eyebrow, title, summary, list, actions);
+    panel.append(close, eyebrow, title, summary, list);
     backdrop.appendChild(panel);
     document.body.appendChild(backdrop);
     document.body.classList.add('ai-recommend-dialog-open');
@@ -2543,8 +2528,12 @@ function createTrack(file) {
         report: '대기 중',
         outBlob: null,
         outName: '',
+        outFormat: null,
         originalUrl: url,
         masteredUrl: null,
+        masteredBuffer: null,
+        masteredDurationSec: 0,
+        downloadAttention: false,
         error: null
     };
 }
@@ -3597,6 +3586,7 @@ async function masterTrack(track, calledFromBatch = false) {
         if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     }
 
+    let completedSuccessfully = false;
     track.status = 'processing';
     track.progress = 6;
     track.error = null;
@@ -3736,7 +3726,9 @@ async function masterTrack(track, calledFromBatch = false) {
         track.outFormat = encoded.format;
         track.outName = buildMasteredFileName(track, encoded);
         track.masteredUrl = URL.createObjectURL(encoded.blob);
+        track.masteredBuffer = finalBuffer;
         track.masteredDurationSec = finalBuffer.duration || 0;
+        track.downloadAttention = true;
         if (state.selectedId === track.id) {
             state.bottomPreviewMode = 'mastered';
             state.bottomPreviewAutoplayTrackId = track.id;
@@ -3745,6 +3737,7 @@ async function masterTrack(track, calledFromBatch = false) {
         track.status = 'done';
         track.progress = 100;
         track.report = createDoneReport(track);
+        completedSuccessfully = true;
         showToast(`${track.name} 마스터링 성공`);
     } catch (error) {
         console.error('Mastering error:', error);
@@ -3756,6 +3749,9 @@ async function masterTrack(track, calledFromBatch = false) {
     } finally {
         if (!calledFromBatch) state.busy = false;
         renderAll();
+        if (completedSuccessfully && !calledFromBatch) {
+            requestAnimationFrame(() => focusCompletedTrackDownload(track));
+        }
     }
 }
 
@@ -6240,9 +6236,120 @@ function makeUniqueZipName(fileName, usedNames) {
 
 function downloadTrack(track) {
     if (!track || !track.outBlob) return;
-    downloadBlob(track.outBlob, track.outName);
-    state.busy = false;
-    renderAll({ keepDetailAudio: true });
+    showDownloadOptionsDialog(track);
+}
+
+function closeDownloadOptionsDialog(backdrop) {
+    const panel = backdrop || document.querySelector('.download-options-backdrop');
+    if (!panel) return;
+    panel.remove();
+    document.body.classList.remove('download-options-open');
+}
+
+function showDownloadOptionsDialog(track) {
+    if (!track || !track.outBlob || !document.body) return;
+    const previous = document.querySelector('.download-options-backdrop');
+    if (previous) previous.remove();
+    const backdrop = document.createElement('div');
+    backdrop.className = 'download-options-backdrop';
+    backdrop.setAttribute('role', 'dialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    backdrop.setAttribute('aria-label', '다운로드 형식 선택');
+
+    const panel = document.createElement('section');
+    panel.className = 'download-options-panel';
+    panel.tabIndex = -1;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'download-options-close';
+    close.setAttribute('aria-label', '다운로드 창 닫기');
+    close.textContent = '×';
+
+    const title = document.createElement('strong');
+    title.className = 'download-options-title';
+    title.textContent = '다운로드 형식 선택';
+    const name = document.createElement('p');
+    name.className = 'download-options-name';
+    name.textContent = track.name || '마스터링 파일';
+
+    const inApp = isRestrictedDownloadBrowser();
+    const warning = document.createElement('p');
+    warning.className = inApp ? 'download-options-warning show' : 'download-options-warning';
+    warning.textContent = inApp ? '카카오 인앱 브라우저는 저장이 막힐 수 있어요. 형식 선택 후 공유/저장을 먼저 눌러주세요.' : '원하는 포맷을 누르면 바로 저장합니다.';
+
+    const list = document.createElement('div');
+    list.className = 'download-options-list';
+    getDownloadFormatOptions().forEach(option => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `download-format-option ${option.format === track.outFormat ? 'current' : ''}`;
+        const main = document.createElement('span');
+        main.textContent = option.label;
+        const sub = document.createElement('b');
+        sub.textContent = option.detail;
+        button.append(main, sub);
+        button.addEventListener('click', async () => {
+            const allButtons = Array.from(list.querySelectorAll('button'));
+            allButtons.forEach(item => { item.disabled = true; });
+            warning.classList.add('show');
+            warning.textContent = option.format === track.outFormat ? '현재 완성 파일로 저장을 준비합니다.' : `${option.label}로 재인코딩 중입니다.`;
+            try {
+                const exported = await prepareTrackDownloadBlob(track, option.format);
+                track.downloadAttention = false;
+                closeDownloadOptionsDialog(backdrop);
+                downloadBlob(exported.blob, exported.fileName);
+                state.busy = false;
+                renderAll({ keepDetailAudio: true });
+            } catch (error) {
+                console.warn('download export failed:', error);
+                warning.textContent = getErrorMessage(error, '다운로드 파일 생성에 실패했습니다.');
+                allButtons.forEach(item => { item.disabled = false; });
+            }
+        });
+        list.appendChild(button);
+    });
+
+    close.addEventListener('click', () => closeDownloadOptionsDialog(backdrop));
+    backdrop.addEventListener('click', event => { if (event.target === backdrop) closeDownloadOptionsDialog(backdrop); });
+    panel.append(close, title, name, warning, list);
+    backdrop.appendChild(panel);
+    document.body.appendChild(backdrop);
+    document.body.classList.add('download-options-open');
+    requestAnimationFrame(() => panel.focus());
+}
+
+function getDownloadFormatOptions() {
+    return [
+        { format: 'mp3_128', label: 'MP3', detail: '128 kbps' },
+        { format: 'mp3_192', label: 'MP3', detail: '192 kbps' },
+        { format: 'mp3_320', label: 'MP3', detail: '320 kbps' },
+        { format: 'wav16', label: 'WAV', detail: '16-bit PCM' },
+        { format: 'wav24', label: 'WAV', detail: '24-bit PCM' },
+        { format: 'wav32float', label: 'WAV', detail: '32-bit Float' }
+    ];
+}
+
+async function prepareTrackDownloadBlob(track, format) {
+    if (!track || !track.outBlob) throw new Error('완성된 마스터링 파일이 없습니다.');
+    if (format === track.outFormat || !track.masteredBuffer) {
+        return { blob: track.outBlob, fileName: track.outName || buildMasteredFileName(track, { format: track.outFormat || 'wav24', extension: /mp3/.test(track.outFormat || '') ? 'mp3' : 'wav' }) };
+    }
+    const encoded = await encodeMasterOutputAsync(track.masteredBuffer, format);
+    if (!encoded.blob || encoded.blob.size <= 44) throw new Error('선택한 포맷 파일을 만들지 못했습니다.');
+    const fileName = buildMasteredFileName(track, encoded);
+    return { blob: encoded.blob, fileName };
+}
+
+function focusCompletedTrackDownload(track) {
+    if (!track) return;
+    const cards = Array.from(document.querySelectorAll('.track-card[data-track-id]'));
+    const card = cards.find(item => item.dataset.trackId === track.id);
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    const button = card.querySelector('.download-attention');
+    if (button && typeof button.focus === 'function') {
+        setTimeout(() => button.focus({ preventScroll: true }), 520);
+    }
 }
 
 function downloadTrackReport(track) {
@@ -6279,6 +6386,18 @@ function downloadBlob(blob, fileName) {
         ? tryShareDownloadFile(blob, safeName, url)
         : false;
 
+    if (restricted) {
+        showDownloadAssist(url, safeName, blob.type || 'audio/*', blob);
+        if (sharedFromRestricted) {
+            showToast('카카오/인앱 브라우저용 공유·저장 창을 열었습니다. 저장 위치를 선택해주세요.');
+        } else {
+            showToast('카카오/인앱 브라우저는 자동 다운로드가 막힐 수 있습니다. 도움창의 공유/저장을 사용해주세요.');
+        }
+        a.remove();
+        setTimeout(() => revokeDownloadUrl(url), 10 * 60 * 1000);
+        return;
+    }
+
     try {
         a.click();
     } catch (error) {
@@ -6287,17 +6406,15 @@ function downloadBlob(blob, fileName) {
 
     if (shouldOpenAssist) {
         showDownloadAssist(url, safeName, blob.type || 'audio/*', blob);
-        showToast(sharedFromRestricted
-            ? '인앱 브라우저용 공유/저장 창을 열었습니다. 실패하면 도움창 버튼을 사용해보세요.'
-            : '인앱 브라우저는 저장이 막힐 수 있습니다. 도움창의 직접 저장/공유 버튼을 사용해보세요.');
+        showToast('자동 저장이 시작되지 않으면 도움창의 직접 저장/파일 열기를 사용해보세요.');
     } else {
         showToast(`${safeName} 다운로드를 시작했습니다.`);
     }
 
     setTimeout(() => {
         a.remove();
-        if (!restricted) revokeDownloadUrl(url);
-    }, restricted ? 10 * 60 * 1000 : 90 * 1000);
+        revokeDownloadUrl(url);
+    }, 90 * 1000);
 }
 
 function tryShareDownloadFile(blob, fileName, url) {
@@ -6438,7 +6555,7 @@ function showDownloadAssist(url, fileName, mimeType, blob = null) {
     const message = document.createElement('p');
     const inApp = isRestrictedDownloadBrowser();
     message.textContent = inApp
-        ? '카카오톡 같은 인앱 브라우저는 Blob 파일 저장을 막는 경우가 있습니다. 가능하면 공유/저장을 먼저 누르고, 계속 실패하면 외부 브라우저에서 다시 열어주세요.'
+        ? '카카오톡 인앱 브라우저는 Blob 파일을 내려받는 척하다가 저장하지 않는 경우가 있습니다. 공유/저장을 먼저 누르고, 계속 실패하면 외부 브라우저에서 페이지를 다시 연 뒤 마스터링/다운로드를 진행해주세요.'
         : '자동 저장이 시작되지 않으면 아래 버튼으로 파일을 직접 열어 저장해주세요.';
 
     const file = document.createElement('span');
@@ -6519,7 +6636,9 @@ function invalidateMasteredOutput(track, report, autoRefresh = false) {
     track.outName = '';
     track.outFormat = null;
     track.masteredUrl = null;
+    track.masteredBuffer = null;
     track.masteredDurationSec = 0;
+    track.downloadAttention = false;
     track.truePeakInfo = null;
     track.finalizeInfo = null;
     track.albumApplied = null;
@@ -7017,6 +7136,7 @@ function renderTrackList() {
     state.tracks.forEach(track => {
         const card = document.createElement('article');
         card.className = `track-card ${state.selectedIds.has(track.id) ? 'selected' : ''} ${track.id === state.selectedId ? 'active-track' : ''} ${track.genreLocked ? 'genre-locked' : ''}`;
+        card.dataset.trackId = track.id;
         card.tabIndex = 0;
         card.setAttribute('role', 'button');
         card.setAttribute('aria-pressed', state.selectedIds.has(track.id) ? 'true' : 'false');
@@ -7099,7 +7219,9 @@ function renderTrackList() {
             makeMiniButton('삭제', 'btn-danger', () => removeTrack(track.id), state.busy)
         );
         if (track.outBlob) {
-            actions.append(makeMiniButton('파일 다운로드', 'btn-secondary', () => downloadTrack(track), false));
+            const downloadButton = makeMiniButton('파일 다운로드', 'btn-secondary', () => downloadTrack(track), false);
+            if (track.downloadAttention) downloadButton.classList.add('download-attention');
+            actions.append(downloadButton);
             actions.append(makeMiniButton('리포트 저장', 'btn-secondary', () => downloadTrackReport(track), false));
         }
 
@@ -7443,14 +7565,26 @@ function simplifyAiReason(reason) {
 
 function getAiCandidatePresets(track) {
     if (!track || !track.analysis) return [];
+    const recommendedPreset = track.recommendedPreset || track.preset;
+    const baseConfidence = clamp(Math.round(Number(track.confidence || 0)), 0, 99);
+    const alternativeMap = new Map((track.genreAlternatives || []).map((item, index) => [item.preset, { ...item, index }]));
     const seen = new Set();
     const candidates = [];
     const add = preset => {
         if (!preset || seen.has(preset) || preset === 'custom') return;
         seen.add(preset);
-        candidates.push({ preset, label: PRESET_LABELS[preset] || preset });
+        const alternative = alternativeMap.get(preset) || null;
+        const recommended = preset === recommendedPreset;
+        const fallbackIndex = candidates.length;
+        let percent = recommended ? baseConfidence : Math.max(35, baseConfidence - (fallbackIndex * 7 + 5));
+        if (alternative && Number.isFinite(Number(alternative.score))) {
+            const bestScore = Number((track.genreAlternatives || [])[0]?.score || alternative.score || 0);
+            const delta = Math.max(0, bestScore - Number(alternative.score));
+            percent = recommended ? baseConfidence : clamp(Math.round(baseConfidence - delta * 9 - (alternative.index || 0) * 3), 34, Math.max(34, baseConfidence - 4));
+        }
+        candidates.push({ preset, label: PRESET_LABELS[preset] || alternative?.label || preset, percent, recommended });
     };
-    add(track.recommendedPreset || track.preset);
+    add(recommendedPreset);
     (track.genreAlternatives || []).forEach(item => add(item.preset));
     if (candidates.length < 3) {
         ['pop', 'kpop', 'kballad', 'rnb', 'dance', 'hiphop', 'punch', 'tape'].forEach(add);
