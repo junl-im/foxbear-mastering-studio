@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.51 - preset snapshot and undo history
+// FoxBear AI Mastering Studio Pro v1.3.52 - mobile dock layout final QA
 'use strict';
 
 
@@ -16,7 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 
-const APP_VERSION = 'Pro v1.3.51';
+const APP_VERSION = 'Pro v1.3.52';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -32,9 +32,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1351';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1352';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.51-snapshot-undo';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.52-mobile-dock-final-qa';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -230,7 +230,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.51';
+    styleLink.href = 'assets/css/studio.css?v=1.3.52';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -259,13 +259,15 @@ function init() {
     registerAdminVisit();
     initActionHelpTooltips();
     maybeAutoCleanAnalysisCache();
-    requestAnimationFrame(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); initActionHelpTooltips(); });
+    requestAnimationFrame(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); initActionHelpTooltips(); scheduleBottomPreviewLayoutSync(); });
     setTimeout(() => { enhanceActionSelects(); syncEnhancedSelectButtons(); initActionHelpTooltips(); }, 350);
     applyPresetToControlsOnly('custom');
     setTransformControls(DEFAULT_TRANSFORM);
     setInstrumentControls(DEFAULT_INSTRUMENT_LAYER);
     renderAll();
     initUiGuards();
+    installBottomPreviewLayoutObserver();
+    scheduleBottomPreviewLayoutSync();
     maybeShowSubscribePrompt();
 }
 
@@ -1203,6 +1205,7 @@ function formatMonoScore(analysis) {
 }
 
 function updateProcessingHud() {
+    scheduleBottomPreviewLayoutSync();
     if (!el.processingHud) return;
     const running = state.tracks.find(track => track.status === 'processing') || null;
     if (!running) {
@@ -1765,7 +1768,12 @@ function formatAdminEventTime(value) {
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
     window.addEventListener('resize', hideFeatureTooltip);
-    window.addEventListener('resize', () => requestAnimationFrame(syncBottomPreviewFloatingOffset));
+    window.addEventListener('resize', scheduleBottomPreviewLayoutSync, { passive: true });
+    window.addEventListener('orientationchange', scheduleBottomPreviewLayoutSync, { passive: true });
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', scheduleBottomPreviewLayoutSync, { passive: true });
+        window.visualViewport.addEventListener('scroll', scheduleBottomPreviewLayoutSync, { passive: true });
+    }
     if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
     if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
     if (el.programInfoDialog) {
@@ -10280,6 +10288,27 @@ function renderBottomPreviewDock(options = {}) {
     }
 }
 
+function scheduleBottomPreviewLayoutSync() {
+    if (state.bottomPreviewLayoutRaf) cancelAnimationFrame(state.bottomPreviewLayoutRaf);
+    state.bottomPreviewLayoutRaf = requestAnimationFrame(() => {
+        state.bottomPreviewLayoutRaf = 0;
+        syncBottomPreviewFloatingOffset();
+    });
+}
+
+function installBottomPreviewLayoutObserver() {
+    if (state.bottomPreviewLayoutObserverInstalled) return;
+    state.bottomPreviewLayoutObserverInstalled = true;
+    document.addEventListener('visibilitychange', scheduleBottomPreviewLayoutSync, { passive: true });
+    window.addEventListener('pageshow', scheduleBottomPreviewLayoutSync, { passive: true });
+    if (window.ResizeObserver && el.bottomPreviewDock) {
+        state.bottomPreviewResizeObserver = new ResizeObserver(scheduleBottomPreviewLayoutSync);
+        state.bottomPreviewResizeObserver.observe(el.bottomPreviewDock);
+        if (el.bottomPreviewPlayer) state.bottomPreviewResizeObserver.observe(el.bottomPreviewPlayer);
+        if (el.bottomPreviewTranslationModes) state.bottomPreviewResizeObserver.observe(el.bottomPreviewTranslationModes);
+    }
+}
+
 function syncBottomPreviewFloatingOffset() {
     const root = document.documentElement;
     const dock = el.bottomPreviewDock;
@@ -10288,15 +10317,26 @@ function syncBottomPreviewFloatingOffset() {
         root.style.removeProperty('--bottom-preview-height');
         root.style.removeProperty('--bottom-preview-floating-bottom');
         root.style.removeProperty('--bottom-preview-hud-bottom');
+        root.style.removeProperty('--bottom-preview-panel-bottom');
+        root.style.removeProperty('--bottom-preview-viewport-height');
         return;
     }
+    const mobile = Boolean(window.matchMedia && window.matchMedia('(max-width: 720px)').matches);
+    const visualViewport = window.visualViewport || null;
+    const viewportHeight = Math.round(visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 720);
     const rect = dock.getBoundingClientRect ? dock.getBoundingClientRect() : { height: 0 };
-    const measured = Math.ceil(Math.max(rect.height || 0, dock.offsetHeight || 0));
-    const fallback = window.matchMedia && window.matchMedia('(max-width: 720px)').matches ? 190 : 168;
-    const height = Math.max(measured, fallback);
+    const measured = Math.ceil(Math.max(rect.height || 0, dock.offsetHeight || 0, dock.scrollHeight || 0));
+    const fallback = mobile ? 218 : 176;
+    const maxReasonable = Math.max(fallback, Math.floor(viewportHeight * (mobile ? 0.48 : 0.36)));
+    const height = Math.max(fallback, Math.min(measured || fallback, maxReasonable));
+    const floatingGap = mobile ? 38 : 30;
+    const hudGap = mobile ? 30 : 24;
+    const panelGap = mobile ? 18 : 16;
     root.style.setProperty('--bottom-preview-height', `${height}px`);
-    root.style.setProperty('--bottom-preview-floating-bottom', `${height + 28}px`);
-    root.style.setProperty('--bottom-preview-hud-bottom', `${height + 22}px`);
+    root.style.setProperty('--bottom-preview-floating-bottom', `${height + floatingGap}px`);
+    root.style.setProperty('--bottom-preview-hud-bottom', `${height + hudGap}px`);
+    root.style.setProperty('--bottom-preview-panel-bottom', `${height + panelGap}px`);
+    root.style.setProperty('--bottom-preview-viewport-height', `${viewportHeight}px`);
 }
 
 function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPreviewMode) {
@@ -11687,7 +11727,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.51',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.52',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -8974,3 +8974,193 @@ body.bottom-preview-active .processing-hud {
     }
     .snapshot-history { font-size: .6rem; }
 }
+
+/* v1.3.52 Mobile Dock Layout Final QA */
+:root {
+    --bottom-preview-height: 0px;
+    --bottom-preview-floating-bottom: 0px;
+    --bottom-preview-hud-bottom: 0px;
+    --bottom-preview-panel-bottom: 0px;
+    --bottom-preview-viewport-height: 100dvh;
+}
+.bottom-preview-dock {
+    box-sizing: border-box !important;
+    max-height: min(48dvh, 290px) !important;
+    overflow: hidden !important;
+    contain: layout style !important;
+}
+.bottom-preview-inner,
+.bottom-preview-core,
+.bottom-preview-controls,
+.bottom-preview-tabs,
+.bottom-preview-player,
+.bottom-preview-translation-modes,
+.bottom-preview-waveform {
+    min-width: 0 !important;
+}
+.bottom-preview-core {
+    overflow: hidden !important;
+}
+.bottom-preview-player {
+    min-height: 34px !important;
+}
+.bottom-preview-master-btn,
+.bottom-preview-tab,
+.bottom-preview-translation-btn {
+    white-space: nowrap !important;
+    line-height: 1.05 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+.bottom-preview-waveform {
+    height: 34px !important;
+    padding: 4px 7px !important;
+}
+.bottom-preview-waveform-bars {
+    min-height: 20px !important;
+    max-height: 22px !important;
+}
+body.bottom-preview-active .app-shell {
+    padding-bottom: calc(var(--bottom-preview-height, 180px) + 26px + env(safe-area-inset-bottom)) !important;
+}
+body.bottom-preview-active .toast,
+body.bottom-preview-active .download-assist,
+body.bottom-preview-active .download-help {
+    bottom: calc(var(--bottom-preview-floating-bottom, 230px) + env(safe-area-inset-bottom)) !important;
+    z-index: 23800 !important;
+}
+body.bottom-preview-active .processing-hud {
+    bottom: calc(var(--bottom-preview-hud-bottom, 222px) + env(safe-area-inset-bottom)) !important;
+    z-index: 23750 !important;
+}
+body.bottom-preview-active .processing-hud.show {
+    transform: translateX(-50%) translateY(0) !important;
+}
+body.bottom-preview-active .download-options-backdrop {
+    align-items: end !important;
+    padding-top: 12px !important;
+    padding-bottom: calc(var(--bottom-preview-panel-bottom, 210px) + env(safe-area-inset-bottom)) !important;
+}
+body.bottom-preview-active .download-options-panel,
+body.bottom-preview-active .download-options-panel-v3 {
+    max-height: calc(var(--bottom-preview-viewport-height, 100dvh) - var(--bottom-preview-panel-bottom, 210px) - 28px) !important;
+}
+@media (max-width: 720px) {
+    .bottom-preview-dock {
+        max-height: min(50dvh, 276px) !important;
+        padding: 7px 8px calc(8px + env(safe-area-inset-bottom)) !important;
+    }
+    .bottom-preview-inner {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 5px !important;
+    }
+    .bottom-preview-mobile-meta {
+        margin-bottom: 3px !important;
+    }
+    .bottom-preview-waveform {
+        height: 30px !important;
+        min-height: 30px !important;
+        border-radius: 12px !important;
+    }
+    .bottom-preview-waveform-title,
+    .bottom-preview-waveform-label {
+        font-size: 9px !important;
+    }
+    .bottom-preview-translation-modes {
+        display: grid !important;
+        grid-template-columns: auto repeat(4, minmax(0, 1fr)) !important;
+        gap: 3px !important;
+        align-items: center !important;
+        padding: 3px !important;
+    }
+    .bottom-preview-translation-label {
+        font-size: 9px !important;
+        padding: 0 2px !important;
+    }
+    .bottom-preview-translation-btn {
+        min-height: 22px !important;
+        padding: 3px 4px !important;
+        font-size: 10px !important;
+    }
+    .bottom-preview-translation-hint {
+        display: none !important;
+    }
+    .bottom-preview-controls {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 6px minmax(0, 1fr) minmax(0, 1fr) !important;
+        gap: 3px !important;
+        align-items: stretch !important;
+    }
+    .bottom-preview-control-gap {
+        width: 6px !important;
+    }
+    .bottom-preview-tabs {
+        display: contents !important;
+    }
+    .bottom-preview-master-btn,
+    .bottom-preview-tab {
+        min-height: 27px !important;
+        padding: 4px 4px !important;
+        font-size: 10px !important;
+        border-radius: 999px !important;
+    }
+    .bottom-preview-player .custom-player,
+    .bottom-preview-player .custom-player.ab-loop-player {
+        min-height: 31px !important;
+        grid-template-columns: 31px minmax(0,1fr) !important;
+        gap: 5px !important;
+    }
+    .bottom-preview-player .player-toggle {
+        min-width: 31px !important;
+        width: 31px !important;
+        height: 29px !important;
+    }
+    body.bottom-preview-active .app-shell {
+        padding-bottom: calc(var(--bottom-preview-height, 220px) + 22px + env(safe-area-inset-bottom)) !important;
+    }
+    body.bottom-preview-active .toast,
+    body.bottom-preview-active .download-assist,
+    body.bottom-preview-active .download-help {
+        left: 9px !important;
+        right: 9px !important;
+        width: auto !important;
+        bottom: calc(var(--bottom-preview-floating-bottom, 258px) + env(safe-area-inset-bottom)) !important;
+    }
+    body.bottom-preview-active .processing-hud {
+        width: calc(100% - 18px) !important;
+        bottom: calc(var(--bottom-preview-hud-bottom, 250px) + env(safe-area-inset-bottom)) !important;
+    }
+    body.bottom-preview-active .download-options-backdrop {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        padding-bottom: calc(var(--bottom-preview-panel-bottom, 238px) + env(safe-area-inset-bottom)) !important;
+    }
+}
+@media (max-width: 420px) {
+    .bottom-preview-translation-label {
+        display: none !important;
+    }
+    .bottom-preview-translation-modes {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+    .bottom-preview-master-btn,
+    .bottom-preview-tab {
+        font-size: 9px !important;
+        letter-spacing: -.04em !important;
+    }
+    .bottom-preview-waveform {
+        height: 28px !important;
+    }
+}
+
+/* v1.3.52 compatibility alias for Dock waveform bar height */
+.bottom-waveform-bars {
+    min-height: 20px !important;
+    max-height: 22px !important;
+}
+@media (max-width: 720px) {
+    .bottom-waveform-bars {
+        min-height: 16px !important;
+        max-height: 18px !important;
+    }
+}
