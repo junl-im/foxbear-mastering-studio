@@ -3,7 +3,9 @@ import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gsta
 import {
     addDoc,
     collection,
+    doc,
     getCountFromServer,
+    getDoc,
     getDocs,
     getFirestore,
     limit,
@@ -80,6 +82,7 @@ function makePublicBridge(extra = {}) {
         signInGuest,
         logVisit,
         getAdminStats,
+        getAdminProfile,
         getUid: () => bridgeState.user?.uid || '',
         getStatus: () => makePublicBridge(),
         ...extra
@@ -156,9 +159,27 @@ async function logVisit(payload = {}) {
     return true;
 }
 
+async function getAdminProfile() {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const user = await signInGuest();
+    const adminRef = doc(bridgeState.db, 'siteAdmins', user.uid);
+    const snapshot = await getDoc(adminRef);
+    const data = snapshot.exists() ? (snapshot.data() || {}) : {};
+    const active = snapshot.exists() && data.active === true;
+    return {
+        uid: user.uid,
+        exists: snapshot.exists(),
+        active,
+        role: active ? limitText(data.role || 'admin', 40) : ''
+    };
+}
+
 async function getAdminStats(options = {}) {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
-    await signInGuest();
+    const profile = await getAdminProfile();
+    if (!profile.active) {
+        throw new Error(`현재 Firebase UID(${profile.uid || '확인 중'})는 활성 관리자 문서가 아닙니다.`);
+    }
     const todayKey = limitText(options.dateKey || getDateKey(), 10);
     const eventsLimit = Math.min(Math.max(Number(options.limit || 80), 1), 100);
     const todayLimit = Math.min(Math.max(Number(options.todayLimit || 500), 1), 500);

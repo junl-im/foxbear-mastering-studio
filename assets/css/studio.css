@@ -6210,7 +6210,6 @@ body.admin-dialog-open { overflow: hidden; }
     box-shadow: 0 28px 90px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.08);
     color: var(--text);
 }
-.admin-password-panel { width: min(420px, 100%); }
 .admin-stats-panel { width: min(920px, 100%); }
 .admin-dialog-close {
     position: absolute;
@@ -6249,35 +6248,6 @@ body.admin-dialog-open { overflow: hidden; }
     color: rgba(221,230,241,.76);
     font-size: .72rem;
     line-height: 1.45;
-}
-.admin-password-field {
-    display: grid;
-    gap: 6px;
-    margin: 10px 0;
-    color: rgba(221,230,241,.78);
-    font-size: .70rem;
-    font-weight: 850;
-}
-.admin-password-field input {
-    width: 100%;
-    min-height: 42px;
-    padding: 0 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.16);
-    background: rgba(0,0,0,.22);
-    color: var(--text);
-    font-size: .96rem;
-    outline: none;
-}
-.admin-password-field input:focus {
-    border-color: rgba(141,245,232,.55);
-    box-shadow: 0 0 0 3px rgba(141,245,232,.10);
-}
-.admin-password-error {
-    min-height: 18px;
-    color: #ffc9ce;
-    font-size: .66rem;
-    font-weight: 800;
 }
 .admin-dialog-actions {
     display: flex;
@@ -6364,8 +6334,6 @@ body.admin-dialog-open { overflow: hidden; }
     .admin-dialog-panel p { font-size: .58rem; }
     .admin-dialog-eyebrow { font-size: .47rem; padding: 3px 7px; }
     .admin-dialog-close { width: 30px; height: 30px; }
-    .admin-password-field { font-size: .58rem; }
-    .admin-password-field input { min-height: 38px; font-size: .80rem; }
     .admin-dialog-actions button { min-height: 32px; padding: 7px 9px; font-size: .56rem; }
     .admin-stats-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
     .admin-stat-card { min-height: 52px; padding: 8px; border-radius: 12px; }
@@ -8136,3 +8104,11 @@ body.bottom-preview-active .processing-hud {
     }
 }
 
+
+/* v1.3.26 admin UID gate: compatibility badge is passive for non-admin users */
+#adminStatsTrigger[role="presentation"] {
+    cursor: default !important;
+}
+#adminStatsTrigger[role="button"] {
+    cursor: pointer !important;
+}

@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.24 - AI recommendation popup and compact layout
+// FoxBear AI Mastering Studio Pro v1.3.26 - admin UID security hotfix
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.24';
+const APP_VERSION = 'Pro v1.3.26';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -91,7 +91,6 @@ const MASTER_STYLE_PRESETS = {
 
 const MAX_SNAPSHOTS_PER_TRACK = 12;
 const REALTIME_PREVIEW_RENDER_DELAY = 160;
-const ADMIN_STATS_PASSWORD = '8605';
 const ADMIN_STATS_VISITOR_KEY = 'foxbear-admin-visitor-id-v1';
 const ADMIN_STATS_STORAGE_KEY = 'foxbear-admin-local-stats-v1';
 const ADMIN_STATS_MAX_EVENTS = 120;
@@ -404,6 +403,10 @@ const state = {
     adminTapLastAt: 0,
     adminTapCount: 0,
     adminStatsRemoteError: '',
+    adminAccessChecking: false,
+    firebaseAdminChecked: false,
+    firebaseIsAdmin: false,
+    firebaseAdminRole: '',
     firebaseReady: false,
     firebaseUserId: '',
     firebaseError: '',
@@ -439,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.24';
+    styleLink.href = 'assets/css/studio.css?v=1.3.26';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -488,7 +491,7 @@ function cacheElements() {
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
         'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
-        'adminStatsTrigger', 'adminPasswordDialog', 'adminPasswordClose', 'adminPasswordCancel', 'adminPasswordSubmit', 'adminPasswordInput', 'adminPasswordError', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
+        'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
@@ -1456,6 +1459,7 @@ function pauseAllPreviewAudio() {
 
 
 function bindAdminStatsEvents() {
+    updateAdminStatsTriggerVisibility();
     if (el.adminStatsTrigger) {
         el.adminStatsTrigger.addEventListener('click', handleAdminStatsTriggerTap);
         el.adminStatsTrigger.addEventListener('keydown', event => {
@@ -1463,19 +1467,6 @@ function bindAdminStatsEvents() {
                 event.preventDefault();
                 handleAdminStatsTriggerTap();
             }
-        });
-    }
-    if (el.adminPasswordDialog) {
-        el.adminPasswordDialog.addEventListener('click', event => {
-            if (event.target === el.adminPasswordDialog) closeAdminPasswordDialog();
-        });
-    }
-    if (el.adminPasswordClose) el.adminPasswordClose.addEventListener('click', closeAdminPasswordDialog);
-    if (el.adminPasswordCancel) el.adminPasswordCancel.addEventListener('click', closeAdminPasswordDialog);
-    if (el.adminPasswordSubmit) el.adminPasswordSubmit.addEventListener('click', submitAdminPassword);
-    if (el.adminPasswordInput) {
-        el.adminPasswordInput.addEventListener('keydown', event => {
-            if (event.key === 'Enter') submitAdminPassword();
         });
     }
     if (el.adminStatsDialog) {
@@ -1489,47 +1480,31 @@ function bindAdminStatsEvents() {
 }
 
 function handleAdminStatsTriggerTap() {
-    const now = Date.now();
-    state.adminTapCount = now - state.adminTapLastAt < 620 ? state.adminTapCount + 1 : 1;
-    state.adminTapLastAt = now;
-    if (state.adminTapCount >= 2) {
-        state.adminTapCount = 0;
-        openAdminPasswordDialog();
-    }
-}
-
-function openAdminPasswordDialog() {
-    if (!el.adminPasswordDialog) return;
-    el.adminPasswordDialog.classList.add('show');
-    el.adminPasswordDialog.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('admin-dialog-open');
-    if (el.adminPasswordError) el.adminPasswordError.textContent = '';
-    if (el.adminPasswordInput) {
-        el.adminPasswordInput.value = '';
-        setTimeout(() => el.adminPasswordInput.focus({ preventScroll: true }), 30);
-    }
-}
-
-function closeAdminPasswordDialog() {
-    if (!el.adminPasswordDialog) return;
-    el.adminPasswordDialog.classList.remove('show');
-    el.adminPasswordDialog.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('admin-dialog-open');
-}
-
-function submitAdminPassword() {
-    const value = String(el.adminPasswordInput?.value || '').trim();
-    if (value !== ADMIN_STATS_PASSWORD) {
-        if (el.adminPasswordError) el.adminPasswordError.textContent = '암호가 맞지 않습니다.';
-        if (el.adminPasswordInput) el.adminPasswordInput.select();
+    if (!state.firebaseIsAdmin) {
+        if (!state.adminAccessChecking) refreshFirebaseAdminAccess();
         return;
     }
-    closeAdminPasswordDialog();
     openAdminStatsDialog();
+}
+
+function updateAdminStatsTriggerVisibility() {
+    if (!el.adminStatsTrigger) return;
+    const visible = Boolean(state.firebaseIsAdmin);
+    el.adminStatsTrigger.hidden = false;
+    el.adminStatsTrigger.setAttribute('aria-hidden', 'false');
+    el.adminStatsTrigger.setAttribute('tabindex', visible ? '0' : '-1');
+    el.adminStatsTrigger.setAttribute('role', visible ? 'button' : 'presentation');
+    el.adminStatsTrigger.setAttribute('aria-label', visible ? '관리자 통계 열기' : 'PC · 모바일 호환 안내');
+    el.adminStatsTrigger.textContent = visible ? '관리자 통계' : 'PC · 모바일 호환';
 }
 
 function openAdminStatsDialog() {
     if (!el.adminStatsDialog) return;
+    if (!state.firebaseIsAdmin) {
+        showToast('관리자 UID로 등록된 사용자만 통계를 열 수 있습니다.');
+        refreshFirebaseAdminAccess();
+        return;
+    }
     el.adminStatsDialog.classList.add('show');
     el.adminStatsDialog.setAttribute('aria-hidden', 'false');
     document.body.classList.add('admin-dialog-open');
@@ -1588,6 +1563,7 @@ function initFirebaseBridge() {
     window.addEventListener('foxbear:firebase-ready', event => handleFirebaseBridgeReady(event.detail));
     window.addEventListener('foxbear:firebase-auth', event => handleFirebaseBridgeReady(event.detail));
     window.addEventListener('foxbear:firebase-error', event => handleFirebaseBridgeError(event.detail));
+    updateAdminStatsTriggerVisibility();
     if (window.FoxBearFirebase) handleFirebaseBridgeReady(window.FoxBearFirebase);
 }
 
@@ -1598,7 +1574,39 @@ function handleFirebaseBridgeReady(detail = {}) {
     state.firebaseError = bridge.error || '';
     state.firebaseRemoteNotice = bridge.remoteConfig?.foxbear_notice || state.firebaseRemoteNotice || '';
     applyFirebaseRemoteConfig(bridge.remoteConfig || {});
+    refreshFirebaseAdminAccess(bridge);
     if (state.lastAdminVisitEvent) registerFirebaseVisit(state.lastAdminVisitEvent);
+}
+
+function refreshFirebaseAdminAccess(bridge = window.FoxBearFirebase) {
+    const target = bridge || window.FoxBearFirebase;
+    if (!target || typeof target.getAdminProfile !== 'function') {
+        state.firebaseIsAdmin = false;
+        state.firebaseAdminChecked = Boolean(state.firebaseError);
+        updateAdminStatsTriggerVisibility();
+        return;
+    }
+    if (state.adminAccessChecking) return;
+    state.adminAccessChecking = true;
+    updateAdminStatsTriggerVisibility();
+    target.getAdminProfile()
+        .then(profile => {
+            state.firebaseUserId = profile?.uid || state.firebaseUserId || '';
+            state.firebaseIsAdmin = Boolean(profile?.active);
+            state.firebaseAdminRole = profile?.role || '';
+            state.firebaseAdminChecked = true;
+            state.adminStatsRemoteError = state.firebaseIsAdmin ? '' : `현재 UID(${state.firebaseUserId || '확인 중'})는 활성 관리자 문서가 아닙니다.`;
+            updateAdminStatsTriggerVisibility();
+        })
+        .catch(error => {
+            state.firebaseIsAdmin = false;
+            state.firebaseAdminChecked = true;
+            state.adminStatsRemoteError = error?.message || String(error);
+            updateAdminStatsTriggerVisibility();
+        })
+        .finally(() => {
+            state.adminAccessChecking = false;
+        });
 }
 
 
@@ -1631,7 +1639,10 @@ function normalizeRemoteHttpsUrl(value, allowedHost) {
 
 function handleFirebaseBridgeError(detail = {}) {
     state.firebaseReady = false;
+    state.firebaseIsAdmin = false;
+    state.firebaseAdminChecked = true;
     state.firebaseError = detail.error || window.FoxBearFirebase?.error || 'Firebase 연결 실패';
+    updateAdminStatsTriggerVisibility();
 }
 
 function registerFirebaseVisit(event) {
@@ -1715,6 +1726,14 @@ function normalizeReferrer(referrer) {
 
 async function renderAdminStatsDialog(forceRemote) {
     if (!el.adminStatsSummary || !el.adminStatsRows) return;
+    if (!state.firebaseIsAdmin) {
+        el.adminStatsSummary.textContent = '';
+        el.adminStatsRows.textContent = '';
+        if (el.adminStatsNotice) {
+            el.adminStatsNotice.textContent = `관리자 UID로 등록된 사용자만 방문 통계를 볼 수 있습니다.${getFirebaseStatusNotice()}`;
+        }
+        return;
+    }
     const localStats = readAdminLocalStats();
     let remoteStats = null;
     if (forceRemote || window.FoxBearFirebase?.ready) {
@@ -1773,7 +1792,7 @@ function makeAdminStatsModel(stats) {
     return {
         mode: 'local',
         modeLabel: '로컬 기록',
-        notice: `현재는 브라우저 localStorage 기준입니다. Firebase Firestore 연결 후 관리자 UID를 siteAdmins에 등록하면 원격 방문 통계를 표시합니다.${getFirebaseStatusNotice()}${state.adminStatsRemoteError ? ' 원격 통계 확인 실패: ' + state.adminStatsRemoteError : ''}`,
+        notice: `현재는 브라우저 localStorage 기준입니다. siteAdmins에 등록된 관리자 UID에서만 원격 방문 통계를 표시합니다.${getFirebaseStatusNotice()}${state.adminStatsRemoteError ? ' 원격 통계 확인 실패: ' + state.adminStatsRemoteError : ''}`,
         totalVisits: Number(stats.totalVisits || events.length || 0),
         todayVisits: todayEvents.length,
         todayUnique: new Set(todayEvents.map(item => item.visitorId)).size,
@@ -1945,7 +1964,6 @@ function bindEvents() {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
         if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog();
         if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog();
-        if (event.key === 'Escape' && el.adminPasswordDialog?.classList.contains('show')) closeAdminPasswordDialog();
         if (event.key === 'Escape' && el.adminStatsDialog?.classList.contains('show')) closeAdminStatsDialog();
     });
     el.fileDrop.addEventListener('click', () => el.fileInput.click());
@@ -8918,7 +8936,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.24',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.26',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -10,6 +10,14 @@
 GitHub Pages-ready modular browser mastering studio.
 
 
+## Pro v1.3.26 admin UID security hotfix
+
+- 클라이언트에 남아 있던 관리자 평문 암호 입력 흐름을 제거했습니다.
+- Firebase 익명 Auth UID가 `siteAdmins/{uid}` 문서에 있고 `active: true`인 경우에만 `관리자 통계` 배지가 표시되도록 바꿨습니다.
+- `firebase-bootstrap.js`에 `getAdminProfile()`을 추가해 현재 UID의 관리자 활성 상태를 직접 확인합니다.
+- 비관리자 브라우저에서는 일반 호환 안내 배지만 유지되고 관리자 통계 트리거로 동작하지 않으며, 방문 통계 조회도 UI 레벨에서 차단됩니다.
+- Firebase 설정 문서는 Console에서 `window.FoxBearFirebase?.getUid?.()`로 UID를 확인한 뒤 `siteAdmins/{uid}`를 수동 등록하는 방식으로 갱신했습니다.
+
 
 ## Pro v1.3.19 mastering pro upgrade
 
@@ -69,7 +77,7 @@ GitHub Pages-ready modular browser mastering studio.
 
 - 여러 곡을 불러왔을 때 비선택 트랙 카드의 테두리를 검정 계열로 고정해 선택/비선택 대비를 더 분명하게 조정했습니다.
 - 선택된 트랙에 마우스를 올리거나 클릭할 때 발생하던 흔들림을 막기 위해 트랙 카드의 hover/active transform을 제거했습니다.
-- `PC · 모바일 호환` 배지를 PC/모바일 공통 숨겨진 관리자 트리거로 연결했습니다. 텍스트를 두 번 누르면 암호창이 열리고, 암호 `8605` 입력 시 통계 패널이 표시됩니다.
+- `PC · 모바일 호환` 배지는 과거 숨겨진 관리자 트리거였으나, v1.3.26부터는 Firebase `siteAdmins/{uid}` 활성 관리자에게만 `관리자 통계` 배지가 표시됩니다.
 - 통계 패널은 오늘 접속, 오늘 고유 방문자, 누적 접속, 유입 사이트를 표시합니다. 정적 GitHub Pages 단독 배포에서는 실제 전체 방문자 IP를 수집할 수 없으므로 기본값은 브라우저 localStorage 기반 로컬 기록이며, 같은 도메인의 `window.FOXBEAR_STATS_ENDPOINT` JSON API를 연결하면 서버 통계로 확장할 수 있습니다.
 - 앱 버전, 캐시 버스터, 패키지 버전을 v1.3.13으로 갱신했습니다.
 

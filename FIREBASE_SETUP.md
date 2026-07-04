@@ -27,10 +27,14 @@ Firestore 데이터베이스를 아직 만들지 않았다면 `firebase deploy -
 ## 3. 관리자 UID 등록
 
 1. 배포된 사이트를 한 번 엽니다.
-2. 상단 `PC · 모바일 호환` 배지를 두 번 누릅니다.
-3. 암호 `8605`를 입력합니다.
-4. 통계 안내 문구에 표시되는 `Firebase UID` 값을 복사합니다.
-5. Firebase Console > Firestore Database > 데이터에서 다음 문서를 직접 만듭니다.
+2. 브라우저 개발자 도구 Console에서 다음 값을 확인합니다.
+
+```js
+window.FoxBearFirebase?.getUid?.()
+```
+
+3. 출력된 Firebase 익명 Auth UID를 복사합니다.
+4. Firebase Console > Firestore Database > 데이터에서 다음 문서를 직접 만듭니다.
 
 컬렉션: `siteAdmins`
 문서 ID: 방금 복사한 UID
@@ -43,7 +47,7 @@ Firestore 데이터베이스를 아직 만들지 않았다면 `firebase deploy -
 }
 ```
 
-이후 통계창을 새로고침하면 Firestore 원격 통계가 표시됩니다. 관리자 문서는 클라이언트 코드에서 생성할 수 없고 Firebase Console에서만 수동 생성하도록 Rules가 잠겨 있습니다.
+이후 사이트를 새로고침하면 관리자 UID로 등록된 브라우저에서만 상단 `관리자 통계` 배지가 표시되고 Firestore 원격 통계를 볼 수 있습니다. 관리자 문서는 클라이언트 코드에서 생성할 수 없고 Firebase Console에서만 수동 생성하도록 Rules가 잠겨 있습니다.
 
 ## 4. 저장되는 데이터
 

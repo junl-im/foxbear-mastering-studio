@@ -1,5 +1,12 @@
 # FoxBear Pro v1.3.16 QA Report
 
+## Pro v1.3.26 admin UID security hotfix
+
+- Removed client-side admin password flow.
+- Added Firebase UID admin-profile gate for the statistics trigger.
+- Verified `npm run check` and SHA-384 SRI hashes.
+- Detailed report: `qa/QA_REPORT_ADMIN_SECURITY_1.3.26.md`.
+
 ## Scope
 
 - Selection/non-selection visual contrast

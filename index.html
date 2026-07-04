@@ -3,27 +3,27 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.25 - browser based AI music mastering studio console" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.26 - browser based AI music mastering studio console" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://www.gstatic.com/firebasejs/; script-src-elem 'self' https://www.gstatic.com/firebasejs/; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com https://www.googleapis.com; worker-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types foxbear; upgrade-insecure-requests" />
 <meta name="referrer" content="no-referrer" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.25</title>
-<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-music.png?v=1.3.25" />
-<link rel="apple-touch-icon" href="assets/icons/foxbear-music.png?v=1.3.25" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.25-icon-download" integrity="sha384-5xLyzmGHbE3+18xc0nbCAz7H6SF37yrize9WsFXiI+9oJoPZUU+f5CFl/K2AZBe3" />
+<title>FoxBear Mastering PRO v1.3.26</title>
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-music.png?v=1.3.26" />
+<link rel="apple-touch-icon" href="assets/icons/foxbear-music.png?v=1.3.26" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.26-admin-security" integrity="sha384-50LsyBqNCgkrPpZqdV/Q6ejirk3cXmVEa0g4cR+8KX2/oc8/N+HIBzg6KjfAoHyO" />
 <script defer src="vendor/jszip/jszip.min.js?v=3.10.1" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"></script>
-<script type="module" src="src/firebase-bootstrap.js?v=1.3.20" integrity="sha384-S0zAg0q6Hy3Sb9LLdiXLHerjOYbHqkretIPoRQfYM/mHmMx3eakA2kvOq/gLOAaQ"></script>
-<script defer src="src/app.js?v=1.3.25-icon-download" integrity="sha384-xE83HIxs3QLotOuErMTteCpvjaRl591RNqu9lf3vQOHc4KXsvvbJuCjk7O9kSO5d"></script>
+<script type="module" src="src/firebase-bootstrap.js?v=1.3.26-admin-security" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
+<script defer src="src/app.js?v=1.3.26-admin-security" integrity="sha384-nRba1bQzj3rQFYzNbOqgiRNK8cw5lcv2Tw0r4MY7UAHq265Zrhm3Z5kggXEpufyv"></script>
 </head>
-<body data-build="1.3.25">
+<body data-build="1.3.26">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.25</button>
-                    <span id="adminStatsTrigger" class="badge badge-device" role="button" tabindex="0" aria-label="숨겨진 통계 관리자 열기">PC · 모바일 호환</span>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.26</button>
+                    <span id="adminStatsTrigger" class="badge badge-device" role="presentation" tabindex="-1" aria-label="PC · 모바일 호환 안내">PC · 모바일 호환</span>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
                     <a class="designer-mini designer-mini-link" href="https://www.youtube.com/@FoxBearMusic" target="_blank" rel="noopener noreferrer" aria-label="곰같은여우 유튜브 채널 열기" data-help="곰같은여우 유튜브 채널을 새 창으로 엽니다.">
@@ -398,7 +398,7 @@
 
 
 <div id="subscribeNudge" class="subscribe-nudge" role="status" aria-live="polite">
-    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.3.25" alt="" /></div>
+    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.3.26" alt="" /></div>
     <div class="subscribe-mini-copy">
         <strong>곰같은여우 Music 응원하기</strong>
         <span>좋았다면 채널 구독으로 힘을 주세요.</span>
@@ -411,7 +411,7 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.24</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.26</span>
         <h2 id="programInfoTitle">무료로 쉽게 완성하는 음질 개선과 마스터링</h2>
         <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.<br>작업은 내 브라우저 안에서 진행되어 파일을 서버로 올리지 않고도 빠르게 확인할 수 있습니다.</p>
         <div class="program-info-grid program-info-roadmap">
@@ -477,24 +477,6 @@
     </section>
 </div>
 
-
-<div id="adminPasswordDialog" class="admin-dialog-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="adminPasswordTitle">
-    <section class="admin-dialog-panel admin-password-panel" tabindex="-1">
-        <button id="adminPasswordClose" class="admin-dialog-close" type="button" aria-label="숨겨진 통계 암호창 닫기">×</button>
-        <span class="admin-dialog-eyebrow">Hidden Statistics</span>
-        <h2 id="adminPasswordTitle">관리자 암호 입력</h2>
-        <p>PC · 모바일 호환 텍스트를 두 번 누르면 열리는 숨겨진 통계 영역입니다.</p>
-        <label class="admin-password-field" for="adminPasswordInput">
-            <span>비밀번호</span>
-            <input id="adminPasswordInput" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="암호 입력" />
-        </label>
-        <div id="adminPasswordError" class="admin-password-error" role="alert" aria-live="polite"></div>
-        <div class="admin-dialog-actions">
-            <button id="adminPasswordSubmit" class="btn-primary" type="button">확인</button>
-            <button id="adminPasswordCancel" class="btn-secondary" type="button">닫기</button>
-        </div>
-    </section>
-</div>
 
 <div id="adminStatsDialog" class="admin-dialog-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="adminStatsTitle">
     <section class="admin-dialog-panel admin-stats-panel" tabindex="-1">
