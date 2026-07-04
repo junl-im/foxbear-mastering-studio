@@ -1,5 +1,13 @@
 # FoxBear AI Mastering Studio Pro
 
+## Pro v1.3.31 unified phase-safe spatial budget update
+
+- Width matrix expansion and stereoGroove micro-delay expansion are now evaluated through one shared spatial budget before final rendering.
+- `phaseSafe` now actively scales both width and stereoGroove when the source is already wide, low-end mono compatibility is weak, low-side energy is high, or FFT air/presence energy suggests spatial smear risk.
+- Realtime preview width uses the same budget function as offline rendering so preview/final width decisions stay closer.
+- Mastering detail/report metadata now shows requested vs applied width factor and stereoGroove values.
+- Analysis cache DB was bumped to keep spatial-budget decisions aligned with the latest analyzer metadata.
+
 ## Pro v1.3.30 4x FIR True Peak + gentle multiband dynamics update
 
 - Final true-peak measurement now uses 4x windowed-sinc FIR oversampling instead of linear interpolation.

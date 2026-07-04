@@ -1,4 +1,13 @@
-# FoxBear Pro v1.3.30 QA Report
+# FoxBear Pro v1.3.31 QA Report
+
+## Pro v1.3.31 unified phase-safe spatial budget update
+- Added a shared phase-safe spatial budget that combines `width` and `stereoGroove` into one effective expansion calculation.
+- Final offline rendering now scales width matrix expansion and micro-delay stereoGroove together when spatial risk, low-mono risk, low-side energy, or FFT air/presence risk is high.
+- Realtime preview width now uses the same budget function as offline rendering to reduce preview/final mismatch.
+- `phaseSafe` now performs actual DSP intervention instead of only reducing a safety score.
+- Added mastering report/detail metadata for requested vs applied width factor and stereoGroove values.
+- Refreshed app version, cache busters, and SRI hash.
+- Detailed report: `qa/QA_REPORT_SPATIAL_BUDGET_1.3.31.md`.
 
 ## Pro v1.3.30 4x FIR True Peak + gentle multiband dynamics update
 - Replaced final true-peak interpolation with 4x windowed-sinc FIR oversampling.
@@ -26,6 +35,6 @@
 - `package.json`
 - `README.md`
 - `src/app.js`
-- `src/workers/master-finalizer.worker.js`
 - `qa/QA_REPORT.md`
+- `qa/QA_REPORT_SPATIAL_BUDGET_1.3.31.md`
 - `qa/QA_REPORT_TRUEPEAK_MULTIBAND_1.3.30.md`

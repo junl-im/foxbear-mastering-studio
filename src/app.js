@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.30 - 4x FIR True Peak + gentle multiband dynamics update
+// FoxBear AI Mastering Studio Pro v1.3.31 - unified phase-safe spatial budget update
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.30';
+const APP_VERSION = 'Pro v1.3.31';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1330';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1331';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -442,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.30';
+    styleLink.href = 'assets/css/studio.css?v=1.3.31';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -1093,8 +1093,8 @@ function updateRealtimePreviewSettings(track = getSelectedTrack()) {
     setAudioParam(nodes.compressor.attack, clamp(map(punch, 0, 100, .020, .006), .003, .026), now);
     setAudioParam(nodes.compressor.release, clamp(map(punch, 0, 100, .22, .12), .08, .32), now);
 
-    const widthValue = getPhaseSafeWidthFactor(settings, analysis, intensity, 0.72, 1.38);
-    setRealtimeWidth(nodes.width, widthValue, now);
+    const spatialBudget = getPhaseSafeSpatialBudget(settings, analysis, intensity, 0.72, 1.38);
+    setRealtimeWidth(nodes.width, spatialBudget.widthFactor, now);
 
     setAudioParam(nodes.limiter.threshold, intensity.raw >= 155 ? -5.0 : -3.2, now);
     setAudioParam(nodes.limiter.knee, 1.2, now);
@@ -4386,10 +4386,12 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createVocalFocusPlusNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createMelodyPreserveNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createProfileEqChain(context, node, preset, intensity);
-    const widthScaled = getPhaseSafeWidthFactor(effectiveSettings, analysis, intensity, 0.82, 1.22);
-    node = createStereoWidthNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, widthScaled);
-    node = createStereoGrooveNode(context, node, effectiveSettings.stereoGroove, intensity);
-    node = createPhaseSafeNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, effectiveSettings, analysis, intensity);
+    const isStereoRender = renderChannels === 2 && sourceBuffer.numberOfChannels >= 2;
+    const spatialBudget = getPhaseSafeSpatialBudget(effectiveSettings, analysis, intensity, 0.82, 1.22);
+    if (analysis && isStereoRender) analysis.spatialBudgetApplied = spatialBudget;
+    node = createStereoWidthNode(context, node, isStereoRender, spatialBudget.widthFactor);
+    node = createStereoGrooveNode(context, node, spatialBudget.stereoGroove, intensity);
+    node = createPhaseSafeNode(context, node, isStereoRender, effectiveSettings, analysis, intensity);
     node = createSaturationNode(context, node, effectiveSettings.analogGroove, effectiveSettings.warmth, intensity);
     node = createSpectralBalancerNode(context, node, effectiveSettings, analysis, intensity);
     node = createAdaptiveAirBalanceNode(context, node, effectiveSettings, analysis, intensity);
@@ -4453,6 +4455,7 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
         out.width = clamp(Math.min(Number(out.width || 50), widthLimit) - Math.round(spatialRisk * 8), 8, 68);
         out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) - spatialRisk * 10 - Math.max(0, 78 - lowMonoScore) * 0.18), 0, 24);
     }
+    applySpatialBudgetToSettings(out, analysis, getMasteringIntensity(out));
     return out;
 }
 
@@ -5044,20 +5047,90 @@ function createStereoWidthNode(context, input, isStereo, widthFactor) {
 }
 
 
-function getPhaseSafeWidthFactor(settings, analysis, intensity = getMasteringIntensity(settings), minFactor = 0.82, maxFactor = 1.22) {
+function getRawWidthFactor(settings, intensity = getMasteringIntensity(settings), minFactor = 0.82, maxFactor = 1.22) {
     const widthSetting = clamp(Number(settings?.width ?? 50), 0, 100);
     const rawBase = map(widthSetting, 0, 100, minFactor, maxFactor);
     const scaled = 1 + (rawBase - 1) * clamp(intensity?.amount ?? 1, 0.65, 1.65);
-    if (!analysis) return clamp(scaled, minFactor, maxFactor);
+    return clamp(scaled, minFactor, maxFactor);
+}
+
+function getPhaseSafeSpatialBudget(settings, analysis, intensity = getMasteringIntensity(settings), minFactor = 0.82, maxFactor = 1.22) {
+    const rawWidthFactor = getRawWidthFactor(settings, intensity, minFactor, maxFactor);
+    const rawGroove = clamp(Number(settings?.stereoGroove ?? 0), 0, 100);
+    const intensityAmount = clamp(Number(intensity?.amount ?? 1), 0.65, 1.70);
+    const rawGrooveDepth = clamp(rawGroove / 100 * intensityAmount, 0, 1.25);
+    if (!analysis || state.featureFlags.phaseSafe === false) {
+        return {
+            widthFactor: rawWidthFactor,
+            stereoGroove: rawGroove,
+            rawWidthFactor,
+            rawStereoGroove: rawGroove,
+            scale: 1,
+            effectiveExpansion: Math.max(0, rawWidthFactor - 1) + rawGrooveDepth * 0.20,
+            maxExpansion: maxFactor - 1,
+            phaseSafeReductionDb: 0,
+            reason: 'phase-safe bypass'
+        };
+    }
+
     const measuredWidth = clamp01(Number(analysis.stereoWidth ?? 0.38));
     const spatialRisk = clamp01(Number(analysis.spatialExcessRisk || 0));
     const lowMonoScore = Number(analysis.lowMonoScore || 100);
-    const lowMonoPenalty = Math.max(0, 82 - lowMonoScore) / 82;
-    const widePenalty = Math.max(0, measuredWidth - 0.54) * 0.42 + spatialRisk * 0.22 + lowMonoPenalty * 0.18;
-    const highAir = clamp01(Number(analysis.airRatio || analysis.spectrumBands?.air || 0));
-    const airPenalty = Math.max(0, highAir - 0.14) * 0.20;
-    const maxSafe = clamp(1.18 - widePenalty - airPenalty, 0.98, maxFactor);
-    return clamp(Math.min(scaled, maxSafe), minFactor, maxFactor);
+    const lowSideRatio = clamp01(Number(analysis.lowSideRatio || 0));
+    const lowMonoRisk = clamp01(Math.max(0, 84 - lowMonoScore) / 84);
+    const widthRisk = clamp01(Math.max(0, measuredWidth - 0.52) / 0.36);
+    const sideRisk = clamp01(Math.max(0, lowSideRatio - 0.28) / 0.38);
+    const bands = analysis.spectrumBands || {};
+    const air = clamp01(Number(analysis.airRatio ?? bands.air ?? 0));
+    const presence = clamp01(Number(analysis.presenceRatio ?? bands.presence ?? 0));
+    const airRisk = clamp01(Math.max(0, air - 0.14) / 0.22 + Math.max(0, presence - 0.24) / 0.45 * 0.35);
+
+    const widthExpansion = Math.max(0, rawWidthFactor - 1);
+    const widthContraction = Math.min(0, rawWidthFactor - 1);
+    const grooveExpansion = rawGrooveDepth * 0.20;
+    const requestedExpansion = widthExpansion + grooveExpansion;
+    const baseBudget = clamp(maxFactor - 1, 0.12, 0.42);
+    const riskPenalty = spatialRisk * 0.115 + lowMonoRisk * 0.135 + widthRisk * 0.105 + sideRisk * 0.080 + airRisk * 0.060;
+    const maxExpansion = clamp(baseBudget - riskPenalty, 0.012, baseBudget);
+    const scale = requestedExpansion > maxExpansion && requestedExpansion > 0 ? clamp(maxExpansion / requestedExpansion, 0.08, 1) : 1;
+    const safeWidthFactor = clamp(1 + widthContraction + widthExpansion * scale, minFactor, maxFactor);
+    const safeGroove = clamp(rawGroove * scale, 0, 100);
+    const effectiveExpansion = Math.max(0, safeWidthFactor - 1) + clamp(safeGroove / 100 * intensityAmount, 0, 1.25) * 0.20;
+    const reduction = requestedExpansion > 0 ? clamp01(1 - effectiveExpansion / requestedExpansion) : 0;
+    const reasonParts = [];
+    if (spatialRisk > 0.20) reasonParts.push(`spatial ${Math.round(spatialRisk * 100)}%`);
+    if (lowMonoScore < 84) reasonParts.push(`low-mono ${Math.round(lowMonoScore)}`);
+    if (measuredWidth > 0.52) reasonParts.push(`width ${Math.round(measuredWidth * 100)}%`);
+    if (lowSideRatio > 0.28) reasonParts.push(`low-side ${Math.round(lowSideRatio * 100)}%`);
+    if (airRisk > 0.10) reasonParts.push(`air ${Math.round(air * 100)}%`);
+
+    return {
+        widthFactor: safeWidthFactor,
+        stereoGroove: safeGroove,
+        rawWidthFactor,
+        rawStereoGroove: rawGroove,
+        scale,
+        effectiveExpansion,
+        requestedExpansion,
+        maxExpansion,
+        phaseSafeReductionDb: reduction > 0 ? -20 * Math.log10(Math.max(1e-6, 1 - reduction * 0.55)) : 0,
+        reason: reasonParts.length ? reasonParts.join(' / ') : 'safe budget'
+    };
+}
+
+function getPhaseSafeWidthFactor(settings, analysis, intensity = getMasteringIntensity(settings), minFactor = 0.82, maxFactor = 1.22) {
+    return getPhaseSafeSpatialBudget(settings, analysis, intensity, minFactor, maxFactor).widthFactor;
+}
+
+function applySpatialBudgetToSettings(settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!settings || !analysis || state.featureFlags.phaseSafe === false) return settings;
+    const budget = getPhaseSafeSpatialBudget(settings, analysis, intensity, 0.82, 1.22);
+    if (budget.scale >= 0.995) return settings;
+    const width = clamp(Number(settings.width || 50), 0, 100);
+    const widthDelta = Math.max(0, width - 50);
+    if (widthDelta > 0) settings.width = clamp(Math.round(50 + widthDelta * budget.scale), 3, 88);
+    settings.stereoGroove = clamp(Math.round(Number(settings.stereoGroove || 0) * budget.scale), 0, 100);
+    return settings;
 }
 
 
@@ -6444,6 +6517,7 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
     const after = calculateAudioStats(finalBuffer);
     const beforeLufs = Number.isFinite(track?.analysis?.loudnessIntegrated) ? track.analysis.loudnessIntegrated : before?.approxLufs;
     const afterLufs = Number.isFinite(finalizeInfo?.loudnessAfter) ? finalizeInfo.loudnessAfter : after?.approxLufs;
+    const spatialBudget = track?.analysis?.spatialBudgetApplied || null;
     return {
         before: { ...before, approxLufs: beforeLufs },
         after: { ...after, approxLufs: afterLufs },
@@ -6459,7 +6533,17 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
             multibandMode: finalizeInfo?.multibandMode || '',
             multibandReductionDb: Number(finalizeInfo?.multibandReductionDb || 0),
             multibandBands: finalizeInfo?.multibandBands || null,
-            loudnessStandard: finalizeInfo?.loudnessStandard || ''
+            loudnessStandard: finalizeInfo?.loudnessStandard || '',
+            spatialBudget: spatialBudget ? {
+                widthFactor: Number(spatialBudget.widthFactor || 1),
+                rawWidthFactor: Number(spatialBudget.rawWidthFactor || 1),
+                stereoGroove: Number(spatialBudget.stereoGroove || 0),
+                rawStereoGroove: Number(spatialBudget.rawStereoGroove || 0),
+                scale: Number(spatialBudget.scale || 1),
+                effectiveExpansion: Number(spatialBudget.effectiveExpansion || 0),
+                maxExpansion: Number(spatialBudget.maxExpansion || 0),
+                reason: spatialBudget.reason || ''
+            } : null
         },
         delta: {
             lufs: Number.isFinite(beforeLufs) && Number.isFinite(afterLufs) ? afterLufs - beforeLufs : NaN,
@@ -8079,6 +8163,11 @@ function renderDetail(options = {}) {
                 const bands = track.finalizeInfo.multibandBands || {};
                 addRow('멀티밴드 다이내믹스', `Low ${formatSigned(Number(bands.low || 0), 2)} dB · Mid ${formatSigned(Number(bands.mid || 0), 2)} dB · High ${formatSigned(Number(bands.high || 0), 2)} dB`);
             }
+            const spatialBudget = track.analysis?.spatialBudgetApplied;
+            if (spatialBudget) {
+                const grooveText = `${Math.round(Number(spatialBudget.rawStereoGroove || 0))}% → ${Math.round(Number(spatialBudget.stereoGroove || 0))}%`;
+                addRow('위상 세이프 공간 예산', `Width x${Number(spatialBudget.rawWidthFactor || 1).toFixed(2)} → x${Number(spatialBudget.widthFactor || 1).toFixed(2)} · Groove ${grooveText}`);
+            }
         }
 
         if (track.analysis) {
@@ -9642,7 +9731,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.30',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.31',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
