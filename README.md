@@ -1,6 +1,13 @@
 # FoxBear AI Mastering Studio Pro
 
 
+## Pro v1.3.29 FFT analyzer update
+
+- New 4096-point FFT analyzer improves genre recommendation, EQ correction, and reference matching accuracy.
+- Existing analysis fields remain compatible, with added centroid, rolloff, flatness, flux, spectrum bands, and compact spectrum profiles.
+- Phase-safe width guards reduce unnecessary spaciousness when source material is already wide or low-end mono compatibility is weak.
+- Analysis cache DB was bumped so older pre-FFT analysis values are not reused.
+
 ## Pro v1.3.28 lookahead limiter update
 
 - 최종 마스터 파이널라이저에 품질 모드별 룩어헤드 리미터를 추가했습니다. Fast는 1.5ms, Balanced는 3ms, Max는 5ms 선제 피크 감쇠를 사용합니다.

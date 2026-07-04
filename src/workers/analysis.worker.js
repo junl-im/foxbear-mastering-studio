@@ -1,4 +1,4 @@
-// FoxBear analysis worker v1.3.28 - spectral balance, K-weighted LUFS, genre features
+// FoxBear analysis worker v1.3.29 - FFT analyzer, K-weighted LUFS, phase-safe genre features
 'use strict';
 
 self.onmessage = event => {
@@ -12,9 +12,45 @@ self.onmessage = event => {
 };
 
 function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
-    const totalSamples = length;
+    const totalSamples = Math.max(0, Number(length || 0));
+    const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
+    const usableChannels = Math.max(1, Math.min(Number(channels || 1), Array.isArray(channelBuffers) ? channelBuffers.length : 1));
+    const channelData = Array.from({ length: usableChannels }, (_, ch) => new Float32Array(channelBuffers[ch] || channelBuffers[0] || totalSamples));
+    const time = measureTimeDomainFeatures(channelData, safeRate, totalSamples, usableChannels);
+    const spectrum = measureFftSpectrumFeatures(channelData, safeRate, totalSamples, usableChannels);
+
+    const brightness = spectrum.valid ? clamp01(spectrum.brightness * 0.78 + time.brightness * 0.22) : time.brightness;
+    const metallicHint = spectrum.valid ? clamp01(spectrum.metallicHint * 0.74 + time.metallicHint * 0.26) : time.metallicHint;
+    const bassRatio = spectrum.valid ? spectrum.bassRatio : time.bassRatio;
+    const lowMidRatio = spectrum.valid ? spectrum.lowMidRatio : time.lowMidRatio;
+    const midRatio = spectrum.valid ? spectrum.midRatio : time.midRatio;
+    const highRatio = spectrum.valid ? spectrum.highRatio : time.highRatio;
+    const transientDensity = spectrum.valid ? clamp01(time.transientDensity * 0.48 + spectrum.spectralFlux * 0.52) : time.transientDensity;
+    const loudnessIntegrated = measureKWeightedGatedLoudness(channelData, safeRate, totalSamples, usableChannels);
+    const loudnessHint = 20 * Math.log10(Math.max(0.000001, time.rms));
+    const peakDb = 20 * Math.log10(Math.max(0.000001, time.peak));
+    const headroomDb = -1.0 - peakDb;
+    const silence = time.rms < 0.00008 || time.peak < 0.0005;
+    const lowMonoScore = usableChannels >= 2 ? Math.round(clamp(((time.lowMonoCorrelation + 1) * 0.5) * 72 + (1 - clamp01(time.lowSideRatio)) * 28, 0, 100)) : 100;
+    const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
+    const spatialExcessRisk = usableChannels >= 2 ? clamp01(Math.max(0, time.stereoWidth - 0.58) * 1.25 + Math.max(0, time.lowSideRatio - 0.34) * 1.10 + Math.max(0, (spectrum.spectrumBands?.air || 0) - 0.16) * 0.72) : 0;
+    const estimatedTargetFreq = spectrum.valid ? spectrum.harshPeakHz : estimateTargetFrequency(time.zeroCrossRate);
+
+    return {
+        duration, sampleRate: safeRate, channels: usableChannels, totalSamples, peak: time.peak, peakDb, rms: time.rms, loudnessHint,
+        loudnessIntegrated, headroomDb, crest: time.crest, brightness, stereoWidth: time.stereoWidth, metallicHint,
+        zeroCrossRate: time.zeroCrossRate, bassRatio, lowMidRatio, midRatio, highRatio,
+        transientDensity, lowMonoCorrelation: time.lowMonoCorrelation, lowSideRatio: time.lowSideRatio, lowMonoScore, lowMonoRisk, silence,
+        spectralCentroidHz: spectrum.spectralCentroidHz, spectralRolloffHz: spectrum.spectralRolloffHz, spectralFlatness: spectrum.spectralFlatness,
+        spectralFlux: spectrum.spectralFlux, spectrumBands: spectrum.spectrumBands, spectrumProfile: spectrum.spectrumProfile,
+        subRatio: spectrum.spectrumBands?.sub || 0, presenceRatio: spectrum.spectrumBands?.presence || 0, airRatio: spectrum.spectrumBands?.air || 0,
+        spatialExcessRisk, widthRecommendationLimit: spatialExcessRisk > 0.52 || lowMonoScore < 70 ? 52 : spatialExcessRisk > 0.28 ? 60 : 72,
+        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling', targetDynamicFreq: estimatedTargetFreq
+    };
+}
+
+function measureTimeDomainFeatures(channelData, sampleRate, totalSamples, channels) {
     const step = Math.max(1, Math.floor(totalSamples / 240000));
-    const channelData = channelBuffers.map(buf => new Float32Array(buf));
     let peak = 0, sumSq = 0, count = 0, diffSum = 0, zeroCrossings = 0, prevMono = 0;
     let midSq = 0, sideSq = 0, stereoCount = 0, highFreqEnergy = 0, midHighEnergy = 0;
     let lowLeftLp = 0, lowRightLp = 0, lowLeftSq = 0, lowRightSq = 0, lowCrossSq = 0, lowMidMonoSq = 0, lowSideMonoSq = 0;
@@ -23,7 +59,6 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
     const c120 = lpCoeff(120), c700 = lpCoeff(700), c3500 = lpCoeff(3500);
     let lp120 = 0, lp700 = 0, lp3500 = 0;
     let bassSq = 0, lowMidSq = 0, midBandSq = 0, highBandSq = 0, transientHits = 0, bandCount = 0;
-
     for (let i = 0; i < totalSamples; i += step) {
         let mono = 0;
         for (let ch = 0; ch < channels; ch += 1) {
@@ -41,7 +76,6 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
         if (absDelta > 0.05 && absDelta <= 0.15) midHighEnergy += 1;
         if (absDelta > 0.11) transientHits += 1;
         if ((mono >= 0 && prevMono < 0) || (mono < 0 && prevMono >= 0)) zeroCrossings += 1;
-
         lp120 += c120 * (mono - lp120);
         lp700 += c700 * (mono - lp700);
         lp3500 += c3500 * (mono - lp3500);
@@ -55,7 +89,6 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
         highBandSq += highBand * highBand;
         bandCount += 1;
         prevMono = mono;
-
         if (channels >= 2) {
             const left = channelData[0][i] || 0;
             const right = channelData[1][i] || 0;
@@ -75,38 +108,193 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
             stereoCount += 1;
         }
     }
-
     const rms = Math.sqrt(sumSq / Math.max(1, count));
     const crest = peak / Math.max(0.000001, rms);
     const zcr = zeroCrossings / Math.max(1, totalSamples / step);
     const avgDiff = diffSum / Math.max(1, totalSamples / step);
     const brightness = clamp01((avgDiff / Math.max(0.0001, rms)) * 2.15 + zcr * 2.7);
     const stereoWidth = channels >= 2 ? clamp01(Math.sqrt(sideSq / Math.max(1, stereoCount)) / Math.max(0.0001, Math.sqrt(midSq / Math.max(1, stereoCount)))) : 0;
-    const loudnessHint = 20 * Math.log10(Math.max(0.000001, rms));
-    const peakDb = 20 * Math.log10(Math.max(0.000001, peak));
     const metallicHint = clamp01(brightness * 0.65 + (highFreqEnergy / Math.max(1, midHighEnergy)) * 0.3 + zcr * 1.5);
-    const silence = rms < 0.00008 || peak < 0.0005;
-    const loudnessIntegrated = measureKWeightedGatedLoudness(channelData, sampleRate, totalSamples, channels);
-    const headroomDb = -1.0 - peakDb;
-    const spectralTotal = Math.max(0.000000001, bassSq + lowMidSq + midBandSq + highBandSq);
-    const bassRatio = clamp01(bassSq / spectralTotal);
-    const lowMidRatio = clamp01(lowMidSq / spectralTotal);
-    const midRatio = clamp01(midBandSq / spectralTotal);
-    const highRatio = clamp01(highBandSq / spectralTotal);
-    const transientDensity = clamp01(transientHits / Math.max(1, bandCount) * 4.0);
+    const spectralTotal = Math.max(1e-9, bassSq + lowMidSq + midBandSq + highBandSq);
     const lowMonoCorrelation = channels >= 2 && stereoCount ? clamp(lowCrossSq / Math.sqrt(Math.max(1e-12, lowLeftSq * lowRightSq)), -1, 1) : 1;
     const lowSideRatio = channels >= 2 && stereoCount ? Math.sqrt(lowSideMonoSq / Math.max(1, stereoCount)) / Math.max(0.000001, Math.sqrt(lowMidMonoSq / Math.max(1, stereoCount))) : 0;
-    const lowMonoScore = channels >= 2 ? Math.round(clamp(((lowMonoCorrelation + 1) * 0.5) * 72 + (1 - clamp01(lowSideRatio)) * 28, 0, 100)) : 100;
-    const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
-    let estimatedTargetFreq = 5200;
-    if (zcr > 0.42) estimatedTargetFreq = 7400;
-    else if (zcr < 0.18) estimatedTargetFreq = 3100;
-    return {
-        duration, sampleRate, channels, totalSamples, peak, peakDb, rms, loudnessHint,
-        loudnessIntegrated, headroomDb, crest, brightness, stereoWidth, metallicHint,
-        zeroCrossRate: zcr, bassRatio, lowMidRatio, midRatio, highRatio,
-        transientDensity, lowMonoCorrelation, lowSideRatio, lowMonoScore, lowMonoRisk, silence, loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', targetDynamicFreq: estimatedTargetFreq
-    };
+    return { peak, rms, crest, zeroCrossRate: zcr, brightness, stereoWidth, metallicHint, bassRatio: clamp01(bassSq / spectralTotal), lowMidRatio: clamp01(lowMidSq / spectralTotal), midRatio: clamp01(midBandSq / spectralTotal), highRatio: clamp01(highBandSq / spectralTotal), transientDensity: clamp01(transientHits / Math.max(1, bandCount) * 4.0), lowMonoCorrelation, lowSideRatio };
+}
+
+function measureFftSpectrumFeatures(channelData, sampleRate, totalSamples, channels) {
+    const fftSize = chooseFftSize(sampleRate, totalSamples);
+    if (totalSamples < 128 || fftSize < 512) return makeEmptySpectrumFeatures();
+    const half = fftSize >> 1;
+    const hop = Math.max(128, fftSize >> 2);
+    const availableFrames = totalSamples <= fftSize ? 1 : Math.floor((totalSamples - fftSize) / hop) + 1;
+    const maxFrames = 320;
+    const frameStride = Math.max(1, Math.ceil(availableFrames / maxFrames));
+    const window = makeHannWindow(fftSize);
+    const real = new Float32Array(fftSize);
+    const imag = new Float32Array(fftSize);
+    const avgPower = new Float64Array(half);
+    const prevMag = new Float32Array(half);
+    const bandEnergy = { sub: 0, bass: 0, lowMid: 0, mid: 0, presence: 0, high: 0, air: 0 };
+    let totalPower = 0, centroidNum = 0, logMagSum = 0, magMeanSum = 0, fluxSum = 0, fluxFrames = 0, frameCount = 0;
+    let harshPeakPower = -Infinity, harshPeakHz = 5200;
+
+    for (let frame = 0; frame < availableFrames; frame += frameStride) {
+        const start = Math.min(Math.max(0, frame * hop), Math.max(0, totalSamples - fftSize));
+        real.fill(0);
+        imag.fill(0);
+        for (let i = 0; i < fftSize; i += 1) {
+            const index = start + i;
+            let mono = 0;
+            if (index < totalSamples) {
+                for (let ch = 0; ch < channels; ch += 1) mono += (channelData[ch][index] || 0) / channels;
+            }
+            real[i] = mono * window[i];
+        }
+        fftRadix2(real, imag);
+        let frameMagSum = 0;
+        let frameFlux = 0;
+        for (let bin = 1; bin < half; bin += 1) {
+            const re = real[bin], im = imag[bin];
+            const power = re * re + im * im;
+            const mag = Math.sqrt(power);
+            const freq = bin * sampleRate / fftSize;
+            avgPower[bin] += power;
+            totalPower += power;
+            centroidNum += freq * power;
+            logMagSum += Math.log(Math.max(1e-12, mag));
+            frameMagSum += mag;
+            if (frameCount > 0) frameFlux += Math.max(0, mag - prevMag[bin]);
+            prevMag[bin] = mag;
+            const band = getSpectrumBand(freq);
+            if (band) bandEnergy[band] += power;
+            if (freq >= 2600 && freq <= 8200 && power > harshPeakPower) {
+                harshPeakPower = power;
+                harshPeakHz = freq;
+            }
+        }
+        magMeanSum += frameMagSum / Math.max(1, half - 1);
+        if (frameCount > 0) {
+            fluxSum += frameFlux / Math.max(1e-9, frameMagSum);
+            fluxFrames += 1;
+        }
+        frameCount += 1;
+    }
+    if (!frameCount || totalPower <= 1e-12) return makeEmptySpectrumFeatures();
+    const total = Math.max(1e-12, Object.values(bandEnergy).reduce((sum, value) => sum + value, 0));
+    const bands = {};
+    Object.keys(bandEnergy).forEach(key => { bands[key] = clamp01(bandEnergy[key] / total); });
+    const bassRatio = clamp01((bandEnergy.sub + bandEnergy.bass) / total);
+    const lowMidRatio = clamp01(bandEnergy.lowMid / total);
+    const midRatio = clamp01((bandEnergy.mid + bandEnergy.presence * 0.35) / total);
+    const highRatio = clamp01((bandEnergy.presence * 0.65 + bandEnergy.high + bandEnergy.air) / total);
+    const centroid = centroidNum / totalPower;
+    const rolloff = findSpectralRolloff(avgPower, sampleRate, fftSize, totalPower * 0.85);
+    const geometricMean = Math.exp(logMagSum / Math.max(1, frameCount * (half - 1)));
+    const arithmeticMean = magMeanSum / Math.max(1, frameCount);
+    const flatness = clamp01(geometricMean / Math.max(1e-12, arithmeticMean));
+    const brightness = clamp01(normalizeLogFrequency(centroid, 380, 5600) * 0.62 + normalizeLogFrequency(rolloff, 1800, 15000) * 0.18 + highRatio * 0.48 + bands.air * 0.25);
+    const metallicHint = clamp01(bands.presence * 1.45 + bands.high * 0.95 + flatness * 0.32 + normalizeLogFrequency(harshPeakHz, 2800, 8200) * 0.12);
+    const spectralFlux = clamp01((fluxSum / Math.max(1, fluxFrames)) * 9.5);
+    const spectrumProfile = makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower);
+    return { valid: true, bassRatio, lowMidRatio, midRatio, highRatio, spectralCentroidHz: Math.round(centroid), spectralRolloffHz: Math.round(rolloff), spectralFlatness: Number(flatness.toFixed(4)), spectralFlux, brightness, metallicHint, spectrumBands: bands, spectrumProfile, harshPeakHz: Math.round(clamp(harshPeakHz, 2600, 8200)) };
+}
+
+function chooseFftSize(sampleRate, totalSamples) {
+    if (totalSamples < 2048) return 1024;
+    if (sampleRate >= 88200 && totalSamples >= 8192) return 8192;
+    return 4096;
+}
+
+function makeEmptySpectrumFeatures() {
+    return { valid: false, bassRatio: 0.25, lowMidRatio: 0.25, midRatio: 0.25, highRatio: 0.25, spectralCentroidHz: 0, spectralRolloffHz: 0, spectralFlatness: 0, spectralFlux: 0, brightness: 0.45, metallicHint: 0.35, spectrumBands: { sub: 0, bass: 0, lowMid: 0, mid: 0, presence: 0, high: 0, air: 0 }, spectrumProfile: [], harshPeakHz: 5200 };
+}
+
+function makeHannWindow(size) {
+    const window = new Float32Array(size);
+    const denom = Math.max(1, size - 1);
+    for (let i = 0; i < size; i += 1) window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / denom));
+    return window;
+}
+
+function fftRadix2(real, imag) {
+    const n = real.length;
+    for (let i = 1, j = 0; i < n; i += 1) {
+        let bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) {
+            const tr = real[i]; real[i] = real[j]; real[j] = tr;
+            const ti = imag[i]; imag[i] = imag[j]; imag[j] = ti;
+        }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+        const angle = -2 * Math.PI / len;
+        const wLenR = Math.cos(angle);
+        const wLenI = Math.sin(angle);
+        for (let i = 0; i < n; i += len) {
+            let wr = 1, wi = 0;
+            for (let j = 0; j < len / 2; j += 1) {
+                const uR = real[i + j], uI = imag[i + j];
+                const vR = real[i + j + len / 2] * wr - imag[i + j + len / 2] * wi;
+                const vI = real[i + j + len / 2] * wi + imag[i + j + len / 2] * wr;
+                real[i + j] = uR + vR;
+                imag[i + j] = uI + vI;
+                real[i + j + len / 2] = uR - vR;
+                imag[i + j + len / 2] = uI - vI;
+                const nextWr = wr * wLenR - wi * wLenI;
+                wi = wr * wLenI + wi * wLenR;
+                wr = nextWr;
+            }
+        }
+    }
+}
+
+function getSpectrumBand(freq) {
+    if (freq < 20 || freq > 22000) return null;
+    if (freq < 60) return 'sub';
+    if (freq < 160) return 'bass';
+    if (freq < 500) return 'lowMid';
+    if (freq < 2500) return 'mid';
+    if (freq < 6000) return 'presence';
+    if (freq < 12000) return 'high';
+    return 'air';
+}
+
+function findSpectralRolloff(avgPower, sampleRate, fftSize, threshold) {
+    let cumulative = 0;
+    for (let bin = 1; bin < avgPower.length; bin += 1) {
+        cumulative += avgPower[bin];
+        if (cumulative >= threshold) return bin * sampleRate / fftSize;
+    }
+    return sampleRate * 0.5;
+}
+
+function normalizeLogFrequency(freq, low, high) {
+    const value = Math.log10(Math.max(1, Number(freq || 0)));
+    const min = Math.log10(Math.max(1, low));
+    const max = Math.log10(Math.max(low + 1, high));
+    return clamp01((value - min) / Math.max(1e-9, max - min));
+}
+
+function makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower) {
+    const ranges = [
+        [20, 45], [45, 80], [80, 140], [140, 250], [250, 450], [450, 800],
+        [800, 1400], [1400, 2500], [2500, 4200], [4200, 6800], [6800, 11000], [11000, 18000]
+    ];
+    const denom = Math.max(1e-12, totalPower);
+    return ranges.map(([from, to]) => {
+        let sum = 0;
+        const start = Math.max(1, Math.floor(from * fftSize / sampleRate));
+        const end = Math.min(avgPower.length - 1, Math.ceil(to * fftSize / sampleRate));
+        for (let bin = start; bin <= end; bin += 1) sum += avgPower[bin];
+        return Number(clamp01(sum / denom).toFixed(5));
+    });
+}
+
+function estimateTargetFrequency(zcr) {
+    if (zcr > 0.42) return 7400;
+    if (zcr < 0.18) return 3100;
+    return 5200;
 }
 
 

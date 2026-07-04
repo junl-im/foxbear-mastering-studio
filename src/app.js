@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.28 - K-weighted LUFS + lookahead limiter update
+// FoxBear AI Mastering Studio Pro v1.3.29 - FFT analyzer + phase-safe reference matching update
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.28';
+const APP_VERSION = 'Pro v1.3.29';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1320';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1329';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -442,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.28';
+    styleLink.href = 'assets/css/studio.css?v=1.3.29';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -1093,7 +1093,7 @@ function updateRealtimePreviewSettings(track = getSelectedTrack()) {
     setAudioParam(nodes.compressor.attack, clamp(map(punch, 0, 100, .020, .006), .003, .026), now);
     setAudioParam(nodes.compressor.release, clamp(map(punch, 0, 100, .22, .12), .08, .32), now);
 
-    const widthValue = map(settings.width, 0, 100, 0.72, 1.42);
+    const widthValue = getPhaseSafeWidthFactor(settings, analysis, intensity, 0.72, 1.38);
     setRealtimeWidth(nodes.width, widthValue, now);
 
     setAudioParam(nodes.limiter.threshold, intensity.raw >= 155 ? -5.0 : -3.2, now);
@@ -1342,6 +1342,7 @@ function renderReferencePanel() {
                 ['저역', `${Math.round(Number(a.bassRatio || 0) * 100)}%`],
                 ['밝기', `${Math.round(Number(a.brightness || 0) * 100)}%`],
                 ['공간', `${Math.round(Number(a.stereoWidth || 0) * 100)}%`],
+                ['FFT', `${Math.round(Number(a.spectralCentroidHz || 0)) || '-'}Hz`],
                 ['모노', formatMonoScore(a)]
             ].forEach(([label, value]) => el.referenceMetrics.appendChild(makeSmartSuggestionPill(label, value, 'neutral')));
         }
@@ -2726,45 +2727,80 @@ async function analyzeBufferAsync(buffer) {
 }
 
 function analyzeBuffer(buffer) {
-    const channels = buffer.numberOfChannels;
-    const totalSamples = buffer.length;
-    const step = Math.max(1, Math.floor(totalSamples / 240000));
+    const channels = Math.max(1, Math.min(buffer.numberOfChannels || 1, 32));
+    const totalSamples = Math.max(0, buffer.length || 0);
     const channelData = [];
     for (let ch = 0; ch < channels; ch += 1) channelData.push(buffer.getChannelData(ch));
+    const time = measureTimeDomainFeatures(channelData, buffer.sampleRate, totalSamples, channels);
+    const spectrum = measureFftSpectrumFeatures(channelData, buffer.sampleRate, totalSamples, channels);
+    const brightness = spectrum.valid ? clamp01(spectrum.brightness * 0.78 + time.brightness * 0.22) : time.brightness;
+    const metallicHint = spectrum.valid ? clamp01(spectrum.metallicHint * 0.74 + time.metallicHint * 0.26) : time.metallicHint;
+    const bassRatio = spectrum.valid ? spectrum.bassRatio : time.bassRatio;
+    const lowMidRatio = spectrum.valid ? spectrum.lowMidRatio : time.lowMidRatio;
+    const midRatio = spectrum.valid ? spectrum.midRatio : time.midRatio;
+    const highRatio = spectrum.valid ? spectrum.highRatio : time.highRatio;
+    const transientDensity = spectrum.valid ? clamp01(time.transientDensity * 0.48 + spectrum.spectralFlux * 0.52) : time.transientDensity;
+    const loudnessIntegrated = measureKWeightedGatedLoudness(buffer);
+    const loudnessHint = 20 * Math.log10(Math.max(0.000001, time.rms));
+    const peakDb = 20 * Math.log10(Math.max(0.000001, time.peak));
+    const headroomDb = -1.0 - peakDb;
+    const silence = time.rms < 0.00008 || time.peak < 0.0005;
+    const lowMonoScore = channels >= 2 ? Math.round(clamp(((time.lowMonoCorrelation + 1) * 0.5) * 72 + (1 - clamp01(time.lowSideRatio)) * 28, 0, 100)) : 100;
+    const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
+    const spatialExcessRisk = channels >= 2 ? clamp01(Math.max(0, time.stereoWidth - 0.58) * 1.25 + Math.max(0, time.lowSideRatio - 0.34) * 1.10 + Math.max(0, (spectrum.spectrumBands?.air || 0) - 0.16) * 0.72) : 0;
+    return {
+        duration: buffer.duration,
+        sampleRate: buffer.sampleRate,
+        channels,
+        totalSamples,
+        peak: time.peak,
+        peakDb,
+        rms: time.rms,
+        loudnessHint,
+        crest: time.crest,
+        brightness,
+        stereoWidth: time.stereoWidth,
+        metallicHint,
+        zeroCrossRate: time.zeroCrossRate,
+        loudnessIntegrated,
+        headroomDb,
+        bassRatio,
+        lowMidRatio,
+        midRatio,
+        highRatio,
+        transientDensity,
+        lowMonoCorrelation: time.lowMonoCorrelation,
+        lowSideRatio: time.lowSideRatio,
+        lowMonoScore,
+        lowMonoRisk,
+        silence,
+        spectralCentroidHz: spectrum.spectralCentroidHz,
+        spectralRolloffHz: spectrum.spectralRolloffHz,
+        spectralFlatness: spectrum.spectralFlatness,
+        spectralFlux: spectrum.spectralFlux,
+        spectrumBands: spectrum.spectrumBands,
+        spectrumProfile: spectrum.spectrumProfile,
+        subRatio: spectrum.spectrumBands?.sub || 0,
+        presenceRatio: spectrum.spectrumBands?.presence || 0,
+        airRatio: spectrum.spectrumBands?.air || 0,
+        spatialExcessRisk,
+        widthRecommendationLimit: spatialExcessRisk > 0.52 || lowMonoScore < 70 ? 52 : spatialExcessRisk > 0.28 ? 60 : 72,
+        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
+        analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling',
+        targetDynamicFreq: spectrum.valid ? spectrum.harshPeakHz : estimateTargetFrequency(time.zeroCrossRate)
+    };
+}
 
-    let peak = 0;
-    let sumSq = 0;
-    let count = 0;
-    let diffSum = 0;
-    let zeroCrossings = 0;
-    let prevMono = 0;
-    let midSq = 0;
-    let sideSq = 0;
-    let stereoCount = 0;
-    let lowLeftLp = 0;
-    let lowRightLp = 0;
-    let lowLeftSq = 0;
-    let lowRightSq = 0;
-    let lowCrossSq = 0;
-    let lowMidMonoSq = 0;
-    let lowSideMonoSq = 0;
-    let highFreqEnergy = 0;
-    let midHighEnergy = 0;
-    const effectiveRate = Math.max(1000, buffer.sampleRate / step);
+function measureTimeDomainFeatures(channelData, sampleRate, totalSamples, channels) {
+    const step = Math.max(1, Math.floor(totalSamples / 240000));
+    let peak = 0, sumSq = 0, count = 0, diffSum = 0, zeroCrossings = 0, prevMono = 0;
+    let midSq = 0, sideSq = 0, stereoCount = 0, highFreqEnergy = 0, midHighEnergy = 0;
+    let lowLeftLp = 0, lowRightLp = 0, lowLeftSq = 0, lowRightSq = 0, lowCrossSq = 0, lowMidMonoSq = 0, lowSideMonoSq = 0;
+    const effectiveRate = Math.max(1000, sampleRate / step);
     const lpCoeff = freq => clamp(1 - Math.exp(-2 * Math.PI * freq / effectiveRate), 0.001, 0.98);
-    const c120 = lpCoeff(120);
-    const c700 = lpCoeff(700);
-    const c3500 = lpCoeff(3500);
-    let lp120 = 0;
-    let lp700 = 0;
-    let lp3500 = 0;
-    let bassSq = 0;
-    let lowMidSq = 0;
-    let midBandSq = 0;
-    let highBandSq = 0;
-    let transientHits = 0;
-    let bandCount = 0;
-
+    const c120 = lpCoeff(120), c700 = lpCoeff(700), c3500 = lpCoeff(3500);
+    let lp120 = 0, lp700 = 0, lp3500 = 0;
+    let bassSq = 0, lowMidSq = 0, midBandSq = 0, highBandSq = 0, transientHits = 0, bandCount = 0;
     for (let i = 0; i < totalSamples; i += step) {
         let mono = 0;
         for (let ch = 0; ch < channels; ch += 1) {
@@ -2775,15 +2811,13 @@ function analyzeBuffer(buffer) {
             mono += sample / channels;
             count += 1;
         }
-
         const delta = mono - prevMono;
-        diffSum += Math.abs(delta);
         const absDelta = Math.abs(delta);
+        diffSum += absDelta;
         if (absDelta > 0.15) highFreqEnergy += 1;
         if (absDelta > 0.05 && absDelta <= 0.15) midHighEnergy += 1;
         if (absDelta > 0.11) transientHits += 1;
         if ((mono >= 0 && prevMono < 0) || (mono < 0 && prevMono >= 0)) zeroCrossings += 1;
-
         lp120 += c120 * (mono - lp120);
         lp700 += c700 * (mono - lp700);
         lp3500 += c3500 * (mono - lp3500);
@@ -2796,9 +2830,7 @@ function analyzeBuffer(buffer) {
         midBandSq += midBand * midBand;
         highBandSq += highBand * highBand;
         bandCount += 1;
-
         prevMono = mono;
-
         if (channels >= 2) {
             const left = channelData[0][i] || 0;
             const right = channelData[1][i] || 0;
@@ -2818,63 +2850,191 @@ function analyzeBuffer(buffer) {
             stereoCount += 1;
         }
     }
-
     const rms = Math.sqrt(sumSq / Math.max(1, count));
     const crest = peak / Math.max(0.000001, rms);
     const zcr = zeroCrossings / Math.max(1, totalSamples / step);
     const avgDiff = diffSum / Math.max(1, totalSamples / step);
     const brightness = clamp01((avgDiff / Math.max(0.0001, rms)) * 2.15 + zcr * 2.7);
     const stereoWidth = channels >= 2 ? clamp01(Math.sqrt(sideSq / Math.max(1, stereoCount)) / Math.max(0.0001, Math.sqrt(midSq / Math.max(1, stereoCount)))) : 0;
-    const loudnessHint = 20 * Math.log10(Math.max(0.000001, rms));
-    const peakDb = 20 * Math.log10(Math.max(0.000001, peak));
     const metallicHint = clamp01(brightness * 0.65 + (highFreqEnergy / Math.max(1, midHighEnergy)) * 0.3 + zcr * 1.5);
-    const silence = rms < 0.00008 || peak < 0.0005;
-    const loudnessIntegrated = measureKWeightedGatedLoudness(buffer);
-    const headroomDb = -1.0 - peakDb;
-    const spectralTotal = Math.max(0.000000001, bassSq + lowMidSq + midBandSq + highBandSq);
-    const bassRatio = clamp01(bassSq / spectralTotal);
-    const lowMidRatio = clamp01(lowMidSq / spectralTotal);
-    const midRatio = clamp01(midBandSq / spectralTotal);
-    const highRatio = clamp01(highBandSq / spectralTotal);
-    const transientDensity = clamp01(transientHits / Math.max(1, bandCount) * 4.0);
+    const spectralTotal = Math.max(1e-9, bassSq + lowMidSq + midBandSq + highBandSq);
     const lowMonoCorrelation = channels >= 2 && stereoCount ? clamp(lowCrossSq / Math.sqrt(Math.max(1e-12, lowLeftSq * lowRightSq)), -1, 1) : 1;
     const lowSideRatio = channels >= 2 && stereoCount ? Math.sqrt(lowSideMonoSq / Math.max(1, stereoCount)) / Math.max(0.000001, Math.sqrt(lowMidMonoSq / Math.max(1, stereoCount))) : 0;
-    const lowMonoScore = channels >= 2 ? Math.round(clamp(((lowMonoCorrelation + 1) * 0.5) * 72 + (1 - clamp01(lowSideRatio)) * 28, 0, 100)) : 100;
-    const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
+    return { peak, rms, crest, zeroCrossRate: zcr, brightness, stereoWidth, metallicHint, bassRatio: clamp01(bassSq / spectralTotal), lowMidRatio: clamp01(lowMidSq / spectralTotal), midRatio: clamp01(midBandSq / spectralTotal), highRatio: clamp01(highBandSq / spectralTotal), transientDensity: clamp01(transientHits / Math.max(1, bandCount) * 4.0), lowMonoCorrelation, lowSideRatio };
+}
 
-    let estimatedTargetFreq = 5200;
-    if (zcr > 0.42) estimatedTargetFreq = 7400;
-    else if (zcr < 0.18) estimatedTargetFreq = 3100;
+function measureFftSpectrumFeatures(channelData, sampleRate, totalSamples, channels) {
+    const fftSize = chooseFftSize(sampleRate, totalSamples);
+    if (totalSamples < 128 || fftSize < 512) return makeEmptySpectrumFeatures();
+    const half = fftSize >> 1;
+    const hop = Math.max(128, fftSize >> 2);
+    const availableFrames = totalSamples <= fftSize ? 1 : Math.floor((totalSamples - fftSize) / hop) + 1;
+    const maxFrames = 320;
+    const frameStride = Math.max(1, Math.ceil(availableFrames / maxFrames));
+    const window = makeHannWindow(fftSize);
+    const real = new Float32Array(fftSize);
+    const imag = new Float32Array(fftSize);
+    const avgPower = new Float64Array(half);
+    const prevMag = new Float32Array(half);
+    const bandEnergy = { sub: 0, bass: 0, lowMid: 0, mid: 0, presence: 0, high: 0, air: 0 };
+    let totalPower = 0, centroidNum = 0, logMagSum = 0, magMeanSum = 0, fluxSum = 0, fluxFrames = 0, frameCount = 0;
+    let harshPeakPower = -Infinity, harshPeakHz = 5200;
+    for (let frame = 0; frame < availableFrames; frame += frameStride) {
+        const start = Math.min(Math.max(0, frame * hop), Math.max(0, totalSamples - fftSize));
+        real.fill(0);
+        imag.fill(0);
+        for (let i = 0; i < fftSize; i += 1) {
+            const index = start + i;
+            let mono = 0;
+            if (index < totalSamples) {
+                for (let ch = 0; ch < channels; ch += 1) mono += (channelData[ch][index] || 0) / channels;
+            }
+            real[i] = mono * window[i];
+        }
+        fftRadix2(real, imag);
+        let frameMagSum = 0, frameFlux = 0;
+        for (let bin = 1; bin < half; bin += 1) {
+            const re = real[bin], im = imag[bin];
+            const power = re * re + im * im;
+            const mag = Math.sqrt(power);
+            const freq = bin * sampleRate / fftSize;
+            avgPower[bin] += power;
+            totalPower += power;
+            centroidNum += freq * power;
+            logMagSum += Math.log(Math.max(1e-12, mag));
+            frameMagSum += mag;
+            if (frameCount > 0) frameFlux += Math.max(0, mag - prevMag[bin]);
+            prevMag[bin] = mag;
+            const band = getSpectrumBand(freq);
+            if (band) bandEnergy[band] += power;
+            if (freq >= 2600 && freq <= 8200 && power > harshPeakPower) {
+                harshPeakPower = power;
+                harshPeakHz = freq;
+            }
+        }
+        magMeanSum += frameMagSum / Math.max(1, half - 1);
+        if (frameCount > 0) {
+            fluxSum += frameFlux / Math.max(1e-9, frameMagSum);
+            fluxFrames += 1;
+        }
+        frameCount += 1;
+    }
+    if (!frameCount || totalPower <= 1e-12) return makeEmptySpectrumFeatures();
+    const total = Math.max(1e-12, Object.values(bandEnergy).reduce((sum, value) => sum + value, 0));
+    const bands = {};
+    Object.keys(bandEnergy).forEach(key => { bands[key] = clamp01(bandEnergy[key] / total); });
+    const bassRatio = clamp01((bandEnergy.sub + bandEnergy.bass) / total);
+    const lowMidRatio = clamp01(bandEnergy.lowMid / total);
+    const midRatio = clamp01((bandEnergy.mid + bandEnergy.presence * 0.35) / total);
+    const highRatio = clamp01((bandEnergy.presence * 0.65 + bandEnergy.high + bandEnergy.air) / total);
+    const centroid = centroidNum / totalPower;
+    const rolloff = findSpectralRolloff(avgPower, sampleRate, fftSize, totalPower * 0.85);
+    const geometricMean = Math.exp(logMagSum / Math.max(1, frameCount * (half - 1)));
+    const arithmeticMean = magMeanSum / Math.max(1, frameCount);
+    const flatness = clamp01(geometricMean / Math.max(1e-12, arithmeticMean));
+    const brightness = clamp01(normalizeLogFrequency(centroid, 380, 5600) * 0.62 + normalizeLogFrequency(rolloff, 1800, 15000) * 0.18 + highRatio * 0.48 + bands.air * 0.25);
+    const metallicHint = clamp01(bands.presence * 1.45 + bands.high * 0.95 + flatness * 0.32 + normalizeLogFrequency(harshPeakHz, 2800, 8200) * 0.12);
+    const spectralFlux = clamp01((fluxSum / Math.max(1, fluxFrames)) * 9.5);
+    const spectrumProfile = makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower);
+    return { valid: true, bassRatio, lowMidRatio, midRatio, highRatio, spectralCentroidHz: Math.round(centroid), spectralRolloffHz: Math.round(rolloff), spectralFlatness: Number(flatness.toFixed(4)), spectralFlux, brightness, metallicHint, spectrumBands: bands, spectrumProfile, harshPeakHz: Math.round(clamp(harshPeakHz, 2600, 8200)) };
+}
 
-    return {
-        duration: buffer.duration,
-        sampleRate: buffer.sampleRate,
-        channels,
-        totalSamples,
-        peak,
-        peakDb,
-        rms,
-        loudnessHint,
-        crest,
-        brightness,
-        stereoWidth,
-        metallicHint,
-        zeroCrossRate: zcr,
-        loudnessIntegrated,
-        headroomDb,
-        bassRatio,
-        lowMidRatio,
-        midRatio,
-        highRatio,
-        transientDensity,
-        lowMonoCorrelation,
-        lowSideRatio,
-        lowMonoScore,
-        lowMonoRisk,
-        silence,
-        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
-        targetDynamicFreq: estimatedTargetFreq
-    };
+function chooseFftSize(sampleRate, totalSamples) {
+    if (totalSamples < 2048) return 1024;
+    if (sampleRate >= 88200 && totalSamples >= 8192) return 8192;
+    return 4096;
+}
+
+function makeEmptySpectrumFeatures() {
+    return { valid: false, bassRatio: 0.25, lowMidRatio: 0.25, midRatio: 0.25, highRatio: 0.25, spectralCentroidHz: 0, spectralRolloffHz: 0, spectralFlatness: 0, spectralFlux: 0, brightness: 0.45, metallicHint: 0.35, spectrumBands: { sub: 0, bass: 0, lowMid: 0, mid: 0, presence: 0, high: 0, air: 0 }, spectrumProfile: [], harshPeakHz: 5200 };
+}
+
+function makeHannWindow(size) {
+    const window = new Float32Array(size);
+    const denom = Math.max(1, size - 1);
+    for (let i = 0; i < size; i += 1) window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / denom));
+    return window;
+}
+
+function fftRadix2(real, imag) {
+    const n = real.length;
+    for (let i = 1, j = 0; i < n; i += 1) {
+        let bit = n >> 1;
+        for (; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) {
+            const tr = real[i]; real[i] = real[j]; real[j] = tr;
+            const ti = imag[i]; imag[i] = imag[j]; imag[j] = ti;
+        }
+    }
+    for (let len = 2; len <= n; len <<= 1) {
+        const angle = -2 * Math.PI / len;
+        const wLenR = Math.cos(angle);
+        const wLenI = Math.sin(angle);
+        for (let i = 0; i < n; i += len) {
+            let wr = 1, wi = 0;
+            for (let j = 0; j < len / 2; j += 1) {
+                const uR = real[i + j], uI = imag[i + j];
+                const vR = real[i + j + len / 2] * wr - imag[i + j + len / 2] * wi;
+                const vI = real[i + j + len / 2] * wi + imag[i + j + len / 2] * wr;
+                real[i + j] = uR + vR;
+                imag[i + j] = uI + vI;
+                real[i + j + len / 2] = uR - vR;
+                imag[i + j + len / 2] = uI - vI;
+                const nextWr = wr * wLenR - wi * wLenI;
+                wi = wr * wLenI + wi * wLenR;
+                wr = nextWr;
+            }
+        }
+    }
+}
+
+function getSpectrumBand(freq) {
+    if (freq < 20 || freq > 22000) return null;
+    if (freq < 60) return 'sub';
+    if (freq < 160) return 'bass';
+    if (freq < 500) return 'lowMid';
+    if (freq < 2500) return 'mid';
+    if (freq < 6000) return 'presence';
+    if (freq < 12000) return 'high';
+    return 'air';
+}
+
+function findSpectralRolloff(avgPower, sampleRate, fftSize, threshold) {
+    let cumulative = 0;
+    for (let bin = 1; bin < avgPower.length; bin += 1) {
+        cumulative += avgPower[bin];
+        if (cumulative >= threshold) return bin * sampleRate / fftSize;
+    }
+    return sampleRate * 0.5;
+}
+
+function normalizeLogFrequency(freq, low, high) {
+    const value = Math.log10(Math.max(1, Number(freq || 0)));
+    const min = Math.log10(Math.max(1, low));
+    const max = Math.log10(Math.max(low + 1, high));
+    return clamp01((value - min) / Math.max(1e-9, max - min));
+}
+
+function makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower) {
+    const ranges = [
+        [20, 45], [45, 80], [80, 140], [140, 250], [250, 450], [450, 800],
+        [800, 1400], [1400, 2500], [2500, 4200], [4200, 6800], [6800, 11000], [11000, 18000]
+    ];
+    const denom = Math.max(1e-12, totalPower);
+    return ranges.map(([from, to]) => {
+        let sum = 0;
+        const start = Math.max(1, Math.floor(from * fftSize / sampleRate));
+        const end = Math.min(avgPower.length - 1, Math.ceil(to * fftSize / sampleRate));
+        for (let bin = start; bin <= end; bin += 1) sum += avgPower[bin];
+        return Number(clamp01(sum / denom).toFixed(5));
+    });
+}
+
+function estimateTargetFrequency(zcr) {
+    if (zcr > 0.42) return 7400;
+    if (zcr < 0.18) return 3100;
+    return 5200;
 }
 
 
@@ -3104,7 +3264,7 @@ function recommendPreset(fileName, analysis) {
     if (analysis.silence) return { preset: 'custom', confidence: 0, reason: '무음 또는 매우 작은 신호로 분석 보류', alternatives: [] };
 
     const features = extractGenreFeatures(analysis);
-    const { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, high, transient } = features;
+    const { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk } = features;
 
     // 자동 장르 판별은 파일명 키워드 + 오디오 특징을 같이 봅니다.
     // 파일명 힌트가 없을 때는 Future Bass/House/Drill 같은 세부 장르가 과하게 선택되지 않도록 보수적으로 처리합니다.
@@ -3141,7 +3301,9 @@ function recommendPreset(fileName, analysis) {
             Math.abs(punch - p.p) * 1.28 +
             Math.abs(dark - p.d) * 0.72 +
             Math.abs(metallic - p.m) * 0.54 +
-            Math.abs(loud - p.l) * 0.48;
+            Math.abs(loud - p.l) * 0.48 +
+            Math.abs(centroidNorm - p.b) * 0.28 +
+            Math.abs(high - Math.max(0.12, p.b * 0.42)) * 0.20;
         scores[key] = 5.0 - distance * 3.15 + p.prior;
     });
 
@@ -3156,7 +3318,13 @@ function recommendPreset(fileName, analysis) {
     scores.acoustic += (1 - bass) * 0.14 + (1 - high) * 0.12 + soft * 0.14;
     scores.rock += transient * 0.22 + punch * 0.18 + lowMid * 0.12;
     scores.edm += high * 0.18 + transient * 0.22 + bass * 0.16;
-    scores.futurebass += (bass > 0.24 && high > 0.18 && wide > 0.58 && punch < 0.62) ? 0.18 : -0.82;
+    scores.dance += presence * 0.10 + rolloffNorm * 0.10;
+    scores.trap += sub * 0.20 + Math.max(0, bass - lowMid) * 0.18;
+    scores.rnb += lowMid * 0.12 + Math.max(0, 0.20 - air) * 0.10;
+    scores.acoustic -= Math.max(0, air - 0.12) * 0.32;
+    scores.spatial -= spatialRisk * 0.52;
+    scores.cinematic -= spatialRisk > 0.45 ? 0.20 : 0;
+    scores.futurebass += (bass > 0.24 && high > 0.18 && wide > 0.58 && punch < 0.62 && spatialRisk < 0.45) ? 0.18 : -0.82;
     scores.house += (transient > 0.32 && punch > 0.48 && bass > 0.18) ? 0.16 : -0.26;
     scores.synthpop += (high > 0.20 && metallic > 0.44 && punch < 0.58) ? 0.10 : -0.22;
 
@@ -3204,7 +3372,7 @@ function recommendPreset(fileName, analysis) {
         lofi: bright < 0.36 && punch < 0.36 && dark > 0.60,
         acoustic: wide < 0.34 && punch < 0.34 && loud < 0.48 && metallic < 0.44,
         cinematic: wide > 0.48 && soft > 0.42 && lowMid > 0.20,
-        spatial: wide > 0.58 && high > 0.20 && punch < 0.58,
+        spatial: wide > 0.58 && high > 0.20 && punch < 0.58 && spatialRisk < 0.50,
         tape: dark > 0.56 && lowMid > 0.22 && metallic < 0.48,
         punch: punch > 0.62 && transient > 0.36
     };
@@ -3273,12 +3441,19 @@ function extractGenreFeatures(analysis) {
     const dark = 1 - bright;
     const metallic = clamp01(analysis.metallicHint || 0);
     const loud = clamp01((analysis.loudnessHint + 32) / 22);
+    const bands = analysis.spectrumBands || {};
+    const sub = clamp01(bands.sub ?? analysis.subRatio ?? 0.05);
     const bass = clamp01(analysis.bassRatio ?? 0.25);
     const lowMid = clamp01(analysis.lowMidRatio ?? 0.25);
     const mid = clamp01(analysis.midRatio ?? 0.25);
     const high = clamp01(analysis.highRatio ?? 0.25);
+    const presence = clamp01(bands.presence ?? analysis.presenceRatio ?? high * 0.45);
+    const air = clamp01(bands.air ?? analysis.airRatio ?? high * 0.20);
     const transient = clamp01(analysis.transientDensity ?? 0);
-    return { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, mid, high, transient };
+    const centroidNorm = Number(analysis.spectralCentroidHz) > 0 ? normalizeLogFrequency(Number(analysis.spectralCentroidHz), 380, 5600) : bright;
+    const rolloffNorm = Number(analysis.spectralRolloffHz) > 0 ? normalizeLogFrequency(Number(analysis.spectralRolloffHz), 1800, 15000) : bright;
+    const spatialRisk = clamp01(analysis.spatialExcessRisk || 0);
+    return { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, mid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk };
 }
 
 function keywordHit(haystack, keywords) {
@@ -3293,6 +3468,8 @@ function makeGenreReason(preset, features, alternatives, mode) {
     parts.push(`저역 ${Math.round(features.bass * 100)}%`);
     parts.push(`고역 ${Math.round(features.high * 100)}%`);
     parts.push(`금속성 ${Math.round(features.metallic * 100)}%`);
+    if (Number.isFinite(features.centroidNorm)) parts.push(`FFT중심 ${Math.round(features.centroidNorm * 100)}%`);
+    if (features.spatialRisk > 0.28) parts.push(`과공간 위험 ${Math.round(features.spatialRisk * 100)}%`);
     const top = alternatives.map(item => `${item.label} ${item.score}`).join(' / ');
     return `${PRESET_LABELS[preset] || preset} 판단 · ${mode} · ${parts.join(' · ')} · 후보 ${top}`;
 }
@@ -3308,6 +3485,8 @@ function makeRecommendedSettings(preset, analysis) {
     const bright = analysis.brightness;
     const wide = analysis.stereoWidth;
     const crestNorm = clamp01((analysis.crest - 2.2) / 8.5);
+    const spatialRisk = clamp01(Number(analysis.spatialExcessRisk || 0));
+    const widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 72;
 
     base.clarity = clamp(Math.round(base.clarity + (0.48 - bright) * 10), 8, 82);
     base.warmth = clamp(Math.round(base.warmth + (bright - 0.52) * 7), 10, 86);
@@ -3327,7 +3506,15 @@ function makeRecommendedSettings(preset, analysis) {
     if (analysis.metallicHint > 0.72) base.clarity = clamp(base.clarity - 4, 8, 78);
     if (analysis.crest > 5.8) base.intensity = clamp(base.intensity + 5, 50, 200);
     if (analysis.metallicHint > 0.7) base.intensity = clamp(base.intensity + 5, 50, 200);
+    if (spatialRisk > 0.24 || Number(analysis.lowMonoScore || 100) < 78 || wide > 0.56) {
+        base.width = clamp(Math.min(base.width, widthLimit) - Math.round(spatialRisk * 7), 10, 68);
+        base.stereoGroove = clamp(Math.round(base.stereoGroove - spatialRisk * 9 - Math.max(0, wide - 0.56) * 12), 0, 24);
+    }
     applyReferenceToSettings(base, analysis);
+    if (spatialRisk > 0.24 || Number(analysis.lowMonoScore || 100) < 78) {
+        base.width = clamp(Math.min(base.width, widthLimit), 10, 68);
+        base.stereoGroove = clamp(base.stereoGroove, 0, 24);
+    }
     return base;
 }
 
@@ -3335,15 +3522,22 @@ function applyReferenceToSettings(settings, analysis) {
     const ref = state.referenceProfile?.status === 'ready' ? state.referenceProfile.target : null;
     if (!settings || !analysis || !ref) return settings;
     const brightDelta = clamp(Number(ref.brightness || 0.5) - Number(analysis.brightness || 0.5), -0.55, 0.55);
-    const widthDelta = clamp(Number(ref.stereoWidth || 0.35) - Number(analysis.stereoWidth || 0.35), -0.50, 0.50);
+    let widthDelta = clamp(Number(ref.stereoWidth || 0.35) - Number(analysis.stereoWidth || 0.35), -0.50, 0.50);
     const bassDelta = clamp(Number(ref.bass || 0.25) - Number(analysis.bassRatio || 0.25), -0.45, 0.45);
     const punchDelta = clamp(Number(ref.transientDensity || 0.35) - Number(analysis.transientDensity || 0.35), -0.50, 0.50);
     const metallicDelta = clamp(Number(ref.metallicHint || 0.4) - Number(analysis.metallicHint || 0.4), -0.50, 0.50);
-    settings.clarity = clamp(Math.round(settings.clarity + brightDelta * 12), 8, 82);
-    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 10 - brightDelta * 3), 10, 86);
-    settings.width = clamp(Math.round(settings.width + widthDelta * 16), 10, 78);
-    settings.dynamicPunch = clamp(Math.round(settings.dynamicPunch + punchDelta * 12), 10, 82);
-    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 8), 18, 82);
+    const spectrumDelta = getSpectrumProfileDelta(ref, analysis);
+    const spatialRisk = clamp01(Number(analysis.spatialExcessRisk || 0));
+    if (widthDelta > 0 && (spatialRisk > 0.20 || Number(analysis.lowMonoScore || 100) < 82 || Number(analysis.stereoWidth || 0) > 0.54)) {
+        widthDelta *= clamp(1 - spatialRisk * 1.15, 0.18, 0.62);
+    }
+    settings.clarity = clamp(Math.round(settings.clarity + brightDelta * 10 + spectrumDelta.presence * 16 + spectrumDelta.air * 10), 8, 82);
+    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 8 + spectrumDelta.low * 10 - brightDelta * 3), 10, 86);
+    settings.width = clamp(Math.round(settings.width + widthDelta * 12), 10, 76);
+    settings.dynamicPunch = clamp(Math.round(settings.dynamicPunch + punchDelta * 10), 10, 82);
+    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 8 + Math.max(0, -spectrumDelta.presence) * 10), 18, 84);
+    const widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 72;
+    if (spatialRisk > 0.24 || Number(analysis.lowMonoScore || 100) < 78) settings.width = clamp(Math.min(settings.width, widthLimit), 10, 68);
     return settings;
 }
 
@@ -4191,8 +4385,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createVocalFocusPlusNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createMelodyPreserveNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createProfileEqChain(context, node, preset, intensity);
-    const widthBase = map(effectiveSettings.width, 0, 100, 0.82, 1.25);
-    const widthScaled = 1 + (widthBase - 1) * clamp(intensity.amount, 0.65, 1.85);
+    const widthScaled = getPhaseSafeWidthFactor(effectiveSettings, analysis, intensity, 0.82, 1.22);
     node = createStereoWidthNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, widthScaled);
     node = createStereoGrooveNode(context, node, effectiveSettings.stereoGroove, intensity);
     node = createPhaseSafeNode(context, node, renderChannels === 2 && sourceBuffer.numberOfChannels >= 2, effectiveSettings, analysis, intensity);
@@ -4230,6 +4423,8 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
     const bass = Number(analysis.bassRatio || 0);
     const high = Number(analysis.highRatio || 0);
     const transient = Number(analysis.transientDensity || 0);
+    const spatialRisk = clamp01(Number(analysis.spatialExcessRisk || 0));
+    const lowMonoScore = Number(analysis.lowMonoScore || 100);
     const isCustom = preset === 'custom';
     const guardStrength = isCustom ? 0.55 : 1;
 
@@ -4250,6 +4445,11 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
     }
     if (Number(out.intensity) >= 170 && (metallic > 0.7 || high > 0.48)) {
         out.intensity = clamp(Math.round(Number(out.intensity) - 10), 50, 200);
+    }
+    if (spatialRisk > 0.24 || lowMonoScore < 78 || Number(analysis.stereoWidth || 0) > 0.58) {
+        const widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 64;
+        out.width = clamp(Math.min(Number(out.width || 50), widthLimit) - Math.round(spatialRisk * 8), 8, 68);
+        out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) - spatialRisk * 10 - Math.max(0, 78 - lowMonoScore) * 0.18), 0, 24);
     }
     return out;
 }
@@ -4534,28 +4734,29 @@ function createPresetReferenceMatchNode(context, input, preset, settings, analys
     const brightness = clamp01(Number(analysis.brightness ?? target.brightness));
     const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
     const scale = clamp(0.38 + intensity.amount * 0.23, 0.42, 0.92);
+    const spectralDelta = getSpectrumProfileDelta(target, analysis);
 
     const low = context.createBiquadFilter();
     low.type = 'lowshelf';
     low.frequency.value = preset === 'edm' || preset === 'trap' || preset === 'drill' ? 92 : 125;
-    low.gain.value = clamp((target.bass - bass) * 3.2 * scale, -0.75, 0.78);
+    low.gain.value = clamp(((target.bass - bass) * 2.4 + spectralDelta.low * 1.4) * scale, -0.72, 0.72);
 
     const body = context.createBiquadFilter();
     body.type = 'peaking';
     body.frequency.value = target.lowMid > 0.30 ? 360 : 420;
     body.Q.value = 0.82;
-    body.gain.value = clamp((target.lowMid - lowMid) * 2.1 * scale, -0.62, 0.58);
+    body.gain.value = clamp(((target.lowMid - lowMid) * 1.6 + spectralDelta.body * 1.1) * scale, -0.58, 0.54);
 
     const presence = context.createBiquadFilter();
     presence.type = 'peaking';
     presence.frequency.value = preset === 'punch' || preset === 'rock' ? 1800 : 2350;
     presence.Q.value = 0.92;
-    presence.gain.value = clamp((target.mid - mid) * 1.65 * scale - Math.max(0, metallic - 0.58) * 0.18, -0.52, 0.48);
+    presence.gain.value = clamp(((target.mid - mid) * 1.25 + spectralDelta.presence * 0.9) * scale - Math.max(0, metallic - 0.58) * 0.18, -0.50, 0.46);
 
     const air = context.createBiquadFilter();
     air.type = 'highshelf';
     air.frequency.value = target.high > 0.25 ? 9600 : 11200;
-    air.gain.value = clamp((target.high - high) * 1.85 * scale + (target.brightness - brightness) * 0.40 * scale, -0.68, 0.58);
+    air.gain.value = clamp(((target.high - high) * 1.35 + spectralDelta.air * 0.85) * scale + (target.brightness - brightness) * 0.34 * scale, -0.62, 0.52);
 
     input.connect(low).connect(body).connect(presence).connect(air);
     return air;
@@ -4777,13 +4978,32 @@ function createStereoWidthNode(context, input, isStereo, widthFactor) {
 }
 
 
+function getPhaseSafeWidthFactor(settings, analysis, intensity = getMasteringIntensity(settings), minFactor = 0.82, maxFactor = 1.22) {
+    const widthSetting = clamp(Number(settings?.width ?? 50), 0, 100);
+    const rawBase = map(widthSetting, 0, 100, minFactor, maxFactor);
+    const scaled = 1 + (rawBase - 1) * clamp(intensity?.amount ?? 1, 0.65, 1.65);
+    if (!analysis) return clamp(scaled, minFactor, maxFactor);
+    const measuredWidth = clamp01(Number(analysis.stereoWidth ?? 0.38));
+    const spatialRisk = clamp01(Number(analysis.spatialExcessRisk || 0));
+    const lowMonoScore = Number(analysis.lowMonoScore || 100);
+    const lowMonoPenalty = Math.max(0, 82 - lowMonoScore) / 82;
+    const widePenalty = Math.max(0, measuredWidth - 0.54) * 0.42 + spatialRisk * 0.22 + lowMonoPenalty * 0.18;
+    const highAir = clamp01(Number(analysis.airRatio || analysis.spectrumBands?.air || 0));
+    const airPenalty = Math.max(0, highAir - 0.14) * 0.20;
+    const maxSafe = clamp(1.18 - widePenalty - airPenalty, 0.98, maxFactor);
+    return clamp(Math.min(scaled, maxSafe), minFactor, maxFactor);
+}
+
+
 function createPhaseSafeNode(context, input, isStereo, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.phaseSafe === false || !isStereo) return input;
     const width = clamp(Number(settings.width || 28), 0, 100);
     const groove = clamp(Number(settings.stereoGroove || 0), 0, 100);
     const measuredWidth = clamp01(Number(analysis?.stereoWidth ?? 0.38));
     const bass = clamp01(Number(analysis?.bassRatio ?? 0.26));
-    const risk = Math.max(0, width - 58) / 42 * 0.42 + Math.max(0, groove - 14) / 86 * 0.22 + Math.max(0, measuredWidth - 0.60) * 0.45 + Math.max(0, bass - 0.36) * 0.18;
+    const spatialRisk = clamp01(Number(analysis?.spatialExcessRisk || 0));
+    const lowMonoPenalty = Math.max(0, 78 - Number(analysis?.lowMonoScore || 100)) / 78;
+    const risk = Math.max(0, width - 54) / 46 * 0.44 + Math.max(0, groove - 12) / 88 * 0.24 + Math.max(0, measuredWidth - 0.56) * 0.56 + Math.max(0, bass - 0.36) * 0.18 + spatialRisk * 0.44 + lowMonoPenalty * 0.28;
     if (risk < 0.035) return input;
     const side = clamp(1 - risk * clamp(intensity.amount, 0.65, 1.6) * 0.18, 0.86, 1);
     const splitter = context.createChannelSplitter(2);
@@ -6914,7 +7134,12 @@ function makeReferenceTargetFromAnalysis(analysis) {
         stereoWidth: clamp01(Number(analysis.stereoWidth ?? 0.35)),
         transientDensity: clamp01(Number(analysis.transientDensity ?? 0.35)),
         metallicHint: clamp01(Number(analysis.metallicHint ?? 0.40)),
-        loudnessHint: Number(analysis.loudnessHint || -18)
+        loudnessHint: Number(analysis.loudnessHint || -18),
+        spectralCentroidHz: Number(analysis.spectralCentroidHz || 0),
+        spectralRolloffHz: Number(analysis.spectralRolloffHz || 0),
+        spectralFlatness: Number(analysis.spectralFlatness || 0),
+        spectrumBands: cloneSpectrumBands(analysis.spectrumBands),
+        spectrumProfile: Array.isArray(analysis.spectrumProfile) ? analysis.spectrumProfile.slice(0, 12).map(value => Number(value) || 0) : []
     };
 }
 
@@ -6932,7 +7157,55 @@ function getActiveReferenceTarget(preset) {
         brightness: blend(presetTarget.brightness, refTarget.brightness, amount),
         stereoWidth: refTarget.stereoWidth,
         transientDensity: refTarget.transientDensity,
-        metallicHint: refTarget.metallicHint
+        metallicHint: refTarget.metallicHint,
+        spectralCentroidHz: refTarget.spectralCentroidHz,
+        spectralRolloffHz: refTarget.spectralRolloffHz,
+        spectralFlatness: refTarget.spectralFlatness,
+        spectrumBands: cloneSpectrumBands(refTarget.spectrumBands),
+        spectrumProfile: Array.isArray(refTarget.spectrumProfile) ? refTarget.spectrumProfile.slice(0, 12) : []
+    };
+}
+
+function cloneSpectrumBands(bands) {
+    const source = bands || {};
+    return {
+        sub: clamp01(Number(source.sub || 0)),
+        bass: clamp01(Number(source.bass || 0)),
+        lowMid: clamp01(Number(source.lowMid || 0)),
+        mid: clamp01(Number(source.mid || 0)),
+        presence: clamp01(Number(source.presence || 0)),
+        high: clamp01(Number(source.high || 0)),
+        air: clamp01(Number(source.air || 0))
+    };
+}
+
+function getSpectrumProfileDelta(ref, analysis) {
+    const refProfile = Array.isArray(ref?.spectrumProfile) ? ref.spectrumProfile : [];
+    const nowProfile = Array.isArray(analysis?.spectrumProfile) ? analysis.spectrumProfile : [];
+    if (refProfile.length >= 12 && nowProfile.length >= 12) {
+        const deltaRange = (from, to) => {
+            let sum = 0;
+            let count = 0;
+            for (let i = from; i <= to; i += 1) {
+                sum += Number(refProfile[i] || 0) - Number(nowProfile[i] || 0);
+                count += 1;
+            }
+            return clamp(sum / Math.max(1, count) * 12, -0.50, 0.50);
+        };
+        return {
+            low: deltaRange(1, 3),
+            body: deltaRange(4, 6),
+            presence: deltaRange(7, 9),
+            air: deltaRange(10, 11)
+        };
+    }
+    const refBands = cloneSpectrumBands(ref?.spectrumBands);
+    const nowBands = cloneSpectrumBands(analysis?.spectrumBands);
+    return {
+        low: clamp((refBands.sub + refBands.bass) - (nowBands.sub + nowBands.bass), -0.50, 0.50),
+        body: clamp(refBands.lowMid - nowBands.lowMid, -0.50, 0.50),
+        presence: clamp(refBands.presence - nowBands.presence, -0.50, 0.50),
+        air: clamp((refBands.high + refBands.air) - (nowBands.high + nowBands.air), -0.50, 0.50)
     };
 }
 
@@ -9070,7 +9343,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.28',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.29',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
