@@ -1,30 +1,21 @@
-# FoxBear Pro v1.3.36 QA Report
+# FoxBear Pro v1.3.37 QA Report
 
-## Pro v1.3.36 Reference 24-band matching update
-- Expanded FFT compact profiles from 12 to 24 bands for uploaded tracks and reference tracks.
-- Added 24-band normalization and legacy 12-band upsampling helpers so older values do not break reference logic.
-- Reworked the reference matcher into sub, bass, mud, body, vocal, presence, harshness, sibilance, and air decisions.
-- Added vocal metallic and mobile harshness safety scaling to prevent bright references from creating brittle vocals or phone-speaker resonance.
-- Bumped app version, cache busters, package metadata, analysis cache DB, and SRI hashes.
-- Detailed report: `qa/QA_REPORT_REFERENCE_24BAND_1.3.36.md`.
+## Pro v1.3.37 Recommendation popup hotfix
 
-## Static checks
-- `node --check src/config/mastering-presets.js`: PASS
-- `node --check src/config/genre-presets.js`: PASS
-- `node --check src/config/reference-targets.js`: PASS
-- `node --check src/state/app-state.js`: PASS
-- `node --check src/app.js`: PASS
-- `node --check src/workers/analysis.worker.js`: PASS
-- `npm run check`: PASS
-- SRI validation: PASS
-- Runtime script-order smoke test: PASS
+### Fixed
+- Restored AI recommendation popup after single audio upload.
+- Fixed `recommendPreset()` runtime error from an undefined `mid` variable.
+- Prevented the `원본선택` candidate from looking active before the user manually selects it.
+- Added safe recommendation fallback and regression smoke coverage.
 
-## Changed files
-- `index.html`
-- `package.json`
-- `README.md`
-- `src/app.js`
-- `src/workers/analysis.worker.js`
-- `qa/QA_REPORT.md`
+### Validation
+- `npm run check`
+- SRI validation
+- Runtime script-order smoke test
+- Recommendation popup smoke test
+
+### Detailed reports
+- `qa/QA_REPORT_RECOMMENDATION_POPUP_HOTFIX_1.3.37.md`
 - `qa/QA_REPORT_REFERENCE_24BAND_1.3.36.md`
-- `qa/static-audit.txt`
+- `qa/QA_REPORT_APP_MODULE_SPLIT_1.3.35.md`
+- `qa/QA_REPORT_AB_PREVIEW_ORIGINAL_1.3.34.md`

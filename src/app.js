@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.36 - 24-band reference matching
+// FoxBear AI Mastering Studio Pro v1.3.37 - recommendation popup hotfix
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.36';
+const APP_VERSION = 'Pro v1.3.37';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1336';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1337';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -174,7 +174,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.36';
+    styleLink.href = 'assets/css/studio.css?v=1.3.37';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -984,13 +984,13 @@ function showAiRecommendationDialog(track) {
 
     const list = document.createElement('div');
     list.className = 'ai-recommend-preset-list';
-    const dialogCandidates = [getOriginalSelectionCandidate(track), ...getAiCandidatePresets(track).slice(0, 4)];
+    const dialogCandidates = [...getAiCandidatePresets(track).slice(0, 4), getOriginalSelectionCandidate(track)];
     dialogCandidates.forEach(candidate => {
         const row = document.createElement('button');
         row.type = 'button';
         const recommended = Boolean(candidate.recommended);
         const manual = Boolean(candidate.manual);
-        row.className = `ai-recommend-preset ${recommended ? 'recommended' : ''} ${manual ? 'manual-original' : ''} ${candidate.preset === track.preset ? 'active' : ''}`;
+        row.className = `ai-recommend-preset ${recommended ? 'recommended' : ''} ${manual ? 'manual-original' : ''} ${(candidate.active ?? (candidate.preset === track.preset)) ? 'active' : ''}`;
         const name = document.createElement('strong');
         name.textContent = candidate.label;
         const meta = document.createElement('span');
@@ -2320,7 +2320,7 @@ async function analyzeTrack(track) {
         await writeAnalysisCache(track, analysis);
     }
     if (analysis && Number.isFinite(Number(analysis.abHighlightStartSec))) track.abHighlightStartSec = Number(analysis.abHighlightStartSec);
-    const recommendation = recommendPreset(track.name, analysis);
+    const recommendation = safeRecommendPreset(track.name, analysis, 'track');
     const settings = makeRecommendedSettings(recommendation.preset, analysis);
 
     track.analysis = analysis;
@@ -3013,7 +3013,7 @@ function recommendPreset(fileName, analysis) {
     if (analysis.silence) return { preset: 'custom', confidence: 0, reason: '무음 또는 매우 작은 신호로 분석 보류', alternatives: [] };
 
     const features = extractGenreFeatures(analysis);
-    const { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk, mobileRisk } = features;
+    const { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, mid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk, mobileRisk } = features;
 
     // 자동 장르 판별은 파일명 키워드 + 오디오 특징을 같이 봅니다.
     // 파일명 힌트가 없을 때는 Future Bass/House/Drill 같은 세부 장르가 과하게 선택되지 않도록 보수적으로 처리합니다.
@@ -3208,6 +3208,27 @@ function recommendPreset(fileName, analysis) {
     const alternatives = sorted.slice(0, 4).map(([preset, score]) => ({ preset, label: PRESET_LABELS[preset] || preset, score: Number(score.toFixed(2)) }));
     const reason = makeGenreReason(best[0], features, alternatives, explicit[best[0]] ? '파일명 힌트 반영' : '오디오 특징 기준');
     return { preset: best[0], confidence, reason, alternatives };
+}
+
+
+function safeRecommendPreset(fileName, analysis, source = 'track') {
+    try {
+        const recommendation = recommendPreset(fileName || '', analysis || {});
+        if (recommendation && recommendation.preset && GENRE_PRESETS[recommendation.preset]) return recommendation;
+        throw new Error('추천 결과가 유효하지 않습니다.');
+    } catch (error) {
+        console.warn(`[FoxBear] ${source} recommendation fallback`, error);
+        return {
+            preset: 'pop',
+            confidence: 42,
+            reason: '추천 엔진 보호 모드 · 추천 계산 중 예외가 발생해 안전한 Pop 기준값으로 임시 적용했습니다.',
+            alternatives: [
+                { preset: 'pop', label: PRESET_LABELS.pop || 'Pop', score: 0 },
+                { preset: 'kpop', label: PRESET_LABELS.kpop || 'K-Pop', score: -0.2 },
+                { preset: 'rnb', label: PRESET_LABELS.rnb || 'R&B', score: -0.4 }
+            ]
+        };
+    }
 }
 
 function extractGenreFeatures(analysis) {
@@ -3623,7 +3644,7 @@ async function masterTrack(track, calledFromBatch = false) {
             const analysis = await analyzeBufferAsync(currentSourceBuffer);
             analysis.abHighlightStartSec = estimateABHighlightStart(currentSourceBuffer);
             track.abHighlightStartSec = analysis.abHighlightStartSec;
-            const recommendation = recommendPreset(track.name, analysis);
+            const recommendation = safeRecommendPreset(track.name, analysis, 'master-emergency');
             track.analysis = analysis;
             track.recommendedPreset = recommendation.preset;
             track.confidence = recommendation.confidence;
@@ -7522,7 +7543,7 @@ async function handleReferenceFiles(fileList) {
     try {
         const buffer = await decodeAudio(file);
         const analysis = await analyzeBufferAsync(buffer);
-        const recommendation = recommendPreset(file.name, analysis);
+        const recommendation = safeRecommendPreset(file.name, analysis, 'reference');
         state.referenceProfile = {
             name: file.name,
             size: file.size,
@@ -8401,10 +8422,10 @@ function renderAiMasteringCard(track) {
     candidates.appendChild(candidateLabel);
     const candidateList = document.createElement('div');
     candidateList.className = 'ai-master-candidate-list';
-    [getOriginalSelectionCandidate(track), ...getAiCandidatePresets(track)].forEach(candidate => {
+    [...getAiCandidatePresets(track), getOriginalSelectionCandidate(track)].forEach(candidate => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `ai-candidate-chip ${candidate.preset === track.preset ? 'active' : ''} ${candidate.manual ? 'manual-original' : ''}`;
+        button.className = `ai-candidate-chip ${(candidate.active ?? (candidate.preset === track.preset)) ? 'active' : ''} ${candidate.manual ? 'manual-original' : ''}`;
         button.textContent = candidate.label;
         button.disabled = !analyzed || state.busy;
         button.addEventListener('click', () => candidate.manual ? applyOriginalManualSelection(track) : applyAiPresetCandidate(track, candidate.preset));
@@ -8551,7 +8572,7 @@ function getOriginalSelectionCandidate(track) {
         mark: '수동',
         recommended: false,
         manual: true,
-        active: Boolean(track && track.preset === 'custom' && track.genreLocked)
+        active: Boolean(track && track.originalManualSelected)
     };
 }
 
@@ -10081,7 +10102,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.36',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.37',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
