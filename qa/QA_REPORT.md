@@ -1,6 +1,10 @@
-# FoxBear Pro v1.3.46 QA Report
+# FoxBear Pro v1.3.47 QA Report
 
-## Pro v1.3.46 Dock Continuity + Download/Share
+## Pro v1.3.47 Dock A/B Loudness Match + Difference Listen
+
+- Dock A/B 레벨매칭 토글과 차이듣기 토글 추가 확인.
+- 차이듣기 플레이어가 원본/비교 음원을 동기화하고 WebAudio 차분 그래프를 구성하도록 정적 검사.
+- 기존 다운로드/공유, Dock waveform, preview translation, engine QA bench smoke test 유지.
 
 - PASS: `npm run check`
 - PASS: SRI validation
