@@ -1,6 +1,6 @@
 # FoxBear Mastering Studio
 
-## Pro v1.3.39 Dock Waveform Mini View
+## Pro v1.3.40 Engine QA Bench
 
 This update improves the bottom dock listening workflow and makes waveform/peak checking visible without opening the full detail panel.
 
@@ -12,3 +12,10 @@ This update improves the bottom dock listening workflow and makes waveform/peak 
 - Moved the processing HUD closer to the top edge of the dock.
 
 Previous v1.3.38 changes are retained: shared DSP profile for realtime preview, 15-second result listening, and final render.
+### v1.3.40 Engine QA Bench
+
+- Added `qa/engine_qa_bench.js` synthetic audio safety bench.
+- Bench covers balanced pop, vocal metallic risk, mobile boom/box risk, and peak stress cases.
+- Checks 24-band FFT analysis, K-weighted LUFS, 4x true-peak ceiling, limiter/multiband sanity, mobile guard metadata, and non-finite sample protection.
+- `npm run check` now runs the engine QA bench after the existing runtime/recommendation/shared-DSP/dock waveform smoke tests.
+

@@ -1,13 +1,12 @@
-# FoxBear Pro v1.3.39 QA Report
+# FoxBear Pro v1.3.40 QA Report
 
-## Pro v1.3.39 Dock Waveform Mini View
+## Pro v1.3.40 Engine QA Bench
 
-- Added dock-top waveform/peak mini view.
-- Added compact waveform comparison popup.
-- Renamed 15s preview wording to `결과 미리듣기`.
-- Reordered and compacted bottom dock controls.
-- Added `qa/dock_waveform_smoke.js`.
-- See `qa/QA_REPORT_DOCK_WAVEFORM_1.3.39.md`.
+- Added synthetic audio engine regression bench.
+- Bench validates analysis worker and master finalizer worker together.
+- Checks 24-band FFT profile, K-weighted LUFS, 4x true peak ceiling safety, limiter/multiband sanity, mobile risk metadata, and non-finite sample protection.
+- Existing dock waveform, recommendation popup, shared DSP profile, runtime, and SRI checks remain active.
+- See `qa/QA_REPORT_ENGINE_QA_BENCH_1.3.40.md`.
 
 
 ## Pro v1.3.38 Shared DSP Preview/Render Profile
