@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.42 - dynamic de-esser and harshness suppressor
+// FoxBear AI Mastering Studio Pro v1.3.43 - preview translation modes
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.42';
+const APP_VERSION = 'Pro v1.3.43';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,9 +17,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1342';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1343';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.42-dynamic-deesser';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.43-preview-translation';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -140,6 +140,39 @@ const UTILITY_FEATURE_DEFINITIONS = {
     }
 };
 
+const PREVIEW_TRANSLATION_MODES = Object.freeze({
+    studio: {
+        id: 'studio',
+        label: 'Studio',
+        short: '원음',
+        title: '렌더 결과 그대로 듣습니다.',
+        aria: '스튜디오 원음 미리듣기'
+    },
+    phone: {
+        id: 'phone',
+        label: 'Phone',
+        short: '폰',
+        title: '휴대폰 스피커처럼 저역을 줄이고 2~5kHz 공진을 확인합니다.',
+        aria: '폰 스피커 시뮬레이션 미리듣기'
+    },
+    laptop: {
+        id: 'laptop',
+        label: 'Laptop',
+        short: '노트북',
+        title: '노트북/작은 스피커처럼 저역이 부족하고 중고역이 앞으로 나오는 환경을 확인합니다.',
+        aria: '노트북 스피커 시뮬레이션 미리듣기'
+    },
+    mono: {
+        id: 'mono',
+        label: 'Mono',
+        short: '모노',
+        title: '좌우를 모노로 접어 보컬/저역/공간감 호환성을 확인합니다.',
+        aria: '모노 호환성 미리듣기'
+    }
+});
+
+
+
 
 
 
@@ -176,7 +209,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.42';
+    styleLink.href = 'assets/css/studio.css?v=1.3.43';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -224,7 +257,7 @@ function cacheElements() {
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
-        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -506,7 +539,7 @@ function renderRealtimePreviewConsole(track, target) {
 
     const playerCard = document.createElement('div');
     playerCard.className = 'preview-card realtime-player-card';
-    const previewPlayer = createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track));
+    const previewPlayer = createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track), { translationMode: false });
     previewPlayer.classList.add('realtime-custom-player');
     const audio = previewPlayer.querySelector('audio');
     if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} 실시간 마스터링 미리듣기 재생`);
@@ -1693,6 +1726,7 @@ function bindEvents() {
         });
     }
     if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', openWaveformCompareDialog);
+    if (el.bottomPreviewTranslationModes) el.bottomPreviewTranslationModes.addEventListener('click', handlePreviewTranslationModeClick);
     if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', () => renderMasterPreviewForSelected('dock'));
     if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', masterBottomPreviewTrack);
     if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false));
@@ -9110,6 +9144,150 @@ function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
 }
 
 
+function getPreviewTranslationMode() {
+    const mode = String(state.previewTranslationMode || 'studio');
+    return PREVIEW_TRANSLATION_MODES[mode] || PREVIEW_TRANSLATION_MODES.studio;
+}
+
+function handlePreviewTranslationModeClick(event) {
+    const button = event.target?.closest?.('[data-preview-translation-mode]');
+    if (!button) return;
+    setPreviewTranslationMode(button.dataset.previewTranslationMode || 'studio');
+}
+
+function setPreviewTranslationMode(mode) {
+    const next = PREVIEW_TRANSLATION_MODES[mode] ? mode : 'studio';
+    if (state.previewTranslationMode === next) return;
+    state.previewTranslationMode = next;
+    clearBottomPreviewPlayer();
+    renderBottomPreviewDock({ autoPlay: false });
+    const selected = PREVIEW_TRANSLATION_MODES[next];
+    showToast(`${selected.short} 미리듣기 모드로 전환했습니다.`);
+}
+
+function renderPreviewTranslationModeControls(activeSourceMode = state.bottomPreviewMode) {
+    if (!el.bottomPreviewTranslationModes) return;
+    const active = getPreviewTranslationMode();
+    el.bottomPreviewTranslationModes.textContent = '';
+    const label = document.createElement('span');
+    label.className = 'bottom-preview-translation-label';
+    label.textContent = '재생환경';
+    el.bottomPreviewTranslationModes.appendChild(label);
+    Object.values(PREVIEW_TRANSLATION_MODES).forEach(mode => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'bottom-preview-translation-btn';
+        button.dataset.previewTranslationMode = mode.id;
+        button.textContent = mode.short;
+        button.title = mode.title;
+        button.setAttribute('aria-pressed', String(active.id === mode.id));
+        button.setAttribute('aria-label', mode.aria);
+        if (active.id === mode.id) button.classList.add('active');
+        el.bottomPreviewTranslationModes.appendChild(button);
+    });
+    const hint = document.createElement('em');
+    hint.className = 'bottom-preview-translation-hint';
+    hint.textContent = active.id === 'studio' ? '렌더 그대로' : `${active.label} 체크`;
+    if (activeSourceMode === 'masterPreview') hint.textContent += ' · 15초';
+    el.bottomPreviewTranslationModes.appendChild(hint);
+}
+
+function setupPreviewTranslationAudio(audio, options = {}) {
+    if (!audio || options.translationMode === false) return null;
+    const mode = getPreviewTranslationMode();
+    audio.dataset.previewTranslationMode = mode.id;
+    if (mode.id === 'studio') return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    try {
+        const context = new AudioContextClass({ latencyHint: 'interactive' });
+        const source = context.createMediaElementSource(audio);
+        const outputGain = context.createGain();
+        outputGain.gain.value = mode.id === 'phone' ? 0.92 : 0.96;
+        const filters = createPreviewTranslationFilterChain(context, mode.id);
+        const first = filters[0] || outputGain;
+        const last = filters[filters.length - 1] || outputGain;
+        if (mode.id === 'mono') {
+            connectPreviewMonoMatrix(context, source, first);
+        } else {
+            source.connect(first);
+        }
+        last.connect(outputGain).connect(context.destination);
+        const resume = () => context.resume().catch(() => {});
+        audio.addEventListener('play', resume);
+        audio.addEventListener('emptied', () => closePreviewTranslationContext(context), { once: true });
+        audio.addEventListener('error', () => closePreviewTranslationContext(context), { once: true });
+        audio._foxbearTranslationContext = context;
+        return context;
+    } catch (error) {
+        console.warn('Preview translation mode unavailable:', error);
+        return null;
+    }
+}
+
+function createPreviewTranslationFilterChain(context, modeId) {
+    const highPass = context.createBiquadFilter();
+    highPass.type = 'highpass';
+    highPass.frequency.value = modeId === 'phone' ? 170 : (modeId === 'laptop' ? 105 : 55);
+    highPass.Q.value = modeId === 'phone' ? 0.78 : 0.65;
+
+    const lowShelf = context.createBiquadFilter();
+    lowShelf.type = 'lowshelf';
+    lowShelf.frequency.value = modeId === 'phone' ? 310 : (modeId === 'laptop' ? 180 : 130);
+    lowShelf.gain.value = modeId === 'phone' ? -9 : (modeId === 'laptop' ? -5.5 : -1.2);
+
+    const bodyCut = context.createBiquadFilter();
+    bodyCut.type = 'peaking';
+    bodyCut.frequency.value = modeId === 'phone' ? 430 : (modeId === 'laptop' ? 360 : 260);
+    bodyCut.Q.value = modeId === 'phone' ? 1.05 : 0.82;
+    bodyCut.gain.value = modeId === 'phone' ? -3.2 : (modeId === 'laptop' ? -1.6 : -0.6);
+
+    const presence = context.createBiquadFilter();
+    presence.type = 'peaking';
+    presence.frequency.value = modeId === 'phone' ? 3300 : (modeId === 'laptop' ? 2900 : 2500);
+    presence.Q.value = modeId === 'phone' ? 1.28 : 0.95;
+    presence.gain.value = modeId === 'phone' ? 2.6 : (modeId === 'laptop' ? 1.2 : 0);
+
+    const harsh = context.createBiquadFilter();
+    harsh.type = 'peaking';
+    harsh.frequency.value = modeId === 'phone' ? 4700 : 5200;
+    harsh.Q.value = 1.15;
+    harsh.gain.value = modeId === 'phone' ? 1.1 : (modeId === 'laptop' ? 0.6 : 0);
+
+    const lowPass = context.createBiquadFilter();
+    lowPass.type = 'lowpass';
+    lowPass.frequency.value = modeId === 'phone' ? 7200 : (modeId === 'laptop' ? 11800 : 18000);
+    lowPass.Q.value = modeId === 'phone' ? 0.62 : 0.55;
+
+    return [highPass, lowShelf, bodyCut, presence, harsh, lowPass].reduce((chain, node, index, arr) => {
+        if (index > 0) arr[index - 1].connect(node);
+        chain.push(node);
+        return chain;
+    }, []);
+}
+
+function connectPreviewMonoMatrix(context, source, firstNode) {
+    const splitter = context.createChannelSplitter(2);
+    const merger = context.createChannelMerger(2);
+    const lToL = context.createGain();
+    const rToL = context.createGain();
+    const lToR = context.createGain();
+    const rToR = context.createGain();
+    [lToL, rToL, lToR, rToR].forEach(g => { g.gain.value = 0.5; });
+    source.connect(splitter);
+    splitter.connect(lToL, 0); lToL.connect(merger, 0, 0);
+    splitter.connect(rToL, 1); rToL.connect(merger, 0, 0);
+    splitter.connect(lToR, 0); lToR.connect(merger, 0, 1);
+    splitter.connect(rToR, 1); rToR.connect(merger, 0, 1);
+    merger.connect(firstNode);
+}
+
+function closePreviewTranslationContext(context) {
+    if (!context || context.state === 'closed') return;
+    context.close().catch(() => {});
+}
+
+
 function selectBottomPreviewMode(mode, autoPlay = false) {
     const track = getSelectedTrack();
     if (!track) return;
@@ -9470,7 +9648,7 @@ function renderBottomPreviewDock(options = {}) {
     const src = useMastered ? track.masteredUrl : (useMasterPreview ? track.masterPreviewUrl : track.originalUrl);
     const duration = useMastered ? (track.masteredDurationSec || track.analysis?.duration) : (useMasterPreview ? (track.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC) : track.analysis?.duration);
     const gainDb = useMastered ? getABMatchGainDb(track) : 0;
-    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|${state.abLevelMatch ? 'match' : 'raw'}`;
+    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|${state.abLevelMatch ? 'match' : 'raw'}|${getPreviewTranslationMode().id}`;
 
     el.bottomPreviewDock.classList.add('show');
     el.bottomPreviewDock.setAttribute('aria-hidden', 'false');
@@ -9492,6 +9670,7 @@ function renderBottomPreviewDock(options = {}) {
     setBottomPreviewMasterPreviewButtonState(track, mode);
     setBottomPreviewMasterButtonState(track);
     setBottomPreviewTabState(mode, masteredAvailable);
+    renderPreviewTranslationModeControls(mode);
     renderBottomWaveformMini(track, mode);
 
     const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && el.bottomPreviewPlayer.querySelector('audio');
@@ -9586,6 +9765,7 @@ function clearBottomPreviewPlayer() {
     if (!el.bottomPreviewPlayer) return;
     el.bottomPreviewPlayer.querySelectorAll('audio').forEach(audio => {
         try { audio.pause(); } catch (error) {}
+        if (audio._foxbearTranslationContext) closePreviewTranslationContext(audio._foxbearTranslationContext);
         try { audio.removeAttribute('src'); audio.load(); } catch (error) {}
     });
     el.bottomPreviewPlayer.textContent = '';
@@ -9644,7 +9824,7 @@ function setPlayerToggleIcon(button, isPlaying) {
     button.appendChild(icon);
 }
 
-function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare = false, loopStartHint = NaN) {
+function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare = false, loopStartHint = NaN, options = {}) {
     const wrap = document.createElement('div');
     wrap.className = `custom-player ${loopCompare ? 'ab-loop-player' : ''}`;
 
@@ -9654,6 +9834,7 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
     if (state.abLevelMatch && Number.isFinite(gainDb)) {
         audio.volume = clamp(Math.pow(10, gainDb / 20), 0.02, 1);
     }
+    setupPreviewTranslationAudio(audio, options);
 
     const toggle = document.createElement('button');
     toggle.type = 'button';
@@ -10721,7 +10902,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.42',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.43',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

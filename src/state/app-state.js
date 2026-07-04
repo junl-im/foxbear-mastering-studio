@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.42 - extracted runtime state module
+// FoxBear AI Mastering Studio Pro v1.3.43 - extracted runtime state module
 'use strict';
 
 const state = {
@@ -58,6 +58,7 @@ const state = {
     bottomPreviewTrackId: null,
     masterPreviewRenderingTrackId: null,
     bottomPreviewAutoplayTrackId: null,
+    previewTranslationMode: 'studio',
     adminTapLastAt: 0,
     adminTapCount: 0,
     adminStatsRemoteError: '',

@@ -1,16 +1,17 @@
 # FoxBear AI Mastering Studio
 
-## Pro v1.3.42 Dynamic De-esser / Harshness Suppressor
+## Pro v1.3.43 Phone/Laptop/Mono Preview Translation Modes
 
-This update adds a practical dynamic de-esser and harshness suppressor so vocal sibilance, metallic edge, and phone-speaker glare are controlled only when they actually spike.
+This update adds playback-only translation checks to the bottom preview dock. The final render is not changed; users can quickly audition the selected original, 15-second result preview, or mastered output through small-speaker and mono simulation modes.
 
 ### Highlights
 
-- Added a dynamic de-esser/harshness stage to the offline mastering chain after the exciter and before vocal comfort guards.
-- Added the same sample-domain dynamic de-esser to the finalizer worker and browser fallback path.
-- Tracks presence harshness, sibilance, and air-band fizz separately with attack/release envelope followers.
-- Final reports now include de-esser risk, reduction, active band details, and target frequency.
-- Engine QA Bench now asserts that the vocal-metallic synthetic case triggers the de-esser safely.
+- Added preview environment buttons to the dock: `원음`, `폰`, `노트북`, `모노`.
+- Added WebAudio playback routing for Phone/Laptop/Mono checks without changing the exported master.
+- Phone mode trims lows and emphasizes the 2–5 kHz region so speaker ringing, vocal glare, and boxiness are easier to catch.
+- Laptop mode checks small-speaker midrange translation with less aggressive filtering than Phone mode.
+- Mono mode folds stereo playback to dual-mono to reveal width, vocal, and low-end compatibility issues.
+- Rebuilds the dock player when the preview environment changes, preventing stale audio routing.
 
 ### QA
 
@@ -20,4 +21,4 @@ Run:
 npm run check
 ```
 
-The check validates syntax, SRI, runtime smoke tests, recommendation popup, shared DSP profile, dock waveform, engine QA bench, and strength profile behavior.
+The check validates syntax, SRI, runtime smoke tests, recommendation popup, shared DSP profile, dock waveform, engine QA bench, strength profile behavior, and preview translation controls.

@@ -1,14 +1,14 @@
-# FoxBear Pro v1.3.42 QA Report
+# FoxBear Pro v1.3.43 QA Report
 
-## Pro v1.3.42 Dynamic De-esser / Harshness Suppressor
+## Pro v1.3.43 Phone/Laptop/Mono Preview Translation Modes
 
-- Added dynamic de-esser/harshness suppression for vocal metallic edge and sibilance spikes.
-- Integrated the stage in the offline WebAudio mastering chain, finalizer worker, and browser fallback finalizer.
-- Added finalizer/report metadata: `dynamicDeEsserMode`, `dynamicDeEsserRisk`, `dynamicDeEsserReductionDb`, and `dynamicDeEsserBands`.
-- Updated Engine QA Bench to verify that the `vocalMetallic` synthetic case activates the de-esser without breaking peak/LUFS safety.
-- Preserved v1.3.41 Mastering Strength Profiles and all prior guardrails.
+- Added playback-only preview translation modes to the bottom dock: `원음`, `폰`, `노트북`, `모노`.
+- Added WebAudio simulation routing for phone and laptop speaker checks without altering the final render.
+- Added mono fold-down preview to catch stereo-width, vocal, and low-end compatibility issues.
+- Preview mode changes rebuild the dock player, so stale WebAudio routing does not remain active.
+- Preserved v1.3.42 Dynamic De-esser, v1.3.41 Mastering Strength Profiles, and all prior guardrails.
 
-See `qa/QA_REPORT_DYNAMIC_DEESSER_1.3.42.md`.
+See `qa/QA_REPORT_PREVIEW_TRANSLATION_1.3.43.md`.
 
 ## Validation
 
@@ -20,3 +20,4 @@ See `qa/QA_REPORT_DYNAMIC_DEESSER_1.3.42.md`.
 - Dock waveform smoke
 - Engine QA Bench
 - Strength profiles smoke
+- Preview translation smoke
