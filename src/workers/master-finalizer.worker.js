@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.3.43 - dynamic de-esser, mobile guard, multiband dynamics, 4x FIR true-peak
+// FoxBear Pro finalizer worker v1.3.44 - dynamic de-esser, mobile guard, multiband dynamics, 4x FIR true-peak
 'use strict';
 
 self.onmessage = event => {

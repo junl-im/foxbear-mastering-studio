@@ -7,6 +7,7 @@ const files = [
   'src/config/genre-presets.js',
   'src/config/reference-targets.js',
   'src/state/app-state.js',
+  'src/utils/core-utils.js',
   'src/app.js'
 ];
 const listeners = [];

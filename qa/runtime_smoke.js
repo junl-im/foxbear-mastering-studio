@@ -7,6 +7,7 @@ const files = [
   'src/config/genre-presets.js',
   'src/config/reference-targets.js',
   'src/state/app-state.js',
+  'src/utils/core-utils.js',
   'src/app.js'
 ];
 const listeners = [];
@@ -32,4 +33,4 @@ for (const file of files) {
 if (!listeners.some(item => item.type === 'DOMContentLoaded' && item.handlerType === 'function')) {
   throw new Error('DOMContentLoaded listener was not registered');
 }
-console.log('PASS runtime smoke: config/state/app script order initializes');
+console.log('PASS runtime smoke: config/state/utils/app script order initializes');

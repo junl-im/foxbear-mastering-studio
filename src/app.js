@@ -1,7 +1,22 @@
-// FoxBear AI Mastering Studio Pro v1.3.43 - preview translation modes
+// FoxBear AI Mastering Studio Pro v1.3.44 - app module split stage 2
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.43';
+
+const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
+const {
+    clamp,
+    clamp01,
+    map,
+    dbToAmp,
+    median,
+    normalizeWaveformValues,
+    sampleMarkersFromValues,
+    createWaveformOverview,
+    sampleWaveformOverview,
+    samplePeakMarkers
+} = FoxBearCoreUtils;
+
+const APP_VERSION = 'Pro v1.3.44';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,9 +32,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1343';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1344';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.43-preview-translation';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.44-module-split-2';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -209,7 +224,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.43';
+    styleLink.href = 'assets/css/studio.css?v=1.3.44';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -4185,12 +4200,6 @@ function findBestSolaOffset(input, output, expectedIn, outPos, overlap, searchRa
         }
     }
     return bestPos;
-}
-
-function makeHannWindow(length) {
-    const window = new Float32Array(length);
-    for (let i = 0; i < length; i += 1) window[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (length - 1)));
-    return window;
 }
 
 function makeEven(value) { return value % 2 === 0 ? value : value + 1; }
@@ -9482,31 +9491,12 @@ function getTrackMasterWaveformValues(track) {
     return normalizeWaveformValues(track?.waveformOverview?.after || track?.masterPreviewInfo?.waveformOverview || []);
 }
 
-function normalizeWaveformValues(values = [], targetBins = DOCK_WAVEFORM_BINS) {
-    const source = Array.isArray(values) ? values : Array.from(values || []);
-    if (!source.length) return [];
-    if (source.length === targetBins) return source.map(value => clamp(Number(value) || 0, 0, 1));
-    const output = [];
-    for (let i = 0; i < targetBins; i += 1) {
-        const pos = source.length <= 1 ? 0 : i / Math.max(1, targetBins - 1) * (source.length - 1);
-        const lo = Math.floor(pos);
-        const hi = Math.min(source.length - 1, lo + 1);
-        const frac = pos - lo;
-        output.push(clamp((Number(source[lo]) || 0) * (1 - frac) + (Number(source[hi]) || 0) * frac, 0, 1));
-    }
-    return output;
-}
-
 function getDockWaveformPayload(track, mode = state.bottomPreviewMode) {
     const original = getTrackOriginalWaveformValues(track);
     const mastered = getTrackMasterWaveformValues(track);
     if (mode === 'mastered' && mastered.length) return { label: '마스터링 피크', badge: 'Master', values: mastered, markers: track?.waveformOverview?.peakMarkers || sampleMarkersFromValues(mastered) };
     if (mode === 'masterPreview' && track?.masterPreviewInfo?.waveformOverview?.length) return { label: '결과 미리듣기 피크', badge: '15s', values: normalizeWaveformValues(track.masterPreviewInfo.waveformOverview), markers: sampleMarkersFromValues(track.masterPreviewInfo.waveformOverview) };
     return { label: '원본 피크', badge: 'Original', values: original, markers: sampleMarkersFromValues(original) };
-}
-
-function sampleMarkersFromValues(values = []) {
-    return (Array.isArray(values) ? values : Array.from(values || [])).map(value => Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'));
 }
 
 function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
@@ -10055,43 +10045,6 @@ function createABSwitchPlayer(track) {
 
     deck.append(head, controls, hint, originalAudio, masteredAudio);
     return deck;
-}
-
-function createWaveformOverview(beforeBuffer, afterBuffer, bins = WAVEFORM_OVERVIEW_BINS) {
-    return {
-        bins,
-        before: sampleWaveformOverview(beforeBuffer, bins),
-        after: sampleWaveformOverview(afterBuffer, bins),
-        peakMarkers: samplePeakMarkers(afterBuffer, bins),
-        createdAt: new Date().toISOString()
-    };
-}
-
-function sampleWaveformOverview(buffer, bins = WAVEFORM_OVERVIEW_BINS) {
-    if (!buffer || !buffer.length) return [];
-    const channels = Math.max(1, buffer.numberOfChannels || 1);
-    const binSize = Math.max(1, Math.floor(buffer.length / bins));
-    const result = [];
-    for (let b = 0; b < bins; b += 1) {
-        const start = b * binSize;
-        const end = b === bins - 1 ? buffer.length : Math.min(buffer.length, start + binSize);
-        let peak = 0;
-        for (let ch = 0; ch < channels; ch += 1) {
-            const data = buffer.getChannelData(ch);
-            const step = Math.max(1, Math.floor((end - start) / 96));
-            for (let i = start; i < end; i += step) {
-                const abs = Math.abs(Number.isFinite(data[i]) ? data[i] : 0);
-                if (abs > peak) peak = abs;
-            }
-        }
-        result.push(Number(clamp(peak, 0, 1).toFixed(3)));
-    }
-    return result;
-}
-
-function samplePeakMarkers(buffer, bins = WAVEFORM_OVERVIEW_BINS) {
-    const overview = sampleWaveformOverview(buffer, bins);
-    return overview.map(value => value >= 0.985 ? 'clip' : (value >= 0.92 ? 'hot' : 'ok'));
 }
 
 function renderWaveformPanel(track) {
@@ -10902,7 +10855,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.43',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.44',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -11023,18 +10976,6 @@ function getInstrumentDetailText(track) {
     const rendered = track?.instrumentInfo?.applied ? ` · 렌더 ${track.instrumentInfo.bpm.toFixed(0)} BPM` : ' · 렌더 전';
     return `${getInstrumentLayerLabel(layer.mode)} · ${getInstrumentAmountLabel(layer.amount)}${rendered}`;
 }
-
-function median(values) {
-    const sorted = values.filter(Number.isFinite).slice().sort((a, b) => a - b);
-    if (!sorted.length) return 0;
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
-function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
-function clamp01(value) { return clamp(value, 0, 1); }
-function map(value, inMin, inMax, outMin, outMax) { return outMin + (Number(value) - inMin) * (outMax - outMin) / (inMax - inMin); }
-function dbToAmp(db) { return Math.pow(10, db / 20); }
 
 function clampToStep(value, min, max, step) {
     const safeStep = Number(step || 1);

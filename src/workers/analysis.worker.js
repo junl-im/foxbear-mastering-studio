@@ -1,4 +1,4 @@
-// FoxBear analysis worker v1.3.43 - FFT analyzer, K-weighted LUFS, mobile translation, engine QA bench coverage
+// FoxBear analysis worker v1.3.44 - FFT analyzer, K-weighted LUFS, mobile translation, engine QA bench coverage
 'use strict';
 
 self.onmessage = event => {

@@ -1,17 +1,17 @@
 # FoxBear AI Mastering Studio
 
-## Pro v1.3.43 Phone/Laptop/Mono Preview Translation Modes
+## Pro v1.3.44 App Module Split Stage 2
 
-This update adds playback-only translation checks to the bottom preview dock. The final render is not changed; users can quickly audition the selected original, 15-second result preview, or mastered output through small-speaker and mono simulation modes.
+This update continues the safe modularization started in v1.3.35. Core math/audio utility helpers and dock waveform sampling helpers are now loaded from a small shared utility module before the main app script. The user-facing mastering flow is intentionally unchanged.
 
 ### Highlights
 
-- Added preview environment buttons to the dock: `원음`, `폰`, `노트북`, `모노`.
-- Added WebAudio playback routing for Phone/Laptop/Mono checks without changing the exported master.
-- Phone mode trims lows and emphasizes the 2–5 kHz region so speaker ringing, vocal glare, and boxiness are easier to catch.
-- Laptop mode checks small-speaker midrange translation with less aggressive filtering than Phone mode.
-- Mono mode folds stereo playback to dual-mono to reveal width, vocal, and low-end compatibility issues.
-- Rebuilds the dock player when the preview environment changes, preventing stale audio routing.
+- Added `src/utils/core-utils.js` for shared pure helpers.
+- Moved clamp/map/db/median helpers out of the large app file.
+- Moved dock waveform normalization, peak-marker sampling, and waveform overview helpers into the shared utility module.
+- Removed a duplicate `makeHannWindow()` declaration from `src/app.js`.
+- Added a dedicated module split smoke test so script order and shared utility availability are checked automatically.
+- Updated version, cache busting, SRI, and QA documentation for v1.3.44.
 
 ### QA
 
@@ -21,4 +21,4 @@ Run:
 npm run check
 ```
 
-The check validates syntax, SRI, runtime smoke tests, recommendation popup, shared DSP profile, dock waveform, engine QA bench, strength profile behavior, and preview translation controls.
+The check validates syntax, SRI, runtime smoke tests, recommendation popup, shared DSP profile, dock waveform, engine QA bench, strength profile behavior, preview translation controls, and the v1.3.44 module split.

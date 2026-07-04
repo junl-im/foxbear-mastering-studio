@@ -68,6 +68,7 @@ const context = vm.createContext({
   'src/config/genre-presets.js',
   'src/config/reference-targets.js',
   'src/state/app-state.js',
+  'src/utils/core-utils.js',
   'src/app.js'
 ].forEach(file => vm.runInContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file }));
 

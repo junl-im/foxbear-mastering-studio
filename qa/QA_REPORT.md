@@ -1,23 +1,16 @@
-# FoxBear Pro v1.3.43 QA Report
+# FoxBear Pro v1.3.44 QA Report
 
-## Pro v1.3.43 Phone/Laptop/Mono Preview Translation Modes
+## Pro v1.3.44 App Module Split Stage 2
 
-- Added playback-only preview translation modes to the bottom dock: `원음`, `폰`, `노트북`, `모노`.
-- Added WebAudio simulation routing for phone and laptop speaker checks without altering the final render.
-- Added mono fold-down preview to catch stereo-width, vocal, and low-end compatibility issues.
-- Preview mode changes rebuild the dock player, so stale WebAudio routing does not remain active.
-- Preserved v1.3.42 Dynamic De-esser, v1.3.41 Mastering Strength Profiles, and all prior guardrails.
+- PASS: `npm run check`
+- PASS: SRI validation
+- PASS: runtime smoke
+- PASS: recommendation popup smoke
+- PASS: shared DSP profile smoke
+- PASS: dock waveform smoke
+- PASS: engine QA bench
+- PASS: strength profile smoke
+- PASS: preview translation smoke
+- PASS: module split stage 2 smoke
 
-See `qa/QA_REPORT_PREVIEW_TRANSLATION_1.3.43.md`.
-
-## Validation
-
-- `npm run check`
-- SRI validation
-- Runtime smoke
-- Recommendation popup smoke
-- Shared DSP profile smoke
-- Dock waveform smoke
-- Engine QA Bench
-- Strength profiles smoke
-- Preview translation smoke
+See `qa/QA_REPORT_APP_MODULE_SPLIT_1.3.44.md`.
