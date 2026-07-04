@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.35 - configuration module split
+// FoxBear AI Mastering Studio Pro v1.3.36 - 24-band reference matching
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.35';
+const APP_VERSION = 'Pro v1.3.36';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1335';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1336';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -174,7 +174,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.35';
+    styleLink.href = 'assets/css/studio.css?v=1.3.36';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -1078,6 +1078,7 @@ function renderReferencePanel() {
                 ['밝기', `${Math.round(Number(a.brightness || 0) * 100)}%`],
                 ['공간', `${Math.round(Number(a.stereoWidth || 0) * 100)}%`],
                 ['FFT', `${Math.round(Number(a.spectralCentroidHz || 0)) || '-'}Hz`],
+                ['Ref', `${Array.isArray(a.spectrumProfile) && a.spectrumProfile.length >= 24 ? '24대역' : '12대역'}`],
                 ['모노', formatMonoScore(a)]
             ].forEach(([label, value]) => el.referenceMetrics.appendChild(makeSmartSuggestionPill(label, value, 'neutral')));
         }
@@ -2531,7 +2532,7 @@ function analyzeBuffer(buffer) {
         mobileSpeakerRiskLabel: mobileSpeakerRisk.label,
         mobileSpeakerDetail: { boom: mobileSpeakerRisk.boom, box: mobileSpeakerRisk.box, honk: mobileSpeakerRisk.honk, harsh: mobileSpeakerRisk.harsh, density: mobileSpeakerRisk.density },
         loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
-        analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling',
+        analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling, 24-band reference profile',
         targetDynamicFreq: spectrum.valid ? spectrum.harshPeakHz : estimateTargetFrequency(time.zeroCrossRate)
     };
 }
@@ -2761,13 +2762,16 @@ function normalizeLogFrequency(freq, low, high) {
     return clamp01((value - min) / Math.max(1e-9, max - min));
 }
 
+const SPECTRUM_PROFILE_24_RANGES = [
+    [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
+    [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
+    [1400, 2000], [2000, 2800], [2800, 4000], [4000, 5600], [5600, 7100], [7100, 9000],
+    [9000, 11200], [11200, 14000], [14000, 16000], [16000, 18000], [18000, 20000], [20000, 22000]
+];
+
 function makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower) {
-    const ranges = [
-        [20, 45], [45, 80], [80, 140], [140, 250], [250, 450], [450, 800],
-        [800, 1400], [1400, 2500], [2500, 4200], [4200, 6800], [6800, 11000], [11000, 18000]
-    ];
     const denom = Math.max(1e-12, totalPower);
-    return ranges.map(([from, to]) => {
+    return SPECTRUM_PROFILE_24_RANGES.map(([from, to]) => {
         let sum = 0;
         const start = Math.max(1, Math.floor(from * fftSize / sampleRate));
         const end = Math.min(avgPower.length - 1, Math.ceil(to * fftSize / sampleRate));
@@ -3310,19 +3314,23 @@ function applyReferenceToSettings(settings, analysis) {
     const punchDelta = clamp(Number(ref.transientDensity || 0.35) - Number(analysis.transientDensity || 0.35), -0.50, 0.50);
     const metallicDelta = clamp(Number(ref.metallicHint || 0.4) - Number(analysis.metallicHint || 0.4), -0.50, 0.50);
     const spectrumDelta = getSpectrumProfileDelta(ref, analysis);
+    const detailedDelta = spectrumDelta.profile24 || getReferenceProfileBandDeltas(ref, analysis);
     const spatialRisk = clamp01(Number(analysis.spatialExcessRisk || 0));
     if (widthDelta > 0 && (spatialRisk > 0.20 || Number(analysis.lowMonoScore || 100) < 82 || Number(analysis.stereoWidth || 0) > 0.54)) {
         widthDelta *= clamp(1 - spatialRisk * 1.15, 0.18, 0.62);
     }
     const vocalMetalRisk = estimateVocalMetallicRisk(analysis, settings, null, getMasteringIntensity(settings));
-    const safePresenceDelta = spectrumDelta.presence > 0 ? spectrumDelta.presence * clamp(1 - vocalMetalRisk * 1.35, 0.12, 1) : spectrumDelta.presence;
-    const safeAirDelta = spectrumDelta.air > 0 ? spectrumDelta.air * clamp(1 - vocalMetalRisk * 1.45, 0.10, 1) : spectrumDelta.air;
-    const safeBrightDelta = brightDelta > 0 ? brightDelta * clamp(1 - vocalMetalRisk * 1.10, 0.20, 1) : brightDelta;
-    settings.clarity = clamp(Math.round(settings.clarity + safeBrightDelta * 10 + safePresenceDelta * 16 + safeAirDelta * 10), 8, 82);
-    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 8 + spectrumDelta.low * 10 - safeBrightDelta * 3), 10, 86);
+    const mobileRisk = estimateMobileSpeakerRisk(analysis, settings, getMasteringIntensity(settings));
+    const refinedPresence = spectrumDelta.presence * 0.62 + detailedDelta.vocal * 0.18 + detailedDelta.presence * 0.20;
+    const refinedAir = spectrumDelta.air * 0.58 + detailedDelta.sibilance * 0.14 + detailedDelta.air * 0.28;
+    const safePresenceDelta = refinedPresence > 0 ? refinedPresence * clamp(1 - vocalMetalRisk * 1.35 - mobileRisk.harsh * 0.25, 0.12, 1) : refinedPresence;
+    const safeAirDelta = refinedAir > 0 ? refinedAir * clamp(1 - vocalMetalRisk * 1.45 - mobileRisk.harsh * 0.30, 0.10, 1) : refinedAir;
+    const safeBrightDelta = brightDelta > 0 ? brightDelta * clamp(1 - vocalMetalRisk * 1.10 - mobileRisk.harsh * 0.18, 0.20, 1) : brightDelta;
+    settings.clarity = clamp(Math.round(settings.clarity + safeBrightDelta * 8 + safePresenceDelta * 13 + safeAirDelta * 8), 8, 82);
+    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 7 + spectrumDelta.low * 7 + detailedDelta.mud * 4 - safeBrightDelta * 3), 10, 86);
     settings.width = clamp(Math.round(settings.width + widthDelta * 12), 10, 76);
     settings.dynamicPunch = clamp(Math.round(settings.dynamicPunch + punchDelta * 10), 10, 82);
-    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 6 + Math.max(0, -safePresenceDelta) * 8 + vocalMetalRisk * 5), 18, 84);
+    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 6 + Math.max(0, -safePresenceDelta) * 8 + Math.max(0, detailedDelta.harsh) * 4 + vocalMetalRisk * 5 + mobileRisk.harsh * 3), 18, 84);
     const widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 72;
     if (spatialRisk > 0.24 || Number(analysis.lowMonoScore || 100) < 78) settings.width = clamp(Math.min(settings.width, widthLimit), 10, 68);
     return settings;
@@ -4319,6 +4327,30 @@ function estimateVocalMetallicRisk(analysis, settings = {}, preset = null, inten
 }
 
 
+
+function sumProfileBins(profile, indices) {
+    if (!Array.isArray(profile) || !profile.length) return 0;
+    return indices.reduce((sum, index) => sum + Number(profile[index] || 0), 0);
+}
+
+function getProfileRegionEnergy(profile, region) {
+    if (!Array.isArray(profile) || !profile.length) return 0;
+    const is24 = profile.length >= 24;
+    const map24 = {
+        lowBody: [6, 7, 8, 9],
+        phoneBand: [14, 15],
+        sibilance: [16, 17, 18],
+        air: [19, 20, 21, 22, 23]
+    };
+    const map12 = {
+        lowBody: [3, 4, 5],
+        phoneBand: [8, 9],
+        sibilance: [9, 10],
+        air: [10, 11]
+    };
+    return sumProfileBins(profile, (is24 ? map24 : map12)[region] || []);
+}
+
 function estimateMobileSpeakerRisk(analysis, settings = {}, intensity = getMasteringIntensity(settings || {})) {
     if (!analysis) return { risk: 0, boom: 0, box: 0, honk: 0, harsh: 0, density: 0, label: 'safe' };
     const bands = analysis.spectrumBands || {};
@@ -4332,8 +4364,8 @@ function estimateMobileSpeakerRisk(analysis, settings = {}, intensity = getMaste
     const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
     const loudness = clamp01(((Number(analysis.loudnessIntegrated ?? analysis.loudnessHint ?? -18) + 24) / 14));
     const crest = Number.isFinite(Number(analysis.crest)) ? Number(analysis.crest) : 4;
-    const lowBody = clamp01((Number(profile[3] || 0) + Number(profile[4] || 0) + Number(profile[5] || 0)) * 4.2);
-    const phoneBand = clamp01((Number(profile[8] || 0) + Number(profile[9] || 0)) * 4.8);
+    const lowBody = clamp01(getProfileRegionEnergy(profile, 'lowBody') * (profile.length >= 24 ? 5.2 : 4.2));
+    const phoneBand = clamp01(getProfileRegionEnergy(profile, 'phoneBand') * (profile.length >= 24 ? 6.2 : 4.8));
     const boom = clamp01(Math.max(0, bass - 0.36) * 1.15 + Math.max(0, lowMid - 0.28) * 1.75 + Math.max(0, lowBody - 0.40) * 0.85);
     const box = clamp01(Math.max(0, lowMid - 0.25) * 1.85 + Math.max(0, mid - 0.33) * 0.72 + Math.max(0, lowBody - 0.34) * 0.95);
     const honk = clamp01(Math.max(0, mid - 0.36) * 1.20 + Math.max(0, phoneBand - 0.25) * 1.10);
@@ -4674,32 +4706,67 @@ function createPresetReferenceMatchNode(context, input, preset, settings, analys
     const high = clamp01(Number(analysis.highRatio ?? target.high));
     const brightness = clamp01(Number(analysis.brightness ?? target.brightness));
     const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
-    const scale = clamp(0.38 + intensity.amount * 0.23, 0.42, 0.92);
+    const scale = clamp(0.34 + intensity.amount * 0.21, 0.38, 0.82);
     const spectralDelta = getSpectrumProfileDelta(target, analysis);
+    const d = spectralDelta.profile24 || getReferenceProfileBandDeltas(target, analysis);
+    const vocalRisk = estimateVocalMetallicRisk(analysis, settings, preset, intensity);
+    const mobileRisk = estimateMobileSpeakerRisk(analysis, settings, intensity);
+    const presenceSafety = clamp(1 - vocalRisk * 1.10 - mobileRisk.harsh * 0.28, 0.18, 1);
+    const airSafety = clamp(1 - vocalRisk * 1.25 - mobileRisk.harsh * 0.34, 0.12, 1);
+
+    const sub = context.createBiquadFilter();
+    sub.type = 'lowshelf';
+    sub.frequency.value = 58;
+    sub.gain.value = clamp(((target.bass - bass) * 1.05 + d.sub * 0.55) * scale, -0.46, 0.38);
 
     const low = context.createBiquadFilter();
-    low.type = 'lowshelf';
-    low.frequency.value = preset === 'edm' || preset === 'trap' || preset === 'drill' ? 92 : 125;
-    low.gain.value = clamp(((target.bass - bass) * 2.4 + spectralDelta.low * 1.4) * scale, -0.72, 0.72);
+    low.type = 'peaking';
+    low.frequency.value = preset === 'edm' || preset === 'trap' || preset === 'drill' ? 94 : 125;
+    low.Q.value = 0.78;
+    low.gain.value = clamp(((target.bass - bass) * 1.35 + spectralDelta.low * 0.72 + d.bass * 0.62) * scale, -0.66, 0.62);
+
+    const mud = context.createBiquadFilter();
+    mud.type = 'peaking';
+    mud.frequency.value = 285;
+    mud.Q.value = 0.92;
+    mud.gain.value = clamp((spectralDelta.body * 0.46 + d.mud * 0.82 - mobileRisk.box * 0.12) * scale, -0.54, 0.36);
 
     const body = context.createBiquadFilter();
     body.type = 'peaking';
-    body.frequency.value = target.lowMid > 0.30 ? 360 : 420;
-    body.Q.value = 0.82;
-    body.gain.value = clamp(((target.lowMid - lowMid) * 1.6 + spectralDelta.body * 1.1) * scale, -0.58, 0.54);
+    body.frequency.value = target.lowMid > 0.30 ? 420 : 620;
+    body.Q.value = 0.84;
+    body.gain.value = clamp(((target.lowMid - lowMid) * 0.95 + d.body * 0.78) * scale, -0.48, 0.46);
+
+    const vocal = context.createBiquadFilter();
+    vocal.type = 'peaking';
+    vocal.frequency.value = preset === 'rock' || preset === 'punch' ? 1700 : 2150;
+    vocal.Q.value = 0.92;
+    vocal.gain.value = clamp(((target.mid - mid) * 0.72 + d.vocal * 0.60) * scale * presenceSafety, -0.40, 0.36);
 
     const presence = context.createBiquadFilter();
     presence.type = 'peaking';
-    presence.frequency.value = preset === 'punch' || preset === 'rock' ? 1800 : 2350;
-    presence.Q.value = 0.92;
-    presence.gain.value = clamp(((target.mid - mid) * 1.25 + spectralDelta.presence * 0.9) * scale - Math.max(0, metallic - 0.58) * 0.18, -0.50, 0.46);
+    presence.frequency.value = Number(analysis.harshPeakHz || analysis.targetDynamicFreq || 3600) > 4200 ? 3200 : 2800;
+    presence.Q.value = 1.15;
+    presence.gain.value = clamp(((target.mid - mid) * 0.48 + spectralDelta.presence * 0.54 + d.presence * 0.46) * scale * presenceSafety - Math.max(0, metallic - 0.56) * 0.20, -0.48, 0.34);
+
+    const harshGuard = context.createBiquadFilter();
+    harshGuard.type = 'peaking';
+    harshGuard.frequency.value = clamp(Number(analysis.harshPeakHz || analysis.targetDynamicFreq || 5200), 3600, 7200);
+    harshGuard.Q.value = 2.15;
+    harshGuard.gain.value = clamp((d.harsh > 0 ? d.harsh * 0.24 * presenceSafety : d.harsh * 0.64) * scale - vocalRisk * 0.22 - mobileRisk.harsh * 0.14, -0.58, 0.18);
+
+    const sibilance = context.createBiquadFilter();
+    sibilance.type = 'peaking';
+    sibilance.frequency.value = 7600;
+    sibilance.Q.value = 1.65;
+    sibilance.gain.value = clamp((d.sibilance > 0 ? d.sibilance * 0.18 * airSafety : d.sibilance * 0.56) * scale - vocalRisk * 0.16, -0.48, 0.16);
 
     const air = context.createBiquadFilter();
     air.type = 'highshelf';
-    air.frequency.value = target.high > 0.25 ? 9600 : 11200;
-    air.gain.value = clamp(((target.high - high) * 1.35 + spectralDelta.air * 0.85) * scale + (target.brightness - brightness) * 0.34 * scale, -0.62, 0.52);
+    air.frequency.value = target.high > 0.25 ? 10400 : 11800;
+    air.gain.value = clamp(((target.high - high) * 0.62 + spectralDelta.air * 0.46 + d.air * 0.58 + (target.brightness - brightness) * 0.22) * scale * airSafety, -0.54, 0.38);
 
-    input.connect(low).connect(body).connect(presence).connect(air);
+    input.connect(sub).connect(low).connect(mud).connect(body).connect(vocal).connect(presence).connect(harshGuard).connect(sibilance).connect(air);
     return air;
 }
 
@@ -7494,16 +7561,22 @@ function makeReferenceTargetFromAnalysis(analysis) {
         spectralRolloffHz: Number(analysis.spectralRolloffHz || 0),
         spectralFlatness: Number(analysis.spectralFlatness || 0),
         spectrumBands: cloneSpectrumBands(analysis.spectrumBands),
-        spectrumProfile: Array.isArray(analysis.spectrumProfile) ? analysis.spectrumProfile.slice(0, 12).map(value => Number(value) || 0) : []
+        spectrumProfileVersion: 24,
+        spectrumProfile: normalizeReferenceSpectrumProfile(analysis.spectrumProfile, analysis)
     };
 }
 
 function getActiveReferenceTarget(preset) {
     const presetTarget = PRESET_REFERENCE_TARGETS[preset] || null;
     const refTarget = state.referenceProfile?.status === 'ready' ? state.referenceProfile.target : null;
-    if (!refTarget) return presetTarget;
-    if (!presetTarget) return refTarget;
+    if (!refTarget) {
+        if (!presetTarget) return null;
+        return { ...presetTarget, spectrumProfileVersion: 24, spectrumProfile: makePresetSpectrumProfile24(presetTarget), spectrumBands: cloneSpectrumBands(presetTarget.spectrumBands || presetTarget) };
+    }
+    if (!presetTarget) return { ...refTarget, spectrumProfileVersion: 24, spectrumProfile: normalizeReferenceSpectrumProfile(refTarget.spectrumProfile, refTarget) };
     const amount = 0.62;
+    const presetProfile = makePresetSpectrumProfile24(presetTarget);
+    const refProfile = normalizeReferenceSpectrumProfile(refTarget.spectrumProfile, refTarget);
     return {
         bass: blend(presetTarget.bass, refTarget.bass, amount),
         lowMid: blend(presetTarget.lowMid, refTarget.lowMid, amount),
@@ -7517,7 +7590,86 @@ function getActiveReferenceTarget(preset) {
         spectralRolloffHz: refTarget.spectralRolloffHz,
         spectralFlatness: refTarget.spectralFlatness,
         spectrumBands: cloneSpectrumBands(refTarget.spectrumBands),
-        spectrumProfile: Array.isArray(refTarget.spectrumProfile) ? refTarget.spectrumProfile.slice(0, 12) : []
+        spectrumProfileVersion: 24,
+        spectrumProfile: presetProfile.map((value, index) => Number(blend(value, Number(refProfile[index] || 0), amount).toFixed(5)))
+    };
+}
+
+
+function normalizeReferenceSpectrumProfile(profile, fallback = null) {
+    if (Array.isArray(profile) && profile.length >= 24) return profile.slice(0, 24).map(value => clamp01(Number(value) || 0));
+    if (Array.isArray(profile) && profile.length >= 12) return upsampleSpectrumProfile12To24(profile);
+    return makePresetSpectrumProfile24(fallback || { bass: 0.25, lowMid: 0.25, mid: 0.28, high: 0.22, brightness: 0.50 });
+}
+
+function upsampleSpectrumProfile12To24(profile) {
+    const source = profile.slice(0, 12).map(value => clamp01(Number(value) || 0));
+    const split = [0.48, 0.52];
+    const out = [];
+    source.forEach(value => {
+        out.push(Number((value * split[0]).toFixed(5)));
+        out.push(Number((value * split[1]).toFixed(5)));
+    });
+    return out.slice(0, 24);
+}
+
+function makePresetSpectrumProfile24(target) {
+    const bands = cloneSpectrumBands(target?.spectrumBands || target);
+    const bass = clamp01(Number(target?.bass ?? ((bands.bass + bands.sub) || 0.25)));
+    const lowMid = clamp01(Number(target?.lowMid ?? (bands.lowMid || 0.25)));
+    const mid = clamp01(Number(target?.mid ?? (bands.mid || 0.28)));
+    const high = clamp01(Number(target?.high ?? ((bands.high + bands.air) || 0.22)));
+    const bright = clamp01(Number(target?.brightness ?? 0.50));
+    const subShare = clamp(0.20 + bass * 0.22, 0.16, 0.34);
+    const airShare = clamp(0.18 + bright * 0.22, 0.16, 0.34);
+    const profile = new Array(24).fill(0);
+    distributeProfileEnergy(profile, [0, 1, 2, 3], bass * subShare, [0.16, 0.22, 0.28, 0.34]);
+    distributeProfileEnergy(profile, [4, 5, 6], bass * (1 - subShare), [0.34, 0.36, 0.30]);
+    distributeProfileEnergy(profile, [7, 8, 9, 10], lowMid, [0.24, 0.30, 0.26, 0.20]);
+    distributeProfileEnergy(profile, [11, 12, 13, 14], mid, [0.23, 0.28, 0.27, 0.22]);
+    distributeProfileEnergy(profile, [15, 16, 17, 18], high * (1 - airShare), [0.25, 0.27, 0.25, 0.23]);
+    distributeProfileEnergy(profile, [19, 20, 21, 22, 23], high * airShare, [0.30, 0.24, 0.20, 0.15, 0.11]);
+    const sum = profile.reduce((total, value) => total + value, 0) || 1;
+    return profile.map(value => Number(clamp01(value / sum).toFixed(5)));
+}
+
+function distributeProfileEnergy(profile, indices, amount, weights) {
+    const weightSum = weights.reduce((sum, value) => sum + value, 0) || 1;
+    indices.forEach((index, position) => {
+        profile[index] += clamp01(Number(amount) || 0) * (Number(weights[position] || 0) / weightSum);
+    });
+}
+
+function sumSpectrumRange(profile, from, to) {
+    const normalized = normalizeReferenceSpectrumProfile(profile);
+    let sum = 0;
+    for (let i = from; i <= to; i += 1) sum += Number(normalized[i] || 0);
+    return sum;
+}
+
+function getReferenceProfileBandDeltas(ref, analysis) {
+    const refProfile = normalizeReferenceSpectrumProfile(ref?.spectrumProfile, ref);
+    const nowProfile = normalizeReferenceSpectrumProfile(analysis?.spectrumProfile, analysis);
+    const deltaRange = (from, to, scale = 18) => {
+        let sum = 0;
+        let count = 0;
+        for (let i = from; i <= to; i += 1) {
+            sum += Number(refProfile[i] || 0) - Number(nowProfile[i] || 0);
+            count += 1;
+        }
+        return clamp(sum / Math.max(1, count) * scale, -0.55, 0.55);
+    };
+    return {
+        sub: deltaRange(0, 2, 22),
+        bass: deltaRange(3, 6, 20),
+        mud: deltaRange(7, 9, 19),
+        body: deltaRange(10, 12, 18),
+        vocal: deltaRange(13, 14, 18),
+        presence: deltaRange(14, 16, 17),
+        harsh: deltaRange(15, 17, 16),
+        sibilance: deltaRange(17, 19, 16),
+        air: deltaRange(20, 23, 18),
+        tilt: clamp((sumSpectrumRange(refProfile, 15, 23) - sumSpectrumRange(nowProfile, 15, 23)) - (sumSpectrumRange(refProfile, 0, 8) - sumSpectrumRange(nowProfile, 0, 8)), -0.45, 0.45)
     };
 }
 
@@ -7535,32 +7687,15 @@ function cloneSpectrumBands(bands) {
 }
 
 function getSpectrumProfileDelta(ref, analysis) {
-    const refProfile = Array.isArray(ref?.spectrumProfile) ? ref.spectrumProfile : [];
-    const nowProfile = Array.isArray(analysis?.spectrumProfile) ? analysis.spectrumProfile : [];
-    if (refProfile.length >= 12 && nowProfile.length >= 12) {
-        const deltaRange = (from, to) => {
-            let sum = 0;
-            let count = 0;
-            for (let i = from; i <= to; i += 1) {
-                sum += Number(refProfile[i] || 0) - Number(nowProfile[i] || 0);
-                count += 1;
-            }
-            return clamp(sum / Math.max(1, count) * 12, -0.50, 0.50);
-        };
-        return {
-            low: deltaRange(1, 3),
-            body: deltaRange(4, 6),
-            presence: deltaRange(7, 9),
-            air: deltaRange(10, 11)
-        };
-    }
+    const detailed = getReferenceProfileBandDeltas(ref, analysis);
     const refBands = cloneSpectrumBands(ref?.spectrumBands);
     const nowBands = cloneSpectrumBands(analysis?.spectrumBands);
     return {
-        low: clamp((refBands.sub + refBands.bass) - (nowBands.sub + nowBands.bass), -0.50, 0.50),
-        body: clamp(refBands.lowMid - nowBands.lowMid, -0.50, 0.50),
-        presence: clamp(refBands.presence - nowBands.presence, -0.50, 0.50),
-        air: clamp((refBands.high + refBands.air) - (nowBands.high + nowBands.air), -0.50, 0.50)
+        low: clamp((detailed.sub * 0.32 + detailed.bass * 0.68) + ((refBands.sub + refBands.bass) - (nowBands.sub + nowBands.bass)) * 0.28, -0.55, 0.55),
+        body: clamp(detailed.mud * 0.38 + detailed.body * 0.62 + (refBands.lowMid - nowBands.lowMid) * 0.22, -0.55, 0.55),
+        presence: clamp(detailed.vocal * 0.30 + detailed.presence * 0.52 + detailed.harsh * 0.18 + (refBands.presence - nowBands.presence) * 0.20, -0.55, 0.55),
+        air: clamp(detailed.sibilance * 0.20 + detailed.air * 0.68 + detailed.tilt * 0.12 + ((refBands.high + refBands.air) - (nowBands.high + nowBands.air)) * 0.20, -0.55, 0.55),
+        profile24: detailed
     };
 }
 
@@ -9946,7 +10081,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.35',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.36',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

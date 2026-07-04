@@ -1,5 +1,14 @@
 # FoxBear AI Mastering Studio Pro
 
+## Pro v1.3.36 Reference 24-band matching update
+
+- Expanded FFT spectrum profiles from 12 compact bands to a 24-band reference curve for finer tonal matching.
+- Reference matching now evaluates sub, bass, mud, body, vocal, presence, harshness, sibilance, and air separately instead of reducing the whole reference to only broad low/body/presence/air groups.
+- Added safety-aware reference matching so bright references do not over-push vocal harshness, sibilance, mobile-speaker resonance, or metallic vocal tone.
+- Preset reference targets now synthesize a 24-band curve, while uploaded reference tracks preserve their measured 24-band profile.
+- Mobile speaker risk analysis was updated to read both new 24-band profiles and legacy 12-band profiles safely.
+- Updated app version, analysis cache key, cache busters, package metadata, and SRI hashes to v1.3.36.
+
 ## Pro v1.3.35 App.js configuration module split update
 - Split the monolithic `src/app.js` configuration layer into smaller load-ordered browser modules:
   - `src/config/mastering-presets.js` for beat, instrument, platform export, and master style presets.

@@ -1,5 +1,7 @@
 app_version: PASS
-original_selection: PASS
-master_preview_button_index: PASS
-master_preview_render: PASS
-qa_report: PASS
+analysis_cache_v1336: PASS
+reference_profile_24band: PASS
+legacy_12band_upsample: PASS
+reference_safety_vocal_mobile: PASS
+sri_validation: PASS
+runtime_smoke: PASS

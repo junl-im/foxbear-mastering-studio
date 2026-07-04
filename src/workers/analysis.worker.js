@@ -48,7 +48,7 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
         spatialExcessRisk, widthRecommendationLimit: spatialExcessRisk > 0.52 || lowMonoScore < 70 ? 52 : spatialExcessRisk > 0.28 ? 60 : 72,
         mobileSpeakerRisk: mobileSpeaker.risk, mobileSpeakerRiskLabel: mobileSpeaker.label,
         mobileSpeakerDetail: { boom: mobileSpeaker.boom, box: mobileSpeaker.box, honk: mobileSpeaker.honk, harsh: mobileSpeaker.harsh, density: mobileSpeaker.density },
-        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling', targetDynamicFreq: estimatedTargetFreq
+        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling, 24-band reference profile', targetDynamicFreq: estimatedTargetFreq
     };
 }
 
@@ -279,13 +279,16 @@ function normalizeLogFrequency(freq, low, high) {
     return clamp01((value - min) / Math.max(1e-9, max - min));
 }
 
+const SPECTRUM_PROFILE_24_RANGES = [
+    [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
+    [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
+    [1400, 2000], [2000, 2800], [2800, 4000], [4000, 5600], [5600, 7100], [7100, 9000],
+    [9000, 11200], [11200, 14000], [14000, 16000], [16000, 18000], [18000, 20000], [20000, 22000]
+];
+
 function makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower) {
-    const ranges = [
-        [20, 45], [45, 80], [80, 140], [140, 250], [250, 450], [450, 800],
-        [800, 1400], [1400, 2500], [2500, 4200], [4200, 6800], [6800, 11000], [11000, 18000]
-    ];
     const denom = Math.max(1e-12, totalPower);
-    return ranges.map(([from, to]) => {
+    return SPECTRUM_PROFILE_24_RANGES.map(([from, to]) => {
         let sum = 0;
         const start = Math.max(1, Math.floor(from * fftSize / sampleRate));
         const end = Math.min(avgPower.length - 1, Math.ceil(to * fftSize / sampleRate));
@@ -294,6 +297,30 @@ function makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower) {
     });
 }
 
+
+
+function sumProfileBins(profile, indices) {
+    if (!Array.isArray(profile) || !profile.length) return 0;
+    return indices.reduce((sum, index) => sum + Number(profile[index] || 0), 0);
+}
+
+function getProfileRegionEnergy(profile, region) {
+    if (!Array.isArray(profile) || !profile.length) return 0;
+    const is24 = profile.length >= 24;
+    const map24 = {
+        lowBody: [6, 7, 8, 9],
+        phoneBand: [14, 15],
+        sibilance: [16, 17, 18],
+        air: [19, 20, 21, 22, 23]
+    };
+    const map12 = {
+        lowBody: [3, 4, 5],
+        phoneBand: [8, 9],
+        sibilance: [9, 10],
+        air: [10, 11]
+    };
+    return sumProfileBins(profile, (is24 ? map24 : map12)[region] || []);
+}
 
 function estimateMobileSpeakerRisk(analysis) {
     if (!analysis) return { risk: 0, boom: 0, box: 0, honk: 0, harsh: 0, density: 0, label: 'safe' };
@@ -308,8 +335,8 @@ function estimateMobileSpeakerRisk(analysis) {
     const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
     const loudness = clamp01(((Number(analysis.loudnessIntegrated ?? analysis.loudnessHint ?? -18) + 24) / 14));
     const crest = Number.isFinite(Number(analysis.crest)) ? Number(analysis.crest) : 4;
-    const lowBody = clamp01((Number(profile[3] || 0) + Number(profile[4] || 0) + Number(profile[5] || 0)) * 4.2);
-    const phoneBand = clamp01((Number(profile[8] || 0) + Number(profile[9] || 0)) * 4.8);
+    const lowBody = clamp01(getProfileRegionEnergy(profile, 'lowBody') * (profile.length >= 24 ? 5.2 : 4.2));
+    const phoneBand = clamp01(getProfileRegionEnergy(profile, 'phoneBand') * (profile.length >= 24 ? 6.2 : 4.8));
     const boom = clamp01(Math.max(0, bass - 0.36) * 1.15 + Math.max(0, lowMid - 0.28) * 1.75 + Math.max(0, lowBody - 0.40) * 0.85);
     const box = clamp01(Math.max(0, lowMid - 0.25) * 1.85 + Math.max(0, mid - 0.33) * 0.72 + Math.max(0, lowBody - 0.34) * 0.95);
     const honk = clamp01(Math.max(0, mid - 0.36) * 1.20 + Math.max(0, phoneBand - 0.25) * 1.10);
