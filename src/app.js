@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.23 - AI automatic mastering UX static build
+// FoxBear AI Mastering Studio Pro v1.3.24 - AI recommendation popup and compact layout
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.23';
+const APP_VERSION = 'Pro v1.3.24';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -392,6 +392,7 @@ const state = {
     autoRemasterTimers: new Map(),
     selectPopup: null,
     expandedDetailIds: new Set(),
+    collapsedDetailIds: new Set(),
     popupScrollY: 0,
     popupScrollbarCompensation: 0,
     activeDownloadUrls: new Set(),
@@ -438,7 +439,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.23';
+    styleLink.href = 'assets/css/studio.css?v=1.3.24';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -1185,6 +1186,119 @@ function updateSmartRecommendationPanel() {
     if (!el.smartSuggestList) return;
     el.smartSuggestList.textContent = '';
     buildSmartSuggestionItems(track).forEach(item => el.smartSuggestList.appendChild(makeSmartSuggestionPill(item.label, item.value, item.tone)));
+    renderSmartCandidatePresets(track, el.smartSuggestList);
+}
+
+
+function renderSmartCandidatePresets(track, target) {
+    if (!target || !track || !track.analysis) return;
+    const candidates = getAiCandidatePresets(track).slice(0, 4);
+    if (!candidates.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'smart-candidate-row';
+    candidates.forEach(candidate => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        const recommended = candidate.preset === (track.recommendedPreset || track.preset);
+        const active = candidate.preset === track.preset;
+        button.className = `smart-candidate-chip ${active ? 'active' : ''} ${recommended ? 'recommended' : ''}`;
+        const label = document.createElement('span');
+        label.textContent = candidate.label;
+        const badge = document.createElement('b');
+        badge.textContent = recommended ? `추천 ${track.confidence || 0}%` : '후보';
+        button.append(label, badge);
+        button.disabled = state.busy || !track.analysis;
+        button.addEventListener('click', () => applyAiPresetCandidate(track, candidate.preset));
+        wrap.appendChild(button);
+    });
+    target.appendChild(wrap);
+}
+
+function maybeShowSingleTrackAiRecommendationDialog(track) {
+    if (!track || !track.autoAiRecommendDialog || track.aiRecommendDialogShown || !track.analysis) return;
+    track.aiRecommendDialogShown = true;
+    showAiRecommendationDialog(track);
+}
+
+function showAiRecommendationDialog(track) {
+    if (!track || !track.analysis || !document.body) return;
+    const previous = document.querySelector('.ai-recommend-dialog-backdrop');
+    if (previous) previous.remove();
+    const backdrop = document.createElement('div');
+    backdrop.className = 'ai-recommend-dialog-backdrop show';
+    backdrop.setAttribute('role', 'dialog');
+    backdrop.setAttribute('aria-modal', 'true');
+    backdrop.setAttribute('aria-label', 'AI 추천 프리셋');
+
+    const panel = document.createElement('section');
+    panel.className = 'ai-recommend-dialog-panel';
+    panel.tabIndex = -1;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'ai-recommend-dialog-close';
+    close.setAttribute('aria-label', 'AI 추천 팝업 닫기');
+    close.textContent = '×';
+
+    const eyebrow = document.createElement('span');
+    eyebrow.className = 'ai-recommend-eyebrow';
+    eyebrow.textContent = 'AI 자동 분석 완료';
+    const title = document.createElement('h2');
+    title.textContent = track.name || '선택 곡';
+    const summary = document.createElement('p');
+    summary.textContent = buildAiMasteringSummary(track);
+
+    const list = document.createElement('div');
+    list.className = 'ai-recommend-preset-list';
+    getAiCandidatePresets(track).slice(0, 4).forEach(candidate => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        const recommended = candidate.preset === (track.recommendedPreset || track.preset);
+        row.className = `ai-recommend-preset ${recommended ? 'recommended' : ''} ${candidate.preset === track.preset ? 'active' : ''}`;
+        const name = document.createElement('strong');
+        name.textContent = candidate.label;
+        const meta = document.createElement('span');
+        meta.textContent = recommended ? `추천 · ${track.confidence || 0}%` : '대안 프리셋';
+        const mark = document.createElement('em');
+        mark.textContent = recommended ? '추천' : '선택';
+        row.append(name, meta, mark);
+        row.addEventListener('click', () => {
+            applyAiPresetCandidate(track, candidate.preset);
+            closeAiRecommendationDialog(backdrop);
+        });
+        list.appendChild(row);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'ai-recommend-dialog-actions';
+    const later = document.createElement('button');
+    later.type = 'button';
+    later.className = 'btn-secondary';
+    later.textContent = '나중에 보기';
+    later.addEventListener('click', () => closeAiRecommendationDialog(backdrop));
+    const start = document.createElement('button');
+    start.type = 'button';
+    start.className = 'btn-primary';
+    start.textContent = '추천 설정으로 마스터링';
+    start.disabled = !canStartAiMastering(track);
+    start.addEventListener('click', async () => {
+        closeAiRecommendationDialog(backdrop);
+        await masterTrackWithAiRecommendation(track);
+    });
+    actions.append(later, start);
+
+    close.addEventListener('click', () => closeAiRecommendationDialog(backdrop));
+    backdrop.addEventListener('click', event => { if (event.target === backdrop) closeAiRecommendationDialog(backdrop); });
+    panel.append(close, eyebrow, title, summary, list, actions);
+    backdrop.appendChild(panel);
+    document.body.appendChild(backdrop);
+    document.body.classList.add('ai-recommend-dialog-open');
+    requestAnimationFrame(() => panel.focus());
+}
+
+function closeAiRecommendationDialog(backdrop) {
+    const target = backdrop || document.querySelector('.ai-recommend-dialog-backdrop');
+    if (target) target.remove();
+    document.body.classList.remove('ai-recommend-dialog-open');
 }
 
 function buildSmartSuggestionItems(track) {
@@ -2345,6 +2459,7 @@ async function handleFiles(fileList) {
 
     const room = Math.max(0, MAX_FILES - state.tracks.length);
     const limited = incoming.slice(0, room);
+    const singleUploadDialogCandidate = limited.length === 1;
     let added = 0;
 
     for (const file of limited) {
@@ -2354,6 +2469,7 @@ async function handleFiles(fileList) {
             continue;
         }
         const track = createTrack(file);
+        track.autoAiRecommendDialog = singleUploadDialogCandidate;
         state.tracks.push(track);
         if (!state.selectedId) {
             state.selectedId = track.id;
@@ -2422,6 +2538,8 @@ function createTrack(file) {
         exportFallbackInfo: null,
         performanceInfo: null,
         snapshots: [],
+        autoAiRecommendDialog: false,
+        aiRecommendDialogShown: false,
         report: '대기 중',
         outBlob: null,
         outName: '',
@@ -2473,6 +2591,7 @@ async function analyzeTrack(track) {
     if (state.selectedId === track.id) applyTrackToControls(track);
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     renderAll();
+    maybeShowSingleTrackAiRecommendationDialog(track);
 }
 
 async function decodeAudio(file) {
@@ -6455,6 +6574,7 @@ function clearQueue() {
     state.bottomPreviewTrackId = null;
     state.bottomPreviewAutoplayTrackId = null;
     if (state.expandedDetailIds) state.expandedDetailIds.clear();
+    if (state.collapsedDetailIds) state.collapsedDetailIds.clear();
     state.busy = false;
     state.albumProfile = null;
     clearFileInputs();
@@ -6922,9 +7042,28 @@ function renderTrackList() {
         });
 
         const top = document.createElement('div');
-        top.className = 'track-top';
+        top.className = 'track-top track-state-row';
+        const statePills = document.createElement('div');
+        statePills.className = 'track-state-pills';
+        if (track.id === state.selectedId) {
+            const activePill = document.createElement('span');
+            activePill.className = 'track-state-pill track-state-active';
+            activePill.textContent = '현재 작업';
+            statePills.appendChild(activePill);
+        } else if (state.selectedIds.has(track.id)) {
+            const pickedPill = document.createElement('span');
+            pickedPill.className = 'track-state-pill track-state-picked';
+            pickedPill.textContent = '작업 선택';
+            statePills.appendChild(pickedPill);
+        }
+        const status = document.createElement('span');
+        status.className = `status-pill status-${track.status}`;
+        status.textContent = statusLabel(track.status);
+        statePills.appendChild(status);
+        top.appendChild(statePills);
 
         const titleWrap = document.createElement('div');
+        titleWrap.className = 'track-info-block';
         const title = document.createElement('strong');
         title.className = 'track-name';
         title.textContent = track.name;
@@ -6935,11 +7074,6 @@ function renderTrackList() {
         presetChip.className = 'track-preset-chip';
         presetChip.textContent = `프리셋 · ${PRESET_LABELS[track.preset] || track.preset}${track.genreLocked ? ' · 잠금' : ''}`;
         titleWrap.append(title, meta, presetChip);
-
-        const status = document.createElement('span');
-        status.className = `status-pill status-${track.status}`;
-        status.textContent = statusLabel(track.status);
-        top.append(titleWrap, status);
 
         const progressShell = document.createElement('div');
         progressShell.className = 'progress-shell';
@@ -6969,7 +7103,7 @@ function renderTrackList() {
             actions.append(makeMiniButton('리포트 저장', 'btn-secondary', () => downloadTrackReport(track), false));
         }
 
-        card.append(top, progressShell, progressCaption, aiJudge, actions);
+        card.append(top, titleWrap, progressShell, progressCaption, aiJudge, actions);
         el.trackList.appendChild(card);
     });
 }
@@ -7027,23 +7161,21 @@ function renderDetail(options = {}) {
     const safetyInfo = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
     compact.textContent = track.analysis ? `${presetText} · ${track.status === 'done' ? '완료' : statusLabel(track.status)}${safetyInfo ? ` · 안전 ${safetyInfo.score}점` : ''}` : statusLabel(track.status);
     el.trackDetail.appendChild(compact);
-    renderAiMasteringCard(track);
 
-    const isOpen = state.expandedDetailIds && state.expandedDetailIds.has(track.id);
+    const isOpen = isAnalysisDetailOpen(track);
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'analysis-detail-toggle btn-secondary';
     toggle.textContent = isOpen ? '분석 상세 닫기' : '분석 상세보기';
     toggle.setAttribute('aria-expanded', String(isOpen));
     toggle.addEventListener('click', () => {
-        if (!state.expandedDetailIds) state.expandedDetailIds = new Set();
-        if (state.expandedDetailIds.has(track.id)) state.expandedDetailIds.delete(track.id);
-        else state.expandedDetailIds.add(track.id);
+        toggleAnalysisDetailOpen(track.id);
         renderAll({ keepDetailAudio: true });
     });
     el.trackDetail.appendChild(toggle);
 
     if (isOpen) {
+        renderAiMasteringCard(track);
         renderMasterComparisonPanel(track);
         renderABStudioPanel(track);
         renderWaveformPanel(track);
@@ -7126,6 +7258,32 @@ function renderDetail(options = {}) {
 
     updateConfidenceUI(track);
     if (!options.keepDetailAudio) applyTrackToControls(track);
+}
+
+
+function isDesktopDetailDefaultOpen() {
+    return Boolean(window.matchMedia && window.matchMedia('(min-width: 821px)').matches);
+}
+
+function isAnalysisDetailOpen(track) {
+    if (!track) return false;
+    if (!state.expandedDetailIds) state.expandedDetailIds = new Set();
+    if (!state.collapsedDetailIds) state.collapsedDetailIds = new Set();
+    if (isDesktopDetailDefaultOpen()) return !state.collapsedDetailIds.has(track.id);
+    return state.expandedDetailIds.has(track.id);
+}
+
+function toggleAnalysisDetailOpen(trackId) {
+    if (!trackId) return;
+    if (!state.expandedDetailIds) state.expandedDetailIds = new Set();
+    if (!state.collapsedDetailIds) state.collapsedDetailIds = new Set();
+    if (isDesktopDetailDefaultOpen()) {
+        if (state.collapsedDetailIds.has(trackId)) state.collapsedDetailIds.delete(trackId);
+        else state.collapsedDetailIds.add(trackId);
+        return;
+    }
+    if (state.expandedDetailIds.has(trackId)) state.expandedDetailIds.delete(trackId);
+    else state.expandedDetailIds.add(trackId);
 }
 
 function renderAiMasteringCard(track) {
@@ -7228,7 +7386,7 @@ function renderAiMasteringCard(track) {
         actions.appendChild(remasterBtn);
     }
 
-    panel.append(head, summary, grid, reason, candidates, risk, actions);
+    panel.append(head, summary, grid, reason, risk, actions);
     el.trackDetail.appendChild(panel);
 }
 
@@ -8629,7 +8787,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.23',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.24',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
