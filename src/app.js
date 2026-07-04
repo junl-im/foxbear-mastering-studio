@@ -1258,12 +1258,9 @@ function showAiRecommendationDialog(track) {
         name.textContent = candidate.label;
         const meta = document.createElement('span');
         meta.textContent = `${candidate.percent}%`;
-        row.append(name, meta);
-        if (recommended) {
-            const mark = document.createElement('em');
-            mark.textContent = '추천';
-            row.appendChild(mark);
-        }
+        const mark = document.createElement('em');
+        mark.textContent = recommended ? '추천' : '후보';
+        row.append(name, meta, mark);
         row.addEventListener('click', () => {
             applyAiPresetCandidate(track, candidate.preset);
             closeAiRecommendationDialog(backdrop);
