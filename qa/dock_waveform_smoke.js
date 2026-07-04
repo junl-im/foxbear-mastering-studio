@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+const fs = require('fs');
+const html = fs.readFileSync('index.html', 'utf8');
+const app = fs.readFileSync('src/app.js', 'utf8');
+const css = fs.readFileSync('assets/css/studio.css', 'utf8');
+const requiredHtml = [
+  'bottomPreviewWaveformBtn',
+  '마스터링 진행',
+  '결과 미리듣기',
+  '원본 미리듣기',
+  '마스터링 미리듣기'
+];
+for (const token of requiredHtml) {
+  if (!html.includes(token)) throw new Error(`missing html token: ${token}`);
+}
+const order = ['bottomPreviewMasterBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn'];
+const positions = order.map(token => html.indexOf(token));
+if (positions.some(pos => pos < 0)) throw new Error('dock control order token missing');
+for (let i = 1; i < positions.length; i += 1) {
+  if (positions[i] <= positions[i - 1]) throw new Error('dock controls are not in requested order');
+}
+for (const token of ['renderBottomWaveformMini', 'openWaveformCompareDialog', 'DOCK_WAVEFORM_BINS']) {
+  if (!app.includes(token)) throw new Error(`missing app token: ${token}`);
+}
+for (const token of ['bottom-preview-waveform', 'waveform-compare-mode', 'calc(var(--bottom-preview-height']) {
+  if (!css.includes(token)) throw new Error(`missing css token: ${token}`);
+}
+console.log('PASS dock waveform smoke: mini view, popup, order, compact controls present');

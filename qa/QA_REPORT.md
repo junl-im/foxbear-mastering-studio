@@ -1,4 +1,14 @@
-# FoxBear Pro v1.3.38 QA Report
+# FoxBear Pro v1.3.39 QA Report
+
+## Pro v1.3.39 Dock Waveform Mini View
+
+- Added dock-top waveform/peak mini view.
+- Added compact waveform comparison popup.
+- Renamed 15s preview wording to `결과 미리듣기`.
+- Reordered and compacted bottom dock controls.
+- Added `qa/dock_waveform_smoke.js`.
+- See `qa/QA_REPORT_DOCK_WAVEFORM_1.3.39.md`.
+
 
 ## Pro v1.3.38 Shared DSP Preview/Render Profile
 

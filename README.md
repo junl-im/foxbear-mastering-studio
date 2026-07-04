@@ -1,13 +1,14 @@
 # FoxBear Mastering Studio
 
-## Pro v1.3.38 Shared DSP Preview/Render Profile
+## Pro v1.3.39 Dock Waveform Mini View
 
-This update reduces mismatch between realtime preview, 15-second mastering preview, and full final render by making them share one normalized DSP decision profile.
+This update improves the bottom dock listening workflow and makes waveform/peak checking visible without opening the full detail panel.
 
-- Added `SHARED_DSP_PROFILE_VERSION` and `createSharedDspProfile()`.
-- Realtime preview, offline master chain, 15-second A/B preview, and finalizer metadata now use the same effective settings, mastering intensity, phase-safe spatial budget, realtime tone map, and finalizer analysis payload.
-- Stored shared DSP metadata in analysis/finalizer/export reports so preview vs final render differences can be audited.
-- Preserved the v1.3.37 recommendation popup hotfix: `원본선택` remains a manual option and the AI recommendation popup is protected by safe fallback.
-- Added `qa/shared_dsp_profile_smoke.js` to verify the shared profile can be created, applied to analysis metadata, and summarized for reports.
+- Added a dock-top waveform/peak mini view that follows the active source: original, 15-second result listening, or mastered output.
+- Clicking the mini view opens a centered compact waveform comparison popup.
+- Renamed the old 15-second mastering preview wording to `결과 미리듣기`.
+- Reordered the dock controls: `마스터링 진행` → `결과 미리듣기` → `원본 미리듣기` → `마스터링 미리듣기`.
+- Reduced the dock control widths and aligned the left two action buttons to the left and the right two listening tabs to the right.
+- Moved the processing HUD closer to the top edge of the dock.
 
-Previous v1.3.36 changes are retained: 24-band reference matching, mobile/vocal safety, spatial budget, A/B preview, and module extraction.
+Previous v1.3.38 changes are retained: shared DSP profile for realtime preview, 15-second result listening, and final render.
