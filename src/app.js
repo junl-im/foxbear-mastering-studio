@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.47 - dock A/B loudness and difference listen
+// FoxBear AI Mastering Studio Pro v1.3.48 - dock waveform and transport hotfix
 'use strict';
 
 
@@ -16,7 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 
-const APP_VERSION = 'Pro v1.3.47';
+const APP_VERSION = 'Pro v1.3.48';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -32,9 +32,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1347';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1348';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.47-dock-ab-compare';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.48-dock-waveform-hotfix';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -228,7 +228,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.47';
+    styleLink.href = 'assets/css/studio.css?v=1.3.48';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -9795,17 +9795,21 @@ function clearMasterPreviewOutput(track) {
 
 
 function getTrackOriginalWaveformValues(track) {
-    return normalizeWaveformValues(track?.waveformOverview?.before || track?.analysis?.waveformOverview || track?.masterPreviewInfo?.sourceWaveformOverview || []);
+    return normalizeWaveformValues(track?.waveformOverview?.before || track?.waveformOverview?.original || track?.analysis?.waveformOverview || track?.masterPreviewInfo?.sourceWaveformOverview || []);
 }
 
 function getTrackMasterWaveformValues(track) {
-    return normalizeWaveformValues(track?.waveformOverview?.after || track?.masterPreviewInfo?.waveformOverview || []);
+    return normalizeWaveformValues(track?.waveformOverview?.after || track?.waveformOverview?.mastered || track?.masterPreviewInfo?.waveformOverview || []);
+}
+
+function getTrackMasterWaveformMarkers(track, fallbackValues = []) {
+    return track?.waveformOverview?.peakMarkers || track?.waveformOverview?.masteredPeaks || sampleMarkersFromValues(fallbackValues);
 }
 
 function getDockWaveformPayload(track, mode = state.bottomPreviewMode) {
     const original = getTrackOriginalWaveformValues(track);
     const mastered = getTrackMasterWaveformValues(track);
-    if (mode === 'mastered' && mastered.length) return { label: '마스터링 피크', badge: 'Master', values: mastered, markers: track?.waveformOverview?.peakMarkers || sampleMarkersFromValues(mastered) };
+    if (mode === 'mastered' && mastered.length) return { label: '마스터링 피크', badge: 'Master', values: mastered, markers: getTrackMasterWaveformMarkers(track, mastered) };
     if (mode === 'masterPreview' && track?.masterPreviewInfo?.waveformOverview?.length) return { label: '결과 프리뷰 피크', badge: '15s', values: normalizeWaveformValues(track.masterPreviewInfo.waveformOverview), markers: sampleMarkersFromValues(track.masterPreviewInfo.waveformOverview) };
     return { label: '원본 피크', badge: 'Original', values: original, markers: sampleMarkersFromValues(original) };
 }
@@ -9842,8 +9846,7 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
 function openWaveformCompareDialog() {
     const track = getSelectedTrack();
     if (!track || !el.previewDialog || !el.previewDialogBody) return;
-    cleanupRealtimePreview();
-    pauseAllPreviewAudio();
+    captureBottomPreviewTransport(track, state.bottomPreviewMode);
     el.previewDialogBody.textContent = '';
     el.previewDialog.classList.add('show', 'waveform-compare-mode');
     el.previewDialog.setAttribute('aria-hidden', 'false');
@@ -9872,7 +9875,7 @@ function renderWaveformCompareDialog(track, target) {
     const mastered = getTrackMasterWaveformValues(track);
     wrap.appendChild(makeWaveformCompareRow('원본', original, sampleMarkersFromValues(original), 'original'));
     if (mastered.length) {
-        wrap.appendChild(makeWaveformCompareRow(track.masteredUrl ? '마스터링' : '결과 프리뷰', mastered, track.waveformOverview?.peakMarkers || sampleMarkersFromValues(mastered), 'mastered'));
+        wrap.appendChild(makeWaveformCompareRow(track.masteredUrl ? '마스터링' : '결과 프리뷰', mastered, getTrackMasterWaveformMarkers(track, mastered), 'mastered'));
     } else {
         const empty = document.createElement('div');
         empty.className = 'waveform-compare-empty';
@@ -10603,8 +10606,10 @@ function renderWaveformPanel(track) {
     badge.textContent = 'Before / After';
     head.append(title, badge);
     panel.appendChild(head);
-    panel.appendChild(makeWaveformRow('원본', track.waveformOverview.before, []));
-    panel.appendChild(makeWaveformRow('마스터', track.waveformOverview.after, track.waveformOverview.peakMarkers || []));
+    const originalWaveform = getTrackOriginalWaveformValues(track);
+    const masterWaveform = getTrackMasterWaveformValues(track);
+    panel.appendChild(makeWaveformRow('원본', originalWaveform, sampleMarkersFromValues(originalWaveform)));
+    panel.appendChild(makeWaveformRow('마스터', masterWaveform, getTrackMasterWaveformMarkers(track, masterWaveform)));
     const hint = document.createElement('small');
     hint.className = 'waveform-hint';
     hint.textContent = '막대가 높을수록 해당 구간의 피크가 큽니다. 붉은 표시는 클리핑 근접 구간입니다.';
@@ -11399,7 +11404,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.47',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.48',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

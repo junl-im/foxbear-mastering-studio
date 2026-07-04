@@ -8775,3 +8775,23 @@ body.bottom-preview-active .download-help {
         display: none;
     }
 }
+
+/* v1.3.48 Dock waveform/transport hotfix: lift overlays above taller Dock */
+body.bottom-preview-active .toast,
+body.bottom-preview-active .download-assist {
+    bottom: calc(198px + env(safe-area-inset-bottom)) !important;
+    z-index: 23500 !important;
+}
+body.bottom-preview-active .processing-hud {
+    bottom: calc(186px + env(safe-area-inset-bottom)) !important;
+    z-index: 23400 !important;
+}
+@media (max-width: 720px) {
+    body.bottom-preview-active .toast,
+    body.bottom-preview-active .download-assist {
+        bottom: calc(224px + env(safe-area-inset-bottom)) !important;
+    }
+    body.bottom-preview-active .processing-hud {
+        bottom: calc(210px + env(safe-area-inset-bottom)) !important;
+    }
+}

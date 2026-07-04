@@ -1,4 +1,12 @@
-# FoxBear Pro v1.3.47 QA Report
+# FoxBear Pro v1.3.48 QA Report
+
+## Pro v1.3.48 Dock Waveform / Transport Hotfix
+
+- 마스터링 파형 피크 미니뷰 미표시 문제 수정
+- 파형 비교 팝업 열기/닫기 시 Dock 재생 유지
+- Toast/진행 HUD/다운로드 도움창 overlay 위치 상향
+- waveform marker string class smoke test 추가
+
 
 ## Pro v1.3.47 Dock A/B Loudness Match + Difference Listen
 

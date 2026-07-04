@@ -1,4 +1,14 @@
-# FoxBear AI Mastering Studio
+# FoxBear Mastering Studio Pro v1.3.48
+
+## Pro v1.3.48 Dock Waveform / Transport Hotfix
+
+- 마스터링 완료 후 Dock 파형 피크 미니뷰가 `original/mastered` 필드명을 읽지 못해 마스터링 파형이 비는 문제를 수정했습니다.
+- `createWaveformOverview()`가 `original/mastered`와 기존 `before/after/peakMarkers` alias를 함께 저장하도록 보강했습니다.
+- 파형 비교 팝업을 열 때 Dock 플레이어를 멈추던 `pauseAllPreviewAudio()` 호출을 제거하고, 현재 transport 위치만 저장하도록 변경했습니다.
+- 파형 비교 팝업 닫기 시에도 waveform-only 모드는 Dock 재생을 건드리지 않도록 기존 조건을 유지했습니다.
+- Toast, 다운로드 도움창, 마스터링 진행 HUD가 높아진 Dock과 겹치지 않도록 overlay bottom offset을 더 위로 조정했습니다.
+- v1.3.48 버전, 캐시버스터, SRI, QA smoke test를 갱신했습니다.
+
 
 ## Pro v1.3.47 Dock A/B Loudness Match + Difference Listen
 

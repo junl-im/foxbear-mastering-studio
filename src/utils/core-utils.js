@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.44 - shared core/audio utility module
+// FoxBear AI Mastering Studio Pro v1.3.48 - shared core/audio utility module
 (function registerFoxBearCoreUtils(global) {
     'use strict';
 
@@ -41,15 +41,29 @@
 
     function sampleMarkersFromValues(values = []) {
         if (!Array.isArray(values) || !values.length) return [];
-        return values.map((value, index) => (value >= 0.92 ? index : -1)).filter(index => index >= 0).slice(0, 10);
+        return values.map(value => {
+            const normalized = clamp01(Number(value) || 0);
+            if (normalized >= 0.985) return 'clip';
+            if (normalized >= 0.92) return 'hot';
+            return 'ok';
+        });
     }
 
     function createWaveformOverview(beforeBuffer, afterBuffer, bins = DEFAULT_WAVEFORM_BINS) {
+        const original = sampleWaveformOverview(beforeBuffer, bins);
+        const mastered = sampleWaveformOverview(afterBuffer, bins);
+        const originalPeaks = samplePeakMarkers(beforeBuffer, bins);
+        const masteredPeaks = samplePeakMarkers(afterBuffer, bins);
         return {
-            original: sampleWaveformOverview(beforeBuffer, bins),
-            mastered: sampleWaveformOverview(afterBuffer, bins),
-            originalPeaks: samplePeakMarkers(beforeBuffer, bins),
-            masteredPeaks: samplePeakMarkers(afterBuffer, bins)
+            // New canonical names.
+            original,
+            mastered,
+            originalPeaks,
+            masteredPeaks,
+            // Legacy aliases still used by detail/Dock panels.
+            before: original,
+            after: mastered,
+            peakMarkers: masteredPeaks
         };
     }
 
