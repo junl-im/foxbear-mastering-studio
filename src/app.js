@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.49 - dock cleanup and floating HUD anchor
+// FoxBear AI Mastering Studio Pro v1.3.50 - release stabilization and export reliability
 'use strict';
 
 
@@ -16,7 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 
-const APP_VERSION = 'Pro v1.3.49';
+const APP_VERSION = 'Pro v1.3.50';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -34,7 +34,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1349';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.49-dock-cleanup';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.50-release-stabilization';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -228,7 +228,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.49';
+    styleLink.href = 'assets/css/studio.css?v=1.3.50';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -7639,6 +7639,7 @@ function showDownloadOptionsDialog(track) {
     if (!track || !track.outBlob || !document.body) return;
     const previous = document.querySelector('.download-options-backdrop');
     if (previous) previous.remove();
+    const env = getDownloadEnvironmentInfo();
     const backdrop = document.createElement('div');
     backdrop.className = 'download-options-backdrop';
     backdrop.setAttribute('role', 'dialog');
@@ -7646,7 +7647,7 @@ function showDownloadOptionsDialog(track) {
     backdrop.setAttribute('aria-label', '다운로드 및 공유');
 
     const panel = document.createElement('section');
-    panel.className = 'download-options-panel download-options-panel-v2';
+    panel.className = 'download-options-panel download-options-panel-v3';
     panel.tabIndex = -1;
     const close = document.createElement('button');
     close.type = 'button';
@@ -7661,11 +7662,25 @@ function showDownloadOptionsDialog(track) {
     name.className = 'download-options-name';
     name.textContent = track.name || '마스터링 파일';
 
-    const inApp = isRestrictedDownloadBrowser();
+    const envBox = document.createElement('div');
+    envBox.className = `download-options-env ${env.restricted ? 'restricted' : 'normal'}`;
+    const envTitle = document.createElement('strong');
+    envTitle.textContent = env.label;
+    const envDetail = document.createElement('span');
+    envDetail.textContent = env.detail;
+    const envBadges = document.createElement('div');
+    envBadges.className = 'download-options-env-badges';
+    [env.anchorDownload ? '다운로드 가능' : '다운로드 제한 가능', env.shareFiles ? '파일 공유 가능' : '파일 공유 제한', env.filePicker ? '직접 저장 가능' : '직접 저장 미지원'].forEach(text => {
+        const badge = document.createElement('b');
+        badge.textContent = text;
+        envBadges.appendChild(badge);
+    });
+    envBox.append(envTitle, envDetail, envBadges);
+
     const warning = document.createElement('p');
-    warning.className = inApp ? 'download-options-warning show' : 'download-options-warning show';
-    warning.textContent = inApp
-        ? '카카오/인앱 브라우저에서는 자동 저장이 막힐 수 있습니다. 포맷을 고른 뒤 공유를 먼저 시도하고, 실패하면 외부 브라우저 열기를 사용하세요.'
+    warning.className = 'download-options-warning show';
+    warning.textContent = env.restricted
+        ? '카카오/인앱 브라우저에서는 자동 저장이 막힐 수 있습니다. 포맷 선택 후 공유/저장을 먼저 시도하고, 실패하면 외부 브라우저 안내를 사용하세요.'
         : '포맷을 선택한 뒤 아래 다운로드 또는 공유 버튼을 눌러주세요.';
 
     const listLabel = document.createElement('span');
@@ -7677,6 +7692,14 @@ function showDownloadOptionsDialog(track) {
     const options = getDownloadFormatOptions();
     let selectedFormat = track.outFormat && options.some(option => option.format === track.outFormat) ? track.outFormat : options[0].format;
 
+    const selectedSummary = document.createElement('div');
+    selectedSummary.className = 'download-options-selected-summary';
+
+    const updateSelectedSummary = () => {
+        const selected = options.find(option => option.format === selectedFormat) || options[0];
+        selectedSummary.textContent = `${selected.label} ${selected.detail} · 아래 버튼을 눌러야 저장/공유가 시작됩니다.`;
+    };
+
     const setSelected = format => {
         selectedFormat = format;
         Array.from(list.querySelectorAll('.download-format-option')).forEach(button => {
@@ -7684,9 +7707,10 @@ function showDownloadOptionsDialog(track) {
             button.classList.toggle('current', active);
             button.setAttribute('aria-pressed', String(active));
         });
+        updateSelectedSummary();
         const selected = options.find(option => option.format === selectedFormat);
-        if (selected) warning.textContent = `${selected.label} ${selected.detail} 선택됨 · 아래 버튼으로 저장하거나 공유하세요.`;
-        if (inApp) warning.textContent += ' 카카오에서 실패하면 공유 또는 외부 브라우저 열기를 사용하세요.';
+        if (selected) warning.textContent = `${selected.label} ${selected.detail} 선택됨 · 다운로드 또는 공유 버튼을 누르세요.`;
+        if (env.restricted) warning.textContent += ' 카카오에서 저장이 안 보이면 공유/저장 또는 외부 브라우저 안내를 사용하세요.';
     };
 
     options.forEach(option => {
@@ -7703,38 +7727,63 @@ function showDownloadOptionsDialog(track) {
         button.addEventListener('click', () => setSelected(option.format));
         list.appendChild(button);
     });
+    updateSelectedSummary();
 
     const actions = document.createElement('div');
-    actions.className = 'download-options-actions';
+    actions.className = 'download-options-actions download-options-actions-primary';
     const download = document.createElement('button');
     download.type = 'button';
     download.className = 'btn-primary download-options-primary';
     download.textContent = '다운로드';
     const share = document.createElement('button');
     share.type = 'button';
-    share.className = 'btn-secondary download-options-share';
+    share.className = `btn-secondary download-options-share ${env.shareFiles ? '' : 'is-limited'}`;
     share.textContent = '공유';
-    share.disabled = !supportsWebShareDownloadFiles();
-    share.title = share.disabled ? '이 브라우저는 파일 공유 API를 지원하지 않습니다.' : '카카오톡, 문자, 파일 앱 등으로 공유합니다.';
+    share.title = env.shareFiles ? '카카오톡, 문자, 파일 앱 등으로 공유합니다.' : '이 브라우저는 파일 공유 API를 지원하지 않을 수 있습니다.';
     actions.append(download, share);
+
+    const fallbackActions = document.createElement('div');
+    fallbackActions.className = 'download-options-actions download-options-actions-fallback';
+    const help = document.createElement('button');
+    help.type = 'button';
+    help.className = 'btn-secondary';
+    help.textContent = '저장 도움';
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.className = 'btn-secondary';
+    copy.textContent = '주소 복사';
+    copy.addEventListener('click', copyCurrentPageUrl);
+    fallbackActions.append(help, copy);
+    if (env.restricted) {
+        const external = document.createElement('button');
+        external.type = 'button';
+        external.className = 'btn-secondary';
+        external.textContent = '외부 브라우저';
+        external.addEventListener('click', openCurrentPageInExternalBrowser);
+        fallbackActions.appendChild(external);
+    }
 
     const guide = document.createElement('p');
     guide.className = 'download-options-guide';
-    guide.textContent = inApp
-        ? '카카오톡 안에서 저장이 안 보이면 공유 → 파일 저장/카카오톡/문자 또는 브라우저로 열기를 사용하세요.'
+    guide.textContent = env.restricted
+        ? '카카오톡 안에서 저장이 안 보이면 공유 → 파일 저장/카카오톡/문자, 또는 주소 복사 후 Chrome/Safari에서 다시 여는 방법이 가장 안정적입니다.'
         : '공유는 기기 기본 공유창을 사용합니다. 지원 브라우저에서만 파일 그대로 보낼 수 있습니다.';
 
     const setBusy = busy => {
-        [download, share, close, ...Array.from(list.querySelectorAll('button'))].forEach(button => { button.disabled = busy || (button === share && !supportsWebShareDownloadFiles()); });
+        [download, share, help, copy, close, ...Array.from(list.querySelectorAll('button')), ...Array.from(fallbackActions.querySelectorAll('button'))].forEach(button => { button.disabled = Boolean(busy); });
         panel.classList.toggle('working', Boolean(busy));
     };
 
-    download.addEventListener('click', async () => {
+    const prepareSelected = async statusText => {
         setBusy(true);
         warning.classList.add('show');
-        warning.textContent = selectedFormat === track.outFormat ? '현재 완성 파일로 다운로드를 준비합니다.' : '선택한 포맷으로 변환 중입니다.';
+        warning.textContent = statusText;
+        return prepareTrackDownloadBlob(track, selectedFormat);
+    };
+
+    download.addEventListener('click', async () => {
         try {
-            const exported = await prepareTrackDownloadBlob(track, selectedFormat);
+            const exported = await prepareSelected(selectedFormat === track.outFormat ? '현재 완성 파일로 다운로드를 준비합니다.' : '선택한 포맷으로 변환 중입니다.');
             track.downloadAttention = false;
             closeDownloadOptionsDialog(backdrop);
             downloadBlob(exported.blob, exported.fileName);
@@ -7750,21 +7799,31 @@ function showDownloadOptionsDialog(track) {
     share.addEventListener('click', async () => {
         if (!supportsWebShareDownloadFiles()) {
             warning.classList.add('show');
-            warning.textContent = '이 브라우저는 파일 공유를 지원하지 않습니다. 다운로드 후 카카오/문자로 공유해주세요.';
+            warning.textContent = '이 브라우저는 파일 공유를 지원하지 않습니다. 다운로드 또는 저장 도움 버튼을 사용해주세요.';
             return;
         }
-        setBusy(true);
-        warning.classList.add('show');
-        warning.textContent = selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.';
         try {
-            const exported = await prepareTrackDownloadBlob(track, selectedFormat);
+            const exported = await prepareSelected(selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.');
             track.downloadAttention = false;
             await shareDownloadFile(exported.blob, exported.fileName);
             state.busy = false;
             renderAll({ keepDetailAudio: true });
         } catch (error) {
             console.warn('share export failed:', error);
-            warning.textContent = getErrorMessage(error, '공유가 취소되었거나 이 브라우저에서 막혔습니다.');
+            warning.textContent = getErrorMessage(error, '공유가 취소되었거나 이 브라우저에서 막혔습니다. 저장 도움 또는 다운로드를 사용해보세요.');
+        } finally {
+            setBusy(false);
+        }
+    });
+
+    help.addEventListener('click', async () => {
+        try {
+            const exported = await prepareSelected(selectedFormat === track.outFormat ? '저장 도움 파일을 준비합니다.' : '저장 도움용 파일로 변환 중입니다.');
+            showDownloadAssist(URL.createObjectURL(exported.blob), exported.fileName, exported.blob.type || 'audio/*', exported.blob);
+            warning.textContent = '저장 도움창을 열었습니다. 공유/저장, 파일 열기, 외부 브라우저 안내 중 가능한 방법을 사용하세요.';
+        } catch (error) {
+            console.warn('download assist export failed:', error);
+            warning.textContent = getErrorMessage(error, '저장 도움 파일을 만들지 못했습니다.');
         } finally {
             setBusy(false);
         }
@@ -7772,12 +7831,13 @@ function showDownloadOptionsDialog(track) {
 
     close.addEventListener('click', () => closeDownloadOptionsDialog(backdrop));
     backdrop.addEventListener('click', event => { if (event.target === backdrop) closeDownloadOptionsDialog(backdrop); });
-    panel.append(close, title, name, warning, listLabel, list, actions, guide);
+    panel.append(close, title, name, envBox, warning, listLabel, list, selectedSummary, actions, fallbackActions, guide);
     backdrop.appendChild(panel);
     document.body.appendChild(backdrop);
     document.body.classList.add('download-options-open');
     requestAnimationFrame(() => panel.focus());
 }
+
 function getDownloadFormatOptions() {
     return [
         { format: 'mp3_128', label: 'MP3', detail: '128 kbps' },
@@ -7886,8 +7946,47 @@ function tryShareDownloadFile(blob, fileName, url) {
     }
 }
 
+function getDownloadEnvironmentInfo() {
+    const ua = navigator.userAgent || '';
+    const restricted = isRestrictedDownloadBrowser();
+    const ios = /iPhone|iPad|iPod/i.test(ua);
+    const android = /Android/i.test(ua);
+    const kakao = /KAKAOTALK|KakaoTalk/i.test(ua);
+    const naver = /NAVER\(inapp/i.test(ua);
+    const instagram = /Instagram/i.test(ua);
+    const line = /Line\//i.test(ua);
+    const shareApi = Boolean(navigator.share && typeof File !== 'undefined');
+    const shareFiles = shareApi && (!navigator.canShare || canShareTinyAudioProbe());
+    const anchorDownload = supportsAnchorDownload();
+    const filePicker = supportsFileSystemSave();
+    let label = '일반 브라우저';
+    if (kakao) label = '카카오톡 인앱 브라우저';
+    else if (naver) label = '네이버 인앱 브라우저';
+    else if (instagram) label = '인스타그램 인앱 브라우저';
+    else if (line) label = 'LINE 인앱 브라우저';
+    else if (ios) label = 'iOS 브라우저';
+    else if (android) label = 'Android 브라우저';
+    const detail = restricted
+        ? 'Blob 다운로드가 저장함에 바로 보이지 않을 수 있어 공유/저장 또는 외부 브라우저 경로를 같이 제공합니다.'
+        : shareFiles
+            ? '다운로드와 파일 공유가 모두 가능한 환경으로 보입니다.'
+            : '다운로드는 가능하지만 파일 공유는 제한될 수 있습니다.';
+    return { ua, restricted, ios, android, kakao, naver, instagram, line, label, detail, shareApi, shareFiles, anchorDownload, filePicker };
+}
+
+function canShareTinyAudioProbe() {
+    if (!navigator.share || typeof File === 'undefined') return false;
+    if (!navigator.canShare) return true;
+    try {
+        const file = new File([new Uint8Array([0])], 'foxbear-preview.wav', { type: 'audio/wav' });
+        return navigator.canShare({ files: [file] });
+    } catch (error) {
+        return false;
+    }
+}
+
 function supportsWebShareDownloadFiles() {
-    return Boolean(navigator.share && typeof File !== 'undefined');
+    return Boolean(navigator.share && typeof File !== 'undefined' && (!navigator.canShare || canShareTinyAudioProbe()));
 }
 
 function supportsWebShareFiles(blob, fileName) {
@@ -7998,6 +8097,7 @@ function revokeDownloadUrl(url) {
 }
 
 function showDownloadAssist(url, fileName, mimeType, blob = null) {
+    if (url) state.activeDownloadUrls.add(url);
     let panel = document.getElementById('downloadAssist');
     if (!panel) {
         panel = document.createElement('div');
@@ -8809,16 +8909,40 @@ function renderTrackList() {
             makeMiniButton('마스터링', 'btn-primary', () => masterTrack(track), ['analyzing', 'processing'].includes(track.status) || state.busy || Boolean(track.error)),
             makeMiniButton('삭제', 'btn-danger', () => removeTrack(track.id), state.busy)
         );
+        let exportReadyPanel = null;
         if (track.outBlob) {
+            exportReadyPanel = createTrackExportReadyPanel(track);
             const downloadButton = makeMiniButton('파일 다운로드', 'btn-secondary', () => downloadTrack(track), false);
             if (track.downloadAttention) downloadButton.classList.add('download-attention');
             actions.append(downloadButton);
             actions.append(makeMiniButton('리포트 저장', 'btn-secondary', () => downloadTrackReport(track), false));
         }
 
-        card.append(top, titleWrap, progressShell, progressCaption, aiJudge, actions);
+        card.append(top, titleWrap, progressShell, progressCaption, aiJudge);
+        if (exportReadyPanel) card.appendChild(exportReadyPanel);
+        card.appendChild(actions);
         el.trackList.appendChild(card);
     });
+}
+
+function createTrackExportReadyPanel(track) {
+    const panel = document.createElement('div');
+    panel.className = 'track-export-ready-panel';
+    const env = getDownloadEnvironmentInfo();
+    const format = getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24');
+    const size = track.outBlob ? formatBytes(track.outBlob.size || 0) : '파일 준비됨';
+    const title = document.createElement('strong');
+    title.textContent = '완성 파일 준비됨';
+    const meta = document.createElement('span');
+    meta.textContent = `${format} · ${size}`;
+    const hint = document.createElement('small');
+    hint.textContent = env.restricted
+        ? '카카오/인앱 브라우저에서는 파일 다운로드 창에서 공유 또는 외부 브라우저 안내를 먼저 확인하세요.'
+        : env.shareFiles
+            ? '다운로드 또는 공유 버튼으로 저장/전송할 수 있습니다.'
+            : '공유 미지원 브라우저면 다운로드 후 파일 앱/문자/카카오에서 공유하세요.';
+    panel.append(title, meta, hint);
+    return panel;
 }
 
 function makeMiniButton(label, className, onClick, disabled = false) {
@@ -11425,7 +11549,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.49',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.50',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
