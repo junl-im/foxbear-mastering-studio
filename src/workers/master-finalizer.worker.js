@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.3.41 - mobile speaker guard, multiband dynamics, 4x FIR true-peak, engine QA bench coverage
+// FoxBear Pro finalizer worker v1.3.42 - dynamic de-esser, mobile guard, multiband dynamics, 4x FIR true-peak
 'use strict';
 
 self.onmessage = event => {
@@ -22,6 +22,7 @@ self.onmessage = event => {
         sanitizeBuffers(data, length);
         removeDcOffset(data, length);
         const mobileInfo = applyMobileSpeakerResonanceGuard(data, length, sampleRate, qualityMode, analysis);
+        const deEsserInfo = applyDynamicDeEsser(data, length, sampleRate, qualityMode, analysis);
         const multibandInfo = applyGentleMultibandDynamics(data, length, sampleRate, qualityMode, analysis);
 
         const loudnessBefore = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
@@ -77,6 +78,10 @@ self.onmessage = event => {
                 mobileSpeakerMode: mobileInfo.mode,
                 mobileSpeakerRisk: mobileInfo.risk,
                 mobileSpeakerCuts: mobileInfo.cuts,
+                dynamicDeEsserMode: deEsserInfo.mode,
+                dynamicDeEsserRisk: deEsserInfo.risk,
+                dynamicDeEsserReductionDb: deEsserInfo.reductionDb,
+                dynamicDeEsserBands: deEsserInfo.bands,
                 loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates'
             }
         }, transfers);
@@ -308,7 +313,11 @@ function normalizeAnalysis(analysis) {
         spatialExcessRisk: clamp01(Number(analysis.spatialExcessRisk ?? 0)),
         lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100),
         mobileSpeakerRisk: clamp01(Number(analysis.mobileSpeakerRisk ?? 0)),
-        mobileSpeakerDetail: analysis.mobileSpeakerDetail || null
+        mobileSpeakerDetail: analysis.mobileSpeakerDetail || null,
+        harshPeakHz: Number(analysis.harshPeakHz || analysis.targetDynamicFreq || 6200),
+        targetDynamicFreq: Number(analysis.targetDynamicFreq || analysis.harshPeakHz || 6200),
+        vocalMetallicRisk: clamp01(Number(analysis.vocalMetallicRisk ?? 0)),
+        dynamicDeEsserRisk: clamp01(Number(analysis.dynamicDeEsserRisk ?? 0))
     };
 }
 
@@ -363,6 +372,88 @@ function estimateMobileSpeakerRisk(analysis) {
     const risk = clamp01(boom * 0.24 + box * 0.30 + honk * 0.16 + harsh * 0.21 + density * 0.16);
     const label = risk > 0.58 ? 'risk' : risk > 0.34 ? 'watch' : 'safe';
     return { risk, boom, box, honk, harsh, density, label };
+}
+
+function estimateDynamicDeEsserNeed(analysis) {
+    if (!analysis) return { risk: 0, sibilance: 0, harsh: 0, vocalRisk: 0, targetHz: 6500, mode: 'bypass' };
+    const vocalRisk = clamp01(Number(analysis.vocalMetallicRisk || 0) || (Math.max(0, analysis.metallicHint - 0.42) * 1.35 + Math.max(0, analysis.presenceRatio - 0.18) * 1.45));
+    const sibilance = clamp01(Math.max(0, analysis.airRatio - 0.105) * 2.55 + Math.max(0, analysis.highRatio - 0.30) * 1.10 + Math.max(0, analysis.brightness - 0.56) * 0.95);
+    const harsh = clamp01(Math.max(0, analysis.presenceRatio - 0.165) * 2.45 + Math.max(0, analysis.metallicHint - 0.42) * 1.15 + Math.max(0, analysis.brightness - 0.60) * 0.75);
+    const mobileHarsh = clamp01(Number(analysis.mobileSpeakerDetail?.harsh || 0) || Math.max(0, analysis.mobileSpeakerRisk - 0.25));
+    const precomputed = clamp01(Number(analysis.dynamicDeEsserRisk || 0));
+    const risk = Math.max(precomputed, clamp01(vocalRisk * 0.42 + sibilance * 0.27 + harsh * 0.23 + mobileHarsh * 0.13));
+    const targetHz = clamp(Number(analysis.targetDynamicFreq || analysis.harshPeakHz || 6500), 2600, 8800);
+    const mode = risk > 0.55 ? 'strong' : risk > 0.30 ? 'active' : risk > 0.16 ? 'light' : 'bypass';
+    return { risk, sibilance, harsh, vocalRisk, mobileHarsh, targetHz, mode };
+}
+
+function applyDynamicDeEsser(buffers, length, sampleRate, qualityMode, analysis) {
+    if (!buffers || !buffers.length || length < 16) return { mode: 'bypass', risk: 0, reductionDb: 0, bands: {} };
+    const need = estimateDynamicDeEsserNeed(analysis || {});
+    if (need.risk < 0.16) return { mode: 'bypass', risk: need.risk, reductionDb: 0, bands: {} };
+    const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
+    const amount = (qualityMode === 'fast' ? 0.78 : qualityMode === 'max' ? 1.12 : 0.94) * clamp(0.72 + need.risk * 0.72, 0.76, 1.26);
+    const target = clamp(Number(need.targetHz || 6500), 3000, 8800);
+    const presenceTop = clamp(target * 0.78, 4300, 6200);
+    const sibilanceBottom = clamp(target * 0.82, 4800, 7200);
+    const sibilanceTop = clamp(target * 1.28, 7200, 9800);
+    const harshHp = buffers.map(() => createBiquadHighpassGeneric(safeRate, 2300, 0.707));
+    const harshLp = buffers.map(() => createBiquadLowpass(safeRate, presenceTop, 0.707));
+    const sibilanceHp = buffers.map(() => createBiquadHighpassGeneric(safeRate, sibilanceBottom, 0.707));
+    const sibilanceLp = buffers.map(() => createBiquadLowpass(safeRate, sibilanceTop, 0.707));
+    const airHp = buffers.map(() => createBiquadHighpassGeneric(safeRate, 9200, 0.707));
+    const harshDetector = createEnvelopeFollower(safeRate, 2.2, 70);
+    const sibilanceDetector = createEnvelopeFollower(safeRate, 1.1, 62);
+    const airDetector = createEnvelopeFollower(safeRate, 3.5, 95);
+    const harshThresh = dbToAmp(clamp(-26.5 + need.harsh * 3.8 - need.risk * 3.6, -33, -20));
+    const sibilanceThresh = dbToAmp(clamp(-31.5 + need.sibilance * 3.4 - need.risk * 4.2, -39, -23));
+    const airThresh = dbToAmp(clamp(-35.0 + need.sibilance * 4.2 - need.risk * 2.0, -42, -25));
+    const maxHarshDb = clamp(0.55 + need.harsh * 2.75 + need.vocalRisk * 1.0, 0.55, 4.6) * amount;
+    const maxSibDb = clamp(0.70 + need.sibilance * 3.30 + need.vocalRisk * 1.15, 0.65, 5.8) * amount;
+    const maxAirDb = clamp(0.35 + need.sibilance * 1.35, 0.30, 2.35) * amount;
+    const wetHarsh = clamp(0.20 + need.risk * 0.20, 0.18, 0.42);
+    const wetSib = clamp(0.24 + need.risk * 0.26, 0.20, 0.52);
+    const wetAir = clamp(0.12 + need.risk * 0.10, 0.10, 0.24);
+    let minHarsh = 1, minSibilance = 1, minAir = 1, activeSamples = 0;
+    const scratch = buffers.map(() => ({ x: 0, harsh: 0, sib: 0, air: 0 }));
+    for (let i = 0; i < length; i += 1) {
+        let harshAbs = 0, sibAbs = 0, airAbs = 0;
+        for (let ch = 0; ch < buffers.length; ch += 1) {
+            const x = Number.isFinite(buffers[ch][i]) ? buffers[ch][i] : 0;
+            const harsh = processBiquad(harshLp[ch], processBiquad(harshHp[ch], x));
+            const sib = processBiquad(sibilanceLp[ch], processBiquad(sibilanceHp[ch], x));
+            const air = processBiquad(airHp[ch], x);
+            scratch[ch].x = x;
+            scratch[ch].harsh = harsh;
+            scratch[ch].sib = sib;
+            scratch[ch].air = air;
+            harshAbs = Math.max(harshAbs, Math.abs(harsh));
+            sibAbs = Math.max(sibAbs, Math.abs(sib));
+            airAbs = Math.max(airAbs, Math.abs(air));
+        }
+        const harshGain = computeBandGain(updateEnvelope(harshDetector, harshAbs), harshThresh, 1.85, maxHarshDb);
+        const sibGain = computeBandGain(updateEnvelope(sibilanceDetector, sibAbs), sibilanceThresh, 2.45, maxSibDb);
+        const airGain = computeBandGain(updateEnvelope(airDetector, airAbs), airThresh, 1.55, maxAirDb);
+        minHarsh = Math.min(minHarsh, harshGain);
+        minSibilance = Math.min(minSibilance, sibGain);
+        minAir = Math.min(minAir, airGain);
+        if (harshGain < 0.999 || sibGain < 0.999 || airGain < 0.999) activeSamples += 1;
+        for (let ch = 0; ch < buffers.length; ch += 1) {
+            const item = scratch[ch];
+            buffers[ch][i] = item.x
+                - item.harsh * (1 - harshGain) * wetHarsh
+                - item.sib * (1 - sibGain) * wetSib
+                - item.air * (1 - airGain) * wetAir;
+        }
+    }
+    const bands = {
+        presence: gainToReductionDb(minHarsh),
+        sibilance: gainToReductionDb(minSibilance),
+        air: gainToReductionDb(minAir),
+        activePct: Math.round(activeSamples / Math.max(1, length) * 1000) / 10,
+        targetHz: Math.round(target)
+    };
+    return { mode: 'dynamicDeEsserHarshSuppressor', risk: need.risk, reductionDb: Math.min(0, bands.presence, bands.sibilance, bands.air), bands };
 }
 
 function applyGentleMultibandDynamics(buffers, length, sampleRate, qualityMode, analysis) {

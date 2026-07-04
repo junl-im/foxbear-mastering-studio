@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.41 - mastering strength profiles
+// FoxBear AI Mastering Studio Pro v1.3.42 - dynamic de-esser and harshness suppressor
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.41';
+const APP_VERSION = 'Pro v1.3.42';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,9 +17,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1341';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1342';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.41-strength-profile';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.42-dynamic-deesser';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -176,7 +176,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.41';
+    styleLink.href = 'assets/css/studio.css?v=1.3.42';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -4237,6 +4237,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createPerceptualPolishNode(context, node, effectiveSettings, analysis, intensity);
     node = createToneChain(context, node, effectiveSettings, analysis, preset, intensity);
     node = createHighFrequencyExciterNode(context, node, effectiveSettings, analysis, preset, intensity);
+    node = createDynamicDeEsserNode(context, node, effectiveSettings, analysis, preset, intensity);
     node = createVocalMetallicComfortNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createEarFatigueGuardNode(context, node, effectiveSettings, analysis, intensity);
     node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
@@ -4370,6 +4371,7 @@ function createSharedDspProfile(settings, analysis, preset, options = {}) {
             highRatio: Number(finalizerAnalysis.highRatio || 0),
             presenceRatio: Number(finalizerAnalysis.presenceRatio || 0),
             airRatio: Number(finalizerAnalysis.airRatio || 0),
+            dynamicDeEsserRisk: estimateDynamicDeEsserNeed(finalizerAnalysis, effectiveSettings, preset, intensity).risk,
             mobileSpeakerRisk: Number(finalizerAnalysis.mobileSpeakerRisk || 0),
             spatialExcessRisk: Number(finalizerAnalysis.spatialExcessRisk || 0)
         }
@@ -4563,6 +4565,96 @@ function formatMobileSpeakerRisk(info) {
     if (!info) return 'N/A';
     const label = info.label === 'risk' ? '위험' : info.label === 'watch' ? '주의' : '안전';
     return `${label} ${Math.round(Number(info.risk || 0) * 100)}% · 붐 ${Math.round(Number(info.boom || 0) * 100)}% · 박스 ${Math.round(Number(info.box || 0) * 100)}% · 폰공진 ${Math.round(Number(info.harsh || 0) * 100)}%`;
+}
+
+function estimateDynamicDeEsserNeed(analysis, settings = {}, preset = null, intensity = getMasteringIntensity(settings || {})) {
+    const normalized = normalizeFinalizerAnalysis(analysis || {});
+    const vocalRisk = Math.max(
+        normalized.vocalMetallicRisk || 0,
+        estimateVocalMetallicRisk(analysis, settings || {}, preset, intensity)
+    );
+    const sibilance = clamp01(Math.max(0, normalized.airRatio - 0.105) * 2.55 + Math.max(0, normalized.highRatio - 0.30) * 1.10 + Math.max(0, normalized.brightness - 0.56) * 0.95);
+    const harsh = clamp01(Math.max(0, normalized.presenceRatio - 0.165) * 2.45 + Math.max(0, normalized.metallicHint - 0.42) * 1.15 + Math.max(0, normalized.brightness - 0.60) * 0.75);
+    const exciterRisk = clamp01(Math.max(0, Number(settings?.clarity || 50) - 58) / 46 + Math.max(0, Number(intensity?.raw || 100) - 125) / 110);
+    const mobileHarsh = clamp01(Number(normalized.mobileSpeakerDetail?.harsh || 0) || Math.max(0, normalized.mobileSpeakerRisk - 0.25));
+    const risk = clamp01(vocalRisk * 0.42 + sibilance * 0.27 + harsh * 0.23 + exciterRisk * 0.12 + mobileHarsh * 0.13);
+    const targetHz = clamp(Number(normalized.targetDynamicFreq || normalized.harshPeakHz || 6500), 2600, 8800);
+    const mode = risk > 0.55 ? 'strong' : risk > 0.30 ? 'active' : risk > 0.16 ? 'light' : 'bypass';
+    return { risk, sibilance, harsh, vocalRisk, exciterRisk, mobileHarsh, targetHz, mode };
+}
+
+function createDynamicDeEsserNode(context, input, settings, analysis, preset, intensity = getMasteringIntensity(settings)) {
+    if (!state.featureFlags.smartGuard || !analysis) return input;
+    const need = estimateDynamicDeEsserNeed(analysis, settings, preset, intensity);
+    if (need.risk < 0.16) return input;
+
+    const output = context.createGain();
+    const lowPath = context.createBiquadFilter();
+    const presenceHp = context.createBiquadFilter();
+    const presenceLp = context.createBiquadFilter();
+    const sibilanceHp = context.createBiquadFilter();
+    const sibilanceLp = context.createBiquadFilter();
+    const airHp = context.createBiquadFilter();
+    const presenceComp = context.createDynamicsCompressor();
+    const sibilanceComp = context.createDynamicsCompressor();
+    const airComp = context.createDynamicsCompressor();
+    const presenceGain = context.createGain();
+    const sibilanceGain = context.createGain();
+    const airGain = context.createGain();
+    const balanceGain = context.createGain();
+
+    const amount = clamp(need.risk * clamp(intensity.amount, 0.70, 1.42), 0.14, 0.86);
+    const target = clamp(Number(need.targetHz || 6500), 3000, 8800);
+    const presenceTop = clamp(target * 0.78, 4300, 6200);
+    const sibilanceTop = clamp(target * 1.28, 7200, 9800);
+
+    lowPath.type = 'lowpass';
+    lowPath.frequency.value = 2400;
+    lowPath.Q.value = 0.707;
+
+    presenceHp.type = 'highpass';
+    presenceHp.frequency.value = 2300;
+    presenceHp.Q.value = 0.707;
+    presenceLp.type = 'lowpass';
+    presenceLp.frequency.value = presenceTop;
+    presenceLp.Q.value = 0.707;
+    presenceComp.threshold.value = clamp(-25 + need.harsh * 5 - amount * 3, -32, -18);
+    presenceComp.knee.value = 14;
+    presenceComp.ratio.value = clamp(1.35 + amount * 1.65 + need.harsh * 0.55, 1.25, 3.2);
+    presenceComp.attack.value = 0.0035;
+    presenceComp.release.value = 0.070;
+    presenceGain.gain.value = clamp(0.98 - amount * 0.055, 0.91, 1.0);
+
+    sibilanceHp.type = 'highpass';
+    sibilanceHp.frequency.value = clamp(target * 0.82, 4800, 7200);
+    sibilanceHp.Q.value = 0.707;
+    sibilanceLp.type = 'lowpass';
+    sibilanceLp.frequency.value = sibilanceTop;
+    sibilanceLp.Q.value = 0.707;
+    sibilanceComp.threshold.value = clamp(-31 + need.sibilance * 4 - amount * 4, -38, -22);
+    sibilanceComp.knee.value = 10;
+    sibilanceComp.ratio.value = clamp(1.55 + amount * 2.20 + need.sibilance * 0.72, 1.35, 4.4);
+    sibilanceComp.attack.value = 0.0018;
+    sibilanceComp.release.value = 0.060;
+    sibilanceGain.gain.value = clamp(0.98 - amount * 0.080, 0.88, 1.0);
+
+    airHp.type = 'highpass';
+    airHp.frequency.value = 9200;
+    airHp.Q.value = 0.707;
+    airComp.threshold.value = clamp(-35 + need.sibilance * 4 - amount * 2, -40, -25);
+    airComp.knee.value = 12;
+    airComp.ratio.value = clamp(1.18 + amount * 1.15, 1.12, 2.2);
+    airComp.attack.value = 0.004;
+    airComp.release.value = 0.090;
+    airGain.gain.value = clamp(0.98 - amount * 0.045, 0.92, 1.0);
+    balanceGain.gain.value = clamp(0.995 - amount * 0.018, 0.975, 1.0);
+
+    input.connect(lowPath).connect(output);
+    input.connect(presenceHp).connect(presenceLp).connect(presenceComp).connect(presenceGain).connect(output);
+    input.connect(sibilanceHp).connect(sibilanceLp).connect(sibilanceComp).connect(sibilanceGain).connect(output);
+    input.connect(airHp).connect(airComp).connect(airGain).connect(output);
+    output.connect(balanceGain);
+    return balanceGain;
 }
 
 function createVocalMetallicComfortNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
@@ -6406,6 +6498,10 @@ function createFinalizerAnalysisPayload(analysis) {
         lowMonoScore: normalized.lowMonoScore,
         mobileSpeakerRisk: normalized.mobileSpeakerRisk,
         mobileSpeakerDetail: analysis?.mobileSpeakerDetail || null,
+        harshPeakHz: Number(analysis?.harshPeakHz || analysis?.targetDynamicFreq || 6200),
+        targetDynamicFreq: Number(analysis?.targetDynamicFreq || analysis?.harshPeakHz || 6200),
+        vocalMetallicRisk: estimateVocalMetallicRisk(analysis, {}, null, { raw: 100, amount: 1 }),
+        dynamicDeEsserRisk: estimateDynamicDeEsserNeed(normalized, {}, null, { raw: 100, amount: 1 }).risk,
         spectrumBands: analysis?.spectrumBands || null
     };
 }
@@ -6425,7 +6521,11 @@ function normalizeFinalizerAnalysis(analysis) {
         spatialExcessRisk: clamp01(Number(analysis.spatialExcessRisk ?? 0)),
         lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100),
         mobileSpeakerRisk: clamp01(Number(analysis.mobileSpeakerRisk ?? 0)),
-        mobileSpeakerDetail: analysis.mobileSpeakerDetail || null
+        mobileSpeakerDetail: analysis.mobileSpeakerDetail || null,
+        harshPeakHz: Number(analysis.harshPeakHz || analysis.targetDynamicFreq || 6200),
+        targetDynamicFreq: Number(analysis.targetDynamicFreq || analysis.harshPeakHz || 6200),
+        vocalMetallicRisk: clamp01(Number(analysis.vocalMetallicRisk ?? 0)),
+        dynamicDeEsserRisk: clamp01(Number(analysis.dynamicDeEsserRisk ?? 0))
     };
 }
 
@@ -6461,6 +6561,88 @@ function applyMobileSpeakerResonanceGuardBuffer(buffer, qualityMode = 'balanced'
         }
     }
     return { mode: 'mobileSpeakerResonanceGuard', risk, cuts };
+}
+
+function applyDynamicDeEsserBuffer(buffer, qualityMode = 'balanced', analysis = {}) {
+    if (!buffer || !buffer.length || !buffer.numberOfChannels) return { mode: 'bypass', risk: 0, reductionDb: 0, bands: {} };
+    const normalized = normalizeFinalizerAnalysis(analysis || {});
+    const need = estimateDynamicDeEsserNeed(normalized, {}, null, { raw: 100, amount: 1 });
+    if (need.risk < 0.16) return { mode: 'bypass', risk: need.risk, reductionDb: 0, bands: {} };
+    const sampleRate = Math.max(3000, Math.min(384000, Number(buffer.sampleRate || 44100)));
+    const channels = [];
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) channels.push(buffer.getChannelData(ch));
+    const result = applyDynamicDeEsserToChannelArrays(channels, buffer.length, sampleRate, qualityMode, normalized, processKWeightBiquad, {
+        lowpass: createGenericLowpassFilter,
+        highpass: createGenericHighpassFilter
+    });
+    return result;
+}
+
+function applyDynamicDeEsserToChannelArrays(channels, length, sampleRate, qualityMode, analysis, processFn, factories) {
+    const need = estimateDynamicDeEsserNeed(analysis || {}, {}, null, { raw: 100, amount: 1 });
+    if (!channels || !channels.length || length < 16 || need.risk < 0.16) return { mode: 'bypass', risk: need.risk, reductionDb: 0, bands: {} };
+    const amount = (qualityMode === 'fast' ? 0.78 : qualityMode === 'max' ? 1.12 : 0.94) * clamp(0.72 + need.risk * 0.72, 0.76, 1.26);
+    const target = clamp(Number(need.targetHz || 6500), 3000, 8800);
+    const presenceTop = clamp(target * 0.78, 4300, 6200);
+    const sibilanceBottom = clamp(target * 0.82, 4800, 7200);
+    const sibilanceTop = clamp(target * 1.28, 7200, 9800);
+    const harshHp = channels.map(() => factories.highpass(sampleRate, 2300, 0.707));
+    const harshLp = channels.map(() => factories.lowpass(sampleRate, presenceTop, 0.707));
+    const sibilanceHp = channels.map(() => factories.highpass(sampleRate, sibilanceBottom, 0.707));
+    const sibilanceLp = channels.map(() => factories.lowpass(sampleRate, sibilanceTop, 0.707));
+    const airHp = channels.map(() => factories.highpass(sampleRate, 9200, 0.707));
+    const harshDetector = createBandEnvelopeFollower(sampleRate, 2.2, 70);
+    const sibilanceDetector = createBandEnvelopeFollower(sampleRate, 1.1, 62);
+    const airDetector = createBandEnvelopeFollower(sampleRate, 3.5, 95);
+    const harshThresh = dbToAmp(clamp(-26.5 + need.harsh * 3.8 - need.risk * 3.6, -33, -20));
+    const sibilanceThresh = dbToAmp(clamp(-31.5 + need.sibilance * 3.4 - need.risk * 4.2, -39, -23));
+    const airThresh = dbToAmp(clamp(-35.0 + need.sibilance * 4.2 - need.risk * 2.0, -42, -25));
+    const maxHarshDb = clamp(0.55 + need.harsh * 2.75 + need.vocalRisk * 1.0, 0.55, 4.6) * amount;
+    const maxSibDb = clamp(0.70 + need.sibilance * 3.30 + need.vocalRisk * 1.15, 0.65, 5.8) * amount;
+    const maxAirDb = clamp(0.35 + need.sibilance * 1.35, 0.30, 2.35) * amount;
+    const wetHarsh = clamp(0.20 + need.risk * 0.20, 0.18, 0.42);
+    const wetSib = clamp(0.24 + need.risk * 0.26, 0.20, 0.52);
+    const wetAir = clamp(0.12 + need.risk * 0.10, 0.10, 0.24);
+    let minHarsh = 1, minSibilance = 1, minAir = 1, activeSamples = 0;
+    const scratch = channels.map(() => ({ x: 0, harsh: 0, sib: 0, air: 0 }));
+    for (let i = 0; i < length; i += 1) {
+        let harshAbs = 0, sibAbs = 0, airAbs = 0;
+        for (let ch = 0; ch < channels.length; ch += 1) {
+            const x = Number.isFinite(channels[ch][i]) ? channels[ch][i] : 0;
+            const harsh = processFn(harshLp[ch], processFn(harshHp[ch], x));
+            const sib = processFn(sibilanceLp[ch], processFn(sibilanceHp[ch], x));
+            const air = processFn(airHp[ch], x);
+            scratch[ch].x = x;
+            scratch[ch].harsh = harsh;
+            scratch[ch].sib = sib;
+            scratch[ch].air = air;
+            harshAbs = Math.max(harshAbs, Math.abs(harsh));
+            sibAbs = Math.max(sibAbs, Math.abs(sib));
+            airAbs = Math.max(airAbs, Math.abs(air));
+        }
+        const harshGain = computeDynamicBandGain(updateBandEnvelope(harshDetector, harshAbs), harshThresh, 1.85, maxHarshDb);
+        const sibGain = computeDynamicBandGain(updateBandEnvelope(sibilanceDetector, sibAbs), sibilanceThresh, 2.45, maxSibDb);
+        const airGain = computeDynamicBandGain(updateBandEnvelope(airDetector, airAbs), airThresh, 1.55, maxAirDb);
+        minHarsh = Math.min(minHarsh, harshGain);
+        minSibilance = Math.min(minSibilance, sibGain);
+        minAir = Math.min(minAir, airGain);
+        if (harshGain < 0.999 || sibGain < 0.999 || airGain < 0.999) activeSamples += 1;
+        for (let ch = 0; ch < channels.length; ch += 1) {
+            const item = scratch[ch];
+            channels[ch][i] = item.x
+                - item.harsh * (1 - harshGain) * wetHarsh
+                - item.sib * (1 - sibGain) * wetSib
+                - item.air * (1 - airGain) * wetAir;
+        }
+    }
+    const bands = {
+        presence: gainToReductionDb(minHarsh),
+        sibilance: gainToReductionDb(minSibilance),
+        air: gainToReductionDb(minAir),
+        activePct: Math.round(activeSamples / Math.max(1, length) * 1000) / 10,
+        targetHz: Math.round(target)
+    };
+    return { mode: 'dynamicDeEsserHarshSuppressor', risk: need.risk, reductionDb: Math.min(0, bands.presence, bands.sibilance, bands.air), bands };
 }
 
 function applyGentleMultibandDynamicsBuffer(buffer, qualityMode = 'balanced', analysis = {}) {
@@ -6753,6 +6935,10 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
             mobileSpeakerMode: finalizeInfo?.mobileSpeakerMode || '',
             mobileSpeakerRisk: Number(finalizeInfo?.mobileSpeakerRisk || 0),
             mobileSpeakerCuts: finalizeInfo?.mobileSpeakerCuts || null,
+            dynamicDeEsserMode: finalizeInfo?.dynamicDeEsserMode || '',
+            dynamicDeEsserRisk: Number(finalizeInfo?.dynamicDeEsserRisk || 0),
+            dynamicDeEsserReductionDb: Number(finalizeInfo?.dynamicDeEsserReductionDb || 0),
+            dynamicDeEsserBands: finalizeInfo?.dynamicDeEsserBands || null,
             loudnessStandard: finalizeInfo?.loudnessStandard || '',
             sharedDspProfileVersion: finalizeInfo?.sharedDspProfileVersion || track?.analysis?.sharedDspProfileApplied?.version || '',
             sharedDspProfile: getSharedDspSummaryForReport(finalizeInfo?.sharedDspProfile || track?.analysis?.sharedDspProfileApplied),
@@ -6912,6 +7098,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         const targetLufs = Number(options.targetLufs ?? -14);
         const qualityMode = options.qualityMode || 'balanced';
         const mobileInfo = applyMobileSpeakerResonanceGuardBuffer(working, qualityMode, options.analysis || {});
+        const deEsserInfo = applyDynamicDeEsserBuffer(working, qualityMode, options.analysis || {});
         const multibandInfo = applyGentleMultibandDynamicsBuffer(working, qualityMode, options.analysis || {});
         const maxGainDb = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 4.5 : 6;
         const loudnessBefore = measureApproxGatedLoudness(working);
@@ -6942,6 +7129,10 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 mobileSpeakerMode: mobileInfo.mode,
                 mobileSpeakerRisk: mobileInfo.risk,
                 mobileSpeakerCuts: mobileInfo.cuts,
+                dynamicDeEsserMode: deEsserInfo.mode,
+                dynamicDeEsserRisk: deEsserInfo.risk,
+                dynamicDeEsserReductionDb: deEsserInfo.reductionDb,
+                dynamicDeEsserBands: deEsserInfo.bands,
                 limiterMode: peakInfo.limiterMode,
                 lookaheadMs: peakInfo.lookaheadMs,
                 lookaheadSamples: peakInfo.lookaheadSamples,
@@ -8478,6 +8669,10 @@ function renderDetail(options = {}) {
             if (track.finalizeInfo.mobileSpeakerMode && track.finalizeInfo.mobileSpeakerMode !== 'bypass') {
                 const cuts = track.finalizeInfo.mobileSpeakerCuts || {};
                 addRow('폰 스피커 번역 가드', `위험 ${Math.round(Number(track.finalizeInfo.mobileSpeakerRisk || 0) * 100)}% · 저역 ${formatSigned(Number(cuts.lowShelfDb || 0), 2)} dB · 박스 ${formatSigned(Number(cuts.mudDb || 0), 2)} dB · 폰공진 ${formatSigned(Number(cuts.phoneDb || 0), 2)} dB`);
+            }
+            if (track.finalizeInfo.dynamicDeEsserMode && track.finalizeInfo.dynamicDeEsserMode !== 'bypass') {
+                const bands = track.finalizeInfo.dynamicDeEsserBands || {};
+                addRow('동적 디에서/하쉬 억제', `위험 ${Math.round(Number(track.finalizeInfo.dynamicDeEsserRisk || 0) * 100)}% · Presence ${formatSigned(Number(bands.presence || 0), 2)} dB · Sibilance ${formatSigned(Number(bands.sibilance || 0), 2)} dB · Air ${formatSigned(Number(bands.air || 0), 2)} dB`);
             }
             const spatialBudget = track.analysis?.spatialBudgetApplied;
             if (spatialBudget) {
@@ -10526,7 +10721,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.41',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.42',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

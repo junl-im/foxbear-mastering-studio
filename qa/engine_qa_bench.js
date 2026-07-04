@@ -192,11 +192,16 @@ for (const name of cases) {
   assertFiniteNumber(`${name} peakAfter`, info.peakAfter, 0, ceiling * 1.012);
   assertFiniteNumber(`${name} limiterReductionDb`, info.limiterReductionDb, -18, 18);
   assertFiniteNumber(`${name} multibandReductionDb`, info.multibandReductionDb, -12, 12);
+  assertFiniteNumber(`${name} dynamicDeEsserRisk`, info.dynamicDeEsserRisk || 0, 0, 1);
+  assertFiniteNumber(`${name} dynamicDeEsserReductionDb`, info.dynamicDeEsserReductionDb || 0, -12, 1);
   assertFiniteNumber(`${name} sample peak`, samplePeak(output), 0, ceiling * 1.012);
   if (info.oversample !== 4) throw new Error(`${name} expected 4x true peak oversampling`);
   if (!String(info.loudnessStandard || '').includes('K-weighting')) throw new Error(`${name} missing K-weighting report`);
   if (name === 'mobileBoom' && !(info.mobileSpeakerRisk > 0.25 || (info.mobileSpeakerCuts || []).length > 0)) {
     throw new Error('mobileBoom should trigger mobile speaker risk or cuts');
+  }
+  if (name === 'vocalMetallic' && !(info.dynamicDeEsserRisk > 0.16 && info.dynamicDeEsserMode !== 'bypass')) {
+    throw new Error('vocalMetallic should trigger dynamic de-esser/harshness suppression');
   }
   if (name === 'peakStress' && !(Math.abs(info.limiterReductionDb) > 0.1 || info.gainDb < 0)) {
     throw new Error('peakStress should trigger limiter or safety gain');
@@ -208,6 +213,8 @@ for (const name of cases) {
     tpOut: Number(20 * Math.log10(Math.max(1e-12, info.peakAfter))).toFixed(2),
     limiterDb: Number(info.limiterReductionDb).toFixed(2),
     multibandDb: Number(info.multibandReductionDb).toFixed(2),
+    deEssDb: Number(info.dynamicDeEsserReductionDb || 0).toFixed(2),
+    deEssRisk: Number(info.dynamicDeEsserRisk || 0).toFixed(2),
     mobileRisk: Number(info.mobileSpeakerRisk || 0).toFixed(2)
   });
 }
