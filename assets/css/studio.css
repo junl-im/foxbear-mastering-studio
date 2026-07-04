@@ -8587,3 +8587,107 @@ body.bottom-preview-active .processing-hud {
         line-height: 1.28 !important;
     }
 }
+
+/* v1.3.46 dock continuity + download/share refinements */
+.bottom-preview-controls {
+    justify-content: space-between !important;
+    gap: 6px !important;
+}
+.bottom-preview-master-btn,
+.bottom-preview-master-preview-btn {
+    width: clamp(72px, 7vw, 94px) !important;
+    min-height: 27px !important;
+    padding-inline: 5px !important;
+}
+.bottom-preview-tabs {
+    width: clamp(142px, 15vw, 186px) !important;
+    margin-left: auto !important;
+}
+.bottom-preview-tab {
+    min-height: 26px !important;
+    padding-inline: 4px !important;
+}
+body.bottom-preview-active .toast,
+body.bottom-preview-active .download-assist {
+    bottom: calc(var(--bottom-preview-height, 132px) + 10px + env(safe-area-inset-bottom)) !important;
+}
+body.bottom-preview-active .processing-hud {
+    bottom: calc(var(--bottom-preview-height, 132px) + 6px + env(safe-area-inset-bottom)) !important;
+}
+.download-options-panel-v2 {
+    width: min(420px, calc(100vw - 28px));
+}
+.download-options-section-label {
+    display: block;
+    margin: 2px 0 6px;
+    color: rgba(216,245,255,.70);
+    font-size: .55rem;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+.download-options-list.selectable .download-format-option {
+    position: relative;
+    text-align: left;
+}
+.download-options-list.selectable .download-format-option.current::after {
+    content: '선택됨';
+    position: absolute;
+    right: 7px;
+    top: 7px;
+    padding: 2px 5px;
+    border-radius: 999px;
+    background: rgba(141,245,232,.18);
+    color: rgba(176,255,245,.96);
+    font-size: .44rem;
+    font-weight: 950;
+}
+.download-options-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .82fr);
+    gap: 8px;
+    margin-top: 10px;
+}
+.download-options-actions button {
+    min-height: 38px;
+    border-radius: 14px;
+    font-size: .68rem;
+    font-weight: 950;
+}
+.download-options-actions button:disabled {
+    opacity: .52;
+    cursor: not-allowed;
+}
+.download-options-guide {
+    margin: 8px 0 0;
+    color: rgba(224,238,255,.62);
+    font-size: .56rem;
+    line-height: 1.45;
+}
+.download-options-panel.working .download-format-option,
+.download-options-panel.working .download-options-actions button {
+    pointer-events: none;
+}
+@media (max-width: 720px) {
+    .bottom-preview-master-btn,
+    .bottom-preview-master-preview-btn {
+        width: clamp(58px, 18vw, 74px) !important;
+        font-size: .34rem !important;
+    }
+    .bottom-preview-tabs {
+        width: clamp(116px, 42vw, 154px) !important;
+    }
+    .bottom-preview-tab {
+        font-size: .33rem !important;
+    }
+    body.bottom-preview-active .toast,
+    body.bottom-preview-active .download-assist {
+        bottom: calc(var(--bottom-preview-height, 150px) + 8px + env(safe-area-inset-bottom)) !important;
+    }
+    body.bottom-preview-active .processing-hud {
+        bottom: calc(var(--bottom-preview-height, 150px) + 4px + env(safe-area-inset-bottom)) !important;
+    }
+    .download-options-actions {
+        grid-template-columns: 1fr;
+    }
+}

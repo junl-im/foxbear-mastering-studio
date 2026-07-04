@@ -6,9 +6,9 @@ const css = fs.readFileSync('assets/css/studio.css', 'utf8');
 const requiredHtml = [
   'bottomPreviewWaveformBtn',
   '마스터링 진행',
-  '결과 미리듣기',
-  '원본 미리듣기',
-  '마스터링 미리듣기'
+  '결과 프리뷰',
+  '원본 프리뷰',
+  '마스터링 프리뷰'
 ];
 for (const token of requiredHtml) {
   if (!html.includes(token)) throw new Error(`missing html token: ${token}`);

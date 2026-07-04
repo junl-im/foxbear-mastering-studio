@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.45 - recommendation explainability
+// FoxBear AI Mastering Studio Pro v1.3.46 - dock continuity download share
 'use strict';
 
 
@@ -16,7 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 
-const APP_VERSION = 'Pro v1.3.45';
+const APP_VERSION = 'Pro v1.3.46';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -34,7 +34,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1345';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.45-recommend-explain';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.46-dock-download';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -131,7 +131,7 @@ function getErrorMessage(error, fallback = '알 수 없는 오류') {
 const UTILITY_FEATURE_DEFINITIONS = {
     abLevelMatch: {
         label: 'A/B 레벨 매칭',
-        short: '원본과 마스터링 미리듣기의 체감 볼륨을 맞춰 더 공정하게 비교합니다.'
+        short: '원본과 마스터링 프리뷰의 체감 볼륨을 맞춰 더 공정하게 비교합니다.'
     },
     abLoopMode: {
         label: '5초 A/B 루프',
@@ -224,7 +224,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.45';
+    styleLink.href = 'assets/css/studio.css?v=1.3.46';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -511,8 +511,11 @@ function openPreviewDialog() {
 
 function closePreviewDialog() {
     if (!el.previewDialog) return;
-    pauseAllPreviewAudio();
-    cleanupRealtimePreview();
+    const waveformOnly = el.previewDialog.classList.contains('waveform-compare-mode');
+    if (!waveformOnly) {
+        pauseAllPreviewAudio();
+        cleanupRealtimePreview();
+    }
     el.previewDialog.classList.remove('show', 'waveform-compare-mode');
     el.previewDialog.setAttribute('aria-hidden', 'true');
     const title = el.previewDialog.querySelector('#previewDialogTitle');
@@ -544,7 +547,7 @@ function renderRealtimePreviewConsole(track, target) {
     const head = document.createElement('div');
     head.className = 'realtime-preview-head';
     const title = document.createElement('strong');
-    title.textContent = '실시간 마스터링 미리듣기';
+    title.textContent = '실시간 마스터링 프리뷰';
     const status = document.createElement('span');
     status.className = 'realtime-preview-status';
     status.textContent = 'WebAudio 대기';
@@ -557,7 +560,7 @@ function renderRealtimePreviewConsole(track, target) {
     const previewPlayer = createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track), { translationMode: false });
     previewPlayer.classList.add('realtime-custom-player');
     const audio = previewPlayer.querySelector('audio');
-    if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} 실시간 마스터링 미리듣기 재생`);
+    if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} 실시간 마스터링 프리뷰 재생`);
     playerCard.append(previewPlayer);
 
     const controls = document.createElement('div');
@@ -1219,7 +1222,7 @@ const ACTION_HELP_TEXTS = {
     zipBtn: '완료된 결과물을 ZIP 파일로 묶어 다운로드합니다.',
     clearBtn: '작업 대기열과 미리듣기 결과를 초기화합니다.',
     clearCacheBtn: '저장된 분석 캐시를 즉시 비웁니다.',
-    abMatchBtn: '원본/마스터링 미리듣기 볼륨을 맞춰 비교합니다.',
+    abMatchBtn: '원본/마스터링 프리뷰 볼륨을 맞춰 비교합니다.',
     abLoopBtn: '같은 구간을 5초씩 반복해 차이를 빠르게 비교합니다.'
 };
 
@@ -7633,10 +7636,10 @@ function showDownloadOptionsDialog(track) {
     backdrop.className = 'download-options-backdrop';
     backdrop.setAttribute('role', 'dialog');
     backdrop.setAttribute('aria-modal', 'true');
-    backdrop.setAttribute('aria-label', '다운로드 형식 선택');
+    backdrop.setAttribute('aria-label', '다운로드 및 공유');
 
     const panel = document.createElement('section');
-    panel.className = 'download-options-panel';
+    panel.className = 'download-options-panel download-options-panel-v2';
     panel.tabIndex = -1;
     const close = document.createElement('button');
     close.type = 'button';
@@ -7646,57 +7649,128 @@ function showDownloadOptionsDialog(track) {
 
     const title = document.createElement('strong');
     title.className = 'download-options-title';
-    title.textContent = '다운로드 형식 선택';
+    title.textContent = '다운로드 / 공유';
     const name = document.createElement('p');
     name.className = 'download-options-name';
     name.textContent = track.name || '마스터링 파일';
 
     const inApp = isRestrictedDownloadBrowser();
     const warning = document.createElement('p');
-    warning.className = inApp ? 'download-options-warning show' : 'download-options-warning';
-    warning.textContent = inApp ? '카카오 인앱 브라우저는 저장이 막힐 수 있어요. 형식 선택 후 공유/저장을 먼저 눌러주세요.' : '원하는 포맷을 누르면 바로 저장합니다.';
+    warning.className = inApp ? 'download-options-warning show' : 'download-options-warning show';
+    warning.textContent = inApp
+        ? '카카오/인앱 브라우저에서는 자동 저장이 막힐 수 있습니다. 포맷을 고른 뒤 공유를 먼저 시도하고, 실패하면 외부 브라우저 열기를 사용하세요.'
+        : '포맷을 선택한 뒤 아래 다운로드 또는 공유 버튼을 눌러주세요.';
+
+    const listLabel = document.createElement('span');
+    listLabel.className = 'download-options-section-label';
+    listLabel.textContent = '확장자 / 품질 선택';
 
     const list = document.createElement('div');
-    list.className = 'download-options-list';
-    getDownloadFormatOptions().forEach(option => {
+    list.className = 'download-options-list selectable';
+    const options = getDownloadFormatOptions();
+    let selectedFormat = track.outFormat && options.some(option => option.format === track.outFormat) ? track.outFormat : options[0].format;
+
+    const setSelected = format => {
+        selectedFormat = format;
+        Array.from(list.querySelectorAll('.download-format-option')).forEach(button => {
+            const active = button.dataset.format === selectedFormat;
+            button.classList.toggle('current', active);
+            button.setAttribute('aria-pressed', String(active));
+        });
+        const selected = options.find(option => option.format === selectedFormat);
+        if (selected) warning.textContent = `${selected.label} ${selected.detail} 선택됨 · 아래 버튼으로 저장하거나 공유하세요.`;
+        if (inApp) warning.textContent += ' 카카오에서 실패하면 공유 또는 외부 브라우저 열기를 사용하세요.';
+    };
+
+    options.forEach(option => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `download-format-option ${option.format === track.outFormat ? 'current' : ''}`;
+        button.className = `download-format-option ${option.format === selectedFormat ? 'current' : ''}`;
+        button.dataset.format = option.format;
+        button.setAttribute('aria-pressed', String(option.format === selectedFormat));
         const main = document.createElement('span');
         main.textContent = option.label;
         const sub = document.createElement('b');
         sub.textContent = option.detail;
         button.append(main, sub);
-        button.addEventListener('click', async () => {
-            const allButtons = Array.from(list.querySelectorAll('button'));
-            allButtons.forEach(item => { item.disabled = true; });
-            warning.classList.add('show');
-            warning.textContent = option.format === track.outFormat ? '현재 완성 파일로 저장을 준비합니다.' : `${option.label}로 재인코딩 중입니다.`;
-            try {
-                const exported = await prepareTrackDownloadBlob(track, option.format);
-                track.downloadAttention = false;
-                closeDownloadOptionsDialog(backdrop);
-                downloadBlob(exported.blob, exported.fileName);
-                state.busy = false;
-                renderAll({ keepDetailAudio: true });
-            } catch (error) {
-                console.warn('download export failed:', error);
-                warning.textContent = getErrorMessage(error, '다운로드 파일 생성에 실패했습니다.');
-                allButtons.forEach(item => { item.disabled = false; });
-            }
-        });
+        button.addEventListener('click', () => setSelected(option.format));
         list.appendChild(button);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'download-options-actions';
+    const download = document.createElement('button');
+    download.type = 'button';
+    download.className = 'btn-primary download-options-primary';
+    download.textContent = '다운로드';
+    const share = document.createElement('button');
+    share.type = 'button';
+    share.className = 'btn-secondary download-options-share';
+    share.textContent = '공유';
+    share.disabled = !supportsWebShareDownloadFiles();
+    share.title = share.disabled ? '이 브라우저는 파일 공유 API를 지원하지 않습니다.' : '카카오톡, 문자, 파일 앱 등으로 공유합니다.';
+    actions.append(download, share);
+
+    const guide = document.createElement('p');
+    guide.className = 'download-options-guide';
+    guide.textContent = inApp
+        ? '카카오톡 안에서 저장이 안 보이면 공유 → 파일 저장/카카오톡/문자 또는 브라우저로 열기를 사용하세요.'
+        : '공유는 기기 기본 공유창을 사용합니다. 지원 브라우저에서만 파일 그대로 보낼 수 있습니다.';
+
+    const setBusy = busy => {
+        [download, share, close, ...Array.from(list.querySelectorAll('button'))].forEach(button => { button.disabled = busy || (button === share && !supportsWebShareDownloadFiles()); });
+        panel.classList.toggle('working', Boolean(busy));
+    };
+
+    download.addEventListener('click', async () => {
+        setBusy(true);
+        warning.classList.add('show');
+        warning.textContent = selectedFormat === track.outFormat ? '현재 완성 파일로 다운로드를 준비합니다.' : '선택한 포맷으로 변환 중입니다.';
+        try {
+            const exported = await prepareTrackDownloadBlob(track, selectedFormat);
+            track.downloadAttention = false;
+            closeDownloadOptionsDialog(backdrop);
+            downloadBlob(exported.blob, exported.fileName);
+            state.busy = false;
+            renderAll({ keepDetailAudio: true });
+        } catch (error) {
+            console.warn('download export failed:', error);
+            warning.textContent = getErrorMessage(error, '다운로드 파일 생성에 실패했습니다.');
+            setBusy(false);
+        }
+    });
+
+    share.addEventListener('click', async () => {
+        if (!supportsWebShareDownloadFiles()) {
+            warning.classList.add('show');
+            warning.textContent = '이 브라우저는 파일 공유를 지원하지 않습니다. 다운로드 후 카카오/문자로 공유해주세요.';
+            return;
+        }
+        setBusy(true);
+        warning.classList.add('show');
+        warning.textContent = selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.';
+        try {
+            const exported = await prepareTrackDownloadBlob(track, selectedFormat);
+            track.downloadAttention = false;
+            await shareDownloadFile(exported.blob, exported.fileName);
+            state.busy = false;
+            renderAll({ keepDetailAudio: true });
+        } catch (error) {
+            console.warn('share export failed:', error);
+            warning.textContent = getErrorMessage(error, '공유가 취소되었거나 이 브라우저에서 막혔습니다.');
+        } finally {
+            setBusy(false);
+        }
     });
 
     close.addEventListener('click', () => closeDownloadOptionsDialog(backdrop));
     backdrop.addEventListener('click', event => { if (event.target === backdrop) closeDownloadOptionsDialog(backdrop); });
-    panel.append(close, title, name, warning, list);
+    panel.append(close, title, name, warning, listLabel, list, actions, guide);
     backdrop.appendChild(panel);
     document.body.appendChild(backdrop);
     document.body.classList.add('download-options-open');
     requestAnimationFrame(() => panel.focus());
 }
-
 function getDownloadFormatOptions() {
     return [
         { format: 'mp3_128', label: 'MP3', detail: '128 kbps' },
@@ -7760,18 +7834,9 @@ function downloadBlob(blob, fileName) {
     a.className = 'hidden-download-link';
     document.body.appendChild(a);
 
-    const zipLikeDownload = /\.zip$/i.test(safeName) || String(blob.type || '').toLowerCase().includes('zip');
-    const sharedFromRestricted = restricted && !zipLikeDownload && blob && supportsWebShareFiles(blob, safeName)
-        ? tryShareDownloadFile(blob, safeName, url)
-        : false;
-
     if (restricted) {
         showDownloadAssist(url, safeName, blob.type || 'audio/*', blob);
-        if (sharedFromRestricted) {
-            showToast('카카오/인앱 브라우저용 공유·저장 창을 열었습니다. 저장 위치를 선택해주세요.');
-        } else {
-            showToast('카카오/인앱 브라우저는 자동 다운로드가 막힐 수 있습니다. 도움창의 공유/저장을 사용해주세요.');
-        }
+        showToast('카카오/인앱 브라우저는 자동 저장이 막힐 수 있습니다. 도움창의 공유/저장 또는 외부 브라우저 열기를 사용해주세요.');
         a.remove();
         setTimeout(() => revokeDownloadUrl(url), 10 * 60 * 1000);
         return;
@@ -7814,6 +7879,10 @@ function tryShareDownloadFile(blob, fileName, url) {
     }
 }
 
+function supportsWebShareDownloadFiles() {
+    return Boolean(navigator.share && typeof File !== 'undefined');
+}
+
 function supportsWebShareFiles(blob, fileName) {
     if (!navigator.share || typeof File === 'undefined') return false;
     try {
@@ -7825,8 +7894,11 @@ function supportsWebShareFiles(blob, fileName) {
 }
 
 async function shareDownloadFile(blob, fileName) {
+    if (!navigator.share || typeof File === 'undefined') throw new Error('파일 공유를 지원하지 않는 브라우저입니다.');
     const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
-    await navigator.share({ files: [file], title: fileName, text: 'FoxBear Music 마스터링 파일' });
+    const payload = { files: [file], title: fileName, text: 'FoxBear Music 마스터링 파일' };
+    if (navigator.canShare && !navigator.canShare({ files: payload.files })) throw new Error('이 파일 형식은 현재 브라우저 공유창에서 보낼 수 없습니다.');
+    await navigator.share(payload);
     showToast('공유/저장 요청을 보냈습니다.');
 }
 
@@ -8596,7 +8668,7 @@ function renderButtons() {
     el.aiApplyBtn.disabled = !canApplyAI;
     if (el.masterPreviewBtn) {
         el.masterPreviewBtn.disabled = !canPreviewMaster;
-        el.masterPreviewBtn.textContent = activeTrack && activeTrack.masterPreviewStatus === 'processing' ? '결과 미리듣기 생성 중' : '결과 미리듣기 · 15초';
+        el.masterPreviewBtn.textContent = activeTrack && activeTrack.masterPreviewStatus === 'processing' ? '결과 프리뷰 생성 중' : '결과 프리뷰 · 15초';
     }
     el.masterSelectedBtn.disabled = !canProcessSelected;
     el.masterAllBtn.disabled = !canProcessAll;
@@ -8714,7 +8786,7 @@ function renderTrackList() {
         progressShell.appendChild(progressBar);
         const progressCaption = document.createElement('div');
         progressCaption.className = 'progress-caption';
-        progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? `완료 · ${track.qualityGate ? '품질 ' + track.qualityGate.label + ' · ' : ''}미리듣기/다운로드 가능` : '대기 중');
+        progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? `완료 · ${track.qualityGate ? '품질 ' + track.qualityGate.label + ' · ' : ''}프리뷰/다운로드 가능` : '대기 중');
         const aiJudge = document.createElement('div');
         aiJudge.className = 'track-ai-judge';
         aiJudge.textContent = buildTrackAiJudgeText(track);
@@ -8947,7 +9019,7 @@ function renderMasterPreviewQuickBar(track) {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'btn-secondary master-preview-inline-btn';
-    button.textContent = track.masterPreviewStatus === 'processing' ? '결과 미리듣기 생성 중' : '결과 미리듣기 · 15초';
+    button.textContent = track.masterPreviewStatus === 'processing' ? '결과 프리뷰 생성 중' : '결과 프리뷰 · 15초';
     button.disabled = !canStartMasterPreview(track);
     button.addEventListener('click', () => renderMasterPreviewForTrack(track, { source: 'detail' }));
     const note = document.createElement('small');
@@ -9314,12 +9386,12 @@ function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
 
     const originalCard = document.createElement('div');
     originalCard.className = 'preview-card';
-    const originalLabel = makePreviewTitle('원본 미리듣기', track.analysis?.duration);
+    const originalLabel = makePreviewTitle('원본 프리뷰', track.analysis?.duration);
     originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track)));
 
     const masteredCard = document.createElement('div');
     masteredCard.className = 'preview-card';
-    const masteredLabel = makePreviewTitle('마스터링 미리듣기', track.masteredDurationSec || null);
+    const masteredLabel = makePreviewTitle('마스터링 프리뷰', track.masteredDurationSec || null);
     masteredCard.appendChild(masteredLabel);
     if (track.masteredUrl) {
         masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec, state.abLoopMode, getTrackHighlightStart(track)));
@@ -9349,11 +9421,12 @@ function handlePreviewTranslationModeClick(event) {
 function setPreviewTranslationMode(mode) {
     const next = PREVIEW_TRANSLATION_MODES[mode] ? mode : 'studio';
     if (state.previewTranslationMode === next) return;
+    const track = getSelectedTrack();
+    captureBottomPreviewTransport(track, state.bottomPreviewMode);
     state.previewTranslationMode = next;
-    clearBottomPreviewPlayer();
-    renderBottomPreviewDock({ autoPlay: false });
+    renderBottomPreviewDock({ keepPlaying: true });
     const selected = PREVIEW_TRANSLATION_MODES[next];
-    showToast(`${selected.short} 미리듣기 모드로 전환했습니다.`);
+    showToast(`${selected.short} 프리뷰 모드로 전환했습니다.`);
 }
 
 function renderPreviewTranslationModeControls(activeSourceMode = state.bottomPreviewMode) {
@@ -9482,9 +9555,10 @@ function closePreviewTranslationContext(context) {
 function selectBottomPreviewMode(mode, autoPlay = false) {
     const track = getSelectedTrack();
     if (!track) return;
+    captureBottomPreviewTransport(track, state.bottomPreviewMode);
     const nextMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
     if (nextMode === 'mastered' && !track.masteredUrl) {
-        showToast('마스터링 실행 후 마스터링 미리듣기가 활성화됩니다.');
+        showToast('마스터링 실행 후 마스터링 프리뷰가 활성화됩니다.');
         return;
     }
     if (nextMode === 'masterPreview' && !track.masterPreviewUrl) {
@@ -9541,11 +9615,11 @@ async function renderMasterPreviewForTrack(track, options = {}) {
         state.bottomPreviewAutoplayTrackId = track.id;
         renderAll({ keepDetailAudio: true, autoPlay: true });
         requestAnimationFrame(playBottomPreviewAudio);
-        showToast('준비된 15초 결과 미리듣기를 재생합니다.');
+        showToast('준비된 15초 결과 프리뷰를 재생합니다.');
         return;
     }
     if (!canStartMasterPreview(track)) {
-        showToast('분석이 끝난 정상 트랙에서만 결과 미리듣기를 만들 수 있습니다.');
+        showToast('분석이 끝난 정상 트랙에서만 결과 프리뷰를 만들 수 있습니다.');
         return;
     }
 
@@ -9555,7 +9629,7 @@ async function renderMasterPreviewForTrack(track, options = {}) {
     state.busy = true;
     state.masterPreviewRenderingTrackId = track.id;
     track.masterPreviewStatus = 'processing';
-    track.report = '하이라이트 15초 결과 미리듣기 생성 중';
+    track.report = '하이라이트 15초 결과 프리뷰 생성 중';
     renderAll({ keepDetailAudio: true });
 
     try {
@@ -9591,7 +9665,7 @@ async function renderMasterPreviewForTrack(track, options = {}) {
         const finalBuffer = finalization.buffer;
         sanitizeAudioBuffer(finalBuffer, 'master-preview-finalizer');
         const blob = await encodeWavAsync(finalBuffer, 'wav16');
-        if (!blob || blob.size <= 44) throw new Error('결과 미리듣기 파일이 비어 있습니다.');
+        if (!blob || blob.size <= 44) throw new Error('결과 프리뷰 파일이 비어 있습니다.');
 
         if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
         track.masterPreviewBlob = blob;
@@ -9609,18 +9683,18 @@ async function renderMasterPreviewForTrack(track, options = {}) {
             dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied)
         };
         track.masterPreviewStatus = 'ready';
-        track.report = `결과 미리듣기 준비됨 · ${formatTime(startSec)}부터 약 ${Math.round(track.masterPreviewInfo.durationSec)}초`;
+        track.report = `결과 프리뷰 준비됨 · ${formatTime(startSec)}부터 약 ${Math.round(track.masterPreviewInfo.durationSec)}초`;
         state.selectedId = track.id;
         state.bottomPreviewMode = 'masterPreview';
         state.bottomPreviewTrackId = track.id;
         state.bottomPreviewAutoplayTrackId = track.id;
         completed = true;
-        showToast('15초 결과 미리듣기를 생성했습니다. Dock에서 재생합니다.');
+        showToast('15초 결과 프리뷰를 생성했습니다. Dock에서 재생합니다.');
     } catch (error) {
         console.error('Master preview error:', error);
         track.masterPreviewStatus = 'error';
-        track.report = previousReport || '결과 미리듣기 생성 실패';
-        showToast(`결과 미리듣기 실패: ${getErrorMessage(error, '알 수 없는 오류')}`);
+        track.report = previousReport || '결과 프리뷰 생성 실패';
+        showToast(`결과 프리뷰 실패: ${getErrorMessage(error, '알 수 없는 오류')}`);
     } finally {
         state.busy = false;
         state.masterPreviewRenderingTrackId = null;
@@ -9677,7 +9751,7 @@ function getDockWaveformPayload(track, mode = state.bottomPreviewMode) {
     const original = getTrackOriginalWaveformValues(track);
     const mastered = getTrackMasterWaveformValues(track);
     if (mode === 'mastered' && mastered.length) return { label: '마스터링 피크', badge: 'Master', values: mastered, markers: track?.waveformOverview?.peakMarkers || sampleMarkersFromValues(mastered) };
-    if (mode === 'masterPreview' && track?.masterPreviewInfo?.waveformOverview?.length) return { label: '결과 미리듣기 피크', badge: '15s', values: normalizeWaveformValues(track.masterPreviewInfo.waveformOverview), markers: sampleMarkersFromValues(track.masterPreviewInfo.waveformOverview) };
+    if (mode === 'masterPreview' && track?.masterPreviewInfo?.waveformOverview?.length) return { label: '결과 프리뷰 피크', badge: '15s', values: normalizeWaveformValues(track.masterPreviewInfo.waveformOverview), markers: sampleMarkersFromValues(track.masterPreviewInfo.waveformOverview) };
     return { label: '원본 피크', badge: 'Original', values: original, markers: sampleMarkersFromValues(original) };
 }
 
@@ -9735,7 +9809,7 @@ function renderWaveformCompareDialog(track, target) {
     const name = document.createElement('strong');
     name.textContent = track.name || '선택 트랙';
     const meta = document.createElement('span');
-    meta.textContent = track.masteredUrl ? '원본 / 마스터링 비교' : (track.masterPreviewUrl ? '원본 / 15초 결과 미리듣기 비교' : '원본 파형 피크');
+    meta.textContent = track.masteredUrl ? '원본 / 마스터링 비교' : (track.masterPreviewUrl ? '원본 / 15초 결과 프리뷰 비교' : '원본 파형 피크');
     head.append(name, meta);
     wrap.appendChild(head);
 
@@ -9743,11 +9817,11 @@ function renderWaveformCompareDialog(track, target) {
     const mastered = getTrackMasterWaveformValues(track);
     wrap.appendChild(makeWaveformCompareRow('원본', original, sampleMarkersFromValues(original), 'original'));
     if (mastered.length) {
-        wrap.appendChild(makeWaveformCompareRow(track.masteredUrl ? '마스터링' : '결과 미리듣기', mastered, track.waveformOverview?.peakMarkers || sampleMarkersFromValues(mastered), 'mastered'));
+        wrap.appendChild(makeWaveformCompareRow(track.masteredUrl ? '마스터링' : '결과 프리뷰', mastered, track.waveformOverview?.peakMarkers || sampleMarkersFromValues(mastered), 'mastered'));
     } else {
         const empty = document.createElement('div');
         empty.className = 'waveform-compare-empty';
-        empty.textContent = '마스터링 실행 또는 결과 미리듣기 생성 후 비교 파형이 표시됩니다.';
+        empty.textContent = '마스터링 실행 또는 결과 프리뷰 생성 후 비교 파형이 표시됩니다.';
         wrap.appendChild(empty);
     }
     const hint = document.createElement('p');
@@ -9846,25 +9920,34 @@ function renderBottomPreviewDock(options = {}) {
     renderBottomWaveformMini(track, mode);
 
     const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && el.bottomPreviewPlayer.querySelector('audio');
+    let shouldResume = false;
     if (!samePlayer) {
+        const previousMode = el.bottomPreviewPlayer.dataset.previewMode || state.bottomPreviewMode;
+        captureBottomPreviewTransport(track, previousMode);
         clearBottomPreviewPlayer();
         if (!src) {
             const empty = document.createElement('div');
             empty.className = 'bottom-preview-empty';
-            empty.textContent = '미리듣기 소스를 준비 중입니다.';
+            empty.textContent = '프리뷰 소스를 준비 중입니다.';
             el.bottomPreviewPlayer.appendChild(empty);
         } else {
-            const player = createPreviewPlayer(src, gainDb, duration, state.abLoopMode && !useMasterPreview, useMasterPreview ? 0 : getTrackHighlightStart(track));
+            const transport = getPendingBottomPreviewTransport(track, mode, duration, options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id);
+            const player = createPreviewPlayer(src, gainDb, duration, state.abLoopMode && !useMasterPreview, transport.startSec);
             player.classList.add('bottom-custom-player');
             const audio = player.querySelector('audio');
-            const modeLabel = useMastered ? '마스터링' : (useMasterPreview ? '15초 결과 미리듣기' : '원본');
-            if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} ${modeLabel} 미리듣기 재생`);
+            const modeLabel = useMastered ? '마스터링' : (useMasterPreview ? '15초 결과 프리뷰' : '원본');
+            if (audio) {
+                audio.setAttribute('aria-label', `${track.name || '선택 곡'} ${modeLabel} 프리뷰 재생`);
+                applyBottomPreviewStart(audio, transport.startSec);
+            }
             el.bottomPreviewPlayer.appendChild(player);
             el.bottomPreviewPlayer.dataset.previewKey = key;
+            el.bottomPreviewPlayer.dataset.previewMode = mode;
+            shouldResume = Boolean(transport.playing);
         }
     }
 
-    const shouldAutoPlay = (options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id) && (useMastered || useMasterPreview);
+    const shouldAutoPlay = shouldResume || ((options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id) && (useMastered || useMasterPreview));
     if (shouldAutoPlay) {
         state.bottomPreviewAutoplayTrackId = null;
         requestAnimationFrame(playBottomPreviewAudio);
@@ -9880,16 +9963,16 @@ function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPrev
     el.bottomPreviewMasterPreviewBtn.classList.toggle('processing', processing);
     el.bottomPreviewMasterPreviewBtn.disabled = !track || state.busy || track.status === 'processing' || track.status === 'analyzing' || Boolean(track.error);
     if (!track) {
-        el.bottomPreviewMasterPreviewBtn.textContent = '결과 미리듣기';
-        el.bottomPreviewMasterPreviewBtn.title = '곡을 선택하면 15초 결과 미리듣기를 만들 수 있습니다.';
+        el.bottomPreviewMasterPreviewBtn.textContent = '결과 프리뷰';
+        el.bottomPreviewMasterPreviewBtn.title = '곡을 선택하면 15초 결과 프리뷰를 만들 수 있습니다.';
     } else if (processing) {
-        el.bottomPreviewMasterPreviewBtn.textContent = '미리듣기 생성중';
-        el.bottomPreviewMasterPreviewBtn.title = '선택 곡의 하이라이트 15초 결과 미리듣기를 처리하고 있습니다.';
+        el.bottomPreviewMasterPreviewBtn.textContent = '프리뷰 생성중';
+        el.bottomPreviewMasterPreviewBtn.title = '선택 곡의 하이라이트 15초 결과 프리뷰를 처리하고 있습니다.';
     } else if (ready) {
-        el.bottomPreviewMasterPreviewBtn.textContent = '결과 미리듣기';
-        el.bottomPreviewMasterPreviewBtn.title = '준비된 15초 결과 미리듣기를 재생합니다.';
+        el.bottomPreviewMasterPreviewBtn.textContent = '결과 프리뷰';
+        el.bottomPreviewMasterPreviewBtn.title = '준비된 15초 결과 프리뷰를 재생합니다.';
     } else {
-        el.bottomPreviewMasterPreviewBtn.textContent = '결과 미리듣기';
+        el.bottomPreviewMasterPreviewBtn.textContent = '결과 프리뷰';
         el.bottomPreviewMasterPreviewBtn.title = '전체 마스터링 전에 하이라이트 15초 결과를 먼저 들어봅니다.';
     }
 }
@@ -9931,6 +10014,75 @@ function setBottomPreviewTabState(mode, masteredAvailable) {
         el.bottomPreviewMasteredBtn.disabled = !masteredAvailable;
         el.bottomPreviewMasteredBtn.title = masteredAvailable ? '마스터링된 곡을 재생합니다.' : '마스터링 실행 후 활성화됩니다.';
     }
+}
+
+
+function getBottomPreviewAudio() {
+    return el.bottomPreviewPlayer?.querySelector('audio') || null;
+}
+
+function getMasterPreviewStartSec(track) {
+    const value = Number(track?.masterPreviewInfo?.startSec ?? track?.masterPreviewInfo?.highlightStartSec ?? track?.abHighlightStartSec ?? track?.analysis?.abHighlightStartSec ?? 0);
+    return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function localToAbsolutePreviewTime(track, mode, localSec) {
+    const local = Math.max(0, Number(localSec || 0));
+    if (mode === 'masterPreview') return getMasterPreviewStartSec(track) + local;
+    return local;
+}
+
+function absoluteToLocalPreviewTime(track, mode, absoluteSec, durationSec) {
+    const absolute = Math.max(0, Number(absoluteSec || 0));
+    let local = mode === 'masterPreview' ? absolute - getMasterPreviewStartSec(track) : absolute;
+    if (!Number.isFinite(local) || local < 0) local = 0;
+    const duration = Number(durationSec || 0);
+    if (Number.isFinite(duration) && duration > 0) local = clamp(local, 0, Math.max(0, duration - 0.08));
+    return local;
+}
+
+function captureBottomPreviewTransport(track = getSelectedTrack(), mode = state.bottomPreviewMode) {
+    const audio = getBottomPreviewAudio();
+    if (!audio || !track) return null;
+    const localSec = Number(audio.currentTime || 0);
+    const absoluteSec = localToAbsolutePreviewTime(track, mode, localSec);
+    const transport = {
+        trackId: track.id,
+        mode,
+        localSec,
+        absoluteSec,
+        playing: !audio.paused && !audio.ended,
+        translationMode: state.previewTranslationMode || 'studio',
+        capturedAt: Date.now()
+    };
+    state.bottomPreviewTransport = transport;
+    return transport;
+}
+
+function getPendingBottomPreviewTransport(track, targetMode, durationSec, fallbackAutoPlay = false) {
+    const transport = state.bottomPreviewTransport;
+    if (!transport || !track || transport.trackId !== track.id) {
+        const hint = targetMode === 'masterPreview' ? 0 : getTrackHighlightStart(track);
+        return { startSec: Number.isFinite(Number(hint)) ? Number(hint) : 0, playing: Boolean(fallbackAutoPlay) };
+    }
+    const maxAge = 60 * 1000;
+    const fresh = !transport.capturedAt || Date.now() - transport.capturedAt < maxAge;
+    const startSec = fresh ? absoluteToLocalPreviewTime(track, targetMode, transport.absoluteSec, durationSec) : 0;
+    return { startSec, playing: Boolean(fallbackAutoPlay || (fresh && transport.playing)) };
+}
+
+function applyBottomPreviewStart(audio, startSec = 0) {
+    if (!audio) return;
+    const target = Math.max(0, Number(startSec || 0));
+    const seek = () => {
+        try {
+            const duration = Number(audio.duration || 0);
+            const safeTarget = Number.isFinite(duration) && duration > 0 ? clamp(target, 0, Math.max(0, duration - 0.08)) : target;
+            if (Math.abs((audio.currentTime || 0) - safeTarget) > 0.05) audio.currentTime = safeTarget;
+        } catch (error) {}
+    };
+    if (audio.readyState >= 1) seek();
+    else audio.addEventListener('loadedmetadata', seek, { once: true });
 }
 
 function clearBottomPreviewPlayer() {
@@ -11037,7 +11189,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.45',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.46',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
