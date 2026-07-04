@@ -24,3 +24,193 @@
   .bottom-preview-dock { font-size: 12px; }
   .bottom-preview-dock .bottom-preview-title { overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* v1.3.54 Dock Player Polish: compact transport, live waveform playhead, tighter overlay anchor */
+.processing-hud,
+.toast,
+.download-helper,
+.export-helper,
+.download-assist,
+.download-help {
+  margin-bottom: 0 !important;
+}
+
+.bottom-preview-dock {
+  overflow: hidden !important;
+  isolation: isolate;
+}
+.bottom-preview-core,
+.bottom-preview-player,
+.bottom-preview-player .custom-player {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+.bottom-preview-player .custom-player,
+.bottom-preview-player .custom-player.ab-loop-player {
+  display: grid !important;
+  grid-template-columns: 38px minmax(96px, 1fr) 58px !important;
+  align-items: center !important;
+  gap: 7px !important;
+  overflow: hidden !important;
+}
+.bottom-preview-player .player-toggle {
+  grid-column: 1 !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  flex: 0 0 36px !important;
+  z-index: 2;
+}
+.bottom-preview-player .player-seek {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+.bottom-preview-player .player-time {
+  grid-column: 3 !important;
+  min-width: 0 !important;
+  width: 58px !important;
+  max-width: 58px !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.bottom-preview-waveform,
+.bottom-waveform-bars,
+.waveform-compare-bars {
+  position: relative !important;
+  overflow: hidden !important;
+}
+.bottom-preview-waveform.has-live-playhead::after,
+.waveform-compare-bars.has-live-playhead::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: var(--waveform-playhead-pct, 0%);
+  width: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 0 0 1px rgba(6, 16, 24, .34), 0 0 14px rgba(141, 245, 232, .42);
+  transform: translateX(-1px);
+  pointer-events: none;
+  z-index: 4;
+}
+.bottom-preview-waveform.is-playing::after,
+.waveform-compare-bars.is-playing::after {
+  background: rgba(141, 245, 232, .98);
+  box-shadow: 0 0 0 1px rgba(6, 16, 24, .42), 0 0 18px rgba(141, 245, 232, .72);
+}
+.waveform-compare-card.has-live-playhead .waveform-compare-head span::after {
+  content: ' · LIVE 위치 표시';
+  color: rgba(141, 245, 232, .82);
+  font-weight: 950;
+}
+
+body.bottom-preview-active .toast,
+body.bottom-preview-active .download-assist,
+body.bottom-preview-active .download-help {
+  bottom: calc(var(--bottom-preview-floating-bottom, 190px) + env(safe-area-inset-bottom)) !important;
+}
+body.bottom-preview-active .processing-hud {
+  bottom: calc(var(--bottom-preview-hud-bottom, 188px) + env(safe-area-inset-bottom)) !important;
+}
+.preview-dialog-backdrop.waveform-compare-mode {
+  align-items: flex-end !important;
+  padding-bottom: calc(var(--bottom-preview-panel-bottom, 206px) + 10px + env(safe-area-inset-bottom)) !important;
+}
+.preview-dialog-backdrop.waveform-compare-mode .preview-dialog-panel {
+  max-height: calc(var(--bottom-preview-viewport-height, 100dvh) - var(--bottom-preview-panel-bottom, 206px) - 34px) !important;
+}
+
+.processing-hud.show .processing-hud-face {
+  animation: foxbearHudPulse 1.2s ease-in-out infinite;
+}
+.processing-hud.show .processing-hud-bar {
+  position: relative;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.10) 0 1px, transparent 1px 5%),
+    rgba(255,255,255,.08) !important;
+}
+.processing-hud.show .processing-hud-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.24), transparent);
+  transform: translateX(-120%);
+  animation: foxbearHudScan 1.1s linear infinite;
+  pointer-events: none;
+}
+.processing-hud.show .processing-hud-bar i {
+  transition: width .22s ease !important;
+}
+@keyframes foxbearHudPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(141,245,232,0); }
+  50% { transform: scale(1.04); box-shadow: 0 0 18px rgba(141,245,232,.18); }
+}
+@keyframes foxbearHudScan {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
+}
+
+@media (max-width: 720px) {
+  .bottom-preview-player .custom-player,
+  .bottom-preview-player .custom-player.ab-loop-player {
+    grid-template-columns: 34px minmax(78px, 1fr) 52px !important;
+    gap: 5px !important;
+  }
+  .bottom-preview-player .player-toggle {
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    height: 30px !important;
+    flex-basis: 32px !important;
+  }
+  .bottom-preview-player .player-time {
+    width: 52px !important;
+    max-width: 52px !important;
+    font-size: .50rem !important;
+  }
+  .bottom-preview-player .player-seek { min-width: 0 !important; }
+  body.bottom-preview-active .toast,
+  body.bottom-preview-active .download-assist,
+  body.bottom-preview-active .download-help {
+    bottom: calc(var(--bottom-preview-floating-bottom, 214px) + env(safe-area-inset-bottom)) !important;
+  }
+  body.bottom-preview-active .processing-hud {
+    bottom: calc(var(--bottom-preview-hud-bottom, 210px) + env(safe-area-inset-bottom)) !important;
+  }
+  .preview-dialog-backdrop.waveform-compare-mode {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-bottom: calc(var(--bottom-preview-panel-bottom, 220px) + 8px + env(safe-area-inset-bottom)) !important;
+  }
+}
+@media (max-width: 420px) {
+  .bottom-preview-player .custom-player,
+  .bottom-preview-player .custom-player.ab-loop-player {
+    grid-template-columns: 32px minmax(64px, 1fr) 46px !important;
+    gap: 4px !important;
+  }
+  .bottom-preview-player .player-toggle {
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 28px !important;
+    flex-basis: 30px !important;
+  }
+  .bottom-preview-player .player-time {
+    width: 46px !important;
+    max-width: 46px !important;
+    font-size: .46rem !important;
+  }
+}

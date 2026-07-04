@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.53 - mega stabilization pack
+// FoxBear AI Mastering Studio Pro v1.3.54 - dock player polish and progress reality
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.53';
+const APP_VERSION = 'Pro v1.3.54';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -33,9 +33,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1353';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1354';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.53-mega-stabilization';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.54-dock-player-polish';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -49,13 +49,15 @@ const DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' };
 const CURVE_CACHE = new Map();
 const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
 const MASTER_FLOW_STEPS = [
-    { at: 6, label: '준비', hint: '디코딩' },
-    { at: 18, label: '분석', hint: '추천/검사' },
-    { at: 28, label: '정리', hint: '무음/DC' },
-    { at: 50, label: '리듬', hint: '박자/악기' },
-    { at: 60, label: '마스터', hint: '톤/공간' },
-    { at: 88, label: '피크', hint: 'LUFS/TP' },
-    { at: 98, label: '완료', hint: '인코딩' }
+    { at: 5, label: '준비', hint: '디코딩' },
+    { at: 15, label: '분석', hint: '추천/검사' },
+    { at: 25, label: '정리', hint: '무음/DC' },
+    { at: 40, label: '변환', hint: '피치/BPM' },
+    { at: 55, label: '리듬', hint: '박자/악기' },
+    { at: 65, label: '마스터', hint: '톤/공간' },
+    { at: 85, label: '피크', hint: 'LUFS/TP' },
+    { at: 95, label: '인코딩', hint: '파일 준비' },
+    { at: 100, label: '완료', hint: '다운로드' }
 ];
 
 const QUALITY_GATE_RULES = {
@@ -314,7 +316,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.53';
+    styleLink.href = 'assets/css/studio.css?v=1.3.54';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -1304,12 +1306,14 @@ function updateProcessingHud() {
         return;
     }
     const progress = clamp(Number(running.progress || 0), 0, 100);
+    const visibleProgress = running.status === 'done' ? 100 : Math.max(5, quantizeProgressStep(progress));
     el.processingHud.classList.add('show');
     el.processingHud.setAttribute('aria-hidden', 'false');
+    el.processingHud.dataset.progressStep = String(visibleProgress);
     if (el.processingHudTitle) el.processingHudTitle.textContent = '마스터링 진행 중';
-    if (el.processingHudText) el.processingHudText.textContent = `${running.name} · ${running.report || '처리 중'}`;
-    if (el.processingHudPercent) el.processingHudPercent.textContent = `${Math.round(progress)}%`;
-    if (el.processingHudBar) el.processingHudBar.style.width = `${progress}%`;
+    if (el.processingHudText) el.processingHudText.textContent = `${running.name} · ${running.report || '처리 중'} · ${visibleProgress}% 단계`;
+    if (el.processingHudPercent) el.processingHudPercent.textContent = `${visibleProgress}%`;
+    if (el.processingHudBar) el.processingHudBar.style.width = `${visibleProgress}%`;
 }
 
 const ACTION_HELP_TEXTS = {
@@ -3985,6 +3989,34 @@ async function masterAllTracks() {
     }
 }
 
+
+function quantizeProgressStep(value, step = 5) {
+    const n = clamp(Number(value || 0), 0, 100);
+    if (n >= 100) return 100;
+    return clamp(Math.round(n / step) * step, 0, 99);
+}
+
+async function setMasteringProgress(track, targetProgress, report = '', options = {}) {
+    if (!track) return;
+    const target = clamp(Number(targetProgress || 0), 0, 100);
+    const current = clamp(Number(track.progress || 0), 0, 100);
+    const steps = [];
+    if (target > current) {
+        let next = Math.ceil((current + 0.01) / 5) * 5;
+        while (next < target) {
+            steps.push(next);
+            next += 5;
+        }
+    }
+    if (!steps.length || steps[steps.length - 1] !== target) steps.push(target);
+    for (const step of steps) {
+        track.progress = step;
+        if (report) track.report = report;
+        renderAll({ keepDetailAudio: true });
+        if (!options.noYield) await yieldToBrowser();
+    }
+}
+
 async function masterTrack(track, calledFromBatch = false) {
     if (!track || track.status === 'processing' || track.status === 'analyzing') return;
     if (!calledFromBatch && state.busy) return;
@@ -3998,7 +4030,7 @@ async function masterTrack(track, calledFromBatch = false) {
 
     let completedSuccessfully = false;
     track.status = 'processing';
-    track.progress = 6;
+    track.progress = 0;
     track.error = null;
     track.trimInfo = null;
     track.instrumentInfo = null;
@@ -4014,17 +4046,15 @@ async function masterTrack(track, calledFromBatch = false) {
     track.remasterCount = Number(track.remasterCount || 0) + 1;
     track.performanceInfo = beginPerformanceProfile();
     track.report = '온디맨드 디코더 구동 중...';
-    renderAll();
+    await setMasteringProgress(track, 5, track.report);
 
     try {
         let currentSourceBuffer = await decodeAudio(track.file);
         markPerformanceStage(track, '디코딩');
-        await yieldToBrowser();
+        await setMasteringProgress(track, 10, '디코딩 완료 · 분석/렌더 준비 중');
 
         if (!track.analysis) {
-            track.progress = 14;
-            track.report = '분석 정보가 없어 마스터링 직전 긴급 분석을 실행 중';
-            renderAll();
+            await setMasteringProgress(track, 15, '분석 정보가 없어 마스터링 직전 긴급 분석을 실행 중');
             const analysis = await analyzeBufferAsync(currentSourceBuffer);
             analysis.abHighlightStartSec = estimateABHighlightStart(currentSourceBuffer);
             track.abHighlightStartSec = analysis.abHighlightStartSec;
@@ -4044,34 +4074,26 @@ async function masterTrack(track, calledFromBatch = false) {
         }
 
         if (state.featureFlags.trimSilence) {
-            track.progress = 22;
-            track.report = '앞뒤 무음 구간 감지 및 여유 구간 보존 중';
-            renderAll();
+            await setMasteringProgress(track, 25, '앞뒤 무음 구간 감지 및 여유 구간 보존 중');
             const trimResult = autoTrimSilenceBuffer(currentSourceBuffer);
             currentSourceBuffer = trimResult.buffer;
             track.trimInfo = trimResult.info;
             markPerformanceStage(track, '무음 정리');
         }
 
-        track.progress = 28;
-        track.report = 'DC offset 제거 및 비정상 샘플 안전 점검 중';
-        renderAll();
+        await setMasteringProgress(track, 30, 'DC offset 제거 및 비정상 샘플 안전 점검 중');
         track.dcInfo = removeDcOffsetAudioBuffer(currentSourceBuffer);
         sanitizeAudioBuffer(currentSourceBuffer, 'pre-pitch-cleanup');
         markPerformanceStage(track, 'DC 정리');
         await yieldToBrowser();
 
-        track.progress = 38;
-        track.report = '피치/BPM 워커 변환 및 오버랩 위상 정렬 중';
-        renderAll();
+        await setMasteringProgress(track, 40, '피치/BPM 워커 변환 및 오버랩 위상 정렬 중');
         let preparedBuffer = await preparePitchSpeedBuffer(currentSourceBuffer, track.transform);
         markPerformanceStage(track, '피치/BPM');
         await yieldToBrowser();
 
         if (shouldUseInstrumentLayer(track.instrument)) {
-            track.progress = 50;
-            track.report = '박자 감지 및 리듬 악기 레이어 자연 믹싱 중';
-            renderAll();
+            await setMasteringProgress(track, 55, '박자 감지 및 리듬 악기 레이어 자연 믹싱 중');
             const layered = mixInstrumentLayerBuffer(preparedBuffer, track.instrument, track.analysis);
             preparedBuffer = layered.buffer;
             track.instrumentInfo = layered.info;
@@ -4079,24 +4101,22 @@ async function masterTrack(track, calledFromBatch = false) {
             await yieldToBrowser();
         }
 
-        track.progress = 60;
-        track.report = '공진 감쇄, 톤 체인, 다이나믹 체인 렌더링 중';
-        renderAll();
+        await setMasteringProgress(track, 65, '공진 감쇄, 톤 체인, 다이나믹 체인 렌더링 중');
         const albumProfile = getActiveAlbumProfile();
         const masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
         sanitizeAudioBuffer(masteredBuffer, 'master-chain');
         markPerformanceStage(track, '마스터 체인');
         await yieldToBrowser();
 
-        track.progress = 88;
+        await setMasteringProgress(track, 80, '마스터 체인 완료 · 파이널라이저 준비 중');
         const requestedOutputFormat = state.outputFormat || 'wav24';
         track.report = state.featureFlags.truePeakGuard ? `True Peak 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중` : `샘플 피크 가드 및 ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중`;
-        renderAll();
+        await setMasteringProgress(track, 85, track.report);
 
         const guardDecision = getSmartPerformanceGuardDecision(track, masteredBuffer, requestedOutputFormat);
         track.performanceGuardInfo = guardDecision;
         track.report = guardDecision.changed ? `스마트 성능 가드 적용 · ${getQualityModeLabel(guardDecision.sourceQualityMode)} → ${getQualityModeLabel(guardDecision.qualityMode)} · ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중` : track.report;
-        renderAll();
+        await setMasteringProgress(track, 90, track.report);
         const finalization = await finalizeMasterBufferAsync(masteredBuffer, {
             targetLufs: resolveTargetLufsForTrack(track),
             ceilingDb: state.ceilingDb,
@@ -4114,6 +4134,7 @@ async function masterTrack(track, calledFromBatch = false) {
         }
         track.safetyInfo = computeEngineSafetyInfo(track, finalBuffer, finalization.info);
         markPerformanceStage(track, '파이널라이저');
+        await setMasteringProgress(track, 95, `${getOutputFormatLabel(requestedOutputFormat)} 파일 인코딩 및 품질 리포트 준비 중`);
         track.finalizeInfo = finalization.info;
         track.comparison = createComparisonInfo(track, finalization.info);
         track.truePeakInfo = {
@@ -4148,8 +4169,8 @@ async function masterTrack(track, calledFromBatch = false) {
         }
         finishPerformanceProfile(track, finalBuffer, encoded.blob);
         track.status = 'done';
-        track.progress = 100;
         track.report = createDoneReport(track);
+        await setMasteringProgress(track, 100, track.report);
         completedSuccessfully = true;
         showToast(`${track.name} 마스터링 성공`);
     } catch (error) {
@@ -10232,6 +10253,50 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
         bars.appendChild(bar);
     });
     el.bottomPreviewWaveformBtn.append(head, bars);
+    syncDockWaveformPlayhead();
+}
+
+function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomPreviewMode, scope = 'dock') {
+    const audio = getBottomPreviewAudio();
+    if (!track || !audio) return null;
+    const local = Number(audio.currentTime || 0);
+    const audioDuration = Number.isFinite(Number(audio.duration)) && Number(audio.duration) > 0 ? Number(audio.duration) : 0;
+    const fullDuration = Number(track.analysis?.duration || track.masteredDurationSec || audioDuration || 0);
+    const previewDuration = Number(track.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC || audioDuration || 0);
+    const useFullScope = scope === 'full' || (scope === 'dock' && mode !== 'masterPreview');
+    const basis = useFullScope ? fullDuration : (audioDuration || previewDuration);
+    if (!Number.isFinite(basis) || basis <= 0) return null;
+    const position = useFullScope ? localToAbsolutePreviewTime(track, mode, local) : local;
+    return clamp(position / basis * 100, 0, 100);
+}
+
+function setPlayheadOnElement(element, percent, playing = false) {
+    if (!element) return;
+    if (!Number.isFinite(Number(percent))) {
+        element.classList.remove('has-live-playhead', 'is-playing');
+        element.style.removeProperty('--waveform-playhead-pct');
+        return;
+    }
+    const pct = clamp(Number(percent), 0, 100);
+    element.style.setProperty('--waveform-playhead-pct', `${pct}%`);
+    element.classList.add('has-live-playhead');
+    element.classList.toggle('is-playing', Boolean(playing));
+}
+
+function syncDockWaveformPlayhead(audioOverride = null) {
+    const track = getSelectedTrack();
+    const audio = audioOverride || getBottomPreviewAudio();
+    const playing = Boolean(audio && !audio.paused && !audio.ended);
+    const dockPercent = getDockPlaybackPercent(track, state.bottomPreviewMode, 'dock');
+    setPlayheadOnElement(el.bottomPreviewWaveformBtn, dockPercent, playing);
+
+    const dialog = el.previewDialog;
+    if (!dialog || !dialog.classList.contains('waveform-compare-mode')) return;
+    const fullScope = Boolean(track?.masteredUrl) || state.bottomPreviewMode !== 'masterPreview';
+    const popupPercent = getDockPlaybackPercent(track, state.bottomPreviewMode, fullScope ? 'full' : 'preview');
+    dialog.querySelectorAll('.waveform-compare-bars').forEach(bars => setPlayheadOnElement(bars, popupPercent, playing));
+    const card = dialog.querySelector('.waveform-compare-card');
+    setPlayheadOnElement(card, popupPercent, playing);
 }
 
 function openWaveformCompareDialog() {
@@ -10246,6 +10311,7 @@ function openWaveformCompareDialog() {
     if (title) title.textContent = '파형 피크 비교';
     if (el.previewDialogCaption) el.previewDialogCaption.textContent = '원본과 마스터링 결과의 피크 미니뷰 비교';
     renderWaveformCompareDialog(track, el.previewDialogBody);
+    syncDockWaveformPlayhead();
     const panel = el.previewDialog.querySelector('.preview-dialog-panel');
     if (panel) panel.focus({ preventScroll: true });
 }
@@ -10400,10 +10466,12 @@ function renderBottomPreviewDock(options = {}) {
             el.bottomPreviewPlayer.appendChild(player);
             el.bottomPreviewPlayer.dataset.previewKey = key;
             el.bottomPreviewPlayer.dataset.previewMode = mode;
+            syncDockWaveformPlayhead(audio);
             shouldResume = Boolean(transport.playing);
         }
     }
 
+    syncDockWaveformPlayhead();
     const shouldAutoPlay = shouldResume || ((options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id) && (useMastered || useMasterPreview));
     if (shouldAutoPlay) {
         state.bottomPreviewAutoplayTrackId = null;
@@ -10452,9 +10520,9 @@ function syncBottomPreviewFloatingOffset() {
     const fallback = mobile ? 218 : 176;
     const maxReasonable = Math.max(fallback, Math.floor(viewportHeight * (mobile ? 0.48 : 0.36)));
     const height = Math.max(fallback, Math.min(measured || fallback, maxReasonable));
-    const floatingGap = mobile ? 38 : 30;
-    const hudGap = mobile ? 30 : 24;
-    const panelGap = mobile ? 18 : 16;
+    const floatingGap = mobile ? 12 : 10;
+    const hudGap = mobile ? 10 : 8;
+    const panelGap = mobile ? 22 : 18;
     root.style.setProperty('--bottom-preview-height', `${height}px`);
     root.style.setProperty('--bottom-preview-floating-bottom', `${height + floatingGap}px`);
     root.style.setProperty('--bottom-preview-hud-bottom', `${height + hudGap}px`);
@@ -10874,12 +10942,17 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
         const bounds = getLoopBounds();
         if (bounds && (audio.currentTime < bounds.start || audio.currentTime >= bounds.end)) audio.currentTime = bounds.start;
         setPlaying(true);
+        syncDockWaveformPlayhead(audio);
     });
-    audio.addEventListener('pause', () => setPlaying(false));
+    audio.addEventListener('pause', () => {
+        setPlaying(false);
+        syncDockWaveformPlayhead(audio);
+    });
     audio.addEventListener('ended', () => {
         setPlaying(false);
         seek.value = '0';
         time.textContent = formatPlayerTime(0, getDuration());
+        syncDockWaveformPlayhead(audio);
     });
     audio.addEventListener('timeupdate', () => {
         const duration = getDuration();
@@ -10890,12 +10963,14 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
         }
         if (Number.isFinite(duration) && duration > 0) seek.value = String(Math.round(audio.currentTime / duration * 1000));
         time.textContent = formatPlayerTime(audio.currentTime || 0, duration);
+        syncDockWaveformPlayhead(audio);
     });
     seek.addEventListener('input', () => {
         const duration = getDuration();
         if (Number.isFinite(duration) && duration > 0) {
             audio.currentTime = Number(seek.value) / 1000 * duration;
             if (loopCompare) loopStart = audio.currentTime;
+            syncDockWaveformPlayhead(audio);
         }
     });
 
@@ -11850,7 +11925,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.53',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.54',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
