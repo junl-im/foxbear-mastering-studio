@@ -38,3 +38,13 @@
 - `qa/QA_REPORT.md`
 - `qa/QA_REPORT_SPATIAL_BUDGET_1.3.31.md`
 - `qa/QA_REPORT_TRUEPEAK_MULTIBAND_1.3.30.md`
+
+
+## v1.3.32 Vocal Anti-Metallic Engine Tuning
+
+- Checked engine path for mechanical/metallic vocal artifacts. Main risk was independent high-frequency exciter + clarity/high-shelf boosting + static metallic notches on vocal-like material.
+- Added vocal-metallic risk scoring from FFT presence/air/brightness/metallic features plus vocal-likeness and intensity.
+- High-frequency exciter is now risk-scaled and can bypass on high-risk vocals.
+- Added post-exciter Vocal Metallic Comfort smoothing.
+- Reference matching and genre recommendation now avoid treating sibilant vocal presence as an electronic/metallic genre cue.
+- Validation: node syntax checks and SRI verification pass.

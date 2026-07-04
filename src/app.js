@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.31 - unified phase-safe spatial budget update
+// FoxBear AI Mastering Studio Pro v1.3.32 - vocal anti-metallic engine tuning
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.31';
+const APP_VERSION = 'Pro v1.3.32';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -442,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.31';
+    styleLink.href = 'assets/css/studio.css?v=1.3.32';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -3396,6 +3396,25 @@ function recommendPreset(fileName, analysis) {
         scores.futurebass -= 0.44;
         scores.edm -= 0.28;
     }
+    const vocalLikelyForGenre = (mid > 0.30 || lowMid > 0.27) && punch < 0.64 && high < 0.38;
+    const sibilantVocalRisk = vocalLikelyForGenre && metallic > 0.54 && presence > 0.16;
+    if (vocalLikelyForGenre && !explicitElectronic) {
+        scores.pop += 0.24;
+        scores.kpop += bright > 0.52 ? 0.22 : 0.08;
+        scores.ballad += soft > 0.46 ? 0.22 : 0.08;
+        scores.kballad += soft > 0.48 ? 0.20 : 0.06;
+        scores.rnb += lowMid > 0.25 ? 0.18 : 0.05;
+        scores.futurebass -= 0.72;
+        scores.synthpop -= 0.42;
+        scores.edm -= 0.36;
+        scores.house -= 0.20;
+        scores.spatial -= 0.34;
+    }
+    if (sibilantVocalRisk && !explicit.futurebass && !explicit.synthpop) {
+        scores.futurebass -= 0.36;
+        scores.synthpop -= 0.34;
+        scores.edm -= 0.18;
+    }
     if (wide < 0.33) {
         scores.acoustic += 0.20;
         scores.hiphop += 0.24;
@@ -3531,11 +3550,15 @@ function applyReferenceToSettings(settings, analysis) {
     if (widthDelta > 0 && (spatialRisk > 0.20 || Number(analysis.lowMonoScore || 100) < 82 || Number(analysis.stereoWidth || 0) > 0.54)) {
         widthDelta *= clamp(1 - spatialRisk * 1.15, 0.18, 0.62);
     }
-    settings.clarity = clamp(Math.round(settings.clarity + brightDelta * 10 + spectrumDelta.presence * 16 + spectrumDelta.air * 10), 8, 82);
-    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 8 + spectrumDelta.low * 10 - brightDelta * 3), 10, 86);
+    const vocalMetalRisk = estimateVocalMetallicRisk(analysis, settings, null, getMasteringIntensity(settings));
+    const safePresenceDelta = spectrumDelta.presence > 0 ? spectrumDelta.presence * clamp(1 - vocalMetalRisk * 1.35, 0.12, 1) : spectrumDelta.presence;
+    const safeAirDelta = spectrumDelta.air > 0 ? spectrumDelta.air * clamp(1 - vocalMetalRisk * 1.45, 0.10, 1) : spectrumDelta.air;
+    const safeBrightDelta = brightDelta > 0 ? brightDelta * clamp(1 - vocalMetalRisk * 1.10, 0.20, 1) : brightDelta;
+    settings.clarity = clamp(Math.round(settings.clarity + safeBrightDelta * 10 + safePresenceDelta * 16 + safeAirDelta * 10), 8, 82);
+    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 8 + spectrumDelta.low * 10 - safeBrightDelta * 3), 10, 86);
     settings.width = clamp(Math.round(settings.width + widthDelta * 12), 10, 76);
     settings.dynamicPunch = clamp(Math.round(settings.dynamicPunch + punchDelta * 10), 10, 82);
-    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 8 + Math.max(0, -spectrumDelta.presence) * 10), 18, 84);
+    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 6 + Math.max(0, -safePresenceDelta) * 8 + vocalMetalRisk * 5), 18, 84);
     const widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 72;
     if (spatialRisk > 0.24 || Number(analysis.lowMonoScore || 100) < 78) settings.width = clamp(Math.min(settings.width, widthLimit), 10, 68);
     return settings;
@@ -4397,8 +4420,9 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createAdaptiveAirBalanceNode(context, node, effectiveSettings, analysis, intensity);
     node = createOpenMixRecoveryNode(context, node, effectiveSettings, analysis, intensity);
     node = createPerceptualPolishNode(context, node, effectiveSettings, analysis, intensity);
-    node = createToneChain(context, node, effectiveSettings, intensity);
-    node = createHighFrequencyExciterNode(context, node, effectiveSettings, intensity);
+    node = createToneChain(context, node, effectiveSettings, analysis, preset, intensity);
+    node = createHighFrequencyExciterNode(context, node, effectiveSettings, analysis, preset, intensity);
+    node = createVocalMetallicComfortNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createEarFatigueGuardNode(context, node, effectiveSettings, analysis, intensity);
     node = createTransientRefineNode(context, node, effectiveSettings, analysis, intensity);
     node = createMicroDynamicsGlueNode(context, node, effectiveSettings, analysis, intensity);
@@ -4455,6 +4479,13 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
         out.width = clamp(Math.min(Number(out.width || 50), widthLimit) - Math.round(spatialRisk * 8), 8, 68);
         out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) - spatialRisk * 10 - Math.max(0, 78 - lowMonoScore) * 0.18), 0, 24);
     }
+    const vocalMetalRisk = estimateVocalMetallicRisk(analysis, out, preset, getMasteringIntensity(out));
+    if (vocalMetalRisk > 0.28) {
+        out.clarity = clamp(Math.round(Number(out.clarity || 50) - vocalMetalRisk * 10), 5, 88);
+        out.intensity = clampToStep(Number(out.intensity || 100) - vocalMetalRisk * 10, 50, 200, 5);
+        out.dynamicPunch = clamp(Math.round(Number(out.dynamicPunch || 35) - vocalMetalRisk * 4), 4, 88);
+        out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) - vocalMetalRisk * 4), 0, 24);
+    }
     applySpatialBudgetToSettings(out, analysis, getMasteringIntensity(out));
     return out;
 }
@@ -4480,6 +4511,67 @@ function createSubCleanNode(context, input, settings, analysis, intensity = getM
 
     input.connect(subGuard).connect(mudGuard);
     return mudGuard;
+}
+
+
+function isVocalLikeAnalysis(analysis, preset) {
+    if (!analysis) return false;
+    const vocalPresets = new Set(['pop','kpop','kballad','rnb','ballad','acoustic','citypop','globalpop']);
+    if (preset && vocalPresets.has(preset)) return true;
+    const mid = clamp01(Number(analysis.midRatio ?? 0));
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? 0));
+    const high = clamp01(Number(analysis.highRatio ?? 0));
+    const transient = clamp01(Number(analysis.transientDensity ?? 0.35));
+    return (mid > 0.30 || lowMid > 0.28) && high < 0.52 && transient < 0.72;
+}
+
+function estimateVocalMetallicRisk(analysis, settings = {}, preset = null, intensity = getMasteringIntensity(settings || {})) {
+    if (!analysis) return 0;
+    const vocalBase = isVocalLikeAnalysis(analysis, preset) ? 0.28 : 0;
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const presence = clamp01(Number(analysis.presenceRatio ?? analysis.spectrumBands?.presence ?? 0.16));
+    const air = clamp01(Number(analysis.airRatio ?? analysis.spectrumBands?.air ?? 0.10));
+    const high = clamp01(Number(analysis.highRatio ?? 0.22));
+    const clarity = clamp(Number(settings?.clarity ?? 50), 0, 100);
+    const rawIntensity = Number(intensity?.raw ?? settings?.intensity ?? 100);
+    const targetFreq = Number(analysis.targetDynamicFreq || analysis.harshPeakHz || 5200);
+    const vocalPresence = Math.max(0, presence - 0.16) * 2.6;
+    const airFizz = Math.max(0, air - 0.12) * 2.0;
+    const brightRisk = Math.max(0, brightness - 0.58) * 1.6 + Math.max(0, high - 0.34) * 1.35;
+    const metalRisk = Math.max(0, metallic - 0.44) * 1.75;
+    const clarityRisk = Math.max(0, clarity - 56) / 70;
+    const intensityRisk = Math.max(0, rawIntensity - 112) / 115;
+    const harshBandRisk = targetFreq >= 3600 && targetFreq <= 8200 ? 0.08 : 0;
+    return clamp01(vocalBase + vocalPresence + airFizz + brightRisk + metalRisk + clarityRisk + intensityRisk + harshBandRisk);
+}
+
+function createVocalMetallicComfortNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
+    if (!analysis) return input;
+    const risk = estimateVocalMetallicRisk(analysis, settings, preset, intensity);
+    if (risk < 0.24) return input;
+    const output = context.createGain();
+    const scale = clamp(0.55 + risk * 0.75, 0.55, 1.30);
+
+    const throatSmooth = context.createBiquadFilter();
+    throatSmooth.type = 'peaking';
+    throatSmooth.frequency.value = 3150;
+    throatSmooth.Q.value = 1.05;
+    throatSmooth.gain.value = clamp(-0.16 * scale - Math.max(0, Number(settings.clarity || 50) - 60) * 0.005, -0.72, -0.04);
+
+    const sibilanceFuse = context.createBiquadFilter();
+    sibilanceFuse.type = 'peaking';
+    sibilanceFuse.frequency.value = clamp(Number(analysis.targetDynamicFreq || analysis.harshPeakHz || 6500), 5200, 8200);
+    sibilanceFuse.Q.value = 2.05;
+    sibilanceFuse.gain.value = clamp(-0.34 * scale - Math.max(0, risk - 0.45) * 0.62, -1.65, -0.08);
+
+    const glassShelf = context.createBiquadFilter();
+    glassShelf.type = 'highshelf';
+    glassShelf.frequency.value = 10400;
+    glassShelf.gain.value = clamp(-0.22 * scale - Math.max(0, risk - 0.52) * 0.55, -1.35, 0);
+
+    input.connect(throatSmooth).connect(sibilanceFuse).connect(glassShelf).connect(output);
+    return output;
 }
 
 function createAdaptiveResonanceSmootherNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
@@ -5263,9 +5355,11 @@ function createPerceptualPolishNode(context, input, settings, analysis, intensit
     return silkShelf;
 }
 
-function createToneChain(context, input, settings, intensity = getMasteringIntensity(settings)) {
-    const toneScale = clamp(intensity.amount, 0.65, 2.25);
-    const highAggression = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.55) * 0.9 : 1;
+function createToneChain(context, input, settings, analysis, preset, intensity = getMasteringIntensity(settings)) {
+    const vocalMetalRisk = estimateVocalMetallicRisk(analysis, settings, preset, intensity);
+    const toneScale = clamp(intensity.amount * clamp(1 - vocalMetalRisk * 0.26, 0.72, 1), 0.65, 2.05);
+    const highAggressionBase = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.55) * 0.9 : 1;
+    const highAggression = clamp(highAggressionBase * (1 - vocalMetalRisk * 0.48), 0.72, highAggressionBase);
 
     const lowShelf = context.createBiquadFilter();
     lowShelf.type = 'lowshelf';
@@ -5282,20 +5376,22 @@ function createToneChain(context, input, settings, intensity = getMasteringInten
     presence.type = 'peaking';
     presence.frequency.value = 3100;
     presence.Q.value = intensity.raw >= 150 ? 1.15 : 0.92;
-    presence.gain.value = clamp(map(settings.clarity, 0, 100, -1.5, 1.8) * toneScale * highAggression, -4.0, 5.2);
+    presence.gain.value = clamp(map(settings.clarity, 0, 100, -1.5, 1.8) * toneScale * highAggression - vocalMetalRisk * 0.55, -4.0, 4.2);
 
     const highShelf = context.createBiquadFilter();
     highShelf.type = 'highshelf';
     highShelf.frequency.value = 7200;
-    highShelf.gain.value = clamp(map(settings.clarity, 0, 100, -2.2, 2.5) * toneScale * highAggression, -5.0, 6.0);
+    highShelf.gain.value = clamp(map(settings.clarity, 0, 100, -2.2, 2.5) * toneScale * highAggression - vocalMetalRisk * 0.82, -5.0, 4.4);
 
     input.connect(lowShelf).connect(lowMid).connect(presence).connect(highShelf);
     return highShelf;
 }
 
 function createMetallicRemovalNode(context, input, amount, analysis, intensity = getMasteringIntensity({ intensity: 100 })) {
-    const aggressive = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.45) * 0.9 : 1;
-    const effectiveAmount = clamp(amount * clamp(intensity.amount, 0.65, 2.15) * aggressive, 0, 220);
+    const vocalRisk = estimateVocalMetallicRisk(analysis, { clarity: 50, metallicRemoval: amount, intensity: intensity.raw }, null, intensity);
+    const aggressiveBase = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.45) * 0.9 : 1;
+    const aggressive = aggressiveBase * clamp(1 - vocalRisk * 0.32, 0.68, 1);
+    const effectiveAmount = clamp(amount * clamp(intensity.amount, 0.65, 2.15) * aggressive, 0, vocalRisk > 0.42 ? 176 : 220);
     const depth = effectiveAmount / 100;
     if (depth < 0.03) return input;
     const targetDynamicF = (analysis && analysis.targetDynamicFreq) ? analysis.targetDynamicFreq : 5200;
@@ -5303,19 +5399,19 @@ function createMetallicRemovalNode(context, input, amount, analysis, intensity =
     const ringCut = context.createBiquadFilter();
     ringCut.type = 'peaking';
     ringCut.frequency.value = 2700;
-    ringCut.Q.value = intensity.raw >= 150 ? 4.3 : 3.5;
+    ringCut.Q.value = (intensity.raw >= 150 ? 4.3 : 3.5) * clamp(1 - vocalRisk * 0.20, 0.78, 1);
     ringCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -5.2), -6.0, 0);
 
     const dynamicCut = context.createBiquadFilter();
     dynamicCut.type = 'peaking';
     dynamicCut.frequency.value = targetDynamicF;
-    dynamicCut.Q.value = intensity.raw >= 150 ? 6.5 : 5.0;
-    dynamicCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -8.5), -9.5, 0);
+    dynamicCut.Q.value = (intensity.raw >= 150 ? 6.5 : 5.0) * clamp(1 - vocalRisk * 0.28, 0.72, 1);
+    dynamicCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -8.5) * clamp(1 - vocalRisk * 0.22, 0.72, 1), vocalRisk > 0.42 ? -6.8 : -9.5, 0);
 
     const fizzCut = context.createBiquadFilter();
     fizzCut.type = 'peaking';
     fizzCut.frequency.value = 8200;
-    fizzCut.Q.value = intensity.raw >= 150 ? 6.2 : 5.2;
+    fizzCut.Q.value = (intensity.raw >= 150 ? 6.2 : 5.2) * clamp(1 - vocalRisk * 0.24, 0.74, 1);
     fizzCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -6.2), -7.0, 0);
 
     const airTamer = context.createBiquadFilter();
@@ -5327,10 +5423,13 @@ function createMetallicRemovalNode(context, input, amount, analysis, intensity =
     return airTamer;
 }
 
-function createHighFrequencyExciterNode(context, input, settings, intensity = getMasteringIntensity(settings)) {
+function createHighFrequencyExciterNode(context, input, settings, analysis, preset, intensity = getMasteringIntensity(settings)) {
     const clarity = clamp(Number(settings.clarity || 0), 0, 100) / 100;
-    const exciterDrive = Math.max(0, (intensity.raw - 85) / 115) * (0.35 + clarity * 0.9);
-    if (exciterDrive < 0.035) return input;
+    const vocalMetalRisk = estimateVocalMetallicRisk(analysis, settings, preset, intensity);
+    const vocalLikely = isVocalLikeAnalysis(analysis, preset);
+    const safeDriveScale = clamp(1 - vocalMetalRisk * 0.82 - (vocalLikely ? 0.18 : 0), 0.18, 1);
+    const exciterDrive = Math.max(0, (intensity.raw - 92) / 118) * (0.26 + clarity * 0.62) * safeDriveScale;
+    if (exciterDrive < 0.035 || vocalMetalRisk > 0.72) return input;
 
     const output = context.createGain();
     const dry = context.createGain();
@@ -5340,18 +5439,18 @@ function createHighFrequencyExciterNode(context, input, settings, intensity = ge
     const wet = context.createGain();
 
     highPass.type = 'highpass';
-    highPass.frequency.value = clamp(5200 - clarity * 1100, 3600, 5600);
-    highPass.Q.value = 0.75;
+    highPass.frequency.value = clamp(6100 - clarity * 700 + vocalMetalRisk * 1400, 5000, 7200);
+    highPass.Q.value = 0.65;
 
-    shaper.curve = makeExciterCurve(1 + exciterDrive * 4.5);
+    shaper.curve = makeExciterCurve(1 + exciterDrive * 3.2);
     shaper.oversample = '4x';
 
     airShelf.type = 'highshelf';
-    airShelf.frequency.value = 8200;
-    airShelf.gain.value = clamp(exciterDrive * 5.2 * clamp(intensity.amount, 0.8, 1.8), 0, 7.0);
+    airShelf.frequency.value = 9400;
+    airShelf.gain.value = clamp(exciterDrive * 3.4 * clamp(intensity.amount, 0.8, 1.45) * clamp(1 - vocalMetalRisk * 0.65, 0.28, 1), 0, vocalLikely ? 2.2 : 4.2);
 
-    wet.gain.value = clamp(0.035 + exciterDrive * 0.12, 0.025, 0.24);
-    dry.gain.value = 1 - wet.gain.value * 0.18;
+    wet.gain.value = clamp(0.018 + exciterDrive * 0.075, 0.012, vocalLikely ? 0.085 : 0.15);
+    dry.gain.value = 1 - wet.gain.value * 0.10;
 
     input.connect(dry).connect(output);
     input.connect(highPass).connect(shaper).connect(airShelf).connect(wet).connect(output);
@@ -9731,7 +9830,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.31',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.32',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

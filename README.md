@@ -1,5 +1,14 @@
 # FoxBear AI Mastering Studio Pro
 
+## Pro v1.3.32 vocal anti-metallic engine tuning update
+
+- Added a vocal-metallic risk guard so vocal-like material no longer triggers high-frequency exciter, clarity boost, and reference-air lift independently.
+- Reduced high-frequency exciter drive/wet mix for vocal and sibilant material; very high-risk vocal masters bypass the exciter entirely.
+- Added Vocal Metallic Comfort processing after the exciter to smooth 3 kHz throat glare, 5.2-8.2 kHz sibilance, and 10 kHz+ glassiness.
+- Made metallic-removal notches less narrow/aggressive on vocal-like material to avoid static notch ringing and phasey robotic tone.
+- Added recommendation safeguards so sibilant vocal tracks are less likely to be pushed toward Future Bass/Synthpop/EDM solely because of presence/metallic FFT energy.
+- Reference matching now scales down presence/air/brightness boosts when the source already has vocal metallic risk.
+
 ## Pro v1.3.31 unified phase-safe spatial budget update
 
 - Width matrix expansion and stereoGroove micro-delay expansion are now evaluated through one shared spatial budget before final rendering.
