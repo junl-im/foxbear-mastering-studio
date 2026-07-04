@@ -1,4 +1,4 @@
-// FoxBear analysis worker - spectral balance, loudness hint, genre features
+// FoxBear analysis worker v1.3.27 - spectral balance, K-weighted LUFS, genre features
 'use strict';
 
 self.onmessage = event => {
@@ -86,7 +86,7 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
     const peakDb = 20 * Math.log10(Math.max(0.000001, peak));
     const metallicHint = clamp01(brightness * 0.65 + (highFreqEnergy / Math.max(1, midHighEnergy)) * 0.3 + zcr * 1.5);
     const silence = rms < 0.00008 || peak < 0.0005;
-    const loudnessIntegrated = loudnessHint - 0.691;
+    const loudnessIntegrated = measureKWeightedGatedLoudness(channelData, sampleRate, totalSamples, channels);
     const headroomDb = -1.0 - peakDb;
     const spectralTotal = Math.max(0.000000001, bassSq + lowMidSq + midBandSq + highBandSq);
     const bassRatio = clamp01(bassSq / spectralTotal);
@@ -105,8 +105,107 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
         duration, sampleRate, channels, totalSamples, peak, peakDb, rms, loudnessHint,
         loudnessIntegrated, headroomDb, crest, brightness, stereoWidth, metallicHint,
         zeroCrossRate: zcr, bassRatio, lowMidRatio, midRatio, highRatio,
-        transientDensity, lowMonoCorrelation, lowSideRatio, lowMonoScore, lowMonoRisk, silence, targetDynamicFreq: estimatedTargetFreq
+        transientDensity, lowMonoCorrelation, lowSideRatio, lowMonoScore, lowMonoRisk, silence, loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', targetDynamicFreq: estimatedTargetFreq
     };
+}
+
+
+function measureKWeightedGatedLoudness(buffers, sampleRate, length, channels) {
+    if (!buffers || !buffers.length || length <= 0) return -90;
+    const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
+    const usableChannels = Math.max(1, Math.min(channels || buffers.length || 1, buffers.length));
+    const filtered = filterKWeightedBuffers(buffers, safeRate, length, usableChannels);
+    const frameSize = Math.max(1024, Math.round(safeRate * 0.400));
+    const hopSize = Math.max(512, Math.round(frameSize / 4));
+    const powers = [];
+    for (let start = 0; start < length; start += hopSize) {
+        const end = Math.min(length, start + frameSize);
+        let sum = 0;
+        let count = 0;
+        for (let i = start; i < end; i += 1) {
+            let channelPower = 0;
+            for (let ch = 0; ch < usableChannels; ch += 1) {
+                const sample = filtered[ch][i] || 0;
+                channelPower += sample * sample;
+            }
+            sum += channelPower;
+            count += 1;
+        }
+        const power = sum / Math.max(1, count);
+        const db = loudnessDbFromPower(power);
+        if (db > -70) powers.push(power);
+    }
+    if (!powers.length) return -90;
+    const ungatedMean = powers.reduce((sum, item) => sum + item, 0) / powers.length;
+    const relativeGate = loudnessDbFromPower(ungatedMean) - 10;
+    const gated = powers.filter(power => loudnessDbFromPower(power) >= relativeGate);
+    const selected = gated.length ? gated : powers;
+    const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
+    return loudnessDbFromPower(mean);
+}
+
+function filterKWeightedBuffers(buffers, sampleRate, length, channels) {
+    const output = [];
+    for (let ch = 0; ch < channels; ch += 1) {
+        const input = buffers[ch] || buffers[0];
+        const filtered = new Float32Array(length);
+        const shelf = createHighShelfFilter(sampleRate, 1681.974450955533, 4.0);
+        const highpass = createHighpassFilter(sampleRate, 38.13547087613982, 0.5);
+        for (let i = 0; i < length; i += 1) {
+            const x = Number.isFinite(input[i]) ? input[i] : 0;
+            filtered[i] = processBiquad(highpass, processBiquad(shelf, x));
+        }
+        output.push(filtered);
+    }
+    return output;
+}
+
+function loudnessDbFromPower(power) {
+    return -0.691 + 10 * Math.log10(Math.max(1e-12, power));
+}
+
+function createHighpassFilter(sampleRate, frequency, q) {
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const alpha = sin / (2 * Math.max(0.001, q));
+    const b0 = (1 + cos) / 2;
+    const b1 = -(1 + cos);
+    const b2 = (1 + cos) / 2;
+    const a0 = 1 + alpha;
+    const a1 = -2 * cos;
+    const a2 = 1 - alpha;
+    return normalizeBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+function createHighShelfFilter(sampleRate, frequency, gainDb) {
+    const a = Math.pow(10, gainDb / 40);
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const sqrtA = Math.sqrt(a);
+    const alpha = sin / 2 * Math.sqrt(2);
+    const b0 = a * ((a + 1) + (a - 1) * cos + 2 * sqrtA * alpha);
+    const b1 = -2 * a * ((a - 1) + (a + 1) * cos);
+    const b2 = a * ((a + 1) + (a - 1) * cos - 2 * sqrtA * alpha);
+    const a0 = (a + 1) - (a - 1) * cos + 2 * sqrtA * alpha;
+    const a1 = 2 * ((a - 1) - (a + 1) * cos);
+    const a2 = (a + 1) - (a - 1) * cos - 2 * sqrtA * alpha;
+    return normalizeBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+function normalizeBiquad(b0, b1, b2, a0, a1, a2) {
+    const inv = 1 / Math.max(1e-12, a0);
+    return { b0: b0 * inv, b1: b1 * inv, b2: b2 * inv, a1: a1 * inv, a2: a2 * inv, x1: 0, x2: 0, y1: 0, y2: 0 };
+}
+
+function processBiquad(state, x) {
+    const y = state.b0 * x + state.b1 * state.x1 + state.b2 * state.x2 - state.a1 * state.y1 - state.a2 * state.y2;
+    state.x2 = state.x1;
+    state.x1 = x;
+    state.y2 = state.y1;
+    state.y1 = Number.isFinite(y) ? y : 0;
+    return state.y1;
 }
 
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }

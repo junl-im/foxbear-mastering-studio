@@ -1,8 +1,7 @@
-FoxBear Pro v1.3.20 static audit
+FoxBear Pro v1.3.27 static audit
 PASS duplicate HTML id check
 PASS local asset reference check
-PASS index.html/design-preview.html SHA-384 SRI validation
-PASS CSS brace balance
-PASS v1.3.20 version markers
-PASS master-finalizer synthetic render
-PASS wav-encoder synthetic encode wav16/wav24/wav32
+PASS index.html SHA-384 SRI validation
+PASS JavaScript syntax check via npm run check
+PASS K-weighted LUFS analysis worker smoke check
+PASS K-weighted LUFS finalizer worker smoke check

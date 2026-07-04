@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.26 - admin UID security hotfix
+// FoxBear AI Mastering Studio Pro v1.3.27 - K-weighted LUFS loudness update
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.26';
+const APP_VERSION = 'Pro v1.3.27';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -442,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.26';
+    styleLink.href = 'assets/css/studio.css?v=1.3.27';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2829,7 +2829,7 @@ function analyzeBuffer(buffer) {
     const peakDb = 20 * Math.log10(Math.max(0.000001, peak));
     const metallicHint = clamp01(brightness * 0.65 + (highFreqEnergy / Math.max(1, midHighEnergy)) * 0.3 + zcr * 1.5);
     const silence = rms < 0.00008 || peak < 0.0005;
-    const loudnessIntegrated = loudnessHint - 0.691;
+    const loudnessIntegrated = measureKWeightedGatedLoudness(buffer);
     const headroomDb = -1.0 - peakDb;
     const spectralTotal = Math.max(0.000000001, bassSq + lowMidSq + midBandSq + highBandSq);
     const bassRatio = clamp01(bassSq / spectralTotal);
@@ -2872,6 +2872,7 @@ function analyzeBuffer(buffer) {
         lowMonoScore,
         lowMonoRisk,
         silence,
+        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
         targetDynamicFreq: estimatedTargetFreq
     };
 }
@@ -5926,36 +5927,106 @@ function createUserFriendlyMasteringError(error) {
 }
 
 function measureApproxGatedLoudness(buffer) {
+    return measureKWeightedGatedLoudness(buffer);
+}
+
+function measureKWeightedGatedLoudness(buffer) {
     if (!buffer || !buffer.length) return -90;
-    const sampleRate = Math.max(3000, buffer.sampleRate || 44100);
+    const sampleRate = Math.max(3000, Math.min(384000, buffer.sampleRate || 44100));
+    const length = Math.max(1, buffer.length || 1);
+    const channels = Math.max(1, Math.min(2, buffer.numberOfChannels || 1));
+    const filtered = filterKWeightedAudioBuffer(buffer, sampleRate, length, channels);
     const frameSize = Math.max(1024, Math.round(sampleRate * 0.400));
-    const hopSize = Math.max(512, Math.round(frameSize / 2));
-    const channels = Math.max(1, buffer.numberOfChannels || 1);
+    const hopSize = Math.max(512, Math.round(frameSize / 4));
     const powers = [];
-    for (let start = 0; start < buffer.length; start += hopSize) {
-        const end = Math.min(buffer.length, start + frameSize);
+    for (let start = 0; start < length; start += hopSize) {
+        const end = Math.min(length, start + frameSize);
         let sum = 0;
         let count = 0;
         for (let i = start; i < end; i += 1) {
-            let monoPower = 0;
+            let channelPower = 0;
             for (let ch = 0; ch < channels; ch += 1) {
-                const sample = buffer.getChannelData(ch)[i] || 0;
-                monoPower += sample * sample;
+                const sample = filtered[ch][i] || 0;
+                channelPower += sample * sample;
             }
-            sum += monoPower / channels;
+            sum += channelPower;
             count += 1;
         }
         const power = sum / Math.max(1, count);
-        const db = -0.691 + 10 * Math.log10(Math.max(1e-12, power));
+        const db = loudnessDbFromPower(power);
         if (db > -70) powers.push(power);
     }
     if (!powers.length) return -90;
     const ungatedMean = powers.reduce((sum, item) => sum + item, 0) / powers.length;
-    const relativeGate = -0.691 + 10 * Math.log10(Math.max(1e-12, ungatedMean)) - 10;
-    const gated = powers.filter(power => (-0.691 + 10 * Math.log10(Math.max(1e-12, power))) >= relativeGate);
+    const relativeGate = loudnessDbFromPower(ungatedMean) - 10;
+    const gated = powers.filter(power => loudnessDbFromPower(power) >= relativeGate);
     const selected = gated.length ? gated : powers;
     const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
-    return -0.691 + 10 * Math.log10(Math.max(1e-12, mean));
+    return loudnessDbFromPower(mean);
+}
+
+function filterKWeightedAudioBuffer(buffer, sampleRate, length, channels) {
+    const output = [];
+    for (let ch = 0; ch < channels; ch += 1) {
+        const input = buffer.getChannelData(ch);
+        const filtered = new Float32Array(length);
+        const shelf = createKWeightHighShelfFilter(sampleRate, 1681.974450955533, 4.0);
+        const highpass = createKWeightHighpassFilter(sampleRate, 38.13547087613982, 0.5);
+        for (let i = 0; i < length; i += 1) {
+            const x = Number.isFinite(input[i]) ? input[i] : 0;
+            filtered[i] = processKWeightBiquad(highpass, processKWeightBiquad(shelf, x));
+        }
+        output.push(filtered);
+    }
+    return output;
+}
+
+function loudnessDbFromPower(power) {
+    return -0.691 + 10 * Math.log10(Math.max(1e-12, power));
+}
+
+function createKWeightHighpassFilter(sampleRate, frequency, q) {
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const alpha = sin / (2 * Math.max(0.001, q));
+    const b0 = (1 + cos) / 2;
+    const b1 = -(1 + cos);
+    const b2 = (1 + cos) / 2;
+    const a0 = 1 + alpha;
+    const a1 = -2 * cos;
+    const a2 = 1 - alpha;
+    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+function createKWeightHighShelfFilter(sampleRate, frequency, gainDb) {
+    const a = Math.pow(10, gainDb / 40);
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const sqrtA = Math.sqrt(a);
+    const alpha = sin / 2 * Math.sqrt(2);
+    const b0 = a * ((a + 1) + (a - 1) * cos + 2 * sqrtA * alpha);
+    const b1 = -2 * a * ((a - 1) + (a + 1) * cos);
+    const b2 = a * ((a + 1) + (a - 1) * cos - 2 * sqrtA * alpha);
+    const a0 = (a + 1) - (a - 1) * cos + 2 * sqrtA * alpha;
+    const a1 = 2 * ((a - 1) - (a + 1) * cos);
+    const a2 = (a + 1) - (a - 1) * cos - 2 * sqrtA * alpha;
+    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+function normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2) {
+    const inv = 1 / Math.max(1e-12, a0);
+    return { b0: b0 * inv, b1: b1 * inv, b2: b2 * inv, a1: a1 * inv, a2: a2 * inv, x1: 0, x2: 0, y1: 0, y2: 0 };
+}
+
+function processKWeightBiquad(state, x) {
+    const y = state.b0 * x + state.b1 * state.x1 + state.b2 * state.x2 - state.a1 * state.y1 - state.a2 * state.y2;
+    state.x2 = state.x1;
+    state.x1 = x;
+    state.y2 = state.y1;
+    state.y1 = Number.isFinite(y) ? y : 0;
+    return state.y1;
 }
 
 
@@ -5977,7 +6048,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         return {
             buffer: working,
             info: {
-                mode: options.truePeak === false ? 'sample peak fallback' : 'true peak fallback',
+                mode: options.truePeak === false ? 'K-weighted sample peak fallback' : 'K-weighted true peak fallback',
                 qualityMode,
                 targetLufs,
                 ceilingDb: targetDb,
@@ -5988,7 +6059,8 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 gainDb: loudnessGainDb + 20 * Math.log10(Math.max(1e-9, peakInfo.gain || 1)),
                 limiterReductionDb: peakInfo.limiterReductionDb || 0,
                 dcRemoved: dcInfo,
-                oversample: 4
+                oversample: 4,
+                loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates'
             }
         };
     };
@@ -7371,7 +7443,7 @@ function renderDetail(options = {}) {
             addRow('클리핑 위험', getClippingRiskText(track));
             const before = Number.isFinite(track.finalizeInfo.loudnessBefore) ? `${track.finalizeInfo.loudnessBefore.toFixed(1)} LUFS` : '-';
             const after = Number.isFinite(track.finalizeInfo.loudnessAfter) ? `${track.finalizeInfo.loudnessAfter.toFixed(1)} LUFS` : '-';
-            addRow('2-Pass 라우드니스', `${before} → ${after} · 목표 ${track.finalizeInfo.targetLufs} LUFS`);
+            addRow('K-weighted 2-Pass 라우드니스', `${before} → ${after} · 목표 ${track.finalizeInfo.targetLufs} LUFS`);
             addRow('엔진 품질 모드', `${getQualityModeLabel(track.finalizeInfo.qualityMode)} · ${track.finalizeInfo.oversample || 4}x 피크 검사`);
         }
 
@@ -7381,7 +7453,7 @@ function renderDetail(options = {}) {
             addRow('채널 수', `${track.analysis.channels} ch`);
             addRow('피크 레벨', `${track.analysis.peakDb.toFixed(1)} dBFS`);
             addRow('RMS 레벨', `${track.analysis.loudnessHint.toFixed(1)} dB`);
-            if (Number.isFinite(track.analysis.loudnessIntegrated)) addRow('예상 통합 라우드니스', `${track.analysis.loudnessIntegrated.toFixed(1)} LUFS 유사`);
+            if (Number.isFinite(track.analysis.loudnessIntegrated)) addRow('K-weighted 통합 라우드니스', `${track.analysis.loudnessIntegrated.toFixed(1)} LUFS`);
             addRow('밝기/스테레오 폭', `${Math.round(track.analysis.brightness * 100)}% / ${Math.round(track.analysis.stereoWidth * 100)}%`);
             if (Number.isFinite(track.analysis.lowMonoScore)) addRow('저역 모노 호환', `${Math.round(track.analysis.lowMonoScore)}점 · 상관도 ${Number(track.analysis.lowMonoCorrelation || 0).toFixed(2)} · ${getLowMonoRiskLabel(track.analysis.lowMonoRisk)}`);
             addRow('저역/중역/고역', `${Math.round((track.analysis.bassRatio || 0) * 100)}% / ${Math.round((track.analysis.midRatio || 0) * 100)}% / ${Math.round((track.analysis.highRatio || 0) * 100)}%`);
@@ -8936,7 +9008,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.26',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.27',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

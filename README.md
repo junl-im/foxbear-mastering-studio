@@ -1,5 +1,13 @@
 # FoxBear AI Mastering Studio Pro
 
+
+## Pro v1.3.27 K-weighted LUFS loudness update
+
+- 최종 마스터 파이널라이저와 브라우저 fallback의 2-pass 라우드니스 측정을 K-weighting 프리필터 기반으로 변경했습니다.
+- 분석 워커의 `loudnessIntegrated`도 K-weighted LUFS 값으로 계산해 트랙 분석, 리포트, 품질 게이트의 기준을 더 일관되게 맞췄습니다.
+- EBU R128 방식에 가까운 400ms 블록, 75% overlap, -70 LUFS absolute gate, -10 LU relative gate 흐름을 적용했습니다.
+- 마스터링 상세 리포트의 라우드니스 문구를 `K-weighted`로 갱신하고 `LUFS 유사` 표기를 제거했습니다.
+
 ## v1.3.20 Mastering Studio Upgrade
 
 - 마스터링 품질 게이트(PASS/CHECK/FAIL)와 JSON export report 저장을 추가했습니다.
