@@ -1,5 +1,19 @@
 # FoxBear Mastering Studio
 
+## Pro v1.3.41 Mastering Strength Profiles
+
+This update adds a practical mastering strength selector so users can choose the engine behavior before rendering.
+
+- Added `Natural`, `Balanced`, `Modern`, `Loud`, `Vocal Safe`, and `Mobile Safe` profiles.
+- `Balanced` keeps the current v1.3.40 sound as the default.
+- `Vocal Safe` lowers clarity/width/punch and strengthens metallic/sibilance protection for vocals that sound sharp or mechanical.
+- `Mobile Safe` lowers warmth/punch/stereo groove and strengthens phone-speaker resonance protection.
+- Strength profile metadata is stored in shared DSP profile summaries, master reports, snapshots, and exported reports.
+- Added `qa/strength_profiles_smoke.js`; `npm run check` now validates profile behavior together with the engine QA bench.
+
+Previous v1.3.40 changes are retained: synthetic engine QA bench, 24-band FFT checks, K-weighted LUFS checks, 4x true-peak ceiling checks, and non-finite sample protection.
+
+
 ## Pro v1.3.40 Engine QA Bench
 
 This update improves the bottom dock listening workflow and makes waveform/peak checking visible without opening the full detail panel.

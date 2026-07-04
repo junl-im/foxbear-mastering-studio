@@ -1,4 +1,14 @@
-# FoxBear Pro v1.3.40 QA Report
+# FoxBear Pro v1.3.41 QA Report
+
+## Pro v1.3.41 Mastering Strength Profiles
+
+- Added user-selectable mastering strength profiles: Natural, Balanced, Modern, Loud, Vocal Safe, and Mobile Safe.
+- Integrated strength profiles into effective master settings, shared DSP profile summaries, detail panels, master reports, snapshots, and export report payloads.
+- Balanced preserves the previous default behavior; Vocal Safe and Mobile Safe apply conservative safety caps for harsh vocal tone and phone-speaker resonance.
+- Added `qa/strength_profiles_smoke.js` and included it in `npm run check`.
+- Existing engine QA bench, dock waveform, recommendation popup, shared DSP, runtime, and SRI checks remain active.
+- See `qa/QA_REPORT_MASTERING_STRENGTH_1.3.41.md`.
+
 
 ## Pro v1.3.40 Engine QA Bench
 

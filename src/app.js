@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.40 - engine QA bench
+// FoxBear AI Mastering Studio Pro v1.3.41 - mastering strength profiles
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.40';
+const APP_VERSION = 'Pro v1.3.41';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,9 +17,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1340';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1341';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.40-engine-qa';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.41-strength-profile';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -31,7 +31,7 @@ const DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' };
 
 
 const CURVE_CACHE = new Map();
-const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'masterStyleSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
+const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
 const MASTER_FLOW_STEPS = [
     { at: 6, label: '준비', hint: '디코딩' },
     { at: 18, label: '분석', hint: '추천/검사' },
@@ -176,7 +176,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.40';
+    styleLink.href = 'assets/css/studio.css?v=1.3.41';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -229,7 +229,7 @@ function cacheElements() {
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
+        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
         'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotClearBtn', 'snapshotStatus', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
@@ -1037,6 +1037,7 @@ function buildSmartSuggestionItems(track) {
     if (confidence) items.push({ label: 'AI 신뢰도', value: `${getAiConfidenceLabel(track)} ${confidence}%`, tone: confidenceTone });
     items.push({ label: '목표 음압', value: `${Number(state.targetLufs || -14).toFixed(0)} LUFS`, tone: 'neutral' });
     items.push({ label: '스타일', value: getMasterStyleLabel(state.masterStyle), tone: 'cyan' });
+    items.push({ label: '성향', value: getMasterStrengthLabel(state.masterStrength), tone: getMasterStrengthTone(state.masterStrength) });
     const safety = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
     if (safety) items.push({ label: '안전 점수', value: `${safety.score}점`, tone: safety.tone || 'ok' });
     if (Number.isFinite(Number(analysis.lowMonoScore))) items.push({ label: '저역 모노', value: `${Math.round(Number(analysis.lowMonoScore))}점`, tone: analysis.lowMonoScore >= 80 ? 'ok' : analysis.lowMonoScore >= 62 ? 'warn' : 'danger' });
@@ -1790,6 +1791,16 @@ function bindEvents() {
             invalidateAllMasteredOutput(`${getMasterStyleLabel(state.masterStyle)} 스타일로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
             showToast(`${getMasterStyleLabel(state.masterStyle)} 스타일을 적용했습니다.`);
+        });
+    }
+    if (el.masterStrengthSelect) {
+        state.masterStrength = el.masterStrengthSelect.value || state.masterStrength || 'balanced';
+        el.masterStrengthSelect.addEventListener('change', () => {
+            state.masterStrength = el.masterStrengthSelect.value || 'balanced';
+            applyMasterStrengthDefaults(state.masterStrength, true);
+            invalidateAllMasteredOutput(`${getMasterStrengthLabel(state.masterStrength)} 성향으로 변경되었습니다. 다시 마스터링하세요.`);
+            renderAll({ keepDetailAudio: true });
+            showToast(`${getMasterStrengthLabel(state.masterStrength)} 성향을 적용했습니다.`);
         });
     }
     if (el.outputFormatSelect) {
@@ -4248,7 +4259,8 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
     if (settings && Number.isFinite(Number(settings.intensity))) out.intensity = Number(settings.intensity);
     applyMasterGoalToSettings(out, analysis, preset);
     applyMasterStyleToSettings(out, analysis, preset);
-    if (!state.featureFlags.smartGuard || !analysis) return out;
+    applyMasterStrengthToSettings(out, analysis, preset);
+    if (!state.featureFlags.smartGuard || !analysis) return finalizeMasterStrengthSafetyCaps(out, analysis, preset);
 
     const brightness = Number(analysis.brightness || 0);
     const metallic = Number(analysis.metallicHint || 0);
@@ -4299,6 +4311,7 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
         if (mobileRisk.risk > 0.52) out.intensity = clampToStep(Number(out.intensity || 100) - mobileRisk.risk * 8, 50, 200, 5);
     }
     applySpatialBudgetToSettings(out, analysis, getMasteringIntensity(out));
+    finalizeMasterStrengthSafetyCaps(out, analysis, preset);
     return out;
 }
 
@@ -4316,6 +4329,8 @@ function createSharedDspProfile(settings, analysis, preset, options = {}) {
         version: SHARED_DSP_PROFILE_VERSION,
         mode: options.mode || 'render',
         preset: preset || 'custom',
+        masterStrength: state.masterStrength || 'balanced',
+        masterStrengthLabel: getMasterStrengthLabel(state.masterStrength),
         effectiveSettings: {
             intensity: Number(effectiveSettings.intensity || 100),
             clarity: Number(effectiveSettings.clarity || 50),
@@ -6723,7 +6738,7 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
     return {
         before: { ...before, approxLufs: beforeLufs },
         after: { ...after, approxLufs: afterLufs },
-        target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle },
+        target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength },
         finalizer: {
             mode: finalizeInfo?.mode || '',
             limiterMode: finalizeInfo?.limiterMode || '',
@@ -7941,6 +7956,7 @@ function syncOutputControlValues() {
     if (el.qualityModeSelect) el.qualityModeSelect.value = state.qualityMode;
     if (el.performanceModeSelect) el.performanceModeSelect.value = state.performanceMode;
     if (el.masterStyleSelect) el.masterStyleSelect.value = state.masterStyle;
+    if (el.masterStrengthSelect) el.masterStrengthSelect.value = state.masterStrength;
     syncEnhancedSelectButtons();
 }
 
@@ -7980,6 +7996,7 @@ function captureTrackSnapshot(track, label = '스냅샷') {
         instrument: cloneInstrumentLayer(track.instrument || DEFAULT_INSTRUMENT_LAYER),
         masterGoal: state.masterGoal,
         masterStyle: state.masterStyle,
+        masterStrength: state.masterStrength,
         outputFormat: state.outputFormat,
         targetLufs: state.targetLufs,
         ceilingDb: state.ceilingDb,
@@ -8028,6 +8045,7 @@ function restoreSnapshot(track, snapshot) {
     track.instrument = cloneInstrumentLayer(snapshot.instrument || DEFAULT_INSTRUMENT_LAYER);
     state.masterGoal = snapshot.masterGoal || state.masterGoal;
     state.masterStyle = snapshot.masterStyle || state.masterStyle;
+    state.masterStrength = snapshot.masterStrength || state.masterStrength || 'balanced';
     state.outputFormat = snapshot.outputFormat || state.outputFormat;
     state.targetLufs = Number(snapshot.targetLufs ?? state.targetLufs);
     state.ceilingDb = Number(snapshot.ceilingDb ?? state.ceilingDb);
@@ -8036,6 +8054,7 @@ function restoreSnapshot(track, snapshot) {
     state.performanceMode = snapshot.performanceMode || state.performanceMode;
     if (el.masterGoalSelect) el.masterGoalSelect.value = state.masterGoal;
     if (el.masterStyleSelect) el.masterStyleSelect.value = state.masterStyle;
+    if (el.masterStrengthSelect) el.masterStrengthSelect.value = state.masterStrength;
     if (el.platformPresetSelect) el.platformPresetSelect.value = state.platformPreset;
     syncOutputControlValues();
 }
@@ -8412,6 +8431,7 @@ function renderDetail(options = {}) {
         addRow('출력 포맷', getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'));
         addRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
         addRow('스타일 프리셋', `${getMasterStyleLabel(state.masterStyle)} · ${getMasterStyleDescription(state.masterStyle)}`);
+        addRow('마스터링 성향', `${getMasterStrengthLabel(state.masterStrength)} · ${getMasterStrengthDescription(state.masterStrength)}`);
         addRow('플랫폼 저장 프리셋', `${getPlatformPresetLabel()} · ${PLATFORM_EXPORT_PRESETS[state.platformPreset]?.note || '직접 설정 유지'}`);
         if (state.referenceProfile?.status === 'ready') addRow('레퍼런스 트랙', `${state.referenceProfile.name} · ${state.referenceProfile.report}`);
         if (track.genreReason) addRow('장르 판단 근거', track.genreReason);
@@ -8665,6 +8685,7 @@ function buildAiMasteringGridItems(track) {
         { label: '목표/피크', value: `${Number(state.targetLufs || -14).toFixed(0)} LUFS · ${Number(state.ceilingDb || -1).toFixed(1)} dB`, tone: 'neutral' },
         { label: '품질 판정', value: gate, tone: track.qualityGate?.status === 'fail' ? 'danger' : track.qualityGate?.status === 'warn' ? 'warn' : 'ok' },
         { label: '스타일', value: getMasterStyleLabel(state.masterStyle), tone: 'cyan' },
+        { label: '성향', value: getMasterStrengthLabel(state.masterStrength), tone: getMasterStrengthTone(state.masterStrength) },
         { label: '후보 수', value: altCount ? `${altCount}개` : '없음', tone: altCount ? 'ok' : 'neutral' }
     ];
 }
@@ -10227,6 +10248,110 @@ function applyMasterGoalToSettings(out, analysis, preset) {
 }
 
 
+function getMasterStrengthProfile(value = state.masterStrength) {
+    return MASTER_STRENGTH_PROFILES[value] || MASTER_STRENGTH_PROFILES.balanced;
+}
+
+function getMasterStrengthLabel(value = state.masterStrength) {
+    return getMasterStrengthProfile(value).label || 'Balanced';
+}
+
+function getMasterStrengthDescription(value = state.masterStrength) {
+    return getMasterStrengthProfile(value).description || '기본 균형 성향';
+}
+
+function getMasterStrengthTone(value = state.masterStrength) {
+    const profile = String(value || 'balanced');
+    if (profile.includes('safe')) return 'ok';
+    if (profile === 'loud') return 'warn';
+    if (profile === 'modern') return 'cyan';
+    if (profile === 'natural') return 'neutral';
+    return 'cyan';
+}
+
+function applyMasterStrengthDefaults(value, updateControls) {
+    const profile = getMasterStrengthProfile(value);
+    state.masterStrength = MASTER_STRENGTH_PROFILES[value] ? value : 'balanced';
+    if (profile.targetLufs !== null && profile.targetLufs !== undefined) state.targetLufs = Number(profile.targetLufs);
+    if (profile.ceilingDb !== null && profile.ceilingDb !== undefined) state.ceilingDb = Number(profile.ceilingDb);
+    if (profile.qualityMode) state.qualityMode = profile.qualityMode;
+    if (state.platformPreset !== 'custom' && updateControls) {
+        state.platformPreset = 'custom';
+        if (el.platformPresetSelect) el.platformPresetSelect.value = 'custom';
+    }
+    if (updateControls || el.targetLufsSelect) {
+        if (el.masterStrengthSelect) el.masterStrengthSelect.value = state.masterStrength;
+        if (profile.targetLufs !== null && profile.targetLufs !== undefined && el.targetLufsSelect) el.targetLufsSelect.value = String(state.targetLufs);
+        if (profile.ceilingDb !== null && profile.ceilingDb !== undefined && el.ceilingSelect) el.ceilingSelect.value = formatCeilingSelectValue(state.ceilingDb);
+        if (profile.qualityMode && el.qualityModeSelect) el.qualityModeSelect.value = state.qualityMode;
+    }
+    syncEnhancedSelectButtons();
+}
+
+function applyMasterStrengthToSettings(out, analysis, preset) {
+    const profile = getMasterStrengthProfile(state.masterStrength);
+    const isCustom = preset === 'custom';
+    const customScale = isCustom ? 0.72 : 1;
+    out.clarity = clamp(Math.round(Number(out.clarity || 50) + (profile.clarityDelta || 0) * customScale), 5, 96);
+    out.warmth = clamp(Math.round(Number(out.warmth || 50) + (profile.warmthDelta || 0) * customScale), 5, 96);
+    out.width = clamp(Math.round(Number(out.width || 50) + (profile.widthDelta || 0) * customScale), 3, 88);
+    out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) + (profile.stereoGrooveDelta || 0) * customScale), 0, 36);
+    out.dynamicPunch = clamp(Math.round(Number(out.dynamicPunch || 35) + (profile.punchDelta || 0) * customScale), 4, 94);
+    out.metallicRemoval = clamp(Math.round(Number(out.metallicRemoval || 42) + (profile.metallicDelta || 0) * customScale), 16, 98);
+    out.analogGroove = clamp(Math.round(Number(out.analogGroove || 0) + (profile.analogDelta || 0) * customScale), 0, 88);
+    out.intensity = clampToStep(Number(out.intensity || 100) * Number(profile.intensityScale || 1), 50, 200, 5);
+
+    const vocalRisk = analysis ? estimateVocalMetallicRisk(analysis, out, preset, getMasteringIntensity(out)) : 0;
+    const mobileRisk = analysis ? estimateMobileSpeakerRisk(analysis, out, getMasteringIntensity(out)) : { risk: 0, harsh: 0, box: 0, boom: 0, density: 0 };
+    if (state.masterStrength === 'vocal_safe') {
+        out.clarity = clamp(Math.round(out.clarity - 3 - vocalRisk * 12), 5, 62);
+        out.width = clamp(Math.min(out.width, 54), 3, 54);
+        out.stereoGroove = clamp(Math.min(out.stereoGroove, 12), 0, 12);
+        out.dynamicPunch = clamp(Math.round(out.dynamicPunch - 4 - vocalRisk * 5), 4, 68);
+        out.metallicRemoval = clamp(Math.round(out.metallicRemoval + 6 + vocalRisk * 12), 28, 98);
+        out.intensity = clampToStep(Number(out.intensity || 100) - vocalRisk * 12, 50, 160, 5);
+    }
+    if (state.masterStrength === 'mobile_safe') {
+        out.warmth = clamp(Math.round(out.warmth - 3 - mobileRisk.boom * 10 - mobileRisk.box * 8), 8, 58);
+        out.dynamicPunch = clamp(Math.round(out.dynamicPunch - 4 - mobileRisk.density * 8), 4, 62);
+        out.clarity = clamp(Math.round(out.clarity - mobileRisk.harsh * 8), 5, 72);
+        out.width = clamp(Math.min(out.width, 58), 3, 58);
+        out.stereoGroove = clamp(Math.min(out.stereoGroove, 10), 0, 10);
+        out.metallicRemoval = clamp(Math.round(out.metallicRemoval + mobileRisk.harsh * 9 + mobileRisk.box * 5), 22, 94);
+        out.intensity = clampToStep(Number(out.intensity || 100) - mobileRisk.risk * 10, 50, 165, 5);
+    }
+    if (state.masterStrength === 'loud' && (vocalRisk > 0.32 || mobileRisk.risk > 0.42)) {
+        out.clarity = clamp(Math.round(out.clarity - vocalRisk * 6 - mobileRisk.harsh * 4), 5, 82);
+        out.metallicRemoval = clamp(Math.round(out.metallicRemoval + vocalRisk * 8 + mobileRisk.harsh * 5), 18, 94);
+        out.width = clamp(Math.min(out.width, 72), 3, 72);
+    }
+}
+
+function finalizeMasterStrengthSafetyCaps(out, analysis, preset) {
+    if (!out || !analysis) return out;
+    const profile = state.masterStrength || 'balanced';
+    const vocalRisk = estimateVocalMetallicRisk(analysis, out, preset, getMasteringIntensity(out));
+    const mobileRisk = estimateMobileSpeakerRisk(analysis, out, getMasteringIntensity(out));
+    if (profile === 'natural') {
+        out.intensity = clampToStep(Number(out.intensity || 100), 50, 145, 5);
+        out.width = clamp(Math.min(Number(out.width || 50), 62), 3, 62);
+        out.stereoGroove = clamp(Math.min(Number(out.stereoGroove || 0), 14), 0, 14);
+    }
+    if (profile === 'vocal_safe') {
+        out.clarity = clamp(Math.round(Number(out.clarity || 50) - vocalRisk * 8), 5, 60);
+        out.metallicRemoval = clamp(Math.round(Number(out.metallicRemoval || 42) + 4 + vocalRisk * 10), 32, 98);
+        out.intensity = clampToStep(Number(out.intensity || 100), 50, 155, 5);
+    }
+    if (profile === 'mobile_safe') {
+        out.warmth = clamp(Math.round(Number(out.warmth || 50) - mobileRisk.boom * 8 - mobileRisk.box * 8), 8, 56);
+        out.dynamicPunch = clamp(Math.round(Number(out.dynamicPunch || 35) - mobileRisk.density * 6), 4, 60);
+        out.stereoGroove = clamp(Math.min(Number(out.stereoGroove || 0), 9), 0, 9);
+        out.intensity = clampToStep(Number(out.intensity || 100), 50, 160, 5);
+    }
+    return out;
+}
+
+
 function getMasterStyleProfile(style = state.masterStyle) {
     return MASTER_STYLE_PRESETS[style] || MASTER_STYLE_PRESETS.streaming;
 }
@@ -10387,7 +10512,7 @@ function buildReport(track) {
 }
 
 function createDoneReport(track) {
-    const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`, getMasterGoalLabel(state.masterGoal), getMasterStyleLabel(state.masterStyle)];
+    const parts = [`마스터링 완료: ${track.outName}`, getOutputFormatLabel(track.outFormat || state.outputFormat || 'wav24'), `강도 ${track.settings.intensity ?? 100}%`, getMasterGoalLabel(state.masterGoal), getMasterStyleLabel(state.masterStyle), getMasterStrengthLabel(state.masterStrength)];
     if (track.instrumentInfo && track.instrumentInfo.applied) parts.push(`${track.instrumentInfo.label} 레이어 ${track.instrumentInfo.bpm.toFixed(0)} BPM`);
     if (track.trimInfo && track.trimInfo.applied) parts.push(`무음 정리 앞 ${track.trimInfo.startTrimSec.toFixed(2)}초/뒤 ${track.trimInfo.endTrimSec.toFixed(2)}초`);
     if (track.dcInfo && track.dcInfo.applied) parts.push('DC offset 정리');
@@ -10401,7 +10526,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.40',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.41',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -10429,7 +10554,7 @@ function createExportReport(track) {
         qualityGate: track.qualityGate,
         waveformOverview: track.waveformOverview,
         performanceInfo: track.performanceInfo,
-        outputTarget: { masterGoal: state.masterGoal, masterStyle: state.masterStyle, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
+        outputTarget: { masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
         albumProfile: state.albumProfile,
         analysis: track.analysis,
         createdAt: new Date().toISOString()

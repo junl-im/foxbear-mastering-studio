@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.40 - extracted configuration module
+// FoxBear AI Mastering Studio Pro v1.3.41 - extracted configuration module
 'use strict';
 
 const BEAT_CHANGE_PRESETS = {
@@ -34,6 +34,100 @@ const PLATFORM_EXPORT_PRESETS = {
     social: { label: 'SNS/Shorts', outputFormat: 'mp3_320', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '모바일 업로드/공유 호환성을 우선합니다.' },
     loud_demo: { label: 'Loud Demo', outputFormat: 'mp3_320', targetLufs: -12, ceilingDb: -0.8, qualityMode: 'balanced', note: '짧은 데모 확인용으로 체감 음압을 조금 더 올립니다.' },
     archive: { label: 'Archive Master', outputFormat: 'wav32float', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'max', note: '후속 편집과 보관을 위한 최고 보존 프리셋입니다.' }
+};
+
+
+const MASTER_STRENGTH_PROFILES = {
+    natural: {
+        label: 'Natural',
+        description: '원본 보존 · 가장 부드러운 보정',
+        targetLufs: -16,
+        ceilingDb: -1.5,
+        qualityMode: 'max',
+        clarityDelta: -4,
+        warmthDelta: 3,
+        widthDelta: -4,
+        stereoGrooveDelta: -5,
+        punchDelta: -7,
+        metallicDelta: 5,
+        analogDelta: 1,
+        intensityScale: 0.90
+    },
+    balanced: {
+        label: 'Balanced',
+        description: '현재 기본값 · 장르/스타일 추천 균형',
+        targetLufs: null,
+        ceilingDb: null,
+        qualityMode: null,
+        clarityDelta: 0,
+        warmthDelta: 0,
+        widthDelta: 0,
+        stereoGrooveDelta: 0,
+        punchDelta: 0,
+        metallicDelta: 0,
+        analogDelta: 0,
+        intensityScale: 1.00
+    },
+    modern: {
+        label: 'Modern',
+        description: '선명도와 체감 음압을 조금 더 앞으로',
+        targetLufs: -13,
+        ceilingDb: -1.0,
+        qualityMode: 'balanced',
+        clarityDelta: 3,
+        warmthDelta: -1,
+        widthDelta: 1,
+        stereoGrooveDelta: 1,
+        punchDelta: 4,
+        metallicDelta: 3,
+        analogDelta: -1,
+        intensityScale: 1.06
+    },
+    loud: {
+        label: 'Loud',
+        description: '데모/댄스용 큰 체감 · 안전 가드 유지',
+        targetLufs: -10,
+        ceilingDb: -0.8,
+        qualityMode: 'max',
+        clarityDelta: 3,
+        warmthDelta: -3,
+        widthDelta: 0,
+        stereoGrooveDelta: -1,
+        punchDelta: 8,
+        metallicDelta: 5,
+        analogDelta: -2,
+        intensityScale: 1.14
+    },
+    vocal_safe: {
+        label: 'Vocal Safe',
+        description: '보컬 쇳소리/치찰음 최소화',
+        targetLufs: -15,
+        ceilingDb: -1.5,
+        qualityMode: 'max',
+        clarityDelta: -6,
+        warmthDelta: 4,
+        widthDelta: -7,
+        stereoGrooveDelta: -8,
+        punchDelta: -8,
+        metallicDelta: 10,
+        analogDelta: 2,
+        intensityScale: 0.88
+    },
+    mobile_safe: {
+        label: 'Mobile Safe',
+        description: '폰 스피커 울림/박스톤/공진 최소화',
+        targetLufs: -14,
+        ceilingDb: -1.2,
+        qualityMode: 'balanced',
+        clarityDelta: -2,
+        warmthDelta: -7,
+        widthDelta: -5,
+        stereoGrooveDelta: -7,
+        punchDelta: -7,
+        metallicDelta: 5,
+        analogDelta: -1,
+        intensityScale: 0.94
+    }
 };
 
 const MASTER_STYLE_PRESETS = {

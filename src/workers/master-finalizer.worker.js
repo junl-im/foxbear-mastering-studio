@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.3.40 - mobile speaker guard, multiband dynamics, 4x FIR true-peak, engine QA bench coverage
+// FoxBear Pro finalizer worker v1.3.41 - mobile speaker guard, multiband dynamics, 4x FIR true-peak, engine QA bench coverage
 'use strict';
 
 self.onmessage = event => {
