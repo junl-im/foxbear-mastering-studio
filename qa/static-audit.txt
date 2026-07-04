@@ -1,9 +1,5 @@
-FoxBear Pro v1.3.28 static audit
-PASS duplicate HTML id check
-PASS local asset reference check
-PASS index.html SHA-384 SRI validation
-PASS JavaScript syntax check via npm run check
-PASS K-weighted LUFS analysis worker smoke check
-PASS K-weighted LUFS finalizer worker smoke check
-
-PASS lookahead limiter finalizer worker smoke check
+app_version: PASS
+original_selection: PASS
+master_preview_button_index: PASS
+master_preview_render: PASS
+qa_report: PASS

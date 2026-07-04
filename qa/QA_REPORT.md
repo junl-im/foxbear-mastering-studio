@@ -1,66 +1,34 @@
-# FoxBear Pro v1.3.33 QA Report
+# FoxBear Pro v1.3.35 QA Report
 
-## Pro v1.3.33 mobile speaker translation guard update
-- Added mobile speaker ringing risk analysis for boom, box tone, honk, 2~5 kHz phone resonance, and density.
-- Strengthened the mobile translation guard in the offline master chain.
-- Added finalizer/fallback `mobileSpeakerResonanceGuard` before loudness normalization and true-peak limiting.
-- Recommendation settings now reduce warmth, punch, clarity, and excessive electronic/spatial bias when phone-speaker ringing risk is high.
-- Mastering detail/report metadata now shows phone speaker risk and applied guard cuts.
-- Refreshed app version, cache busters, and SRI hash.
-- Detailed report: `qa/QA_REPORT_MOBILE_TRANSLATION_1.3.33.md`.
-
-## Static checks
-- `npm run check`: PASS
-- SRI validation: PASS
-- Synthetic analysis/finalizer smoke test: PASS
-
-# FoxBear Pro v1.3.31 QA Report
-
-## Pro v1.3.31 unified phase-safe spatial budget update
-- Added a shared phase-safe spatial budget that combines `width` and `stereoGroove` into one effective expansion calculation.
-- Final offline rendering now scales width matrix expansion and micro-delay stereoGroove together when spatial risk, low-mono risk, low-side energy, or FFT air/presence risk is high.
-- Realtime preview width now uses the same budget function as offline rendering to reduce preview/final mismatch.
-- `phaseSafe` now performs actual DSP intervention instead of only reducing a safety score.
-- Added mastering report/detail metadata for requested vs applied width factor and stereoGroove values.
-- Refreshed app version, cache busters, and SRI hash.
-- Detailed report: `qa/QA_REPORT_SPATIAL_BUDGET_1.3.31.md`.
-
-## Pro v1.3.30 4x FIR True Peak + gentle multiband dynamics update
-- Replaced final true-peak interpolation with 4x windowed-sinc FIR oversampling.
-- Added gentle 3-band dynamic control to the finalizer and browser fallback path.
-- Added a lightweight multiband dynamics node to the offline mastering chain.
-- Added finalizer report fields for oversample mode and multiband band reductions.
-- Refreshed app version, cache busters, and SRI hash.
-- Detailed report: `qa/QA_REPORT_TRUEPEAK_MULTIBAND_1.3.30.md`.
-
-## Pro v1.3.29 FFT analyzer update
-- Added 4096-point FFT analysis with Hann windowing and 75% overlap frame sampling.
-- Added FFT-derived spectrum bands, centroid, rolloff, flatness, flux, and compact spectrum profile.
-- Improved genre recommendation, EQ/reference matching, and phase-safe width decisions.
-- Added guards to avoid unnecessary spaciousness when the source is already wide or low-mono compatibility is weak.
-- Bumped analysis cache DB so older pre-FFT cached analysis is not reused.
-- Refreshed app version, cache busters, and SRI hash.
-- Detailed report: `qa/QA_REPORT_FFT_ANALYZER_1.3.29.md`.
+## Pro v1.3.35 App.js configuration module split update
+- Extracted mastering preset constants from `src/app.js` into `src/config/mastering-presets.js`.
+- Extracted feature definitions, genre presets, EQ filters, and slider metadata into `src/config/genre-presets.js`.
+- Extracted reference matching targets into `src/config/reference-targets.js`.
+- Extracted runtime state and DOM element cache object into `src/state/app-state.js`.
+- Preserved the existing browser loading model with ordered deferred scripts to reduce migration risk.
+- Updated app version, cache busters, analysis cache DB, package metadata, and SRI hashes.
+- Added `qa/runtime_smoke.js` to verify config/state/app script order at check time.
+- Detailed report: `qa/QA_REPORT_APP_MODULE_SPLIT_1.3.35.md`.
 
 ## Static checks
+- `node --check src/config/mastering-presets.js`: PASS
+- `node --check src/config/genre-presets.js`: PASS
+- `node --check src/config/reference-targets.js`: PASS
+- `node --check src/state/app-state.js`: PASS
+- `node --check src/app.js`: PASS
 - `npm run check`: PASS
 - SRI validation: PASS
+- Runtime script-order smoke test: PASS
 
 ## Changed files
 - `index.html`
-- `package.json`
-- `README.md`
 - `src/app.js`
+- `src/config/mastering-presets.js`
+- `src/config/genre-presets.js`
+- `src/config/reference-targets.js`
+- `src/state/app-state.js`
+- `README.md`
+- `package.json`
 - `qa/QA_REPORT.md`
-- `qa/QA_REPORT_SPATIAL_BUDGET_1.3.31.md`
-- `qa/QA_REPORT_TRUEPEAK_MULTIBAND_1.3.30.md`
-
-
-## v1.3.32 Vocal Anti-Metallic Engine Tuning
-
-- Checked engine path for mechanical/metallic vocal artifacts. Main risk was independent high-frequency exciter + clarity/high-shelf boosting + static metallic notches on vocal-like material.
-- Added vocal-metallic risk scoring from FFT presence/air/brightness/metallic features plus vocal-likeness and intensity.
-- High-frequency exciter is now risk-scaled and can bypass on high-risk vocals.
-- Added post-exciter Vocal Metallic Comfort smoothing.
-- Reference matching and genre recommendation now avoid treating sibilant vocal presence as an electronic/metallic genre cue.
-- Validation: node syntax checks and SRI verification pass.
+- `qa/QA_REPORT_APP_MODULE_SPLIT_1.3.35.md`
+- `qa/runtime_smoke.js`

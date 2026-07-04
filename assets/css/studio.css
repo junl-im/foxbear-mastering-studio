@@ -8112,3 +8112,85 @@ body.bottom-preview-active .processing-hud {
 #adminStatsTrigger[role="button"] {
     cursor: pointer !important;
 }
+
+/* v1.3.34 A/B translation preview and original-selection patch */
+.ai-recommend-preset.manual-original,
+.ai-candidate-chip.manual-original {
+    border-color: rgba(141,245,232,.34) !important;
+    background: linear-gradient(135deg, rgba(141,245,232,.12), rgba(255,255,255,.045)) !important;
+}
+.ai-recommend-preset.manual-original em {
+    color: #bffff7 !important;
+    background: rgba(141,245,232,.12) !important;
+}
+.master-preview-quickbar {
+    display: grid;
+    gap: 6px;
+    margin: 8px 0 10px;
+    padding: 8px;
+    border-radius: 15px;
+    border: 1px solid rgba(141,245,232,.14);
+    background: rgba(141,245,232,.055);
+}
+.master-preview-inline-btn,
+.master-preview-action {
+    width: 100% !important;
+}
+.master-preview-quickbar small {
+    color: rgba(224,238,255,.66);
+    font-size: .58rem;
+    line-height: 1.35;
+}
+.bottom-preview-master-preview-btn {
+    border-color: rgba(141,245,232,.24) !important;
+    color: #c7fff8 !important;
+    background: rgba(141,245,232,.075) !important;
+}
+.bottom-preview-master-preview-btn.active,
+.bottom-preview-master-preview-btn:hover:not(:disabled) {
+    color: #061114 !important;
+    background: linear-gradient(135deg, #8df5e8, #ffe381) !important;
+    border-color: rgba(255,255,255,.28) !important;
+}
+.bottom-preview-master-preview-btn.processing {
+    opacity: .72;
+}
+.action-panel .button-grid.action-grid-pro .master-preview-action {
+    grid-column: 1 / -1 !important;
+}
+
+@media (min-width: 721px) {
+    .bottom-preview-controls {
+        gap: 7px !important;
+    }
+    .bottom-preview-master-btn,
+    .bottom-preview-master-preview-btn {
+        width: clamp(112px, 13vw, 154px) !important;
+    }
+    .bottom-preview-tabs {
+        width: clamp(204px, 24vw, 304px) !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .master-preview-quickbar { padding: 6px; border-radius: 12px; }
+    .master-preview-quickbar small { font-size: .50rem; }
+    .bottom-preview-controls {
+        display: grid !important;
+        grid-template-columns: minmax(0, .90fr) minmax(0, .90fr) minmax(0, 1.65fr) !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+    .bottom-preview-master-btn,
+    .bottom-preview-master-preview-btn {
+        width: 100% !important;
+        min-height: 27px !important;
+        padding: 4px 3px !important;
+        font-size: .40rem !important;
+    }
+    .bottom-preview-tabs {
+        width: 100% !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+    }
+}

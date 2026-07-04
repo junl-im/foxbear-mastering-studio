@@ -1,18 +1,23 @@
 # FoxBear AI Mastering Studio Pro
 
-## Pro v1.3.33 mobile speaker translation guard update
+## Pro v1.3.35 App.js configuration module split update
+- Split the monolithic `src/app.js` configuration layer into smaller load-ordered browser modules:
+  - `src/config/mastering-presets.js` for beat, instrument, platform export, and master style presets.
+  - `src/config/genre-presets.js` for feature labels, genre presets, profile EQ filters, and slider definitions.
+  - `src/config/reference-targets.js` for reference matching targets.
+  - `src/state/app-state.js` for runtime state and cached DOM element handles.
+- Kept the existing static hosting model intact with ordered `defer` scripts rather than changing the full app to an ES module in one risky step.
+- Updated app version, analysis cache key, cache busters, package metadata, and SRI hashes to v1.3.35.
+- Added a lightweight runtime script-order smoke test so config/state/app loading is checked during `npm run check`.
 
-- Added mobile speaker resonance risk analysis for boom, box tone, honk, 2~5 kHz phone resonance, and density.
-- Added mobile translation guard in the realtime/offline master chain and finalizer fallback/worker paths.
-- Recommendation settings now reduce warmth, punch, clarity, and excessive wide/electronic bias when phone-speaker ringing risk is high.
+## Pro v1.3.34 A/B translation preview and original selection update
 
+- Added `원본선택` to the AI recommendation popup and candidate chips so users can start from a neutral/custom original-state baseline and adjust manually.
+- Added a 15-second `마스터링 전 미리보기` render path that processes only the detected A/B highlight section before committing to a full-track master.
+- Added a full-width preview action above track details and a Dock `마스터링 미리보기` button that plays the prepared 15-second mastered sample.
+- Preview output is invalidated whenever settings, preset, pitch/BPM, or other mastering inputs change, preventing stale A/B samples from being reused.
+- Bottom Dock preview now supports three states: original preview, 15-second mastering preview, and completed mastering preview.
 
-- Added a vocal-metallic risk guard so vocal-like material no longer triggers high-frequency exciter, clarity boost, and reference-air lift independently.
-- Reduced high-frequency exciter drive/wet mix for vocal and sibilant material; very high-risk vocal masters bypass the exciter entirely.
-- Added Vocal Metallic Comfort processing after the exciter to smooth 3 kHz throat glare, 5.2-8.2 kHz sibilance, and 10 kHz+ glassiness.
-- Made metallic-removal notches less narrow/aggressive on vocal-like material to avoid static notch ringing and phasey robotic tone.
-- Added recommendation safeguards so sibilant vocal tracks are less likely to be pushed toward Future Bass/Synthpop/EDM solely because of presence/metallic FFT energy.
-- Reference matching now scales down presence/air/brightness boosts when the source already has vocal metallic risk.
 
 ## Pro v1.3.31 unified phase-safe spatial budget update
 

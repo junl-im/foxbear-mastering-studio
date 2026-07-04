@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.33 - mobile speaker translation guard
+// FoxBear AI Mastering Studio Pro v1.3.35 - configuration module split
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.33';
+const APP_VERSION = 'Pro v1.3.35';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1333';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1335';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -26,28 +26,9 @@ const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.flac', '.ogg', '.m4a', '.aac', '.aif
 const VIDEO_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov'];
 const DEFAULT_TRANSFORM = { pitchSemitones: 0, speedRatio: 1, snapSemitone: true, beatPreset: 'original' };
 const DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' };
-const BEAT_CHANGE_PRESETS = {
-    original: { ratio: 1, label: '원본 박자 유지' },
-    slow5: { ratio: 0.95, label: '느리게 -5%' },
-    slow10: { ratio: 0.90, label: '느리게 -10%' },
-    fast5: { ratio: 1.05, label: '빠르게 +5%' },
-    fast10: { ratio: 1.10, label: '빠르게 +10%' },
-    half: { ratio: 0.50, label: '하프타임 0.50x' },
-    double: { ratio: 1.50, label: '더블타임 1.50x' }
-};
-const INSTRUMENT_LAYER_PRESETS = {
-    off: { label: 'OFF', hasKick: false, hasHat: false, hasClap: false },
-    kick: { label: '킥', hasKick: true, hasHat: false, hasClap: false },
-    hat: { label: '하이햇', hasKick: false, hasHat: true, hasClap: false },
-    kick_hat: { label: '킥 + 하이햇', hasKick: true, hasHat: true, hasClap: false },
-    clap: { label: '클랩', hasKick: false, hasHat: false, hasClap: true },
-    kick_hat_clap: { label: '킥 + 하이햇 + 클랩', hasKick: true, hasHat: true, hasClap: true }
-};
-const INSTRUMENT_AMOUNT_LEVELS = {
-    light: { label: '가볍게', gain: 0.62 },
-    normal: { label: '보통', gain: 0.88 },
-    bold: { label: '강하게', gain: 1.15 }
-};
+
+
+
 const CURVE_CACHE = new Map();
 const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'masterStyleSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
 const MASTER_FLOW_STEPS = [
@@ -68,26 +49,11 @@ const QUALITY_GATE_RULES = {
     minUsefulDurationSec: 1.0
 };
 const WAVEFORM_OVERVIEW_BINS = 96;
+const MASTER_PREVIEW_DURATION_SEC = 15;
 
-const PLATFORM_EXPORT_PRESETS = {
-    custom: { label: '직접 설정', outputFormat: null, targetLufs: null, ceilingDb: null, qualityMode: null, note: '사용자가 고른 출력 설정을 유지합니다.' },
-    streaming: { label: 'Streaming Safe', outputFormat: 'wav24', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '대부분의 스트리밍 업로드에 안정적인 기본값입니다.' },
-    youtube: { label: 'YouTube/MV', outputFormat: 'wav24', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '영상 편집 재인코딩을 고려해 피크 여유를 둡니다.' },
-    apple: { label: 'Apple/Hi-Fi', outputFormat: 'wav24', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'max', note: '다이내믹과 피크 여유를 더 보존합니다.' },
-    social: { label: 'SNS/Shorts', outputFormat: 'mp3_320', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', note: '모바일 업로드/공유 호환성을 우선합니다.' },
-    loud_demo: { label: 'Loud Demo', outputFormat: 'mp3_320', targetLufs: -12, ceilingDb: -0.8, qualityMode: 'balanced', note: '짧은 데모 확인용으로 체감 음압을 조금 더 올립니다.' },
-    archive: { label: 'Archive Master', outputFormat: 'wav32float', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'max', note: '후속 편집과 보관을 위한 최고 보존 프리셋입니다.' }
-};
 
-const MASTER_STYLE_PRESETS = {
-    transparent: { label: 'Transparent Clean', description: '원본 질감을 보존하며 깨끗하게 정리', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', clarityDelta: 1, warmthDelta: 0, widthDelta: 0, punchDelta: -2, metallicDelta: 3, analogDelta: -2, intensityScale: 0.96 },
-    streaming: { label: 'Streaming Polish', description: '플랫폼 업로드용 안전 라우드니스와 밸런스', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', clarityDelta: 2, warmthDelta: 1, widthDelta: 1, punchDelta: 1, metallicDelta: 3, analogDelta: 0, intensityScale: 1.00 },
-    club: { label: 'Club / Loud', description: '댄스/클럽 데모용 강한 체감 음압', targetLufs: -9, ceilingDb: -0.5, qualityMode: 'max', clarityDelta: 3, warmthDelta: -2, widthDelta: 3, punchDelta: 10, metallicDelta: 5, analogDelta: 0, intensityScale: 1.16 },
-    vocal: { label: 'Vocal Focus', description: '보컬·리드 멜로디 보호와 치찰음 완화', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'max', clarityDelta: -2, warmthDelta: 4, widthDelta: -4, punchDelta: -6, metallicDelta: 8, analogDelta: 1, intensityScale: 0.94 },
-    podcast: { label: 'Podcast / Voice', description: '말소리 명료도와 모노 호환성 우선', targetLufs: -16, ceilingDb: -1.5, qualityMode: 'balanced', clarityDelta: 6, warmthDelta: -2, widthDelta: -18, punchDelta: -10, metallicDelta: 6, analogDelta: -5, intensityScale: 0.88 },
-    warm_analog: { label: 'Warm Analog', description: '따뜻한 질감과 부드러운 고역', targetLufs: -14, ceilingDb: -1.0, qualityMode: 'balanced', clarityDelta: -4, warmthDelta: 10, widthDelta: -1, punchDelta: -2, metallicDelta: 6, analogDelta: 18, intensityScale: 0.98 },
-    clean_loud: { label: 'Clean Loud', description: '과한 왜곡 없이 큰 체감 음압', targetLufs: -10, ceilingDb: -0.8, qualityMode: 'max', clarityDelta: 2, warmthDelta: -1, widthDelta: 1, punchDelta: 7, metallicDelta: 7, analogDelta: -1, intensityScale: 1.10 }
-};
+
+
 
 const MAX_SNAPSHOTS_PER_TRACK = 12;
 const REALTIME_PREVIEW_RENDER_DELAY = 160;
@@ -143,72 +109,7 @@ function getErrorMessage(error, fallback = '알 수 없는 오류') {
 }
 
 
-const FEATURE_DEFINITIONS = {
-    trimSilence: {
-        label: '앞뒤 무음 자동 정리',
-        short: '앞/뒤 무음을 감지해 자연스러운 여백만 남기고 정리합니다.'
-    },
-    albumMatch: {
-        label: '앨범 단위 볼륨/톤 통일',
-        short: '여러 곡의 RMS·밝기를 중간값 기준으로 부드럽게 맞춥니다.'
-    },
-    truePeakGuard: {
-        label: 'True Peak 가드 적용',
-        short: '인터샘플 피크를 확인해 -1 dBTP 근처에서 안전하게 보호합니다.'
-    },
-    aiHumanize: {
-        label: 'AI 티 완화 엔진',
-        short: '치찰음·쇳소리·초고역 피로감을 줄이고 250~500Hz 질감을 보강합니다.'
-    },
-    vocalProtect: {
-        label: '보컬 보호 모드',
-        short: '보컬 중심 곡에서 De-esser와 Exciter를 섬세하게 조절해 감정선과 멜로디를 보존합니다.'
-    },
-    smartGuard: {
-        label: '스마트 과처리 방지',
-        short: '고강도 설정에서도 밝기·저역·피크를 감시해 멜로디 손상을 줄입니다.'
-    },
-    lowEndAnchor: {
-        label: '저역 중심 고정',
-        short: '저역을 중앙에 단단히 묶어 킥·베이스 흔들림과 모바일 번짐을 줄입니다.'
-    },
-    melodyPreserve: {
-        label: '멜로디 보호 엔진',
-        short: '보컬·리드·악기 멜로디 대역을 과한 Exciter와 압축으로부터 보호합니다.'
-    },
-    transientRefine: {
-        label: '트랜지언트 정리',
-        short: '하이햇·클랩·타격음의 날카로운 순간 피크를 다듬어 자연스럽게 만듭니다.'
-    },
-    vocalFocusPlus: {
-        label: '보컬 포커스 플러스',
-        short: '피치/BPM 극단값이나 강한 마스터링에서도 보컬·리드 중심 대역을 더 안정적으로 붙잡습니다.'
-    },
-    adaptiveAir: {
-        label: '실키 에어 밸런서',
-        short: '어두운 곡은 아주 살짝 열고, 밝은 곡은 초고역 피로감을 부드럽게 정리합니다.'
-    },
-    translationGuard: {
-        label: '모바일 번역/공진 보정',
-        short: '폰 스피커와 이어폰에서 저역 번짐, 박스톤, 2~5kHz 공진 울림을 줄이도록 보정합니다.'
-    },
-    openMixGuard: {
-        label: '개방감 리커버리',
-        short: '추가 마스터링이나 강한 세팅에서 답답하게 막히는 저중역을 살짝 열고 보컬 존재감을 회복합니다.'
-    },
-    referenceMatch: {
-        label: '프리셋 레퍼런스 매처',
-        short: '선택한 프리셋의 목표 저역·중역·고역 밸런스에 맞춰 아주 얇게 톤을 보정합니다.'
-    },
-    phaseSafe: {
-        label: '스테레오 위상 세이프',
-        short: '넓은 공간감에서도 중앙 보컬과 저역이 흐려지지 않도록 좌우 위상 위험을 줄입니다.'
-    },
-    earFatigueGuard: {
-        label: '청감 피로 가드',
-        short: '강한 피치/BPM·고음압 설정에서 오래 들으면 피곤한 3~10kHz 거친 대역을 미세 정리합니다.'
-    }
-};
+
 
 const UTILITY_FEATURE_DEFINITIONS = {
     abLevelMatch: {
@@ -237,186 +138,17 @@ const UTILITY_FEATURE_DEFINITIONS = {
     }
 };
 
-const PRESET_LABELS = {
-    custom: '커스텀',
-    pop: 'Pop / Vocal Pop',
-    kpop: 'K-POP / Idol Pop',
-    kballad: 'K-Pop Ballad',
-    rnb: 'R&B / Soul',
-    ballad: 'BALLAD',
-    acoustic: 'Acoustic / Singer-Songwriter',
-    citypop: 'City Pop / Retro Pop',
-    dance: 'Dance / Electronic Pop',
-    synthpop: 'Synth Pop',
-    house: 'House / Club',
-    futurebass: 'Future Bass',
-    edm: 'EDM',
-    trap: 'Trap / 808',
-    drill: 'Drill',
-    hiphop: 'HIPHOP',
-    boombap: 'Boom Bap',
-    globalpop: 'Global / Ethnic Pop',
-    lofi: 'LO-FI',
-    rock: 'ROCK',
-    cinematic: 'Cinematic / OST',
-    spatial: 'Spatial / Wide Mix',
-    tape: 'Tape Warmth',
-    punch: 'Punch / Live Energy'
-};
 
-const GENRE_PRESETS = {
-    custom: { clarity: 50, warmth: 55, width: 28, stereoGroove: 12, analogGroove: 6, dynamicPunch: 35, metallicRemoval: 42, intensity: 100 },
-    pop: { clarity: 57, warmth: 55, width: 42, stereoGroove: 10, analogGroove: 4, dynamicPunch: 38, metallicRemoval: 46, intensity: 105 },
-    kpop: { clarity: 60, warmth: 52, width: 48, stereoGroove: 14, analogGroove: 4, dynamicPunch: 42, metallicRemoval: 48, intensity: 110 },
-    kballad: { clarity: 50, warmth: 68, width: 52, stereoGroove: 10, analogGroove: 8, dynamicPunch: 26, metallicRemoval: 52, intensity: 100 },
-    rnb: { clarity: 46, warmth: 70, width: 42, stereoGroove: 8, analogGroove: 10, dynamicPunch: 32, metallicRemoval: 48, intensity: 100 },
-    ballad: { clarity: 50, warmth: 64, width: 34, stereoGroove: 8, analogGroove: 5, dynamicPunch: 28, metallicRemoval: 45, intensity: 95 },
-    acoustic: { clarity: 48, warmth: 60, width: 30, stereoGroove: 4, analogGroove: 5, dynamicPunch: 24, metallicRemoval: 42, intensity: 90 },
-    citypop: { clarity: 50, warmth: 66, width: 44, stereoGroove: 10, analogGroove: 14, dynamicPunch: 34, metallicRemoval: 50, intensity: 100 },
-    dance: { clarity: 61, warmth: 53, width: 52, stereoGroove: 14, analogGroove: 5, dynamicPunch: 52, metallicRemoval: 48, intensity: 110 },
-    synthpop: { clarity: 58, warmth: 54, width: 56, stereoGroove: 12, analogGroove: 7, dynamicPunch: 38, metallicRemoval: 54, intensity: 108 },
-    house: { clarity: 58, warmth: 56, width: 50, stereoGroove: 16, analogGroove: 5, dynamicPunch: 50, metallicRemoval: 46, intensity: 112 },
-    futurebass: { clarity: 62, warmth: 58, width: 60, stereoGroove: 16, analogGroove: 4, dynamicPunch: 44, metallicRemoval: 56, intensity: 115 },
-    edm: { clarity: 62, warmth: 56, width: 56, stereoGroove: 16, analogGroove: 4, dynamicPunch: 52, metallicRemoval: 48, intensity: 115 },
-    trap: { clarity: 48, warmth: 70, width: 28, stereoGroove: 5, analogGroove: 10, dynamicPunch: 62, metallicRemoval: 42, intensity: 110 },
-    drill: { clarity: 44, warmth: 68, width: 26, stereoGroove: 4, analogGroove: 8, dynamicPunch: 66, metallicRemoval: 44, intensity: 112 },
-    hiphop: { clarity: 42, warmth: 66, width: 36, stereoGroove: 8, analogGroove: 8, dynamicPunch: 52, metallicRemoval: 45, intensity: 108 },
-    boombap: { clarity: 40, warmth: 70, width: 30, stereoGroove: 5, analogGroove: 12, dynamicPunch: 48, metallicRemoval: 42, intensity: 102 },
-    globalpop: { clarity: 56, warmth: 58, width: 50, stereoGroove: 12, analogGroove: 5, dynamicPunch: 44, metallicRemoval: 56, intensity: 105 },
-    lofi: { clarity: 28, warmth: 72, width: 26, stereoGroove: 5, analogGroove: 18, dynamicPunch: 20, metallicRemoval: 52, intensity: 95 },
-    rock: { clarity: 50, warmth: 54, width: 30, stereoGroove: 8, analogGroove: 5, dynamicPunch: 48, metallicRemoval: 45, intensity: 108 },
-    cinematic: { clarity: 48, warmth: 62, width: 58, stereoGroove: 9, analogGroove: 7, dynamicPunch: 34, metallicRemoval: 48, intensity: 102 },
-    spatial: { clarity: 54, warmth: 56, width: 64, stereoGroove: 18, analogGroove: 4, dynamicPunch: 36, metallicRemoval: 50, intensity: 104 },
-    tape: { clarity: 42, warmth: 72, width: 34, stereoGroove: 6, analogGroove: 24, dynamicPunch: 30, metallicRemoval: 54, intensity: 96 },
-    punch: { clarity: 52, warmth: 56, width: 38, stereoGroove: 8, analogGroove: 6, dynamicPunch: 70, metallicRemoval: 46, intensity: 116 }
-};
 
-const PROFILE_EQ_FILTERS = {
-    kballad: [
-        { type: 'peaking', frequency: 350, q: 1.5, gain: -1.2 },
-        { type: 'peaking', frequency: 6500, q: 2.0, gain: -1.8 },
-        { type: 'highshelf', frequency: 12000, q: 0.7, gain: 0.8 }
-    ],
-    dance: [
-        { type: 'peaking', frequency: 90, q: 1.0, gain: 0.8 },
-        { type: 'peaking', frequency: 4200, q: 2.0, gain: -1.0 },
-        { type: 'highshelf', frequency: 10500, q: 0.7, gain: 0.8 }
-    ],
-    trap: [
-        { type: 'peaking', frequency: 60, q: 1.0, gain: 1.0 },
-        { type: 'peaking', frequency: 2500, q: 1.2, gain: 0.7 },
-        { type: 'peaking', frequency: 5200, q: 2.2, gain: -0.8 }
-    ],
-    globalpop: [
-        { type: 'peaking', frequency: 4000, q: 2.5, gain: -1.8 },
-        { type: 'peaking', frequency: 10000, q: 1.0, gain: -1.0 },
-        { type: 'highshelf', frequency: 16000, q: 0.7, gain: 0.8 }
-    ],
-    cinematic: [
-        { type: 'peaking', frequency: 280, q: 0.75, gain: 0.5 },
-        { type: 'peaking', frequency: 3200, q: 1.1, gain: -0.4 },
-        { type: 'highshelf', frequency: 12500, q: 0.7, gain: 0.45 }
-    ],
-    spatial: [
-        { type: 'peaking', frequency: 240, q: 0.8, gain: -0.35 },
-        { type: 'peaking', frequency: 2200, q: 1.0, gain: 0.25 },
-        { type: 'highshelf', frequency: 14000, q: 0.7, gain: 0.35 }
-    ],
-    tape: [
-        { type: 'peaking', frequency: 350, q: 0.85, gain: 0.6 },
-        { type: 'peaking', frequency: 5200, q: 1.7, gain: -0.55 },
-        { type: 'highshelf', frequency: 12000, q: 0.7, gain: -0.35 }
-    ],
-    punch: [
-        { type: 'peaking', frequency: 95, q: 1.0, gain: 0.45 },
-        { type: 'peaking', frequency: 1800, q: 0.9, gain: 0.35 },
-        { type: 'peaking', frequency: 7200, q: 1.6, gain: -0.25 }
-    ]
-};
 
-const SLIDERS = [
-    { id: 'clarity', label: '선명도 (Clarity)', min: 0, max: 100, step: 1, unit: '%', low: '보컬과 악기가 부드러워지고 전체 톤이 안정됩니다.', neutral: '보컬 존재감과 고역 개방감을 조절합니다.', high: '고역과 존재감이 살아나지만 과하면 치찰음/피로감이 생길 수 있습니다.' },
-    { id: 'warmth', label: '따뜻함 (Warmth)', min: 0, max: 100, step: 1, unit: '%', low: '차갑고 현대적인 인상이 강해집니다.', neutral: '저역과 저중역의 온도감, 두께감을 조절합니다.', high: '저역과 저중역이 부드럽고 아날로그적인 질감으로 이동합니다.' },
-    { id: 'width', label: '공간감 (Width)', min: 0, max: 100, step: 1, unit: '%', low: '중앙 집중형 이미지가 되어 단단하게 들립니다.', neutral: '좌우 폭과 중앙 이미지를 함께 조절합니다.', high: '좌우가 넓어지지만 과하면 모노 호환성과 중심 이미지가 약해질 수 있습니다.' },
-    { id: 'stereoGroove', label: '스테레오 그루브 (Stereo Groove)', min: 0, max: 100, step: 1, unit: '%', low: '좌우 움직임이 줄고 타이트한 느낌이 됩니다.', neutral: '미세한 스테레오 움직임으로 리듬감을 더합니다.', high: '미세한 딜레이 움직임으로 더 넓고 리드미컬한 인상을 줍니다.' },
-    { id: 'analogGroove', label: '아날로그 와우 (Analog Wow)', min: 0, max: 100, step: 1, unit: '%', low: '깨끗하고 디지털에 가까운 질감입니다.', neutral: '테이프 느낌의 흔들림과 새츄레이션을 조절합니다.', high: '테이프 계열의 흔들림과 새츄레이션이 강해집니다.' },
-    { id: 'dynamicPunch', label: '다이나믹 펀치 (Dynamic Punch)', min: 0, max: 100, step: 1, unit: '%', low: '트랜지언트가 부드럽고 압축된 느낌이 강합니다.', neutral: '드럼과 타악기의 어택, 밀도를 조절합니다.', high: '드럼과 타악기의 어택이 살아나지만 과하면 거칠 수 있습니다.' },
-    { id: 'metallicRemoval', label: '금속성 제거 (Metallic Removal)', min: 0, max: 100, step: 1, unit: '%', low: '값을 낮추면 제거가 약해지고 원본의 밝은 질감을 더 보존합니다.', neutral: '값을 올릴수록 금속성·쇳소리 공진 제거가 더 강해집니다.', high: '값을 높이면 더 많이 사라지지만, 과하면 고역과 공기감이 답답해질 수 있습니다.' },
-    { id: 'intensity', label: '마스터링 강도 (Intensity)', min: 50, max: 200, step: 5, unit: '%', low: '원본 질감을 최대한 보존하고 보정만 살짝 적용합니다.', neutral: '일반적인 마스터링 강도입니다. 100%를 기준으로 톤/펀치/피크 보정이 동작합니다.', high: '140% 이상부터 비선형으로 더 강하게 동작하며 Exciter, Clarity, Metallic Removal이 공격적으로 적용됩니다.' }
-];
 
-const state = {
-    tracks: [],
-    selectedId: null,
-    selectedIds: new Set(),
-    busy: false,
-    programmatic: false,
-    lastToastTimer: null,
-    featureFlags: {
-        trimSilence: true,
-        albumMatch: false,
-        truePeakGuard: true,
-        aiHumanize: true,
-        vocalProtect: true,
-        smartGuard: true,
-        lowEndAnchor: true,
-        melodyPreserve: true,
-        transientRefine: true,
-        vocalFocusPlus: true,
-        adaptiveAir: true,
-        translationGuard: true,
-        openMixGuard: true,
-        referenceMatch: true,
-        phaseSafe: true,
-        earFatigueGuard: true
-    },
-    albumProfile: null,
-    referenceProfile: null,
-    outputFormat: 'wav24',
-    masterGoal: 'natural',
-    masterStyle: 'streaming',
-    targetLufs: -14,
-    ceilingDb: -1.0,
-    qualityMode: 'balanced',
-    platformPreset: 'custom',
-    performanceMode: 'auto',
-    pitchEngine: 'auto',
-    abLevelMatch: true,
-    abLoopMode: false,
-    autoCacheClean: true,
-    autoHighlightAB: true,
-    smartPerformanceGuard: true,
-    engineSafetyMeter: true,
-    cacheReady: false,
-    autoRemasterTimers: new Map(),
-    selectPopup: null,
-    expandedDetailIds: new Set(),
-    collapsedDetailIds: new Set(),
-    popupScrollY: 0,
-    popupScrollbarCompensation: 0,
-    activeDownloadUrls: new Set(),
-    realtimePreview: null,
-    previewRenderTimer: null,
-    bottomPreviewMode: 'original',
-    bottomPreviewTrackId: null,
-    bottomPreviewAutoplayTrackId: null,
-    adminTapLastAt: 0,
-    adminTapCount: 0,
-    adminStatsRemoteError: '',
-    adminAccessChecking: false,
-    firebaseAdminChecked: false,
-    firebaseIsAdmin: false,
-    firebaseAdminRole: '',
-    firebaseReady: false,
-    firebaseUserId: '',
-    firebaseError: '',
-    firebaseVisitLogged: false,
-    firebaseRemoteNotice: '',
-    firebaseNoticeShown: false,
-    lastAdminVisitEvent: null
-};
 
-const el = {};
+
+
+
+
+
+
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -442,7 +174,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.33';
+    styleLink.href = 'assets/css/studio.css?v=1.3.35';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -490,10 +222,10 @@ function cacheElements() {
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
-        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
-        'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
+        'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
         'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
         'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotClearBtn', 'snapshotStatus', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
@@ -1252,20 +984,23 @@ function showAiRecommendationDialog(track) {
 
     const list = document.createElement('div');
     list.className = 'ai-recommend-preset-list';
-    getAiCandidatePresets(track).slice(0, 4).forEach(candidate => {
+    const dialogCandidates = [getOriginalSelectionCandidate(track), ...getAiCandidatePresets(track).slice(0, 4)];
+    dialogCandidates.forEach(candidate => {
         const row = document.createElement('button');
         row.type = 'button';
         const recommended = Boolean(candidate.recommended);
-        row.className = `ai-recommend-preset ${recommended ? 'recommended' : ''} ${candidate.preset === track.preset ? 'active' : ''}`;
+        const manual = Boolean(candidate.manual);
+        row.className = `ai-recommend-preset ${recommended ? 'recommended' : ''} ${manual ? 'manual-original' : ''} ${candidate.preset === track.preset ? 'active' : ''}`;
         const name = document.createElement('strong');
         name.textContent = candidate.label;
         const meta = document.createElement('span');
-        meta.textContent = `${candidate.percent}%`;
+        meta.textContent = candidate.meta || `${candidate.percent}%`;
         const mark = document.createElement('em');
-        mark.textContent = recommended ? '추천' : '후보';
+        mark.textContent = candidate.mark || (recommended ? '추천' : '후보');
         row.append(name, meta, mark);
         row.addEventListener('click', () => {
-            applyAiPresetCandidate(track, candidate.preset);
+            if (manual) applyOriginalManualSelection(track);
+            else applyAiPresetCandidate(track, candidate.preset);
             closeAiRecommendationDialog(backdrop);
         });
         list.appendChild(row);
@@ -1949,6 +1684,7 @@ function bindEvents() {
             if (event.target === el.previewDialog) closePreviewDialog();
         });
     }
+    if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', () => renderMasterPreviewForSelected('dock'));
     if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', masterBottomPreviewTrack);
     if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false));
     if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', () => selectBottomPreviewMode('mastered', true));
@@ -2021,6 +1757,7 @@ function bindEvents() {
         renderAll({ keepDetailAudio: true });
     });
     el.aiApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
+    if (el.masterPreviewBtn) el.masterPreviewBtn.addEventListener('click', () => renderMasterPreviewForSelected('detail'));
     el.masterSelectedBtn.addEventListener('click', masterSelectedTracks);
     el.masterAllBtn.addEventListener('click', masterAllTracks);
     el.zipBtn.addEventListener('click', downloadZip);
@@ -2550,7 +2287,11 @@ function createTrack(file) {
         masteredBuffer: null,
         masteredDurationSec: 0,
         downloadAttention: false,
-        error: null
+        error: null,
+        masterPreviewBlob: null,
+        masterPreviewUrl: null,
+        masterPreviewInfo: null,
+        masterPreviewStatus: 'idle'
     };
 }
 
@@ -4921,31 +4662,7 @@ function createAiHumanizeNode(context, input, preset, settings, intensity = getM
 
 
 
-const PRESET_REFERENCE_TARGETS = {
-    pop: { bass: 0.24, lowMid: 0.22, mid: 0.32, high: 0.24, brightness: 0.55 },
-    kpop: { bass: 0.24, lowMid: 0.20, mid: 0.31, high: 0.27, brightness: 0.60 },
-    kballad: { bass: 0.22, lowMid: 0.29, mid: 0.34, high: 0.17, brightness: 0.45 },
-    rnb: { bass: 0.29, lowMid: 0.30, mid: 0.27, high: 0.14, brightness: 0.40 },
-    ballad: { bass: 0.22, lowMid: 0.28, mid: 0.34, high: 0.16, brightness: 0.46 },
-    acoustic: { bass: 0.18, lowMid: 0.25, mid: 0.36, high: 0.18, brightness: 0.43 },
-    citypop: { bass: 0.24, lowMid: 0.29, mid: 0.28, high: 0.19, brightness: 0.50 },
-    dance: { bass: 0.30, lowMid: 0.18, mid: 0.25, high: 0.27, brightness: 0.60 },
-    synthpop: { bass: 0.24, lowMid: 0.18, mid: 0.27, high: 0.31, brightness: 0.58 },
-    house: { bass: 0.32, lowMid: 0.18, mid: 0.24, high: 0.26, brightness: 0.56 },
-    futurebass: { bass: 0.29, lowMid: 0.17, mid: 0.25, high: 0.29, brightness: 0.62 },
-    edm: { bass: 0.33, lowMid: 0.16, mid: 0.23, high: 0.28, brightness: 0.64 },
-    trap: { bass: 0.36, lowMid: 0.23, mid: 0.25, high: 0.16, brightness: 0.42 },
-    drill: { bass: 0.35, lowMid: 0.24, mid: 0.25, high: 0.16, brightness: 0.39 },
-    hiphop: { bass: 0.31, lowMid: 0.27, mid: 0.27, high: 0.15, brightness: 0.42 },
-    boombap: { bass: 0.28, lowMid: 0.31, mid: 0.27, high: 0.14, brightness: 0.36 },
-    globalpop: { bass: 0.24, lowMid: 0.22, mid: 0.30, high: 0.24, brightness: 0.56 },
-    lofi: { bass: 0.26, lowMid: 0.34, mid: 0.27, high: 0.10, brightness: 0.30 },
-    rock: { bass: 0.27, lowMid: 0.26, mid: 0.30, high: 0.17, brightness: 0.52 },
-    cinematic: { bass: 0.25, lowMid: 0.30, mid: 0.28, high: 0.17, brightness: 0.48 },
-    spatial: { bass: 0.22, lowMid: 0.21, mid: 0.30, high: 0.27, brightness: 0.56 },
-    tape: { bass: 0.27, lowMid: 0.34, mid: 0.27, high: 0.12, brightness: 0.36 },
-    punch: { bass: 0.30, lowMid: 0.22, mid: 0.29, high: 0.19, brightness: 0.53 }
-};
+
 
 function createPresetReferenceMatchNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.referenceMatch === false || !analysis || !preset) return input;
@@ -7643,6 +7360,7 @@ function invalidateMasteredOutput(track, report, autoRefresh = false) {
     track.masteredUrl = null;
     track.masteredBuffer = null;
     track.masteredDurationSec = 0;
+    clearMasterPreviewOutput(track);
     track.downloadAttention = false;
     track.truePeakInfo = null;
     track.finalizeInfo = null;
@@ -7690,6 +7408,7 @@ function clearQueue() {
     state.tracks.forEach(track => {
         if (track.originalUrl) URL.revokeObjectURL(track.originalUrl);
         if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
+        if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
     });
     state.tracks = [];
     state.selectedId = null;
@@ -8143,8 +7862,13 @@ function renderButtons() {
     const hasCompleted = state.tracks.some(track => track.outBlob);
     const canApplyAI = aiTargets.some(track => track.analysis) && !state.busy;
     const canProcessSelected = selectedTracks.some(track => !['analyzing', 'processing'].includes(track.status) && !track.error) && !state.busy;
+    const canPreviewMaster = canStartMasterPreview(activeTrack);
     const canProcessAll = hasTracks && !state.busy && state.tracks.some(track => !['analyzing', 'processing'].includes(track.status) && !track.error);
     el.aiApplyBtn.disabled = !canApplyAI;
+    if (el.masterPreviewBtn) {
+        el.masterPreviewBtn.disabled = !canPreviewMaster;
+        el.masterPreviewBtn.textContent = activeTrack && activeTrack.masterPreviewStatus === 'processing' ? '15초 미리보기 생성 중' : '마스터링 전 미리보기 · 15초';
+    }
     el.masterSelectedBtn.disabled = !canProcessSelected;
     el.masterAllBtn.disabled = !canProcessAll;
     el.zipBtn.disabled = !hasCompleted || state.busy;
@@ -8341,6 +8065,7 @@ function renderDetail(options = {}) {
     const safetyInfo = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
     compact.textContent = track.analysis ? `${presetText} · ${track.status === 'done' ? '완료' : statusLabel(track.status)}${safetyInfo ? ` · 안전 ${safetyInfo.score}점` : ''}` : statusLabel(track.status);
     el.trackDetail.appendChild(compact);
+    renderMasterPreviewQuickBar(track);
 
     const isOpen = isAnalysisDetailOpen(track);
     const toggle = document.createElement('button');
@@ -8480,6 +8205,23 @@ function toggleAnalysisDetailOpen(trackId) {
     else state.expandedDetailIds.add(trackId);
 }
 
+
+function renderMasterPreviewQuickBar(track) {
+    if (!track || !el.trackDetail) return;
+    const bar = document.createElement('div');
+    bar.className = 'master-preview-quickbar';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn-secondary master-preview-inline-btn';
+    button.textContent = track.masterPreviewStatus === 'processing' ? '마스터링 미리보기 생성 중' : '마스터링 전 미리보기 · 15초';
+    button.disabled = !canStartMasterPreview(track);
+    button.addEventListener('click', () => renderMasterPreviewForTrack(track, { source: 'detail' }));
+    const note = document.createElement('small');
+    note.textContent = track.masterPreviewUrl && track.masterPreviewInfo ? `하이라이트 ${formatTime(track.masterPreviewInfo.startSec || 0)}부터 ${Math.round(track.masterPreviewInfo.durationSec || MASTER_PREVIEW_DURATION_SEC)}초 샘플 준비됨` : '전체 렌더 전에 하이라이트 구간만 먼저 확인합니다.';
+    bar.append(button, note);
+    el.trackDetail.appendChild(bar);
+}
+
 function renderAiMasteringCard(track) {
     if (!track || !el.trackDetail) return;
     const panel = document.createElement('section');
@@ -8524,13 +8266,13 @@ function renderAiMasteringCard(track) {
     candidates.appendChild(candidateLabel);
     const candidateList = document.createElement('div');
     candidateList.className = 'ai-master-candidate-list';
-    getAiCandidatePresets(track).forEach(candidate => {
+    [getOriginalSelectionCandidate(track), ...getAiCandidatePresets(track)].forEach(candidate => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = `ai-candidate-chip ${candidate.preset === track.preset ? 'active' : ''}`;
+        button.className = `ai-candidate-chip ${candidate.preset === track.preset ? 'active' : ''} ${candidate.manual ? 'manual-original' : ''}`;
         button.textContent = candidate.label;
         button.disabled = !analyzed || state.busy;
-        button.addEventListener('click', () => applyAiPresetCandidate(track, candidate.preset));
+        button.addEventListener('click', () => candidate.manual ? applyOriginalManualSelection(track) : applyAiPresetCandidate(track, candidate.preset));
         candidateList.appendChild(button);
     });
     if (!candidateList.childNodes.length) {
@@ -8664,6 +8406,20 @@ function getAiCandidatePresets(track) {
     return candidates.slice(0, 4);
 }
 
+
+function getOriginalSelectionCandidate(track) {
+    return {
+        preset: 'custom',
+        label: '원본선택',
+        percent: 100,
+        meta: '원음',
+        mark: '수동',
+        recommended: false,
+        manual: true,
+        active: Boolean(track && track.preset === 'custom' && track.genreLocked)
+    };
+}
+
 function getAiConfidenceTone(track) {
     const confidence = Number(track?.confidence || 0);
     if (confidence >= 78) return 'ok';
@@ -8696,6 +8452,10 @@ function getAiMasteringRiskNotes(track) {
 
 function applyAiPresetCandidate(track, preset) {
     if (!track || !track.analysis || state.busy) return;
+    if (preset === 'custom') {
+        applyOriginalManualSelection(track);
+        return;
+    }
     const settings = makeRecommendedSettings(preset, track.analysis);
     track.preset = preset;
     track.settings = cloneSettings(settings);
@@ -8705,6 +8465,21 @@ function applyAiPresetCandidate(track, preset) {
     applyTrackToControls(track);
     renderAll({ keepDetailAudio: true });
     showToast(`${PRESET_LABELS[preset] || preset} 후보 프리셋을 적용했습니다.`);
+}
+
+
+function applyOriginalManualSelection(track) {
+    if (!track || state.busy) return false;
+    track.preset = 'custom';
+    track.settings = cloneSettings(GENRE_PRESETS.custom);
+    track.genreLocked = true;
+    track.originalManualSelected = true;
+    invalidateMasteredOutput(track, '원본선택 모드입니다. 원음 기준에서 직접 조절한 뒤 마스터링하세요.', false);
+    state.selectedId = track.id;
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast('원본선택: 원음 기준 커스텀 조절 모드로 전환했습니다.');
+    return true;
 }
 
 function canStartAiMastering(track) {
@@ -8812,15 +8587,19 @@ function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
 function selectBottomPreviewMode(mode, autoPlay = false) {
     const track = getSelectedTrack();
     if (!track) return;
-    const nextMode = mode === 'mastered' ? 'mastered' : 'original';
+    const nextMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
     if (nextMode === 'mastered' && !track.masteredUrl) {
         showToast('마스터링 실행 후 마스터링 프리뷰가 활성화됩니다.');
         return;
     }
+    if (nextMode === 'masterPreview' && !track.masterPreviewUrl) {
+        renderMasterPreviewForTrack(track, { source: 'dock' });
+        return;
+    }
     state.bottomPreviewMode = nextMode;
     state.bottomPreviewTrackId = track.id;
-    if (nextMode === 'mastered' && autoPlay) state.bottomPreviewAutoplayTrackId = track.id;
-    renderBottomPreviewDock({ autoPlay: nextMode === 'mastered' && autoPlay });
+    if ((nextMode === 'mastered' || nextMode === 'masterPreview') && autoPlay) state.bottomPreviewAutoplayTrackId = track.id;
+    renderBottomPreviewDock({ autoPlay: (nextMode === 'mastered' || nextMode === 'masterPreview') && autoPlay });
 }
 
 async function masterBottomPreviewTrack() {
@@ -8842,6 +8621,148 @@ async function masterBottomPreviewTrack() {
         return;
     }
     await masterTrack(track);
+}
+
+
+function canStartMasterPreview(track) {
+    return Boolean(track && track.analysis && !state.busy && !track.error && !['processing', 'analyzing'].includes(track.status));
+}
+
+async function renderMasterPreviewForSelected(source = 'detail') {
+    const track = getSelectedTrack();
+    if (!track) {
+        showToast('미리보기할 곡을 먼저 선택해주세요.');
+        return;
+    }
+    await renderMasterPreviewForTrack(track, { source });
+}
+
+async function renderMasterPreviewForTrack(track, options = {}) {
+    if (!track) return;
+    if (track.masterPreviewUrl && track.masterPreviewInfo && track.masterPreviewStatus !== 'processing') {
+        state.selectedId = track.id;
+        state.bottomPreviewMode = 'masterPreview';
+        state.bottomPreviewTrackId = track.id;
+        state.bottomPreviewAutoplayTrackId = track.id;
+        renderAll({ keepDetailAudio: true, autoPlay: true });
+        requestAnimationFrame(playBottomPreviewAudio);
+        showToast('준비된 15초 마스터링 미리보기를 재생합니다.');
+        return;
+    }
+    if (!canStartMasterPreview(track)) {
+        showToast('분석이 끝난 정상 트랙에서만 마스터링 미리보기를 만들 수 있습니다.');
+        return;
+    }
+
+    pauseAllPreviewAudio();
+    const previousReport = track.report || '';
+    let completed = false;
+    state.busy = true;
+    state.masterPreviewRenderingTrackId = track.id;
+    track.masterPreviewStatus = 'processing';
+    track.report = '하이라이트 15초 마스터링 미리보기 생성 중';
+    renderAll({ keepDetailAudio: true });
+
+    try {
+        const sourceBuffer = await decodeAudio(track.file);
+        const startSec = getMasterPreviewStartSec(track, sourceBuffer);
+        let segmentBuffer = sliceAudioBuffer(sourceBuffer, startSec, MASTER_PREVIEW_DURATION_SEC);
+        segmentBuffer = removeDcOffsetAudioBuffer(segmentBuffer).buffer || segmentBuffer;
+        sanitizeAudioBuffer(segmentBuffer, 'master-preview-source');
+        await yieldToBrowser();
+
+        let preparedBuffer = await preparePitchSpeedBuffer(segmentBuffer, track.transform);
+        if (shouldUseInstrumentLayer(track.instrument)) {
+            const layered = mixInstrumentLayerBuffer(preparedBuffer, track.instrument, track.analysis);
+            preparedBuffer = layered.buffer;
+        }
+        sanitizeAudioBuffer(preparedBuffer, 'master-preview-prepared');
+        await yieldToBrowser();
+
+        const albumProfile = getActiveAlbumProfile();
+        const masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
+        sanitizeAudioBuffer(masteredBuffer, 'master-preview-chain');
+        await yieldToBrowser();
+
+        const finalization = await finalizeMasterBufferAsync(masteredBuffer, {
+            targetLufs: state.targetLufs,
+            ceilingDb: state.ceilingDb,
+            qualityMode: state.qualityMode === 'max' ? 'balanced' : state.qualityMode,
+            masterGoal: state.masterGoal,
+            truePeak: state.featureFlags.truePeakGuard,
+            analysis: track.analysis || {}
+        });
+        const finalBuffer = finalization.buffer;
+        sanitizeAudioBuffer(finalBuffer, 'master-preview-finalizer');
+        const blob = await encodeWavAsync(finalBuffer, 'wav16');
+        if (!blob || blob.size <= 44) throw new Error('마스터링 미리보기 결과가 비어 있습니다.');
+
+        if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
+        track.masterPreviewBlob = blob;
+        track.masterPreviewUrl = URL.createObjectURL(blob);
+        track.masterPreviewInfo = {
+            startSec,
+            durationSec: finalBuffer.duration || MASTER_PREVIEW_DURATION_SEC,
+            sourceDurationSec: segmentBuffer.duration || MASTER_PREVIEW_DURATION_SEC,
+            preset: track.preset,
+            settings: cloneSettings(track.settings),
+            createdAt: new Date().toISOString(),
+            finalizeInfo: finalization.info || {}
+        };
+        track.masterPreviewStatus = 'ready';
+        track.report = `마스터링 전 미리보기 준비됨 · ${formatTime(startSec)}부터 약 ${Math.round(track.masterPreviewInfo.durationSec)}초`;
+        state.selectedId = track.id;
+        state.bottomPreviewMode = 'masterPreview';
+        state.bottomPreviewTrackId = track.id;
+        state.bottomPreviewAutoplayTrackId = track.id;
+        completed = true;
+        showToast('15초 마스터링 미리보기를 생성했습니다. Dock에서 재생합니다.');
+    } catch (error) {
+        console.error('Master preview error:', error);
+        track.masterPreviewStatus = 'error';
+        track.report = previousReport || '마스터링 미리보기 생성 실패';
+        showToast(`마스터링 미리보기 실패: ${getErrorMessage(error, '알 수 없는 오류')}`);
+    } finally {
+        state.busy = false;
+        state.masterPreviewRenderingTrackId = null;
+        renderAll({ keepDetailAudio: true, autoPlay: completed });
+        if (completed) requestAnimationFrame(playBottomPreviewAudio);
+    }
+}
+
+function getMasterPreviewStartSec(track, buffer) {
+    const duration = Number(buffer?.duration || track?.analysis?.duration || 0);
+    if (!Number.isFinite(duration) || duration <= 0) return 0;
+    const candidate = Number.isFinite(Number(track?.abHighlightStartSec)) ? Number(track.abHighlightStartSec) : getTrackHighlightStart(track);
+    const raw = Number.isFinite(Number(candidate)) ? Number(candidate) : duration * 0.33;
+    const maxStart = Math.max(0, duration - MASTER_PREVIEW_DURATION_SEC);
+    return clamp(raw, 0, maxStart);
+}
+
+function sliceAudioBuffer(buffer, startSec, durationSec) {
+    const sampleRate = buffer.sampleRate;
+    const start = clamp(Math.floor(Number(startSec || 0) * sampleRate), 0, Math.max(0, buffer.length - 1));
+    const maxLength = Math.max(1, buffer.length - start);
+    const length = Math.min(maxLength, Math.max(1, Math.round(Number(durationSec || MASTER_PREVIEW_DURATION_SEC) * sampleRate)));
+    const output = makeAudioBuffer(buffer.numberOfChannels, length, sampleRate);
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
+        const src = buffer.getChannelData(ch);
+        output.copyToChannel(src.slice(start, start + length), ch);
+    }
+    applyEdgeFade(output, 0.015);
+    return output;
+}
+
+function clearMasterPreviewOutput(track) {
+    if (!track) return;
+    if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
+    track.masterPreviewBlob = null;
+    track.masterPreviewUrl = null;
+    track.masterPreviewInfo = null;
+    track.masterPreviewStatus = 'idle';
+    if (state.bottomPreviewMode === 'masterPreview' && state.bottomPreviewTrackId === track.id) {
+        state.bottomPreviewMode = 'original';
+    }
 }
 
 function getBottomPreviewGenreLabel(track) {
@@ -8870,13 +8791,16 @@ function renderBottomPreviewDock(options = {}) {
     }
 
     const masteredAvailable = Boolean(track.masteredUrl);
+    const masterPreviewAvailable = Boolean(track.masterPreviewUrl);
     if (state.bottomPreviewMode === 'mastered' && !masteredAvailable) state.bottomPreviewMode = 'original';
-    const mode = state.bottomPreviewMode === 'mastered' ? 'mastered' : 'original';
+    if (state.bottomPreviewMode === 'masterPreview' && !masterPreviewAvailable) state.bottomPreviewMode = 'original';
+    const mode = state.bottomPreviewMode === 'mastered' ? 'mastered' : (state.bottomPreviewMode === 'masterPreview' ? 'masterPreview' : 'original');
     const useMastered = mode === 'mastered' && masteredAvailable;
-    const src = useMastered ? track.masteredUrl : track.originalUrl;
-    const duration = useMastered ? (track.masteredDurationSec || track.analysis?.duration) : track.analysis?.duration;
+    const useMasterPreview = mode === 'masterPreview' && masterPreviewAvailable;
+    const src = useMastered ? track.masteredUrl : (useMasterPreview ? track.masterPreviewUrl : track.originalUrl);
+    const duration = useMastered ? (track.masteredDurationSec || track.analysis?.duration) : (useMasterPreview ? (track.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC) : track.analysis?.duration);
     const gainDb = useMastered ? getABMatchGainDb(track) : 0;
-    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode ? 'loop' : 'free'}|${state.abLevelMatch ? 'match' : 'raw'}`;
+    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|${state.abLevelMatch ? 'match' : 'raw'}`;
 
     el.bottomPreviewDock.classList.add('show');
     el.bottomPreviewDock.setAttribute('aria-hidden', 'false');
@@ -8895,6 +8819,7 @@ function renderBottomPreviewDock(options = {}) {
         el.bottomPreviewGenre.textContent = genreLabel;
         el.bottomPreviewGenre.title = genreLabel;
     }
+    setBottomPreviewMasterPreviewButtonState(track, mode);
     setBottomPreviewMasterButtonState(track);
     setBottomPreviewTabState(mode, masteredAvailable);
 
@@ -8907,19 +8832,43 @@ function renderBottomPreviewDock(options = {}) {
             empty.textContent = '프리뷰 소스를 준비 중입니다.';
             el.bottomPreviewPlayer.appendChild(empty);
         } else {
-            const player = createPreviewPlayer(src, gainDb, duration, state.abLoopMode, getTrackHighlightStart(track));
+            const player = createPreviewPlayer(src, gainDb, duration, state.abLoopMode && !useMasterPreview, useMasterPreview ? 0 : getTrackHighlightStart(track));
             player.classList.add('bottom-custom-player');
             const audio = player.querySelector('audio');
-            if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} ${useMastered ? '마스터링' : '원본'} 프리뷰 재생`);
+            const modeLabel = useMastered ? '마스터링' : (useMasterPreview ? '15초 마스터링 미리보기' : '원본');
+            if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} ${modeLabel} 프리뷰 재생`);
             el.bottomPreviewPlayer.appendChild(player);
             el.bottomPreviewPlayer.dataset.previewKey = key;
         }
     }
 
-    const shouldAutoPlay = (options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id) && useMastered;
+    const shouldAutoPlay = (options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id) && (useMastered || useMasterPreview);
     if (shouldAutoPlay) {
         state.bottomPreviewAutoplayTrackId = null;
         requestAnimationFrame(playBottomPreviewAudio);
+    }
+}
+
+
+function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPreviewMode) {
+    if (!el.bottomPreviewMasterPreviewBtn) return;
+    const processing = Boolean(track && track.masterPreviewStatus === 'processing');
+    const ready = Boolean(track && track.masterPreviewUrl);
+    el.bottomPreviewMasterPreviewBtn.classList.toggle('active', mode === 'masterPreview');
+    el.bottomPreviewMasterPreviewBtn.classList.toggle('processing', processing);
+    el.bottomPreviewMasterPreviewBtn.disabled = !track || state.busy || track.status === 'processing' || track.status === 'analyzing' || Boolean(track.error);
+    if (!track) {
+        el.bottomPreviewMasterPreviewBtn.textContent = '마스터링 미리보기';
+        el.bottomPreviewMasterPreviewBtn.title = '곡을 선택하면 15초 마스터링 미리보기를 만들 수 있습니다.';
+    } else if (processing) {
+        el.bottomPreviewMasterPreviewBtn.textContent = '미리보기 생성중';
+        el.bottomPreviewMasterPreviewBtn.title = '선택 곡의 하이라이트 15초를 현재 설정으로 처리하고 있습니다.';
+    } else if (ready) {
+        el.bottomPreviewMasterPreviewBtn.textContent = '마스터링 미리보기';
+        el.bottomPreviewMasterPreviewBtn.title = '준비된 15초 마스터링 미리보기를 재생합니다.';
+    } else {
+        el.bottomPreviewMasterPreviewBtn.textContent = '마스터링 미리보기';
+        el.bottomPreviewMasterPreviewBtn.title = '전체 마스터링 전에 하이라이트 15초만 먼저 처리해 들어봅니다.';
     }
 }
 
@@ -8948,14 +8897,15 @@ function setBottomPreviewMasterButtonState(track) {
 }
 
 function setBottomPreviewTabState(mode, masteredAvailable) {
-    const originalActive = mode !== 'mastered';
+    const originalActive = mode === 'original';
+    const masteredActive = mode === 'mastered';
     if (el.bottomPreviewOriginalBtn) {
         el.bottomPreviewOriginalBtn.classList.toggle('active', originalActive);
         el.bottomPreviewOriginalBtn.setAttribute('aria-selected', String(originalActive));
     }
     if (el.bottomPreviewMasteredBtn) {
-        el.bottomPreviewMasteredBtn.classList.toggle('active', !originalActive);
-        el.bottomPreviewMasteredBtn.setAttribute('aria-selected', String(!originalActive));
+        el.bottomPreviewMasteredBtn.classList.toggle('active', masteredActive);
+        el.bottomPreviewMasteredBtn.setAttribute('aria-selected', String(masteredActive));
         el.bottomPreviewMasteredBtn.disabled = !masteredAvailable;
         el.bottomPreviewMasteredBtn.title = masteredAvailable ? '마스터링된 곡을 재생합니다.' : '마스터링 실행 후 활성화됩니다.';
     }
@@ -9928,6 +9878,7 @@ function removeTrack(id) {
     state.selectedIds.delete(id);
     if (track.originalUrl) URL.revokeObjectURL(track.originalUrl);
     if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
+    if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
 
     if (state.selectedId === id) {
         state.selectedId = state.tracks[0] ? state.tracks[0].id : null;
@@ -9995,7 +9946,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.33',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.35',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
