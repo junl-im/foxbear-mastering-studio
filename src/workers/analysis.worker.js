@@ -1,4 +1,4 @@
-// FoxBear analysis worker v1.3.29 - FFT analyzer, K-weighted LUFS, phase-safe genre features
+// FoxBear analysis worker v1.3.33 - FFT analyzer, K-weighted LUFS, mobile speaker translation features
 'use strict';
 
 self.onmessage = event => {
@@ -35,6 +35,7 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
     const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
     const spatialExcessRisk = usableChannels >= 2 ? clamp01(Math.max(0, time.stereoWidth - 0.58) * 1.25 + Math.max(0, time.lowSideRatio - 0.34) * 1.10 + Math.max(0, (spectrum.spectrumBands?.air || 0) - 0.16) * 0.72) : 0;
     const estimatedTargetFreq = spectrum.valid ? spectrum.harshPeakHz : estimateTargetFrequency(time.zeroCrossRate);
+    const mobileSpeaker = estimateMobileSpeakerRisk({ bassRatio, lowMidRatio, midRatio, highRatio, brightness, metallicHint, transientDensity, loudnessIntegrated, loudnessHint, crest: time.crest, presenceRatio: spectrum.spectrumBands?.presence || 0, airRatio: spectrum.spectrumBands?.air || 0, spectrumBands: spectrum.spectrumBands, spectrumProfile: spectrum.spectrumProfile });
 
     return {
         duration, sampleRate: safeRate, channels: usableChannels, totalSamples, peak: time.peak, peakDb, rms: time.rms, loudnessHint,
@@ -45,6 +46,8 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
         spectralFlux: spectrum.spectralFlux, spectrumBands: spectrum.spectrumBands, spectrumProfile: spectrum.spectrumProfile,
         subRatio: spectrum.spectrumBands?.sub || 0, presenceRatio: spectrum.spectrumBands?.presence || 0, airRatio: spectrum.spectrumBands?.air || 0,
         spatialExcessRisk, widthRecommendationLimit: spatialExcessRisk > 0.52 || lowMonoScore < 70 ? 52 : spatialExcessRisk > 0.28 ? 60 : 72,
+        mobileSpeakerRisk: mobileSpeaker.risk, mobileSpeakerRiskLabel: mobileSpeaker.label,
+        mobileSpeakerDetail: { boom: mobileSpeaker.boom, box: mobileSpeaker.box, honk: mobileSpeaker.honk, harsh: mobileSpeaker.harsh, density: mobileSpeaker.density },
         loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling', targetDynamicFreq: estimatedTargetFreq
     };
 }
@@ -289,6 +292,32 @@ function makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower) {
         for (let bin = start; bin <= end; bin += 1) sum += avgPower[bin];
         return Number(clamp01(sum / denom).toFixed(5));
     });
+}
+
+
+function estimateMobileSpeakerRisk(analysis) {
+    if (!analysis) return { risk: 0, boom: 0, box: 0, honk: 0, harsh: 0, density: 0, label: 'safe' };
+    const bands = analysis.spectrumBands || {};
+    const profile = Array.isArray(analysis.spectrumProfile) ? analysis.spectrumProfile : [];
+    const bass = clamp01(Number(analysis.bassRatio ?? 0.25));
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? bands.lowMid ?? 0.22));
+    const mid = clamp01(Number(analysis.midRatio ?? bands.mid ?? 0.28));
+    const presence = clamp01(Number(analysis.presenceRatio ?? bands.presence ?? 0.16));
+    const high = clamp01(Number(analysis.highRatio ?? 0.22));
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const loudness = clamp01(((Number(analysis.loudnessIntegrated ?? analysis.loudnessHint ?? -18) + 24) / 14));
+    const crest = Number.isFinite(Number(analysis.crest)) ? Number(analysis.crest) : 4;
+    const lowBody = clamp01((Number(profile[3] || 0) + Number(profile[4] || 0) + Number(profile[5] || 0)) * 4.2);
+    const phoneBand = clamp01((Number(profile[8] || 0) + Number(profile[9] || 0)) * 4.8);
+    const boom = clamp01(Math.max(0, bass - 0.36) * 1.15 + Math.max(0, lowMid - 0.28) * 1.75 + Math.max(0, lowBody - 0.40) * 0.85);
+    const box = clamp01(Math.max(0, lowMid - 0.25) * 1.85 + Math.max(0, mid - 0.33) * 0.72 + Math.max(0, lowBody - 0.34) * 0.95);
+    const honk = clamp01(Math.max(0, mid - 0.36) * 1.20 + Math.max(0, phoneBand - 0.25) * 1.10);
+    const harsh = clamp01(Math.max(0, presence - 0.18) * 2.15 + Math.max(0, high - 0.34) * 0.85 + Math.max(0, brightness - 0.58) * 1.05 + Math.max(0, metallic - 0.46) * 0.82);
+    const density = clamp01(Math.max(0, loudness - 0.50) * 0.55 + Math.max(0, 4.2 - crest) * 0.12);
+    const risk = clamp01(boom * 0.24 + box * 0.30 + honk * 0.16 + harsh * 0.21 + density * 0.16);
+    const label = risk > 0.58 ? 'risk' : risk > 0.34 ? 'watch' : 'safe';
+    return { risk, boom, box, honk, harsh, density, label };
 }
 
 function estimateTargetFrequency(zcr) {

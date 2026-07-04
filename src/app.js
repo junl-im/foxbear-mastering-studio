@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.32 - vocal anti-metallic engine tuning
+// FoxBear AI Mastering Studio Pro v1.3.33 - mobile speaker translation guard
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.32';
+const APP_VERSION = 'Pro v1.3.33';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,7 +17,7 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1331';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1333';
 const ANALYSIS_CACHE_STORE = 'analysis';
 
 const MAX_FILES = 35;
@@ -189,8 +189,8 @@ const FEATURE_DEFINITIONS = {
         short: '어두운 곡은 아주 살짝 열고, 밝은 곡은 초고역 피로감을 부드럽게 정리합니다.'
     },
     translationGuard: {
-        label: '모바일 번역 보정',
-        short: '폰 스피커와 이어폰에서 저역 번짐·중역 묻힘을 줄이도록 아주 얇게 보정합니다.'
+        label: '모바일 번역/공진 보정',
+        short: '폰 스피커와 이어폰에서 저역 번짐, 박스톤, 2~5kHz 공진 울림을 줄이도록 보정합니다.'
     },
     openMixGuard: {
         label: '개방감 리커버리',
@@ -442,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.32';
+    styleLink.href = 'assets/css/studio.css?v=1.3.33';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2748,6 +2748,7 @@ function analyzeBuffer(buffer) {
     const lowMonoScore = channels >= 2 ? Math.round(clamp(((time.lowMonoCorrelation + 1) * 0.5) * 72 + (1 - clamp01(time.lowSideRatio)) * 28, 0, 100)) : 100;
     const lowMonoRisk = lowMonoScore >= 82 ? 'safe' : lowMonoScore >= 64 ? 'watch' : 'risk';
     const spatialExcessRisk = channels >= 2 ? clamp01(Math.max(0, time.stereoWidth - 0.58) * 1.25 + Math.max(0, time.lowSideRatio - 0.34) * 1.10 + Math.max(0, (spectrum.spectrumBands?.air || 0) - 0.16) * 0.72) : 0;
+    const mobileSpeakerRisk = estimateMobileSpeakerRisk({ bassRatio, lowMidRatio, midRatio, highRatio, brightness, metallicHint, transientDensity, loudnessIntegrated, loudnessHint, crest: time.crest, presenceRatio: spectrum.spectrumBands?.presence || 0, airRatio: spectrum.spectrumBands?.air || 0, spectrumBands: spectrum.spectrumBands, spectrumProfile: spectrum.spectrumProfile }, GENRE_PRESETS.custom);
     return {
         duration: buffer.duration,
         sampleRate: buffer.sampleRate,
@@ -2785,6 +2786,9 @@ function analyzeBuffer(buffer) {
         airRatio: spectrum.spectrumBands?.air || 0,
         spatialExcessRisk,
         widthRecommendationLimit: spatialExcessRisk > 0.52 || lowMonoScore < 70 ? 52 : spatialExcessRisk > 0.28 ? 60 : 72,
+        mobileSpeakerRisk: mobileSpeakerRisk.risk,
+        mobileSpeakerRiskLabel: mobileSpeakerRisk.label,
+        mobileSpeakerDetail: { boom: mobileSpeakerRisk.boom, box: mobileSpeakerRisk.box, honk: mobileSpeakerRisk.honk, harsh: mobileSpeakerRisk.harsh, density: mobileSpeakerRisk.density },
         loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
         analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling',
         targetDynamicFreq: spectrum.valid ? spectrum.harshPeakHz : estimateTargetFrequency(time.zeroCrossRate)
@@ -3264,7 +3268,7 @@ function recommendPreset(fileName, analysis) {
     if (analysis.silence) return { preset: 'custom', confidence: 0, reason: '무음 또는 매우 작은 신호로 분석 보류', alternatives: [] };
 
     const features = extractGenreFeatures(analysis);
-    const { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk } = features;
+    const { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk, mobileRisk } = features;
 
     // 자동 장르 판별은 파일명 키워드 + 오디오 특징을 같이 봅니다.
     // 파일명 힌트가 없을 때는 Future Bass/House/Drill 같은 세부 장르가 과하게 선택되지 않도록 보수적으로 처리합니다.
@@ -3327,6 +3331,16 @@ function recommendPreset(fileName, analysis) {
     scores.futurebass += (bass > 0.24 && high > 0.18 && wide > 0.58 && punch < 0.62 && spatialRisk < 0.45) ? 0.18 : -0.82;
     scores.house += (transient > 0.32 && punch > 0.48 && bass > 0.18) ? 0.16 : -0.26;
     scores.synthpop += (high > 0.20 && metallic > 0.44 && punch < 0.58) ? 0.10 : -0.22;
+    if (mobileRisk > 0.34) {
+        scores.kballad += soft > 0.46 ? 0.18 : 0.06;
+        scores.ballad += soft > 0.42 ? 0.16 : 0.05;
+        scores.rnb += lowMid > 0.25 ? 0.10 : 0.04;
+        scores.futurebass -= mobileRisk * 0.55;
+        scores.edm -= mobileRisk * 0.38;
+        scores.house -= mobileRisk * 0.24;
+        scores.spatial -= mobileRisk * 0.42;
+        scores.punch -= mobileRisk * 0.20;
+    }
 
     const keywordMap = {
         kpop: ['kpop', 'k-pop', 'idol', '아이돌'],
@@ -3472,7 +3486,8 @@ function extractGenreFeatures(analysis) {
     const centroidNorm = Number(analysis.spectralCentroidHz) > 0 ? normalizeLogFrequency(Number(analysis.spectralCentroidHz), 380, 5600) : bright;
     const rolloffNorm = Number(analysis.spectralRolloffHz) > 0 ? normalizeLogFrequency(Number(analysis.spectralRolloffHz), 1800, 15000) : bright;
     const spatialRisk = clamp01(analysis.spatialExcessRisk || 0);
-    return { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, mid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk };
+    const mobileRisk = clamp01(analysis.mobileSpeakerRisk ?? estimateMobileSpeakerRisk(analysis).risk);
+    return { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, mid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk, mobileRisk };
 }
 
 function keywordHit(haystack, keywords) {
@@ -3489,6 +3504,7 @@ function makeGenreReason(preset, features, alternatives, mode) {
     parts.push(`금속성 ${Math.round(features.metallic * 100)}%`);
     if (Number.isFinite(features.centroidNorm)) parts.push(`FFT중심 ${Math.round(features.centroidNorm * 100)}%`);
     if (features.spatialRisk > 0.28) parts.push(`과공간 위험 ${Math.round(features.spatialRisk * 100)}%`);
+    if (features.mobileRisk > 0.30) parts.push(`폰울림 위험 ${Math.round(features.mobileRisk * 100)}%`);
     const top = alternatives.map(item => `${item.label} ${item.score}`).join(' / ');
     return `${PRESET_LABELS[preset] || preset} 판단 · ${mode} · ${parts.join(' · ')} · 후보 ${top}`;
 }
@@ -3525,6 +3541,13 @@ function makeRecommendedSettings(preset, analysis) {
     if (analysis.metallicHint > 0.72) base.clarity = clamp(base.clarity - 4, 8, 78);
     if (analysis.crest > 5.8) base.intensity = clamp(base.intensity + 5, 50, 200);
     if (analysis.metallicHint > 0.7) base.intensity = clamp(base.intensity + 5, 50, 200);
+    const mobileRisk = estimateMobileSpeakerRisk(analysis, base, getMasteringIntensity(base));
+    if (mobileRisk.risk > 0.30) {
+        base.warmth = clamp(Math.round(base.warmth - mobileRisk.box * 7 - mobileRisk.boom * 5), 10, 84);
+        base.dynamicPunch = clamp(Math.round(base.dynamicPunch - mobileRisk.density * 5), 10, 72);
+        base.clarity = clamp(Math.round(base.clarity - mobileRisk.harsh * 4), 8, 80);
+        base.metallicRemoval = clamp(Math.round(base.metallicRemoval + mobileRisk.harsh * 5 + mobileRisk.box * 3), 18, 84);
+    }
     if (spatialRisk > 0.24 || Number(analysis.lowMonoScore || 100) < 78 || wide > 0.56) {
         base.width = clamp(Math.min(base.width, widthLimit) - Math.round(spatialRisk * 7), 10, 68);
         base.stereoGroove = clamp(Math.round(base.stereoGroove - spatialRisk * 9 - Math.max(0, wide - 0.56) * 12), 0, 24);
@@ -4486,6 +4509,14 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
         out.dynamicPunch = clamp(Math.round(Number(out.dynamicPunch || 35) - vocalMetalRisk * 4), 4, 88);
         out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) - vocalMetalRisk * 4), 0, 24);
     }
+    const mobileRisk = estimateMobileSpeakerRisk(analysis, out, getMasteringIntensity(out));
+    if (mobileRisk.risk > 0.30) {
+        out.warmth = clamp(Math.round(Number(out.warmth || 55) - mobileRisk.box * 8 - mobileRisk.boom * 5), 10, 84);
+        out.dynamicPunch = clamp(Math.round(Number(out.dynamicPunch || 35) - mobileRisk.density * 6 - mobileRisk.boom * 4), 4, 84);
+        out.clarity = clamp(Math.round(Number(out.clarity || 50) - mobileRisk.harsh * 5 + Math.max(0, 0.42 - mobileRisk.honk) * 2), 5, 86);
+        out.metallicRemoval = clamp(Math.round(Number(out.metallicRemoval || 42) + mobileRisk.harsh * 7 + mobileRisk.box * 3), 18, 88);
+        if (mobileRisk.risk > 0.52) out.intensity = clampToStep(Number(out.intensity || 100) - mobileRisk.risk * 8, 50, 200, 5);
+    }
     applySpatialBudgetToSettings(out, analysis, getMasteringIntensity(out));
     return out;
 }
@@ -4544,6 +4575,38 @@ function estimateVocalMetallicRisk(analysis, settings = {}, preset = null, inten
     const intensityRisk = Math.max(0, rawIntensity - 112) / 115;
     const harshBandRisk = targetFreq >= 3600 && targetFreq <= 8200 ? 0.08 : 0;
     return clamp01(vocalBase + vocalPresence + airFizz + brightRisk + metalRisk + clarityRisk + intensityRisk + harshBandRisk);
+}
+
+
+function estimateMobileSpeakerRisk(analysis, settings = {}, intensity = getMasteringIntensity(settings || {})) {
+    if (!analysis) return { risk: 0, boom: 0, box: 0, honk: 0, harsh: 0, density: 0, label: 'safe' };
+    const bands = analysis.spectrumBands || {};
+    const profile = Array.isArray(analysis.spectrumProfile) ? analysis.spectrumProfile : [];
+    const bass = clamp01(Number(analysis.bassRatio ?? 0.25));
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? bands.lowMid ?? 0.22));
+    const mid = clamp01(Number(analysis.midRatio ?? bands.mid ?? 0.28));
+    const presence = clamp01(Number(analysis.presenceRatio ?? bands.presence ?? 0.16));
+    const high = clamp01(Number(analysis.highRatio ?? 0.22));
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const loudness = clamp01(((Number(analysis.loudnessIntegrated ?? analysis.loudnessHint ?? -18) + 24) / 14));
+    const crest = Number.isFinite(Number(analysis.crest)) ? Number(analysis.crest) : 4;
+    const lowBody = clamp01((Number(profile[3] || 0) + Number(profile[4] || 0) + Number(profile[5] || 0)) * 4.2);
+    const phoneBand = clamp01((Number(profile[8] || 0) + Number(profile[9] || 0)) * 4.8);
+    const boom = clamp01(Math.max(0, bass - 0.36) * 1.15 + Math.max(0, lowMid - 0.28) * 1.75 + Math.max(0, lowBody - 0.40) * 0.85);
+    const box = clamp01(Math.max(0, lowMid - 0.25) * 1.85 + Math.max(0, mid - 0.33) * 0.72 + Math.max(0, lowBody - 0.34) * 0.95);
+    const honk = clamp01(Math.max(0, mid - 0.36) * 1.20 + Math.max(0, phoneBand - 0.25) * 1.10);
+    const harsh = clamp01(Math.max(0, presence - 0.18) * 2.15 + Math.max(0, high - 0.34) * 0.85 + Math.max(0, brightness - 0.58) * 1.05 + Math.max(0, metallic - 0.46) * 0.82);
+    const density = clamp01(Math.max(0, loudness - 0.50) * 0.55 + Math.max(0, 4.2 - crest) * 0.12 + Math.max(0, Number(intensity?.raw ?? settings?.intensity ?? 100) - 120) / 180);
+    const risk = clamp01(boom * 0.24 + box * 0.30 + honk * 0.16 + harsh * 0.21 + density * 0.16);
+    const label = risk > 0.58 ? 'risk' : risk > 0.34 ? 'watch' : 'safe';
+    return { risk, boom, box, honk, harsh, density, label };
+}
+
+function formatMobileSpeakerRisk(info) {
+    if (!info) return 'N/A';
+    const label = info.label === 'risk' ? '위험' : info.label === 'watch' ? '주의' : '안전';
+    return `${label} ${Math.round(Number(info.risk || 0) * 100)}% · 붐 ${Math.round(Number(info.boom || 0) * 100)}% · 박스 ${Math.round(Number(info.box || 0) * 100)}% · 폰공진 ${Math.round(Number(info.harsh || 0) * 100)}%`;
 }
 
 function createVocalMetallicComfortNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
@@ -5021,39 +5084,56 @@ function createOpenMixRecoveryNode(context, input, settings, analysis, intensity
     return output;
 }
 
+
 function createTranslationGuardNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.translationGuard === false || !analysis) return input;
     const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
     const lowMid = clamp01(Number(analysis.lowMidRatio ?? 0.24));
     const mid = clamp01(Number(analysis.midRatio ?? 0.28));
     const brightness = clamp01(Number(analysis.brightness ?? 0.45));
-    const scale = clamp(intensity.amount, 0.65, 1.5);
+    const mobile = estimateMobileSpeakerRisk(analysis, settings, intensity);
+    const scale = clamp(intensity.amount * (0.74 + mobile.risk * 0.72), 0.65, 1.65);
     const output = context.createGain();
 
     const subPocket = context.createBiquadFilter();
     subPocket.type = 'lowshelf';
-    subPocket.frequency.value = 88;
-    subPocket.gain.value = clamp(-(Math.max(0, bass - 0.38) * 0.75) * scale, -0.65, 0.10);
+    subPocket.frequency.value = 92;
+    subPocket.gain.value = clamp(-(Math.max(0, bass - 0.35) * 0.86 + mobile.boom * 0.36) * scale, -1.20, 0.06);
 
     const mudPocket = context.createBiquadFilter();
     mudPocket.type = 'peaking';
-    mudPocket.frequency.value = 245;
-    mudPocket.Q.value = 0.88;
-    mudPocket.gain.value = clamp(-(Math.max(0, lowMid - 0.27) * 0.80) * scale, -0.75, 0.02);
+    mudPocket.frequency.value = mobile.box > 0.45 ? 310 : 255;
+    mudPocket.Q.value = 0.82;
+    mudPocket.gain.value = clamp(-(Math.max(0, lowMid - 0.25) * 0.95 + mobile.box * 0.58) * scale, -1.45, 0.01);
+
+    const boxResonance = context.createBiquadFilter();
+    boxResonance.type = 'peaking';
+    boxResonance.frequency.value = 470;
+    boxResonance.Q.value = 1.10;
+    boxResonance.gain.value = clamp(-(mobile.box * 0.42 + Math.max(0, lowMid - 0.31) * 0.52) * scale, -1.05, 0);
 
     const smallSpeakerFocus = context.createBiquadFilter();
     smallSpeakerFocus.type = 'peaking';
-    smallSpeakerFocus.frequency.value = 1350;
-    smallSpeakerFocus.Q.value = 0.82;
-    smallSpeakerFocus.gain.value = clamp((0.31 - mid) * 0.35 * scale, -0.12, 0.26);
+    smallSpeakerFocus.frequency.value = 1450;
+    smallSpeakerFocus.Q.value = 0.78;
+    smallSpeakerFocus.gain.value = clamp((0.31 - mid) * 0.26 * scale - mobile.honk * 0.18, -0.28, 0.20);
+
+    const phoneHonkGuard = context.createBiquadFilter();
+    phoneHonkGuard.type = 'peaking';
+    phoneHonkGuard.frequency.value = 2900;
+    phoneHonkGuard.Q.value = 1.15;
+    phoneHonkGuard.gain.value = clamp(-(mobile.honk * 0.40 + Math.max(0, brightness - 0.63) * 0.12) * scale, -0.90, 0);
 
     const phoneHarshGuard = context.createBiquadFilter();
     phoneHarshGuard.type = 'peaking';
-    phoneHarshGuard.frequency.value = 4100;
-    phoneHarshGuard.Q.value = 1.35;
-    phoneHarshGuard.gain.value = clamp(-Math.max(0, brightness - 0.62) * 0.32 * scale, -0.42, 0);
+    phoneHarshGuard.frequency.value = 4200;
+    phoneHarshGuard.Q.value = 1.45;
+    phoneHarshGuard.gain.value = clamp(-(Math.max(0, brightness - 0.60) * 0.38 + mobile.harsh * 0.52) * scale, -1.10, 0);
 
-    input.connect(subPocket).connect(mudPocket).connect(smallSpeakerFocus).connect(phoneHarshGuard).connect(output);
+    const outputTrim = context.createGain();
+    outputTrim.gain.value = clamp(1 - mobile.density * 0.018 - mobile.risk * 0.012, 0.955, 1);
+
+    input.connect(subPocket).connect(mudPocket).connect(boxResonance).connect(smallSpeakerFocus).connect(phoneHonkGuard).connect(phoneHarshGuard).connect(outputTrim).connect(output);
     return output;
 }
 
@@ -6357,6 +6437,8 @@ function createFinalizerAnalysisPayload(analysis) {
         transientDensity: normalized.transientDensity,
         spatialExcessRisk: normalized.spatialExcessRisk,
         lowMonoScore: normalized.lowMonoScore,
+        mobileSpeakerRisk: normalized.mobileSpeakerRisk,
+        mobileSpeakerDetail: analysis?.mobileSpeakerDetail || null,
         spectrumBands: analysis?.spectrumBands || null
     };
 }
@@ -6374,8 +6456,44 @@ function normalizeFinalizerAnalysis(analysis) {
         metallicHint: clamp01(Number(analysis.metallicHint ?? 0.35)),
         transientDensity: clamp01(Number(analysis.transientDensity ?? 0.35)),
         spatialExcessRisk: clamp01(Number(analysis.spatialExcessRisk ?? 0)),
-        lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100)
+        lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100),
+        mobileSpeakerRisk: clamp01(Number(analysis.mobileSpeakerRisk ?? 0)),
+        mobileSpeakerDetail: analysis.mobileSpeakerDetail || null
     };
+}
+
+
+function applyMobileSpeakerResonanceGuardBuffer(buffer, qualityMode = 'balanced', analysis = {}) {
+    if (!buffer || !buffer.length || !buffer.numberOfChannels) return { mode: 'bypass', risk: 0, cuts: {} };
+    const normalized = normalizeFinalizerAnalysis(analysis || {});
+    const fallbackRisk = estimateMobileSpeakerRisk(normalized, {}, { raw: 100, amount: 1 });
+    const detail = normalized.mobileSpeakerDetail || {};
+    const risk = clamp01(Number(normalized.mobileSpeakerRisk || 0) || fallbackRisk.risk);
+    if (risk < 0.16) return { mode: 'bypass', risk, cuts: {} };
+    const sampleRate = Math.max(3000, Math.min(384000, Number(buffer.sampleRate || 44100)));
+    const amount = qualityMode === 'fast' ? 0.74 : qualityMode === 'max' ? 1.08 : 0.92;
+    const cuts = {
+        lowShelfDb: clamp(-(Math.max(0, normalized.bassRatio - 0.35) * 0.72 + Number(detail.boom || fallbackRisk.boom) * 0.42) * amount, -1.05, 0),
+        mudDb: clamp(-(Math.max(0, normalized.lowMidRatio - 0.25) * 1.05 + Number(detail.box || fallbackRisk.box) * 0.62) * amount, -1.35, 0),
+        boxDb: clamp(-(Number(detail.box || fallbackRisk.box) * 0.55 + Math.max(0, normalized.lowMidRatio - 0.31) * 0.40) * amount, -1.05, 0),
+        phoneDb: clamp(-(Number(detail.harsh || fallbackRisk.harsh) * 0.58 + Math.max(0, normalized.presenceRatio - 0.20) * 0.72) * amount, -1.15, 0)
+    };
+    const channels = [];
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) channels.push(buffer.getChannelData(ch));
+    const filterSets = channels.map(() => [
+        createGenericLowShelfFilter(sampleRate, 105, 0.707, cuts.lowShelfDb),
+        createGenericPeakingFilter(sampleRate, 285, 0.86, cuts.mudDb),
+        createGenericPeakingFilter(sampleRate, 465, 1.12, cuts.boxDb),
+        createGenericPeakingFilter(sampleRate, 4150, 1.45, cuts.phoneDb)
+    ]);
+    for (let i = 0; i < buffer.length; i += 1) {
+        for (let ch = 0; ch < channels.length; ch += 1) {
+            let x = Number.isFinite(channels[ch][i]) ? channels[ch][i] : 0;
+            for (const filter of filterSets[ch]) x = processKWeightBiquad(filter, x);
+            channels[ch][i] = x;
+        }
+    }
+    return { mode: 'mobileSpeakerResonanceGuard', risk, cuts };
 }
 
 function applyGentleMultibandDynamicsBuffer(buffer, qualityMode = 'balanced', analysis = {}) {
@@ -6501,6 +6619,39 @@ function createGenericHighpassFilter(sampleRate, frequency, q) {
     const a0 = 1 + alpha;
     const a1 = -2 * cos;
     const a2 = 1 - alpha;
+    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+
+function createGenericPeakingFilter(sampleRate, frequency, q, gainDb) {
+    const a = Math.pow(10, Number(gainDb || 0) / 40);
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const alpha = sin / (2 * Math.max(0.001, q));
+    const b0 = 1 + alpha * a;
+    const b1 = -2 * cos;
+    const b2 = 1 - alpha * a;
+    const a0 = 1 + alpha / a;
+    const a1 = -2 * cos;
+    const a2 = 1 - alpha / a;
+    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+function createGenericLowShelfFilter(sampleRate, frequency, q, gainDb) {
+    const a = Math.pow(10, Number(gainDb || 0) / 40);
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const sqrtA = Math.sqrt(a);
+    const shelfSlope = Math.max(0.1, Number(q || 0.707));
+    const alpha = sin / 2 * Math.sqrt((a + 1 / a) * (1 / shelfSlope - 1) + 2);
+    const b0 = a * ((a + 1) - (a - 1) * cos + 2 * sqrtA * alpha);
+    const b1 = 2 * a * ((a - 1) - (a + 1) * cos);
+    const b2 = a * ((a + 1) - (a - 1) * cos - 2 * sqrtA * alpha);
+    const a0 = (a + 1) + (a - 1) * cos + 2 * sqrtA * alpha;
+    const a1 = -2 * ((a - 1) + (a + 1) * cos);
+    const a2 = (a + 1) + (a - 1) * cos - 2 * sqrtA * alpha;
     return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
 }
 
@@ -6632,6 +6783,9 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
             multibandMode: finalizeInfo?.multibandMode || '',
             multibandReductionDb: Number(finalizeInfo?.multibandReductionDb || 0),
             multibandBands: finalizeInfo?.multibandBands || null,
+            mobileSpeakerMode: finalizeInfo?.mobileSpeakerMode || '',
+            mobileSpeakerRisk: Number(finalizeInfo?.mobileSpeakerRisk || 0),
+            mobileSpeakerCuts: finalizeInfo?.mobileSpeakerCuts || null,
             loudnessStandard: finalizeInfo?.loudnessStandard || '',
             spatialBudget: spatialBudget ? {
                 widthFactor: Number(spatialBudget.widthFactor || 1),
@@ -6788,6 +6942,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         const targetDb = Number(options.ceilingDb ?? -1.0);
         const targetLufs = Number(options.targetLufs ?? -14);
         const qualityMode = options.qualityMode || 'balanced';
+        const mobileInfo = applyMobileSpeakerResonanceGuardBuffer(working, qualityMode, options.analysis || {});
         const multibandInfo = applyGentleMultibandDynamicsBuffer(working, qualityMode, options.analysis || {});
         const maxGainDb = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 4.5 : 6;
         const loudnessBefore = measureApproxGatedLoudness(working);
@@ -6815,6 +6970,9 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 multibandMode: multibandInfo.mode,
                 multibandReductionDb: multibandInfo.reductionDb,
                 multibandBands: multibandInfo.bands,
+                mobileSpeakerMode: mobileInfo.mode,
+                mobileSpeakerRisk: mobileInfo.risk,
+                mobileSpeakerCuts: mobileInfo.cuts,
                 limiterMode: peakInfo.limiterMode,
                 lookaheadMs: peakInfo.lookaheadMs,
                 lookaheadSamples: peakInfo.lookaheadSamples,
@@ -8262,6 +8420,10 @@ function renderDetail(options = {}) {
                 const bands = track.finalizeInfo.multibandBands || {};
                 addRow('멀티밴드 다이내믹스', `Low ${formatSigned(Number(bands.low || 0), 2)} dB · Mid ${formatSigned(Number(bands.mid || 0), 2)} dB · High ${formatSigned(Number(bands.high || 0), 2)} dB`);
             }
+            if (track.finalizeInfo.mobileSpeakerMode && track.finalizeInfo.mobileSpeakerMode !== 'bypass') {
+                const cuts = track.finalizeInfo.mobileSpeakerCuts || {};
+                addRow('폰 스피커 번역 가드', `위험 ${Math.round(Number(track.finalizeInfo.mobileSpeakerRisk || 0) * 100)}% · 저역 ${formatSigned(Number(cuts.lowShelfDb || 0), 2)} dB · 박스 ${formatSigned(Number(cuts.mudDb || 0), 2)} dB · 폰공진 ${formatSigned(Number(cuts.phoneDb || 0), 2)} dB`);
+            }
             const spatialBudget = track.analysis?.spatialBudgetApplied;
             if (spatialBudget) {
                 const grooveText = `${Math.round(Number(spatialBudget.rawStereoGroove || 0))}% → ${Math.round(Number(spatialBudget.stereoGroove || 0))}%`;
@@ -8281,6 +8443,7 @@ function renderDetail(options = {}) {
             addRow('저역/중역/고역', `${Math.round((track.analysis.bassRatio || 0) * 100)}% / ${Math.round((track.analysis.midRatio || 0) * 100)}% / ${Math.round((track.analysis.highRatio || 0) * 100)}%`);
             addRow('트랜지언트 밀도', `${Math.round((track.analysis.transientDensity || 0) * 100)}%`);
             addRow('금속성 지수', `${Math.round(track.analysis.metallicHint * 100)}%`);
+            if (Number.isFinite(Number(track.analysis.mobileSpeakerRisk))) addRow('폰 스피커 울림 위험', formatMobileSpeakerRisk({ ...(track.analysis.mobileSpeakerDetail || {}), risk: Number(track.analysis.mobileSpeakerRisk || 0), label: track.analysis.mobileSpeakerRiskLabel || 'safe' }));
             addRow('공진 추적 주파수', `${track.analysis.targetDynamicFreq} Hz`);
         }
         if (track.error) addRow('오류 내용', track.error);
@@ -9189,6 +9352,8 @@ function createQualityGateReport(track, report, finalizeInfo, encoded) {
     addQualityGateItem(items, 'DC offset', Math.abs(dc) <= QUALITY_GATE_RULES.maxDcOffset ? 'pass' : 'warn', `${dc.toFixed(5)}`);
     if (encoded?.fallbackFrom) addQualityGateItem(items, '출력 fallback', 'warn', `${getOutputFormatLabel(encoded.fallbackFrom)} 실패 → ${getOutputFormatLabel(encoded.format)} 저장`);
     if (track?.performanceGuardInfo?.changed) addQualityGateItem(items, '성능 가드', 'warn', formatPerformanceGuardInfo(track.performanceGuardInfo));
+    const mobileRisk = Number(track?.analysis?.mobileSpeakerRisk || finalizeInfo?.mobileSpeakerRisk || 0);
+    if (mobileRisk > 0.42) addQualityGateItem(items, '폰 스피커 울림', mobileRisk > 0.62 ? 'warn' : 'pass', `위험 ${Math.round(mobileRisk * 100)}% · 모바일 번역 가드 적용`);
 
     const fail = items.filter(item => item.status === 'fail').length;
     const warn = items.filter(item => item.status === 'warn').length;
@@ -9830,7 +9995,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.32',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.33',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

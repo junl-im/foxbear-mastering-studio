@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.3.30 - multiband dynamics + 4x FIR true-peak limiter
+// FoxBear Pro finalizer worker v1.3.33 - mobile speaker guard + multiband dynamics + 4x FIR true-peak limiter
 'use strict';
 
 self.onmessage = event => {
@@ -21,6 +21,7 @@ self.onmessage = event => {
         const data = channelBuffers.map(src => new Float32Array(src.slice(0, length)));
         sanitizeBuffers(data, length);
         removeDcOffset(data, length);
+        const mobileInfo = applyMobileSpeakerResonanceGuard(data, length, sampleRate, qualityMode, analysis);
         const multibandInfo = applyGentleMultibandDynamics(data, length, sampleRate, qualityMode, analysis);
 
         const loudnessBefore = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
@@ -73,6 +74,9 @@ self.onmessage = event => {
                 multibandMode: multibandInfo.mode,
                 multibandReductionDb: multibandInfo.reductionDb,
                 multibandBands: multibandInfo.bands,
+                mobileSpeakerMode: mobileInfo.mode,
+                mobileSpeakerRisk: mobileInfo.risk,
+                mobileSpeakerCuts: mobileInfo.cuts,
                 loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates'
             }
         }, transfers);
@@ -302,8 +306,63 @@ function normalizeAnalysis(analysis) {
         metallicHint: clamp01(Number(analysis.metallicHint ?? 0.35)),
         transientDensity: clamp01(Number(analysis.transientDensity ?? 0.35)),
         spatialExcessRisk: clamp01(Number(analysis.spatialExcessRisk ?? 0)),
-        lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100)
+        lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100),
+        mobileSpeakerRisk: clamp01(Number(analysis.mobileSpeakerRisk ?? 0)),
+        mobileSpeakerDetail: analysis.mobileSpeakerDetail || null
     };
+}
+
+
+function applyMobileSpeakerResonanceGuard(buffers, length, sampleRate, qualityMode, analysis) {
+    if (!buffers || !buffers.length || length < 16) return { mode: 'bypass', risk: 0, cuts: {} };
+    const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
+    const fallbackRisk = estimateMobileSpeakerRisk(analysis || {});
+    const detail = analysis.mobileSpeakerDetail || {};
+    const risk = clamp01(Number(analysis.mobileSpeakerRisk || 0) || fallbackRisk.risk);
+    if (risk < 0.16) return { mode: 'bypass', risk, cuts: {} };
+    const amount = qualityMode === 'fast' ? 0.74 : qualityMode === 'max' ? 1.08 : 0.92;
+    const cuts = {
+        lowShelfDb: clamp(-(Math.max(0, analysis.bassRatio - 0.35) * 0.72 + Number(detail.boom || fallbackRisk.boom) * 0.42) * amount, -1.05, 0),
+        mudDb: clamp(-(Math.max(0, analysis.lowMidRatio - 0.25) * 1.05 + Number(detail.box || fallbackRisk.box) * 0.62) * amount, -1.35, 0),
+        boxDb: clamp(-(Number(detail.box || fallbackRisk.box) * 0.55 + Math.max(0, analysis.lowMidRatio - 0.31) * 0.40) * amount, -1.05, 0),
+        phoneDb: clamp(-(Number(detail.harsh || fallbackRisk.harsh) * 0.58 + Math.max(0, analysis.presenceRatio - 0.20) * 0.72) * amount, -1.15, 0)
+    };
+    const filterSets = buffers.map(() => [
+        createBiquadLowShelfGeneric(safeRate, 105, 0.707, cuts.lowShelfDb),
+        createBiquadPeakingGeneric(safeRate, 285, 0.86, cuts.mudDb),
+        createBiquadPeakingGeneric(safeRate, 465, 1.12, cuts.boxDb),
+        createBiquadPeakingGeneric(safeRate, 4150, 1.45, cuts.phoneDb)
+    ]);
+    for (let i = 0; i < length; i += 1) {
+        for (let ch = 0; ch < buffers.length; ch += 1) {
+            let x = Number.isFinite(buffers[ch][i]) ? buffers[ch][i] : 0;
+            for (const filter of filterSets[ch]) x = processBiquad(filter, x);
+            buffers[ch][i] = x;
+        }
+    }
+    return { mode: 'mobileSpeakerResonanceGuard', risk, cuts };
+}
+
+function estimateMobileSpeakerRisk(analysis) {
+    if (!analysis) return { risk: 0, boom: 0, box: 0, honk: 0, harsh: 0, density: 0, label: 'safe' };
+    const bass = clamp01(Number(analysis.bassRatio ?? 0.25));
+    const lowMid = clamp01(Number(analysis.lowMidRatio ?? 0.22));
+    const mid = clamp01(Number(analysis.midRatio ?? 0.28));
+    const presence = clamp01(Number(analysis.presenceRatio ?? 0.16));
+    const high = clamp01(Number(analysis.highRatio ?? 0.22));
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallic = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const loudness = 0.52;
+    const crest = 4;
+    const detail = analysis.mobileSpeakerDetail || {};
+    const boom = clamp01(Number(detail.boom ?? 0) || (Math.max(0, bass - 0.36) * 1.15 + Math.max(0, lowMid - 0.28) * 1.75));
+    const box = clamp01(Number(detail.box ?? 0) || (Math.max(0, lowMid - 0.25) * 1.85 + Math.max(0, mid - 0.33) * 0.72));
+    const honk = clamp01(Number(detail.honk ?? 0) || Math.max(0, mid - 0.36) * 1.20);
+    const harsh = clamp01(Number(detail.harsh ?? 0) || (Math.max(0, presence - 0.18) * 2.15 + Math.max(0, high - 0.34) * 0.85 + Math.max(0, brightness - 0.58) * 1.05 + Math.max(0, metallic - 0.46) * 0.82));
+    const density = clamp01(Number(detail.density ?? 0) || (Math.max(0, loudness - 0.50) * 0.55 + Math.max(0, 4.2 - crest) * 0.12));
+    const risk = clamp01(boom * 0.24 + box * 0.30 + honk * 0.16 + harsh * 0.21 + density * 0.16);
+    const label = risk > 0.58 ? 'risk' : risk > 0.34 ? 'watch' : 'safe';
+    return { risk, boom, box, honk, harsh, density, label };
 }
 
 function applyGentleMultibandDynamics(buffers, length, sampleRate, qualityMode, analysis) {
@@ -419,6 +478,39 @@ function createBiquadLowpass(sampleRate, frequency, q) {
     const a0 = 1 + alpha;
     const a1 = -2 * cos;
     const a2 = 1 - alpha;
+    return normalizeBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+
+function createBiquadPeakingGeneric(sampleRate, frequency, q, gainDb) {
+    const a = Math.pow(10, Number(gainDb || 0) / 40);
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const alpha = sin / (2 * Math.max(0.001, q));
+    const b0 = 1 + alpha * a;
+    const b1 = -2 * cos;
+    const b2 = 1 - alpha * a;
+    const a0 = 1 + alpha / a;
+    const a1 = -2 * cos;
+    const a2 = 1 - alpha / a;
+    return normalizeBiquad(b0, b1, b2, a0, a1, a2);
+}
+
+function createBiquadLowShelfGeneric(sampleRate, frequency, q, gainDb) {
+    const a = Math.pow(10, Number(gainDb || 0) / 40);
+    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
+    const cos = Math.cos(w0);
+    const sin = Math.sin(w0);
+    const sqrtA = Math.sqrt(a);
+    const shelfSlope = Math.max(0.1, Number(q || 0.707));
+    const alpha = sin / 2 * Math.sqrt((a + 1 / a) * (1 / shelfSlope - 1) + 2);
+    const b0 = a * ((a + 1) - (a - 1) * cos + 2 * sqrtA * alpha);
+    const b1 = 2 * a * ((a - 1) - (a + 1) * cos);
+    const b2 = a * ((a + 1) - (a - 1) * cos - 2 * sqrtA * alpha);
+    const a0 = (a + 1) + (a - 1) * cos + 2 * sqrtA * alpha;
+    const a1 = -2 * ((a - 1) + (a + 1) * cos);
+    const a2 = (a + 1) + (a - 1) * cos - 2 * sqrtA * alpha;
     return normalizeBiquad(b0, b1, b2, a0, a1, a2);
 }
 

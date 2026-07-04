@@ -1,6 +1,11 @@
 # FoxBear AI Mastering Studio Pro
 
-## Pro v1.3.32 vocal anti-metallic engine tuning update
+## Pro v1.3.33 mobile speaker translation guard update
+
+- Added mobile speaker resonance risk analysis for boom, box tone, honk, 2~5 kHz phone resonance, and density.
+- Added mobile translation guard in the realtime/offline master chain and finalizer fallback/worker paths.
+- Recommendation settings now reduce warmth, punch, clarity, and excessive wide/electronic bias when phone-speaker ringing risk is high.
+
 
 - Added a vocal-metallic risk guard so vocal-like material no longer triggers high-frequency exciter, clarity boost, and reference-air lift independently.
 - Reduced high-frequency exciter drive/wet mix for vocal and sibilant material; very high-risk vocal masters bypass the exciter entirely.

@@ -1,3 +1,19 @@
+# FoxBear Pro v1.3.33 QA Report
+
+## Pro v1.3.33 mobile speaker translation guard update
+- Added mobile speaker ringing risk analysis for boom, box tone, honk, 2~5 kHz phone resonance, and density.
+- Strengthened the mobile translation guard in the offline master chain.
+- Added finalizer/fallback `mobileSpeakerResonanceGuard` before loudness normalization and true-peak limiting.
+- Recommendation settings now reduce warmth, punch, clarity, and excessive electronic/spatial bias when phone-speaker ringing risk is high.
+- Mastering detail/report metadata now shows phone speaker risk and applied guard cuts.
+- Refreshed app version, cache busters, and SRI hash.
+- Detailed report: `qa/QA_REPORT_MOBILE_TRANSLATION_1.3.33.md`.
+
+## Static checks
+- `npm run check`: PASS
+- SRI validation: PASS
+- Synthetic analysis/finalizer smoke test: PASS
+
 # FoxBear Pro v1.3.31 QA Report
 
 ## Pro v1.3.31 unified phase-safe spatial budget update
