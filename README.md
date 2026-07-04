@@ -1,13 +1,13 @@
 # FoxBear Mastering Studio
 
-## Pro v1.3.37 Recommendation popup hotfix
+## Pro v1.3.38 Shared DSP Preview/Render Profile
 
-This hotfix restores the single-track AI recommendation popup after loading an audio file.
+This update reduces mismatch between realtime preview, 15-second mastering preview, and full final render by making them share one normalized DSP decision profile.
 
-- Fixed a runtime exception in `recommendPreset()` caused by the missing `mid` genre feature destructuring.
-- Added `safeRecommendPreset()` so recommendation failures fall back to a safe real preset instead of leaving the track in broken `custom` state.
-- Moved `원본선택` to the end of recommendation candidate rows so it remains an explicit manual choice, not the first/default-looking option.
-- `원본선택` is only marked active after the user actually chooses it.
-- Added a recommendation popup smoke test to catch this regression.
+- Added `SHARED_DSP_PROFILE_VERSION` and `createSharedDspProfile()`.
+- Realtime preview, offline master chain, 15-second A/B preview, and finalizer metadata now use the same effective settings, mastering intensity, phase-safe spatial budget, realtime tone map, and finalizer analysis payload.
+- Stored shared DSP metadata in analysis/finalizer/export reports so preview vs final render differences can be audited.
+- Preserved the v1.3.37 recommendation popup hotfix: `원본선택` remains a manual option and the AI recommendation popup is protected by safe fallback.
+- Added `qa/shared_dsp_profile_smoke.js` to verify the shared profile can be created, applied to analysis metadata, and summarized for reports.
 
 Previous v1.3.36 changes are retained: 24-band reference matching, mobile/vocal safety, spatial budget, A/B preview, and module extraction.

@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.37 - recommendation popup hotfix
+// FoxBear AI Mastering Studio Pro v1.3.38 - shared DSP preview/render profile
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.37';
+const APP_VERSION = 'Pro v1.3.38';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -17,8 +17,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1337';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1338';
 const ANALYSIS_CACHE_STORE = 'analysis';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.38-shared-dsp-profile';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -174,7 +175,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.37';
+    styleLink.href = 'assets/css/studio.css?v=1.3.38';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -791,49 +792,48 @@ function updateRealtimePreviewSettings(track = getSelectedTrack()) {
     const context = preview.context;
     const now = context.currentTime || 0;
     const nodes = preview.nodes;
-    const settings = makeEffectiveMasterSettings(track.settings || GENRE_PRESETS.custom, track.analysis, track.preset || 'custom');
-    const intensity = getMasteringIntensity(settings);
-    const analysis = track.analysis || {};
-    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
-    const metallicHint = clamp01(Number(analysis.metallicHint ?? 0.35));
-    const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
+    const profile = createSharedDspProfile(track.settings || GENRE_PRESETS.custom, track.analysis, track.preset || 'custom', {
+        mode: 'realtime-preview',
+        minWidthFactor: 0.72,
+        maxWidthFactor: 1.38
+    });
+    markSharedDspProfileApplied(track.analysis, profile);
+    const rt = profile.realtime;
 
-    setAudioParam(nodes.inputGain.gain, intensity.raw >= 160 ? 0.82 : 0.90, now);
-    setAudioParam(nodes.highPass.frequency, clamp(22 + bass * 18 + Math.max(0, intensity.raw - 120) * 0.08, 22, 48), now);
-    setAudioParam(nodes.highPass.Q, 0.707, now);
+    setAudioParam(nodes.inputGain.gain, rt.inputGain, now);
+    setAudioParam(nodes.highPass.frequency, rt.highPass.frequency, now);
+    setAudioParam(nodes.highPass.Q, rt.highPass.q, now);
 
-    setAudioParam(nodes.lowShelf.frequency, 160, now);
-    setAudioParam(nodes.lowShelf.gain, clamp(map(settings.warmth, 0, 100, -2.0, 2.2) * clamp(intensity.amount, .65, 1.85), -3.6, 3.8), now);
-    setAudioParam(nodes.lowMid.frequency, 330, now);
-    setAudioParam(nodes.lowMid.Q, 0.78, now);
-    setAudioParam(nodes.lowMid.gain, clamp(map(settings.warmth, 0, 100, -0.8, 1.1) * clamp(intensity.amount, .65, 1.7), -2.2, 2.4), now);
+    setAudioParam(nodes.lowShelf.frequency, rt.lowShelf.frequency, now);
+    setAudioParam(nodes.lowShelf.gain, rt.lowShelf.gain, now);
+    setAudioParam(nodes.lowMid.frequency, rt.lowMid.frequency, now);
+    setAudioParam(nodes.lowMid.Q, rt.lowMid.q, now);
+    setAudioParam(nodes.lowMid.gain, rt.lowMid.gain, now);
 
-    setAudioParam(nodes.presence.frequency, 3000, now);
-    setAudioParam(nodes.presence.Q, 0.95, now);
-    setAudioParam(nodes.presence.gain, clamp(map(settings.clarity, 0, 100, -1.4, 1.8) * clamp(intensity.amount, .65, 1.95) - metallicHint * .22, -3.3, 3.6), now);
-    setAudioParam(nodes.highShelf.frequency, 7600, now);
-    setAudioParam(nodes.highShelf.gain, clamp(map(settings.clarity, 0, 100, -2.0, 2.4) * clamp(intensity.amount, .65, 2.0) - Math.max(0, brightness - .68) * 1.6, -4.3, 4.8), now);
+    setAudioParam(nodes.presence.frequency, rt.presence.frequency, now);
+    setAudioParam(nodes.presence.Q, rt.presence.q, now);
+    setAudioParam(nodes.presence.gain, rt.presence.gain, now);
+    setAudioParam(nodes.highShelf.frequency, rt.highShelf.frequency, now);
+    setAudioParam(nodes.highShelf.gain, rt.highShelf.gain, now);
 
-    setAudioParam(nodes.metallic.frequency, clamp(Number(analysis.targetDynamicFreq || 5200), 2600, 8200), now);
-    setAudioParam(nodes.metallic.Q, intensity.raw >= 150 ? 5.8 : 4.2, now);
-    setAudioParam(nodes.metallic.gain, clamp(map(settings.metallicRemoval, 0, 100, 0, -3.8) * clamp(intensity.amount, .7, 1.8), -6.4, 0), now);
+    setAudioParam(nodes.metallic.frequency, rt.metallic.frequency, now);
+    setAudioParam(nodes.metallic.Q, rt.metallic.q, now);
+    setAudioParam(nodes.metallic.gain, rt.metallic.gain, now);
 
-    const punch = clamp(Number(settings.dynamicPunch || 50), 0, 100);
-    setAudioParam(nodes.compressor.threshold, clamp(map(punch, 0, 100, -14, -27) - Math.max(0, intensity.raw - 120) * .05, -34, -10), now);
-    setAudioParam(nodes.compressor.knee, clamp(map(punch, 0, 100, 18, 8), 6, 22), now);
-    setAudioParam(nodes.compressor.ratio, clamp(map(punch, 0, 100, 1.4, 3.2) + Math.max(0, intensity.raw - 140) * .012, 1.2, 4.4), now);
-    setAudioParam(nodes.compressor.attack, clamp(map(punch, 0, 100, .020, .006), .003, .026), now);
-    setAudioParam(nodes.compressor.release, clamp(map(punch, 0, 100, .22, .12), .08, .32), now);
+    setAudioParam(nodes.compressor.threshold, rt.compressor.threshold, now);
+    setAudioParam(nodes.compressor.knee, rt.compressor.knee, now);
+    setAudioParam(nodes.compressor.ratio, rt.compressor.ratio, now);
+    setAudioParam(nodes.compressor.attack, rt.compressor.attack, now);
+    setAudioParam(nodes.compressor.release, rt.compressor.release, now);
 
-    const spatialBudget = getPhaseSafeSpatialBudget(settings, analysis, intensity, 0.72, 1.38);
-    setRealtimeWidth(nodes.width, spatialBudget.widthFactor, now);
+    setRealtimeWidth(nodes.width, rt.widthFactor, now);
 
-    setAudioParam(nodes.limiter.threshold, intensity.raw >= 155 ? -5.0 : -3.2, now);
-    setAudioParam(nodes.limiter.knee, 1.2, now);
-    setAudioParam(nodes.limiter.ratio, 16, now);
-    setAudioParam(nodes.limiter.attack, .002, now);
-    setAudioParam(nodes.limiter.release, .065, now);
-    setAudioParam(nodes.outputGain.gain, dbToAmp(clamp(map(intensity.raw, 50, 200, -1.8, 2.8), -2.2, 3.0)), now);
+    setAudioParam(nodes.limiter.threshold, rt.limiter.threshold, now);
+    setAudioParam(nodes.limiter.knee, rt.limiter.knee, now);
+    setAudioParam(nodes.limiter.ratio, rt.limiter.ratio, now);
+    setAudioParam(nodes.limiter.attack, rt.limiter.attack, now);
+    setAudioParam(nodes.limiter.release, rt.limiter.release, now);
+    setAudioParam(nodes.outputGain.gain, rt.outputGain, now);
 
     if (preview.audio) {
         const speed = clamp(Number(track.transform?.speedRatio || 1), 0.5, 1.5);
@@ -3718,7 +3718,8 @@ async function masterTrack(track, calledFromBatch = false) {
             qualityMode: guardDecision.qualityMode,
             masterGoal: state.masterGoal,
             truePeak: guardDecision.truePeak,
-            analysis: track.analysis || {}
+            analysis: track.analysis || {},
+            dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied)
         });
         const finalBuffer = finalization.buffer;
         sanitizeAudioBuffer(finalBuffer, 'finalizer');
@@ -4173,8 +4174,10 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     const length = Math.max(1, sourceBuffer.length);
     const renderChannels = Math.max(1, Math.min(2, sourceBuffer.numberOfChannels || 1));
     const context = createOfflineAudioContext(renderChannels, length, sampleRate);
-    const effectiveSettings = makeEffectiveMasterSettings(settings, analysis, preset);
-    const intensity = getMasteringIntensity(effectiveSettings);
+    const sharedProfile = createSharedDspProfile(settings, analysis, preset, { mode: 'offline-render', minWidthFactor: 0.82, maxWidthFactor: 1.22 });
+    const effectiveSettings = sharedProfile.effectiveSettings;
+    const intensity = sharedProfile.intensity;
+    markSharedDspProfileApplied(analysis, sharedProfile);
 
     const source = context.createBufferSource();
     source.buffer = sourceBuffer;
@@ -4203,8 +4206,8 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createMelodyPreserveNode(context, node, preset, effectiveSettings, analysis, intensity);
     node = createProfileEqChain(context, node, preset, intensity);
     const isStereoRender = renderChannels === 2 && sourceBuffer.numberOfChannels >= 2;
-    const spatialBudget = getPhaseSafeSpatialBudget(effectiveSettings, analysis, intensity, 0.82, 1.22);
-    if (analysis && isStereoRender) analysis.spatialBudgetApplied = spatialBudget;
+    const spatialBudget = sharedProfile.spatialBudget;
+    if (analysis && isStereoRender) markSharedDspProfileApplied(analysis, sharedProfile);
     node = createStereoWidthNode(context, node, isStereoRender, spatialBudget.widthFactor);
     node = createStereoGrooveNode(context, node, spatialBudget.stereoGroove, intensity);
     node = createPhaseSafeNode(context, node, isStereoRender, effectiveSettings, analysis, intensity);
@@ -4289,6 +4292,142 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
     }
     applySpatialBudgetToSettings(out, analysis, getMasteringIntensity(out));
     return out;
+}
+
+
+
+function createSharedDspProfile(settings, analysis, preset, options = {}) {
+    const effectiveSettings = makeEffectiveMasterSettings(settings, analysis, preset);
+    const intensity = getMasteringIntensity(effectiveSettings);
+    const minWidthFactor = Number.isFinite(Number(options.minWidthFactor)) ? Number(options.minWidthFactor) : 0.82;
+    const maxWidthFactor = Number.isFinite(Number(options.maxWidthFactor)) ? Number(options.maxWidthFactor) : 1.22;
+    const spatialBudget = getPhaseSafeSpatialBudget(effectiveSettings, analysis, intensity, minWidthFactor, maxWidthFactor);
+    const realtime = createSharedRealtimePreviewParams(effectiveSettings, analysis || {}, intensity, spatialBudget);
+    const finalizerAnalysis = createFinalizerAnalysisPayload(analysis || {});
+    const summary = {
+        version: SHARED_DSP_PROFILE_VERSION,
+        mode: options.mode || 'render',
+        preset: preset || 'custom',
+        effectiveSettings: {
+            intensity: Number(effectiveSettings.intensity || 100),
+            clarity: Number(effectiveSettings.clarity || 50),
+            warmth: Number(effectiveSettings.warmth || 50),
+            width: Number(effectiveSettings.width || 50),
+            stereoGroove: Number(effectiveSettings.stereoGroove || 0),
+            dynamicPunch: Number(effectiveSettings.dynamicPunch || 35),
+            metallicRemoval: Number(effectiveSettings.metallicRemoval || 42)
+        },
+        intensity: {
+            raw: Number(intensity.raw || 100),
+            amount: Number(intensity.amount || 1)
+        },
+        spatialBudget: {
+            widthFactor: Number(spatialBudget.widthFactor || 1),
+            rawWidthFactor: Number(spatialBudget.rawWidthFactor || 1),
+            stereoGroove: Number(spatialBudget.stereoGroove || 0),
+            rawStereoGroove: Number(spatialBudget.rawStereoGroove || 0),
+            scale: Number(spatialBudget.scale || 1),
+            effectiveExpansion: Number(spatialBudget.effectiveExpansion || 0),
+            maxExpansion: Number(spatialBudget.maxExpansion || 0),
+            reason: spatialBudget.reason || ''
+        },
+        realtimeTone: {
+            highPassHz: Number(realtime.highPass.frequency || 0),
+            lowShelfDb: Number(realtime.lowShelf.gain || 0),
+            lowMidDb: Number(realtime.lowMid.gain || 0),
+            presenceDb: Number(realtime.presence.gain || 0),
+            highShelfDb: Number(realtime.highShelf.gain || 0),
+            metallicDb: Number(realtime.metallic.gain || 0),
+            outputGainDb: Number(realtime.outputGainDb || 0)
+        },
+        finalizer: {
+            bassRatio: Number(finalizerAnalysis.bassRatio || 0),
+            lowMidRatio: Number(finalizerAnalysis.lowMidRatio || 0),
+            midRatio: Number(finalizerAnalysis.midRatio || 0),
+            highRatio: Number(finalizerAnalysis.highRatio || 0),
+            presenceRatio: Number(finalizerAnalysis.presenceRatio || 0),
+            airRatio: Number(finalizerAnalysis.airRatio || 0),
+            mobileSpeakerRisk: Number(finalizerAnalysis.mobileSpeakerRisk || 0),
+            spatialExcessRisk: Number(finalizerAnalysis.spatialExcessRisk || 0)
+        }
+    };
+    return { version: SHARED_DSP_PROFILE_VERSION, effectiveSettings, intensity, spatialBudget, realtime, finalizerAnalysis, summary };
+}
+
+function createSharedRealtimePreviewParams(settings, analysis = {}, intensity = getMasteringIntensity(settings), spatialBudget = null) {
+    const brightness = clamp01(Number(analysis.brightness ?? 0.45));
+    const metallicHint = clamp01(Number(analysis.metallicHint ?? 0.35));
+    const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
+    const punch = clamp(Number(settings.dynamicPunch || 50), 0, 100);
+    const safeSpatial = spatialBudget || getPhaseSafeSpatialBudget(settings, analysis, intensity, 0.72, 1.38);
+    const outputGainDb = clamp(map(intensity.raw, 50, 200, -1.8, 2.8), -2.2, 3.0);
+    return {
+        inputGain: intensity.raw >= 160 ? 0.82 : 0.90,
+        highPass: {
+            frequency: clamp(22 + bass * 18 + Math.max(0, intensity.raw - 120) * 0.08, 22, 48),
+            q: 0.707
+        },
+        lowShelf: {
+            frequency: 160,
+            gain: clamp(map(settings.warmth, 0, 100, -2.0, 2.2) * clamp(intensity.amount, .65, 1.85), -3.6, 3.8)
+        },
+        lowMid: {
+            frequency: 330,
+            q: 0.78,
+            gain: clamp(map(settings.warmth, 0, 100, -0.8, 1.1) * clamp(intensity.amount, .65, 1.7), -2.2, 2.4)
+        },
+        presence: {
+            frequency: 3000,
+            q: 0.95,
+            gain: clamp(map(settings.clarity, 0, 100, -1.4, 1.8) * clamp(intensity.amount, .65, 1.95) - metallicHint * .22, -3.3, 3.6)
+        },
+        highShelf: {
+            frequency: 7600,
+            gain: clamp(map(settings.clarity, 0, 100, -2.0, 2.4) * clamp(intensity.amount, .65, 2.0) - Math.max(0, brightness - .68) * 1.6, -4.3, 4.8)
+        },
+        metallic: {
+            frequency: clamp(Number(analysis.targetDynamicFreq || 5200), 2600, 8200),
+            q: intensity.raw >= 150 ? 5.8 : 4.2,
+            gain: clamp(map(settings.metallicRemoval, 0, 100, 0, -3.8) * clamp(intensity.amount, .7, 1.8), -6.4, 0)
+        },
+        compressor: {
+            threshold: clamp(map(punch, 0, 100, -14, -27) - Math.max(0, intensity.raw - 120) * .05, -34, -10),
+            knee: clamp(map(punch, 0, 100, 18, 8), 6, 22),
+            ratio: clamp(map(punch, 0, 100, 1.4, 3.2) + Math.max(0, intensity.raw - 140) * .012, 1.2, 4.4),
+            attack: clamp(map(punch, 0, 100, .020, .006), .003, .026),
+            release: clamp(map(punch, 0, 100, .22, .12), .08, .32)
+        },
+        widthFactor: safeSpatial.widthFactor,
+        limiter: {
+            threshold: intensity.raw >= 155 ? -5.0 : -3.2,
+            knee: 1.2,
+            ratio: 16,
+            attack: .002,
+            release: .065
+        },
+        outputGainDb,
+        outputGain: dbToAmp(outputGainDb)
+    };
+}
+
+function markSharedDspProfileApplied(analysis, profile) {
+    if (!analysis || !profile) return;
+    analysis.sharedDspProfileApplied = profile.summary || profile;
+    analysis.spatialBudgetApplied = profile.spatialBudget || profile.summary?.spatialBudget || analysis.spatialBudgetApplied || null;
+}
+
+function getSharedDspSummaryForReport(source) {
+    const summary = source?.summary || source;
+    if (!summary) return null;
+    return {
+        version: summary.version || SHARED_DSP_PROFILE_VERSION,
+        mode: summary.mode || '',
+        preset: summary.preset || '',
+        effectiveSettings: summary.effectiveSettings || null,
+        spatialBudget: summary.spatialBudget || null,
+        realtimeTone: summary.realtimeTone || null,
+        finalizer: summary.finalizer || null
+    };
 }
 
 
@@ -6592,6 +6731,8 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
             mobileSpeakerRisk: Number(finalizeInfo?.mobileSpeakerRisk || 0),
             mobileSpeakerCuts: finalizeInfo?.mobileSpeakerCuts || null,
             loudnessStandard: finalizeInfo?.loudnessStandard || '',
+            sharedDspProfileVersion: finalizeInfo?.sharedDspProfileVersion || track?.analysis?.sharedDspProfileApplied?.version || '',
+            sharedDspProfile: getSharedDspSummaryForReport(finalizeInfo?.sharedDspProfile || track?.analysis?.sharedDspProfileApplied),
             spatialBudget: spatialBudget ? {
                 widthFactor: Number(spatialBudget.widthFactor || 1),
                 rawWidthFactor: Number(spatialBudget.rawWidthFactor || 1),
@@ -6782,7 +6923,9 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 lookaheadMs: peakInfo.lookaheadMs,
                 lookaheadSamples: peakInfo.lookaheadSamples,
                 preLimiterPeak: peakInfo.preLimiterPeak,
-                loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates'
+                loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
+                sharedDspProfileVersion: options.dspProfile?.version || SHARED_DSP_PROFILE_VERSION,
+                sharedDspProfile: getSharedDspSummaryForReport(options.dspProfile)
             }
         };
     };
@@ -6824,7 +6967,10 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         });
         const output = makeAudioBuffer(result.channels, result.length, result.sampleRate);
         (result.channelBuffers || []).forEach((buf, ch) => output.copyToChannel(new Float32Array(buf), ch));
-        return { buffer: output, info: result.info || {} };
+        const info = result.info || {};
+        info.sharedDspProfileVersion = options.dspProfile?.version || SHARED_DSP_PROFILE_VERSION;
+        info.sharedDspProfile = getSharedDspSummaryForReport(options.dspProfile);
+        return { buffer: output, info };
     } catch (error) {
         console.warn('Master finalizer fallback:', error);
         showToast('파이널라이저 워커가 실패해 기본 피크 가드로 전환합니다.');
@@ -8846,7 +8992,8 @@ async function renderMasterPreviewForTrack(track, options = {}) {
             qualityMode: state.qualityMode === 'max' ? 'balanced' : state.qualityMode,
             masterGoal: state.masterGoal,
             truePeak: state.featureFlags.truePeakGuard,
-            analysis: track.analysis || {}
+            analysis: track.analysis || {},
+            dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied)
         });
         const finalBuffer = finalization.buffer;
         sanitizeAudioBuffer(finalBuffer, 'master-preview-finalizer');
@@ -8863,7 +9010,8 @@ async function renderMasterPreviewForTrack(track, options = {}) {
             preset: track.preset,
             settings: cloneSettings(track.settings),
             createdAt: new Date().toISOString(),
-            finalizeInfo: finalization.info || {}
+            finalizeInfo: finalization.info || {},
+            dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied)
         };
         track.masterPreviewStatus = 'ready';
         track.report = `마스터링 전 미리보기 준비됨 · ${formatTime(startSec)}부터 약 ${Math.round(track.masterPreviewInfo.durationSec)}초`;
@@ -10102,7 +10250,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.37',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.38',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
