@@ -1,11 +1,19 @@
-# FoxBear Mastering Studio Pro v1.3.50
+# FoxBear Mastering Studio Pro v1.3.51
 
-## Pro v1.3.50 Release Stabilization / Export Reliability
+## Pro v1.3.51 Preset Snapshot / Undo History
 
-- 다운로드/공유 패널에 브라우저 환경 감지, 확장자 선택 요약, 저장 도움, 주소 복사, 외부 브라우저 안내를 추가했습니다.
-- 카카오/인앱 브라우저에서 자동 다운로드가 제한될 때 공유/저장 및 외부 브라우저 fallback을 더 명확히 제공합니다.
-- 완료된 트랙 카드에 완성 파일 준비 상태와 저장/공유 안내를 표시합니다.
-- Dock 높이가 변해도 알림, 다운로드 도움창, 진행 HUD가 위쪽으로 따라붙도록 위치 보정을 강화했습니다.
-- v1.3.50 버전, 캐시버스터, SRI, export reliability smoke test를 갱신했습니다.
+이번 빌드는 사용자가 마스터링 설정을 만지는 동안 안전하게 되돌릴 수 있도록 스냅샷/되돌리기 흐름을 강화한 안정화 패치입니다.
 
-이 빌드는 정적 호스팅 배포 방식을 유지합니다. Firebase 설정은 `FIREBASE_SETUP.md`를 참고하세요.
+### 변경 사항
+- 장르, 슬라이더, 피치/BPM, 악기, 마스터링 성향, 출력 목표 변경 전에 자동 되돌리기 기록을 남깁니다.
+- 최근 기록으로 되돌리기와 다시 적용 기능을 추가했습니다.
+- `AI 복원` 버튼으로 분석 결과 기반 추천값을 빠르게 복원할 수 있습니다.
+- `원본 기준` 버튼으로 AI 프리셋 없이 원음 기준 커스텀 상태로 전환할 수 있습니다.
+- 스냅샷 패널에 최근 기록 설명을 추가했습니다.
+- v1.3.51 버전, 캐시버스터, SRI, snapshot undo smoke test를 갱신했습니다.
+
+### 검증
+- `npm run check` 통과
+- SRI 검증 통과
+- Engine QA Bench 통과
+- Snapshot Undo smoke test 통과

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.50 - release stabilization and export reliability
+// FoxBear AI Mastering Studio Pro v1.3.51 - preset snapshot and undo history
 'use strict';
 
 
@@ -16,7 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 
-const APP_VERSION = 'Pro v1.3.50';
+const APP_VERSION = 'Pro v1.3.51';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -32,9 +32,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1349';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1351';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.50-release-stabilization';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.51-snapshot-undo';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -73,6 +73,8 @@ const MASTER_PREVIEW_DURATION_SEC = 15;
 
 
 const MAX_SNAPSHOTS_PER_TRACK = 12;
+const MAX_REDO_SNAPSHOTS_PER_TRACK = 8;
+const AUTO_SNAPSHOT_COOLDOWN_MS = 1200;
 const REALTIME_PREVIEW_RENDER_DELAY = 160;
 const ADMIN_STATS_VISITOR_KEY = 'foxbear-admin-visitor-id-v1';
 const ADMIN_STATS_STORAGE_KEY = 'foxbear-admin-local-stats-v1';
@@ -228,7 +230,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.50';
+    styleLink.href = 'assets/css/studio.css?v=1.3.51';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -282,7 +284,7 @@ function cacheElements() {
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
         'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
-        'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotClearBtn', 'snapshotStatus', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
+        'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotRedoBtn', 'snapshotAiBtn', 'snapshotOriginalBtn', 'snapshotClearBtn', 'snapshotStatus', 'snapshotHistory', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
@@ -1174,13 +1176,24 @@ function renderReferencePanel() {
 
 function renderSnapshotPanel() {
     const track = getSelectedTrack();
-    const count = Array.isArray(track?.snapshots) ? track.snapshots.length : 0;
+    const undoCount = Array.isArray(track?.snapshots) ? track.snapshots.length : 0;
+    const redoCount = Array.isArray(track?.redoSnapshots) ? track.redoSnapshots.length : 0;
+    const latest = undoCount ? track.snapshots[undoCount - 1] : null;
+    const latestLabel = latest ? formatSnapshotLabel(latest) : '';
     if (el.snapshotStatus) {
-        el.snapshotStatus.textContent = !track ? '트랙 선택 대기' : count ? `${count}개 저장` : '스냅샷 없음';
+        el.snapshotStatus.textContent = !track ? '트랙 선택 대기' : undoCount ? `되돌리기 ${undoCount}개${redoCount ? ` · 다시 ${redoCount}개` : ''}` : '기록 없음';
+        el.snapshotStatus.title = latestLabel || '저장된 되돌리기 기록이 없습니다.';
     }
+    if (el.snapshotHistory) {
+        el.snapshotHistory.textContent = !track ? '트랙을 선택하면 최근 변경 기록이 표시됩니다.' : latestLabel ? `최근 기록: ${latestLabel}` : '최근 변경 기록이 없습니다. 슬라이더/장르/성향을 바꾸면 자동으로 기록됩니다.';
+    }
+    const canRestoreAi = Boolean(track && track.analysis && !state.busy);
     if (el.snapshotSaveBtn) el.snapshotSaveBtn.disabled = !track || state.busy;
-    if (el.snapshotUndoBtn) el.snapshotUndoBtn.disabled = !track || state.busy || count < 1;
-    if (el.snapshotClearBtn) el.snapshotClearBtn.disabled = !track || state.busy || count < 1;
+    if (el.snapshotUndoBtn) el.snapshotUndoBtn.disabled = !track || state.busy || undoCount < 1;
+    if (el.snapshotRedoBtn) el.snapshotRedoBtn.disabled = !track || state.busy || redoCount < 1;
+    if (el.snapshotAiBtn) el.snapshotAiBtn.disabled = !canRestoreAi;
+    if (el.snapshotOriginalBtn) el.snapshotOriginalBtn.disabled = !track || state.busy;
+    if (el.snapshotClearBtn) el.snapshotClearBtn.disabled = !track || state.busy || (undoCount < 1 && redoCount < 1);
 }
 
 function formatMonoScore(analysis) {
@@ -1216,7 +1229,10 @@ const ACTION_HELP_TEXTS = {
     referenceApplyBtn: '레퍼런스 톤을 현재 선택 트랙 추천값에 반영합니다.',
     referenceClearBtn: '레퍼런스 트랙 분석값을 해제합니다.',
     snapshotSaveBtn: '현재 선택 트랙의 설정 상태를 저장합니다.',
-    snapshotUndoBtn: '최근 저장 스냅샷으로 되돌립니다.',
+    snapshotUndoBtn: '최근 자동/수동 기록으로 되돌립니다.',
+    snapshotRedoBtn: '되돌린 설정을 다시 적용합니다.',
+    snapshotAiBtn: '분석 결과의 AI 추천값으로 즉시 복원합니다.',
+    snapshotOriginalBtn: 'AI 프리셋 없이 원본 기준 커스텀 상태로 전환합니다.',
     snapshotClearBtn: '선택 트랙의 스냅샷 기록을 삭제합니다.',
     fileDrop: '파일 하나 또는 여러 개를 불러옵니다. MP3/WAV/MP4 오디오를 지원합니다.',
     folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
@@ -1785,6 +1801,9 @@ function bindEvents() {
     if (el.referenceClearBtn) el.referenceClearBtn.addEventListener('click', clearReferenceProfile);
     if (el.snapshotSaveBtn) el.snapshotSaveBtn.addEventListener('click', saveSnapshotForSelected);
     if (el.snapshotUndoBtn) el.snapshotUndoBtn.addEventListener('click', restoreLatestSnapshotForSelected);
+    if (el.snapshotRedoBtn) el.snapshotRedoBtn.addEventListener('click', redoSnapshotForSelected);
+    if (el.snapshotAiBtn) el.snapshotAiBtn.addEventListener('click', restoreAiRecommendationSnapshotForSelected);
+    if (el.snapshotOriginalBtn) el.snapshotOriginalBtn.addEventListener('click', restoreOriginalSnapshotForSelected);
     if (el.snapshotClearBtn) el.snapshotClearBtn.addEventListener('click', clearSnapshotsForSelected);
     window.addEventListener('keydown', event => {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
@@ -1804,6 +1823,7 @@ function bindEvents() {
 
     el.genreSelect.addEventListener('change', () => {
         if (state.programmatic) return;
+        saveUndoPointForSelectedOrAll('장르 변경 전');
         applyPresetToSelected(el.genreSelect.value, true);
     });
 
@@ -1817,6 +1837,7 @@ function bindEvents() {
                 updateSliderHint(slider.id);
                 return;
             }
+            saveUndoPoint(track, `${slider.label || slider.id} 조절 전`, { auto: true });
             track.settings[slider.id] = value;
             track.preset = 'custom';
             track.genreLocked = true;
@@ -1839,6 +1860,7 @@ function bindEvents() {
         transform.snapSemitone = el.snapSemitone.checked;
         if (transform.snapSemitone) transform.pitchSemitones = Math.round(Number(el.pitchSlider.value));
         if (track) {
+            saveUndoPoint(track, '피치/속도 변경 전', { auto: true });
             track.transform = transform;
             invalidateMasteredOutput(track, '피치/속도 조정값이 적용되었습니다. 다시 마스터링하세요.', true);
         }
@@ -1855,6 +1877,7 @@ function bindEvents() {
         state.masterGoal = el.masterGoalSelect.value || state.masterGoal;
         applyMasterGoalDefaults(state.masterGoal, false);
         el.masterGoalSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('목표 모드 변경 전');
             state.masterGoal = el.masterGoalSelect.value || 'natural';
             applyMasterGoalDefaults(state.masterGoal, true);
             invalidateAllMasteredOutput(`${getMasterGoalLabel(state.masterGoal)} 목표 모드로 변경되었습니다. 다시 마스터링하세요.`);
@@ -1866,6 +1889,7 @@ function bindEvents() {
         state.masterStyle = el.masterStyleSelect.value || state.masterStyle;
         applyMasterStyleDefaults(state.masterStyle, false);
         el.masterStyleSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('스타일 변경 전');
             state.masterStyle = el.masterStyleSelect.value || 'streaming';
             applyMasterStyleDefaults(state.masterStyle, true);
             invalidateAllMasteredOutput(`${getMasterStyleLabel(state.masterStyle)} 스타일로 변경되었습니다. 다시 마스터링하세요.`);
@@ -1876,6 +1900,7 @@ function bindEvents() {
     if (el.masterStrengthSelect) {
         state.masterStrength = el.masterStrengthSelect.value || state.masterStrength || 'balanced';
         el.masterStrengthSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('마스터링 성향 변경 전');
             state.masterStrength = el.masterStrengthSelect.value || 'balanced';
             applyMasterStrengthDefaults(state.masterStrength, true);
             invalidateAllMasteredOutput(`${getMasterStrengthLabel(state.masterStrength)} 성향으로 변경되었습니다. 다시 마스터링하세요.`);
@@ -1886,6 +1911,7 @@ function bindEvents() {
     if (el.outputFormatSelect) {
         state.outputFormat = el.outputFormatSelect.value || state.outputFormat;
         el.outputFormatSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('출력 포맷 변경 전');
             state.outputFormat = el.outputFormatSelect.value || 'wav24';
             setPlatformPresetCustomFromManualChange();
             invalidateAllMasteredOutput('출력 포맷이 변경되었습니다. 다시 마스터링하세요.');
@@ -1896,6 +1922,7 @@ function bindEvents() {
     if (el.targetLufsSelect) {
         state.targetLufs = Number(el.targetLufsSelect.value || state.targetLufs);
         el.targetLufsSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('LUFS 타깃 변경 전');
             state.targetLufs = Number(el.targetLufsSelect.value || -14);
             setPlatformPresetCustomFromManualChange();
             invalidateAllMasteredOutput(`${state.targetLufs} LUFS 타깃으로 변경되었습니다. 다시 마스터링하세요.`);
@@ -1906,6 +1933,7 @@ function bindEvents() {
     if (el.ceilingSelect) {
         state.ceilingDb = Number(el.ceilingSelect.value || state.ceilingDb);
         el.ceilingSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('피크 천장 변경 전');
             state.ceilingDb = Number(el.ceilingSelect.value || -1.0);
             setPlatformPresetCustomFromManualChange();
             invalidateAllMasteredOutput(`${state.ceilingDb} dBTP 피크 천장으로 변경되었습니다. 다시 마스터링하세요.`);
@@ -1916,6 +1944,7 @@ function bindEvents() {
     if (el.qualityModeSelect) {
         state.qualityMode = el.qualityModeSelect.value || state.qualityMode;
         el.qualityModeSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('품질 모드 변경 전');
             state.qualityMode = el.qualityModeSelect.value || 'balanced';
             if (el.platformPresetSelect && state.platformPreset !== 'custom') {
                 state.platformPreset = 'custom';
@@ -1928,11 +1957,15 @@ function bindEvents() {
     }
     if (el.platformPresetSelect) {
         state.platformPreset = el.platformPresetSelect.value || state.platformPreset;
-        el.platformPresetSelect.addEventListener('change', () => applyPlatformExportPreset(el.platformPresetSelect.value || 'custom', true));
+        el.platformPresetSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('플랫폼 프리셋 변경 전');
+            applyPlatformExportPreset(el.platformPresetSelect.value || 'custom', true);
+        });
     }
     if (el.performanceModeSelect) {
         state.performanceMode = el.performanceModeSelect.value || state.performanceMode;
         el.performanceModeSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('성능 모드 변경 전');
             state.performanceMode = el.performanceModeSelect.value || 'auto';
             invalidateAllMasteredOutput(`${getPerformanceModeLabel(state.performanceMode)} 성능 모드로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
@@ -1942,6 +1975,7 @@ function bindEvents() {
     if (el.pitchEngineSelect) {
         state.pitchEngine = el.pitchEngineSelect.value || state.pitchEngine;
         el.pitchEngineSelect.addEventListener('change', () => {
+            saveUndoPointForSelectedOrAll('피치 엔진 변경 전');
             state.pitchEngine = el.pitchEngineSelect.value || 'auto';
             invalidateAllMasteredOutput(`${getPitchEngineLabel(state.pitchEngine)} 피치/속도 엔진으로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
@@ -2377,6 +2411,8 @@ function createTrack(file) {
         exportFallbackInfo: null,
         performanceInfo: null,
         snapshots: [],
+        redoSnapshots: [],
+        snapshotMeta: null,
         autoAiRecommendDialog: false,
         aiRecommendDialogShown: false,
         report: '대기 중',
@@ -3604,6 +3640,7 @@ function applyPresetToSelected(preset, userInitiated) {
     const track = getSelectedTrack();
     const settings = cloneSettings(GENRE_PRESETS[preset] || GENRE_PRESETS.custom);
     if (track) {
+        if (userInitiated) saveUndoPoint(track, '프리셋 적용 전');
         track.preset = preset;
         track.settings = settings;
         if (userInitiated) track.genreLocked = true;
@@ -3623,6 +3660,7 @@ function applyAIRecommendationToSelected() {
         return;
     }
     ready.forEach(track => {
+        saveUndoPoint(track, 'AI 추천 적용 전');
         if (track.genreLocked) {
             track.settings = cloneSettings(makeRecommendedSettings(track.preset || 'custom', track.analysis));
             invalidateMasteredOutput(track, `${PRESET_LABELS[track.preset] || track.preset} 잠금 장르 기준 추천값을 적용했습니다.`, true);
@@ -3716,6 +3754,7 @@ function handleBeatChangeSelect() {
     if (preset) transform.speedRatio = clamp(preset.ratio, 0.5, 1.5);
     transform.beatPreset = presetKey === 'custom' ? 'custom' : (presetKey in BEAT_CHANGE_PRESETS ? presetKey : 'original');
     if (track) {
+        saveUndoPoint(track, '박자 변경 전', { auto: true });
         track.transform = transform;
         invalidateMasteredOutput(track, `${getBeatPresetLabel(transform.beatPreset)} 박자 변경값이 적용되었습니다. 다시 마스터링하세요.`, true);
     }
@@ -3732,6 +3771,7 @@ function handleInstrumentLayerChange() {
         amount: el.instrumentAmountSelect ? el.instrumentAmountSelect.value : 'light'
     });
     if (track) {
+        saveUndoPoint(track, '악기 레이어 변경 전', { auto: true });
         track.instrument = layer;
         track.instrumentInfo = null;
         invalidateMasteredOutput(track, `${getInstrumentLayerLabel(layer.mode)} 악기 추가 설정이 변경되었습니다. 다시 마스터링하세요.`, true);
@@ -8562,6 +8602,68 @@ function getPerformanceModeLabel(value = state.performanceMode) {
     return 'Auto';
 }
 
+
+function getSnapshotCore(snapshot) {
+    if (!snapshot) return '';
+    const core = {
+        preset: snapshot.preset,
+        recommendedPreset: snapshot.recommendedPreset,
+        genreLocked: Boolean(snapshot.genreLocked),
+        settings: snapshot.settings || {},
+        transform: snapshot.transform || {},
+        instrument: snapshot.instrument || {},
+        masterGoal: snapshot.masterGoal,
+        masterStyle: snapshot.masterStyle,
+        masterStrength: snapshot.masterStrength,
+        outputFormat: snapshot.outputFormat,
+        targetLufs: snapshot.targetLufs,
+        ceilingDb: snapshot.ceilingDb,
+        qualityMode: snapshot.qualityMode,
+        platformPreset: snapshot.platformPreset,
+        performanceMode: snapshot.performanceMode
+    };
+    try { return JSON.stringify(core); } catch (error) { return String(Date.now()); }
+}
+
+function formatSnapshotLabel(snapshot) {
+    if (!snapshot) return '';
+    const label = snapshot.label || '스냅샷';
+    const date = snapshot.savedAt ? new Date(snapshot.savedAt) : null;
+    const time = date && !Number.isNaN(date.getTime()) ? date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) : '';
+    return time ? `${label} · ${time}` : label;
+}
+
+function getSnapshotTargets() {
+    const selected = getSelectedTracks();
+    if (selected.length) return selected;
+    const active = getSelectedTrack();
+    if (active) return [active];
+    return state.tracks.filter(track => track && !track.error);
+}
+
+function saveUndoPointForSelectedOrAll(label = '변경 전') {
+    getSnapshotTargets().forEach(track => saveUndoPoint(track, label, { auto: true }));
+}
+
+function saveUndoPoint(track, label = '변경 전', options = {}) {
+    if (!track || state.busy) return null;
+    if (!Array.isArray(track.snapshots)) track.snapshots = [];
+    if (!Array.isArray(track.redoSnapshots)) track.redoSnapshots = [];
+    const now = Date.now();
+    if (options.auto && track.snapshotMeta && track.snapshotMeta.label === label && now - Number(track.snapshotMeta.at || 0) < AUTO_SNAPSHOT_COOLDOWN_MS) return null;
+    const snapshot = captureTrackSnapshot(track, label);
+    const fingerprint = getSnapshotCore(snapshot);
+    const last = track.snapshots[track.snapshots.length - 1];
+    if (last && getSnapshotCore(last) === fingerprint) return null;
+    snapshot.fingerprint = fingerprint;
+    snapshot.auto = Boolean(options.auto);
+    track.snapshots.push(snapshot);
+    while (track.snapshots.length > MAX_SNAPSHOTS_PER_TRACK) track.snapshots.shift();
+    track.redoSnapshots = [];
+    track.snapshotMeta = { label, at: now };
+    return snapshot;
+}
+
 function captureTrackSnapshot(track, label = '스냅샷') {
     return {
         label,
@@ -8586,31 +8688,61 @@ function captureTrackSnapshot(track, label = '스냅샷') {
 }
 
 function saveSnapshot(track, label = '사용자 스냅샷') {
-    if (!track) return null;
-    if (!Array.isArray(track.snapshots)) track.snapshots = [];
-    const snapshot = captureTrackSnapshot(track, label);
-    track.snapshots.push(snapshot);
-    while (track.snapshots.length > MAX_SNAPSHOTS_PER_TRACK) track.snapshots.shift();
-    return snapshot;
+    return saveUndoPoint(track, label, { force: true });
 }
 
 function saveSnapshotForSelected() {
     const track = getSelectedTrack();
     if (!track || state.busy) return;
-    saveSnapshot(track, '사용자 저장');
+    saveUndoPoint(track, '사용자 저장', { force: true });
     renderAll({ keepDetailAudio: true });
-    showToast('현재 설정 스냅샷을 저장했습니다.');
+    showToast('현재 설정을 되돌리기 기록에 저장했습니다.');
 }
 
 function restoreLatestSnapshotForSelected() {
     const track = getSelectedTrack();
     if (!track || state.busy || !Array.isArray(track.snapshots) || !track.snapshots.length) return;
+    if (!Array.isArray(track.redoSnapshots)) track.redoSnapshots = [];
+    const current = captureTrackSnapshot(track, '되돌리기 전 상태');
     const snapshot = track.snapshots.pop();
+    track.redoSnapshots.push(current);
+    while (track.redoSnapshots.length > MAX_REDO_SNAPSHOTS_PER_TRACK) track.redoSnapshots.shift();
     restoreSnapshot(track, snapshot);
-    invalidateMasteredOutput(track, '저장된 스냅샷으로 되돌렸습니다. 다시 마스터링하세요.', true);
+    invalidateMasteredOutput(track, `${snapshot.label || '최근 기록'}으로 되돌렸습니다. 다시 마스터링하세요.`, true);
     applyTrackToControls(track);
     renderAll({ keepDetailAudio: true });
-    showToast('최근 스냅샷으로 되돌렸습니다.');
+    showToast(`${snapshot.label || '최근 기록'}으로 되돌렸습니다.`);
+}
+
+function redoSnapshotForSelected() {
+    const track = getSelectedTrack();
+    if (!track || state.busy || !Array.isArray(track.redoSnapshots) || !track.redoSnapshots.length) return;
+    const current = captureTrackSnapshot(track, '다시 적용 전 상태');
+    const snapshot = track.redoSnapshots.pop();
+    if (!Array.isArray(track.snapshots)) track.snapshots = [];
+    track.snapshots.push(current);
+    while (track.snapshots.length > MAX_SNAPSHOTS_PER_TRACK) track.snapshots.shift();
+    restoreSnapshot(track, snapshot);
+    invalidateMasteredOutput(track, '되돌린 설정을 다시 적용했습니다. 다시 마스터링하세요.', true);
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast('되돌린 설정을 다시 적용했습니다.');
+}
+
+function restoreAiRecommendationSnapshotForSelected() {
+    const track = getSelectedTrack();
+    if (!track || !track.analysis || state.busy) return;
+    saveUndoPoint(track, 'AI 추천 복원 전', { force: true });
+    applyAiRecommendationSettings(track, true, 'AI 추천값으로 복원했습니다. 다시 마스터링하세요.');
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast('AI 추천값으로 복원했습니다.');
+}
+
+function restoreOriginalSnapshotForSelected() {
+    const track = getSelectedTrack();
+    if (!track || state.busy) return;
+    applyOriginalManualSelection(track);
 }
 
 function restoreSnapshot(track, snapshot) {
@@ -8642,8 +8774,10 @@ function clearSnapshotsForSelected() {
     const track = getSelectedTrack();
     if (!track || state.busy) return;
     track.snapshots = [];
+    track.redoSnapshots = [];
+    track.snapshotMeta = null;
     renderAll({ keepDetailAudio: true });
-    showToast('선택 트랙의 스냅샷 기록을 지웠습니다.');
+    showToast('선택 트랙의 되돌리기 기록을 지웠습니다.');
 }
 
 
@@ -9412,6 +9546,7 @@ function applyAiPresetCandidate(track, preset) {
         return;
     }
     const settings = makeRecommendedSettings(preset, track.analysis);
+    saveUndoPoint(track, '추천 후보 적용 전');
     track.preset = preset;
     track.settings = cloneSettings(settings);
     track.genreLocked = true;
@@ -9425,6 +9560,7 @@ function applyAiPresetCandidate(track, preset) {
 
 function applyOriginalManualSelection(track) {
     if (!track || state.busy) return false;
+    saveUndoPoint(track, '원본선택 전');
     track.preset = 'custom';
     track.settings = cloneSettings(GENRE_PRESETS.custom);
     track.genreLocked = true;
@@ -9455,6 +9591,7 @@ async function masterTrackWithAiRecommendation(track) {
 
 function applyAiRecommendationSettings(track, autoRefresh = false, report = '') {
     if (!track || !track.analysis) return false;
+    saveUndoPoint(track, 'AI 추천 복원 전');
     if (track.genreLocked) {
         track.settings = cloneSettings(makeRecommendedSettings(track.preset || 'custom', track.analysis));
         invalidateMasteredOutput(track, report || `${PRESET_LABELS[track.preset] || track.preset} 잠금 장르 기준 추천값을 적용했습니다.`, autoRefresh);
@@ -11161,6 +11298,7 @@ function applyAIRecommendationToTrack(track) {
 
 function toggleGenreLockForTrack(track) {
     if (!track) return;
+    saveUndoPoint(track, '장르 잠금 변경 전');
     track.genreLocked = !track.genreLocked;
     if (track.genreLocked && track.analysis) {
         track.settings = cloneSettings(makeRecommendedSettings(track.preset || 'custom', track.analysis));
@@ -11549,7 +11687,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.50',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.51',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

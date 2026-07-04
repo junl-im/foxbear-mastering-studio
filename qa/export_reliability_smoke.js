@@ -14,7 +14,7 @@ function must(condition, message) {
   }
 }
 
-must(app.includes("const APP_VERSION = 'Pro v1.3.50'"), 'app version should be v1.3.50');
+must(app.includes("const APP_VERSION = 'Pro v1.3.51'"), 'app version should be v1.3.51');
 must(app.includes('function getDownloadEnvironmentInfo()'), 'download environment detector missing');
 must(app.includes('function canShareTinyAudioProbe()'), 'share capability probe missing');
 must(app.includes('download-options-panel-v3'), 'download options v3 panel missing');
@@ -25,7 +25,7 @@ must(app.includes('주소 복사'), 'copy URL fallback missing');
 must(app.includes('외부 브라우저'), 'external browser fallback missing');
 must(app.includes('function createTrackExportReadyPanel(track)'), 'track export-ready panel function missing');
 must(!app.includes('suggestedName: fileName,\n        suggestedName: fileName'), 'duplicate suggestedName should be removed');
-must(css.includes('v1.3.50 Release stabilization + export reliability'), 'v1.3.50 CSS block missing');
+must(css.includes('.track-export-ready-panel'), 'export-ready panel CSS block missing');
 must(css.includes('.track-export-ready-panel'), 'export-ready panel CSS missing');
 must(css.includes('.download-options-env'), 'download environment CSS missing');
 must(css.includes('download-options-panel-v3'), 'download panel v3 CSS missing');

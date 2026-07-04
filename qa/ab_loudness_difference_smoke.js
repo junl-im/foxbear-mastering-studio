@@ -10,15 +10,15 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.3.50'"), 'app version not updated');
+must(app.includes("const APP_VERSION = 'Pro v1.3.51'"), 'app version not updated');
 must(state.includes('abDifferenceListen: false'), 'abDifferenceListen state missing');
 must(app.includes('function createDifferencePreviewPlayer'), 'difference player function missing for full comparison UI');
 must(app.includes('createMediaElementSource(originalAudio)'), 'difference WebAudio original source missing');
 must(app.includes('originalInvert.gain.value = -1'), 'phase-inverted original gain missing');
 must(app.includes('toggleDockAbLevelMatch'), 'legacy Dock A/B toggle function kept for compatibility');
 must(app.includes('toggleDockDifferenceListen'), 'legacy Dock difference toggle function kept for compatibility');
-must(!html.includes('bottomPreviewAbMatchBtn'), 'Dock level-match button should be removed in v1.3.50');
-must(!html.includes('bottomPreviewDifferenceBtn'), 'Dock difference button should be removed in v1.3.50');
+must(!html.includes('bottomPreviewAbMatchBtn'), 'Dock level-match button should be removed in v1.3.51');
+must(!html.includes('bottomPreviewDifferenceBtn'), 'Dock difference button should be removed in v1.3.51');
 must(css.includes('difference-preview-player'), 'difference player CSS missing');
 must(css.includes('bottom-preview-compare-tools'), 'Dock compare tools defensive CSS missing');
 console.log('PASS ab_loudness_difference_smoke');
