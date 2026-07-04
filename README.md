@@ -1,6 +1,13 @@
 # FoxBear AI Mastering Studio Pro
 
 
+## Pro v1.3.28 lookahead limiter update
+
+- 최종 마스터 파이널라이저에 품질 모드별 룩어헤드 리미터를 추가했습니다. Fast는 1.5ms, Balanced는 3ms, Max는 5ms 선제 피크 감쇠를 사용합니다.
+- 기존처럼 리미터 전에 전체 게인을 먼저 크게 낮추는 흐름을 줄이고, 피크가 다가오기 전에 해당 구간만 시간 가변 게인으로 눌러 펀치 손실을 줄이도록 조정했습니다.
+- 브라우저 fallback 파이널라이저도 동일한 룩어헤드 envelope limiter를 사용해 워커 실패 시에도 결과 성향이 크게 달라지지 않게 했습니다.
+- 최종 JSON 리포트에 `finalizer.limiterMode`, `lookaheadMs`, `limiterReductionDb`, `preLimiterPeak` 메타 정보를 추가했습니다.
+
 ## Pro v1.3.27 K-weighted LUFS loudness update
 
 - 최종 마스터 파이널라이저와 브라우저 fallback의 2-pass 라우드니스 측정을 K-weighting 프리필터 기반으로 변경했습니다.

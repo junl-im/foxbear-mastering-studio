@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.3.27 - K-weighted LUFS 2-pass loudness target + DC-safe transparent limiter
+// FoxBear Pro finalizer worker v1.3.28 - K-weighted LUFS + lookahead true-peak limiter
 'use strict';
 
 self.onmessage = event => {
@@ -28,17 +28,18 @@ self.onmessage = event => {
         applyGain(data, length, gain);
 
         const ceiling = Math.pow(10, ceilingDb / 20);
-        const preCeilingPeak = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
-        const ceilingGain = preCeilingPeak > ceiling ? ceiling / Math.max(1e-9, preCeilingPeak) : 1;
-        if (ceilingGain < 1) applyGain(data, length, ceilingGain);
-        const limiterInfo = applyTransparentLimiter(data, length, ceiling, sampleRate, qualityMode);
+        const preLimiterPeak = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
+        const limiterInfo = applyLookaheadLimiter(data, length, ceiling, sampleRate, qualityMode);
         applySoftCeiling(data, length, ceiling);
         removeDcOffset(data, length);
         sanitizeBuffers(data, length);
 
-        const peakAfter = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
+        let peakAfter = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
+        let finalSafetyGain = 1;
         if (peakAfter > ceiling * 1.001) {
-            applyGain(data, length, ceiling / Math.max(1e-9, peakAfter));
+            finalSafetyGain = ceiling / Math.max(1e-9, peakAfter);
+            applyGain(data, length, finalSafetyGain);
+            peakAfter = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
         }
         const loudnessAfter = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
         const finalPeak = truePeak ? measureInterpolatedPeak(data, length, oversample) : measureSamplePeak(data, length);
@@ -51,7 +52,7 @@ self.onmessage = event => {
             length,
             channelBuffers: transfers,
             info: {
-                mode: truePeak ? '2-pass K-weighted true peak' : '2-pass K-weighted sample peak',
+                mode: truePeak ? '2-pass K-weighted lookahead true peak' : '2-pass K-weighted lookahead sample peak',
                 qualityMode,
                 targetLufs,
                 ceilingDb,
@@ -59,8 +60,12 @@ self.onmessage = event => {
                 loudnessAfter,
                 peakBefore,
                 peakAfter: finalPeak,
-                gainDb: targetGainDb + 20 * Math.log10(Math.max(1e-9, ceilingGain)),
+                gainDb: targetGainDb + 20 * Math.log10(Math.max(1e-9, finalSafetyGain)),
                 limiterReductionDb: limiterInfo.reductionDb,
+                limiterMode: limiterInfo.mode,
+                lookaheadMs: limiterInfo.lookaheadMs,
+                lookaheadSamples: limiterInfo.lookaheadSamples,
+                preLimiterPeak,
                 oversample,
                 loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates'
             }
@@ -229,26 +234,64 @@ function applyGain(buffers, length, gain) {
 }
 
 
-function applyTransparentLimiter(buffers, length, ceiling, sampleRate, qualityMode) {
-    const releaseMs = qualityMode === 'max' ? 90 : qualityMode === 'fast' ? 36 : 58;
+function getLimiterLookaheadMs(qualityMode) {
+    return qualityMode === 'max' ? 5 : qualityMode === 'fast' ? 1.5 : 3;
+}
+
+function applyLookaheadLimiter(buffers, length, ceiling, sampleRate, qualityMode) {
+    const safeCeiling = Math.max(1e-9, ceiling);
+    const releaseMs = qualityMode === 'max' ? 105 : qualityMode === 'fast' ? 42 : 68;
     const release = Math.exp(-1 / Math.max(1, sampleRate * releaseMs / 1000));
-    let gain = 1;
-    let minGain = 1;
+    const lookaheadMs = getLimiterLookaheadMs(qualityMode);
+    const lookaheadSamples = Math.max(1, Math.round(sampleRate * lookaheadMs / 1000));
+    const peaks = new Float32Array(length);
     for (let i = 0; i < length; i += 1) {
         let peak = 0;
         for (const data of buffers) {
             const abs = Math.abs(data[i] || 0);
             if (abs > peak) peak = abs;
         }
-        const desired = peak > ceiling ? ceiling / Math.max(1e-9, peak) : 1;
+        peaks[i] = peak;
+    }
+
+    const deque = [];
+    let head = 0;
+    let addedUntil = -1;
+    let gain = 1;
+    let minGain = 1;
+    let activeSamples = 0;
+
+    for (let i = 0; i < length; i += 1) {
+        const futureEnd = Math.min(length - 1, i + lookaheadSamples);
+        while (addedUntil < futureEnd) {
+            addedUntil += 1;
+            const peak = peaks[addedUntil];
+            while (deque.length > head && peaks[deque[deque.length - 1]] <= peak) deque.pop();
+            deque.push(addedUntil);
+        }
+        while (head < deque.length && deque[head] < i) head += 1;
+        if (head > 1024 && head * 2 > deque.length) {
+            deque.splice(0, head);
+            head = 0;
+        }
+        const futurePeak = head < deque.length ? peaks[deque[head]] : peaks[i];
+        const desired = futurePeak > safeCeiling ? safeCeiling / Math.max(1e-9, futurePeak) : 1;
         if (desired < gain) gain = desired;
         else gain = Math.min(1, gain * release + (1 - release));
         if (gain < minGain) minGain = gain;
         if (gain < 0.999999) {
+            activeSamples += 1;
             for (const data of buffers) data[i] = (data[i] || 0) * gain;
         }
     }
-    return { minGain, reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0 };
+    return {
+        mode: 'lookaheadLimiter',
+        lookaheadMs,
+        lookaheadSamples,
+        activeSamples,
+        minGain,
+        reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0
+    };
 }
 
 function applySoftCeiling(buffers, length, ceiling) {

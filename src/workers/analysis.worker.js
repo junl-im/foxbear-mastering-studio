@@ -1,4 +1,4 @@
-// FoxBear analysis worker v1.3.27 - spectral balance, K-weighted LUFS, genre features
+// FoxBear analysis worker v1.3.28 - spectral balance, K-weighted LUFS, genre features
 'use strict';
 
 self.onmessage = event => {

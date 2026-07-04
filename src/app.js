@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.27 - K-weighted LUFS loudness update
+// FoxBear AI Mastering Studio Pro v1.3.28 - K-weighted LUFS + lookahead limiter update
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.27';
+const APP_VERSION = 'Pro v1.3.28';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -442,7 +442,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.27';
+    styleLink.href = 'assets/css/studio.css?v=1.3.28';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -5796,10 +5796,10 @@ function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true
     const ceiling = Math.pow(10, Number(targetDbTP || -1) / 20);
     const oversample = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 2 : 4;
     const peakBefore = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
-    if (peakBefore < 0.000001) return { mode: truePeak ? 'truePeakLimiter' : 'samplePeakLimiter', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1, limiterReductionDb: 0 };
-    const preGain = Math.min(1, ceiling / Math.max(1e-9, peakBefore));
-    if (preGain < 1) applyBufferGain(buffer, preGain);
-    const limiterInfo = applyEnvelopeLimiter(buffer, ceiling, qualityMode);
+    if (peakBefore < 0.000001) {
+        return { mode: truePeak ? 'lookaheadTruePeakLimiter' : 'lookaheadSamplePeakLimiter', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1, limiterReductionDb: 0, lookaheadMs: getLimiterLookaheadMs(qualityMode) };
+    }
+    const limiterInfo = applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode);
     for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
         const data = buffer.getChannelData(ch);
         for (let i = 0; i < data.length; i += 1) data[i] = softCeilingSample(data[i], ceiling);
@@ -5812,33 +5812,82 @@ function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true
         applyBufferGain(buffer, finalGain);
         peakAfter = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
     }
-    return { mode: truePeak ? 'truePeakLimiter' : 'samplePeakLimiter', targetDbTP, peakBefore, peakAfter, gain: preGain * finalGain, limiterReductionDb: limiterInfo.reductionDb };
+    return {
+        mode: truePeak ? 'lookaheadTruePeakLimiter' : 'lookaheadSamplePeakLimiter',
+        targetDbTP,
+        peakBefore,
+        peakAfter,
+        gain: finalGain,
+        limiterReductionDb: limiterInfo.reductionDb,
+        limiterMode: limiterInfo.mode,
+        lookaheadMs: limiterInfo.lookaheadMs,
+        lookaheadSamples: limiterInfo.lookaheadSamples,
+        preLimiterPeak: peakBefore
+    };
 }
 
-function applyEnvelopeLimiter(buffer, ceiling, qualityMode = 'balanced') {
+function getLimiterLookaheadMs(qualityMode) {
+    return qualityMode === 'max' ? 5 : qualityMode === 'fast' ? 1.5 : 3;
+}
+
+function applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode = 'balanced') {
     const sampleRate = Math.max(3000, Number(buffer.sampleRate || 44100));
-    const releaseMs = qualityMode === 'max' ? 85 : qualityMode === 'fast' ? 38 : 58;
+    const safeCeiling = Math.max(1e-9, ceiling);
+    const releaseMs = qualityMode === 'max' ? 105 : qualityMode === 'fast' ? 42 : 68;
     const release = Math.exp(-1 / Math.max(1, sampleRate * releaseMs / 1000));
-    let gain = 1;
-    let minGain = 1;
+    const lookaheadMs = getLimiterLookaheadMs(qualityMode);
+    const lookaheadSamples = Math.max(1, Math.round(sampleRate * lookaheadMs / 1000));
+    const channels = [];
+    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) channels.push(buffer.getChannelData(ch));
+    const peaks = new Float32Array(buffer.length);
     for (let i = 0; i < buffer.length; i += 1) {
         let peak = 0;
-        for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-            const v = Math.abs(buffer.getChannelData(ch)[i] || 0);
-            if (v > peak) peak = v;
+        for (const data of channels) {
+            const abs = Math.abs(data[i] || 0);
+            if (abs > peak) peak = abs;
         }
-        const desired = peak > ceiling ? ceiling / Math.max(1e-9, peak) : 1;
+        peaks[i] = peak;
+    }
+
+    const deque = new Int32Array(buffer.length);
+    let head = 0;
+    let tail = 0;
+    let addedUntil = -1;
+    let gain = 1;
+    let minGain = 1;
+    let activeSamples = 0;
+
+    for (let i = 0; i < buffer.length; i += 1) {
+        const futureEnd = Math.min(buffer.length - 1, i + lookaheadSamples);
+        while (addedUntil < futureEnd) {
+            addedUntil += 1;
+            const peak = peaks[addedUntil];
+            while (deque.length > head && peaks[deque[deque.length - 1]] <= peak) deque.pop();
+            deque.push(addedUntil);
+        }
+        while (head < deque.length && deque[head] < i) head += 1;
+        if (head > 1024 && head * 2 > deque.length) {
+            deque.splice(0, head);
+            head = 0;
+        }
+        const futurePeak = head < deque.length ? peaks[deque[head]] : peaks[i];
+        const desired = futurePeak > safeCeiling ? safeCeiling / Math.max(1e-9, futurePeak) : 1;
         if (desired < gain) gain = desired;
         else gain = Math.min(1, gain * release + (1 - release));
         if (gain < minGain) minGain = gain;
         if (gain < 0.999999) {
-            for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-                const data = buffer.getChannelData(ch);
-                data[i] = (data[i] || 0) * gain;
-            }
+            activeSamples += 1;
+            for (const data of channels) data[i] = (data[i] || 0) * gain;
         }
     }
-    return { minGain, reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0 };
+    return {
+        mode: 'lookaheadLimiter',
+        lookaheadMs,
+        lookaheadSamples,
+        activeSamples,
+        minGain,
+        reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0
+    };
 }
 
 function calculateAudioStats(buffer) {
@@ -5894,6 +5943,15 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
         before: { ...before, approxLufs: beforeLufs },
         after: { ...after, approxLufs: afterLufs },
         target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle },
+        finalizer: {
+            mode: finalizeInfo?.mode || '',
+            limiterMode: finalizeInfo?.limiterMode || '',
+            lookaheadMs: Number(finalizeInfo?.lookaheadMs || 0),
+            limiterReductionDb: Number(finalizeInfo?.limiterReductionDb || 0),
+            preLimiterPeak: Number(finalizeInfo?.preLimiterPeak || 0),
+            oversample: Number(finalizeInfo?.oversample || 0),
+            loudnessStandard: finalizeInfo?.loudnessStandard || ''
+        },
         delta: {
             lufs: Number.isFinite(beforeLufs) && Number.isFinite(afterLufs) ? afterLufs - beforeLufs : NaN,
             rmsDb: Number.isFinite(before?.rmsDb) && Number.isFinite(after?.rmsDb) ? after.rmsDb - before.rmsDb : NaN,
@@ -6048,7 +6106,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         return {
             buffer: working,
             info: {
-                mode: options.truePeak === false ? 'K-weighted sample peak fallback' : 'K-weighted true peak fallback',
+                mode: options.truePeak === false ? 'K-weighted lookahead sample peak fallback' : 'K-weighted lookahead true peak fallback',
                 qualityMode,
                 targetLufs,
                 ceilingDb: targetDb,
@@ -6060,6 +6118,10 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 limiterReductionDb: peakInfo.limiterReductionDb || 0,
                 dcRemoved: dcInfo,
                 oversample: 4,
+                limiterMode: peakInfo.limiterMode,
+                lookaheadMs: peakInfo.lookaheadMs,
+                lookaheadSamples: peakInfo.lookaheadSamples,
+                preLimiterPeak: peakInfo.preLimiterPeak,
                 loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates'
             }
         };
@@ -9008,7 +9070,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.27',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.28',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

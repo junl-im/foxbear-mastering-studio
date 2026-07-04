@@ -1,12 +1,13 @@
-# FoxBear Pro v1.3.27 QA Report
+# FoxBear Pro v1.3.28 QA Report
 
-## Pro v1.3.27 K-weighted LUFS loudness update
+## Pro v1.3.28 lookahead limiter update
 
-- Added K-weighting filters to finalizer worker loudness measurement.
-- Updated browser fallback loudness pass to use the same K-weighted gate flow.
-- Updated analysis worker `loudnessIntegrated` to K-weighted LUFS.
+- Added quality-mode lookahead limiting to the finalizer worker: 1.5ms Fast, 3ms Balanced, 5ms Max.
+- Updated browser fallback finalizer to use the same lookahead envelope limiter.
+- Reduced reliance on broad pre-ceiling gain trim so transient sections are controlled more locally.
+- Added limiter metadata to finalizer info and JSON reports.
 - Refreshed app version, cache busters, and SRI hash.
-- Detailed report: `qa/QA_REPORT_K_WEIGHTED_LUFS_1.3.27.md`.
+- Detailed report: `qa/QA_REPORT_LOOKAHEAD_LIMITER_1.3.28.md`.
 
 # FoxBear Pro v1.3.16 QA Report
 
