@@ -397,6 +397,9 @@ const state = {
     activeDownloadUrls: new Set(),
     realtimePreview: null,
     previewRenderTimer: null,
+    bottomPreviewMode: 'original',
+    bottomPreviewTrackId: null,
+    bottomPreviewAutoplayTrackId: null,
     adminTapLastAt: 0,
     adminTapCount: 0,
     adminStatsRemoteError: '',
@@ -483,6 +486,7 @@ function cacheElements() {
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
         'adminStatsTrigger', 'adminPasswordDialog', 'adminPasswordClose', 'adminPasswordCancel', 'adminPasswordSubmit', 'adminPasswordInput', 'adminPasswordError', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -1822,6 +1826,8 @@ function bindEvents() {
             if (event.target === el.previewDialog) closePreviewDialog();
         });
     }
+    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false));
+    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', () => selectBottomPreviewMode('mastered', true));
     bindAdminStatsEvents();
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
     if (el.referenceLoadBtn) el.referenceLoadBtn.addEventListener('click', () => el.referenceInput?.click());
@@ -3604,6 +3610,10 @@ async function masterTrack(track, calledFromBatch = false) {
         track.outName = buildMasteredFileName(track, encoded);
         track.masteredUrl = URL.createObjectURL(encoded.blob);
         track.masteredDurationSec = finalBuffer.duration || 0;
+        if (state.selectedId === track.id) {
+            state.bottomPreviewMode = 'mastered';
+            state.bottomPreviewAutoplayTrackId = track.id;
+        }
         finishPerformanceProfile(track, finalBuffer, encoded.blob);
         track.status = 'done';
         track.progress = 100;
@@ -6073,8 +6083,6 @@ async function downloadZip() {
     completed.forEach(track => {
         const fileName = makeUniqueZipName(track.outName || `${safeBaseName(track.name)}_mastered.wav`, usedNames);
         zip.file(fileName, track.outBlob);
-        const reportName = makeUniqueZipName(buildExportReportFileName(track), usedNames);
-        zip.file(reportName, JSON.stringify(createExportReport(track), null, 2));
     });
 
     showToast(`${completed.length}개 마스터 파일만 ZIP으로 압축 중...`);
@@ -6394,6 +6402,9 @@ function clearQueue() {
     state.tracks = [];
     state.selectedId = null;
     state.selectedIds.clear();
+    state.bottomPreviewMode = 'original';
+    state.bottomPreviewTrackId = null;
+    state.bottomPreviewAutoplayTrackId = null;
     if (state.expandedDetailIds) state.expandedDetailIds.clear();
     state.busy = false;
     state.albumProfile = null;
@@ -6747,6 +6758,7 @@ function renderAll(options = {}) {
     renderReferencePanel();
     renderSnapshotPanel();
     updatePreviewButton();
+    renderBottomPreviewDock(options);
     updateRealtimePreviewSettings();
     updateProcessingHud();
     syncEnhancedSelectButtons();
@@ -7090,6 +7102,113 @@ function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
 
     previewGrid.append(originalCard, masteredCard);
     target.appendChild(previewGrid);
+}
+
+
+function selectBottomPreviewMode(mode, autoPlay = false) {
+    const track = getSelectedTrack();
+    if (!track) return;
+    const nextMode = mode === 'mastered' ? 'mastered' : 'original';
+    if (nextMode === 'mastered' && !track.masteredUrl) {
+        showToast('마스터링 실행 후 마스터링 프리뷰가 활성화됩니다.');
+        return;
+    }
+    state.bottomPreviewMode = nextMode;
+    state.bottomPreviewTrackId = track.id;
+    if (nextMode === 'mastered' && autoPlay) state.bottomPreviewAutoplayTrackId = track.id;
+    renderBottomPreviewDock({ autoPlay: nextMode === 'mastered' && autoPlay });
+}
+
+function renderBottomPreviewDock(options = {}) {
+    if (!el.bottomPreviewDock || !el.bottomPreviewPlayer) return;
+    const track = getSelectedTrack();
+    if (!track) {
+        clearBottomPreviewPlayer();
+        el.bottomPreviewDock.classList.remove('show');
+        el.bottomPreviewDock.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('bottom-preview-active');
+        state.bottomPreviewMode = 'original';
+        state.bottomPreviewTrackId = null;
+        state.bottomPreviewAutoplayTrackId = null;
+        return;
+    }
+
+    if (state.bottomPreviewTrackId !== track.id) {
+        state.bottomPreviewTrackId = track.id;
+        if (state.bottomPreviewAutoplayTrackId !== track.id) state.bottomPreviewMode = 'original';
+    }
+
+    const masteredAvailable = Boolean(track.masteredUrl);
+    if (state.bottomPreviewMode === 'mastered' && !masteredAvailable) state.bottomPreviewMode = 'original';
+    const mode = state.bottomPreviewMode === 'mastered' ? 'mastered' : 'original';
+    const useMastered = mode === 'mastered' && masteredAvailable;
+    const src = useMastered ? track.masteredUrl : track.originalUrl;
+    const duration = useMastered ? (track.masteredDurationSec || track.analysis?.duration) : track.analysis?.duration;
+    const gainDb = useMastered ? getABMatchGainDb(track) : 0;
+    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode ? 'loop' : 'free'}|${state.abLevelMatch ? 'match' : 'raw'}`;
+
+    el.bottomPreviewDock.classList.add('show');
+    el.bottomPreviewDock.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('bottom-preview-active');
+    if (el.bottomPreviewTitle) {
+        el.bottomPreviewTitle.textContent = track.name || '선택 트랙';
+        el.bottomPreviewTitle.title = track.name || '';
+    }
+    setBottomPreviewTabState(mode, masteredAvailable);
+
+    const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && el.bottomPreviewPlayer.querySelector('audio');
+    if (!samePlayer) {
+        clearBottomPreviewPlayer();
+        if (!src) {
+            const empty = document.createElement('div');
+            empty.className = 'bottom-preview-empty';
+            empty.textContent = '프리뷰 소스를 준비 중입니다.';
+            el.bottomPreviewPlayer.appendChild(empty);
+        } else {
+            const player = createPreviewPlayer(src, gainDb, duration, state.abLoopMode, getTrackHighlightStart(track));
+            player.classList.add('bottom-custom-player');
+            const audio = player.querySelector('audio');
+            if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} ${useMastered ? '마스터링' : '원본'} 프리뷰 재생`);
+            el.bottomPreviewPlayer.appendChild(player);
+            el.bottomPreviewPlayer.dataset.previewKey = key;
+        }
+    }
+
+    const shouldAutoPlay = (options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id) && useMastered;
+    if (shouldAutoPlay) {
+        state.bottomPreviewAutoplayTrackId = null;
+        requestAnimationFrame(playBottomPreviewAudio);
+    }
+}
+
+function setBottomPreviewTabState(mode, masteredAvailable) {
+    const originalActive = mode !== 'mastered';
+    if (el.bottomPreviewOriginalBtn) {
+        el.bottomPreviewOriginalBtn.classList.toggle('active', originalActive);
+        el.bottomPreviewOriginalBtn.setAttribute('aria-selected', String(originalActive));
+    }
+    if (el.bottomPreviewMasteredBtn) {
+        el.bottomPreviewMasteredBtn.classList.toggle('active', !originalActive);
+        el.bottomPreviewMasteredBtn.setAttribute('aria-selected', String(!originalActive));
+        el.bottomPreviewMasteredBtn.disabled = !masteredAvailable;
+        el.bottomPreviewMasteredBtn.title = masteredAvailable ? '마스터링된 곡을 재생합니다.' : '마스터링 실행 후 활성화됩니다.';
+    }
+}
+
+function clearBottomPreviewPlayer() {
+    if (!el.bottomPreviewPlayer) return;
+    el.bottomPreviewPlayer.querySelectorAll('audio').forEach(audio => {
+        try { audio.pause(); } catch (error) {}
+        try { audio.removeAttribute('src'); audio.load(); } catch (error) {}
+    });
+    el.bottomPreviewPlayer.textContent = '';
+    delete el.bottomPreviewPlayer.dataset.previewKey;
+}
+
+function playBottomPreviewAudio() {
+    const audio = el.bottomPreviewPlayer?.querySelector('audio');
+    if (!audio) return;
+    audio.play().catch(() => showToast('브라우저가 자동 재생을 차단했습니다. 하단 재생 버튼을 눌러주세요.'));
 }
 
 function makePreviewTitle(label, durationSec) {

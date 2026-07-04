@@ -438,6 +438,23 @@
     </section>
 </div>
 
+
+<div id="bottomPreviewDock" class="bottom-preview-dock" aria-hidden="true">
+    <div class="bottom-preview-inner">
+        <div class="bottom-preview-meta">
+            <span class="bottom-preview-kicker">Track Preview</span>
+            <strong id="bottomPreviewTitle">선택 트랙</strong>
+        </div>
+        <div class="bottom-preview-core">
+            <div class="bottom-preview-tabs" role="tablist" aria-label="프리뷰 소스 선택">
+                <button id="bottomPreviewOriginalBtn" class="bottom-preview-tab active" type="button" role="tab" aria-selected="true">원본 프리뷰</button>
+                <button id="bottomPreviewMasteredBtn" class="bottom-preview-tab" type="button" role="tab" aria-selected="false" disabled>마스터링 프리뷰</button>
+            </div>
+            <div id="bottomPreviewPlayer" class="bottom-preview-player"></div>
+        </div>
+    </div>
+</div>
+
 <div id="previewDialog" class="preview-dialog-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="previewDialogTitle">
     <section class="preview-dialog-panel" tabindex="-1">
         <div class="preview-dialog-head">
