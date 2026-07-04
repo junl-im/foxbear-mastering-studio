@@ -7168,3 +7168,199 @@ body.bottom-preview-active .download-assist {
     body.bottom-preview-active .toast { bottom: 118px !important; }
     body.bottom-preview-active .download-assist { bottom: 122px !important; }
 }
+
+/* v1.3.23 AI automatic mastering UX */
+.ai-master-card {
+    margin: 12px 0 10px;
+    padding: 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.15);
+    background:
+        radial-gradient(circle at 12% 0%, rgba(141,245,232,.14), transparent 38%),
+        linear-gradient(135deg, rgba(13,20,33,.96), rgba(20,19,31,.93));
+    box-shadow: 0 18px 40px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.04);
+    display: grid;
+    gap: 10px;
+    overflow: hidden;
+    position: relative;
+}
+.ai-master-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,.07), transparent 28%, rgba(255,214,86,.08));
+    opacity: .55;
+}
+.ai-master-card > * { position: relative; z-index: 1; }
+.ai-master-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.ai-master-title { display: grid; gap: 2px; min-width: 0; }
+.ai-master-title span,
+.ai-master-reason span,
+.ai-master-candidates > span,
+.ai-master-risk > span {
+    font-size: .66rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: rgba(184,237,255,.72);
+}
+.ai-master-title strong {
+    font-size: .98rem;
+    color: rgba(255,255,255,.96);
+    letter-spacing: -.02em;
+}
+.ai-master-confidence {
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.16);
+    color: #fff4c8;
+    font-size: .72rem;
+    white-space: nowrap;
+}
+.ai-master-ok .ai-master-confidence { border-color: rgba(141,245,232,.36); color: #b9fff6; }
+.ai-master-warn .ai-master-confidence { border-color: rgba(255,210,122,.42); color: #ffe39c; }
+.ai-master-danger .ai-master-confidence { border-color: rgba(255,126,126,.36); color: #ffd0d0; }
+.ai-master-summary {
+    margin: 0;
+    color: rgba(232,241,255,.82);
+    font-size: .76rem;
+    line-height: 1.55;
+}
+.ai-master-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+}
+.ai-master-metric {
+    min-width: 0;
+    padding: 9px;
+    border-radius: 15px;
+    background: rgba(255,255,255,.055);
+    border: 1px solid rgba(255,255,255,.10);
+    display: grid;
+    gap: 4px;
+}
+.ai-master-metric span {
+    color: rgba(219,231,255,.56);
+    font-size: .58rem;
+    font-weight: 850;
+}
+.ai-master-metric b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(255,255,255,.92);
+    font-size: .72rem;
+}
+.ai-master-metric-ok { border-color: rgba(141,245,232,.22); }
+.ai-master-metric-cyan { border-color: rgba(120,215,255,.22); }
+.ai-master-metric-warn { border-color: rgba(255,210,122,.24); }
+.ai-master-metric-danger { border-color: rgba(255,126,126,.24); }
+.ai-master-reason,
+.ai-master-risk,
+.ai-master-candidates {
+    padding: 10px;
+    border-radius: 16px;
+    background: rgba(0,0,0,.16);
+    border: 1px solid rgba(255,255,255,.09);
+    display: grid;
+    gap: 7px;
+}
+.ai-master-reason p {
+    margin: 0;
+    color: rgba(232,241,255,.78);
+    font-size: .70rem;
+    line-height: 1.5;
+}
+.ai-master-candidate-list,
+.ai-master-risk-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+}
+.ai-candidate-chip,
+.ai-master-risk-list em {
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.06);
+    color: rgba(238,246,255,.86);
+    font-size: .64rem;
+    font-weight: 850;
+    padding: 7px 9px;
+    font-style: normal;
+}
+.ai-candidate-chip {
+    cursor: pointer;
+}
+.ai-candidate-chip.active,
+.ai-candidate-chip:hover:not(:disabled) {
+    color: #061114;
+    background: linear-gradient(135deg, #8df5e8, #ffe381);
+    border-color: rgba(255,255,255,.24);
+}
+.ai-candidate-chip:disabled { opacity: .52; cursor: not-allowed; }
+.ai-master-actions {
+    display: grid;
+    grid-template-columns: minmax(0, .85fr) minmax(0, 1.25fr);
+    gap: 8px;
+}
+.ai-master-actions .ai-safe-remaster-btn {
+    grid-column: 1 / -1;
+    border-color: rgba(255,210,122,.30);
+    color: #ffe39c;
+}
+.track-ai-judge {
+    margin-top: 7px;
+    padding: 7px 9px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.045);
+    border: 1px solid rgba(255,255,255,.08);
+    color: rgba(236,245,255,.72);
+    font-size: .66rem;
+    line-height: 1.35;
+}
+.smart-suggest-danger { border-color: rgba(255,126,126,.24); }
+.smart-suggest-neutral { border-color: rgba(255,255,255,.12); }
+
+@media (max-width: 820px) {
+    .ai-master-card {
+        margin: 9px 0;
+        padding: 10px;
+        border-radius: 17px;
+        gap: 8px;
+    }
+    .ai-master-head {
+        align-items: flex-start;
+        gap: 7px;
+    }
+    .ai-master-title strong { font-size: .80rem; }
+    .ai-master-title span,
+    .ai-master-reason span,
+    .ai-master-candidates > span,
+    .ai-master-risk > span { font-size: .52rem; letter-spacing: .06em; }
+    .ai-master-confidence { padding: 5px 7px; font-size: .56rem; }
+    .ai-master-summary { font-size: .61rem; line-height: 1.45; }
+    .ai-master-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+    .ai-master-metric { padding: 7px; border-radius: 12px; }
+    .ai-master-metric span { font-size: .48rem; }
+    .ai-master-metric b { font-size: .58rem; }
+    .ai-master-reason,
+    .ai-master-risk,
+    .ai-master-candidates { padding: 8px; border-radius: 13px; gap: 5px; }
+    .ai-master-reason p { font-size: .56rem; }
+    .ai-candidate-chip,
+    .ai-master-risk-list em { padding: 5px 7px; font-size: .52rem; }
+    .ai-master-actions { grid-template-columns: 1fr; gap: 6px; }
+    .ai-master-actions button { min-height: 34px !important; font-size: .58rem !important; }
+    .track-ai-judge { font-size: .55rem; padding: 6px 7px; }
+}

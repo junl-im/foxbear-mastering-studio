@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.20 - Mastering Studio upgrade static build
+// FoxBear AI Mastering Studio Pro v1.3.23 - AI automatic mastering UX static build
 'use strict';
 
-const APP_VERSION = 'Pro v1.3.20';
+const APP_VERSION = 'Pro v1.3.23';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -438,7 +438,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.20';
+    styleLink.href = 'assets/css/studio.css?v=1.3.23';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -1191,10 +1191,17 @@ function buildSmartSuggestionItems(track) {
     const items = [];
     const analysis = track.analysis || {};
     const preset = PRESET_LABELS[track.recommendedPreset || track.preset] || track.recommendedPreset || track.preset || '커스텀';
+    const confidence = Number(track.confidence || 0);
+    const confidenceTone = getAiConfidenceTone(track);
     items.push({ label: '추천 장르', value: preset, tone: 'cyan' });
+    if (confidence) items.push({ label: 'AI 신뢰도', value: `${getAiConfidenceLabel(track)} ${confidence}%`, tone: confidenceTone });
+    items.push({ label: '목표 음압', value: `${Number(state.targetLufs || -14).toFixed(0)} LUFS`, tone: 'neutral' });
+    items.push({ label: '스타일', value: getMasterStyleLabel(state.masterStyle), tone: 'cyan' });
     const safety = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
     if (safety) items.push({ label: '안전 점수', value: `${safety.score}점`, tone: safety.tone || 'ok' });
     if (Number.isFinite(Number(analysis.lowMonoScore))) items.push({ label: '저역 모노', value: `${Math.round(Number(analysis.lowMonoScore))}점`, tone: analysis.lowMonoScore >= 80 ? 'ok' : analysis.lowMonoScore >= 62 ? 'warn' : 'danger' });
+    const firstRisk = getAiMasteringRiskNotes(track)[0];
+    items.push({ label: '위험 체크', value: firstRisk || '양호', tone: firstRisk ? 'warn' : 'ok' });
     const activeGuards = [
         state.featureFlags.truePeakGuard ? '피크' : '',
         state.featureFlags.vocalProtect ? '보컬' : '',
@@ -6397,6 +6404,11 @@ function invalidateMasteredOutput(track, report, autoRefresh = false) {
     track.truePeakInfo = null;
     track.finalizeInfo = null;
     track.albumApplied = null;
+    track.qualityGate = null;
+    track.masterReport = null;
+    track.comparison = null;
+    track.waveformOverview = null;
+    track.safetyInfo = null;
     if (track.status === 'done') {
         track.status = 'ready';
         track.progress = 100;
@@ -6859,6 +6871,19 @@ function renderQueuePreview() {
     el.queuePreview.setAttribute('aria-hidden', 'true');
 }
 
+function buildTrackAiJudgeText(track) {
+    if (!track) return '';
+    if (track.status === 'analyzing') return 'AI 분석 중 · 추천 프리셋 준비';
+    if (track.status === 'processing') return track.report || 'AI 마스터링 진행 중';
+    if (track.error) return `오류 · ${track.error}`;
+    if (track.qualityGate) {
+        const prefix = track.qualityGate.status === 'pass' ? '결과 안정적' : track.qualityGate.status === 'warn' ? '결과 확인 필요' : '재보정 권장';
+        return `${prefix} · ${track.qualityGate.summary}`;
+    }
+    if (track.analysis) return `AI 추천 · ${PRESET_LABELS[track.preset] || track.preset || '커스텀'} · ${getAiConfidenceLabel(track)} ${track.confidence || 0}%`;
+    return 'AI 추천 대기';
+}
+
 function renderTrackList() {
     el.trackList.textContent = '';
     if (!state.tracks.length) {
@@ -6925,6 +6950,9 @@ function renderTrackList() {
         const progressCaption = document.createElement('div');
         progressCaption.className = 'progress-caption';
         progressCaption.textContent = track.status === 'processing' ? (track.report || '마스터링 진행 중') : (track.status === 'done' ? `완료 · ${track.qualityGate ? '품질 ' + track.qualityGate.label + ' · ' : ''}미리듣기/다운로드 가능` : '대기 중');
+        const aiJudge = document.createElement('div');
+        aiJudge.className = 'track-ai-judge';
+        aiJudge.textContent = buildTrackAiJudgeText(track);
 
         const actions = document.createElement('div');
         actions.className = 'track-actions';
@@ -6941,7 +6969,7 @@ function renderTrackList() {
             actions.append(makeMiniButton('리포트 저장', 'btn-secondary', () => downloadTrackReport(track), false));
         }
 
-        card.append(top, progressShell, progressCaption, actions);
+        card.append(top, progressShell, progressCaption, aiJudge, actions);
         el.trackList.appendChild(card);
     });
 }
@@ -6999,6 +7027,7 @@ function renderDetail(options = {}) {
     const safetyInfo = track.safetyInfo || (track.analysis ? computeEngineSafetyInfo(track, null, track.finalizeInfo || null) : null);
     compact.textContent = track.analysis ? `${presetText} · ${track.status === 'done' ? '완료' : statusLabel(track.status)}${safetyInfo ? ` · 안전 ${safetyInfo.score}점` : ''}` : statusLabel(track.status);
     el.trackDetail.appendChild(compact);
+    renderAiMasteringCard(track);
 
     const isOpen = state.expandedDetailIds && state.expandedDetailIds.has(track.id);
     const toggle = document.createElement('button');
@@ -7051,7 +7080,7 @@ function renderDetail(options = {}) {
         addRow('스마트 성능 가드', formatPerformanceGuardInfo(track.performanceGuardInfo));
         if (track.safetyInfo) addRow('엔진 안전 점수', `${track.safetyInfo.score}점 · ${track.safetyInfo.label} · ${track.safetyInfo.notes.join(', ')}`);
         if (track.qualityGate) addRow('품질 게이트', `${track.qualityGate.label} · ${track.qualityGate.summary}`);
-        if (track.masterReport) addRow('리포트 저장', '트랙 카드의 리포트 저장 버튼 또는 ZIP 다운로드에 포함');
+        if (track.masterReport) addRow('리포트 저장', '트랙 카드의 리포트 저장 버튼으로 별도 저장');
         addRow('실시간 엔진 로그', track.report || '-');
 
         if (track.instrumentInfo && track.instrumentInfo.applied) addRow('리듬 레이어 결과', formatInstrumentLayerResult(track.instrumentInfo));
@@ -7097,6 +7126,295 @@ function renderDetail(options = {}) {
 
     updateConfidenceUI(track);
     if (!options.keepDetailAudio) applyTrackToControls(track);
+}
+
+function renderAiMasteringCard(track) {
+    if (!track || !el.trackDetail) return;
+    const panel = document.createElement('section');
+    const analyzed = Boolean(track.analysis);
+    const confidenceTone = getAiConfidenceTone(track);
+    panel.className = `ai-master-card ai-master-${confidenceTone} ${analyzed ? '' : 'ai-master-pending'}`;
+
+    const head = document.createElement('div');
+    head.className = 'ai-master-head';
+    const title = document.createElement('div');
+    title.className = 'ai-master-title';
+    const kicker = document.createElement('span');
+    kicker.textContent = 'AI 자동 마스터링';
+    const strong = document.createElement('strong');
+    strong.textContent = analyzed ? '추천 설정이 준비되었습니다' : '분석 후 추천 설정을 준비합니다';
+    title.append(kicker, strong);
+    const badge = document.createElement('b');
+    badge.className = 'ai-master-confidence';
+    badge.textContent = analyzed ? `${getAiConfidenceLabel(track)} · ${track.confidence || 0}%` : statusLabel(track.status);
+    head.append(title, badge);
+
+    const summary = document.createElement('p');
+    summary.className = 'ai-master-summary';
+    summary.textContent = analyzed ? buildAiMasteringSummary(track) : '파일 분석이 끝나면 장르, 목표 음압, 보호 가드, 추천 이유를 한 카드에서 확인할 수 있습니다.';
+
+    const grid = document.createElement('div');
+    grid.className = 'ai-master-grid';
+    buildAiMasteringGridItems(track).forEach(item => grid.appendChild(makeAiMasteringMetric(item.label, item.value, item.tone)));
+
+    const reason = document.createElement('div');
+    reason.className = 'ai-master-reason';
+    const reasonTitle = document.createElement('span');
+    reasonTitle.textContent = '추천 이유';
+    const reasonText = document.createElement('p');
+    reasonText.textContent = analyzed ? simplifyAiReason(track.genreReason) : '분석 중입니다.';
+    reason.append(reasonTitle, reasonText);
+
+    const candidates = document.createElement('div');
+    candidates.className = 'ai-master-candidates';
+    const candidateLabel = document.createElement('span');
+    candidateLabel.textContent = '대안 프리셋';
+    candidates.appendChild(candidateLabel);
+    const candidateList = document.createElement('div');
+    candidateList.className = 'ai-master-candidate-list';
+    getAiCandidatePresets(track).forEach(candidate => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `ai-candidate-chip ${candidate.preset === track.preset ? 'active' : ''}`;
+        button.textContent = candidate.label;
+        button.disabled = !analyzed || state.busy;
+        button.addEventListener('click', () => applyAiPresetCandidate(track, candidate.preset));
+        candidateList.appendChild(button);
+    });
+    if (!candidateList.childNodes.length) {
+        const empty = document.createElement('small');
+        empty.textContent = analyzed ? '추천 후보가 충분하지 않습니다.' : '분석 후 표시됩니다.';
+        candidateList.appendChild(empty);
+    }
+    candidates.appendChild(candidateList);
+
+    const risk = document.createElement('div');
+    risk.className = 'ai-master-risk';
+    const riskTitle = document.createElement('span');
+    riskTitle.textContent = '체크 포인트';
+    const riskList = document.createElement('div');
+    riskList.className = 'ai-master-risk-list';
+    const notes = getAiMasteringRiskNotes(track);
+    (notes.length ? notes : ['특별한 위험 요소 없음']).slice(0, 3).forEach(note => {
+        const item = document.createElement('em');
+        item.textContent = note;
+        riskList.appendChild(item);
+    });
+    risk.append(riskTitle, riskList);
+
+    const actions = document.createElement('div');
+    actions.className = 'ai-master-actions';
+    const applyBtn = document.createElement('button');
+    applyBtn.type = 'button';
+    applyBtn.className = 'btn-secondary';
+    applyBtn.textContent = '추천값 적용';
+    applyBtn.disabled = !analyzed || state.busy;
+    applyBtn.addEventListener('click', () => applyAIRecommendationToTrack(track));
+    const masterBtn = document.createElement('button');
+    masterBtn.type = 'button';
+    masterBtn.className = 'btn-primary';
+    masterBtn.textContent = '추천 설정으로 마스터링 진행';
+    masterBtn.disabled = !canStartAiMastering(track);
+    masterBtn.addEventListener('click', () => masterTrackWithAiRecommendation(track));
+    actions.append(applyBtn, masterBtn);
+
+    if (shouldOfferAiSafeRemaster(track)) {
+        const remasterBtn = document.createElement('button');
+        remasterBtn.type = 'button';
+        remasterBtn.className = 'btn-secondary ai-safe-remaster-btn';
+        remasterBtn.textContent = 'AI가 안전하게 다시 마스터링';
+        remasterBtn.disabled = state.busy || track.status === 'processing' || track.status === 'analyzing';
+        remasterBtn.addEventListener('click', () => aiSafeRemasterTrack(track));
+        actions.appendChild(remasterBtn);
+    }
+
+    panel.append(head, summary, grid, reason, candidates, risk, actions);
+    el.trackDetail.appendChild(panel);
+}
+
+function makeAiMasteringMetric(label, value, tone = 'neutral') {
+    const item = document.createElement('div');
+    item.className = `ai-master-metric ai-master-metric-${tone || 'neutral'}`;
+    const name = document.createElement('span');
+    name.textContent = label;
+    const val = document.createElement('b');
+    val.textContent = value;
+    item.append(name, val);
+    return item;
+}
+
+function buildAiMasteringGridItems(track) {
+    if (!track || !track.analysis) {
+        return [
+            { label: '상태', value: statusLabel(track?.status || 'queued'), tone: 'neutral' },
+            { label: '추천', value: '분석 대기', tone: 'neutral' },
+            { label: '목표', value: `${Number(state.targetLufs || -14).toFixed(0)} LUFS`, tone: 'neutral' },
+            { label: '가드', value: '대기', tone: 'neutral' }
+        ];
+    }
+    const preset = PRESET_LABELS[track.preset || track.recommendedPreset] || track.preset || '커스텀';
+    const altCount = getAiCandidatePresets(track).length;
+    const gate = track.qualityGate ? `${track.qualityGate.label} · ${track.qualityGate.score}점` : '렌더 전';
+    return [
+        { label: '선택 프리셋', value: preset, tone: 'cyan' },
+        { label: 'AI 신뢰도', value: `${getAiConfidenceLabel(track)} ${track.confidence || 0}%`, tone: getAiConfidenceTone(track) },
+        { label: '목표/피크', value: `${Number(state.targetLufs || -14).toFixed(0)} LUFS · ${Number(state.ceilingDb || -1).toFixed(1)} dB`, tone: 'neutral' },
+        { label: '품질 판정', value: gate, tone: track.qualityGate?.status === 'fail' ? 'danger' : track.qualityGate?.status === 'warn' ? 'warn' : 'ok' },
+        { label: '스타일', value: getMasterStyleLabel(state.masterStyle), tone: 'cyan' },
+        { label: '후보 수', value: altCount ? `${altCount}개` : '없음', tone: altCount ? 'ok' : 'neutral' }
+    ];
+}
+
+function buildAiMasteringSummary(track) {
+    const preset = PRESET_LABELS[track.recommendedPreset || track.preset] || track.recommendedPreset || track.preset || '커스텀';
+    const confidence = Number(track.confidence || 0);
+    const mode = confidence >= 78 ? '바로 진행해도 좋은 추천값입니다.' : confidence >= 58 ? '대안 프리셋도 함께 비교해보는 것을 권장합니다.' : '장르 판단이 애매하니 후보 프리셋을 한 번 확인해주세요.';
+    const guards = [
+        state.featureFlags.vocalProtect ? '보컬 보호' : '',
+        state.featureFlags.earFatigueGuard ? '청감 피로 가드' : '',
+        state.featureFlags.truePeakGuard ? '피크 가드' : ''
+    ].filter(Boolean).join(' · ');
+    return `${preset} 기준으로 ${getMasterStyleLabel(state.masterStyle)} 스타일을 적용합니다. ${mode} 활성 보호: ${guards || '기본'}.`;
+}
+
+function simplifyAiReason(reason) {
+    const value = String(reason || '').trim();
+    if (!value) return '파일명과 오디오 분석값을 기준으로 현재 프리셋을 추천했습니다.';
+    return value.replace(/\s+/g, ' ').slice(0, 180);
+}
+
+function getAiCandidatePresets(track) {
+    if (!track || !track.analysis) return [];
+    const seen = new Set();
+    const candidates = [];
+    const add = preset => {
+        if (!preset || seen.has(preset) || preset === 'custom') return;
+        seen.add(preset);
+        candidates.push({ preset, label: PRESET_LABELS[preset] || preset });
+    };
+    add(track.recommendedPreset || track.preset);
+    (track.genreAlternatives || []).forEach(item => add(item.preset));
+    if (candidates.length < 3) {
+        ['pop', 'kpop', 'kballad', 'rnb', 'dance', 'hiphop', 'punch', 'tape'].forEach(add);
+    }
+    return candidates.slice(0, 4);
+}
+
+function getAiConfidenceTone(track) {
+    const confidence = Number(track?.confidence || 0);
+    if (confidence >= 78) return 'ok';
+    if (confidence >= 58) return 'warn';
+    if (confidence > 0) return 'danger';
+    return 'neutral';
+}
+
+function getAiConfidenceLabel(track) {
+    const confidence = Number(track?.confidence || 0);
+    if (confidence >= 78) return '신뢰도 높음';
+    if (confidence >= 58) return '신뢰도 보통';
+    if (confidence > 0) return '신뢰도 낮음';
+    return '추천 대기';
+}
+
+function getAiMasteringRiskNotes(track) {
+    const notes = [];
+    const analysis = track?.analysis || null;
+    if (!analysis) return notes;
+    if (Number(analysis.peakDb) > -1.2) notes.push('원본 피크 여유 부족');
+    if (Number(analysis.brightness) > 0.68 || Number(analysis.metallicHint) > 0.62) notes.push('고역 피로 가능성');
+    if (Number(analysis.lowMonoScore) < 68 || analysis.lowMonoRisk === 'high') notes.push('저역 모노 호환 확인');
+    if (Number(analysis.stereoWidth) > 0.78) notes.push('스테레오 폭 과다 가능성');
+    if (Number(analysis.loudnessHint) > -9) notes.push('이미 큰 음압 · 강도 낮춤 권장');
+    if (track.qualityGate?.status === 'warn') notes.unshift('마스터링 결과 확인 필요');
+    if (track.qualityGate?.status === 'fail') notes.unshift('품질 게이트 실패 · 재보정 권장');
+    return Array.from(new Set(notes)).slice(0, 4);
+}
+
+function applyAiPresetCandidate(track, preset) {
+    if (!track || !track.analysis || state.busy) return;
+    const settings = makeRecommendedSettings(preset, track.analysis);
+    track.preset = preset;
+    track.settings = cloneSettings(settings);
+    track.genreLocked = true;
+    invalidateMasteredOutput(track, `${PRESET_LABELS[preset] || preset} 후보 프리셋을 적용했습니다. 다시 마스터링하세요.`, false);
+    state.selectedId = track.id;
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast(`${PRESET_LABELS[preset] || preset} 후보 프리셋을 적용했습니다.`);
+}
+
+function canStartAiMastering(track) {
+    return Boolean(track && track.analysis && !state.busy && !track.error && !['processing', 'analyzing'].includes(track.status));
+}
+
+async function masterTrackWithAiRecommendation(track) {
+    if (!canStartAiMastering(track)) {
+        showToast('분석이 끝난 정상 트랙에서만 AI 추천 마스터링을 진행할 수 있습니다.');
+        return;
+    }
+    applyAiRecommendationSettings(track, false, 'AI 추천 설정으로 마스터링을 시작합니다.');
+    state.selectedId = track.id;
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    await masterTrack(track);
+}
+
+function applyAiRecommendationSettings(track, autoRefresh = false, report = '') {
+    if (!track || !track.analysis) return false;
+    if (track.genreLocked) {
+        track.settings = cloneSettings(makeRecommendedSettings(track.preset || 'custom', track.analysis));
+        invalidateMasteredOutput(track, report || `${PRESET_LABELS[track.preset] || track.preset} 잠금 장르 기준 추천값을 적용했습니다.`, autoRefresh);
+    } else {
+        track.preset = track.recommendedPreset || 'custom';
+        track.settings = cloneSettings(track.recommendedSettings || makeRecommendedSettings(track.preset, track.analysis));
+        invalidateMasteredOutput(track, report || `${PRESET_LABELS[track.preset] || track.preset} AI 추천값을 적용했습니다.`, autoRefresh);
+    }
+    return true;
+}
+
+function shouldOfferAiSafeRemaster(track) {
+    return Boolean(track && track.outBlob && track.qualityGate && track.qualityGate.status !== 'pass');
+}
+
+function applyAiSafeRemasterPlan(track) {
+    if (!track || !track.analysis) return [];
+    const current = cloneSettings(track.settings || track.recommendedSettings || GENRE_PRESETS.custom);
+    const gateStatus = track.qualityGate?.status || 'warn';
+    const reasons = [];
+    const gateFail = gateStatus === 'fail';
+    const cut = gateFail ? 18 : 10;
+    current.intensity = clamp(Math.round(Number(current.intensity || 100) - cut), 50, 190);
+    current.dynamicPunch = clamp(Math.round(Number(current.dynamicPunch || 50) - (gateFail ? 8 : 5)), 5, 82);
+    current.metallicRemoval = clamp(Math.round(Number(current.metallicRemoval || 35) + (gateFail ? 12 : 8)), 0, 90);
+    current.clarity = clamp(Math.round(Number(current.clarity || 50) - (gateFail ? 5 : 3)), 0, 88);
+    reasons.push(`강도 ${cut}%p 완화`);
+    if (Number(track.analysis.lowMonoScore) < 74 || track.analysis.lowMonoRisk === 'high') {
+        current.width = clamp(Math.round(Number(current.width || 50) - 8), 8, 76);
+        current.stereoGroove = clamp(Math.round(Number(current.stereoGroove || 20) - 6), 0, 70);
+        reasons.push('저역/위상 안전폭 보정');
+    }
+    if (Number(track.analysis.brightness) > 0.64 || Number(track.analysis.metallicHint) > 0.58) {
+        current.warmth = clamp(Math.round(Number(current.warmth || 45) + 5), 8, 90);
+        reasons.push('고역 피로 완화');
+    }
+    track.settings = current;
+    track.aiSafeRemaster = { createdAt: new Date().toISOString(), reasons };
+    invalidateMasteredOutput(track, `AI 안전 재마스터링 준비 · ${reasons.join(' · ')}`, false);
+    return reasons;
+}
+
+async function aiSafeRemasterTrack(track) {
+    if (!track || state.busy || track.status === 'processing' || track.status === 'analyzing') return;
+    if (!track.analysis) {
+        showToast('분석이 완료된 뒤 AI 재마스터링을 사용할 수 있습니다.');
+        return;
+    }
+    const reasons = applyAiSafeRemasterPlan(track);
+    state.selectedId = track.id;
+    applyTrackToControls(track);
+    renderAll({ keepDetailAudio: true });
+    showToast(`AI 안전 재마스터링: ${reasons.join(' · ')}`);
+    await masterTrack(track);
 }
 
 function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
@@ -8019,14 +8337,7 @@ function applyAIRecommendationToTrack(track) {
         showToast('분석이 완료된 곡에서만 AI 프리셋을 적용할 수 있습니다.');
         return;
     }
-    if (track.genreLocked) {
-        track.settings = cloneSettings(makeRecommendedSettings(track.preset || 'custom', track.analysis));
-        invalidateMasteredOutput(track, `${PRESET_LABELS[track.preset] || track.preset} 잠금 장르 기준 추천값을 적용했습니다.`, true);
-    } else {
-        track.preset = track.recommendedPreset || 'custom';
-        track.settings = cloneSettings(track.recommendedSettings || GENRE_PRESETS.custom);
-        invalidateMasteredOutput(track, `${PRESET_LABELS[track.preset] || track.preset} AI 추천값을 다시 적용했습니다.`, true);
-    }
+    applyAiRecommendationSettings(track, true, `${PRESET_LABELS[track.genreLocked ? track.preset : (track.recommendedPreset || track.preset)] || track.preset} AI 추천값을 다시 적용했습니다.`);
     state.selectedId = track.id;
     applyTrackToControls(track);
     renderAll({ keepDetailAudio: true });
@@ -8318,7 +8629,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.20',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.23',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
