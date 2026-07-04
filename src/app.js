@@ -486,7 +486,7 @@ function cacheElements() {
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
-        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
         'adminStatsTrigger', 'adminPasswordDialog', 'adminPasswordClose', 'adminPasswordCancel', 'adminPasswordSubmit', 'adminPasswordInput', 'adminPasswordError', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -1826,6 +1826,7 @@ function bindEvents() {
             if (event.target === el.previewDialog) closePreviewDialog();
         });
     }
+    if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', masterBottomPreviewTrack);
     if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false));
     if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', () => selectBottomPreviewMode('mastered', true));
     bindAdminStatsEvents();
@@ -6147,6 +6148,11 @@ function downloadBlob(blob, fileName) {
     a.className = 'hidden-download-link';
     document.body.appendChild(a);
 
+    const zipLikeDownload = /\.zip$/i.test(safeName) || String(blob.type || '').toLowerCase().includes('zip');
+    const sharedFromRestricted = restricted && !zipLikeDownload && blob && supportsWebShareFiles(blob, safeName)
+        ? tryShareDownloadFile(blob, safeName, url)
+        : false;
+
     try {
         a.click();
     } catch (error) {
@@ -6155,7 +6161,9 @@ function downloadBlob(blob, fileName) {
 
     if (shouldOpenAssist) {
         showDownloadAssist(url, safeName, blob.type || 'audio/*', blob);
-        showToast('인앱 브라우저는 저장이 막힐 수 있습니다. 도움창의 직접 저장/공유 버튼을 사용해보세요.');
+        showToast(sharedFromRestricted
+            ? '인앱 브라우저용 공유/저장 창을 열었습니다. 실패하면 도움창 버튼을 사용해보세요.'
+            : '인앱 브라우저는 저장이 막힐 수 있습니다. 도움창의 직접 저장/공유 버튼을 사용해보세요.');
     } else {
         showToast(`${safeName} 다운로드를 시작했습니다.`);
     }
@@ -6229,6 +6237,25 @@ function copyCurrentPageUrl() {
     showToast(text);
 }
 
+function openCurrentPageInExternalBrowser() {
+    const pageUrl = location.href.split('#')[0];
+    const ua = navigator.userAgent || '';
+    if (/Android/i.test(ua)) {
+        try {
+            const parsed = new URL(pageUrl);
+            const scheme = parsed.protocol.replace(':', '') || 'https';
+            const path = `${parsed.host}${parsed.pathname}${parsed.search}`;
+            window.location.href = `intent://${path}#Intent;scheme=${scheme};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+            setTimeout(() => copyCurrentPageUrl(), 900);
+            return;
+        } catch (error) {
+            console.warn('external browser intent failed:', error);
+        }
+    }
+    copyCurrentPageUrl();
+    showToast('iPhone 카카오톡은 오른쪽 위 메뉴에서 Safari/브라우저로 열기를 눌러주세요.');
+}
+
 function supportsAnchorDownload() {
     const a = document.createElement('a');
     return 'download' in a;
@@ -6285,7 +6312,7 @@ function showDownloadAssist(url, fileName, mimeType, blob = null) {
     const message = document.createElement('p');
     const inApp = isRestrictedDownloadBrowser();
     message.textContent = inApp
-        ? '카카오톡 같은 인앱 브라우저는 파일 저장을 막는 경우가 있습니다. 아래 버튼으로 새 탭을 열거나, 외부 브라우저에서 다시 열어주세요.'
+        ? '카카오톡 같은 인앱 브라우저는 Blob 파일 저장을 막는 경우가 있습니다. 가능하면 공유/저장을 먼저 누르고, 계속 실패하면 외부 브라우저에서 다시 열어주세요.'
         : '자동 저장이 시작되지 않으면 아래 버튼으로 파일을 직접 열어 저장해주세요.';
 
     const file = document.createElement('span');
@@ -6333,6 +6360,15 @@ function showDownloadAssist(url, fileName, mimeType, blob = null) {
     copy.textContent = '페이지 주소 복사';
     copy.addEventListener('click', () => copyCurrentPageUrl());
 
+    let external = null;
+    if (inApp) {
+        external = document.createElement('button');
+        external.type = 'button';
+        external.className = 'btn-primary';
+        external.textContent = '외부 브라우저 열기';
+        external.addEventListener('click', openCurrentPageInExternalBrowser);
+    }
+
     const close = document.createElement('button');
     close.type = 'button';
     close.className = 'btn-secondary';
@@ -6343,6 +6379,7 @@ function showDownloadAssist(url, fileName, mimeType, blob = null) {
         revokeDownloadUrl(url);
     });
 
+    if (external) actions.appendChild(external);
     actions.append(open, copy, close);
     panel.append(title, message, file, actions);
     requestAnimationFrame(() => panel.classList.add('show'));
@@ -6818,23 +6855,8 @@ function renderButtons() {
 function renderQueuePreview() {
     if (!el.queuePreview) return;
     el.queuePreview.textContent = '';
-    const track = getSelectedTrack();
-    const head = document.createElement('div');
-    head.className = 'queue-preview-head';
-    const title = document.createElement('strong');
-    title.textContent = '선택 트랙 미리듣기';
-    const sub = document.createElement('span');
-    sub.textContent = track ? (PRESET_LABELS[track.preset] || track.preset || '프리셋 대기') : '트랙 선택 대기';
-    head.append(title, sub);
-    el.queuePreview.appendChild(head);
-    if (!track) {
-        const empty = document.createElement('div');
-        empty.className = 'preview-empty';
-        empty.textContent = '불러온 곡을 선택하면 원본/마스터본 미리듣기가 여기에 표시됩니다.';
-        el.queuePreview.appendChild(empty);
-        return;
-    }
-    renderPreviewPlayers(track, el.queuePreview);
+    el.queuePreview.hidden = true;
+    el.queuePreview.setAttribute('aria-hidden', 'true');
 }
 
 function renderTrackList() {
@@ -7119,6 +7141,33 @@ function selectBottomPreviewMode(mode, autoPlay = false) {
     renderBottomPreviewDock({ autoPlay: nextMode === 'mastered' && autoPlay });
 }
 
+async function masterBottomPreviewTrack() {
+    const track = getSelectedTrack();
+    if (!track) {
+        showToast('마스터링할 곡을 먼저 선택해주세요.');
+        return;
+    }
+    if (state.busy || track.status === 'processing') {
+        showToast('현재 작업이 끝난 뒤 다시 눌러주세요.');
+        return;
+    }
+    if (track.status === 'analyzing') {
+        showToast('분석이 끝난 뒤 마스터링을 진행할 수 있습니다.');
+        return;
+    }
+    if (track.error) {
+        showToast('오류가 있는 곡입니다. 다시 불러온 뒤 진행해주세요.');
+        return;
+    }
+    await masterTrack(track);
+}
+
+function getBottomPreviewGenreLabel(track) {
+    if (!track) return '장르 없음';
+    const preset = track.preset || track.recommendedPreset || 'custom';
+    return PRESET_LABELS[preset] || preset || '장르 없음';
+}
+
 function renderBottomPreviewDock(options = {}) {
     if (!el.bottomPreviewDock || !el.bottomPreviewPlayer) return;
     const track = getSelectedTrack();
@@ -7150,10 +7199,21 @@ function renderBottomPreviewDock(options = {}) {
     el.bottomPreviewDock.classList.add('show');
     el.bottomPreviewDock.setAttribute('aria-hidden', 'false');
     document.body.classList.add('bottom-preview-active');
+    const trackName = track.name || '선택 트랙';
+    const genreLabel = getBottomPreviewGenreLabel(track);
     if (el.bottomPreviewTitle) {
-        el.bottomPreviewTitle.textContent = track.name || '선택 트랙';
-        el.bottomPreviewTitle.title = track.name || '';
+        el.bottomPreviewTitle.textContent = trackName;
+        el.bottomPreviewTitle.title = trackName;
     }
+    if (el.bottomPreviewMobileTitle) {
+        el.bottomPreviewMobileTitle.textContent = trackName;
+        el.bottomPreviewMobileTitle.title = trackName;
+    }
+    if (el.bottomPreviewGenre) {
+        el.bottomPreviewGenre.textContent = genreLabel;
+        el.bottomPreviewGenre.title = genreLabel;
+    }
+    setBottomPreviewMasterButtonState(track);
     setBottomPreviewTabState(mode, masteredAvailable);
 
     const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && el.bottomPreviewPlayer.querySelector('audio');
@@ -7178,6 +7238,30 @@ function renderBottomPreviewDock(options = {}) {
     if (shouldAutoPlay) {
         state.bottomPreviewAutoplayTrackId = null;
         requestAnimationFrame(playBottomPreviewAudio);
+    }
+}
+
+function setBottomPreviewMasterButtonState(track) {
+    if (!el.bottomPreviewMasterBtn) return;
+    const busy = Boolean(state.busy);
+    const blocked = !track || busy || track.status === 'processing' || track.status === 'analyzing' || Boolean(track.error);
+    el.bottomPreviewMasterBtn.disabled = blocked;
+    el.bottomPreviewMasterBtn.classList.toggle('processing', Boolean(track && track.status === 'processing'));
+    if (!track) {
+        el.bottomPreviewMasterBtn.textContent = '마스터링 진행';
+        el.bottomPreviewMasterBtn.title = '곡을 선택하면 활성화됩니다.';
+    } else if (track.status === 'processing') {
+        el.bottomPreviewMasterBtn.textContent = '진행 중';
+        el.bottomPreviewMasterBtn.title = '현재 선택 곡을 마스터링하고 있습니다.';
+    } else if (track.status === 'analyzing') {
+        el.bottomPreviewMasterBtn.textContent = '분석 중';
+        el.bottomPreviewMasterBtn.title = '분석 완료 후 마스터링할 수 있습니다.';
+    } else if (track.error) {
+        el.bottomPreviewMasterBtn.textContent = '오류 확인';
+        el.bottomPreviewMasterBtn.title = '오류가 있는 곡은 다시 불러온 뒤 진행해주세요.';
+    } else {
+        el.bottomPreviewMasterBtn.textContent = '마스터링 진행';
+        el.bottomPreviewMasterBtn.title = '현재 화면에서 선택된 곡만 마스터링합니다.';
     }
 }
 

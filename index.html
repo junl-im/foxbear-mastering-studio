@@ -10,10 +10,10 @@
 <meta name="googlebot" content="notranslate" />
 <title>FoxBear Mastering PRO v1.3.20</title>
 <link rel="icon" type="image/svg+xml" href="assets/icons/foxbear.svg" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.20-bottom-preview.2" integrity="sha384-mm7YTK8X5Jc7jbjwC3PvW6N6MUkGSxUYk+zNh+3y9EPpQO/ILOwJXROrsndhUOUZ" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.22-bottom-dock.2" integrity="sha384-PfxRydmi4BnAReQZOzjoyh3eVoNle2P/PT3zt5WjDoEe7f3KXbgd9LPcS5H/aAip" />
 <script defer src="vendor/jszip/jszip.min.js?v=3.10.1" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"></script>
 <script type="module" src="src/firebase-bootstrap.js?v=1.3.20" integrity="sha384-S0zAg0q6Hy3Sb9LLdiXLHerjOYbHqkretIPoRQfYM/mHmMx3eakA2kvOq/gLOAaQ"></script>
-<script defer src="src/app.js?v=1.3.20-bottom-preview.2" integrity="sha384-SbSDrUmMNlehHaLJncdbsNuAiGLXHF/0Vzj0+27i+4RhF6ptuuhaDIdGWsKLXYns"></script>
+<script defer src="src/app.js?v=1.3.22-bottom-dock.2" integrity="sha384-xpVf52C7P/UKArxH4PueoWVNhFf6oQWfF0omE60foljjPV2TIgiLbtesthkMeH7p"></script>
 </head>
 <body data-build="1.3.20">
 <div class="app-shell">
@@ -446,9 +446,17 @@
             <strong id="bottomPreviewTitle">선택 트랙</strong>
         </div>
         <div class="bottom-preview-core">
-            <div class="bottom-preview-tabs" role="tablist" aria-label="프리뷰 소스 선택">
-                <button id="bottomPreviewOriginalBtn" class="bottom-preview-tab active" type="button" role="tab" aria-selected="true">원본 프리뷰</button>
-                <button id="bottomPreviewMasteredBtn" class="bottom-preview-tab" type="button" role="tab" aria-selected="false" disabled>마스터링 프리뷰</button>
+            <div class="bottom-preview-mobile-meta" aria-live="polite">
+                <strong id="bottomPreviewMobileTitle">선택 트랙</strong>
+                <span id="bottomPreviewGenre">장르 없음</span>
+            </div>
+            <div class="bottom-preview-controls">
+                <button id="bottomPreviewMasterBtn" class="bottom-preview-master-btn" type="button">마스터링 진행</button>
+                <span class="bottom-preview-control-gap" aria-hidden="true"></span>
+                <div class="bottom-preview-tabs" role="tablist" aria-label="프리뷰 소스 선택">
+                    <button id="bottomPreviewOriginalBtn" class="bottom-preview-tab active" type="button" role="tab" aria-selected="true">원본 프리뷰</button>
+                    <button id="bottomPreviewMasteredBtn" class="bottom-preview-tab" type="button" role="tab" aria-selected="false" disabled>마스터링 프리뷰</button>
+                </div>
             </div>
             <div id="bottomPreviewPlayer" class="bottom-preview-player"></div>
         </div>
