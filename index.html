@@ -3,31 +3,31 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.44 - app module split stage 2" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.3.45 - recommendation explainability" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://www.gstatic.com/firebasejs/; script-src-elem 'self' https://www.gstatic.com/firebasejs/; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com https://www.googleapis.com; worker-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types foxbear; upgrade-insecure-requests" />
 <meta name="referrer" content="no-referrer" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.3.44</title>
-<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-music.png?v=1.3.44" />
-<link rel="apple-touch-icon" href="assets/icons/foxbear-music.png?v=1.3.44" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.3.44-module-split-2" integrity="sha384-Ba//lcuODmdP7zTReHtlTEQik6KkSARzrD87b6g2m8D1TNDEsPrXg7SVC5w9UsOA" />
+<title>FoxBear Mastering PRO v1.3.45</title>
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-music.png?v=1.3.45" />
+<link rel="apple-touch-icon" href="assets/icons/foxbear-music.png?v=1.3.45" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.3.45-recommend-explain" integrity="sha384-7g8rqHjG6K41K77FViXdv50MiGDeSXAztCmIR2HSioWOK31bhg8sIet3y7RGsppQ" />
 <script defer src="vendor/jszip/jszip.min.js?v=3.10.1" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"></script>
-<script type="module" src="src/firebase-bootstrap.js?v=1.3.44-module-split-2" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
-<script defer src="src/config/mastering-presets.js?v=1.3.44-module-split-2" integrity="sha384-3TQnXS/btzUb9y0BaQAxJvPvpVhLkFCKDdUQRhw+SRhcAykviYa/HTUgF5UWHZWG"></script>
-<script defer src="src/config/genre-presets.js?v=1.3.44-module-split-2" integrity="sha384-bO3M4x0BUsQfjOWneOzkdHliyxTuLMcXk+mGZgcYaMme3thIfG3Qt8eXxai1KXoo"></script>
-<script defer src="src/config/reference-targets.js?v=1.3.44-module-split-2" integrity="sha384-NdbACfxz22yKzDWG7YdS3v11/tjqekxiaEfjphOoADbW9lbiRfPhc9bORU2RZ9o/"></script>
-<script defer src="src/state/app-state.js?v=1.3.44-module-split-2" integrity="sha384-GcrBQpiS/HTF0H3GtrC67YsTFJVgyNQvpD+D1RV9k3/+3MyNbbAnbG88sz8E6fFP"></script>
-<script defer src="src/utils/core-utils.js?v=1.3.44-module-split-2" integrity="sha384-QVlgnadxYLf2QoJSRvT+XBDCPV5lGmVxlP1rCKkfkgM9gWborhbQQTWoos+JdNYH"></script>
-<script defer src="src/app.js?v=1.3.44-module-split-2" integrity="sha384-8ADIcHh6LedXzdn5Cp6e0xYoipXddaC0p1RZRk6feTTeKDXI5rzIg5LasxxLoECa"></script>
+<script type="module" src="src/firebase-bootstrap.js?v=1.3.45-recommend-explain" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
+<script defer src="src/config/mastering-presets.js?v=1.3.45-recommend-explain" integrity="sha384-3TQnXS/btzUb9y0BaQAxJvPvpVhLkFCKDdUQRhw+SRhcAykviYa/HTUgF5UWHZWG"></script>
+<script defer src="src/config/genre-presets.js?v=1.3.45-recommend-explain" integrity="sha384-bO3M4x0BUsQfjOWneOzkdHliyxTuLMcXk+mGZgcYaMme3thIfG3Qt8eXxai1KXoo"></script>
+<script defer src="src/config/reference-targets.js?v=1.3.45-recommend-explain" integrity="sha384-NdbACfxz22yKzDWG7YdS3v11/tjqekxiaEfjphOoADbW9lbiRfPhc9bORU2RZ9o/"></script>
+<script defer src="src/state/app-state.js?v=1.3.45-recommend-explain" integrity="sha384-GcrBQpiS/HTF0H3GtrC67YsTFJVgyNQvpD+D1RV9k3/+3MyNbbAnbG88sz8E6fFP"></script>
+<script defer src="src/utils/core-utils.js?v=1.3.45-recommend-explain" integrity="sha384-QVlgnadxYLf2QoJSRvT+XBDCPV5lGmVxlP1rCKkfkgM9gWborhbQQTWoos+JdNYH"></script>
+<script defer src="src/app.js?v=1.3.45-recommend-explain" integrity="sha384-899UlH40CeL/M+Pjdl6dbo9XbWeCf6iGqlehx5OO6SwXDvEA1rt0Q0XaTxNm3XE7"></script>
 </head>
-<body data-build="1.3.44">
+<body data-build="1.3.45">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.44</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.3.45</button>
                     <span id="adminStatsTrigger" class="badge badge-device" role="presentation" tabindex="-1" aria-label="PC · 모바일 호환 안내">PC · 모바일 호환</span>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
@@ -415,7 +415,7 @@
 
 
 <div id="subscribeNudge" class="subscribe-nudge" role="status" aria-live="polite">
-    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.3.44" alt="" /></div>
+    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.3.45" alt="" /></div>
     <div class="subscribe-mini-copy">
         <strong>곰같은여우 Music 응원하기</strong>
         <span>좋았다면 채널 구독으로 힘을 주세요.</span>
@@ -428,7 +428,7 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.44</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.3.45</span>
         <h2 id="programInfoTitle">무료로 쉽게 완성하는 음질 개선과 마스터링</h2>
         <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.<br>작업은 내 브라우저 안에서 진행되어 파일을 서버로 올리지 않고도 빠르게 확인할 수 있습니다.</p>
         <div class="program-info-grid program-info-roadmap">

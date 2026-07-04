@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.44 - app module split stage 2
+// FoxBear AI Mastering Studio Pro v1.3.45 - recommendation explainability
 'use strict';
 
 
@@ -16,7 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 
-const APP_VERSION = 'Pro v1.3.44';
+const APP_VERSION = 'Pro v1.3.45';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -32,9 +32,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1344';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1345';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.44-module-split-2';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.45-recommend-explain';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -224,7 +224,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.44';
+    styleLink.href = 'assets/css/studio.css?v=1.3.45';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -966,7 +966,8 @@ function updateSmartRecommendationPanel() {
     if (el.smartSuggestSummary) {
         if (hasAnalysis) {
             const preset = PRESET_LABELS[track.recommendedPreset || track.preset] || track.recommendedPreset || track.preset || '커스텀';
-            const reason = track.genreReason ? ` · ${track.genreReason}` : '';
+            const explanation = buildRecommendationExplainability(track);
+            const reason = explanation.summary ? ` · ${explanation.summary}` : (track.genreReason ? ` · ${simplifyAiReason(track.genreReason)}` : '');
             el.smartSuggestSummary.textContent = `${preset} 기준 추천값을 사용할 수 있습니다${reason}`;
         } else {
             el.smartSuggestSummary.textContent = '분석이 끝나면 장르와 안전 옵션 추천이 표시됩니다.';
@@ -995,6 +996,7 @@ function renderSmartCandidatePresets(track, target) {
         label.textContent = candidate.label;
         const badge = document.createElement('b');
         badge.textContent = recommended ? `추천 ${candidate.percent}%` : `${candidate.percent}%`;
+        button.title = buildCandidateExplainText(track, candidate);
         button.append(label, badge);
         button.disabled = state.busy || !track.analysis;
         button.addEventListener('click', () => applyAiPresetCandidate(track, candidate.preset));
@@ -1051,7 +1053,10 @@ function showAiRecommendationDialog(track) {
         meta.textContent = candidate.meta || `${candidate.percent}%`;
         const mark = document.createElement('em');
         mark.textContent = candidate.mark || (recommended ? '추천' : '후보');
-        row.append(name, meta, mark);
+        const explain = document.createElement('small');
+        explain.className = 'ai-recommend-preset-explain';
+        explain.textContent = buildCandidateExplainText(track, candidate);
+        row.append(name, meta, mark, explain);
         row.addEventListener('click', () => {
             if (manual) applyOriginalManualSelection(track);
             else applyAiPresetCandidate(track, candidate.preset);
@@ -1062,7 +1067,22 @@ function showAiRecommendationDialog(track) {
 
     close.addEventListener('click', () => closeAiRecommendationDialog(backdrop));
     backdrop.addEventListener('click', event => { if (event.target === backdrop) closeAiRecommendationDialog(backdrop); });
-    panel.append(close, eyebrow, title, summary, list);
+    const explainBox = document.createElement('div');
+    explainBox.className = 'ai-recommend-explain-box';
+    const explainTitle = document.createElement('span');
+    explainTitle.textContent = '판단 근거';
+    const explainList = document.createElement('div');
+    explainList.className = 'ai-recommend-explain-list';
+    const explainability = buildRecommendationExplainability(track);
+    explainability.chips.forEach(chip => {
+        const chipEl = document.createElement('b');
+        chipEl.className = `ai-recommend-explain-chip ai-recommend-explain-${chip.tone || 'neutral'}`;
+        chipEl.textContent = chip.text;
+        explainList.appendChild(chipEl);
+    });
+    explainBox.append(explainTitle, explainList);
+
+    panel.append(close, eyebrow, title, summary, explainBox, list);
     backdrop.appendChild(panel);
     document.body.appendChild(backdrop);
     document.body.classList.add('ai-recommend-dialog-open');
@@ -1097,6 +1117,9 @@ function buildSmartSuggestionItems(track) {
         state.featureFlags.earFatigueGuard ? '피로' : ''
     ].filter(Boolean).join(' · ') || '수동';
     items.push({ label: '보호 가드', value: activeGuards, tone: 'ok' });
+    const explanation = buildRecommendationExplainability(track);
+    if (explanation.primarySignal) items.push({ label: '추천 근거', value: explanation.primarySignal, tone: explanation.primaryTone || 'cyan' });
+    if (explanation.primaryCaution) items.push({ label: '감점 요인', value: explanation.primaryCaution, tone: 'warn' });
     return items;
 }
 
@@ -2397,6 +2420,7 @@ async function analyzeTrack(track) {
     track.confidence = recommendation.confidence;
     track.genreReason = recommendation.reason || '';
     track.genreAlternatives = recommendation.alternatives || [];
+    track.genreExplanation = recommendation.explanation || null;
     track.settings = cloneSettings(settings);
     track.recommendedSettings = cloneSettings(settings);
     track.status = 'ready';
@@ -3273,9 +3297,17 @@ function recommendPreset(fileName, analysis) {
     }
 
     const confidence = clamp(Math.round(32 + margin * 26 + best[1] * 5), 28, 95);
-    const alternatives = sorted.slice(0, 4).map(([preset, score]) => ({ preset, label: PRESET_LABELS[preset] || preset, score: Number(score.toFixed(2)) }));
+    const alternatives = sorted.slice(0, 4).map(([preset, score], index) => ({
+        preset,
+        label: PRESET_LABELS[preset] || preset,
+        score: Number(score.toFixed(2)),
+        rank: index + 1,
+        reason: makeCandidateReason(preset, features, explicit[preset], gatePass[preset], index === 0),
+        caution: makeCandidateCaution(preset, features, explicit[preset], gatePass[preset])
+    }));
     const reason = makeGenreReason(best[0], features, alternatives, explicit[best[0]] ? '파일명 힌트 반영' : '오디오 특징 기준');
-    return { preset: best[0], confidence, reason, alternatives };
+    const explanation = makeRecommendationExplanation(best[0], features, alternatives, explicit[best[0]], gatePass[best[0]], confidence);
+    return { preset: best[0], confidence, reason, alternatives, explanation };
 }
 
 
@@ -3291,10 +3323,11 @@ function safeRecommendPreset(fileName, analysis, source = 'track') {
             confidence: 42,
             reason: '추천 엔진 보호 모드 · 추천 계산 중 예외가 발생해 안전한 Pop 기준값으로 임시 적용했습니다.',
             alternatives: [
-                { preset: 'pop', label: PRESET_LABELS.pop || 'Pop', score: 0 },
-                { preset: 'kpop', label: PRESET_LABELS.kpop || 'K-Pop', score: -0.2 },
-                { preset: 'rnb', label: PRESET_LABELS.rnb || 'R&B', score: -0.4 }
-            ]
+                { preset: 'pop', label: PRESET_LABELS.pop || 'Pop', score: 0, reason: '안전한 기본값', caution: '' },
+                { preset: 'kpop', label: PRESET_LABELS.kpop || 'K-Pop', score: -0.2, reason: '보컬 중심 대안', caution: '' },
+                { preset: 'rnb', label: PRESET_LABELS.rnb || 'R&B', score: -0.4, reason: '저역/로우미드 대안', caution: '' }
+            ],
+            explanation: { summary: '추천 엔진 보호 모드', signals: ['안전한 Pop 기본값'], cautions: ['추천 계산 예외 발생'], chips: [{ text: '보호 모드', tone: 'warn' }] }
         };
     }
 }
@@ -3341,6 +3374,138 @@ function makeGenreReason(preset, features, alternatives, mode) {
     if (features.mobileRisk > 0.30) parts.push(`폰울림 위험 ${Math.round(features.mobileRisk * 100)}%`);
     const top = alternatives.map(item => `${item.label} ${item.score}`).join(' / ');
     return `${PRESET_LABELS[preset] || preset} 판단 · ${mode} · ${parts.join(' · ')} · 후보 ${top}`;
+}
+
+function getPresetFamily(preset) {
+    if (['pop', 'kpop', 'globalpop', 'citypop'].includes(preset)) return 'pop';
+    if (['ballad', 'kballad', 'acoustic', 'rnb'].includes(preset)) return 'vocal';
+    if (['hiphop', 'trap', 'drill', 'boombap'].includes(preset)) return 'lowPunch';
+    if (['dance', 'edm', 'house', 'futurebass', 'synthpop'].includes(preset)) return 'electronic';
+    if (['spatial', 'cinematic'].includes(preset)) return 'wide';
+    if (['lofi', 'tape'].includes(preset)) return 'warm';
+    if (['rock', 'punch'].includes(preset)) return 'punch';
+    return 'general';
+}
+
+function makeCandidateReason(preset, features = {}, explicit = false, gatePass = false, winner = false) {
+    const family = getPresetFamily(preset);
+    const signals = [];
+    if (explicit) signals.push('파일명 힌트 일치');
+    if (winner) signals.push('종합 점수 1순위');
+    if (family === 'pop') {
+        if (features.bright >= 0.48) signals.push('보컬 선명도 적합');
+        if (features.punch >= 0.34 && features.punch <= 0.62) signals.push('펀치 균형');
+        if (features.wide <= 0.62) signals.push('공간감 안전');
+    } else if (family === 'vocal') {
+        if (features.soft >= 0.46) signals.push('부드러운 다이내믹');
+        if (features.lowMid >= 0.20) signals.push('목소리 바디감');
+        if (features.punch <= 0.48) signals.push('과한 펀치 아님');
+    } else if (family === 'lowPunch') {
+        if (features.bass >= 0.18) signals.push('저역 존재감');
+        if (features.punch >= 0.48) signals.push('킥/스네어 펀치');
+        if (features.wide <= 0.45) signals.push('중앙 에너지 안정');
+    } else if (family === 'electronic') {
+        if (features.bright >= 0.50) signals.push('밝은 톤');
+        if (features.punch >= 0.48) signals.push('리듬 트랜지언트');
+        if (features.bass >= 0.18) signals.push('저역 구동감');
+        if (gatePass) signals.push('세부 장르 조건 통과');
+    } else if (family === 'wide') {
+        if (features.wide >= 0.48) signals.push('넓은 스테레오');
+        if (features.soft >= 0.40) signals.push('공간형 다이내믹');
+    } else if (family === 'warm') {
+        if (features.dark >= 0.52) signals.push('따뜻한 톤');
+        if (features.metallic <= 0.52) signals.push('금속성 낮음');
+    } else if (family === 'punch') {
+        if (features.punch >= 0.56) signals.push('강한 트랜지언트');
+        if (features.crest >= 5.5) signals.push('다이내믹 여유');
+    }
+    if (!signals.length) signals.push('전체 FFT/라우드니스 균형 기준');
+    return signals.slice(0, 3).join(' · ');
+}
+
+function makeCandidateCaution(preset, features = {}, explicit = false, gatePass = false) {
+    const family = getPresetFamily(preset);
+    const cautions = [];
+    if (!explicit && ['futurebass', 'house', 'synthpop', 'citypop', 'drill', 'boombap', 'globalpop', 'lofi', 'acoustic', 'cinematic', 'spatial', 'tape', 'punch'].includes(preset) && !gatePass) {
+        cautions.push('세부 장르 조건 일부 부족');
+    }
+    if (family === 'electronic' && features.mobileRisk > 0.34) cautions.push('폰 울림 위험 감점');
+    if (family === 'electronic' && features.metallic > 0.56 && features.presence > 0.14) cautions.push('보컬 쇳소리 위험 감점');
+    if (family === 'wide' && features.spatialRisk > 0.34) cautions.push('과공간 위험 감점');
+    if (family === 'lowPunch' && features.lowMid > 0.34) cautions.push('로우미드 번짐 확인');
+    if (features.loud > 0.78) cautions.push('이미 큰 음압');
+    return cautions.slice(0, 2).join(' · ');
+}
+
+function makeRecommendationExplanation(preset, features = {}, alternatives = [], explicit = false, gatePass = false, confidence = 0) {
+    const signals = [];
+    const cautions = [];
+    signals.push(makeCandidateReason(preset, features, explicit, gatePass, true));
+    if (features.centroidNorm >= 0.55) signals.push(`FFT 중심 높음 ${Math.round(features.centroidNorm * 100)}%`);
+    else if (features.centroidNorm <= 0.38) signals.push(`어두운 톤 ${Math.round((1 - features.centroidNorm) * 100)}%`);
+    if (features.bass >= 0.23) signals.push(`저역 ${Math.round(features.bass * 100)}%`);
+    if (features.wide >= 0.52) signals.push(`스테레오 폭 ${Math.round(features.wide * 100)}%`);
+    if (features.spatialRisk > 0.30) cautions.push(`과공간 위험 ${Math.round(features.spatialRisk * 100)}%`);
+    if (features.mobileRisk > 0.30) cautions.push(`폰 울림 위험 ${Math.round(features.mobileRisk * 100)}%`);
+    if (features.metallic > 0.55) cautions.push(`보컬/고역 금속성 ${Math.round(features.metallic * 100)}%`);
+    const top = alternatives[0];
+    const second = alternatives[1];
+    if (top && second && Number.isFinite(top.score) && Number.isFinite(second.score)) {
+        const delta = Math.max(0, top.score - second.score);
+        if (delta < 0.35) cautions.push('1·2순위 점수 차이 작음');
+        else signals.push(`후보 격차 ${delta.toFixed(2)}`);
+    }
+    const chips = [];
+    signals.slice(0, 3).forEach(text => chips.push({ text, tone: 'cyan' }));
+    cautions.slice(0, 3).forEach(text => chips.push({ text, tone: 'warn' }));
+    if (!chips.length) chips.push({ text: '안전한 기본 추천', tone: 'neutral' });
+    const summaryParts = [];
+    if (confidence) summaryParts.push(`신뢰도 ${confidence}%`);
+    if (signals[0]) summaryParts.push(signals[0]);
+    if (cautions[0]) summaryParts.push(`감점: ${cautions[0]}`);
+    return {
+        summary: summaryParts.join(' · '),
+        signals: Array.from(new Set(signals)).slice(0, 5),
+        cautions: Array.from(new Set(cautions)).slice(0, 4),
+        chips,
+        primarySignal: signals[0] || '',
+        primaryCaution: cautions[0] || '',
+        primaryTone: cautions.length ? 'warn' : 'cyan'
+    };
+}
+
+function buildRecommendationExplainability(track) {
+    if (!track || !track.analysis) {
+        return { summary: '', signals: [], cautions: [], chips: [], primarySignal: '', primaryCaution: '', primaryTone: 'neutral' };
+    }
+    if (track.genreExplanation && Array.isArray(track.genreExplanation.chips)) {
+        return {
+            summary: track.genreExplanation.summary || '',
+            signals: track.genreExplanation.signals || [],
+            cautions: track.genreExplanation.cautions || [],
+            chips: track.genreExplanation.chips || [],
+            primarySignal: track.genreExplanation.primarySignal || track.genreExplanation.signals?.[0] || '',
+            primaryCaution: track.genreExplanation.primaryCaution || track.genreExplanation.cautions?.[0] || '',
+            primaryTone: track.genreExplanation.primaryTone || ((track.genreExplanation.cautions || []).length ? 'warn' : 'cyan')
+        };
+    }
+    const features = extractGenreFeatures(track.analysis || {});
+    const alternatives = track.genreAlternatives || [];
+    return makeRecommendationExplanation(track.recommendedPreset || track.preset || 'pop', features, alternatives, false, true, track.confidence || 0);
+}
+
+function buildCandidateExplainText(track, candidate) {
+    if (!candidate) return '';
+    if (candidate.manual) return '원본선택: AI 프리셋을 적용하지 않고 원음 기준에서 직접 조절합니다.';
+    const alternatives = track?.genreAlternatives || [];
+    const info = alternatives.find(item => item.preset === candidate.preset) || null;
+    const bestScore = Number(alternatives[0]?.score ?? info?.score ?? 0);
+    const score = Number(info?.score ?? bestScore);
+    const delta = Number.isFinite(bestScore) && Number.isFinite(score) ? Math.max(0, bestScore - score) : 0;
+    const reason = info?.reason || (candidate.recommended ? '종합 점수 1순위' : '대안 후보');
+    const caution = info?.caution ? ` · 감점: ${info.caution}` : '';
+    const deltaText = candidate.recommended ? '최상위 후보' : `1순위 대비 -${delta.toFixed(2)}`;
+    return `${deltaText} · ${reason}${caution}`;
 }
 
 function addKeywordScore(scores, haystack, keywords, preset, value) {
@@ -3718,6 +3883,7 @@ async function masterTrack(track, calledFromBatch = false) {
             track.confidence = recommendation.confidence;
             track.genreReason = recommendation.reason || '';
             track.genreAlternatives = recommendation.alternatives || [];
+            track.genreExplanation = recommendation.explanation || null;
             if (track.preset === 'custom') {
                 track.preset = recommendation.preset;
                 track.settings = makeRecommendedSettings(recommendation.preset, analysis);
@@ -8824,8 +8990,20 @@ function renderAiMasteringCard(track) {
     const reasonTitle = document.createElement('span');
     reasonTitle.textContent = '추천 이유';
     const reasonText = document.createElement('p');
-    reasonText.textContent = analyzed ? simplifyAiReason(track.genreReason) : '분석 중입니다.';
+    const explainability = analyzed ? buildRecommendationExplainability(track) : null;
+    reasonText.textContent = analyzed ? (explainability.summary || simplifyAiReason(track.genreReason)) : '분석 중입니다.';
     reason.append(reasonTitle, reasonText);
+    if (analyzed && explainability.chips.length) {
+        const chipList = document.createElement('div');
+        chipList.className = 'ai-master-explain-chip-list';
+        explainability.chips.slice(0, 6).forEach(chip => {
+            const chipEl = document.createElement('em');
+            chipEl.className = `ai-master-explain-chip ai-master-explain-${chip.tone || 'neutral'}`;
+            chipEl.textContent = chip.text;
+            chipList.appendChild(chipEl);
+        });
+        reason.appendChild(chipList);
+    }
 
     const candidates = document.createElement('div');
     candidates.className = 'ai-master-candidates';
@@ -8839,6 +9017,7 @@ function renderAiMasteringCard(track) {
         button.type = 'button';
         button.className = `ai-candidate-chip ${(candidate.active ?? (candidate.preset === track.preset)) ? 'active' : ''} ${candidate.manual ? 'manual-original' : ''}`;
         button.textContent = candidate.label;
+        button.title = analyzed ? buildCandidateExplainText(track, candidate) : '';
         button.disabled = !analyzed || state.busy;
         button.addEventListener('click', () => candidate.manual ? applyOriginalManualSelection(track) : applyAiPresetCandidate(track, candidate.preset));
         candidateList.appendChild(button);
@@ -8890,7 +9069,7 @@ function renderAiMasteringCard(track) {
         actions.appendChild(remasterBtn);
     }
 
-    panel.append(head, summary, grid, reason, risk, actions);
+    panel.append(head, summary, grid, reason, candidates, risk, actions);
     el.trackDetail.appendChild(panel);
 }
 
@@ -8937,7 +9116,10 @@ function buildAiMasteringSummary(track) {
         state.featureFlags.earFatigueGuard ? '청감 피로 가드' : '',
         state.featureFlags.truePeakGuard ? '피크 가드' : ''
     ].filter(Boolean).join(' · ');
-    return `${preset} 기준으로 ${getMasterStyleLabel(state.masterStyle)} 스타일을 적용합니다. ${mode} 활성 보호: ${guards || '기본'}.`;
+    const explanation = buildRecommendationExplainability(track);
+    const explainText = explanation.primarySignal ? ` 주요 근거: ${explanation.primarySignal}.` : '';
+    const cautionText = explanation.primaryCaution ? ` 감점: ${explanation.primaryCaution}.` : '';
+    return `${preset} 기준으로 ${getMasterStyleLabel(state.masterStyle)} 스타일을 적용합니다. ${mode} 활성 보호: ${guards || '기본'}.${explainText}${cautionText}`;
 }
 
 function simplifyAiReason(reason) {
@@ -10855,7 +11037,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.44',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.45',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
