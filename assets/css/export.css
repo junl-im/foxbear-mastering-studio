@@ -1,0 +1,18 @@
+/* v1.3.53 Export reliability CSS split - completion and in-app browser helpers */
+.export-ready-panel,
+.download-options-panel,
+.download-helper {
+  scroll-margin-bottom: var(--bottom-preview-panel-bottom, 220px);
+}
+.export-browser-note,
+.download-fallback-note {
+  word-break: keep-all;
+  line-height: 1.45;
+}
+@media (max-width: 680px) {
+  .download-options-panel,
+  .export-ready-panel {
+    max-height: calc(100vh - var(--bottom-preview-panel-bottom, 220px) - 36px);
+    overflow: auto;
+  }
+}

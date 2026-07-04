@@ -9164,3 +9164,5 @@ body.bottom-preview-active .download-options-panel-v3 {
         max-height: 18px !important;
     }
 }
+
+/* v1.3.53 Mega Stabilization Pack: studio.css keeps base styles; dock.css/export.css own late overrides. */

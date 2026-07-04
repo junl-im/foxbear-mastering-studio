@@ -1,11 +1,13 @@
-# FoxBear Mastering Studio Pro v1.3.52
+# FoxBear Mastering Studio Pro v1.3.53
 
-## Pro v1.3.52 Mobile Dock Layout Final QA
+## Pro v1.3.53 Mega Stabilization Pack
 
-- Dock의 실제 높이를 JS에서 지속 측정해 `--bottom-preview-height`, `--bottom-preview-floating-bottom`, `--bottom-preview-hud-bottom`, `--bottom-preview-panel-bottom` CSS 변수로 동기화합니다.
-- 세로 모바일 화면에서 Dock 버튼/재생환경/파형 미니뷰가 줄바꿈으로 과도하게 커지지 않도록 최종 레이아웃 override를 추가했습니다.
-- Toast, 다운로드 도움창, 다운로드 옵션 패널, 마스터링 진행 HUD가 Dock 위로 따라붙도록 하단 anchoring을 통일했습니다.
-- ResizeObserver, visualViewport resize/scroll, orientationchange, pageshow 이벤트로 브라우저 UI 변화와 키보드/주소창 변화에도 위치를 재계산합니다.
-- v1.3.52 버전, 캐시버스터, SRI, mobile dock layout smoke test를 갱신했습니다.
+이번 빌드는 다음 예정 패치들을 가능한 범위에서 한 번에 묶은 대규모 안정화 빌드입니다.
 
-이 빌드는 v1.3.51 Snapshot / Undo History 기능을 유지하면서 모바일 Dock 겹침 안정성을 보강한 릴리즈입니다.
+- 레퍼런스 매칭 강도 선택을 추가했습니다.
+- 곡별 Adaptive LUFS 보조 옵션을 추가했습니다.
+- DSP Amount Inspector로 마스터링 적용량을 상세 패널에서 확인할 수 있습니다.
+- Golden Audio QA Pack을 추가해 실제 문제 유형에 가까운 테스트 케이스를 자동 검사합니다.
+- Dock/Export CSS를 분리해 후속 UI 패치 안정성을 높였습니다.
+- Dock에서 제거된 A/B 비교 상태가 transport에 개입하지 않도록 구조를 더 분리했습니다.
+- v1.3.53 버전, 캐시버스터, SRI, QA smoke test를 갱신했습니다.

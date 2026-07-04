@@ -6,7 +6,7 @@ const css = fs.readFileSync('assets/css/studio.css', 'utf8');
 function must(condition, message) {
   if (!condition) throw new Error(message);
 }
-must(app.includes("const APP_VERSION = 'Pro v1.3.52'"), 'app version not updated');
+must(app.includes("const APP_VERSION = 'Pro v1.3.53'"), 'app version not updated');
 must(app.includes('track?.waveformOverview?.mastered'), 'Dock/detail master waveform does not read canonical mastered field');
 must(app.includes('getTrackMasterWaveformMarkers'), 'master waveform marker compatibility helper missing');
 must(!app.includes('cleanupRealtimePreview();\n    pauseAllPreviewAudio();\n    el.previewDialogBody.textContent = \'\';'), 'waveform popup still pauses all preview audio on open');
@@ -14,7 +14,7 @@ must(app.includes('captureBottomPreviewTransport(track, state.bottomPreviewMode)
 must(utils.includes('before: original') && utils.includes('after: mastered') && utils.includes('peakMarkers: masteredPeaks'), 'waveform overview legacy aliases missing');
 must(utils.includes("return 'clip';") && utils.includes("return 'hot';") && utils.includes("return 'ok';"), 'waveform markers should be CSS class strings');
 must(css.includes('v1.3.48 Dock waveform/transport hotfix'), 'v1.3.48 legacy overlay CSS should remain documented');
-must(css.includes('v1.3.49 Dock cleanup + floating overlay anchor'), 'v1.3.52 floating overlay CSS missing');
+must(css.includes('v1.3.49 Dock cleanup + floating overlay anchor'), 'v1.3.53 floating overlay CSS missing');
 must(css.includes('--bottom-preview-floating-bottom'), 'floating overlay bottom CSS var missing');
 must(css.includes('--bottom-preview-hud-bottom'), 'floating HUD bottom CSS var missing');
 console.log('PASS dock waveform transport hotfix smoke: mastered waveform, popup playback, overlay offsets');

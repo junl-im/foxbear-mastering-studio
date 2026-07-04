@@ -1,0 +1,26 @@
+/* v1.3.53 Dock module CSS split - transport and floating overlay anchors */
+:root {
+  --foxbear-dock-safe-gap: clamp(14px, 2.5vw, 28px);
+}
+.bottom-preview-dock {
+  contain: layout paint;
+}
+.bottom-preview-dock button,
+.bottom-preview-dock .btn-secondary,
+.bottom-preview-dock .btn-primary {
+  white-space: nowrap;
+}
+.waveform-compare-dialog,
+.waveform-compare-popover {
+  max-height: min(72vh, calc(100vh - var(--bottom-preview-panel-bottom, 220px)));
+}
+.processing-hud,
+.toast,
+.download-helper,
+.export-helper {
+  margin-bottom: var(--foxbear-dock-safe-gap);
+}
+@media (max-width: 680px) {
+  .bottom-preview-dock { font-size: 12px; }
+  .bottom-preview-dock .bottom-preview-title { overflow: hidden; text-overflow: ellipsis; }
+}

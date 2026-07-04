@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.48 - extracted runtime state module
+// FoxBear AI Mastering Studio Pro v1.3.53 - extracted runtime state module
 'use strict';
 
 const state = {
@@ -33,12 +33,14 @@ const state = {
     masterStyle: 'streaming',
     masterStrength: 'balanced',
     targetLufs: -14,
+    adaptiveTargetLufs: true,
+    referenceMatchStrength: 0.62,
     ceilingDb: -1.0,
     qualityMode: 'balanced',
     platformPreset: 'custom',
     performanceMode: 'auto',
     pitchEngine: 'auto',
-    abLevelMatch: true,
+    abLevelMatch: false,
     abDifferenceListen: false,
     abLoopMode: false,
     autoCacheClean: true,

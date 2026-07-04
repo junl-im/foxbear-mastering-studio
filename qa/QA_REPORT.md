@@ -1,24 +1,28 @@
-# FoxBear Pro v1.3.52 QA Report
+# FoxBear Pro v1.3.53 QA Report
 
-## Pro v1.3.52 Mobile Dock Layout Final QA
+## Pro v1.3.53 Mega Stabilization Pack
 
-- `npm run check` PASS
-- SRI validation PASS
-- Runtime smoke PASS
-- Recommendation popup smoke PASS
-- Shared DSP profile smoke PASS
-- Dock waveform smoke PASS
-- Dock continuity/download smoke PASS
-- Dock waveform transport hotfix smoke PASS
-- Dock cleanup overlay smoke PASS
-- Export reliability smoke PASS
-- Snapshot undo smoke PASS
-- Mobile dock layout smoke PASS
+PASS — Large combined stabilization build.
 
-### 변경 요약
+### Included
+- Reference Match Strength control.
+- Adaptive LUFS per-track target assist.
+- DSP Amount Inspector.
+- Golden Audio QA Pack.
+- Dock/export CSS split.
+- A/B legacy Dock isolation documentation.
 
-- Dock 실측 높이 기반 floating overlay 변수 보강.
-- Toast/다운로드 도움창/마스터링 진행 HUD/다운로드 패널이 Dock 위로 따라붙도록 최종 CSS anchor 정리.
-- 모바일 세로 화면에서 Dock 버튼, 재생환경 버튼, 파형 미니뷰가 과도하게 줄바꿈/확장되지 않도록 최종 레이아웃 보정.
+### Checks
+- `npm run check`
+- SRI verification
+- Runtime smoke
+- Recommendation popup smoke
+- Shared DSP profile smoke
+- Dock waveform and layout smoke
+- Engine QA bench
+- Export reliability smoke
+- Snapshot undo smoke
+- Golden Audio QA Pack
+- Mega stabilization smoke
 
-See `qa/QA_REPORT_MOBILE_DOCK_LAYOUT_1.3.52.md`.
+See `qa/QA_REPORT_MEGA_STABILIZATION_1.3.53.md`.

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.52 - mobile dock layout final QA
+// FoxBear AI Mastering Studio Pro v1.3.53 - mega stabilization pack
 'use strict';
 
 
@@ -15,8 +15,9 @@ const {
     sampleWaveformOverview,
     samplePeakMarkers
 } = FoxBearCoreUtils;
+const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.52';
+const APP_VERSION = 'Pro v1.3.53';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -32,9 +33,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1352';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1353';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.52-mobile-dock-final-qa';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.53-mega-stabilization';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -128,16 +129,99 @@ function getErrorMessage(error, fallback = '알 수 없는 오류') {
 }
 
 
+function getReferenceMatchStrengthAmount(value = state.referenceMatchStrength) {
+    if (FoxBearMasteringInspector.getReferenceStrengthAmount) return FoxBearMasteringInspector.getReferenceStrengthAmount(value);
+    return clamp(Number(value ?? 0.62), 0, 1);
+}
+
+function getReferenceMatchStrengthLabel(value = state.referenceMatchStrength) {
+    if (FoxBearMasteringInspector.getReferenceStrengthLabel) return FoxBearMasteringInspector.getReferenceStrengthLabel(value);
+    const amount = getReferenceMatchStrengthAmount(value);
+    if (amount <= 0.28) return 'Light';
+    if (amount >= 0.82) return 'Strong';
+    return 'Balanced';
+}
+
+function computeAdaptiveTargetLufsForTrack(track, baseTarget = state.targetLufs) {
+    const base = Number.isFinite(Number(baseTarget)) ? Number(baseTarget) : -14;
+    if (!state.adaptiveTargetLufs || !track || !track.analysis) return base;
+    if (FoxBearMasteringInspector.computeAdaptiveTargetLufs) {
+        return FoxBearMasteringInspector.computeAdaptiveTargetLufs(track.analysis, {
+            baseTarget: base,
+            preset: track.preset || track.recommendedPreset || 'custom',
+            masterGoal: state.masterGoal,
+            masterStyle: state.masterStyle,
+            masterStrength: state.masterStrength
+        });
+    }
+    const analysis = track.analysis || {};
+    const preset = String(track.preset || track.recommendedPreset || 'custom');
+    let target = base;
+    const vocalish = shouldApplyVocalProtection(preset, analysis) || Number(analysis.midRatio || 0) > 0.32;
+    const mobileRisk = Number(analysis.mobileSpeakerRisk || 0);
+    const crest = Number(analysis.crest || 0);
+    if (vocalish) target = Math.min(target, -14.6);
+    if (mobileRisk > 0.42) target = Math.min(target, -14.8);
+    if (crest < 4.0 && Number(analysis.transientDensity || 0) > 0.58) target = Math.min(target, base - 0.6);
+    if (/edm|dance|house|trap|drill|futurebass/.test(preset) && state.masterStrength === 'loud' && mobileRisk < 0.38) target = Math.max(target, -10.8);
+    if (state.masterStrength === 'natural' || state.masterStrength === 'vocal_safe') target = Math.min(target, -14.8);
+    if (state.masterStrength === 'mobile_safe') target = Math.min(target, -14.2);
+    return Number(clamp(target, -16.5, -9.5).toFixed(1));
+}
+
+function resolveTargetLufsForTrack(track) {
+    return computeAdaptiveTargetLufsForTrack(track, state.targetLufs);
+}
+
+function getAdaptiveTargetLabel(track) {
+    const base = Number(state.targetLufs || -14);
+    const resolved = resolveTargetLufsForTrack(track);
+    if (!state.adaptiveTargetLufs || !Number.isFinite(resolved) || Math.abs(resolved - base) < 0.05) return `${base.toFixed(0)} LUFS`;
+    return `${base.toFixed(0)} → ${resolved.toFixed(1)} LUFS`;
+}
+
+function createDspAmountSummary(track) {
+    const info = track?.finalizeInfo || {};
+    const analysis = track?.analysis || {};
+    if (FoxBearMasteringInspector.createDspAmountSummary) return FoxBearMasteringInspector.createDspAmountSummary(info, analysis);
+    const spatial = analysis.spatialBudgetApplied || {};
+    const items = [
+        { key: 'limiter', label: 'Limiter', value: Math.abs(Number(info.limiterReductionDb || 0)), unit: 'dB' },
+        { key: 'multiband', label: 'Multiband', value: Math.abs(Number(info.multibandReductionDb || 0)), unit: 'dB' },
+        { key: 'deesser', label: 'De-esser', value: Math.abs(Number(info.dynamicDeEsserReductionDb || 0)), unit: 'dB' },
+        { key: 'mobile', label: 'Mobile Guard', value: Number(info.mobileSpeakerRisk || analysis.mobileSpeakerRisk || 0) * 100, unit: '%' },
+        { key: 'spatial', label: 'Spatial Clamp', value: Math.max(0, 1 - Number(spatial.widthFactor || 1)) * 100, unit: '%' }
+    ];
+    const score = clamp(Math.round(items.reduce((sum, item) => sum + (item.unit === 'dB' ? item.value * 12 : item.value), 0) / 5), 0, 100);
+    return { score, items };
+}
+
+function formatDspAmountSummary(track) {
+    const summary = createDspAmountSummary(track);
+    if (!summary || !Array.isArray(summary.items)) return '렌더 후 표시';
+    const visible = summary.items.filter(item => Number(item.value || 0) > 0.02).slice(0, 5);
+    if (!visible.length) return '보정 최소 · 원본 보존 중심';
+    return visible.map(item => `${item.label} ${item.unit === 'dB' ? formatSigned(-Math.abs(Number(item.value || 0)), 1) + ' dB' : Math.round(Number(item.value || 0)) + '%'}`).join(' · ');
+}
+
+function getDspAmountScoreLabel(track) {
+    const score = Number(createDspAmountSummary(track)?.score || 0);
+    if (score >= 64) return `강함 ${score}점`;
+    if (score >= 34) return `중간 ${score}점`;
+    return `가벼움 ${score}점`;
+}
+
+
 
 
 const UTILITY_FEATURE_DEFINITIONS = {
     abLevelMatch: {
         label: 'A/B 레벨 매칭',
-        short: '원본과 마스터링 프리뷰의 체감 볼륨을 맞춰 더 공정하게 비교합니다.'
+        short: '전체 비교 패널 전용 기능입니다. Dock 재생에는 개입하지 않습니다.'
     },
     abDifferenceListen: {
         label: '차이 듣기',
-        short: '원본을 반전해 마스터링에서 실제로 달라진 성분만 확인합니다.'
+        short: '전체 비교 패널 전용 기능입니다. Dock transport에는 숨은 상태가 남지 않습니다.'
     },
     abLoopMode: {
         label: '5초 A/B 루프',
@@ -230,7 +314,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.52';
+    styleLink.href = 'assets/css/studio.css?v=1.3.53';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -278,7 +362,8 @@ function cacheElements() {
         'pitchHint', 'speedHint', 'beatChangeSelect', 'beatValue', 'beatHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
         'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
         'smartSuggestPanel', 'smartSuggestStatus', 'smartSuggestSummary', 'smartSuggestList', 'smartSuggestApplyBtn',
-        'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput',
+        'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput', 'referenceStrengthSelect',
+        'adaptiveLufsToggle',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
         'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
@@ -1174,6 +1259,10 @@ function renderReferencePanel() {
     }
     if (el.referenceApplyBtn) el.referenceApplyBtn.disabled = !ready || !getSelectedTrack()?.analysis || state.busy;
     if (el.referenceClearBtn) el.referenceClearBtn.disabled = !profile || state.busy;
+    if (el.referenceStrengthSelect) {
+        el.referenceStrengthSelect.value = String(getReferenceMatchStrengthAmount());
+        el.referenceStrengthSelect.disabled = state.busy;
+    }
 }
 
 function renderSnapshotPanel() {
@@ -1807,6 +1896,8 @@ function bindEvents() {
     if (el.referenceInput) el.referenceInput.addEventListener('change', e => handleReferenceFiles(e.target.files));
     if (el.referenceApplyBtn) el.referenceApplyBtn.addEventListener('click', applyReferenceToSelected);
     if (el.referenceClearBtn) el.referenceClearBtn.addEventListener('click', clearReferenceProfile);
+    if (el.referenceStrengthSelect) el.referenceStrengthSelect.addEventListener('change', handleReferenceStrengthChange);
+    if (el.adaptiveLufsToggle) el.adaptiveLufsToggle.addEventListener('change', handleAdaptiveLufsToggle);
     if (el.snapshotSaveBtn) el.snapshotSaveBtn.addEventListener('click', saveSnapshotForSelected);
     if (el.snapshotUndoBtn) el.snapshotUndoBtn.addEventListener('click', restoreLatestSnapshotForSelected);
     if (el.snapshotRedoBtn) el.snapshotRedoBtn.addEventListener('click', redoSnapshotForSelected);
@@ -1929,6 +2020,7 @@ function bindEvents() {
     }
     if (el.targetLufsSelect) {
         state.targetLufs = Number(el.targetLufsSelect.value || state.targetLufs);
+        if (el.adaptiveLufsToggle) el.adaptiveLufsToggle.checked = Boolean(state.adaptiveTargetLufs);
         el.targetLufsSelect.addEventListener('change', () => {
             saveUndoPointForSelectedOrAll('LUFS 타깃 변경 전');
             state.targetLufs = Number(el.targetLufsSelect.value || -14);
@@ -3616,6 +3708,7 @@ function makeRecommendedSettings(preset, analysis) {
 function applyReferenceToSettings(settings, analysis) {
     const ref = state.referenceProfile?.status === 'ready' ? state.referenceProfile.target : null;
     if (!settings || !analysis || !ref) return settings;
+    const refAmount = getReferenceMatchStrengthAmount();
     const brightDelta = clamp(Number(ref.brightness || 0.5) - Number(analysis.brightness || 0.5), -0.55, 0.55);
     let widthDelta = clamp(Number(ref.stereoWidth || 0.35) - Number(analysis.stereoWidth || 0.35), -0.50, 0.50);
     const bassDelta = clamp(Number(ref.bass || 0.25) - Number(analysis.bassRatio || 0.25), -0.45, 0.45);
@@ -3634,11 +3727,11 @@ function applyReferenceToSettings(settings, analysis) {
     const safePresenceDelta = refinedPresence > 0 ? refinedPresence * clamp(1 - vocalMetalRisk * 1.35 - mobileRisk.harsh * 0.25, 0.12, 1) : refinedPresence;
     const safeAirDelta = refinedAir > 0 ? refinedAir * clamp(1 - vocalMetalRisk * 1.45 - mobileRisk.harsh * 0.30, 0.10, 1) : refinedAir;
     const safeBrightDelta = brightDelta > 0 ? brightDelta * clamp(1 - vocalMetalRisk * 1.10 - mobileRisk.harsh * 0.18, 0.20, 1) : brightDelta;
-    settings.clarity = clamp(Math.round(settings.clarity + safeBrightDelta * 8 + safePresenceDelta * 13 + safeAirDelta * 8), 8, 82);
-    settings.warmth = clamp(Math.round(settings.warmth + bassDelta * 7 + spectrumDelta.low * 7 + detailedDelta.mud * 4 - safeBrightDelta * 3), 10, 86);
-    settings.width = clamp(Math.round(settings.width + widthDelta * 12), 10, 76);
-    settings.dynamicPunch = clamp(Math.round(settings.dynamicPunch + punchDelta * 10), 10, 82);
-    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + Math.max(0, metallicDelta) * 6 + Math.max(0, -safePresenceDelta) * 8 + Math.max(0, detailedDelta.harsh) * 4 + vocalMetalRisk * 5 + mobileRisk.harsh * 3), 18, 84);
+    settings.clarity = clamp(Math.round(settings.clarity + (safeBrightDelta * 8 + safePresenceDelta * 13 + safeAirDelta * 8) * refAmount), 8, 82);
+    settings.warmth = clamp(Math.round(settings.warmth + (bassDelta * 7 + spectrumDelta.low * 7 + detailedDelta.mud * 4 - safeBrightDelta * 3) * refAmount), 10, 86);
+    settings.width = clamp(Math.round(settings.width + widthDelta * 12 * refAmount), 10, 76);
+    settings.dynamicPunch = clamp(Math.round(settings.dynamicPunch + punchDelta * 10 * refAmount), 10, 82);
+    settings.metallicRemoval = clamp(Math.round(settings.metallicRemoval + (Math.max(0, metallicDelta) * 6 + Math.max(0, -safePresenceDelta) * 8 + Math.max(0, detailedDelta.harsh) * 4) * refAmount + vocalMetalRisk * 5 + mobileRisk.harsh * 3), 18, 84);
     const widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 72;
     if (spatialRisk > 0.24 || Number(analysis.lowMonoScore || 100) < 78) settings.width = clamp(Math.min(settings.width, widthLimit), 10, 68);
     return settings;
@@ -4005,7 +4098,7 @@ async function masterTrack(track, calledFromBatch = false) {
         track.report = guardDecision.changed ? `스마트 성능 가드 적용 · ${getQualityModeLabel(guardDecision.sourceQualityMode)} → ${getQualityModeLabel(guardDecision.qualityMode)} · ${getOutputFormatLabel(requestedOutputFormat)} 인코딩 중` : track.report;
         renderAll();
         const finalization = await finalizeMasterBufferAsync(masteredBuffer, {
-            targetLufs: state.targetLufs,
+            targetLufs: resolveTargetLufsForTrack(track),
             ceilingDb: state.ceilingDb,
             qualityMode: guardDecision.qualityMode,
             masterGoal: state.masterGoal,
@@ -7187,7 +7280,7 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
     return {
         before: { ...before, approxLufs: beforeLufs },
         after: { ...after, approxLufs: afterLufs },
-        target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength },
+        target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), baseLufs: Number(state.targetLufs), adaptiveLufs: Boolean(state.adaptiveTargetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength, referenceMatchStrength: getReferenceMatchStrengthAmount() },
         finalizer: {
             mode: finalizeInfo?.mode || '',
             limiterMode: finalizeInfo?.limiterMode || '',
@@ -8391,7 +8484,7 @@ function getActiveReferenceTarget(preset) {
         return { ...presetTarget, spectrumProfileVersion: 24, spectrumProfile: makePresetSpectrumProfile24(presetTarget), spectrumBands: cloneSpectrumBands(presetTarget.spectrumBands || presetTarget) };
     }
     if (!presetTarget) return { ...refTarget, spectrumProfileVersion: 24, spectrumProfile: normalizeReferenceSpectrumProfile(refTarget.spectrumProfile, refTarget) };
-    const amount = 0.62;
+    const amount = getReferenceMatchStrengthAmount();
     const presetProfile = makePresetSpectrumProfile24(presetTarget);
     const refProfile = normalizeReferenceSpectrumProfile(refTarget.spectrumProfile, refTarget);
     return {
@@ -8522,6 +8615,25 @@ function blend(a, b, amount) {
     return av + (bv - av) * clamp(Number(amount || 0), 0, 1);
 }
 
+
+function handleReferenceStrengthChange() {
+    const next = getReferenceMatchStrengthAmount(el.referenceStrengthSelect?.value ?? state.referenceMatchStrength);
+    saveUndoPointForSelectedOrAll('레퍼런스 강도 변경 전');
+    state.referenceMatchStrength = next;
+    const count = applyReferenceToReadyTracks(false);
+    invalidateAllMasteredOutput(`레퍼런스 매칭 강도 ${getReferenceMatchStrengthLabel(next)}로 변경되었습니다. 다시 마스터링하세요.`);
+    renderAll({ keepDetailAudio: true });
+    showToast(`레퍼런스 매칭 강도: ${getReferenceMatchStrengthLabel(next)}${count ? ` · ${count}곡 추천값 갱신` : ''}`);
+}
+
+function handleAdaptiveLufsToggle() {
+    saveUndoPointForSelectedOrAll('Adaptive LUFS 변경 전');
+    state.adaptiveTargetLufs = Boolean(el.adaptiveLufsToggle?.checked);
+    invalidateAllMasteredOutput(state.adaptiveTargetLufs ? '곡별 Adaptive LUFS가 켜졌습니다. 다시 마스터링하세요.' : '곡별 Adaptive LUFS가 꺼졌습니다. 다시 마스터링하세요.');
+    renderAll({ keepDetailAudio: true });
+    showToast(state.adaptiveTargetLufs ? '곡별 Adaptive LUFS를 켰습니다.' : '곡별 Adaptive LUFS를 껐습니다.');
+}
+
 function applyReferenceToReadyTracks(show = true) {
     if (!state.referenceProfile?.analysis) return 0;
     let count = 0;
@@ -8628,7 +8740,9 @@ function getSnapshotCore(snapshot) {
         ceilingDb: snapshot.ceilingDb,
         qualityMode: snapshot.qualityMode,
         platformPreset: snapshot.platformPreset,
-        performanceMode: snapshot.performanceMode
+        performanceMode: snapshot.performanceMode,
+        adaptiveTargetLufs: Boolean(snapshot.adaptiveTargetLufs),
+        referenceMatchStrength: snapshot.referenceMatchStrength
     };
     try { return JSON.stringify(core); } catch (error) { return String(Date.now()); }
 }
@@ -8691,7 +8805,9 @@ function captureTrackSnapshot(track, label = '스냅샷') {
         ceilingDb: state.ceilingDb,
         qualityMode: state.qualityMode,
         platformPreset: state.platformPreset,
-        performanceMode: state.performanceMode
+        performanceMode: state.performanceMode,
+        adaptiveTargetLufs: Boolean(state.adaptiveTargetLufs),
+        referenceMatchStrength: getReferenceMatchStrengthAmount()
     };
 }
 
@@ -8771,6 +8887,10 @@ function restoreSnapshot(track, snapshot) {
     state.qualityMode = snapshot.qualityMode || state.qualityMode;
     state.platformPreset = snapshot.platformPreset || 'custom';
     state.performanceMode = snapshot.performanceMode || state.performanceMode;
+    state.adaptiveTargetLufs = Boolean(snapshot.adaptiveTargetLufs ?? state.adaptiveTargetLufs);
+    state.referenceMatchStrength = getReferenceMatchStrengthAmount(snapshot.referenceMatchStrength ?? state.referenceMatchStrength);
+    if (el.adaptiveLufsToggle) el.adaptiveLufsToggle.checked = Boolean(state.adaptiveTargetLufs);
+    if (el.referenceStrengthSelect) el.referenceStrengthSelect.value = String(state.referenceMatchStrength);
     if (el.masterGoalSelect) el.masterGoalSelect.value = state.masterGoal;
     if (el.masterStyleSelect) el.masterStyleSelect.value = state.masterStyle;
     if (el.masterStrengthSelect) el.masterStrengthSelect.value = state.masterStrength;
@@ -9178,6 +9298,8 @@ function renderDetail(options = {}) {
         addRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
         addRow('스타일 프리셋', `${getMasterStyleLabel(state.masterStyle)} · ${getMasterStyleDescription(state.masterStyle)}`);
         addRow('마스터링 성향', `${getMasterStrengthLabel(state.masterStrength)} · ${getMasterStrengthDescription(state.masterStrength)}`);
+        addRow('곡별 Adaptive LUFS', state.adaptiveTargetLufs ? `ON · ${getAdaptiveTargetLabel(track)}` : 'OFF · 수동 타깃 고정');
+        addRow('레퍼런스 매칭 강도', `${getReferenceMatchStrengthLabel()} · ${Math.round(getReferenceMatchStrengthAmount() * 100)}%`);
         addRow('플랫폼 저장 프리셋', `${getPlatformPresetLabel()} · ${PLATFORM_EXPORT_PRESETS[state.platformPreset]?.note || '직접 설정 유지'}`);
         if (state.referenceProfile?.status === 'ready') addRow('레퍼런스 트랙', `${state.referenceProfile.name} · ${state.referenceProfile.report}`);
         if (track.genreReason) addRow('장르 판단 근거', track.genreReason);
@@ -9212,6 +9334,7 @@ function renderDetail(options = {}) {
             addRow('피크 가드', `${track.truePeakInfo.mode === 'truePeak' ? '4x FIR True Peak' : 'Sample Peak'} · 전 ${beforeDb} dB · 후 ${afterDb} dB`);
         }
         if (track.finalizeInfo) {
+            addRow('DSP 적용량 Inspector', `${getDspAmountScoreLabel(track)} · ${formatDspAmountSummary(track)}`);
             addRow('클리핑 위험', getClippingRiskText(track));
             const before = Number.isFinite(track.finalizeInfo.loudnessBefore) ? `${track.finalizeInfo.loudnessBefore.toFixed(1)} LUFS` : '-';
             const after = Number.isFinite(track.finalizeInfo.loudnessAfter) ? `${track.finalizeInfo.loudnessAfter.toFixed(1)} LUFS` : '-';
@@ -9977,7 +10100,7 @@ async function renderMasterPreviewForTrack(track, options = {}) {
         await yieldToBrowser();
 
         const finalization = await finalizeMasterBufferAsync(masteredBuffer, {
-            targetLufs: state.targetLufs,
+            targetLufs: resolveTargetLufsForTrack(track),
             ceilingDb: state.ceilingDb,
             qualityMode: state.qualityMode === 'max' ? 'balanced' : state.qualityMode,
             masterGoal: state.masterGoal,
@@ -11308,12 +11431,12 @@ function getClippingRiskText(track) {
 function stripTags(value) { return String(value || '').replace(/<[^>]+>/g, ''); }
 
 function buildTrackDiffText(track) {
-    if (!track || !track.finalizeInfo) return '마스터링 후 LUFS 변화, 피크 위험, A/B 레벨 매칭 값을 표시합니다.';
+    if (!track || !track.finalizeInfo) return '마스터링 후 LUFS 변화, 피크 위험, DSP 적용량을 표시합니다.';
     const c = track.comparison || createComparisonInfo(track, track.finalizeInfo);
     const delta = Number.isFinite(c.loudnessDelta) ? `${formatSigned(c.loudnessDelta, 1)} LUFS` : '-';
     const peak = Number.isFinite(c.peakAfterDb) ? `${c.peakAfterDb.toFixed(2)} dBTP 유사` : '-';
     const ab = getABMatchGainDb(track);
-    return `라우드니스 변화 ${delta} · 최종 피크 ${peak} · A/B 매칭 ${formatSigned(ab, 1)} dB`;
+    return `라우드니스 변화 ${delta} · 최종 피크 ${peak} · DSP ${getDspAmountScoreLabel(track)}`;
 }
 
 function buildGlobalDiffText() {
@@ -11727,7 +11850,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.52',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.53',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
