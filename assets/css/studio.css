@@ -9544,7 +9544,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.74 Dock integrated waveform remote */
+/* v1.3.75 Dock integrated waveform remote */
 .bottom-preview-core {
     grid-template-columns: 112px minmax(0, 1fr) !important;
     align-items: center !important;
@@ -9752,4 +9752,31 @@ input[type="file"].hidden.native-picker-input {
     .waveform-compare-row > span { font-size: .64rem !important; }
     .waveform-compare-bars { height: 62px !important; }
     .waveform-compare-listen { width: 100%; min-height: 32px; }
+}
+
+
+/* v1.3.75 Dock waveform init + feature button guard */
+.feature-open-btn,
+.feature-open-wide,
+#featureOpenBtn {
+    position: relative !important;
+    z-index: 6 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+}
+.dock-integrated-waveform-bars.dock-integrated-waveform-placeholder {
+    min-height: 30px;
+    opacity: .88;
+    filter: saturate(.92);
+}
+.dock-integrated-waveform-placeholder .dock-integrated-waveform-bar {
+    background: linear-gradient(180deg, rgba(141,245,232,.58), rgba(114,221,255,.24));
+    opacity: .72;
+}
+.dock-integrated-waveform-bars.dock-integrated-waveform-ready .dock-integrated-waveform-bar {
+    opacity: .95;
+}
+.track-actions .download-attention,
+.track-card .download-attention {
+    box-shadow: 0 0 0 1px rgba(141,245,232,.42), 0 0 22px rgba(141,245,232,.24) !important;
 }

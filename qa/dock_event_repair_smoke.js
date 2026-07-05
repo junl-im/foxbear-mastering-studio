@@ -12,11 +12,11 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.3.74'"), 'app version should be v1.3.74');
-must(html.includes('data-build="1.3.74"'), 'index build should be v1.3.74');
-must(pkg.version === '1.3.74', 'package version should be v1.3.74');
-must(sw.includes('foxbear-shell-v1.3.74-dock-integrated-waveform'), 'SW cache key should be v1.3.74');
-must(html.includes('src/app.js?v=1.3.74-dock-integrated-waveform'), 'app cache-bust key should be v1.3.74');
+must(app.includes("const APP_VERSION = 'Pro v1.3.75'"), 'app version should be v1.3.75');
+must(html.includes('data-build="1.3.75"'), 'index build should be v1.3.75');
+must(pkg.version === '1.3.75', 'package version should be v1.3.75');
+must(sw.includes('foxbear-shell-v1.3.75-dock-wave-download-fix'), 'SW cache key should be v1.3.75');
+must(html.includes('src/app.js?v=1.3.75-dock-wave-download-fix'), 'app cache-bust key should be v1.3.75');
 must(app.includes('#bottomPreviewOriginalBtn, #bottomPreviewMasteredBtn, [data-preview-translation-mode], #previewDialogClose'), 'single Dock dispatcher should cover source, translation, and close controls');
 must(app.includes("runDockRemoteSourceMode('original', event)"), 'original tab should use Dock source dispatcher');
 must(app.includes("runDockRemoteSourceMode('mastered', event)"), 'mastered tab should use Dock source dispatcher');
@@ -25,7 +25,7 @@ must(app.includes('applyPreviewTranslationMode(mode, { keepPlaying: true, toast:
 must(app.includes('function runDockRemoteSourceMode'), 'source mode dispatcher should exist');
 must(app.includes('closePreviewDialog();\n                return;'), 'preview dialog close should be handled in capture dispatcher');
 must(app.includes("showToast('비교할 음원을 먼저 불러와주세요.');"), 'waveform popup should use active Dock/main track with feedback');
-must(studioCss.includes('v1.3.74 Dock integrated waveform remote'), 'studio css should include integrated waveform section');
+must(studioCss.includes('v1.3.75 Dock integrated waveform remote'), 'studio css should include integrated waveform section');
 must(dockCss.includes('.bottom-preview-translation-btn') && dockCss.includes('pointer-events: auto !important'), 'translation buttons should be pointer-enabled');
 must(dockCss.includes('.preview-dialog-backdrop.show.waveform-compare-mode') && dockCss.includes('z-index: 28000'), 'waveform dialog should sit above Dock and be clickable');
 console.log('PASS Dock integrated waveform remote smoke');

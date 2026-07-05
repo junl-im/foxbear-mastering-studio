@@ -1,3 +1,10 @@
+# FoxBear AI Mastering Studio Pro v1.3.75
+
+- Dock 통합 파형이 파일 불러오기 직후 임시 파형을 표시하고, 분석 완료 즉시 실제 피크/파형으로 자동 갱신됩니다.
+- 버튼형 적용의 `버튼 보기`에 pointer/touch/key fallback을 추가해 클릭 레이어 충돌에도 팝업이 열립니다.
+- 마스터링 완료 후 본문 트랙의 다운로드 버튼 라인이 화면 중앙으로 자동 스크롤됩니다.
+- 카카오/인앱 브라우저 다운로드는 자동 저장 제한을 감지해 공유/저장창을 먼저 시도하고, 실패 시 도움창/외부 브라우저 안내로 이어집니다.
+
 # FoxBear AI Mastering Studio Pro v1.3.74
 
 ## v1.3.74 Dock Integrated Waveform Remote

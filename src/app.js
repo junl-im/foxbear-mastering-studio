@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.74 - Dock integrated waveform remote
+// FoxBear AI Mastering Studio Pro v1.3.75 - Dock waveform init and download bridge
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.74';
+const APP_VERSION = 'Pro v1.3.75';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.74-dock-integrated-waveform';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.75-dock-wave-download-fix';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -350,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.74-dock-integrated-waveform';
+    styleLink.href = 'assets/css/studio.css?v=1.3.75-dock-wave-download-fix';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -444,6 +444,7 @@ function init() {
     runInitStep('Dock 리모컨 보호 이벤트', installDockRemoteDelegation);
     runInitStep('슬라이더 UI', renderSliders);
     runInitStep('기능 버튼 UI', renderFeatureButtons);
+    runInitStep('버튼형 팝업 보호 이벤트', bindFeatureOpenHardFallback);
     runInitStep('선택 팝업 UI', enhanceActionSelects);
     runInitStep('컨트롤 이벤트', bindEvents);
     runInitStep('Firebase 연결', initFirebaseBridge);
@@ -743,6 +744,33 @@ function closeFeatureDialog() {
     el.featureDialog.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('feature-dialog-open');
     if (el.featureOpenBtn) el.featureOpenBtn.focus({ preventScroll: true });
+}
+
+function forceOpenFeatureDialog(event = null) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    if (!el.featureDialog) {
+        try { cacheElements(); } catch (error) {}
+    }
+    if (!el.featureDialog) {
+        showToastSafe('버튼형 기능 창을 열 수 없습니다. 새로고침 후 다시 시도해주세요.');
+        return false;
+    }
+    openFeatureDialog();
+    return true;
+}
+
+function bindFeatureOpenHardFallback() {
+    const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
+    if (!button || button.dataset.featureHardFallbackBound === 'true') return;
+    button.dataset.featureHardFallbackBound = 'true';
+    button.removeAttribute('disabled');
+    button.style.pointerEvents = 'auto';
+    button.addEventListener('pointerup', forceOpenFeatureDialog, { capture: true });
+    button.addEventListener('touchend', forceOpenFeatureDialog, { capture: true, passive: false });
+    button.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') forceOpenFeatureDialog(event);
+    }, { capture: true });
 }
 
 function openPreviewDialog() {
@@ -2769,7 +2797,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.74-dock-integrated-waveform');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.75-dock-wave-download-fix');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2915,7 +2943,7 @@ function installFeatureDialogFallback() {
         if (!target) return;
         event.preventDefault();
         event.stopPropagation();
-        if (target.id === 'featureOpenBtn') openFeatureDialog();
+        if (target.id === 'featureOpenBtn') forceOpenFeatureDialog(event);
         else closeFeatureDialog();
     }, true);
 }
@@ -2938,7 +2966,8 @@ function bindEvents() {
             if (event.target === el.programInfoDialog) closeProgramInfoDialog();
         });
     }
-    if (el.featureOpenBtn) el.featureOpenBtn.addEventListener('click', openFeatureDialog);
+    if (el.featureOpenBtn) el.featureOpenBtn.addEventListener('click', forceOpenFeatureDialog);
+    bindFeatureOpenHardFallback();
     if (el.featureDialogClose) el.featureDialogClose.addEventListener('click', closeFeatureDialog);
     if (el.featureDialog) {
         el.featureDialog.addEventListener('click', event => {
@@ -3945,6 +3974,9 @@ async function analyzeTrack(track) {
     if (state.selectedId === track.id) applyTrackToControls(track);
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     renderAll();
+    if (state.selectedId === track.id || state.bottomPreviewTrackId === track.id) {
+        requestAnimationFrame(() => renderBottomPreviewDock({ keepPlaying: true }));
+    }
     maybeShowSingleTrackAiRecommendationDialog(track);
 }
 
@@ -5434,8 +5466,11 @@ async function masterSelectedTracks(options = {}) {
             const ok = await masterTrack(track, true, { awaitAnalysis: true, notifyBlocked: true, source: options.source || 'main' });
             if (ok) completed += 1;
         }
-        if (completed) showToast(`${completed}개 선택 트랙 마스터링 완료`);
-        else showToast('마스터링을 완료하지 못했습니다. 트랙 상태를 확인해주세요.');
+        if (completed) {
+            showToast(`${completed}개 선택 트랙 마스터링 완료`);
+            const focusTarget = candidates.find(track => track?.outBlob) || candidates[0];
+            requestAnimationFrame(() => focusCompletedTrackDownload(focusTarget));
+        } else showToast('마스터링을 완료하지 못했습니다. 트랙 상태를 확인해주세요.');
         return completed > 0;
     } finally {
         state.busy = false;
@@ -9485,8 +9520,20 @@ function showDownloadOptionsDialog(track) {
         try {
             const exported = await prepareSelected(selectedFormat === track.outFormat ? '현재 완성 파일로 다운로드를 준비합니다.' : '선택한 포맷으로 변환 중입니다.');
             track.downloadAttention = false;
-            closeDownloadOptionsDialog(backdrop);
-            downloadBlob(exported.blob, exported.fileName);
+            if (isRestrictedDownloadBrowser() && supportsWebShareFiles(exported.blob, exported.fileName)) {
+                warning.textContent = '카카오/인앱 브라우저에서는 기기 공유/저장창을 먼저 엽니다.';
+                try {
+                    await shareDownloadFile(exported.blob, exported.fileName);
+                    closeDownloadOptionsDialog(backdrop);
+                } catch (shareError) {
+                    console.warn('restricted browser share-first failed:', shareError);
+                    showDownloadAssist(URL.createObjectURL(exported.blob), exported.fileName, exported.blob.type || 'audio/*', exported.blob);
+                    warning.textContent = '공유/저장이 취소되었거나 막혔습니다. 열린 도움창의 파일 열기 또는 외부 브라우저 안내를 사용하세요.';
+                }
+            } else {
+                closeDownloadOptionsDialog(backdrop);
+                downloadBlob(exported.blob, exported.fileName);
+            }
             foxBearHaptic('download');
             clearNativeBadgeIfDone();
             state.busy = false;
@@ -9569,11 +9616,18 @@ function focusCompletedTrackDownload(track) {
     const cards = Array.from(document.querySelectorAll('.track-card[data-track-id]'));
     const card = cards.find(item => item.dataset.trackId === track.id);
     if (!card) return;
-    card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    const button = card.querySelector('.download-attention');
+    const button = card.querySelector('.download-attention') || card.querySelector('[data-action="download"], .track-actions button');
+    const actionLine = button?.closest?.('.track-actions') || button || card;
+    const target = actionLine || card;
+    try {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    } catch (error) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
     if (button && typeof button.focus === 'function') {
         setTimeout(() => button.focus({ preventScroll: true }), 520);
     }
+    showToast('마스터링 완료 · 다운로드 버튼 위치로 이동했습니다.');
 }
 
 function downloadTrackReport(track) {
@@ -11932,6 +11986,18 @@ function getDockWaveformPayload(track, mode = state.bottomPreviewMode) {
     return { label: '원본 피크', badge: 'Original', values: original, markers: sampleMarkersFromValues(original) };
 }
 
+function getDockWaveformSignature(track, mode = state.bottomPreviewMode) {
+    if (!track) return 'no-track';
+    const payload = getDockWaveformPayload(track, mode);
+    const values = normalizeWaveformValues(payload.values || [], DOCK_WAVEFORM_BINS);
+    const peakSum = values.length ? Math.round(values.reduce((sum, value) => sum + Number(value || 0), 0) * 1000) : 0;
+    const peakMax = values.length ? Math.round(Math.max(...values.map(value => Number(value || 0))) * 1000) : 0;
+    const markerCount = Array.isArray(payload.markers) ? payload.markers.length : 0;
+    const outputSize = track.outBlob?.size || 0;
+    const previewSize = track.masterPreviewBlob?.size || 0;
+    return [track.status || 'idle', mode || 'original', values.length, peakSum, peakMax, markerCount, Math.round(Number(track.analysis?.duration || 0) * 10), outputSize, previewSize].join(':');
+}
+
 function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     if (!el.bottomPreviewWaveformBtn) return;
     el.bottomPreviewWaveformBtn.textContent = '';
@@ -12195,20 +12261,27 @@ function makeDockWaveformBars(track, mode = state.bottomPreviewMode) {
     bars.className = 'dock-integrated-waveform-bars';
     const payload = getDockWaveformPayload(track, mode);
     const values = normalizeWaveformValues(payload.values || [], DOCK_WAVEFORM_BINS);
-    const markers = payload.markers || sampleMarkersFromValues(values);
-    const renderValues = values.length ? values : new Array(DOCK_WAVEFORM_BINS).fill(0.055);
+    const hasRealValues = Boolean(values.length);
+    const markers = hasRealValues ? (payload.markers || sampleMarkersFromValues(values)) : [];
+    const renderValues = hasRealValues ? values : Array.from({ length: DOCK_WAVEFORM_BINS }, (_, index) => {
+        const wave = Math.sin(index * 0.62) * 0.055 + Math.sin(index * 0.19) * 0.035;
+        return clamp(0.18 + wave, 0.08, 0.32);
+    });
+    if (!hasRealValues) bars.classList.add('dock-integrated-waveform-placeholder');
+    else bars.classList.add('dock-integrated-waveform-ready');
     const targetMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
     attachWaveformSeekHandlers(bars, targetMode, 'dock-player');
     bars.dataset.waveformBinCount = String(renderValues.length);
-    bars.setAttribute('aria-label', '통합 파형 플레이어. 클릭하면 해당 위치로 이동해 재생합니다.');
+    bars.dataset.waveformReady = hasRealValues ? 'true' : 'false';
+    bars.setAttribute('aria-label', hasRealValues ? '통합 파형 플레이어. 클릭하면 해당 위치로 이동해 재생합니다.' : '통합 파형 플레이어. 분석 중에는 임시 파형을 표시하고 완료 즉시 실제 피크 파형으로 갱신됩니다.');
     renderValues.forEach((value, index) => {
         const bar = document.createElement('i');
         const percent = renderValues.length > 1 ? Math.round(index / (renderValues.length - 1) * 1000) / 10 : 0;
         bar.dataset.waveformIndex = String(index);
         bar.dataset.waveformPercent = String(percent);
-        const marker = markers[index] || (Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'));
+        const marker = hasRealValues ? (markers[index] || (Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'))) : 'ok';
         bar.className = `dock-integrated-waveform-bar dock-integrated-waveform-${marker}`;
-        bar.style.height = `${Math.max(7, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
+        bar.style.height = `${Math.max(hasRealValues ? 7 : 9, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
         bars.appendChild(bar);
     });
     return bars;
@@ -12334,7 +12407,8 @@ function renderBottomPreviewDock(options = {}) {
     // but do not let hidden Dock compare state affect Dock playback.
     const differenceReady = false;
     const gainDb = 0;
-    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|dock-clean|${getPreviewTranslationMode().id}`;
+    const waveformSignature = getDockWaveformSignature(track, mode);
+    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|dock-clean|${getPreviewTranslationMode().id}|wave:${waveformSignature}`;
 
     el.bottomPreviewDock.classList.add('show');
     el.bottomPreviewDock.setAttribute('aria-hidden', 'false');
@@ -13864,7 +13938,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.74',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.75',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
