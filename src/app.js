@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.59 - dock waveform timeline model
+// FoxBear AI Mastering Studio Pro v1.3.60 - dock waveform timeline model
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.59';
+const APP_VERSION = 'Pro v1.3.60';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.59-waveform-timeline';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.60-upload-tooltip-hotfix';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -332,7 +332,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.59';
+    styleLink.href = 'assets/css/studio.css?v=1.3.60-upload-tooltip-hotfix';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -460,51 +460,69 @@ function renderFeatureButtons() {
     if (el.featureDock) el.featureDock.textContent = '';
     featureContainer.textContent = '';
     const groups = [
-        ['engine', FEATURE_DEFINITIONS],
-        ['utility', UTILITY_FEATURE_DEFINITIONS]
+        {
+            kind: 'engine',
+            title: '마스터링 엔진',
+            description: '음색, 피크, 보컬, 공간감에 직접 개입하는 렌더 엔진 기능입니다.',
+            definitions: FEATURE_DEFINITIONS
+        },
+        {
+            kind: 'utility',
+            title: '비교 · 관리 도구',
+            description: 'A/B 비교, 루프, 캐시, 성능 보호처럼 엔진 밖에서 동작하는 보조 기능입니다.',
+            definitions: UTILITY_FEATURE_DEFINITIONS
+        }
     ];
-    const cards = [];
-    let order = 0;
-    groups.forEach(([kind, definitions]) => {
-        Object.entries(definitions).forEach(([key, info]) => {
-            const active = getFeatureToggleState(kind, key);
-            cards.push({ kind, key, info, active, order: order++ });
-        });
-    });
-    cards.sort((a, b) => {
-        if (a.active !== b.active) return a.active ? 1 : -1;
-        return a.order - b.order;
-    });
-    cards.forEach(({ kind, key, info, active }) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = `feature-card feature-dialog-card ${active ? 'active' : ''}`;
-        button.dataset.feature = key;
-        button.dataset.kind = kind;
-        button.dataset.state = active ? 'on' : 'off';
-        button.dataset.tooltip = info.short;
-        button.dataset.help = info.short;
-        button.title = info.short;
-        button.setAttribute('aria-pressed', String(Boolean(active)));
-        button.setAttribute('aria-label', `${info.label}: ${info.short}`);
+    groups.forEach(group => {
+        const header = document.createElement('div');
+        header.className = 'feature-group-title';
+        header.dataset.kind = group.kind;
+        const strong = document.createElement('strong');
+        strong.textContent = group.title;
+        const small = document.createElement('small');
+        small.textContent = group.description;
+        header.append(strong, small);
+        featureContainer.appendChild(header);
 
-        const title = document.createElement('b');
-        title.textContent = info.label;
-        const status = document.createElement('span');
-        status.className = 'feature-status';
-        status.textContent = active ? 'ON' : 'OFF';
-
-        button.append(title, status);
-        button.addEventListener('mouseenter', () => showFeatureTooltip(button, info.short));
-        button.addEventListener('focus', () => showFeatureTooltip(button, info.short));
-        button.addEventListener('mouseleave', hideFeatureTooltip);
-        button.addEventListener('blur', hideFeatureTooltip);
-        button.addEventListener('click', () => {
-            showFeatureTooltip(button, info.short, 1800);
-            if (kind === 'utility') toggleUtilityFeature(key);
-            else toggleFeature(key);
+        const cards = Object.entries(group.definitions).map(([key, info], order) => ({
+            kind: group.kind,
+            key,
+            info,
+            active: getFeatureToggleState(group.kind, key),
+            order
+        }));
+        cards.sort((a, b) => {
+            if (a.active !== b.active) return a.active ? 1 : -1;
+            return a.order - b.order;
         });
-        featureContainer.appendChild(button);
+        cards.forEach(({ kind, key, info, active }) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `feature-card feature-dialog-card ${active ? 'active' : ''}`;
+            button.dataset.feature = key;
+            button.dataset.kind = kind;
+            button.dataset.state = active ? 'on' : 'off';
+            button.dataset.tooltip = info.short;
+            button.dataset.help = info.short;
+            button.title = info.short;
+            button.setAttribute('aria-pressed', String(Boolean(active)));
+            button.setAttribute('aria-label', `${info.label}: ${info.short}`);
+
+            const title = document.createElement('b');
+            title.textContent = info.label;
+            const status = document.createElement('span');
+            status.className = 'feature-status';
+            status.textContent = active ? 'ON' : 'OFF';
+
+            button.append(title, status);
+            attachHelpTooltip(button, info.short);
+            button.addEventListener('click', () => {
+                showFeatureTooltip(button, info.short, 1800);
+                if (kind === 'utility') toggleUtilityFeature(key);
+                else toggleFeature(key);
+            });
+            featureContainer.appendChild(button);
+        });
     });
     updateFeatureSummary();
 }
@@ -523,6 +541,12 @@ function toggleUtilityFeature(key) {
         state.abLevelMatch = !state.abLevelMatch;
     } else if (key === 'abLoopMode') {
         state.abLoopMode = !state.abLoopMode;
+    } else if (key === 'abDifferenceListen') {
+        state.abDifferenceListen = !state.abDifferenceListen;
+        if (state.abDifferenceListen && state.bottomPreviewMode === 'original') {
+            const track = getSelectedTrack();
+            if (track?.masteredUrl || track?.masterPreviewUrl) state.bottomPreviewMode = track.masteredUrl ? 'mastered' : 'masterPreview';
+        }
     } else if (key === 'autoHighlightAB') {
         state.autoHighlightAB = !state.autoHighlightAB;
     } else if (key === 'smartPerformanceGuard') {
@@ -538,7 +562,7 @@ function toggleUtilityFeature(key) {
 
 function updateFeatureSummary() {
     const engineActive = Object.values(state.featureFlags).filter(Boolean).length;
-    const utilityActive = ['abLevelMatch', 'abLoopMode', 'autoCacheClean', 'autoHighlightAB', 'smartPerformanceGuard', 'engineSafetyMeter'].filter(key => Boolean(state[key])).length;
+    const utilityActive = ['abLevelMatch', 'abDifferenceListen', 'abLoopMode', 'autoCacheClean', 'autoHighlightAB', 'smartPerformanceGuard', 'engineSafetyMeter'].filter(key => Boolean(state[key])).length;
     if (el.featureCount) el.featureCount.textContent = `${engineActive + utilityActive}개 활성`;
 }
 
@@ -1356,7 +1380,19 @@ const ACTION_HELP_TEXTS = {
     clearBtn: '작업 대기열과 미리듣기 결과를 초기화합니다.',
     clearCacheBtn: '저장된 분석 캐시를 즉시 비웁니다.',
     abMatchBtn: '원본/마스터링 프리뷰 볼륨을 맞춰 비교합니다.',
-    abLoopBtn: '같은 구간을 5초씩 반복해 차이를 빠르게 비교합니다.'
+    abLoopBtn: '같은 구간을 5초씩 반복해 차이를 빠르게 비교합니다.',
+    genreLockBtn: 'AI 추천값을 다시 적용해도 현재 장르 프리셋을 유지합니다.',
+    adaptiveLufsToggle: '곡의 밀도와 장르를 기준으로 LUFS 목표를 자동 보정합니다.',
+    snapSemitone: '피치 조정을 반음 단위로 고정해 키 보정이 과하게 흔들리지 않게 합니다.',
+    masterPreviewBtn: '전체 렌더 전에 선택 트랙의 하이라이트 15초 결과를 먼저 만듭니다.',
+    bottomPreviewWaveformBtn: '하단 Dock에서 파형 피크 비교창을 엽니다.',
+    bottomPreviewMasterBtn: '현재 선택된 곡만 바로 마스터링합니다.',
+    bottomPreviewMasterPreviewBtn: '전체 렌더 전에 15초 결과 프리뷰를 생성하거나 재생합니다.',
+    bottomPreviewOriginalBtn: '원본 파일 기준으로 미리듣습니다.',
+    bottomPreviewMasteredBtn: '마스터링 완료본 기준으로 미리듣습니다.',
+    adminStatsRefresh: '관리자 방문 통계 데이터를 새로 불러옵니다.',
+    adminStatsClose: '관리자 통계 창을 닫습니다.',
+    adminStatsCloseBottom: '관리자 통계 창을 닫습니다.'
 };
 
 function initActionHelpTooltips() {
@@ -1371,19 +1407,33 @@ function initActionHelpTooltips() {
         attachHelpTooltip(trigger, `${label} 옵션을 버튼형 팝업으로 선택합니다.`);
     });
     document.querySelectorAll('.player-toggle').forEach(button => attachHelpTooltip(button, '미리듣기를 재생하거나 일시정지합니다.'));
-    document.querySelectorAll('[data-help]').forEach(node => attachHelpTooltip(node, node.dataset.help));
+    document.querySelectorAll('button[title], [role="button"][aria-label], input[type="range"], .mini-check, [data-help]').forEach(node => {
+        const text = node.dataset.help || node.getAttribute('title') || node.getAttribute('aria-label') || node.textContent?.trim();
+        if (text) attachHelpTooltip(node, text);
+    });
+}
+
+function getCurrentHelpText(target, fallback = '') {
+    return target?.dataset?.help || target?.getAttribute?.('title') || target?.getAttribute?.('aria-label') || fallback;
+}
+
+function updateHelpText(target, text) {
+    if (!target || !text) return;
+    target.dataset.help = text;
+    target.title = text;
+    attachHelpTooltip(target, text);
 }
 
 function attachHelpTooltip(target, text) {
     if (!target || !text || target.dataset.helpBound === 'true') return;
     target.dataset.helpBound = 'true';
-    target.dataset.help = text;
-    target.addEventListener('mouseenter', () => showFeatureTooltip(target, text));
-    target.addEventListener('focus', () => showFeatureTooltip(target, text));
+    target.dataset.help = target.dataset.help || text;
+    target.addEventListener('mouseenter', () => showFeatureTooltip(target, getCurrentHelpText(target, text)));
+    target.addEventListener('focus', () => showFeatureTooltip(target, getCurrentHelpText(target, text)));
     target.addEventListener('mouseleave', hideFeatureTooltip);
     target.addEventListener('blur', hideFeatureTooltip);
-    target.addEventListener('click', () => showFeatureTooltip(target, text, 1200));
-    target.addEventListener('touchstart', () => showFeatureTooltip(target, text, 1300), { passive: true });
+    target.addEventListener('click', () => showFeatureTooltip(target, getCurrentHelpText(target, text), 1200));
+    target.addEventListener('touchstart', () => showFeatureTooltip(target, getCurrentHelpText(target, text), 1300), { passive: true });
 }
 
 async function maybeAutoCleanAnalysisCache(force = false) {
@@ -2598,7 +2648,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.59-waveform-timeline');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.60-upload-tooltip-hotfix');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3424,10 +3474,15 @@ function bindNativeUploadLabel(label, input, kind = 'file') {
         prepareNativeFileInput(input);
         window.setTimeout(() => label.classList.remove('picker-active'), 420);
     }, { passive: true });
-    label.addEventListener('click', () => {
-        // Do not preventDefault here. The label's native `for` activation is the most reliable
-        // path on mobile/iOS/in-app browsers because it keeps the file picker tied to the tap.
+    label.addEventListener('click', event => {
         prepareNativeFileInput(input);
+        const canUseSystemPicker = kind === 'folder' ? supportsSystemDirectoryPicker() : supportsSystemFilePicker();
+        if (canUseSystemPicker) {
+            event.preventDefault();
+            openUploadPicker(kind);
+            return;
+        }
+        // File System Access API가 없는 Safari/iOS/인앱 브라우저는 label의 기본 for=input 동작을 유지합니다.
         if (kind === 'folder' && !supportsDirectoryInput(input)) {
             showToast('이 브라우저는 폴더 선택을 제한할 수 있어 여러 파일 선택으로 대체될 수 있습니다.');
         }
@@ -3436,7 +3491,7 @@ function bindNativeUploadLabel(label, input, kind = 'file') {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
         prepareNativeFileInput(input);
-        clickNativeFileInput(input, kind === 'folder' ? '폴더' : '파일');
+        openUploadPicker(kind);
     });
 }
 
@@ -10948,9 +11003,11 @@ function renderPreviewTranslationModeControls(activeSourceMode = state.bottomPre
         button.dataset.previewTranslationMode = mode.id;
         button.textContent = mode.short;
         button.title = mode.title;
+        button.dataset.help = mode.title;
         button.setAttribute('aria-pressed', String(active.id === mode.id));
         button.setAttribute('aria-label', mode.aria);
         if (active.id === mode.id) button.classList.add('active');
+        attachHelpTooltip(button, mode.title);
         el.bottomPreviewTranslationModes.appendChild(button);
     });
     const hint = document.createElement('em');
@@ -11681,6 +11738,7 @@ function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPrev
         el.bottomPreviewMasterPreviewBtn.textContent = '결과 프리뷰';
         el.bottomPreviewMasterPreviewBtn.title = '전체 마스터링 전에 하이라이트 15초 결과를 먼저 들어봅니다.';
     }
+    updateHelpText(el.bottomPreviewMasterPreviewBtn, el.bottomPreviewMasterPreviewBtn.title);
 }
 
 function setBottomPreviewMasterButtonState(track) {
@@ -11705,6 +11763,7 @@ function setBottomPreviewMasterButtonState(track) {
         el.bottomPreviewMasterBtn.textContent = '마스터링 진행';
         el.bottomPreviewMasterBtn.title = '현재 화면에서 선택된 곡만 마스터링합니다.';
     }
+    updateHelpText(el.bottomPreviewMasterBtn, el.bottomPreviewMasterBtn.title);
 }
 
 function setBottomPreviewTabState(mode, masteredAvailable) {
@@ -11713,12 +11772,14 @@ function setBottomPreviewTabState(mode, masteredAvailable) {
     if (el.bottomPreviewOriginalBtn) {
         el.bottomPreviewOriginalBtn.classList.toggle('active', originalActive);
         el.bottomPreviewOriginalBtn.setAttribute('aria-selected', String(originalActive));
+        updateHelpText(el.bottomPreviewOriginalBtn, '불러온 원본 파일을 기준으로 미리듣습니다.');
     }
     if (el.bottomPreviewMasteredBtn) {
         el.bottomPreviewMasteredBtn.classList.toggle('active', masteredActive);
         el.bottomPreviewMasteredBtn.setAttribute('aria-selected', String(masteredActive));
         el.bottomPreviewMasteredBtn.disabled = !masteredAvailable;
         el.bottomPreviewMasteredBtn.title = masteredAvailable ? '마스터링된 곡을 재생합니다.' : '마스터링 실행 후 활성화됩니다.';
+        updateHelpText(el.bottomPreviewMasteredBtn, el.bottomPreviewMasteredBtn.title);
     }
 }
 
@@ -13060,7 +13121,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.59',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.60',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

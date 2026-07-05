@@ -9227,3 +9227,87 @@ input[type="file"].hidden.native-picker-input {
     border-color: rgba(141,245,232,.82) !important;
     background: rgba(127,255,212,.095) !important;
 }
+
+/* v1.3.60 upload picker + help tooltip patch */
+.feature-group-title {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 6px 2px 0;
+    padding: 8px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.035);
+}
+.feature-group-title strong {
+    color: rgba(255,255,255,.94);
+    font-size: .76rem;
+    font-weight: 950;
+    letter-spacing: -.02em;
+}
+.feature-group-title small {
+    color: rgba(224,238,255,.64);
+    font-size: .56rem;
+    font-weight: 800;
+    text-align: right;
+    line-height: 1.35;
+}
+.feature-group-title[data-kind="utility"] {
+    border-color: rgba(255,210,122,.18);
+    background: linear-gradient(135deg, rgba(255,210,122,.07), rgba(172,157,255,.04));
+}
+input[type="file"].native-picker-input,
+input[type="file"].hidden.native-picker-input {
+    display: block !important;
+    position: fixed !important;
+    left: auto !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: .001 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    clip-path: none !important;
+    z-index: 0 !important;
+}
+.native-picker-label {
+    min-width: 0;
+    cursor: pointer;
+}
+.native-picker-label[aria-label] {
+    -webkit-touch-callout: none;
+}
+.feature-tooltip {
+    z-index: 99999 !important;
+    max-width: min(360px, calc(100vw - 24px)) !important;
+    pointer-events: none !important;
+}
+@media (max-width: 640px) {
+    .upload-stage[data-native-upload-stage="true"] {
+        grid-template-columns: 1fr !important;
+        gap: 7px !important;
+    }
+    .upload-stage[data-native-upload-stage="true"] .upload-tile {
+        min-height: 74px !important;
+        padding: 9px 8px !important;
+    }
+    .upload-stage[data-native-upload-stage="true"] .upload-tile strong {
+        font-size: .72rem !important;
+    }
+    .upload-stage[data-native-upload-stage="true"] .upload-tile span {
+        font-size: .56rem !important;
+    }
+    .feature-group-title {
+        display: block;
+        padding: 7px 8px;
+    }
+    .feature-group-title small {
+        display: block;
+        margin-top: 3px;
+        text-align: left;
+        font-size: .50rem;
+    }
+}
