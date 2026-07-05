@@ -67,3 +67,9 @@ See `qa/QA_REPORT_MEGA_STABILIZATION_1.3.53.md`.
 - 모바일/인앱/PWA에서 programmatic input click이 제한되어도 사용자 탭이 직접 파일 선택기에 연결됩니다.
 - `qa/native_picker_reliability_smoke.js`를 추가했습니다.
 
+
+## v1.3.59 Dock Waveform Timeline Model
+- Dock 미니 파형과 팝업 파형의 LIVE 위치/터치 seek 계산을 공유 timeline model로 통합했습니다.
+- LIVE playhead가 파형 바깥 박스나 막대 중심 스냅에 밀리지 않고 실제 plot span 기준으로 움직입니다.
+- 원본/마스터/full timeline과 15초 결과 프리뷰 local timeline을 분리해 popup 행별 위치 계산을 안정화했습니다.
+- `qa/dock_waveform_timeline_model_smoke.js` 추가.

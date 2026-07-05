@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.58 - native file/folder picker reliability
+// FoxBear AI Mastering Studio Pro v1.3.59 - dock waveform timeline model
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.58';
+const APP_VERSION = 'Pro v1.3.59';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -33,9 +33,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1358';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.58-native-picker';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.59-waveform-timeline';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -332,7 +332,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.58';
+    styleLink.href = 'assets/css/studio.css?v=1.3.59';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2465,7 +2465,7 @@ function onWaveformBarsKeySeek(event) {
     event.preventDefault();
     const bars = event.currentTarget;
     const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
-    const current = getDockPlaybackPercent(getSelectedTrack(), mode, mode === 'masterPreview' ? 'preview' : 'full');
+    const current = getDockPlaybackPercent(getSelectedTrack(), mode, bars?.dataset?.waveformScope || getWaveformModeScope(mode, bars?.dataset?.waveformRole || 'keyboard'));
     let pct = Number.isFinite(Number(current)) ? Number(current) : 0;
     if (event.key === 'Home') pct = 0;
     else if (event.key === 'End') pct = 100;
@@ -2476,10 +2476,14 @@ function onWaveformBarsKeySeek(event) {
 
 function attachWaveformSeekHandlers(bars, mode = state.bottomPreviewMode, role = 'waveform') {
     if (!bars) return;
-    bars.dataset.waveformMode = mode;
+    const targetMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
+    bars.dataset.waveformMode = targetMode;
     bars.dataset.waveformRole = role;
-    bars.setAttribute('role', 'button');
+    bars.dataset.waveformScope = getWaveformModeScope(targetMode, role);
+    bars.setAttribute('role', 'slider');
     bars.setAttribute('tabindex', '0');
+    bars.setAttribute('aria-valuemin', '0');
+    bars.setAttribute('aria-valuemax', '100');
     bars.setAttribute('aria-label', '파형을 눌러 해당 구간부터 재생');
     bars.title = '파형을 누르면 해당 구간부터 재생됩니다.';
     bars.addEventListener('pointerdown', onWaveformBarsPointerSeek);
@@ -2594,7 +2598,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.58-native-picker');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.59-waveform-timeline');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -11278,6 +11282,7 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     const bars = document.createElement('span');
     bars.className = 'bottom-waveform-bars';
     attachWaveformSeekHandlers(bars, mode, 'dock');
+    bars.dataset.waveformBinCount = String(hasValues ? payload.values.length : DOCK_WAVEFORM_BINS);
     const values = hasValues ? payload.values : new Array(DOCK_WAVEFORM_BINS).fill(0.06);
     values.forEach((value, index) => {
         const bar = document.createElement('i');
@@ -11292,6 +11297,13 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     syncDockWaveformPlayhead();
 }
 
+function getWaveformModeScope(mode = state.bottomPreviewMode, role = 'dock') {
+    const target = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
+    if (target === 'masterPreview') return 'preview';
+    if (role === 'dock' && target === 'masterPreview') return 'preview';
+    return 'full';
+}
+
 function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomPreviewMode, scope = 'dock') {
     const audio = getBottomPreviewAudio();
     if (!track || !audio) return null;
@@ -11299,10 +11311,13 @@ function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomP
     const audioDuration = Number.isFinite(Number(audio.duration)) && Number(audio.duration) > 0 ? Number(audio.duration) : 0;
     const fullDuration = Number(track.analysis?.duration || track.masteredDurationSec || audioDuration || 0);
     const previewDuration = Number(track.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC || audioDuration || 0);
-    const useFullScope = scope === 'full' || (scope === 'dock' && mode !== 'masterPreview');
-    const basis = useFullScope ? fullDuration : (audioDuration || previewDuration);
+    const normalizedScope = scope === 'preview' || (scope === 'dock' && mode === 'masterPreview') ? 'preview' : 'full';
+    const basis = normalizedScope === 'preview' ? (audioDuration || previewDuration) : fullDuration;
     if (!Number.isFinite(basis) || basis <= 0) return null;
-    const position = useFullScope ? localToAbsolutePreviewTime(track, mode, local) : local;
+    const playbackAbsoluteSec = localToAbsolutePreviewTime(track, state.bottomPreviewMode, local);
+    const position = normalizedScope === 'preview'
+        ? (state.bottomPreviewMode === 'masterPreview' ? local : absoluteToLocalPreviewTime(track, 'masterPreview', playbackAbsoluteSec, basis))
+        : playbackAbsoluteSec;
     return clamp(position / basis * 100, 0, 100);
 }
 
@@ -11312,16 +11327,27 @@ function getWaveformBarElements(element) {
     return Array.from(element.querySelectorAll('i'));
 }
 
+function getWaveformTimelineModel(element) {
+    const bars = getWaveformBarElements(element);
+    const rootRect = element?.getBoundingClientRect?.();
+    if (!rootRect || !rootRect.width) return null;
+    if (!bars.length) return { rootRect, bars, plotLeft: rootRect.left, plotRight: rootRect.right, plotWidth: rootRect.width };
+    const firstRect = bars[0]?.getBoundingClientRect?.();
+    const lastRect = bars[bars.length - 1]?.getBoundingClientRect?.();
+    const left = Number.isFinite(firstRect?.left) ? firstRect.left : rootRect.left;
+    const right = Number.isFinite(lastRect?.right) ? lastRect.right : rootRect.right;
+    const safeLeft = Math.max(rootRect.left, Math.min(left, right));
+    const safeRight = Math.min(rootRect.right, Math.max(left, right));
+    const width = Math.max(1, safeRight - safeLeft);
+    return { rootRect, bars, plotLeft: safeLeft, plotRight: safeRight, plotWidth: width };
+}
+
 function mapAudioPercentToWaveformVisualPercent(element, percent) {
     const pct = clamp(Number(percent), 0, 100);
-    const bars = getWaveformBarElements(element);
-    if (!bars.length || typeof element.getBoundingClientRect !== 'function') return pct;
-    const index = bars.length <= 1 ? 0 : Math.round(pct / 100 * (bars.length - 1));
-    const bar = bars[clamp(index, 0, bars.length - 1)];
-    const rootRect = element.getBoundingClientRect();
-    const barRect = bar?.getBoundingClientRect?.();
-    if (!rootRect.width || !barRect?.width) return pct;
-    return clamp(((barRect.left + barRect.width / 2) - rootRect.left) / rootRect.width * 100, 0, 100);
+    const model = getWaveformTimelineModel(element);
+    if (!model) return pct;
+    const x = model.plotLeft + model.plotWidth * (pct / 100);
+    return clamp((x - model.rootRect.left) / Math.max(1, model.rootRect.width) * 100, 0, 100);
 }
 
 function mapWaveformPointerToAudioPercent(event, element) {
@@ -11329,22 +11355,22 @@ function mapWaveformPointerToAudioPercent(event, element) {
     if (!target || typeof target.getBoundingClientRect !== 'function') return NaN;
     const x = Number(event?.clientX ?? event?.touches?.[0]?.clientX ?? event?.changedTouches?.[0]?.clientX);
     if (!Number.isFinite(x)) return NaN;
-    const bars = getWaveformBarElements(target);
-    if (bars.length) {
-        let bestIndex = 0;
-        let bestDistance = Infinity;
-        bars.forEach((bar, index) => {
-            const rect = bar.getBoundingClientRect?.();
-            if (!rect || !Number.isFinite(rect.left)) return;
-            const center = rect.left + rect.width / 2;
-            const distance = Math.abs(x - center);
-            if (distance < bestDistance) { bestDistance = distance; bestIndex = index; }
-        });
-        return bars.length > 1 ? clamp(bestIndex / (bars.length - 1) * 100, 0, 100) : 0;
-    }
-    const rect = target.getBoundingClientRect();
-    if (!rect.width) return NaN;
-    return clamp((x - rect.left) / rect.width * 100, 0, 100);
+    const model = getWaveformTimelineModel(target);
+    if (!model) return NaN;
+    return clamp((x - model.plotLeft) / Math.max(1, model.plotWidth) * 100, 0, 100);
+}
+
+function getWaveformElementPlaybackPercent(element, track = getSelectedTrack()) {
+    const mode = element?.dataset?.waveformMode || state.bottomPreviewMode;
+    const scope = element?.dataset?.waveformScope || getWaveformModeScope(mode, element?.dataset?.waveformRole || 'dock');
+    return getDockPlaybackPercent(track, mode, scope);
+}
+
+function isWaveformPlaybackModeActive(mode = state.bottomPreviewMode) {
+    const current = state.bottomPreviewMode || 'original';
+    if (mode === current) return true;
+    if ((mode === 'mastered' || mode === 'original') && (current === 'mastered' || current === 'original')) return true;
+    return false;
 }
 
 function setPlayheadOnElement(element, percent, playing = false) {
@@ -11352,13 +11378,18 @@ function setPlayheadOnElement(element, percent, playing = false) {
     if (!Number.isFinite(Number(percent))) {
         element.classList.remove('has-live-playhead', 'is-playing');
         element.style.removeProperty('--waveform-playhead-pct');
+        element.style.removeProperty('--waveform-progress-pct');
+        element.removeAttribute('aria-valuenow');
         delete element.dataset.waveformPlaybackPercent;
         return;
     }
     const pct = clamp(Number(percent), 0, 100);
     const visualPct = mapAudioPercentToWaveformVisualPercent(element, pct);
-    element.dataset.waveformPlaybackPercent = String(Math.round(pct * 10) / 10);
+    const displayPct = Math.round(pct * 10) / 10;
+    element.dataset.waveformPlaybackPercent = String(displayPct);
     element.style.setProperty('--waveform-playhead-pct', `${visualPct}%`);
+    element.style.setProperty('--waveform-progress-pct', `${visualPct}%`);
+    element.setAttribute('aria-valuenow', String(Math.round(displayPct)));
     element.classList.add('has-live-playhead');
     element.classList.toggle('is-playing', Boolean(playing));
 }
@@ -11367,17 +11398,20 @@ function syncDockWaveformPlayhead(audioOverride = null) {
     const track = getSelectedTrack();
     const audio = audioOverride || getBottomPreviewAudio();
     const playing = Boolean(audio && !audio.paused && !audio.ended);
-    const dockPercent = getDockPlaybackPercent(track, state.bottomPreviewMode, 'dock');
     const dockBars = el.bottomPreviewWaveformBtn?.querySelector('.bottom-waveform-bars');
-    setPlayheadOnElement(dockBars || el.bottomPreviewWaveformBtn, dockPercent, playing);
+    setPlayheadOnElement(dockBars || el.bottomPreviewWaveformBtn, getWaveformElementPlaybackPercent(dockBars || el.bottomPreviewWaveformBtn, track), playing);
 
     const dialog = el.previewDialog;
     if (!dialog || !dialog.classList.contains('waveform-compare-mode')) return;
-    const fullScope = Boolean(track?.masteredUrl) || state.bottomPreviewMode !== 'masterPreview';
-    const popupPercent = getDockPlaybackPercent(track, state.bottomPreviewMode, fullScope ? 'full' : 'preview');
-    dialog.querySelectorAll('.waveform-compare-bars').forEach(bars => setPlayheadOnElement(bars, popupPercent, playing));
+    let primaryPercent = null;
+    dialog.querySelectorAll('.waveform-compare-bars').forEach(bars => {
+        const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
+        const pct = getWaveformElementPlaybackPercent(bars, track);
+        if (primaryPercent === null && mode === state.bottomPreviewMode) primaryPercent = pct;
+        setPlayheadOnElement(bars, pct, playing && isWaveformPlaybackModeActive(mode));
+    });
     const card = dialog.querySelector('.waveform-compare-card');
-    setPlayheadOnElement(card, popupPercent, playing);
+    if (card) setPlayheadOnElement(card, primaryPercent ?? getDockPlaybackPercent(track, state.bottomPreviewMode, getWaveformModeScope(state.bottomPreviewMode, 'popup')), playing);
 }
 
 function openWaveformCompareDialog() {
@@ -11436,6 +11470,7 @@ function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '',
     const bars = document.createElement('div');
     bars.className = 'waveform-compare-bars';
     attachWaveformSeekHandlers(bars, sourceMode || tone || state.bottomPreviewMode, 'popup');
+    bars.dataset.waveformBinCount = String((values && values.length) || 96);
     const normalized = normalizeWaveformValues(values, 96);
     if (!normalized.length) {
         bars.classList.add('empty');
@@ -13025,7 +13060,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.58',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.59',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.3.58
+# FoxBear AI Mastering Studio Pro v1.3.59
 
 ## v1.3.58 Native File/Folder Picker Reliability
 - 파일열기/폴더열기 타일을 `div role=button + JS click()` 방식에서 `label for=input` 네이티브 연결 방식으로 변경했습니다.
@@ -43,3 +43,10 @@ npm run check
 - 지원 브라우저에서는 시스템 파일/폴더 선택기를 우선 사용합니다.
 - 폴더 선택 미지원 환경에서는 여러 파일 선택으로 대체합니다.
 - 서비스워커가 이전 캐시를 계속 보여주는 문제를 줄이도록 navigation을 network-first로 변경했습니다.
+
+## v1.3.59 Dock Waveform Timeline Model
+- Dock 미니 파형과 팝업 파형의 LIVE 위치/터치 seek 계산을 하나의 timeline model로 통합했습니다.
+- 플레이헤드는 막대 중심 스냅이 아니라 실제 그려진 파형 plot span 기준으로 연속 이동합니다.
+- 파형 터치 위치와 실제 재생 시작 위치가 같은 좌표계를 쓰도록 개선했습니다.
+- 팝업의 원본/마스터/15초 프리뷰 행은 각각 full/preview scope를 분리해 표시합니다.
+- 접근성을 위해 파형 seek 영역을 slider role로 정리하고 `aria-valuenow`를 동기화합니다.

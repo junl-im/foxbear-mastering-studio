@@ -12,8 +12,8 @@ const html = fs.readFileSync('index.html', 'utf8');
 const dockCss = fs.readFileSync('assets/css/dock.css', 'utf8');
 const manifest = fs.readFileSync('manifest.webmanifest', 'utf8');
 
-must(app.includes("const APP_VERSION = 'Pro v1.3.58'"), 'app version should be v1.3.58');
-must(html.includes('data-build="1.3.58"'), 'index build should be v1.3.58');
+must(app.includes("const APP_VERSION = 'Pro v1.3.59'"), 'app version should be v1.3.59');
+must(html.includes('data-build="1.3.59"'), 'index build should be v1.3.59');
 must(app.includes('function mapAudioPercentToWaveformVisualPercent'), 'visual playhead mapping helper missing');
 must(app.includes('function mapWaveformPointerToAudioPercent'), 'pointer-to-bar mapping helper missing');
 must(app.includes('bars.addEventListener(\'pointerdown\', onWaveformBarsPointerSeek)'), 'touch pointer seek handler missing');

@@ -321,3 +321,39 @@ body.bottom-preview-active .processing-hud {
   content: ' 막대 중심 기준으로 이동해 Dock/팝업 위치가 같은 구간에 맞춰집니다.';
   color: rgba(234,246,255,.72);
 }
+
+/* v1.3.59 Dock waveform timeline model */
+.bottom-waveform-bars,
+.waveform-compare-bars {
+  --waveform-progress-pct: 0%;
+  isolation: isolate;
+  background-image: linear-gradient(90deg, rgba(141,245,232,.13) 0 var(--waveform-progress-pct), rgba(255,255,255,.018) var(--waveform-progress-pct) 100%);
+  background-clip: padding-box;
+}
+.bottom-waveform-bars[role="slider"],
+.waveform-compare-bars[role="slider"] {
+  cursor: ew-resize;
+}
+.bottom-waveform-bars i,
+.waveform-compare-bars i {
+  position: relative;
+  z-index: 1;
+}
+.bottom-waveform-bars.has-live-playhead::after,
+.bottom-waveform-bars.has-live-playhead::before,
+.waveform-compare-bars.has-live-playhead::after,
+.waveform-compare-bars.has-live-playhead::before {
+  z-index: 6;
+}
+.bottom-waveform-bars.is-playing,
+.waveform-compare-bars.is-playing {
+  background-image: linear-gradient(90deg, rgba(141,245,232,.24) 0 var(--waveform-progress-pct), rgba(255,255,255,.024) var(--waveform-progress-pct) 100%);
+}
+.waveform-compare-row .waveform-compare-bars[data-waveform-mode="masterPreview"]::selection,
+.waveform-compare-row .waveform-compare-bars[data-waveform-mode="original"]::selection,
+.waveform-compare-row .waveform-compare-bars[data-waveform-mode="mastered"]::selection {
+  background: transparent;
+}
+.waveform-compare-hint::after {
+  content: ' v1.3.59부터 Dock/팝업은 같은 timeline model로 이동점과 LIVE 위치를 계산합니다.';
+}
