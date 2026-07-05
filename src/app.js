@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.55 - mobile native UX pack
+// FoxBear AI Mastering Studio Pro v1.3.56 - file folder open hotfix and dock waveform sync
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.55';
+const APP_VERSION = 'Pro v1.3.56';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -33,9 +33,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1355';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1356';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.55-mobile-native-ux';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.56-file-folder-open';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -328,7 +328,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.55';
+    styleLink.href = 'assets/css/studio.css?v=1.3.56';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2362,16 +2362,122 @@ function addWaveformPeakJumpChips(track, wrap) {
 }
 
 function jumpDockToPercent(track, percent) {
-    const audio = getBottomPreviewAudio();
-    const pct = clamp(Number(percent || 0), 0, 100) / 100;
-    if (!audio || !track) return;
-    const duration = Number(audio.duration || track.analysis?.duration || track.masteredDurationSec || 0);
-    if (Number.isFinite(duration) && duration > 0) {
-        audio.currentTime = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
-        playBottomPreviewAudio();
-        syncDockWaveformPlayhead(audio);
-        foxBearHaptic('switch');
+    seekDockToWaveformPercent(percent, { track, mode: state.bottomPreviewMode, play: true, source: 'chip' });
+}
+
+function getWaveformSeekDuration(track, mode = state.bottomPreviewMode, audio = getBottomPreviewAudio()) {
+    const audioDuration = Number(audio?.duration || 0);
+    if (mode === 'masterPreview') {
+        const previewDuration = Number(track?.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC || audioDuration || 0);
+        return Number.isFinite(previewDuration) && previewDuration > 0 ? previewDuration : audioDuration;
     }
+    const trackDuration = mode === 'mastered'
+        ? Number(track?.masteredDurationSec || track?.analysis?.duration || audioDuration || 0)
+        : Number(track?.analysis?.duration || audioDuration || 0);
+    return Number.isFinite(trackDuration) && trackDuration > 0 ? trackDuration : audioDuration;
+}
+
+function resolveWaveformSeekMode(track, requestedMode = state.bottomPreviewMode) {
+    const target = requestedMode === 'mastered' ? 'mastered' : (requestedMode === 'masterPreview' ? 'masterPreview' : 'original');
+    if (target === 'mastered' && !track?.masteredUrl) return track?.masterPreviewUrl ? 'masterPreview' : 'original';
+    if (target === 'masterPreview' && !track?.masterPreviewUrl) return track?.masteredUrl ? 'mastered' : 'original';
+    return target;
+}
+
+function seekDockToWaveformPercent(percent, options = {}) {
+    const track = options.track || getSelectedTrack();
+    if (!track) return false;
+    const targetMode = resolveWaveformSeekMode(track, options.mode || state.bottomPreviewMode);
+    const pct = clamp(Number(percent || 0), 0, 100) / 100;
+    const audio = getBottomPreviewAudio();
+    const currentMode = state.bottomPreviewMode || 'original';
+    const duration = getWaveformSeekDuration(track, targetMode, currentMode === targetMode ? audio : null);
+    if (!Number.isFinite(duration) || duration <= 0) return false;
+    const localSec = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
+    const absoluteSec = targetMode === 'masterPreview' ? getMasterPreviewStartSec(track) + localSec : localSec;
+    const playing = options.play !== false;
+    state.bottomPreviewTransport = {
+        trackId: track.id,
+        mode: targetMode,
+        localSec,
+        absoluteSec,
+        playing,
+        translationMode: state.previewTranslationMode || 'studio',
+        capturedAt: Date.now()
+    };
+    state.bottomPreviewMode = targetMode;
+    state.bottomPreviewTrackId = track.id;
+
+    const applySeek = () => {
+        const nextAudio = getBottomPreviewAudio();
+        if (!nextAudio) return;
+        applyBottomPreviewStart(nextAudio, localSec);
+        if (playing) playBottomPreviewAudio();
+        syncDockWaveformPlayhead(nextAudio);
+    };
+
+    if (currentMode !== targetMode || !audio) {
+        renderBottomPreviewDock({ autoPlay: playing, keepPlaying: playing });
+        requestAnimationFrame(applySeek);
+    } else {
+        applySeek();
+    }
+    foxBearHaptic('switch');
+    const label = targetMode === 'mastered' ? '마스터링' : (targetMode === 'masterPreview' ? '결과 프리뷰' : '원본');
+    showToast(`${label} ${Math.round(pct * 100)}% 구간으로 이동했습니다.`);
+    return true;
+}
+
+function getWaveformPointerPercent(event, element) {
+    const target = element || event?.currentTarget || event?.target;
+    if (!target || typeof target.getBoundingClientRect !== 'function') return NaN;
+    const rect = target.getBoundingClientRect();
+    if (!rect.width) return NaN;
+    const x = Number(event?.clientX ?? event?.touches?.[0]?.clientX ?? event?.changedTouches?.[0]?.clientX);
+    if (!Number.isFinite(x)) return NaN;
+    return clamp((x - rect.left) / rect.width * 100, 0, 100);
+}
+
+function onWaveformBarsSeek(event) {
+    if (!event) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const bars = event.currentTarget;
+    const pct = getWaveformPointerPercent(event, bars);
+    if (!Number.isFinite(pct)) return;
+    const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
+    seekDockToWaveformPercent(pct, { mode, play: true, source: bars?.dataset?.waveformRole || 'waveform' });
+}
+
+function onWaveformBarsKeySeek(event) {
+    if (!event || !['Enter', ' ', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const bars = event.currentTarget;
+    const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
+    const current = getDockPlaybackPercent(getSelectedTrack(), mode, mode === 'masterPreview' ? 'preview' : 'full');
+    let pct = Number.isFinite(Number(current)) ? Number(current) : 0;
+    if (event.key === 'Home') pct = 0;
+    else if (event.key === 'End') pct = 100;
+    else if (event.key === 'ArrowLeft') pct = Math.max(0, pct - 5);
+    else if (event.key === 'ArrowRight') pct = Math.min(100, pct + 5);
+    seekDockToWaveformPercent(pct, { mode, play: event.key === 'Enter' || event.key === ' ', source: 'keyboard' });
+}
+
+function attachWaveformSeekHandlers(bars, mode = state.bottomPreviewMode, role = 'waveform') {
+    if (!bars) return;
+    bars.dataset.waveformMode = mode;
+    bars.dataset.waveformRole = role;
+    bars.setAttribute('role', 'button');
+    bars.setAttribute('tabindex', '0');
+    bars.setAttribute('aria-label', '파형을 눌러 해당 구간부터 재생');
+    bars.title = '파형을 누르면 해당 구간부터 재생됩니다.';
+    bars.addEventListener('click', onWaveformBarsSeek);
+    bars.addEventListener('keydown', onWaveformBarsKeySeek);
+}
+
+function onBottomWaveformButtonClick(event) {
+    if (event?.target?.closest?.('.bottom-waveform-bars')) return;
+    openWaveformCompareDialog();
 }
 
 async function shareSelectedMasterFromQuickPanel(track = getSelectedTrack()) {
@@ -2476,7 +2582,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.55-mobile-native-ux');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.56-dock-waveform-sync');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2591,7 +2697,7 @@ function bindEvents() {
             if (event.target === el.previewDialog) closePreviewDialog();
         });
     }
-    if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', openWaveformCompareDialog);
+    if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', onBottomWaveformButtonClick);
     if (el.bottomPreviewTranslationModes) el.bottomPreviewTranslationModes.addEventListener('click', handlePreviewTranslationModeClick);
     if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', () => renderMasterPreviewForSelected('dock'));
     if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', masterBottomPreviewTrack);
@@ -2599,7 +2705,7 @@ function bindEvents() {
     if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', () => selectBottomPreviewMode('mastered', true));
     bindAdminStatsEvents();
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
-    if (el.referenceLoadBtn) el.referenceLoadBtn.addEventListener('click', () => el.referenceInput?.click());
+    if (el.referenceLoadBtn) el.referenceLoadBtn.addEventListener('click', () => clickNativeFileInput(el.referenceInput, '레퍼런스 파일'));
     if (el.referenceInput) el.referenceInput.addEventListener('change', e => handleReferenceFiles(e.target.files));
     if (el.referenceApplyBtn) el.referenceApplyBtn.addEventListener('click', applyReferenceToSelected);
     if (el.referenceClearBtn) el.referenceClearBtn.addEventListener('click', clearReferenceProfile);
@@ -2617,15 +2723,15 @@ function bindEvents() {
         if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog();
         if (event.key === 'Escape' && el.adminStatsDialog?.classList.contains('show')) closeAdminStatsDialog();
     });
-    el.fileDrop.addEventListener('click', () => el.fileInput.click());
-    el.folderDrop.addEventListener('click', () => el.folderInput.click());
-    el.fileDrop.addEventListener('keydown', e => activateByKeyboard(e, () => el.fileInput.click()));
-    el.folderDrop.addEventListener('keydown', e => activateByKeyboard(e, () => el.folderInput.click()));
-    setupDropZone(el.fileDrop);
-    setupDropZone(el.folderDrop);
+    if (el.fileDrop) el.fileDrop.addEventListener('click', () => openUploadPicker('file'));
+    if (el.folderDrop) el.folderDrop.addEventListener('click', () => openUploadPicker('folder'));
+    if (el.fileDrop) el.fileDrop.addEventListener('keydown', e => activateByKeyboard(e, () => openUploadPicker('file')));
+    if (el.folderDrop) el.folderDrop.addEventListener('keydown', e => activateByKeyboard(e, () => openUploadPicker('folder')));
+    if (el.fileDrop) setupDropZone(el.fileDrop);
+    if (el.folderDrop) setupDropZone(el.folderDrop);
 
-    el.fileInput.addEventListener('change', e => handleFiles(e.target.files));
-    el.folderInput.addEventListener('change', e => handleFiles(e.target.files));
+    if (el.fileInput) el.fileInput.addEventListener('change', e => handleFiles(e.target.files));
+    if (el.folderInput) el.folderInput.addEventListener('change', e => handleFiles(e.target.files));
 
     el.genreSelect.addEventListener('change', () => {
         if (state.programmatic) return;
@@ -3114,6 +3220,158 @@ function activateByKeyboard(event, callback) {
         event.preventDefault();
         callback();
     }
+}
+
+const FOXBEAR_UPLOAD_ACCEPT = 'audio/*,video/mp4,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm,.mp4,.m4v,.mov';
+const FOXBEAR_FILE_PICKER_TYPES = [{
+    description: 'FoxBear 지원 오디오 파일',
+    accept: {
+        'audio/*': ['.wav', '.mp3', '.flac', '.ogg', '.m4a', '.aac', '.aif', '.aiff', '.webm'],
+        'video/mp4': ['.mp4', '.m4v', '.mov']
+    }
+}];
+
+function supportsSystemFilePicker() {
+    return typeof window.showOpenFilePicker === 'function';
+}
+
+function supportsSystemDirectoryPicker() {
+    return typeof window.showDirectoryPicker === 'function';
+}
+
+function supportsDirectoryInput(input = el.folderInput) {
+    return Boolean(input && ('webkitdirectory' in input || 'directory' in input));
+}
+
+function prepareNativeFileInput(input) {
+    if (!input) return;
+    try { input.value = ''; } catch (error) {}
+    input.dataset.lastPickerRequestAt = String(Date.now());
+}
+
+function clickNativeFileInput(input, label = '파일') {
+    if (!input) {
+        showToast(`${label} 선택기를 찾지 못했습니다. 페이지를 새로고침 후 다시 시도하세요.`);
+        return false;
+    }
+    prepareNativeFileInput(input);
+    try {
+        input.click();
+        return true;
+    } catch (error) {
+        console.warn('native file input click failed:', error);
+        showToast(`${label} 선택기를 열지 못했습니다. 브라우저 권한 또는 인앱 브라우저 제한을 확인하세요.`);
+        return false;
+    }
+}
+
+async function openSystemFilePicker() {
+    try {
+        const handles = await window.showOpenFilePicker({
+            multiple: true,
+            excludeAcceptAllOption: false,
+            types: FOXBEAR_FILE_PICKER_TYPES
+        });
+        const files = await Promise.all((handles || []).map(handle => handle.getFile()));
+        if (files.length) await handleFiles(files);
+        else showToast('선택된 파일이 없습니다.');
+        return true;
+    } catch (error) {
+        if (error?.name === 'AbortError') return true;
+        console.warn('showOpenFilePicker failed:', error);
+        showToast('시스템 파일 선택이 막혀 기본 파일 선택으로 전환합니다.');
+        return false;
+    }
+}
+
+function isLikelyAudioFileHandle(name = '', kind = '') {
+    const lower = String(name || '').toLowerCase();
+    if (kind && kind !== 'file') return false;
+    return AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext)) || VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
+}
+
+function attachRelativePathToFile(file, relativePath) {
+    if (!file || !relativePath) return file;
+    try {
+        Object.defineProperty(file, 'webkitRelativePath', {
+            value: String(relativePath),
+            configurable: true
+        });
+    } catch (error) {
+        // 일부 브라우저는 readonly 속성 재정의를 막습니다. 파일 자체는 그대로 처리합니다.
+    }
+    return file;
+}
+
+async function collectFilesFromDirectoryHandle(directoryHandle, prefix = '', out = []) {
+    if (!directoryHandle || typeof directoryHandle.entries !== 'function') return out;
+    for await (const [name, handle] of directoryHandle.entries()) {
+        const relativePath = prefix ? `${prefix}/${name}` : name;
+        if (handle.kind === 'directory') {
+            await collectFilesFromDirectoryHandle(handle, relativePath, out);
+            continue;
+        }
+        if (!isLikelyAudioFileHandle(name, handle.kind)) continue;
+        try {
+            const file = await handle.getFile();
+            out.push(attachRelativePathToFile(file, relativePath));
+            if (out.length >= MAX_FILES) break;
+        } catch (error) {
+            console.warn('directory file read skipped:', relativePath, error);
+        }
+    }
+    return out;
+}
+
+async function openSystemDirectoryPicker() {
+    try {
+        const directory = await window.showDirectoryPicker({ mode: 'read' });
+        const files = await collectFilesFromDirectoryHandle(directory);
+        if (!files.length) {
+            showToast('폴더 안에서 지원 오디오 파일을 찾지 못했습니다.');
+            return true;
+        }
+        await handleFiles(files);
+        showToast(`${Math.min(files.length, MAX_FILES)}개 파일을 폴더에서 불러왔습니다.`);
+        return true;
+    } catch (error) {
+        if (error?.name === 'AbortError') return true;
+        console.warn('showDirectoryPicker failed:', error);
+        showToast('시스템 폴더 선택이 막혀 기본 폴더/파일 선택으로 전환합니다.');
+        return false;
+    }
+}
+
+function openUploadPicker(kind = 'file') {
+    foxBearHaptic('tap');
+    if (kind === 'folder') {
+        if (supportsSystemDirectoryPicker()) {
+            openSystemDirectoryPicker().then(opened => {
+                if (!opened) {
+                    if (supportsDirectoryInput(el.folderInput)) clickNativeFileInput(el.folderInput, '폴더');
+                    else {
+                        showToast('이 브라우저는 폴더 선택을 지원하지 않아 여러 파일 선택으로 대체합니다.');
+                        clickNativeFileInput(el.fileInput, '파일');
+                    }
+                }
+            });
+            return;
+        }
+        if (supportsDirectoryInput(el.folderInput)) {
+            clickNativeFileInput(el.folderInput, '폴더');
+            return;
+        }
+        showToast('이 브라우저는 폴더 선택을 지원하지 않아 여러 파일 선택으로 대체합니다.');
+        clickNativeFileInput(el.fileInput, '파일');
+        return;
+    }
+    if (supportsSystemFilePicker()) {
+        openSystemFilePicker().then(opened => {
+            if (!opened) clickNativeFileInput(el.fileInput, '파일');
+        });
+        return;
+    }
+    clickNativeFileInput(el.fileInput, '파일');
 }
 
 function setupDropZone(zone) {
@@ -9140,8 +9398,8 @@ function clearQueue() {
 }
 
 function clearFileInputs() {
-    el.fileInput.value = '';
-    el.folderInput.value = '';
+    if (el.fileInput) el.fileInput.value = '';
+    if (el.folderInput) el.folderInput.value = '';
     if (el.referenceInput) el.referenceInput.value = '';
 }
 
@@ -10951,6 +11209,7 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
 
     const bars = document.createElement('span');
     bars.className = 'bottom-waveform-bars';
+    attachWaveformSeekHandlers(bars, mode, 'dock');
     const values = hasValues ? payload.values : new Array(DOCK_WAVEFORM_BINS).fill(0.06);
     values.forEach((value, index) => {
         const bar = document.createElement('i');
@@ -10995,7 +11254,8 @@ function syncDockWaveformPlayhead(audioOverride = null) {
     const audio = audioOverride || getBottomPreviewAudio();
     const playing = Boolean(audio && !audio.paused && !audio.ended);
     const dockPercent = getDockPlaybackPercent(track, state.bottomPreviewMode, 'dock');
-    setPlayheadOnElement(el.bottomPreviewWaveformBtn, dockPercent, playing);
+    const dockBars = el.bottomPreviewWaveformBtn?.querySelector('.bottom-waveform-bars');
+    setPlayheadOnElement(dockBars || el.bottomPreviewWaveformBtn, dockPercent, playing);
 
     const dialog = el.previewDialog;
     if (!dialog || !dialog.classList.contains('waveform-compare-mode')) return;
@@ -11038,9 +11298,9 @@ function renderWaveformCompareDialog(track, target) {
 
     const original = getTrackOriginalWaveformValues(track);
     const mastered = getTrackMasterWaveformValues(track);
-    wrap.appendChild(makeWaveformCompareRow('원본', original, sampleMarkersFromValues(original), 'original'));
+    wrap.appendChild(makeWaveformCompareRow('원본', original, sampleMarkersFromValues(original), 'original', 'original'));
     if (mastered.length) {
-        wrap.appendChild(makeWaveformCompareRow(track.masteredUrl ? '마스터링' : '결과 프리뷰', mastered, getTrackMasterWaveformMarkers(track, mastered), 'mastered'));
+        wrap.appendChild(makeWaveformCompareRow(track.masteredUrl ? '마스터링' : '결과 프리뷰', mastered, getTrackMasterWaveformMarkers(track, mastered), 'mastered', track.masteredUrl ? 'mastered' : 'masterPreview'));
     } else {
         const empty = document.createElement('div');
         empty.className = 'waveform-compare-empty';
@@ -11049,18 +11309,19 @@ function renderWaveformCompareDialog(track, target) {
     }
     const hint = document.createElement('p');
     hint.className = 'waveform-compare-hint';
-    hint.textContent = '높은 막대는 해당 구간 피크가 큰 곳입니다. 노란/붉은 막대는 피크가 높은 구간이라 폰 스피커에서 울림이나 거친 느낌을 확인해보세요.';
+    hint.textContent = '높은 막대는 해당 구간 피크가 큰 곳입니다. 파형 막대를 누르면 Dock 플레이어가 같은 지점으로 이동해 바로 재생됩니다.';
     wrap.appendChild(hint);
     target.appendChild(wrap);
 }
 
-function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '') {
+function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '', sourceMode = '') {
     const row = document.createElement('div');
     row.className = `waveform-compare-row ${tone ? 'waveform-compare-' + tone : ''}`;
     const label = document.createElement('span');
     label.textContent = labelText;
     const bars = document.createElement('div');
     bars.className = 'waveform-compare-bars';
+    attachWaveformSeekHandlers(bars, sourceMode || tone || state.bottomPreviewMode, 'popup');
     const normalized = normalizeWaveformValues(values, 96);
     if (!normalized.length) {
         bars.classList.add('empty');
@@ -12646,7 +12907,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.55',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.56',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

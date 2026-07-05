@@ -40,3 +40,17 @@ See `qa/QA_REPORT_MEGA_STABILIZATION_1.3.53.md`.
 - Page Visibility/pageshow 복구로 모바일 앱 전환 후 Dock 위치와 재생 상태를 재동기화합니다.
 - 파형 팝업에 LIVE/최대 피크/후렴 추정/뒤쪽 피크 점프 칩을 추가했습니다.
 - `manifest.webmanifest`, `sw.js`, `assets/css/mobile-native.css`, `qa/mobile_native_ux_smoke.js`를 추가했습니다.
+
+## v1.3.56 File/Folder Open Hotfix
+- 파일열기/폴더열기/레퍼런스 파일 버튼을 robust picker helper로 통합.
+- System File Picker / Directory Picker 지원 시 우선 사용하고, 미지원 시 기본 input fallback.
+- 모바일에서 display:none file input이 열리지 않는 문제를 줄이기 위해 off-screen hidden 방식 적용.
+- 서비스워커 navigation cache를 network-first로 전환해 이전 캐시 잔존 문제 완화.
+- `qa/file_folder_open_hotfix_smoke.js` 추가.
+
+## v1.3.56 Dock Waveform Touch Seek
+- Dock 파형/팝업 파형의 클릭 좌표를 같은 percent 계산으로 통일.
+- 파형 터치/클릭 시 해당 구간부터 Dock 플레이어가 재생되도록 연결.
+- 결과 프리뷰는 로컬 15초 구간과 원본 절대 시간을 분리해 seek 위치가 밀리지 않도록 처리.
+- LIVE playhead CSS/JS 연결 검증 추가.
+- `qa/dock_waveform_touch_seek_smoke.js` 추가.

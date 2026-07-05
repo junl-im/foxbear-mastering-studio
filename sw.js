@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.55 service worker
+// FoxBear AI Mastering Studio Pro v1.3.56 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.55-mobile-native-ux';
+const CACHE_NAME = 'foxbear-shell-v1.3.56-file-folder-open';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -37,10 +37,41 @@ self.addEventListener('fetch', event => {
     event.respondWith(handleShareTarget(request));
     return;
   }
-  if (request.method === 'GET' && url.origin === self.location.origin) {
-    event.respondWith(caches.match(request).then(cached => cached || fetch(request)));
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
+    event.respondWith(networkFirst(request));
+    return;
   }
+  event.respondWith(staleWhileRevalidate(request));
 });
+
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const fresh = await fetch(request);
+    if (fresh && fresh.ok) cache.put(request, fresh.clone()).catch(() => undefined);
+    return fresh;
+  } catch (error) {
+    const cached = await cache.match(request);
+    return cached || cache.match('./index.html') || Response.error();
+  }
+}
+
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+  const freshPromise = fetch(request).then(response => {
+    if (response && response.ok) cache.put(request, response.clone()).catch(() => undefined);
+    return response;
+  }).catch(() => null);
+  if (cached) {
+    freshPromise.catch(() => undefined);
+    return cached;
+  }
+  const fresh = await freshPromise;
+  return fresh || Response.error();
+}
 
 function openShareDb() {
   return new Promise((resolve, reject) => {

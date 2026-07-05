@@ -9166,3 +9166,22 @@ body.bottom-preview-active .download-options-panel-v3 {
 }
 
 /* v1.3.53 Mega Stabilization Pack: studio.css keeps base styles; dock.css/export.css own late overrides. */
+
+/* v1.3.56 file/folder open hotfix: keep native file inputs programmatically clickable on mobile */
+input[type="file"].hidden {
+    display: block !important;
+    position: fixed !important;
+    left: -10000px !important;
+    top: auto !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    clip-path: inset(50%) !important;
+}
+.upload-tile.picker-active,
+.upload-tile:active {
+    transform: translateY(1px) scale(.995);
+    border-color: rgba(141,245,232,.72) !important;
+}

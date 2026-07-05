@@ -214,3 +214,87 @@ body.bottom-preview-active .processing-hud {
     font-size: .46rem !important;
   }
 }
+
+/* v1.3.56 Dock waveform sync and touch seek */
+.bottom-preview-waveform {
+  position: relative;
+}
+.bottom-waveform-bars,
+.waveform-compare-bars {
+  position: relative !important;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.bottom-waveform-bars:focus-visible,
+.waveform-compare-bars:focus-visible {
+  outline: 2px solid rgba(141,245,232,.74);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+.bottom-waveform-bars.has-live-playhead::after,
+.waveform-compare-bars.has-live-playhead::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  left: var(--waveform-playhead-pct, 0%);
+  width: 2px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 0 0 1px rgba(9,14,22,.42), 0 0 14px rgba(141,245,232,.34);
+  pointer-events: none;
+  z-index: 4;
+}
+.bottom-waveform-bars.has-live-playhead::before,
+.waveform-compare-bars.has-live-playhead::before {
+  content: '';
+  position: absolute;
+  left: var(--waveform-playhead-pct, 0%);
+  top: -5px;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: rgba(255,255,255,.98);
+  box-shadow: 0 0 12px rgba(141,245,232,.40);
+  pointer-events: none;
+  z-index: 5;
+}
+.bottom-waveform-bars.is-playing::after,
+.waveform-compare-bars.is-playing::after {
+  background: linear-gradient(180deg, #fff, rgba(141,245,232,.96));
+  box-shadow: 0 0 0 1px rgba(9,14,22,.44), 0 0 18px rgba(141,245,232,.56), 0 0 28px rgba(114,221,255,.22);
+}
+.bottom-preview-waveform.has-live-playhead::after,
+.bottom-preview-waveform.has-live-playhead::before {
+  content: none !important;
+}
+.waveform-compare-row {
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.waveform-compare-row:has(.waveform-compare-bars:hover),
+.waveform-compare-row:has(.waveform-compare-bars:focus-visible) {
+  border-color: rgba(141,245,232,.28);
+  background: rgba(141,245,232,.07);
+}
+.waveform-compare-bars::selection,
+.bottom-waveform-bars::selection {
+  background: transparent;
+}
+.waveform-compare-hint::before {
+  content: '터치 이동 · ';
+  color: rgba(141,245,232,.86);
+  font-weight: 950;
+}
+@media (max-width: 720px) {
+  .bottom-waveform-bars.has-live-playhead::after,
+  .waveform-compare-bars.has-live-playhead::after {
+    width: 2px;
+  }
+  .bottom-waveform-bars.has-live-playhead::before,
+  .waveform-compare-bars.has-live-playhead::before {
+    width: 6px;
+    height: 6px;
+  }
+}
