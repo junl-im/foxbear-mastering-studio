@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.67 - Dock single-line actions layout fix
+// FoxBear AI Mastering Studio Pro v1.3.68 - Dock action runtime fix
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.67';
+const APP_VERSION = 'Pro v1.3.68';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.67-dock-action-single-line';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.68-dock-action-runtime-fix';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -350,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.67-dock-action-single-line';
+    styleLink.href = 'assets/css/studio.css?v=1.3.68-dock-action-runtime-fix';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -1484,7 +1484,7 @@ const ACTION_HELP_TEXTS = {
     snapshotAiBtn: '분석 결과의 AI 추천값으로 즉시 복원합니다.',
     snapshotOriginalBtn: 'AI 프리셋 없이 원본 기준 커스텀 상태로 전환합니다.',
     snapshotClearBtn: '선택 트랙의 스냅샷 기록을 삭제합니다.',
-    fileDrop: '파일 하나 또는 여러 개를 불러옵니다. MP3/WAV/MP4 오디오를 지원합니다.',
+    fileDrop: '파일 하나 또는 여러 개를 불러옵니다. WAV, MP3, M4A/AAC, FLAC, OGG/Opus, AIFF, CAF, MP4/MOV 등 다양한 코덱을 브라우저 지원 범위에서 시도합니다.',
     folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
     aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
     masterSelectedBtn: '선택한 트랙만 현재 설정으로 마스터링합니다.',
@@ -2761,7 +2761,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.67-dock-action-single-line');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.68-dock-action-runtime-fix');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2878,10 +2878,10 @@ function bindEvents() {
     }
     if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', onBottomWaveformButtonClick);
     if (el.bottomPreviewTranslationModes) el.bottomPreviewTranslationModes.addEventListener('click', handlePreviewTranslationModeClick);
-    if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', () => renderMasterPreviewForSelected('dock'));
+    if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', event => renderDockMasterPreview(event));
     if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', event => masterBottomPreviewTrack(event));
-    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false));
-    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', () => selectBottomPreviewMode('mastered', true));
+    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false, getDockActionTrack()));
+    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', () => selectBottomPreviewMode('mastered', true, getDockActionTrack()));
     bindAdminStatsEvents();
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
     if (el.referenceLoadBtn) el.referenceLoadBtn.addEventListener('click', () => clickNativeFileInput(el.referenceInput, '레퍼런스 파일'));
@@ -5369,9 +5369,28 @@ async function setMasteringProgress(track, targetProgress, report = '', options 
     }
 }
 
-async function masterTrack(track, calledFromBatch = false) {
-    if (!track || track.status === 'processing' || track.status === 'analyzing') return;
-    if (!calledFromBatch && state.busy) return;
+async function masterTrack(track, calledFromBatch = false, options = {}) {
+    const notifyBlocked = Boolean(options.notifyBlocked);
+    const forceIfIdle = Boolean(options.forceIfIdle);
+    if (!track) {
+        if (notifyBlocked) showToast('마스터링할 곡을 찾지 못했습니다.');
+        return false;
+    }
+    if (track.status === 'processing') {
+        if (notifyBlocked) showToast('이미 마스터링이 진행 중입니다.');
+        return false;
+    }
+    if (track.status === 'analyzing') {
+        if (notifyBlocked) showToast('분석이 끝난 뒤 마스터링을 진행할 수 있습니다.');
+        return false;
+    }
+    if (!calledFromBatch && state.busy) {
+        const cleared = forceIfIdle ? clearStaleBusyFlagIfIdle('master-track-force-idle') : false;
+        if (state.busy && !cleared) {
+            if (notifyBlocked) showToast('현재 작업이 끝난 뒤 다시 눌러주세요.');
+            return false;
+        }
+    }
 
     pauseAllPreviewAudio();
 
@@ -5543,6 +5562,7 @@ async function masterTrack(track, calledFromBatch = false) {
             requestAnimationFrame(() => focusCompletedTrackDownload(track));
         }
     }
+    return completedSuccessfully;
 }
 
 function autoTrimSilenceBuffer(buffer) {
@@ -11398,8 +11418,25 @@ function isDockMasteringBusyBlocked() {
     return Boolean(state.busy && hasActiveBlockingWork());
 }
 
-function selectBottomPreviewMode(mode, autoPlay = false) {
-    const track = getSelectedTrack();
+function isActionBusyBlocked() {
+    clearStaleBusyFlagIfIdle('action-busy-check');
+    return Boolean(state.busy && hasActiveBlockingWork());
+}
+
+function getDockActionTrack() {
+    return getBottomPreviewDockTrack() || getSelectedTrack() || state.tracks[0] || null;
+}
+
+function prepareTrackForDockAction(track) {
+    if (!track) return null;
+    state.selectedId = track.id;
+    state.bottomPreviewTrackId = track.id;
+    if (state.selectedIds && typeof state.selectedIds.add === 'function') state.selectedIds.add(track.id);
+    return track;
+}
+
+function selectBottomPreviewMode(mode, autoPlay = false, trackOverride = null) {
+    const track = prepareTrackForDockAction(trackOverride || getDockActionTrack());
     if (!track) return;
     captureBottomPreviewTransport(track, state.bottomPreviewMode);
     const nextMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
@@ -11420,16 +11457,13 @@ function selectBottomPreviewMode(mode, autoPlay = false) {
 async function masterBottomPreviewTrack(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
     clearStaleBusyFlagIfIdle('dock-master-click');
-    const track = getBottomPreviewDockTrack();
+    const track = prepareTrackForDockAction(getDockActionTrack());
     if (!track) {
         showToast('마스터링할 곡을 먼저 불러와주세요.');
         return;
     }
 
-    state.selectedId = track.id;
-    state.bottomPreviewTrackId = track.id;
-
-    if (isDockMasteringBusyBlocked() || track.status === 'processing') {
+    if (isActionBusyBlocked() || track.status === 'processing') {
         showToast('현재 작업이 끝난 뒤 다시 눌러주세요.');
         renderBottomPreviewDock({ keepPlaying: true });
         return;
@@ -11445,23 +11479,42 @@ async function masterBottomPreviewTrack(event = null) {
         return;
     }
 
+    track.report = 'Dock 마스터링 시작 준비 중';
+    track.progress = Math.max(1, Number(track.progress || 0));
     showToast(`${track.name || '선택 곡'} 마스터링을 시작합니다.`);
     renderAll({ keepDetailAudio: true });
-    await masterTrack(track);
+    await yieldToBrowser();
+    const startedOrCompleted = await masterTrack(track, false, { notifyBlocked: true, forceIfIdle: true, source: 'dock' });
+    if (!startedOrCompleted && !track.error && track.status !== 'processing' && track.status !== 'done') {
+        track.report = '마스터링 시작이 차단되었습니다. 분석 상태와 브라우저 오디오 권한을 확인해주세요.';
+        showToast(track.report);
+        renderAll({ keepDetailAudio: true });
+    }
 }
 
 
 function canStartMasterPreview(track) {
-    return Boolean(track && track.analysis && !state.busy && !track.error && !['processing', 'analyzing'].includes(track.status));
+    return Boolean(track && track.analysis && !isActionBusyBlocked() && !track.error && !['processing', 'analyzing'].includes(track.status));
 }
 
 async function renderMasterPreviewForSelected(source = 'detail') {
-    const track = getSelectedTrack();
+    const track = source === 'dock' ? prepareTrackForDockAction(getDockActionTrack()) : getSelectedTrack();
     if (!track) {
         showToast('미리듣기할 곡을 먼저 선택해주세요.');
         return;
     }
     await renderMasterPreviewForTrack(track, { source });
+}
+
+async function renderDockMasterPreview(event = null) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    clearStaleBusyFlagIfIdle('dock-preview-click');
+    const track = prepareTrackForDockAction(getDockActionTrack());
+    if (!track) {
+        showToast('추천구간을 만들 곡을 먼저 불러와주세요.');
+        return;
+    }
+    await renderMasterPreviewForTrack(track, { source: 'dock' });
 }
 
 async function renderMasterPreviewForTrack(track, options = {}) {
@@ -11477,7 +11530,13 @@ async function renderMasterPreviewForTrack(track, options = {}) {
         return;
     }
     if (!canStartMasterPreview(track)) {
-        showToast('분석이 끝난 정상 트랙에서만 추천구간 미리듣기를 만들 수 있습니다.');
+        const reason = track.status === 'analyzing' ? '분석이 끝난 뒤 추천구간 미리듣기를 만들 수 있습니다.'
+            : track.status === 'processing' ? '마스터링 작업이 끝난 뒤 추천구간 미리듣기를 만들 수 있습니다.'
+            : track.error ? '오류가 있는 곡입니다. 다시 불러온 뒤 진행해주세요.'
+            : state.busy ? '현재 작업이 끝난 뒤 다시 눌러주세요.'
+            : '분석이 끝난 정상 트랙에서만 추천구간 미리듣기를 만들 수 있습니다.';
+        showToast(reason);
+        renderBottomPreviewDock({ keepPlaying: true });
         return;
     }
 
@@ -12021,7 +12080,7 @@ function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPrev
     const ready = Boolean(track && track.masterPreviewUrl);
     el.bottomPreviewMasterPreviewBtn.classList.toggle('active', mode === 'masterPreview');
     el.bottomPreviewMasterPreviewBtn.classList.toggle('processing', processing);
-    el.bottomPreviewMasterPreviewBtn.disabled = !track || state.busy || track.status === 'processing' || track.status === 'analyzing' || Boolean(track.error);
+    el.bottomPreviewMasterPreviewBtn.disabled = !track || isActionBusyBlocked() || track.status === 'processing' || track.status === 'analyzing' || Boolean(track.error);
     if (!track) {
         el.bottomPreviewMasterPreviewBtn.textContent = '추천구간 미리듣기';
         el.bottomPreviewMasterPreviewBtn.title = '곡을 선택하면 15초 추천구간 미리듣기를 만들 수 있습니다.';
@@ -13419,7 +13478,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.67',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.68',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

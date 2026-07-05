@@ -1,10 +1,15 @@
-# FoxBear AI Mastering Studio Pro v1.3.67
+# FoxBear AI Mastering Studio Pro v1.3.68
 
-## v1.3.67 Dock Single-Line Actions Layout Fix
+## v1.3.68 Dock Action Runtime Fix
 
-- Dock의 `마스터링`, `추천구간 미리듣기`, `원곡 프리뷰`, `마스터링 프리뷰` 4개 버튼을 같은 줄에 유지합니다.
-- 버튼 폭을 글자 길이에 맞게 줄이고, 좌측/우측 그룹 정렬을 유지했습니다.
-- 모바일에서도 먼저 한 줄을 유지하고, 극단적으로 좁은 화면에서만 가로 스크롤 fallback을 사용합니다.
+- Dock의 `마스터링` 버튼이 토스트만 띄우고 실제 렌더로 진입하지 못하던 경로를 보강했습니다.
+- Dock 버튼 실행 기준을 내부 선택 상태(`selectedId`)가 아니라 실제 Dock에 표시 중인 트랙으로 통일했습니다.
+- `추천구간 미리듣기`도 Dock 전용 핸들러로 연결해 선택 상태가 어긋나도 표시 중인 곡의 하이라이트 15초 프리뷰를 생성/재생합니다.
+- stale `state.busy`가 남아 있으면 실제 진행 작업이 없는 경우 자동 복구하고, 차단 사유를 토스트로 표시합니다.
+- `masterTrack()`이 조용히 return하지 않고 Dock에서 시작 실패를 감지할 수 있도록 결과값을 반환합니다.
+- 파일열기 도움말을 다양한 코덱 지원 문구로 보강했습니다.
+- `qa/dock_action_runtime_fix_smoke.js`를 추가하고 `npm run check`에 포함했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.68-dock-action-runtime-fix`로 갱신했습니다.
 
 ## v1.3.66 Dock Mastering / Player Order Fix
 

@@ -6,8 +6,8 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 function must(condition, message) { if (!condition) throw new Error(message); }
-must(app.includes("const APP_VERSION = 'Pro v1.3.67'"), 'app version should be v1.3.67');
-must(html.includes('data-build="1.3.67"'), 'index build should be v1.3.67');
+must(app.includes("const APP_VERSION = 'Pro v1.3.68'"), 'app version should be v1.3.68');
+must(html.includes('data-build="1.3.68"'), 'index build should be v1.3.68');
 must(app.includes('function runInitStep'), 'isolated init step helper missing');
 must(app.includes("runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true })"), 'upload binding must run as critical early init step');
 must(app.includes('function bindUploadInputEventsOnce'), 'upload bind-once helper missing');
@@ -18,6 +18,6 @@ must(html.includes('bottom-preview-action-left') && html.includes('bottom-previe
 must(html.includes('추천구간 미리듣기') && html.includes('원곡 프리뷰') && html.includes('마스터링 프리뷰'), 'dock labels not updated');
 must(!html.includes('마스터링 진행</button>'), 'old dock mastering label still present');
 must(!app.includes('현재 화면에서 선택된 곡만 마스터링합니다.'), 'old awkward dock help text still present');
-must(css.includes('v1.3.67 Dock/import init cleanup'), 'v1.3.67 css override missing');
+must(css.includes('v1.3.68 Dock/import init cleanup'), 'v1.3.68 css override missing');
 must(pkg.scripts.check.includes('dock_import_init_cleanup_smoke.js'), 'new smoke test should be included in npm run check');
 console.log('PASS dock/import init cleanup smoke');

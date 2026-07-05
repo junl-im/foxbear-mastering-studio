@@ -27,7 +27,7 @@ assert(waveformIndex >= 0 && playerIndex > waveformIndex, 'player must be after 
 assert(modesIndex > playerIndex, 'translation modes must be after player');
 assert(controlsIndex > modesIndex, 'actions must remain after translation modes');
 
-assert(dockCss.includes('v1.3.67 Dock mastering click path'), 'missing v1.3.67 dock CSS note');
+assert(dockCss.includes('v1.3.68 Dock mastering click path'), 'missing v1.3.68 dock CSS note');
 assert(/\.bottom-preview-player\s*\{[\s\S]*order:\s*2/.test(dockCss), 'player order CSS missing');
 assert(/\.bottom-preview-controls\s*\{[\s\S]*z-index:\s*3/.test(dockCss), 'controls z-index protection missing');
 console.log('PASS dock mastering/player order smoke');
