@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.62 service worker
+// FoxBear AI Mastering Studio Pro v1.3.63 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.62-audio-import';
+const CACHE_NAME = 'foxbear-shell-v1.3.63-loudness-ui';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';

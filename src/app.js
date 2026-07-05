@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.62 - audio import reliability hotfix
+// FoxBear AI Mastering Studio Pro v1.3.63 - loudness target UI cleanup
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.62';
+const APP_VERSION = 'Pro v1.3.63';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.62-audio-import';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.63-loudness-ui';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -348,7 +348,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.62-audio-import';
+    styleLink.href = 'assets/css/studio.css?v=1.3.63-loudness-ui';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2688,7 +2688,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.62-audio-import');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.63-loudness-ui');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3490,7 +3490,7 @@ function openUploadPicker(kind = 'file') {
         clickNativeFileInput(el.fileInput, '파일');
         return;
     }
-    // v1.3.62: 사용자 제스처 안에서 가장 안정적인 <input type="file"> 경로를 우선 사용합니다.
+    // v1.3.63: 사용자 제스처 안에서 가장 안정적인 <input type="file"> 경로를 우선 사용합니다.
     // showOpenFilePicker()는 일부 브라우저/인앱 환경에서 선택 후 File 객체 전달이 끊기거나,
     // 실패 후 fallback input.click()이 사용자 활성화 밖에서 막히는 사례가 있어 보조 경로로만 남깁니다.
     clickNativeFileInput(el.fileInput, '파일');
@@ -3507,7 +3507,7 @@ function bindNativeUploadLabel(label, input, kind = 'file') {
     }, { passive: true });
     label.addEventListener('click', event => {
         prepareNativeFileInput(input);
-        // v1.3.62: 마우스/터치 클릭은 label의 기본 for=input 동작을 절대 막지 않습니다.
+        // v1.3.63: 마우스/터치 클릭은 label의 기본 for=input 동작을 절대 막지 않습니다.
         // 이 경로가 Safari, iOS, Android WebView, GitHub Pages PWA에서 가장 일관적으로 change 이벤트를 발생시킵니다.
         if (kind === 'folder' && !supportsDirectoryInput(input) && supportsSystemDirectoryPicker()) {
             event.preventDefault();
@@ -10544,7 +10544,6 @@ function renderDetail(options = {}) {
         addRow('마스터링 목표', `${getMasterGoalLabel(state.masterGoal)} · ${getMasterGoalDescription(state.masterGoal)}`);
         addRow('스타일 프리셋', `${getMasterStyleLabel(state.masterStyle)} · ${getMasterStyleDescription(state.masterStyle)}`);
         addRow('마스터링 성향', `${getMasterStrengthLabel(state.masterStrength)} · ${getMasterStrengthDescription(state.masterStrength)}`);
-        addRow('곡별 Adaptive LUFS', state.adaptiveTargetLufs ? `ON · ${getAdaptiveTargetLabel(track)}` : 'OFF · 수동 타깃 고정');
         addRow('레퍼런스 매칭 강도', `${getReferenceMatchStrengthLabel()} · ${Math.round(getReferenceMatchStrengthAmount() * 100)}%`);
         addRow('플랫폼 저장 프리셋', `${getPlatformPresetLabel()} · ${PLATFORM_EXPORT_PRESETS[state.platformPreset]?.note || '직접 설정 유지'}`);
         if (state.referenceProfile?.status === 'ready') addRow('레퍼런스 트랙', `${state.referenceProfile.name} · ${state.referenceProfile.report}`);
@@ -13247,7 +13246,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.62',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.63',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
