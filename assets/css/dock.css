@@ -412,7 +412,7 @@ body.bottom-preview-active .processing-hud {
   white-space: nowrap !important;
 }
 
-/* v1.3.70 Dock peak popup, aligned gauges, line swap, and stacked toast anchors */
+/* v1.3.71 Dock main action bridge plus peak popup, aligned gauges, line swap, and stacked toast anchors */
 .bottom-preview-core {
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) !important;
