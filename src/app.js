@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.61 - UI coverage and tool organization
+// FoxBear AI Mastering Studio Pro v1.3.62 - audio import reliability hotfix
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.61';
+const APP_VERSION = 'Pro v1.3.62';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.61-ui-coverage';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.62-audio-import';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -348,7 +348,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.61-ui-coverage';
+    styleLink.href = 'assets/css/studio.css?v=1.3.62-audio-import';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2688,7 +2688,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.61-ui-coverage');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.62-audio-import');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2834,8 +2834,8 @@ function bindEvents() {
     if (el.fileDrop) setupDropZone(el.fileDrop);
     if (el.folderDrop) setupDropZone(el.folderDrop);
 
-    if (el.fileInput) el.fileInput.addEventListener('change', e => handleFiles(e.target.files));
-    if (el.folderInput) el.folderInput.addEventListener('change', e => handleFiles(e.target.files));
+    if (el.fileInput) el.fileInput.addEventListener('change', e => handleNativeInputFiles(e.target.files, 'file'));
+    if (el.folderInput) el.folderInput.addEventListener('change', e => handleNativeInputFiles(e.target.files, 'folder'));
 
     el.genreSelect.addEventListener('change', () => {
         if (state.programmatic) return;
@@ -3476,32 +3476,23 @@ async function openSystemDirectoryPicker() {
 function openUploadPicker(kind = 'file') {
     foxBearHaptic('tap');
     if (kind === 'folder') {
-        if (supportsSystemDirectoryPicker()) {
-            openSystemDirectoryPicker().then(opened => {
-                if (!opened) {
-                    if (supportsDirectoryInput(el.folderInput)) clickNativeFileInput(el.folderInput, '폴더');
-                    else {
-                        showToast('이 브라우저는 폴더 선택을 지원하지 않아 여러 파일 선택으로 대체합니다.');
-                        clickNativeFileInput(el.fileInput, '파일');
-                    }
-                }
-            });
-            return;
-        }
         if (supportsDirectoryInput(el.folderInput)) {
             clickNativeFileInput(el.folderInput, '폴더');
+            return;
+        }
+        if (supportsSystemDirectoryPicker()) {
+            openSystemDirectoryPicker().then(opened => {
+                if (!opened) clickNativeFileInput(el.fileInput, '파일');
+            });
             return;
         }
         showToast('이 브라우저는 폴더 선택을 지원하지 않아 여러 파일 선택으로 대체합니다.');
         clickNativeFileInput(el.fileInput, '파일');
         return;
     }
-    if (supportsSystemFilePicker()) {
-        openSystemFilePicker().then(opened => {
-            if (!opened) clickNativeFileInput(el.fileInput, '파일');
-        });
-        return;
-    }
+    // v1.3.62: 사용자 제스처 안에서 가장 안정적인 <input type="file"> 경로를 우선 사용합니다.
+    // showOpenFilePicker()는 일부 브라우저/인앱 환경에서 선택 후 File 객체 전달이 끊기거나,
+    // 실패 후 fallback input.click()이 사용자 활성화 밖에서 막히는 사례가 있어 보조 경로로만 남깁니다.
     clickNativeFileInput(el.fileInput, '파일');
 }
 
@@ -3516,13 +3507,13 @@ function bindNativeUploadLabel(label, input, kind = 'file') {
     }, { passive: true });
     label.addEventListener('click', event => {
         prepareNativeFileInput(input);
-        const canUseSystemPicker = kind === 'folder' ? supportsSystemDirectoryPicker() : supportsSystemFilePicker();
-        if (canUseSystemPicker) {
+        // v1.3.62: 마우스/터치 클릭은 label의 기본 for=input 동작을 절대 막지 않습니다.
+        // 이 경로가 Safari, iOS, Android WebView, GitHub Pages PWA에서 가장 일관적으로 change 이벤트를 발생시킵니다.
+        if (kind === 'folder' && !supportsDirectoryInput(input) && supportsSystemDirectoryPicker()) {
             event.preventDefault();
             openUploadPicker(kind);
             return;
         }
-        // File System Access API가 없는 Safari/iOS/인앱 브라우저는 label의 기본 for=input 동작을 유지합니다.
         if (kind === 'folder' && !supportsDirectoryInput(input)) {
             showToast('이 브라우저는 폴더 선택을 제한할 수 있어 여러 파일 선택으로 대체될 수 있습니다.');
         }
@@ -3548,9 +3539,22 @@ function setupDropZone(zone) {
     });
 }
 
+async function handleNativeInputFiles(fileList, kind = 'file') {
+    const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
+    if (!count) return;
+    try {
+        showToast(`${count}개 ${kind === 'folder' ? '폴더 항목' : '파일'} 선택됨 · 대기열 등록 중`);
+        const result = await handleFiles(fileList);
+        if (!result?.added && !result?.invalid) showToast('선택한 항목에서 불러올 수 있는 오디오를 찾지 못했습니다.');
+    } catch (error) {
+        console.error('native input import failed:', error);
+        showToast(getErrorMessage(error, '파일을 불러오지 못했습니다.'));
+    }
+}
+
 async function handleFiles(fileList) {
-    const incoming = Array.from(fileList || []);
-    if (!incoming.length) return;
+    const incoming = Array.from(fileList || []).filter(Boolean);
+    if (!incoming.length) return { added: 0, invalid: 0, limited: 0 };
 
     if (state.tracks.length + incoming.length > MAX_FILES) {
         showToast(`최대 ${MAX_FILES}개까지만 추가할 수 있습니다.`);
@@ -3558,16 +3562,21 @@ async function handleFiles(fileList) {
 
     const room = Math.max(0, MAX_FILES - state.tracks.length);
     const limited = incoming.slice(0, room);
+    const skippedByLimit = Math.max(0, incoming.length - limited.length);
     const singleUploadDialogCandidate = limited.length === 1;
     let added = 0;
+    let invalid = 0;
 
     for (const file of limited) {
         const validation = validateAudioFile(file);
         if (!validation.ok) {
-            showToast(`${file.name}: ${validation.reason}`);
+            invalid += 1;
+            showToast(`${file.name || '선택 파일'}: ${validation.reason}`);
             continue;
         }
         const track = createTrack(file);
+        track.importLabel = validation.label;
+        track.importedAt = new Date().toISOString();
         track.autoAiRecommendDialog = singleUploadDialogCandidate;
         state.tracks.push(track);
         if (!state.selectedId) {
@@ -3581,11 +3590,14 @@ async function handleFiles(fileList) {
             track.error = getErrorMessage(error, '분석 실패');
             track.report = track.error;
             renderAll();
+            showToast(`${track.name}: ${track.error}`);
         });
     }
 
     clearFileInputs();
-    if (added) showToast(`${added}개 트랙 등록 완료. 지연 디코딩 분석을 시작합니다.`);
+    if (added) showToast(`${added}개 트랙 등록 완료. 오디오 디코딩/분석을 시작합니다.${skippedByLimit ? ` · ${skippedByLimit}개는 최대 개수 제한으로 제외` : ''}`);
+    else if (invalid) showToast('선택한 파일을 오디오로 인식하지 못했습니다. WAV/MP3/M4A/AAC/FLAC 파일로 다시 시도해주세요.');
+    return { added, invalid, limited: skippedByLimit };
 }
 
 function validateAudioFile(file) {
@@ -3712,20 +3724,94 @@ async function analyzeTrack(track) {
     maybeShowSingleTrackAiRecommendationDialog(track);
 }
 
+function getAudioCodecFailureHint(fileOrName = '') {
+    const ext = getFileExtension(fileOrName);
+    const base = getAudioImportDecodeHint(fileOrName);
+    const common = ' 가능하면 WAV, MP3, M4A(AAC)로 변환하거나 다른 브라우저에서 다시 시도해주세요.';
+    if (['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'].includes(ext)) return `${base} 영상 파일이면 오디오 트랙이 없거나 브라우저가 해당 오디오 코덱을 열지 못할 수 있습니다.${common}`;
+    if (['.flac'].includes(ext)) return `${base} 일부 모바일/인앱 브라우저는 FLAC 디코딩을 제한합니다.${common}`;
+    if (['.aif', '.aiff', '.aifc', '.caf', '.amr', '.wma', '.opus', '.oga', '.ogg'].includes(ext)) return `${base}${common}`;
+    return `${base}${common}`;
+}
+
+async function ensureAudioContextRunning(audioContext) {
+    if (!audioContext || audioContext.state !== 'suspended' || typeof audioContext.resume !== 'function') return;
+    try { await audioContext.resume(); } catch (error) {}
+}
+
+function decodeAudioDataCompat(audioContext, arrayBuffer) {
+    const primaryBuffer = arrayBuffer.slice ? arrayBuffer.slice(0) : arrayBuffer;
+    try {
+        const result = audioContext.decodeAudioData(primaryBuffer);
+        if (result && typeof result.then === 'function') return result;
+    } catch (error) {
+        // 구형 Safari 콜백 경로로 한 번 더 시도합니다.
+    }
+    return new Promise((resolve, reject) => {
+        const fallbackBuffer = arrayBuffer.slice ? arrayBuffer.slice(0) : arrayBuffer;
+        try {
+            audioContext.decodeAudioData(fallbackBuffer, resolve, reject);
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+async function verifyMediaElementCanLoad(file, timeoutMs = 4500) {
+    if (!file || typeof document === 'undefined') return { ok: false, reason: '미디어 엘리먼트 확인 불가' };
+    const url = URL.createObjectURL(file);
+    const audio = document.createElement('audio');
+    audio.preload = 'metadata';
+    audio.muted = true;
+    return await new Promise(resolve => {
+        let settled = false;
+        const done = result => {
+            if (settled) return;
+            settled = true;
+            try { audio.removeAttribute('src'); audio.load(); } catch (error) {}
+            URL.revokeObjectURL(url);
+            resolve(result);
+        };
+        const timer = window.setTimeout(() => done({ ok: false, reason: 'metadata timeout' }), timeoutMs);
+        audio.addEventListener('loadedmetadata', () => {
+            window.clearTimeout(timer);
+            done({ ok: true, duration: Number(audio.duration || 0) });
+        }, { once: true });
+        audio.addEventListener('error', () => {
+            window.clearTimeout(timer);
+            done({ ok: false, reason: audio.error?.message || `media error ${audio.error?.code || ''}`.trim() });
+        }, { once: true });
+        audio.src = url;
+        audio.load();
+    });
+}
+
 async function decodeAudio(file) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) throw new Error('이 브라우저는 Web Audio API를 지원하지 않습니다.');
-    const arrayBuffer = await file.arrayBuffer();
+    if (!AudioContextClass) throw new Error('이 브라우저는 Web Audio API를 지원하지 않습니다. Chrome, Edge, Safari 최신 버전에서 다시 시도해주세요.');
+    let arrayBuffer;
+    try {
+        arrayBuffer = await file.arrayBuffer();
+    } catch (error) {
+        throw new Error('선택한 파일을 읽지 못했습니다. 파일 권한 또는 클라우드 다운로드 상태를 확인해주세요.');
+    }
+    if (!arrayBuffer || !arrayBuffer.byteLength) throw new Error('선택한 파일이 비어 있거나 읽을 수 없습니다.');
+
     const audioContext = new AudioContextClass();
     try {
-        return await audioContext.decodeAudioData(arrayBuffer);
+        await ensureAudioContextRunning(audioContext);
+        return await decodeAudioDataCompat(audioContext, arrayBuffer);
     } catch (error) {
-        const decodeHint = getAudioImportDecodeHint(file);
-        throw new Error('오디오 파일 복원에 실패했습니다. 손상되었거나 이 브라우저가 해당 코덱을 디코딩하지 못할 수 있습니다.' + decodeHint);
+        const mediaCheck = await verifyMediaElementCanLoad(file).catch(() => null);
+        const mediaText = mediaCheck?.ok
+            ? ' 브라우저 미디어 플레이어는 열 수 있지만 Web Audio 분석 디코더가 거부했습니다.'
+            : ' 브라우저 미디어 플레이어에서도 바로 열리지 않았습니다.';
+        throw new Error('오디오 디코딩에 실패했습니다.' + mediaText + getAudioCodecFailureHint(file));
     } finally {
         if (audioContext.close) await audioContext.close().catch(() => {});
     }
 }
+
 
 
 
@@ -13161,7 +13247,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.61',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.62',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

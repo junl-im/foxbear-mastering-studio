@@ -1,14 +1,14 @@
-# FoxBear AI Mastering Studio Pro v1.3.61
+# FoxBear AI Mastering Studio Pro v1.3.62
 
-
-## v1.3.61 UI Coverage + GitHub Pages Deploy Hotfix
-- 버튼형 적용 기능 팝업을 `마스터링 엔진`과 `비교 · 관리 도구` 그룹으로 분리해 엔진 밖 보조 기능이 섞여 보이지 않도록 정리했습니다.
-- 동적 기능 카드에 `data-help`, `data-tooltip`, `aria-label`, `title`을 함께 부여해 마우스온/터치온 설명 누락 구간을 줄였습니다.
-- `abDifferenceListen`를 비교/관리 도구 액션으로 연결해 카드가 보여도 아무 동작이 없는 상태를 제거했습니다.
-- GitHub Pages artifact 생성 단계에 `manifest.webmanifest`, `sw.js`를 필수 포함하고, 누락/심볼릭 링크/하드 링크를 배포 전에 실패시키는 검증을 추가했습니다.
-- Pages artifact 이름을 `github-pages`로 명시하고 deploy 단계에서도 `artifact_name`을 고정해 artifact 선택을 안정화했습니다.
-- `qa/deploy_pages_artifact_smoke.js`를 추가해 Pages 워크플로 필수 파일/디렉터리/검증 루틴이 `npm run check`에서 계속 확인되도록 했습니다.
-- `src/app.js` 변경 후 불일치하던 SRI 해시를 재생성했습니다.
+## v1.3.62 Audio Import Reliability Hotfix
+- 파일/폴더 타일의 마우스/터치 클릭 경로를 다시 브라우저 기본 `<label for=fileInput>` 동작 우선으로 복구했습니다.
+- `showOpenFilePicker()` 실패 후 비동기 fallback이 사용자 활성화 밖에서 차단되어 선택 후에도 대기열 등록이 안 되는 문제를 피했습니다.
+- 파일 선택 직후 선택 개수와 등록 상태를 토스트로 표시하도록 보강했습니다.
+- `handleFiles()`가 등록/무효/제한 결과를 반환하도록 정리해 실제 import 실패를 QA에서 추적할 수 있게 했습니다.
+- Web Audio `decodeAudioData()`를 Promise/콜백 양쪽 경로로 보강했습니다.
+- 디코딩 실패 시 `<audio>` metadata 확인을 추가해 컨테이너/코덱 문제인지 더 명확히 안내합니다.
+- `qa/audio_import_reliability_smoke.js`를 추가하고 `npm run check`에 포함했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.62-audio-import`로 갱신했습니다.
 
 ## v1.3.60 Upload Picker + Tooltip Hotfix
 - 파일열기/폴더열기 타일 클릭 경로를 하이브리드로 보강했습니다. Chrome/Edge/PWA는 `showOpenFilePicker`/`showDirectoryPicker`를 우선 사용하고, Safari/iOS/인앱은 `label for=input` 기본 동작을 유지합니다.
