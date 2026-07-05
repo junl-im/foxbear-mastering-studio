@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.60 - dock waveform timeline model
+// FoxBear AI Mastering Studio Pro v1.3.61 - UI coverage and tool organization
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.60';
+const APP_VERSION = 'Pro v1.3.61';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.60-upload-tooltip-hotfix';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.61-ui-coverage';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -249,6 +249,22 @@ const UTILITY_FEATURE_DEFINITIONS = {
         label: '분석 캐시 자동정리',
         short: '켜두면 오래된 분석 캐시를 주기적으로 정리합니다. 끄면 캐시를 그대로 보존합니다.'
     },
+    clearAnalysisCache: {
+        label: '분석 캐시 즉시 정리',
+        short: '현재 브라우저에 저장된 분석 캐시를 바로 비워 파일 재분석 상태를 깨끗하게 만듭니다.',
+        actionOnly: true,
+        actionLabel: '실행'
+    },
+    selectedGenreLock: {
+        label: '선택 트랙 장르 잠금',
+        short: '선택한 곡의 현재 장르 프리셋을 잠가 AI 재적용 때 장르가 바뀌지 않게 합니다.',
+        actionLabel: '전환',
+        getState: () => Boolean(getSelectedTrack()?.genreLocked),
+        isDisabled: () => {
+            const track = getSelectedTrack();
+            return !track || state.busy || !track.analysis;
+        }
+    },
     autoHighlightAB: {
         label: '자동 하이라이트 A/B',
         short: '곡에서 차이가 잘 들리는 5초 구간을 찾아 A/B 루프 시작점으로 사용합니다.'
@@ -332,7 +348,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.60-upload-tooltip-hotfix';
+    styleLink.href = 'assets/css/studio.css?v=1.3.61-ui-coverage';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -497,27 +513,30 @@ function renderFeatureButtons() {
         });
         cards.forEach(({ kind, key, info, active }) => {
             const button = document.createElement('button');
+            const actionOnly = Boolean(info.actionOnly);
+            const disabled = typeof info.isDisabled === 'function' ? Boolean(info.isDisabled()) : false;
             button.type = 'button';
-            button.className = `feature-card feature-dialog-card ${active ? 'active' : ''}`;
+            button.className = `feature-card feature-dialog-card ${active ? 'active' : ''} ${actionOnly ? 'action-only' : ''}`;
             button.dataset.feature = key;
             button.dataset.kind = kind;
-            button.dataset.state = active ? 'on' : 'off';
+            button.dataset.state = actionOnly ? 'action' : (active ? 'on' : 'off');
             button.dataset.tooltip = info.short;
-            button.dataset.help = info.short;
-            button.title = info.short;
-            button.setAttribute('aria-pressed', String(Boolean(active)));
-            button.setAttribute('aria-label', `${info.label}: ${info.short}`);
+            button.dataset.help = disabled ? `${info.short} 현재는 선택 가능한 분석 완료 트랙이 필요합니다.` : info.short;
+            button.title = button.dataset.help;
+            button.disabled = disabled;
+            if (!actionOnly) button.setAttribute('aria-pressed', String(Boolean(active)));
+            button.setAttribute('aria-label', `${info.label}: ${button.dataset.help}`);
 
             const title = document.createElement('b');
             title.textContent = info.label;
             const status = document.createElement('span');
             status.className = 'feature-status';
-            status.textContent = active ? 'ON' : 'OFF';
+            status.textContent = actionOnly ? (disabled ? '대기' : (info.actionLabel || '실행')) : (active ? 'ON' : 'OFF');
 
             button.append(title, status);
-            attachHelpTooltip(button, info.short);
+            attachHelpTooltip(button, button.dataset.help);
             button.addEventListener('click', () => {
-                showFeatureTooltip(button, info.short, 1800);
+                showFeatureTooltip(button, button.dataset.help, 1800);
                 if (kind === 'utility') toggleUtilityFeature(key);
                 else toggleFeature(key);
             });
@@ -528,12 +547,32 @@ function renderFeatureButtons() {
 }
 
 function getFeatureToggleState(kind, key) {
-    if (kind === 'utility') return Boolean(state[key]);
+    if (kind === 'utility') {
+        const info = UTILITY_FEATURE_DEFINITIONS[key];
+        if (typeof info?.getState === 'function') return Boolean(info.getState());
+        if (info?.actionOnly) return false;
+        return Boolean(state[key]);
+    }
     return Boolean(state.featureFlags[key]);
 }
 
-function toggleUtilityFeature(key) {
+async function toggleUtilityFeature(key) {
     if (!Object.prototype.hasOwnProperty.call(UTILITY_FEATURE_DEFINITIONS, key)) return;
+    const info = UTILITY_FEATURE_DEFINITIONS[key];
+    if (typeof info.isDisabled === 'function' && info.isDisabled()) {
+        showFeatureTooltip(document.querySelector(`[data-feature="${key}"]`), '분석이 완료된 선택 트랙이 필요합니다.', 1600);
+        return;
+    }
+    if (key === 'clearAnalysisCache') {
+        await clearAnalysisCache();
+        renderFeatureButtons();
+        return;
+    }
+    if (key === 'selectedGenreLock') {
+        toggleGenreLockForSelected();
+        renderFeatureButtons();
+        return;
+    }
     if (key === 'autoCacheClean') {
         state.autoCacheClean = !state.autoCacheClean;
         if (state.autoCacheClean) maybeAutoCleanAnalysisCache(true);
@@ -556,13 +595,14 @@ function toggleUtilityFeature(key) {
     }
     renderFeatureButtons();
     renderAll({ keepDetailAudio: true });
-    const info = UTILITY_FEATURE_DEFINITIONS[key];
-    showToast(`${info.label}: ${state[key] ? '켜짐' : '꺼짐'} · ${info.short}`);
+    showToast(`${info.label}: ${getFeatureToggleState('utility', key) ? '켜짐' : '꺼짐'} · ${info.short}`);
 }
 
 function updateFeatureSummary() {
     const engineActive = Object.values(state.featureFlags).filter(Boolean).length;
-    const utilityActive = ['abLevelMatch', 'abDifferenceListen', 'abLoopMode', 'autoCacheClean', 'autoHighlightAB', 'smartPerformanceGuard', 'engineSafetyMeter'].filter(key => Boolean(state[key])).length;
+    const utilityActive = Object.keys(UTILITY_FEATURE_DEFINITIONS)
+        .filter(key => !UTILITY_FEATURE_DEFINITIONS[key].actionOnly)
+        .filter(key => getFeatureToggleState('utility', key)).length;
     if (el.featureCount) el.featureCount.textContent = `${engineActive + utilityActive}개 활성`;
 }
 
@@ -1407,7 +1447,7 @@ function initActionHelpTooltips() {
         attachHelpTooltip(trigger, `${label} 옵션을 버튼형 팝업으로 선택합니다.`);
     });
     document.querySelectorAll('.player-toggle').forEach(button => attachHelpTooltip(button, '미리듣기를 재생하거나 일시정지합니다.'));
-    document.querySelectorAll('button[title], [role="button"][aria-label], input[type="range"], .mini-check, [data-help]').forEach(node => {
+    document.querySelectorAll('button[title], [role="button"][aria-label], input[type="range"], select, label[for], .mini-check, .upload-drop, .bottom-preview-translation-btn, [data-help]').forEach(node => {
         const text = node.dataset.help || node.getAttribute('title') || node.getAttribute('aria-label') || node.textContent?.trim();
         if (text) attachHelpTooltip(node, text);
     });
@@ -2648,7 +2688,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.60-upload-tooltip-hotfix');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.61-ui-coverage');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -13121,7 +13161,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.60',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.61',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

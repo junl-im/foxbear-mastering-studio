@@ -17,33 +17,71 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate JavaScript
+      - name: Validate JavaScript and static contracts
         run: npm run check
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Prepare static artifact
+        shell: bash
         run: |
+          set -euo pipefail
           rm -rf _site
           mkdir -p _site
-          cp index.html _site/
-          cp robots.txt _site/ || true
-          cp design-preview.html _site/ || true
-          cp -R assets _site/assets
-          cp -R src _site/src
-          cp -R vendor _site/vendor
-          touch _site/.nojekyll
-          test -f _site/index.html
-          echo "Static artifact file count: $(find _site -type f | wc -l)"
 
-      - name: Upload artifact
+          required_files=(index.html manifest.webmanifest sw.js)
+          for file in "${required_files[@]}"; do
+            test -f "$file" || { echo "Missing required deploy file: $file" >&2; exit 1; }
+            cp "$file" "_site/$file"
+          done
+
+          optional_files=(robots.txt design-preview.html)
+          for file in "${optional_files[@]}"; do
+            if [ -f "$file" ]; then
+              cp "$file" "_site/$file"
+            fi
+          done
+
+          required_dirs=(assets src vendor)
+          for dir in "${required_dirs[@]}"; do
+            test -d "$dir" || { echo "Missing required deploy directory: $dir" >&2; exit 1; }
+            cp -R "$dir" "_site/$dir"
+          done
+
+          touch _site/.nojekyll
+
+          test -f _site/index.html
+          test -f _site/manifest.webmanifest
+          test -f _site/sw.js
+          test -d _site/assets
+          test -d _site/src
+
+          if find _site -type l -print -quit | grep -q .; then
+            echo "GitHub Pages artifact must not contain symbolic links." >&2
+            find _site -type l -ls >&2
+            exit 1
+          fi
+
+          if find _site -type f -links +1 -print -quit | grep -q .; then
+            echo "GitHub Pages artifact must not contain hard links." >&2
+            find _site -type f -links +1 -ls >&2
+            exit 1
+          fi
+
+          echo "Static artifact file count: $(find _site -type f | wc -l)"
+          echo "Static artifact size: $(du -sh _site | cut -f1)"
+          find _site -maxdepth 3 -type f | sort
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
+          name: github-pages
           path: _site
           retention-days: 1
           include-hidden-files: true
@@ -51,6 +89,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -62,6 +101,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
         with:
+          artifact_name: github-pages
           timeout: 600000
           error_count: 10
           reporting_interval: 5000
