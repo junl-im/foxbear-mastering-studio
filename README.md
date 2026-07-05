@@ -1,6 +1,13 @@
-# FoxBear AI Mastering Studio Pro v1.3.68
+# FoxBear AI Mastering Studio Pro v1.3.69
 
-## v1.3.68 Dock Action Runtime Fix
+## v1.3.69 Dock Action Target Fix
+
+- 업로드 직후 선택 상태가 `selectedId`와 `selectedIds`로 갈라져 Dock/메인 마스터링 경로가 곡을 못 찾던 문제를 수정했습니다.
+- Dock `마스터링`과 `추천구간 미리듣기`는 분석 중인 곡도 클릭 가능하며, 분석 완료를 기다린 뒤 이어서 실행합니다.
+- `analysisPromise`를 트랙에 보관해 클릭 후 아무 반응 없는 상태를 줄였습니다.
+
+
+## v1.3.69 Dock Action Target Fix
 
 - Dock의 `마스터링` 버튼이 토스트만 띄우고 실제 렌더로 진입하지 못하던 경로를 보강했습니다.
 - Dock 버튼 실행 기준을 내부 선택 상태(`selectedId`)가 아니라 실제 Dock에 표시 중인 트랙으로 통일했습니다.
@@ -9,7 +16,7 @@
 - `masterTrack()`이 조용히 return하지 않고 Dock에서 시작 실패를 감지할 수 있도록 결과값을 반환합니다.
 - 파일열기 도움말을 다양한 코덱 지원 문구로 보강했습니다.
 - `qa/dock_action_runtime_fix_smoke.js`를 추가하고 `npm run check`에 포함했습니다.
-- 앱/SW 캐시 키와 SRI 해시를 `v1.3.68-dock-action-runtime-fix`로 갱신했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.69-dock-action-target-fix`로 갱신했습니다.
 
 ## v1.3.66 Dock Mastering / Player Order Fix
 

@@ -1,6 +1,6 @@
-# FoxBear Mastering Studio Pro v1.3.68
+# FoxBear Mastering Studio Pro v1.3.69
 
-## Dock Action Runtime Fix
+## Dock Action Target Fix
 
 ### Fixed
 - 하단 Dock의 `마스터링` 버튼이 `선택한 곡을 마스터링합니다` 토스트만 띄우고 실제 렌더 단계로 진입하지 못할 수 있던 경로를 수정했습니다.

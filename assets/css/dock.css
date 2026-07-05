@@ -359,7 +359,7 @@ body.bottom-preview-active .processing-hud {
 }
 
 
-/* v1.3.68 Dock mastering click path and player-under-peak layout */
+/* v1.3.69 Dock mastering click path and player-under-peak layout */
 .bottom-preview-waveform {
   order: 1;
 }
@@ -393,7 +393,7 @@ body.bottom-preview-active .processing-hud {
 }
 
 
-/* v1.3.68 Dock action row: keep all four primary buttons on one line */
+/* v1.3.69 Dock action row: keep all four primary buttons on one line */
 .bottom-preview-controls {
   flex-wrap: nowrap !important;
   overflow-x: auto !important;

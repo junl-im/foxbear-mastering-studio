@@ -9313,7 +9313,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.68 Dock/import init cleanup */
+/* v1.3.69 Dock/import init cleanup */
 .import-status {
     margin: 8px 2px 0;
     padding: 8px 10px;
@@ -9376,7 +9376,7 @@ input[type="file"].hidden.native-picker-input {
     }
 }
 
-/* v1.3.68 Dock/import init cleanup */
+/* v1.3.69 Dock/import init cleanup */
 .bottom-preview-controls {
     display: flex !important;
     align-items: center !important;
@@ -9439,7 +9439,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.68 Dock player order: waveform peak -> player bar -> environment -> actions */
+/* v1.3.69 Dock player order: waveform peak -> player bar -> environment -> actions */
 .bottom-preview-waveform { order: 1; }
 .bottom-preview-player { order: 2; position: relative; z-index: 1; margin-top: 2px; }
 .bottom-preview-translation-modes { order: 3; }
@@ -9448,7 +9448,7 @@ input[type="file"].hidden.native-picker-input {
 .bottom-preview-tab { position: relative; z-index: 4; pointer-events: auto; }
 
 
-/* v1.3.68 Dock actions single-line compact layout */
+/* v1.3.69 Dock actions single-line compact layout */
 .bottom-preview-controls {
     display: flex !important;
     flex-direction: row !important;

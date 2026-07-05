@@ -10,7 +10,7 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.3.68'"), 'app version should be v1.3.68');
+must(app.includes("const APP_VERSION = 'Pro v1.3.69'"), 'app version should be v1.3.69');
 must(state.includes('abDifferenceListen: false'), 'abDifferenceListen state missing');
 must(app.includes('function createDifferencePreviewPlayer'), 'difference player function missing for full comparison UI');
 must(app.includes('createMediaElementSource(originalAudio)'), 'difference WebAudio original source missing');
