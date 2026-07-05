@@ -47,7 +47,7 @@
       "files": [
         {
           "name": "audio",
-          "accept": ["audio/*", "video/mp4", ".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aac", ".aif", ".aiff", ".webm", ".mp4", ".m4v", ".mov"]
+          "accept": ["audio/*", "video/mp4", "video/quicktime", "video/3gpp", "application/ogg", ".wav", ".wave", ".mp3", ".mpeg", ".mpga", ".flac", ".ogg", ".oga", ".opus", ".m4a", ".aac", ".aif", ".aiff", ".aifc", ".caf", ".webm", ".weba", ".mp4", ".m4v", ".mov", ".3gp", ".3gpp", ".3g2", ".amr", ".wma"]
         }
       ]
     }

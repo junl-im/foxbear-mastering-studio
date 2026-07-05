@@ -1,3 +1,11 @@
+
+## v1.3.57 Dock Waveform Sync + Broad Audio Import
+- Dock 파형 LIVE 위치를 실제 막대 중심 좌표에 맞춰 정렬.
+- Dock/팝업 파형 터치 시 같은 좌표 변환으로 해당 구간 재생.
+- WAV/MP3/M4A/AAC/FLAC/OGG/OPUS/WEBM/AIFF/CAF/MP4/MOV/3GP/AMR/WMA 계열 입력 시도 범위 확대.
+- 미지원 코덱은 브라우저별 decode 실패 안내로 안전 처리.
+- `dock_waveform_import_1357_smoke.js` 추가.
+
 # FoxBear Pro v1.3.53 QA Report
 
 ## Pro v1.3.53 Mega Stabilization Pack

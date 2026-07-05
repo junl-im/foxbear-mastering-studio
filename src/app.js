@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.56 - file folder open hotfix and dock waveform sync
+// FoxBear AI Mastering Studio Pro v1.3.57 - dock waveform aligned touch seek and broad audio import
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.56';
+const APP_VERSION = 'Pro v1.3.57';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -33,14 +33,18 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1356';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1357';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.56-file-folder-open';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.57-waveform-import';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
-const AUDIO_EXTENSIONS = ['.wav', '.mp3', '.flac', '.ogg', '.m4a', '.aac', '.aif', '.aiff', '.webm', '.mp4', '.m4v', '.mov'];
-const VIDEO_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov'];
+const CORE_AUDIO_EXTENSIONS = ['.wav', '.wave', '.mp3', '.mpeg', '.mpga', '.flac', '.ogg', '.oga', '.opus', '.m4a', '.aac', '.webm', '.weba', '.aif', '.aiff', '.aifc', '.caf'];
+const CONTAINER_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'];
+const EXPERIMENTAL_AUDIO_EXTENSIONS = ['.amr', '.wma'];
+const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
+const VIDEO_AUDIO_EXTENSIONS = CONTAINER_AUDIO_EXTENSIONS;
+const AUDIO_IMPORT_ACCEPT = [...AUDIO_EXTENSIONS, 'audio/*', 'video/mp4', 'video/quicktime', 'video/3gpp', 'application/ogg'].join(',');
 const DEFAULT_TRANSFORM = { pitchSemitones: 0, speedRatio: 1, snapSemitone: true, beatPreset: 'original' };
 const DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' };
 
@@ -328,7 +332,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.56';
+    styleLink.href = 'assets/css/studio.css?v=1.3.57';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2429,13 +2433,7 @@ function seekDockToWaveformPercent(percent, options = {}) {
 }
 
 function getWaveformPointerPercent(event, element) {
-    const target = element || event?.currentTarget || event?.target;
-    if (!target || typeof target.getBoundingClientRect !== 'function') return NaN;
-    const rect = target.getBoundingClientRect();
-    if (!rect.width) return NaN;
-    const x = Number(event?.clientX ?? event?.touches?.[0]?.clientX ?? event?.changedTouches?.[0]?.clientX);
-    if (!Number.isFinite(x)) return NaN;
-    return clamp((x - rect.left) / rect.width * 100, 0, 100);
+    return mapWaveformPointerToAudioPercent(event, element);
 }
 
 function onWaveformBarsSeek(event) {
@@ -2443,10 +2441,23 @@ function onWaveformBarsSeek(event) {
     event.preventDefault();
     event.stopPropagation();
     const bars = event.currentTarget;
+    if (Date.now() - Number(bars?.dataset?.lastPointerSeekAt || 0) < 360) return;
     const pct = getWaveformPointerPercent(event, bars);
     if (!Number.isFinite(pct)) return;
     const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
     seekDockToWaveformPercent(pct, { mode, play: true, source: bars?.dataset?.waveformRole || 'waveform' });
+}
+
+function onWaveformBarsPointerSeek(event) {
+    if (!event || event.pointerType === 'mouse' || event.button > 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const bars = event.currentTarget;
+    bars.dataset.lastPointerSeekAt = String(Date.now());
+    const pct = getWaveformPointerPercent(event, bars);
+    if (!Number.isFinite(pct)) return;
+    const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
+    seekDockToWaveformPercent(pct, { mode, play: true, source: bars?.dataset?.waveformRole || 'waveform-touch' });
 }
 
 function onWaveformBarsKeySeek(event) {
@@ -2471,6 +2482,7 @@ function attachWaveformSeekHandlers(bars, mode = state.bottomPreviewMode, role =
     bars.setAttribute('tabindex', '0');
     bars.setAttribute('aria-label', '파형을 눌러 해당 구간부터 재생');
     bars.title = '파형을 누르면 해당 구간부터 재생됩니다.';
+    bars.addEventListener('pointerdown', onWaveformBarsPointerSeek);
     bars.addEventListener('click', onWaveformBarsSeek);
     bars.addEventListener('keydown', onWaveformBarsKeySeek);
 }
@@ -2582,7 +2594,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.56-dock-waveform-sync');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.57-waveform-import');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3222,12 +3234,15 @@ function activateByKeyboard(event, callback) {
     }
 }
 
-const FOXBEAR_UPLOAD_ACCEPT = 'audio/*,video/mp4,.wav,.mp3,.flac,.ogg,.m4a,.aac,.aif,.aiff,.webm,.mp4,.m4v,.mov';
+const FOXBEAR_UPLOAD_ACCEPT = AUDIO_IMPORT_ACCEPT;
 const FOXBEAR_FILE_PICKER_TYPES = [{
-    description: 'FoxBear 지원 오디오 파일',
+    description: 'FoxBear 지원/시도 오디오 파일',
     accept: {
-        'audio/*': ['.wav', '.mp3', '.flac', '.ogg', '.m4a', '.aac', '.aif', '.aiff', '.webm'],
-        'video/mp4': ['.mp4', '.m4v', '.mov']
+        'audio/*': CORE_AUDIO_EXTENSIONS.filter(ext => !['.mp4', '.m4v', '.mov'].includes(ext)),
+        'video/mp4': ['.mp4', '.m4v'],
+        'video/quicktime': ['.mov'],
+        'video/3gpp': ['.3gp', '.3gpp', '.3g2'],
+        'application/ogg': ['.ogg', '.oga', '.opus']
     }
 }];
 
@@ -3301,6 +3316,30 @@ function attachRelativePathToFile(file, relativePath) {
         // 일부 브라우저는 readonly 속성 재정의를 막습니다. 파일 자체는 그대로 처리합니다.
     }
     return file;
+}
+
+function getFileExtension(fileOrName = '') {
+    const name = typeof fileOrName === 'string' ? fileOrName : (fileOrName?.name || '');
+    const match = String(name || '').toLowerCase().match(/\.[a-z0-9]+$/);
+    return match ? match[0] : '';
+}
+
+function getAudioImportSupportLabel(fileOrName = '') {
+    const ext = getFileExtension(fileOrName);
+    if (!ext) return '확장자 없음';
+    if (CORE_AUDIO_EXTENSIONS.includes(ext)) return '권장 입력';
+    if (CONTAINER_AUDIO_EXTENSIONS.includes(ext)) return '컨테이너 입력';
+    if (EXPERIMENTAL_AUDIO_EXTENSIONS.includes(ext)) return '실험적 입력';
+    return '미확인 입력';
+}
+
+function getAudioImportDecodeHint(fileOrName = '') {
+    const ext = getFileExtension(fileOrName);
+    if (['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'].includes(ext)) return ' 영상 컨테이너는 AAC/ALAC 등 브라우저가 디코딩 가능한 오디오 트랙이 있을 때만 분석됩니다.';
+    if (['.amr', '.wma'].includes(ext)) return ' 이 형식은 모바일/브라우저에 따라 디코딩이 제한될 수 있어 WAV/MP3/M4A 변환을 권장합니다.';
+    if (['.aif', '.aiff', '.aifc', '.caf'].includes(ext)) return ' AIFF/CAF는 Safari 계열에서 더 잘 열릴 수 있으며, 브라우저별 지원 차이가 있습니다.';
+    if (['.opus', '.oga', '.ogg'].includes(ext)) return ' OGG/Opus는 일부 Safari 환경에서 제한될 수 있습니다.';
+    return '';
 }
 
 async function collectFilesFromDirectoryHandle(directoryHandle, prefix = '', out = []) {
@@ -3428,15 +3467,22 @@ async function handleFiles(fileList) {
 }
 
 function validateAudioFile(file) {
-    const lower = file.name.toLowerCase();
-    const hasAudioType = file.type ? file.type.startsWith('audio/') : false;
-    const hasVideoAudioType = file.type ? file.type === 'video/mp4' || file.type === 'video/quicktime' || file.type.startsWith('video/') : false;
+    const lower = String(file?.name || '').toLowerCase();
+    const type = String(file?.type || '').toLowerCase();
+    const hasAudioType = Boolean(type && (type.startsWith('audio/') || type === 'application/ogg' || type === 'application/octet-stream'));
+    const hasVideoAudioType = Boolean(type && (type === 'video/mp4' || type === 'video/quicktime' || type === 'video/3gpp' || type.startsWith('video/')));
     const hasAudioExt = AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
     const hasVideoAudioExt = VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
-    if (!hasAudioType && !hasAudioExt && !(hasVideoAudioType && hasVideoAudioExt)) return { ok: false, reason: '지원 입력 형식이 아닙니다. WAV/MP3/FLAC/OGG/M4A/AAC/WEBM/MP4 계열을 권장합니다.' };
+    if (!hasAudioType && !hasAudioExt && !(hasVideoAudioType && hasVideoAudioExt)) {
+        return { ok: false, reason: '지원 입력 형식이 아닙니다. WAV/MP3/M4A/AAC/FLAC/OGG/OPUS/WEBM/AIFF/CAF/MP4/MOV/3GP 계열을 시도할 수 있습니다.' };
+    }
     if (file.size <= 0) return { ok: false, reason: '빈 파일입니다.' };
     if (file.size > MAX_FILE_SIZE) return { ok: false, reason: `파일이 너무 큽니다. 최대 ${formatBytes(MAX_FILE_SIZE)}까지 권장합니다.` };
-    return { ok: true };
+    const label = getAudioImportSupportLabel(file);
+    if (label === '실험적 입력') {
+        console.info('Experimental audio import selected:', file.name, getAudioImportDecodeHint(file));
+    }
+    return { ok: true, label };
 }
 
 function createTrack(file) {
@@ -3552,9 +3598,8 @@ async function decodeAudio(file) {
     try {
         return await audioContext.decodeAudioData(arrayBuffer);
     } catch (error) {
-        const lower = String(file?.name || '').toLowerCase();
-        const mp4Hint = VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext)) ? ' MP4는 브라우저가 지원하는 AAC/오디오 트랙일 때만 불러올 수 있습니다.' : '';
-        throw new Error('오디오 파일 복원에 실패했습니다. 손상되었거나 브라우저 미지원 코덱일 수 있습니다.' + mp4Hint);
+        const decodeHint = getAudioImportDecodeHint(file);
+        throw new Error('오디오 파일 복원에 실패했습니다. 손상되었거나 이 브라우저가 해당 코덱을 디코딩하지 못할 수 있습니다.' + decodeHint);
     } finally {
         if (audioContext.close) await audioContext.close().catch(() => {});
     }
@@ -11213,6 +11258,8 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     const values = hasValues ? payload.values : new Array(DOCK_WAVEFORM_BINS).fill(0.06);
     values.forEach((value, index) => {
         const bar = document.createElement('i');
+        bar.dataset.waveformIndex = String(index);
+        bar.dataset.waveformPercent = String(values.length > 1 ? Math.round(index / (values.length - 1) * 1000) / 10 : 0);
         const marker = payload.markers?.[index] || 'ok';
         bar.className = `bottom-waveform-bar bottom-waveform-${marker}`;
         bar.style.height = `${Math.max(9, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
@@ -11236,15 +11283,59 @@ function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomP
     return clamp(position / basis * 100, 0, 100);
 }
 
+
+function getWaveformBarElements(element) {
+    if (!element || typeof element.querySelectorAll !== 'function') return [];
+    return Array.from(element.querySelectorAll('i'));
+}
+
+function mapAudioPercentToWaveformVisualPercent(element, percent) {
+    const pct = clamp(Number(percent), 0, 100);
+    const bars = getWaveformBarElements(element);
+    if (!bars.length || typeof element.getBoundingClientRect !== 'function') return pct;
+    const index = bars.length <= 1 ? 0 : Math.round(pct / 100 * (bars.length - 1));
+    const bar = bars[clamp(index, 0, bars.length - 1)];
+    const rootRect = element.getBoundingClientRect();
+    const barRect = bar?.getBoundingClientRect?.();
+    if (!rootRect.width || !barRect?.width) return pct;
+    return clamp(((barRect.left + barRect.width / 2) - rootRect.left) / rootRect.width * 100, 0, 100);
+}
+
+function mapWaveformPointerToAudioPercent(event, element) {
+    const target = element || event?.currentTarget || event?.target;
+    if (!target || typeof target.getBoundingClientRect !== 'function') return NaN;
+    const x = Number(event?.clientX ?? event?.touches?.[0]?.clientX ?? event?.changedTouches?.[0]?.clientX);
+    if (!Number.isFinite(x)) return NaN;
+    const bars = getWaveformBarElements(target);
+    if (bars.length) {
+        let bestIndex = 0;
+        let bestDistance = Infinity;
+        bars.forEach((bar, index) => {
+            const rect = bar.getBoundingClientRect?.();
+            if (!rect || !Number.isFinite(rect.left)) return;
+            const center = rect.left + rect.width / 2;
+            const distance = Math.abs(x - center);
+            if (distance < bestDistance) { bestDistance = distance; bestIndex = index; }
+        });
+        return bars.length > 1 ? clamp(bestIndex / (bars.length - 1) * 100, 0, 100) : 0;
+    }
+    const rect = target.getBoundingClientRect();
+    if (!rect.width) return NaN;
+    return clamp((x - rect.left) / rect.width * 100, 0, 100);
+}
+
 function setPlayheadOnElement(element, percent, playing = false) {
     if (!element) return;
     if (!Number.isFinite(Number(percent))) {
         element.classList.remove('has-live-playhead', 'is-playing');
         element.style.removeProperty('--waveform-playhead-pct');
+        delete element.dataset.waveformPlaybackPercent;
         return;
     }
     const pct = clamp(Number(percent), 0, 100);
-    element.style.setProperty('--waveform-playhead-pct', `${pct}%`);
+    const visualPct = mapAudioPercentToWaveformVisualPercent(element, pct);
+    element.dataset.waveformPlaybackPercent = String(Math.round(pct * 10) / 10);
+    element.style.setProperty('--waveform-playhead-pct', `${visualPct}%`);
     element.classList.add('has-live-playhead');
     element.classList.toggle('is-playing', Boolean(playing));
 }
@@ -11327,12 +11418,16 @@ function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '',
         bars.classList.add('empty');
         for (let i = 0; i < 96; i += 1) {
             const bar = document.createElement('i');
+            bar.dataset.waveformIndex = String(i);
+            bar.dataset.waveformPercent = String(Math.round(i / 95 * 1000) / 10);
             bar.style.height = '8%';
             bars.appendChild(bar);
         }
     } else {
         normalized.forEach((value, index) => {
             const bar = document.createElement('i');
+            bar.dataset.waveformIndex = String(index);
+            bar.dataset.waveformPercent = String(normalized.length > 1 ? Math.round(index / (normalized.length - 1) * 1000) / 10 : 0);
             const marker = markers[index] || (Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'));
             bar.className = `waveform-bar waveform-${marker}`;
             bar.style.height = `${Math.max(5, Math.round(clamp(value, 0, 1) * 100))}%`;
@@ -12907,7 +13002,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.56',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.57',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

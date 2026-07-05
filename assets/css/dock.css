@@ -298,3 +298,26 @@ body.bottom-preview-active .processing-hud {
     height: 6px;
   }
 }
+
+/* v1.3.57 Dock waveform aligned touch seek */
+.bottom-waveform-bars,
+.waveform-compare-bars {
+  --waveform-playhead-pct: 0%;
+  touch-action: none;
+}
+.bottom-waveform-bars i,
+.waveform-compare-bars i {
+  pointer-events: none;
+}
+.bottom-waveform-bars[data-waveform-playback-percent]::after,
+.waveform-compare-bars[data-waveform-playback-percent]::after {
+  left: var(--waveform-playhead-pct, 0%) !important;
+}
+.bottom-waveform-bars:active,
+.waveform-compare-bars:active {
+  filter: brightness(1.12) saturate(1.08);
+}
+.waveform-compare-hint::after {
+  content: ' 막대 중심 기준으로 이동해 Dock/팝업 위치가 같은 구간에 맞춰집니다.';
+  color: rgba(234,246,255,.72);
+}

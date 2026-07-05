@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.56 service worker
+// FoxBear AI Mastering Studio Pro v1.3.57 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.56-file-folder-open';
+const CACHE_NAME = 'foxbear-shell-v1.3.57-waveform-import';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
