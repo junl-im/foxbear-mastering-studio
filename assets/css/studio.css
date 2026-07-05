@@ -9313,7 +9313,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.66 Dock/import init cleanup */
+/* v1.3.67 Dock/import init cleanup */
 .import-status {
     margin: 8px 2px 0;
     padding: 8px 10px;
@@ -9376,7 +9376,7 @@ input[type="file"].hidden.native-picker-input {
     }
 }
 
-/* v1.3.66 Dock/import init cleanup */
+/* v1.3.67 Dock/import init cleanup */
 .bottom-preview-controls {
     display: flex !important;
     align-items: center !important;
@@ -9439,10 +9439,106 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.66 Dock player order: waveform peak -> player bar -> environment -> actions */
+/* v1.3.67 Dock player order: waveform peak -> player bar -> environment -> actions */
 .bottom-preview-waveform { order: 1; }
 .bottom-preview-player { order: 2; position: relative; z-index: 1; margin-top: 2px; }
 .bottom-preview-translation-modes { order: 3; }
 .bottom-preview-controls { order: 4; position: relative; z-index: 3; }
 .bottom-preview-master-btn,
 .bottom-preview-tab { position: relative; z-index: 4; pointer-events: auto; }
+
+
+/* v1.3.67 Dock actions single-line compact layout */
+.bottom-preview-controls {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: clamp(8px, 2vw, 18px) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+}
+.bottom-preview-controls::-webkit-scrollbar { display: none !important; }
+.bottom-preview-action-group {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    width: auto !important;
+    min-width: max-content !important;
+    flex: 0 0 auto !important;
+}
+.bottom-preview-action-left {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    margin: 0 !important;
+}
+.bottom-preview-action-right {
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+.bottom-preview-action-right.bottom-preview-tabs {
+    display: inline-flex !important;
+    flex-wrap: nowrap !important;
+    width: auto !important;
+    min-width: max-content !important;
+    flex: 0 0 auto !important;
+}
+.bottom-preview-master-btn,
+.bottom-preview-tab {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    white-space: nowrap !important;
+    padding-left: clamp(8px, 1.7vw, 13px) !important;
+    padding-right: clamp(8px, 1.7vw, 13px) !important;
+    font-size: clamp(.66rem, 1.9vw, .78rem) !important;
+    letter-spacing: -.025em !important;
+}
+.bottom-preview-master-preview-btn {
+    min-width: max-content !important;
+}
+@media (max-width: 760px) {
+    .bottom-preview-controls {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 7px !important;
+        padding-bottom: 1px !important;
+    }
+    .bottom-preview-action-left,
+    .bottom-preview-action-right {
+        width: auto !important;
+        min-width: max-content !important;
+        flex: 0 0 auto !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .bottom-preview-action-left { gap: 4px !important; }
+    .bottom-preview-action-right { gap: 6px !important; margin-left: auto !important; }
+    .bottom-preview-master-btn,
+    .bottom-preview-tab {
+        padding: 6px 8px !important;
+        min-height: 32px !important;
+        font-size: clamp(.6rem, 2.7vw, .68rem) !important;
+        line-height: 1.05 !important;
+    }
+}
+@media (max-width: 380px) {
+    .bottom-preview-controls { gap: 5px !important; }
+    .bottom-preview-action-left { gap: 3px !important; }
+    .bottom-preview-action-right { gap: 4px !important; }
+    .bottom-preview-master-btn,
+    .bottom-preview-tab {
+        padding: 5px 6px !important;
+        min-height: 30px !important;
+        font-size: .58rem !important;
+    }
+}

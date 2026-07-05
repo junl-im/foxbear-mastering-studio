@@ -359,7 +359,7 @@ body.bottom-preview-active .processing-hud {
 }
 
 
-/* v1.3.66 Dock mastering click path and player-under-peak layout */
+/* v1.3.67 Dock mastering click path and player-under-peak layout */
 .bottom-preview-waveform {
   order: 1;
 }
@@ -390,4 +390,24 @@ body.bottom-preview-active .processing-hud {
   .bottom-preview-player {
     margin-top: 0;
   }
+}
+
+
+/* v1.3.67 Dock action row: keep all four primary buttons on one line */
+.bottom-preview-controls {
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+}
+.bottom-preview-controls::-webkit-scrollbar { display: none !important; }
+.bottom-preview-action-left,
+.bottom-preview-action-right {
+  flex-wrap: nowrap !important;
+  min-width: max-content !important;
+}
+.bottom-preview-master-btn,
+.bottom-preview-tab {
+  width: auto !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
 }

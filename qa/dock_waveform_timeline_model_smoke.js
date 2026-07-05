@@ -11,8 +11,8 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const dockCss = fs.readFileSync('assets/css/dock.css', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 
-must(app.includes("const APP_VERSION = 'Pro v1.3.66'"), 'app version should be v1.3.66');
-must(html.includes('data-build="1.3.66"'), 'index build should be v1.3.66');
+must(app.includes("const APP_VERSION = 'Pro v1.3.67'"), 'app version should be v1.3.67');
+must(html.includes('data-build="1.3.67"'), 'index build should be v1.3.67');
 must(app.includes('function getWaveformTimelineModel'), 'timeline model helper missing');
 must(app.includes('model.plotLeft + model.plotWidth * (pct / 100)'), 'continuous visual playhead mapping missing');
 must(app.includes('(x - model.plotLeft) / Math.max(1, model.plotWidth)'), 'continuous pointer mapping missing');

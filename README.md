@@ -1,4 +1,10 @@
-# FoxBear AI Mastering Studio Pro v1.3.66
+# FoxBear AI Mastering Studio Pro v1.3.67
+
+## v1.3.67 Dock Single-Line Actions Layout Fix
+
+- Dock의 `마스터링`, `추천구간 미리듣기`, `원곡 프리뷰`, `마스터링 프리뷰` 4개 버튼을 같은 줄에 유지합니다.
+- 버튼 폭을 글자 길이에 맞게 줄이고, 좌측/우측 그룹 정렬을 유지했습니다.
+- 모바일에서도 먼저 한 줄을 유지하고, 극단적으로 좁은 화면에서만 가로 스크롤 fallback을 사용합니다.
 
 ## v1.3.66 Dock Mastering / Player Order Fix
 
