@@ -23,8 +23,8 @@ must(app.includes('clickNativeFileInput'), 'native input click fallback missing'
 must(css.includes('input[type="file"].hidden'), 'file input mobile hidden override missing');
 must(!css.match(/input\[type="file"\]\.hidden[\s\S]{0,220}display:\s*none/i), 'file input still force-hidden in hotfix block');
 must(html.includes('id="fileInput"') && html.includes('id="folderInput"'), 'file/folder inputs missing');
-must(/<label id="fileDrop"[^>]*for="fileInput"/.test(html), 'file label direct native picker path missing');
-must(/<label id="folderDrop"[^>]*for="folderInput"/.test(html), 'folder label direct native picker path missing');
+must(/<label id="fileDrop"[\s\S]*?<input type="file" id="fileInput"/.test(html), 'file label nested native picker path missing');
+must(/<label id="folderDrop"[\s\S]*?<input type="file" id="folderInput"/.test(html), 'folder label nested native picker path missing');
 must(html.includes('webkitdirectory') && html.includes('directory'), 'folder input directory attributes missing');
 must(sw.includes('networkFirst(request)'), 'service worker navigation network-first update missing');
 must(sw.includes('staleWhileRevalidate(request)'), 'service worker stale-while-revalidate missing');

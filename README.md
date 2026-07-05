@@ -1,4 +1,14 @@
-# FoxBear AI Mastering Studio Pro v1.3.63
+# FoxBear AI Mastering Studio Pro v1.3.64
+
+## v1.3.64 Kakao / In-App Upload Rootfix
+- 파일열기/폴더열기 타일 안에 실제 `<input type="file">`을 투명 오버레이로 넣어 카카오톡/Android WebView/Safari/PWA에서도 사용자 탭이 네이티브 파일 입력으로 직접 연결되도록 수정했습니다.
+- 불러오기 영역 하단에 import 상태 표시줄을 추가해 앱 준비, 선택기 열림, 파일 전달, 오류 상태가 화면에 바로 보이도록 했습니다.
+- 파일 선택기가 닫혔는데 `change` 이벤트가 오지 않는 인앱 브라우저 상황을 감지해 외부 브라우저 안내를 표시합니다.
+- 앱 초기화 중 일부 UI 오류가 나도 파일 input change handler는 비상 바인딩되도록 fallback을 추가했습니다.
+- 모바일 content provider가 파일명/MIME을 비워 보내는 경우에도 즉시 거절하지 않고 브라우저 디코더로 먼저 시도합니다.
+- 서비스워커의 JS/CSS/worker 로딩을 network-first로 바꿔 stale asset/SRI 불일치로 앱 JS가 막히는 문제를 줄였습니다.
+- `qa/kakao_upload_rootfix_smoke.js`를 추가하고 `npm run check`에 포함했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.64-kakao-upload-rootfix`로 갱신했습니다.
 
 ## v1.3.63 Loudness Target UI Cleanup
 - 라우드니스 타깃 선택 영역 아래에 별도로 노출되던 `곡별 Adaptive LUFS` 체크박스를 제거했습니다.

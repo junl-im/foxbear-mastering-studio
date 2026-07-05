@@ -8,8 +8,8 @@ function assert(condition, message) {
     process.exit(1);
   }
 }
-assert(/<label id="fileDrop"[^>]*for="fileInput"/.test(html), 'fileDrop must be a native label for fileInput');
-assert(/<label id="folderDrop"[^>]*for="folderInput"/.test(html), 'folderDrop must be a native label for folderInput');
+assert(/<label id="fileDrop"[\s\S]*?<input type="file" id="fileInput"/.test(html), 'fileDrop must contain native fileInput');
+assert(/<label id="folderDrop"[\s\S]*?<input type="file" id="folderInput"/.test(html), 'folderDrop must contain native folderInput');
 assert(/id="fileInput"[^>]*class="[^"]*native-picker-input/.test(html), 'fileInput must use native-picker-input class');
 assert(/id="folderInput"[^>]*class="[^"]*native-picker-input/.test(html), 'folderInput must use native-picker-input class');
 assert(app.includes('function bindNativeUploadLabel'), 'native label binding helper missing');

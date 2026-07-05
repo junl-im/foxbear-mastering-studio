@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.63 service worker
+// FoxBear AI Mastering Studio Pro v1.3.64 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.63-loudness-ui';
+const CACHE_NAME = 'foxbear-shell-v1.3.64-kakao-upload-rootfix';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -40,6 +40,10 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+  if (['script', 'style', 'worker'].includes(request.destination) || /\.(?:js|css)(?:$|\?)/.test(url.pathname + url.search)) {
     event.respondWith(networkFirst(request));
     return;
   }

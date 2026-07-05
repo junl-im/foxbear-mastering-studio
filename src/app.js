@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.63 - loudness target UI cleanup
+// FoxBear AI Mastering Studio Pro v1.3.64 - Kakao upload rootfix
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.63';
+const APP_VERSION = 'Pro v1.3.64';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.63-loudness-ui';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.64-kakao-upload-rootfix';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -324,7 +324,9 @@ const PREVIEW_TRANSLATION_MODES = Object.freeze({
 
 
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', safeInit);
+window.addEventListener('error', event => reportBootOrImportError(event.error || event.message, '앱 실행 오류'));
+window.addEventListener('unhandledrejection', event => reportBootOrImportError(event.reason, '앱 비동기 오류'));
 
 function runSiteAccessGuard() {
     const allowedHosts = new Set(['junl-im.github.io', 'foxbear-music.web.app', 'foxbear-music.firebaseapp.com', 'localhost', '127.0.0.1', '0.0.0.0']);
@@ -348,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.63-loudness-ui';
+    styleLink.href = 'assets/css/studio.css?v=1.3.64-kakao-upload-rootfix';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -364,6 +366,38 @@ function renderSecurityMessage(titleText, ...lines) {
     });
     section.append(heading, paragraph);
     document.body.appendChild(section);
+}
+
+function safeInit() {
+    try {
+        init();
+        updateImportStatus('앱 준비 완료 · 카카오톡/인앱 브라우저는 파일 선택 후 이곳에 상태가 표시됩니다.', 'ready');
+    } catch (error) {
+        console.error('FoxBear init failed:', error);
+        try { cacheElements(); } catch (cacheError) {}
+        bindEmergencyUploadOnly();
+        updateImportStatus(`앱 초기화 중 오류가 발생했습니다. 새로고침 후 다시 시도하세요 · ${getErrorMessage(error)}`, 'error');
+        showToastSafe('앱 초기화 오류가 감지되었습니다. 새로고침 후 다시 시도하세요.');
+    }
+}
+
+function reportBootOrImportError(error, label = '앱 오류') {
+    const message = getErrorMessage(error, label);
+    console.warn(label, error);
+    updateImportStatus(`${label}: ${message}`, 'error');
+}
+
+function bindEmergencyUploadOnly() {
+    const fileInput = document.getElementById('fileInput');
+    const folderInput = document.getElementById('folderInput');
+    if (fileInput && !fileInput.dataset.emergencyBound) {
+        fileInput.dataset.emergencyBound = 'true';
+        fileInput.addEventListener('change', event => handleNativeInputFiles(event.target.files, 'file'));
+    }
+    if (folderInput && !folderInput.dataset.emergencyBound) {
+        folderInput.dataset.emergencyBound = 'true';
+        folderInput.addEventListener('change', event => handleNativeInputFiles(event.target.files, 'folder'));
+    }
 }
 
 function init() {
@@ -392,7 +426,7 @@ function init() {
 
 function cacheElements() {
     const ids = [
-        'fileDrop', 'folderDrop', 'fileInput', 'folderInput', 'featureDock', 'featureCount', 'featureOpenBtn', 'featureDialog', 'featureDialogClose', 'featureDialogList',
+        'fileDrop', 'folderDrop', 'fileInput', 'folderInput', 'importStatus', 'featureDock', 'featureCount', 'featureOpenBtn', 'featureDialog', 'featureDialogClose', 'featureDialogList',
         'genreSelect', 'confidenceText', 'intensityField', 'sliderFields', 'pitchSlider', 'speedSlider', 'pitchValue', 'speedValue',
         'pitchHint', 'speedHint', 'beatChangeSelect', 'beatValue', 'beatHint', 'keyReadout', 'tempoReadout', 'tempoPercent', 'snapSemitone', 'pitchSpeedBadge',
         'instrumentLayerSelect', 'instrumentAmountSelect', 'instrumentBadge', 'instrumentHint',
@@ -2688,7 +2722,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.63-loudness-ui');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.64-kakao-upload-rootfix');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2834,8 +2868,14 @@ function bindEvents() {
     if (el.fileDrop) setupDropZone(el.fileDrop);
     if (el.folderDrop) setupDropZone(el.folderDrop);
 
-    if (el.fileInput) el.fileInput.addEventListener('change', e => handleNativeInputFiles(e.target.files, 'file'));
-    if (el.folderInput) el.folderInput.addEventListener('change', e => handleNativeInputFiles(e.target.files, 'folder'));
+    if (el.fileInput) {
+        el.fileInput.addEventListener('input', e => markNativeInputChanged(e.target));
+        el.fileInput.addEventListener('change', e => handleNativeInputFiles(e.target.files, 'file'));
+    }
+    if (el.folderInput) {
+        el.folderInput.addEventListener('input', e => markNativeInputChanged(e.target));
+        el.folderInput.addEventListener('change', e => handleNativeInputFiles(e.target.files, 'folder'));
+    }
 
     el.genreSelect.addEventListener('change', () => {
         if (state.programmatic) return;
@@ -3350,24 +3390,62 @@ function supportsDirectoryInput(input = el.folderInput) {
     return Boolean(input && ('webkitdirectory' in input || 'directory' in input));
 }
 
+function updateImportStatus(message, tone = 'info') {
+    const target = (typeof el !== 'undefined' && el.importStatus) ? el.importStatus : document.getElementById('importStatus');
+    if (!target) return;
+    target.textContent = message || '';
+    target.dataset.tone = tone || 'info';
+}
+
+function showToastSafe(message) {
+    try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
+}
+
 function prepareNativeFileInput(input) {
     if (!input) return;
     try { input.value = ''; } catch (error) {}
     input.dataset.lastPickerRequestAt = String(Date.now());
+    input.dataset.lastPickerChanged = 'false';
+}
+
+function markNativeInputChanged(input) {
+    if (!input) return;
+    input.dataset.lastPickerChanged = 'true';
+    input.dataset.lastPickerChangedAt = String(Date.now());
+}
+
+function armPickerReturnWatch(input, label = '파일') {
+    if (!input || input.dataset.pickerWatchBound === 'true') return;
+    input.dataset.pickerWatchBound = 'true';
+    const check = () => {
+        const requestedAt = Number(input.dataset.lastPickerRequestAt || 0);
+        if (!requestedAt || input.dataset.lastPickerChanged === 'true') return;
+        const elapsed = Date.now() - requestedAt;
+        if (elapsed < 800) return;
+        updateImportStatus(`${label} 선택기가 닫혔지만 앱으로 전달된 파일이 없습니다. 카카오톡 인앱이면 우측 상단 메뉴에서 Chrome/Safari로 열어 다시 시도하거나, 파일명이 없는 음원은 다운로드 후 선택해주세요.`, 'warn');
+    };
+    window.addEventListener('focus', () => window.setTimeout(check, 450), { passive: true });
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) window.setTimeout(check, 450);
+    }, { passive: true });
 }
 
 function clickNativeFileInput(input, label = '파일') {
     if (!input) {
-        showToast(`${label} 선택기를 찾지 못했습니다. 페이지를 새로고침 후 다시 시도하세요.`);
+        showToastSafe(`${label} 선택기를 찾지 못했습니다. 페이지를 새로고침 후 다시 시도하세요.`);
+        updateImportStatus(`${label} 선택기를 찾지 못했습니다.`, 'error');
         return false;
     }
     prepareNativeFileInput(input);
+    armPickerReturnWatch(input, label);
+    updateImportStatus(`${label} 선택기를 여는 중입니다. 선택 후에도 반응이 없으면 카카오톡 메뉴의 외부 브라우저 열기를 사용하세요.`, 'active');
     try {
         input.click();
         return true;
     } catch (error) {
         console.warn('native file input click failed:', error);
-        showToast(`${label} 선택기를 열지 못했습니다. 브라우저 권한 또는 인앱 브라우저 제한을 확인하세요.`);
+        showToastSafe(`${label} 선택기를 열지 못했습니다. 브라우저 권한 또는 인앱 브라우저 제한을 확인하세요.`);
+        updateImportStatus(`${label} 선택기를 열지 못했습니다. 외부 브라우저에서 다시 시도하세요.`, 'error');
         return false;
     }
 }
@@ -3490,7 +3568,7 @@ function openUploadPicker(kind = 'file') {
         clickNativeFileInput(el.fileInput, '파일');
         return;
     }
-    // v1.3.63: 사용자 제스처 안에서 가장 안정적인 <input type="file"> 경로를 우선 사용합니다.
+    // v1.3.64: 사용자 제스처 안에서 가장 안정적인 <input type="file"> 경로를 우선 사용합니다.
     // showOpenFilePicker()는 일부 브라우저/인앱 환경에서 선택 후 File 객체 전달이 끊기거나,
     // 실패 후 fallback input.click()이 사용자 활성화 밖에서 막히는 사례가 있어 보조 경로로만 남깁니다.
     clickNativeFileInput(el.fileInput, '파일');
@@ -3499,23 +3577,34 @@ function openUploadPicker(kind = 'file') {
 function bindNativeUploadLabel(label, input, kind = 'file') {
     if (!label || !input) return;
     label.dataset.nativePickerBound = 'true';
-    label.addEventListener('pointerdown', () => {
+    input.dataset.nativePickerBound = 'true';
+    const labelText = kind === 'folder' ? '폴더' : '파일';
+    armPickerReturnWatch(input, labelText);
+
+    const prime = () => {
         label.classList.add('picker-active');
         foxBearHaptic('tap');
         prepareNativeFileInput(input);
+        updateImportStatus(`${labelText} 선택 대기 중 · 카카오톡/인앱 브라우저도 표준 파일 입력으로 처리합니다.`, 'active');
         window.setTimeout(() => label.classList.remove('picker-active'), 420);
-    }, { passive: true });
-    label.addEventListener('click', event => {
+    };
+
+    label.addEventListener('pointerdown', prime, { passive: true });
+    label.addEventListener('touchstart', prime, { passive: true });
+    input.addEventListener('click', () => {
         prepareNativeFileInput(input);
-        // v1.3.63: 마우스/터치 클릭은 label의 기본 for=input 동작을 절대 막지 않습니다.
-        // 이 경로가 Safari, iOS, Android WebView, GitHub Pages PWA에서 가장 일관적으로 change 이벤트를 발생시킵니다.
-        if (kind === 'folder' && !supportsDirectoryInput(input) && supportsSystemDirectoryPicker()) {
+        updateImportStatus(`${labelText} 선택기를 열었습니다.`, 'active');
+    });
+    label.addEventListener('click', event => {
+        // v1.3.64: 카카오톡/Android WebView 호환성을 위해 실제 input을 타일 위에 투명 오버레이합니다.
+        // 마우스/터치 클릭에서는 preventDefault()를 쓰지 않아 브라우저의 네이티브 파일 권한 흐름을 보존합니다.
+        if (kind === 'folder' && !supportsDirectoryInput(input) && supportsSystemDirectoryPicker() && event.target !== input) {
             event.preventDefault();
             openUploadPicker(kind);
             return;
         }
         if (kind === 'folder' && !supportsDirectoryInput(input)) {
-            showToast('이 브라우저는 폴더 선택을 제한할 수 있어 여러 파일 선택으로 대체될 수 있습니다.');
+            updateImportStatus('이 브라우저는 폴더 선택을 제한할 수 있어 여러 파일 선택으로 대체될 수 있습니다.', 'warn');
         }
     });
     label.addEventListener('keydown', event => {
@@ -3541,20 +3630,32 @@ function setupDropZone(zone) {
 
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
-    if (!count) return;
+    const input = kind === 'folder' ? el.folderInput : el.fileInput;
+    markNativeInputChanged(input);
+    if (!count) {
+        updateImportStatus('파일 선택이 취소되었거나 브라우저가 파일 정보를 전달하지 않았습니다.', 'warn');
+        return;
+    }
     try {
-        showToast(`${count}개 ${kind === 'folder' ? '폴더 항목' : '파일'} 선택됨 · 대기열 등록 중`);
+        const label = kind === 'folder' ? '폴더 항목' : '파일';
+        showToastSafe(`${count}개 ${label} 선택됨 · 대기열 등록 중`);
+        updateImportStatus(`${count}개 ${label} 선택됨 · 앱으로 전달 완료 · 분석 대기열 등록 중`, 'active');
         const result = await handleFiles(fileList);
-        if (!result?.added && !result?.invalid) showToast('선택한 항목에서 불러올 수 있는 오디오를 찾지 못했습니다.');
+        if (result?.added) updateImportStatus(`${result.added}개 트랙 등록 완료 · 디코딩/분석을 시작했습니다.`, 'ready');
+        else if (result?.invalid) updateImportStatus(`${result.invalid}개 항목을 열지 못했습니다. 파일명/코덱을 확인하거나 WAV/MP3/M4A로 변환해보세요.`, 'error');
+        else updateImportStatus('선택한 항목에서 불러올 수 있는 오디오를 찾지 못했습니다.', 'warn');
     } catch (error) {
         console.error('native input import failed:', error);
-        showToast(getErrorMessage(error, '파일을 불러오지 못했습니다.'));
+        const message = getErrorMessage(error, '파일을 불러오지 못했습니다.');
+        showToastSafe(message);
+        updateImportStatus(`${message} · 카카오톡 인앱이면 외부 브라우저로 열어 다시 시도하세요.`, 'error');
     }
 }
 
 async function handleFiles(fileList) {
     const incoming = Array.from(fileList || []).filter(Boolean);
     if (!incoming.length) return { added: 0, invalid: 0, limited: 0 };
+    updateImportStatus(`${incoming.length}개 항목 수신 · 파일 형식 확인 중`, 'active');
 
     if (state.tracks.length + incoming.length > MAX_FILES) {
         showToast(`최대 ${MAX_FILES}개까지만 추가할 수 있습니다.`);
@@ -3571,7 +3672,8 @@ async function handleFiles(fileList) {
         const validation = validateAudioFile(file);
         if (!validation.ok) {
             invalid += 1;
-            showToast(`${file.name || '선택 파일'}: ${validation.reason}`);
+            showToastSafe(`${file.name || '선택 파일'}: ${validation.reason}`);
+            updateImportStatus(`${file.name || '선택 파일'}: ${validation.reason}`, 'error');
             continue;
         }
         const track = createTrack(file);
@@ -3584,19 +3686,20 @@ async function handleFiles(fileList) {
             applyTrackToControls(track);
         }
         added += 1;
-        renderAll();
+        try { renderAll(); } catch (error) { reportBootOrImportError(error, '트랙 표시 오류'); }
         analyzeTrack(track).catch(error => {
             track.status = 'error';
             track.error = getErrorMessage(error, '분석 실패');
             track.report = track.error;
             renderAll();
-            showToast(`${track.name}: ${track.error}`);
+            showToastSafe(`${track.name}: ${track.error}`);
+            updateImportStatus(`${track.name}: ${track.error}`, 'error');
         });
     }
 
     clearFileInputs();
-    if (added) showToast(`${added}개 트랙 등록 완료. 오디오 디코딩/분석을 시작합니다.${skippedByLimit ? ` · ${skippedByLimit}개는 최대 개수 제한으로 제외` : ''}`);
-    else if (invalid) showToast('선택한 파일을 오디오로 인식하지 못했습니다. WAV/MP3/M4A/AAC/FLAC 파일로 다시 시도해주세요.');
+    if (added) showToastSafe(`${added}개 트랙 등록 완료. 오디오 디코딩/분석을 시작합니다.${skippedByLimit ? ` · ${skippedByLimit}개는 최대 개수 제한으로 제외` : ''}`);
+    else if (invalid) showToastSafe('선택한 파일을 오디오로 인식하지 못했습니다. WAV/MP3/M4A/AAC/FLAC 파일로 다시 시도해주세요.');
     return { added, invalid, limited: skippedByLimit };
 }
 
@@ -3607,10 +3710,15 @@ function validateAudioFile(file) {
     const hasVideoAudioType = Boolean(type && (type === 'video/mp4' || type === 'video/quicktime' || type === 'video/3gpp' || type.startsWith('video/')));
     const hasAudioExt = AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
     const hasVideoAudioExt = VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
+    if (file.size <= 0) return { ok: false, reason: '빈 파일입니다.' };
     if (!hasAudioType && !hasAudioExt && !(hasVideoAudioType && hasVideoAudioExt)) {
+        const missingNameOrType = !lower.includes('.') || !type || type === 'application/octet-stream';
+        if (missingNameOrType) {
+            console.info('Unknown file type selected; trying browser decoder:', file.name || '(no name)', file.type || '(no type)');
+            return { ok: true, label: '미확인 입력' };
+        }
         return { ok: false, reason: '지원 입력 형식이 아닙니다. WAV/MP3/M4A/AAC/FLAC/OGG/OPUS/WEBM/AIFF/CAF/MP4/MOV/3GP 계열을 시도할 수 있습니다.' };
     }
-    if (file.size <= 0) return { ok: false, reason: '빈 파일입니다.' };
     if (file.size > MAX_FILE_SIZE) return { ok: false, reason: `파일이 너무 큽니다. 최대 ${formatBytes(MAX_FILE_SIZE)}까지 권장합니다.` };
     const label = getAudioImportSupportLabel(file);
     if (label === '실험적 입력') {
@@ -13246,7 +13354,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.63',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.64',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -13448,8 +13556,17 @@ function timestampForFile() {
 }
 
 function showToast(message) {
-    el.toast.textContent = message;
-    el.toast.classList.add('show');
-    clearTimeout(state.lastToastTimer);
-    state.lastToastTimer = setTimeout(() => { el.toast.classList.remove('show'); }, 3200);
+    const target = (typeof el !== 'undefined' && el.toast) ? el.toast : document.getElementById('toast');
+    if (!target) {
+        console.info('toast:', message);
+        return;
+    }
+    target.textContent = message;
+    target.classList.add('show');
+    if (typeof state !== 'undefined') {
+        clearTimeout(state.lastToastTimer);
+        state.lastToastTimer = setTimeout(() => { target.classList.remove('show'); }, 3200);
+    } else {
+        setTimeout(() => { target.classList.remove('show'); }, 3200);
+    }
 }

@@ -9311,3 +9311,67 @@ input[type="file"].hidden.native-picker-input {
         font-size: .50rem;
     }
 }
+
+
+/* v1.3.64 Kakao/Android WebView upload rootfix */
+.import-status {
+    margin: 8px 2px 0;
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.035);
+    color: rgba(224,238,255,.72);
+    font-size: .66rem;
+    font-weight: 750;
+    line-height: 1.42;
+}
+.import-status[data-tone="active"] {
+    border-color: rgba(141,245,232,.32);
+    background: rgba(141,245,232,.07);
+    color: rgba(232,255,251,.88);
+}
+.import-status[data-tone="ready"] {
+    border-color: rgba(132,255,188,.30);
+    background: rgba(132,255,188,.065);
+    color: rgba(232,255,242,.88);
+}
+.import-status[data-tone="warn"] {
+    border-color: rgba(255,210,122,.32);
+    background: rgba(255,210,122,.07);
+    color: rgba(255,236,196,.9);
+}
+.import-status[data-tone="error"] {
+    border-color: rgba(255,119,119,.36);
+    background: rgba(255,119,119,.08);
+    color: rgba(255,220,220,.92);
+}
+.native-picker-label > input[type="file"].native-picker-input-overlay,
+.native-picker-label > input[type="file"].hidden.native-picker-input-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    opacity: .001 !important;
+    display: block !important;
+    overflow: hidden !important;
+    clip-path: none !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 3 !important;
+    font-size: 100px !important;
+}
+.native-picker-label > .native-picker-label-inner {
+    position: relative;
+    z-index: 1;
+}
+@media (max-width: 640px) {
+    .import-status {
+        font-size: .58rem;
+        padding: 7px 8px;
+    }
+}
