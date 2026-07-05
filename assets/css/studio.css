@@ -9313,7 +9313,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.64 Kakao/Android WebView upload rootfix */
+/* v1.3.65 Dock/import init cleanup */
 .import-status {
     margin: 8px 2px 0;
     padding: 8px 10px;
@@ -9373,5 +9373,67 @@ input[type="file"].hidden.native-picker-input {
     .import-status {
         font-size: .58rem;
         padding: 7px 8px;
+    }
+}
+
+/* v1.3.65 Dock/import init cleanup */
+.bottom-preview-controls {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 14px !important;
+    width: 100% !important;
+}
+.bottom-preview-action-group {
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
+.bottom-preview-action-left {
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    margin-right: auto !important;
+}
+.bottom-preview-action-right {
+    justify-content: flex-end !important;
+    gap: 10px !important;
+    margin-left: auto !important;
+}
+.bottom-preview-action-right.bottom-preview-tabs {
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+}
+.bottom-preview-control-gap {
+    display: none !important;
+}
+.bottom-preview-action-left .bottom-preview-master-btn,
+.bottom-preview-action-right .bottom-preview-tab {
+    white-space: nowrap !important;
+}
+.bottom-preview-master-preview-btn {
+    min-width: 132px !important;
+}
+@media (max-width: 760px) {
+    .bottom-preview-controls {
+        flex-wrap: wrap !important;
+        align-items: stretch !important;
+        gap: 8px !important;
+    }
+    .bottom-preview-action-left,
+    .bottom-preview-action-right {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    .bottom-preview-action-left {
+        justify-content: flex-start !important;
+    }
+    .bottom-preview-action-right {
+        justify-content: flex-end !important;
+        gap: 8px !important;
+    }
+    .bottom-preview-action-left .bottom-preview-master-btn,
+    .bottom-preview-action-right .bottom-preview-tab {
+        flex: 0 1 auto !important;
     }
 }

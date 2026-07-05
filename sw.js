@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.64 service worker
+// FoxBear AI Mastering Studio Pro v1.3.65 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.64-kakao-upload-rootfix';
+const CACHE_NAME = 'foxbear-shell-v1.3.65-dock-import-init-cleanup';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';

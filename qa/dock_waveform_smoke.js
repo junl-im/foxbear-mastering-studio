@@ -5,9 +5,9 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const css = fs.readFileSync('assets/css/studio.css', 'utf8');
 const requiredHtml = [
   'bottomPreviewWaveformBtn',
-  '마스터링 진행',
-  '결과 프리뷰',
-  '원본 프리뷰',
+  '마스터링',
+  '추천구간 미리듣기',
+  '원곡 프리뷰',
   '마스터링 프리뷰'
 ];
 for (const token of requiredHtml) {
