@@ -62,3 +62,8 @@ See `qa/QA_REPORT_MEGA_STABILIZATION_1.3.53.md`.
 - 결과 프리뷰는 로컬 15초 구간과 원본 절대 시간을 분리해 seek 위치가 밀리지 않도록 처리.
 - LIVE playhead CSS/JS 연결 검증 추가.
 - `qa/dock_waveform_touch_seek_smoke.js` 추가.
+## v1.3.58 Native File/Folder Picker Reliability
+- 파일열기/폴더열기 타일을 네이티브 `label for=input` 경로로 전환했습니다.
+- 모바일/인앱/PWA에서 programmatic input click이 제한되어도 사용자 탭이 직접 파일 선택기에 연결됩니다.
+- `qa/native_picker_reliability_smoke.js`를 추가했습니다.
+

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.57 - dock waveform aligned touch seek and broad audio import
+// FoxBear AI Mastering Studio Pro v1.3.58 - native file/folder picker reliability
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.57';
+const APP_VERSION = 'Pro v1.3.58';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -33,9 +33,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1357';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1358';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.57-waveform-import';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.58-native-picker';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -332,7 +332,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.57';
+    styleLink.href = 'assets/css/studio.css?v=1.3.58';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2594,7 +2594,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.57-waveform-import');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.58-native-picker');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2735,10 +2735,8 @@ function bindEvents() {
         if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog();
         if (event.key === 'Escape' && el.adminStatsDialog?.classList.contains('show')) closeAdminStatsDialog();
     });
-    if (el.fileDrop) el.fileDrop.addEventListener('click', () => openUploadPicker('file'));
-    if (el.folderDrop) el.folderDrop.addEventListener('click', () => openUploadPicker('folder'));
-    if (el.fileDrop) el.fileDrop.addEventListener('keydown', e => activateByKeyboard(e, () => openUploadPicker('file')));
-    if (el.folderDrop) el.folderDrop.addEventListener('keydown', e => activateByKeyboard(e, () => openUploadPicker('folder')));
+    bindNativeUploadLabel(el.fileDrop, el.fileInput, 'file');
+    bindNativeUploadLabel(el.folderDrop, el.folderInput, 'folder');
     if (el.fileDrop) setupDropZone(el.fileDrop);
     if (el.folderDrop) setupDropZone(el.folderDrop);
 
@@ -3411,6 +3409,31 @@ function openUploadPicker(kind = 'file') {
         return;
     }
     clickNativeFileInput(el.fileInput, '파일');
+}
+
+function bindNativeUploadLabel(label, input, kind = 'file') {
+    if (!label || !input) return;
+    label.dataset.nativePickerBound = 'true';
+    label.addEventListener('pointerdown', () => {
+        label.classList.add('picker-active');
+        foxBearHaptic('tap');
+        prepareNativeFileInput(input);
+        window.setTimeout(() => label.classList.remove('picker-active'), 420);
+    }, { passive: true });
+    label.addEventListener('click', () => {
+        // Do not preventDefault here. The label's native `for` activation is the most reliable
+        // path on mobile/iOS/in-app browsers because it keeps the file picker tied to the tap.
+        prepareNativeFileInput(input);
+        if (kind === 'folder' && !supportsDirectoryInput(input)) {
+            showToast('이 브라우저는 폴더 선택을 제한할 수 있어 여러 파일 선택으로 대체될 수 있습니다.');
+        }
+    });
+    label.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        prepareNativeFileInput(input);
+        clickNativeFileInput(input, kind === 'folder' ? '폴더' : '파일');
+    });
 }
 
 function setupDropZone(zone) {
@@ -13002,7 +13025,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.57',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.58',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -1,6 +1,13 @@
-# FoxBear AI Mastering Studio Pro v1.3.57
+# FoxBear AI Mastering Studio Pro v1.3.58
 
-## v1.3.57 Dock Waveform Sync + Broad Audio Import
+## v1.3.58 Native File/Folder Picker Reliability
+- 파일열기/폴더열기 타일을 `div role=button + JS click()` 방식에서 `label for=input` 네이티브 연결 방식으로 변경했습니다.
+- 모바일 Safari/카카오 인앱/PWA에서 숨겨진 input에 대한 programmatic click이 막혀도, 실제 사용자 탭이 파일 선택기에 직접 연결됩니다.
+- 키보드 Enter/Space 접근성은 기존 helper fallback으로 유지했습니다.
+- 파일/폴더 input의 accept 목록을 동일하게 맞춰 다양한 오디오/컨테이너 확장자를 계속 지원합니다.
+- Dock 파형 touch seek 패치는 유지했습니다.
+
+## v1.3.58 Dock Waveform Sync + Broad Audio Import
 - Dock 파형 LIVE 위치를 실제로 그려진 막대 중심 기준으로 정렬했습니다.
 - Dock 파형과 팝업 파형의 좌표 계산을 같은 함수로 통일했습니다.
 - Dock/팝업 파형을 터치하거나 클릭하면 해당 구간부터 Dock 플레이어가 바로 재생됩니다.
@@ -11,7 +18,7 @@
 
 Static local-first AI mastering studio build.
 
-## v1.3.57 Dock Waveform Sync / Touch Seek
+## v1.3.58 Dock Waveform Sync / Touch Seek
 - Smart Wake Lock for mastering/playback protection.
 - Haptic feedback for mobile taps, switches, completion and error states.
 - MediaSession metadata and lock-screen transport controls for Dock playback.
@@ -31,7 +38,7 @@ npm run check
 ```
 
 
-## v1.3.57 File/Folder Open Hotfix
+## v1.3.58 File/Folder Open Hotfix
 - 파일열기/폴더열기 버튼이 모바일/PWA/인앱 브라우저에서 실패하는 문제를 줄였습니다.
 - 지원 브라우저에서는 시스템 파일/폴더 선택기를 우선 사용합니다.
 - 폴더 선택 미지원 환경에서는 여러 파일 선택으로 대체합니다.
