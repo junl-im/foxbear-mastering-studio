@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.54 - dock player polish and progress reality
+// FoxBear AI Mastering Studio Pro v1.3.55 - mobile native UX pack
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.54';
+const APP_VERSION = 'Pro v1.3.55';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -33,9 +33,9 @@ const TRUSTED_SCRIPT_PATHS = Object.freeze([
 ]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
-const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1354';
+const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1355';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.54-dock-player-polish';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.55-mobile-native-ux';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -70,6 +70,18 @@ const QUALITY_GATE_RULES = {
 const WAVEFORM_OVERVIEW_BINS = 96;
 const DOCK_WAVEFORM_BINS = 72;
 const MASTER_PREVIEW_DURATION_SEC = 15;
+
+const MOBILE_NATIVE_IDB = 'foxbear-mobile-native-share-v1';
+const MOBILE_NATIVE_SHARE_STORE = 'sharedFiles';
+const MOBILE_NATIVE_SHARE_QUERY = 'foxbearSharedAudio';
+const MOBILE_NATIVE_HAPTIC_PATTERNS = Object.freeze({
+    tap: 8,
+    switch: 14,
+    success: [30, 40, 30],
+    error: [80, 40, 80],
+    download: [20, 20, 40],
+    complete: [35, 45, 35]
+});
 
 
 
@@ -316,7 +328,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.54';
+    styleLink.href = 'assets/css/studio.css?v=1.3.55';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -354,6 +366,7 @@ function init() {
     initUiGuards();
     installBottomPreviewLayoutObserver();
     scheduleBottomPreviewLayoutSync();
+    initMobileNativeUx();
     maybeShowSubscribePrompt();
 }
 
@@ -367,7 +380,7 @@ function cacheElements() {
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput', 'referenceStrengthSelect',
         'adaptiveLufsToggle',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
-        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -1858,6 +1871,695 @@ function formatAdminEventTime(value) {
     return date.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+
+function ensureMobileNativeState() {
+    if (!state.mobileNative) {
+        state.mobileNative = {
+            installed: false,
+            safeMode: false,
+            hapticsEnabled: true,
+            wakeLockDesired: false,
+            wakeLockActive: false,
+            wakeLockSentinel: null,
+            wakeLockBusy: false,
+            deferredInstallPrompt: null,
+            quickPanelOpen: false,
+            storagePersisted: null,
+            lastHapticAt: 0,
+            sharedLaunchHandled: false,
+            lastVisibilityHiddenAt: 0,
+            serviceWorkerReady: false,
+            badgeCount: 0,
+            pageRestoreToastAt: 0
+        };
+    }
+    return state.mobileNative;
+}
+
+function initMobileNativeUx() {
+    const nativeState = ensureMobileNativeState();
+    createMobileNativeLayer();
+    detectMobileSafeMode();
+    registerFoxBearServiceWorker();
+    installMobileNativeGlobalListeners();
+    processPwaShareTargetLaunch();
+    maybeRequestPersistentStorage(false);
+    updateMobileNativeUi();
+}
+
+function createMobileNativeLayer() {
+    if (!document.body || document.getElementById('mobileNativeLayer')) return;
+    const layer = document.createElement('div');
+    layer.id = 'mobileNativeLayer';
+    layer.className = 'mobile-native-layer';
+    layer.setAttribute('aria-live', 'polite');
+
+    const status = document.createElement('button');
+    status.id = 'mobileNativeStatus';
+    status.type = 'button';
+    status.className = 'mobile-native-status';
+    status.textContent = '앱 편의';
+    status.title = '모바일 앱 편의 기능 상태를 봅니다.';
+
+    const toggle = document.createElement('button');
+    toggle.id = 'mobileNativeQuickToggle';
+    toggle.type = 'button';
+    toggle.className = 'mobile-native-quick-toggle';
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-controls', 'mobileNativePanel');
+    toggle.textContent = '⚡';
+    toggle.title = '한손 퀵패널 열기';
+
+    const panel = document.createElement('section');
+    panel.id = 'mobileNativePanel';
+    panel.className = 'mobile-native-panel';
+    panel.setAttribute('aria-hidden', 'true');
+    panel.setAttribute('aria-label', '모바일 네이티브 편의 퀵패널');
+    panel.innerHTML = `
+        <div class="mobile-native-panel-head">
+            <strong>모바일 퀵패널</strong>
+            <button type="button" class="mobile-native-close" data-native-action="close" aria-label="퀵패널 닫기">×</button>
+        </div>
+        <div class="mobile-native-status-grid">
+            <span data-native-status="media">잠금화면 컨트롤 대기</span>
+            <span data-native-status="wake">화면유지 대기</span>
+            <span data-native-status="storage">저장소 확인 중</span>
+            <span data-native-status="safe">일반 모드</span>
+        </div>
+        <div class="mobile-native-action-grid" role="group" aria-label="재생 퀵 액션">
+            <button type="button" data-native-action="original">원본</button>
+            <button type="button" data-native-action="mastered">마스터</button>
+            <button type="button" data-native-action="phone">폰</button>
+            <button type="button" data-native-action="mono">모노</button>
+            <button type="button" data-native-action="peak">피크 점프</button>
+            <button type="button" data-native-action="download">다운로드</button>
+            <button type="button" data-native-action="share">공유</button>
+            <button type="button" data-native-action="install">앱 설치</button>
+        </div>
+        <div class="mobile-native-toggle-row">
+            <button type="button" data-native-action="wake">화면유지</button>
+            <button type="button" data-native-action="haptic">진동피드백</button>
+            <button type="button" data-native-action="persist">저장소보호</button>
+            <button type="button" data-native-action="restore">재생복구</button>
+        </div>
+        <p class="mobile-native-guide" data-native-guide>Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.</p>
+    `;
+    layer.append(status, toggle, panel);
+    document.body.appendChild(layer);
+    el.mobileNativeStatus = status;
+    el.mobileNativeQuickToggle = toggle;
+    el.mobileNativePanel = panel;
+}
+
+function bindMobileNativeEvents() {
+    createMobileNativeLayer();
+    if (el.mobileNativeQuickToggle) {
+        el.mobileNativeQuickToggle.addEventListener('click', () => toggleMobileNativePanel());
+    }
+    if (el.mobileNativeStatus) {
+        el.mobileNativeStatus.addEventListener('click', () => toggleMobileNativePanel(true));
+    }
+    if (el.mobileNativePanel) {
+        el.mobileNativePanel.addEventListener('click', event => {
+            const actionButton = event.target.closest('[data-native-action]');
+            if (!actionButton) return;
+            handleMobileNativeAction(actionButton.dataset.nativeAction);
+        });
+    }
+    installDockGestureLayer();
+}
+
+function installMobileNativeGlobalListeners() {
+    const nativeState = ensureMobileNativeState();
+    if (nativeState.listenersInstalled) return;
+    nativeState.listenersInstalled = true;
+    window.addEventListener('beforeinstallprompt', event => {
+        event.preventDefault();
+        ensureMobileNativeState().deferredInstallPrompt = event;
+        updateMobileNativeUi();
+        showToast('FoxBear를 홈 화면 앱처럼 설치할 수 있습니다. ⚡ 퀵패널에서 앱 설치를 누르세요.');
+    });
+    window.addEventListener('appinstalled', () => {
+        const mobile = ensureMobileNativeState();
+        mobile.installed = true;
+        mobile.deferredInstallPrompt = null;
+        foxBearHaptic('success');
+        updateMobileNativeUi();
+        showToast('FoxBear 앱 설치가 완료되었습니다.');
+    });
+    document.addEventListener('visibilitychange', handleMobileVisibilityChange, { passive: true });
+    window.addEventListener('pageshow', handleMobilePageShow, { passive: true });
+    document.body?.addEventListener('click', event => {
+        const target = event.target.closest('button, .upload-tile, input[type="range"], select');
+        if (target && !target.disabled) foxBearHaptic('tap');
+    }, true);
+}
+
+function installDockGestureLayer() {
+    const dock = el.bottomPreviewDock;
+    if (!dock || dock.dataset.nativeGestureBound === 'true') return;
+    dock.dataset.nativeGestureBound = 'true';
+    let startX = 0;
+    let startY = 0;
+    let startAt = 0;
+    dock.addEventListener('touchstart', event => {
+        const touch = event.touches && event.touches[0];
+        if (!touch) return;
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startAt = Date.now();
+    }, { passive: true });
+    dock.addEventListener('touchend', event => {
+        const touch = event.changedTouches && event.changedTouches[0];
+        if (!touch) return;
+        const dy = touch.clientY - startY;
+        const dx = Math.abs(touch.clientX - startX);
+        if (Date.now() - startAt < 700 && dy < -34 && dx < 90) {
+            toggleMobileNativePanel(true);
+            foxBearHaptic('switch');
+        }
+    }, { passive: true });
+}
+
+function toggleMobileNativePanel(forceOpen = null) {
+    const mobile = ensureMobileNativeState();
+    const next = forceOpen === null ? !mobile.quickPanelOpen : Boolean(forceOpen);
+    mobile.quickPanelOpen = next;
+    document.body.classList.toggle('mobile-native-panel-open', next);
+    if (el.mobileNativePanel) el.mobileNativePanel.setAttribute('aria-hidden', String(!next));
+    if (el.mobileNativeQuickToggle) el.mobileNativeQuickToggle.setAttribute('aria-expanded', String(next));
+    updateMobileNativeUi();
+}
+
+function handleMobileNativeAction(action) {
+    const track = getSelectedTrack();
+    switch (action) {
+        case 'close':
+            toggleMobileNativePanel(false);
+            return;
+        case 'original':
+            selectBottomPreviewMode('original', true);
+            foxBearHaptic('switch');
+            return;
+        case 'mastered':
+            if (track?.masteredUrl) selectBottomPreviewMode('mastered', true);
+            else if (track?.masterPreviewUrl) selectBottomPreviewMode('masterPreview', true);
+            else showToast('마스터링 또는 결과 프리뷰 생성 후 사용할 수 있습니다.');
+            foxBearHaptic('switch');
+            return;
+        case 'phone':
+        case 'mono':
+            applyPreviewTranslationMode(action === 'phone' ? 'phone' : 'mono', { keepPlaying: true, toast: true });
+            return;
+        case 'peak':
+            jumpDockToImportantPeak(track);
+            return;
+        case 'download':
+            if (track?.outBlob) downloadTrack(track);
+            else showToast('완성된 마스터링 파일이 없습니다.');
+            return;
+        case 'share':
+            shareSelectedMasterFromQuickPanel(track);
+            return;
+        case 'install':
+            promptInstallFoxBearPwa();
+            return;
+        case 'wake':
+            toggleFoxBearWakeLock();
+            return;
+        case 'haptic':
+            toggleFoxBearHaptics();
+            return;
+        case 'persist':
+            maybeRequestPersistentStorage(true);
+            return;
+        case 'restore':
+            restoreDockTransportAfterReturn(true);
+            return;
+    }
+}
+
+function updateMobileNativeUi() {
+    const mobile = ensureMobileNativeState();
+    if (!document.body) return;
+    const safeMode = detectMobileSafeMode();
+    document.body.classList.toggle('mobile-safe-mode', safeMode);
+    const audio = getBottomPreviewAudio ? getBottomPreviewAudio() : null;
+    const playing = Boolean(audio && !audio.paused && !audio.ended);
+    const mediaReady = Boolean('mediaSession' in navigator);
+    if (el.mobileNativeStatus) {
+        const wake = mobile.wakeLockActive ? '화면유지' : '앱 편의';
+        const media = mediaReady ? '잠금화면' : '기본';
+        el.mobileNativeStatus.textContent = `${wake} · ${media}${playing ? ' · 재생중' : ''}`;
+        el.mobileNativeStatus.classList.toggle('wake-active', mobile.wakeLockActive);
+        el.mobileNativeStatus.classList.toggle('safe-mode', safeMode);
+    }
+    if (el.mobileNativePanel) {
+        setNativeStatusText('media', mediaReady ? 'MediaSession 가능 · 잠금화면/이어폰 컨트롤 연결' : 'MediaSession 미지원 · Dock 컨트롤 사용');
+        setNativeStatusText('wake', supportsWakeLock() ? (mobile.wakeLockActive ? '화면유지 ON' : '화면유지 가능') : '화면유지 미지원');
+        setNativeStatusText('storage', mobile.storagePersisted === true ? '저장소 보호 ON' : (mobile.storagePersisted === false ? '저장소 보호 미승인' : '저장소 보호 확인 중'));
+        setNativeStatusText('safe', safeMode ? '모바일 안전모드 ON' : '일반 모바일 모드');
+        el.mobileNativePanel.querySelectorAll('[data-native-action="mastered"], [data-native-action="download"], [data-native-action="share"]').forEach(button => {
+            const action = button.dataset.nativeAction;
+            if (action === 'mastered') button.disabled = !trackHasMasterSource(getSelectedTrack());
+            if (action === 'download' || action === 'share') button.disabled = !getSelectedTrack()?.outBlob;
+        });
+        const guide = el.mobileNativePanel.querySelector('[data-native-guide]');
+        if (guide) guide.textContent = safeMode
+            ? '인앱/저사양/모바일 환경 감지: 공유, 저장 도움, 화면유지, 재생 복구를 우선 사용합니다.'
+            : 'Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.';
+    }
+    syncMediaSessionForDock();
+    syncWakeLockForCurrentActivity();
+}
+
+function setNativeStatusText(key, text) {
+    const item = el.mobileNativePanel?.querySelector(`[data-native-status="${key}"]`);
+    if (item) item.textContent = text;
+}
+
+function detectMobileSafeMode() {
+    const mobile = ensureMobileNativeState();
+    const env = typeof getDownloadEnvironmentInfo === 'function' ? getDownloadEnvironmentInfo() : { restricted: false };
+    const smallViewport = Boolean(window.matchMedia && window.matchMedia('(max-width: 520px)').matches);
+    const lowMemory = Number(navigator.deviceMemory || 0) > 0 && Number(navigator.deviceMemory || 0) <= 4;
+    const lowCpu = Number(navigator.hardwareConcurrency || 0) > 0 && Number(navigator.hardwareConcurrency || 0) <= 4;
+    mobile.safeMode = Boolean(env.restricted || smallViewport || lowMemory || lowCpu);
+    return mobile.safeMode;
+}
+
+function supportsWakeLock() {
+    return Boolean(navigator.wakeLock && typeof navigator.wakeLock.request === 'function');
+}
+
+async function requestFoxBearWakeLock(reason = '') {
+    const mobile = ensureMobileNativeState();
+    if (!supportsWakeLock()) {
+        if (reason) showToast('이 브라우저는 화면유지 Wake Lock을 지원하지 않습니다.');
+        updateMobileNativeUi();
+        return false;
+    }
+    if (mobile.wakeLockSentinel || mobile.wakeLockBusy) return Boolean(mobile.wakeLockSentinel);
+    mobile.wakeLockBusy = true;
+    try {
+        const sentinel = await navigator.wakeLock.request('screen');
+        mobile.wakeLockSentinel = sentinel;
+        mobile.wakeLockActive = true;
+        sentinel.addEventListener('release', () => {
+            const current = ensureMobileNativeState();
+            if (current.wakeLockSentinel === sentinel) current.wakeLockSentinel = null;
+            current.wakeLockActive = false;
+            updateMobileNativeUi();
+        });
+        if (reason) showToast(`화면유지 ON · ${reason}`);
+        updateMobileNativeUi();
+        return true;
+    } catch (error) {
+        console.warn('wake lock failed:', error);
+        mobile.wakeLockActive = false;
+        if (reason) showToast('화면유지를 켤 수 없습니다. 브라우저 권한/배터리 정책을 확인하세요.');
+        updateMobileNativeUi();
+        return false;
+    } finally {
+        mobile.wakeLockBusy = false;
+    }
+}
+
+async function releaseFoxBearWakeLock() {
+    const mobile = ensureMobileNativeState();
+    const sentinel = mobile.wakeLockSentinel;
+    mobile.wakeLockDesired = false;
+    if (sentinel && typeof sentinel.release === 'function') {
+        try { await sentinel.release(); } catch (error) {}
+    }
+    mobile.wakeLockSentinel = null;
+    mobile.wakeLockActive = false;
+    updateMobileNativeUi();
+}
+
+function toggleFoxBearWakeLock() {
+    const mobile = ensureMobileNativeState();
+    if (mobile.wakeLockActive || mobile.wakeLockDesired) {
+        releaseFoxBearWakeLock();
+        showToast('화면유지를 껐습니다.');
+    } else {
+        mobile.wakeLockDesired = true;
+        requestFoxBearWakeLock('프리뷰/마스터링 중 화면이 꺼지지 않게 유지합니다.');
+    }
+}
+
+function syncWakeLockForCurrentActivity() {
+    const mobile = ensureMobileNativeState();
+    const audio = getBottomPreviewAudio ? getBottomPreviewAudio() : null;
+    const active = Boolean(state.busy || state.tracks?.some(track => track.status === 'processing' || track.status === 'analyzing') || (audio && !audio.paused && !audio.ended));
+    if ((mobile.wakeLockDesired || active) && document.visibilityState === 'visible') requestFoxBearWakeLock('작업 보호 중');
+    else if (!mobile.wakeLockDesired && !active && mobile.wakeLockSentinel) releaseFoxBearWakeLock();
+}
+
+function toggleFoxBearHaptics() {
+    const mobile = ensureMobileNativeState();
+    mobile.hapticsEnabled = !mobile.hapticsEnabled;
+    foxBearHaptic(mobile.hapticsEnabled ? 'success' : 'tap', { force: true });
+    showToast(`진동 피드백 ${mobile.hapticsEnabled ? 'ON' : 'OFF'}`);
+    updateMobileNativeUi();
+}
+
+function foxBearHaptic(pattern = 'tap', options = {}) {
+    const mobile = ensureMobileNativeState();
+    if (!mobile.hapticsEnabled && !options.force) return false;
+    if (!navigator.vibrate || typeof navigator.vibrate !== 'function') return false;
+    const now = Date.now();
+    if (!options.force && now - Number(mobile.lastHapticAt || 0) < 90) return false;
+    const value = MOBILE_NATIVE_HAPTIC_PATTERNS[pattern] || pattern || MOBILE_NATIVE_HAPTIC_PATTERNS.tap;
+    try {
+        navigator.vibrate(value);
+        mobile.lastHapticAt = now;
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+function syncMediaSessionForDock(audioOverride = null) {
+    if (!('mediaSession' in navigator)) return;
+    const track = getSelectedTrack();
+    const audio = audioOverride || (getBottomPreviewAudio ? getBottomPreviewAudio() : null);
+    if (!track || !audio) {
+        try { navigator.mediaSession.playbackState = 'none'; } catch (error) {}
+        return;
+    }
+    const mode = state.bottomPreviewMode || 'original';
+    const source = mode === 'mastered' ? '마스터링 프리뷰' : (mode === 'masterPreview' ? '결과 프리뷰' : '원본 프리뷰');
+    try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: `${source} · ${track.name || 'FoxBear Preview'}`,
+            artist: 'FoxBear AI Mastering Studio',
+            album: getBottomPreviewGenreLabel(track),
+            artwork: [
+                { src: 'assets/icons/foxbear-music.png', sizes: '512x512', type: 'image/png' },
+                { src: 'assets/icons/foxbear.svg', sizes: '512x512', type: 'image/svg+xml' }
+            ]
+        });
+        navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+        navigator.mediaSession.setActionHandler('play', () => playBottomPreviewAudio());
+        navigator.mediaSession.setActionHandler('pause', () => { try { audio.pause(); } catch (error) {} });
+        navigator.mediaSession.setActionHandler('seekbackward', details => seekDockAudioBy(-Math.abs(Number(details?.seekOffset || 10))));
+        navigator.mediaSession.setActionHandler('seekforward', details => seekDockAudioBy(Math.abs(Number(details?.seekOffset || 10))));
+        navigator.mediaSession.setActionHandler('seekto', details => {
+            if (!audio || !Number.isFinite(Number(details?.seekTime))) return;
+            audio.currentTime = clamp(Number(details.seekTime), 0, Math.max(0, Number(audio.duration || 0) - 0.08));
+        });
+        if (navigator.mediaSession.setPositionState) {
+            const duration = Number(audio.duration || track.analysis?.duration || track.masteredDurationSec || 0);
+            if (Number.isFinite(duration) && duration > 0) {
+                navigator.mediaSession.setPositionState({ duration, playbackRate: audio.playbackRate || 1, position: clamp(Number(audio.currentTime || 0), 0, duration) });
+            }
+        }
+    } catch (error) {
+        console.warn('MediaSession sync skipped:', error);
+    }
+}
+
+function seekDockAudioBy(deltaSec) {
+    const audio = getBottomPreviewAudio ? getBottomPreviewAudio() : null;
+    if (!audio) return;
+    const duration = Number(audio.duration || 0);
+    const next = Number(audio.currentTime || 0) + Number(deltaSec || 0);
+    audio.currentTime = Number.isFinite(duration) && duration > 0 ? clamp(next, 0, Math.max(0, duration - 0.08)) : Math.max(0, next);
+    syncDockWaveformPlayhead(audio);
+}
+
+function onDockAudioTransportEvent(audio) {
+    syncDockWaveformPlayhead(audio);
+    syncMediaSessionForDock(audio);
+    syncWakeLockForCurrentActivity();
+}
+
+function trackHasMasterSource(track) {
+    return Boolean(track && (track.masteredUrl || track.masterPreviewUrl));
+}
+
+function applyPreviewTranslationMode(mode, options = {}) {
+    const target = PREVIEW_TRANSLATION_MODES[mode] ? mode : 'studio';
+    if (state.previewTranslationMode === target && !options.toast) return;
+    const track = getSelectedTrack();
+    captureBottomPreviewTransport(track, state.bottomPreviewMode);
+    state.previewTranslationMode = target;
+    renderBottomPreviewDock({ keepPlaying: options.keepPlaying !== false });
+    foxBearHaptic('switch');
+    if (options.toast) showToast(`${PREVIEW_TRANSLATION_MODES[target].label} 모드로 전환했습니다.`);
+}
+
+function jumpDockToImportantPeak(track = getSelectedTrack()) {
+    if (!track) return;
+    const audio = getBottomPreviewAudio();
+    if (!audio) {
+        showToast('먼저 Dock 프리뷰를 준비하세요.');
+        return;
+    }
+    const payload = getDockWaveformPayload(track, state.bottomPreviewMode);
+    const values = normalizeWaveformValues(payload.values || [], 96);
+    if (!values.length) {
+        showToast('이동할 파형 피크가 아직 없습니다.');
+        return;
+    }
+    let bestIndex = 0;
+    let bestScore = -1;
+    values.forEach((value, index) => {
+        const marker = payload.markers?.[index] || 'ok';
+        const score = Number(value || 0) + (marker === 'clip' ? 0.35 : marker === 'hot' ? 0.18 : 0) + (index > 4 ? 0.04 : 0);
+        if (score > bestScore) { bestScore = score; bestIndex = index; }
+    });
+    const pct = values.length > 1 ? bestIndex / (values.length - 1) : 0;
+    const duration = Number(audio.duration || (state.bottomPreviewMode === 'masterPreview' ? track.masterPreviewInfo?.durationSec : track.analysis?.duration) || 0);
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    audio.currentTime = clamp(pct * duration, 0, Math.max(0, duration - 0.08));
+    playBottomPreviewAudio();
+    syncDockWaveformPlayhead(audio);
+    foxBearHaptic('switch');
+    showToast(`피크 구간 ${Math.round(pct * 100)}% 지점으로 이동했습니다.`);
+}
+
+function addWaveformPeakJumpChips(track, wrap) {
+    if (!track || !wrap) return;
+    const chipRow = document.createElement('div');
+    chipRow.className = 'waveform-jump-chip-row';
+    const chips = [
+        { label: 'LIVE 위치', action: () => syncDockWaveformPlayhead() },
+        { label: '최대 피크', action: () => jumpDockToImportantPeak(track) },
+        { label: '후렴 추정', action: () => jumpDockToPercent(track, 42) },
+        { label: '뒤쪽 피크', action: () => jumpDockToPercent(track, 68) }
+    ];
+    chips.forEach(item => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'waveform-jump-chip';
+        button.textContent = item.label;
+        button.addEventListener('click', item.action);
+        chipRow.appendChild(button);
+    });
+    wrap.appendChild(chipRow);
+}
+
+function jumpDockToPercent(track, percent) {
+    const audio = getBottomPreviewAudio();
+    const pct = clamp(Number(percent || 0), 0, 100) / 100;
+    if (!audio || !track) return;
+    const duration = Number(audio.duration || track.analysis?.duration || track.masteredDurationSec || 0);
+    if (Number.isFinite(duration) && duration > 0) {
+        audio.currentTime = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
+        playBottomPreviewAudio();
+        syncDockWaveformPlayhead(audio);
+        foxBearHaptic('switch');
+    }
+}
+
+async function shareSelectedMasterFromQuickPanel(track = getSelectedTrack()) {
+    if (!track || !track.outBlob) {
+        showToast('공유할 마스터링 파일이 없습니다.');
+        return;
+    }
+    try {
+        await shareDownloadFile(track.outBlob, track.outName || buildMasteredFileName(track, { format: track.outFormat || 'wav24', extension: /mp3/.test(track.outFormat || '') ? 'mp3' : 'wav' }));
+        clearNativeBadgeIfDone();
+        foxBearHaptic('download');
+    } catch (error) {
+        showToast('공유가 막히면 다운로드 창의 저장 도움을 사용하세요.');
+        showDownloadOptionsDialog(track);
+    }
+}
+
+async function promptInstallFoxBearPwa() {
+    const mobile = ensureMobileNativeState();
+    if (mobile.deferredInstallPrompt) {
+        try {
+            mobile.deferredInstallPrompt.prompt();
+            const choice = await mobile.deferredInstallPrompt.userChoice;
+            mobile.deferredInstallPrompt = null;
+            showToast(choice?.outcome === 'accepted' ? '앱 설치를 시작했습니다.' : '앱 설치를 취소했습니다.');
+        } catch (error) {
+            showToast('브라우저 메뉴에서 홈 화면에 추가 또는 앱 설치를 선택해주세요.');
+        }
+    } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent || '')) {
+        showToast('iOS는 Safari 공유 버튼 → 홈 화면에 추가를 사용하세요.');
+    } else {
+        showToast('브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하세요.');
+    }
+    updateMobileNativeUi();
+}
+
+async function maybeRequestPersistentStorage(userInitiated = false) {
+    const mobile = ensureMobileNativeState();
+    if (!navigator.storage || typeof navigator.storage.persist !== 'function') {
+        mobile.storagePersisted = false;
+        if (userInitiated) showToast('이 브라우저는 저장소 보호 요청을 지원하지 않습니다.');
+        updateMobileNativeUi();
+        return false;
+    }
+    try {
+        const already = typeof navigator.storage.persisted === 'function' ? await navigator.storage.persisted() : false;
+        if (already) {
+            mobile.storagePersisted = true;
+            if (userInitiated) showToast('저장소 보호가 이미 켜져 있습니다.');
+            updateMobileNativeUi();
+            return true;
+        }
+        if (!userInitiated) {
+            mobile.storagePersisted = false;
+            updateMobileNativeUi();
+            return false;
+        }
+        const granted = await navigator.storage.persist();
+        mobile.storagePersisted = Boolean(granted);
+        showToast(granted ? '프로젝트/분석 캐시 저장소 보호를 요청했습니다.' : '브라우저가 저장소 보호를 승인하지 않았습니다.');
+        updateMobileNativeUi();
+        return Boolean(granted);
+    } catch (error) {
+        mobile.storagePersisted = false;
+        if (userInitiated) showToast('저장소 보호 요청에 실패했습니다.');
+        updateMobileNativeUi();
+        return false;
+    }
+}
+
+function handleMobileVisibilityChange() {
+    const mobile = ensureMobileNativeState();
+    if (document.visibilityState === 'hidden') {
+        mobile.lastVisibilityHiddenAt = Date.now();
+        captureBottomPreviewTransport(getSelectedTrack(), state.bottomPreviewMode);
+        return;
+    }
+    restoreDockTransportAfterReturn(false);
+}
+
+function handleMobilePageShow() {
+    restoreDockTransportAfterReturn(false);
+    scheduleBottomPreviewLayoutSync();
+    syncWakeLockForCurrentActivity();
+}
+
+function restoreDockTransportAfterReturn(forceNotice = false) {
+    const track = getSelectedTrack();
+    if (!track) return;
+    renderBottomPreviewDock({ keepPlaying: true });
+    scheduleBottomPreviewLayoutSync();
+    syncMediaSessionForDock();
+    const mobile = ensureMobileNativeState();
+    const now = Date.now();
+    if (forceNotice || now - Number(mobile.pageRestoreToastAt || 0) > 60000) {
+        mobile.pageRestoreToastAt = now;
+        showToast('Dock 재생 위치와 모바일 편의 상태를 복구했습니다.');
+    }
+}
+
+async function registerFoxBearServiceWorker() {
+    const mobile = ensureMobileNativeState();
+    if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+    try {
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.55-mobile-native-ux');
+        mobile.serviceWorkerReady = true;
+        if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        updateMobileNativeUi();
+    } catch (error) {
+        console.warn('Service worker registration skipped:', error);
+    }
+}
+
+function openMobileShareIdb() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(MOBILE_NATIVE_IDB, 1);
+        request.onupgradeneeded = () => {
+            const db = request.result;
+            if (!db.objectStoreNames.contains(MOBILE_NATIVE_SHARE_STORE)) db.createObjectStore(MOBILE_NATIVE_SHARE_STORE, { keyPath: 'id' });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error('공유 파일 저장소를 열 수 없습니다.'));
+    });
+}
+
+async function takeSharedAudioFromIdb(id) {
+    if (!id || typeof indexedDB === 'undefined') return null;
+    const db = await openMobileShareIdb();
+    try {
+        return await new Promise((resolve, reject) => {
+            const tx = db.transaction(MOBILE_NATIVE_SHARE_STORE, 'readwrite');
+            const store = tx.objectStore(MOBILE_NATIVE_SHARE_STORE);
+            const req = store.get(id);
+            req.onsuccess = () => {
+                const value = req.result || null;
+                if (value) store.delete(id);
+                resolve(value);
+            };
+            req.onerror = () => reject(req.error || new Error('공유 파일을 읽지 못했습니다.'));
+        });
+    } finally {
+        db.close();
+    }
+}
+
+async function processPwaShareTargetLaunch() {
+    const mobile = ensureMobileNativeState();
+    if (mobile.sharedLaunchHandled) return;
+    const params = new URLSearchParams(window.location.search || '');
+    const shareId = params.get(MOBILE_NATIVE_SHARE_QUERY);
+    if (!shareId) return;
+    mobile.sharedLaunchHandled = true;
+    try {
+        const item = await takeSharedAudioFromIdb(shareId);
+        const files = Array.isArray(item?.files) ? item.files : [];
+        const audioFiles = files.filter(file => file && validateAudioFile(file).ok);
+        if (audioFiles.length) {
+            handleFiles(audioFiles);
+            showToast(`${audioFiles.length}개 공유 파일을 FoxBear로 불러왔습니다.`);
+            history.replaceState(null, document.title, window.location.pathname + window.location.hash);
+        } else {
+            showToast('공유된 파일에서 지원 오디오를 찾지 못했습니다.');
+        }
+    } catch (error) {
+        console.warn('share target launch failed:', error);
+        showToast('공유 파일을 불러오지 못했습니다. 파일 선택으로 다시 시도해주세요.');
+    }
+}
+
+function setNativeBadge(count = 0) {
+    const mobile = ensureMobileNativeState();
+    const value = Math.max(0, Math.floor(Number(count || 0)));
+    mobile.badgeCount = value;
+    try {
+        if (value > 0 && navigator.setAppBadge) navigator.setAppBadge(value).catch(() => {});
+        else if (navigator.clearAppBadge) navigator.clearAppBadge().catch(() => {});
+    } catch (error) {}
+}
+
+function getCompletedUndownloadedCount() {
+    return state.tracks.filter(track => track.outBlob && track.downloadAttention).length;
+}
+
+function clearNativeBadgeIfDone() {
+    setNativeBadge(getCompletedUndownloadedCount());
+}
+
+
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
     window.addEventListener('resize', hideFeatureTooltip);
@@ -1867,6 +2569,7 @@ function bindEvents() {
         window.visualViewport.addEventListener('resize', scheduleBottomPreviewLayoutSync, { passive: true });
         window.visualViewport.addEventListener('scroll', scheduleBottomPreviewLayoutSync, { passive: true });
     }
+    bindMobileNativeEvents();
     if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
     if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
     if (el.programInfoDialog) {
@@ -3982,6 +4685,8 @@ async function masterAllTracks() {
     renderAll();
     try {
         for (const track of candidates) await masterTrack(track, true);
+        setNativeBadge(getCompletedUndownloadedCount());
+        foxBearHaptic('complete');
         showToast('전체 마스터링이 성공적으로 완료되었습니다.');
     } finally {
         state.busy = false;
@@ -4046,6 +4751,7 @@ async function masterTrack(track, calledFromBatch = false) {
     track.remasterCount = Number(track.remasterCount || 0) + 1;
     track.performanceInfo = beginPerformanceProfile();
     track.report = '온디맨드 디코더 구동 중...';
+    syncWakeLockForCurrentActivity();
     await setMasteringProgress(track, 5, track.report);
 
     try {
@@ -4172,6 +4878,8 @@ async function masterTrack(track, calledFromBatch = false) {
         track.report = createDoneReport(track);
         await setMasteringProgress(track, 100, track.report);
         completedSuccessfully = true;
+        setNativeBadge(getCompletedUndownloadedCount());
+        foxBearHaptic('complete');
         showToast(`${track.name} 마스터링 성공`);
     } catch (error) {
         console.error('Mastering error:', error);
@@ -4179,6 +4887,7 @@ async function masterTrack(track, calledFromBatch = false) {
         const friendly = createUserFriendlyMasteringError(error);
         track.error = friendly.message;
         track.report = friendly.report;
+        foxBearHaptic('error');
         showToast(`${track.name}: ${friendly.message}`);
     } finally {
         if (!calledFromBatch) state.busy = false;
@@ -7949,6 +8658,8 @@ function showDownloadOptionsDialog(track) {
             track.downloadAttention = false;
             closeDownloadOptionsDialog(backdrop);
             downloadBlob(exported.blob, exported.fileName);
+            foxBearHaptic('download');
+            clearNativeBadgeIfDone();
             state.busy = false;
             renderAll({ keepDetailAudio: true });
         } catch (error) {
@@ -7968,6 +8679,8 @@ function showDownloadOptionsDialog(track) {
             const exported = await prepareSelected(selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.');
             track.downloadAttention = false;
             await shareDownloadFile(exported.blob, exported.fileName);
+            foxBearHaptic('download');
+            clearNativeBadgeIfDone();
             state.busy = false;
             renderAll({ keepDetailAudio: true });
         } catch (error) {
@@ -9017,6 +9730,7 @@ function renderAll(options = {}) {
     renderBottomPreviewDock(options);
     updateRealtimePreviewSettings();
     updateProcessingHud();
+    updateMobileNativeUi();
     syncEnhancedSelectButtons();
 }
 
@@ -9840,14 +10554,7 @@ function handlePreviewTranslationModeClick(event) {
 }
 
 function setPreviewTranslationMode(mode) {
-    const next = PREVIEW_TRANSLATION_MODES[mode] ? mode : 'studio';
-    if (state.previewTranslationMode === next) return;
-    const track = getSelectedTrack();
-    captureBottomPreviewTransport(track, state.bottomPreviewMode);
-    state.previewTranslationMode = next;
-    renderBottomPreviewDock({ keepPlaying: true });
-    const selected = PREVIEW_TRANSLATION_MODES[next];
-    showToast(`${selected.short} 프리뷰 모드로 전환했습니다.`);
+    applyPreviewTranslationMode(mode, { keepPlaying: true, toast: true });
 }
 
 function toggleDockAbLevelMatch() {
@@ -10327,6 +11034,7 @@ function renderWaveformCompareDialog(track, target) {
     meta.textContent = track.masteredUrl ? '원본 / 마스터링 비교' : (track.masterPreviewUrl ? '원본 / 15초 결과 프리뷰 비교' : '원본 파형 피크');
     head.append(name, meta);
     wrap.appendChild(head);
+    addWaveformPeakJumpChips(track, wrap);
 
     const original = getTrackOriginalWaveformValues(track);
     const mastered = getTrackMasterWaveformValues(track);
@@ -10389,6 +11097,8 @@ function renderBottomPreviewDock(options = {}) {
         el.bottomPreviewDock.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('bottom-preview-active');
         syncBottomPreviewFloatingOffset();
+        syncMediaSessionForDock(null);
+        updateMobileNativeUi();
         state.bottomPreviewMode = 'original';
         state.bottomPreviewTrackId = null;
         state.bottomPreviewAutoplayTrackId = null;
@@ -10461,6 +11171,10 @@ function renderBottomPreviewDock(options = {}) {
             const modeLabel = differenceReady ? '차이 듣기' : (useMastered ? '마스터링' : (useMasterPreview ? '15초 결과 프리뷰' : '원본'));
             if (audio) {
                 audio.setAttribute('aria-label', `${track.name || '선택 곡'} ${modeLabel} 프리뷰 재생`);
+                audio.addEventListener('play', () => onDockAudioTransportEvent(audio));
+                audio.addEventListener('pause', () => onDockAudioTransportEvent(audio));
+                audio.addEventListener('ended', () => onDockAudioTransportEvent(audio));
+                audio.addEventListener('timeupdate', () => syncMediaSessionForDock(audio));
                 if (!differenceReady) applyBottomPreviewStart(audio, transport.startSec);
             }
             el.bottomPreviewPlayer.appendChild(player);
@@ -10477,7 +11191,10 @@ function renderBottomPreviewDock(options = {}) {
         state.bottomPreviewAutoplayTrackId = null;
         requestAnimationFrame(playBottomPreviewAudio);
     }
+    syncMediaSessionForDock();
+    updateMobileNativeUi();
 }
+
 
 function scheduleBottomPreviewLayoutSync() {
     if (state.bottomPreviewLayoutRaf) cancelAnimationFrame(state.bottomPreviewLayoutRaf);
@@ -10943,16 +11660,19 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
         if (bounds && (audio.currentTime < bounds.start || audio.currentTime >= bounds.end)) audio.currentTime = bounds.start;
         setPlaying(true);
         syncDockWaveformPlayhead(audio);
+        onDockAudioTransportEvent(audio);
     });
     audio.addEventListener('pause', () => {
         setPlaying(false);
         syncDockWaveformPlayhead(audio);
+        onDockAudioTransportEvent(audio);
     });
     audio.addEventListener('ended', () => {
         setPlaying(false);
         seek.value = '0';
         time.textContent = formatPlayerTime(0, getDuration());
         syncDockWaveformPlayhead(audio);
+        onDockAudioTransportEvent(audio);
     });
     audio.addEventListener('timeupdate', () => {
         const duration = getDuration();
@@ -10964,6 +11684,7 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
         if (Number.isFinite(duration) && duration > 0) seek.value = String(Math.round(audio.currentTime / duration * 1000));
         time.textContent = formatPlayerTime(audio.currentTime || 0, duration);
         syncDockWaveformPlayhead(audio);
+        syncMediaSessionForDock(audio);
     });
     seek.addEventListener('input', () => {
         const duration = getDuration();
@@ -11925,7 +12646,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.54',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.55',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

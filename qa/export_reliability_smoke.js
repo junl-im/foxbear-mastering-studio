@@ -14,7 +14,7 @@ function must(condition, message) {
   }
 }
 
-must(app.includes("const APP_VERSION = 'Pro v1.3.54'"), 'app version should be v1.3.54');
+must(app.includes("const APP_VERSION = 'Pro v1.3.55'"), 'app version should be v1.3.55');
 must(app.includes('function getDownloadEnvironmentInfo()'), 'download environment detector missing');
 must(app.includes('function canShareTinyAudioProbe()'), 'share capability probe missing');
 must(app.includes('download-options-panel-v3'), 'download options v3 panel missing');
