@@ -1,4 +1,15 @@
-# FoxBear AI Mastering Studio Pro v1.3.69
+# FoxBear AI Mastering Studio Pro v1.3.70
+
+## v1.3.70 Dock Peak Popup / Toast Stack
+
+- Dock 피크 미니뷰를 누르면 재생 위치 이동이 아니라 파형/피크 비교 팝업이 열리도록 클릭 경로를 정리했습니다.
+- 재생 위치 이동은 팝업 내부의 파형 막대에서만 동작하게 분리해, Dock 피크 클릭 이벤트가 플레이어 연동에 먹히던 문제를 막았습니다.
+- Dock 피크 그래프와 플레이어 게이지의 시작/끝 라인을 같은 3열 그리드로 맞췄습니다.
+- Dock 줄 순서를 `피크 → 플레이어 → 마스터링/프리뷰 버튼 → 원음/폰/노트북/모노`로 바꿨습니다.
+- 하단 Dock 활성 시 토스트/알림을 Dock 상단 바로 위에 붙여 표시하고, 여러 알림은 겹치지 않고 위로 쌓이도록 스택형 토스트로 개편했습니다.
+- `qa/dock_peak_toast_stack_smoke.js`를 추가하고 `npm run check`에 포함했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.70-dock-peak-toast-stack`으로 갱신했습니다.
+
 
 ## v1.3.69 Dock Action Target Fix
 

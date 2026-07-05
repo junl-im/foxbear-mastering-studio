@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.69 - Dock action target fix
+// FoxBear AI Mastering Studio Pro v1.3.70 - Dock peak popup and toast stack
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.69';
+const APP_VERSION = 'Pro v1.3.70';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.69-dock-action-target-fix';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.70-dock-peak-toast-stack';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -350,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.69-dock-action-runtime-fix';
+    styleLink.href = 'assets/css/studio.css?v=1.3.70-dock-peak-toast-stack';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2655,7 +2655,7 @@ function attachWaveformSeekHandlers(bars, mode = state.bottomPreviewMode, role =
 }
 
 function onBottomWaveformButtonClick(event) {
-    if (event?.target?.closest?.('.bottom-waveform-bars')) return;
+    event?.preventDefault?.();
     openWaveformCompareDialog();
 }
 
@@ -2761,7 +2761,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.69-dock-action-runtime-fix');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.70-dock-peak-toast-stack');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -11758,8 +11758,15 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
 
     const bars = document.createElement('span');
     bars.className = 'bottom-waveform-bars';
-    attachWaveformSeekHandlers(bars, mode, 'dock');
+    // v1.3.70: the Dock mini peak is a popup opener. Seeking stays inside the expanded waveform popup
+    // so a quick tap on the Dock peak no longer gets swallowed by playback seek handlers.
+    const targetMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
+    bars.dataset.waveformMode = targetMode;
+    bars.dataset.waveformRole = 'dock-popup';
+    bars.dataset.waveformScope = getWaveformModeScope(targetMode, 'dock-popup');
     bars.dataset.waveformBinCount = String(hasValues ? payload.values.length : DOCK_WAVEFORM_BINS);
+    bars.setAttribute('aria-hidden', 'true');
+    bars.title = '파형 피크 비교창 열기';
     const values = hasValues ? payload.values : new Array(DOCK_WAVEFORM_BINS).fill(0.06);
     values.forEach((value, index) => {
         const bar = document.createElement('i');
@@ -13542,7 +13549,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.69',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.70',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -13743,18 +13750,41 @@ function timestampForFile() {
     return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
 }
 
-function showToast(message) {
+function showToast(message, options = {}) {
     const target = (typeof el !== 'undefined' && el.toast) ? el.toast : document.getElementById('toast');
     if (!target) {
         console.info('toast:', message);
         return;
     }
-    target.textContent = message;
-    target.classList.add('show');
-    if (typeof state !== 'undefined') {
-        clearTimeout(state.lastToastTimer);
-        state.lastToastTimer = setTimeout(() => { target.classList.remove('show'); }, 3200);
-    } else {
-        setTimeout(() => { target.classList.remove('show'); }, 3200);
+    const text = String(message || '').trim();
+    if (!text) return;
+    target.classList.add('foxbear-toast-stack', 'show');
+    target.setAttribute('role', 'status');
+    target.setAttribute('aria-live', 'polite');
+    target.setAttribute('aria-atomic', 'false');
+
+    const maxItems = Math.max(1, Number(options.maxItems || 4));
+    const existing = Array.from(target.querySelectorAll('.foxbear-toast-item'));
+    while (existing.length >= maxItems) {
+        const first = existing.shift();
+        if (first) first.remove();
     }
+
+    const item = document.createElement('div');
+    item.className = 'foxbear-toast-item';
+    item.textContent = text;
+    target.appendChild(item);
+    requestAnimationFrame(() => item.classList.add('show'));
+
+    const duration = Math.max(1200, Number(options.duration || 3400));
+    const timer = setTimeout(() => {
+        item.classList.remove('show');
+        item.classList.add('leaving');
+        window.setTimeout(() => {
+            item.remove();
+            if (!target.querySelector('.foxbear-toast-item')) target.classList.remove('show');
+        }, 220);
+    }, duration);
+    item.dataset.toastTimer = String(timer);
+    if (typeof state !== 'undefined') state.lastToastTimer = timer;
 }
