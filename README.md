@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.3.74
+
+## v1.3.74 Dock Integrated Waveform Remote
+
+- Dock 플레이어와 파형을 하나의 통합 파형 플레이어로 개편했습니다.
+- `큰 비교` 팝업에서 원곡과 마스터링/하이라이트 파형을 크게 비교하고, 각 행의 듣기 버튼으로 바로 전환 재생할 수 있습니다.
+- `추천구간 미리듣기` 명칭을 `하이라이트 듣기`로 바꿨습니다.
+- Dock 액션 배치를 `하이라이트 듣기` / `마스터링 시작` / `원곡 프리뷰·마스터링 프리뷰` 구조로 정리했습니다.
+- `마스터링 시작`은 Dock 액션 라인의 중앙에 오도록 조정했습니다.
+- `버튼 보기` 팝업이 클릭 레이어에 막히지 않도록 fallback 바인딩을 추가했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.74-dock-integrated-waveform`로 갱신했습니다.
+
 # FoxBear AI Mastering Studio Pro v1.3.73
 
 ## v1.3.73 Dock Event Repair

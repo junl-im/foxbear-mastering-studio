@@ -9542,3 +9542,214 @@ input[type="file"].hidden.native-picker-input {
         font-size: .58rem !important;
     }
 }
+
+
+/* v1.3.74 Dock integrated waveform remote */
+.bottom-preview-core {
+    grid-template-columns: 112px minmax(0, 1fr) !important;
+    align-items: center !important;
+}
+.bottom-preview-compare-open {
+    width: 100% !important;
+    min-height: 42px !important;
+    grid-template-columns: 1fr !important;
+    padding: 7px 10px !important;
+}
+.bottom-compare-open-label {
+    display: grid;
+    gap: 1px;
+    text-align: left;
+}
+.bottom-compare-open-label strong {
+    font-size: .66rem;
+    font-weight: 950;
+    letter-spacing: -.03em;
+}
+.bottom-compare-open-label em {
+    color: rgba(224,238,255,.62);
+    font-size: .48rem;
+    font-style: normal;
+    font-weight: 850;
+}
+.bottom-preview-player .dock-integrated-player,
+.dock-integrated-player {
+    width: 100%;
+    min-height: 42px;
+    display: grid !important;
+    grid-template-columns: 42px minmax(0, 1fr) 108px !important;
+    align-items: center;
+    gap: 8px !important;
+    padding: 5px 7px !important;
+    border-radius: 16px;
+    border: 1px solid rgba(141,245,232,.16);
+    background:
+        linear-gradient(135deg, rgba(141,245,232,.075), rgba(157,168,255,.055)),
+        rgba(4,8,16,.38);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.dock-integrated-toggle {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 32px !important;
+    border-radius: 12px !important;
+}
+.dock-integrated-waveform-bars,
+.bottom-preview-player .dock-integrated-waveform-bars {
+    position: relative;
+    min-width: 0;
+    height: 30px;
+    display: flex;
+    align-items: end;
+    gap: 1px;
+    padding: 4px 0 3px;
+    overflow: hidden;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.dock-integrated-waveform-bars::before,
+.waveform-compare-bars::before,
+.bottom-waveform-bars::before {
+    content: "";
+    position: absolute;
+    left: var(--waveform-playhead-pct, 0%);
+    top: 1px;
+    bottom: 1px;
+    width: 2px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.92);
+    box-shadow: 0 0 10px rgba(141,245,232,.58);
+    opacity: 0;
+    transform: translateX(-1px);
+    pointer-events: none;
+    z-index: 4;
+}
+.dock-integrated-waveform-bars.has-live-playhead::before,
+.waveform-compare-bars.has-live-playhead::before,
+.bottom-waveform-bars.has-live-playhead::before { opacity: 1; }
+.dock-integrated-waveform-bar {
+    flex: 1 1 1px;
+    min-width: 1px;
+    border-radius: 999px 999px 2px 2px;
+    background: linear-gradient(180deg, rgba(141,245,232,.98), rgba(114,221,255,.46));
+    opacity: .9;
+}
+.dock-integrated-waveform-hot { background: linear-gradient(180deg, rgba(255,226,126,.96), rgba(255,165,89,.58)); }
+.dock-integrated-waveform-clip { background: linear-gradient(180deg, rgba(255,137,137,.98), rgba(255,70,90,.64)); }
+.dock-integrated-info {
+    min-width: 0;
+    display: grid;
+    justify-items: end;
+    gap: 1px;
+}
+.dock-integrated-source {
+    color: rgba(141,245,232,.88);
+    font-size: .50rem;
+    font-weight: 950;
+    letter-spacing: -.02em;
+}
+.dock-integrated-time {
+    min-width: auto !important;
+    color: rgba(244,248,255,.76);
+    font-size: .56rem !important;
+}
+.bottom-preview-controls {
+    grid-template-columns: minmax(112px, max-content) minmax(132px, 180px) minmax(0, 1fr) !important;
+    gap: 8px !important;
+}
+.bottom-preview-control-gap { display: none !important; }
+.bottom-preview-master-preview-btn {
+    justify-self: start !important;
+}
+.bottom-preview-master-start-btn,
+#bottomPreviewMasterBtn {
+    justify-self: center !important;
+    min-width: 132px !important;
+    width: auto !important;
+}
+.bottom-preview-tabs {
+    justify-self: end !important;
+    margin-left: 0 !important;
+}
+.preview-dialog-backdrop.waveform-compare-mode .preview-dialog-panel {
+    width: min(920px, calc(100vw - 24px)) !important;
+    max-height: min(84vh, 720px) !important;
+}
+.waveform-compare-card { gap: 12px !important; }
+.waveform-compare-row {
+    grid-template-columns: 78px minmax(0, 1fr) max-content !important;
+    gap: 10px !important;
+    padding: 10px !important;
+}
+.waveform-compare-bars {
+    position: relative;
+    height: 74px !important;
+    cursor: pointer;
+}
+.waveform-compare-listen {
+    min-height: 34px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(141,245,232,.24);
+    color: #dffcff;
+    background: rgba(141,245,232,.09);
+    font-size: .58rem;
+    font-weight: 950;
+    white-space: nowrap;
+}
+.waveform-compare-listen:hover,
+.waveform-compare-listen:focus-visible {
+    border-color: rgba(141,245,232,.48);
+    box-shadow: 0 0 20px rgba(141,245,232,.14);
+}
+@media (max-width: 720px) {
+    body.bottom-preview-active .app-shell { padding-bottom: 166px !important; }
+    .bottom-preview-core {
+        grid-template-columns: 86px minmax(0, 1fr) !important;
+        gap: 6px !important;
+    }
+    .bottom-preview-compare-open { min-height: 38px !important; padding: 6px 7px !important; }
+    .bottom-compare-open-label strong { font-size: .52rem; }
+    .bottom-compare-open-label em { font-size: .37rem; }
+    .bottom-preview-player .dock-integrated-player,
+    .dock-integrated-player {
+        min-height: 38px;
+        grid-template-columns: 34px minmax(0, 1fr) 62px !important;
+        gap: 5px !important;
+        padding: 4px 5px !important;
+        border-radius: 13px;
+    }
+    .dock-integrated-toggle { width: 29px !important; min-width: 29px !important; height: 29px !important; }
+    .dock-integrated-waveform-bars { height: 26px; }
+    .dock-integrated-source { font-size: .38rem; }
+    .dock-integrated-time { font-size: .43rem !important; }
+    .bottom-preview-controls {
+        grid-template-columns: max-content minmax(104px, 1fr) max-content !important;
+        gap: 4px !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .bottom-preview-controls::-webkit-scrollbar { display: none; }
+    .bottom-preview-master-btn,
+    .bottom-preview-master-preview-btn {
+        width: auto !important;
+        min-width: 70px !important;
+        font-size: .42rem !important;
+        padding: 4px 6px !important;
+    }
+    #bottomPreviewMasterBtn { min-width: 104px !important; }
+    .bottom-preview-tabs {
+        width: max-content !important;
+        min-width: 134px !important;
+    }
+    .preview-dialog-backdrop.waveform-compare-mode .preview-dialog-panel {
+        width: min(96vw, 520px) !important;
+        max-height: 88dvh !important;
+    }
+    .waveform-compare-row {
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+    }
+    .waveform-compare-row > span { font-size: .64rem !important; }
+    .waveform-compare-bars { height: 62px !important; }
+    .waveform-compare-listen { width: 100%; min-height: 32px; }
+}

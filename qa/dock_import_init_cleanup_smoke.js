@@ -6,8 +6,8 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 function must(condition, message) { if (!condition) throw new Error(message); }
-must(app.includes("const APP_VERSION = 'Pro v1.3.73'"), 'app version should be v1.3.73');
-must(html.includes('data-build="1.3.73"'), 'index build should be v1.3.73');
+must(app.includes("const APP_VERSION = 'Pro v1.3.74'"), 'app version should be v1.3.74');
+must(html.includes('data-build="1.3.74"'), 'index build should be v1.3.74');
 must(app.includes('function runInitStep'), 'isolated init step helper missing');
 must(app.includes("runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true })"), 'upload binding must run as critical early init step');
 must(app.includes('function bindUploadInputEventsOnce'), 'upload bind-once helper missing');
@@ -15,7 +15,7 @@ must(app.indexOf("runInitStep('파일 불러오기'") < app.indexOf("runInitStep
 must(html.includes('다양한 코덱 지원'), 'file open codec label missing');
 must(html.includes('WAV, MP3, M4A, AAC, FLAC, OGG/Opus, AIFF, CAF, MP4/MOV'), 'expanded codec support copy missing');
 must(html.includes('bottom-preview-action-left') && html.includes('bottom-preview-action-right'), 'dock left/right action groups missing');
-must(html.includes('추천구간 미리듣기') && html.includes('원곡 프리뷰') && html.includes('마스터링 프리뷰'), 'dock labels not updated');
+must(html.includes('하이라이트 듣기') && html.includes('원곡 프리뷰') && html.includes('마스터링 프리뷰'), 'dock labels not updated');
 must(!html.includes('마스터링 진행</button>'), 'old dock mastering label still present');
 must(!app.includes('현재 화면에서 선택된 곡만 마스터링합니다.'), 'old awkward dock help text still present');
 must(css.includes('v1.3.69 Dock/import init cleanup'), 'v1.3.69 css override missing');

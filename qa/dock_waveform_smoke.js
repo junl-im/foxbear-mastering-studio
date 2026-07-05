@@ -6,14 +6,14 @@ const css = fs.readFileSync('assets/css/studio.css', 'utf8');
 const requiredHtml = [
   'bottomPreviewWaveformBtn',
   '마스터링',
-  '추천구간 미리듣기',
+  '하이라이트 듣기',
   '원곡 프리뷰',
   '마스터링 프리뷰'
 ];
 for (const token of requiredHtml) {
   if (!html.includes(token)) throw new Error(`missing html token: ${token}`);
 }
-const order = ['bottomPreviewMasterBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn'];
+const order = ['bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn'];
 const positions = order.map(token => html.indexOf(token));
 if (positions.some(pos => pos < 0)) throw new Error('dock control order token missing');
 for (let i = 1; i < positions.length; i += 1) {
