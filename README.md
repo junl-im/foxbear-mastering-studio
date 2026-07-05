@@ -1,6 +1,13 @@
-# FoxBear AI Mastering Studio Pro v1.3.65
+# FoxBear AI Mastering Studio Pro v1.3.66
 
-## v1.3.65 Dock / Import Init Cleanup
+## v1.3.66 Dock Mastering / Player Order Fix
+
+- 하단 Dock의 `마스터링` 버튼이 Dock에 표시 중인 트랙을 기준으로 직접 마스터링을 시작하도록 보강했습니다.
+- stale `state.busy` 플래그가 남아 버튼이 조용히 막히는 경우를 감지하고 자동 복구합니다.
+- Dock 플레이어바를 파형 피크 미니뷰 바로 아래로 이동했습니다.
+- Dock 버튼 클릭 영역이 플레이어/파형 레이어에 가려지지 않도록 z-index와 pointer 이벤트를 정리했습니다.
+
+## v1.3.66 Dock / Import Init Cleanup
 - 앱 초기화 단계를 분리해 파일열기/폴더열기 이벤트가 가장 먼저 연결되도록 했습니다.
 - 첫 화면에서 일부 보조 UI 오류가 전체 앱 초기화 오류처럼 보이던 문제를 완화했습니다.
 - 파일열기 안내 문구를 `다양한 코덱 지원`으로 정리하고, 상태 안내에 WAV/MP3/M4A/AAC/FLAC/OGG/Opus/AIFF/CAF/MP4/MOV 등 브라우저 디코딩 기반 지원 범위를 표시했습니다.
@@ -8,7 +15,7 @@
 - Dock 배치를 좌측 작업 버튼 그룹과 우측 프리뷰 버튼 그룹으로 분리했습니다.
 - Dock 도움말 문구에서 어색한 `현재 화면에서 선택된 곡만...` 표현을 제거했습니다.
 - `qa/dock_import_init_cleanup_smoke.js`를 추가하고 `npm run check`에 포함했습니다.
-- 앱/SW 캐시 키와 SRI 해시를 `v1.3.65-dock-import-init-cleanup`로 갱신했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.66-dock-master-player-order`로 갱신했습니다.
 
 
 ## v1.3.64 Kakao / In-App Upload Rootfix

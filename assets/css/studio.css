@@ -9313,7 +9313,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.65 Dock/import init cleanup */
+/* v1.3.66 Dock/import init cleanup */
 .import-status {
     margin: 8px 2px 0;
     padding: 8px 10px;
@@ -9376,7 +9376,7 @@ input[type="file"].hidden.native-picker-input {
     }
 }
 
-/* v1.3.65 Dock/import init cleanup */
+/* v1.3.66 Dock/import init cleanup */
 .bottom-preview-controls {
     display: flex !important;
     align-items: center !important;
@@ -9437,3 +9437,12 @@ input[type="file"].hidden.native-picker-input {
         flex: 0 1 auto !important;
     }
 }
+
+
+/* v1.3.66 Dock player order: waveform peak -> player bar -> environment -> actions */
+.bottom-preview-waveform { order: 1; }
+.bottom-preview-player { order: 2; position: relative; z-index: 1; margin-top: 2px; }
+.bottom-preview-translation-modes { order: 3; }
+.bottom-preview-controls { order: 4; position: relative; z-index: 3; }
+.bottom-preview-master-btn,
+.bottom-preview-tab { position: relative; z-index: 4; pointer-events: auto; }

@@ -357,3 +357,37 @@ body.bottom-preview-active .processing-hud {
 .waveform-compare-hint::after {
   content: ' v1.3.59부터 Dock/팝업은 같은 timeline model로 이동점과 LIVE 위치를 계산합니다.';
 }
+
+
+/* v1.3.66 Dock mastering click path and player-under-peak layout */
+.bottom-preview-waveform {
+  order: 1;
+}
+.bottom-preview-player {
+  order: 2;
+  position: relative;
+  z-index: 1;
+  margin-top: 2px;
+}
+.bottom-preview-translation-modes {
+  order: 3;
+}
+.bottom-preview-controls {
+  order: 4;
+  position: relative;
+  z-index: 3;
+}
+.bottom-preview-master-btn,
+.bottom-preview-tab {
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
+}
+.bottom-preview-master-btn.is-click-armed {
+  filter: brightness(1.08) saturate(1.08);
+}
+@media (max-width: 720px) {
+  .bottom-preview-player {
+    margin-top: 0;
+  }
+}
