@@ -631,3 +631,51 @@ body.bottom-preview-active .toast.foxbear-toast-stack {
 }
 
 /* v1.3.72 Dock remote controller: Dock actions are clickable remote controls for the active main-screen track. */
+
+/* v1.3.73 Dock event repair: one remote controller layer without dead zones */
+.bottom-preview-dock,
+.bottom-preview-core,
+.bottom-preview-controls,
+.bottom-preview-translation-modes,
+.bottom-preview-action-group,
+.bottom-preview-tabs {
+  pointer-events: auto !important;
+}
+.bottom-preview-waveform,
+.bottom-preview-master-btn,
+.bottom-preview-tab,
+.bottom-preview-translation-btn,
+.bottom-preview-player .player-toggle,
+.bottom-preview-player .player-seek {
+  pointer-events: auto !important;
+  position: relative !important;
+}
+.bottom-preview-waveform { z-index: 2 !important; }
+.bottom-preview-player { z-index: 1 !important; }
+.bottom-preview-controls { z-index: 4 !important; }
+.bottom-preview-translation-modes { z-index: 5 !important; }
+.bottom-preview-master-btn,
+.bottom-preview-tab,
+.bottom-preview-translation-btn { z-index: 6 !important; }
+.bottom-preview-waveform .bottom-waveform-bars {
+  pointer-events: none !important;
+}
+.bottom-preview-translation-btn.active,
+.bottom-preview-tab.active {
+  filter: brightness(1.08) saturate(1.12);
+}
+.preview-dialog-backdrop.show.waveform-compare-mode {
+  z-index: 28000 !important;
+  pointer-events: auto !important;
+}
+.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-panel,
+.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-close {
+  pointer-events: auto !important;
+}
+.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-close {
+  position: relative !important;
+  z-index: 28010 !important;
+}
+body.preview-dialog-open .bottom-preview-dock {
+  z-index: 23000 !important;
+}

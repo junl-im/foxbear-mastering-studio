@@ -12,4 +12,4 @@ must(app.includes('installDockRemoteDelegation'), 'Dock capture fallback is inst
 must(app.includes("el.bottomPreviewMasterBtn.disabled = false"), 'Dock master button stays clickable');
 must(app.includes("el.bottomPreviewMasterPreviewBtn.disabled = false"), 'Dock preview button stays clickable');
 must(dockCss.includes('.bottom-preview-master-btn.soft-disabled'), 'soft disabled style exists');
-console.log('PASS dock remote controller smoke');
+console.log('PASS dock event repair smoke');

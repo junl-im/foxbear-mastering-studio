@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.72 - Dock remote controller
+// FoxBear AI Mastering Studio Pro v1.3.73 - Dock remote event repair
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.72';
+const APP_VERSION = 'Pro v1.3.73';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.72-dock-remote-controller';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.73-dock-event-repair';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -350,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.72-dock-remote-controller';
+    styleLink.href = 'assets/css/studio.css?v=1.3.73-dock-event-repair';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2469,13 +2469,19 @@ function trackHasMasterSource(track) {
 
 function applyPreviewTranslationMode(mode, options = {}) {
     const target = PREVIEW_TRANSLATION_MODES[mode] ? mode : 'studio';
-    if (state.previewTranslationMode === target && !options.toast) return;
-    const track = getSelectedTrack();
+    if (state.previewTranslationMode === target && !options.toast) return true;
+    const track = options.track || activateMainTrackFromDock(resolveMainActiveTrackForDock()) || getSelectedTrack();
+    if (!track) {
+        if (options.toast) showToast('먼저 음원을 불러온 뒤 재생환경을 바꿀 수 있습니다.');
+        return false;
+    }
     captureBottomPreviewTransport(track, state.bottomPreviewMode);
     state.previewTranslationMode = target;
+    state.bottomPreviewTrackId = track.id;
     renderBottomPreviewDock({ keepPlaying: options.keepPlaying !== false });
     foxBearHaptic('switch');
     if (options.toast) showToast(`${PREVIEW_TRANSLATION_MODES[target].label} 모드로 전환했습니다.`);
+    return true;
 }
 
 function jumpDockToImportantPeak(track = getSelectedTrack()) {
@@ -2657,6 +2663,7 @@ function attachWaveformSeekHandlers(bars, mode = state.bottomPreviewMode, role =
 
 function onBottomWaveformButtonClick(event) {
     event?.preventDefault?.();
+    event?.stopPropagation?.();
     openWaveformCompareDialog();
 }
 
@@ -2762,7 +2769,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.72-dock-remote-controller');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.73-dock-event-repair');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2850,20 +2857,49 @@ function installDockRemoteDelegation() {
     if (state.dockRemoteDelegationInstalled) return;
     state.dockRemoteDelegationInstalled = true;
     document.addEventListener('click', event => {
-        const target = event.target && typeof event.target.closest === 'function' ? event.target.closest('#bottomPreviewMasterBtn, #bottomPreviewMasterPreviewBtn, #bottomPreviewWaveformBtn') : null;
-        if (!target) return;
-        if (target.id === 'bottomPreviewMasterBtn') {
-            runDockRemoteMaster(event);
-            return;
+        const target = event.target && typeof event.target.closest === 'function' ? event.target.closest(
+            '#bottomPreviewMasterBtn, #bottomPreviewMasterPreviewBtn, #bottomPreviewWaveformBtn, #bottomPreviewOriginalBtn, #bottomPreviewMasteredBtn, [data-preview-translation-mode], #previewDialogClose, .preview-dialog-close'
+        ) : null;
+
+        if (target) {
+            if (target.id === 'previewDialogClose' || target.classList?.contains('preview-dialog-close')) {
+                event.preventDefault();
+                event.stopPropagation();
+                closePreviewDialog();
+                return;
+            }
+            if (target.id === 'bottomPreviewMasterBtn') {
+                runDockRemoteMaster(event);
+                return;
+            }
+            if (target.id === 'bottomPreviewMasterPreviewBtn') {
+                runDockRemoteMasterPreview(event);
+                return;
+            }
+            if (target.id === 'bottomPreviewWaveformBtn') {
+                event.preventDefault();
+                event.stopPropagation();
+                onBottomWaveformButtonClick(event);
+                return;
+            }
+            if (target.id === 'bottomPreviewOriginalBtn') {
+                runDockRemoteSourceMode('original', event);
+                return;
+            }
+            if (target.id === 'bottomPreviewMasteredBtn') {
+                runDockRemoteSourceMode('mastered', event);
+                return;
+            }
+            if (target.dataset?.previewTranslationMode) {
+                runDockRemoteTranslationMode(target.dataset.previewTranslationMode, event);
+                return;
+            }
         }
-        if (target.id === 'bottomPreviewMasterPreviewBtn') {
-            runDockRemoteMasterPreview(event);
-            return;
-        }
-        if (target.id === 'bottomPreviewWaveformBtn') {
+
+        if (event.target === el.previewDialog && el.previewDialog?.classList.contains('show')) {
             event.preventDefault();
             event.stopPropagation();
-            onBottomWaveformButtonClick(event);
+            closePreviewDialog();
         }
     }, true);
 }
@@ -2903,8 +2939,8 @@ function bindEvents() {
     if (el.bottomPreviewTranslationModes) el.bottomPreviewTranslationModes.addEventListener('click', handlePreviewTranslationModeClick);
     if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', event => runDockRemoteMasterPreview(event));
     if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', event => runDockRemoteMaster(event));
-    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', event => { if (event) event.preventDefault(); selectBottomPreviewMode('original', false, activateMainTrackFromDock(resolveMainActiveTrackForDock())); });
-    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', event => { if (event) event.preventDefault(); selectBottomPreviewMode('mastered', true, activateMainTrackFromDock(resolveMainActiveTrackForDock())); });
+    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', event => runDockRemoteSourceMode('original', event));
+    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', event => runDockRemoteSourceMode('mastered', event));
     installDockRemoteDelegation();
     bindAdminStatsEvents();
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
@@ -11329,11 +11365,23 @@ function getPreviewTranslationMode() {
 function handlePreviewTranslationModeClick(event) {
     const button = event.target?.closest?.('[data-preview-translation-mode]');
     if (!button) return;
-    setPreviewTranslationMode(button.dataset.previewTranslationMode || 'studio');
+    runDockRemoteTranslationMode(button.dataset.previewTranslationMode || 'studio', event);
 }
 
 function setPreviewTranslationMode(mode) {
     applyPreviewTranslationMode(mode, { keepPlaying: true, toast: true });
+}
+
+function runDockRemoteTranslationMode(mode, event = null) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    const track = activateMainTrackFromDock(resolveMainActiveTrackForDock());
+    if (!track) {
+        showToast('먼저 음원을 불러온 뒤 재생환경을 바꿀 수 있습니다.');
+        return false;
+    }
+    applyPreviewTranslationMode(mode, { keepPlaying: true, toast: true, track });
+    return true;
 }
 
 function toggleDockAbLevelMatch() {
@@ -11566,6 +11614,33 @@ function selectBottomPreviewMode(mode, autoPlay = false, trackOverride = null) {
     state.bottomPreviewTrackId = track.id;
     if ((nextMode === 'mastered' || nextMode === 'masterPreview') && autoPlay) state.bottomPreviewAutoplayTrackId = track.id;
     renderBottomPreviewDock({ autoPlay: (nextMode === 'mastered' || nextMode === 'masterPreview') && autoPlay });
+}
+
+function runDockRemoteSourceMode(mode, event = null) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    const track = activateMainTrackFromDock(resolveMainActiveTrackForDock());
+    if (!track) {
+        showToast('먼저 음원을 불러온 뒤 프리뷰를 전환할 수 있습니다.');
+        return false;
+    }
+    const nextMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
+    if (nextMode === 'mastered' && !track.masteredUrl) {
+        showToast('마스터링 완료 후 마스터링 프리뷰로 전환할 수 있습니다.');
+        return false;
+    }
+    if (nextMode === 'masterPreview' && !track.masterPreviewUrl) {
+        runDockRemoteMasterPreview(event);
+        return false;
+    }
+    captureBottomPreviewTransport(track, state.bottomPreviewMode);
+    state.bottomPreviewMode = nextMode;
+    state.bottomPreviewTrackId = track.id;
+    state.bottomPreviewAutoplayTrackId = track.id;
+    renderBottomPreviewDock({ autoPlay: true, keepPlaying: true });
+    foxBearHaptic('switch');
+    showToast(nextMode === 'mastered' ? '마스터링 프리뷰로 전환했습니다.' : '원곡 프리뷰로 전환했습니다.');
+    return true;
 }
 
 function resolveMainActiveTrackForDock() {
@@ -11999,8 +12074,15 @@ function syncDockWaveformPlayhead(audioOverride = null) {
 }
 
 function openWaveformCompareDialog() {
-    const track = getSelectedTrack();
-    if (!track || !el.previewDialog || !el.previewDialogBody) return;
+    const track = activateMainTrackFromDock(resolveMainActiveTrackForDock());
+    if (!track) {
+        showToast('비교할 음원을 먼저 불러와주세요.');
+        return;
+    }
+    if (!el.previewDialog || !el.previewDialogBody) {
+        showToast('비교 팝업을 열 수 없습니다. 화면을 새로고침해주세요.');
+        return;
+    }
     captureBottomPreviewTransport(track, state.bottomPreviewMode);
     el.previewDialogBody.textContent = '';
     el.previewDialog.classList.add('show', 'waveform-compare-mode');
@@ -13654,7 +13736,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.72',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.73',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
