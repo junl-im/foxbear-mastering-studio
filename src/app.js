@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.71 - Main action bridge for Dock
+// FoxBear AI Mastering Studio Pro v1.3.72 - Dock remote controller
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.71';
+const APP_VERSION = 'Pro v1.3.72';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.71-dock-main-action-bridge';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.72-dock-remote-controller';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -350,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.71-dock-main-action-bridge';
+    styleLink.href = 'assets/css/studio.css?v=1.3.72-dock-remote-controller';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -441,6 +441,7 @@ function init() {
     if (runSiteAccessGuard()) return false;
     runInitStep('화면 요소 연결', cacheElements, { critical: true });
     runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true });
+    runInitStep('Dock 리모컨 보호 이벤트', installDockRemoteDelegation);
     runInitStep('슬라이더 UI', renderSliders);
     runInitStep('기능 버튼 UI', renderFeatureButtons);
     runInitStep('선택 팝업 UI', enhanceActionSelects);
@@ -2761,7 +2762,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.71-dock-main-action-bridge');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.72-dock-remote-controller');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2845,6 +2846,28 @@ function clearNativeBadgeIfDone() {
 }
 
 
+function installDockRemoteDelegation() {
+    if (state.dockRemoteDelegationInstalled) return;
+    state.dockRemoteDelegationInstalled = true;
+    document.addEventListener('click', event => {
+        const target = event.target && typeof event.target.closest === 'function' ? event.target.closest('#bottomPreviewMasterBtn, #bottomPreviewMasterPreviewBtn, #bottomPreviewWaveformBtn') : null;
+        if (!target) return;
+        if (target.id === 'bottomPreviewMasterBtn') {
+            runDockRemoteMaster(event);
+            return;
+        }
+        if (target.id === 'bottomPreviewMasterPreviewBtn') {
+            runDockRemoteMasterPreview(event);
+            return;
+        }
+        if (target.id === 'bottomPreviewWaveformBtn') {
+            event.preventDefault();
+            event.stopPropagation();
+            onBottomWaveformButtonClick(event);
+        }
+    }, true);
+}
+
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
     window.addEventListener('resize', hideFeatureTooltip);
@@ -2878,10 +2901,11 @@ function bindEvents() {
     }
     if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', onBottomWaveformButtonClick);
     if (el.bottomPreviewTranslationModes) el.bottomPreviewTranslationModes.addEventListener('click', handlePreviewTranslationModeClick);
-    if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', event => renderDockMasterPreview(event));
-    if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', event => masterBottomPreviewTrack(event));
-    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', () => selectBottomPreviewMode('original', false, getDockActionTrack()));
-    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', () => selectBottomPreviewMode('mastered', true, getDockActionTrack()));
+    if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', event => runDockRemoteMasterPreview(event));
+    if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', event => runDockRemoteMaster(event));
+    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', event => { if (event) event.preventDefault(); selectBottomPreviewMode('original', false, activateMainTrackFromDock(resolveMainActiveTrackForDock())); });
+    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', event => { if (event) event.preventDefault(); selectBottomPreviewMode('mastered', true, activateMainTrackFromDock(resolveMainActiveTrackForDock())); });
+    installDockRemoteDelegation();
     bindAdminStatsEvents();
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
     if (el.referenceLoadBtn) el.referenceLoadBtn.addEventListener('click', () => clickNativeFileInput(el.referenceInput, '레퍼런스 파일'));
@@ -11544,25 +11568,75 @@ function selectBottomPreviewMode(mode, autoPlay = false, trackOverride = null) {
     renderBottomPreviewDock({ autoPlay: (nextMode === 'mastered' || nextMode === 'masterPreview') && autoPlay });
 }
 
-async function masterBottomPreviewTrack(event = null) {
+function resolveMainActiveTrackForDock() {
+    // Dock is only a remote controller. The source of truth is the track that the
+    // main screen currently regards as active. Fallbacks only keep the remote
+    // usable after imports or stale Dock state.
+    const selected = getSelectedTrack();
+    if (selected) return selected;
+    const dock = getBottomPreviewDockTrack();
+    if (dock) return dock;
+    return state.tracks[0] || null;
+}
+
+function activateMainTrackFromDock(track) {
+    const target = track || resolveMainActiveTrackForDock();
+    if (!target) return null;
+    state.selectedId = target.id;
+    state.bottomPreviewTrackId = target.id;
+    if (state.selectedIds && typeof state.selectedIds.add === 'function') state.selectedIds.add(target.id);
+    try { applyTrackToControls(target); } catch (error) { console.warn('Dock remote control sync failed:', error); }
+    return target;
+}
+
+function isOtherTrackBlockingDockAction(track) {
+    if (!track) return Boolean(state.busy && hasActiveBlockingWork());
+    return Boolean(state.tracks.some(item => item.id !== track.id && (item.status === 'processing' || item.status === 'analyzing')) || (state.masterPreviewRenderingTrackId && state.masterPreviewRenderingTrackId !== track.id));
+}
+
+async function runDockRemoteMaster(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
-    clearStaleBusyFlagIfIdle('dock-master-click');
-    const track = preparePrimaryActionTrack(getSelectedTrack() || getDockActionTrack());
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    clearStaleBusyFlagIfIdle('dock-remote-master');
+    const track = activateMainTrackFromDock(resolveMainActiveTrackForDock());
     if (!track) {
         showToast('마스터링할 곡을 먼저 불러와주세요.');
         return false;
     }
+    if (track.error) {
+        showToast('오류가 있는 곡입니다. 다시 불러온 뒤 마스터링해주세요.');
+        return false;
+    }
+    if (track.status === 'processing') {
+        showToast('이미 이 곡의 마스터링이 진행 중입니다.');
+        return false;
+    }
+    if (state.busy && isOtherTrackBlockingDockAction(track)) {
+        showToast('다른 곡 작업이 끝난 뒤 다시 눌러주세요.');
+        return false;
+    }
     showToast(`${track.name || '선택 곡'} 마스터링을 시작합니다.`);
-    return masterSelectedTracks({ track, source: 'dock' });
+    const ok = await masterTrack(track, false, { awaitAnalysis: true, notifyBlocked: true, forceIfIdle: true, source: 'dock-remote' });
+    if (!ok && track.status !== 'processing') renderAll({ keepDetailAudio: true });
+    return ok;
 }
 
+async function masterBottomPreviewTrack(event = null) {
+    return runDockRemoteMaster(event);
+}
 
 function canStartMasterPreview(track) {
-    return Boolean(track && track.analysis && !isActionBusyBlocked() && !track.error && !['processing', 'analyzing'].includes(track.status));
+    if (!track || !track.analysis || track.error) return false;
+    if (track.status === 'processing' || track.status === 'analyzing') return false;
+    if (state.busy && isOtherTrackBlockingDockAction(track)) return false;
+    clearStaleBusyFlagIfIdle('master-preview-start-check');
+    return !state.busy || !hasActiveBlockingWork();
 }
 
 async function renderMasterPreviewForSelected(source = 'detail') {
-    const track = source === 'dock' ? prepareTrackForDockAction(getDockActionTrack()) : getSelectedTrack();
+    const track = source === 'dock' || source === 'dock-remote'
+        ? activateMainTrackFromDock(resolveMainActiveTrackForDock())
+        : (preparePrimaryActionTrack(getSelectedTrack()) || activateMainTrackFromDock(resolveMainActiveTrackForDock()));
     if (!track) {
         showToast('미리듣기할 곡을 먼저 선택해주세요.');
         return;
@@ -11570,21 +11644,39 @@ async function renderMasterPreviewForSelected(source = 'detail') {
     await renderMasterPreviewForTrack(track, { source });
 }
 
-async function renderDockMasterPreview(event = null) {
+async function runDockRemoteMasterPreview(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
-    clearStaleBusyFlagIfIdle('dock-preview-click');
-    const track = preparePrimaryActionTrack(getSelectedTrack() || getDockActionTrack());
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    clearStaleBusyFlagIfIdle('dock-remote-preview');
+    const track = activateMainTrackFromDock(resolveMainActiveTrackForDock());
     if (!track) {
-        showToast('추천구간을 만들 곡을 먼저 불러와주세요.');
-        return;
+        showToast('추천구간 미리듣기할 곡을 먼저 불러와주세요.');
+        return false;
     }
-    await renderMasterPreviewForTrack(track, { source: 'dock' });
+    if (track.error) {
+        showToast('오류가 있는 곡입니다. 다시 불러온 뒤 추천구간 미리듣기를 만들어주세요.');
+        return false;
+    }
+    if (track.status === 'processing') {
+        showToast('마스터링 작업이 끝난 뒤 추천구간 미리듣기를 사용할 수 있습니다.');
+        return false;
+    }
+    if (state.busy && isOtherTrackBlockingDockAction(track)) {
+        showToast('다른 곡 작업이 끝난 뒤 다시 눌러주세요.');
+        return false;
+    }
+    await renderMasterPreviewForTrack(track, { source: 'dock-remote' });
+    return Boolean(track.masterPreviewUrl && track.masterPreviewInfo);
+}
+
+async function renderDockMasterPreview(event = null) {
+    return runDockRemoteMasterPreview(event);
 }
 
 async function renderMasterPreviewForTrack(track, options = {}) {
     if (!track) return;
     if (!track.analysis || track.status === 'analyzing') {
-        const ready = await waitForTrackAnalysisIfNeeded(track, options.source === 'dock' ? '추천구간 미리듣기' : '미리듣기');
+        const ready = await waitForTrackAnalysisIfNeeded(track, String(options.source || '').startsWith('dock') ? '추천구간 미리듣기' : '미리듣기');
         if (!ready) {
             showToast('분석을 완료하지 못해 추천구간 미리듣기를 만들 수 없습니다.');
             renderBottomPreviewDock({ keepPlaying: true });
@@ -12159,7 +12251,10 @@ function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPrev
     const ready = Boolean(track && track.masterPreviewUrl);
     el.bottomPreviewMasterPreviewBtn.classList.toggle('active', mode === 'masterPreview');
     el.bottomPreviewMasterPreviewBtn.classList.toggle('processing', processing);
-    el.bottomPreviewMasterPreviewBtn.disabled = !track || isActionBusyBlocked() || track.status === 'processing' || Boolean(track.error);
+    const blocked = !track || track.status === 'processing' || Boolean(track.error) || (state.busy && isOtherTrackBlockingDockAction(track));
+    el.bottomPreviewMasterPreviewBtn.disabled = false;
+    el.bottomPreviewMasterPreviewBtn.setAttribute('aria-disabled', String(blocked));
+    el.bottomPreviewMasterPreviewBtn.classList.toggle('soft-disabled', blocked);
     if (!track) {
         el.bottomPreviewMasterPreviewBtn.textContent = '추천구간 미리듣기';
         el.bottomPreviewMasterPreviewBtn.title = '곡을 선택하면 15초 추천구간 미리듣기를 만들 수 있습니다.';
@@ -12179,9 +12274,11 @@ function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPrev
 function setBottomPreviewMasterButtonState(track) {
     if (!el.bottomPreviewMasterBtn) return;
     clearStaleBusyFlagIfIdle('dock-master-button-state');
-    const busy = isDockMasteringBusyBlocked();
+    const busy = state.busy && isOtherTrackBlockingDockAction(track);
     const blocked = !track || busy || track.status === 'processing' || Boolean(track.error);
-    el.bottomPreviewMasterBtn.disabled = blocked;
+    el.bottomPreviewMasterBtn.disabled = false;
+    el.bottomPreviewMasterBtn.setAttribute('aria-disabled', String(blocked));
+    el.bottomPreviewMasterBtn.classList.toggle('soft-disabled', blocked);
     el.bottomPreviewMasterBtn.classList.toggle('processing', Boolean(track && track.status === 'processing'));
     if (!track) {
         el.bottomPreviewMasterBtn.textContent = '마스터링';
@@ -13557,7 +13654,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.71',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.72',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

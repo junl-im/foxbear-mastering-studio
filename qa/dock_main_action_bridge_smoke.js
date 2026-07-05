@@ -15,8 +15,9 @@ assert(app.includes('function preparePrimaryActionTrack'), 'primary action prepa
 assert(/const actionTracks = getPrimaryActionTracks\(\);/.test(app), 'renderButtons must use active-track fallback for action buttons');
 assert(/const candidates = getPrimaryActionTracks\(explicitTrack\)/.test(app), 'masterSelectedTracks must fall back to active track when checked selection is empty');
 assert(!app.includes("showToast('작업 선택 버튼으로 마스터링할 곡을 먼저 선택해주세요.')"), 'old checked-selection-only warning still exists');
-assert(/return masterSelectedTracks\(\{ track, source: 'dock' \}\);/.test(app), 'Dock mastering must bridge to the same main mastering action');
-assert(/preparePrimaryActionTrack\(getSelectedTrack\(\) \|\| getDockActionTrack\(\)\)/.test(app), 'Dock actions must prefer the main-screen selected track');
-assert(/await renderMasterPreviewForTrack\(track, \{ source: 'dock' \}\)/.test(app), 'Dock preview must call the same preview renderer after target preparation');
+assert(/async function runDockRemoteMaster/.test(app), 'Dock mastering remote handler is missing');
+assert(/masterTrack\(track, false/.test(app), 'Dock mastering must call the real single-track mastering action directly');
+assert(/async function runDockRemoteMasterPreview/.test(app), 'Dock preview remote handler is missing');
+assert(/renderMasterPreviewForTrack\(track, \{ source: 'dock-remote' \}\)/.test(app), 'Dock preview must call the real preview renderer');
 assert(/track\.status !== 'processing'/.test(app), 'master action should allow analyzing tracks so it can wait instead of going silent');
 console.log('PASS dock main action bridge smoke');

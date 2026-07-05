@@ -622,3 +622,12 @@ body.bottom-preview-active .toast.foxbear-toast-stack {
     font-size: .64rem;
   }
 }
+
+
+/* v1.3.72: Dock buttons stay clickable as remote controls; blocked states explain themselves via toast instead of becoming dead controls. */
+.bottom-preview-master-btn.soft-disabled,
+.bottom-preview-tab.soft-disabled {
+    opacity: 0.62;
+}
+
+/* v1.3.72 Dock remote controller: Dock actions are clickable remote controls for the active main-screen track. */

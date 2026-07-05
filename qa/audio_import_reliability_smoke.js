@@ -11,7 +11,7 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
 
-must(app.includes("const APP_VERSION = 'Pro v1.3.71'"), 'app version must be v1.3.71');
+must(app.includes("const APP_VERSION = 'Pro v1.3.72'"), 'app version must be v1.3.72');
 must(app.includes('handleNativeInputFiles'), 'native input change wrapper missing');
 must(app.includes('updateImportStatus(`${count}개') || app.includes('showToastSafe(`${count}개'), 'selected file count feedback missing');
 must(app.includes('clickNativeFileInput(el.fileInput'), 'native file input first path missing');
@@ -25,6 +25,6 @@ const bindEnd = app.indexOf('function setupDropZone', bindStart);
 const bindBlock = app.slice(bindStart, bindEnd);
 const filePreventPattern = /kind === 'file'[\s\S]{0,220}event\.preventDefault\(\)/;
 must(!filePreventPattern.test(bindBlock), 'file label click must not prevent native input default');
-must(html.includes('src/app.js?v=1.3.71-dock-main-action-bridge'), 'index app cache bust key missing');
-must(sw.includes('foxbear-shell-v1.3.71-dock-main-action-bridge'), 'service worker cache key missing');
+must(html.includes('src/app.js?v=1.3.72-dock-remote-controller'), 'index app cache bust key missing');
+must(sw.includes('foxbear-shell-v1.3.72-dock-remote-controller'), 'service worker cache key missing');
 console.log('PASS audio import reliability smoke');
