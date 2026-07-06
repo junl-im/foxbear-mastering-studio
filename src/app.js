@@ -615,6 +615,7 @@ async function toggleUtilityFeature(key) {
     }
     renderFeatureButtons();
     renderAll({ keepDetailAudio: true });
+    updateMobileNativeUi();
     showToast(`${info.label}: ${getFeatureToggleState('utility', key) ? '켜짐' : '꺼짐'} · ${info.short}`);
 }
 
@@ -2199,7 +2200,7 @@ function installMobileNativeGlobalListeners() {
         event.preventDefault();
         ensureMobileNativeState().deferredInstallPrompt = event;
         updateMobileNativeUi();
-        showToast('FoxBear를 홈 화면 앱처럼 설치할 수 있습니다. ⚡ 퀵패널에서 앱 설치를 누르세요.');
+        showToast('FoxBear를 홈 화면 앱처럼 설치할 수 있습니다. ⚙️ 설정에서 앱추가를 누르세요.');
     });
     window.addEventListener('appinstalled', () => {
         const mobile = ensureMobileNativeState();
@@ -2254,34 +2255,9 @@ function toggleMobileNativePanel(forceOpen = null) {
 }
 
 function handleMobileNativeAction(action) {
-    const track = getSelectedTrack();
     switch (action) {
         case 'close':
             toggleMobileNativePanel(false);
-            return;
-        case 'original':
-            selectBottomPreviewMode('original', true);
-            foxBearHaptic('switch');
-            return;
-        case 'mastered':
-            if (track?.masteredUrl) selectBottomPreviewMode('mastered', true);
-            else if (track?.masterPreviewUrl) selectBottomPreviewMode('masterPreview', true);
-            else showToast('마스터링 또는 하이라이트 듣기 생성 후 사용할 수 있습니다.');
-            foxBearHaptic('switch');
-            return;
-        case 'phone':
-        case 'mono':
-            applyPreviewTranslationMode(action === 'phone' ? 'phone' : 'mono', { keepPlaying: true, toast: true });
-            return;
-        case 'peak':
-            jumpDockToImportantPeak(track);
-            return;
-        case 'download':
-            if (track?.outBlob) downloadTrack(track);
-            else showToast('완성된 마스터링 파일이 없습니다.');
-            return;
-        case 'share':
-            shareSelectedMasterFromQuickPanel(track);
             return;
         case 'install':
             promptInstallFoxBearPwa();
@@ -2297,6 +2273,30 @@ function handleMobileNativeAction(action) {
             return;
         case 'restore':
             restoreDockTransportAfterReturn(true);
+            return;
+        case 'clear-cache':
+            toggleUtilityFeature('clearAnalysisCache');
+            return;
+        case 'auto-cache-clean':
+            toggleUtilityFeature('autoCacheClean');
+            return;
+        case 'auto-highlight':
+            toggleUtilityFeature('autoHighlightAB');
+            return;
+        case 'ab-loop':
+            toggleUtilityFeature('abLoopMode');
+            return;
+        case 'ab-level-match':
+            toggleUtilityFeature('abLevelMatch');
+            return;
+        case 'ab-difference':
+            toggleUtilityFeature('abDifferenceListen');
+            return;
+        case 'smart-performance':
+            toggleUtilityFeature('smartPerformanceGuard');
+            return;
+        case 'engine-safety':
+            toggleUtilityFeature('engineSafetyMeter');
             return;
     }
 }
@@ -2317,19 +2317,23 @@ function updateMobileNativeUi() {
         el.mobileNativeStatus.classList.toggle('safe-mode', safeMode);
     }
     if (el.mobileNativePanel) {
-        setNativeStatusText('media', mediaReady ? 'MediaSession 가능 · 잠금화면/이어폰 컨트롤 연결' : 'MediaSession 미지원 · Dock 컨트롤 사용');
-        setNativeStatusText('wake', supportsWakeLock() ? (mobile.wakeLockActive ? '화면유지 ON' : '화면유지 가능') : '화면유지 미지원');
-        setNativeStatusText('storage', mobile.storagePersisted === true ? '저장소 보호 ON' : (mobile.storagePersisted === false ? '저장소 보호 미승인' : '저장소 보호 확인 중'));
-        setNativeStatusText('safe', safeMode ? '모바일 안전모드 ON' : '일반 모바일 모드');
-        el.mobileNativePanel.querySelectorAll('[data-native-action="mastered"], [data-native-action="download"], [data-native-action="share"]').forEach(button => {
-            const action = button.dataset.nativeAction;
-            if (action === 'mastered') button.disabled = !trackHasMasterSource(getSelectedTrack());
-            if (action === 'download' || action === 'share') button.disabled = !getSelectedTrack()?.outBlob;
-        });
-        const guide = el.mobileNativePanel.querySelector('[data-native-guide]');
-        if (guide) guide.textContent = safeMode
-            ? '인앱/저사양/모바일 환경 감지: 공유, 저장 도움, 화면유지, 재생 복구를 우선 사용합니다.'
-            : 'Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.';
+        setMobileNativeSettingState('wake', Boolean(mobile.wakeLockActive || mobile.wakeLockDesired), supportsWakeLock() ? null : 'OFF');
+        setMobileNativeSettingState('haptic', Boolean(mobile.hapticsEnabled));
+        setMobileNativeSettingState('persist', mobile.storagePersisted === true, mobile.storagePersisted === null ? 'OFF' : null);
+        setMobileNativeSettingState('auto-highlight', Boolean(state.autoHighlightAB));
+        setMobileNativeSettingState('ab-loop', Boolean(state.abLoopMode));
+        setMobileNativeSettingState('ab-level-match', Boolean(state.abLevelMatch));
+        setMobileNativeSettingState('ab-difference', Boolean(state.abDifferenceListen));
+        setMobileNativeSettingState('auto-cache-clean', Boolean(state.autoCacheClean));
+        setMobileNativeSettingState('smart-performance', Boolean(state.smartPerformanceGuard));
+        setMobileNativeSettingState('engine-safety', Boolean(state.engineSafetyMeter));
+        setMobileNativeActionState('install', mobile.installed ? 'ON' : '추가', mobile.installed);
+        setMobileNativeActionState('clear-cache', '실행', false);
+        setMobileNativeActionState('restore', playing ? '실행' : '대기', playing);
+        const restore = el.mobileNativePanel.querySelector('[data-native-action="restore"]');
+        if (restore) restore.disabled = !playing;
+        document.body.classList.toggle('mobile-native-media-ready', mediaReady);
+        document.body.classList.toggle('mobile-native-safe-mode', safeMode);
     }
     syncMediaSessionForDock();
     syncWakeLockForCurrentActivity();
@@ -2338,6 +2342,29 @@ function updateMobileNativeUi() {
 function setNativeStatusText(key, text) {
     const item = el.mobileNativePanel?.querySelector(`[data-native-status="${key}"]`);
     if (item) item.textContent = text;
+}
+
+function setMobileNativeSettingState(action, active, labelOverride = null) {
+    const button = el.mobileNativePanel?.querySelector(`[data-native-action="${action}"]`);
+    if (!button) return;
+    const enabled = Boolean(active);
+    const label = labelOverride || (enabled ? 'ON' : 'OFF');
+    button.dataset.state = label.toLowerCase() === 'on' ? 'on' : (label.toLowerCase() === 'off' ? 'off' : 'action');
+    button.classList.toggle('is-on', enabled);
+    button.classList.toggle('is-off', !enabled);
+    button.setAttribute('aria-pressed', String(enabled));
+    const stateNode = button.querySelector('[data-setting-state]');
+    if (stateNode) stateNode.textContent = label;
+}
+
+function setMobileNativeActionState(action, label, active = false) {
+    const button = el.mobileNativePanel?.querySelector(`[data-native-action="${action}"]`);
+    if (!button) return;
+    button.dataset.state = active ? 'on' : 'action';
+    button.classList.toggle('is-on', Boolean(active));
+    button.classList.toggle('is-off', false);
+    const stateNode = button.querySelector('[data-setting-state]');
+    if (stateNode) stateNode.textContent = label;
 }
 
 function detectMobileSafeMode() {
@@ -2807,7 +2834,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.84-stage14-runtime-recovery');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.84-stage15-settings-panel');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();

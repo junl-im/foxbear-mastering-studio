@@ -41,8 +41,8 @@
         const toggle = createButton({
             id: 'mobileNativeQuickToggle',
             className: 'mobile-native-quick-toggle',
-            text: '⚡',
-            title: '한손 퀵패널 열기',
+            text: '⚙️',
+            title: '설정 열기',
             ariaExpanded: false,
             ariaControls: 'mobileNativePanel'
         });
@@ -51,64 +51,61 @@
         panel.id = 'mobileNativePanel';
         panel.className = 'mobile-native-panel';
         panel.setAttribute('aria-hidden', 'true');
-        panel.setAttribute('aria-label', '모바일 네이티브 편의 퀵패널');
+        panel.setAttribute('aria-label', 'FoxBear 모바일 설정 패널');
 
         const panelHead = doc.createElement('div');
         panelHead.className = 'mobile-native-panel-head';
         const panelTitle = doc.createElement('strong');
-        panelTitle.textContent = '모바일 퀵패널';
+        panelTitle.textContent = '설정';
         const closeButton = createButton({
             className: 'mobile-native-close download-options-close',
             text: '×',
             nativeAction: 'close',
-            ariaLabel: '퀵패널 닫기'
+            ariaLabel: '설정 닫기'
         });
         panelHead.append(panelTitle, closeButton);
 
-        const statusGrid = doc.createElement('div');
-        statusGrid.className = 'mobile-native-status-grid';
+        function createSettingButton(action, icon, label, options = {}) {
+            const button = createButton({ nativeAction: action, icon, className: `mobile-native-setting ${options.actionOnly ? 'is-action' : 'is-toggle'}` });
+            if (options.actionOnly) button.dataset.actionOnly = 'true';
+            const labelWrap = doc.createElement('span');
+            labelWrap.className = 'mobile-native-setting-label';
+            const iconNode = doc.createElement('span');
+            iconNode.className = 'mobile-native-setting-icon';
+            iconNode.textContent = icon;
+            const textNode = doc.createElement('span');
+            textNode.className = 'mobile-native-setting-text';
+            textNode.textContent = label;
+            labelWrap.append(iconNode, textNode);
+            const stateNode = doc.createElement('span');
+            stateNode.className = 'mobile-native-setting-state';
+            stateNode.dataset.settingState = '';
+            stateNode.textContent = options.stateLabel || (options.actionOnly ? '실행' : 'OFF');
+            button.append(labelWrap, stateNode);
+            return button;
+        }
+
+        const settingGrid = doc.createElement('div');
+        settingGrid.className = 'mobile-native-setting-grid';
+        settingGrid.setAttribute('role', 'group');
+        settingGrid.setAttribute('aria-label', '앱 설정');
         [
-            ['media', '잠금화면 컨트롤 대기'],
-            ['wake', '화면유지 대기'],
-            ['storage', '저장소 확인 중'],
-            ['safe', '일반 모드']
-        ].forEach(([key, label]) => {
-            const item = doc.createElement('span');
-            item.dataset.nativeStatus = key;
-            item.textContent = label;
-            statusGrid.appendChild(item);
-        });
+            ['install', '📲', '앱추가', { actionOnly: true, stateLabel: '추가' }],
+            ['wake', '☀️', '화면유지'],
+            ['haptic', '📳', '진동피드백'],
+            ['persist', '🛡️', '저장보호'],
+            ['auto-highlight', '✨', '자동 하이라이트'],
+            ['ab-loop', '🔁', 'A/B 루프'],
+            ['ab-level-match', '⚖️', '레벨매칭'],
+            ['ab-difference', '🧪', '차이듣기'],
+            ['auto-cache-clean', '🧹', '캐시자동정리'],
+            ['smart-performance', '🧠', '성능가드'],
+            ['engine-safety', '🧯', '안전점수'],
+            ['clear-cache', '🗑️', '분석캐시정리', { actionOnly: true }],
+            ['restore', '♻️', '재생복구', { actionOnly: true }]
+        ].forEach(([action, icon, label, options]) => settingGrid.appendChild(createSettingButton(action, icon, label, options || {})));
 
-        const actionGrid = doc.createElement('div');
-        actionGrid.className = 'mobile-native-action-grid';
-        actionGrid.setAttribute('role', 'group');
-        actionGrid.setAttribute('aria-label', '재생 퀵 액션');
-        [
-            ['original', '♪', '원본'],
-            ['mastered', '★', '마스터'],
-            ['phone', '\u{1F4F1}', '스마트폰'],
-            ['mono', '●', '모노'],
-            ['peak', '↯', '피크'],
-            ['download', '↓', '저장'],
-            ['share', '↗', '공유'],
-            ['install', '+', '앱']
-        ].forEach(([action, icon, label]) => actionGrid.appendChild(createButton({ nativeAction: action, icon, text: label })));
-
-        const toggleRow = doc.createElement('div');
-        toggleRow.className = 'mobile-native-toggle-row';
-        [
-            ['wake', '☼', '화면유지'],
-            ['haptic', '•', '진동'],
-            ['persist', '▣', '저장보호'],
-            ['restore', '↺', '복구']
-        ].forEach(([action, icon, label]) => toggleRow.appendChild(createButton({ nativeAction: action, icon, text: label })));
-
-        const guide = doc.createElement('p');
-        guide.className = 'mobile-native-guide';
-        guide.dataset.nativeGuide = '';
-        guide.textContent = 'Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.';
-
-        panel.append(panelHead, statusGrid, actionGrid, toggleRow, guide);
+        panel.append(panelHead, settingGrid);
         layer.append(toggle, panel);
         doc.body.appendChild(layer);
 

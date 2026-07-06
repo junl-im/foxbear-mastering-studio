@@ -1,3 +1,27 @@
+## Stage15 handoff - Mobile settings panel refresh
+
+### Why this patch exists
+
+The former mobile quick panel overlapped conceptually with the Dock: it repeated original/mastered/phone/mono style playback controls while the user expected a settings surface. Stage15 converts it into a compact `⚙️ 설정` panel and keeps playback-mode controls in the Dock.
+
+### What changed
+
+- Floating mobile toggle is now `⚙️` and opens a panel titled `설정`.
+- The panel no longer renders duplicate Dock playback controls such as original, smartphone, mono, download/share playback actions.
+- Settings now show direct state badges: `ON` / `OFF`; action-only items show `추가`, `실행`, or `대기`.
+- Settings map to existing app state through `toggleUtilityFeature()` where possible:
+  - 자동 하이라이트, A/B 루프, 레벨매칭, 차이듣기, 캐시자동정리, 성능가드, 안전점수.
+  - 앱추가, 화면유지, 진동피드백, 저장보호, 분석캐시정리, 재생복구 remain native/mobile actions.
+- Runtime asset query and service worker cache use `1.3.84-stage15-settings-panel`.
+- QA guard: `qa/stage15_mobile_settings_panel_smoke.js`.
+
+### Manual checks
+
+1. Mobile: confirm the Dock still owns 원음/스마트폰/노트북/모노 controls.
+2. Mobile: tap `⚙️`; confirm the settings panel opens with no extra status/result rows at the top.
+3. Toggle settings and confirm the badge changes between `ON` and `OFF`.
+4. Confirm `앱추가` uses an action badge, not an ON/OFF toggle unless already installed.
+
 ## Stage14 handoff - Runtime recovery / early load diagnostics
 
 ### Why this patch exists

@@ -16,12 +16,12 @@ const pkg = JSON.parse(read('package.json'));
 
 assert(index.includes('assets/css/dock-ui-repair.css'), 'index should load dock-ui-repair.css as final Dock repair layer');
 assert(sw.includes('assets/css/dock-ui-repair.css'), 'service worker should precache dock-ui-repair.css');
-assert(/stage12(?:\.1|\.2)|stage12\.2-cachefix|stage13|stage14/.test(sw), 'service worker cache should be bumped to stage12.1 or later');
+assert(/stage12(?:\.1|\.2)|stage12\.2-cachefix|stage13|stage14|stage15/.test(sw), 'service worker cache should be bumped to stage12.1 or later');
 assert(repair.includes('grid-template-columns: 32px minmax(0, 1fr) minmax(58px, 72px)'), 'mobile Dock player should keep toggle, full waveform, and compact time columns');
 assert(repair.includes('grid-column: auto !important') && repair.includes('.player-time.dock-integrated-time'), 'Dock runtime label should reset legacy player-time grid placement');
 assert(repair.includes('.bottom-preview-subline') && repair.includes('grid-template-columns: minmax(0, 1fr) auto'), 'file info genre and compare chip should stay on one line');
 assert(repair.includes('.bottom-compare-open-label em') && repair.includes('display: none !important'), 'Dock compare chip should be compact one-line, not stacked');
-assert(app.includes('\\u{1F4F1} 스마트폰') && mobile.includes("['phone', '\\u{1F4F1}', '스마트폰']"), 'phone mode should be renamed to smartphone with smartphone emoji');
+assert(app.includes('\\u{1F4F1} 스마트폰') && !mobile.includes("['phone'"), 'Dock phone mode should stay smartphone while mobile settings removes duplicate phone action');
 assert(app.includes('\\u{1F30A} 비교') && app.includes('\\u{1F6E0} 마스터링'), 'Dock action labels should include emoji polish');
 assert(pkg.qaChecks.includes('node qa/stage12_1_dock_ui_repair_smoke.js'), 'package QA should include stage12.1 Dock UI repair smoke');
 console.log('PASS stage12.1 Dock UI repair smoke');

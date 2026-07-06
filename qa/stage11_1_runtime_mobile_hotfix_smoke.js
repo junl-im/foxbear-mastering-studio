@@ -38,16 +38,16 @@ assert(app.includes('const panelGap = mobile ? 4 : 18'), 'mobile panel gap shoul
 
 assert(mobileView.includes('const status = null'), 'mobile quick panel should remove the legacy status chip beside the quick toggle');
 assert(mobileView.includes('legacyStatus') && mobileView.includes('removeChild(legacyStatus)'), 'existing legacy status chip should be removed when found');
-assert(mobileView.includes("className: 'mobile-native-close download-options-close'"), 'quick panel close button should match other popup close styling');
-assert(mobileView.includes("['original', '♪', '원본']") && mobileView.includes("['download', '↓', '저장']"), 'quick panel actions should use compact icon labels');
+assert(mobileView.includes("className: 'mobile-native-close download-options-close'"), 'settings panel close button should match other popup close styling');
+assert(mobileView.includes("panelTitle.textContent = '설정'") && mobileView.includes("['install', '📲', '앱추가'"), 'mobile panel should be converted to settings with app-add action');
 
 assert(mobileCss.includes('Stage11.1: Dock-attached quick panel cleanup'), 'mobile-native.css should include Stage11.1 quick panel cleanup layer');
 assert(mobileCss.includes('.mobile-native-status {') && mobileCss.includes('display: none !important'), 'legacy quick panel status chip should be hidden by CSS');
-assert(mobileCss.includes('content: attr(data-icon)'), 'quick panel action icons should render from data-icon');
+assert(mobileCss.includes('Stage15: Quick panel is now a compact Settings panel') && mobileCss.includes('.mobile-native-setting-state'), 'settings panel should render visible ON/OFF state badges');
 assert(dockCss.includes('Stage11.1: pin mobile floating notices'), 'dock.css should include Stage11.1 floating notice anchor layer');
 assert(dockCss.includes('var(--bottom-preview-floating-bottom') && dockCss.includes('var(--bottom-preview-hud-bottom'), 'toast/HUD should use measured floating Dock offsets');
 
-assert(/stage(?:11\.1|12|13|14)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
+assert(/stage(?:11\.1|12|13|14|15)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
 assert(pkg.qaChecks.includes('node qa/stage11_1_runtime_mobile_hotfix_smoke.js'), 'package QA should include stage11.1 smoke');
 assert(changelog.includes('Stage11.1') && handoff.includes('Stage11.1') && notes.includes('Stage11.1'), 'handoff docs should mention Stage11.1');
 

@@ -1,3 +1,12 @@
+## Stage15 Mobile Settings Panel
+
+- 모바일 `퀵패널` 개념을 `⚙️ 설정` 패널로 바꿨습니다.
+- Dock에 이미 있는 원음/스마트폰/노트북/모노 계열 재생 컨트롤은 설정 패널에서 제거했습니다.
+- 설정 패널은 앱추가, 화면유지, 진동피드백, 저장보호, 자동 하이라이트, A/B 루프, 레벨매칭, 차이듣기, 캐시자동정리, 성능가드, 안전점수, 분석캐시정리, 재생복구 중심입니다.
+- 토글형 설정에는 `ON` / `OFF` 배지를 표시하고, 실행형 항목은 `추가`, `실행`, `대기` 같은 action badge를 표시합니다.
+- `src/ui/mobile-native-view.js`, `src/app.js`, `assets/css/mobile-native.css`를 수정했고 `qa/stage15_mobile_settings_panel_smoke.js`를 추가했습니다.
+- cache key는 `1.3.84-stage15-settings-panel`입니다.
+
 ## Stage14 runtime recovery notes
 
 - Stage14 is a stabilization patch, not a UI/engine feature patch.

@@ -324,3 +324,158 @@
         padding-top: 13px;
     }
 }
+
+/* v1.3.84 Stage15: Quick panel is now a compact Settings panel */
+.mobile-native-quick-toggle {
+    font-size: 18px;
+    line-height: 1;
+    border-radius: 16px;
+}
+.mobile-native-panel {
+    width: min(420px, calc(100vw - 16px));
+    padding: 12px;
+}
+.mobile-native-panel-head {
+    margin-bottom: 9px;
+    padding-right: 38px;
+}
+.mobile-native-panel-head strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 950;
+}
+.mobile-native-panel-head strong::before {
+    content: '⚙️';
+    font-size: 15px;
+}
+.mobile-native-status-grid,
+.mobile-native-guide,
+.mobile-native-action-grid,
+.mobile-native-toggle-row {
+    display: none !important;
+}
+.mobile-native-setting-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+.mobile-native-setting {
+    min-height: 42px;
+    border-radius: 15px;
+    border: 1px solid rgba(127, 227, 255, 0.20);
+    background: rgba(255, 255, 255, 0.075);
+    color: #f4fdff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 8px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.mobile-native-setting:disabled {
+    opacity: 0.48;
+}
+.mobile-native-setting-label {
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.mobile-native-setting-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.10);
+    font-size: 13px;
+}
+.mobile-native-setting-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11.5px;
+}
+.mobile-native-setting-state {
+    min-width: 36px;
+    min-height: 22px;
+    padding: 4px 7px;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.075);
+    color: rgba(236, 248, 255, 0.78);
+    font-size: 10px;
+    font-weight: 950;
+    letter-spacing: .02em;
+}
+.mobile-native-setting.is-on {
+    border-color: rgba(109, 255, 181, 0.46);
+    background: linear-gradient(135deg, rgba(25, 108, 76, 0.30), rgba(28, 72, 105, 0.18));
+}
+.mobile-native-setting.is-on .mobile-native-setting-state,
+.mobile-native-setting[data-state="on"] .mobile-native-setting-state {
+    background: rgba(109, 255, 181, 0.20);
+    border-color: rgba(109, 255, 181, 0.42);
+    color: #dffff0;
+}
+.mobile-native-setting.is-off .mobile-native-setting-state,
+.mobile-native-setting[data-state="off"] .mobile-native-setting-state {
+    background: rgba(255,255,255,0.055);
+    color: rgba(226, 240, 248, 0.62);
+}
+.mobile-native-setting.is-action .mobile-native-setting-state,
+.mobile-native-setting[data-state="action"] .mobile-native-setting-state {
+    background: rgba(120, 215, 255, 0.15);
+    border-color: rgba(120, 215, 255, 0.30);
+    color: #ddf9ff;
+}
+.mobile-native-action-grid button::before,
+.mobile-native-toggle-row button::before {
+    content: none !important;
+}
+@media (max-width: 720px) {
+    .mobile-native-panel {
+        width: calc(100vw - 12px);
+        max-height: min(52vh, calc(var(--bottom-preview-viewport-height, 720px) - var(--bottom-preview-height, 0px) - 24px));
+    }
+    .mobile-native-setting-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+    }
+    .mobile-native-setting {
+        min-height: 39px;
+        padding: 6px 7px;
+        gap: 5px;
+    }
+    .mobile-native-setting-icon {
+        width: 18px;
+        height: 18px;
+        flex-basis: 18px;
+        font-size: 12px;
+    }
+    .mobile-native-setting-text {
+        font-size: 10.5px;
+    }
+    .mobile-native-setting-state {
+        min-width: 32px;
+        min-height: 20px;
+        padding: 3px 6px;
+        font-size: 9px;
+    }
+}
+@media (max-width: 380px) {
+    .mobile-native-setting-grid {
+        grid-template-columns: 1fr;
+    }
+    .mobile-native-panel {
+        max-height: min(56vh, calc(var(--bottom-preview-viewport-height, 720px) - var(--bottom-preview-height, 0px) - 20px));
+    }
+}

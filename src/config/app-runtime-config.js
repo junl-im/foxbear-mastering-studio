@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
-    const ASSET_VERSION = '1.3.84-stage14-runtime-recovery';
+    const ASSET_VERSION = '1.3.84-stage15-settings-panel';
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
     const MP3_ENCODER_WORKER_URL = assetUrl('src/workers/mp3-encoder.worker.js');

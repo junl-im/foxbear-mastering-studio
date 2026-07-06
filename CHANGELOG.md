@@ -1,3 +1,15 @@
+## Stage15 - Mobile settings panel refresh (2026-07-06)
+
+- Renamed the mobile quick panel concept to a compact Settings panel and changed the floating toggle from `⚡` to `⚙️`.
+- Removed duplicate Dock playback controls from the mobile panel: original, mastered, smartphone, laptop/mono-style playback controls remain Dock responsibilities.
+- Rebuilt the panel around app/options settings: app add, wake lock, haptic feedback, storage protection, automatic highlight A/B, loop, level match, difference listen, automatic cache cleanup, smart performance guard, engine safety score, analysis-cache cleanup, and playback restore.
+- Added visible `ON` / `OFF` state badges for setting toggles and action labels such as `추가`, `실행`, and `대기` for action-only buttons.
+- Updated `src/app.js` mobile-native action routing so settings buttons call the existing utility-feature toggles instead of duplicating Dock transport behavior.
+- Bumped runtime asset queries and service worker cache to `1.3.84-stage15-settings-panel`.
+- Added `qa/stage15_mobile_settings_panel_smoke.js` and updated legacy mobile panel QA expectations.
+
+QA target: `npm run check`.
+
 ## Stage14 - Runtime recovery panel / early boot health hardening (2026-07-06)
 
 - Moved `src/boot/runtime-health.js` to the earliest head script position so it can observe later JS/CSS/SRI load failures instead of only checking after modules have loaded.
