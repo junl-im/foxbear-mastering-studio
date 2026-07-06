@@ -9544,7 +9544,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.77 Dock integrated waveform remote */
+/* v1.3.78 Dock integrated waveform remote */
 .bottom-preview-core {
     grid-template-columns: 112px minmax(0, 1fr) !important;
     align-items: center !important;
@@ -9755,7 +9755,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.77 Dock waveform init + feature button guard */
+/* v1.3.78 Dock waveform init + feature button guard */
 .feature-open-btn,
 .feature-open-wide,
 #featureOpenBtn {
@@ -9782,26 +9782,6 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.77 Dock waveform visual polish */
-.feature-dialog-backdrop.show,
-body.feature-dialog-open .feature-dialog-backdrop.show {
-    display: flex !important;
-    z-index: 28050 !important;
-    pointer-events: auto !important;
-}
-.feature-dialog-panel {
-    pointer-events: auto !important;
-    position: relative !important;
-    z-index: 28051 !important;
-}
-#featureOpenBtn,
-.feature-open-btn,
-.feature-open-wide {
-    position: relative !important;
-    z-index: 28060 !important;
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
-}
 .preview-dialog-backdrop.show,
 body.preview-dialog-open .preview-dialog-backdrop.show {
     z-index: 28100 !important;
@@ -9845,7 +9825,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
     50% { transform: translateY(-1px); }
 }
 
-/* v1.3.77 Dock waveform visual polish */
+/* v1.3.78 Cleanup / Button View Layer Repair */
 .dock-integrated-waveform-bars,
 .bottom-preview-player .dock-integrated-waveform-bars,
 .waveform-compare-bars {
@@ -9957,4 +9937,37 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
         padding-right: 7px !important;
     }
     .bottom-preview-tabs { min-width: max-content !important; }
+}
+
+/* v1.3.78 Button View layer repair and cleanup policy */
+#featureOpenBtn,
+.feature-open-btn,
+.feature-open-wide {
+    z-index: auto !important;
+    isolation: auto !important;
+}
+.feature-dialog-backdrop.show,
+body.feature-dialog-open .feature-dialog-backdrop.show {
+    display: flex !important;
+    z-index: 24750 !important;
+    pointer-events: auto !important;
+}
+.feature-dialog-panel {
+    position: relative !important;
+    z-index: 24751 !important;
+    pointer-events: auto !important;
+}
+.feature-dialog-close {
+    position: relative !important;
+    z-index: 24752 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+}
+.feature-dialog-backdrop:not(.show) {
+    pointer-events: none !important;
+}
+.preview-dialog-backdrop.show,
+.program-info-backdrop.show,
+.admin-dialog-backdrop.show {
+    z-index: 28100 !important;
 }

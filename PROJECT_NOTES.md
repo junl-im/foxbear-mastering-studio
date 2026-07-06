@@ -1,0 +1,340 @@
+# FoxBear Project Notes
+
+## 기록 정책
+- v1.3.78부터 `PATCH_NOTES_v*.md` 파일을 새로 만들지 않습니다.
+- 버전 요약, 인수인계, 정리 기록은 이 `PROJECT_NOTES.md`와 `README.md`에 누적합니다.
+
+## v1.3.78 Cleanup / Button View Layer Repair
+- `버튼 보기` 버튼 자체가 모든 화면 위로 올라오는 z-index 과보정 문제를 수정합니다.
+- 버튼형 적용 팝업의 닫기 버튼/배경/ESC 닫기 경로를 정리합니다.
+- 개별 `PATCH_NOTES_v*.md` 파일을 `PROJECT_NOTES.md`로 통합하고 삭제합니다.
+- 죽은 코드/중복 코드 후보는 안전 삭제 가능 항목과 보류 항목으로 구분해 기록합니다.
+
+
+## v1.3.78 Dead Code / File Cleanup Audit
+
+### 삭제 반영
+- 개별 `PATCH_NOTES_v*.md` 17개를 `PROJECT_NOTES.md`로 통합 후 삭제했습니다.
+- `src/app.js`에서 정적 참조가 1회뿐인 미사용 함수 17개를 제거했습니다.
+  - `getAdaptiveTargetLabel`, `activateByKeyboard`, `supportsSystemFilePicker`, `addKeywordScore`
+  - `getPhaseSafeWidthFactor`, `addKickToBuffer`, `addHatToBuffer`, `addClapToBuffer`
+  - `mixMonoSample`, `mixStereoAccent`, `softLimitSample`
+  - `applyPeakGuard`, `applyTruePeakGuard`, `tryShareDownloadFile`
+  - `setPreviewTranslationMode`, `isDockMasteringBusyBlocked`, `selectTrack`
+
+### 보류
+- `QA_REPORT_*.md` 파일들은 실행 코드가 아니지만 과거 QA 근거 기록이므로 이번 패치에서는 삭제하지 않았습니다.
+- Dock/다운로드/카카오 관련 함수는 간접 이벤트 경로가 많아 단순 문자열 검색만으로 추가 삭제하지 않았습니다.
+- `createDifferencePreviewPlayer`, `toggleDockAbLevelMatch`, `toggleDockDifferenceListen`는 앱 내부 직접 호출은 없지만 A/B 차이듣기 QA와 구버전 호환 경로가 요구하므로 삭제하지 않았습니다.
+- 다음 대형 정리는 `src/app.js` 모듈 분리 후 진행하는 편이 안전합니다.
+
+## 이전 개별 패치노트 통합 기록
+
+---
+
+### PATCH_NOTES_v1.3.60
+
+# Patch Notes — FoxBear AI Mastering Studio Pro v1.3.60
+
+## Fixed
+- Restored robust file/folder loading with a hybrid picker path.
+- Improved hidden file input CSS so native picker activation is not suppressed by negative z-index/clipping.
+- Enlarged mobile upload tiles to keep 파일열기/폴더열기 visible and tappable.
+- Expanded hover/touch help tooltips across Dock, preview controls, sliders, snapshots, and admin controls.
+- Separated button feature groups into `마스터링 엔진` and `비교 · 관리 도구`.
+- Added handling for `abDifferenceListen` in utility feature toggles.
+
+## Validation
+- `npm run check` passed after patch.
+- SRI hashes in `index.html` were regenerated for changed app/CSS assets.
+- Service worker cache key was bumped to `foxbear-shell-v1.3.60-upload-tooltip-hotfix`.
+
+---
+
+### PATCH_NOTES_v1.3.61
+
+# FoxBear AI Mastering Studio Pro v1.3.61
+
+## UI Coverage + GitHub Pages Deploy Hotfix
+
+### Fixed
+- Repaired the local static validation failure caused by a stale `src/app.js` SRI hash in `index.html`.
+- Added a deploy artifact contract check so GitHub Pages deployment fails early during the build job when `index.html`, `manifest.webmanifest`, `sw.js`, `assets`, `src`, or `vendor` are missing.
+- Included `manifest.webmanifest` and `sw.js` in the GitHub Pages `_site` artifact. The previous workflow copied the app shell and source assets but left these root PWA/runtime files out.
+- Added pre-upload checks that reject symbolic links and hard links in `_site`, matching GitHub Pages artifact requirements.
+- Explicitly pinned the uploaded artifact name to `github-pages` and passed `artifact_name: github-pages` to the deploy step.
+
+### Improved
+- Grouped feature cards into `마스터링 엔진` and `비교 · 관리 도구` so non-engine controls no longer appear to leak into the engine area.
+- Extended dynamic feature card help metadata with `data-help`, `data-tooltip`, `aria-label`, and `title`.
+- Added `qa/deploy_pages_artifact_smoke.js` to `npm run check`.
+
+### Validation
+- `npm run check`: PASS
+- Local `_site` artifact simulation: PASS, 33 files, about 1.6 MB
+
+---
+
+### PATCH_NOTES_v1.3.62
+
+# FoxBear AI Mastering Studio Pro v1.3.63
+
+## Audio Import Reliability Hotfix
+
+- 파일/폴더 타일의 마우스/터치 클릭은 브라우저 기본 `<label for=fileInput>` 경로를 우선 사용하도록 복구했습니다.
+- `showOpenFilePicker()` 실패 후 비동기 fallback이 사용자 활성화 밖에서 차단되는 문제를 피했습니다.
+- 파일 선택 직후 선택 개수/등록 상태를 토스트로 표시하고, `handleFiles()`가 등록/무효/제한 결과를 반환하도록 정리했습니다.
+- Web Audio `decodeAudioData()`를 Promise/콜백 호환 경로로 보강하고, 실패 시 미디어 엘리먼트 metadata 확인으로 코덱/컨테이너 원인을 더 명확히 표시합니다.
+- 코덱 실패 메시지를 확장자별로 안내하여 WAV/MP3/M4A(AAC) 변환 또는 브라우저 변경을 빠르게 판단할 수 있게 했습니다.
+- 배포 캐시 키와 SRI 해시를 v1.3.63로 갱신했습니다.
+
+---
+
+### PATCH_NOTES_v1.3.63
+
+# FoxBear Mastering Studio Pro v1.3.63 Loudness Target UI Cleanup
+
+## 변경 사항
+- 라우드니스 타깃 선택 영역 아래에 별도로 노출되던 `곡별 Adaptive LUFS` 체크박스를 제거했습니다.
+- 내부 곡별 타깃 보정 로직은 유지해 기존 마스터링 안전성은 바꾸지 않았습니다.
+- 트랙 상세 정보에서도 `곡별 Adaptive LUFS`가 별도 행으로 튀어나오지 않도록 제거했습니다.
+- `qa/loudness_target_ui_smoke.js`를 추가해 라우드니스 타깃 UI가 단일 select 형태로 유지되는지 검증합니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.63-loudness-ui`로 갱신했습니다.
+
+## 검증
+- `npm run check`
+
+---
+
+### PATCH_NOTES_v1.3.64
+
+# FoxBear AI Mastering Studio Pro v1.3.64
+
+## Kakao / In-App Upload Rootfix
+
+### Fixed
+- Reworked the file/folder import tiles so the actual `<input type="file">` is nested inside each visible tile and stretched as a transparent overlay.
+- This keeps the picker connected to a real user tap in KakaoTalk, Android WebView, Safari, PWA, and desktop browsers instead of relying on programmatic click or fragile hidden-label forwarding.
+- Added an import status line under the upload tiles. It now shows whether the app is ready, whether a picker opened, whether selected files reached the app, and what failed if nothing was delivered.
+- Added a picker-return watcher for cases where an in-app browser closes the picker without dispatching `change`.
+- Added a boot-safe fallback. If full UI initialization fails, file input change handlers are still attached and a visible diagnostic is shown.
+- Unknown file names/MIME types from mobile content providers are no longer rejected before decoding. The app now attempts browser decoding first and reports a codec-specific error only if decoding fails.
+- Service worker now uses network-first loading for scripts/styles/workers to reduce stale asset/SRI mismatch cases that can make the app look clickable but inactive.
+
+### QA
+- Added `qa/kakao_upload_rootfix_smoke.js`.
+- Updated native picker/import QA checks for the nested transparent-input architecture.
+- `npm run check` passes with SRI, runtime, upload, mobile, deploy, and engine smoke checks.
+
+---
+
+### PATCH_NOTES_v1.3.65
+
+# FoxBear AI Mastering Studio Pro v1.3.65
+
+## Dock / Import Init Cleanup
+
+- 첫 화면에서 보이던 일반 초기화 오류를 줄이기 위해 앱 초기화 단계를 분리했습니다.
+- 파일열기/폴더열기 이벤트는 가장 먼저 독립 바인딩되며, 다른 UI 보조 기능이 실패해도 비상 모드로 계속 동작합니다.
+- 파일열기 설명을 `다양한 코덱 지원`으로 정리하고, 상태 안내에 WAV/MP3/M4A/AAC/FLAC/OGG/Opus/AIFF/CAF/MP4/MOV 등 브라우저 디코딩 기반 지원 범위를 표시했습니다.
+- Dock 버튼명을 정리했습니다.
+  - `마스터링 진행` → `마스터링`
+  - `결과 프리뷰` → `추천구간 미리듣기`
+  - `원본 프리뷰` → `원곡 프리뷰`
+- Dock 배치를 정리했습니다.
+  - 좌측: `마스터링`, `추천구간 미리듣기`
+  - 우측: `원곡 프리뷰`, `마스터링 프리뷰`
+- Dock 도움말 문구에서 어색한 `현재 화면에서 선택된 곡만...` 문장을 제거했습니다.
+
+---
+
+### PATCH_NOTES_v1.3.67
+
+# FoxBear Mastering Studio Pro v1.3.67
+
+## Dock Single-Line Actions Layout Fix
+
+- 하단 Dock의 4개 주요 버튼(`마스터링`, `추천구간 미리듣기`, `원곡 프리뷰`, `마스터링 프리뷰`)이 한 줄에 유지되도록 수정했습니다.
+- 좌측 그룹은 왼쪽, 프리뷰 소스 그룹은 오른쪽 정렬을 유지하되 버튼 폭은 문구 길이에 맞게 조정했습니다.
+- 좁은 모바일 화면에서도 강제 줄바꿈 대신 한 줄 유지 및 필요한 경우 가로 스크롤 fallback을 사용합니다.
+- `qa/dock_action_single_line_smoke.js`를 추가해 버튼 순서, 한 줄 유지 CSS, 텍스트 맞춤 폭 규칙을 검증합니다.
+
+---
+
+### PATCH_NOTES_v1.3.68
+
+# FoxBear Mastering Studio Pro v1.3.69
+
+## Dock Action Target Fix
+
+### Fixed
+- 하단 Dock의 `마스터링` 버튼이 `선택한 곡을 마스터링합니다` 토스트만 띄우고 실제 렌더 단계로 진입하지 못할 수 있던 경로를 수정했습니다.
+- Dock의 `추천구간 미리듣기`가 내부 선택 트랙 상태와 Dock 표시 트랙이 어긋날 때 반응하지 않는 문제를 수정했습니다.
+- Dock 액션 기준을 `selectedId` 단독 의존에서 `bottomPreviewTrackId → selectedId → 첫 트랙` 순서로 통일했습니다.
+- stale `state.busy` 플래그가 남아 실제 작업이 없는데도 Dock 액션이 막히는 상태를 자동 복구합니다.
+- `masterTrack()`이 조용히 return하던 조건에 Dock 진단/토스트를 붙이고, 실행 결과를 반환하도록 보강했습니다.
+
+### Changed
+- Dock `마스터링`, `추천구간 미리듣기`, `원곡 프리뷰`, `마스터링 프리뷰`는 모두 Dock에 표시 중인 곡을 기준으로 동작합니다.
+- 파일열기 도움말 문구를 `WAV, MP3, M4A/AAC, FLAC, OGG/Opus, AIFF, CAF, MP4/MOV 등 다양한 코덱` 안내로 확장했습니다.
+
+### QA
+- `qa/dock_action_runtime_fix_smoke.js` 추가.
+- `npm run check` 전체 통과.
+
+---
+
+### PATCH_NOTES_v1.3.69
+
+# FoxBear Mastering Studio Pro v1.3.69
+
+## Dock Action Target Fix
+
+- 파일을 불러온 직후 `selectedId`만 잡히고 `selectedIds`가 비어 있어 일부 마스터링 경로가 “곡을 선택하세요”로 빠지던 문제를 수정했습니다.
+- 불러온 트랙을 즉시 작업 대상(`selectedIds`)으로 등록하고 Dock 기준 트랙(`bottomPreviewTrackId`)도 동기화합니다.
+- 분석 중인 곡에서 Dock `마스터링` 또는 `추천구간 미리듣기`를 누르면 버튼이 먹통처럼 보이지 않고, 분석 완료를 기다린 뒤 이어서 실행합니다.
+- 분석 Promise를 트랙에 보관해 Dock 액션이 실제 분석 완료 시점을 기다릴 수 있게 했습니다.
+- Dock 액션 타깃 QA(`qa/dock_action_target_fix_smoke.js`)를 추가했습니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.69-dock-action-target-fix`로 갱신했습니다.
+
+---
+
+### PATCH_NOTES_v1.3.70
+
+# v1.3.70 Dock Peak Popup / Toast Stack
+
+## Fixed
+- Dock 피크 미니뷰 클릭이 파형 seek로 먹히면서 비교 팝업이 열리지 않던 문제를 수정했습니다.
+- Dock 피크 그래프와 플레이어 seek 게이지의 수평 시작/끝 라인을 맞췄습니다.
+- 토스트가 Dock과 겹치거나 연속 알림이 덮어쓰이던 문제를 스택형 알림으로 개편했습니다.
+
+## Changed
+- Dock 줄 순서를 피크, 플레이어, 마스터링/프리뷰 액션, 재생환경 순으로 정리했습니다.
+- Dock 피크 미니뷰는 팝업 전용이고, 구간 seek는 팝업 내부 파형에서만 동작합니다.
+
+## QA
+- Added `qa/dock_peak_toast_stack_smoke.js`.
+- `npm run check` PASS 기준으로 SRI, 런타임 스모크, Dock layout smoke를 검증합니다.
+
+---
+
+### PATCH_NOTES_v1.3.71
+
+# FoxBear AI Mastering Studio Pro v1.3.71
+
+## Dock Main Action Bridge
+
+- Dock의 `마스터링` 버튼을 별도 우회 로직이 아니라 메인 화면의 선택 곡 마스터링 액션과 같은 기준으로 실행하도록 단순화했습니다.
+- 메인 `마스터링`도 체크박스식 `selectedIds`가 비어 있으면 현재 활성 곡(`selectedId`)을 자동 대상화하도록 수정했습니다.
+- 파일을 불러온 직후 체크 선택이 없어도 현재 화면에 보이는 곡을 바로 마스터링할 수 있게 했습니다.
+- Dock `추천구간 미리듣기`는 메인 화면에서 선택된 곡을 우선 기준으로 잡고, 같은 `renderMasterPreviewForTrack()` 경로를 타도록 정리했습니다.
+- 분석 중인 곡도 버튼이 조용히 막히지 않고 분석 완료를 기다린 뒤 이어서 마스터링/추천구간 미리듣기를 진행하도록 했습니다.
+- `qa/dock_main_action_bridge_smoke.js`를 추가해 Dock 버튼이 메인 액션 브리지로 연결되어 있는지 검증합니다.
+- 앱/SW 캐시 키와 SRI 해시를 `v1.3.71-dock-main-action-bridge`로 갱신했습니다.
+
+---
+
+### PATCH_NOTES_v1.3.72
+
+# FoxBear Mastering Studio Pro v1.3.72
+
+## Dock Remote Controller Fix
+
+- Dock를 별도 기능 복사본이 아니라 본문 활성 곡을 조작하는 리모컨으로 재정의했습니다.
+- Dock `마스터링`은 현재 본문 활성 곡을 기준으로 `masterTrack()`을 직접 호출합니다.
+- Dock `추천구간 미리듣기`는 현재 본문 활성 곡을 기준으로 `renderMasterPreviewForTrack()`을 직접 호출합니다.
+- Dock 버튼은 더 이상 disabled로 죽지 않고, 누르면 실행하거나 차단 사유를 토스트로 보여줍니다.
+- 분석 중인 곡은 분석 완료를 기다린 뒤 마스터링/추천구간 미리듣기를 이어서 실행합니다.
+- 전역 캡처 기반 Dock 리모컨 fallback을 추가해 일반 이벤트 바인딩이 꼬여도 Dock 액션이 동작하도록 했습니다.
+
+---
+
+### PATCH_NOTES_v1.3.73
+
+# FoxBear Mastering Studio Pro v1.3.73
+
+## Dock Event Repair
+
+사용자 피드백 기준으로 Dock을 전면 재점검했습니다. v1.3.72에서 마스터링은 복구됐지만 재생환경, 원곡/마스터 전환, 파형 팝업 닫기가 죽는 문제가 남아 있었습니다.
+
+### 수정
+
+- Dock 클릭을 단일 리모컨 디스패처로 통합했습니다.
+- `마스터링`, `추천구간 미리듣기`, `원곡 프리뷰`, `마스터링 프리뷰`, `원음/폰/노트북/모노`, `피크 팝업`, `팝업 닫기`를 모두 명시적으로 처리합니다.
+- 재생환경 전환은 Dock에 표시된 곡 또는 본문 활성 곡을 먼저 활성화한 뒤 적용합니다.
+- 원곡/마스터링 프리뷰 전환은 disabled 상태에 묻히지 않고, 실행 가능 여부를 토스트로 설명합니다.
+- 파형/피크 팝업은 원곡과 마스터링을 비교하는 용도로 열리며, 닫기 버튼/배경 클릭을 캡처 단계에서 보강합니다.
+- Dock 내부 z-index와 pointer-events를 재정리해 플레이어/파형 레이어가 버튼을 가리지 않게 했습니다.
+
+### 검증
+
+- `npm run check`
+- `qa/dock_event_repair_smoke.js`
+
+---
+
+### PATCH_NOTES_v1.3.74
+
+# v1.3.74 Dock Integrated Waveform Remote
+
+## What changed
+
+- Rebuilt the Dock preview area around an integrated waveform player.
+  - Play/pause, waveform seek, current source label, and time display now live in one control.
+  - The old separated player seek bar and mini peak view no longer fight for pointer events.
+- Changed the Dock compare opener to a compact `큰 비교` button.
+  - It opens a large waveform comparison popup for original vs mastered/highlight audio.
+- Added large compare audition buttons.
+  - `원곡 듣기`, `마스터링 듣기`, and `하이라이트 듣기` switch the Dock player source and start playback.
+- Renamed `추천구간 미리듣기` to `하이라이트 듣기`.
+- Moved `하이라이트 듣기` into the first Dock action position.
+- Renamed the mastering action to `마스터링 시작` and centered it in the action row.
+- Added a capture fallback for `버튼 보기` so the button-style feature popup still opens even when other UI layers are active.
+
+## QA
+
+- Added `qa/dock_integrated_waveform_remote_smoke.js`.
+- Updated Dock waveform/action tests for the new single-line remote layout.
+- `npm run check` passes.
+
+---
+
+### PATCH_NOTES_v1.3.75
+
+# v1.3.78 Cleanup / Button View Layer Repair
+
+- Fixed Dock integrated waveform not appearing immediately after import by adding placeholder waveform bars and a waveform signature to the Dock player key.
+- Rebuilds the Dock player when analysis waveform data becomes available.
+- Added hard fallback binding for the Button Engine `버튼 보기` control.
+- Scrolls the completed track's download action line to the middle of the main screen after mastering.
+- Improves Kakao/in-app download flow by trying Web Share first when available, then showing save assistance / external-browser guidance.
+
+---
+
+### PATCH_NOTES_v1.3.76
+
+# v1.3.78 Dock Regression & Button View Stabilization
+
+- Stabilizes the Dock integrated waveform refresh after first import, analysis completion, and mastering completion.
+- Forces Dock waveform re-render when placeholder bars need to become real peak/waveform bars.
+- Raises the Button View dialog above the Dock and adds pointer/touch/click fallback binding.
+- Keeps Dock remote controls clickable by reinforcing pointer-event boundaries.
+- Improves post-mastering scroll so the finished track download line lands near the middle of the viewport.
+- Keeps Kakao/in-app download guidance flow while preserving normal browser download behavior.
+
+---
+
+### PATCH_NOTES_v1.3.78
+
+# FoxBear AI Mastering Studio Pro v1.3.78
+
+## Dock Waveform Visual Polish
+
+- Dock 통합 파형을 실제 플레이어처럼 보이도록 개선했습니다.
+- 재생이 지나간 막대는 밝게, 아직 지나가지 않은 막대는 어둡게 표시합니다.
+- 파형 막대를 중앙 기준 미러 스타일로 정렬해 바그래프 느낌을 줄였습니다.
+- 얇은 흰 재생선 대신 청록 글로우 캡슐 playhead를 적용했습니다.
+- Dock 폭을 기준으로 파형 막대 수를 동적으로 계산해 모바일/데스크톱에서 밀도와 간격을 안정화했습니다.
+- 큰 비교 팝업 파형도 같은 진행 대비/글로우 playhead 스타일을 공유합니다.
+- `마스터링` 등 Dock 라벨이 폭 부족으로 세로 한 글자씩 줄바꿈되는 문제를 `nowrap`으로 방지했습니다.
+- QA: `qa/dock_waveform_visual_polish_smoke.js`를 추가했습니다.

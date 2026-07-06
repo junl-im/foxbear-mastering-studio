@@ -1,45 +1,36 @@
-# FoxBear AI Mastering Studio Pro v1.3.77
+# FoxBear AI Mastering Studio Pro v1.3.78
 
-## v1.3.77 Dock Waveform Visual Polish
+로컬 브라우저에서 오디오를 분석하고 마스터링하는 정적 웹 앱입니다. 파일은 서버로 업로드하지 않고 사용자의 기기 안에서 처리합니다.
 
-- Dock 통합 파형에 재생 진행 대비를 적용해 지나간 구간과 남은 구간을 명확히 구분합니다.
-- 막대는 중앙 기준 미러 파형처럼 정렬되고, 얇은 세로선 대신 청록 글로우 캡슐 playhead를 사용합니다.
-- Dock 폭에 따라 파형 막대 개수를 동적으로 계산해 모바일과 데스크톱 모두에서 촘촘함을 줄였습니다.
-- `마스터링` 라벨이 세로로 쪼개지는 줄바꿈을 방지했습니다.
+## v1.3.78 Cleanup / Button View Layer Repair
 
+- `PATCH_NOTES_v*.md` 개별 파일을 만들지 않는 정책으로 변경했습니다.
+- 이전 개별 패치노트는 `PROJECT_NOTES.md`로 통합했고, 앞으로 버전 기록과 인수인계 내용은 `PROJECT_NOTES.md`와 이 README에 누적합니다.
+- `버튼 보기` 버튼 자체가 모든 화면 위에 떠버리던 z-index 과보정을 제거했습니다.
+- 버튼형 적용 팝업은 Dock보다 위, 미리듣기/비교/관리 팝업보다는 아래의 적정 레이어로 조정했습니다.
+- 버튼형 적용 팝업 닫기 버튼, 배경 클릭, ESC 닫기 경로를 정리했습니다.
+- 죽은 코드/중복 코드 후보를 점검하고, 안전한 파일 정리만 이번 패치에 반영했습니다.
 
-- Dock 통합 파형이 파일 불러오기 직후 임시 파형을 표시하고, 분석 완료 즉시 실제 피크/파형으로 자동 갱신됩니다.
-- 버튼형 적용의 `버튼 보기`에 pointer/touch/key fallback을 추가해 클릭 레이어 충돌에도 팝업이 열립니다.
-- 마스터링 완료 후 본문 트랙의 다운로드 버튼 라인이 화면 중앙으로 자동 스크롤됩니다.
-- 카카오/인앱 브라우저 다운로드는 자동 저장 제한을 감지해 공유/저장창을 먼저 시도하고, 실패 시 도움창/외부 브라우저 안내로 이어집니다.
+## 현재 중점 기능
 
-# FoxBear AI Mastering Studio Pro v1.3.74
+- 파일/폴더 오디오 불러오기
+- 장르/레퍼런스/스마트 추천 기반 마스터링
+- Dock 통합 파형 플레이어
+- 원곡/마스터링/하이라이트 비교 듣기
+- 큰 비교 팝업
+- WAV/MP3/ZIP 다운로드
+- 카카오/인앱 브라우저 다운로드 도움 흐름
 
-## v1.3.74 Dock Integrated Waveform Remote
+## 기록 정책
 
-- Dock 플레이어와 파형을 하나의 통합 파형 플레이어로 개편했습니다.
-- `큰 비교` 팝업에서 원곡과 마스터링/하이라이트 파형을 크게 비교하고, 각 행의 듣기 버튼으로 바로 전환 재생할 수 있습니다.
-- `추천구간 미리듣기` 명칭을 `하이라이트 듣기`로 바꿨습니다.
-- Dock 액션 배치를 `하이라이트 듣기` / `마스터링 시작` / `원곡 프리뷰·마스터링 프리뷰` 구조로 정리했습니다.
-- `마스터링 시작`은 Dock 액션 라인의 중앙에 오도록 조정했습니다.
-- `버튼 보기` 팝업이 클릭 레이어에 막히지 않도록 fallback 바인딩을 추가했습니다.
-- 앱/SW 캐시 키와 SRI 해시를 `v1.3.74-dock-integrated-waveform`로 갱신했습니다.
+- 개별 `PATCH_NOTES_v1.3.xx.md` 파일은 더 이상 만들지 않습니다.
+- 변경 이력, 인수인계, 정리/감사 기록은 `PROJECT_NOTES.md`에 누적합니다.
+- README는 최신 버전의 핵심 변경점과 실행 정보를 유지합니다.
 
-# FoxBear AI Mastering Studio Pro v1.3.73
-
-## v1.3.73 Dock Event Repair
-
-- Dock을 본문 기능의 “리모컨”으로 다시 정리했습니다.
-- 마스터링은 유지하면서, 죽어 있던 재생환경 버튼(원음/폰/노트북/모노), 원곡/마스터링 프리뷰 전환, 파형 팝업 닫기를 단일 이벤트 디스패처로 복구했습니다.
-- 파형/피크 팝업은 원곡과 마스터링을 한 화면에서 비교하는 용도로 열리며, 닫기 버튼/배경 클릭/ESC가 모두 동작하도록 보강했습니다.
-- Dock 위 레이어의 z-index와 pointer-events를 정리해 버튼 클릭이 파형/플레이어 레이어에 가로막히지 않게 했습니다.
-- 앱/SW 캐시 키와 SRI 해시를 `v1.3.73-dock-event-repair`로 갱신했습니다.
 ## 검증
 
 ```bash
 npm run check
 ```
 
-## v1.3.77 Dock Regression & Button View Stabilization
-
-This build focuses on Dock regression cleanup after the integrated waveform update. The Dock waveform now refreshes when analysis/mastering data arrives, Button View is forced above the Dock layer, and the finished-track download line is centered after mastering completes.
+정적 문법, SRI, Dock/다운로드/모바일/마스터링 관련 smoke QA를 실행합니다.

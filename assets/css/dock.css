@@ -680,7 +680,7 @@ body.preview-dialog-open .bottom-preview-dock {
   z-index: 23000 !important;
 }
 
-/* v1.3.77 Dock waveform polish: mirror bars, progress contrast, nowrap labels */
+/* v1.3.78 Cleanup / Button View Layer Repair: mirror bars, progress contrast, nowrap labels */
 .dock-integrated-waveform-bars,
 .waveform-compare-bars {
   align-items: center !important;

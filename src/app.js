@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.77 - Dock waveform visual polish
+// FoxBear AI Mastering Studio Pro v1.3.78 - Cleanup / Button View Layer Repair
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.77';
+const APP_VERSION = 'Pro v1.3.78';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.77-dock-waveform-polish';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.78-cleanup-buttonview-layer';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -190,14 +190,6 @@ function computeAdaptiveTargetLufsForTrack(track, baseTarget = state.targetLufs)
 function resolveTargetLufsForTrack(track) {
     return computeAdaptiveTargetLufsForTrack(track, state.targetLufs);
 }
-
-function getAdaptiveTargetLabel(track) {
-    const base = Number(state.targetLufs || -14);
-    const resolved = resolveTargetLufsForTrack(track);
-    if (!state.adaptiveTargetLufs || !Number.isFinite(resolved) || Math.abs(resolved - base) < 0.05) return `${base.toFixed(0)} LUFS`;
-    return `${base.toFixed(0)} → ${resolved.toFixed(1)} LUFS`;
-}
-
 function createDspAmountSummary(track) {
     const info = track?.finalizeInfo || {};
     const analysis = track?.analysis || {};
@@ -350,7 +342,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.77-dock-waveform-polish';
+    styleLink.href = 'assets/css/studio.css?v=1.3.78-cleanup-buttonview-layer';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -743,7 +735,10 @@ function closeFeatureDialog() {
     el.featureDialog.classList.remove('show');
     el.featureDialog.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('feature-dialog-open');
-    if (el.featureOpenBtn) el.featureOpenBtn.focus({ preventScroll: true });
+    hideFeatureTooltip();
+    if (el.featureOpenBtn && document.body.contains(el.featureOpenBtn)) {
+        try { el.featureOpenBtn.focus({ preventScroll: true }); } catch (error) {}
+    }
 }
 
 function forceOpenFeatureDialog(event = null) {
@@ -764,11 +759,15 @@ function ensureFeatureDialogLayer() {
     const dialog = el.featureDialog || document.getElementById('featureDialog');
     const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
     if (dialog) {
-        dialog.style.zIndex = '28050';
-        dialog.style.pointerEvents = 'auto';
+        // v1.3.78: keep the dialog above the Dock through CSS, but do not
+        // force an inline top-most z-index. The old inline value made
+        // `버튼 보기` feel like it floated above every screen.
+        dialog.style.removeProperty('z-index');
+        dialog.style.pointerEvents = dialog.classList.contains('show') ? 'auto' : '';
     }
     if (button) {
         button.removeAttribute('disabled');
+        button.style.removeProperty('z-index');
         button.style.pointerEvents = 'auto';
         button.style.touchAction = 'manipulation';
         button.setAttribute('aria-haspopup', 'dialog');
@@ -784,11 +783,11 @@ function bindFeatureOpenHardFallback() {
     button.dataset.featureHardFallbackBound = 'true';
     window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
     const open = event => forceOpenFeatureDialog(event);
-    ['pointerdown', 'pointerup', 'click'].forEach(type => {
-        button.addEventListener(type, open, { capture: true });
-    });
+    // v1.3.78: avoid pointerdown/pointerup capture spam. A click/touchend
+    // fallback is enough, while the close button remains free to receive its
+    // own click path.
+    button.addEventListener('click', open, { capture: true });
     button.addEventListener('touchend', open, { capture: true, passive: false });
-    button.onclick = open;
     button.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') forceOpenFeatureDialog(event);
     }, { capture: true });
@@ -2818,7 +2817,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.77-dock-waveform-polish');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.78-cleanup-buttonview-layer');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2902,6 +2901,188 @@ function clearNativeBadgeIfDone() {
 }
 
 
+
+// v1.3.78: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
+
+
+
+function createDifferencePreviewPlayer(track, options = {}) {
+    const wrap = document.createElement('div');
+    wrap.className = 'difference-preview-player';
+    const mode = options.mode === 'masterPreview' ? 'masterPreview' : 'mastered';
+    const durationSec = Number(options.durationSec || track?.analysis?.duration || 0);
+    const compareOffset = 0;
+    const originalOffset = mode === 'masterPreview' ? getMasterPreviewStartSec(track) : 0;
+    const matchGainDb = Number.isFinite(Number(options.gainDb)) ? Number(options.gainDb) : getABMatchGainDb(track);
+    const compareGain = state.abLevelMatch && Number.isFinite(matchGainDb) ? clamp(Math.pow(10, matchGainDb / 20), 0.04, 1.25) : 1;
+
+    const originalAudio = document.createElement('audio');
+    originalAudio.preload = 'metadata';
+    originalAudio.src = track.originalUrl;
+    const compareAudio = document.createElement('audio');
+    compareAudio.preload = 'metadata';
+    compareAudio.src = options.compareUrl;
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'player-toggle';
+    setPlayerToggleIcon(toggle, false);
+    toggle.setAttribute('aria-label', '차이 듣기 재생');
+
+    const seek = document.createElement('input');
+    seek.type = 'range';
+    seek.className = 'player-seek difference-preview-seek';
+    seek.min = '0';
+    seek.max = '1000';
+    seek.step = '1';
+    seek.value = '0';
+
+    const time = document.createElement('span');
+    time.className = 'player-time difference-preview-time';
+    time.textContent = formatPlayerTime(0, durationSec);
+
+    const badge = document.createElement('span');
+    badge.className = 'difference-listen-badge';
+    badge.textContent = state.abLevelMatch ? '차이 · 레벨매칭' : '차이 · 실제음량';
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    let context = null;
+    let graphReady = false;
+    const getDuration = () => Number.isFinite(compareAudio.duration) && compareAudio.duration > 0 ? compareAudio.duration : durationSec;
+    const localPosition = () => Math.max(0, Number(compareAudio.currentTime || 0) - compareOffset);
+    const setPlaying = playing => {
+        toggle.classList.toggle('playing', Boolean(playing));
+        setPlayerToggleIcon(toggle, Boolean(playing));
+        toggle.setAttribute('aria-label', playing ? '차이 듣기 일시정지' : '차이 듣기 재생');
+    };
+    const syncUi = () => {
+        const duration = getDuration();
+        const pos = localPosition();
+        if (Number.isFinite(duration) && duration > 0) seek.value = String(Math.round(clamp(pos / duration, 0, 1) * 1000));
+        time.textContent = formatPlayerTime(pos, duration);
+    };
+    const seekLocal = seconds => {
+        const duration = getDuration();
+        const safe = Number.isFinite(duration) && duration > 0 ? clamp(seconds, 0, Math.max(0, duration - 0.08)) : Math.max(0, Number(seconds || 0));
+        try { compareAudio.currentTime = compareOffset + safe; } catch (error) {}
+        try { originalAudio.currentTime = originalOffset + safe; } catch (error) {}
+        syncUi();
+    };
+    const ensureGraph = () => {
+        if (graphReady || !AudioContextClass) return graphReady;
+        try {
+            context = new AudioContextClass({ latencyHint: 'interactive' });
+            const originalSource = context.createMediaElementSource(originalAudio);
+            const compareSource = context.createMediaElementSource(compareAudio);
+            const originalInvert = context.createGain();
+            originalInvert.gain.value = -1;
+            const compareLevel = context.createGain();
+            compareLevel.gain.value = compareGain;
+            const protect = context.createDynamicsCompressor();
+            protect.threshold.value = -18;
+            protect.knee.value = 18;
+            protect.ratio.value = 5;
+            protect.attack.value = 0.003;
+            protect.release.value = 0.08;
+            const output = context.createGain();
+            output.gain.value = 0.62;
+            originalSource.connect(originalInvert).connect(protect);
+            compareSource.connect(compareLevel).connect(protect);
+            protect.connect(output).connect(context.destination);
+            graphReady = true;
+        } catch (error) {
+            console.warn('Difference listen graph unavailable:', error);
+            graphReady = false;
+        }
+        return graphReady;
+    };
+    const playBoth = async () => {
+        bindExclusivePreview(compareAudio);
+        ensureGraph();
+        if (context) await context.resume().catch(() => {});
+        const start = Number(options.startSec || 0);
+        if (compareAudio.readyState < 1 || Math.abs(localPosition() - start) > 0.15) seekLocal(Number.isFinite(start) ? start : 0);
+        try {
+            await Promise.all([originalAudio.play(), compareAudio.play()]);
+            setPlaying(true);
+        } catch (error) {
+            try { originalAudio.pause(); compareAudio.pause(); } catch (pauseError) {}
+            showToast('차이 듣기 자동 재생이 차단되었습니다. 재생 버튼을 다시 눌러주세요.');
+            setPlaying(false);
+        }
+    };
+    const pauseBoth = () => {
+        try { originalAudio.pause(); compareAudio.pause(); } catch (error) {}
+        setPlaying(false);
+    };
+
+    toggle.addEventListener('click', () => {
+        if (compareAudio.paused) playBoth();
+        else pauseBoth();
+    });
+    seek.addEventListener('input', () => {
+        const duration = getDuration();
+        if (Number.isFinite(duration) && duration > 0) seekLocal(Number(seek.value) / 1000 * duration);
+    });
+    compareAudio.addEventListener('loadedmetadata', () => seekLocal(Number(options.startSec || 0)), { once: true });
+    compareAudio.addEventListener('timeupdate', () => {
+        const targetOriginal = originalOffset + localPosition();
+        if (Math.abs((originalAudio.currentTime || 0) - targetOriginal) > 0.18) {
+            try { originalAudio.currentTime = targetOriginal; } catch (error) {}
+        }
+        const duration = getDuration();
+        if (state.abLoopMode && Number.isFinite(duration) && duration > 6 && localPosition() >= Math.min(duration, Number(options.startSec || 0) + 5)) {
+            seekLocal(Number(options.startSec || 0));
+            return;
+        }
+        syncUi();
+    });
+    compareAudio.addEventListener('play', () => setPlaying(true));
+    compareAudio.addEventListener('pause', () => setPlaying(false));
+    compareAudio.addEventListener('ended', () => pauseBoth());
+    [originalAudio, compareAudio].forEach(audio => {
+        audio.addEventListener('emptied', () => context && closePreviewTranslationContext(context), { once: true });
+        audio.addEventListener('error', () => context && closePreviewTranslationContext(context), { once: true });
+    });
+
+    wrap._foxbearPlay = playBoth;
+    wrap._foxbearPause = pauseBoth;
+    wrap.append(toggle, seek, time, badge, compareAudio, originalAudio);
+    return wrap;
+}
+
+
+
+function toggleDockAbLevelMatch() {
+    const track = getSelectedTrack();
+    captureBottomPreviewTransport(track, state.bottomPreviewMode);
+    state.abLevelMatch = !state.abLevelMatch;
+    syncBottomCompareTools();
+    renderBottomPreviewDock({ keepPlaying: true });
+    renderAll({ keepDetailAudio: true });
+    showToast(state.abLevelMatch ? 'Dock A/B 레벨 매칭을 켰습니다.' : 'Dock A/B 레벨 매칭을 껐습니다.');
+}
+
+
+
+function toggleDockDifferenceListen() {
+    const track = getSelectedTrack();
+    if (!track) return;
+    captureBottomPreviewTransport(track, state.bottomPreviewMode);
+    const hasCompare = Boolean(track.masteredUrl || track.masterPreviewUrl);
+    if (!hasCompare) {
+        showToast('마스터링 또는 15초 하이라이트 듣기가 준비된 뒤 차이 듣기를 사용할 수 있습니다.');
+        return;
+    }
+    state.abDifferenceListen = !state.abDifferenceListen;
+    if (state.abDifferenceListen && state.bottomPreviewMode === 'original') {
+        state.bottomPreviewMode = track.masteredUrl ? 'mastered' : 'masterPreview';
+    }
+    syncBottomCompareTools();
+    renderBottomPreviewDock({ keepPlaying: true, autoPlay: true });
+    showToast(state.abDifferenceListen ? '차이 듣기: 원본을 빼고 달라진 성분만 재생합니다.' : '차이 듣기를 껐습니다.');
+}
+
 function installDockRemoteDelegation() {
     if (state.dockRemoteDelegationInstalled) return;
     state.dockRemoteDelegationInstalled = true;
@@ -2961,19 +3142,23 @@ function installFeatureDialogFallback() {
         const target = event.target && typeof event.target.closest === 'function'
             ? event.target.closest('#featureOpenBtn, #featureDialogClose, .feature-dialog-close')
             : null;
-        if (!target) return;
-        if (target.id === 'featureOpenBtn') {
+        if (target?.id === 'featureOpenBtn') {
             event.preventDefault();
             event.stopPropagation();
             ensureFeatureDialogLayer();
             forceOpenFeatureDialog(event);
-        } else {
+            return;
+        }
+        const dialog = el.featureDialog || document.getElementById('featureDialog');
+        const isClose = target && (target.id === 'featureDialogClose' || target.classList?.contains('feature-dialog-close'));
+        const isBackdropClick = dialog && event.type === 'click' && event.target === dialog && dialog.classList.contains('show');
+        if (isClose || isBackdropClick) {
             event.preventDefault();
             event.stopPropagation();
             closeFeatureDialog();
         }
     };
-    ['pointerup', 'click', 'touchend'].forEach(type => {
+    ['click', 'touchend'].forEach(type => {
         document.addEventListener(type, handle, { capture: true, passive: false });
     });
 }
@@ -3521,14 +3706,6 @@ function toggleFeature(key) {
     renderAll({ keepDetailAudio: true });
     showToast(`${FEATURE_DEFINITIONS[key].label}: ${state.featureFlags[key] ? '켜짐' : '꺼짐'} · ${FEATURE_DEFINITIONS[key].short}`);
 }
-
-function activateByKeyboard(event, callback) {
-    if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        callback();
-    }
-}
-
 const FOXBEAR_UPLOAD_ACCEPT = AUDIO_IMPORT_ACCEPT;
 const FOXBEAR_FILE_PICKER_TYPES = [{
     description: 'FoxBear 지원/시도 오디오 파일',
@@ -3540,11 +3717,6 @@ const FOXBEAR_FILE_PICKER_TYPES = [{
         'application/ogg': ['.ogg', '.oga', '.opus']
     }
 }];
-
-function supportsSystemFilePicker() {
-    return typeof window.showOpenFilePicker === 'function';
-}
-
 function supportsSystemDirectoryPicker() {
     return typeof window.showDirectoryPicker === 'function';
 }
@@ -5155,11 +5327,6 @@ function buildCandidateExplainText(track, candidate) {
     const deltaText = candidate.recommended ? '최상위 후보' : `1순위 대비 -${delta.toFixed(2)}`;
     return `${deltaText} · ${reason}${caution}`;
 }
-
-function addKeywordScore(scores, haystack, keywords, preset, value) {
-    if (keywords.some(keyword => haystack.includes(keyword))) scores[preset] += value;
-}
-
 function makeRecommendedSettings(preset, analysis) {
     const base = cloneSettings(GENRE_PRESETS[preset] || GENRE_PRESETS.custom);
     if (!analysis || analysis.silence) return base;
@@ -7331,11 +7498,6 @@ function getPhaseSafeSpatialBudget(settings, analysis, intensity = getMasteringI
         reason: reasonParts.length ? reasonParts.join(' / ') : 'safe budget'
     };
 }
-
-function getPhaseSafeWidthFactor(settings, analysis, intensity = getMasteringIntensity(settings), minFactor = 0.82, maxFactor = 1.22) {
-    return getPhaseSafeSpatialBudget(settings, analysis, intensity, minFactor, maxFactor).widthFactor;
-}
-
 function applySpatialBudgetToSettings(settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (!settings || !analysis || state.featureFlags.phaseSafe === false) return settings;
     const budget = getPhaseSafeSpatialBudget(settings, analysis, intensity, 0.82, 1.22);
@@ -8165,111 +8327,16 @@ function applyBufferGainFast(channels, gain) {
         for (let i = 0; i < data.length; i += 1) data[i] *= gain;
     }
 }
-
-function addKickToBuffer(buffer, start, amp) {
-    const sampleRate = buffer.sampleRate;
-    const length = Math.min(buffer.length - start, Math.round(sampleRate * 0.18));
-    if (length <= 0) return;
-    let phase = 0;
-    for (let i = 0; i < length; i += 1) {
-        const t = i / sampleRate;
-        const norm = i / Math.max(1, length);
-        const freq = 72 - 34 * Math.pow(norm, 0.72);
-        phase += 2 * Math.PI * freq / sampleRate;
-        const body = Math.sin(phase) * Math.exp(-t * 19);
-        const click = Math.exp(-t * 180) * 0.22;
-        mixMonoSample(buffer, start + i, (body + click) * amp);
-    }
-}
-
-function addHatToBuffer(buffer, start, amp, seed) {
-    const sampleRate = buffer.sampleRate;
-    const length = Math.min(buffer.length - start, Math.round(sampleRate * 0.055));
-    if (length <= 0) return;
-    let prev = 0;
-    for (let i = 0; i < length; i += 1) {
-        const t = i / sampleRate;
-        const raw = pseudoNoise(start + i + seed * 101);
-        const high = raw - prev * 0.58;
-        prev = raw;
-        const env = Math.exp(-t * 72);
-        mixStereoAccent(buffer, start + i, high * env * amp, seed % 2 ? 0.92 : 1.08);
-    }
-}
-
-function addClapToBuffer(buffer, start, amp) {
-    const sampleRate = buffer.sampleRate;
-    const length = Math.min(buffer.length - start, Math.round(sampleRate * 0.105));
-    if (length <= 0) return;
-    let prev = 0;
-    for (let i = 0; i < length; i += 1) {
-        const t = i / sampleRate;
-        const burst = Math.exp(-Math.max(0, t - 0.000) * 36) + 0.65 * Math.exp(-Math.max(0, t - 0.014) * 44) + 0.52 * Math.exp(-Math.max(0, t - 0.030) * 50);
-        const raw = pseudoNoise(start * 0.37 + i * 2.1);
-        const high = raw - prev * 0.35;
-        prev = raw;
-        mixStereoAccent(buffer, start + i, high * burst * amp * 0.42, 0.96);
-    }
-}
-
 function pseudoNoise(x) {
     const n = Math.sin(x * 12.9898 + 78.233) * 43758.5453123;
     return (n - Math.floor(n)) * 2 - 1;
 }
-
-function mixMonoSample(buffer, index, value) {
-    if (index < 0 || index >= buffer.length) return;
-    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-        const data = buffer.getChannelData(ch);
-        data[index] += value;
-    }
-}
-
-function mixStereoAccent(buffer, index, value, panLean) {
-    if (index < 0 || index >= buffer.length) return;
-    if (buffer.numberOfChannels < 2) {
-        buffer.getChannelData(0)[index] += value;
-        return;
-    }
-    buffer.getChannelData(0)[index] += value * panLean;
-    buffer.getChannelData(1)[index] += value * (2 - panLean);
-}
-
 function applyBufferGain(buffer, gain) {
     for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
         const data = buffer.getChannelData(ch);
         for (let i = 0; i < data.length; i += 1) data[i] *= gain;
     }
 }
-
-function applyPeakGuard(buffer, targetPeak) {
-    let peak = 0;
-    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-        const data = buffer.getChannelData(ch);
-        for (let i = 0; i < data.length; i += 1) peak = Math.max(peak, Math.abs(data[i]));
-    }
-    if (peak < 0.000001) return { mode: 'samplePeak', peakBefore: peak, peakAfter: peak, gain: 1 };
-    const gain = Math.min(1.15, targetPeak / peak);
-    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-        const data = buffer.getChannelData(ch);
-        for (let i = 0; i < data.length; i += 1) data[i] = softLimitSample(data[i] * gain);
-    }
-    return { mode: 'samplePeak', peakBefore: peak, peakAfter: measureSamplePeak(buffer), gain };
-}
-
-function applyTruePeakGuard(buffer, targetDbTP) {
-    const target = Math.pow(10, targetDbTP / 20);
-    const peakBefore = measureInterpolatedPeak(buffer, 4);
-    if (peakBefore < 0.000001) return { mode: 'firTruePeak4x', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1 };
-    const gain = Math.min(1, target / peakBefore);
-    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-        const data = buffer.getChannelData(ch);
-        for (let i = 0; i < data.length; i += 1) data[i] = softCeilingSample(data[i] * gain, target);
-    }
-    const peakAfter = measureInterpolatedPeak(buffer, 4);
-    return { mode: 'firTruePeak4x', targetDbTP, peakBefore, peakAfter, gain };
-}
-
 function measureSamplePeak(buffer) {
     let peak = 0;
     for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
@@ -8354,15 +8421,6 @@ function blackmanWindow(x) {
     const phase = Math.PI * ax;
     return 0.42 + 0.5 * Math.cos(phase) + 0.08 * Math.cos(2 * phase);
 }
-
-function softLimitSample(value) {
-    const sign = Math.sign(value);
-    const abs = Math.abs(value);
-    if (abs <= 0.982) return value;
-    const limited = 0.982 + Math.tanh((abs - 0.982) * 8) * 0.016;
-    return sign * Math.min(0.999, limited);
-}
-
 function softCeilingSample(value, ceiling) {
     const sign = Math.sign(value);
     const abs = Math.abs(value);
@@ -9726,25 +9784,6 @@ function downloadBlob(blob, fileName) {
         revokeDownloadUrl(url);
     }, 90 * 1000);
 }
-
-function tryShareDownloadFile(blob, fileName, url) {
-    if (!navigator.share || typeof File === 'undefined') return false;
-    try {
-        const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
-        const payload = { files: [file], title: fileName, text: 'FoxBear Music 마스터링 파일' };
-        if (navigator.canShare && !navigator.canShare({ files: payload.files })) return false;
-        navigator.share(payload).then(() => {
-            setTimeout(() => revokeDownloadUrl(url), 30000);
-        }).catch(error => {
-            console.warn('share download fallback:', error);
-        });
-        return true;
-    } catch (error) {
-        console.warn('share download unavailable:', error);
-        return false;
-    }
-}
-
 function getDownloadEnvironmentInfo() {
     const ua = navigator.userAgent || '';
     const restricted = isRestrictedDownloadBrowser();
@@ -11479,11 +11518,6 @@ function handlePreviewTranslationModeClick(event) {
     if (!button) return;
     runDockRemoteTranslationMode(button.dataset.previewTranslationMode || 'studio', event);
 }
-
-function setPreviewTranslationMode(mode) {
-    applyPreviewTranslationMode(mode, { keepPlaying: true, toast: true });
-}
-
 function runDockRemoteTranslationMode(mode, event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
@@ -11495,35 +11529,6 @@ function runDockRemoteTranslationMode(mode, event = null) {
     applyPreviewTranslationMode(mode, { keepPlaying: true, toast: true, track });
     return true;
 }
-
-function toggleDockAbLevelMatch() {
-    const track = getSelectedTrack();
-    captureBottomPreviewTransport(track, state.bottomPreviewMode);
-    state.abLevelMatch = !state.abLevelMatch;
-    syncBottomCompareTools();
-    renderBottomPreviewDock({ keepPlaying: true });
-    renderAll({ keepDetailAudio: true });
-    showToast(state.abLevelMatch ? 'Dock A/B 레벨 매칭을 켰습니다.' : 'Dock A/B 레벨 매칭을 껐습니다.');
-}
-
-function toggleDockDifferenceListen() {
-    const track = getSelectedTrack();
-    if (!track) return;
-    captureBottomPreviewTransport(track, state.bottomPreviewMode);
-    const hasCompare = Boolean(track.masteredUrl || track.masterPreviewUrl);
-    if (!hasCompare) {
-        showToast('마스터링 또는 15초 하이라이트 듣기가 준비된 뒤 차이 듣기를 사용할 수 있습니다.');
-        return;
-    }
-    state.abDifferenceListen = !state.abDifferenceListen;
-    if (state.abDifferenceListen && state.bottomPreviewMode === 'original') {
-        state.bottomPreviewMode = track.masteredUrl ? 'mastered' : 'masterPreview';
-    }
-    syncBottomCompareTools();
-    renderBottomPreviewDock({ keepPlaying: true, autoPlay: true });
-    showToast(state.abDifferenceListen ? '차이 듣기: 원본을 빼고 달라진 성분만 재생합니다.' : '차이 듣기를 껐습니다.');
-}
-
 function syncBottomCompareTools() {
     if (el.bottomPreviewAbMatchBtn) {
         el.bottomPreviewAbMatchBtn.classList.toggle('active', Boolean(state.abLevelMatch));
@@ -11686,11 +11691,6 @@ function clearStaleBusyFlagIfIdle(reason = '') {
     state.busy = false;
     return true;
 }
-
-function isDockMasteringBusyBlocked() {
-    return Boolean(state.busy && hasActiveBlockingWork());
-}
-
 function isActionBusyBlocked() {
     clearStaleBusyFlagIfIdle('action-busy-check');
     return Boolean(state.busy && hasActiveBlockingWork());
@@ -12792,153 +12792,6 @@ function playBottomPreviewAudio() {
     if (!audio) return;
     audio.play().catch(() => showToast('브라우저가 자동 재생을 차단했습니다. 하단 재생 버튼을 눌러주세요.'));
 }
-
-
-function createDifferencePreviewPlayer(track, options = {}) {
-    const wrap = document.createElement('div');
-    wrap.className = 'difference-preview-player';
-    const mode = options.mode === 'masterPreview' ? 'masterPreview' : 'mastered';
-    const durationSec = Number(options.durationSec || track?.analysis?.duration || 0);
-    const compareOffset = 0;
-    const originalOffset = mode === 'masterPreview' ? getMasterPreviewStartSec(track) : 0;
-    const matchGainDb = Number.isFinite(Number(options.gainDb)) ? Number(options.gainDb) : getABMatchGainDb(track);
-    const compareGain = state.abLevelMatch && Number.isFinite(matchGainDb) ? clamp(Math.pow(10, matchGainDb / 20), 0.04, 1.25) : 1;
-
-    const originalAudio = document.createElement('audio');
-    originalAudio.preload = 'metadata';
-    originalAudio.src = track.originalUrl;
-    const compareAudio = document.createElement('audio');
-    compareAudio.preload = 'metadata';
-    compareAudio.src = options.compareUrl;
-
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'player-toggle';
-    setPlayerToggleIcon(toggle, false);
-    toggle.setAttribute('aria-label', '차이 듣기 재생');
-
-    const seek = document.createElement('input');
-    seek.type = 'range';
-    seek.className = 'player-seek difference-preview-seek';
-    seek.min = '0';
-    seek.max = '1000';
-    seek.step = '1';
-    seek.value = '0';
-
-    const time = document.createElement('span');
-    time.className = 'player-time difference-preview-time';
-    time.textContent = formatPlayerTime(0, durationSec);
-
-    const badge = document.createElement('span');
-    badge.className = 'difference-listen-badge';
-    badge.textContent = state.abLevelMatch ? '차이 · 레벨매칭' : '차이 · 실제음량';
-
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    let context = null;
-    let graphReady = false;
-    const getDuration = () => Number.isFinite(compareAudio.duration) && compareAudio.duration > 0 ? compareAudio.duration : durationSec;
-    const localPosition = () => Math.max(0, Number(compareAudio.currentTime || 0) - compareOffset);
-    const setPlaying = playing => {
-        toggle.classList.toggle('playing', Boolean(playing));
-        setPlayerToggleIcon(toggle, Boolean(playing));
-        toggle.setAttribute('aria-label', playing ? '차이 듣기 일시정지' : '차이 듣기 재생');
-    };
-    const syncUi = () => {
-        const duration = getDuration();
-        const pos = localPosition();
-        if (Number.isFinite(duration) && duration > 0) seek.value = String(Math.round(clamp(pos / duration, 0, 1) * 1000));
-        time.textContent = formatPlayerTime(pos, duration);
-    };
-    const seekLocal = seconds => {
-        const duration = getDuration();
-        const safe = Number.isFinite(duration) && duration > 0 ? clamp(seconds, 0, Math.max(0, duration - 0.08)) : Math.max(0, Number(seconds || 0));
-        try { compareAudio.currentTime = compareOffset + safe; } catch (error) {}
-        try { originalAudio.currentTime = originalOffset + safe; } catch (error) {}
-        syncUi();
-    };
-    const ensureGraph = () => {
-        if (graphReady || !AudioContextClass) return graphReady;
-        try {
-            context = new AudioContextClass({ latencyHint: 'interactive' });
-            const originalSource = context.createMediaElementSource(originalAudio);
-            const compareSource = context.createMediaElementSource(compareAudio);
-            const originalInvert = context.createGain();
-            originalInvert.gain.value = -1;
-            const compareLevel = context.createGain();
-            compareLevel.gain.value = compareGain;
-            const protect = context.createDynamicsCompressor();
-            protect.threshold.value = -18;
-            protect.knee.value = 18;
-            protect.ratio.value = 5;
-            protect.attack.value = 0.003;
-            protect.release.value = 0.08;
-            const output = context.createGain();
-            output.gain.value = 0.62;
-            originalSource.connect(originalInvert).connect(protect);
-            compareSource.connect(compareLevel).connect(protect);
-            protect.connect(output).connect(context.destination);
-            graphReady = true;
-        } catch (error) {
-            console.warn('Difference listen graph unavailable:', error);
-            graphReady = false;
-        }
-        return graphReady;
-    };
-    const playBoth = async () => {
-        bindExclusivePreview(compareAudio);
-        ensureGraph();
-        if (context) await context.resume().catch(() => {});
-        const start = Number(options.startSec || 0);
-        if (compareAudio.readyState < 1 || Math.abs(localPosition() - start) > 0.15) seekLocal(Number.isFinite(start) ? start : 0);
-        try {
-            await Promise.all([originalAudio.play(), compareAudio.play()]);
-            setPlaying(true);
-        } catch (error) {
-            try { originalAudio.pause(); compareAudio.pause(); } catch (pauseError) {}
-            showToast('차이 듣기 자동 재생이 차단되었습니다. 재생 버튼을 다시 눌러주세요.');
-            setPlaying(false);
-        }
-    };
-    const pauseBoth = () => {
-        try { originalAudio.pause(); compareAudio.pause(); } catch (error) {}
-        setPlaying(false);
-    };
-
-    toggle.addEventListener('click', () => {
-        if (compareAudio.paused) playBoth();
-        else pauseBoth();
-    });
-    seek.addEventListener('input', () => {
-        const duration = getDuration();
-        if (Number.isFinite(duration) && duration > 0) seekLocal(Number(seek.value) / 1000 * duration);
-    });
-    compareAudio.addEventListener('loadedmetadata', () => seekLocal(Number(options.startSec || 0)), { once: true });
-    compareAudio.addEventListener('timeupdate', () => {
-        const targetOriginal = originalOffset + localPosition();
-        if (Math.abs((originalAudio.currentTime || 0) - targetOriginal) > 0.18) {
-            try { originalAudio.currentTime = targetOriginal; } catch (error) {}
-        }
-        const duration = getDuration();
-        if (state.abLoopMode && Number.isFinite(duration) && duration > 6 && localPosition() >= Math.min(duration, Number(options.startSec || 0) + 5)) {
-            seekLocal(Number(options.startSec || 0));
-            return;
-        }
-        syncUi();
-    });
-    compareAudio.addEventListener('play', () => setPlaying(true));
-    compareAudio.addEventListener('pause', () => setPlaying(false));
-    compareAudio.addEventListener('ended', () => pauseBoth());
-    [originalAudio, compareAudio].forEach(audio => {
-        audio.addEventListener('emptied', () => context && closePreviewTranslationContext(context), { once: true });
-        audio.addEventListener('error', () => context && closePreviewTranslationContext(context), { once: true });
-    });
-
-    wrap._foxbearPlay = playBoth;
-    wrap._foxbearPause = pauseBoth;
-    wrap.append(toggle, seek, time, badge, compareAudio, originalAudio);
-    return wrap;
-}
-
 function makePreviewTitle(label, durationSec) {
     const title = document.createElement('strong');
     const main = document.createElement('span');
@@ -13946,11 +13799,6 @@ function updateConfidenceUI(track) {
     }
     el.confidenceText.textContent = track.confidence ? `AI 추천 ${track.confidence}%` : '추천 대기';
 }
-
-function selectTrack(id) {
-    activateTrackOnly(id);
-}
-
 function activateTrackOnly(id) {
     state.selectedId = id;
     const track = getSelectedTrack();
@@ -14040,7 +13888,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.77',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.78',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
