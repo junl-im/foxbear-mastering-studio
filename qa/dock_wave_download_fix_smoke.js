@@ -12,8 +12,8 @@ function assert(condition, message) {
     process.exit(1);
   }
 }
-assert(html.includes('v1.3.80'), 'index version updated');
-assert(app.includes("const APP_VERSION = 'Pro v1.3.80'"), 'app version updated');
+assert(html.includes('v1.3.81'), 'index version updated');
+assert(app.includes("const APP_VERSION = 'Pro v1.3.81'"), 'app version updated');
 assert(app.includes('getDockWaveformSignature'), 'Dock waveform signature added');
 assert(app.includes('dock-integrated-waveform-placeholder'), 'placeholder waveform class added');
 assert(app.includes('wave:${waveformSignature}'), 'Dock player key includes waveform signature');
@@ -22,5 +22,5 @@ assert(app.includes('bindFeatureOpenHardFallback'), 'feature open hard fallback 
 assert(css.includes('#featureOpenBtn') && css.includes('pointer-events: auto'), 'feature open css guard added');
 assert(app.includes("target.scrollIntoView({ behavior: 'smooth', block: 'center'") || app.includes('download-focus-card'), 'download action line scrolls to center');
 assert(app.includes('isRestrictedDownloadBrowser() && supportsWebShareFiles'), 'restricted browser share-first download flow added');
-assert(pkg.version === '1.3.80', 'package version updated');
+assert(pkg.version === '1.3.81', 'package version updated');
 console.log('PASS dock waveform/download fix smoke');

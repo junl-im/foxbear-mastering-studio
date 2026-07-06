@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.80 - Icon Refresh / Button View Close Repair
+// FoxBear AI Mastering Studio Pro v1.3.81 - Modal/Dock Layout Integrity Audit
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.80';
+const APP_VERSION = 'Pro v1.3.81';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.80-icons-buttonview-close';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.81-modal-dock-layout-integrity';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -342,7 +342,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.80-icons-buttonview-close';
+    styleLink.href = 'assets/css/studio.css?v=1.3.81-modal-dock-layout-integrity';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -720,23 +720,33 @@ function closeProgramInfoDialog() {
     if (el.programInfoBtn) el.programInfoBtn.focus({ preventScroll: true });
 }
 
-function openFeatureDialog() {
-    if (!el.featureDialog) return;
+function openFeatureDialog(event = null) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    if (!el.featureDialog) {
+        try { cacheElements(); } catch (error) {}
+    }
+    if (!el.featureDialog) return false;
     renderFeatureButtons();
+    el.featureDialog.hidden = false;
+    el.featureDialog.style.display = 'flex';
+    el.featureDialog.style.pointerEvents = 'auto';
     el.featureDialog.classList.add('show');
     el.featureDialog.setAttribute('aria-hidden', 'false');
-    el.featureDialog.style.pointerEvents = 'auto';
     document.body.classList.add('feature-dialog-open');
     const panel = el.featureDialog.querySelector('.feature-dialog-panel');
     if (panel) panel.focus({ preventScroll: true });
+    return true;
 }
 
 function closeFeatureDialog(options = {}) {
     const dialog = el.featureDialog || document.getElementById('featureDialog');
     if (!dialog) return false;
-    state.featureDialogClosingUntil = Date.now() + 360;
+    state.featureDialogClosingUntil = Date.now() + 520;
     dialog.classList.remove('show');
     dialog.setAttribute('aria-hidden', 'true');
+    dialog.hidden = true;
+    dialog.style.display = 'none';
     dialog.style.pointerEvents = 'none';
     document.body.classList.remove('feature-dialog-open');
     hideFeatureTooltip();
@@ -746,9 +756,6 @@ function closeFeatureDialog(options = {}) {
             try { opener.focus({ preventScroll: true }); } catch (error) {}
         }
     }
-    window.setTimeout(() => {
-        if (!dialog.classList.contains('show')) dialog.style.removeProperty('pointer-events');
-    }, 380);
     return true;
 }
 
@@ -769,18 +776,21 @@ function forceOpenFeatureDialog(event = null) {
         showToastSafe('버튼형 기능 창을 열 수 없습니다. 새로고침 후 다시 시도해주세요.');
         return false;
     }
-    openFeatureDialog();
-    return true;
+    return openFeatureDialog(event);
 }
 
 function ensureFeatureDialogLayer() {
     const dialog = el.featureDialog || document.getElementById('featureDialog');
     const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
     if (dialog) {
-        // v1.3.80: the opener stays in the normal page layer; only the modal
-        // itself rises above the Dock while it is visible.
+        // v1.3.81: the opener stays in the normal page layer; only the modal
+        // itself rises above the Dock while it is visible. Closed dialogs are
+        // force-hidden so a stale CSS override cannot block the page.
         dialog.style.removeProperty('z-index');
-        dialog.style.pointerEvents = dialog.classList.contains('show') ? 'auto' : 'none';
+        const shown = dialog.classList.contains('show');
+        dialog.hidden = !shown;
+        dialog.style.display = shown ? 'flex' : 'none';
+        dialog.style.pointerEvents = shown ? 'auto' : 'none';
     }
     if (button) {
         button.removeAttribute('disabled');
@@ -800,8 +810,9 @@ function bindFeatureOpenHardFallback() {
     if (button.dataset.featureHardFallbackBound === 'true') return;
     button.dataset.featureHardFallbackBound = 'true';
     window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
+    window.FoxBearCloseFeatureDialog = closeFeatureDialogFromEvent;
     const open = event => forceOpenFeatureDialog(event);
-    // v1.3.80: avoid pointerdown/pointerup capture spam. A click/touchend
+    // v1.3.81: avoid pointerdown/pointerup capture spam. A click/touchend
     // fallback is enough, while the close button remains free to receive its
     // own click path.
     button.addEventListener('click', open, { capture: true });
@@ -811,22 +822,37 @@ function bindFeatureOpenHardFallback() {
     }, { capture: true });
 }
 
-function openPreviewDialog() {
+function openPreviewDialog(event = null) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
     const track = getSelectedTrack();
-    if (!track || !el.previewDialog) return;
+    if (!el.previewDialog || !el.previewDialogBody) {
+        showToastSafe('미리듣기 창을 열 수 없습니다. 새로고침 후 다시 시도해주세요.');
+        return false;
+    }
+    if (!track) {
+        showToastSafe('미리듣기할 음원을 먼저 불러와주세요.');
+        return false;
+    }
     renderPreviewDialog(track);
     el.previewDialog.classList.remove('waveform-compare-mode');
     const title = el.previewDialog.querySelector('#previewDialogTitle');
     if (title) title.textContent = '미리듣기';
+    el.previewDialog.hidden = false;
+    el.previewDialog.style.display = 'flex';
+    el.previewDialog.style.pointerEvents = 'auto';
     el.previewDialog.classList.add('show');
     el.previewDialog.setAttribute('aria-hidden', 'false');
     document.body.classList.add('preview-dialog-open');
     const panel = el.previewDialog.querySelector('.preview-dialog-panel');
     if (panel) panel.focus({ preventScroll: true });
+    return true;
 }
 
-function closePreviewDialog() {
-    if (!el.previewDialog) return;
+function closePreviewDialog(event = null, options = {}) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    if (!el.previewDialog) return false;
     const waveformOnly = el.previewDialog.classList.contains('waveform-compare-mode');
     if (!waveformOnly) {
         pauseAllPreviewAudio();
@@ -834,11 +860,15 @@ function closePreviewDialog() {
     }
     el.previewDialog.classList.remove('show', 'waveform-compare-mode');
     el.previewDialog.setAttribute('aria-hidden', 'true');
+    el.previewDialog.hidden = true;
+    el.previewDialog.style.display = 'none';
+    el.previewDialog.style.pointerEvents = 'none';
     const title = el.previewDialog.querySelector('#previewDialogTitle');
     if (title) title.textContent = '미리듣기';
     document.body.classList.remove('preview-dialog-open');
     if (el.previewDialogBody) el.previewDialogBody.textContent = '';
-    if (el.previewOpenBtn) el.previewOpenBtn.focus({ preventScroll: true });
+    if (options.restoreFocus !== false && el.previewOpenBtn) el.previewOpenBtn.focus({ preventScroll: true });
+    return true;
 }
 
 function renderPreviewDialog(track) {
@@ -1266,8 +1296,9 @@ function cleanupRealtimePreview() {
 
 function updatePreviewButton() {
     if (!el.previewOpenBtn) return;
-    const track = getSelectedTrack();
+    const track = getSelectedTrack() || resolveMainActiveTrackForDock?.() || state.tracks?.[0] || null;
     el.previewOpenBtn.disabled = !track;
+    el.previewOpenBtn.setAttribute('aria-disabled', String(!track));
 }
 
 function updateSmartRecommendationPanel() {
@@ -2835,7 +2866,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.80-icons-buttonview-close');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.81-modal-dock-layout-integrity');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2920,7 +2951,7 @@ function clearNativeBadgeIfDone() {
 
 
 
-// v1.3.80: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
+// v1.3.81: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
 
 
 
@@ -3156,6 +3187,8 @@ function installDockRemoteDelegation() {
 function installFeatureDialogFallback() {
     if (state.featureDialogFallbackInstalled) return;
     state.featureDialogFallbackInstalled = true;
+    window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
+    window.FoxBearCloseFeatureDialog = closeFeatureDialogFromEvent;
     const handle = event => {
         const target = event.target && typeof event.target.closest === 'function'
             ? event.target.closest('#featureOpenBtn, #featureDialogClose, .feature-dialog-close, [data-feature-dialog-close]')
@@ -3172,7 +3205,34 @@ function installFeatureDialogFallback() {
             forceOpenFeatureDialog(event);
         }
     };
-    ['pointerdown', 'mousedown', 'click', 'touchend'].forEach(type => {
+    ['click', 'touchend'].forEach(type => {
+        document.addEventListener(type, handle, { capture: true, passive: false });
+    });
+}
+
+function installPreviewDialogFallback() {
+    if (state.previewDialogFallbackInstalled) return;
+    state.previewDialogFallbackInstalled = true;
+    window.FoxBearOpenPreviewDialog = openPreviewDialog;
+    window.FoxBearClosePreviewDialog = closePreviewDialog;
+    const handle = event => {
+        const target = event.target && typeof event.target.closest === 'function'
+            ? event.target.closest('#previewOpenBtn, #previewDialogClose, .preview-dialog-close, [data-preview-dialog-close]')
+            : null;
+        if (target?.id === 'previewOpenBtn') {
+            openPreviewDialog(event);
+            return;
+        }
+        if (target && (target.id === 'previewDialogClose' || target.classList?.contains('preview-dialog-close') || target.hasAttribute?.('data-preview-dialog-close'))) {
+            closePreviewDialog(event, { restoreFocus: false });
+            return;
+        }
+        const dialog = el.previewDialog || document.getElementById('previewDialog');
+        if (dialog && event.target === dialog && dialog.classList.contains('show')) {
+            closePreviewDialog(event, { restoreFocus: false });
+        }
+    };
+    ['click', 'touchend'].forEach(type => {
         document.addEventListener(type, handle, { capture: true, passive: false });
     });
 }
@@ -3188,6 +3248,7 @@ function bindEvents() {
     }
     bindMobileNativeEvents();
     installFeatureDialogFallback();
+    installPreviewDialogFallback();
     if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
     if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
     if (el.programInfoDialog) {
@@ -3206,11 +3267,12 @@ function bindEvents() {
             if (event.target === el.featureDialog) closeFeatureDialogFromEvent(event);
         });
     }
-    if (el.previewOpenBtn) el.previewOpenBtn.addEventListener('click', openPreviewDialog);
-    if (el.previewDialogClose) el.previewDialogClose.addEventListener('click', closePreviewDialog);
+    if (el.previewOpenBtn) el.previewOpenBtn.addEventListener('click', event => openPreviewDialog(event));
+    if (el.previewDialogClose) el.previewDialogClose.addEventListener('click', event => closePreviewDialog(event, { restoreFocus: false }));
+    if (el.previewDialogClose) el.previewDialogClose.addEventListener('touchend', event => closePreviewDialog(event, { restoreFocus: false }), { passive: false });
     if (el.previewDialog) {
         el.previewDialog.addEventListener('click', event => {
-            if (event.target === el.previewDialog) closePreviewDialog();
+            if (event.target === el.previewDialog) closePreviewDialog(event, { restoreFocus: false });
         });
     }
     if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', onBottomWaveformButtonClick);
@@ -3237,7 +3299,7 @@ function bindEvents() {
     window.addEventListener('keydown', event => {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
         if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog({ restoreFocus: false });
-        if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog();
+        if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog(event, { restoreFocus: false });
         if (event.key === 'Escape' && el.adminStatsDialog?.classList.contains('show')) closeAdminStatsDialog();
     });
     bindUploadInputEventsOnce();
@@ -12266,6 +12328,9 @@ function openWaveformCompareDialog() {
     }
     captureBottomPreviewTransport(track, state.bottomPreviewMode);
     el.previewDialogBody.textContent = '';
+    el.previewDialog.hidden = false;
+    el.previewDialog.style.display = 'flex';
+    el.previewDialog.style.pointerEvents = 'auto';
     el.previewDialog.classList.add('show', 'waveform-compare-mode');
     el.previewDialog.setAttribute('aria-hidden', 'false');
     document.body.classList.add('preview-dialog-open');
@@ -12459,8 +12524,10 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     const source = document.createElement('span');
     source.className = 'dock-integrated-source';
     source.textContent = getDockModeLabel(mode);
+    source.setAttribute('aria-label', '프리뷰 소스');
     const time = document.createElement('span');
     time.className = 'player-time dock-integrated-time';
+    time.setAttribute('aria-label', '재생 시간 / 전체 러닝타임');
     const initialDuration = Number(options.duration || 0);
     time.textContent = formatPlayerTime(0, initialDuration);
     info.append(source, time);
@@ -13942,7 +14009,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.80',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.81',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -1,6 +1,6 @@
 # FoxBear Project Notes
 
-## v1.3.80 Icon Refresh / Button View Close Repair
+## v1.3.81 Modal / Dock Layout Integrity Audit
 
 - 새 업로드 로고 `/mnt/data/foxbear.png`를 바깥 흰 배경만 투명 처리해 PWA/대표 아이콘 세트로 재생성.
 - 생성 아이콘: 16/32/48/72/96/128/144/152/180/192/384/512 PNG, Apple touch, legacy `foxbear-music.png`.
@@ -359,3 +359,12 @@
 - 큰 비교 팝업 파형도 같은 진행 대비/글로우 playhead 스타일을 공유합니다.
 - `마스터링` 등 Dock 라벨이 폭 부족으로 세로 한 글자씩 줄바꿈되는 문제를 `nowrap`으로 방지했습니다.
 - QA: `qa/dock_waveform_visual_polish_smoke.js`를 추가했습니다.
+
+## v1.3.81 Modal / Dock Layout Integrity Audit
+
+- Dock header restored to one line: active file name stays left, genre and `비교보기` stay right aligned on the same row.
+- Dock integrated player keeps its current position, while the right info cell is split vertically into source label and `current / duration` time.
+- Button View modal and Realtime Preview modal no longer rely only on CSS class removal. Open/close now also controls `hidden`, inline `display`, `pointer-events`, and body state.
+- Added hard fallback handlers for Button View close and Realtime Preview open/close, including touch/click/backdrop/ESC paths.
+- Added `qa/modal_dock_layout_integrity_smoke.js` to lock these regressions.
+- Engine path was not changed in this patch. Existing engine bench and golden audio QA remain in the full check chain.

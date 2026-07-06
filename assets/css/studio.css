@@ -9544,7 +9544,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.80 Dock integrated waveform remote */
+/* v1.3.81 Dock integrated waveform remote */
 .bottom-preview-core {
     grid-template-columns: 112px minmax(0, 1fr) !important;
     align-items: center !important;
@@ -9755,7 +9755,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.80 Dock waveform init + feature button guard */
+/* v1.3.81 Dock waveform init + feature button guard */
 .feature-open-btn,
 .feature-open-wide,
 #featureOpenBtn {
@@ -9825,7 +9825,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
     50% { transform: translateY(-1px); }
 }
 
-/* v1.3.80 Icon Refresh / Button View Close Repair */
+/* v1.3.81 Icon Refresh / Button View Close Repair */
 .dock-integrated-waveform-bars,
 .bottom-preview-player .dock-integrated-waveform-bars,
 .waveform-compare-bars {
@@ -9939,7 +9939,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
     .bottom-preview-tabs { min-width: max-content !important; }
 }
 
-/* v1.3.80 Button View layer repair and cleanup policy */
+/* v1.3.81 Button View layer repair and cleanup policy */
 #featureOpenBtn,
 .feature-open-btn,
 .feature-open-wide {
@@ -9972,7 +9972,7 @@ body.feature-dialog-open .feature-dialog-backdrop.show {
     z-index: 28100 !important;
 }
 
-/* v1.3.80 Dock purpose realignment: peak-map waveform, compare chip, 3-zone controls */
+/* v1.3.81 Dock purpose realignment: peak-map waveform, compare chip, 3-zone controls */
 .bottom-preview-core {
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 6px !important;
@@ -10247,7 +10247,7 @@ body.bottom-preview-active .download-options-panel-v3 {
 }
 
 
-/* v1.3.80 Icon Refresh / Button View Close Repair */
+/* v1.3.81 Icon Refresh / Button View Close Repair */
 #featureOpenBtn,
 .feature-open-btn,
 .feature-open-wide {
@@ -10289,4 +10289,171 @@ body.feature-dialog-open .feature-dialog-backdrop.show {
 .subscribe-mini-face img {
     object-fit: contain !important;
     background: transparent !important;
+}
+
+/* v1.3.81 Modal / Dock Layout Integrity Audit */
+.feature-dialog-backdrop[hidden],
+.preview-dialog-backdrop[hidden] {
+    display: none !important;
+    pointer-events: none !important;
+}
+.feature-dialog-backdrop.show:not([hidden]),
+body.feature-dialog-open .feature-dialog-backdrop.show:not([hidden]) {
+    display: flex !important;
+    pointer-events: auto !important;
+    z-index: 24750 !important;
+}
+.preview-dialog-backdrop.show:not([hidden]),
+body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
+    display: flex !important;
+    pointer-events: auto !important;
+    z-index: 28100 !important;
+}
+.feature-dialog-close,
+#featureDialogClose,
+.preview-dialog-close,
+#previewDialogClose {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+}
+.feature-dialog-close::before,
+#featureDialogClose::before,
+.preview-dialog-close::before,
+#previewDialogClose::before {
+    pointer-events: none !important;
+}
+.bottom-preview-inner {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+}
+.bottom-preview-meta {
+    display: none !important;
+}
+.bottom-preview-mobile-meta {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 2px !important;
+    padding: 0 2px !important;
+}
+.bottom-preview-mobile-meta > strong,
+#bottomPreviewMobileTitle {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    color: rgba(255,255,255,.94) !important;
+    font-size: .72rem !important;
+    font-weight: 950 !important;
+    letter-spacing: -.025em !important;
+    line-height: 1.12 !important;
+}
+.bottom-preview-subline {
+    justify-self: end !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+    max-width: min(54vw, 380px) !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+}
+#bottomPreviewGenre {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: min(34vw, 260px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    color: #fff3c7 !important;
+    font-size: .58rem !important;
+    font-weight: 950 !important;
+    line-height: 1.05 !important;
+    text-align: right !important;
+}
+#bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+    flex: 0 0 auto !important;
+}
+.bottom-preview-player .dock-integrated-player,
+.dock-integrated-player {
+    grid-template-columns: 42px minmax(0, 1fr) clamp(82px, 14vw, 118px) !important;
+    align-items: center !important;
+}
+.dock-integrated-info {
+    min-width: 82px !important;
+    max-width: 118px !important;
+    align-self: stretch !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 2px !important;
+    padding-left: 8px !important;
+    border-left: 1px solid rgba(255,255,255,.11) !important;
+}
+.dock-integrated-source,
+.dock-integrated-time {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+    word-break: keep-all !important;
+    writing-mode: horizontal-tb !important;
+}
+.dock-integrated-source {
+    color: rgba(141,245,232,.96) !important;
+    font-size: .55rem !important;
+    line-height: 1.05 !important;
+    font-weight: 950 !important;
+}
+.dock-integrated-time {
+    color: rgba(232,242,255,.82) !important;
+    font-size: .50rem !important;
+    line-height: 1.1 !important;
+    font-variant-numeric: tabular-nums !important;
+}
+@media (max-width: 720px) {
+    .bottom-preview-mobile-meta {
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        gap: 6px !important;
+    }
+    .bottom-preview-mobile-meta > strong,
+    #bottomPreviewMobileTitle {
+        font-size: .62rem !important;
+    }
+    .bottom-preview-subline {
+        max-width: 48vw !important;
+        gap: 5px !important;
+    }
+    #bottomPreviewGenre {
+        max-width: 30vw !important;
+        font-size: .48rem !important;
+    }
+    #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+        min-width: 50px !important;
+        max-width: 58px !important;
+        padding: 3px 5px !important;
+        font-size: .46rem !important;
+    }
+    .bottom-preview-player .dock-integrated-player,
+    .dock-integrated-player {
+        grid-template-columns: 32px minmax(0, 1fr) minmax(64px, 72px) !important;
+        gap: 5px !important;
+    }
+    .dock-integrated-info {
+        min-width: 64px !important;
+        max-width: 72px !important;
+        padding-left: 5px !important;
+    }
+    .dock-integrated-source { font-size: .40rem !important; }
+    .dock-integrated-time { font-size: .38rem !important; }
 }

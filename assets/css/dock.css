@@ -680,7 +680,7 @@ body.preview-dialog-open .bottom-preview-dock {
   z-index: 23000 !important;
 }
 
-/* v1.3.80 Icon Refresh / Button View Close Repair: mirror bars, progress contrast, nowrap labels */
+/* v1.3.81 Icon Refresh / Button View Close Repair: mirror bars, progress contrast, nowrap labels */
 .dock-integrated-waveform-bars,
 .waveform-compare-bars {
   align-items: center !important;
@@ -703,7 +703,7 @@ body.preview-dialog-open .bottom-preview-dock {
   writing-mode: horizontal-tb !important;
 }
 
-/* v1.3.80 Dock purpose realignment: compare chip + three-zone remote controls */
+/* v1.3.81 Dock purpose realignment: compare chip + three-zone remote controls */
 .bottom-preview-compare-chip,
 #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
   white-space: nowrap !important;
@@ -727,3 +727,62 @@ body.preview-dialog-open .bottom-preview-dock {
 .dock-integrated-time { display: block !important; text-align: right !important; }
 .dock-integrated-waveform-hot { opacity: .70 !important; }
 .dock-integrated-waveform-clip { opacity: .78 !important; }
+
+/* v1.3.81 Modal / Dock Layout Integrity Audit */
+.bottom-preview-inner { grid-template-columns: minmax(0, 1fr) !important; gap: 6px !important; }
+.bottom-preview-meta { display: none !important; }
+.bottom-preview-mobile-meta {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+#bottomPreviewMobileTitle {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+.bottom-preview-subline {
+  justify-self: end !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  max-width: min(54vw, 380px) !important;
+  min-width: 0 !important;
+}
+#bottomPreviewGenre {
+  min-width: 0 !important;
+  max-width: min(34vw, 260px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: right !important;
+}
+.dock-integrated-info {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 2px !important;
+}
+.dock-integrated-source,
+.dock-integrated-time {
+  display: block !important;
+  width: 100% !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  word-break: keep-all !important;
+  writing-mode: horizontal-tb !important;
+}
+@media (max-width: 720px) {
+  .bottom-preview-mobile-meta { gap: 6px !important; }
+  .bottom-preview-subline { max-width: 48vw !important; gap: 5px !important; }
+  #bottomPreviewGenre { max-width: 30vw !important; }
+}

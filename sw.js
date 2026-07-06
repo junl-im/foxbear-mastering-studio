@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.80 service worker
+// FoxBear AI Mastering Studio Pro v1.3.81 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.80-icons-buttonview-close';
+const CACHE_NAME = 'foxbear-shell-v1.3.81-modal-dock-layout-integrity';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
