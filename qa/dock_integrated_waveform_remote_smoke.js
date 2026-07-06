@@ -10,8 +10,8 @@ function must(condition, message) {
   }
 }
 
-must(app.includes("const APP_VERSION = 'Pro v1.3.75'"), 'v1.3.75 app version missing');
-must(html.includes('data-build="1.3.75"'), 'v1.3.75 build marker missing');
+must(app.includes("const APP_VERSION = 'Pro v1.3.76'"), 'v1.3.76 app version missing');
+must(html.includes('data-build="1.3.76"'), 'v1.3.76 build marker missing');
 must(html.includes('bottom-preview-compare-open'), 'Dock big compare opener missing');
 must(html.includes('하이라이트 듣기'), 'Highlight listen label missing');
 must(html.includes('마스터링 시작'), 'Mastering start label missing');

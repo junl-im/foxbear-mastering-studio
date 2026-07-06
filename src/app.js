@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.75 - Dock waveform init and download bridge
+// FoxBear AI Mastering Studio Pro v1.3.76 - Dock regression and button view stabilization
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.75';
+const APP_VERSION = 'Pro v1.3.76';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.75-dock-wave-download-fix';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.76-dock-regression-buttonview';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -350,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.75-dock-wave-download-fix';
+    styleLink.href = 'assets/css/studio.css?v=1.3.76-dock-regression-buttonview';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -760,14 +760,35 @@ function forceOpenFeatureDialog(event = null) {
     return true;
 }
 
+function ensureFeatureDialogLayer() {
+    const dialog = el.featureDialog || document.getElementById('featureDialog');
+    const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
+    if (dialog) {
+        dialog.style.zIndex = '28050';
+        dialog.style.pointerEvents = 'auto';
+    }
+    if (button) {
+        button.removeAttribute('disabled');
+        button.style.pointerEvents = 'auto';
+        button.style.touchAction = 'manipulation';
+        button.setAttribute('aria-haspopup', 'dialog');
+        button.setAttribute('aria-controls', 'featureDialog');
+    }
+}
+
 function bindFeatureOpenHardFallback() {
     const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
-    if (!button || button.dataset.featureHardFallbackBound === 'true') return;
+    if (!button) return;
+    ensureFeatureDialogLayer();
+    if (button.dataset.featureHardFallbackBound === 'true') return;
     button.dataset.featureHardFallbackBound = 'true';
-    button.removeAttribute('disabled');
-    button.style.pointerEvents = 'auto';
-    button.addEventListener('pointerup', forceOpenFeatureDialog, { capture: true });
-    button.addEventListener('touchend', forceOpenFeatureDialog, { capture: true, passive: false });
+    window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
+    const open = event => forceOpenFeatureDialog(event);
+    ['pointerdown', 'pointerup', 'click'].forEach(type => {
+        button.addEventListener(type, open, { capture: true });
+    });
+    button.addEventListener('touchend', open, { capture: true, passive: false });
+    button.onclick = open;
     button.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') forceOpenFeatureDialog(event);
     }, { capture: true });
@@ -2797,7 +2818,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.75-dock-wave-download-fix');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.76-dock-regression-buttonview');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2936,16 +2957,25 @@ function installDockRemoteDelegation() {
 function installFeatureDialogFallback() {
     if (state.featureDialogFallbackInstalled) return;
     state.featureDialogFallbackInstalled = true;
-    document.addEventListener('click', event => {
+    const handle = event => {
         const target = event.target && typeof event.target.closest === 'function'
             ? event.target.closest('#featureOpenBtn, #featureDialogClose, .feature-dialog-close')
             : null;
         if (!target) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (target.id === 'featureOpenBtn') forceOpenFeatureDialog(event);
-        else closeFeatureDialog();
-    }, true);
+        if (target.id === 'featureOpenBtn') {
+            event.preventDefault();
+            event.stopPropagation();
+            ensureFeatureDialogLayer();
+            forceOpenFeatureDialog(event);
+        } else {
+            event.preventDefault();
+            event.stopPropagation();
+            closeFeatureDialog();
+        }
+    };
+    ['pointerup', 'click', 'touchend'].forEach(type => {
+        document.addEventListener(type, handle, { capture: true, passive: false });
+    });
 }
 
 function bindEvents() {
@@ -3974,9 +4004,7 @@ async function analyzeTrack(track) {
     if (state.selectedId === track.id) applyTrackToControls(track);
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     renderAll();
-    if (state.selectedId === track.id || state.bottomPreviewTrackId === track.id) {
-        requestAnimationFrame(() => renderBottomPreviewDock({ keepPlaying: true }));
-    }
+    forceRefreshBottomPreviewDock(track, 'analysis-complete');
     maybeShowSingleTrackAiRecommendationDialog(track);
 }
 
@@ -5742,6 +5770,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         await setMasteringProgress(track, 100, track.report);
         completedSuccessfully = true;
         setNativeBadge(getCompletedUndownloadedCount());
+        forceRefreshBottomPreviewDock(track, 'master-complete');
         foxBearHaptic('complete');
         showToast(`${track.name} 마스터링 성공`);
     } catch (error) {
@@ -9613,21 +9642,33 @@ async function prepareTrackDownloadBlob(track, format) {
 
 function focusCompletedTrackDownload(track) {
     if (!track) return;
-    const cards = Array.from(document.querySelectorAll('.track-card[data-track-id]'));
-    const card = cards.find(item => item.dataset.trackId === track.id);
-    if (!card) return;
-    const button = card.querySelector('.download-attention') || card.querySelector('[data-action="download"], .track-actions button');
-    const actionLine = button?.closest?.('.track-actions') || button || card;
-    const target = actionLine || card;
-    try {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    } catch (error) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-    }
-    if (button && typeof button.focus === 'function') {
-        setTimeout(() => button.focus({ preventScroll: true }), 520);
-    }
-    showToast('마스터링 완료 · 다운로드 버튼 위치로 이동했습니다.');
+    const findCard = () => Array.from(document.querySelectorAll('.track-card[data-track-id]')).find(item => item.dataset.trackId === track.id);
+    const run = (announce = false) => {
+        const card = findCard();
+        if (!card) return false;
+        const buttons = Array.from(card.querySelectorAll('button'));
+        const button = card.querySelector('.download-attention') || buttons.find(btn => /다운로드/.test(btn.textContent || '')) || card.querySelector('[data-action="download"], .track-actions button');
+        const actionLine = button?.closest?.('.track-actions') || button?.closest?.('.track-export-ready-panel') || button || card;
+        const target = actionLine || card;
+        card.classList.add('download-focus-card');
+        if (button) button.classList.add('download-focus-button');
+        try {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        } catch (error) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }
+        if (button && typeof button.focus === 'function') {
+            setTimeout(() => button.focus({ preventScroll: true }), 360);
+        }
+        setTimeout(() => {
+            card.classList.remove('download-focus-card');
+            if (button) button.classList.remove('download-focus-button');
+        }, 4200);
+        if (announce) showToast('마스터링 완료 · 다운로드 버튼 위치로 이동했습니다.');
+        return true;
+    };
+    if (!run(true)) requestAnimationFrame(() => run(true));
+    setTimeout(() => run(false), 420);
 }
 
 function downloadTrackReport(track) {
@@ -11998,6 +12039,22 @@ function getDockWaveformSignature(track, mode = state.bottomPreviewMode) {
     return [track.status || 'idle', mode || 'original', values.length, peakSum, peakMax, markerCount, Math.round(Number(track.analysis?.duration || 0) * 10), outputSize, previewSize].join(':');
 }
 
+function forceRefreshBottomPreviewDock(track = getSelectedTrack(), reason = '') {
+    if (!track || !el.bottomPreviewDock || !el.bottomPreviewPlayer) return false;
+    const isRelevant = state.selectedId === track.id || state.bottomPreviewTrackId === track.id || (state.tracks.length === 1 && !state.selectedId);
+    if (!isRelevant) return false;
+    if (!state.selectedId) state.selectedId = track.id;
+    state.bottomPreviewTrackId = track.id;
+    delete el.bottomPreviewPlayer.dataset.previewKey;
+    el.bottomPreviewPlayer.dataset.previewRefreshReason = reason || 'manual';
+    const refresh = () => {
+        try { renderBottomPreviewDock({ keepPlaying: true }); } catch (error) { console.warn('Dock waveform refresh failed:', error); }
+    };
+    requestAnimationFrame(refresh);
+    setTimeout(refresh, 90);
+    return true;
+}
+
 function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     if (!el.bottomPreviewWaveformBtn) return;
     el.bottomPreviewWaveformBtn.textContent = '';
@@ -12367,6 +12424,13 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     });
     audio.addEventListener('timeupdate', sync);
 
+    wrap._foxbearPlay = () => {
+        if (!audio.paused) return Promise.resolve();
+        return audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 통합 파형 재생 버튼을 다시 눌러주세요.'));
+    };
+    wrap._foxbearPause = () => {
+        try { audio.pause(); } catch (error) {}
+    };
     wrap.append(toggle, waveform, info, audio);
     return wrap;
 }
@@ -12436,6 +12500,15 @@ function renderBottomPreviewDock(options = {}) {
 
     const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && el.bottomPreviewPlayer.querySelector('audio');
     let shouldResume = false;
+    if (samePlayer) {
+        const bars = el.bottomPreviewPlayer.querySelector('.dock-integrated-waveform-bars');
+        const payload = getDockWaveformPayload(track, mode);
+        const hasRealValues = Boolean(payload.values && payload.values.length);
+        if (bars && hasRealValues && bars.dataset.waveformReady !== 'true') {
+            delete el.bottomPreviewPlayer.dataset.previewKey;
+            return renderBottomPreviewDock({ ...options, keepPlaying: true });
+        }
+    }
     if (!samePlayer) {
         const previousMode = el.bottomPreviewPlayer.dataset.previewMode || state.bottomPreviewMode;
         captureBottomPreviewTransport(track, previousMode);
@@ -13938,7 +14011,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.75',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.76',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

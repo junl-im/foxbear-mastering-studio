@@ -1,4 +1,4 @@
-# v1.3.75 Dock waveform init and download bridge
+# v1.3.76 Dock regression and button view stabilization
 
 - Fixed Dock integrated waveform not appearing immediately after import by adding placeholder waveform bars and a waveform signature to the Dock player key.
 - Rebuilds the Dock player when analysis waveform data becomes available.

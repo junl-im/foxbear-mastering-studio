@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.3.75
+# FoxBear AI Mastering Studio Pro v1.3.76
 
 - Dock 통합 파형이 파일 불러오기 직후 임시 파형을 표시하고, 분석 완료 즉시 실제 피크/파형으로 자동 갱신됩니다.
 - 버튼형 적용의 `버튼 보기`에 pointer/touch/key fallback을 추가해 클릭 레이어 충돌에도 팝업이 열립니다.
@@ -31,3 +31,7 @@
 ```bash
 npm run check
 ```
+
+## v1.3.76 Dock Regression & Button View Stabilization
+
+This build focuses on Dock regression cleanup after the integrated waveform update. The Dock waveform now refreshes when analysis/mastering data arrives, Button View is forced above the Dock layer, and the finished-track download line is centered after mastering completes.
