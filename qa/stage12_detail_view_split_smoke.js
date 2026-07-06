@@ -39,7 +39,7 @@ assert(detailIndex > -1, 'index should load detail-view.js');
 assert(appIndex > detailIndex, 'detail-view.js should load before app.js');
 assert(index.includes('src/ui/detail-view.js') && index.includes('integrity='), 'detail-view script should be present alongside SRI-managed scripts');
 assert(sw.includes('src/ui/detail-view.js'), 'service worker should precache detail-view.js');
-assert(/stage(?:12|13)/.test(sw), 'service worker cache should be bumped to stage12');
+assert(/stage(?:12|13|14)/.test(sw), 'service worker cache should be bumped to stage12');
 assert(pkg.qaChecks.includes('node --check src/ui/detail-view.js'), 'package QA should syntax-check detail-view.js');
 assert(pkg.qaChecks.includes('node qa/stage12_detail_view_split_smoke.js'), 'package QA should include stage12 smoke');
 assert(changelog.includes('Stage12') && handoff.includes('Stage12') && notes.includes('Stage12'), 'project docs should mention Stage12');

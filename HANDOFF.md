@@ -1,3 +1,23 @@
+## Stage14 handoff - Runtime recovery / early load diagnostics
+
+### Why this patch exists
+
+After cache/SRI issues, a normal syntax QA pass was not enough: if a browser blocks a script or stylesheet during real page load, file import and the mobile quick panel can disappear before app code runs. Stage14 moves the runtime health monitor to the earliest practical head position and gives the user a visible recovery path.
+
+### What changed
+
+- `src/boot/runtime-health.js` now loads before ordinary CSS and before all app modules.
+- The monitor listens for resource load failures in capture phase, so blocked JS/CSS/image requests can be reported.
+- A new recovery panel appears when module/global/DOM/version/resource/boot-stall problems are detected.
+- Recovery actions: fresh reload, clear FoxBear shell caches and unregister service workers, copy report.
+- New CSS layer: `assets/css/boot/runtime-health.css`.
+- All runtime asset queries, service worker registration, and `CACHE_NAME` now use `1.3.84-stage14-runtime-recovery`.
+- QA guard: `qa/stage14_runtime_recovery_smoke.js`.
+
+### Caution
+
+Do not move `runtime-health.js` back below the app modules. It is intentionally synchronous and early so it can see SRI/cache failures that happen before `src/app.js` executes.
+
 # Stage12 handoff - Detail view module split
 
 ## Why this patch exists
@@ -389,8 +409,8 @@ Do not remove `dock-ui-repair.css` until older Dock rules in `studio.css` and `d
 
 - Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.3.84-dock-modal-state-machine` asset query across many patches.
 - This could make a fresh `index.html` request new SRI hashes while the browser reused older cached JS/CSS, causing the browser to block scripts. Symptoms included file import not binding, Dock/player initialization failing, and the mobile quick panel not appearing.
-- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage13-runtime-safety`.
-- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage13-runtime-safety`.
+- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage14-runtime-recovery`.
+- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage14-runtime-recovery`.
 - Versioned worker URLs in `src/config/app-runtime-config.js` so analysis/finalizer/encoder workers do not remain stuck behind immutable `/src/**` caching.
 - Added SRI hashes to local CSS/JS tags that were missing integrity attributes.
 - Added `qa/stage12_2_cache_bust_runtime_smoke.js` to prevent stale immutable asset query regressions.
@@ -406,8 +426,8 @@ Recent regressions were hard to distinguish between actual app logic failures an
 
 - New module: `src/boot/runtime-health.js`.
 - `index.html` loads it after all shared modules and before `src/app.js`.
-- `sw.js` precaches the module and uses `foxbear-shell-v1.3.84-stage13-runtime-safety`.
-- `src/config/app-runtime-config.js`, `index.html`, `sw.js`, and service worker registration now use `1.3.84-stage13-runtime-safety`.
+- `sw.js` precaches the module and uses `foxbear-shell-v1.3.84-stage14-runtime-recovery`.
+- `src/config/app-runtime-config.js`, `index.html`, `sw.js`, and service worker registration now use `1.3.84-stage14-runtime-recovery`.
 - `src/app.js` calls `FoxBearRuntimeHealth.markAppReady()` after successful boot and `markBootFailed(error)` on critical init failure.
 - `qa/stage13_runtime_health_smoke.js` locks this wiring so future patches cannot accidentally ship stale query strings or omit the health monitor.
 

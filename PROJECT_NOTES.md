@@ -1,3 +1,11 @@
+## Stage14 runtime recovery notes
+
+- Stage14 is a stabilization patch, not a UI/engine feature patch.
+- It addresses browser-side failures that previously looked like “file does not load” or “quick panel disappeared.”
+- The recovery panel is only shown when a real health problem is detected or when called manually through `window.FoxBearRuntimeHealth.showRecoveryPanel()`.
+- Cache recovery only deletes FoxBear shell caches and unregisters service workers; it does not remove the user’s audio files or exported downloads.
+- Keep `assets/css/boot/runtime-health.css` lightweight because it is part of the earliest boot path.
+
 # FoxBear Project Notes
 
 ## Stage12 Detail View Module Split
@@ -549,8 +557,8 @@ Packaging remains cumulative overwrite ZIP only.
 
 - Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.3.84-dock-modal-state-machine` asset query across many patches.
 - This could make a fresh `index.html` request new SRI hashes while the browser reused older cached JS/CSS, causing the browser to block scripts. Symptoms included file import not binding, Dock/player initialization failing, and the mobile quick panel not appearing.
-- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage13-runtime-safety`.
-- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage13-runtime-safety`.
+- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage14-runtime-recovery`.
+- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage14-runtime-recovery`.
 - Versioned worker URLs in `src/config/app-runtime-config.js` so analysis/finalizer/encoder workers do not remain stuck behind immutable `/src/**` caching.
 - Added SRI hashes to local CSS/JS tags that were missing integrity attributes.
 - Added `qa/stage12_2_cache_bust_runtime_smoke.js` to prevent stale immutable asset query regressions.

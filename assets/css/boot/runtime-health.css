@@ -1,0 +1,84 @@
+/* FoxBear runtime recovery panel - Stage14 */
+.runtime-recovery-panel {
+    position: fixed;
+    left: max(14px, env(safe-area-inset-left));
+    right: max(14px, env(safe-area-inset-right));
+    bottom: calc(var(--dock-floating-bottom, 118px) + 12px + env(safe-area-inset-bottom));
+    z-index: 99999;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 14px;
+    border: 1px solid rgba(125, 211, 252, 0.35);
+    border-radius: 18px;
+    background: rgba(8, 13, 25, 0.94);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    color: #e5f4ff;
+    backdrop-filter: blur(16px);
+}
+.runtime-recovery-panel[hidden] { display: none !important; }
+.runtime-recovery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.runtime-recovery-title {
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+}
+.runtime-recovery-close,
+.runtime-recovery-button {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+.runtime-recovery-close {
+    width: 30px;
+    height: 30px;
+    display: inline-grid;
+    place-items: center;
+    font-size: 1.1rem;
+}
+.runtime-recovery-summary,
+.runtime-recovery-details {
+    margin: 0;
+    line-height: 1.45;
+}
+.runtime-recovery-summary {
+    font-weight: 800;
+    color: #bfdbfe;
+}
+.runtime-recovery-details {
+    margin-top: 5px;
+    color: rgba(226, 232, 240, 0.82);
+    font-size: 0.86rem;
+}
+.runtime-recovery-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+.runtime-recovery-button {
+    padding: 8px 11px;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+.runtime-recovery-button:hover,
+.runtime-recovery-close:hover {
+    border-color: rgba(125, 211, 252, 0.55);
+    background: rgba(14, 165, 233, 0.18);
+}
+@media (max-width: 700px) {
+    .runtime-recovery-panel {
+        bottom: calc(var(--dock-floating-bottom, 102px) + 6px + env(safe-area-inset-bottom));
+        padding: 12px;
+        border-radius: 16px;
+    }
+    .runtime-recovery-actions { gap: 6px; }
+    .runtime-recovery-button { flex: 1 1 auto; padding: 8px 9px; }
+}

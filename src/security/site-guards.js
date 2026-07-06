@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.3.84-stage13-runtime-safety';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.3.84-stage14-runtime-recovery';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
