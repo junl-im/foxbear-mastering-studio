@@ -6,8 +6,8 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 function must(condition, message) { if (!condition) throw new Error(message); }
-must(app.includes("const APP_VERSION = 'Pro v1.3.82'"), 'app version should be v1.3.82');
-must(html.includes('data-build="1.3.82"'), 'index build should be v1.3.82');
+must(app.includes("const APP_VERSION = 'Pro v1.3.83'"), 'app version should be v1.3.83');
+must(html.includes('data-build="1.3.83"'), 'index build should be v1.3.83');
 must(app.includes('function runInitStep'), 'isolated init step helper missing');
 must(app.includes("runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true })"), 'upload binding must run as critical early init step');
 must(app.includes('function bindUploadInputEventsOnce'), 'upload bind-once helper missing');

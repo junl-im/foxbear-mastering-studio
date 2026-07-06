@@ -7,10 +7,10 @@ const css = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const dockCss = fs.readFileSync(path.join(root, 'assets/css/dock.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 function must(cond, msg) { if (!cond) { console.error('FAIL dock purpose realign smoke:', msg); process.exit(1); } }
-must(pkg.version === '1.3.82', 'package version should be 1.3.82');
-must(html.includes('data-build="1.3.82"'), 'index build should be 1.3.82');
-must(app.includes("const APP_VERSION = 'Pro v1.3.82'"), 'app version should be Pro v1.3.82');
-must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.82-pc-dock-modal-rootfix'"), 'DSP slug should be v1.3.82');
+must(pkg.version === '1.3.83', 'package version should be 1.3.83');
+must(html.includes('data-build="1.3.83"'), 'index build should be 1.3.83');
+must(app.includes("const APP_VERSION = 'Pro v1.3.83'"), 'app version should be Pro v1.3.83');
+must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.83-pc-dock-modal-hardfix'"), 'DSP slug should be v1.3.83');
 must(html.includes('bottom-preview-subline') && html.includes('bottom-preview-compare-chip'), 'compare chip should live in title/genre line');
 must(!html.includes('class="bottom-preview-waveform bottom-preview-compare-open"'), 'old large compare row should be removed');
 must(html.includes('bottom-preview-action-center'), 'master button should have center action group');
@@ -19,6 +19,6 @@ must(app.includes('scrollDownloadTargetIntoFocus'), 'download focus scroll helpe
 must(css.includes('피크: 청록 일반 · 노랑 주의 · 빨강 초과'), 'waveform peak legend should be visible');
 must(css.includes('grid-template-rows: 1fr 1fr') && css.includes('.dock-integrated-info'), 'dock info should be two-line partition');
 must(css.includes('grid-template-columns: minmax(0, 1fr) minmax(126px, auto) minmax(0, 1fr)'), 'dock controls should use three zones');
-must(dockCss.includes('v1.3.82 PC Dock / Modal Root Fix'), 'dock css v1.3.82 override missing');
+must(dockCss.includes('v1.3.83 PC Dock / Modal Hard Fix'), 'dock css v1.3.83 override missing');
 must(!fs.readdirSync(root).some(name => /^PATCH_NOTES_v.*\.md$/.test(name)), 'individual PATCH_NOTES files should not exist');
 console.log('PASS dock purpose realign smoke');

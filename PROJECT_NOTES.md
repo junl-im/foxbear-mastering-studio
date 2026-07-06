@@ -370,7 +370,7 @@
 - Engine path was not changed in this patch. Existing engine bench and golden audio QA remain in the full check chain.
 
 
-## v1.3.82 PC Dock / Modal Root Fix
+## v1.3.83 PC Dock / Modal Hard Fix
 
 - PC Dock 왼쪽 중복 곡정보 영역을 큰 재생/정지 버튼으로 변경했습니다.
 - Dock 상단 정보줄은 파일명 좌측, 장르/비교보기 우측의 한 줄 구조로 재정렬했습니다.
