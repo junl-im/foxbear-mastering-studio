@@ -1,3 +1,30 @@
+# FoxBear handoff notes
+
+## Stage7.1 - CI QA overwrite packaging hotfix
+
+### 왜 필요한가
+
+Stage7 전체 ZIP에서는 `npm run check`가 80/80 PASS였지만, 덮어쓰기 ZIP에 `qa/module_split_stage4_smoke.js`가 포함되지 않아 기존 작업 폴더에 남아 있던 구버전 QA가 CI에서 실행될 수 있었다. 이 hotfix는 앱 기능 변경 없이 QA/패키징 구성만 보정한다.
+
+### 적용 내용
+
+- Stage7.1 overwrite ZIP에 모든 QA 스크립트(`qa/*.js`, `qa/*.py`)를 포함한다.
+- `qa/module_split_stage4_smoke.js`가 최신 모듈/CSS 분리 구조 기준으로 포함되도록 보장한다.
+- Stage8 진행 전 CI 실패 원인을 제거한다.
+
+### 검증
+
+```bash
+npm run check
+# Passed: 80/80
+# Failed: 0/80
+```
+
+### 다음 패치 후보
+
+- Stage8: `assets/css/dock-waveform.css` 분리
+- Stage9: `src/download/` service/view 분리
+
 # FoxBear Stage7 인수인계 메모
 
 ## 현재 상태

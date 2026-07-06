@@ -425,3 +425,11 @@
 - Dock 자체 파형과 모바일 Dock 보정은 legacy CSS에 남겨 비교 팝업과 책임을 분리했습니다.
 - `sw.js` cache name을 stage7로 갱신했습니다.
 - 신규 QA: `qa/waveform_compare_stage7_css_cleanup_smoke.js`.
+
+
+## Stage7.1 CI QA overwrite packaging hotfix
+
+- Purpose: fix downstream CI failure caused by stale `qa/module_split_stage4_smoke.js` remaining when applying the Stage7 overwrite ZIP.
+- Runtime changes: none.
+- Packaging change: overwrite ZIP now includes all QA scripts to prevent stale local/CI checks.
+- Verification: `npm run check` passed 80/80.

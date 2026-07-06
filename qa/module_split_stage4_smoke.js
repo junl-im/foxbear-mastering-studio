@@ -57,7 +57,7 @@ assert(studioCss.includes('.upload-stage'), 'studio.css should retain component 
 ].forEach(asset => {
   assert(sw.includes(`./${asset}?v=1.3.84-dock-modal-state-machine`), `${asset} missing from service worker CORE_ASSETS`);
 });
-assert(sw.includes('stage4') || sw.includes('stage5'), 'service worker cache name not bumped for stage4 or later');
+assert(/stage[4-9]/.test(sw), 'service worker cache name not bumped for stage4 or later');
 
 const appLines = app.split(/\r?\n/).length;
 assert(appLines < 14000, `app.js should be below 14000 lines after stage4 split, got ${appLines}`);

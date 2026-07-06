@@ -1,3 +1,12 @@
+# Changelog
+
+## Stage7.1 - CI QA overwrite packaging hotfix
+
+- Fixed the Stage7 overwrite package manifest so legacy QA files are not left behind in downstream working folders.
+- Confirmed `qa/module_split_stage4_smoke.js` passes on the Stage7 full tree and included all QA scripts in the overwrite package to avoid stale smoke-test failures.
+- No runtime UI/audio behavior changes in this hotfix.
+- Verification: `npm run check` => 80/80 PASS.
+
 # FoxBear AI Mastering Studio Changelog
 
 ## Stage7 · Waveform Compare CSS Cleanup
