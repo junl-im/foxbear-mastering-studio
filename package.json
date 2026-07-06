@@ -7,7 +7,8 @@
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
     "sri:update": "python3 tools/update-sri.py",
-    "package:clean": "bash tools/create-release-zip.sh"
+    "package:clean": "bash tools/create-release-zip.sh",
+    "package:overwrite": "bash tools/create-overwrite-zip.sh"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -92,6 +93,7 @@
     "node qa/waveform_compare_stage7_css_cleanup_smoke.js",
     "node qa/docs_handoff_smoke.js",
     "node qa/stage8_async_mobile_dock_smoke.js",
-    "node qa/stage9_dock_waveform_css_split_smoke.js"
+    "node qa/stage9_dock_waveform_css_split_smoke.js",
+    "node qa/stage9_1_cumulative_overwrite_manifest_smoke.js"
   ]
 }

@@ -1,3 +1,45 @@
+# Stage9.1 handoff - Cumulative overwrite packaging hotfix
+
+## Why this patch exists
+
+The Stage9 full ZIP contained the Stage8 async playback/import guard and mobile Dock overlay fixes. However, the Stage9 overwrite ZIP was delta-only and did not include `src/app.js` or `assets/css/mobile-native.css`. If a user applied Stage9 overwrite directly on top of Stage7.2, the Stage8 fixes were not actually installed.
+
+## What changed
+
+- Added `tools/create-overwrite-zip.sh`.
+- Added `npm run package:overwrite`.
+- Overwrite packages are now cumulative, not delta-only. This is the new 누적 덮어쓰기 packaging rule. They include:
+  - `src/`
+  - `assets/`
+  - `vendor/`
+  - `qa/`
+  - `tools/`
+  - `.github/workflows/`
+  - root runtime/deploy/docs files
+- Bumped the service worker cache to stage9.1 to force client refresh.
+- Added `qa/stage9_1_cumulative_overwrite_manifest_smoke.js`.
+
+## QA
+
+```bash
+npm run check
+# Passed: 84/84
+# Failed: 0/84
+```
+
+## Manual checks
+
+1. Apply only the latest Stage9.1 overwrite ZIP on top of a Stage7.2 tree.
+2. Confirm `src/app.js` contains `handleUnhandledRejection`, `isBenignPlaybackRejection`, and the async `runInitStep()` guard.
+3. Confirm mobile Dock toast/wake-lock/status UI sits close to the Dock.
+4. Confirm Dock waveform still renders using `assets/css/dock-waveform.css`.
+
+## 다음 패치 후보
+
+Continue with `src/download/` module separation after this hotfix is deployed cleanly.
+
+---
+
 # Stage9 handoff - Dock waveform CSS split
 
 ## Why this patch exists

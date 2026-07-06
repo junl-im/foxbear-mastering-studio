@@ -1,5 +1,17 @@
 # FoxBear Project Notes
 
+## Stage9.1 Cumulative Overwrite Packaging Hotfix
+
+- Stage9 overwrite ZIP이 delta-only라서 Stage8의 `src/app.js`, `assets/css/mobile-native.css` 핫픽스가 빠질 수 있던 문제를 수정했습니다.
+- 앞으로 overwrite ZIP은 최신 패치만 덮어써도 이전 stage runtime 변경이 함께 들어가는 누적 패키지로 생성합니다.
+- `tools/create-overwrite-zip.sh`와 `npm run package:overwrite`를 추가했습니다.
+- overwrite 패키지는 `src/`, `assets/`, `vendor/`, `qa/`, `tools/`, `.github/workflows/`, 문서/배포 설정을 포함합니다.
+- `sw.js` cache name을 stage9.1로 갱신했습니다.
+- `qa/stage9_1_cumulative_overwrite_manifest_smoke.js`를 추가했습니다.
+- 검증: `npm run check` 84/84 PASS.
+
+# FoxBear Project Notes
+
 ## Stage9 Dock Waveform CSS Split
 
 - `assets/css/dock-waveform.css`를 추가해 Dock waveform/timeline/live playhead 스타일을 전용 CSS layer로 분리했습니다.

@@ -1,5 +1,17 @@
 # Changelog
 
+## Stage9.1 - Cumulative overwrite packaging hotfix
+
+- Fixed the Stage9 overwrite package problem where Stage8 runtime fixes could be missed when users applied only the latest overwrite ZIP on top of an older tree.
+- Added `tools/create-overwrite-zip.sh` to build cumulative overwrite packages instead of delta-only packages.
+- The overwrite package now includes runtime source, assets, vendor files, QA, tools, workflows, docs, `index.html`, `sw.js`, `manifest.webmanifest`, and deployment config.
+- Added `npm run package:overwrite` for repeatable overwrite ZIP creation.
+- Bumped `sw.js` cache name to stage9.1 so clients refresh after the cumulative hotfix.
+- Added `qa/stage9_1_cumulative_overwrite_manifest_smoke.js` to prevent this packaging regression.
+- QA result: `npm run check` -> 84/84 PASS.
+
+# Changelog
+
 ## Stage9 - Dock waveform CSS split
 
 - Added `assets/css/dock-waveform.css` as the dedicated owner for Dock waveform/timeline/live playhead styles.
