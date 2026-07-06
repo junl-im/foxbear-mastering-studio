@@ -185,3 +185,28 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
+/* v1.3.85 Stage8: keep mobile wake-lock/status controls attached to the Dock */
+.mobile-native-layer {
+    bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 4px);
+}
+.mobile-native-panel {
+    bottom: 48px;
+}
+@media (max-width: 720px) {
+    .mobile-native-layer {
+        left: 8px;
+        bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 3px);
+        gap: 5px;
+    }
+    .mobile-native-panel {
+        bottom: 46px;
+        width: calc(100vw - 16px);
+        max-height: min(54vh, calc(var(--bottom-preview-viewport-height, 720px) - var(--bottom-preview-height, 0px) - 36px));
+    }
+}
+@media (max-width: 420px) {
+    .mobile-native-layer {
+        bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 2px);
+    }
+}

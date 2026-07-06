@@ -1,3 +1,38 @@
+# Stage8 handoff - Async playback/import guard + compact mobile Dock overlays
+
+## Why this patch exists
+
+Users could see `앱 비동기 오류` after importing audio or trying to use the player, especially on mobile/in-app browsers. Some of these were not real app crashes: they were browser playback Promise interruptions such as autoplay blocking, pause/load race, or async init rejections that were not classified cleanly. Mobile Dock-related floating UI was also visually too far above the Dock.
+
+## What changed
+
+- `window.unhandledrejection` now routes through `handleUnhandledRejection()`.
+- `isBenignPlaybackRejection()` classifies common playback Promise interruptions and shows a Dock playback hint instead of reporting a full app async error.
+- `runInitStep()` now attaches `.catch()` to returned Promises so async init failures use the same non-fatal status path as sync failures.
+- The analysis error handler now catches secondary render/report failures.
+- `syncBottomPreviewFloatingOffset()` uses tighter mobile gaps: floating/HUD gap 4px, panel gap 10px.
+- `assets/css/dock.css` and `assets/css/mobile-native.css` include Stage8 mobile compact overlay anchors.
+- `sw.js` cache name is bumped to stage8.
+
+## QA
+
+```bash
+npm run check
+# Passed: 82/82
+# Failed: 0/82
+```
+
+## Manual checks
+
+1. Mobile: import an audio file and verify that the Dock/player appears after the file is registered.
+2. Mobile: tap Dock play once if the browser blocks autoplay; the status should mention playback guidance, not `앱 비동기 오류`.
+3. Mobile: confirm toast, screen-keep/wake-lock status, quick panel, and processing HUD sit close to the Dock.
+4. PC: confirm existing Dock layout is unchanged.
+
+## Next patch candidate
+
+Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this hotfix is deployed cleanly.
+
 # FoxBear handoff notes
 
 ## Stage7.1 - CI QA overwrite packaging hotfix

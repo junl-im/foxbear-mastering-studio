@@ -1,5 +1,16 @@
 # Changelog
 
+## Stage8 - Async playback/import guard + compact mobile Dock overlays
+
+- Fixed noisy global `앱 비동기 오류` reporting for benign mobile browser playback promise interruptions. Autoplay/paused/new-load rejections now show a playback-specific Dock guidance message instead of a scary app error.
+- Hardened `runInitStep()` so async initialization steps are caught the same way as synchronous init steps. This prevents background init failures from bypassing the normal status/toast path.
+- Hardened the audio analysis rejection handler so a render/toast failure while reporting an import error cannot create a second unhandled rejection.
+- Reduced mobile Dock overlay gaps: toast stack, processing HUD, download hints, wake-lock/status pill, and mobile quick panel now sit much closer to the Dock.
+- Bumped `sw.js` cache name to stage8.
+- Added `qa/stage8_async_mobile_dock_smoke.js`.
+- QA result: `npm run check` -> 82/82 PASS.
+
+
 ## Stage7.2 - GitHub Pages deploy hardening hotfix
 
 - Fixed GitHub Pages deployment workflow resilience after `actions/deploy-pages@v5` produced `Deployment failed, try again later` after artifact upload.

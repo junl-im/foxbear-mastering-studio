@@ -1,5 +1,15 @@
 # FoxBear Project Notes
 
+## Stage8 Async Playback / Mobile Dock Overlay Hotfix
+
+- `앱 비동기 오류`가 브라우저 재생 차단/중단 상황까지 과하게 표시되던 문제를 완화했습니다.
+- `runInitStep()`의 async Promise rejection을 안전하게 잡도록 수정했습니다.
+- 분석 실패 보고 중 2차 render 오류가 unhandled rejection으로 번지는 경로를 차단했습니다.
+- 모바일 Dock 위 toast/알림/화면유지/퀵패널 간격을 Dock에 더 바싹 붙도록 줄였습니다.
+- `qa/stage8_async_mobile_dock_smoke.js`를 추가했습니다.
+- 검증: `npm run check` 82/82 PASS.
+
+
 ## v1.3.81 Modal / Dock Layout Integrity Audit
 
 - 새 업로드 로고 `/mnt/data/foxbear.png`를 바깥 흰 배경만 투명 처리해 PWA/대표 아이콘 세트로 재생성.

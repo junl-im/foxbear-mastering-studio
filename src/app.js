@@ -269,7 +269,7 @@ const PREVIEW_TRANSLATION_MODES = Object.freeze({
 
 document.addEventListener('DOMContentLoaded', safeInit);
 window.addEventListener('error', event => reportBootOrImportError(event.error || event.message, '앱 실행 오류'));
-window.addEventListener('unhandledrejection', event => reportBootOrImportError(event.reason, '앱 비동기 오류'));
+window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
 function runSiteAccessGuard() {
     return Boolean(window.FoxBearSiteGuards?.runSiteAccessGuard?.());
@@ -290,7 +290,17 @@ function safeInit() {
 
 function runInitStep(label, callback, options = {}) {
     try {
-        return callback();
+        const result = callback();
+        if (result && typeof result.then === 'function') {
+            return result.catch(error => {
+                console.error(`FoxBear async init step failed: ${label}`, error);
+                const message = getErrorMessage(error);
+                if (options.critical) throw error;
+                updateImportStatus(`${label} 준비 중 일부 오류가 있었지만 파일열기는 계속 사용할 수 있습니다 · ${message}`, 'warn');
+                return null;
+            });
+        }
+        return result;
     } catch (error) {
         console.error(`FoxBear init step failed: ${label}`, error);
         const message = getErrorMessage(error);
@@ -298,6 +308,30 @@ function runInitStep(label, callback, options = {}) {
         updateImportStatus(`${label} 준비 중 일부 오류가 있었지만 파일열기는 계속 사용할 수 있습니다 · ${message}`, 'warn');
         return null;
     }
+}
+
+function isBenignPlaybackRejection(error) {
+    const name = String(error?.name || '').toLowerCase();
+    const message = String(error?.message || error || '').toLowerCase();
+    return name === 'notallowederror'
+        || name === 'aborterror'
+        || message.includes('play() request was interrupted')
+        || message.includes('request is not allowed')
+        || message.includes('user didn')
+        || message.includes('autoplay')
+        || message.includes('interrupted by a call to pause')
+        || message.includes('interrupted by a new load request');
+}
+
+function handleUnhandledRejection(event) {
+    const error = event?.reason;
+    if (isBenignPlaybackRejection(error)) {
+        if (event && typeof event.preventDefault === 'function') event.preventDefault();
+        console.info('FoxBear playback promise was blocked or interrupted:', error);
+        updateImportStatus('브라우저가 자동 재생을 잠시 막았습니다. Dock의 재생 버튼을 한 번 눌러주세요.', 'warn');
+        return;
+    }
+    reportBootOrImportError(error, '앱 비동기 오류');
 }
 
 function reportBootOrImportError(error, label = '앱 오류') {
@@ -3863,9 +3897,11 @@ async function handleFiles(fileList) {
             track.status = 'error';
             track.error = getErrorMessage(error, '분석 실패');
             track.report = track.error;
-            renderAll();
+            try { renderAll(); } catch (renderError) { console.warn('Analysis error render failed:', renderError); }
             showToastSafe(`${track.name}: ${track.error}`);
             updateImportStatus(`${track.name}: ${track.error}`, 'error');
+        }).catch(error => {
+            console.warn('Analysis error handler failed:', error);
         }).finally(() => {
             if (track.analysisPromise === analysisJob) track.analysisPromise = null;
         });
@@ -4003,9 +4039,9 @@ async function analyzeTrack(track) {
 
     if (state.selectedId === track.id) applyTrackToControls(track);
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
-    renderAll();
-    forceRefreshBottomPreviewDock(track, 'analysis-complete');
-    maybeShowSingleTrackAiRecommendationDialog(track);
+    try { renderAll(); } catch (error) { console.warn('Analysis completion render failed:', error); }
+    try { forceRefreshBottomPreviewDock(track, 'analysis-complete'); } catch (error) { console.warn('Dock refresh after analysis failed:', error); }
+    try { maybeShowSingleTrackAiRecommendationDialog(track); } catch (error) { console.warn('Single track recommendation dialog failed:', error); }
 }
 
 function getAudioCodecFailureHint(fileOrName = '') {
@@ -12222,9 +12258,11 @@ function syncBottomPreviewFloatingOffset() {
     const fallback = mobile ? 218 : 176;
     const maxReasonable = Math.max(fallback, Math.floor(viewportHeight * (mobile ? 0.48 : 0.36)));
     const height = Math.max(fallback, Math.min(measured || fallback, maxReasonable));
-    const floatingGap = mobile ? 12 : 10;
-    const hudGap = mobile ? 10 : 8;
-    const panelGap = mobile ? 22 : 18;
+    // Stage8: keep mobile overlays close to the Dock. Previous mobile gaps made
+    // toast/wake-lock/status layers float too far above the player.
+    const floatingGap = mobile ? 4 : 10;
+    const hudGap = mobile ? 4 : 8;
+    const panelGap = mobile ? 10 : 18;
     root.style.setProperty('--bottom-preview-height', `${height}px`);
     root.style.setProperty('--bottom-preview-floating-bottom', `${height + floatingGap}px`);
     root.style.setProperty('--bottom-preview-hud-bottom', `${height + hudGap}px`);
