@@ -47,7 +47,7 @@ assert(mobileCss.includes('content: attr(data-icon)'), 'quick panel action icons
 assert(dockCss.includes('Stage11.1: pin mobile floating notices'), 'dock.css should include Stage11.1 floating notice anchor layer');
 assert(dockCss.includes('var(--bottom-preview-floating-bottom') && dockCss.includes('var(--bottom-preview-hud-bottom'), 'toast/HUD should use measured floating Dock offsets');
 
-assert(/stage(?:11\.1|12)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
+assert(/stage(?:11\.1|12|13)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
 assert(pkg.qaChecks.includes('node qa/stage11_1_runtime_mobile_hotfix_smoke.js'), 'package QA should include stage11.1 smoke');
 assert(changelog.includes('Stage11.1') && handoff.includes('Stage11.1') && notes.includes('Stage11.1'), 'handoff docs should mention Stage11.1');
 

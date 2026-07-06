@@ -549,9 +549,19 @@ Packaging remains cumulative overwrite ZIP only.
 
 - Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.3.84-dock-modal-state-machine` asset query across many patches.
 - This could make a fresh `index.html` request new SRI hashes while the browser reused older cached JS/CSS, causing the browser to block scripts. Symptoms included file import not binding, Dock/player initialization failing, and the mobile quick panel not appearing.
-- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage12.2-cachefix`.
-- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage12.2-cachefix`.
+- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage13-runtime-safety`.
+- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage13-runtime-safety`.
 - Versioned worker URLs in `src/config/app-runtime-config.js` so analysis/finalizer/encoder workers do not remain stuck behind immutable `/src/**` caching.
 - Added SRI hashes to local CSS/JS tags that were missing integrity attributes.
 - Added `qa/stage12_2_cache_bust_runtime_smoke.js` to prevent stale immutable asset query regressions.
 - QA: `npm run check` passed 93/93.
+
+## Stage13 runtime health notes
+
+- Added a browser-side health monitor to detect problems that normal Node syntax QA cannot catch:
+  - missing global modules after script loading,
+  - missing critical file import/Dock DOM anchors,
+  - local asset query-version mismatches.
+- This is especially important because Firebase Hosting keeps `/src/**` and `/assets/**` immutable for one year.
+- The monitor is loaded before `src/app.js` and does not block the app. It reports via `window.FoxBearRuntimeHealth`, `foxbear:runtime-health` events, console warnings, and `#importStatus` when the app has not already marked itself ready.
+- Stage13 keeps runtime behavior conservative: no audio engine changes, no Dock layout rewrite, no file import logic rewrite.

@@ -389,9 +389,32 @@ Do not remove `dock-ui-repair.css` until older Dock rules in `studio.css` and `d
 
 - Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.3.84-dock-modal-state-machine` asset query across many patches.
 - This could make a fresh `index.html` request new SRI hashes while the browser reused older cached JS/CSS, causing the browser to block scripts. Symptoms included file import not binding, Dock/player initialization failing, and the mobile quick panel not appearing.
-- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage12.2-cachefix`.
-- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage12.2-cachefix`.
+- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage13-runtime-safety`.
+- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage13-runtime-safety`.
 - Versioned worker URLs in `src/config/app-runtime-config.js` so analysis/finalizer/encoder workers do not remain stuck behind immutable `/src/**` caching.
 - Added SRI hashes to local CSS/JS tags that were missing integrity attributes.
 - Added `qa/stage12_2_cache_bust_runtime_smoke.js` to prevent stale immutable asset query regressions.
 - QA: `npm run check` passed 93/93.
+
+## Stage13 handoff - Runtime health / cache safety hardening
+
+### Why this patch exists
+
+Recent regressions were hard to distinguish between actual app logic failures and browser-side asset blocking caused by immutable cache/SRI mismatches. Stage13 adds a small runtime health layer so missing modules, stale asset versions, or broken boot wiring become visible near the import status instead of silently disabling file import or the mobile quick panel.
+
+### What changed
+
+- New module: `src/boot/runtime-health.js`.
+- `index.html` loads it after all shared modules and before `src/app.js`.
+- `sw.js` precaches the module and uses `foxbear-shell-v1.3.84-stage13-runtime-safety`.
+- `src/config/app-runtime-config.js`, `index.html`, `sw.js`, and service worker registration now use `1.3.84-stage13-runtime-safety`.
+- `src/app.js` calls `FoxBearRuntimeHealth.markAppReady()` after successful boot and `markBootFailed(error)` on critical init failure.
+- `qa/stage13_runtime_health_smoke.js` locks this wiring so future patches cannot accidentally ship stale query strings or omit the health monitor.
+
+### Caution
+
+Do not remove the runtime health script while `/src/**` and `/assets/**` are served with immutable cache headers. It is intentionally non-blocking and only warns when module/global/asset-version problems are detected.
+
+### QA
+
+Run `npm run sri:update` after modifying any loaded asset, then run `npm run check`.

@@ -55,9 +55,9 @@ assert(studioCss.includes('.upload-stage'), 'studio.css should retain component 
   'assets/css/layout.css',
   'src/ui/download-dialog-view.js'
 ].forEach(asset => {
-  assert(sw.includes(`./${asset}?v=1.3.84-stage12.2-cachefix`), `${asset} missing from service worker CORE_ASSETS`);
+  assert(sw.includes(`./${asset}?v=1.3.84-stage13-runtime-safety`), `${asset} missing from service worker CORE_ASSETS`);
 });
-assert(/stage(?:[4-9]|10|11|12)/.test(sw), 'service worker cache name not bumped for stage4 or later');
+assert(/stage(?:[4-9]|10|11|12|13)/.test(sw), 'service worker cache name not bumped for stage4 or later');
 
 const appLines = app.split(/\r?\n/).length;
 assert(appLines < 14000, `app.js should be below 14000 lines after stage4 split, got ${appLines}`);

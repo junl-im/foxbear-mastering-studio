@@ -279,9 +279,13 @@ function runSiteAccessGuard() {
 function safeInit() {
     try {
         const ready = init();
-        if (ready !== false) updateImportStatus('앱 준비 완료 · 파일열기에서 음원을 선택하면 바로 분석을 시작합니다.', 'ready');
+        if (ready !== false) {
+            window.FoxBearRuntimeHealth?.markAppReady?.();
+            updateImportStatus('앱 준비 완료 · 파일열기에서 음원을 선택하면 바로 분석을 시작합니다.', 'ready');
+        }
     } catch (error) {
         console.error('FoxBear critical init failed:', error);
+        window.FoxBearRuntimeHealth?.markBootFailed?.(error);
         try { cacheElements(); } catch (cacheError) {}
         bindEmergencyUploadOnly();
         updateImportStatus(`필수 앱 준비에 실패했습니다. 파일열기는 비상 모드로 연결했습니다 · ${getErrorMessage(error)}`, 'error');
@@ -2803,7 +2807,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.84-dock-modal-state-machine');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.84-stage13-runtime-safety');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();

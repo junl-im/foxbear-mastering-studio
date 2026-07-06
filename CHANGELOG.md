@@ -167,9 +167,19 @@ QA result: `npm run check` passes 92/92.
 
 - Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.3.84-dock-modal-state-machine` asset query across many patches.
 - This could make a fresh `index.html` request new SRI hashes while the browser reused older cached JS/CSS, causing the browser to block scripts. Symptoms included file import not binding, Dock/player initialization failing, and the mobile quick panel not appearing.
-- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage12.2-cachefix`.
-- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage12.2-cachefix`.
+- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage13-runtime-safety`.
+- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage13-runtime-safety`.
 - Versioned worker URLs in `src/config/app-runtime-config.js` so analysis/finalizer/encoder workers do not remain stuck behind immutable `/src/**` caching.
 - Added SRI hashes to local CSS/JS tags that were missing integrity attributes.
 - Added `qa/stage12_2_cache_bust_runtime_smoke.js` to prevent stale immutable asset query regressions.
 - QA: `npm run check` passed 93/93.
+
+## Stage13 - Runtime health / cache safety hardening (2026-07-06)
+
+- Added `src/boot/runtime-health.js`, a non-blocking runtime health monitor loaded immediately before `src/app.js`.
+- The monitor checks required global modules, critical import/Dock DOM anchors, and local asset query-version mismatches after the page boots.
+- `src/app.js` now reports successful boot and critical boot failure to `window.FoxBearRuntimeHealth`.
+- Bumped all local asset query strings and the service worker registration/cache to `1.3.84-stage13-runtime-safety`.
+- Updated `tools/create-overwrite-zip.sh` default output to Stage13 so cumulative overwrite packages stay version-aligned.
+- Added `qa/stage13_runtime_health_smoke.js` to guard script order, health monitor registration, service worker precache, asset-version consistency, and docs handoff.
+- Runtime audio/mastering/Dock algorithms were not changed in this stage.
