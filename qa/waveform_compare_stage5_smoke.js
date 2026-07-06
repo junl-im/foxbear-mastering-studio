@@ -23,11 +23,11 @@ assert(app.includes("scope: bars?.dataset?.waveformScope || 'full'"), 'waveform 
 assert(view.includes('function createWaveformCompareTransportControls'), 'compare popup transport controls are missing');
 assert(view.includes("bars.dataset.waveformAligned = options.aligned ? 'true' : 'false'"), 'aligned waveform dataset flag is missing');
 
-assert(compareCss.includes('Stage6 waveform compare popup layer'), 'stage6 compare CSS layer is missing');
+assert(compareCss.includes('Stage7 waveform compare popup layer'), 'stage7 compare CSS layer is missing');
 assert(/waveform-compare-row[\s\S]*grid-template-columns:\s*var\(--waveform-compare-label-width\) minmax\(0, 1fr\) var\(--waveform-compare-action-width\)/.test(compareCss), 'compare rows do not use fixed label/action columns');
 assert(/waveform-compare-bars\.has-live-playhead::after[\s\S]*width:\s*1px !important/.test(compareCss), 'compare live playhead was not slimmed to 1px');
 assert(/has-live-playhead::after[\s\S]*width:\s*1px !important/.test(dockCss), 'dock live playhead was not slimmed to 1px');
 assert(dockCss.includes('text-align: left !important;'), 'mobile left alignment repair is missing');
-assert(sw.includes('stage6'), 'service worker cache name was not bumped for stage6');
+assert(sw.includes('stage7'), 'service worker cache name was not bumped for stage7');
 
 console.log('PASS waveform compare stage5 smoke');

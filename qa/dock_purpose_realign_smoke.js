@@ -16,7 +16,7 @@ must(!html.includes('class="bottom-preview-waveform bottom-preview-compare-open"
 must(html.includes('bottom-preview-action-center'), 'master button should have center action group');
 must(app.includes('getWaveformMarkerForIndex'), 'waveform marker mapping helper should exist');
 must(app.includes('scrollDownloadTargetIntoFocus'), 'download focus scroll helper should exist');
-must(css.includes('피크: 청록 일반 · 노랑 주의 · 빨강 초과'), 'waveform peak legend should be visible');
+must(css.includes('피크: 청록 일반 · 노랑 주의 · 빨강 초과') || dockCss.includes('피크: 청록 일반 · 노랑 주의 · 빨강 초과'), 'waveform peak legend should be visible');
 must(css.includes('grid-template-rows: 1fr 1fr') && css.includes('.dock-integrated-info'), 'dock info should be two-line partition');
 must(css.includes('grid-template-columns: minmax(0, 1fr) minmax(126px, auto) minmax(0, 1fr)'), 'dock controls should use three zones');
 must(dockCss.includes('v1.3.84 Dock / Modal State Machine Refactor'), 'dock css v1.3.84 override missing');

@@ -413,3 +413,15 @@
 - `CHANGELOG.md`, `HANDOFF.md`를 루트에 추가해 버전 기록과 다음 작업 인수인계를 다시 남깁니다.
 - `qa/docs_handoff_smoke.js`를 추가해 MD 인수인계 누락을 QA에서 잡도록 했습니다.
 - `qa/run_all_checks.js`는 `package.json`의 `qaChecks`를 읽도록 변경해 QA 목록을 한 곳에서 관리합니다.
+
+
+---
+
+## Stage7 Waveform Compare CSS Cleanup
+
+- `assets/css/waveform-compare.css`를 비교 팝업 전용 CSS owner로 정리했습니다.
+- `studio.css`와 `dock.css`에서 `.waveform-compare-*` selector를 제거했습니다.
+- 비교 팝업 dock-safe offset, z-index, playhead, transport, seek hint는 `waveform-compare.css`로 이동했습니다.
+- Dock 자체 파형과 모바일 Dock 보정은 legacy CSS에 남겨 비교 팝업과 책임을 분리했습니다.
+- `sw.js` cache name을 stage7로 갱신했습니다.
+- 신규 QA: `qa/waveform_compare_stage7_css_cleanup_smoke.js`.

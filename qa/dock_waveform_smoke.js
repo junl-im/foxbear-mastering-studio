@@ -3,6 +3,7 @@ const fs = require('fs');
 const html = fs.readFileSync('index.html', 'utf8');
 const app = fs.readFileSync('src/app.js', 'utf8');
 const css = fs.readFileSync('assets/css/studio.css', 'utf8');
+const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const requiredHtml = [
   'bottomPreviewWaveformBtn',
   '마스터링',
@@ -22,7 +23,8 @@ for (let i = 1; i < positions.length; i += 1) {
 for (const token of ['renderBottomWaveformMini', 'openWaveformCompareDialog', 'DOCK_WAVEFORM_BINS']) {
   if (!app.includes(token)) throw new Error(`missing app token: ${token}`);
 }
-for (const token of ['bottom-preview-waveform', 'waveform-compare-mode', 'calc(var(--bottom-preview-height']) {
+for (const token of ['bottom-preview-waveform', 'calc(var(--bottom-preview-height']) {
   if (!css.includes(token)) throw new Error(`missing css token: ${token}`);
 }
+if (!compareCss.includes('waveform-compare-mode')) throw new Error('missing compare css token: waveform-compare-mode');
 console.log('PASS dock waveform smoke: mini view, popup, order, compact controls present');

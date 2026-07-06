@@ -5,6 +5,7 @@ const root = path.resolve(__dirname, '..');
 const app = fs.readFileSync(path.join(root, 'src/app.js'), 'utf8');
 const studioCss = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const dockCss = fs.readFileSync(path.join(root, 'assets/css/dock.css'), 'utf8');
+const compareCss = fs.readFileSync(path.join(root, 'assets/css/waveform-compare.css'), 'utf8');
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const failures = [];
@@ -21,7 +22,7 @@ expect(app.includes("target.classList.add('foxbear-toast-stack', 'show')"), 'sho
 expect(app.includes("document.createElement('div')") && app.includes("item.className = 'foxbear-toast-item'"), 'showToast should create stacked toast items');
 expect(studioCss.includes('v1.3.84 Dock / Modal State Machine Refactor') || studioCss.includes('v1.3.84 Dock integrated waveform remote'), 'studio CSS should include v1.3.84 section');
 expect(studioCss.includes('.dock-integrated-waveform-bars'), 'Integrated waveform CSS should be present');
-expect(studioCss.includes('.waveform-compare-listen'), 'Large compare listen buttons should be styled');
+expect(compareCss.includes('.waveform-compare-listen'), 'Large compare listen buttons should be styled in dedicated compare CSS');
 expect(dockCss.includes('body.bottom-preview-active .toast.foxbear-toast-stack') || dockCss.includes('.toast.foxbear-toast-stack'), 'Stacked toast CSS should remain present');
 
 if (failures.length) {

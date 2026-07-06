@@ -2,6 +2,7 @@
 const fs = require('fs');
 const app = fs.readFileSync('src/app.js', 'utf8');
 const dockCss = fs.readFileSync('assets/css/dock.css', 'utf8');
+const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 const pkg = fs.readFileSync('package.json', 'utf8');
 function must(condition, message) {
@@ -16,7 +17,7 @@ must(app.includes('function setMasteringProgress') && app.includes('quantizeProg
 must(app.includes('function syncDockWaveformPlayhead') && app.includes('has-live-playhead'), 'live waveform playhead sync missing');
 must(dockCss.includes('v1.3.54 Dock Player Polish'), 'dock polish CSS block missing');
 must(dockCss.includes('grid-template-columns: 34px minmax(78px, 1fr) 52px') && dockCss.includes('.bottom-preview-player .player-toggle'), 'compact dock transport grid missing');
-must(dockCss.includes('waveform-compare-mode') && dockCss.includes('padding-bottom: calc(var(--bottom-preview-panel-bottom'), 'waveform popup dock-safe offset missing');
+must(compareCss.includes('waveform-compare-mode') && compareCss.includes('padding-bottom: calc(var(--bottom-preview-panel-bottom'), 'waveform popup dock-safe offset missing');
 must(dockCss.includes('repeating-linear-gradient(90deg') && dockCss.includes('foxbearHudScan'), 'progress HUD tick/scan animation missing');
 must(pkg.includes('dock_player_polish_smoke.js'), 'package check should include dock player polish smoke');
 console.log('PASS dock player polish smoke');

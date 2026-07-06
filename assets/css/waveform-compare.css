@@ -1,7 +1,27 @@
-/* FoxBear Stage6 waveform compare popup layer.
-   Dedicated file for the large original/mastered waveform dialog and its transport. */
+/* FoxBear Stage7 waveform compare popup layer.
+   Dedicated owner for the large original/mastered waveform dialog, transport, seek UI, and dock-safe modal offset. */
+.preview-dialog-backdrop.waveform-compare-mode {
+  align-items: flex-end !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  padding-bottom: calc(var(--bottom-preview-panel-bottom, 206px) + 10px + env(safe-area-inset-bottom)) !important;
+}
+.preview-dialog-backdrop.show.waveform-compare-mode {
+  z-index: 28000 !important;
+  pointer-events: auto !important;
+}
 .preview-dialog-backdrop.waveform-compare-mode .preview-dialog-panel {
   width: min(940px, calc(100vw - 24px));
+  max-height: calc(var(--bottom-preview-viewport-height, 100dvh) - var(--bottom-preview-panel-bottom, 206px) - 34px) !important;
+}
+.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-panel,
+.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-close,
+.waveform-compare-listen {
+  pointer-events: auto !important;
+}
+.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-close {
+  position: relative !important;
+  z-index: 28010 !important;
 }
 .waveform-compare-card {
   --waveform-compare-label-width: clamp(74px, 15vw, 118px);
@@ -10,6 +30,11 @@
   gap: 12px;
   width: 100%;
   min-width: 0;
+}
+.waveform-compare-card.has-live-playhead .waveform-compare-head span::after {
+  content: ' · LIVE 위치 표시';
+  color: rgba(141, 245, 232, .82);
+  font-weight: 950;
 }
 .waveform-compare-head {
   display: flex;
@@ -82,6 +107,12 @@
   gap: 8px !important;
   width: 100% !important;
   min-width: 0 !important;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.waveform-compare-row:has(.waveform-compare-bars:hover),
+.waveform-compare-row:has(.waveform-compare-bars:focus-visible) {
+  border-color: rgba(141,245,232,.28);
+  background: rgba(141,245,232,.07);
 }
 .waveform-compare-row > span {
   min-width: 0 !important;
@@ -93,9 +124,11 @@
   color: rgba(229,247,255,.78);
 }
 .waveform-compare-bars {
-  position: relative;
+  --waveform-playhead-pct: 0%;
+  --waveform-progress-pct: 0%;
+  position: relative !important;
   display: flex;
-  align-items: end;
+  align-items: center !important;
   gap: 2px;
   height: clamp(54px, 12vh, 88px);
   width: 100% !important;
@@ -103,24 +136,100 @@
   padding: 8px 9px;
   border-radius: 14px;
   border: 1px solid rgba(141,245,232,.12);
-  background: rgba(4,12,18,.42);
-  overflow: hidden;
-  cursor: pointer;
+  background:
+    radial-gradient(circle at var(--waveform-progress-pct, 0%) 50%, rgba(141,245,232,.16), transparent 22%),
+    linear-gradient(90deg, rgba(141,245,232,.13) 0%, rgba(141,245,232,.08) var(--waveform-progress-pct, 0%), rgba(255,255,255,.024) var(--waveform-progress-pct, 0%), rgba(255,255,255,.014) 100%) !important;
+  background-clip: padding-box;
+  overflow: hidden !important;
+  cursor: ew-resize;
   user-select: none;
-  touch-action: pan-y;
+  touch-action: none;
+  isolation: isolate;
+}
+.waveform-compare-bars:focus-visible {
+  outline: 2px solid rgba(141,245,232,.74);
+  outline-offset: 3px;
+  border-radius: 14px;
+}
+.waveform-compare-bars:active {
+  filter: brightness(1.12) saturate(1.08);
+}
+.waveform-compare-bars::selection {
+  background: transparent;
 }
 .waveform-compare-bars i {
   flex: 1 1 0;
   min-width: 1px;
-  border-radius: 999px 999px 3px 3px;
-  background: rgba(141,245,232,.54);
-  transition: height .16s ease, opacity .16s ease, transform .16s ease;
+  position: relative;
+  z-index: 1;
+  align-self: center !important;
+  border-radius: 999px !important;
+  transform-origin: center center !important;
+  background: linear-gradient(180deg, rgba(108,131,154,.72), rgba(45,58,80,.64)) !important;
+  opacity: .46 !important;
+  pointer-events: none;
+  transition: height .16s ease, opacity .14s ease, filter .14s ease, background .14s ease, transform .14s ease;
 }
-.waveform-compare-bars i.waveform-hot { background: rgba(255,206,115,.78); }
-.waveform-compare-bars i.waveform-clip { background: rgba(255,112,112,.84); }
-.waveform-compare-bars i.is-played { opacity: .96; }
-.waveform-compare-bars i.is-current { transform: scaleY(1.08); }
-.waveform-compare-bars.empty i { opacity: .25; }
+.waveform-compare-bars i.waveform-hot {
+  opacity: .70 !important;
+  background: linear-gradient(180deg, rgba(255,214,103,.74), rgba(129,83,39,.72)) !important;
+  box-shadow: 0 0 7px rgba(255,178,83,.08) !important;
+}
+.waveform-compare-bars i.waveform-clip {
+  opacity: .78 !important;
+  background: linear-gradient(180deg, rgba(255,127,145,.82), rgba(126,45,70,.78)) !important;
+  box-shadow: 0 0 8px rgba(255,80,115,.10) !important;
+}
+.waveform-compare-bars i.is-played {
+  opacity: .98 !important;
+  filter: saturate(1.18) brightness(1.08) !important;
+}
+.waveform-compare-bars i.waveform-hot.is-played {
+  background: linear-gradient(180deg, rgba(255,240,152,.98), rgba(255,170,76,.92)) !important;
+}
+.waveform-compare-bars i.waveform-clip.is-played {
+  background: linear-gradient(180deg, rgba(255,168,178,.98), rgba(255,70,106,.92)) !important;
+}
+.waveform-compare-bars i.is-current {
+  transform: scaleY(1.06) !important;
+}
+.waveform-compare-bars.empty i {
+  opacity: .25;
+}
+.waveform-compare-bars.has-live-playhead::after,
+.waveform-compare-bars.has-live-playhead::before {
+  content: '';
+  position: absolute;
+  left: var(--waveform-playhead-pct, 0%);
+  pointer-events: none;
+  z-index: 6;
+}
+.waveform-compare-bars.has-live-playhead::after {
+  width: 1px !important;
+  top: 2px !important;
+  bottom: 2px !important;
+  transform: translateX(-50%) !important;
+  border-radius: 999px;
+  background: rgba(235,255,255,.86) !important;
+  box-shadow: 0 0 0 1px rgba(6,16,24,.22), 0 0 10px rgba(141,245,232,.28) !important;
+}
+.waveform-compare-bars.has-live-playhead::before {
+  width: 6px !important;
+  height: 6px !important;
+  top: 0 !important;
+  transform: translate(-50%, -45%) !important;
+  border-radius: 999px;
+  background: rgba(235,255,255,.96) !important;
+  box-shadow: 0 0 0 2px rgba(141,245,232,.12), 0 0 10px rgba(141,245,232,.42) !important;
+  opacity: 1 !important;
+}
+.waveform-compare-bars.is-playing {
+  background-image: linear-gradient(90deg, rgba(141,245,232,.24) 0 var(--waveform-progress-pct), rgba(255,255,255,.024) var(--waveform-progress-pct) 100%);
+}
+.waveform-compare-bars.is-playing::after {
+  background: rgba(141,245,232,.92) !important;
+  box-shadow: 0 0 0 1px rgba(6,16,24,.28), 0 0 12px rgba(141,245,232,.44) !important;
+}
 .waveform-compare-listen {
   width: 100% !important;
   min-width: 0 !important;
@@ -135,12 +244,16 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
   cursor: pointer;
 }
 .waveform-compare-listen:hover,
 .waveform-compare-listen:focus-visible {
   border-color: rgba(141,245,232,.46);
   background: rgba(141,245,232,.15);
+  box-shadow: 0 0 20px rgba(141,245,232,.14);
 }
 .waveform-compare-empty {
   padding: 16px;
@@ -155,27 +268,25 @@
   font-size: .66rem;
   line-height: 1.5;
 }
-.waveform-compare-bars.has-live-playhead::after {
-  width: 1px !important;
-  top: 2px !important;
-  bottom: 2px !important;
-  transform: translateX(-50%) !important;
-  background: rgba(235,255,255,.86) !important;
-  box-shadow: 0 0 0 1px rgba(6,16,24,.22), 0 0 10px rgba(141,245,232,.28) !important;
+.waveform-compare-hint::before {
+  content: '터치 이동 · ';
+  color: rgba(141,245,232,.86);
+  font-weight: 950;
 }
-.waveform-compare-bars.has-live-playhead::before {
-  width: 6px !important;
-  height: 6px !important;
-  top: 0 !important;
-  transform: translate(-50%, -45%) !important;
-  background: rgba(235,255,255,.96) !important;
-  box-shadow: 0 0 0 2px rgba(141,245,232,.12), 0 0 10px rgba(141,245,232,.42) !important;
-}
-.waveform-compare-bars.is-playing::after {
-  background: rgba(141,245,232,.92) !important;
-  box-shadow: 0 0 0 1px rgba(6,16,24,.28), 0 0 12px rgba(141,245,232,.44) !important;
+.waveform-compare-hint::after {
+  content: ' Dock/팝업은 같은 timeline model로 이동점과 LIVE 위치를 계산합니다.';
+  color: rgba(234,246,255,.72);
 }
 @media (max-width: 720px) {
+  .preview-dialog-backdrop.waveform-compare-mode {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-bottom: calc(var(--bottom-preview-panel-bottom, 220px) + 8px + env(safe-area-inset-bottom)) !important;
+  }
+  .preview-dialog-backdrop.waveform-compare-mode .preview-dialog-panel {
+    width: min(96vw, 520px) !important;
+    max-height: 88dvh !important;
+  }
   .waveform-compare-card {
     --waveform-compare-label-width: 64px;
     --waveform-compare-action-width: 86px;
@@ -201,6 +312,7 @@
   }
   .waveform-compare-bars {
     height: 62px !important;
+    gap: 1.5px !important;
   }
 }
 @media (max-width: 420px) {

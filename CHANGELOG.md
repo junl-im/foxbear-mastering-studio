@@ -1,5 +1,14 @@
 # FoxBear AI Mastering Studio Changelog
 
+## Stage7 · Waveform Compare CSS Cleanup
+
+- `assets/css/waveform-compare.css`를 비교 팝업의 단일 CSS owner로 정리했습니다.
+- `studio.css`와 `dock.css`에 남아 있던 `.waveform-compare-*` selector를 제거하고, 필요한 offset/playhead/seek 스타일은 `waveform-compare.css`로 흡수했습니다.
+- Dock 자체 파형/모바일 Dock 보정 rule은 유지하되 비교 팝업 전용 rule과 섞이지 않게 분리했습니다.
+- `sw.js` cache name을 stage7로 갱신했습니다.
+- `qa/waveform_compare_stage7_css_cleanup_smoke.js`를 추가해 legacy CSS에 compare selector가 다시 들어오지 않도록 고정했습니다.
+- 기존 QA 중 compare CSS 위치를 보던 항목은 dedicated CSS layer를 기준으로 검사하도록 보정했습니다.
+
 ## Stage6 · Waveform Compare Module / Handoff Docs
 
 - `src/ui/waveform-compare-view.js`를 추가해 비교 팝업 DOM 구성, 파형 정렬, 하이라이트 slicing, 팝업 재생/정지 컨트롤을 `src/app.js`에서 분리했습니다.

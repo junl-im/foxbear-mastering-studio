@@ -31,7 +31,7 @@ assert(app.includes('compareView.renderWaveformCompareDialog(track, target'), 'a
 assert(!app.includes('function createAlignedWaveformCompareRows'), 'app.js still owns aligned row builder');
 assert(!app.includes('function createWaveformCompareTransportControls'), 'app.js still owns compare transport builder');
 
-assert(css.includes('FoxBear Stage6 waveform compare popup layer'), 'dedicated compare CSS banner is missing');
+assert(css.includes('FoxBear Stage7 waveform compare popup layer'), 'dedicated compare CSS banner is missing');
 assert(css.includes('.waveform-compare-transport'), 'compare transport CSS is missing');
 assert(css.includes('.waveform-compare-bars.has-live-playhead::before'), 'compare playhead cap CSS is missing');
 assert(sw.includes('./src/ui/waveform-compare-view.js?v=1.3.84-dock-modal-state-machine'), 'service worker does not precache compare view module');

@@ -10,10 +10,7 @@
 .bottom-preview-dock .btn-primary {
   white-space: nowrap;
 }
-.waveform-compare-dialog,
-.waveform-compare-popover {
-  max-height: min(72vh, calc(100vh - var(--bottom-preview-panel-bottom, 220px)));
-}
+
 .processing-hud,
 .toast,
 .download-helper,
@@ -85,13 +82,11 @@
 }
 
 .bottom-preview-waveform,
-.bottom-waveform-bars,
-.waveform-compare-bars {
+.bottom-waveform-bars {
   position: relative !important;
   overflow: hidden !important;
 }
-.bottom-preview-waveform.has-live-playhead::after,
-.waveform-compare-bars.has-live-playhead::after {
+.bottom-preview-waveform.has-live-playhead::after {
   content: '';
   position: absolute;
   top: 3px;
@@ -105,16 +100,11 @@
   pointer-events: none;
   z-index: 4;
 }
-.bottom-preview-waveform.is-playing::after,
-.waveform-compare-bars.is-playing::after {
+.bottom-preview-waveform.is-playing::after {
   background: rgba(141, 245, 232, .98);
   box-shadow: 0 0 0 1px rgba(6, 16, 24, .42), 0 0 18px rgba(141, 245, 232, .72);
 }
-.waveform-compare-card.has-live-playhead .waveform-compare-head span::after {
-  content: ' · LIVE 위치 표시';
-  color: rgba(141, 245, 232, .82);
-  font-weight: 950;
-}
+
 
 body.bottom-preview-active .toast,
 body.bottom-preview-active .download-assist,
@@ -124,13 +114,7 @@ body.bottom-preview-active .download-help {
 body.bottom-preview-active .processing-hud {
   bottom: calc(var(--bottom-preview-hud-bottom, 188px) + env(safe-area-inset-bottom)) !important;
 }
-.preview-dialog-backdrop.waveform-compare-mode {
-  align-items: flex-end !important;
-  padding-bottom: calc(var(--bottom-preview-panel-bottom, 206px) + 10px + env(safe-area-inset-bottom)) !important;
-}
-.preview-dialog-backdrop.waveform-compare-mode .preview-dialog-panel {
-  max-height: calc(var(--bottom-preview-viewport-height, 100dvh) - var(--bottom-preview-panel-bottom, 206px) - 34px) !important;
-}
+
 
 .processing-hud.show .processing-hud-face {
   animation: foxbearHudPulse 1.2s ease-in-out infinite;
@@ -164,7 +148,7 @@ body.bottom-preview-active .processing-hud {
 
 @media (max-width: 720px) {
   .bottom-preview-player .custom-player,
-  .bottom-preview-player .custom-player.ab-loop-player {
+.bottom-preview-player .custom-player.ab-loop-player {
     grid-template-columns: 34px minmax(78px, 1fr) 52px !important;
     gap: 5px !important;
   }
@@ -182,22 +166,18 @@ body.bottom-preview-active .processing-hud {
   }
   .bottom-preview-player .player-seek { min-width: 0 !important; }
   body.bottom-preview-active .toast,
-  body.bottom-preview-active .download-assist,
-  body.bottom-preview-active .download-help {
+body.bottom-preview-active .download-assist,
+body.bottom-preview-active .download-help {
     bottom: calc(var(--bottom-preview-floating-bottom, 214px) + env(safe-area-inset-bottom)) !important;
   }
   body.bottom-preview-active .processing-hud {
     bottom: calc(var(--bottom-preview-hud-bottom, 210px) + env(safe-area-inset-bottom)) !important;
   }
-  .preview-dialog-backdrop.waveform-compare-mode {
-    padding-left: 8px !important;
-    padding-right: 8px !important;
-    padding-bottom: calc(var(--bottom-preview-panel-bottom, 220px) + 8px + env(safe-area-inset-bottom)) !important;
-  }
+  
 }
 @media (max-width: 420px) {
   .bottom-preview-player .custom-player,
-  .bottom-preview-player .custom-player.ab-loop-player {
+.bottom-preview-player .custom-player.ab-loop-player {
     grid-template-columns: 32px minmax(64px, 1fr) 46px !important;
     gap: 4px !important;
   }
@@ -219,20 +199,17 @@ body.bottom-preview-active .processing-hud {
 .bottom-preview-waveform {
   position: relative;
 }
-.bottom-waveform-bars,
-.waveform-compare-bars {
+.bottom-waveform-bars {
   position: relative !important;
   cursor: pointer;
   touch-action: manipulation;
 }
-.bottom-waveform-bars:focus-visible,
-.waveform-compare-bars:focus-visible {
+.bottom-waveform-bars:focus-visible {
   outline: 2px solid rgba(141,245,232,.74);
   outline-offset: 3px;
   border-radius: 8px;
 }
-.bottom-waveform-bars.has-live-playhead::after,
-.waveform-compare-bars.has-live-playhead::after {
+.bottom-waveform-bars.has-live-playhead::after {
   content: '';
   position: absolute;
   top: -3px;
@@ -246,8 +223,7 @@ body.bottom-preview-active .processing-hud {
   pointer-events: none;
   z-index: 4;
 }
-.bottom-waveform-bars.has-live-playhead::before,
-.waveform-compare-bars.has-live-playhead::before {
+.bottom-waveform-bars.has-live-playhead::before {
   content: '';
   position: absolute;
   left: var(--waveform-playhead-pct, 0%);
@@ -261,8 +237,7 @@ body.bottom-preview-active .processing-hud {
   pointer-events: none;
   z-index: 5;
 }
-.bottom-waveform-bars.is-playing::after,
-.waveform-compare-bars.is-playing::after {
+.bottom-waveform-bars.is-playing::after {
   background: linear-gradient(180deg, #fff, rgba(141,245,232,.96));
   box-shadow: 0 0 0 1px rgba(9,14,22,.44), 0 0 18px rgba(141,245,232,.56), 0 0 28px rgba(114,221,255,.22);
 }
@@ -270,92 +245,58 @@ body.bottom-preview-active .processing-hud {
 .bottom-preview-waveform.has-live-playhead::before {
   content: none !important;
 }
-.waveform-compare-row {
-  transition: border-color .16s ease, background .16s ease, transform .16s ease;
-}
-.waveform-compare-row:has(.waveform-compare-bars:hover),
-.waveform-compare-row:has(.waveform-compare-bars:focus-visible) {
-  border-color: rgba(141,245,232,.28);
-  background: rgba(141,245,232,.07);
-}
-.waveform-compare-bars::selection,
+
+
 .bottom-waveform-bars::selection {
   background: transparent;
 }
-.waveform-compare-hint::before {
-  content: '터치 이동 · ';
-  color: rgba(141,245,232,.86);
-  font-weight: 950;
-}
+
 @media (max-width: 720px) {
-  .bottom-waveform-bars.has-live-playhead::after,
-  .waveform-compare-bars.has-live-playhead::after {
+  .bottom-waveform-bars.has-live-playhead::after {
     width: 2px;
   }
-  .bottom-waveform-bars.has-live-playhead::before,
-  .waveform-compare-bars.has-live-playhead::before {
+  .bottom-waveform-bars.has-live-playhead::before {
     width: 6px;
     height: 6px;
   }
 }
 
 /* v1.3.57 Dock waveform aligned touch seek */
-.bottom-waveform-bars,
-.waveform-compare-bars {
+.bottom-waveform-bars {
   --waveform-playhead-pct: 0%;
   touch-action: none;
 }
-.bottom-waveform-bars i,
-.waveform-compare-bars i {
+.bottom-waveform-bars i {
   pointer-events: none;
 }
-.bottom-waveform-bars[data-waveform-playback-percent]::after,
-.waveform-compare-bars[data-waveform-playback-percent]::after {
+.bottom-waveform-bars[data-waveform-playback-percent]::after {
   left: var(--waveform-playhead-pct, 0%) !important;
 }
-.bottom-waveform-bars:active,
-.waveform-compare-bars:active {
+.bottom-waveform-bars:active {
   filter: brightness(1.12) saturate(1.08);
 }
-.waveform-compare-hint::after {
-  content: ' 막대 중심 기준으로 이동해 Dock/팝업 위치가 같은 구간에 맞춰집니다.';
-  color: rgba(234,246,255,.72);
-}
+
 
 /* v1.3.59 Dock waveform timeline model */
-.bottom-waveform-bars,
-.waveform-compare-bars {
+.bottom-waveform-bars {
   --waveform-progress-pct: 0%;
   isolation: isolate;
   background-image: linear-gradient(90deg, rgba(141,245,232,.13) 0 var(--waveform-progress-pct), rgba(255,255,255,.018) var(--waveform-progress-pct) 100%);
   background-clip: padding-box;
 }
-.bottom-waveform-bars[role="slider"],
-.waveform-compare-bars[role="slider"] {
+.bottom-waveform-bars[role="slider"] {
   cursor: ew-resize;
 }
-.bottom-waveform-bars i,
-.waveform-compare-bars i {
+.bottom-waveform-bars i {
   position: relative;
   z-index: 1;
 }
 .bottom-waveform-bars.has-live-playhead::after,
-.bottom-waveform-bars.has-live-playhead::before,
-.waveform-compare-bars.has-live-playhead::after,
-.waveform-compare-bars.has-live-playhead::before {
+.bottom-waveform-bars.has-live-playhead::before {
   z-index: 6;
 }
-.bottom-waveform-bars.is-playing,
-.waveform-compare-bars.is-playing {
+.bottom-waveform-bars.is-playing {
   background-image: linear-gradient(90deg, rgba(141,245,232,.24) 0 var(--waveform-progress-pct), rgba(255,255,255,.024) var(--waveform-progress-pct) 100%);
-}
-.waveform-compare-row .waveform-compare-bars[data-waveform-mode="masterPreview"]::selection,
-.waveform-compare-row .waveform-compare-bars[data-waveform-mode="original"]::selection,
-.waveform-compare-row .waveform-compare-bars[data-waveform-mode="mastered"]::selection {
-  background: transparent;
-}
-.waveform-compare-hint::after {
-  content: ' v1.3.59부터 Dock/팝업은 같은 timeline model로 이동점과 LIVE 위치를 계산합니다.';
 }
 
 
@@ -575,8 +516,8 @@ body.bottom-preview-active .toast.foxbear-toast-stack {
 
 @media (max-width: 720px) {
   .bottom-preview-waveform,
-  .bottom-preview-player .custom-player,
-  .bottom-preview-player .custom-player.ab-loop-player {
+.bottom-preview-player .custom-player,
+.bottom-preview-player .custom-player.ab-loop-player {
     grid-template-columns: 34px minmax(78px, 1fr) 52px !important;
     gap: 5px !important;
   }
@@ -596,12 +537,12 @@ body.bottom-preview-active .toast.foxbear-toast-stack {
     gap: 6px !important;
   }
   .bottom-preview-action-left,
-  .bottom-preview-action-right {
+.bottom-preview-action-right {
     gap: 4px !important;
   }
   .bottom-preview-master-btn,
-  .bottom-preview-master-preview-btn,
-  .bottom-preview-tab {
+.bottom-preview-master-preview-btn,
+.bottom-preview-tab {
     min-height: 25px !important;
     padding-inline: 6px !important;
     font-size: .36rem !important;
@@ -664,30 +605,18 @@ body.bottom-preview-active .toast.foxbear-toast-stack {
 .bottom-preview-tab.active {
   filter: brightness(1.08) saturate(1.12);
 }
-.preview-dialog-backdrop.show.waveform-compare-mode {
-  z-index: 28000 !important;
-  pointer-events: auto !important;
-}
-.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-panel,
-.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-close {
-  pointer-events: auto !important;
-}
-.preview-dialog-backdrop.show.waveform-compare-mode .preview-dialog-close {
-  position: relative !important;
-  z-index: 28010 !important;
-}
+
+
 body.preview-dialog-open .bottom-preview-dock {
   z-index: 23000 !important;
 }
 
 /* v1.3.81 Icon Refresh / Button View Close Repair: mirror bars, progress contrast, nowrap labels */
-.dock-integrated-waveform-bars,
-.waveform-compare-bars {
+.dock-integrated-waveform-bars {
   align-items: center !important;
   gap: 2px !important;
 }
-.dock-integrated-waveform-bars::before,
-.waveform-compare-bars::before {
+.dock-integrated-waveform-bars::before {
   width: 9px !important;
   border-radius: 999px !important;
   background: linear-gradient(180deg, rgba(231,255,255,.98), rgba(141,245,232,.98), rgba(82,203,255,.88)) !important;
@@ -796,7 +725,7 @@ body.preview-dialog-open .bottom-preview-dock {
     gap: 12px !important;
   }
   .bottom-preview-meta.bottom-preview-transport-meta,
-  .bottom-preview-meta {
+.bottom-preview-meta {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -836,7 +765,7 @@ body.preview-dialog-open .bottom-preview-dock {
     position: relative !important;
   }
   .bottom-preview-play-toggle .player-icon-pause::before,
-  .bottom-preview-play-toggle .player-icon-pause::after {
+.bottom-preview-play-toggle .player-icon-pause::after {
     content: '' !important;
     position: absolute !important;
     top: 0 !important;
@@ -860,17 +789,17 @@ body.preview-dialog-open .bottom-preview-dock {
   #bottomPreviewGenre { flex: 1 1 auto !important; min-width: 72px !important; max-width: min(32vw, 390px) !important; overflow: hidden !important; text-overflow: ellipsis !important; white-space: nowrap !important; text-align: right !important; }
   #bottomPreviewWaveformBtn.bottom-preview-compare-chip { flex: 0 0 auto !important; min-width: 74px !important; max-width: none !important; white-space: nowrap !important; }
   .bottom-preview-player .dock-integrated-toggle,
-  .dock-integrated-toggle { display: none !important; }
+.dock-integrated-toggle { display: none !important; }
   .bottom-preview-player .dock-integrated-player,
-  .dock-integrated-player { grid-template-columns: minmax(0, 1fr) clamp(116px, 11vw, 154px) !important; gap: 9px !important; min-width: 0 !important; }
+.dock-integrated-player { grid-template-columns: minmax(0, 1fr) clamp(116px, 11vw, 154px) !important; gap: 9px !important; min-width: 0 !important; }
   .dock-integrated-info { min-width: 116px !important; max-width: 154px !important; overflow: hidden !important; display: grid !important; grid-template-rows: 1fr 1fr !important; align-items: center !important; gap: 1px !important; }
   .dock-integrated-source,
-  .dock-integrated-time { text-align: right !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; writing-mode: horizontal-tb !important; word-break: keep-all !important; }
+.dock-integrated-time { text-align: right !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; writing-mode: horizontal-tb !important; word-break: keep-all !important; }
 }
 @media (max-width: 720px) {
   .bottom-preview-play-toggle { display: none !important; }
   .bottom-preview-meta.bottom-preview-transport-meta,
-  .bottom-preview-meta { display: none !important; }
+.bottom-preview-meta { display: none !important; }
 }
 
 
@@ -932,7 +861,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     align-items: stretch !important;
   }
   .bottom-preview-dock .bottom-preview-meta.bottom-preview-transport-meta,
-  .bottom-preview-dock .bottom-preview-meta {
+.bottom-preview-dock .bottom-preview-meta {
     display: flex !important;
     min-width: 0 !important;
     min-height: 96px !important;
@@ -953,8 +882,8 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     overflow: hidden !important;
   }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon,
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play,
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
+.bottom-preview-dock .bottom-preview-play-toggle .player-icon-play,
+.bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
     display: block !important;
     box-sizing: border-box !important;
     position: relative !important;
@@ -969,7 +898,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     margin-left: 5px !important;
   }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::before,
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::after {
+.bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::after {
     content: none !important;
     display: none !important;
   }
@@ -980,7 +909,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     margin: 0 !important;
   }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause::before,
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause::after {
+.bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause::after {
     content: '' !important;
     position: absolute !important;
     top: 0 !important;
@@ -1067,7 +996,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     padding-left: 7px !important;
   }
   .bottom-preview-dock .dock-integrated-source,
-  .bottom-preview-dock .dock-integrated-time {
+.bottom-preview-dock .dock-integrated-time {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
@@ -1083,7 +1012,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
 }
 @media (max-width: 720px) {
   .bottom-preview-dock .bottom-preview-meta,
-  .bottom-preview-dock .bottom-preview-meta.bottom-preview-transport-meta {
+.bottom-preview-dock .bottom-preview-meta.bottom-preview-transport-meta {
     display: none !important;
   }
 }
@@ -1202,7 +1131,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     padding-left: 6px !important;
   }
   .bottom-preview-dock .dock-integrated-source,
-  .bottom-preview-dock .dock-integrated-time {
+.bottom-preview-dock .dock-integrated-time {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
@@ -1218,14 +1147,14 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     text-align: center !important;
   }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon,
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play,
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
+.bottom-preview-dock .bottom-preview-play-toggle .player-icon-play,
+.bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
     display: block !important;
     flex: 0 0 auto !important;
     box-sizing: border-box !important;
   }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::before,
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::after {
+.bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::after {
     content: none !important;
     display: none !important;
   }
@@ -1256,78 +1185,9 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
 }
 
 /* v1.3.85 Waveform compare alignment + lighter live playhead + mobile dock text repair */
-.waveform-compare-card {
-  --waveform-compare-label-width: clamp(74px, 15vw, 118px);
-  --waveform-compare-action-width: clamp(86px, 18vw, 124px);
-}
-.waveform-compare-transport {
-  display: grid !important;
-  grid-template-columns: auto minmax(0, 1fr) auto !important;
-  align-items: center !important;
-  gap: 8px !important;
-  width: 100% !important;
-  padding: 8px 10px !important;
-  border: 1px solid rgba(141,245,232,.16) !important;
-  border-radius: 14px !important;
-  background: linear-gradient(180deg, rgba(141,245,232,.075), rgba(255,255,255,.026)) !important;
-}
-.waveform-compare-transport-toggle {
-  min-width: 56px !important;
-  min-height: 30px !important;
-  padding: 0 12px !important;
-  border-radius: 999px !important;
-  border: 1px solid rgba(141,245,232,.42) !important;
-  background: rgba(141,245,232,.13) !important;
-  color: #eaffff !important;
-  font-size: .66rem !important;
-  font-weight: 950 !important;
-  cursor: pointer !important;
-  touch-action: manipulation !important;
-}
-.waveform-compare-transport-toggle.playing {
-  background: rgba(255,255,255,.14) !important;
-}
-.waveform-compare-transport-mode,
-.waveform-compare-transport-time {
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  font-size: .62rem !important;
-  font-weight: 900 !important;
-  color: rgba(229,247,255,.82) !important;
-}
-.waveform-compare-transport-time {
-  text-align: right !important;
-  font-variant-numeric: tabular-nums !important;
-}
-.waveform-compare-row {
-  display: grid !important;
-  grid-template-columns: var(--waveform-compare-label-width) minmax(0, 1fr) var(--waveform-compare-action-width) !important;
-  align-items: center !important;
-  gap: 8px !important;
-  width: 100% !important;
-  min-width: 0 !important;
-}
-.waveform-compare-row > span {
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-.waveform-compare-row .waveform-compare-bars {
-  width: 100% !important;
-  min-width: 0 !important;
-}
-.waveform-compare-listen {
-  width: 100% !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
+
+
 .bottom-waveform-bars.has-live-playhead::after,
-.waveform-compare-bars.has-live-playhead::after,
 .dock-integrated-waveform-bars.has-live-playhead::after {
   width: 1px !important;
   top: 2px !important;
@@ -1337,7 +1197,6 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   box-shadow: 0 0 0 1px rgba(6,16,24,.22), 0 0 10px rgba(141,245,232,.28) !important;
 }
 .bottom-waveform-bars.has-live-playhead::before,
-.waveform-compare-bars.has-live-playhead::before,
 .dock-integrated-waveform-bars.has-live-playhead::before {
   width: 6px !important;
   height: 6px !important;
@@ -1347,30 +1206,15 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   box-shadow: 0 0 0 2px rgba(141,245,232,.12), 0 0 10px rgba(141,245,232,.42) !important;
 }
 .bottom-waveform-bars.is-playing::after,
-.waveform-compare-bars.is-playing::after,
 .dock-integrated-waveform-bars.is-playing::after {
   background: rgba(141,245,232,.92) !important;
   box-shadow: 0 0 0 1px rgba(6,16,24,.28), 0 0 12px rgba(141,245,232,.44) !important;
 }
 @media (max-width: 720px) {
-  .waveform-compare-card {
-    --waveform-compare-label-width: 64px;
-    --waveform-compare-action-width: 86px;
-  }
-  .waveform-compare-transport {
-    grid-template-columns: auto minmax(0, 1fr) auto !important;
-    padding: 7px 8px !important;
-    gap: 6px !important;
-  }
-  .waveform-compare-transport-toggle {
-    min-width: 50px !important;
-    min-height: 28px !important;
-    padding: 0 10px !important;
-    font-size: .58rem !important;
-  }
-  .waveform-compare-row {
-    gap: 6px !important;
-  }
+  
+  
+  
+  
   .bottom-preview-dock .bottom-preview-mobile-meta {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
@@ -1420,7 +1264,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     overflow: hidden !important;
   }
   .bottom-preview-dock .dock-integrated-source,
-  .bottom-preview-dock .dock-integrated-time {
+.bottom-preview-dock .dock-integrated-time {
     text-align: left !important;
     justify-self: start !important;
     width: 100% !important;
@@ -1436,14 +1280,8 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   }
 }
 @media (max-width: 420px) {
-  .waveform-compare-card {
-    --waveform-compare-label-width: 58px;
-    --waveform-compare-action-width: 76px;
-  }
-  .waveform-compare-listen {
-    font-size: .48rem !important;
-    padding-inline: 5px !important;
-  }
+  
+  
   .bottom-preview-dock .dock-integrated-player {
     grid-template-columns: minmax(0, 1fr) minmax(52px, 64px) !important;
   }
