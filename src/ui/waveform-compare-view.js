@@ -241,13 +241,45 @@
                 return;
             }
             captureBottomPreviewTransport(track, state.bottomPreviewMode);
+            const alignedStartSec = Number(options.startSec);
+            const alignedDurationSec = Number(options.durationSec);
+            if (options.scope === 'preview' && Number.isFinite(alignedStartSec) && alignedStartSec >= 0) {
+                const localSec = mode === 'masterPreview' ? 0 : alignedStartSec;
+                state.bottomPreviewTransport = {
+                    trackId: track.id,
+                    mode,
+                    localSec,
+                    absoluteSec: alignedStartSec,
+                    durationSec: Number.isFinite(alignedDurationSec) && alignedDurationSec > 0 ? alignedDurationSec : undefined,
+                    scope: 'preview',
+                    playing: true,
+                    translationMode: state.previewTranslationMode || 'studio',
+                    capturedAt: Date.now(),
+                    source: 'waveform-compare-listen'
+                };
+            }
             state.bottomPreviewMode = mode;
             state.bottomPreviewTrackId = track.id;
             state.bottomPreviewAutoplayTrackId = track.id;
             renderBottomPreviewDock({ autoPlay: true, keepPlaying: true });
-            raf(playBottomPreviewAudio);
+            raf(() => {
+                const audio = getBottomPreviewAudio();
+                if (audio && options.scope === 'preview' && Number.isFinite(alignedStartSec) && alignedStartSec >= 0) {
+                    const targetLocalSec = mode === 'masterPreview' ? 0 : alignedStartSec;
+                    try {
+                        if (audio.readyState >= 1) audio.currentTime = Math.max(0, targetLocalSec);
+                        else audio.addEventListener('loadedmetadata', () => {
+                            try { audio.currentTime = Math.max(0, targetLocalSec); } catch (error) {}
+                        }, { once: true });
+                    } catch (error) {}
+                }
+                playBottomPreviewAudio();
+            });
             foxBearHaptic('switch');
-            showToast(`${listen.textContent}로 전환했습니다.`);
+            const rangeText = options.scope === 'preview' && Number.isFinite(alignedStartSec)
+                ? ` · ${Math.round(alignedStartSec * 10) / 10}초 구간`
+                : '';
+            showToast(`${listen.textContent}로 전환했습니다${rangeText}.`);
         });
         row.append(label, bars, listen);
         return row;

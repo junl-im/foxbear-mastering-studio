@@ -1,3 +1,14 @@
+## Stage17 - Highlight compare listen sync hotfix (2026-07-06)
+
+- Fixed the waveform compare popup listen buttons so preview-scope rows preserve the same absolute highlight start time for both original and master-preview playback.
+- The original-side `원곡 듣기` button now starts from the stored highlight `startSec` instead of falling back to 0 seconds or the previous Dock position.
+- The master-preview-side `하이라이트 듣기` button still starts at local 0 seconds, but its transport metadata keeps the same absolute highlight start for synced playhead and future mode switches.
+- Added metadata-delayed seek handling so the correct section is applied after audio metadata loads on mobile browsers.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage17-highlight-compare-sync`.
+- Added `qa/stage17_highlight_compare_sync_smoke.js` and updated legacy cache-stage smoke tests to accept Stage17.
+
+QA result: `npm run check` -> 99/99 PASS.
+
 
 ## Stage16 - v1.4.0 Version Release
 - Promoted the app from `v1.3.84` to `v1.4.0` after the Stage8-Stage15 runtime, Dock, settings-panel, cache/SRI, and modularization changes.

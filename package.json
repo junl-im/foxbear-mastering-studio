@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-0",
   "version": "1.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage16 official version release",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage17 highlight compare sync hotfix",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -108,6 +108,7 @@
     "node qa/stage13_runtime_health_smoke.js",
     "node qa/stage14_runtime_recovery_smoke.js",
     "node qa/stage16_mobile_settings_panel_smoke.js",
-    "node qa/stage16_version_release_smoke.js"
+    "node qa/stage16_version_release_smoke.js",
+    "node qa/stage17_highlight_compare_sync_smoke.js"
   ]
 }

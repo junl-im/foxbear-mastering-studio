@@ -1,3 +1,8 @@
+
+## Current patch: v1.4.0 Stage17
+
+Stage17 fixes highlight compare playback sync. In the waveform compare popup, the original-side listen button now seeks to the same absolute highlight start used by the generated master-preview file, so A/B comparison starts from the same musical section. Runtime asset cache key: `1.4.0-stage17-highlight-compare-sync`.
+
 # FoxBear AI Mastering Studio Pro v1.4.0
 
 ## Latest: Dock / Modal State Machine Refactor

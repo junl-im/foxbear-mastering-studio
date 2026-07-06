@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage16-version-release';
+    const FALLBACK_VERSION = '1.4.0-stage17-highlight-compare-sync';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
