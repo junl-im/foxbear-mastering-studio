@@ -55,7 +55,7 @@ assert(studioCss.includes('.upload-stage'), 'studio.css should retain component 
   'assets/css/layout.css',
   'src/ui/download-dialog-view.js'
 ].forEach(asset => {
-  assert(sw.includes(`./${asset}?v=1.3.84-dock-modal-state-machine`), `${asset} missing from service worker CORE_ASSETS`);
+  assert(sw.includes(`./${asset}?v=1.3.84-stage12.2-cachefix`), `${asset} missing from service worker CORE_ASSETS`);
 });
 assert(/stage(?:[4-9]|10|11|12)/.test(sw), 'service worker cache name not bumped for stage4 or later');
 

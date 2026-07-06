@@ -12,7 +12,7 @@ const failures = [];
 function expect(condition, message) { if (!condition) failures.push(message); }
 
 expect(index.includes('v1.3.84'), 'index should show v1.3.84');
-expect(index.includes('1.3.84-dock-modal-state-machine'), 'index asset query should use v1.3.84 cache key');
+expect(index.includes('1.3.84-stage12.2-cachefix'), 'index asset query should use stage12.2 cache-bust key');
 expect(pkg.version === '1.3.84', 'package version should be 1.3.84');
 expect(app.includes("const APP_VERSION = 'Pro v1.3.84'"), 'app version constant should be v1.3.84');
 expect(app.includes('function createDockIntegratedWaveformPlayer'), 'Dock should use integrated waveform player');

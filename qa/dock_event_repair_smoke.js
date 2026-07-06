@@ -7,8 +7,8 @@ const app=read('src/app.js'); const dockCss=read('assets/css/dock.css'); const h
 must(app.includes("const APP_VERSION = 'Pro v1.3.84'"),'version');
 must(html.includes('data-build="1.3.84"'),'build');
 must(pkg.version==='1.3.84','package version');
-must(sw.includes('foxbear-shell-v1.3.84-dock-modal-state-machine'),'sw cache');
-must(html.includes('src/ui/dock-controller.js?v=1.3.84-dock-modal-state-machine'),'dock controller loaded');
+must(sw.includes('foxbear-shell-v1.3.84-stage12.2-cachefix'),'sw cache');
+must(html.includes('src/ui/dock-controller.js?v=1.3.84-stage12.2-cachefix'),'dock controller loaded');
 must(app.includes("runDockRemoteSourceMode('original', event)"),'original dispatcher');
 must(app.includes("runDockRemoteSourceMode('mastered', event)"),'mastered dispatcher');
 must(app.includes('function runDockRemoteTranslationMode'),'translation dispatcher');

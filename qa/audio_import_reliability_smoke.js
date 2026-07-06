@@ -25,6 +25,6 @@ const bindEnd = app.indexOf('function setupDropZone', bindStart);
 const bindBlock = app.slice(bindStart, bindEnd);
 const filePreventPattern = /kind === 'file'[\s\S]{0,220}event\.preventDefault\(\)/;
 must(!filePreventPattern.test(bindBlock), 'file label click must not prevent native input default');
-must(html.includes('src/app.js?v=1.3.84-dock-modal-state-machine'), 'index app cache bust key missing');
-must(sw.includes('foxbear-shell-v1.3.84-dock-modal-state-machine'), 'service worker cache key missing');
+must(html.includes('src/app.js?v=1.3.84-stage12.2-cachefix'), 'index app cache bust key missing');
+must(/foxbear-shell-v1\.3\.84/.test(sw) && /stage(?:12(?:\.1|\.2)?|11|10|9)/.test(sw), 'service worker cache key missing or stale');
 console.log('PASS audio import reliability smoke');

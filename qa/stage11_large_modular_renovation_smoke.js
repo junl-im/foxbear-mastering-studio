@@ -53,8 +53,8 @@ assert(!studio.trimStart().startsWith('.upload-stage {'), 'studio.css should no 
 assert(studio.split(/\r?\n/).length < 9800, 'studio.css should shrink after base component split');
 
 assert(/stage(?:11(?:\.1)?|12)/.test(sw), 'service worker cache should be bumped to stage11 or later');
-assert(sw.includes('./assets/css/components/base-components.css?v=1.3.84-dock-modal-state-machine'), 'service worker should precache base-components.css');
-assert(sw.includes('./src/recommendation/recommendation-engine.js?v=1.3.84-dock-modal-state-machine'), 'service worker should precache recommendation engine');
+assert(sw.includes('./assets/css/components/base-components.css?v=1.3.84-stage12.2-cachefix'), 'service worker should precache base-components.css');
+assert(sw.includes('./src/recommendation/recommendation-engine.js?v=1.3.84-stage12.2-cachefix'), 'service worker should precache recommendation engine');
 assert(pkg.qaChecks.includes('node --check src/recommendation/recommendation-engine.js'), 'package QA should syntax-check recommendation engine');
 assert(pkg.qaChecks.includes('node qa/stage11_large_modular_renovation_smoke.js'), 'package QA should include stage11 smoke');
 assert(changelog.includes('Stage11') && handoff.includes('Stage11') && notes.includes('Stage11'), 'handoff docs should mention Stage11');

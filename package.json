@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-3-84",
   "version": "1.3.84",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.3.84 Stage12.1 Dock UI repair",
+  "description": "FoxBear AI Mastering Studio Pro v1.3.84 Stage12.2 cache-bust/runtime recovery",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -102,6 +102,7 @@
     "node qa/stage11_large_modular_renovation_smoke.js",
     "node qa/stage11_1_runtime_mobile_hotfix_smoke.js",
     "node qa/stage12_detail_view_split_smoke.js",
-    "node qa/stage12_1_dock_ui_repair_smoke.js"
+    "node qa/stage12_1_dock_ui_repair_smoke.js",
+    "node qa/stage12_2_cache_bust_runtime_smoke.js"
   ]
 }

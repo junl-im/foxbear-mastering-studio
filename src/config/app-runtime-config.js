@@ -2,11 +2,13 @@
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
-    const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
-    const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
-    const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
-    const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
-    const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
+    const ASSET_VERSION = '1.3.84-stage12.2-cachefix';
+    const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
+    const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
+    const MP3_ENCODER_WORKER_URL = assetUrl('src/workers/mp3-encoder.worker.js');
+    const ANALYSIS_WORKER_URL = assetUrl('src/workers/analysis.worker.js');
+    const MASTER_FINALIZER_WORKER_URL = assetUrl('src/workers/master-finalizer.worker.js');
+    const PITCH_WSOLA_WORKER_URL = assetUrl('src/workers/pitch-wsola.worker.js');
     const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
     const CORE_AUDIO_EXTENSIONS = ['.wav', '.wave', '.mp3', '.mpeg', '.mpga', '.flac', '.ogg', '.oga', '.opus', '.m4a', '.aac', '.webm', '.weba', '.aif', '.aiff', '.aifc', '.caf'];
     const CONTAINER_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'];
@@ -15,6 +17,7 @@
 
     global.FoxBearRuntimeConfig = Object.freeze({
         APP_VERSION: 'Pro v1.3.84',
+        ASSET_VERSION,
         WAV_ENCODER_WORKER_URL,
         MP3_ENCODER_WORKER_URL,
         ANALYSIS_WORKER_URL,
