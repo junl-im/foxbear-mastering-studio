@@ -2259,35 +2259,73 @@ function createMobileNativeLayer() {
     panel.className = 'mobile-native-panel';
     panel.setAttribute('aria-hidden', 'true');
     panel.setAttribute('aria-label', '모바일 네이티브 편의 퀵패널');
-    panel.innerHTML = `
-        <div class="mobile-native-panel-head">
-            <strong>모바일 퀵패널</strong>
-            <button type="button" class="mobile-native-close" data-native-action="close" aria-label="퀵패널 닫기">×</button>
-        </div>
-        <div class="mobile-native-status-grid">
-            <span data-native-status="media">잠금화면 컨트롤 대기</span>
-            <span data-native-status="wake">화면유지 대기</span>
-            <span data-native-status="storage">저장소 확인 중</span>
-            <span data-native-status="safe">일반 모드</span>
-        </div>
-        <div class="mobile-native-action-grid" role="group" aria-label="재생 퀵 액션">
-            <button type="button" data-native-action="original">원본</button>
-            <button type="button" data-native-action="mastered">마스터</button>
-            <button type="button" data-native-action="phone">폰</button>
-            <button type="button" data-native-action="mono">모노</button>
-            <button type="button" data-native-action="peak">피크 점프</button>
-            <button type="button" data-native-action="download">다운로드</button>
-            <button type="button" data-native-action="share">공유</button>
-            <button type="button" data-native-action="install">앱 설치</button>
-        </div>
-        <div class="mobile-native-toggle-row">
-            <button type="button" data-native-action="wake">화면유지</button>
-            <button type="button" data-native-action="haptic">진동피드백</button>
-            <button type="button" data-native-action="persist">저장소보호</button>
-            <button type="button" data-native-action="restore">재생복구</button>
-        </div>
-        <p class="mobile-native-guide" data-native-guide>Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.</p>
-    `;
+    const panelHead = document.createElement('div');
+    panelHead.className = 'mobile-native-panel-head';
+    const panelTitle = document.createElement('strong');
+    panelTitle.textContent = '모바일 퀵패널';
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'mobile-native-close';
+    closeButton.dataset.nativeAction = 'close';
+    closeButton.setAttribute('aria-label', '퀵패널 닫기');
+    closeButton.textContent = '×';
+    panelHead.append(panelTitle, closeButton);
+
+    const statusGrid = document.createElement('div');
+    statusGrid.className = 'mobile-native-status-grid';
+    [
+        ['media', '잠금화면 컨트롤 대기'],
+        ['wake', '화면유지 대기'],
+        ['storage', '저장소 확인 중'],
+        ['safe', '일반 모드']
+    ].forEach(([key, label]) => {
+        const item = document.createElement('span');
+        item.dataset.nativeStatus = key;
+        item.textContent = label;
+        statusGrid.appendChild(item);
+    });
+
+    const actionGrid = document.createElement('div');
+    actionGrid.className = 'mobile-native-action-grid';
+    actionGrid.setAttribute('role', 'group');
+    actionGrid.setAttribute('aria-label', '재생 퀵 액션');
+    [
+        ['original', '원본'],
+        ['mastered', '마스터'],
+        ['phone', '폰'],
+        ['mono', '모노'],
+        ['peak', '피크 점프'],
+        ['download', '다운로드'],
+        ['share', '공유'],
+        ['install', '앱 설치']
+    ].forEach(([action, label]) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.nativeAction = action;
+        button.textContent = label;
+        actionGrid.appendChild(button);
+    });
+
+    const toggleRow = document.createElement('div');
+    toggleRow.className = 'mobile-native-toggle-row';
+    [
+        ['wake', '화면유지'],
+        ['haptic', '진동피드백'],
+        ['persist', '저장소보호'],
+        ['restore', '재생복구']
+    ].forEach(([action, label]) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.nativeAction = action;
+        button.textContent = label;
+        toggleRow.appendChild(button);
+    });
+
+    const guide = document.createElement('p');
+    guide.className = 'mobile-native-guide';
+    guide.dataset.nativeGuide = '';
+    guide.textContent = 'Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.';
+    panel.append(panelHead, statusGrid, actionGrid, toggleRow, guide);
     layer.append(status, toggle, panel);
     document.body.appendChild(layer);
     el.mobileNativeStatus = status;
