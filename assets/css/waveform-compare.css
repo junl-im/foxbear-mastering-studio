@@ -1,0 +1,218 @@
+/* FoxBear Stage6 waveform compare popup layer.
+   Dedicated file for the large original/mastered waveform dialog and its transport. */
+.preview-dialog-backdrop.waveform-compare-mode .preview-dialog-panel {
+  width: min(940px, calc(100vw - 24px));
+}
+.waveform-compare-card {
+  --waveform-compare-label-width: clamp(74px, 15vw, 118px);
+  --waveform-compare-action-width: clamp(86px, 18vw, 124px);
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+.waveform-compare-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.waveform-compare-head strong,
+.waveform-compare-head span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.waveform-compare-head strong {
+  color: #f5feff;
+  font-weight: 950;
+}
+.waveform-compare-head span {
+  color: rgba(229,247,255,.68);
+  font-size: .72rem;
+  font-weight: 850;
+}
+.waveform-compare-transport {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border: 1px solid rgba(141,245,232,.16) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, rgba(141,245,232,.075), rgba(255,255,255,.026)) !important;
+}
+.waveform-compare-transport-toggle {
+  min-width: 56px !important;
+  min-height: 30px !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(141,245,232,.42) !important;
+  background: rgba(141,245,232,.13) !important;
+  color: #eaffff !important;
+  font-size: .66rem !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+}
+.waveform-compare-transport-toggle.playing {
+  background: rgba(255,255,255,.14) !important;
+}
+.waveform-compare-transport-mode,
+.waveform-compare-transport-time {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: .62rem !important;
+  font-weight: 900 !important;
+  color: rgba(229,247,255,.82) !important;
+}
+.waveform-compare-transport-time {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums !important;
+}
+.waveform-compare-row {
+  display: grid !important;
+  grid-template-columns: var(--waveform-compare-label-width) minmax(0, 1fr) var(--waveform-compare-action-width) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.waveform-compare-row > span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: .68rem;
+  font-weight: 900;
+  color: rgba(229,247,255,.78);
+}
+.waveform-compare-bars {
+  position: relative;
+  display: flex;
+  align-items: end;
+  gap: 2px;
+  height: clamp(54px, 12vh, 88px);
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 8px 9px;
+  border-radius: 14px;
+  border: 1px solid rgba(141,245,232,.12);
+  background: rgba(4,12,18,.42);
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  touch-action: pan-y;
+}
+.waveform-compare-bars i {
+  flex: 1 1 0;
+  min-width: 1px;
+  border-radius: 999px 999px 3px 3px;
+  background: rgba(141,245,232,.54);
+  transition: height .16s ease, opacity .16s ease, transform .16s ease;
+}
+.waveform-compare-bars i.waveform-hot { background: rgba(255,206,115,.78); }
+.waveform-compare-bars i.waveform-clip { background: rgba(255,112,112,.84); }
+.waveform-compare-bars i.is-played { opacity: .96; }
+.waveform-compare-bars i.is-current { transform: scaleY(1.08); }
+.waveform-compare-bars.empty i { opacity: .25; }
+.waveform-compare-listen {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 32px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(141,245,232,.22);
+  background: rgba(141,245,232,.09);
+  color: #eaffff;
+  font-size: .58rem;
+  font-weight: 950;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+}
+.waveform-compare-listen:hover,
+.waveform-compare-listen:focus-visible {
+  border-color: rgba(141,245,232,.46);
+  background: rgba(141,245,232,.15);
+}
+.waveform-compare-empty {
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.04);
+  color: rgba(229,247,255,.7);
+  font-size: .72rem;
+}
+.waveform-compare-hint {
+  margin: 0;
+  color: rgba(229,247,255,.58);
+  font-size: .66rem;
+  line-height: 1.5;
+}
+.waveform-compare-bars.has-live-playhead::after {
+  width: 1px !important;
+  top: 2px !important;
+  bottom: 2px !important;
+  transform: translateX(-50%) !important;
+  background: rgba(235,255,255,.86) !important;
+  box-shadow: 0 0 0 1px rgba(6,16,24,.22), 0 0 10px rgba(141,245,232,.28) !important;
+}
+.waveform-compare-bars.has-live-playhead::before {
+  width: 6px !important;
+  height: 6px !important;
+  top: 0 !important;
+  transform: translate(-50%, -45%) !important;
+  background: rgba(235,255,255,.96) !important;
+  box-shadow: 0 0 0 2px rgba(141,245,232,.12), 0 0 10px rgba(141,245,232,.42) !important;
+}
+.waveform-compare-bars.is-playing::after {
+  background: rgba(141,245,232,.92) !important;
+  box-shadow: 0 0 0 1px rgba(6,16,24,.28), 0 0 12px rgba(141,245,232,.44) !important;
+}
+@media (max-width: 720px) {
+  .waveform-compare-card {
+    --waveform-compare-label-width: 64px;
+    --waveform-compare-action-width: 86px;
+  }
+  .waveform-compare-head {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+  }
+  .waveform-compare-transport {
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    padding: 7px 8px !important;
+    gap: 6px !important;
+  }
+  .waveform-compare-transport-toggle {
+    min-width: 50px !important;
+    min-height: 28px !important;
+    padding: 0 10px !important;
+    font-size: .58rem !important;
+  }
+  .waveform-compare-row {
+    gap: 6px !important;
+  }
+  .waveform-compare-bars {
+    height: 62px !important;
+  }
+}
+@media (max-width: 420px) {
+  .waveform-compare-card {
+    --waveform-compare-label-width: 58px;
+    --waveform-compare-action-width: 76px;
+  }
+  .waveform-compare-listen {
+    font-size: .48rem !important;
+    padding-inline: 5px !important;
+  }
+  .waveform-compare-row > span {
+    font-size: .54rem !important;
+  }
+}

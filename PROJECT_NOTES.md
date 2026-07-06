@@ -401,3 +401,15 @@
 - 신규 QA: `qa/dock_modal_state_machine_smoke.js`.
 - `npm run check` 결과: 67/67 PASS.
 - 엔진 코드는 변경하지 않았습니다. `engine_qa_bench`, `golden_audio_qa_pack`는 통과했습니다.
+
+---
+
+## Stage6 Waveform Compare Module / Handoff Docs
+
+- 비교 팝업 view를 `src/ui/waveform-compare-view.js`로 분리했습니다.
+- 비교 팝업 전용 CSS layer `assets/css/waveform-compare.css`를 추가했습니다.
+- `src/app.js`는 비교 팝업 view에 dependency object를 넘기는 wrapper만 유지합니다.
+- `sw.js` cache name을 stage6로 갱신하고 새 JS/CSS를 precache에 추가했습니다.
+- `CHANGELOG.md`, `HANDOFF.md`를 루트에 추가해 버전 기록과 다음 작업 인수인계를 다시 남깁니다.
+- `qa/docs_handoff_smoke.js`를 추가해 MD 인수인계 누락을 QA에서 잡도록 했습니다.
+- `qa/run_all_checks.js`는 `package.json`의 `qaChecks`를 읽도록 변경해 QA 목록을 한 곳에서 관리합니다.
