@@ -9544,7 +9544,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.79 Dock integrated waveform remote */
+/* v1.3.80 Dock integrated waveform remote */
 .bottom-preview-core {
     grid-template-columns: 112px minmax(0, 1fr) !important;
     align-items: center !important;
@@ -9755,7 +9755,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.79 Dock waveform init + feature button guard */
+/* v1.3.80 Dock waveform init + feature button guard */
 .feature-open-btn,
 .feature-open-wide,
 #featureOpenBtn {
@@ -9825,7 +9825,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
     50% { transform: translateY(-1px); }
 }
 
-/* v1.3.79 Dock Purpose Realignment */
+/* v1.3.80 Icon Refresh / Button View Close Repair */
 .dock-integrated-waveform-bars,
 .bottom-preview-player .dock-integrated-waveform-bars,
 .waveform-compare-bars {
@@ -9939,7 +9939,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
     .bottom-preview-tabs { min-width: max-content !important; }
 }
 
-/* v1.3.79 Button View layer repair and cleanup policy */
+/* v1.3.80 Button View layer repair and cleanup policy */
 #featureOpenBtn,
 .feature-open-btn,
 .feature-open-wide {
@@ -9972,7 +9972,7 @@ body.feature-dialog-open .feature-dialog-backdrop.show {
     z-index: 28100 !important;
 }
 
-/* v1.3.79 Dock purpose realignment: peak-map waveform, compare chip, 3-zone controls */
+/* v1.3.80 Dock purpose realignment: peak-map waveform, compare chip, 3-zone controls */
 .bottom-preview-core {
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 6px !important;
@@ -10244,4 +10244,49 @@ body.bottom-preview-active .download-options-panel-v3 {
         top: -28px;
         font-size: .50rem;
     }
+}
+
+
+/* v1.3.80 Icon Refresh / Button View Close Repair */
+#featureOpenBtn,
+.feature-open-btn,
+.feature-open-wide {
+    z-index: auto !important;
+    position: relative !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+}
+.feature-dialog-backdrop {
+    pointer-events: none !important;
+}
+.feature-dialog-backdrop.show,
+body.feature-dialog-open .feature-dialog-backdrop.show {
+    display: flex !important;
+    z-index: 24750 !important;
+    pointer-events: auto !important;
+}
+.feature-dialog-panel {
+    position: relative !important;
+    z-index: 24751 !important;
+    pointer-events: auto !important;
+    isolation: isolate !important;
+}
+.feature-dialog-close,
+#featureDialogClose {
+    position: relative !important;
+    z-index: 24760 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+}
+.feature-dialog-close::before,
+#featureDialogClose::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 999px;
+}
+.subscribe-mini-face img {
+    object-fit: contain !important;
+    background: transparent !important;
 }

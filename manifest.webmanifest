@@ -5,16 +5,78 @@
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "browser"
+  ],
   "background_color": "#07111c",
   "theme_color": "#101f36",
   "orientation": "any",
   "lang": "ko-KR",
   "dir": "ltr",
-  "categories": ["music", "productivity", "utilities"],
+  "categories": [
+    "music",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
-      "src": "assets/icons/foxbear-music.png",
+      "src": "assets/icons/foxbear-icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/foxbear-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -26,14 +88,26 @@
       "short_name": "새 작업",
       "description": "FoxBear 마스터링 화면을 바로 엽니다.",
       "url": "./?shortcut=new-mastering",
-      "icons": [{ "src": "assets/icons/foxbear-music.png", "sizes": "512x512", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "assets/icons/foxbear-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "다운로드 대기 파일",
       "short_name": "다운로드",
       "description": "완성된 마스터 파일을 저장하거나 공유합니다.",
       "url": "./?shortcut=downloads",
-      "icons": [{ "src": "assets/icons/foxbear-music.png", "sizes": "512x512", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "assets/icons/foxbear-icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "share_target": {
@@ -47,7 +121,38 @@
       "files": [
         {
           "name": "audio",
-          "accept": ["audio/*", "video/mp4", "video/quicktime", "video/3gpp", "application/ogg", ".wav", ".wave", ".mp3", ".mpeg", ".mpga", ".flac", ".ogg", ".oga", ".opus", ".m4a", ".aac", ".aif", ".aiff", ".aifc", ".caf", ".webm", ".weba", ".mp4", ".m4v", ".mov", ".3gp", ".3gpp", ".3g2", ".amr", ".wma"]
+          "accept": [
+            "audio/*",
+            "video/mp4",
+            "video/quicktime",
+            "video/3gpp",
+            "application/ogg",
+            ".wav",
+            ".wave",
+            ".mp3",
+            ".mpeg",
+            ".mpga",
+            ".flac",
+            ".ogg",
+            ".oga",
+            ".opus",
+            ".m4a",
+            ".aac",
+            ".aif",
+            ".aiff",
+            ".aifc",
+            ".caf",
+            ".webm",
+            ".weba",
+            ".mp4",
+            ".m4v",
+            ".mov",
+            ".3gp",
+            ".3gpp",
+            ".3g2",
+            ".amr",
+            ".wma"
+          ]
         }
       ]
     }

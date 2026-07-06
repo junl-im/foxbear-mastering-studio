@@ -1,5 +1,14 @@
 # FoxBear Project Notes
 
+## v1.3.80 Icon Refresh / Button View Close Repair
+
+- 새 업로드 로고 `/mnt/data/foxbear.png`를 바깥 흰 배경만 투명 처리해 PWA/대표 아이콘 세트로 재생성.
+- 생성 아이콘: 16/32/48/72/96/128/144/152/180/192/384/512 PNG, Apple touch, legacy `foxbear-music.png`.
+- `manifest.webmanifest`, `index.html`, `sw.js` 아이콘 경로를 새 아이콘 세트로 갱신.
+- 버튼형 적용 팝업 닫기 실패를 막기 위해 닫기 경로를 하드닝하고, `버튼 보기` 버튼 자체의 과도한 최상위 z-index를 제거.
+- 기록 정책: 개별 `PATCH_NOTES_v*.md`를 추가하지 않고 `PROJECT_NOTES.md`와 README에 누적.
+
+
 ## 기록 정책
 - v1.3.78부터 `PATCH_NOTES_v*.md` 파일을 새로 만들지 않습니다.
 - 버전 요약, 인수인계, 정리 기록은 이 `PROJECT_NOTES.md`와 `README.md`에 누적합니다.

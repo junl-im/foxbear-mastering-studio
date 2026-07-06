@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.79 - Dock Purpose Realignment
+// FoxBear AI Mastering Studio Pro v1.3.80 - Icon Refresh / Button View Close Repair
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.79';
+const APP_VERSION = 'Pro v1.3.80';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.79-dock-purpose-realign';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.80-icons-buttonview-close';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -342,7 +342,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.79-dock-purpose-realign';
+    styleLink.href = 'assets/css/studio.css?v=1.3.80-icons-buttonview-close';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -725,25 +725,43 @@ function openFeatureDialog() {
     renderFeatureButtons();
     el.featureDialog.classList.add('show');
     el.featureDialog.setAttribute('aria-hidden', 'false');
+    el.featureDialog.style.pointerEvents = 'auto';
     document.body.classList.add('feature-dialog-open');
     const panel = el.featureDialog.querySelector('.feature-dialog-panel');
     if (panel) panel.focus({ preventScroll: true });
 }
 
-function closeFeatureDialog() {
-    if (!el.featureDialog) return;
-    el.featureDialog.classList.remove('show');
-    el.featureDialog.setAttribute('aria-hidden', 'true');
+function closeFeatureDialog(options = {}) {
+    const dialog = el.featureDialog || document.getElementById('featureDialog');
+    if (!dialog) return false;
+    state.featureDialogClosingUntil = Date.now() + 360;
+    dialog.classList.remove('show');
+    dialog.setAttribute('aria-hidden', 'true');
+    dialog.style.pointerEvents = 'none';
     document.body.classList.remove('feature-dialog-open');
     hideFeatureTooltip();
-    if (el.featureOpenBtn && document.body.contains(el.featureOpenBtn)) {
-        try { el.featureOpenBtn.focus({ preventScroll: true }); } catch (error) {}
+    if (options.restoreFocus !== false) {
+        const opener = el.featureOpenBtn || document.getElementById('featureOpenBtn');
+        if (opener && document.body.contains(opener)) {
+            try { opener.focus({ preventScroll: true }); } catch (error) {}
+        }
     }
+    window.setTimeout(() => {
+        if (!dialog.classList.contains('show')) dialog.style.removeProperty('pointer-events');
+    }, 380);
+    return true;
+}
+
+function closeFeatureDialogFromEvent(event = null) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    return closeFeatureDialog({ restoreFocus: false });
 }
 
 function forceOpenFeatureDialog(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
     if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    if (state.featureDialogClosingUntil && Date.now() < state.featureDialogClosingUntil) return false;
     if (!el.featureDialog) {
         try { cacheElements(); } catch (error) {}
     }
@@ -759,15 +777,15 @@ function ensureFeatureDialogLayer() {
     const dialog = el.featureDialog || document.getElementById('featureDialog');
     const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
     if (dialog) {
-        // v1.3.79: keep the dialog above the Dock through CSS, but do not
-        // force an inline top-most z-index. The old inline value made
-        // `버튼 보기` feel like it floated above every screen.
+        // v1.3.80: the opener stays in the normal page layer; only the modal
+        // itself rises above the Dock while it is visible.
         dialog.style.removeProperty('z-index');
-        dialog.style.pointerEvents = dialog.classList.contains('show') ? 'auto' : '';
+        dialog.style.pointerEvents = dialog.classList.contains('show') ? 'auto' : 'none';
     }
     if (button) {
         button.removeAttribute('disabled');
         button.style.removeProperty('z-index');
+        button.style.removeProperty('position');
         button.style.pointerEvents = 'auto';
         button.style.touchAction = 'manipulation';
         button.setAttribute('aria-haspopup', 'dialog');
@@ -783,7 +801,7 @@ function bindFeatureOpenHardFallback() {
     button.dataset.featureHardFallbackBound = 'true';
     window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
     const open = event => forceOpenFeatureDialog(event);
-    // v1.3.79: avoid pointerdown/pointerup capture spam. A click/touchend
+    // v1.3.80: avoid pointerdown/pointerup capture spam. A click/touchend
     // fallback is enough, while the close button remains free to receive its
     // own click path.
     button.addEventListener('click', open, { capture: true });
@@ -2817,7 +2835,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.79-dock-purpose-realign');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.80-icons-buttonview-close');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2902,7 +2920,7 @@ function clearNativeBadgeIfDone() {
 
 
 
-// v1.3.79: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
+// v1.3.80: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
 
 
 
@@ -3140,25 +3158,21 @@ function installFeatureDialogFallback() {
     state.featureDialogFallbackInstalled = true;
     const handle = event => {
         const target = event.target && typeof event.target.closest === 'function'
-            ? event.target.closest('#featureOpenBtn, #featureDialogClose, .feature-dialog-close')
+            ? event.target.closest('#featureOpenBtn, #featureDialogClose, .feature-dialog-close, [data-feature-dialog-close]')
             : null;
-        if (target?.id === 'featureOpenBtn') {
-            event.preventDefault();
-            event.stopPropagation();
-            ensureFeatureDialogLayer();
-            forceOpenFeatureDialog(event);
+        const dialog = el.featureDialog || document.getElementById('featureDialog');
+        const closeTarget = target && (target.id === 'featureDialogClose' || target.classList?.contains('feature-dialog-close') || target.hasAttribute?.('data-feature-dialog-close'));
+        const backdropTarget = dialog && event.target === dialog && dialog.classList.contains('show');
+        if (closeTarget || backdropTarget) {
+            closeFeatureDialogFromEvent(event);
             return;
         }
-        const dialog = el.featureDialog || document.getElementById('featureDialog');
-        const isClose = target && (target.id === 'featureDialogClose' || target.classList?.contains('feature-dialog-close'));
-        const isBackdropClick = dialog && event.type === 'click' && event.target === dialog && dialog.classList.contains('show');
-        if (isClose || isBackdropClick) {
-            event.preventDefault();
-            event.stopPropagation();
-            closeFeatureDialog();
+        if (target?.id === 'featureOpenBtn') {
+            ensureFeatureDialogLayer();
+            forceOpenFeatureDialog(event);
         }
     };
-    ['click', 'touchend'].forEach(type => {
+    ['pointerdown', 'mousedown', 'click', 'touchend'].forEach(type => {
         document.addEventListener(type, handle, { capture: true, passive: false });
     });
 }
@@ -3183,10 +3197,13 @@ function bindEvents() {
     }
     if (el.featureOpenBtn) el.featureOpenBtn.addEventListener('click', forceOpenFeatureDialog);
     bindFeatureOpenHardFallback();
-    if (el.featureDialogClose) el.featureDialogClose.addEventListener('click', closeFeatureDialog);
+    if (el.featureDialogClose) {
+        el.featureDialogClose.addEventListener('click', closeFeatureDialogFromEvent, { capture: true });
+        el.featureDialogClose.addEventListener('pointerdown', closeFeatureDialogFromEvent, { capture: true });
+    }
     if (el.featureDialog) {
         el.featureDialog.addEventListener('click', event => {
-            if (event.target === el.featureDialog) closeFeatureDialog();
+            if (event.target === el.featureDialog) closeFeatureDialogFromEvent(event);
         });
     }
     if (el.previewOpenBtn) el.previewOpenBtn.addEventListener('click', openPreviewDialog);
@@ -3219,7 +3236,7 @@ function bindEvents() {
     if (el.snapshotClearBtn) el.snapshotClearBtn.addEventListener('click', clearSnapshotsForSelected);
     window.addEventListener('keydown', event => {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
-        if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog();
+        if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog({ restoreFocus: false });
         if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog();
         if (event.key === 'Escape' && el.adminStatsDialog?.classList.contains('show')) closeAdminStatsDialog();
     });
@@ -13925,7 +13942,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.79',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.80',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -11,10 +11,10 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(pkg.version === '1.3.79', 'package version should be 1.3.79');
-must(html.includes('data-build="1.3.79"'), 'index build should be 1.3.79');
-must(app.includes("const APP_VERSION = 'Pro v1.3.79'"), 'app version should be Pro v1.3.79');
-must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.79-dock-purpose-realign'"), 'DSP slug should be v1.3.79');
+must(pkg.version === '1.3.80', 'package version should be 1.3.80');
+must(html.includes('data-build="1.3.80"'), 'index build should be 1.3.80');
+must(app.includes("const APP_VERSION = 'Pro v1.3.80'"), 'app version should be Pro v1.3.80');
+must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.80-icons-buttonview-close'"), 'DSP slug should be v1.3.80');
 must(!fs.readdirSync(root).some(name => /^PATCH_NOTES_v.*\.md$/.test(name)), 'individual PATCH_NOTES files should be removed');
 must(fs.existsSync(path.join(root, 'PROJECT_NOTES.md')), 'PROJECT_NOTES.md should exist');
 must(app.includes("dialog.style.removeProperty('z-index')"), 'feature dialog inline z-index should be removed');
@@ -22,7 +22,7 @@ must(app.includes("button.style.removeProperty('z-index')"), 'feature button top
 must(!app.includes("dialog.style.zIndex = '28050'"), 'old inline feature dialog z-index should not remain');
 must(!app.includes("button.onclick = open"), 'hard onclick fallback should not override close behavior');
 must(!app.includes("'pointerdown', 'pointerup', 'click'"), 'pointerdown/up capture spam should be removed');
-must(css.includes('v1.3.79 Button View layer repair'), 'CSS layer repair section missing');
+must(css.includes('v1.3.80 Button View layer repair'), 'CSS layer repair section missing');
 must(css.includes('z-index: auto !important'), 'feature open button z-index reset missing');
 must(css.includes('z-index: 24750 !important'), 'feature dialog should sit above Dock but not top-most');
 must(!css.includes('z-index: 28050 !important'), 'old feature dialog top z-index should not remain');

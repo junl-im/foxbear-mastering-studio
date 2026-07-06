@@ -680,7 +680,7 @@ body.preview-dialog-open .bottom-preview-dock {
   z-index: 23000 !important;
 }
 
-/* v1.3.79 Dock Purpose Realignment: mirror bars, progress contrast, nowrap labels */
+/* v1.3.80 Icon Refresh / Button View Close Repair: mirror bars, progress contrast, nowrap labels */
 .dock-integrated-waveform-bars,
 .waveform-compare-bars {
   align-items: center !important;
@@ -703,7 +703,7 @@ body.preview-dialog-open .bottom-preview-dock {
   writing-mode: horizontal-tb !important;
 }
 
-/* v1.3.79 Dock purpose realignment: compare chip + three-zone remote controls */
+/* v1.3.80 Dock purpose realignment: compare chip + three-zone remote controls */
 .bottom-preview-compare-chip,
 #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
   white-space: nowrap !important;

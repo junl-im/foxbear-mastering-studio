@@ -1,7 +1,7 @@
-// FoxBear AI Mastering Studio Pro v1.3.79 service worker
+// FoxBear AI Mastering Studio Pro v1.3.80 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.79-dock-purpose-realign';
+const CACHE_NAME = 'foxbear-shell-v1.3.80-icons-buttonview-close';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -9,6 +9,19 @@ const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './assets/icons/foxbear-icon-16.png',
+  './assets/icons/foxbear-icon-32.png',
+  './assets/icons/foxbear-icon-48.png',
+  './assets/icons/foxbear-icon-72.png',
+  './assets/icons/foxbear-icon-96.png',
+  './assets/icons/foxbear-icon-128.png',
+  './assets/icons/foxbear-icon-144.png',
+  './assets/icons/foxbear-icon-152.png',
+  './assets/icons/foxbear-icon-180.png',
+  './assets/icons/foxbear-icon-192.png',
+  './assets/icons/foxbear-icon-384.png',
+  './assets/icons/foxbear-icon-512.png',
+  './assets/icons/apple-touch-icon.png',
   './assets/icons/foxbear-music.png',
   './assets/icons/foxbear.svg'
 ];
