@@ -1,5 +1,16 @@
 # Changelog
 
+## Stage7.2 - GitHub Pages deploy hardening hotfix
+
+- Fixed GitHub Pages deployment workflow resilience after `actions/deploy-pages@v5` produced `Deployment failed, try again later` after artifact upload.
+- Switched official Pages deployment action pair to `actions/upload-pages-artifact@v4` + `actions/deploy-pages@v4`, matching the stable example still shown in the official deploy-pages README.
+- Disabled `cancel-in-progress` for the Pages concurrency group to avoid interrupting active Pages deployments during rapid patch pushes.
+- Moved static artifact preparation into `tools/prepare-pages-site.sh` so the official Pages workflow and fallback workflow share the exact same deploy payload.
+- Added a single retry attempt for the official Pages deploy step.
+- Added manual fallback workflow `.github/workflows/pages-branch-fallback.yml` that publishes `_site` to the `gh-pages` branch if the official Pages deployment backend keeps failing.
+- Added `qa/pages_deploy_hardening_smoke.js` and updated `qa/deploy_pages_artifact_smoke.js` to prevent regression in deploy workflow hardening.
+- QA result: `npm run check` -> 81/81 PASS.
+
 ## Stage7.1 - CI QA overwrite packaging hotfix
 
 - Fixed the Stage7 overwrite package manifest so legacy QA files are not left behind in downstream working folders.

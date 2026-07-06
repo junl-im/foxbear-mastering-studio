@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-3-84",
   "version": "1.3.84",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.3.84 Stage7.1 CI QA overwrite packaging hotfix static build",
+  "description": "FoxBear AI Mastering Studio Pro v1.3.84 Stage7.2 GitHub Pages deploy hardening hotfix static build",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -66,6 +66,7 @@
     "node qa/loudness_target_ui_smoke.js",
     "node qa/kakao_upload_rootfix_smoke.js",
     "node qa/deploy_pages_artifact_smoke.js",
+    "node qa/pages_deploy_hardening_smoke.js",
     "node qa/dock_import_init_cleanup_smoke.js",
     "node qa/dock_mastering_player_order_smoke.js",
     "node qa/dock_action_single_line_smoke.js",

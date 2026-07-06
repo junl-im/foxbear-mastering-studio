@@ -433,3 +433,24 @@
 - Runtime changes: none.
 - Packaging change: overwrite ZIP now includes all QA scripts to prevent stale local/CI checks.
 - Verification: `npm run check` passed 80/80.
+## Stage7.2 handoff - GitHub Pages deployment hardening
+
+### Why this patch exists
+The GitHub Actions build/QA job passed, the Pages artifact uploaded, and `deploy-pages` created a deployment, but GitHub Pages returned `Error: Deployment failed, try again later.` This pattern points at the Pages deployment backend or deploy action path rather than local app code.
+
+### What changed
+- `.github/workflows/pages.yml` now uses `actions/upload-pages-artifact@v4` and `actions/deploy-pages@v4`.
+- The workflow no longer cancels in-progress Pages deployments.
+- The deploy step retries once if the first Pages deployment attempt fails.
+- Artifact assembly is centralized in `tools/prepare-pages-site.sh`.
+- `.github/workflows/pages-branch-fallback.yml` was added as a manual fallback that pushes the same `_site` payload to the `gh-pages` branch.
+
+### If official Pages deployment still fails
+1. In GitHub, open `Settings > Pages` and confirm the current source.
+2. For the official `pages.yml` workflow, Source should be `GitHub Actions`.
+3. If `deploy-pages` keeps failing with the same generic backend error, run the manual `Fallback deploy static site to gh-pages branch` workflow.
+4. For that fallback path, switch `Settings > Pages > Build and deployment > Source` to `Deploy from a branch`, then select `gh-pages` and `/root`.
+
+### QA
+`npm run check` passes: 81/81.
+

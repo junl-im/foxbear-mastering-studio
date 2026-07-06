@@ -1,0 +1,44 @@
+name: Fallback deploy static site to gh-pages branch
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "pages-branch-fallback"
+  cancel-in-progress: false
+
+jobs:
+  publish-branch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate JavaScript and static contracts
+        run: npm run check
+
+      - name: Prepare static artifact
+        shell: bash
+        run: bash tools/prepare-pages-site.sh
+
+      - name: Publish _site to gh-pages branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_dir="$(mktemp -d)"
+          cp -a _site/. "${publish_dir}/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan gh-pages-publish
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "${publish_dir}/". .
+          touch .nojekyll
+          git add -A
+          git commit -m "Deploy FoxBear static site to gh-pages"
+          git push --force origin HEAD:gh-pages
