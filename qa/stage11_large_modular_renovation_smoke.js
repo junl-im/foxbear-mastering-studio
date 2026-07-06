@@ -52,9 +52,9 @@ assert(components.includes('.toast') && components.includes('.pitch-tool'), 'bas
 assert(!studio.trimStart().startsWith('.upload-stage {'), 'studio.css should no longer start with the initial upload-stage base rule');
 assert(studio.split(/\r?\n/).length < 9800, 'studio.css should shrink after base component split');
 
-assert(/stage(?:11(?:\.1)?|12|13|14|15)/.test(sw), 'service worker cache should be bumped to stage11 or later');
-assert(sw.includes('./assets/css/components/base-components.css?v=1.3.84-stage15-settings-panel'), 'service worker should precache base-components.css');
-assert(sw.includes('./src/recommendation/recommendation-engine.js?v=1.3.84-stage15-settings-panel'), 'service worker should precache recommendation engine');
+assert(/stage(?:11(?:\.1)?|12|13|14|15|16)/.test(sw), 'service worker cache should be bumped to stage11 or later');
+assert(sw.includes('./assets/css/components/base-components.css?v=1.4.0-stage16-version-release'), 'service worker should precache base-components.css');
+assert(sw.includes('./src/recommendation/recommendation-engine.js?v=1.4.0-stage16-version-release'), 'service worker should precache recommendation engine');
 assert(pkg.qaChecks.includes('node --check src/recommendation/recommendation-engine.js'), 'package QA should syntax-check recommendation engine');
 assert(pkg.qaChecks.includes('node qa/stage11_large_modular_renovation_smoke.js'), 'package QA should include stage11 smoke');
 assert(changelog.includes('Stage11') && handoff.includes('Stage11') && notes.includes('Stage11'), 'handoff docs should mention Stage11');

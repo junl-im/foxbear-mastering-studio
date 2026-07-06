@@ -603,7 +603,7 @@ body.preview-dialog-open .bottom-preview-dock {
 }
 
 
-/* v1.3.84 Dock / Modal State Machine Refactor */
+/* v1.4.0 Dock / Modal State Machine Refactor */
 .feature-dialog-backdrop[hidden],
 .preview-dialog-backdrop[hidden] {
   display: none !important;
@@ -817,7 +817,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   }
 }
 
-/* v1.3.84 Dock / Modal State Machine Refactor */
+/* v1.4.0 Dock / Modal State Machine Refactor */
 :root {
   --foxbear-modal-feature-z: 24600;
   --foxbear-modal-preview-z: 28200;
@@ -1095,7 +1095,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   }
 }
 
-/* v1.3.84 Stage11.1: pin mobile floating notices directly above the measured Dock */
+/* v1.4.0 Stage11.1: pin mobile floating notices directly above the measured Dock */
 @media (max-width: 720px) {
   body.bottom-preview-active .toast,
   body.bottom-preview-active .download-assist,

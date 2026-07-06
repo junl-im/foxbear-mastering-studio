@@ -15,12 +15,12 @@ function must(condition, message) {
   }
 }
 
-must(pkg.version === '1.3.84', 'package version should be 1.3.84');
-must(html.includes('data-build="1.3.84"'), 'index build should be 1.3.84');
-must(app.includes("const APP_VERSION = 'Pro v1.3.84'"), 'app version should be Pro v1.3.84');
-must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.84-dock-modal-state-machine'"), 'DSP slug should be state machine slug');
-must(html.includes('src/ui/modal-controller.js?v=1.3.84-stage15-settings-panel'), 'modal controller script should be loaded');
-must(html.includes('src/ui/dock-controller.js?v=1.3.84-stage15-settings-panel'), 'dock controller script should be loaded');
+must(pkg.version === '1.4.0', 'package version should be 1.4.0');
+must(html.includes('data-build="1.4.0"'), 'index build should be 1.4.0');
+must(app.includes("const APP_VERSION = 'Pro v1.4.0'"), 'app version should be Pro v1.4.0');
+must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine'"), 'DSP slug should be state machine slug');
+must(html.includes('src/ui/modal-controller.js?v=1.4.0-stage16-version-release'), 'modal controller script should be loaded');
+must(html.includes('src/ui/dock-controller.js?v=1.4.0-stage16-version-release'), 'dock controller script should be loaded');
 must(modal.includes('class FoxBearModalStateMachine'), 'modal state machine class missing');
 must(modal.includes('setOpen(name, open'), 'modal controller must centralize hard open/close');
 must(modal.includes("document.addEventListener('click'"), 'modal controller should own modal click dispatch');
@@ -32,8 +32,8 @@ must(app.includes('function installDockRemoteDelegation') && app.includes('state
 must(!app.includes("document.addEventListener('click', event => {\n        const target = event.target && typeof event.target.closest"), 'old global Dock click capture block should be removed');
 must(html.includes('data-dock-action="bottomPreviewPlayBtn"'), 'Dock play action should be explicit');
 must(html.includes('data-dock-action="bottomPreviewMasterBtn"'), 'Dock master action should be explicit');
-must(dockCss.includes('v1.3.84 Dock / Modal State Machine Refactor'), 'final Dock/modal CSS section missing');
+must(dockCss.includes('v1.4.0 Dock / Modal State Machine Refactor'), 'final Dock/modal CSS section missing');
 must(dockCss.includes('.bottom-preview-play-glyph'), 'PC play glyph CSS missing');
 must(app.includes('bottom-preview-play-glyph'), 'PC play button should use text glyph instead of overlapping icon layers');
-must(!fs.existsSync(path.join(root, 'PATCH_NOTES_v1.3.84.md')), 'no per-version patch note should be created');
+must(!fs.existsSync(path.join(root, 'PATCH_NOTES_v1.4.0.md')), 'no per-version patch note should be created');
 console.log('PASS dock modal state machine smoke');

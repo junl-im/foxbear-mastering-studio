@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.3.84
+# FoxBear AI Mastering Studio Pro v1.4.0
 
 ## Latest: Dock / Modal State Machine Refactor
 
-v1.3.84는 Dock/Modal 영역의 반복 회귀를 줄이기 위한 구조 패치입니다.
+v1.4.0는 Dock/Modal 영역의 반복 회귀를 줄이기 위한 구조 패치입니다.
 
 - `src/ui/modal-controller.js` 신설
   - 버튼형 적용 팝업, 마스터링 설정 미리듣기 팝업의 열기/닫기/ESC/배경 클릭을 단일 상태 머신으로 관리합니다.
@@ -25,7 +25,7 @@ v1.3.84는 Dock/Modal 영역의 반복 회귀를 줄이기 위한 구조 패치�
 
 ## 배포 후 확인
 
-브라우저에서 `v1.3.84`가 표시되는지 확인하세요. 이전 Service Worker나 정적 캐시가 남으면 Dock UI가 예전 상태로 보일 수 있습니다.
+브라우저에서 `v1.4.0`가 표시되는지 확인하세요. 이전 Service Worker나 정적 캐시가 남으면 Dock UI가 예전 상태로 보일 수 있습니다.
 
 ## QA
 
@@ -33,4 +33,4 @@ v1.3.84는 Dock/Modal 영역의 반복 회귀를 줄이기 위한 구조 패치�
 npm run check
 ```
 
-현재 v1.3.84 기준 전체 QA는 67/67 PASS입니다.
+현재 v1.4.0 기준 전체 QA는 67/67 PASS입니다.

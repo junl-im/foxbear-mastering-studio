@@ -10,6 +10,6 @@ must(app.includes('FoxBearDockController'),'dock controller install reference');
 must(html.includes('data-dock-action="bottomPreviewMasterBtn"'),'explicit master action');
 must(html.indexOf('id="bottomPreviewPlayer"') < html.indexOf('class="bottom-preview-controls"'),'player before actions');
 must(html.includes('id="bottomPreviewTranslationModes"'),'translation modes exist');
-must(dockCss.includes('v1.3.84 Dock / Modal State Machine Refactor'),'v1.3.84 dock css');
+must(dockCss.includes('v1.4.0 Dock / Modal State Machine Refactor'),'v1.4.0 dock css');
 must(dockCss.includes('.bottom-preview-play-glyph'),'external play glyph css');
 console.log('PASS dock mastering/player order smoke');

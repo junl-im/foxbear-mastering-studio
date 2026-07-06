@@ -211,7 +211,7 @@
     }
 }
 
-/* v1.3.84 Stage11.1: Dock-attached quick panel cleanup */
+/* v1.4.0 Stage11.1: Dock-attached quick panel cleanup */
 .mobile-native-layer {
     left: max(8px, env(safe-area-inset-left, 0px) + 8px);
     bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 1px) !important;
@@ -325,7 +325,7 @@
     }
 }
 
-/* v1.3.84 Stage15: Quick panel is now a compact Settings panel */
+/* v1.4.0 Stage16: Quick panel is now a compact Settings panel */
 .mobile-native-quick-toggle {
     font-size: 18px;
     line-height: 1;

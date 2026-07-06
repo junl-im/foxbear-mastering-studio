@@ -1,11 +1,18 @@
-## Stage15 Mobile Settings Panel
+
+## Stage16 - v1.4.0 Version Release
+- Promoted the app from `v1.3.84` to `v1.4.0` after the Stage8-Stage15 runtime, Dock, settings-panel, cache/SRI, and modularization changes.
+- Bumped `package.json`, visible app version, `APP_VERSION`, `SHARED_DSP_PROFILE_VERSION`, manifest metadata, asset query strings, service worker registration, and cache name to the `v1.4.0-stage16-version-release` line.
+- Updated QA expectations so runtime version checks no longer pin the app to the old `1.3.84` label.
+- Updated the overwrite package default to `v1.4.0-stage16` so generated ZIP names match the official release line.
+
+## Stage16 Mobile Settings Panel
 
 - 모바일 `퀵패널` 개념을 `⚙️ 설정` 패널로 바꿨습니다.
 - Dock에 이미 있는 원음/스마트폰/노트북/모노 계열 재생 컨트롤은 설정 패널에서 제거했습니다.
 - 설정 패널은 앱추가, 화면유지, 진동피드백, 저장보호, 자동 하이라이트, A/B 루프, 레벨매칭, 차이듣기, 캐시자동정리, 성능가드, 안전점수, 분석캐시정리, 재생복구 중심입니다.
 - 토글형 설정에는 `ON` / `OFF` 배지를 표시하고, 실행형 항목은 `추가`, `실행`, `대기` 같은 action badge를 표시합니다.
-- `src/ui/mobile-native-view.js`, `src/app.js`, `assets/css/mobile-native.css`를 수정했고 `qa/stage15_mobile_settings_panel_smoke.js`를 추가했습니다.
-- cache key는 `1.3.84-stage15-settings-panel`입니다.
+- `src/ui/mobile-native-view.js`, `src/app.js`, `assets/css/mobile-native.css`를 수정했고 `qa/stage16_mobile_settings_panel_smoke.js`를 추가했습니다.
+- cache key는 `1.4.0-stage16-version-release`입니다.
 
 ## Stage14 runtime recovery notes
 
@@ -463,7 +470,7 @@
 - Engine path was not changed in this patch. Existing engine bench and golden audio QA remain in the full check chain.
 
 
-## v1.3.84 Dock / Modal State Machine Refactor
+## v1.4.0 Dock / Modal State Machine Refactor
 
 - PC Dock 왼쪽 중복 곡정보 영역을 큰 재생/정지 버튼으로 변경했습니다.
 - Dock 상단 정보줄은 파일명 좌측, 장르/비교보기 우측의 한 줄 구조로 재정렬했습니다.
@@ -475,7 +482,7 @@
 
 ---
 
-## v1.3.84 Dock / Modal State Machine Refactor
+## v1.4.0 Dock / Modal State Machine Refactor
 
 - Dock/Modal 반복 회귀를 구조 문제로 보고, 증상별 fallback 추가 대신 컨트롤러 분리를 시작했습니다.
 - `src/ui/modal-controller.js`를 추가했습니다.
@@ -564,10 +571,10 @@ Packaging remains cumulative overwrite ZIP only.
 
 ## Stage12.2 - Cache-bust/runtime recovery hotfix (2026-07-06)
 
-- Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.3.84-dock-modal-state-machine` asset query across many patches.
+- Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.4.0-dock-modal-state-machine` asset query across many patches.
 - This could make a fresh `index.html` request new SRI hashes while the browser reused older cached JS/CSS, causing the browser to block scripts. Symptoms included file import not binding, Dock/player initialization failing, and the mobile quick panel not appearing.
-- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage14-runtime-recovery`.
-- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage14-runtime-recovery`.
+- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.4.0-stage16-version-release`.
+- Bumped the service worker cache name to `foxbear-shell-v1.4.0-stage16-version-release`.
 - Versioned worker URLs in `src/config/app-runtime-config.js` so analysis/finalizer/encoder workers do not remain stuck behind immutable `/src/**` caching.
 - Added SRI hashes to local CSS/JS tags that were missing integrity attributes.
 - Added `qa/stage12_2_cache_bust_runtime_smoke.js` to prevent stale immutable asset query regressions.

@@ -1,8 +1,8 @@
 {
-  "name": "foxbear-github-pro-v1-3-84",
-  "version": "1.3.84",
+  "name": "foxbear-github-pro-v1-4-0",
+  "version": "1.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.3.84 Stage15 mobile settings panel refresh",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage16 official version release",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -107,6 +107,7 @@
     "node qa/stage12_2_cache_bust_runtime_smoke.js",
     "node qa/stage13_runtime_health_smoke.js",
     "node qa/stage14_runtime_recovery_smoke.js",
-    "node qa/stage15_mobile_settings_panel_smoke.js"
+    "node qa/stage16_mobile_settings_panel_smoke.js",
+    "node qa/stage16_version_release_smoke.js"
   ]
 }

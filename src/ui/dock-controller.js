@@ -1,4 +1,4 @@
-// FoxBear Dock Controller v1.3.84
+// FoxBear Dock Controller v1.4.0
 'use strict';
 
 (function exposeFoxBearDockController(global) {

@@ -43,11 +43,11 @@ assert(mobileView.includes("panelTitle.textContent = '설정'") && mobileView.in
 
 assert(mobileCss.includes('Stage11.1: Dock-attached quick panel cleanup'), 'mobile-native.css should include Stage11.1 quick panel cleanup layer');
 assert(mobileCss.includes('.mobile-native-status {') && mobileCss.includes('display: none !important'), 'legacy quick panel status chip should be hidden by CSS');
-assert(mobileCss.includes('Stage15: Quick panel is now a compact Settings panel') && mobileCss.includes('.mobile-native-setting-state'), 'settings panel should render visible ON/OFF state badges');
+assert(mobileCss.includes('Stage16: Quick panel is now a compact Settings panel') && mobileCss.includes('.mobile-native-setting-state'), 'settings panel should render visible ON/OFF state badges');
 assert(dockCss.includes('Stage11.1: pin mobile floating notices'), 'dock.css should include Stage11.1 floating notice anchor layer');
 assert(dockCss.includes('var(--bottom-preview-floating-bottom') && dockCss.includes('var(--bottom-preview-hud-bottom'), 'toast/HUD should use measured floating Dock offsets');
 
-assert(/stage(?:11\.1|12|13|14|15)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
+assert(/stage(?:11\.1|12|13|14|15|16)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
 assert(pkg.qaChecks.includes('node qa/stage11_1_runtime_mobile_hotfix_smoke.js'), 'package QA should include stage11.1 smoke');
 assert(changelog.includes('Stage11.1') && handoff.includes('Stage11.1') && notes.includes('Stage11.1'), 'handoff docs should mention Stage11.1');
 

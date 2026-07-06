@@ -1,8 +1,15 @@
-## Stage15 handoff - Mobile settings panel refresh
+
+## Stage16 - v1.4.0 Version Release
+- Promoted the app from `v1.3.84` to `v1.4.0` after the Stage8-Stage15 runtime, Dock, settings-panel, cache/SRI, and modularization changes.
+- Bumped `package.json`, visible app version, `APP_VERSION`, `SHARED_DSP_PROFILE_VERSION`, manifest metadata, asset query strings, service worker registration, and cache name to the `v1.4.0-stage16-version-release` line.
+- Updated QA expectations so runtime version checks no longer pin the app to the old `1.3.84` label.
+- Updated the overwrite package default to `v1.4.0-stage16` so generated ZIP names match the official release line.
+
+## Stage16 handoff - Mobile settings panel refresh
 
 ### Why this patch exists
 
-The former mobile quick panel overlapped conceptually with the Dock: it repeated original/mastered/phone/mono style playback controls while the user expected a settings surface. Stage15 converts it into a compact `⚙️ 설정` panel and keeps playback-mode controls in the Dock.
+The former mobile quick panel overlapped conceptually with the Dock: it repeated original/mastered/phone/mono style playback controls while the user expected a settings surface. Stage16 converts it into a compact `⚙️ 설정` panel and keeps playback-mode controls in the Dock.
 
 ### What changed
 
@@ -12,8 +19,8 @@ The former mobile quick panel overlapped conceptually with the Dock: it repeated
 - Settings map to existing app state through `toggleUtilityFeature()` where possible:
   - 자동 하이라이트, A/B 루프, 레벨매칭, 차이듣기, 캐시자동정리, 성능가드, 안전점수.
   - 앱추가, 화면유지, 진동피드백, 저장보호, 분석캐시정리, 재생복구 remain native/mobile actions.
-- Runtime asset query and service worker cache use `1.3.84-stage15-settings-panel`.
-- QA guard: `qa/stage15_mobile_settings_panel_smoke.js`.
+- Runtime asset query and service worker cache use `1.4.0-stage16-version-release`.
+- QA guard: `qa/stage16_mobile_settings_panel_smoke.js`.
 
 ### Manual checks
 
@@ -35,7 +42,7 @@ After cache/SRI issues, a normal syntax QA pass was not enough: if a browser blo
 - A new recovery panel appears when module/global/DOM/version/resource/boot-stall problems are detected.
 - Recovery actions: fresh reload, clear FoxBear shell caches and unregister service workers, copy report.
 - New CSS layer: `assets/css/boot/runtime-health.css`.
-- All runtime asset queries, service worker registration, and `CACHE_NAME` now use `1.3.84-stage14-runtime-recovery`.
+- All runtime asset queries, service worker registration, and `CACHE_NAME` now use `1.4.0-stage16-version-release`.
 - QA guard: `qa/stage14_runtime_recovery_smoke.js`.
 
 ### Caution
@@ -338,7 +345,7 @@ npm run check
 
 ## 현재 상태
 
-- 기준 버전: `1.3.84` Stage7 패치 누적본
+- 기준 버전: `1.4.0` Stage7 패치 누적본
 - 앱 형태: build step 없는 정적 웹앱
 - 주요 진입점: `index.html`, `src/app.js`
 - 전체 검증 명령: `npm run check`
@@ -431,10 +438,10 @@ Do not remove `dock-ui-repair.css` until older Dock rules in `studio.css` and `d
 
 ## Stage12.2 - Cache-bust/runtime recovery hotfix (2026-07-06)
 
-- Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.3.84-dock-modal-state-machine` asset query across many patches.
+- Fixed a deployment/runtime regression where `src/**` and `assets/**` were served with immutable one-year caching while `index.html` kept the same `?v=1.4.0-dock-modal-state-machine` asset query across many patches.
 - This could make a fresh `index.html` request new SRI hashes while the browser reused older cached JS/CSS, causing the browser to block scripts. Symptoms included file import not binding, Dock/player initialization failing, and the mobile quick panel not appearing.
-- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.3.84-stage14-runtime-recovery`.
-- Bumped the service worker cache name to `foxbear-shell-v1.3.84-stage14-runtime-recovery`.
+- Bumped every local runtime asset query in `index.html` and `sw.js` to `?v=1.4.0-stage16-version-release`.
+- Bumped the service worker cache name to `foxbear-shell-v1.4.0-stage16-version-release`.
 - Versioned worker URLs in `src/config/app-runtime-config.js` so analysis/finalizer/encoder workers do not remain stuck behind immutable `/src/**` caching.
 - Added SRI hashes to local CSS/JS tags that were missing integrity attributes.
 - Added `qa/stage12_2_cache_bust_runtime_smoke.js` to prevent stale immutable asset query regressions.
@@ -450,8 +457,8 @@ Recent regressions were hard to distinguish between actual app logic failures an
 
 - New module: `src/boot/runtime-health.js`.
 - `index.html` loads it after all shared modules and before `src/app.js`.
-- `sw.js` precaches the module and uses `foxbear-shell-v1.3.84-stage14-runtime-recovery`.
-- `src/config/app-runtime-config.js`, `index.html`, `sw.js`, and service worker registration now use `1.3.84-stage14-runtime-recovery`.
+- `sw.js` precaches the module and uses `foxbear-shell-v1.4.0-stage16-version-release`.
+- `src/config/app-runtime-config.js`, `index.html`, `sw.js`, and service worker registration now use `1.4.0-stage16-version-release`.
 - `src/app.js` calls `FoxBearRuntimeHealth.markAppReady()` after successful boot and `markBootFailed(error)` on critical init failure.
 - `qa/stage13_runtime_health_smoke.js` locks this wiring so future patches cannot accidentally ship stale query strings or omit the health monitor.
 

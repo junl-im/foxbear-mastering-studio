@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.84 - Dock / Modal State Machine Refactor
+// FoxBear AI Mastering Studio Pro v1.4.0 - Dock / Modal State Machine Refactor
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -18,7 +18,7 @@ const {
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const APP_VERSION = 'Pro v1.3.84';
+const APP_VERSION = 'Pro v1.4.0';
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
     MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
@@ -65,7 +65,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.84-dock-modal-state-machine';
+const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine';
 
 const CURVE_CACHE = new Map();
 
@@ -1293,7 +1293,7 @@ function cleanupRealtimePreview() {
 function updatePreviewButton() {
     if (!el.previewOpenBtn) return;
     const track = getSelectedTrack() || (typeof resolveMainActiveTrackForDock === 'function' ? resolveMainActiveTrackForDock() : null) || state.tracks?.[0] || null;
-    // v1.3.84: keep the mastering-settings preview button clickable.
+    // v1.4.0: keep the mastering-settings preview button clickable.
     // Disabled buttons cannot show a reason when a stale selectedId/dock state exists.
     el.previewOpenBtn.disabled = false;
     el.previewOpenBtn.setAttribute('aria-disabled', String(!track));
@@ -2834,7 +2834,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.84-stage15-settings-panel');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage16-version-release');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -12781,7 +12781,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.84',
+        app: 'FoxBear AI Mastering Studio Pro v1.4.0',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
