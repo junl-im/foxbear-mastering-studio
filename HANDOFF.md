@@ -1,3 +1,39 @@
+# Stage10 handoff - Download service split
+
+## Why this patch exists
+
+Download behavior had grown across `src/app.js` and the download dialog view. That made it harder to reason about in-app browser restrictions, Web Share support, filename normalization, and the download assist panel. Stage10 moves the download service logic into a dedicated module while preserving the existing app wrappers.
+
+## What changed
+
+- New file: `src/download/download-service.js`.
+- `src/app.js` now keeps thin wrappers for `getDownloadEnvironmentInfo()`, `getDownloadFormatOptions()`, `prepareTrackDownloadBlob()`, `downloadBlob()`, `showDownloadAssist()`, and related helpers.
+- The new service owns environment detection, format options, alternate-format encoding preparation, Web Share support checks, File System Access saving, external-browser fallback, filename normalization/sanitization, Object URL revocation, and the download assist panel.
+- `index.html` loads `src/download/download-service.js` before `src/ui/download-dialog-view.js` and `src/app.js`.
+- `sw.js` precaches the new service and uses the stage10 cache name.
+- Overwrite packages remain cumulative. The latest overwrite ZIP should be safe to apply without replaying every previous stage.
+
+## QA
+
+```bash
+npm run check
+# Passed: 86/86
+# Failed: 0/85
+```
+
+## Manual checks
+
+1. PC: complete mastering and download WAV/MP3 from the options dialog.
+2. Mobile/in-app browser: open download options and confirm the save/share assist panel still appears.
+3. Confirm `앱 비동기 오류` does not appear for normal mobile playback interruption cases from Stage8.
+4. Confirm latest overwrite ZIP includes `src/`, `assets/`, `qa/`, `tools/`, workflows, and docs.
+
+## Next patch candidate
+
+Continue with `assets/css/components/` split or begin extracting `src/ui/detail-view.js` from the remaining large `src/app.js` render-detail logic.
+
+---
+
 # Stage9.1 handoff - Cumulative overwrite packaging hotfix
 
 ## Why this patch exists

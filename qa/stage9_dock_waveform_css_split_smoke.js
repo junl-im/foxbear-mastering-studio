@@ -22,7 +22,7 @@ const notes = fs.readFileSync('PROJECT_NOTES.md', 'utf8');
 assert(index.includes('assets/css/dock-waveform.css'), 'index.html should load dock-waveform.css');
 assert(index.indexOf('assets/css/dock.css') < index.indexOf('assets/css/dock-waveform.css'), 'dock-waveform.css should load after dock.css');
 assert(index.indexOf('assets/css/dock-waveform.css') < index.indexOf('assets/css/waveform-compare.css'), 'waveform-compare.css should remain after dock-waveform.css');
-assert(/foxbear-shell-v1.3.84-dock-modal-state-machine-stage9(?:.1)?/.test(sw), 'service worker cache should be bumped to stage9');
+assert(/foxbear-shell-v1.3.84-dock-modal-state-machine-stage(?:9(?:.1)?|10)/.test(sw), 'service worker cache should be bumped to stage9');
 assert(sw.includes('./assets/css/dock-waveform.css?v=1.3.84-dock-modal-state-machine'), 'service worker should precache dock-waveform.css');
 
 assert(dockWaveformCss.includes('Stage9: Dock waveform dedicated CSS layer'), 'dock-waveform.css should declare Stage9 layer ownership');

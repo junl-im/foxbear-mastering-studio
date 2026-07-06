@@ -1,5 +1,16 @@
 # Changelog
 
+## Stage10 - Download service split
+
+- Added `src/download/download-service.js` as the dedicated owner for download environment detection, format options, Blob filename normalization, Web Share/File System Access helpers, and the download assist panel.
+- Replaced the heavy download helper bodies in `src/app.js` with thin adapters that delegate to `window.FoxBearDownloadService`.
+- Kept the public app-level wrapper names (`getDownloadEnvironmentInfo`, `prepareTrackDownloadBlob`, `downloadBlob`, etc.) so existing UI modules and QA remain compatible.
+- Added the new service to `index.html` before `download-dialog-view.js` and `src/app.js`, with SRI updated.
+- Added the new service to `sw.js` precache and bumped the service worker cache to stage10.
+- Updated legacy stage smoke tests so stage10 cache names are accepted.
+- Added `qa/stage10_download_service_split_smoke.js`.
+- QA result: `npm run check` -> 86/86 PASS.
+
 ## Stage9.1 - Cumulative overwrite packaging hotfix
 
 - Fixed the Stage9 overwrite package problem where Stage8 runtime fixes could be missed when users applied only the latest overwrite ZIP on top of an older tree.

@@ -1,5 +1,14 @@
 # FoxBear Project Notes
 
+## Stage10 Download Service Split
+
+- `src/download/download-service.js`를 추가해 다운로드 환경 감지, 포맷 옵션, Blob 준비, 파일명 정규화, Web Share/File System Access helper, 다운로드 도움 패널을 전담하도록 분리했습니다.
+- `src/app.js`에는 기존 함수명 wrapper만 남겨 `download-dialog-view.js`와 기존 QA가 깨지지 않도록 했습니다.
+- `index.html` 로딩 순서는 `download-service.js` -> `download-dialog-view.js` -> `app.js`입니다.
+- `sw.js` cache name을 stage10으로 갱신하고 새 service 파일을 precache에 추가했습니다.
+- `qa/stage10_download_service_split_smoke.js`를 추가했습니다.
+- 검증: `npm run check` 86/86 PASS.
+
 ## Stage9.1 Cumulative Overwrite Packaging Hotfix
 
 - Stage9 overwrite ZIP이 delta-only라서 Stage8의 `src/app.js`, `assets/css/mobile-native.css` 핫픽스가 빠질 수 있던 문제를 수정했습니다.

@@ -17,6 +17,7 @@ const FILES_TO_CHECK = [
   'src/ui/modal-controller.js',
   'src/ui/dock-controller.js',
   'src/ui/mobile-native-view.js',
+  'src/download/download-service.js',
   'src/ui/download-dialog-view.js',
   'src/security/site-guards.js',
   'src/workers/analysis.worker.js',

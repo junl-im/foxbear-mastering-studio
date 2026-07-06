@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.3.84 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.84-dock-modal-state-machine-stage9.1';
+const CACHE_NAME = 'foxbear-shell-v1.3.84-dock-modal-state-machine-stage10';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -53,6 +53,7 @@ const CORE_ASSETS = [
   './src/ui/modal-controller.js?v=1.3.84-dock-modal-state-machine',
   './src/ui/dock-controller.js?v=1.3.84-dock-modal-state-machine',
   './src/ui/mobile-native-view.js?v=1.3.84-dock-modal-state-machine',
+  './src/download/download-service.js?v=1.3.84-dock-modal-state-machine',
   './src/ui/download-dialog-view.js?v=1.3.84-dock-modal-state-machine',
   './src/ui/waveform-compare-view.js?v=1.3.84-dock-modal-state-machine',
   './src/security/site-guards.js?v=1.3.84-dock-modal-state-machine',
