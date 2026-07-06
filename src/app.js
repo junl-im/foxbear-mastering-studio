@@ -17,14 +17,44 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
+const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const APP_VERSION = 'Pro v1.3.84';
-const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
-const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
-const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
-const MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js';
-const PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js';
-const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-const TRUSTED_SCRIPT_PATHS = Object.freeze([
+const {
+    WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
+    MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
+    ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js',
+    MASTER_FINALIZER_WORKER_URL = 'src/workers/master-finalizer.worker.js',
+    PITCH_WSOLA_WORKER_URL = 'src/workers/pitch-wsola.worker.js',
+    OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js',
+    MAX_FILES = 35,
+    MAX_FILE_SIZE = 220 * 1024 * 1024,
+    CORE_AUDIO_EXTENSIONS = [],
+    CONTAINER_AUDIO_EXTENSIONS = [],
+    EXPERIMENTAL_AUDIO_EXTENSIONS = [],
+    AUDIO_EXTENSIONS = [],
+    VIDEO_AUDIO_EXTENSIONS = [],
+    AUDIO_IMPORT_ACCEPT = 'audio/*',
+    DEFAULT_TRANSFORM = { pitchSemitones: 0, speedRatio: 1, snapSemitone: true, beatPreset: 'original' },
+    DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' },
+    ACTION_SELECT_IDS = [],
+    MASTER_FLOW_STEPS = [],
+    QUALITY_GATE_RULES = {},
+    WAVEFORM_OVERVIEW_BINS = 96,
+    DOCK_WAVEFORM_BINS = 72,
+    MASTER_PREVIEW_DURATION_SEC = 15,
+    MOBILE_NATIVE_IDB = 'foxbear-mobile-native-share-v1',
+    MOBILE_NATIVE_SHARE_STORE = 'sharedFiles',
+    MOBILE_NATIVE_SHARE_QUERY = 'foxbearSharedAudio',
+    MOBILE_NATIVE_HAPTIC_PATTERNS = {},
+    MAX_SNAPSHOTS_PER_TRACK = 12,
+    MAX_REDO_SNAPSHOTS_PER_TRACK = 8,
+    AUTO_SNAPSHOT_COOLDOWN_MS = 1200,
+    REALTIME_PREVIEW_RENDER_DELAY = 160,
+    ADMIN_STATS_VISITOR_KEY = 'foxbear-admin-visitor-id-v1',
+    ADMIN_STATS_STORAGE_KEY = 'foxbear-admin-local-stats-v1',
+    ADMIN_STATS_MAX_EVENTS = 120
+} = FoxBearRuntimeConfig;
+const TRUSTED_SCRIPT_PATHS = Object.freeze(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [
     WAV_ENCODER_WORKER_URL,
     MP3_ENCODER_WORKER_URL,
     ANALYSIS_WORKER_URL,
@@ -37,67 +67,7 @@ const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const SHARED_DSP_PROFILE_VERSION = 'v1.3.84-dock-modal-state-machine';
 
-const MAX_FILES = 35;
-const MAX_FILE_SIZE = 220 * 1024 * 1024;
-const CORE_AUDIO_EXTENSIONS = ['.wav', '.wave', '.mp3', '.mpeg', '.mpga', '.flac', '.ogg', '.oga', '.opus', '.m4a', '.aac', '.webm', '.weba', '.aif', '.aiff', '.aifc', '.caf'];
-const CONTAINER_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'];
-const EXPERIMENTAL_AUDIO_EXTENSIONS = ['.amr', '.wma'];
-const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
-const VIDEO_AUDIO_EXTENSIONS = CONTAINER_AUDIO_EXTENSIONS;
-const AUDIO_IMPORT_ACCEPT = [...AUDIO_EXTENSIONS, 'audio/*', 'video/mp4', 'video/quicktime', 'video/3gpp', 'application/ogg'].join(',');
-const DEFAULT_TRANSFORM = { pitchSemitones: 0, speedRatio: 1, snapSemitone: true, beatPreset: 'original' };
-const DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' };
-
-
-
 const CURVE_CACHE = new Map();
-const ACTION_SELECT_IDS = ['genreSelect', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect'];
-const MASTER_FLOW_STEPS = [
-    { at: 5, label: '준비', hint: '디코딩' },
-    { at: 15, label: '분석', hint: '추천/검사' },
-    { at: 25, label: '정리', hint: '무음/DC' },
-    { at: 40, label: '변환', hint: '피치/BPM' },
-    { at: 55, label: '리듬', hint: '박자/악기' },
-    { at: 65, label: '마스터', hint: '톤/공간' },
-    { at: 85, label: '피크', hint: 'LUFS/TP' },
-    { at: 95, label: '인코딩', hint: '파일 준비' },
-    { at: 100, label: '완료', hint: '다운로드' }
-];
-
-const QUALITY_GATE_RULES = {
-    lufsToleranceDb: 1.6,
-    peakMarginDb: 0.15,
-    warnGainDb: 8,
-    maxDcOffset: 0.006,
-    minUsefulDurationSec: 1.0
-};
-const WAVEFORM_OVERVIEW_BINS = 96;
-const DOCK_WAVEFORM_BINS = 72;
-const MASTER_PREVIEW_DURATION_SEC = 15;
-
-const MOBILE_NATIVE_IDB = 'foxbear-mobile-native-share-v1';
-const MOBILE_NATIVE_SHARE_STORE = 'sharedFiles';
-const MOBILE_NATIVE_SHARE_QUERY = 'foxbearSharedAudio';
-const MOBILE_NATIVE_HAPTIC_PATTERNS = Object.freeze({
-    tap: 8,
-    switch: 14,
-    success: [30, 40, 30],
-    error: [80, 40, 80],
-    download: [20, 20, 40],
-    complete: [35, 45, 35]
-});
-
-
-
-
-
-const MAX_SNAPSHOTS_PER_TRACK = 12;
-const MAX_REDO_SNAPSHOTS_PER_TRACK = 8;
-const AUTO_SNAPSHOT_COOLDOWN_MS = 1200;
-const REALTIME_PREVIEW_RENDER_DELAY = 160;
-const ADMIN_STATS_VISITOR_KEY = 'foxbear-admin-visitor-id-v1';
-const ADMIN_STATS_STORAGE_KEY = 'foxbear-admin-local-stats-v1';
-const ADMIN_STATS_MAX_EVENTS = 120;
 
 TRUSTED_SCRIPT_PATHS.forEach(path => {
     try {
@@ -321,51 +291,7 @@ window.addEventListener('error', event => reportBootOrImportError(event.error ||
 window.addEventListener('unhandledrejection', event => reportBootOrImportError(event.reason, '앱 비동기 오류'));
 
 function runSiteAccessGuard() {
-    const protocol = window.location.protocol;
-    const host = String(window.location.hostname || '').toLowerCase();
-    const isLocalFile = protocol === 'file:';
-    const allowedHostPatterns = [
-        /^localhost$/,
-        /^127\.0\.0\.1$/,
-        /^0\.0\.0\.0$/,
-        /^junl-im\.github\.io$/,
-        /^foxbear-music\.web\.app$/,
-        /^foxbear-music\.firebaseapp\.com$/,
-        /^foxbear-music--[a-z0-9-]+\.web\.app$/
-    ];
-    const isAllowed = isLocalFile || allowedHostPatterns.some(pattern => pattern.test(host));
-    if (isAllowed) return false;
-    renderSecurityMessage('FoxBear Music', '정식 배포 주소에서만 실행되는 보호 모드입니다.', '공식 페이지에서 다시 접속해주세요.');
-    return true;
-}
-
-function renderSecurityMessage(titleText, ...lines) {
-    document.head.textContent = '';
-    const charset = document.createElement('meta');
-    charset.setAttribute('charset', 'UTF-8');
-    const viewport = document.createElement('meta');
-    viewport.name = 'viewport';
-    viewport.content = 'width=device-width, initial-scale=1.0';
-    const title = document.createElement('title');
-    title.textContent = 'FoxBear Music';
-    const styleLink = document.createElement('link');
-    styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.84-dock-modal-state-machine';
-    document.head.append(charset, viewport, title, styleLink);
-
-    document.body.textContent = '';
-    document.body.className = 'security-message-page';
-    const section = document.createElement('section');
-    section.className = 'security-message-card';
-    const heading = document.createElement('h1');
-    heading.textContent = titleText;
-    const paragraph = document.createElement('p');
-    lines.forEach((line, index) => {
-        if (index) paragraph.appendChild(document.createElement('br'));
-        paragraph.append(line);
-    });
-    section.append(heading, paragraph);
-    document.body.appendChild(section);
+    return Boolean(window.FoxBearSiteGuards?.runSiteAccessGuard?.());
 }
 
 function safeInit() {
@@ -2232,105 +2158,11 @@ function initMobileNativeUx() {
 }
 
 function createMobileNativeLayer() {
-    if (!document.body || document.getElementById('mobileNativeLayer')) return;
-    const layer = document.createElement('div');
-    layer.id = 'mobileNativeLayer';
-    layer.className = 'mobile-native-layer';
-    layer.setAttribute('aria-live', 'polite');
-
-    const status = document.createElement('button');
-    status.id = 'mobileNativeStatus';
-    status.type = 'button';
-    status.className = 'mobile-native-status';
-    status.textContent = '앱 편의';
-    status.title = '모바일 앱 편의 기능 상태를 봅니다.';
-
-    const toggle = document.createElement('button');
-    toggle.id = 'mobileNativeQuickToggle';
-    toggle.type = 'button';
-    toggle.className = 'mobile-native-quick-toggle';
-    toggle.setAttribute('aria-expanded', 'false');
-    toggle.setAttribute('aria-controls', 'mobileNativePanel');
-    toggle.textContent = '⚡';
-    toggle.title = '한손 퀵패널 열기';
-
-    const panel = document.createElement('section');
-    panel.id = 'mobileNativePanel';
-    panel.className = 'mobile-native-panel';
-    panel.setAttribute('aria-hidden', 'true');
-    panel.setAttribute('aria-label', '모바일 네이티브 편의 퀵패널');
-    const panelHead = document.createElement('div');
-    panelHead.className = 'mobile-native-panel-head';
-    const panelTitle = document.createElement('strong');
-    panelTitle.textContent = '모바일 퀵패널';
-    const closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.className = 'mobile-native-close';
-    closeButton.dataset.nativeAction = 'close';
-    closeButton.setAttribute('aria-label', '퀵패널 닫기');
-    closeButton.textContent = '×';
-    panelHead.append(panelTitle, closeButton);
-
-    const statusGrid = document.createElement('div');
-    statusGrid.className = 'mobile-native-status-grid';
-    [
-        ['media', '잠금화면 컨트롤 대기'],
-        ['wake', '화면유지 대기'],
-        ['storage', '저장소 확인 중'],
-        ['safe', '일반 모드']
-    ].forEach(([key, label]) => {
-        const item = document.createElement('span');
-        item.dataset.nativeStatus = key;
-        item.textContent = label;
-        statusGrid.appendChild(item);
-    });
-
-    const actionGrid = document.createElement('div');
-    actionGrid.className = 'mobile-native-action-grid';
-    actionGrid.setAttribute('role', 'group');
-    actionGrid.setAttribute('aria-label', '재생 퀵 액션');
-    [
-        ['original', '원본'],
-        ['mastered', '마스터'],
-        ['phone', '폰'],
-        ['mono', '모노'],
-        ['peak', '피크 점프'],
-        ['download', '다운로드'],
-        ['share', '공유'],
-        ['install', '앱 설치']
-    ].forEach(([action, label]) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.dataset.nativeAction = action;
-        button.textContent = label;
-        actionGrid.appendChild(button);
-    });
-
-    const toggleRow = document.createElement('div');
-    toggleRow.className = 'mobile-native-toggle-row';
-    [
-        ['wake', '화면유지'],
-        ['haptic', '진동피드백'],
-        ['persist', '저장소보호'],
-        ['restore', '재생복구']
-    ].forEach(([action, label]) => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.dataset.nativeAction = action;
-        button.textContent = label;
-        toggleRow.appendChild(button);
-    });
-
-    const guide = document.createElement('p');
-    guide.className = 'mobile-native-guide';
-    guide.dataset.nativeGuide = '';
-    guide.textContent = 'Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.';
-    panel.append(panelHead, statusGrid, actionGrid, toggleRow, guide);
-    layer.append(status, toggle, panel);
-    document.body.appendChild(layer);
-    el.mobileNativeStatus = status;
-    el.mobileNativeQuickToggle = toggle;
-    el.mobileNativePanel = panel;
+    const refs = window.FoxBearMobileNativeView?.createMobileNativeLayer?.(document);
+    if (!refs) return;
+    el.mobileNativeStatus = refs.status || el.mobileNativeStatus;
+    el.mobileNativeQuickToggle = refs.toggle || el.mobileNativeQuickToggle;
+    el.mobileNativePanel = refs.panel || el.mobileNativePanel;
 }
 
 function bindMobileNativeEvents() {
@@ -3702,61 +3534,7 @@ function syncEnhancedSelectButtons() {
 
 
 function initUiGuards() {
-    let storedGuardMode = '';
-    try {
-        storedGuardMode = localStorage.getItem('foxbear-ui-guard-mode') || '';
-    } catch (error) {
-        storedGuardMode = '';
-    }
-    const guardMode = String(document.documentElement?.dataset?.uiGuardMode || storedGuardMode || 'off').toLowerCase();
-    const isStrictGuardEnabled = guardMode === 'strict' || guardMode === 'on';
-    if (!isStrictGuardEnabled) return;
-
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    document.addEventListener('dragstart', event => event.preventDefault());
-    document.addEventListener('selectstart', event => {
-        const tag = event.target && event.target.tagName ? event.target.tagName.toLowerCase() : '';
-        if (!['input', 'textarea', 'select'].includes(tag)) event.preventDefault();
-    });
-    document.addEventListener('keydown', event => {
-        const key = String(event.key || '').toLowerCase();
-        const blocked =
-            event.key === 'F12' ||
-            (event.ctrlKey && event.shiftKey && ['i', 'j', 'c'].includes(key)) ||
-            (event.metaKey && event.altKey && ['i', 'j', 'c'].includes(key)) ||
-            (event.ctrlKey && ['u', 's'].includes(key)) ||
-            (event.metaKey && ['u', 's'].includes(key));
-        if (blocked) {
-            event.preventDefault();
-            event.stopPropagation();
-            showDecoyPage();
-        }
-    }, true);
-}
-
-function showDecoyPage() {
-    try {
-        document.body.textContent = '';
-        document.body.classList.add('security-message-page');
-        const main = document.createElement('main');
-        main.className = 'security-message-wrap';
-        const section = document.createElement('section');
-        section.className = 'security-message-card';
-        const mark = document.createElement('div');
-        mark.className = 'security-message-icon';
-        mark.textContent = '🦊';
-        const title = document.createElement('h1');
-        title.textContent = 'FoxBear Studio Preview';
-        const paragraph = document.createElement('p');
-        paragraph.append('이 화면은 보호 모드 미리보기입니다.');
-        paragraph.appendChild(document.createElement('br'));
-        paragraph.append('작업 화면으로 돌아가려면 페이지를 새로고침하세요.');
-        section.append(mark, title, paragraph);
-        main.appendChild(section);
-        document.body.appendChild(main);
-    } catch (error) {
-        renderSecurityMessage('FoxBear Studio Preview', '보호 모드 화면입니다.');
-    }
+    return window.FoxBearSiteGuards?.initUiGuards?.();
 }
 
 function maybeShowSubscribePrompt() {
