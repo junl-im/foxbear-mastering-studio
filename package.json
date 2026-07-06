@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-0",
   "version": "1.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage17 highlight compare sync hotfix",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage18 settings persistence and state sync",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -17,6 +17,7 @@
     "node --check src/config/reference-targets.js",
     "node --check src/config/app-runtime-config.js",
     "node --check src/state/app-state.js",
+    "node --check src/settings/settings-service.js",
     "node --check src/utils/core-utils.js",
     "node --check src/recommendation/recommendation-engine.js",
     "node --check src/audio/mastering-inspector.js",
@@ -109,6 +110,7 @@
     "node qa/stage14_runtime_recovery_smoke.js",
     "node qa/stage16_mobile_settings_panel_smoke.js",
     "node qa/stage16_version_release_smoke.js",
-    "node qa/stage17_highlight_compare_sync_smoke.js"
+    "node qa/stage17_highlight_compare_sync_smoke.js",
+    "node qa/stage18_settings_persistence_smoke.js"
   ]
 }

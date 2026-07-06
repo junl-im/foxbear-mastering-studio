@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage17-highlight-compare-sync';
+    const FALLBACK_VERSION = '1.4.0-stage18-settings-persistence';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -12,6 +12,7 @@
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',
+        'FoxBearSettingsService.applyToContext',
         'FoxBearDownloadService.downloadBlob',
         'FoxBearDownloadDialogView.showDownloadOptionsDialog',
         'FoxBearWaveformCompareView.renderWaveformCompareDialog',

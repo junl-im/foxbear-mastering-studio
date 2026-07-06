@@ -1,7 +1,6 @@
+## Current patch: v1.4.0 Stage18
 
-## Current patch: v1.4.0 Stage17
-
-Stage17 fixes highlight compare playback sync. In the waveform compare popup, the original-side listen button now seeks to the same absolute highlight start used by the generated master-preview file, so A/B comparison starts from the same musical section. Runtime asset cache key: `1.4.0-stage17-highlight-compare-sync`.
+Stage18 adds persistent settings sync. The mobile `⚙️ 설정` panel now saves and restores key ON/OFF options through `src/settings/settings-service.js` using the versioned `foxbear-settings-v1.4.0` storage key. Runtime asset cache key: `1.4.0-stage18-settings-persistence`.
 
 # FoxBear AI Mastering Studio Pro v1.4.0
 

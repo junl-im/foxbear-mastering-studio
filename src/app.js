@@ -387,6 +387,7 @@ function init() {
     if (runSiteAccessGuard()) return false;
     runInitStep('화면 요소 연결', cacheElements, { critical: true });
     runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true });
+    runInitStep('설정 저장값 복원', restorePersistedSettings);
     runInitStep('Dock 리모컨 보호 이벤트', installDockRemoteDelegation);
     runInitStep('슬라이더 UI', renderSliders);
     runInitStep('기능 버튼 UI', renderFeatureButtons);
@@ -613,6 +614,7 @@ async function toggleUtilityFeature(key) {
     } else if (key === 'engineSafetyMeter') {
         state.engineSafetyMeter = !state.engineSafetyMeter;
     }
+    persistRuntimeSettings();
     renderFeatureButtons();
     renderAll({ keepDetailAudio: true });
     updateMobileNativeUi();
@@ -2131,6 +2133,45 @@ function formatAdminEventTime(value) {
     return date.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+
+function getSettingsService() {
+    return window.FoxBearSettingsService || null;
+}
+
+function getSettingsServiceContext() {
+    return { state, mobile: ensureMobileNativeState() };
+}
+
+function restorePersistedSettings() {
+    const service = getSettingsService();
+    if (!service) return null;
+    const mobile = ensureMobileNativeState();
+    const restored = service.applyToContext({ state, mobile }, service.load());
+    if (restored.storagePersistRequested && mobile.storagePersisted !== true) {
+        maybeRequestPersistentStorage(false);
+    }
+    return restored;
+}
+
+function persistRuntimeSettings() {
+    const service = getSettingsService();
+    if (!service) return null;
+    return service.saveFromContext(getSettingsServiceContext());
+}
+
+function resetPersistedSettings() {
+    const service = getSettingsService();
+    if (!service) return;
+    const mobile = ensureMobileNativeState();
+    const defaults = service.reset();
+    service.applyToContext({ state, mobile }, defaults);
+    releaseFoxBearWakeLock();
+    renderFeatureButtons();
+    renderAll({ keepDetailAudio: true });
+    updateMobileNativeUi();
+    showToast('설정을 기본값으로 초기화했습니다.');
+}
+
 function ensureMobileNativeState() {
     if (!state.mobileNative) {
         state.mobileNative = {
@@ -2277,6 +2318,9 @@ function handleMobileNativeAction(action) {
         case 'clear-cache':
             toggleUtilityFeature('clearAnalysisCache');
             return;
+        case 'reset-settings':
+            resetPersistedSettings();
+            return;
         case 'auto-cache-clean':
             toggleUtilityFeature('autoCacheClean');
             return;
@@ -2329,6 +2373,7 @@ function updateMobileNativeUi() {
         setMobileNativeSettingState('engine-safety', Boolean(state.engineSafetyMeter));
         setMobileNativeActionState('install', mobile.installed ? 'ON' : '추가', mobile.installed);
         setMobileNativeActionState('clear-cache', '실행', false);
+        setMobileNativeActionState('reset-settings', '초기화', false);
         setMobileNativeActionState('restore', playing ? '실행' : '대기', playing);
         const restore = el.mobileNativePanel.querySelector('[data-native-action="restore"]');
         if (restore) restore.disabled = !playing;
@@ -2423,6 +2468,7 @@ async function releaseFoxBearWakeLock() {
     }
     mobile.wakeLockSentinel = null;
     mobile.wakeLockActive = false;
+    persistRuntimeSettings();
     updateMobileNativeUi();
 }
 
@@ -2433,6 +2479,7 @@ function toggleFoxBearWakeLock() {
         showToast('화면유지를 껐습니다.');
     } else {
         mobile.wakeLockDesired = true;
+        persistRuntimeSettings();
         requestFoxBearWakeLock('프리뷰/마스터링 중 화면이 꺼지지 않게 유지합니다.');
     }
 }
@@ -2448,6 +2495,7 @@ function syncWakeLockForCurrentActivity() {
 function toggleFoxBearHaptics() {
     const mobile = ensureMobileNativeState();
     mobile.hapticsEnabled = !mobile.hapticsEnabled;
+    persistRuntimeSettings();
     foxBearHaptic(mobile.hapticsEnabled ? 'success' : 'tap', { force: true });
     showToast(`진동 피드백 ${mobile.hapticsEnabled ? 'ON' : 'OFF'}`);
     updateMobileNativeUi();
@@ -2768,6 +2816,10 @@ async function promptInstallFoxBearPwa() {
 
 async function maybeRequestPersistentStorage(userInitiated = false) {
     const mobile = ensureMobileNativeState();
+    if (userInitiated) {
+        mobile.storagePersistRequested = true;
+        persistRuntimeSettings();
+    }
     if (!navigator.storage || typeof navigator.storage.persist !== 'function') {
         mobile.storagePersisted = false;
         if (userInitiated) showToast('이 브라우저는 저장소 보호 요청을 지원하지 않습니다.');
@@ -2778,6 +2830,7 @@ async function maybeRequestPersistentStorage(userInitiated = false) {
         const already = typeof navigator.storage.persisted === 'function' ? await navigator.storage.persisted() : false;
         if (already) {
             mobile.storagePersisted = true;
+            persistRuntimeSettings();
             if (userInitiated) showToast('저장소 보호가 이미 켜져 있습니다.');
             updateMobileNativeUi();
             return true;
@@ -2789,6 +2842,7 @@ async function maybeRequestPersistentStorage(userInitiated = false) {
         }
         const granted = await navigator.storage.persist();
         mobile.storagePersisted = Boolean(granted);
+        persistRuntimeSettings();
         showToast(granted ? '프로젝트/분석 캐시 저장소 보호를 요청했습니다.' : '브라우저가 저장소 보호를 승인하지 않았습니다.');
         updateMobileNativeUi();
         return Boolean(granted);
@@ -2834,7 +2888,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage17-highlight-compare-sync');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage18-settings-persistence');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();

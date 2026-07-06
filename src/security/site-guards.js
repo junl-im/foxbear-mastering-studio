@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage17-highlight-compare-sync';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage18-settings-persistence';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

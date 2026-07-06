@@ -102,6 +102,7 @@
             ['smart-performance', '🧠', '성능가드'],
             ['engine-safety', '🧯', '안전점수'],
             ['clear-cache', '🗑️', '분석캐시정리', { actionOnly: true }],
+            ['reset-settings', '↩️', '설정초기화', { actionOnly: true, stateLabel: '초기화' }],
             ['restore', '♻️', '재생복구', { actionOnly: true }]
         ].forEach(([action, icon, label, options]) => settingGrid.appendChild(createSettingButton(action, icon, label, options || {})));
 
