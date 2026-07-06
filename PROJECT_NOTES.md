@@ -1,5 +1,16 @@
 # FoxBear Project Notes
 
+## Stage12 Detail View Module Split
+
+- `src/ui/detail-view.js`를 추가해 선택 트랙 상세 패널, 분석 상세 열림/닫힘 상태, 하이라이트 빠른 듣기 bar, AI 마스터링 상세 카드 DOM 생성을 분리했습니다.
+- `src/app.js`에는 기존 함수명 wrapper와 `getDetailViewDeps()`만 남겨 기존 UI/QA 호환성을 유지했습니다.
+- `index.html` 로딩 순서는 `waveform-compare-view.js` -> `detail-view.js` -> `app.js`입니다.
+- `sw.js` cache name을 stage12로 갱신하고 `detail-view.js`를 precache에 추가했습니다.
+- `qa/stage12_detail_view_split_smoke.js`를 추가했습니다.
+- 누적 overwrite 패키지 방식을 유지합니다.
+
+# FoxBear Project Notes
+
 ## Stage11.1 Runtime Waveform / Mobile Dock Overlay Hotfix
 
 - 음악 파일을 불러온 뒤 Dock 파형 렌더링에서 `getWaveformMarkerForIndex is not defined`가 발생하던 문제를 수정했습니다.

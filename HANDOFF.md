@@ -1,3 +1,39 @@
+# Stage12 handoff - Detail view module split
+
+## Why this patch exists
+
+`src/app.js` still owned the selected-track detail panel after the recommendation and download splits. Stage12 moves the detail panel rendering layer into `src/ui/detail-view.js` while keeping the same public wrapper names in `src/app.js`. This keeps runtime behavior stable and reduces the main app file without touching audio import, Dock waveform, or mastering engine logic.
+
+## What changed
+
+- New file: `src/ui/detail-view.js`.
+- The detail view module now owns `renderDetail()`, detail expand/collapse state helpers, the master-preview quick bar, the AI mastering card, and the AI metric DOM helper.
+- `src/app.js` now has `getDetailView()` / `getDetailViewDeps()` plus thin wrappers for the old function names.
+- `index.html` loads `detail-view.js` after `waveform-compare-view.js` and before `src/app.js`.
+- `sw.js` precaches `detail-view.js` and uses the stage12 cache name.
+- Overwrite packages remain cumulative.
+
+## QA
+
+```bash
+npm run check
+# Expected: 91/91 PASS
+```
+
+## Manual checks
+
+1. Import one track and confirm no `getWaveformMarkerForIndex` regression.
+2. Select a track and confirm the detail panel title, compact summary, and status pill render.
+3. Toggle 분석 상세보기/닫기 on mobile and desktop.
+4. Confirm AI mastering card buttons still apply recommendations and start AI mastering.
+5. Confirm master-preview quick bar still creates/plays the 15-second highlight.
+
+## Next patch candidate
+
+Next large-but-safe target: extract additional detail subpanels (`quality gate`, `master report`, `engine safety`, `comparison panels`) into `src/ui/detail-panels-view.js`, or split `assets/css/components/forms.css` and `cards.css`.
+
+---
+
 # Stage11.1 handoff - Runtime waveform marker and mobile Dock overlay hotfix
 
 ## Why this patch exists

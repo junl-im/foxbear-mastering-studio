@@ -42,7 +42,7 @@ assert(!app.includes('const shareApi = Boolean(navigator.share && typeof File'),
 assert(!app.includes('panel.id = \'downloadAssist\''), 'download assist DOM builder should not remain in app.js');
 assert(app.split(/\r?\n/).length < 13650, 'app.js should shrink after download service split');
 assert(sw.includes('./src/download/download-service.js?v=1.3.84-dock-modal-state-machine'), 'service worker should precache download service');
-assert(/stage(?:10|11)/.test(sw), 'service worker cache should be bumped to stage10');
+assert(/stage(?:10|11|12)/.test(sw), 'service worker cache should be bumped to stage10');
 assert(pkg.qaChecks.includes('node --check src/download/download-service.js'), 'package QA should syntax-check download service');
 assert(pkg.qaChecks.includes('node qa/stage10_download_service_split_smoke.js'), 'package QA should include stage10 smoke');
 assert(changelog.includes('Stage10'), 'CHANGELOG.md should mention Stage10');

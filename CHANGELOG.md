@@ -1,5 +1,15 @@
 # Changelog
 
+## Stage12 - Detail view module split
+
+- Added `src/ui/detail-view.js` as the dedicated owner for the selected-track detail panel, analysis detail toggle state, master-preview quick bar, and AI mastering detail card DOM rendering.
+- Replaced the large `renderDetail()`, detail toggle helpers, master-preview quick bar, and AI mastering card bodies in `src/app.js` with adapter wrappers that call `window.FoxBearDetailView`.
+- Kept existing public function names in `src/app.js` for compatibility with existing UI flow and QA.
+- Added the new detail view module to `index.html`, `sw.js` precache, and SRI.
+- Bumped `sw.js` cache name to stage12.
+- Added `qa/stage12_detail_view_split_smoke.js` and syntax checks for `src/ui/detail-view.js`.
+- QA target after this patch: `npm run check` should report 91/91 PASS.
+
 ## Stage11.1 - Runtime waveform marker and mobile Dock overlay hotfix
 
 - Fixed the runtime crash `getWaveformMarkerForIndex is not defined` that appeared after loading music and rendering the Dock waveform. The marker helper now lives in `src/utils/core-utils.js`, and `src/app.js` imports it with a compatibility alias for the reported lowercase-l typo variant.

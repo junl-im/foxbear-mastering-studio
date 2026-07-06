@@ -29,6 +29,6 @@ assert(/waveform-compare-row[\s\S]*grid-template-columns:\s*var\(--waveform-comp
 assert(/waveform-compare-bars\.has-live-playhead::after[\s\S]*width:\s*1px !important/.test(compareCss), 'compare live playhead was not slimmed to 1px');
 assert(/has-live-playhead::after[\s\S]*width:\s*1px !important/.test(dockWaveformCss), 'dock live playhead was not slimmed to 1px');
 assert(dockCss.includes('text-align: left !important;'), 'mobile left alignment repair is missing');
-assert(/stage(?:[789]|10|11)/.test(sw), 'service worker cache name should be bumped for recent stage');
+assert(/stage(?:[789]|10|11|12)/.test(sw), 'service worker cache name should be bumped for recent stage');
 
 console.log('PASS waveform compare stage5 smoke');

@@ -52,7 +52,7 @@ assert(components.includes('.toast') && components.includes('.pitch-tool'), 'bas
 assert(!studio.trimStart().startsWith('.upload-stage {'), 'studio.css should no longer start with the initial upload-stage base rule');
 assert(studio.split(/\r?\n/).length < 9800, 'studio.css should shrink after base component split');
 
-assert(sw.includes('stage11'), 'service worker cache should be bumped to stage11');
+assert(/stage(?:11(?:\.1)?|12)/.test(sw), 'service worker cache should be bumped to stage11 or later');
 assert(sw.includes('./assets/css/components/base-components.css?v=1.3.84-dock-modal-state-machine'), 'service worker should precache base-components.css');
 assert(sw.includes('./src/recommendation/recommendation-engine.js?v=1.3.84-dock-modal-state-machine'), 'service worker should precache recommendation engine');
 assert(pkg.qaChecks.includes('node --check src/recommendation/recommendation-engine.js'), 'package QA should syntax-check recommendation engine');
