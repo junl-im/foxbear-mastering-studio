@@ -7,9 +7,9 @@ const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const requiredHtml = [
   'bottomPreviewWaveformBtn',
   '마스터링',
-  '하이라이트 듣기',
-  '원곡 프리뷰',
-  '마스터링 프리뷰'
+  '하이라이트',
+  '원곡',
+  '마스터'
 ];
 for (const token of requiredHtml) {
   if (!html.includes(token)) throw new Error(`missing html token: ${token}`);

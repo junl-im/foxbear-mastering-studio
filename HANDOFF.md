@@ -359,3 +359,28 @@ The GitHub Actions build/QA job passed, the Pages artifact uploaded, and `deploy
 ### QA
 `npm run check` passes: 81/81.
 
+
+## Stage12.1 handoff - Dock UI repair
+
+### Why this hotfix exists
+
+After Stage12, the Dock integrated waveform player could visually collapse: the peak waveform was pushed toward the right, runtime text could drop to a lower implicit grid row, and the file-info genre/compare chip could wrap below the title. The immediate cause was overlapping legacy Dock CSS selectors, especially `.bottom-preview-player .player-time`, competing with the newer integrated waveform player layout.
+
+### What changed
+
+- New final CSS layer: `assets/css/dock-ui-repair.css`.
+- Explicit Dock player placement:
+  - desktop: waveform + source/time column, integrated mini-toggle hidden because the large Dock play button is visible;
+  - mobile: mini-toggle + full-width waveform + compact source/time column.
+- Reset `.player-time.dock-integrated-time` grid placement to avoid implicit grid columns/rows.
+- Kept file info in a compact title/genre/compare row and hid the secondary compare-chip subtitle in Dock.
+- Quick panel phone action is now `📱 스마트폰`.
+- Dock controls now use compact emoji labels.
+
+### QA guard
+
+`qa/stage12_1_dock_ui_repair_smoke.js` verifies the new repair layer, cache bump, smartphone label, emoji labels, and one-line Dock layout protections.
+
+### Next caution
+
+Do not remove `dock-ui-repair.css` until older Dock rules in `studio.css` and `dock.css` are fully consolidated. It is intentionally loaded last to override the accumulated legacy Dock rules safely.

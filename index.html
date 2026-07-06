@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="assets/css/export.css?v=1.3.84-dock-modal-state-machine" integrity="sha384-9P/xpiGGxbxvzCBrO0C8efRcriAp2CnuiQR42hLW5OeerBMU6mXoQMr7ySteVqIZ" />
 <link rel="stylesheet" href="assets/css/download-dialog.css?v=1.3.84-dock-modal-state-machine" integrity="sha384-vGjCQm7r9AXX+FX6pbguXQQMidy0k9se+22sYpK2yJ/rg5fgXjFIKFbQRCA+coec" />
 <link rel="stylesheet" href="assets/css/mobile-native.css?v=1.3.84-dock-modal-state-machine" integrity="sha384-hTz5nBLrfeHd/cswPTauLieCcOr/0WhOo3oW1dHqUIklhhJl0kssjVCVBJEeiOL1" />
+<link rel="stylesheet" href="assets/css/dock-ui-repair.css?v=1.3.84-dock-modal-state-machine" integrity="sha384-FoF3wi/gwZFyGfrg4JjaODt8Z9r8vXT6JQ/57WILcD2sbjy0+KX1W0oa9bhZu8aH" />
 <script defer src="vendor/jszip/jszip.min.js?v=3.10.1" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"></script>
 <script type="module" src="src/firebase-bootstrap.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
 <script defer src="src/config/mastering-presets.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-3TQnXS/btzUb9y0BaQAxJvPvpVhLkFCKDdUQRhw+SRhcAykviYa/HTUgF5UWHZWG"></script>
@@ -42,13 +43,13 @@
 <script defer src="src/audio/mastering-inspector.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-J49B1oj6gNmJUokgNfPRNHlSLfacHHXNGSZUQ5EZNpcElMTLGhfaTCDFTK6l7SB3"></script>
 <script defer src="src/ui/modal-controller.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-vSR2fxNqIis4iZk+BCUueEqRz5jmO3ClBI32owYUeYCYof/fbD9lBf0xM9y6wKOX"></script>
 <script defer src="src/ui/dock-controller.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-+ivGUa26mLSDivWU0coEmnYFoSbJZvTdCEeHhk/SpehxublSek8tE7RUfOVyMw4s"></script>
-<script defer src="src/ui/mobile-native-view.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-GM7OWDzQq3FpLtLdErnHvj6Kaa7/kZpNJvPJgX3LsLz5u7C66h8Awo1S8lyjLzqI"></script>
+<script defer src="src/ui/mobile-native-view.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-fTdMWGSrNkNSYsGQyTy4LEeMMLsqFWaUzxPiUHTYhQ0C4VKcUjWJ37uAHJrGHwSn"></script>
 <script defer src="src/download/download-service.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-FOsCFUZfl/J7SPcmwMtsi/EIgHgoKVumZTj7pAMXidMnWKLGRMY0H7wNUMYorkqZ"></script>
 <script defer src="src/ui/download-dialog-view.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-T0OUt5wGgUbfUnBz87Er8wfmgXMWhagRAxP9PgWGzh8uLnwP/oGaarLh2ZlZ9Tox"></script>
 <script defer src="src/ui/waveform-compare-view.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-gHe8Y0GRrjWUOyYPZtoZmFeiBIEtbBesPOl7Xr/WTfrD2wd38Dz64+bbbltc71tr" ></script>
 <script defer src="src/ui/detail-view.js?v=1.3.84-dock-modal-state-machine"></script>
 <script defer src="src/security/site-guards.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-M8jXFn3BIDWa1vr8ZyMmDfJuyxgf7F6LKbaMjSG6XIwhmjmFqKgrBpnK1ebbU7Pk"></script>
-<script defer src="src/app.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-rhC7OEeuHMsEcPhBUlDL1LhfBbkWiTNm55rH+QM4r/llqeyEqsLUqbiLHQ5cIbfN"></script>
+<script defer src="src/app.js?v=1.3.84-dock-modal-state-machine" integrity="sha384-mfwwNPe1L+DP9H/rOs9J5NSytgIzniMH1JHlOhX0qR4MmDwG25v04COOIgYrTry0"></script>
 </head>
 <body data-build="1.3.84">
 <div class="app-shell">
@@ -511,28 +512,28 @@
                 <strong id="bottomPreviewMobileTitle">선택 트랙</strong>
                 <span class="bottom-preview-subline">
                     <span id="bottomPreviewGenre">장르 없음</span>
-                    <button id="bottomPreviewWaveformBtn" data-dock-action="bottomPreviewWaveformBtn" class="bottom-preview-compare-chip bottom-preview-compare-open" type="button" aria-label="원곡과 마스터링 큰 비교창 열기" disabled>비교보기</button>
+                    <button id="bottomPreviewWaveformBtn" data-dock-action="bottomPreviewWaveformBtn" class="bottom-preview-compare-chip bottom-preview-compare-open" type="button" aria-label="원곡과 마스터링 큰 비교창 열기" disabled>🌊 비교</button>
                 </span>
             </div>
             <div id="bottomPreviewPlayer" class="bottom-preview-player"></div>
             <div id="bottomPreviewTranslationModes" class="bottom-preview-translation-modes" role="group" aria-label="프리뷰 재생 환경">
-                <span class="bottom-preview-translation-label">재생환경</span>
-                <button class="bottom-preview-translation-btn active" type="button" data-preview-translation-mode="studio" aria-pressed="true">원음</button>
-                <button class="bottom-preview-translation-btn" type="button" data-preview-translation-mode="phone" aria-pressed="false">폰</button>
-                <button class="bottom-preview-translation-btn" type="button" data-preview-translation-mode="laptop" aria-pressed="false">노트북</button>
-                <button class="bottom-preview-translation-btn" type="button" data-preview-translation-mode="mono" aria-pressed="false">모노</button>
+                <span class="bottom-preview-translation-label">🎚 재생환경</span>
+                <button class="bottom-preview-translation-btn active" type="button" data-preview-translation-mode="studio" aria-pressed="true">🎧 원음</button>
+                <button class="bottom-preview-translation-btn" type="button" data-preview-translation-mode="phone" aria-pressed="false">📱 스마트폰</button>
+                <button class="bottom-preview-translation-btn" type="button" data-preview-translation-mode="laptop" aria-pressed="false">💻 노트북</button>
+                <button class="bottom-preview-translation-btn" type="button" data-preview-translation-mode="mono" aria-pressed="false">🔊 모노</button>
                 <em class="bottom-preview-translation-hint">렌더 그대로</em>
             </div>
             <div class="bottom-preview-controls">
                 <div class="bottom-preview-action-group bottom-preview-action-left">
-                    <button id="bottomPreviewMasterPreviewBtn" data-dock-action="bottomPreviewMasterPreviewBtn" class="bottom-preview-master-btn bottom-preview-master-preview-btn" type="button">하이라이트 듣기</button>
+                    <button id="bottomPreviewMasterPreviewBtn" data-dock-action="bottomPreviewMasterPreviewBtn" class="bottom-preview-master-btn bottom-preview-master-preview-btn" type="button">✨ 하이라이트</button>
                 </div>
                 <div class="bottom-preview-action-group bottom-preview-action-center">
-                    <button id="bottomPreviewMasterBtn" data-dock-action="bottomPreviewMasterBtn" class="bottom-preview-master-btn bottom-preview-master-start-btn" type="button">마스터링 시작</button>
+                    <button id="bottomPreviewMasterBtn" data-dock-action="bottomPreviewMasterBtn" class="bottom-preview-master-btn bottom-preview-master-start-btn" type="button">🛠 마스터링</button>
                 </div>
                 <div class="bottom-preview-action-group bottom-preview-action-right bottom-preview-tabs" role="tablist" aria-label="프리뷰 소스 선택">
-                    <button id="bottomPreviewOriginalBtn" data-dock-action="bottomPreviewOriginalBtn" class="bottom-preview-tab active" type="button" role="tab" aria-selected="true">원곡 프리뷰</button>
-                    <button id="bottomPreviewMasteredBtn" data-dock-action="bottomPreviewMasteredBtn" class="bottom-preview-tab" type="button" role="tab" aria-selected="false" disabled>마스터링 프리뷰</button>
+                    <button id="bottomPreviewOriginalBtn" data-dock-action="bottomPreviewOriginalBtn" class="bottom-preview-tab active" type="button" role="tab" aria-selected="true">🎧 원곡</button>
+                    <button id="bottomPreviewMasteredBtn" data-dock-action="bottomPreviewMasteredBtn" class="bottom-preview-tab" type="button" role="tab" aria-selected="false" disabled>💿 마스터</button>
                 </div>
             </div>
         </div>

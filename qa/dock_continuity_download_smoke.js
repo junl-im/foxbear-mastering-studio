@@ -16,6 +16,6 @@ must(appAndDownloadDialog.includes('download-options-actions'), 'download action
 must(appAndDownloadDialog.includes('supportsWebShareDownloadFiles'), 'web share feature guard missing');
 must(appAndDownloadDialog.includes('await shareDownloadFile(exported.blob, exported.fileName)'), 'explicit share export missing');
 must(!app.includes('clearBottomPreviewPlayer();\n    renderBottomPreviewDock({ autoPlay: false });'), 'translation mode still clears player before capture');
-must(html.includes('하이라이트 듣기') && html.includes('원곡 프리뷰') && html.includes('마스터링 프리뷰'), 'dock preview labels not updated');
+must(html.includes('하이라이트') && html.includes('원곡') && html.includes('마스터'), 'dock preview labels not updated');
 must(css.includes('v1.3.46 dock continuity'), 'v1.3.46 css override missing');
 console.log('dock continuity/download smoke: PASS');

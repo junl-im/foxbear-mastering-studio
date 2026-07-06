@@ -241,28 +241,28 @@ const PREVIEW_TRANSLATION_MODES = Object.freeze({
     studio: {
         id: 'studio',
         label: 'Studio',
-        short: '원음',
+        short: '\u{1F3A7} 원음',
         title: '렌더 결과 그대로 듣습니다.',
         aria: '스튜디오 원음 미리듣기'
     },
     phone: {
         id: 'phone',
-        label: 'Phone',
-        short: '폰',
-        title: '휴대폰 스피커처럼 저역을 줄이고 2~5kHz 공진을 확인합니다.',
-        aria: '폰 스피커 시뮬레이션 미리듣기'
+        label: 'Smartphone',
+        short: '\u{1F4F1} 스마트폰',
+        title: '스마트폰 스피커처럼 저역을 줄이고 2~5kHz 공진을 확인합니다.',
+        aria: '스마트폰 스피커 시뮬레이션 미리듣기'
     },
     laptop: {
         id: 'laptop',
         label: 'Laptop',
-        short: '노트북',
+        short: '\u{1F4BB} 노트북',
         title: '노트북/작은 스피커처럼 저역이 부족하고 중고역이 앞으로 나오는 환경을 확인합니다.',
         aria: '노트북 스피커 시뮬레이션 미리듣기'
     },
     mono: {
         id: 'mono',
         label: 'Mono',
-        short: '모노',
+        short: '\u{1F50A} 모노',
         title: '좌우를 모노로 접어 보컬/저역/공간감 호환성을 확인합니다.',
         aria: '모노 호환성 미리듣기'
     }
@@ -10426,7 +10426,7 @@ function renderPreviewTranslationModeControls(activeSourceMode = state.bottomPre
     el.bottomPreviewTranslationModes.textContent = '';
     const label = document.createElement('span');
     label.className = 'bottom-preview-translation-label';
-    label.textContent = '재생환경';
+    label.textContent = '\u{1F39A} 재생환경';
     el.bottomPreviewTranslationModes.appendChild(label);
     Object.values(PREVIEW_TRANSLATION_MODES).forEach(mode => {
         const button = document.createElement('button');
@@ -10951,9 +10951,9 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     const label = document.createElement('span');
     label.className = 'bottom-compare-open-label';
     const strong = document.createElement('strong');
-    strong.textContent = '비교보기';
+    strong.textContent = '\u{1F30A} 비교';
     const small = document.createElement('em');
-    small.textContent = track?.masteredUrl ? '원곡↔마스터' : (track?.masterPreviewUrl ? '원곡↔하이라이트' : '피크');
+    small.textContent = track?.masteredUrl ? '원곡 ↔ 마스터' : (track?.masterPreviewUrl ? '원곡 ↔ 하이라이트' : '피크');
     label.append(strong, small);
     el.bottomPreviewWaveformBtn.appendChild(label);
 }
@@ -11512,16 +11512,16 @@ function setBottomPreviewMasterPreviewButtonState(track, mode = state.bottomPrev
     el.bottomPreviewMasterPreviewBtn.setAttribute('aria-disabled', String(blocked));
     el.bottomPreviewMasterPreviewBtn.classList.toggle('soft-disabled', blocked);
     if (!track) {
-        el.bottomPreviewMasterPreviewBtn.textContent = '하이라이트 듣기';
+        el.bottomPreviewMasterPreviewBtn.textContent = '\u{2728} 하이라이트';
         el.bottomPreviewMasterPreviewBtn.title = '곡을 선택하면 15초 하이라이트 듣기를 만들 수 있습니다.';
     } else if (processing) {
-        el.bottomPreviewMasterPreviewBtn.textContent = '프리뷰 생성중';
+        el.bottomPreviewMasterPreviewBtn.textContent = '\u{23F3} 생성중';
         el.bottomPreviewMasterPreviewBtn.title = '선택 곡의 15초 하이라이트 듣기를 처리하고 있습니다.';
     } else if (ready) {
-        el.bottomPreviewMasterPreviewBtn.textContent = '하이라이트 듣기';
+        el.bottomPreviewMasterPreviewBtn.textContent = '\u{2728} 하이라이트';
         el.bottomPreviewMasterPreviewBtn.title = '준비된 15초 하이라이트 듣기를 재생합니다.';
     } else {
-        el.bottomPreviewMasterPreviewBtn.textContent = '하이라이트 듣기';
+        el.bottomPreviewMasterPreviewBtn.textContent = '\u{2728} 하이라이트';
         el.bottomPreviewMasterPreviewBtn.title = '전체 마스터링 전에 하이라이트 15초 결과를 먼저 들어봅니다.';
     }
     updateHelpText(el.bottomPreviewMasterPreviewBtn, el.bottomPreviewMasterPreviewBtn.title);
@@ -11537,19 +11537,19 @@ function setBottomPreviewMasterButtonState(track) {
     el.bottomPreviewMasterBtn.classList.toggle('soft-disabled', blocked);
     el.bottomPreviewMasterBtn.classList.toggle('processing', Boolean(track && track.status === 'processing'));
     if (!track) {
-        el.bottomPreviewMasterBtn.textContent = '마스터링 시작';
+        el.bottomPreviewMasterBtn.textContent = '\u{1F6E0} 마스터링';
         el.bottomPreviewMasterBtn.title = '곡을 선택하면 마스터링을 시작할 수 있습니다.';
     } else if (track.status === 'processing') {
-        el.bottomPreviewMasterBtn.textContent = '진행 중';
+        el.bottomPreviewMasterBtn.textContent = '\u{2699} 진행 중';
         el.bottomPreviewMasterBtn.title = '선택한 곡을 마스터링하고 있습니다.';
     } else if (track.status === 'analyzing') {
-        el.bottomPreviewMasterBtn.textContent = '분석 중';
+        el.bottomPreviewMasterBtn.textContent = '\u{1F50D} 분석 중';
         el.bottomPreviewMasterBtn.title = '누르면 분석 완료를 기다린 뒤 바로 마스터링합니다.';
     } else if (track.error) {
-        el.bottomPreviewMasterBtn.textContent = '오류 확인';
+        el.bottomPreviewMasterBtn.textContent = '\u{26A0} 오류 확인';
         el.bottomPreviewMasterBtn.title = '오류가 있는 곡은 다시 불러온 뒤 진행해주세요.';
     } else {
-        el.bottomPreviewMasterBtn.textContent = '마스터링 시작';
+        el.bottomPreviewMasterBtn.textContent = '\u{1F6E0} 마스터링';
         el.bottomPreviewMasterBtn.title = '선택한 곡을 마스터링합니다.';
     }
     updateHelpText(el.bottomPreviewMasterBtn, el.bottomPreviewMasterBtn.title);

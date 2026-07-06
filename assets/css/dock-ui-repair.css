@@ -1,0 +1,306 @@
+/* v1.3.84 Stage12.1: Dock UI repair - keep transport waveform full-width and keep file info on one line */
+.bottom-preview-dock,
+.bottom-preview-dock * {
+  box-sizing: border-box;
+}
+
+.bottom-preview-dock .bottom-preview-core {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.bottom-preview-dock .bottom-preview-mobile-meta {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(118px, auto) !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.bottom-preview-dock #bottomPreviewMobileTitle {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  justify-self: start !important;
+}
+
+.bottom-preview-dock .bottom-preview-subline {
+  display: inline-grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  justify-self: end !important;
+  justify-content: end !important;
+  gap: 6px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: min(46vw, 430px) !important;
+  overflow: hidden !important;
+}
+
+.bottom-preview-dock #bottomPreviewGenre {
+  min-width: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: right !important;
+  line-height: 1.1 !important;
+}
+
+.bottom-preview-dock #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  min-width: 64px !important;
+  max-width: 92px !important;
+  min-height: 24px !important;
+  padding: 3px 7px !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+.bottom-preview-dock .bottom-compare-open-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+.bottom-preview-dock .bottom-compare-open-label strong {
+  display: inline !important;
+  font-size: .58rem !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.bottom-preview-dock .bottom-compare-open-label em {
+  display: none !important;
+}
+
+.bottom-preview-dock .bottom-preview-player {
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.bottom-preview-dock .dock-integrated-player {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+
+.bottom-preview-dock .dock-integrated-waveform-bars,
+.bottom-preview-dock .bottom-preview-player .dock-integrated-waveform-bars {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: end !important;
+  justify-self: stretch !important;
+  overflow: hidden !important;
+}
+
+.bottom-preview-dock .dock-integrated-info {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  align-self: stretch !important;
+  display: grid !important;
+  grid-template-rows: 1fr 1fr !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+.bottom-preview-dock .dock-integrated-source,
+.bottom-preview-dock .dock-integrated-time,
+.bottom-preview-dock .player-time.dock-integrated-time {
+  grid-column: auto !important;
+  grid-row: auto !important;
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  writing-mode: horizontal-tb !important;
+  word-break: keep-all !important;
+  line-height: 1.08 !important;
+}
+
+.bottom-preview-dock .dock-integrated-source {
+  align-self: end !important;
+  color: rgba(141,245,232,.96) !important;
+  font-weight: 950 !important;
+}
+
+.bottom-preview-dock .dock-integrated-time,
+.bottom-preview-dock .player-time.dock-integrated-time {
+  align-self: start !important;
+  color: rgba(232,242,255,.84) !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.bottom-preview-dock .bottom-preview-translation-label {
+  white-space: nowrap !important;
+}
+
+.bottom-preview-dock .bottom-preview-translation-btn,
+.bottom-preview-dock .bottom-preview-master-btn,
+.bottom-preview-dock .bottom-preview-tab {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  line-height: 1 !important;
+}
+
+@media (min-width: 721px) {
+  .bottom-preview-dock .dock-integrated-toggle {
+    display: none !important;
+  }
+  .bottom-preview-dock .dock-integrated-player {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) clamp(112px, 10vw, 148px) !important;
+    gap: 9px !important;
+  }
+  .bottom-preview-dock .dock-integrated-waveform-bars {
+    grid-column: 1 !important;
+  }
+  .bottom-preview-dock .dock-integrated-info {
+    grid-column: 2 !important;
+    width: clamp(112px, 10vw, 148px) !important;
+    max-width: 148px !important;
+    padding-left: 8px !important;
+    border-left: 1px solid rgba(255,255,255,.11) !important;
+    justify-items: end !important;
+  }
+  .bottom-preview-dock .dock-integrated-source,
+  .bottom-preview-dock .dock-integrated-time,
+  .bottom-preview-dock .player-time.dock-integrated-time {
+    text-align: right !important;
+  }
+  .bottom-preview-dock .dock-integrated-source { font-size: .54rem !important; }
+  .bottom-preview-dock .dock-integrated-time,
+  .bottom-preview-dock .player-time.dock-integrated-time { font-size: .50rem !important; }
+}
+
+@media (max-width: 720px) {
+  .bottom-preview-dock .bottom-preview-mobile-meta {
+    grid-template-columns: minmax(0, 1fr) minmax(92px, auto) !important;
+    gap: 5px !important;
+  }
+  .bottom-preview-dock .bottom-preview-subline {
+    max-width: min(46vw, 176px) !important;
+    gap: 4px !important;
+  }
+  .bottom-preview-dock #bottomPreviewGenre {
+    text-align: right !important;
+    font-size: .46rem !important;
+  }
+  .bottom-preview-dock #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+    min-width: 58px !important;
+    max-width: 76px !important;
+    padding-inline: 5px !important;
+  }
+  .bottom-preview-dock .bottom-compare-open-label strong {
+    font-size: .48rem !important;
+  }
+  .bottom-preview-dock .dock-integrated-player {
+    display: grid !important;
+    grid-template-columns: 32px minmax(0, 1fr) minmax(58px, 72px) !important;
+    gap: 5px !important;
+    min-height: 40px !important;
+    padding: 4px 5px !important;
+  }
+  .bottom-preview-dock .dock-integrated-toggle {
+    display: inline-grid !important;
+    grid-column: 1 !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    place-items: center !important;
+    padding: 0 !important;
+  }
+  .bottom-preview-dock .dock-integrated-waveform-bars {
+    grid-column: 2 !important;
+    height: 28px !important;
+  }
+  .bottom-preview-dock .dock-integrated-info {
+    grid-column: 3 !important;
+    width: auto !important;
+    min-width: 58px !important;
+    max-width: 72px !important;
+    padding-left: 4px !important;
+    border-left: 1px solid rgba(255,255,255,.10) !important;
+    justify-items: start !important;
+  }
+  .bottom-preview-dock .dock-integrated-source,
+  .bottom-preview-dock .dock-integrated-time,
+  .bottom-preview-dock .player-time.dock-integrated-time {
+    text-align: left !important;
+  }
+  .bottom-preview-dock .dock-integrated-source { font-size: .42rem !important; }
+  .bottom-preview-dock .dock-integrated-time,
+  .bottom-preview-dock .player-time.dock-integrated-time { font-size: .40rem !important; }
+  .bottom-preview-dock .bottom-preview-translation-modes {
+    gap: 4px !important;
+  }
+  .bottom-preview-dock .bottom-preview-translation-btn {
+    padding-inline: 6px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .bottom-preview-dock .bottom-preview-mobile-meta {
+    grid-template-columns: minmax(0, 1fr) minmax(82px, auto) !important;
+  }
+  .bottom-preview-dock .bottom-preview-subline {
+    max-width: min(48vw, 148px) !important;
+  }
+  .bottom-preview-dock #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+    min-width: 52px !important;
+    max-width: 62px !important;
+  }
+  .bottom-preview-dock .dock-integrated-player {
+    grid-template-columns: 30px minmax(0, 1fr) minmax(52px, 64px) !important;
+    gap: 4px !important;
+  }
+  .bottom-preview-dock .dock-integrated-toggle {
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    height: 28px !important;
+  }
+  .bottom-preview-dock .dock-integrated-info {
+    min-width: 52px !important;
+    max-width: 64px !important;
+  }
+  .bottom-preview-dock .dock-integrated-waveform-bars {
+    height: 26px !important;
+  }
+  .bottom-preview-dock .bottom-preview-translation-btn {
+    padding-inline: 5px !important;
+    font-size: .48rem !important;
+  }
+}
+
+/* Quick panel emoji polish */
+.mobile-native-action-grid button::before,
+.mobile-native-toggle-row button::before {
+  font-family: system-ui, Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif !important;
+  font-size: 13px !important;
+  background: rgba(255,255,255,0.12) !important;
+}

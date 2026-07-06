@@ -530,3 +530,17 @@ The GitHub Actions build/QA job passed, the Pages artifact uploaded, and `deploy
 ### QA
 `npm run check` passes: 81/81.
 
+
+## Stage12.1 notes
+
+Dock UI repair was prioritized over additional feature work. The player collapse was caused by old generic `.player-time` and Dock grid rules leaking into the integrated waveform player after modular CSS splitting. The hotfix uses a final explicit layout layer instead of deleting old rules, because deleting old Dock rules in bulk would be riskier.
+
+User-facing text changes:
+
+- `폰` -> `📱 스마트폰`
+- Dock compare -> `🌊 비교`
+- Dock highlight -> `✨ 하이라이트`
+- Dock mastering -> `🛠 마스터링`
+- Dock original/master preview tabs use compact emoji labels.
+
+Packaging remains cumulative overwrite ZIP only.

@@ -148,3 +148,17 @@
 - `getMasterPreviewStartSec` 중복 선언 문제를 수정했습니다.
 - 중복 함수 방지 QA를 추가했습니다.
 - clean release ZIP 생성 스크립트를 추가했습니다.
+
+## Stage12.1 - Dock UI repair hotfix
+
+- Fixed Dock integrated player layout regression after CSS/module split.
+  - Peak waveform now keeps the main center width instead of collapsing near the right edge.
+  - Runtime/source labels stay inside the right info column and no longer inherit legacy `.player-time` grid placement.
+  - File info line keeps title, genre, and compare chip aligned in a single compact row where space allows.
+- Added `assets/css/dock-ui-repair.css` as the last Dock UI repair layer.
+- Changed phone preview wording to smartphone.
+- Added emoji polish to Dock controls and quick panel actions.
+- Updated Service Worker cache to `stage12.1` and precached the new repair CSS.
+- Added `qa/stage12_1_dock_ui_repair_smoke.js`.
+
+QA result: `npm run check` passes 92/92.
