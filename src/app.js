@@ -1,7 +1,6 @@
 // FoxBear AI Mastering Studio Pro v1.3.84 - Dock / Modal State Machine Refactor
 'use strict';
 
-
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -116,7 +115,6 @@ function getErrorMessage(error, fallback = '알 수 없는 오류') {
     try { return String(error); } catch (stringifyError) { return fallback; }
 }
 
-
 function getReferenceMatchStrengthAmount(value = state.referenceMatchStrength) {
     if (FoxBearMasteringInspector.getReferenceStrengthAmount) return FoxBearMasteringInspector.getReferenceStrengthAmount(value);
     return clamp(Number(value ?? 0.62), 0, 1);
@@ -190,9 +188,6 @@ function getDspAmountScoreLabel(track) {
     if (score >= 34) return `중간 ${score}점`;
     return `가벼움 ${score}점`;
 }
-
-
-
 
 const UTILITY_FEATURE_DEFINITIONS = {
     abLevelMatch: {
@@ -271,20 +266,6 @@ const PREVIEW_TRANSLATION_MODES = Object.freeze({
         aria: '모노 호환성 미리듣기'
     }
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 document.addEventListener('DOMContentLoaded', safeInit);
 window.addEventListener('error', event => reportBootOrImportError(event.error || event.message, '앱 실행 오류'));
@@ -411,7 +392,6 @@ function cacheElements() {
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
 }
-
 
 function decorateSliderLabel(label, text) {
     const value = String(text || '');
@@ -607,7 +587,6 @@ function updateFeatureSummary() {
     if (el.featureCount) el.featureCount.textContent = `${engineActive + utilityActive}개 활성`;
 }
 
-
 function showFeatureTooltip(target, text, autoHideMs = 0) {
     if (!el.featureTooltip || !target || !text) return;
     el.featureTooltip.textContent = text;
@@ -634,8 +613,6 @@ function hideFeatureTooltip() {
     el.featureTooltip.classList.remove('show');
     el.featureTooltip.setAttribute('aria-hidden', 'true');
 }
-
-
 
 function openProgramInfoDialog() {
     if (!el.programInfoDialog) return;
@@ -762,11 +739,9 @@ function installManagedModalController() {
     return controller;
 }
 
-
 function installModalHardFixController() {
     return installManagedModalController();
 }
-
 
 function forceOpenFeatureDialog(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
@@ -809,7 +784,6 @@ function ensureFeatureDialogLayer() {
 function bindFeatureOpenHardFallback() {
     return installManagedModalController();
 }
-
 
 function openPreviewDialog(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
@@ -1314,7 +1288,6 @@ function updateSmartRecommendationPanel() {
     renderSmartCandidatePresets(track, el.smartSuggestList);
 }
 
-
 function renderSmartCandidatePresets(track, target) {
     if (!target || !track || !track.analysis) return;
     const candidates = getAiCandidatePresets(track).slice(0, 4);
@@ -1654,7 +1627,6 @@ function pauseAllPreviewAudio() {
     });
 }
 
-
 function bindAdminStatsEvents() {
     updateAdminStatsTriggerVisibility();
     if (el.adminStatsTrigger) {
@@ -1805,7 +1777,6 @@ function refreshFirebaseAdminAccess(bridge = window.FoxBearFirebase) {
             state.adminAccessChecking = false;
         });
 }
-
 
 function applyFirebaseRemoteConfig(config = {}) {
     const youtubeUrl = normalizeRemoteHttpsUrl(config.foxbear_youtube_url, 'www.youtube.com');
@@ -1997,7 +1968,6 @@ function makeAdminStatsModel(stats) {
     };
 }
 
-
 async function fetchAdminFirebaseStats() {
     const bridge = window.FoxBearFirebase;
     if (!bridge || typeof bridge.getAdminStats !== 'function') return null;
@@ -2120,7 +2090,6 @@ function formatAdminEventTime(value) {
     if (Number.isNaN(date.getTime())) return value || '-';
     return date.toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
-
 
 function ensureMobileNativeState() {
     if (!state.mobileNative) {
@@ -2565,10 +2534,10 @@ function jumpDockToPercent(track, percent) {
     seekDockToWaveformPercent(percent, { track, mode: state.bottomPreviewMode, play: true, source: 'chip' });
 }
 
-function getWaveformSeekDuration(track, mode = state.bottomPreviewMode, audio = getBottomPreviewAudio()) {
+function getWaveformSeekDuration(track, mode = state.bottomPreviewMode, audio = getBottomPreviewAudio(), scope = 'full') {
     const audioDuration = Number(audio?.duration || 0);
-    if (mode === 'masterPreview') {
-        const previewDuration = Number(track?.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC || audioDuration || 0);
+    const previewDuration = Number(track?.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC || audioDuration || 0);
+    if (scope === 'preview' || mode === 'masterPreview') {
         return Number.isFinite(previewDuration) && previewDuration > 0 ? previewDuration : audioDuration;
     }
     const trackDuration = mode === 'mastered'
@@ -2591,10 +2560,14 @@ function seekDockToWaveformPercent(percent, options = {}) {
     const pct = clamp(Number(percent || 0), 0, 100) / 100;
     const audio = getBottomPreviewAudio();
     const currentMode = state.bottomPreviewMode || 'original';
-    const duration = getWaveformSeekDuration(track, targetMode, currentMode === targetMode ? audio : null);
+    const requestedScope = options.scope === 'preview' ? 'preview' : getWaveformModeScope(targetMode, options.source || 'waveform');
+    const duration = getWaveformSeekDuration(track, targetMode, currentMode === targetMode ? audio : null, requestedScope);
     if (!Number.isFinite(duration) || duration <= 0) return false;
-    const localSec = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
-    const absoluteSec = targetMode === 'masterPreview' ? getMasterPreviewStartSec(track) + localSec : localSec;
+    const scopedLocalSec = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
+    const absoluteSec = requestedScope === 'preview' || targetMode === 'masterPreview'
+        ? getMasterPreviewStartSec(track) + scopedLocalSec
+        : scopedLocalSec;
+    const localSec = targetMode === 'masterPreview' ? scopedLocalSec : absoluteSec;
     const playing = options.play !== false;
     state.bottomPreviewTransport = {
         trackId: track.id,
@@ -2641,7 +2614,7 @@ function onWaveformBarsSeek(event) {
     const pct = getWaveformPointerPercent(event, bars);
     if (!Number.isFinite(pct)) return;
     const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
-    seekDockToWaveformPercent(pct, { mode, play: true, source: bars?.dataset?.waveformRole || 'waveform' });
+    seekDockToWaveformPercent(pct, { mode, scope: bars?.dataset?.waveformScope || 'full', play: true, source: bars?.dataset?.waveformRole || 'waveform' });
 }
 
 function onWaveformBarsPointerSeek(event) {
@@ -2653,7 +2626,7 @@ function onWaveformBarsPointerSeek(event) {
     const pct = getWaveformPointerPercent(event, bars);
     if (!Number.isFinite(pct)) return;
     const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
-    seekDockToWaveformPercent(pct, { mode, play: true, source: bars?.dataset?.waveformRole || 'waveform-touch' });
+    seekDockToWaveformPercent(pct, { mode, scope: bars?.dataset?.waveformScope || 'full', play: true, source: bars?.dataset?.waveformRole || 'waveform-touch' });
 }
 
 function onWaveformBarsKeySeek(event) {
@@ -2667,7 +2640,7 @@ function onWaveformBarsKeySeek(event) {
     else if (event.key === 'End') pct = 100;
     else if (event.key === 'ArrowLeft') pct = Math.max(0, pct - 5);
     else if (event.key === 'ArrowRight') pct = Math.min(100, pct + 5);
-    seekDockToWaveformPercent(pct, { mode, play: event.key === 'Enter' || event.key === ' ', source: 'keyboard' });
+    seekDockToWaveformPercent(pct, { mode, scope: bars?.dataset?.waveformScope || 'full', play: event.key === 'Enter' || event.key === ' ', source: 'keyboard' });
 }
 
 function attachWaveformSeekHandlers(bars, mode = state.bottomPreviewMode, role = 'waveform') {
@@ -2878,11 +2851,7 @@ function clearNativeBadgeIfDone() {
     setNativeBadge(getCompletedUndownloadedCount());
 }
 
-
-
 // v1.3.81: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
-
-
 
 function createDifferencePreviewPlayer(track, options = {}) {
     const wrap = document.createElement('div');
@@ -3029,8 +2998,6 @@ function createDifferencePreviewPlayer(track, options = {}) {
     return wrap;
 }
 
-
-
 function toggleDockAbLevelMatch() {
     const track = getSelectedTrack();
     captureBottomPreviewTransport(track, state.bottomPreviewMode);
@@ -3040,8 +3007,6 @@ function toggleDockAbLevelMatch() {
     renderAll({ keepDetailAudio: true });
     showToast(state.abLevelMatch ? 'Dock A/B 레벨 매칭을 켰습니다.' : 'Dock A/B 레벨 매칭을 껐습니다.');
 }
-
-
 
 function toggleDockDifferenceListen() {
     const track = getSelectedTrack();
@@ -3086,17 +3051,13 @@ function installDockRemoteDelegation() {
     return controller;
 }
 
-
-
 function installFeatureDialogFallback() {
     return installManagedModalController();
 }
 
-
 function installPreviewDialogFallback() {
     return installManagedModalController();
 }
-
 
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
@@ -3340,8 +3301,6 @@ function bindEvents() {
     }
 }
 
-
-
 function enhanceActionSelects() {
     const selects = ACTION_SELECT_IDS.map(id => el[id] || document.getElementById(id)).filter(Boolean);
     if (!selects.length) return;
@@ -3531,7 +3490,6 @@ function updateSelectTrigger(select) {
 function syncEnhancedSelectButtons() {
     ACTION_SELECT_IDS.forEach(id => updateSelectTrigger(el[id]));
 }
-
 
 function initUiGuards() {
     return window.FoxBearSiteGuards?.initUiGuards?.();
@@ -4138,9 +4096,6 @@ async function decodeAudio(file) {
     }
 }
 
-
-
-
 function getAnalysisCacheKey(track) {
     const f = track && track.file ? track.file : {};
     return [f.name || track.name || 'audio', f.size || track.size || 0, f.lastModified || 0, APP_VERSION].join('|');
@@ -4568,7 +4523,6 @@ function estimateTargetFrequency(zcr) {
     return 5200;
 }
 
-
 function estimateABHighlightStart(buffer) {
     if (!buffer || !Number.isFinite(buffer.duration) || buffer.duration <= 8) return 0;
     const sampleRate = buffer.sampleRate || 44100;
@@ -4616,7 +4570,6 @@ function estimateABHighlightStart(buffer) {
     }
     return Number(clamp(bestStart, 0, startMax).toFixed(2));
 }
-
 
 function estimateABHighlightStartFromPair(beforeBuffer, afterBuffer, analysis) {
     const beforeDuration = Number(beforeBuffer?.duration || 0);
@@ -4999,7 +4952,6 @@ function recommendPreset(fileName, analysis) {
     const explanation = makeRecommendationExplanation(best[0], features, alternatives, explicit[best[0]], gatePass[best[0]], confidence);
     return { preset: best[0], confidence, reason, alternatives, explanation };
 }
-
 
 function safeRecommendPreset(fileName, analysis, source = 'track') {
     try {
@@ -5562,7 +5514,6 @@ async function masterAllTracks() {
     }
 }
 
-
 function quantizeProgressStep(value, step = 5) {
     const n = clamp(Number(value || 0), 0, 100);
     if (n >= 100) return 100;
@@ -5936,7 +5887,6 @@ function applyEdgeFade(buffer, fadeSeconds) {
     }
 }
 
-
 async function tryExternalPitchEngine(sourceBuffer, transform) {
     if (!['auto', 'external'].includes(state.pitchEngine || 'auto')) return null;
     try {
@@ -6274,7 +6224,6 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     return context.startRendering();
 }
 
-
 function makeEffectiveMasterSettings(settings, analysis, preset) {
     const out = cloneSettings(settings || GENRE_PRESETS.custom);
     if (settings && Number.isFinite(Number(settings.intensity))) out.intensity = Number(settings.intensity);
@@ -6335,8 +6284,6 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
     finalizeMasterStrengthSafetyCaps(out, analysis, preset);
     return out;
 }
-
-
 
 function createSharedDspProfile(settings, analysis, preset, options = {}) {
     const effectiveSettings = makeEffectiveMasterSettings(settings, analysis, preset);
@@ -6475,7 +6422,6 @@ function getSharedDspSummaryForReport(source) {
     };
 }
 
-
 function createSubCleanNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     const bass = clamp01(Number(analysis?.bassRatio ?? 0.28));
     const warmth = clamp(Number(settings.warmth || 55), 0, 100);
@@ -6497,7 +6443,6 @@ function createSubCleanNode(context, input, settings, analysis, intensity = getM
     input.connect(subGuard).connect(mudGuard);
     return mudGuard;
 }
-
 
 function isVocalLikeAnalysis(analysis, preset) {
     if (!analysis) return false;
@@ -6530,8 +6475,6 @@ function estimateVocalMetallicRisk(analysis, settings = {}, preset = null, inten
     const harshBandRisk = targetFreq >= 3600 && targetFreq <= 8200 ? 0.08 : 0;
     return clamp01(vocalBase + vocalPresence + airFizz + brightRisk + metalRisk + clarityRisk + intensityRisk + harshBandRisk);
 }
-
-
 
 function sumProfileBins(profile, indices) {
     if (!Array.isArray(profile) || !profile.length) return 0;
@@ -6770,7 +6713,6 @@ function createDeMaskingPolishNode(context, input, settings, analysis, intensity
     return edge;
 }
 
-
 function createGentleMultibandDynamicsNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (!analysis || intensity.raw < 95) return input;
     const normalized = normalizeFinalizerAnalysis(analysis);
@@ -6851,7 +6793,6 @@ function createMicroDynamicsGlueNode(context, input, settings, analysis, intensi
     input.connect(compressor);
     return compressor;
 }
-
 
 function createLowEndAnchorNode(context, input, isStereo, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (!state.featureFlags.lowEndAnchor || !isStereo) return input;
@@ -6985,11 +6926,6 @@ function createAiHumanizeNode(context, input, preset, settings, intensity = getM
     input.connect(warm250).connect(warm400).connect(body500).connect(deEsser).connect(hatTamer).connect(air125).connect(antiFizz16).connect(lowPass);
     return lowPass;
 }
-
-
-
-
-
 
 function createPresetReferenceMatchNode(context, input, preset, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.referenceMatch === false || !analysis || !preset) return input;
@@ -7163,7 +7099,6 @@ function createOpenMixRecoveryNode(context, input, settings, analysis, intensity
     return output;
 }
 
-
 function createTranslationGuardNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.translationGuard === false || !analysis) return input;
     const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
@@ -7297,7 +7232,6 @@ function createStereoWidthNode(context, input, isStereo, widthFactor) {
     return output;
 }
 
-
 function getRawWidthFactor(settings, intensity = getMasteringIntensity(settings), minFactor = 0.82, maxFactor = 1.22) {
     const widthSetting = clamp(Number(settings?.width ?? 50), 0, 100);
     const rawBase = map(widthSetting, 0, 100, minFactor, maxFactor);
@@ -7378,7 +7312,6 @@ function applySpatialBudgetToSettings(settings, analysis, intensity = getMasteri
     settings.stereoGroove = clamp(Math.round(Number(settings.stereoGroove || 0) * budget.scale), 0, 100);
     return settings;
 }
-
 
 function createPhaseSafeNode(context, input, isStereo, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.phaseSafe === false || !isStereo) return input;
@@ -7469,7 +7402,6 @@ function createSpectralBalancerNode(context, input, settings, analysis, intensit
     input.connect(subShelf).connect(mudScoop).connect(vocalKeep).connect(airTrim).connect(output);
     return output;
 }
-
 
 function createPerceptualPolishNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (!analysis) return input;
@@ -7623,7 +7555,6 @@ function makeExciterCurve(amount) {
     return curve;
 }
 
-
 function createEarFatigueGuardNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.earFatigueGuard === false || !analysis) return input;
     const clarity = clamp(Number(settings.clarity || 50), 0, 100);
@@ -7668,7 +7599,6 @@ function createLoudnessLiftNode(context, input, settings, analysis, intensity = 
     input.connect(output);
     return output;
 }
-
 
 function createTransientRefineNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.transientRefine === false) return input;
@@ -8254,8 +8184,6 @@ function measureFirTruePeakAudioBuffer(buffer, factor = 4) {
     return peak;
 }
 
-
-
 function getFirTruePeakKernels(factor, radius) {
     const key = `${factor}:${radius}`;
     const cache = getFirTruePeakKernels.cache || (getFirTruePeakKernels.cache = new Map());
@@ -8335,7 +8263,6 @@ function sanitizeAudioBuffer(buffer, label = 'audio') {
     return { repaired, clipped, peakBefore, peakAfter: peak };
 }
 
-
 function removeDcOffsetAudioBuffer(buffer) {
     if (!buffer || !buffer.length || !buffer.numberOfChannels) return { applied: false, offsets: [], maxOffset: 0, maxOffsetDb: -120 };
     const offsets = [];
@@ -8392,7 +8319,6 @@ function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true
     };
 }
 
-
 function createFinalizerAnalysisPayload(analysis) {
     const normalized = normalizeFinalizerAnalysis(analysis || {});
     return {
@@ -8439,7 +8365,6 @@ function normalizeFinalizerAnalysis(analysis) {
         dynamicDeEsserRisk: clamp01(Number(analysis.dynamicDeEsserRisk ?? 0))
     };
 }
-
 
 function applyMobileSpeakerResonanceGuardBuffer(buffer, qualityMode = 'balanced', analysis = {}) {
     if (!buffer || !buffer.length || !buffer.numberOfChannels) return { mode: 'bypass', risk: 0, cuts: {} };
@@ -8681,7 +8606,6 @@ function createGenericHighpassFilter(sampleRate, frequency, q) {
     const a2 = 1 - alpha;
     return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
 }
-
 
 function createGenericPeakingFilter(sampleRate, frequency, q, gainDb) {
     const a = Math.pow(10, Number(gainDb || 0) / 40);
@@ -8998,7 +8922,6 @@ function processKWeightBiquad(state, x) {
     state.y1 = Number.isFinite(y) ? y : 0;
     return state.y1;
 }
-
 
 async function finalizeMasterBufferAsync(buffer, options = {}) {
     const fallback = () => {
@@ -9353,7 +9276,6 @@ function showDownloadOptionsDialog(track) {
         getErrorMessage
     });
 }
-
 
 function getDownloadFormatOptions() {
     return [
@@ -9901,7 +9823,6 @@ function getActiveReferenceTarget(preset) {
     };
 }
 
-
 function normalizeReferenceSpectrumProfile(profile, fallback = null) {
     if (Array.isArray(profile) && profile.length >= 24) return profile.slice(0, 24).map(value => clamp01(Number(value) || 0));
     if (Array.isArray(profile) && profile.length >= 12) return upsampleSpectrumProfile12To24(profile);
@@ -10011,7 +9932,6 @@ function blend(a, b, amount) {
     return av + (bv - av) * clamp(Number(amount || 0), 0, 1);
 }
 
-
 function handleReferenceStrengthChange() {
     const next = getReferenceMatchStrengthAmount(el.referenceStrengthSelect?.value ?? state.referenceMatchStrength);
     saveUndoPointForSelectedOrAll('레퍼런스 강도 변경 전');
@@ -10117,7 +10037,6 @@ function getPerformanceModeLabel(value = state.performanceMode) {
     if (value === 'quality') return 'Quality Lock';
     return 'Auto';
 }
-
 
 function getSnapshotCore(snapshot) {
     if (!snapshot) return '';
@@ -10304,7 +10223,6 @@ function clearSnapshotsForSelected() {
     showToast('선택 트랙의 되돌리기 기록을 지웠습니다.');
 }
 
-
 function beginPerformanceProfile() {
     const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
     return {
@@ -10455,7 +10373,6 @@ function renderButtons() {
     }
     if (el.globalDiffMeter) el.globalDiffMeter.textContent = buildGlobalDiffText();
 }
-
 
 function renderQueuePreview() {
     if (!el.queuePreview) return;
@@ -10633,7 +10550,6 @@ function getMiniButtonHelp(label) {
     return '';
 }
 
-
 function renderDetail(options = {}) {
     const track = getSelectedTrack();
     el.trackDetail.textContent = '';
@@ -10782,7 +10698,6 @@ function renderDetail(options = {}) {
     if (!options.keepDetailAudio) applyTrackToControls(track);
 }
 
-
 function isDesktopDetailDefaultOpen() {
     return Boolean(window.matchMedia && window.matchMedia('(min-width: 821px)').matches);
 }
@@ -10807,7 +10722,6 @@ function toggleAnalysisDetailOpen(trackId) {
     if (state.expandedDetailIds.has(trackId)) state.expandedDetailIds.delete(trackId);
     else state.expandedDetailIds.add(trackId);
 }
-
 
 function renderMasterPreviewQuickBar(track) {
     if (!track || !el.trackDetail) return;
@@ -11026,7 +10940,6 @@ function getAiCandidatePresets(track) {
     return candidates.slice(0, 4);
 }
 
-
 function getOriginalSelectionCandidate(track) {
     return {
         preset: 'custom',
@@ -11087,7 +11000,6 @@ function applyAiPresetCandidate(track, preset) {
     renderAll({ keepDetailAudio: true });
     showToast(`${PRESET_LABELS[preset] || preset} 후보 프리셋을 적용했습니다.`);
 }
-
 
 function applyOriginalManualSelection(track) {
     if (!track || state.busy) return false;
@@ -11205,7 +11117,6 @@ function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
     previewGrid.append(originalCard, masteredCard);
     target.appendChild(previewGrid);
 }
-
 
 function getPreviewTranslationMode() {
     const mode = String(state.previewTranslationMode || 'studio');
@@ -11369,7 +11280,6 @@ function closePreviewTranslationContext(context) {
     if (!context || context.state === 'closed') return;
     context.close().catch(() => {});
 }
-
 
 function getBottomPreviewDockTrack() {
     const dockTrackId = state.bottomPreviewTrackId;
@@ -11705,7 +11615,6 @@ function clearMasterPreviewOutput(track) {
     }
 }
 
-
 function getTrackOriginalWaveformValues(track) {
     return normalizeWaveformValues(track?.waveformOverview?.before || track?.waveformOverview?.original || track?.analysis?.waveformOverview || track?.masterPreviewInfo?.sourceWaveformOverview || []);
 }
@@ -11725,7 +11634,6 @@ function getDockWaveformPayload(track, mode = state.bottomPreviewMode) {
     if (mode === 'masterPreview' && track?.masterPreviewInfo?.waveformOverview?.length) return { label: '하이라이트 피크', badge: '15s', values: normalizeWaveformValues(track.masterPreviewInfo.waveformOverview), markers: sampleMarkersFromValues(track.masterPreviewInfo.waveformOverview) };
     return { label: '원본 피크', badge: 'Original', values: original, markers: sampleMarkersFromValues(original) };
 }
-
 
 function getAdaptiveDockWaveformBinCount(scope = 'dock') {
     const minBins = scope === 'popup' ? 88 : 48;
@@ -11809,7 +11717,6 @@ function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomP
         : playbackAbsoluteSec;
     return clamp(position / basis * 100, 0, 100);
 }
-
 
 function getWaveformBarElements(element) {
     if (!element || typeof element.querySelectorAll !== 'function') return [];
@@ -11951,17 +11858,15 @@ function renderWaveformCompareDialog(track, target) {
     const name = document.createElement('strong');
     name.textContent = track.name || '선택 트랙';
     const meta = document.createElement('span');
-    meta.textContent = track.masteredUrl ? '원곡 / 마스터링 큰 비교' : (track.masterPreviewUrl ? '원곡 / 15초 하이라이트 큰 비교' : '원곡 파형 피크');
+    meta.textContent = getWaveformCompareSummaryText(track);
     head.append(name, meta);
     wrap.appendChild(head);
+    wrap.appendChild(createWaveformCompareTransportControls(track));
     addWaveformPeakJumpChips(track, wrap);
 
-    const original = getTrackOriginalWaveformValues(track);
-    const mastered = getTrackMasterWaveformValues(track);
-    wrap.appendChild(makeWaveformCompareRow('원곡', original, sampleMarkersFromValues(original), 'original', 'original'));
-    if (mastered.length) {
-        wrap.appendChild(makeWaveformCompareRow(track.masteredUrl ? '마스터링' : '하이라이트 듣기', mastered, getTrackMasterWaveformMarkers(track, mastered), 'mastered', track.masteredUrl ? 'mastered' : 'masterPreview'));
-    } else {
+    const rows = createAlignedWaveformCompareRows(track);
+    rows.forEach(rowInfo => wrap.appendChild(makeWaveformCompareRow(rowInfo.label, rowInfo.values, rowInfo.markers, rowInfo.tone, rowInfo.mode, rowInfo)));
+    if (!rows.some(row => row.mode !== 'original')) {
         const empty = document.createElement('div');
         empty.className = 'waveform-compare-empty';
         empty.textContent = '마스터링 실행 또는 하이라이트 듣기 생성 후 비교 파형이 표시됩니다.';
@@ -11969,9 +11874,109 @@ function renderWaveformCompareDialog(track, target) {
     }
     const hint = document.createElement('p');
     hint.className = 'waveform-compare-hint';
-    hint.textContent = '파형을 누르면 같은 위치로 이동합니다. 오른쪽 듣기 버튼으로 원곡과 마스터링을 즉시 전환해 비교할 수 있습니다.';
+    hint.textContent = rows.some(row => row.scope === 'preview')
+        ? '원곡도 하이라이트 시작점과 길이에 맞춰 잘라 표시합니다. 파형을 누르면 두 소스가 같은 구간으로 이동합니다.'
+        : '파형을 누르면 같은 비율 위치로 이동합니다. 위 재생 버튼으로 팝업 안에서 바로 재생/정지할 수 있습니다.';
     wrap.appendChild(hint);
     target.appendChild(wrap);
+}
+
+function getWaveformCompareSummaryText(track) {
+    if (track?.masteredUrl) {
+        const originalDuration = Number(track?.analysis?.duration || 0);
+        const masteredDuration = Number(track?.masteredDurationSec || 0);
+        const hasMismatch = Number.isFinite(originalDuration) && Number.isFinite(masteredDuration) && originalDuration > 0 && masteredDuration > 0 && Math.abs(originalDuration - masteredDuration) > 0.25;
+        return hasMismatch ? '원곡 / 마스터링 길이 보정 비교' : '원곡 / 마스터링 큰 비교';
+    }
+    if (track?.masterPreviewUrl) return '원곡 / 15초 하이라이트 길이 맞춤 비교';
+    return '원곡 파형 피크';
+}
+
+function sliceWaveformValuesByTime(values = [], sourceDurationSec = 0, startSec = 0, durationSec = 0, targetBins = 128) {
+    const list = Array.isArray(values) ? values : [];
+    const sourceDuration = Number(sourceDurationSec || 0);
+    const targetDuration = Number(durationSec || 0);
+    if (!list.length) return [];
+    if (!Number.isFinite(sourceDuration) || sourceDuration <= 0 || !Number.isFinite(targetDuration) || targetDuration <= 0) {
+        return normalizeWaveformValues(list, targetBins);
+    }
+    const safeStart = clamp(Number(startSec || 0), 0, Math.max(0, sourceDuration - 0.001));
+    const safeEnd = clamp(safeStart + targetDuration, safeStart + 0.001, sourceDuration);
+    const startIndex = clamp(Math.floor(safeStart / sourceDuration * list.length), 0, Math.max(0, list.length - 1));
+    const endIndex = clamp(Math.ceil(safeEnd / sourceDuration * list.length), startIndex + 1, list.length);
+    return normalizeWaveformValues(list.slice(startIndex, endIndex), targetBins);
+}
+
+function createAlignedWaveformCompareRows(track) {
+    const popupBins = getAdaptiveDockWaveformBinCount('popup');
+    const original = getTrackOriginalWaveformValues(track);
+    const mastered = getTrackMasterWaveformValues(track);
+    const originalDuration = Number(track?.analysis?.duration || 0);
+    const previewStart = getMasterPreviewStartSec(track);
+    const previewDuration = Number(track?.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC || 0);
+
+    if (track?.masteredUrl && mastered.length) {
+        return [
+            { label: '원곡', values: normalizeWaveformValues(original, popupBins), markers: sampleMarkersFromValues(original), tone: 'original', mode: 'original', scope: 'full', aligned: true },
+            { label: '마스터링', values: normalizeWaveformValues(mastered, popupBins), markers: getTrackMasterWaveformMarkers(track, mastered), tone: 'mastered', mode: 'mastered', scope: 'full', aligned: true }
+        ];
+    }
+
+    if (track?.masterPreviewUrl && mastered.length) {
+        const alignedOriginal = sliceWaveformValuesByTime(original, originalDuration, previewStart, previewDuration, popupBins);
+        return [
+            { label: '원곡 하이라이트', values: alignedOriginal, markers: sampleMarkersFromValues(alignedOriginal), tone: 'original', mode: 'original', scope: 'preview', aligned: true, startSec: previewStart, durationSec: previewDuration },
+            { label: '하이라이트 듣기', values: normalizeWaveformValues(mastered, popupBins), markers: getTrackMasterWaveformMarkers(track, mastered), tone: 'mastered', mode: 'masterPreview', scope: 'preview', aligned: true, startSec: previewStart, durationSec: previewDuration }
+        ];
+    }
+
+    return [{ label: '원곡', values: normalizeWaveformValues(original, popupBins), markers: sampleMarkersFromValues(original), tone: 'original', mode: 'original', scope: 'full', aligned: false }];
+}
+
+function createWaveformCompareTransportControls(track) {
+    const controls = document.createElement('div');
+    controls.className = 'waveform-compare-transport';
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'waveform-compare-transport-toggle';
+    toggle.setAttribute('aria-label', '비교 팝업 재생 또는 정지');
+
+    const mode = document.createElement('span');
+    mode.className = 'waveform-compare-transport-mode';
+
+    const time = document.createElement('span');
+    time.className = 'waveform-compare-transport-time';
+
+    const sync = () => {
+        const audio = getBottomPreviewAudio();
+        const playing = Boolean(audio && !audio.paused && !audio.ended);
+        toggle.textContent = playing ? '정지' : '재생';
+        toggle.classList.toggle('playing', playing);
+        mode.textContent = getDockModeLabel(state.bottomPreviewMode);
+        const duration = Number(audio?.duration || (state.bottomPreviewMode === 'masterPreview' ? track?.masterPreviewInfo?.durationSec : track?.analysis?.duration) || 0);
+        time.textContent = audio ? formatPlayerTime(audio.currentTime || 0, duration) : '00:00';
+    };
+
+    toggle.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleBottomPreviewExternalPlayback(event);
+        requestAnimationFrame(sync);
+        setTimeout(sync, 90);
+    });
+
+    const timer = setInterval(() => {
+        if (!document.body.contains(controls)) {
+            clearInterval(timer);
+            return;
+        }
+        sync();
+    }, 240);
+    sync();
+
+    controls.append(toggle, mode, time);
+    return controls;
 }
 
 function getWaveformMarkerForIndex(markers = [], index = 0, total = 1, value = 0) {
@@ -11988,14 +11993,19 @@ function getWaveformMarkerForIndex(markers = [], index = 0, total = 1, value = 0
     return 'ok';
 }
 
-function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '', sourceMode = '') {
+function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '', sourceMode = '', options = {}) {
     const row = document.createElement('div');
     row.className = `waveform-compare-row ${tone ? 'waveform-compare-' + tone : ''}`;
+    row.classList.toggle('is-aligned', Boolean(options.aligned));
     const label = document.createElement('span');
     label.textContent = labelText;
     const bars = document.createElement('div');
     bars.className = 'waveform-compare-bars';
     attachWaveformSeekHandlers(bars, sourceMode || tone || state.bottomPreviewMode, 'popup');
+    if (options.scope === 'preview') bars.dataset.waveformScope = 'preview';
+    if (Number.isFinite(Number(options.startSec))) bars.dataset.waveformStartSec = String(Math.round(Number(options.startSec) * 100) / 100);
+    if (Number.isFinite(Number(options.durationSec))) bars.dataset.waveformDurationSec = String(Math.round(Number(options.durationSec) * 100) / 100);
+    bars.dataset.waveformAligned = options.aligned ? 'true' : 'false';
     const popupBins = getAdaptiveDockWaveformBinCount('popup');
     bars.dataset.waveformBinCount = String((values && values.length) || popupBins);
     const normalized = normalizeWaveformValues(values, popupBins);
@@ -12097,7 +12107,6 @@ function getDockModeLabel(mode = state.bottomPreviewMode) {
     if (mode === 'masterPreview') return '하이라이트';
     return '원곡';
 }
-
 
 function syncBottomPreviewExternalPlayButton(audio = getBottomPreviewAudio(), forcedPlaying = null) {
     const button = el.bottomPreviewPlayBtn || document.getElementById('bottomPreviewPlayBtn');
@@ -12346,7 +12355,6 @@ function renderBottomPreviewDock(options = {}) {
     updateMobileNativeUi();
 }
 
-
 function scheduleBottomPreviewLayoutSync() {
     if (state.bottomPreviewLayoutRaf) cancelAnimationFrame(state.bottomPreviewLayoutRaf);
     state.bottomPreviewLayoutRaf = requestAnimationFrame(() => {
@@ -12469,7 +12477,6 @@ function setBottomPreviewTabState(mode, masteredAvailable) {
     }
 }
 
-
 function getBottomPreviewAudio() {
     return el.bottomPreviewPlayer?.querySelector('audio') || null;
 }
@@ -12581,7 +12588,6 @@ function formatPlayerTime(current, duration) {
 function plainSliderLabel(label) {
     return String(label || '').replace(/\s*\([^)]*\)/g, '').trim() || '컨트롤';
 }
-
 
 function getTrackHighlightStart(track) {
     if (!state.autoHighlightAB || !track) return NaN;
@@ -12718,7 +12724,6 @@ function bindExclusivePreview(audio) {
         if (other !== audio) other.pause();
     });
 }
-
 
 function createABSwitchPlayer(track) {
     const deck = document.createElement('section');
@@ -12980,7 +12985,6 @@ function buildMasteredFileName(track, encoded) {
     return `${safeBaseName(track.name)}_mastered_${lufsPart}_${style}_${format}${platform}.${encoded?.extension || 'wav'}`;
 }
 
-
 function renderMasterReportPanel(track) {
     if (!track || !track.masterReport) return;
     const report = track.masterReport;
@@ -13072,7 +13076,6 @@ function renderProcessingFlowPanel(track) {
     panel.append(head, rail, steps, report);
     el.trackDetail.appendChild(panel);
 }
-
 
 function renderEngineSafetyPanel(track) {
     if (!state.engineSafetyMeter || !track) return;
@@ -13286,7 +13289,6 @@ function toggleGenreLockForSelected() {
     toggleGenreLockForTrack(getSelectedTrack());
 }
 
-
 function getMasterGoalProfile(goal = state.masterGoal) {
     const profiles = {
         melody: {
@@ -13380,7 +13382,6 @@ function applyMasterGoalToSettings(out, analysis, preset) {
         if (metallic > 0.62) out.metallicRemoval = clamp(out.metallicRemoval + 6, 18, 94);
     }
 }
-
 
 function getMasterStrengthProfile(value = state.masterStrength) {
     return MASTER_STRENGTH_PROFILES[value] || MASTER_STRENGTH_PROFILES.balanced;
@@ -13484,7 +13485,6 @@ function finalizeMasterStrengthSafetyCaps(out, analysis, preset) {
     }
     return out;
 }
-
 
 function getMasterStyleProfile(style = state.masterStyle) {
     return MASTER_STYLE_PRESETS[style] || MASTER_STYLE_PRESETS.streaming;
@@ -13782,7 +13782,6 @@ function clampToStep(value, min, max, step) {
     const clamped = clamp(Number(value), min, max);
     return Math.round(clamped / safeStep) * safeStep;
 }
-
 
 function getOutputFormatLabel(format) {
     const labels = {

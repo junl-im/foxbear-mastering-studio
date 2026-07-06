@@ -78,7 +78,8 @@ const checks = [
   "node qa/modal_dock_layout_integrity_smoke.js",
   "node qa/pc_dock_modal_rootfix_smoke.js",
   "node qa/pc_dock_modal_hardfix_smoke.js",
-  "node qa/dock_modal_state_machine_smoke.js"
+  "node qa/dock_modal_state_machine_smoke.js",
+  "node qa/waveform_compare_stage5_smoke.js"
 ];
 
 const results = [];
