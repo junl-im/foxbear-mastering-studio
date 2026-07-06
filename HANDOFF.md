@@ -1,3 +1,42 @@
+# Stage11 handoff - Large modular renovation
+
+## Why this patch exists
+
+The app is stable, but `src/app.js` and `assets/css/studio.css` were still carrying too much responsibility. Stage11 performs a larger structural renovation without changing the core audio engine behavior: recommendation logic and base component CSS are moved into dedicated modules while old function names and CSS ordering stay compatible.
+
+## What changed
+
+- New file: `src/recommendation/recommendation-engine.js`.
+- `src/app.js` now delegates `recommendPreset()`, `safeRecommendPreset()`, `extractGenreFeatures()`, recommendation explainability, and candidate explanation helpers to `window.FoxBearRecommendationEngine`.
+- New file: `assets/css/components/base-components.css`.
+- Early base component rules were moved from `assets/css/studio.css` into the new component layer.
+- `studio.css` remains loaded after `base-components.css` and now acts as the legacy override / late-stage hotfix layer.
+- `index.html` loads `base-components.css` after `layout.css` and loads `recommendation-engine.js` after `core-utils.js`, before `app.js`.
+- `sw.js` precaches the new modules and uses the stage11 cache name.
+- Overwrite packages remain cumulative.
+
+## QA
+
+```bash
+npm run check
+# Passed: 88/88
+# Failed: 0/87
+```
+
+## Manual checks
+
+1. Import a track and confirm AI preset recommendation still appears.
+2. Open the recommendation popup and confirm reasons/chips/candidate explanations still render.
+3. Apply AI recommendation and confirm sliders/selected preset update.
+4. Confirm upload card, track cards, buttons, stats, toast, and mobile responsive layout still look unchanged.
+5. Confirm latest overwrite ZIP alone includes `src/recommendation/` and `assets/css/components/`.
+
+## Next patch candidate
+
+Next high-impact target is extracting `src/ui/detail-view.js` or splitting additional CSS into `assets/css/components/forms.css`, `cards.css`, and `panels.css`.
+
+---
+
 # Stage10 handoff - Download service split
 
 ## Why this patch exists

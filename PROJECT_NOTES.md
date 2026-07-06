@@ -1,5 +1,16 @@
 # FoxBear Project Notes
 
+## Stage11 Large Modular Renovation
+
+- `src/recommendation/recommendation-engine.js`를 추가해 장르 추천 점수 계산, 후보 사유/감점, 추천 설명 chip, safe fallback 추천 로직을 `src/app.js`에서 분리했습니다.
+- `src/app.js`에는 기존 함수명 wrapper만 남겨 기존 UI와 QA 호환성을 유지했습니다.
+- `assets/css/components/base-components.css`를 추가해 업로드 카드, 버튼, 트랙 카드, 통계, 토스트, pitch/control 초기 컴포넌트 스타일을 `studio.css`에서 분리했습니다.
+- `studio.css`는 legacy override/hotfix layer로 유지합니다. 로딩 순서는 `theme.css` -> `layout.css` -> `components/base-components.css` -> `studio.css`입니다.
+- `index.html`, `sw.js`, SRI, package QA를 새 모듈 기준으로 갱신했습니다.
+- `sw.js` cache name을 stage11로 갱신했습니다.
+- `qa/stage11_large_modular_renovation_smoke.js`를 추가했습니다.
+- 검증: `npm run check` 88/88 PASS.
+
 ## Stage10 Download Service Split
 
 - `src/download/download-service.js`를 추가해 다운로드 환경 감지, 포맷 옵션, Blob 준비, 파일명 정규화, Web Share/File System Access helper, 다운로드 도움 패널을 전담하도록 분리했습니다.

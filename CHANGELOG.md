@@ -1,5 +1,16 @@
 # Changelog
 
+## Stage11 - Large modular renovation
+
+- Added `src/recommendation/recommendation-engine.js` as the dedicated recommendation engine module. Genre scoring, candidate reasons/cautions, explainability chips, and safe fallback recommendation logic now live outside `src/app.js`.
+- Replaced the large recommendation engine bodies in `src/app.js` with stable adapter wrappers, preserving existing public function names for current UI code and QA.
+- Added `assets/css/components/base-components.css` as the first large component CSS layer. Base upload, button, track-card, stats, toast, pitch/control, and early responsive component rules were moved out of `studio.css`.
+- Kept `studio.css` as the legacy override/hotfix layer so late-stage override order remains stable.
+- Added the new JS/CSS modules to `index.html`, `sw.js` precache, and SRI.
+- Bumped `sw.js` cache name to stage11.
+- Added `qa/stage11_large_modular_renovation_smoke.js`.
+- QA result: `npm run check` -> 88/88 PASS.
+
 ## Stage10 - Download service split
 
 - Added `src/download/download-service.js` as the dedicated owner for download environment detection, format options, Blob filename normalization, Web Share/File System Access helpers, and the download assist panel.
