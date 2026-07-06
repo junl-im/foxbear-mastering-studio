@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.3.84 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.84-dock-modal-state-machine';
+const CACHE_NAME = 'foxbear-shell-v1.3.84-dock-modal-state-machine-qafix1';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -9,8 +9,13 @@ const CORE_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './assets/icons/foxbear-icon-16.png',
-  './assets/icons/foxbear-icon-32.png',
+  './sw.js',
+  './src/workers/wav-encoder.worker.js',
+  './src/workers/mp3-encoder.worker.js',
+  './src/workers/analysis.worker.js',
+  './src/workers/master-finalizer.worker.js',
+  './src/workers/pitch-wsola.worker.js',
+  './src/engines/pitch-engine-adapter.js',
   './assets/icons/foxbear-icon-48.png',
   './assets/icons/foxbear-icon-72.png',
   './assets/icons/foxbear-icon-96.png',
@@ -21,9 +26,28 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/apple-touch-icon.png',
-  './assets/icons/foxbear-music.png',
-  './assets/icons/foxbear.svg'
+  './assets/icons/foxbear-icon-16.png?v=1.3.84-dock-modal-state-machine',
+  './assets/icons/foxbear-icon-32.png?v=1.3.84-dock-modal-state-machine',
+  './assets/icons/foxbear-icon-192.png?v=1.3.84-dock-modal-state-machine',
+  './assets/icons/foxbear-icon-512.png?v=1.3.84-dock-modal-state-machine',
+  './assets/icons/apple-touch-icon.png?v=1.3.84-dock-modal-state-machine',
+  './manifest.webmanifest?v=1.3.84-dock-modal-state-machine',
+  './assets/css/studio.css?v=1.3.84-dock-modal-state-machine',
+  './assets/css/dock.css?v=1.3.84-dock-modal-state-machine',
+  './assets/css/export.css?v=1.3.84-dock-modal-state-machine',
+  './assets/css/mobile-native.css?v=1.3.84-dock-modal-state-machine',
+  './vendor/jszip/jszip.min.js?v=3.10.1',
+  './src/firebase-bootstrap.js?v=1.3.84-dock-modal-state-machine',
+  './src/config/mastering-presets.js?v=1.3.84-dock-modal-state-machine',
+  './src/config/genre-presets.js?v=1.3.84-dock-modal-state-machine',
+  './src/config/reference-targets.js?v=1.3.84-dock-modal-state-machine',
+  './src/state/app-state.js?v=1.3.84-dock-modal-state-machine',
+  './src/utils/core-utils.js?v=1.3.84-dock-modal-state-machine',
+  './src/audio/mastering-inspector.js?v=1.3.84-dock-modal-state-machine',
+  './src/ui/modal-controller.js?v=1.3.84-dock-modal-state-machine',
+  './src/ui/dock-controller.js?v=1.3.84-dock-modal-state-machine',
+  './src/app.js?v=1.3.84-dock-modal-state-machine',
+  './assets/icons/foxbear-music.png?v=1.3.84-dock-modal-state-machine'
 ];
 
 self.addEventListener('install', event => {

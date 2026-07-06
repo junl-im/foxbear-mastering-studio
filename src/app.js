@@ -321,11 +321,19 @@ window.addEventListener('error', event => reportBootOrImportError(event.error ||
 window.addEventListener('unhandledrejection', event => reportBootOrImportError(event.reason, '앱 비동기 오류'));
 
 function runSiteAccessGuard() {
-    const allowedHosts = new Set(['junl-im.github.io', 'foxbear-music.web.app', 'foxbear-music.firebaseapp.com', 'localhost', '127.0.0.1', '0.0.0.0']);
     const protocol = window.location.protocol;
-    const host = window.location.hostname;
+    const host = String(window.location.hostname || '').toLowerCase();
     const isLocalFile = protocol === 'file:';
-    const isAllowed = isLocalFile || allowedHosts.has(host);
+    const allowedHostPatterns = [
+        /^localhost$/,
+        /^127\.0\.0\.1$/,
+        /^0\.0\.0\.0$/,
+        /^junl-im\.github\.io$/,
+        /^foxbear-music\.web\.app$/,
+        /^foxbear-music\.firebaseapp\.com$/,
+        /^foxbear-music--[a-z0-9-]+\.web\.app$/
+    ];
+    const isAllowed = isLocalFile || allowedHostPatterns.some(pattern => pattern.test(host));
     if (isAllowed) return false;
     renderSecurityMessage('FoxBear Music', '정식 배포 주소에서만 실행되는 보호 모드입니다.', '공식 페이지에서 다시 접속해주세요.');
     return true;
@@ -3656,6 +3664,16 @@ function syncEnhancedSelectButtons() {
 
 
 function initUiGuards() {
+    let storedGuardMode = '';
+    try {
+        storedGuardMode = localStorage.getItem('foxbear-ui-guard-mode') || '';
+    } catch (error) {
+        storedGuardMode = '';
+    }
+    const guardMode = String(document.documentElement?.dataset?.uiGuardMode || storedGuardMode || 'off').toLowerCase();
+    const isStrictGuardEnabled = guardMode === 'strict' || guardMode === 'on';
+    if (!isStrictGuardEnabled) return;
+
     document.addEventListener('contextmenu', event => event.preventDefault());
     document.addEventListener('dragstart', event => event.preventDefault());
     document.addEventListener('selectstart', event => {
@@ -11958,7 +11976,7 @@ async function renderMasterPreviewForTrack(track, options = {}) {
 
     try {
         const sourceBuffer = await decodeAudio(track.file);
-        const startSec = getMasterPreviewStartSec(track, sourceBuffer);
+        const startSec = computeMasterPreviewSliceStartSec(track, sourceBuffer);
         let segmentBuffer = sliceAudioBuffer(sourceBuffer, startSec, MASTER_PREVIEW_DURATION_SEC);
         segmentBuffer = removeDcOffsetAudioBuffer(segmentBuffer).buffer || segmentBuffer;
         sanitizeAudioBuffer(segmentBuffer, 'master-preview-source');
@@ -12027,7 +12045,7 @@ async function renderMasterPreviewForTrack(track, options = {}) {
     }
 }
 
-function getMasterPreviewStartSec(track, buffer) {
+function computeMasterPreviewSliceStartSec(track, buffer) {
     const duration = Number(buffer?.duration || track?.analysis?.duration || 0);
     if (!Number.isFinite(duration) || duration <= 0) return 0;
     const candidate = Number.isFinite(Number(track?.abHighlightStartSec)) ? Number(track.abHighlightStartSec) : getTrackHighlightStart(track);

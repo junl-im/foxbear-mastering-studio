@@ -15,6 +15,7 @@ const checks = [
   "node --check src/ui/dock-controller.js",
   "node --check sw.js",
   "node --check src/app.js",
+  "node qa/no_duplicate_functions_smoke.js",
   "node --check src/workers/analysis.worker.js",
   "node --check src/workers/wav-encoder.worker.js",
   "node --check src/workers/mp3-encoder.worker.js",
