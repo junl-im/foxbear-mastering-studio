@@ -1,0 +1,22 @@
+const fs = require('fs');
+const html = fs.readFileSync('index.html', 'utf8');
+const app = fs.readFileSync('src/app.js', 'utf8');
+const css = fs.readFileSync('assets/css/studio.css', 'utf8');
+const dockCss = fs.readFileSync('assets/css/dock.css', 'utf8');
+const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+function must(cond, msg) { if (!cond) { console.error(msg); process.exit(1); } }
+must(html.includes('data-build="1.3.77"'), 'index build should be v1.3.77');
+must(app.includes("const APP_VERSION = 'Pro v1.3.77'"), 'app version should be v1.3.77');
+must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.77-dock-waveform-polish'"), 'DSP slug should be v1.3.77');
+must(pkg.version === '1.3.77', 'package version should be 1.3.77');
+must(app.includes('function getAdaptiveDockWaveformBinCount'), 'adaptive dock waveform bin count helper missing');
+must(app.includes('function updateWaveformProgressBars'), 'waveform progress bar class helper missing');
+must(app.includes("bar.classList.toggle('is-played'"), 'played waveform segment class update missing');
+must(app.includes('dock-waveform-polished'), 'polished dock waveform class missing');
+must(css.includes('v1.3.77 Dock waveform visual polish'), 'v1.3.77 waveform CSS section missing');
+must(css.includes('align-items: center !important'), 'mirror waveform center alignment missing');
+must(css.includes('is-played'), 'played segment contrast CSS missing');
+must(css.includes('width: 9px !important'), 'glow capsule playhead CSS missing');
+must(css.includes('white-space: nowrap !important'), 'nowrap label CSS missing');
+must(dockCss.includes('v1.3.77 Dock waveform polish'), 'dock CSS v1.3.77 section missing');
+console.log('PASS dock waveform visual polish smoke');

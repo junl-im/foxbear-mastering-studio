@@ -1,4 +1,4 @@
-# v1.3.76 Dock Regression & Button View Stabilization
+# v1.3.77 Dock Regression & Button View Stabilization
 
 - Stabilizes the Dock integrated waveform refresh after first import, analysis completion, and mastering completion.
 - Forces Dock waveform re-render when placeholder bars need to become real peak/waveform bars.

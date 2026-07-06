@@ -5,15 +5,15 @@ const css = fs.readFileSync('assets/css/studio.css', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 function must(cond, msg) { if (!cond) { console.error(msg); process.exit(1); } }
 
-must(html.includes('data-build="1.3.76"'), 'index build should be v1.3.76');
-must(app.includes("const APP_VERSION = 'Pro v1.3.76'"), 'app version should be v1.3.76');
-must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.76-dock-regression-buttonview'"), 'DSP profile slug should be v1.3.76');
-must(pkg.version === '1.3.76', 'package version should be 1.3.76');
+must(html.includes('data-build="1.3.77"'), 'index build should be v1.3.77');
+must(app.includes("const APP_VERSION = 'Pro v1.3.77'"), 'app version should be v1.3.77');
+must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.77-dock-waveform-polish'"), 'DSP profile slug should be v1.3.77');
+must(pkg.version === '1.3.77', 'package version should be 1.3.77');
 
 must(app.includes('function ensureFeatureDialogLayer()'), 'feature dialog layer guard missing');
 must(app.includes("window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog"), 'feature dialog global fallback missing');
 must(app.includes("['pointerdown', 'pointerup', 'click']"), 'feature pointer/click fallback missing');
-must(css.includes('v1.3.76 Dock regression + button view stabilization'), 'v1.3.76 CSS guard missing');
+must(css.includes('v1.3.77 Dock waveform visual polish'), 'v1.3.77 CSS guard missing');
 must(css.includes('z-index: 28050 !important'), 'feature dialog must be above dock');
 
 must(app.includes('function forceRefreshBottomPreviewDock'), 'Dock waveform force refresh helper missing');

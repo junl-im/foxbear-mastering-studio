@@ -9544,7 +9544,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.76 Dock integrated waveform remote */
+/* v1.3.77 Dock integrated waveform remote */
 .bottom-preview-core {
     grid-template-columns: 112px minmax(0, 1fr) !important;
     align-items: center !important;
@@ -9755,7 +9755,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.76 Dock waveform init + feature button guard */
+/* v1.3.77 Dock waveform init + feature button guard */
 .feature-open-btn,
 .feature-open-wide,
 #featureOpenBtn {
@@ -9782,7 +9782,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.76 Dock regression + button view stabilization */
+/* v1.3.77 Dock waveform visual polish */
 .feature-dialog-backdrop.show,
 body.feature-dialog-open .feature-dialog-backdrop.show {
     display: flex !important;
@@ -9843,4 +9843,118 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
 @keyframes foxbear-download-focus-pulse {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-1px); }
+}
+
+/* v1.3.77 Dock waveform visual polish */
+.dock-integrated-waveform-bars,
+.bottom-preview-player .dock-integrated-waveform-bars,
+.waveform-compare-bars {
+    align-items: center !important;
+    gap: 2px !important;
+    padding: 5px 2px !important;
+    isolation: isolate !important;
+    background:
+        radial-gradient(circle at var(--waveform-progress-pct, 0%) 50%, rgba(141,245,232,.16), transparent 24%),
+        linear-gradient(90deg, rgba(141,245,232,.13) 0%, rgba(141,245,232,.08) var(--waveform-progress-pct, 0%), rgba(255,255,255,.035) var(--waveform-progress-pct, 0%), rgba(255,255,255,.018) 100%) !important;
+    border-radius: 14px !important;
+}
+.dock-integrated-waveform-bars::before,
+.waveform-compare-bars::before,
+.bottom-waveform-bars::before {
+    width: 9px !important;
+    top: 3px !important;
+    bottom: 3px !important;
+    transform: translateX(-50%) !important;
+    border-radius: 999px !important;
+    background:
+        linear-gradient(180deg, rgba(231,255,255,.98), rgba(141,245,232,.98) 50%, rgba(82,203,255,.88)) !important;
+    border: 1px solid rgba(255,255,255,.55) !important;
+    box-shadow:
+        0 0 0 3px rgba(141,245,232,.13),
+        0 0 18px rgba(141,245,232,.68),
+        0 0 34px rgba(82,203,255,.35) !important;
+    opacity: 0 !important;
+}
+.dock-integrated-waveform-bars.has-live-playhead::before,
+.waveform-compare-bars.has-live-playhead::before,
+.bottom-waveform-bars.has-live-playhead::before { opacity: 1 !important; }
+.dock-integrated-waveform-bar,
+.waveform-compare-bars i,
+.bottom-waveform-bars i {
+    align-self: center !important;
+    border-radius: 999px !important;
+    min-width: 1px !important;
+    transform-origin: center center !important;
+    opacity: .34 !important;
+    background: linear-gradient(180deg, rgba(116,137,161,.66), rgba(47,59,82,.58)) !important;
+    box-shadow: none !important;
+    transition: opacity .14s ease, filter .14s ease, background .14s ease, transform .14s ease !important;
+}
+.dock-integrated-waveform-bar.is-played,
+.waveform-compare-bars i.is-played,
+.bottom-waveform-bars i.is-played {
+    opacity: .98 !important;
+    filter: saturate(1.22) brightness(1.12) !important;
+    background: linear-gradient(180deg, rgba(191,255,250,.98), rgba(141,245,232,.90) 48%, rgba(79,203,255,.62)) !important;
+    box-shadow: 0 0 8px rgba(141,245,232,.16) !important;
+}
+.dock-integrated-waveform-hot,
+.waveform-hot {
+    background: linear-gradient(180deg, rgba(145,111,45,.62), rgba(86,62,38,.52)) !important;
+}
+.dock-integrated-waveform-hot.is-played,
+.waveform-hot.is-played {
+    background: linear-gradient(180deg, rgba(255,236,145,.98), rgba(255,176,86,.84)) !important;
+    box-shadow: 0 0 9px rgba(255,191,99,.18) !important;
+}
+.dock-integrated-waveform-clip,
+.waveform-clip {
+    background: linear-gradient(180deg, rgba(112,54,72,.68), rgba(72,35,50,.54)) !important;
+}
+.dock-integrated-waveform-clip.is-played,
+.waveform-clip.is-played {
+    background: linear-gradient(180deg, rgba(255,156,166,.98), rgba(255,72,108,.82)) !important;
+    box-shadow: 0 0 10px rgba(255,92,126,.20) !important;
+}
+.dock-integrated-waveform-bar.is-current,
+.waveform-compare-bars i.is-current,
+.bottom-waveform-bars i.is-current {
+    transform: scaleY(1.06) !important;
+}
+.dock-integrated-waveform-placeholder .dock-integrated-waveform-bar {
+    opacity: .45 !important;
+    background: linear-gradient(180deg, rgba(141,245,232,.46), rgba(85,114,146,.28)) !important;
+}
+.dock-integrated-waveform-placeholder .dock-integrated-waveform-bar.is-played {
+    opacity: .82 !important;
+    background: linear-gradient(180deg, rgba(141,245,232,.72), rgba(114,221,255,.42)) !important;
+}
+.bottom-preview-master-btn,
+.bottom-preview-master-preview-btn,
+.bottom-preview-tab,
+.bottom-preview-translation-btn,
+.dock-integrated-source,
+.waveform-compare-listen {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    writing-mode: horizontal-tb !important;
+}
+.bottom-preview-tab {
+    min-width: max-content !important;
+    letter-spacing: -.04em !important;
+}
+@media (max-width: 720px) {
+    .dock-integrated-waveform-bars,
+    .waveform-compare-bars { gap: 1.5px !important; }
+    .bottom-preview-tab,
+    .bottom-preview-master-btn,
+    .bottom-preview-master-preview-btn {
+        min-width: max-content !important;
+        max-width: none !important;
+        font-size: clamp(.50rem, 2.35vw, .66rem) !important;
+        padding-left: 7px !important;
+        padding-right: 7px !important;
+    }
+    .bottom-preview-tabs { min-width: max-content !important; }
 }

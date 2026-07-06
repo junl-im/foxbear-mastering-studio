@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.76 - Dock regression and button view stabilization
+// FoxBear AI Mastering Studio Pro v1.3.77 - Dock waveform visual polish
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.76';
+const APP_VERSION = 'Pro v1.3.77';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.76-dock-regression-buttonview';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.77-dock-waveform-polish';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -350,7 +350,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.76-dock-regression-buttonview';
+    styleLink.href = 'assets/css/studio.css?v=1.3.77-dock-waveform-polish';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -2818,7 +2818,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.76-dock-regression-buttonview');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.77-dock-waveform-polish');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -12027,6 +12027,20 @@ function getDockWaveformPayload(track, mode = state.bottomPreviewMode) {
     return { label: '원본 피크', badge: 'Original', values: original, markers: sampleMarkersFromValues(original) };
 }
 
+
+function getAdaptiveDockWaveformBinCount(scope = 'dock') {
+    const minBins = scope === 'popup' ? 88 : 48;
+    const maxBins = scope === 'popup' ? 156 : 128;
+    const fallbackWidth = scope === 'popup' ? Math.min(window.innerWidth || 720, 920) : Math.min(window.innerWidth || 390, 680);
+    const measuredWidth = scope === 'popup'
+        ? (el.previewDialogBody?.getBoundingClientRect?.().width || fallbackWidth)
+        : (el.bottomPreviewPlayer?.getBoundingClientRect?.().width || el.bottomPreviewDock?.getBoundingClientRect?.().width || fallbackWidth);
+    const chromeAllowance = scope === 'popup' ? 150 : 118;
+    const plotWidth = Math.max(120, Number(measuredWidth || fallbackWidth) - chromeAllowance);
+    const pxPerBar = scope === 'popup' ? 3.0 : (plotWidth < 260 ? 2.65 : 2.45);
+    return Math.max(minBins, Math.min(maxBins, Math.round(plotWidth / pxPerBar)));
+}
+
 function getDockWaveformSignature(track, mode = state.bottomPreviewMode) {
     if (!track) return 'no-track';
     const payload = getDockWaveformPayload(track, mode);
@@ -12148,6 +12162,17 @@ function isWaveformPlaybackModeActive(mode = state.bottomPreviewMode) {
     return false;
 }
 
+function updateWaveformProgressBars(element, percent) {
+    if (!element || typeof element.querySelectorAll !== 'function' || !Number.isFinite(Number(percent))) return;
+    const pct = clamp(Number(percent), 0, 100);
+    element.querySelectorAll('i').forEach(bar => {
+        const barPct = Number(bar.dataset.waveformPercent || 0);
+        const played = Number.isFinite(barPct) && barPct <= pct;
+        bar.classList.toggle('is-played', played);
+        bar.classList.toggle('is-current', Number.isFinite(barPct) && Math.abs(barPct - pct) <= 1.2);
+    });
+}
+
 function setPlayheadOnElement(element, percent, playing = false) {
     if (!element) return;
     if (!Number.isFinite(Number(percent))) {
@@ -12156,6 +12181,7 @@ function setPlayheadOnElement(element, percent, playing = false) {
         element.style.removeProperty('--waveform-progress-pct');
         element.removeAttribute('aria-valuenow');
         delete element.dataset.waveformPlaybackPercent;
+        element.querySelectorAll?.('i.is-played, i.is-current').forEach(bar => bar.classList.remove('is-played', 'is-current'));
         return;
     }
     const pct = clamp(Number(percent), 0, 100);
@@ -12167,6 +12193,7 @@ function setPlayheadOnElement(element, percent, playing = false) {
     element.setAttribute('aria-valuenow', String(Math.round(displayPct)));
     element.classList.add('has-live-playhead');
     element.classList.toggle('is-playing', Boolean(playing));
+    updateWaveformProgressBars(element, pct);
 }
 
 function syncDockWaveformPlayhead(audioOverride = null) {
@@ -12252,14 +12279,15 @@ function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '',
     const bars = document.createElement('div');
     bars.className = 'waveform-compare-bars';
     attachWaveformSeekHandlers(bars, sourceMode || tone || state.bottomPreviewMode, 'popup');
-    bars.dataset.waveformBinCount = String((values && values.length) || 96);
-    const normalized = normalizeWaveformValues(values, 96);
+    const popupBins = getAdaptiveDockWaveformBinCount('popup');
+    bars.dataset.waveformBinCount = String((values && values.length) || popupBins);
+    const normalized = normalizeWaveformValues(values, popupBins);
     if (!normalized.length) {
         bars.classList.add('empty');
-        for (let i = 0; i < 96; i += 1) {
+        for (let i = 0; i < popupBins; i += 1) {
             const bar = document.createElement('i');
             bar.dataset.waveformIndex = String(i);
-            bar.dataset.waveformPercent = String(Math.round(i / 95 * 1000) / 10);
+            bar.dataset.waveformPercent = String(Math.round(i / Math.max(1, popupBins - 1) * 1000) / 10);
             bar.style.height = '8%';
             bars.appendChild(bar);
         }
@@ -12315,12 +12343,13 @@ function getBottomPreviewGenreLabel(track) {
 
 function makeDockWaveformBars(track, mode = state.bottomPreviewMode) {
     const bars = document.createElement('div');
-    bars.className = 'dock-integrated-waveform-bars';
+    bars.className = 'dock-integrated-waveform-bars dock-waveform-polished';
     const payload = getDockWaveformPayload(track, mode);
-    const values = normalizeWaveformValues(payload.values || [], DOCK_WAVEFORM_BINS);
+    const adaptiveBins = getAdaptiveDockWaveformBinCount('dock');
+    const values = normalizeWaveformValues(payload.values || [], adaptiveBins);
     const hasRealValues = Boolean(values.length);
-    const markers = hasRealValues ? (payload.markers || sampleMarkersFromValues(values)) : [];
-    const renderValues = hasRealValues ? values : Array.from({ length: DOCK_WAVEFORM_BINS }, (_, index) => {
+    const markers = hasRealValues ? normalizeWaveformValues(payload.markers || sampleMarkersFromValues(values), adaptiveBins) : [];
+    const renderValues = hasRealValues ? values : Array.from({ length: adaptiveBins }, (_, index) => {
         const wave = Math.sin(index * 0.62) * 0.055 + Math.sin(index * 0.19) * 0.035;
         return clamp(0.18 + wave, 0.08, 0.32);
     });
@@ -12336,9 +12365,9 @@ function makeDockWaveformBars(track, mode = state.bottomPreviewMode) {
         const percent = renderValues.length > 1 ? Math.round(index / (renderValues.length - 1) * 1000) / 10 : 0;
         bar.dataset.waveformIndex = String(index);
         bar.dataset.waveformPercent = String(percent);
-        const marker = hasRealValues ? (markers[index] || (Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'))) : 'ok';
+        const marker = hasRealValues ? ((Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'))) : 'ok';
         bar.className = `dock-integrated-waveform-bar dock-integrated-waveform-${marker}`;
-        bar.style.height = `${Math.max(hasRealValues ? 7 : 9, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
+        bar.style.height = `${Math.max(hasRealValues ? 10 : 12, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
         bars.appendChild(bar);
     });
     return bars;
@@ -14011,7 +14040,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.76',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.77',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

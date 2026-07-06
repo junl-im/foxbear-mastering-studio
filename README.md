@@ -1,4 +1,12 @@
-# FoxBear AI Mastering Studio Pro v1.3.76
+# FoxBear AI Mastering Studio Pro v1.3.77
+
+## v1.3.77 Dock Waveform Visual Polish
+
+- Dock 통합 파형에 재생 진행 대비를 적용해 지나간 구간과 남은 구간을 명확히 구분합니다.
+- 막대는 중앙 기준 미러 파형처럼 정렬되고, 얇은 세로선 대신 청록 글로우 캡슐 playhead를 사용합니다.
+- Dock 폭에 따라 파형 막대 개수를 동적으로 계산해 모바일과 데스크톱 모두에서 촘촘함을 줄였습니다.
+- `마스터링` 라벨이 세로로 쪼개지는 줄바꿈을 방지했습니다.
+
 
 - Dock 통합 파형이 파일 불러오기 직후 임시 파형을 표시하고, 분석 완료 즉시 실제 피크/파형으로 자동 갱신됩니다.
 - 버튼형 적용의 `버튼 보기`에 pointer/touch/key fallback을 추가해 클릭 레이어 충돌에도 팝업이 열립니다.
@@ -32,6 +40,6 @@
 npm run check
 ```
 
-## v1.3.76 Dock Regression & Button View Stabilization
+## v1.3.77 Dock Regression & Button View Stabilization
 
 This build focuses on Dock regression cleanup after the integrated waveform update. The Dock waveform now refreshes when analysis/mastering data arrives, Button View is forced above the Dock layer, and the finished-track download line is centered after mastering completes.
