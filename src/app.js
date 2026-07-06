@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.78 - Cleanup / Button View Layer Repair
+// FoxBear AI Mastering Studio Pro v1.3.79 - Dock Purpose Realignment
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.78';
+const APP_VERSION = 'Pro v1.3.79';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.78-cleanup-buttonview-layer';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.79-dock-purpose-realign';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -342,7 +342,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.78-cleanup-buttonview-layer';
+    styleLink.href = 'assets/css/studio.css?v=1.3.79-dock-purpose-realign';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -759,7 +759,7 @@ function ensureFeatureDialogLayer() {
     const dialog = el.featureDialog || document.getElementById('featureDialog');
     const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
     if (dialog) {
-        // v1.3.78: keep the dialog above the Dock through CSS, but do not
+        // v1.3.79: keep the dialog above the Dock through CSS, but do not
         // force an inline top-most z-index. The old inline value made
         // `버튼 보기` feel like it floated above every screen.
         dialog.style.removeProperty('z-index');
@@ -783,7 +783,7 @@ function bindFeatureOpenHardFallback() {
     button.dataset.featureHardFallbackBound = 'true';
     window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
     const open = event => forceOpenFeatureDialog(event);
-    // v1.3.78: avoid pointerdown/pointerup capture spam. A click/touchend
+    // v1.3.79: avoid pointerdown/pointerup capture spam. A click/touchend
     // fallback is enough, while the close button remains free to receive its
     // own click path.
     button.addEventListener('click', open, { capture: true });
@@ -2817,7 +2817,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.78-cleanup-buttonview-layer');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.79-dock-purpose-realign');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -2902,7 +2902,7 @@ function clearNativeBadgeIfDone() {
 
 
 
-// v1.3.78: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
+// v1.3.79: legacy A/B difference helpers kept because QA and old feature cards still rely on them.
 
 
 
@@ -9698,6 +9698,23 @@ async function prepareTrackDownloadBlob(track, format) {
     return { blob: encoded.blob, fileName };
 }
 
+function scrollDownloadTargetIntoFocus(target, card) {
+    const element = target || card;
+    if (!element) return;
+    const rect = element.getBoundingClientRect?.();
+    if (!rect) {
+        try { element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }); } catch (error) {}
+        return;
+    }
+    const viewport = window.innerHeight || document.documentElement.clientHeight || 720;
+    const dockHeight = Number(el.bottomPreviewDock?.getBoundingClientRect?.().height || 0);
+    // Keep the download line slightly above the true center so the Dock does not cover it.
+    const focusBand = Math.max(120, viewport * 0.42 - Math.min(80, dockHeight * 0.28));
+    const targetY = window.scrollY + rect.top - focusBand + Math.min(24, rect.height * 0.35);
+    try { window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' }); }
+    catch (error) { element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' }); }
+}
+
 function focusCompletedTrackDownload(track) {
     if (!track) return;
     const findCard = () => Array.from(document.querySelectorAll('.track-card[data-track-id]')).find(item => item.dataset.trackId === track.id);
@@ -9709,24 +9726,27 @@ function focusCompletedTrackDownload(track) {
         const actionLine = button?.closest?.('.track-actions') || button?.closest?.('.track-export-ready-panel') || button || card;
         const target = actionLine || card;
         card.classList.add('download-focus-card');
-        if (button) button.classList.add('download-focus-button');
-        try {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        } catch (error) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        if (button) {
+            button.classList.add('download-focus-button');
+            button.setAttribute('data-download-nudge', '여기서 저장');
         }
+        scrollDownloadTargetIntoFocus(target, card);
         if (button && typeof button.focus === 'function') {
-            setTimeout(() => button.focus({ preventScroll: true }), 360);
+            setTimeout(() => button.focus({ preventScroll: true }), 520);
         }
         setTimeout(() => {
             card.classList.remove('download-focus-card');
-            if (button) button.classList.remove('download-focus-button');
-        }, 4200);
-        if (announce) showToast('마스터링 완료 · 다운로드 버튼 위치로 이동했습니다.');
+            if (button) {
+                button.classList.remove('download-focus-button');
+                button.removeAttribute('data-download-nudge');
+            }
+        }, 5600);
+        if (announce) showToast('마스터링 완료 · 파일 다운로드 버튼을 눌러 저장하세요.');
         return true;
     };
     if (!run(true)) requestAnimationFrame(() => run(true));
     setTimeout(() => run(false), 420);
+    setTimeout(() => run(false), 980);
 }
 
 function downloadTrackReport(track) {
@@ -12075,14 +12095,15 @@ function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     const payload = getDockWaveformPayload(track, mode);
     const hasValues = Boolean(track && payload.values && payload.values.length);
     el.bottomPreviewWaveformBtn.disabled = !track;
-    el.bottomPreviewWaveformBtn.title = hasValues ? '원곡과 마스터링을 큰 파형으로 비교합니다.' : '분석 후 큰 비교창에서 파형을 볼 수 있습니다.';
+    el.bottomPreviewWaveformBtn.classList.toggle('ready', hasValues);
+    el.bottomPreviewWaveformBtn.title = hasValues ? '원곡과 마스터링을 큰 파형으로 비교합니다.' : '분석 후 비교보기에서 파형을 볼 수 있습니다.';
 
     const label = document.createElement('span');
     label.className = 'bottom-compare-open-label';
     const strong = document.createElement('strong');
-    strong.textContent = '큰 비교';
+    strong.textContent = '비교보기';
     const small = document.createElement('em');
-    small.textContent = track?.masteredUrl ? '원곡 ↔ 마스터링' : (track?.masterPreviewUrl ? '원곡 ↔ 하이라이트' : '파형 비교');
+    small.textContent = track?.masteredUrl ? '원곡↔마스터' : (track?.masterPreviewUrl ? '원곡↔하이라이트' : '피크');
     label.append(strong, small);
     el.bottomPreviewWaveformBtn.appendChild(label);
 }
@@ -12271,6 +12292,20 @@ function renderWaveformCompareDialog(track, target) {
     target.appendChild(wrap);
 }
 
+function getWaveformMarkerForIndex(markers = [], index = 0, total = 1, value = 0) {
+    const list = Array.isArray(markers) ? markers : [];
+    let marker = '';
+    if (list.length) {
+        const mappedIndex = list.length === total ? index : Math.round(index / Math.max(1, total - 1) * Math.max(0, list.length - 1));
+        marker = String(list[mappedIndex] || '').toLowerCase();
+    }
+    if (marker === 'clip' || marker === 'hot' || marker === 'ok') return marker;
+    const v = Number(value || 0);
+    if (v >= 0.985) return 'clip';
+    if (v >= 0.92) return 'hot';
+    return 'ok';
+}
+
 function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '', sourceMode = '') {
     const row = document.createElement('div');
     row.className = `waveform-compare-row ${tone ? 'waveform-compare-' + tone : ''}`;
@@ -12296,8 +12331,9 @@ function makeWaveformCompareRow(labelText, values = [], markers = [], tone = '',
             const bar = document.createElement('i');
             bar.dataset.waveformIndex = String(index);
             bar.dataset.waveformPercent = String(normalized.length > 1 ? Math.round(index / (normalized.length - 1) * 1000) / 10 : 0);
-            const marker = markers[index] || (Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'));
+            const marker = getWaveformMarkerForIndex(markers, index, normalized.length, value);
             bar.className = `waveform-bar waveform-${marker}`;
+            bar.title = marker === 'clip' ? '클립/초과 피크 구간' : (marker === 'hot' ? '주의 피크 구간' : '일반 피크 구간');
             bar.style.height = `${Math.max(5, Math.round(clamp(value, 0, 1) * 100))}%`;
             bars.appendChild(bar);
         });
@@ -12348,7 +12384,7 @@ function makeDockWaveformBars(track, mode = state.bottomPreviewMode) {
     const adaptiveBins = getAdaptiveDockWaveformBinCount('dock');
     const values = normalizeWaveformValues(payload.values || [], adaptiveBins);
     const hasRealValues = Boolean(values.length);
-    const markers = hasRealValues ? normalizeWaveformValues(payload.markers || sampleMarkersFromValues(values), adaptiveBins) : [];
+    const markers = hasRealValues ? (payload.markers || sampleMarkersFromValues(values)) : [];
     const renderValues = hasRealValues ? values : Array.from({ length: adaptiveBins }, (_, index) => {
         const wave = Math.sin(index * 0.62) * 0.055 + Math.sin(index * 0.19) * 0.035;
         return clamp(0.18 + wave, 0.08, 0.32);
@@ -12359,14 +12395,15 @@ function makeDockWaveformBars(track, mode = state.bottomPreviewMode) {
     attachWaveformSeekHandlers(bars, targetMode, 'dock-player');
     bars.dataset.waveformBinCount = String(renderValues.length);
     bars.dataset.waveformReady = hasRealValues ? 'true' : 'false';
-    bars.setAttribute('aria-label', hasRealValues ? '통합 파형 플레이어. 클릭하면 해당 위치로 이동해 재생합니다.' : '통합 파형 플레이어. 분석 중에는 임시 파형을 표시하고 완료 즉시 실제 피크 파형으로 갱신됩니다.');
+    bars.setAttribute('aria-label', hasRealValues ? '통합 피크 파형 플레이어. 막대 높이와 색으로 피크 위치를 확인하고 클릭하면 해당 위치로 이동해 재생합니다.' : '통합 파형 플레이어. 분석 중에는 임시 파형을 표시하고 완료 즉시 실제 피크 파형으로 갱신됩니다.');
     renderValues.forEach((value, index) => {
         const bar = document.createElement('i');
         const percent = renderValues.length > 1 ? Math.round(index / (renderValues.length - 1) * 1000) / 10 : 0;
         bar.dataset.waveformIndex = String(index);
         bar.dataset.waveformPercent = String(percent);
-        const marker = hasRealValues ? ((Number(value) >= 0.985 ? 'clip' : (Number(value) >= 0.92 ? 'hot' : 'ok'))) : 'ok';
+        const marker = hasRealValues ? getWaveformMarkerForIndex(markers, index, renderValues.length, value) : 'ok';
         bar.className = `dock-integrated-waveform-bar dock-integrated-waveform-${marker}`;
+        bar.title = marker === 'clip' ? '클립/초과 피크 구간' : (marker === 'hot' ? '주의 피크 구간' : '일반 피크 구간');
         bar.style.height = `${Math.max(hasRealValues ? 10 : 12, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
         bars.appendChild(bar);
     });
@@ -13888,7 +13925,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.78',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.79',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

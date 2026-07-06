@@ -9544,7 +9544,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.78 Dock integrated waveform remote */
+/* v1.3.79 Dock integrated waveform remote */
 .bottom-preview-core {
     grid-template-columns: 112px minmax(0, 1fr) !important;
     align-items: center !important;
@@ -9755,7 +9755,7 @@ input[type="file"].hidden.native-picker-input {
 }
 
 
-/* v1.3.78 Dock waveform init + feature button guard */
+/* v1.3.79 Dock waveform init + feature button guard */
 .feature-open-btn,
 .feature-open-wide,
 #featureOpenBtn {
@@ -9825,7 +9825,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
     50% { transform: translateY(-1px); }
 }
 
-/* v1.3.78 Cleanup / Button View Layer Repair */
+/* v1.3.79 Dock Purpose Realignment */
 .dock-integrated-waveform-bars,
 .bottom-preview-player .dock-integrated-waveform-bars,
 .waveform-compare-bars {
@@ -9939,7 +9939,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show {
     .bottom-preview-tabs { min-width: max-content !important; }
 }
 
-/* v1.3.78 Button View layer repair and cleanup policy */
+/* v1.3.79 Button View layer repair and cleanup policy */
 #featureOpenBtn,
 .feature-open-btn,
 .feature-open-wide {
@@ -9970,4 +9970,278 @@ body.feature-dialog-open .feature-dialog-backdrop.show {
 .program-info-backdrop.show,
 .admin-dialog-backdrop.show {
     z-index: 28100 !important;
+}
+
+/* v1.3.79 Dock purpose realignment: peak-map waveform, compare chip, 3-zone controls */
+.bottom-preview-core {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+}
+.bottom-preview-mobile-meta {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+}
+.bottom-preview-subline {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 7px !important;
+    min-width: 0 !important;
+}
+#bottomPreviewGenre {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.bottom-preview-compare-chip,
+#bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+    flex: 0 0 auto !important;
+    display: inline-grid !important;
+    grid-template-columns: auto !important;
+    align-items: center !important;
+    justify-items: center !important;
+    gap: 0 !important;
+    min-width: 58px !important;
+    max-width: 78px !important;
+    min-height: 25px !important;
+    padding: 4px 8px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(141,245,232,.24) !important;
+    background: rgba(141,245,232,.08) !important;
+    color: #dcfbff !important;
+    font-size: .56rem !important;
+    font-weight: 950 !important;
+    letter-spacing: -.04em !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+#bottomPreviewWaveformBtn.bottom-preview-compare-chip.ready {
+    border-color: rgba(141,245,232,.40) !important;
+    box-shadow: 0 0 16px rgba(141,245,232,.10) !important;
+}
+#bottomPreviewWaveformBtn.bottom-preview-compare-chip:disabled {
+    opacity: .54 !important;
+    cursor: not-allowed !important;
+}
+#bottomPreviewWaveformBtn.bottom-preview-compare-chip .bottom-compare-open-label {
+    display: grid !important;
+    gap: 0 !important;
+    text-align: center !important;
+}
+#bottomPreviewWaveformBtn.bottom-preview-compare-chip .bottom-compare-open-label strong {
+    font-size: .56rem !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+}
+#bottomPreviewWaveformBtn.bottom-preview-compare-chip .bottom-compare-open-label em {
+    max-width: 62px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: .34rem !important;
+    line-height: 1.05 !important;
+    white-space: nowrap !important;
+}
+.bottom-preview-compare-open:not(.bottom-preview-compare-chip) { display: none !important; }
+.bottom-preview-player .dock-integrated-player,
+.dock-integrated-player {
+    grid-template-columns: 42px minmax(0, 1fr) minmax(76px, 96px) !important;
+    gap: 8px !important;
+}
+.dock-integrated-info {
+    min-width: 76px !important;
+    max-width: 96px !important;
+    align-self: stretch !important;
+    display: grid !important;
+    grid-template-rows: 1fr 1fr !important;
+    align-items: center !important;
+    justify-items: stretch !important;
+    gap: 0 !important;
+    padding-left: 8px !important;
+    border-left: 1px solid rgba(255,255,255,.10) !important;
+}
+.dock-integrated-source,
+.dock-integrated-time {
+    display: block !important;
+    width: 100% !important;
+    text-align: right !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.dock-integrated-source {
+    align-self: end !important;
+    color: rgba(141,245,232,.92) !important;
+    font-size: .52rem !important;
+    line-height: 1.05 !important;
+}
+.dock-integrated-time {
+    align-self: start !important;
+    color: rgba(232,242,255,.78) !important;
+    font-size: .50rem !important;
+    line-height: 1.15 !important;
+}
+.dock-integrated-waveform-bars,
+.bottom-preview-player .dock-integrated-waveform-bars,
+.waveform-compare-bars {
+    background:
+        radial-gradient(circle at var(--waveform-progress-pct, 0%) 50%, rgba(141,245,232,.16), transparent 22%),
+        linear-gradient(90deg, rgba(141,245,232,.13) 0%, rgba(141,245,232,.08) var(--waveform-progress-pct, 0%), rgba(255,255,255,.024) var(--waveform-progress-pct, 0%), rgba(255,255,255,.014) 100%) !important;
+}
+.dock-integrated-waveform-bar,
+.waveform-compare-bars i {
+    opacity: .46 !important;
+    background: linear-gradient(180deg, rgba(108,131,154,.72), rgba(45,58,80,.64)) !important;
+}
+.dock-integrated-waveform-hot,
+.waveform-hot {
+    opacity: .70 !important;
+    background: linear-gradient(180deg, rgba(255,214,103,.74), rgba(129,83,39,.72)) !important;
+    box-shadow: 0 0 7px rgba(255,178,83,.08) !important;
+}
+.dock-integrated-waveform-clip,
+.waveform-clip {
+    opacity: .78 !important;
+    background: linear-gradient(180deg, rgba(255,127,145,.82), rgba(126,45,70,.78)) !important;
+    box-shadow: 0 0 8px rgba(255,80,115,.10) !important;
+}
+.dock-integrated-waveform-bar.is-played,
+.waveform-compare-bars i.is-played {
+    opacity: .98 !important;
+    filter: saturate(1.18) brightness(1.08) !important;
+}
+.dock-integrated-waveform-hot.is-played,
+.waveform-hot.is-played {
+    background: linear-gradient(180deg, rgba(255,240,152,.98), rgba(255,170,76,.92)) !important;
+}
+.dock-integrated-waveform-clip.is-played,
+.waveform-clip.is-played {
+    background: linear-gradient(180deg, rgba(255,168,178,.98), rgba(255,70,106,.92)) !important;
+}
+.dock-integrated-waveform-bars::after,
+.waveform-compare-bars::after {
+    content: '피크: 청록 일반 · 노랑 주의 · 빨강 초과' !important;
+    position: absolute !important;
+    left: 8px !important;
+    bottom: 2px !important;
+    font-size: .42rem !important;
+    font-weight: 850 !important;
+    letter-spacing: -.04em !important;
+    color: rgba(218,232,246,.42) !important;
+    pointer-events: none !important;
+    opacity: .72 !important;
+    z-index: 2 !important;
+}
+.dock-integrated-waveform-placeholder::after { content: '분석 중 · 실제 피크 파형으로 갱신' !important; }
+.bottom-preview-controls {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(126px, auto) minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow: visible !important;
+}
+.bottom-preview-action-left,
+.bottom-preview-action-center,
+.bottom-preview-action-right {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    flex-wrap: nowrap !important;
+}
+.bottom-preview-action-left { justify-self: start !important; }
+.bottom-preview-action-center { justify-self: center !important; }
+.bottom-preview-action-right { justify-self: end !important; margin-left: 0 !important; }
+#bottomPreviewMasterBtn.bottom-preview-master-start-btn {
+    min-width: 128px !important;
+    text-align: center !important;
+}
+.bottom-preview-tabs {
+    gap: 6px !important;
+}
+.download-focus-button[data-download-nudge] {
+    position: relative !important;
+    overflow: visible !important;
+}
+.download-focus-button[data-download-nudge]::after {
+    content: attr(data-download-nudge);
+    position: absolute;
+    left: 50%;
+    top: -30px;
+    transform: translateX(-50%);
+    z-index: 4;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(141,245,232,.96);
+    color: #061018;
+    font-size: .56rem;
+    font-weight: 950;
+    white-space: nowrap;
+    box-shadow: 0 0 18px rgba(141,245,232,.32);
+    pointer-events: none;
+}
+.download-options-backdrop {
+    align-items: center !important;
+    justify-items: center !important;
+    overflow: auto !important;
+    padding: max(16px, env(safe-area-inset-top)) 14px max(16px, env(safe-area-inset-bottom)) !important;
+}
+.download-options-panel,
+.download-options-panel-v3 {
+    width: min(560px, calc(100vw - 24px)) !important;
+    max-height: min(86dvh, 760px) !important;
+    padding: 16px !important;
+    display: grid !important;
+    gap: 8px !important;
+}
+body.bottom-preview-active .download-options-backdrop {
+    padding-bottom: calc(var(--bottom-preview-height, 168px) + 22px + env(safe-area-inset-bottom)) !important;
+}
+body.bottom-preview-active .download-options-panel,
+body.bottom-preview-active .download-options-panel-v3 {
+    max-height: calc(100dvh - var(--bottom-preview-height, 168px) - 48px) !important;
+}
+@media (max-width: 720px) {
+    .bottom-preview-subline { gap: 5px !important; }
+    #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+        min-width: 52px !important;
+        max-width: 64px !important;
+        padding: 3px 6px !important;
+    }
+    #bottomPreviewWaveformBtn.bottom-preview-compare-chip .bottom-compare-open-label strong { font-size: .48rem !important; }
+    #bottomPreviewWaveformBtn.bottom-preview-compare-chip .bottom-compare-open-label em { display: none !important; }
+    .bottom-preview-player .dock-integrated-player,
+    .dock-integrated-player {
+        grid-template-columns: 32px minmax(0, 1fr) minmax(58px, 68px) !important;
+        gap: 5px !important;
+    }
+    .dock-integrated-info {
+        min-width: 58px !important;
+        max-width: 68px !important;
+        padding-left: 5px !important;
+    }
+    .dock-integrated-source { font-size: .40rem !important; }
+    .dock-integrated-time { font-size: .38rem !important; }
+    .dock-integrated-waveform-bars::after,
+    .waveform-compare-bars::after { display: none !important; }
+    .bottom-preview-controls {
+        grid-template-columns: minmax(0, 1fr) minmax(100px, auto) minmax(0, 1fr) !important;
+        gap: 4px !important;
+        overflow-x: auto !important;
+    }
+    #bottomPreviewMasterBtn.bottom-preview-master-start-btn { min-width: 106px !important; }
+    .bottom-preview-tabs { min-width: max-content !important; }
+    .download-options-panel,
+    .download-options-panel-v3 {
+        width: calc(100vw - 18px) !important;
+        max-height: calc(100dvh - var(--bottom-preview-height, 160px) - 30px) !important;
+        padding: 13px !important;
+    }
+    .download-focus-button[data-download-nudge]::after {
+        top: -28px;
+        font-size: .50rem;
+    }
 }
