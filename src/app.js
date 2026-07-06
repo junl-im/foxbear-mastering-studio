@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.83 - PC Dock and Modal Hard Fix
+// FoxBear AI Mastering Studio Pro v1.3.84 - Dock / Modal State Machine Refactor
 'use strict';
 
 
@@ -17,7 +17,7 @@ const {
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 
-const APP_VERSION = 'Pro v1.3.83';
+const APP_VERSION = 'Pro v1.3.84';
 const WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js';
 const MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js';
 const ANALYSIS_WORKER_URL = 'src/workers/analysis.worker.js';
@@ -35,7 +35,7 @@ const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
-const SHARED_DSP_PROFILE_VERSION = 'v1.3.83-pc-dock-modal-hardfix';
+const SHARED_DSP_PROFILE_VERSION = 'v1.3.84-dock-modal-state-machine';
 
 const MAX_FILES = 35;
 const MAX_FILE_SIZE = 220 * 1024 * 1024;
@@ -342,7 +342,7 @@ function renderSecurityMessage(titleText, ...lines) {
     title.textContent = 'FoxBear Music';
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = 'assets/css/studio.css?v=1.3.83-pc-dock-modal-hardfix';
+    styleLink.href = 'assets/css/studio.css?v=1.3.84-dock-modal-state-machine';
     document.head.append(charset, viewport, title, styleLink);
 
     document.body.textContent = '';
@@ -758,6 +758,9 @@ function closeFeatureDialogFromEvent(event = null) {
 
 function hardSetModalState(dialog, open, bodyClass = '') {
     if (!dialog) return false;
+    if (window.FoxBearModalStateMachine && typeof window.FoxBearModalStateMachine.hardSet === 'function') {
+        return window.FoxBearModalStateMachine.hardSet(dialog, Boolean(open), bodyClass);
+    }
     dialog.hidden = !open;
     dialog.classList.toggle('show', Boolean(open));
     dialog.setAttribute('aria-hidden', open ? 'false' : 'true');
@@ -767,61 +770,69 @@ function hardSetModalState(dialog, open, bodyClass = '') {
     return true;
 }
 
-function installModalHardFixController() {
-    if (state.modalHardFixControllerInstalled) return;
-    state.modalHardFixControllerInstalled = true;
-    const isCloseTarget = (target, ids, attrName) => {
-        if (!target) return false;
-        if (ids.includes(target.id)) return true;
-        if (attrName && target.hasAttribute?.(attrName)) return true;
-        return ids.some(id => target.closest?.(`#${id}`));
-    };
-    const closeFeature = event => {
-        closeFeatureDialog({ restoreFocus: false });
-        if (event) {
-            event.preventDefault?.();
-            event.stopPropagation?.();
-            event.stopImmediatePropagation?.();
-        }
-        return false;
-    };
-    const closePreview = event => {
-        closePreviewDialog(null, { restoreFocus: false });
-        if (event) {
-            event.preventDefault?.();
-            event.stopPropagation?.();
-            event.stopImmediatePropagation?.();
-        }
-        return false;
-    };
-    const handlePointer = event => {
-        const target = event.target && typeof event.target.closest === 'function' ? event.target : null;
-        const featureDialog = el.featureDialog || document.getElementById('featureDialog');
-        const previewDialog = el.previewDialog || document.getElementById('previewDialog');
-        const featureClose = target?.closest?.('#featureDialogClose, .feature-dialog-close, [data-feature-dialog-close]');
-        const previewClose = target?.closest?.('#previewDialogClose, .preview-dialog-close, [data-preview-dialog-close]');
-        if (featureClose) return closeFeature(event);
-        if (previewClose) return closePreview(event);
-        if (featureDialog && event.target === featureDialog && featureDialog.classList.contains('show')) return closeFeature(event);
-        if (previewDialog && event.target === previewDialog && previewDialog.classList.contains('show')) return closePreview(event);
-        const opener = target?.closest?.('#previewOpenBtn');
-        if (opener) {
-            opener.disabled = false;
-            openPreviewDialog(event);
-            return;
-        }
-    };
-    ['pointerup', 'click', 'touchend'].forEach(type => {
-        document.addEventListener(type, handlePointer, { capture: true, passive: false });
+function installManagedModalController() {
+    if (state.managedModalControllerInstalled) return state.modalController || null;
+    if (!window.FoxBearModalStateMachine || !window.FoxBearModalStateMachine.FoxBearModalStateMachine) {
+        console.warn('FoxBear modal state machine is unavailable; falling back to direct modal handlers.');
+        return null;
+    }
+    const controller = new window.FoxBearModalStateMachine.FoxBearModalStateMachine({
+        document,
+        getElement: id => el[id] || document.getElementById(id)
     });
-    document.addEventListener('keydown', event => {
-        if (event.key !== 'Escape') return;
-        const featureDialog = el.featureDialog || document.getElementById('featureDialog');
-        const previewDialog = el.previewDialog || document.getElementById('previewDialog');
-        if (previewDialog?.classList.contains('show')) return closePreview(event);
-        if (featureDialog?.classList.contains('show')) return closeFeature(event);
-    }, { capture: true });
+    controller
+        .register('feature', {
+            dialog: 'featureDialog',
+            openers: ['featureOpenBtn'],
+            closers: ['featureDialogClose'],
+            closeSelector: '.feature-dialog-close, [data-feature-dialog-close]',
+            bodyClass: 'feature-dialog-open',
+            returnFocus: 'featureOpenBtn',
+            onOpen: () => {
+                renderFeatureButtons();
+                hideFeatureTooltip();
+            },
+            onClose: () => hideFeatureTooltip()
+        })
+        .register('preview', {
+            dialog: 'previewDialog',
+            openers: ['previewOpenBtn'],
+            closers: ['previewDialogClose'],
+            closeSelector: '.preview-dialog-close, [data-preview-dialog-close]',
+            bodyClass: 'preview-dialog-open',
+            returnFocus: 'previewOpenBtn',
+            onOpen: ctx => {
+                const ok = openPreviewDialog(ctx.event || null);
+                if (!ok && state.modalController) state.modalController.setOpen('preview', false, { restoreFocus: false, silent: true });
+            },
+            onClose: () => {
+                const dialog = el.previewDialog || document.getElementById('previewDialog');
+                const waveformOnly = dialog?.classList.contains('waveform-compare-mode');
+                if (!waveformOnly) {
+                    pauseAllPreviewAudio();
+                    cleanupRealtimePreview();
+                }
+                if (dialog) dialog.classList.remove('waveform-compare-mode');
+                const title = dialog?.querySelector('#previewDialogTitle');
+                if (title) title.textContent = '미리듣기';
+                if (el.previewDialogBody) el.previewDialogBody.textContent = '';
+            }
+        })
+        .install();
+    state.modalController = controller;
+    state.managedModalControllerInstalled = true;
+    window.FoxBearOpenFeatureDialog = event => openFeatureDialog(event);
+    window.FoxBearCloseFeatureDialog = event => closeFeatureDialogFromEvent(event);
+    window.FoxBearOpenPreviewDialog = event => openPreviewDialog(event);
+    window.FoxBearClosePreviewDialog = event => closePreviewDialog(event, { restoreFocus: false });
+    return controller;
 }
+
+
+function installModalHardFixController() {
+    return installManagedModalController();
+}
+
 
 function forceOpenFeatureDialog(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
@@ -862,23 +873,9 @@ function ensureFeatureDialogLayer() {
 }
 
 function bindFeatureOpenHardFallback() {
-    const button = el.featureOpenBtn || document.getElementById('featureOpenBtn');
-    if (!button) return;
-    ensureFeatureDialogLayer();
-    if (button.dataset.featureHardFallbackBound === 'true') return;
-    button.dataset.featureHardFallbackBound = 'true';
-    window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
-    window.FoxBearCloseFeatureDialog = closeFeatureDialogFromEvent;
-    const open = event => forceOpenFeatureDialog(event);
-    // v1.3.81: avoid pointerdown/pointerup capture spam. A click/touchend
-    // fallback is enough, while the close button remains free to receive its
-    // own click path.
-    button.addEventListener('click', open, { capture: true });
-    button.addEventListener('touchend', open, { capture: true, passive: false });
-    button.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') forceOpenFeatureDialog(event);
-    }, { capture: true });
+    return installManagedModalController();
 }
+
 
 function openPreviewDialog(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
@@ -1348,7 +1345,7 @@ function cleanupRealtimePreview() {
 function updatePreviewButton() {
     if (!el.previewOpenBtn) return;
     const track = getSelectedTrack() || (typeof resolveMainActiveTrackForDock === 'function' ? resolveMainActiveTrackForDock() : null) || state.tracks?.[0] || null;
-    // v1.3.83: keep the mastering-settings preview button clickable.
+    // v1.3.84: keep the mastering-settings preview button clickable.
     // Disabled buttons cannot show a reason when a stale selectedId/dock state exists.
     el.previewOpenBtn.disabled = false;
     el.previewOpenBtn.setAttribute('aria-disabled', String(!track));
@@ -2920,7 +2917,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.83-pc-dock-modal-hardfix');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.3.84-dock-modal-state-machine');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3187,113 +3184,41 @@ function toggleDockDifferenceListen() {
 }
 
 function installDockRemoteDelegation() {
-    if (state.dockRemoteDelegationInstalled) return;
+    if (state.dockRemoteDelegationInstalled) return state.dockController || null;
+    const root = el.bottomPreviewDock || document.getElementById('bottomPreviewDock');
+    if (!root) return null;
+    if (!window.FoxBearDockController || !window.FoxBearDockController.FoxBearDockController) {
+        console.warn('FoxBear dock controller is unavailable; direct button handlers remain active.');
+        return null;
+    }
+    const controller = new window.FoxBearDockController.FoxBearDockController({
+        root,
+        handlers: {
+            bottomPreviewPlayBtn: event => toggleBottomPreviewExternalPlayback(event),
+            bottomPreviewMasterBtn: event => runDockRemoteMaster(event),
+            bottomPreviewMasterPreviewBtn: event => runDockRemoteMasterPreview(event),
+            bottomPreviewWaveformBtn: event => onBottomWaveformButtonClick(event),
+            bottomPreviewOriginalBtn: event => runDockRemoteSourceMode('original', event),
+            bottomPreviewMasteredBtn: event => runDockRemoteSourceMode('mastered', event),
+            translation: (event, target) => runDockRemoteTranslationMode(target.dataset.previewTranslationMode, event)
+        }
+    }).install();
+    state.dockController = controller;
     state.dockRemoteDelegationInstalled = true;
-    document.addEventListener('click', event => {
-        const target = event.target && typeof event.target.closest === 'function' ? event.target.closest(
-            '#bottomPreviewPlayBtn, #bottomPreviewMasterBtn, #bottomPreviewMasterPreviewBtn, #bottomPreviewWaveformBtn, #bottomPreviewOriginalBtn, #bottomPreviewMasteredBtn, [data-preview-translation-mode], #previewDialogClose, .preview-dialog-close'
-        ) : null;
-
-        if (target) {
-            if (target.id === 'previewDialogClose' || target.classList?.contains('preview-dialog-close')) {
-                event.preventDefault();
-                event.stopPropagation();
-                closePreviewDialog();
-                return;
-            }
-            if (target.id === 'bottomPreviewPlayBtn') {
-                toggleBottomPreviewExternalPlayback(event);
-                return;
-            }
-            if (target.id === 'bottomPreviewMasterBtn') {
-                runDockRemoteMaster(event);
-                return;
-            }
-            if (target.id === 'bottomPreviewMasterPreviewBtn') {
-                runDockRemoteMasterPreview(event);
-                return;
-            }
-            if (target.id === 'bottomPreviewWaveformBtn') {
-                event.preventDefault();
-                event.stopPropagation();
-                onBottomWaveformButtonClick(event);
-                return;
-            }
-            if (target.id === 'bottomPreviewOriginalBtn') {
-                runDockRemoteSourceMode('original', event);
-                return;
-            }
-            if (target.id === 'bottomPreviewMasteredBtn') {
-                runDockRemoteSourceMode('mastered', event);
-                return;
-            }
-            if (target.dataset?.previewTranslationMode) {
-                runDockRemoteTranslationMode(target.dataset.previewTranslationMode, event);
-                return;
-            }
-        }
-
-        if (event.target === el.previewDialog && el.previewDialog?.classList.contains('show')) {
-            event.preventDefault();
-            event.stopPropagation();
-            closePreviewDialog();
-        }
-    }, true);
+    return controller;
 }
+
 
 
 function installFeatureDialogFallback() {
-    if (state.featureDialogFallbackInstalled) return;
-    state.featureDialogFallbackInstalled = true;
-    window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog;
-    window.FoxBearCloseFeatureDialog = closeFeatureDialogFromEvent;
-    const handle = event => {
-        const target = event.target && typeof event.target.closest === 'function'
-            ? event.target.closest('#featureOpenBtn, #featureDialogClose, .feature-dialog-close, [data-feature-dialog-close]')
-            : null;
-        const dialog = el.featureDialog || document.getElementById('featureDialog');
-        const closeTarget = target && (target.id === 'featureDialogClose' || target.classList?.contains('feature-dialog-close') || target.hasAttribute?.('data-feature-dialog-close'));
-        const backdropTarget = dialog && event.target === dialog && dialog.classList.contains('show');
-        if (closeTarget || backdropTarget) {
-            closeFeatureDialogFromEvent(event);
-            return;
-        }
-        if (target?.id === 'featureOpenBtn') {
-            ensureFeatureDialogLayer();
-            forceOpenFeatureDialog(event);
-        }
-    };
-    ['click', 'touchend'].forEach(type => {
-        document.addEventListener(type, handle, { capture: true, passive: false });
-    });
+    return installManagedModalController();
 }
 
+
 function installPreviewDialogFallback() {
-    if (state.previewDialogFallbackInstalled) return;
-    state.previewDialogFallbackInstalled = true;
-    window.FoxBearOpenPreviewDialog = openPreviewDialog;
-    window.FoxBearClosePreviewDialog = closePreviewDialog;
-    const handle = event => {
-        const target = event.target && typeof event.target.closest === 'function'
-            ? event.target.closest('#previewOpenBtn, #previewDialogClose, .preview-dialog-close, [data-preview-dialog-close]')
-            : null;
-        if (target?.id === 'previewOpenBtn') {
-            openPreviewDialog(event);
-            return;
-        }
-        if (target && (target.id === 'previewDialogClose' || target.classList?.contains('preview-dialog-close') || target.hasAttribute?.('data-preview-dialog-close'))) {
-            closePreviewDialog(event, { restoreFocus: false });
-            return;
-        }
-        const dialog = el.previewDialog || document.getElementById('previewDialog');
-        if (dialog && event.target === dialog && dialog.classList.contains('show')) {
-            closePreviewDialog(event, { restoreFocus: false });
-        }
-    };
-    ['click', 'touchend'].forEach(type => {
-        document.addEventListener(type, handle, { capture: true, passive: false });
-    });
+    return installManagedModalController();
 }
+
 
 function bindEvents() {
     window.addEventListener('scroll', hideFeatureTooltip, { passive: true });
@@ -3305,9 +3230,7 @@ function bindEvents() {
         window.visualViewport.addEventListener('scroll', scheduleBottomPreviewLayoutSync, { passive: true });
     }
     bindMobileNativeEvents();
-    installModalHardFixController();
-    installFeatureDialogFallback();
-    installPreviewDialogFallback();
+    installManagedModalController();
     if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
     if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
     if (el.programInfoDialog) {
@@ -3315,36 +3238,6 @@ function bindEvents() {
             if (event.target === el.programInfoDialog) closeProgramInfoDialog();
         });
     }
-    if (el.featureOpenBtn) el.featureOpenBtn.addEventListener('click', forceOpenFeatureDialog);
-    bindFeatureOpenHardFallback();
-    if (el.featureDialogClose) {
-        el.featureDialogClose.addEventListener('click', closeFeatureDialogFromEvent, { capture: true });
-        el.featureDialogClose.addEventListener('touchend', closeFeatureDialogFromEvent, { capture: true, passive: false });
-        el.featureDialogClose.addEventListener('pointerdown', event => {
-            if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
-            if (event && typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-        }, { capture: true });
-    }
-    if (el.featureDialog) {
-        el.featureDialog.addEventListener('click', event => {
-            if (event.target === el.featureDialog) closeFeatureDialogFromEvent(event);
-        });
-    }
-    if (el.previewOpenBtn) el.previewOpenBtn.addEventListener('click', event => openPreviewDialog(event));
-    if (el.previewDialogClose) el.previewDialogClose.addEventListener('click', event => closePreviewDialog(event, { restoreFocus: false }));
-    if (el.previewDialogClose) el.previewDialogClose.addEventListener('touchend', event => closePreviewDialog(event, { restoreFocus: false }), { passive: false });
-    if (el.previewDialog) {
-        el.previewDialog.addEventListener('click', event => {
-            if (event.target === el.previewDialog) closePreviewDialog(event, { restoreFocus: false });
-        });
-    }
-    if (el.bottomPreviewPlayBtn) el.bottomPreviewPlayBtn.addEventListener('click', toggleBottomPreviewExternalPlayback);
-    if (el.bottomPreviewWaveformBtn) el.bottomPreviewWaveformBtn.addEventListener('click', onBottomWaveformButtonClick);
-    if (el.bottomPreviewTranslationModes) el.bottomPreviewTranslationModes.addEventListener('click', handlePreviewTranslationModeClick);
-    if (el.bottomPreviewMasterPreviewBtn) el.bottomPreviewMasterPreviewBtn.addEventListener('click', event => runDockRemoteMasterPreview(event));
-    if (el.bottomPreviewMasterBtn) el.bottomPreviewMasterBtn.addEventListener('click', event => runDockRemoteMaster(event));
-    if (el.bottomPreviewOriginalBtn) el.bottomPreviewOriginalBtn.addEventListener('click', event => runDockRemoteSourceMode('original', event));
-    if (el.bottomPreviewMasteredBtn) el.bottomPreviewMasteredBtn.addEventListener('click', event => runDockRemoteSourceMode('mastered', event));
     installDockRemoteDelegation();
     bindAdminStatsEvents();
     if (el.smartSuggestApplyBtn) el.smartSuggestApplyBtn.addEventListener('click', applyAIRecommendationToSelected);
@@ -12571,12 +12464,18 @@ function syncBottomPreviewExternalPlayButton(audio = getBottomPreviewAudio(), fo
     const playing = forcedPlaying === null || forcedPlaying === undefined ? Boolean(audio && !audio.paused && !audio.ended) : Boolean(forcedPlaying);
     button.disabled = !hasSource;
     button.classList.toggle('playing', playing);
-    setPlayerToggleIcon(button, playing);
     if (button.id === 'bottomPreviewPlayBtn') {
+        button.textContent = '';
+        const glyph = document.createElement('span');
+        glyph.className = 'bottom-preview-play-glyph';
+        glyph.setAttribute('aria-hidden', 'true');
+        glyph.textContent = hasSource ? (playing ? 'Ⅱ' : '▶') : '•';
         const label = document.createElement('span');
         label.className = 'bottom-preview-play-label';
         label.textContent = hasSource ? (playing ? '일시정지' : '재생') : '대기';
-        button.appendChild(label);
+        button.append(glyph, label);
+    } else {
+        setPlayerToggleIcon(button, playing);
     }
     button.setAttribute('aria-label', playing ? 'Dock 일시정지' : 'Dock 재생');
     button.title = hasSource ? (playing ? '현재 프리뷰를 일시정지합니다.' : '현재 프리뷰를 재생합니다.') : '음원을 불러오면 재생할 수 있습니다.';
@@ -14113,7 +14012,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.3.83',
+        app: 'FoxBear AI Mastering Studio Pro v1.3.84',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

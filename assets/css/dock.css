@@ -874,7 +874,7 @@ body.preview-dialog-open .bottom-preview-dock {
 }
 
 
-/* v1.3.83 PC Dock / Modal Hard Fix */
+/* v1.3.84 Dock / Modal State Machine Refactor */
 .feature-dialog-backdrop[hidden],
 .preview-dialog-backdrop[hidden] {
   display: none !important;
@@ -1086,4 +1086,171 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   .bottom-preview-dock .bottom-preview-meta.bottom-preview-transport-meta {
     display: none !important;
   }
+}
+
+/* v1.3.84 Dock / Modal State Machine Refactor */
+:root {
+  --foxbear-modal-feature-z: 24600;
+  --foxbear-modal-preview-z: 28200;
+}
+.feature-dialog-backdrop[hidden],
+.preview-dialog-backdrop[hidden],
+.feature-dialog-backdrop:not(.show),
+.preview-dialog-backdrop:not(.show) {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.feature-dialog-backdrop.show:not([hidden]) {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: var(--foxbear-modal-feature-z) !important;
+}
+.preview-dialog-backdrop.show:not([hidden]) {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: var(--foxbear-modal-preview-z) !important;
+}
+.feature-dialog-panel,
+.preview-dialog-panel {
+  pointer-events: auto !important;
+}
+#featureDialogClose,
+#previewDialogClose,
+.feature-dialog-close,
+.preview-dialog-close {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  cursor: pointer !important;
+  z-index: 3 !important;
+}
+@media (min-width: 721px) {
+  .bottom-preview-dock .bottom-preview-inner {
+    display: grid !important;
+    grid-template-columns: clamp(104px, 10.5vw, 136px) minmax(0, 1fr) !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+    min-width: 0 !important;
+  }
+  .bottom-preview-dock .bottom-preview-core {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .bottom-preview-dock .bottom-preview-mobile-meta {
+    display: grid !important;
+    grid-template-columns: minmax(160px, 1fr) minmax(220px, 48%) !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .bottom-preview-dock #bottomPreviewMobileTitle {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    justify-self: start !important;
+  }
+  .bottom-preview-dock .bottom-preview-subline {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    justify-self: end !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+  }
+  .bottom-preview-dock #bottomPreviewGenre {
+    min-width: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+  }
+  .bottom-preview-dock #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+    min-width: 72px !important;
+    width: auto !important;
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+  .bottom-preview-dock .dock-integrated-player {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) clamp(96px, 8.4vw, 126px) !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    gap: 8px !important;
+  }
+  .bottom-preview-dock .dock-integrated-info {
+    width: clamp(96px, 8.4vw, 126px) !important;
+    min-width: 0 !important;
+    max-width: 126px !important;
+    display: grid !important;
+    grid-template-rows: 1fr 1fr !important;
+    align-items: center !important;
+    justify-items: end !important;
+    overflow: hidden !important;
+    padding-left: 6px !important;
+  }
+  .bottom-preview-dock .dock-integrated-source,
+  .bottom-preview-dock .dock-integrated-time {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+    writing-mode: horizontal-tb !important;
+    word-break: keep-all !important;
+  }
+  .bottom-preview-dock .bottom-preview-play-toggle {
+    isolation: isolate !important;
+    text-align: center !important;
+  }
+  .bottom-preview-dock .bottom-preview-play-toggle .player-icon,
+  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play,
+  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
+    display: block !important;
+    flex: 0 0 auto !important;
+    box-sizing: border-box !important;
+  }
+  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::before,
+  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::after {
+    content: none !important;
+    display: none !important;
+  }
+  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
+    border: 0 !important;
+    background: transparent !important;
+  }
+  .bottom-preview-play-label {
+    display: block !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+.bottom-preview-play-glyph {
+  display: block !important;
+  font-size: clamp(1.55rem, 2.4vw, 2.15rem) !important;
+  line-height: .95 !important;
+  font-weight: 900 !important;
+  color: currentColor !important;
+  text-shadow: 0 0 18px rgba(123,245,238,.36) !important;
+}
+.bottom-preview-play-toggle .player-icon,
+.bottom-preview-play-toggle .player-icon-play,
+.bottom-preview-play-toggle .player-icon-pause {
+  display: none !important;
 }

@@ -10614,7 +10614,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
 }
 
 
-/* v1.3.83 PC Dock / Modal Hard Fix */
+/* v1.3.84 Dock / Modal State Machine Refactor */
 .feature-dialog-backdrop[hidden],
 .preview-dialog-backdrop[hidden] {
   display: none !important;
@@ -10827,3 +10827,5 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     display: none !important;
   }
 }
+
+/* v1.3.84 Dock / Modal State Machine Refactor: final Dock/modal overrides live in assets/css/dock.css. */

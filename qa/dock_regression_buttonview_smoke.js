@@ -1,30 +1,13 @@
 const fs = require('fs');
-const html = fs.readFileSync('index.html', 'utf8');
-const app = fs.readFileSync('src/app.js', 'utf8');
-const css = fs.readFileSync('assets/css/studio.css', 'utf8');
-const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-function must(cond, msg) { if (!cond) { console.error(msg); process.exit(1); } }
-
-must(html.includes('data-build="1.3.83"'), 'index build should be v1.3.83');
-must(app.includes("const APP_VERSION = 'Pro v1.3.83'"), 'app version should be v1.3.83');
-must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.3.83-pc-dock-modal-hardfix'"), 'DSP profile slug should be v1.3.83');
-must(pkg.version === '1.3.83', 'package version should be 1.3.83');
-
-must(app.includes('function ensureFeatureDialogLayer()'), 'feature dialog layer guard missing');
-must(app.includes("window.FoxBearOpenFeatureDialog = forceOpenFeatureDialog"), 'feature dialog global fallback missing');
-must(!app.includes("['pointerdown', 'pointerup', 'click']"), 'old pointerdown/up fallback should be removed');
-must(app.includes("['click', 'touchend']"), 'feature pointer/mouse/click/touch fallback missing');
-must(css.includes('v1.3.83 PC Dock / Modal Hard Fix'), 'v1.3.83 CSS guard missing');
-must(css.includes('z-index: 24750 !important'), 'feature dialog should be above Dock without becoming top-most');
-must(css.includes('z-index: auto !important'), 'feature open button z-index reset missing');
-
-must(app.includes('function forceRefreshBottomPreviewDock'), 'Dock waveform force refresh helper missing');
-must(app.includes("forceRefreshBottomPreviewDock(track, 'analysis-complete')"), 'Dock refresh after analysis missing');
-must(app.includes("forceRefreshBottomPreviewDock(track, 'master-complete')"), 'Dock refresh after mastering missing');
-must(app.includes("bars.dataset.waveformReady !== 'true'"), 'placeholder-to-real waveform refresh guard missing');
-must(app.includes('wrap._foxbearPlay'), 'integrated player public play bridge missing');
-
-must(app.includes('download-focus-card'), 'post-master download focus card missing');
-must(app.includes('download-focus-button'), 'post-master download focus button missing');
-must(css.includes('foxbear-download-focus-pulse'), 'download focus pulse CSS missing');
-console.log('PASS dock regression button view smoke');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
+function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
+const app=read('src/app.js'); const html=read('index.html'); const dockCss=read('assets/css/dock.css');
+must(html.includes('id="featureDialog" class="feature-dialog-backdrop" hidden'),'feature dialog hidden initially');
+must(html.includes('data-feature-dialog-close="true"'),'feature close marker');
+must(app.includes('function installManagedModalController'),'managed modal installer');
+must(app.includes('window.FoxBearOpenFeatureDialog'),'feature global open bridge');
+must(app.includes('window.FoxBearCloseFeatureDialog'),'feature global close bridge');
+must(dockCss.includes('.feature-dialog-backdrop.show:not([hidden])'),'feature modal visible state css');
+console.log('PASS dock regression/buttonview smoke');

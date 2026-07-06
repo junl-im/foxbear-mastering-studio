@@ -6,11 +6,11 @@
 - 생성 아이콘: 16/32/48/72/96/128/144/152/180/192/384/512 PNG, Apple touch, legacy `foxbear-music.png`.
 - `manifest.webmanifest`, `index.html`, `sw.js` 아이콘 경로를 새 아이콘 세트로 갱신.
 - 버튼형 적용 팝업 닫기 실패를 막기 위해 닫기 경로를 하드닝하고, `버튼 보기` 버튼 자체의 과도한 최상위 z-index를 제거.
-- 기록 정책: 개별 `PATCH_NOTES_v*.md`를 추가하지 않고 `PROJECT_NOTES.md`와 README에 누적.
+- 기록 정책: 개별 `Archived_v*.md`를 추가하지 않고 `PROJECT_NOTES.md`와 README에 누적.
 
 
 ## 기록 정책
-- v1.3.78부터 `PATCH_NOTES_v*.md` 파일을 새로 만들지 않습니다.
+- v1.3.78부터 `Archived_v*.md` 파일을 새로 만들지 않습니다.
 - 버전 요약, 인수인계, 정리 기록은 이 `PROJECT_NOTES.md`와 `README.md`에 누적합니다.
 
 
@@ -23,19 +23,19 @@
 - Dock 버튼 라인을 3구간으로 분리했습니다: 좌측 `하이라이트 듣기`, 중앙 `마스터링 시작`, 우측 `원곡 프리뷰 / 마스터링 프리뷰`.
 - 마스터링 완료 후 다운로드 버튼 라인이 화면 중앙 또는 살짝 위에 보이도록 직접 스크롤 위치를 계산하고, `여기서 저장` 힌트로 강조합니다.
 - 다운로드 옵션 팝업의 크기/높이/패딩을 보강해 내용이 팝업보다 커 보이거나 아래가 잘리는 문제를 줄였습니다.
-- 변경 기록은 계속 이 파일에 누적하며, 개별 `PATCH_NOTES_v1.3.xx.md` 파일은 생성하지 않습니다.
+- 변경 기록은 계속 이 파일에 누적하며, 개별 `Archived_v1.3.xx.md` 파일은 생성하지 않습니다.
 
 ## v1.3.78 Cleanup / Button View Layer Repair
 - `버튼 보기` 버튼 자체가 모든 화면 위로 올라오는 z-index 과보정 문제를 수정합니다.
 - 버튼형 적용 팝업의 닫기 버튼/배경/ESC 닫기 경로를 정리합니다.
-- 개별 `PATCH_NOTES_v*.md` 파일을 `PROJECT_NOTES.md`로 통합하고 삭제합니다.
+- 개별 `Archived_v*.md` 파일을 `PROJECT_NOTES.md`로 통합하고 삭제합니다.
 - 죽은 코드/중복 코드 후보는 안전 삭제 가능 항목과 보류 항목으로 구분해 기록합니다.
 
 
 ## v1.3.78 Dead Code / File Cleanup Audit
 
 ### 삭제 반영
-- 개별 `PATCH_NOTES_v*.md` 17개를 `PROJECT_NOTES.md`로 통합 후 삭제했습니다.
+- 개별 `Archived_v*.md` 17개를 `PROJECT_NOTES.md`로 통합 후 삭제했습니다.
 - `src/app.js`에서 정적 참조가 1회뿐인 미사용 함수 17개를 제거했습니다.
   - `getAdaptiveTargetLabel`, `activateByKeyboard`, `supportsSystemFilePicker`, `addKeywordScore`
   - `getPhaseSafeWidthFactor`, `addKickToBuffer`, `addHatToBuffer`, `addClapToBuffer`
@@ -53,7 +53,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.60
+### Archived notes v1.3.60
 
 # Patch Notes — FoxBear AI Mastering Studio Pro v1.3.60
 
@@ -72,7 +72,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.61
+### Archived notes v1.3.61
 
 # FoxBear AI Mastering Studio Pro v1.3.61
 
@@ -96,7 +96,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.62
+### Archived notes v1.3.62
 
 # FoxBear AI Mastering Studio Pro v1.3.63
 
@@ -111,7 +111,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.63
+### Archived notes v1.3.63
 
 # FoxBear Mastering Studio Pro v1.3.63 Loudness Target UI Cleanup
 
@@ -127,7 +127,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.64
+### Archived notes v1.3.64
 
 # FoxBear AI Mastering Studio Pro v1.3.64
 
@@ -149,7 +149,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.65
+### Archived notes v1.3.65
 
 # FoxBear AI Mastering Studio Pro v1.3.65
 
@@ -169,7 +169,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.67
+### Archived notes v1.3.67
 
 # FoxBear Mastering Studio Pro v1.3.67
 
@@ -182,7 +182,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.68
+### Archived notes v1.3.68
 
 # FoxBear Mastering Studio Pro v1.3.69
 
@@ -205,7 +205,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.69
+### Archived notes v1.3.69
 
 # FoxBear Mastering Studio Pro v1.3.69
 
@@ -220,7 +220,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.70
+### Archived notes v1.3.70
 
 # v1.3.70 Dock Peak Popup / Toast Stack
 
@@ -239,7 +239,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.71
+### Archived notes v1.3.71
 
 # FoxBear AI Mastering Studio Pro v1.3.71
 
@@ -255,7 +255,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.72
+### Archived notes v1.3.72
 
 # FoxBear Mastering Studio Pro v1.3.72
 
@@ -270,7 +270,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.73
+### Archived notes v1.3.73
 
 # FoxBear Mastering Studio Pro v1.3.73
 
@@ -294,7 +294,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.74
+### Archived notes v1.3.74
 
 # v1.3.74 Dock Integrated Waveform Remote
 
@@ -320,7 +320,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.75
+### Archived notes v1.3.75
 
 # v1.3.78 Cleanup / Button View Layer Repair
 
@@ -332,7 +332,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.76
+### Archived notes v1.3.76
 
 # v1.3.78 Dock Regression & Button View Stabilization
 
@@ -345,7 +345,7 @@
 
 ---
 
-### PATCH_NOTES_v1.3.78
+### Archived notes v1.3.78
 
 # FoxBear AI Mastering Studio Pro v1.3.78
 
@@ -370,7 +370,7 @@
 - Engine path was not changed in this patch. Existing engine bench and golden audio QA remain in the full check chain.
 
 
-## v1.3.83 PC Dock / Modal Hard Fix
+## v1.3.84 Dock / Modal State Machine Refactor
 
 - PC Dock 왼쪽 중복 곡정보 영역을 큰 재생/정지 버튼으로 변경했습니다.
 - Dock 상단 정보줄은 파일명 좌측, 장르/비교보기 우측의 한 줄 구조로 재정렬했습니다.
@@ -379,3 +379,25 @@
 - 버튼형 적용 팝업 닫기는 pointerdown에서 바로 숨기지 않도록 수정하고, click/touchend/ESC 닫기에서 이벤트 전파를 강하게 차단해 닫힌 뒤 다시 열리는 문제를 막았습니다.
 - 마스터링 설정 미리듣기 버튼은 disabled로 죽지 않고 클릭 시 열리거나 이유를 토스트로 말하도록 변경했습니다.
 - 엔진 코드는 변경하지 않고 engine QA/golden audio QA로 정상 여부를 확인하도록 유지했습니다.
+
+---
+
+## v1.3.84 Dock / Modal State Machine Refactor
+
+- Dock/Modal 반복 회귀를 구조 문제로 보고, 증상별 fallback 추가 대신 컨트롤러 분리를 시작했습니다.
+- `src/ui/modal-controller.js`를 추가했습니다.
+  - 버튼형 적용 팝업과 마스터링 설정 미리듣기 팝업의 open/close/ESC/backdrop 경로를 단일 상태 머신으로 관리합니다.
+  - `hidden`, `show`, `aria-hidden`, inline `display`, `pointer-events`, body class를 한 함수에서 동기화합니다.
+- `src/ui/dock-controller.js`를 추가했습니다.
+  - Dock root 내부의 명시적 `data-dock-action`만 처리합니다.
+  - 기존 document 전체 캡처 방식의 Dock dispatcher를 제거하고 root-local dispatcher로 변경했습니다.
+- `src/app.js`의 기존 modal fallback 함수들은 state-machine 설치 shim으로 축소했습니다.
+- `bindEvents()`에서 버튼형/미리듣기/Dock direct click handler 중복 등록을 제거하고, 단일 컨트롤러 경로로 정리했습니다.
+- PC Dock 큰 재생 버튼은 겹치는 CSS 아이콘 대신 `▶ / Ⅱ / •` glyph와 `재생 / 일시정지 / 대기` 텍스트를 사용합니다.
+- PC Dock 정보줄은 파일명 좌측, 장르/비교보기 우측의 한 줄 grid로 보정했습니다.
+- 플레이어 우측 source/time 파티션이 화면 밖으로 밀리지 않도록 폭과 overflow를 다시 제한했습니다.
+- `qa/run_all_checks.js`를 추가해 전체 QA를 runner 방식으로 실행합니다.
+  - 실패해도 다음 QA를 계속 실행하고 마지막에 요약합니다.
+- 신규 QA: `qa/dock_modal_state_machine_smoke.js`.
+- `npm run check` 결과: 67/67 PASS.
+- 엔진 코드는 변경하지 않았습니다. `engine_qa_bench`, `golden_audio_qa_pack`는 통과했습니다.
