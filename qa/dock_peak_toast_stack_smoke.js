@@ -10,16 +10,16 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const failures = [];
 function expect(condition, message) { if (!condition) failures.push(message); }
 
-expect(index.includes('v1.3.81'), 'index should show v1.3.81');
-expect(index.includes('1.3.81-modal-dock-layout-integrity'), 'index asset query should use v1.3.81 cache key');
-expect(pkg.version === '1.3.81', 'package version should be 1.3.81');
-expect(app.includes("const APP_VERSION = 'Pro v1.3.81'"), 'app version constant should be v1.3.81');
+expect(index.includes('v1.3.82'), 'index should show v1.3.82');
+expect(index.includes('1.3.82-pc-dock-modal-rootfix'), 'index asset query should use v1.3.82 cache key');
+expect(pkg.version === '1.3.82', 'package version should be 1.3.82');
+expect(app.includes("const APP_VERSION = 'Pro v1.3.82'"), 'app version constant should be v1.3.82');
 expect(app.includes('function createDockIntegratedWaveformPlayer'), 'Dock should use integrated waveform player');
 expect(app.includes("attachWaveformSeekHandlers(bars, targetMode, 'dock-player')"), 'Dock integrated waveform should bind seek handlers');
 expect(/function onBottomWaveformButtonClick\(event\)\s*{\s*event\?\.preventDefault\?\.\(\);\s*event\?\.stopPropagation\?\.\(\);\s*openWaveformCompareDialog\(\);\s*}/s.test(app), 'Dock compare button should always open compare popup');
 expect(app.includes("target.classList.add('foxbear-toast-stack', 'show')"), 'showToast should enable stack container');
 expect(app.includes("document.createElement('div')") && app.includes("item.className = 'foxbear-toast-item'"), 'showToast should create stacked toast items');
-expect(studioCss.includes('v1.3.81 Dock integrated waveform remote'), 'studio CSS should include v1.3.81 section');
+expect(studioCss.includes('v1.3.82 PC Dock / Modal Root Fix') || studioCss.includes('v1.3.82 Dock integrated waveform remote'), 'studio CSS should include v1.3.82 section');
 expect(studioCss.includes('.dock-integrated-waveform-bars'), 'Integrated waveform CSS should be present');
 expect(studioCss.includes('.waveform-compare-listen'), 'Large compare listen buttons should be styled');
 expect(dockCss.includes('body.bottom-preview-active .toast.foxbear-toast-stack') || dockCss.includes('.toast.foxbear-toast-stack'), 'Stacked toast CSS should remain present');

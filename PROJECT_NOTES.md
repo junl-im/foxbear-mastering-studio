@@ -368,3 +368,14 @@
 - Added hard fallback handlers for Button View close and Realtime Preview open/close, including touch/click/backdrop/ESC paths.
 - Added `qa/modal_dock_layout_integrity_smoke.js` to lock these regressions.
 - Engine path was not changed in this patch. Existing engine bench and golden audio QA remain in the full check chain.
+
+
+## v1.3.82 PC Dock / Modal Root Fix
+
+- PC Dock 왼쪽 중복 곡정보 영역을 큰 재생/정지 버튼으로 변경했습니다.
+- Dock 상단 정보줄은 파일명 좌측, 장르/비교보기 우측의 한 줄 구조로 재정렬했습니다.
+- 통합 플레이어 내부의 작은 재생 버튼은 PC에서 숨기고, 왼쪽 큰 재생 버튼이 현재 원곡/마스터링/하이라이트 소스를 제어하도록 연결했습니다.
+- 플레이어 우측 정보는 위쪽에 원곡/마스터링/하이라이트, 아래쪽에 진행시간/전체 러닝타임이 나오도록 폭과 줄바꿈을 보정했습니다.
+- 버튼형 적용 팝업 닫기는 pointerdown에서 바로 숨기지 않도록 수정하고, click/touchend/ESC 닫기에서 이벤트 전파를 강하게 차단해 닫힌 뒤 다시 열리는 문제를 막았습니다.
+- 마스터링 설정 미리듣기 버튼은 disabled로 죽지 않고 클릭 시 열리거나 이유를 토스트로 말하도록 변경했습니다.
+- 엔진 코드는 변경하지 않고 engine QA/golden audio QA로 정상 여부를 확인하도록 유지했습니다.

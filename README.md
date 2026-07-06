@@ -1,6 +1,6 @@
 ## Latest Patch
 
-### v1.3.81 Modal / Dock Layout Integrity Audit
+### v1.3.82 PC Dock / Modal Root Fix
 
 - Dock 파일명 / 장르 / 비교보기 행을 다시 한 줄 구조로 정리했습니다.
 - Dock 플레이어 우측 정보 영역을 `원곡/마스터링` 위, `진행시간 / 러닝타임` 아래 2단으로 고정했습니다.
@@ -8,9 +8,9 @@
 - 엔진 자체는 변경하지 않았고, 기존 엔진 QA 체인을 유지합니다.
 - 상세 기록은 `PROJECT_NOTES.md`에 누적합니다.
 
-# FoxBear AI Mastering Studio Pro v1.3.81
+# FoxBear AI Mastering Studio Pro v1.3.82
 
-## v1.3.81 Modal / Dock Layout Integrity Audit
+## v1.3.82 PC Dock / Modal Root Fix
 
 - 업로드한 새 FoxBear 로고를 투명 배경 PNG 아이콘 세트로 재생성했습니다.
 - favicon, Apple touch icon, PWA manifest 아이콘, shortcut 아이콘, 기존 `foxbear-music.png`를 새 로고 기반으로 교체했습니다.
@@ -26,4 +26,4 @@
 
 ## 배포 후 확인
 
-브라우저에서 `v1.3.81`가 표시되는지 확인하세요. 이전 Service Worker나 정적 캐시가 남으면 Dock UI가 예전 상태로 보일 수 있습니다.
+브라우저에서 `v1.3.82`가 표시되는지 확인하세요. 이전 Service Worker나 정적 캐시가 남으면 Dock UI가 예전 상태로 보일 수 있습니다.

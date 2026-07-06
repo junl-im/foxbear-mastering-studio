@@ -10457,3 +10457,158 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     .dock-integrated-source { font-size: .40rem !important; }
     .dock-integrated-time { font-size: .38rem !important; }
 }
+
+/* v1.3.82 PC Dock / Modal Root Fix */
+@media (min-width: 721px) {
+    .bottom-preview-inner {
+        display: grid !important;
+        grid-template-columns: clamp(160px, 21vw, 270px) minmax(0, 1fr) !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    .bottom-preview-meta.bottom-preview-transport-meta,
+    .bottom-preview-meta {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 0 !important;
+        min-height: 104px !important;
+        padding: 10px !important;
+        border: 1px solid rgba(255,255,255,.10) !important;
+        border-radius: 18px !important;
+        background:
+            radial-gradient(circle at 50% 45%, rgba(141,245,232,.10), transparent 44%),
+            linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.015)) !important;
+    }
+    .bottom-preview-play-toggle {
+        width: clamp(62px, 7.5vw, 92px) !important;
+        height: clamp(62px, 7.5vw, 92px) !important;
+        border-radius: 999px !important;
+        border: 1px solid rgba(141,245,232,.54) !important;
+        background:
+            radial-gradient(circle at 50% 50%, rgba(141,245,232,.34), rgba(141,245,232,.14) 45%, rgba(10,18,28,.88) 100%) !important;
+        box-shadow: 0 0 0 1px rgba(141,245,232,.10), 0 0 26px rgba(141,245,232,.22), inset 0 1px 0 rgba(255,255,255,.16) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        color: #dffffb !important;
+        pointer-events: auto !important;
+        touch-action: manipulation !important;
+    }
+    .bottom-preview-play-toggle .player-icon-play {
+        width: 0 !important;
+        height: 0 !important;
+        border-top: clamp(12px, 1.35vw, 17px) solid transparent !important;
+        border-bottom: clamp(12px, 1.35vw, 17px) solid transparent !important;
+        border-left: clamp(19px, 2vw, 27px) solid currentColor !important;
+        margin-left: 5px !important;
+    }
+    .bottom-preview-play-toggle .player-icon-pause {
+        width: clamp(22px, 2.3vw, 30px) !important;
+        height: clamp(26px, 2.8vw, 36px) !important;
+        position: relative !important;
+    }
+    .bottom-preview-play-toggle .player-icon-pause::before,
+    .bottom-preview-play-toggle .player-icon-pause::after {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 35% !important;
+        border-radius: 5px !important;
+        background: currentColor !important;
+    }
+    .bottom-preview-play-toggle .player-icon-pause::before { left: 0 !important; }
+    .bottom-preview-play-toggle .player-icon-pause::after { right: 0 !important; }
+    .bottom-preview-play-toggle.playing {
+        background:
+            radial-gradient(circle at 50% 50%, rgba(255,237,169,.34), rgba(141,245,232,.16) 44%, rgba(10,18,28,.90) 100%) !important;
+        border-color: rgba(255,237,169,.62) !important;
+    }
+    .bottom-preview-core {
+        min-width: 0 !important;
+        align-self: center !important;
+    }
+    .bottom-preview-mobile-meta {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(160px, auto) !important;
+        align-items: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+    #bottomPreviewMobileTitle {
+        justify-self: start !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+    .bottom-preview-subline {
+        justify-self: end !important;
+        max-width: min(48vw, 520px) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+        min-width: 0 !important;
+    }
+    #bottomPreviewGenre {
+        flex: 1 1 auto !important;
+        min-width: 72px !important;
+        max-width: min(32vw, 390px) !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        text-align: right !important;
+    }
+    #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
+        flex: 0 0 auto !important;
+        min-width: 74px !important;
+        max-width: none !important;
+        white-space: nowrap !important;
+    }
+    .bottom-preview-player .dock-integrated-toggle,
+    .dock-integrated-toggle {
+        display: none !important;
+    }
+    .bottom-preview-player .dock-integrated-player,
+    .dock-integrated-player {
+        grid-template-columns: minmax(0, 1fr) clamp(116px, 11vw, 154px) !important;
+        gap: 9px !important;
+        min-width: 0 !important;
+    }
+    .dock-integrated-info {
+        min-width: 116px !important;
+        max-width: 154px !important;
+        overflow: hidden !important;
+        display: grid !important;
+        grid-template-rows: 1fr 1fr !important;
+        align-items: center !important;
+        gap: 1px !important;
+    }
+    .dock-integrated-source,
+    .dock-integrated-time {
+        text-align: right !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        writing-mode: horizontal-tb !important;
+        word-break: keep-all !important;
+    }
+}
+@media (max-width: 720px) {
+    .bottom-preview-play-toggle { display: none !important; }
+    .bottom-preview-meta.bottom-preview-transport-meta,
+    .bottom-preview-meta { display: none !important; }
+}
+#previewOpenBtn.soft-disabled {
+    opacity: .72 !important;
+}
+.feature-dialog-backdrop[hidden],
+.preview-dialog-backdrop[hidden] {
+    display: none !important;
+    pointer-events: none !important;
+}
+.feature-dialog-backdrop.show:not([hidden]),
+.preview-dialog-backdrop.show:not([hidden]) {
+    pointer-events: auto !important;
+}
