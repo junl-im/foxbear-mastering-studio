@@ -1,7 +1,7 @@
 // FoxBear AI Mastering Studio Pro v1.3.84 service worker
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.3.84-dock-modal-state-machine-stage3';
+const CACHE_NAME = 'foxbear-shell-v1.3.84-dock-modal-state-machine-stage4';
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -32,6 +32,8 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-512.png?v=1.3.84-dock-modal-state-machine',
   './assets/icons/apple-touch-icon.png?v=1.3.84-dock-modal-state-machine',
   './manifest.webmanifest?v=1.3.84-dock-modal-state-machine',
+  './assets/css/theme.css?v=1.3.84-dock-modal-state-machine',
+  './assets/css/layout.css?v=1.3.84-dock-modal-state-machine',
   './assets/css/studio.css?v=1.3.84-dock-modal-state-machine',
   './assets/css/dock.css?v=1.3.84-dock-modal-state-machine',
   './assets/css/export.css?v=1.3.84-dock-modal-state-machine',
@@ -49,6 +51,7 @@ const CORE_ASSETS = [
   './src/ui/modal-controller.js?v=1.3.84-dock-modal-state-machine',
   './src/ui/dock-controller.js?v=1.3.84-dock-modal-state-machine',
   './src/ui/mobile-native-view.js?v=1.3.84-dock-modal-state-machine',
+  './src/ui/download-dialog-view.js?v=1.3.84-dock-modal-state-machine',
   './src/security/site-guards.js?v=1.3.84-dock-modal-state-machine',
   './src/app.js?v=1.3.84-dock-modal-state-machine',
   './assets/icons/foxbear-music.png?v=1.3.84-dock-modal-state-machine'

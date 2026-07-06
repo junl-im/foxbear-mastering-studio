@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const app = fs.readFileSync(path.join(root, 'src/app.js'), 'utf8');
+const downloadDialogView = fs.readFileSync(path.join(root, 'src/ui/download-dialog-view.js'), 'utf8');
+const appAndDownloadDialog = `${app}\n${downloadDialogView}`;
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
@@ -21,6 +23,6 @@ assert(app.includes("forceRefreshBottomPreviewDock(track, 'analysis-complete')")
 assert(app.includes('bindFeatureOpenHardFallback'), 'feature open hard fallback added');
 assert(css.includes('#featureOpenBtn') && css.includes('pointer-events: auto'), 'feature open css guard added');
 assert(app.includes("target.scrollIntoView({ behavior: 'smooth', block: 'center'") || app.includes('download-focus-card'), 'download action line scrolls to center');
-assert(app.includes('isRestrictedDownloadBrowser() && supportsWebShareFiles'), 'restricted browser share-first download flow added');
+assert(appAndDownloadDialog.includes('isRestrictedDownloadBrowser() && supportsWebShareFiles'), 'restricted browser share-first download flow added');
 assert(pkg.version === '1.3.84', 'package version updated');
 console.log('PASS dock waveform/download fix smoke');
