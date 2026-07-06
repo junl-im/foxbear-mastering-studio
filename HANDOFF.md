@@ -1,3 +1,42 @@
+# Stage9 handoff - Dock waveform CSS split
+
+## Why this patch exists
+
+Dock waveform/timeline styling had accumulated inside `assets/css/dock.css` alongside broader Dock layout, toast anchors, mobile text repair, and modal z-index fixes. After Stage7 moved compare-popup styles into `waveform-compare.css`, the next safe split was to give Dock waveform styles their own layer.
+
+## What changed
+
+- New file: `assets/css/dock-waveform.css`.
+- `dock.css` no longer owns `.bottom-preview-waveform`, `.bottom-waveform-bars`, `.dock-integrated-waveform-bars`, `.dock-integrated-waveform-hot`, or `.dock-integrated-waveform-clip`.
+- `dock-waveform.css` owns the Dock timeline model, touch seek cursor, progress gradient, integrated waveform visual contrast, and 1px live playhead line plus small cap.
+- `index.html` loads CSS in this order: `dock.css`, `dock-waveform.css`, `waveform-compare.css`.
+- `sw.js` precaches `dock-waveform.css` and uses the stage9 cache name.
+- Existing waveform QA scripts were updated to inspect the dedicated waveform layer.
+- Added `qa/stage9_dock_waveform_css_split_smoke.js`.
+
+## QA
+
+```bash
+npm run check
+# Passed: 83/83
+# Failed: 0/83
+```
+
+## Manual checks
+
+1. PC: import a song and confirm the Dock waveform renders and the playhead moves.
+2. PC: use Dock waveform seek/click and confirm playback jumps to the expected position.
+3. Mobile: confirm Dock waveform/timeline still fits after the Stage8 compact overlay hotfix.
+4. Compare popup: confirm its popup waveform styling is unchanged because `waveform-compare.css` still loads last.
+
+## 다음 패치 후보
+
+1. `src/download/` 분리: download environment, format options, blob preparation service/view 분리.
+2. `assets/css/components/` 분리: buttons/forms/cards/panels 순서로 `studio.css` legacy 영역 축소.
+3. `src/ui/detail-view.js` 분리: detail panel/rendering logic을 `app.js`에서 분리.
+
+---
+
 # Stage8 handoff - Async playback/import guard + compact mobile Dock overlays
 
 ## Why this patch exists

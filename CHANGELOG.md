@@ -1,5 +1,16 @@
 # Changelog
 
+## Stage9 - Dock waveform CSS split
+
+- Added `assets/css/dock-waveform.css` as the dedicated owner for Dock waveform/timeline/live playhead styles.
+- Moved Dock waveform selectors out of `assets/css/dock.css`: `.bottom-preview-waveform`, `.bottom-waveform-bars`, `.dock-integrated-waveform-bars`, and hot/clip marker rules now live in the new file.
+- Preserved CSS load order: `dock.css` -> `dock-waveform.css` -> `waveform-compare.css`, so Dock layout loads first, Dock waveform overrides second, and compare-popup overrides last.
+- Added `dock-waveform.css` to `index.html` with SRI and to `sw.js` precache.
+- Bumped `sw.js` cache name to stage9.
+- Updated waveform QA scripts to read the new dedicated CSS layer.
+- Added `qa/stage9_dock_waveform_css_split_smoke.js`.
+- QA result: `npm run check` -> 83/83 PASS.
+
 ## Stage8 - Async playback/import guard + compact mobile Dock overlays
 
 - Fixed noisy global `앱 비동기 오류` reporting for benign mobile browser playback promise interruptions. Autoplay/paused/new-load rejections now show a playback-specific Dock guidance message instead of a scary app error.

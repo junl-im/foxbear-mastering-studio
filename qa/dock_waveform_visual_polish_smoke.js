@@ -3,6 +3,7 @@ const html = fs.readFileSync('index.html', 'utf8');
 const app = fs.readFileSync('src/app.js', 'utf8');
 const css = fs.readFileSync('assets/css/studio.css', 'utf8');
 const dockCss = fs.readFileSync('assets/css/dock.css', 'utf8');
+const dockWaveformCss = fs.readFileSync('assets/css/dock-waveform.css', 'utf8');
 const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 function must(cond, msg) { if (!cond) { console.error(msg); process.exit(1); } }
@@ -17,7 +18,7 @@ must(app.includes('dock-waveform-polished'), 'polished dock waveform class missi
 must(css.includes('v1.3.84 Dock / Modal State Machine Refactor'), 'v1.3.84 waveform CSS section missing');
 must(css.includes('align-items: center !important'), 'mirror waveform center alignment missing');
 must(css.includes('is-played'), 'played segment contrast CSS missing');
-must(css.includes('width: 9px !important') || dockCss.includes('width: 9px !important') || compareCss.includes('width: 6px !important'), 'glow capsule playhead CSS missing');
+must(css.includes('width: 9px !important') || dockCss.includes('width: 9px !important') || dockWaveformCss.includes('width: 9px !important') || compareCss.includes('width: 6px !important'), 'glow capsule playhead CSS missing');
 must(css.includes('white-space: nowrap !important'), 'nowrap label CSS missing');
 must(dockCss.includes('v1.3.84 Dock / Modal State Machine Refactor'), 'dock CSS v1.3.84 section missing');
 console.log('PASS icon refresh and button view close repair smoke');

@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-3-84",
   "version": "1.3.84",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.3.84 Stage8 async playback and mobile Dock overlay hotfix static build",
+  "description": "FoxBear AI Mastering Studio Pro v1.3.84 Stage9 Dock waveform CSS split static build",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -91,6 +91,7 @@
     "node qa/waveform_compare_stage6_module_smoke.js",
     "node qa/waveform_compare_stage7_css_cleanup_smoke.js",
     "node qa/docs_handoff_smoke.js",
-    "node qa/stage8_async_mobile_dock_smoke.js"
+    "node qa/stage8_async_mobile_dock_smoke.js",
+    "node qa/stage9_dock_waveform_css_split_smoke.js"
   ]
 }

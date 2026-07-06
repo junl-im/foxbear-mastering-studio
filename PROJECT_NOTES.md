@@ -1,5 +1,14 @@
 # FoxBear Project Notes
 
+## Stage9 Dock Waveform CSS Split
+
+- `assets/css/dock-waveform.css`를 추가해 Dock waveform/timeline/live playhead 스타일을 전용 CSS layer로 분리했습니다.
+- `assets/css/dock.css`에서는 `.bottom-preview-waveform`, `.bottom-waveform-bars`, `.dock-integrated-waveform-bars` 계열 selector를 제거했습니다.
+- CSS 로딩 순서는 `dock.css` -> `dock-waveform.css` -> `waveform-compare.css`입니다. Dock 기본 레이아웃, Dock 파형, 비교 팝업 override 순서를 유지해야 합니다.
+- `sw.js` cache name을 stage9로 갱신하고 `dock-waveform.css`를 precache에 추가했습니다.
+- `qa/stage9_dock_waveform_css_split_smoke.js`를 추가하고 기존 waveform QA를 새 CSS layer 기준으로 보정했습니다.
+- 검증: `npm run check` 83/83 PASS.
+
 ## Stage8 Async Playback / Mobile Dock Overlay Hotfix
 
 - `앱 비동기 오류`가 브라우저 재생 차단/중단 상황까지 과하게 표시되던 문제를 완화했습니다.

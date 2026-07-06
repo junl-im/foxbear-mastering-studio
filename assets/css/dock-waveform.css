@@ -1,0 +1,179 @@
+/* v1.3.85 Stage9: Dock waveform dedicated CSS layer - timeline, touch seek, live playhead */
+
+.bottom-preview-waveform,
+.bottom-waveform-bars {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.bottom-preview-waveform {
+  order: 1 !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(96px, 1fr) 58px !important;
+  align-items: center !important;
+  gap: 7px !important;
+  width: 100% !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  z-index: 2 !important;
+  pointer-events: auto !important;
+}
+
+.bottom-preview-waveform .bottom-waveform-head {
+  grid-column: 1 !important;
+  display: flex !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+}
+
+.bottom-preview-waveform .bottom-waveform-head strong {
+  display: none !important;
+}
+
+.bottom-preview-waveform .bottom-waveform-head em {
+  min-width: 32px !important;
+  padding: 2px 4px !important;
+  text-align: center !important;
+  font-size: .40rem !important;
+  letter-spacing: -.03em !important;
+}
+
+.bottom-preview-waveform .bottom-waveform-bars {
+  grid-column: 2 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  pointer-events: none !important;
+  cursor: pointer !important;
+}
+
+.bottom-preview-waveform::after {
+  content: '피크';
+  grid-column: 3;
+  justify-self: end;
+  color: rgba(216,245,255,.62);
+  font-size: .50rem;
+  font-weight: 950;
+  letter-spacing: -.04em;
+  white-space: nowrap;
+}
+
+.bottom-waveform-bars {
+  --waveform-playhead-pct: 0%;
+  --waveform-progress-pct: 0%;
+  position: relative !important;
+  cursor: pointer;
+  touch-action: none;
+  isolation: isolate;
+  background-image: linear-gradient(90deg, rgba(141,245,232,.13) 0 var(--waveform-progress-pct), rgba(255,255,255,.018) var(--waveform-progress-pct) 100%);
+  background-clip: padding-box;
+}
+
+.bottom-waveform-bars[role="slider"] {
+  cursor: ew-resize;
+}
+
+.bottom-waveform-bars:focus-visible {
+  outline: 2px solid rgba(141,245,232,.74);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.bottom-waveform-bars i {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bottom-waveform-bars::selection {
+  background: transparent;
+}
+
+.bottom-waveform-bars[data-waveform-playback-percent]::after {
+  left: var(--waveform-playhead-pct, 0%) !important;
+}
+
+.bottom-waveform-bars:active {
+  filter: brightness(1.12) saturate(1.08);
+}
+
+.bottom-waveform-bars.has-live-playhead::after,
+.dock-integrated-waveform-bars.has-live-playhead::after {
+  content: '';
+  position: absolute;
+  left: var(--waveform-playhead-pct, 0%);
+  width: 1px !important;
+  top: 2px !important;
+  bottom: 2px !important;
+  border-radius: 999px;
+  transform: translateX(-50%) !important;
+  background: rgba(235,255,255,.86) !important;
+  box-shadow: 0 0 0 1px rgba(6,16,24,.22), 0 0 10px rgba(141,245,232,.28) !important;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.bottom-waveform-bars.has-live-playhead::before,
+.dock-integrated-waveform-bars.has-live-playhead::before {
+  content: '';
+  position: absolute;
+  left: var(--waveform-playhead-pct, 0%);
+  width: 6px !important;
+  height: 6px !important;
+  top: 0 !important;
+  border-radius: 999px;
+  transform: translate(-50%, -45%) !important;
+  background: rgba(235,255,255,.96) !important;
+  box-shadow: 0 0 0 2px rgba(141,245,232,.12), 0 0 10px rgba(141,245,232,.42) !important;
+  pointer-events: none;
+  z-index: 7;
+}
+
+.bottom-waveform-bars.is-playing,
+.dock-integrated-waveform-bars.is-playing {
+  background-image: linear-gradient(90deg, rgba(141,245,232,.24) 0 var(--waveform-progress-pct), rgba(255,255,255,.024) var(--waveform-progress-pct) 100%);
+}
+
+.bottom-waveform-bars.is-playing::after,
+.dock-integrated-waveform-bars.is-playing::after {
+  background: rgba(141,245,232,.92) !important;
+  box-shadow: 0 0 0 1px rgba(6,16,24,.28), 0 0 12px rgba(141,245,232,.44) !important;
+}
+
+.bottom-preview-waveform.has-live-playhead::after,
+.bottom-preview-waveform.has-live-playhead::before {
+  content: none !important;
+}
+
+.dock-integrated-waveform-bars {
+  align-items: center !important;
+  gap: 2px !important;
+}
+
+.dock-integrated-waveform-bars::before {
+  width: 9px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, rgba(231,255,255,.98), rgba(141,245,232,.98), rgba(82,203,255,.88)) !important;
+  box-shadow: 0 0 0 3px rgba(141,245,232,.13), 0 0 18px rgba(141,245,232,.68) !important;
+}
+
+.dock-integrated-waveform-hot { opacity: .70 !important; }
+.dock-integrated-waveform-clip { opacity: .78 !important; }
+
+@media (max-width: 720px) {
+  .bottom-preview-waveform {
+    grid-template-columns: 34px minmax(78px, 1fr) 52px !important;
+    gap: 5px !important;
+  }
+  .bottom-preview-waveform::after {
+    font-size: .42rem;
+  }
+  .bottom-preview-waveform .bottom-waveform-head em {
+    min-width: 28px !important;
+    font-size: .32rem !important;
+  }
+  .bottom-waveform-bars.has-live-playhead::before,
+  .dock-integrated-waveform-bars.has-live-playhead::before {
+    width: 6px !important;
+    height: 6px !important;
+  }
+}
