@@ -10,6 +10,7 @@ const {
     median,
     normalizeWaveformValues,
     sampleMarkersFromValues,
+    getWaveformMarkerForIndex = FoxBearCoreUtils.getWaveformMarkerForlndex,
     createWaveformOverview,
     sampleWaveformOverview,
     samplePeakMarkers
@@ -11686,14 +11687,18 @@ function syncBottomPreviewFloatingOffset() {
     const viewportHeight = Math.round(visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 720);
     const rect = dock.getBoundingClientRect ? dock.getBoundingClientRect() : { height: 0 };
     const measured = Math.ceil(Math.max(rect.height || 0, dock.offsetHeight || 0, dock.scrollHeight || 0));
-    const fallback = mobile ? 218 : 176;
-    const maxReasonable = Math.max(fallback, Math.floor(viewportHeight * (mobile ? 0.48 : 0.36)));
-    const height = Math.max(fallback, Math.min(measured || fallback, maxReasonable));
-    // Stage8: keep mobile overlays close to the Dock. Previous mobile gaps made
-    // toast/wake-lock/status layers float too far above the player.
-    const floatingGap = mobile ? 4 : 10;
-    const hudGap = mobile ? 4 : 8;
-    const panelGap = mobile ? 10 : 18;
+    const fallback = mobile ? 164 : 176;
+    const minReasonable = mobile ? 96 : 120;
+    const maxReasonable = Math.max(fallback, Math.floor(viewportHeight * (mobile ? 0.46 : 0.36)));
+    const height = measured > 0
+        ? clamp(measured, minReasonable, maxReasonable)
+        : fallback;
+    // Stage11.1: anchor mobile overlays to the measured Dock edge. Do not force
+    // a tall fallback over real mobile Dock height; that made toasts/HUD/quick
+    // controls appear detached from the player.
+    const floatingGap = mobile ? 1 : 10;
+    const hudGap = mobile ? 1 : 8;
+    const panelGap = mobile ? 4 : 18;
     root.style.setProperty('--bottom-preview-height', `${height}px`);
     root.style.setProperty('--bottom-preview-floating-bottom', `${height + floatingGap}px`);
     root.style.setProperty('--bottom-preview-hud-bottom', `${height + hudGap}px`);

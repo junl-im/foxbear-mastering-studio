@@ -13,6 +13,7 @@
         if (options.ariaExpanded !== undefined) button.setAttribute('aria-expanded', String(options.ariaExpanded));
         if (options.ariaControls) button.setAttribute('aria-controls', options.ariaControls);
         if (options.nativeAction) button.dataset.nativeAction = options.nativeAction;
+        if (options.icon) button.dataset.icon = options.icon;
         return button;
     }
 
@@ -20,9 +21,11 @@
         if (!doc.body) return null;
         const existing = doc.getElementById('mobileNativeLayer');
         if (existing) {
+            const legacyStatus = doc.getElementById('mobileNativeStatus');
+            if (legacyStatus && legacyStatus.parentNode) legacyStatus.parentNode.removeChild(legacyStatus);
             return {
                 layer: existing,
-                status: doc.getElementById('mobileNativeStatus'),
+                status: null,
                 toggle: doc.getElementById('mobileNativeQuickToggle'),
                 panel: doc.getElementById('mobileNativePanel')
             };
@@ -33,12 +36,7 @@
         layer.className = 'mobile-native-layer';
         layer.setAttribute('aria-live', 'polite');
 
-        const status = createButton({
-            id: 'mobileNativeStatus',
-            className: 'mobile-native-status',
-            text: '앱 편의',
-            title: '모바일 앱 편의 기능 상태를 봅니다.'
-        });
+        const status = null;
 
         const toggle = createButton({
             id: 'mobileNativeQuickToggle',
@@ -60,7 +58,7 @@
         const panelTitle = doc.createElement('strong');
         panelTitle.textContent = '모바일 퀵패널';
         const closeButton = createButton({
-            className: 'mobile-native-close',
+            className: 'mobile-native-close download-options-close',
             text: '×',
             nativeAction: 'close',
             ariaLabel: '퀵패널 닫기'
@@ -86,24 +84,24 @@
         actionGrid.setAttribute('role', 'group');
         actionGrid.setAttribute('aria-label', '재생 퀵 액션');
         [
-            ['original', '원본'],
-            ['mastered', '마스터'],
-            ['phone', '폰'],
-            ['mono', '모노'],
-            ['peak', '피크 점프'],
-            ['download', '다운로드'],
-            ['share', '공유'],
-            ['install', '앱 설치']
-        ].forEach(([action, label]) => actionGrid.appendChild(createButton({ nativeAction: action, text: label })));
+            ['original', '♪', '원본'],
+            ['mastered', '★', '마스터'],
+            ['phone', '☎', '폰'],
+            ['mono', '●', '모노'],
+            ['peak', '↯', '피크'],
+            ['download', '↓', '저장'],
+            ['share', '↗', '공유'],
+            ['install', '+', '앱']
+        ].forEach(([action, icon, label]) => actionGrid.appendChild(createButton({ nativeAction: action, icon, text: label })));
 
         const toggleRow = doc.createElement('div');
         toggleRow.className = 'mobile-native-toggle-row';
         [
-            ['wake', '화면유지'],
-            ['haptic', '진동피드백'],
-            ['persist', '저장소보호'],
-            ['restore', '재생복구']
-        ].forEach(([action, label]) => toggleRow.appendChild(createButton({ nativeAction: action, text: label })));
+            ['wake', '☼', '화면유지'],
+            ['haptic', '•', '진동'],
+            ['persist', '▣', '저장보호'],
+            ['restore', '↺', '복구']
+        ].forEach(([action, icon, label]) => toggleRow.appendChild(createButton({ nativeAction: action, icon, text: label })));
 
         const guide = doc.createElement('p');
         guide.className = 'mobile-native-guide';
@@ -111,7 +109,7 @@
         guide.textContent = 'Dock은 낮게 유지하고 잠금화면, 햅틱, 공유, 피크 이동을 퀵패널로 처리합니다.';
 
         panel.append(panelHead, statusGrid, actionGrid, toggleRow, guide);
-        layer.append(status, toggle, panel);
+        layer.append(toggle, panel);
         doc.body.appendChild(layer);
 
         return { layer, status, toggle, panel };

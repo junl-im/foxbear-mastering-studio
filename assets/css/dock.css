@@ -1094,3 +1094,39 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     bottom: calc(var(--bottom-preview-height, 190px) + 2px + env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* v1.3.84 Stage11.1: pin mobile floating notices directly above the measured Dock */
+@media (max-width: 720px) {
+  body.bottom-preview-active .toast,
+  body.bottom-preview-active .download-assist,
+  body.bottom-preview-active .download-help,
+  body.bottom-preview-active .download-helper,
+  body.bottom-preview-active .export-helper {
+    bottom: calc(var(--bottom-preview-floating-bottom, var(--bottom-preview-height, 164px)) + env(safe-area-inset-bottom)) !important;
+    margin-bottom: 0 !important;
+  }
+  body.bottom-preview-active .processing-hud {
+    bottom: calc(var(--bottom-preview-hud-bottom, var(--bottom-preview-height, 164px)) + env(safe-area-inset-bottom)) !important;
+    margin-bottom: 0 !important;
+  }
+  body.bottom-preview-active .toast.foxbear-toast-stack {
+    bottom: calc(var(--bottom-preview-floating-bottom, var(--bottom-preview-height, 164px)) + env(safe-area-inset-bottom)) !important;
+    right: max(6px, env(safe-area-inset-right)) !important;
+    gap: 3px !important;
+    margin-bottom: 0 !important;
+  }
+  body.bottom-preview-active .foxbear-toast-item {
+    margin-bottom: 0 !important;
+  }
+}
+@media (max-width: 420px) {
+  body.bottom-preview-active .toast,
+  body.bottom-preview-active .download-assist,
+  body.bottom-preview-active .download-help,
+  body.bottom-preview-active .download-helper,
+  body.bottom-preview-active .export-helper,
+  body.bottom-preview-active .processing-hud,
+  body.bottom-preview-active .toast.foxbear-toast-stack {
+    bottom: calc(var(--bottom-preview-height, 154px) + 1px + env(safe-area-inset-bottom)) !important;
+  }
+}

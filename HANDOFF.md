@@ -1,3 +1,41 @@
+# Stage11.1 handoff - Runtime waveform marker and mobile Dock overlay hotfix
+
+## Why this patch exists
+
+After the Stage11 split, importing audio could crash the Dock renderer with `getWaveformMarkerForIndex is not defined`. The helper had effectively become local to the waveform compare module while the Dock waveform path in `src/app.js` still called it directly. Mobile users also reported that toast/HUD/quick-panel controls were still visually detached from the Dock, and the quick panel had an extra side status/result chip.
+
+## What changed
+
+- `src/utils/core-utils.js` now exports `getWaveformMarkerForIndex()` and a compatibility alias `getWaveformMarkerForlndex`.
+- `src/app.js` imports the shared helper and uses measured Dock height for mobile floating offsets.
+- Mobile floating gaps are now 1px for toast/HUD and 4px for panel calculations.
+- `src/ui/mobile-native-view.js` removes the side status chip and upgrades quick action labels to compact icon labels.
+- `assets/css/mobile-native.css` pins the quick panel to the Dock, hides any legacy status chip, and aligns the close button with the download/options close style.
+- `assets/css/dock.css` adds a final Stage11.1 mobile overlay anchor layer for toast, HUD, download hints, and stacked toasts.
+- `sw.js`, SRI, package QA, and docs were updated.
+
+## QA
+
+```bash
+npm run check
+# Passed: 89/89
+# Failed: 0/89
+```
+
+## Manual checks
+
+1. Mobile and PC: import one audio file and confirm Dock waveform renders without `getWaveformMarkerForIndex` errors.
+2. Mobile: confirm toast, notification, processing HUD, and quick panel controls sit just above the Dock instead of floating far away.
+3. Mobile: confirm only the quick panel icon remains beside the Dock; the side status/result chip is gone.
+4. Mobile: open the quick panel and confirm icon grid layout and close button match the other popups.
+5. Confirm Stage11 recommendation and base component split still works.
+
+## Next patch candidate
+
+Once this runtime hotfix is confirmed, continue with `src/ui/detail-view.js` extraction or a second CSS component split.
+
+---
+
 # Stage11 handoff - Large modular renovation
 
 ## Why this patch exists

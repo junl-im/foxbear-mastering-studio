@@ -1,5 +1,19 @@
 # FoxBear Project Notes
 
+## Stage11.1 Runtime Waveform / Mobile Dock Overlay Hotfix
+
+- 음악 파일을 불러온 뒤 Dock 파형 렌더링에서 `getWaveformMarkerForIndex is not defined`가 발생하던 문제를 수정했습니다.
+- `getWaveformMarkerForIndex()`를 `src/utils/core-utils.js`의 공유 유틸로 승격했고, 보고된 `getWaveformMarkerForlndex` 오타형 alias도 함께 제공합니다.
+- 모바일 Dock floating offset 계산을 강제 큰 fallback 기준이 아니라 실제 측정 Dock 높이 기준으로 바꿨습니다.
+- toast, 알림, HUD, 다운로드 안내, 퀵패널이 Dock 바로 위쪽에 붙도록 `dock.css`와 `mobile-native.css`에 Stage11.1 override를 추가했습니다.
+- 퀵패널 옆 상태/결과 chip을 제거하고 단일 퀵패널 아이콘만 남겼습니다.
+- 퀵패널 내부 action을 compact icon label로 정리했고 닫기 버튼은 다운로드/타 팝업 close 스타일과 맞췄습니다.
+- `sw.js` cache name을 stage11.1로 갱신했습니다.
+- `qa/stage11_1_runtime_mobile_hotfix_smoke.js`를 추가했습니다.
+- 검증: `npm run check` 89/89 PASS.
+
+# FoxBear Project Notes
+
 ## Stage11 Large Modular Renovation
 
 - `src/recommendation/recommendation-engine.js`를 추가해 장르 추천 점수 계산, 후보 사유/감점, 추천 설명 chip, safe fallback 추천 로직을 `src/app.js`에서 분리했습니다.

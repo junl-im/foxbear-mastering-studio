@@ -1,5 +1,16 @@
 # Changelog
 
+## Stage11.1 - Runtime waveform marker and mobile Dock overlay hotfix
+
+- Fixed the runtime crash `getWaveformMarkerForIndex is not defined` that appeared after loading music and rendering the Dock waveform. The marker helper now lives in `src/utils/core-utils.js`, and `src/app.js` imports it with a compatibility alias for the reported lowercase-l typo variant.
+- Changed mobile Dock floating offset calculation to use the measured Dock height instead of forcing a tall fallback. Toasts, notifications, processing HUD, download hints, and mobile quick panel controls now anchor directly above the Dock.
+- Removed the legacy status/result chip beside the mobile quick panel toggle. The mobile quick panel now opens from a single compact icon.
+- Updated quick panel action buttons with compact icon labels and made the quick panel close button share the same close style as other popups.
+- Added Stage11.1 mobile/Dock CSS override layers in `dock.css` and `mobile-native.css`.
+- Bumped `sw.js` cache name to stage11.1.
+- Added `qa/stage11_1_runtime_mobile_hotfix_smoke.js` and updated the Stage8 smoke to accept the tighter measured-Dock gaps.
+- QA result: `npm run check` -> 89/89 PASS.
+
 ## Stage11 - Large modular renovation
 
 - Added `src/recommendation/recommendation-engine.js` as the dedicated recommendation engine module. Genre scoring, candidate reasons/cautions, explainability chips, and safe fallback recommendation logic now live outside `src/app.js`.

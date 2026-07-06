@@ -49,6 +49,22 @@
         });
     }
 
+    function getWaveformMarkerForIndex(markers = [], index = 0, total = 1, value = 0) {
+        const list = Array.isArray(markers) ? markers : [];
+        let marker = '';
+        if (list.length) {
+            const mappedIndex = list.length === total
+                ? index
+                : Math.round(index / Math.max(1, total - 1) * Math.max(0, list.length - 1));
+            marker = String(list[mappedIndex] || '').toLowerCase();
+        }
+        if (marker === 'clip' || marker === 'hot' || marker === 'ok') return marker;
+        const normalized = clamp01(Number(value) || 0);
+        if (normalized >= 0.985) return 'clip';
+        if (normalized >= 0.92) return 'hot';
+        return 'ok';
+    }
+
     function createWaveformOverview(beforeBuffer, afterBuffer, bins = DEFAULT_WAVEFORM_BINS) {
         const original = sampleWaveformOverview(beforeBuffer, bins);
         const mastered = sampleWaveformOverview(afterBuffer, bins);
@@ -102,6 +118,9 @@
         median,
         normalizeWaveformValues,
         sampleMarkersFromValues,
+        getWaveformMarkerForIndex,
+        // Backward-compatible alias for accidental lowercase-l typo reports.
+        getWaveformMarkerForlndex: getWaveformMarkerForIndex,
         createWaveformOverview,
         sampleWaveformOverview,
         samplePeakMarkers
