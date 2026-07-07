@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.2-crossfade-zoom-spectrum';
+    const FALLBACK_VERSION = '1.4.4-fft-live-hotfix';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -12,9 +12,11 @@
         'FoxBearHighlightCompareInspector.resolveCompareWindow',
         'FoxBearPlaybackLinkService.registerAudio',
         'FoxBearPlaybackLinkService.pauseAllExcept',
+        'FoxBearPlaybackTransitionService.crossfadePair',
         'FoxBearWaveformControlService.setPlayhead',
         'FoxBearWaveformControlView.createBars',
         'FoxBearSpectrumVisualizer.renderPanel',
+        'FoxBearSpectrumVisualizer.renderMini',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',

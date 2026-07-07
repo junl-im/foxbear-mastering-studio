@@ -19,13 +19,13 @@ const sw = read('sw.js');
 const spectrum = read('src/ui/spectrum-visualizer.js');
 const spectrumCss = read('assets/css/spectrum-visualizer.css');
 const studioCss = read('assets/css/studio.css');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.2.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.4.md');
 
-must(pkg.version === '1.4.2', 'package version should be 1.4.2');
-must(app.includes("const APP_VERSION = 'Pro v1.4.2'"), 'app version should be Pro v1.4.2');
-must(index.includes('data-build="1.4.2"'), 'index build marker should be 1.4.2');
-must(index.includes('1.4.2-crossfade-zoom-spectrum'), 'index asset key should be v1.4.2 cache key');
-must(sw.includes('foxbear-shell-v1.4.2-crossfade-zoom-spectrum'), 'service worker cache should be bumped');
+must(pkg.version === '1.4.4', 'package version should be 1.4.4');
+must(app.includes("const APP_VERSION = 'Pro v1.4.4'"), 'app version should be Pro v1.4.4');
+must(index.includes('data-build="1.4.4"'), 'index build marker should be 1.4.4');
+must(index.includes('1.4.4-fft-live-hotfix'), 'index asset key should be v1.4.4 cache key');
+must(sw.includes('foxbear-shell-v1.4.4-fft-live-hotfix'), 'service worker cache should be bumped');
 
 must(app.includes('PLAYBACK_CROSSFADE_MS = 96'), 'crossfade duration constant missing');
 must(app.includes('function crossfadeAudioPair'), 'crossfade pair helper missing');
@@ -52,6 +52,6 @@ must(studioCss.includes('.waveform-zoom-controls'), 'waveform zoom CSS missing')
 ['KakaoTalk', 'Chrome Android', 'Safari iOS', 'PWA', 'beforeunload', 'popstate'].forEach(token => {
   must(matrix.includes(token), `browser back QA matrix missing ${token}`);
 });
-must(pkg.qaChecks.includes('node qa/v142_crossfade_zoom_spectrum_smoke.js'), 'v1.4.2 smoke should be in package qaChecks');
+must(pkg.qaChecks.includes('node qa/v142_crossfade_zoom_spectrum_smoke.js'), 'v1.4.4 smoke should be in package qaChecks');
 
-console.log('PASS v1.4.2 crossfade zoom spectrum smoke');
+console.log('PASS v1.4.4 crossfade zoom spectrum smoke');

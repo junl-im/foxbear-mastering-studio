@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.2 - Stage23 playback link audit
+// FoxBear AI Mastering Studio Pro v1.4.4 - Stage23 playback link audit
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -19,7 +19,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const APP_VERSION = 'Pro v1.4.2';
+const APP_VERSION = 'Pro v1.4.4';
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
     MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
@@ -312,85 +312,42 @@ function isBenignPlaybackRejection(error) {
 }
 
 
+function getPlaybackTransitionService() {
+    return window.FoxBearPlaybackTransitionService || null;
+}
+
 function rememberAudioTargetVolume(audio) {
-    if (!audio) return 1;
-    const current = clamp(Number(audio.volume || 1), 0, 1);
-    if (!audio.dataset.foxbearTargetVolume || Number(audio.dataset.foxbearTargetVolume) <= 0) {
-        audio.dataset.foxbearTargetVolume = String(current || 1);
-    }
-    return clamp(Number(audio.dataset.foxbearTargetVolume || current || 1), 0.02, 1);
+    return getPlaybackTransitionService()?.rememberTargetVolume?.(audio) ?? 1;
 }
 
 function cancelAudioFade(audio) {
-    const id = Number(audio?._foxbearFadeRaf || 0);
-    if (id && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(id);
-    if (audio) audio._foxbearFadeRaf = 0;
+    return getPlaybackTransitionService()?.cancelFade?.(audio);
 }
 
 function fadeAudioVolume(audio, toVolume = 1, durationMs = PLAYBACK_CROSSFADE_MS) {
-    if (!audio) return Promise.resolve(false);
-    cancelAudioFade(audio);
-    const from = clamp(Number(audio.volume || 0), 0, 1);
-    const to = clamp(Number(toVolume), 0, 1);
-    const duration = Math.max(24, Number(durationMs || PLAYBACK_CROSSFADE_MS));
-    if (Math.abs(from - to) < 0.001) {
-        audio.volume = to;
-        return Promise.resolve(true);
-    }
-    return new Promise(resolve => {
-        const start = performance.now();
-        const step = now => {
-            const t = clamp((now - start) / duration, 0, 1);
-            const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-            audio.volume = clamp(from + (to - from) * eased, 0, 1);
-            if (t < 1) audio._foxbearFadeRaf = requestAnimationFrame(step);
-            else {
-                audio.volume = to;
-                audio._foxbearFadeRaf = 0;
-                resolve(true);
-            }
-        };
-        audio._foxbearFadeRaf = requestAnimationFrame(step);
-    });
+    const service = getPlaybackTransitionService();
+    if (service && typeof service.fadeVolume === 'function') return service.fadeVolume(audio, toVolume, durationMs);
+    return Promise.resolve(false);
 }
 
 function playAudioWithFadeIn(audio, options = {}) {
-    if (!audio) return Promise.resolve(false);
-    const target = rememberAudioTargetVolume(audio);
-    const duration = Number(options.ms || PLAYBACK_CROSSFADE_MS);
-    if (options.fromZero !== false) audio.volume = PLAYBACK_FADE_MIN_VOLUME;
-    return audio.play().then(() => fadeAudioVolume(audio, target, duration)).then(() => true);
+    const service = getPlaybackTransitionService();
+    if (service && typeof service.playWithFadeIn === 'function') return service.playWithFadeIn(audio, { ms: PLAYBACK_CROSSFADE_MS, ...options });
+    return audio?.play?.() || Promise.resolve(false);
 }
 
 function pauseAudioWithFadeOut(audio, options = {}) {
-    if (!audio) return Promise.resolve(false);
-    const target = rememberAudioTargetVolume(audio);
-    return fadeAudioVolume(audio, PLAYBACK_FADE_MIN_VOLUME, Number(options.ms || PLAYBACK_CROSSFADE_MS)).then(() => {
-        try { audio.pause(); } catch (error) {}
-        audio.volume = target;
-        return true;
-    });
+    const service = getPlaybackTransitionService();
+    if (service && typeof service.pauseWithFadeOut === 'function') return service.pauseWithFadeOut(audio, { ms: PLAYBACK_CROSSFADE_MS, ...options });
+    try { audio?.pause?.(); } catch (error) {}
+    return Promise.resolve(Boolean(audio));
 }
 
 function crossfadeAudioPair(oldAudio, nextAudio, options = {}) {
-    const duration = Number(options.ms || PLAYBACK_CROSSFADE_MS);
-    const oldTarget = rememberAudioTargetVolume(oldAudio);
-    const nextTarget = rememberAudioTargetVolume(nextAudio);
-    if (nextAudio) nextAudio.volume = PLAYBACK_FADE_MIN_VOLUME;
-    const playPromise = nextAudio ? nextAudio.play() : Promise.resolve();
-    return Promise.resolve(playPromise).then(() => {
-        const fades = [];
-        if (oldAudio) fades.push(fadeAudioVolume(oldAudio, PLAYBACK_FADE_MIN_VOLUME, duration));
-        if (nextAudio) fades.push(fadeAudioVolume(nextAudio, nextTarget, duration));
-        return Promise.all(fades).then(() => {
-            if (oldAudio) {
-                try { oldAudio.pause(); } catch (error) {}
-                oldAudio.volume = oldTarget;
-            }
-            if (typeof options.onComplete === 'function') options.onComplete();
-            return true;
-        });
-    });
+    const service = getPlaybackTransitionService();
+    if (service && typeof service.crossfadePair === 'function') return service.crossfadePair(oldAudio, nextAudio, { ms: PLAYBACK_CROSSFADE_MS, ...options });
+    try { if (oldAudio) oldAudio.pause(); } catch (error) {}
+    return nextAudio?.play?.() || Promise.resolve(false);
 }
 
 function handleUnhandledRejection(event) {
@@ -3156,7 +3113,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.2-crossfade-zoom-spectrum');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.4-fft-live-hotfix');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -10747,14 +10704,14 @@ function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
     const originalCard = document.createElement('div');
     originalCard.className = 'preview-card';
     const originalLabel = makePreviewTitle('원곡 프리뷰', track.analysis?.duration);
-    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track)));
+    originalCard.append(originalLabel, createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track), { trackId: track.id, mode: 'original', label: '원음 미리듣기' }));
 
     const masteredCard = document.createElement('div');
     masteredCard.className = 'preview-card';
     const masteredLabel = makePreviewTitle('마스터링 프리뷰', track.masteredDurationSec || null);
     masteredCard.appendChild(masteredLabel);
     if (track.masteredUrl) {
-        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec, state.abLoopMode, getTrackHighlightStart(track)));
+        masteredCard.appendChild(createPreviewPlayer(track.masteredUrl, getABMatchGainDb(track), track.masteredDurationSec, state.abLoopMode, getTrackHighlightStart(track), { trackId: track.id, mode: 'mastered', label: '마스터 미리듣기' }));
     } else {
         const empty = document.createElement('div');
         empty.className = 'preview-empty';
@@ -12401,6 +12358,7 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
     registerPlaybackLinkedAudio(audio, {
         role: options.playerRole || 'inline-preview',
         shell: wrap,
+        trackId: options.trackId || '',
         mode: options.mode || (gainDb ? 'mastered' : 'original'),
         label: options.label || (gainDb ? '마스터 미리듣기' : '원음 미리듣기'),
         absoluteStartSec: Number.isFinite(Number(options.absoluteStartSec)) ? Number(options.absoluteStartSec) : 0,
@@ -13439,7 +13397,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.4.2',
+        app: 'FoxBear AI Mastering Studio Pro v1.4.4',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

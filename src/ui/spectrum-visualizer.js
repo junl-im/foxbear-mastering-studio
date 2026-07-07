@@ -1,9 +1,9 @@
-// FoxBear spectrum visualizer module - v1.4.2
+// FoxBear spectrum visualizer module - v1.4.4
 // Shows the same FFT evidence used by the AI analysis as a compact realtime/static canvas.
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.4.2-crossfade-zoom-spectrum';
+    const VISUALIZER_VERSION = '1.4.4-fft-live-hotfix';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -200,10 +200,30 @@
         });
     }
 
-    function drawEveryCanvas(values, options = {}) {
-        drawBars(state.canvas, values, options);
+    function hasRenderableCanvas() {
         pruneMiniCanvases();
-        state.miniCanvases.forEach(canvas => drawBars(canvas, values, { ...options, mini: true }));
+        return Boolean((state.canvas && state.canvas.isConnected !== false) || state.miniCanvases.size > 0);
+    }
+
+    function drawEveryCanvas(values, options = {}) {
+        let rendered = false;
+        rendered = drawBars(state.canvas, values, options) || rendered;
+        pruneMiniCanvases();
+        state.miniCanvases.forEach(canvas => {
+            rendered = drawBars(canvas, values, { ...options, mini: true }) || rendered;
+        });
+        return rendered;
+    }
+
+    function scheduleFrame(callback) {
+        if (typeof global.requestAnimationFrame === 'function') return global.requestAnimationFrame(callback);
+        return global.setTimeout(callback, 33);
+    }
+
+    function cancelFrame(id) {
+        if (!id) return;
+        if (typeof global.cancelAnimationFrame === 'function') global.cancelAnimationFrame(id);
+        else global.clearTimeout(id);
     }
 
     function drawStatic(track = state.track) {
@@ -228,10 +248,12 @@
         const AudioContextClass = global.AudioContext || global.webkitAudioContext;
         if (!AudioContextClass) throw new Error('Web Audio API 미지원');
         if (!state.context || state.context.state === 'closed') state.context = new AudioContextClass();
-        if (state.context.state === 'suspended' && typeof state.context.resume === 'function') {
-            state.context.resume().catch(() => undefined);
-        }
         return state.context;
+    }
+
+    function resumeContext(context) {
+        if (!context || context.state !== 'suspended' || typeof context.resume !== 'function') return Promise.resolve(context);
+        return context.resume().then(() => context).catch(() => context);
     }
 
     function connectAudio(audio) {
@@ -245,7 +267,7 @@
             analyser.smoothingTimeConstant = 0.82;
             source.connect(analyser);
             analyser.connect(context.destination);
-            record = { source, analyser };
+            record = { source, analyser, context };
             sourceNodes.set(audio, record);
         }
         return record.analyser;
@@ -259,7 +281,7 @@
             state.data = new Uint8Array(analyser.frequencyBinCount);
             state.live = true;
             setStatus(`실시간 FFT 분석 중 · ${meta.label || audio.dataset.spectrumLabel || '재생 소스'}`, 'live');
-            startLoop();
+            resumeContext(state.context).finally(() => startLoop());
             return true;
         } catch (error) {
             state.live = false;
@@ -273,24 +295,24 @@
     function stopLoopToStatic() {
         state.live = false;
         if (state.raf) {
-            global.cancelAnimationFrame(state.raf);
+            cancelFrame(state.raf);
             state.raf = 0;
         }
         drawStatic();
     }
 
     function startLoop() {
-        if (state.raf) global.cancelAnimationFrame(state.raf);
+        if (state.raf) cancelFrame(state.raf);
         const tick = () => {
-            if (!state.live || !state.analyser || !state.data || !state.canvas) {
+            if (!state.live || !state.analyser || !state.data || !hasRenderableCanvas()) {
                 state.raf = 0;
                 return;
             }
             const values = profileFromAnalyser(state.analyser, state.data);
             drawEveryCanvas(values, { focusHz: state.track?.analysis?.targetDynamicFreq || state.track?.analysis?.harshPeakHz || 0 });
-            state.raf = global.requestAnimationFrame(tick);
+            state.raf = scheduleFrame(tick);
         };
-        state.raf = global.requestAnimationFrame(tick);
+        state.raf = scheduleFrame(tick);
     }
 
     function registerAudio(audio, meta = {}) {
