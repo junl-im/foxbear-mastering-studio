@@ -1,4 +1,4 @@
-/* FoxBear v1.4.7 spectrum visualizer */
+/* FoxBear v1.4.8 spectrum visualizer */
 .spectrum-visualizer-panel {
     margin: 14px 0;
     padding: 14px;
@@ -87,5 +87,4 @@
     }
 }
 
-/* FoxBear v1.4.7 Dock mini spectrum */
-/* v1.4.7: Dock mini FFT removed; detail spectrum panel remains the only user-facing FFT view. */
+/* FoxBear v1.4.8: Dock mini FFT CSS fully removed; detail spectrum panel remains the only user-facing FFT view. */

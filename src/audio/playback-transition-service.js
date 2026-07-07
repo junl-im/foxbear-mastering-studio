@@ -1,8 +1,8 @@
-// FoxBear playback transition service - v1.4.7
+// FoxBear playback transition service - v1.4.8
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.4.7-dock-fft-removal';
+    const SERVICE_VERSION = '1.4.8-dock-spectrum-cleanup';
     const DEFAULT_FADE_MS = 96;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

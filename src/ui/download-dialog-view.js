@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.7 - download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.4.8 - download dialog view builder
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {

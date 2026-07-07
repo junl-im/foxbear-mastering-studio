@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.4.7-dock-fft-removal';
+    const SERVICE_VERSION = '1.4.8-dock-spectrum-cleanup';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
 

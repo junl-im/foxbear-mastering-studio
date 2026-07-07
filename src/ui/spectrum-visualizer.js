@@ -1,9 +1,9 @@
-// FoxBear spectrum visualizer module - v1.4.7
-// Shows the same FFT evidence used by the AI analysis as a compact realtime/static canvas.
+// FoxBear spectrum visualizer module - v1.4.8
+// Detail-only FFT visualizer: Dock mini spectrum was removed to keep playback light.
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.4.7-dock-fft-removal';
+    const VISUALIZER_VERSION = '1.4.8-dock-spectrum-cleanup';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -20,7 +20,6 @@
         analyser: null,
         data: null,
         canvas: null,
-        miniCanvases: new Set(),
         statusNode: null,
         metaNode: null,
         track: null,
@@ -201,29 +200,17 @@
 
     function pruneDisconnectedCanvases() {
         if (state.canvas && state.canvas.isConnected === false) state.canvas = null;
-        if (!state.miniCanvases || typeof state.miniCanvases.forEach !== 'function') return;
-        state.miniCanvases.forEach(canvas => {
-            if (!canvas || canvas.isConnected === false) state.miniCanvases.delete(canvas);
-        });
-    }
-
-    function pruneMiniCanvases() {
-        pruneDisconnectedCanvases();
     }
 
     function hasRenderableCanvas() {
         pruneDisconnectedCanvases();
-        return Boolean((state.canvas && state.canvas.isConnected !== false) || state.miniCanvases.size > 0);
+        return Boolean(state.canvas && state.canvas.isConnected !== false);
     }
 
     function drawEveryCanvas(values, options = {}) {
-        let rendered = false;
         pruneDisconnectedCanvases();
-        if (state.canvas && state.canvas.isConnected !== false) rendered = drawBars(state.canvas, values, options) || rendered;
-        state.miniCanvases.forEach(canvas => {
-            rendered = drawBars(canvas, values, { ...options, mini: true }) || rendered;
-        });
-        return rendered;
+        if (!state.canvas || state.canvas.isConnected === false) return false;
+        return drawBars(state.canvas, values, options);
     }
 
     function isDocumentHidden() {
@@ -480,35 +467,6 @@
         return panel;
     }
 
-    function renderMini(options = {}) {
-        const doc = options.document || global.document;
-        const track = options.track || state.track || null;
-        const shell = doc.createElement('div');
-        shell.className = 'spectrum-mini-panel';
-        shell.dataset.spectrumMini = VISUALIZER_VERSION;
-        shell.dataset.spectrumMode = options.mode || '';
-        const label = doc.createElement('span');
-        label.className = 'spectrum-mini-label';
-        label.textContent = 'FFT';
-        const canvas = doc.createElement('canvas');
-        canvas.className = 'spectrum-mini-canvas';
-        canvas.width = 220;
-        canvas.height = 48;
-        canvas.setAttribute('role', 'img');
-        canvas.setAttribute('aria-label', 'Dock mini realtime spectrum');
-        const badge = doc.createElement('span');
-        badge.className = 'spectrum-mini-badge';
-        badge.textContent = options.mode === 'mastered' ? 'B' : (options.mode === 'masterPreview' ? 'H' : 'A');
-        shell.append(label, canvas, badge);
-        state.track = track;
-        state.getActiveAudio = typeof options.getActiveAudio === 'function' ? options.getActiveAudio : state.getActiveAudio;
-        bindVisibilityLifecycle();
-        state.miniCanvases.add(canvas);
-        drawStatic(track);
-        setTimeout(activateCurrentAudio, 40);
-        return shell;
-    }
-
     function getDiagnostics() {
         pruneDisconnectedCanvases();
         const active = getLikelyActiveAudio();
@@ -518,7 +476,6 @@
             hasAnalyser: Boolean(state.analyser),
             contextState: state.context?.state || '',
             hasPanelCanvas: Boolean(state.canvas && state.canvas.isConnected !== false),
-            miniCanvasCount: state.miniCanvases.size,
             activeLabel: active?.dataset?.spectrumLabel || '',
             lastError: state.lastError || '',
             lastLiveValueCount: state.lastLiveValues.length
@@ -528,7 +485,6 @@
     global.FoxBearSpectrumVisualizer = Object.freeze({
         version: VISUALIZER_VERSION,
         renderPanel,
-        renderMini,
         registerAudio,
         registerExternalAnalyser,
         activateCurrentAudio,

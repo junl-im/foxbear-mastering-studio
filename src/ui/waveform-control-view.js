@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.7-dock-fft-removal';
+  const VIEW_VERSION = '1.4.8-dock-spectrum-cleanup';
   const DEFAULT_BINS = 96;
 
   function getService() {

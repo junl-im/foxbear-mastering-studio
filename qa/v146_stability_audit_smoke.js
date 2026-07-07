@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const must = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.7 stability audit smoke: ${message}`);
+    console.error(`FAIL v1.4.8 stability audit smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -14,12 +14,12 @@ const spectrum = read('src/ui/spectrum-visualizer.js');
 const html = read('index.html');
 const sw = read('sw.js');
 const pkg = JSON.parse(read('package.json'));
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.7.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.8.md');
 
-must(pkg.version === '1.4.7', 'package version should be 1.4.7');
-must(html.includes('data-build="1.4.7"'), 'index build marker should be 1.4.7');
-must(html.includes('1.4.7-dock-fft-removal'), 'index should use v1.4.7 cache key');
-must(sw.includes('foxbear-shell-v1.4.7-dock-fft-removal'), 'service worker cache should use v1.4.7 key');
+must(pkg.version === '1.4.8', 'package version should be 1.4.8');
+must(html.includes('data-build="1.4.8"'), 'index build marker should be 1.4.8');
+must(html.includes('1.4.8-dock-spectrum-cleanup'), 'index should use v1.4.8 cache key');
+must(sw.includes('foxbear-shell-v1.4.8-dock-spectrum-cleanup'), 'service worker cache should use v1.4.8 key');
 
 must(spectrum.includes('externalAnalyserNodes'), 'spectrum visualizer should track external analyser nodes');
 must(spectrum.includes('function registerExternalAnalyser'), 'spectrum visualizer should expose external analyser registration');
@@ -35,4 +35,4 @@ must(app.includes("role: 'difference-compare'"), 'difference listen graph should
 must(app.includes('output.connect(spectrumAnalyser).connect(context.destination)'), 'difference/translation graph should place analyser before destination');
 must(matrix.includes('external analyser') || matrix.includes('FFT external analyser'), 'browser matrix should mention external analyser coverage');
 
-console.log('PASS v1.4.7 stability audit smoke');
+console.log('PASS v1.4.8 stability audit smoke');

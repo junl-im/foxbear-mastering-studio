@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.7-dock-fft-removal';
+    const FALLBACK_VERSION = '1.4.8-dock-spectrum-cleanup';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -16,7 +16,6 @@
         'FoxBearWaveformControlService.setPlayhead',
         'FoxBearWaveformControlView.createBars',
         'FoxBearSpectrumVisualizer.renderPanel',
-        'FoxBearSpectrumVisualizer.renderMini',
         'FoxBearSpectrumVisualizer.getDiagnostics',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
