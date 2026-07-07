@@ -21,7 +21,7 @@ must(app.includes('(x - model.plotLeft) / Math.max(1, model.plotWidth)'), 'conti
 must(app.includes('function getWaveformElementPlaybackPercent'), 'per-element playback percent helper missing');
 must(app.includes('bars.dataset.waveformScope = getWaveformModeScope'), 'waveform scope dataset missing');
 must(app.includes('role\', \'slider') || app.includes('role", "slider'), 'waveform should expose slider role');
-must(app.includes('state.bottomPreviewMode === \'masterPreview\' ? local : absoluteToLocalPreviewTime'), 'masterPreview local/full conversion missing');
+must(app.includes("mode === 'masterPreview' ? local : absoluteToLocalPreviewTime") || app.includes("state.bottomPreviewMode === 'masterPreview' ? local : absoluteToLocalPreviewTime"), 'masterPreview local/full conversion missing');
 must(dockWaveformCss.includes('Stage9: Dock waveform dedicated CSS layer'), 'dock waveform CSS timeline layer missing');
 must(dockWaveformCss.includes('--waveform-progress-pct') || compareCss.includes('--waveform-progress-pct'), 'waveform progress CSS variable missing');
 must(dockWaveformCss.includes('cursor: ew-resize') || compareCss.includes('cursor: ew-resize'), 'seek cursor missing');

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.0 - Dock / Modal State Machine Refactor
+// FoxBear AI Mastering Studio Pro v1.4.0 - Stage21 unified preview system
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -900,12 +900,28 @@ function renderRealtimePreviewConsole(track, target) {
     const trackInfo = makeRealtimePreviewTrackInfo(track);
 
     const playerCard = document.createElement('div');
-    playerCard.className = 'preview-card realtime-player-card';
-    const previewPlayer = createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track), { translationMode: false });
-    previewPlayer.classList.add('realtime-custom-player');
+    playerCard.className = 'preview-card realtime-player-card realtime-unified-player-card';
+    const previewStart = getRealtimePreviewStartSec(track);
+    const previewPlayer = createDockIntegratedWaveformPlayer(track, {
+        src: track.originalUrl,
+        mode: 'original',
+        duration: track.analysis?.duration,
+        startSec: previewStart,
+        gainDb: 0,
+        translationMode: true,
+        seekTarget: 'local',
+        waveformRole: 'realtime-preview',
+        waveformClass: 'realtime-preview-waveform-bars',
+        playerClass: 'realtime-custom-player realtime-dock-linked-player',
+        playerRole: 'mastering-settings-preview'
+    });
     const audio = previewPlayer.querySelector('audio');
-    if (audio) audio.setAttribute('aria-label', `${track.name || '선택 곡'} 실시간 마스터링 프리뷰 재생`);
+    if (audio) {
+        audio.setAttribute('aria-label', `${track.name || '선택 곡'} 통합 마스터링 설정 미리듣기 재생`);
+        audio.dataset.previewSystem = 'mastering-settings';
+    }
     playerCard.append(previewPlayer);
+    playerCard.appendChild(createRealtimePreviewSystemBridge(track, audio, status));
 
     const controls = document.createElement('div');
     controls.className = 'realtime-control-stack realtime-eq-strip';
@@ -937,6 +953,111 @@ function makeRealtimePreviewTrackInfo(track) {
 
     info.append(name, meta);
     return info;
+}
+
+function getRealtimePreviewStartSec(track) {
+    const captured = captureBottomPreviewTransport(track, state.bottomPreviewMode);
+    if (captured && captured.trackId === track?.id && Number.isFinite(Number(captured.absoluteSec))) {
+        return clamp(Number(captured.absoluteSec), 0, Math.max(0, Number(track?.analysis?.duration || 0) - 0.08));
+    }
+    const highlight = getTrackHighlightStart(track);
+    return Number.isFinite(Number(highlight)) ? Number(highlight) : 0;
+}
+
+function createRealtimePreviewSystemBridge(track, audio, statusEl) {
+    const bridge = document.createElement('div');
+    bridge.className = 'realtime-system-bridge';
+    bridge.setAttribute('aria-label', 'Dock 및 비교 시스템 연동');
+
+    const meta = document.createElement('div');
+    meta.className = 'realtime-system-meta';
+    const pill = document.createElement('span');
+    pill.className = 'realtime-system-pill is-linked';
+    pill.textContent = 'Dock 파형 엔진 연동';
+    const peak = document.createElement('span');
+    peak.className = 'realtime-system-pill';
+    peak.textContent = '피크/플레이헤드 표시';
+    meta.append(pill, peak);
+
+    const actions = document.createElement('div');
+    actions.className = 'realtime-system-actions';
+    const addAction = (label, title, handler) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'realtime-system-action';
+        button.textContent = label;
+        button.title = title;
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            handler();
+        });
+        actions.appendChild(button);
+    };
+
+    addAction('↙ Dock 위치 가져오기', '하단 Dock의 현재 재생 위치를 이 미리듣기 플레이어로 가져옵니다.', () => syncRealtimePreviewFromDock(audio, statusEl));
+    addAction('↗ Dock으로 보내기', '이 미리듣기 위치를 하단 Dock 원곡 플레이어로 보냅니다.', () => sendRealtimePreviewToDock(track, audio));
+    addAction('🌊 비교창', '원곡/마스터링 큰 비교창을 엽니다.', () => openWaveformCompareDialog());
+    addAction('⚡ 피크 이동', '원곡 피크가 큰 구간으로 미리듣기 위치를 이동합니다.', () => seekRealtimePreviewToPeak(track, audio, statusEl));
+
+    bridge.append(meta, actions);
+    return bridge;
+}
+
+function syncRealtimePreviewFromDock(audio, statusEl) {
+    const track = getSelectedTrack();
+    const dock = getBottomPreviewAudio();
+    if (!track || !audio || !dock) {
+        showToast('가져올 Dock 재생 위치가 없습니다.');
+        return false;
+    }
+    const captured = captureBottomPreviewTransport(track, state.bottomPreviewMode);
+    const next = Number(captured?.absoluteSec ?? dock.currentTime ?? 0);
+    applyBottomPreviewStart(audio, next);
+    if (statusEl) statusEl.textContent = `Dock 위치 ${formatTime(next)} 동기화`;
+    showToast(`Dock 위치 ${formatTime(next)}를 설정 미리듣기로 가져왔습니다.`);
+    return true;
+}
+
+function sendRealtimePreviewToDock(track, audio) {
+    if (!track || !audio) return false;
+    const position = Math.max(0, Number(audio.currentTime || 0));
+    state.bottomPreviewTransport = {
+        trackId: track.id,
+        mode: 'original',
+        localSec: position,
+        absoluteSec: position,
+        playing: !audio.paused && !audio.ended,
+        translationMode: state.previewTranslationMode || 'studio',
+        capturedAt: Date.now()
+    };
+    state.bottomPreviewMode = 'original';
+    state.bottomPreviewTrackId = track.id;
+    renderBottomPreviewDock({ autoPlay: !audio.paused && !audio.ended, keepPlaying: !audio.paused && !audio.ended });
+    showToast(`설정 미리듣기 위치 ${formatTime(position)}를 Dock으로 보냈습니다.`);
+    return true;
+}
+
+function seekRealtimePreviewToPeak(track, audio, statusEl) {
+    if (!track || !audio) return false;
+    const values = normalizeWaveformValues(getTrackOriginalWaveformValues(track), 96);
+    const duration = Number(track.analysis?.duration || audio.duration || 0);
+    if (!values.length || !Number.isFinite(duration) || duration <= 0) {
+        showToast('피크 이동에 사용할 파형 정보가 아직 없습니다.');
+        return false;
+    }
+    let bestIndex = 0;
+    let bestScore = -1;
+    values.forEach((value, index) => {
+        const score = Number(value || 0) + (index > 2 ? 0.03 : 0);
+        if (score > bestScore) { bestScore = score; bestIndex = index; }
+    });
+    const pct = values.length > 1 ? bestIndex / (values.length - 1) : 0;
+    const next = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
+    applyBottomPreviewStart(audio, next);
+    if (statusEl) statusEl.textContent = `피크 구간 ${formatTime(next)} 이동`;
+    showToast(`설정 미리듣기 피크 구간 ${formatTime(next)}로 이동했습니다.`);
+    return true;
 }
 
 function getRealtimeControlDefinitions(track) {
@@ -2719,6 +2840,28 @@ function getWaveformPointerPercent(event, element) {
     return mapWaveformPointerToAudioPercent(event, element);
 }
 
+function seekLocalWaveformAudioPercent(bars, percent, options = {}) {
+    const track = getSelectedTrack();
+    const audio = bars?.closest?.('.custom-player')?.querySelector?.('audio');
+    if (!track || !audio) return false;
+    const mode = bars?.dataset?.waveformMode || 'original';
+    const scope = bars?.dataset?.waveformScope || getWaveformModeScope(mode, bars?.dataset?.waveformRole || 'local');
+    const pct = clamp(Number(percent || 0), 0, 100) / 100;
+    const duration = getWaveformSeekDuration(track, mode, audio, scope);
+    if (!Number.isFinite(duration) || duration <= 0) return false;
+    const localSec = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
+    applyBottomPreviewStart(audio, localSec);
+    const player = audio.closest('.custom-player');
+    const waveform = player?.querySelector?.('.dock-integrated-waveform-bars');
+    setPlayheadOnElement(waveform || bars, pct * 100, Boolean(options.play && !audio.ended));
+    if (options.play !== false) audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+    return true;
+}
+
+function shouldSeekWaveformLocally(bars) {
+    return bars?.dataset?.waveformSeekTarget === 'local';
+}
+
 function onWaveformBarsSeek(event) {
     if (!event) return;
     event.preventDefault();
@@ -2727,6 +2870,10 @@ function onWaveformBarsSeek(event) {
     if (Date.now() - Number(bars?.dataset?.lastPointerSeekAt || 0) < 360) return;
     const pct = getWaveformPointerPercent(event, bars);
     if (!Number.isFinite(pct)) return;
+    if (shouldSeekWaveformLocally(bars)) {
+        seekLocalWaveformAudioPercent(bars, pct, { play: true, source: bars?.dataset?.waveformRole || 'waveform' });
+        return;
+    }
     const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
     seekDockToWaveformPercent(pct, { mode, scope: bars?.dataset?.waveformScope || 'full', play: true, source: bars?.dataset?.waveformRole || 'waveform' });
 }
@@ -2739,6 +2886,10 @@ function onWaveformBarsPointerSeek(event) {
     bars.dataset.lastPointerSeekAt = String(Date.now());
     const pct = getWaveformPointerPercent(event, bars);
     if (!Number.isFinite(pct)) return;
+    if (shouldSeekWaveformLocally(bars)) {
+        seekLocalWaveformAudioPercent(bars, pct, { play: true, source: bars?.dataset?.waveformRole || 'waveform-touch' });
+        return;
+    }
     const mode = bars?.dataset?.waveformMode || state.bottomPreviewMode;
     seekDockToWaveformPercent(pct, { mode, scope: bars?.dataset?.waveformScope || 'full', play: true, source: bars?.dataset?.waveformRole || 'waveform-touch' });
 }
@@ -2754,7 +2905,12 @@ function onWaveformBarsKeySeek(event) {
     else if (event.key === 'End') pct = 100;
     else if (event.key === 'ArrowLeft') pct = Math.max(0, pct - 5);
     else if (event.key === 'ArrowRight') pct = Math.min(100, pct + 5);
-    seekDockToWaveformPercent(pct, { mode, scope: bars?.dataset?.waveformScope || 'full', play: event.key === 'Enter' || event.key === ' ', source: 'keyboard' });
+    const shouldPlay = event.key === 'Enter' || event.key === ' ';
+    if (shouldSeekWaveformLocally(bars)) {
+        seekLocalWaveformAudioPercent(bars, pct, { play: shouldPlay, source: 'keyboard' });
+        return;
+    }
+    seekDockToWaveformPercent(pct, { mode, scope: bars?.dataset?.waveformScope || 'full', play: shouldPlay, source: 'keyboard' });
 }
 
 function attachWaveformSeekHandlers(bars, mode = state.bottomPreviewMode, role = 'waveform') {
@@ -2888,7 +3044,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage19-highlight-diagnostics');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage21-unified-preview-system');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -10111,6 +10267,37 @@ function getDetailView() {
     return view;
 }
 
+function getDetailPanelsView() {
+    const view = window.FoxBearDetailPanelsView;
+    if (!view || typeof view.renderQualityGatePanel !== 'function') {
+        throw new Error('Detail panels view module is not loaded.');
+    }
+    return view;
+}
+
+function getDetailPanelsViewDeps() {
+    return {
+        state,
+        el,
+        MASTER_FLOW_STEPS,
+        clamp,
+        createABSwitchPlayer,
+        computeEngineSafetyInfo,
+        formatPerformanceGuardInfo,
+        getMasterStyleLabel,
+        formatSigned,
+        getOutputFormatLabel,
+        ampToDb,
+        stripTags,
+        getClippingRiskText,
+        getHeaviestPerformanceStage,
+        formatPerformanceInfo,
+        formatDurationMs,
+        createComparisonInfo,
+        getDspAmountScoreLabel
+    };
+}
+
 function getDetailViewDeps() {
     return {
         state,
@@ -11049,8 +11236,7 @@ function getWaveformModeScope(mode = state.bottomPreviewMode, role = 'dock') {
     return 'full';
 }
 
-function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomPreviewMode, scope = 'dock') {
-    const audio = getBottomPreviewAudio();
+function getAudioPlaybackPercentForWaveform(track = getSelectedTrack(), mode = state.bottomPreviewMode, audio = getBottomPreviewAudio(), scope = 'dock') {
     if (!track || !audio) return null;
     const local = Number(audio.currentTime || 0);
     const audioDuration = Number.isFinite(Number(audio.duration)) && Number(audio.duration) > 0 ? Number(audio.duration) : 0;
@@ -11059,11 +11245,15 @@ function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomP
     const normalizedScope = scope === 'preview' || (scope === 'dock' && mode === 'masterPreview') ? 'preview' : 'full';
     const basis = normalizedScope === 'preview' ? (audioDuration || previewDuration) : fullDuration;
     if (!Number.isFinite(basis) || basis <= 0) return null;
-    const playbackAbsoluteSec = localToAbsolutePreviewTime(track, state.bottomPreviewMode, local);
+    const playbackAbsoluteSec = mode === 'masterPreview' ? getMasterPreviewStartSec(track) + local : local;
     const position = normalizedScope === 'preview'
-        ? (state.bottomPreviewMode === 'masterPreview' ? local : absoluteToLocalPreviewTime(track, 'masterPreview', playbackAbsoluteSec, basis))
+        ? (mode === 'masterPreview' ? local : absoluteToLocalPreviewTime(track, 'masterPreview', playbackAbsoluteSec, basis))
         : playbackAbsoluteSec;
     return clamp(position / basis * 100, 0, 100);
+}
+
+function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomPreviewMode, scope = 'dock') {
+    return getAudioPlaybackPercentForWaveform(track, state.bottomPreviewMode || mode, getBottomPreviewAudio(), scope);
 }
 
 function getWaveformBarElements(element) {
@@ -11244,7 +11434,7 @@ function getBottomPreviewGenreLabel(track) {
     return PRESET_LABELS[preset] || preset || '장르 없음';
 }
 
-function makeDockWaveformBars(track, mode = state.bottomPreviewMode) {
+function makeDockWaveformBars(track, mode = state.bottomPreviewMode, options = {}) {
     const bars = document.createElement('div');
     bars.className = 'dock-integrated-waveform-bars dock-waveform-polished';
     const payload = getDockWaveformPayload(track, mode);
@@ -11259,7 +11449,10 @@ function makeDockWaveformBars(track, mode = state.bottomPreviewMode) {
     if (!hasRealValues) bars.classList.add('dock-integrated-waveform-placeholder');
     else bars.classList.add('dock-integrated-waveform-ready');
     const targetMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
-    attachWaveformSeekHandlers(bars, targetMode, 'dock-player');
+    const role = options.waveformRole || 'dock-player';
+    attachWaveformSeekHandlers(bars, targetMode, role);
+    if (options.seekTarget) bars.dataset.waveformSeekTarget = options.seekTarget;
+    if (options.extraClass) bars.classList.add(...String(options.extraClass).split(/\s+/).filter(Boolean));
     bars.dataset.waveformBinCount = String(renderValues.length);
     bars.dataset.waveformReady = hasRealValues ? 'true' : 'false';
     bars.setAttribute('aria-label', hasRealValues ? '통합 피크 파형 플레이어. 막대 높이와 색으로 피크 위치를 확인하고 클릭하면 해당 위치로 이동해 재생합니다.' : '통합 파형 플레이어. 분석 중에는 임시 파형을 표시하고 완료 즉시 실제 피크 파형으로 갱신됩니다.');
@@ -11328,7 +11521,9 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     const mode = options.mode === 'mastered' ? 'mastered' : (options.mode === 'masterPreview' ? 'masterPreview' : 'original');
     const wrap = document.createElement('div');
     wrap.className = 'custom-player dock-integrated-player';
+    if (options.playerClass) wrap.classList.add(...String(options.playerClass).split(/\s+/).filter(Boolean));
     wrap.dataset.waveformMode = mode;
+    if (options.playerRole) wrap.dataset.playerRole = options.playerRole;
 
     const audio = document.createElement('audio');
     audio.preload = 'metadata';
@@ -11344,7 +11539,11 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     setPlayerToggleIcon(toggle, false);
     toggle.setAttribute('aria-label', '통합 파형 플레이어 재생');
 
-    const waveform = makeDockWaveformBars(track, mode);
+    const waveform = makeDockWaveformBars(track, mode, {
+        seekTarget: options.seekTarget || 'dock',
+        waveformRole: options.waveformRole || 'dock-player',
+        extraClass: options.waveformClass || ''
+    });
     const info = document.createElement('div');
     info.className = 'dock-integrated-info';
     const source = document.createElement('span');
@@ -11369,6 +11568,8 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     const sync = () => {
         const duration = getDuration();
         time.textContent = formatPlayerTime(audio.currentTime || 0, duration);
+        const pct = getAudioPlaybackPercentForWaveform(track, mode, audio, waveform.dataset.waveformScope || getWaveformModeScope(mode, waveform.dataset.waveformRole || 'dock-player'));
+        setPlayheadOnElement(waveform, pct, Boolean(audio && !audio.paused && !audio.ended));
         syncDockWaveformPlayhead(audio);
     };
 
@@ -12115,46 +12316,11 @@ function addQualityGateItem(items, label, status, detail) {
 }
 
 function renderQualityGatePanel(track) {
-    if (!track || !track.qualityGate) return;
-    const gate = track.qualityGate;
-    const panel = document.createElement('section');
-    panel.className = `quality-gate-panel quality-gate-${gate.status}`;
-    const head = document.createElement('div');
-    head.className = 'quality-gate-head';
-    const title = document.createElement('strong');
-    title.textContent = '마스터링 품질 게이트';
-    const score = document.createElement('b');
-    score.textContent = `${gate.label} · ${gate.score}점`;
-    head.append(title, score);
-    const summary = document.createElement('p');
-    summary.textContent = gate.summary;
-    const list = document.createElement('div');
-    list.className = 'quality-gate-list';
-    gate.items.forEach(item => {
-        const row = document.createElement('div');
-        row.className = `quality-gate-item gate-${item.status}`;
-        const status = document.createElement('span');
-        status.textContent = item.status === 'pass' ? '통과' : (item.status === 'warn' ? '주의' : '실패');
-        const label = document.createElement('b');
-        label.textContent = item.label;
-        const detail = document.createElement('small');
-        detail.textContent = item.detail;
-        row.append(status, label, detail);
-        list.appendChild(row);
-    });
-    panel.append(head, summary, list);
-    el.trackDetail.appendChild(panel);
+    return getDetailPanelsView().renderQualityGatePanel(track, getDetailPanelsViewDeps());
 }
 
 function renderABStudioPanel(track) {
-    if (!track || !track.masteredUrl) return;
-    const panel = document.createElement('section');
-    panel.className = 'ab-studio-panel';
-    const title = document.createElement('strong');
-    title.textContent = '전/후 비교 플레이어';
-    const deck = createABSwitchPlayer(track);
-    panel.append(title, deck);
-    el.trackDetail.appendChild(panel);
+    return getDetailPanelsView().renderABStudioPanel(track, getDetailPanelsViewDeps());
 }
 
 function buildMasteredFileName(track, encoded) {
@@ -12167,45 +12333,7 @@ function buildMasteredFileName(track, encoded) {
 }
 
 function renderMasterReportPanel(track) {
-    if (!track || !track.masterReport) return;
-    const report = track.masterReport;
-    const panel = document.createElement('div');
-    panel.className = 'master-report-panel';
-    const head = document.createElement('div');
-    head.className = 'master-report-head';
-    const title = document.createElement('strong');
-    title.textContent = '마스터링 전/후 리포트';
-    const badge = document.createElement('span');
-    badge.textContent = `${getMasterStyleLabel(report.target?.masterStyle)} · 목표 ${Number(report.target?.lufs ?? state.targetLufs).toFixed(0)} LUFS`;
-    head.append(title, badge);
-    const grid = document.createElement('div');
-    grid.className = 'master-report-grid';
-    const rows = [
-        ['LUFS', report.before?.approxLufs, report.after?.approxLufs, ' LUFS'],
-        ['RMS', report.before?.rmsDb, report.after?.rmsDb, ' dB'],
-        ['Peak', report.before?.peakDb, report.after?.peakDb, ' dBFS'],
-        ['Crest', report.before?.crestDb, report.after?.crestDb, ' dB']
-    ];
-    rows.forEach(([label, before, after, unit]) => {
-        const card = document.createElement('div');
-        card.className = 'master-report-card';
-        const span = document.createElement('span');
-        span.textContent = label;
-        const value = document.createElement('b');
-        value.textContent = `${formatMetric(before, unit)} → ${formatMetric(after, unit)}`;
-        const delta = document.createElement('small');
-        const d = Number(after) - Number(before);
-        delta.textContent = Number.isFinite(d) ? `변화 ${formatSigned(d, 1)}${unit}` : '변화 -';
-        card.append(span, value, delta);
-        grid.appendChild(card);
-    });
-    const note = document.createElement('div');
-    note.className = 'master-report-note';
-    const fallback = report.output?.fallbackFrom ? ` · ${getOutputFormatLabel(report.output.fallbackFrom)} 실패로 ${getOutputFormatLabel(report.output.format)} 저장` : '';
-    const clipped = Number(report.after?.clippedSamples || 0);
-    note.textContent = `클리핑 위험: ${report.clippingRisk} · 최종 clipped sample ${clipped}개${fallback}`;
-    panel.append(head, grid, note);
-    el.trackDetail.appendChild(panel);
+    return getDetailPanelsView().renderMasterReportPanel(track, getDetailPanelsViewDeps());
 }
 
 function formatMetric(value, unit = '') {
@@ -12215,187 +12343,27 @@ function formatMetric(value, unit = '') {
 }
 
 function renderProcessingFlowPanel(track) {
-    if (!track) return;
-    const panel = document.createElement('div');
-    panel.className = `processing-flow-panel ${track.status === 'processing' ? 'is-running' : ''}`;
-
-    const head = document.createElement('div');
-    head.className = 'processing-flow-head';
-    const title = document.createElement('strong');
-    title.textContent = track.status === 'processing' ? '진행 흐름 표시' : '처리 흐름';
-    const pct = document.createElement('span');
-    pct.textContent = `${Math.round(Number(track.progress || 0))}%`;
-    head.append(title, pct);
-
-    const rail = document.createElement('div');
-    rail.className = 'processing-flow-rail';
-    const fill = document.createElement('i');
-    fill.style.width = `${clamp(Number(track.progress || 0), 0, 100)}%`;
-    rail.appendChild(fill);
-
-    const steps = document.createElement('div');
-    steps.className = 'processing-flow-steps';
-    const progress = Number(track.progress || 0);
-    MASTER_FLOW_STEPS.forEach((step, index) => {
-        const item = document.createElement('div');
-        item.className = 'processing-step';
-        if (progress >= step.at || track.status === 'done') item.classList.add('done');
-        const next = MASTER_FLOW_STEPS[index + 1];
-        if (track.status === 'processing' && progress >= step.at && (!next || progress < next.at)) item.classList.add('active');
-        const b = document.createElement('b');
-        b.textContent = step.label;
-        const small = document.createElement('small');
-        small.textContent = step.hint;
-        item.append(b, small);
-        steps.appendChild(item);
-    });
-
-    const report = document.createElement('div');
-    report.className = 'processing-flow-report';
-    report.textContent = track.status === 'processing' ? (track.report || '현재 렌더링 단계를 표시합니다.') : (track.status === 'done' ? (track.report || '마스터링 완료 · 다운로드 또는 재마스터링 가능') : (track.status === 'error' ? (track.report || '오류 내용을 확인하세요.') : '마스터링을 실행하면 단계별 진행이 표시됩니다.'));
-
-    panel.append(head, rail, steps, report);
-    el.trackDetail.appendChild(panel);
+    return getDetailPanelsView().renderProcessingFlowPanel(track, getDetailPanelsViewDeps());
 }
 
 function renderEngineSafetyPanel(track) {
-    if (!state.engineSafetyMeter || !track) return;
-    const info = track.safetyInfo || computeEngineSafetyInfo(track, null, track.finalizeInfo || null);
-    const panel = document.createElement('div');
-    panel.className = `engine-safety-panel engine-safety-${info.tone}`;
-    const head = document.createElement('div');
-    head.className = 'engine-safety-head';
-    const title = document.createElement('strong');
-    title.textContent = '엔진 안전 점수';
-    const score = document.createElement('b');
-    score.textContent = `${info.score}점 · ${info.label}`;
-    head.append(title, score);
-
-    const bar = document.createElement('div');
-    bar.className = 'engine-safety-bar';
-    const fill = document.createElement('i');
-    fill.style.width = `${clamp(info.score, 0, 100)}%`;
-    bar.appendChild(fill);
-
-    const notes = document.createElement('div');
-    notes.className = 'engine-safety-notes';
-    notes.textContent = info.notes.join(' · ');
-
-    const guard = document.createElement('small');
-    guard.className = 'engine-safety-guard';
-    guard.textContent = `성능 가드: ${formatPerformanceGuardInfo(track.performanceGuardInfo)}`;
-
-    panel.append(head, bar, notes, guard);
-    el.trackDetail.appendChild(panel);
+    return getDetailPanelsView().renderEngineSafetyPanel(track, getDetailPanelsViewDeps());
 }
 
 function renderLowMonoPanel(track) {
-    if (!track || !track.analysis || !Number.isFinite(Number(track.analysis.lowMonoScore))) return;
-    const score = Math.round(Number(track.analysis.lowMonoScore));
-    const risk = track.analysis.lowMonoRisk || (score >= 82 ? 'safe' : score >= 64 ? 'watch' : 'risk');
-    const panel = document.createElement('div');
-    panel.className = `low-mono-panel low-mono-${risk}`;
-    const head = document.createElement('div');
-    head.className = 'low-mono-head';
-    const title = document.createElement('strong');
-    title.textContent = '저역 모노 호환 체크';
-    const value = document.createElement('b');
-    value.textContent = `${score}점 · ${getLowMonoRiskLabel(risk)}`;
-    head.append(title, value);
-    const bar = document.createElement('div');
-    bar.className = 'low-mono-bar';
-    const fill = document.createElement('i');
-    fill.style.width = `${clamp(score, 0, 100)}%`;
-    bar.appendChild(fill);
-    const note = document.createElement('small');
-    const corr = Number(track.analysis.lowMonoCorrelation || 0);
-    const ratio = Number(track.analysis.lowSideRatio || 0);
-    note.textContent = `120Hz 이하 L/R 상관도 ${corr.toFixed(2)} · 사이드 비율 ${ratio.toFixed(2)} · 저역 중심 고정 ${state.featureFlags.lowEndAnchor ? 'ON' : 'OFF'}`;
-    panel.append(head, bar, note);
-    el.trackDetail.appendChild(panel);
+    return getDetailPanelsView().renderLowMonoPanel(track, getDetailPanelsViewDeps());
 }
 
 function getLowMonoRiskLabel(risk) {
-    if (risk === 'safe') return '안정';
-    if (risk === 'watch') return '점검';
-    return '위험';
+    return getDetailPanelsView().getLowMonoRiskLabel(risk);
 }
 
 function renderMasterComparisonPanel(track) {
-    if (!track || !track.analysis) return;
-    const panel = document.createElement('div');
-    panel.className = 'compare-panel';
-    const title = document.createElement('strong');
-    title.textContent = '정밀 비교 / 성능 미터';
-    panel.appendChild(title);
-    const grid = document.createElement('div');
-    grid.className = 'compare-grid';
-    const before = Number.isFinite(track.analysis.loudnessIntegrated) ? track.analysis.loudnessIntegrated : track.analysis.loudnessHint;
-    const after = track.finalizeInfo && Number.isFinite(track.finalizeInfo.loudnessAfter) ? track.finalizeInfo.loudnessAfter : NaN;
-    const peakAfter = track.finalizeInfo && Number.isFinite(track.finalizeInfo.peakAfter) ? ampToDb(track.finalizeInfo.peakAfter) : NaN;
-    [
-        ['원본 LUFS', Number.isFinite(before) ? before.toFixed(1) : '-'],
-        ['마스터 LUFS', Number.isFinite(after) ? after.toFixed(1) : '렌더 전'],
-        ['클리핑 위험', stripTags(getClippingRiskText(track))]
-    ].forEach(([label, value]) => {
-        const chip = document.createElement('div');
-        chip.className = 'compare-chip';
-        const span = document.createElement('span');
-        span.textContent = label;
-        const b = document.createElement('b');
-        b.textContent = value;
-        chip.append(span, b);
-        grid.appendChild(chip);
-    });
-    panel.appendChild(grid);
-    if (track.performanceInfo) {
-        const perf = document.createElement('div');
-        perf.className = 'performance-meter-row';
-        const heavy = getHeaviestPerformanceStage(track.performanceInfo);
-        const chips = [
-            ['처리 시간', formatPerformanceInfo(track.performanceInfo)],
-            ['무거운 단계', heavy ? `${heavy.label} · ${formatDurationMs(heavy.ms)}` : '측정 전']
-        ];
-        chips.forEach(([label, value]) => {
-            const chip = document.createElement('div');
-            chip.className = 'performance-meter-chip';
-            const span = document.createElement('span');
-            span.textContent = label;
-            const b = document.createElement('b');
-            b.textContent = value;
-            chip.append(span, b);
-            perf.appendChild(chip);
-        });
-        panel.appendChild(perf);
-    }
-    const bars = document.createElement('div');
-    bars.className = 'lufs-bars';
-    bars.appendChild(makeLufsBar('원본', before));
-    bars.appendChild(makeLufsBar('마스터', after));
-    panel.appendChild(bars);
-    const diff = document.createElement('div');
-    diff.className = 'diff-meter';
-    diff.textContent = buildTrackDiffText(track);
-    panel.appendChild(diff);
-    el.trackDetail.appendChild(panel);
+    return getDetailPanelsView().renderMasterComparisonPanel(track, getDetailPanelsViewDeps());
 }
 
 function makeLufsBar(label, lufs) {
-    const row = document.createElement('div');
-    row.className = 'lufs-row';
-    const l = document.createElement('span');
-    l.textContent = label;
-    const track = document.createElement('div');
-    track.className = 'lufs-track';
-    const fill = document.createElement('div');
-    fill.className = 'lufs-fill';
-    const pct = Number.isFinite(lufs) ? clamp((lufs + 30) / 22 * 100, 0, 100) : 0;
-    fill.style.width = `${pct}%`;
-    track.appendChild(fill);
-    const value = document.createElement('span');
-    value.textContent = Number.isFinite(lufs) ? `${lufs.toFixed(1)}` : '-';
-    row.append(l, track, value);
-    return row;
+    return getDetailPanelsView().makeLufsBar(label, lufs, getDetailPanelsViewDeps());
 }
 
 function createComparisonInfo(track, finalizeInfo) {
@@ -12425,12 +12393,7 @@ function getClippingRiskText(track) {
 function stripTags(value) { return String(value || '').replace(/<[^>]+>/g, ''); }
 
 function buildTrackDiffText(track) {
-    if (!track || !track.finalizeInfo) return '마스터링 후 LUFS 변화, 피크 위험, DSP 적용량을 표시합니다.';
-    const c = track.comparison || createComparisonInfo(track, track.finalizeInfo);
-    const delta = Number.isFinite(c.loudnessDelta) ? `${formatSigned(c.loudnessDelta, 1)} LUFS` : '-';
-    const peak = Number.isFinite(c.peakAfterDb) ? `${c.peakAfterDb.toFixed(2)} dBTP 유사` : '-';
-    const ab = getABMatchGainDb(track);
-    return `라우드니스 변화 ${delta} · 최종 피크 ${peak} · DSP ${getDspAmountScoreLabel(track)}`;
+    return getDetailPanelsView().buildTrackDiffText(track, getDetailPanelsViewDeps());
 }
 
 function buildGlobalDiffText() {

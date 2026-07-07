@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-0",
   "version": "1.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage19 highlight compare diagnostics and sync hardening",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage21 unified preview system and mastering-settings player integration",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -28,6 +28,7 @@
     "node --check src/download/download-service.js",
     "node --check src/ui/download-dialog-view.js",
     "node --check src/ui/waveform-compare-view.js",
+    "node --check src/ui/detail-panels-view.js",
     "node --check src/ui/detail-view.js",
     "node --check src/security/site-guards.js",
     "node --check src/boot/runtime-health.js",
@@ -113,6 +114,8 @@
     "node qa/stage16_version_release_smoke.js",
     "node qa/stage17_highlight_compare_sync_smoke.js",
     "node qa/stage18_settings_persistence_smoke.js",
-    "node qa/stage19_highlight_diagnostics_smoke.js"
+    "node qa/stage19_highlight_diagnostics_smoke.js",
+    "node qa/stage20_detail_panels_css_split_smoke.js",
+    "node qa/stage21_unified_preview_system_smoke.js"
   ]
 }

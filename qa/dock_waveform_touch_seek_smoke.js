@@ -17,7 +17,7 @@ const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 must(app.includes('function seekDockToWaveformPercent'), 'waveform percent seek helper missing');
 must(app.includes('function getWaveformPointerPercent'), 'waveform pointer percent helper missing');
 must(app.includes('function onWaveformBarsSeek'), 'waveform click seek handler missing');
-must(app.includes("attachWaveformSeekHandlers(bars, targetMode, 'dock-player')"), 'dock integrated waveform seek handler missing');
+must(app.includes("attachWaveformSeekHandlers(bars, targetMode, role)"), 'dock integrated waveform seek handler missing');
 must(view.includes("attachWaveformSeekHandlers(bars, sourceMode || tone || state.bottomPreviewMode, 'popup')"), 'popup waveform handlers not attached');
 must(app.includes('getMasterPreviewStartSec(track) + localSec') || app.includes('getMasterPreviewStartSec(track) + scopedLocalSec'), 'master preview absolute seek mapping missing');
 must(studioCss.includes('--waveform-playhead-pct') || dockCss.includes('--waveform-playhead-pct') || dockWaveformCss.includes('--waveform-playhead-pct') || compareCss.includes('--waveform-playhead-pct'), 'live playhead CSS variable missing');

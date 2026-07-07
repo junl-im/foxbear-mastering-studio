@@ -1,10 +1,10 @@
 # FoxBear AI Mastering Studio Pro v1.4.0
 
-Stage19 adds highlight compare diagnostics. The compare popup now resolves original/master-preview windows through `src/audio/highlight-compare-inspector.js`, shows an aligned-window diagnostic chip, and keeps original absolute start and master-preview local start metadata separate. Runtime asset cache key: `1.4.0-stage19-highlight-diagnostics`.
+Stage19 adds highlight compare diagnostics. The compare popup now resolves original/master-preview windows through `src/audio/highlight-compare-inspector.js`, shows an aligned-window diagnostic chip, and keeps original absolute start and master-preview local start metadata separate. Runtime asset cache key: `1.4.0-stage20-detail-panels-split`.
 
 ## Current patch: v1.4.0 Stage18
 
-Stage18 adds persistent settings sync. The mobile `⚙️ 설정` panel now saves and restores key ON/OFF options through `src/settings/settings-service.js` using the versioned `foxbear-settings-v1.4.0` storage key. Runtime asset cache key: `1.4.0-stage19-highlight-diagnostics`.
+Stage18 adds persistent settings sync. The mobile `⚙️ 설정` panel now saves and restores key ON/OFF options through `src/settings/settings-service.js` using the versioned `foxbear-settings-v1.4.0` storage key. Runtime asset cache key: `1.4.0-stage20-detail-panels-split`.
 
 # FoxBear AI Mastering Studio Pro v1.4.0
 
@@ -42,3 +42,10 @@ npm run check
 ```
 
 현재 v1.4.0 기준 전체 QA는 67/67 PASS입니다.
+
+### v1.4.0 Stage20
+
+- Detail sub-panels are split into `src/ui/detail-panels-view.js`.
+- Component CSS ownership now starts splitting into `assets/css/components/forms.css` and `assets/css/components/cards.css`.
+- QA: 105/105 PASS.
+

@@ -1,8 +1,19 @@
+## Stage20 - Detail panels extraction and component CSS split (2026-07-07)
+
+- Added `src/ui/detail-panels-view.js` and moved the detail sub-panel renderers for quality gate, A/B studio panel, master report, processing flow, engine safety, low-mono compatibility, and master comparison meters out of `src/app.js`.
+- `src/app.js` now keeps compatibility wrappers that delegate to `FoxBearDetailPanelsView`, so existing detail orchestration in `src/ui/detail-view.js` remains stable.
+- Added `assets/css/components/forms.css` for form/control selectors and `assets/css/components/cards.css` for card/panel selectors. `base-components.css` remains as the compatibility base while the new layers make future CSS ownership explicit.
+- Runtime Health now requires `FoxBearDetailPanelsView.renderQualityGatePanel`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage20-detail-panels-split`.
+- Added `qa/stage20_detail_panels_css_split_smoke.js`.
+
+QA result: `npm run check` -> 105/105 PASS.
+
 ## v1.4.0 Stage19 - Highlight Compare Diagnostics & Sync Hardening
 - Added `src/audio/highlight-compare-inspector.js` to centralize highlight compare window resolution.
 - Hardened compare popup rows so original playback uses the absolute highlight start while master-preview playback uses local `0s`, with both carrying shared duration metadata.
 - Added an in-popup diagnostic chip showing the aligned original/highlight window and light waveform-energy status.
-- Added `qa/stage19_highlight_diagnostics_smoke.js` and bumped runtime asset/SW cache key to `1.4.0-stage19-highlight-diagnostics`.
+- Added `qa/stage19_highlight_diagnostics_smoke.js` and bumped runtime asset/SW cache key to `1.4.0-stage20-detail-panels-split`.
 
 ## Stage18 - Settings persistence and state sync (2026-07-07)
 
@@ -11,7 +22,7 @@
 - Persists ON/OFF settings when toggled: 화면유지 desired state, 진동피드백, 자동 하이라이트, A/B 루프, 레벨매칭, 차이듣기, 캐시자동정리, 성능가드, 안전점수.
 - Added a `↩️ 설정초기화` action in the mobile settings panel to restore defaults without clearing audio files or exported downloads.
 - Runtime Health now checks `FoxBearSettingsService.applyToContext` so a missing settings module is detected as a boot dependency.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage19-highlight-diagnostics`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage20-detail-panels-split`.
 - Added `qa/stage18_settings_persistence_smoke.js`.
 
 QA result: `npm run check` -> 101/101 PASS.
@@ -22,7 +33,7 @@ QA result: `npm run check` -> 101/101 PASS.
 - The original-side `원곡 듣기` button now starts from the stored highlight `startSec` instead of falling back to 0 seconds or the previous Dock position.
 - The master-preview-side `하이라이트 듣기` button still starts at local 0 seconds, but its transport metadata keeps the same absolute highlight start for synced playhead and future mode switches.
 - Added metadata-delayed seek handling so the correct section is applied after audio metadata loads on mobile browsers.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage19-highlight-diagnostics`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage20-detail-panels-split`.
 - Added `qa/stage17_highlight_compare_sync_smoke.js` and updated legacy cache-stage smoke tests to accept Stage17.
 
 QA result: `npm run check` -> 99/99 PASS.
@@ -59,6 +70,17 @@ QA target: `npm run check`.
 QA target: `npm run check`.
 
 # Changelog
+
+## Stage21 - Unified preview system linkage
+
+- Rebuilt the mastering-settings realtime preview player on the same Dock integrated waveform player model used by the bottom transport.
+- Added peak-colored waveform/playhead feedback to the realtime preview so it no longer looks like a legacy standalone audio control.
+- Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
+- Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
+- Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage21-unified-preview-system`.
+- Added `qa/stage21_unified_preview_system_smoke.js`.
+
 
 ## Stage12 - Detail view module split
 

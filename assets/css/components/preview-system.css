@@ -1,0 +1,116 @@
+/* FoxBear AI Mastering Studio Pro v1.4.0 - Stage21 unified preview system */
+
+.realtime-unified-player-card {
+    display: grid;
+    gap: 10px;
+    border: 1px solid rgba(154, 124, 255, 0.22);
+    background:
+        linear-gradient(135deg, rgba(120, 88, 255, 0.12), rgba(30, 220, 170, 0.07)),
+        rgba(18, 18, 28, 0.82);
+}
+
+.realtime-dock-linked-player {
+    grid-template-columns: auto minmax(0, 1fr) minmax(82px, auto);
+    width: 100%;
+    min-width: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.045);
+}
+
+.realtime-dock-linked-player .dock-integrated-info {
+    align-items: flex-end;
+}
+
+.realtime-dock-linked-player .dock-integrated-source::before {
+    content: '🎛 ';
+}
+
+.realtime-preview-waveform-bars {
+    min-height: 42px;
+    border-color: rgba(255,255,255,.13);
+    background:
+        radial-gradient(circle at 12% 20%, rgba(255,255,255,.11), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+}
+
+.realtime-preview-waveform-bars.has-live-playhead::after,
+.realtime-preview-waveform-bars.has-live-playhead::before {
+    opacity: .92;
+}
+
+.realtime-system-bridge {
+    display: grid;
+    gap: 8px;
+    padding: 9px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.045);
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.realtime-system-meta,
+.realtime-system-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.realtime-system-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 22px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: .58rem;
+    font-weight: 800;
+    letter-spacing: .02em;
+    color: rgba(239,237,255,.82);
+    background: rgba(255,255,255,.055);
+    border: 1px solid rgba(255,255,255,.09);
+}
+
+.realtime-system-pill.is-linked {
+    color: #f3efff;
+    background: rgba(121, 94, 255, .18);
+    border-color: rgba(169, 144, 255, .28);
+}
+
+.realtime-system-action {
+    min-height: 28px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.07);
+    color: rgba(248,246,255,.92);
+    font-size: .62rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform .16s ease, border-color .16s ease, background .16s ease;
+}
+
+.realtime-system-action:hover,
+.realtime-system-action:focus-visible {
+    transform: translateY(-1px);
+    border-color: rgba(145, 120, 255, .42);
+    background: rgba(145, 120, 255, .16);
+    outline: none;
+}
+
+@media (max-width: 720px) {
+    .realtime-unified-player-card { gap: 8px; padding: 8px !important; }
+    .realtime-dock-linked-player {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 7px;
+    }
+    .realtime-dock-linked-player .dock-integrated-info {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 0;
+    }
+    .realtime-preview-waveform-bars { min-height: 36px; }
+    .realtime-system-bridge { padding: 7px; gap: 6px; }
+    .realtime-system-action { min-height: 26px; padding: 4px 7px; font-size: .56rem; }
+    .realtime-system-pill { min-height: 20px; padding: 2px 7px; font-size: .52rem; }
+}

@@ -20,7 +20,7 @@ must(html.includes('마스터링'), 'Mastering start label missing');
 must(html.indexOf('bottomPreviewMasterPreviewBtn') < html.indexOf('bottomPreviewMasterBtn'), 'Highlight should sit before mastering start');
 must(app.includes('function createDockIntegratedWaveformPlayer'), 'Integrated Dock player factory missing');
 must(app.includes('function makeDockWaveformBars'), 'Integrated Dock waveform bars missing');
-must(app.includes("attachWaveformSeekHandlers(bars, targetMode, 'dock-player')"), 'Dock waveform seek binding missing');
+must(app.includes("attachWaveformSeekHandlers(bars, targetMode, role)"), 'Dock waveform seek binding missing');
 must(view.includes('waveform-compare-listen'), 'Large compare listen buttons missing');
 must(view.includes("listen.textContent = mode === 'mastered' ? '마스터링 듣기'"), 'Large compare source listen labels missing');
 must(app.includes('installFeatureDialogFallback'), 'Feature button fallback missing');

@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage19-highlight-diagnostics';
+    const FALLBACK_VERSION = '1.4.0-stage21-unified-preview-system';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -17,6 +17,7 @@
         'FoxBearDownloadService.downloadBlob',
         'FoxBearDownloadDialogView.showDownloadOptionsDialog',
         'FoxBearWaveformCompareView.renderWaveformCompareDialog',
+        'FoxBearDetailPanelsView.renderQualityGatePanel',
         'FoxBearDetailView.renderDetail',
         'FoxBearSiteGuards.runSiteAccessGuard'
     ]);
