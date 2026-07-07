@@ -21,11 +21,11 @@ const health = read('src/boot/runtime-health.js');
 const sw = read('sw.js');
 const overwrite = read('tools/create-overwrite-zip.sh');
 const version = '1.4.0';
-const assetVersion = '1.4.0-stage18-settings-persistence';
+const assetVersion = '1.4.0-stage19-highlight-diagnostics';
 
 assert(pkg.name === 'foxbear-github-pro-v1-4-0', 'package name should be v1.4.0');
 assert(pkg.version === version, 'package version should be 1.4.0');
-assert(pkg.description.includes('v1.4.0') && pkg.description.includes('Stage18'), 'package description should identify latest v1.4.0 stage');
+assert(pkg.description.includes('v1.4.0') && pkg.description.includes('Stage19'), 'package description should identify latest v1.4.0 stage');
 assert(manifest.version === version, 'manifest should carry version 1.4.0');
 assert(html.includes('<title>FoxBear Mastering PRO v1.4.0</title>'), 'title should show v1.4.0');
 assert(html.includes('data-build="1.4.0"'), 'body data-build should be 1.4.0');
@@ -41,7 +41,7 @@ assert(app.includes(`navigator.serviceWorker.register('./sw.js?v=${assetVersion}
   assert(html.includes(`${asset}?v=${assetVersion}`), `${asset} should use latest stage query in index.html`);
   assert(sw.includes(`./${asset}?v=${assetVersion}`), `${asset} should use latest stage query in sw.js`);
 });
-assert(overwrite.includes('v1.4.0-stage18'), 'overwrite package default should be latest v1.4.0 stage');
+assert(overwrite.includes('v1.4.0-stage19'), 'overwrite package default should be latest v1.4.0 stage');
 assert(!html.includes('1.3.84'), 'index.html should not display old 1.3.84 runtime version');
 assert(!app.includes('1.3.84'), 'src/app.js should not contain old runtime version');
 assert(!config.includes('1.3.84'), 'runtime config should not contain old runtime version');

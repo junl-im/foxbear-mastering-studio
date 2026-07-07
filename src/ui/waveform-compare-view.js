@@ -38,6 +38,7 @@
     const renderBottomPreviewDock = pick(deps, 'renderBottomPreviewDock', () => undefined);
     const playBottomPreviewAudio = pick(deps, 'playBottomPreviewAudio', () => undefined);
     const foxBearHaptic = pick(deps, 'foxBearHaptic', () => undefined);
+    const highlightCompareInspector = pick(deps, 'highlightCompareInspector', global.FoxBearHighlightCompareInspector || null);
 
     function renderWaveformCompareDialog(track, target) {
         const wrap = documentRef.createElement('section');
@@ -55,6 +56,8 @@
 
         const rows = createAlignedWaveformCompareRows(track);
         rows.forEach(rowInfo => wrap.appendChild(makeWaveformCompareRow(rowInfo.label, rowInfo.values, rowInfo.markers, rowInfo.tone, rowInfo.mode, rowInfo)));
+        const diagnostic = createHighlightCompareDiagnostic(track, rows);
+        if (diagnostic) wrap.appendChild(diagnostic);
         if (!rows.some(row => row.mode !== 'original')) {
             const empty = documentRef.createElement('div');
             empty.className = 'waveform-compare-empty';
@@ -103,6 +106,9 @@
         const originalDuration = Number(track?.analysis?.duration || 0);
         const previewStart = getMasterPreviewStartSec(track);
         const previewDuration = Number(track?.masterPreviewInfo?.durationSec || MASTER_PREVIEW_DURATION_SEC || 0);
+        const compareWindow = highlightCompareInspector && typeof highlightCompareInspector.resolveCompareWindow === 'function'
+            ? highlightCompareInspector.resolveCompareWindow(track, { fallbackStartSec: previewStart, fallbackDurationSec: previewDuration })
+            : { startSec: previewStart, durationSec: previewDuration, endSec: previewStart + previewDuration, originalLocalStartSec: previewStart, masterPreviewLocalStartSec: 0, aligned: true };
 
         if (track?.masteredUrl && mastered.length) {
             return [
@@ -112,14 +118,39 @@
         }
 
         if (track?.masterPreviewUrl && mastered.length) {
-            const alignedOriginal = sliceWaveformValuesByTime(original, originalDuration, previewStart, previewDuration, popupBins);
+            const alignedOriginal = sliceWaveformValuesByTime(original, originalDuration, compareWindow.startSec, compareWindow.durationSec, popupBins);
+            const previewValues = normalizeWaveformValues(mastered, popupBins);
+            const diagnostic = highlightCompareInspector && typeof highlightCompareInspector.buildDiagnostic === 'function'
+                ? highlightCompareInspector.buildDiagnostic(track, { originalValues: alignedOriginal, previewValues, fallbackStartSec: compareWindow.startSec, fallbackDurationSec: compareWindow.durationSec })
+                : null;
             return [
-                { label: '원곡 하이라이트', values: alignedOriginal, markers: sampleMarkersFromValues(alignedOriginal), tone: 'original', mode: 'original', scope: 'preview', aligned: true, startSec: previewStart, durationSec: previewDuration },
-                { label: '하이라이트 듣기', values: normalizeWaveformValues(mastered, popupBins), markers: getTrackMasterWaveformMarkers(track, mastered), tone: 'mastered', mode: 'masterPreview', scope: 'preview', aligned: true, startSec: previewStart, durationSec: previewDuration }
+                { label: '원곡 하이라이트', values: alignedOriginal, markers: sampleMarkersFromValues(alignedOriginal), tone: 'original', mode: 'original', scope: 'preview', aligned: true, startSec: compareWindow.startSec, durationSec: compareWindow.durationSec, localStartSec: compareWindow.originalLocalStartSec ?? compareWindow.startSec, absoluteStartSec: compareWindow.startSec, compareDiagnostic: diagnostic },
+                { label: '하이라이트 듣기', values: previewValues, markers: getTrackMasterWaveformMarkers(track, mastered), tone: 'mastered', mode: 'masterPreview', scope: 'preview', aligned: true, startSec: compareWindow.startSec, durationSec: compareWindow.durationSec, localStartSec: compareWindow.masterPreviewLocalStartSec ?? 0, absoluteStartSec: compareWindow.startSec, compareDiagnostic: diagnostic }
             ];
         }
 
         return [{ label: '원곡', values: normalizeWaveformValues(original, popupBins), markers: sampleMarkersFromValues(original), tone: 'original', mode: 'original', scope: 'full', aligned: false }];
+    }
+
+    function createHighlightCompareDiagnostic(track, rows = []) {
+        const previewRows = rows.filter(row => row && row.scope === 'preview');
+        if (!previewRows.length) return null;
+        const rowWithDiagnostic = previewRows.find(row => row.compareDiagnostic);
+        const diagnostic = rowWithDiagnostic?.compareDiagnostic || (highlightCompareInspector && typeof highlightCompareInspector.buildDiagnostic === 'function'
+            ? highlightCompareInspector.buildDiagnostic(track, { fallbackStartSec: previewRows[0]?.startSec, fallbackDurationSec: previewRows[0]?.durationSec })
+            : null);
+        const chip = documentRef.createElement('div');
+        chip.className = 'waveform-compare-diagnostic';
+        chip.dataset.compareStatus = diagnostic?.status || 'ok';
+        const badge = documentRef.createElement('strong');
+        badge.textContent = diagnostic?.status === 'clamped' ? '구간 보정' : (diagnostic?.energy?.status === 'check' ? '성능 점검' : '구간 동기화');
+        const text = documentRef.createElement('span');
+        const label = diagnostic?.label || `${Math.round(Number(previewRows[0]?.startSec || 0) * 10) / 10}s · ${Math.round(Number(previewRows[0]?.durationSec || 0) * 10) / 10}s`;
+        text.textContent = `${label} · 원곡=${Math.round(Number(previewRows[0]?.localStartSec ?? previewRows[0]?.startSec ?? 0) * 10) / 10}s / 하이라이트=0s`;
+        const note = documentRef.createElement('small');
+        note.textContent = diagnostic?.message || '원곡과 하이라이트가 같은 absolute 구간으로 정렬됩니다.';
+        chip.append(badge, text, note);
+        return chip;
     }
 
     function createWaveformCompareTransportControls(track) {
@@ -194,6 +225,8 @@
         if (options.scope === 'preview') bars.dataset.waveformScope = 'preview';
         if (Number.isFinite(Number(options.startSec))) bars.dataset.waveformStartSec = String(Math.round(Number(options.startSec) * 100) / 100);
         if (Number.isFinite(Number(options.durationSec))) bars.dataset.waveformDurationSec = String(Math.round(Number(options.durationSec) * 100) / 100);
+        if (Number.isFinite(Number(options.localStartSec))) bars.dataset.waveformLocalStartSec = String(Math.round(Number(options.localStartSec) * 100) / 100);
+        if (Number.isFinite(Number(options.absoluteStartSec ?? options.startSec))) bars.dataset.waveformAbsoluteStartSec = String(Math.round(Number(options.absoluteStartSec ?? options.startSec) * 100) / 100);
         bars.dataset.waveformAligned = options.aligned ? 'true' : 'false';
         const popupBins = getAdaptiveDockWaveformBinCount('popup');
         bars.dataset.waveformBinCount = String((values && values.length) || popupBins);
@@ -241,15 +274,18 @@
                 return;
             }
             captureBottomPreviewTransport(track, state.bottomPreviewMode);
-            const alignedStartSec = Number(options.startSec);
+            const alignedStartSec = Number(options.absoluteStartSec ?? options.startSec);
             const alignedDurationSec = Number(options.durationSec);
+            const alignedLocalSec = Number(options.localStartSec);
             if (options.scope === 'preview' && Number.isFinite(alignedStartSec) && alignedStartSec >= 0) {
-                const localSec = mode === 'masterPreview' ? 0 : alignedStartSec;
+                const localSec = Number.isFinite(alignedLocalSec) ? alignedLocalSec : (mode === 'masterPreview' ? 0 : alignedStartSec);
                 state.bottomPreviewTransport = {
                     trackId: track.id,
                     mode,
                     localSec,
                     absoluteSec: alignedStartSec,
+                    originalStartSec: alignedStartSec,
+                    masterPreviewStartSec: mode === 'masterPreview' ? localSec : 0,
                     durationSec: Number.isFinite(alignedDurationSec) && alignedDurationSec > 0 ? alignedDurationSec : undefined,
                     scope: 'preview',
                     playing: true,
@@ -265,7 +301,7 @@
             raf(() => {
                 const audio = getBottomPreviewAudio();
                 if (audio && options.scope === 'preview' && Number.isFinite(alignedStartSec) && alignedStartSec >= 0) {
-                    const targetLocalSec = mode === 'masterPreview' ? 0 : alignedStartSec;
+                    const targetLocalSec = Number.isFinite(alignedLocalSec) ? alignedLocalSec : (mode === 'masterPreview' ? 0 : alignedStartSec);
                     try {
                         if (audio.readyState >= 1) audio.currentTime = Math.max(0, targetLocalSec);
                         else audio.addEventListener('loadedmetadata', () => {
@@ -291,7 +327,8 @@
       sliceWaveformValuesByTime,
       createAlignedWaveformCompareRows,
       createWaveformCompareTransportControls,
-      makeWaveformCompareRow
+      makeWaveformCompareRow,
+      createHighlightCompareDiagnostic
     };
   }
 

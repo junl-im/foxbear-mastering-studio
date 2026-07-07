@@ -2888,7 +2888,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage18-settings-persistence');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage19-highlight-diagnostics');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -11233,7 +11233,8 @@ function renderWaveformCompareDialog(track, target) {
         captureBottomPreviewTransport,
         renderBottomPreviewDock,
         playBottomPreviewAudio,
-        foxBearHaptic
+        foxBearHaptic,
+        highlightCompareInspector: window.FoxBearHighlightCompareInspector
     });
 }
 

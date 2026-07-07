@@ -1,6 +1,10 @@
+# FoxBear AI Mastering Studio Pro v1.4.0
+
+Stage19 adds highlight compare diagnostics. The compare popup now resolves original/master-preview windows through `src/audio/highlight-compare-inspector.js`, shows an aligned-window diagnostic chip, and keeps original absolute start and master-preview local start metadata separate. Runtime asset cache key: `1.4.0-stage19-highlight-diagnostics`.
+
 ## Current patch: v1.4.0 Stage18
 
-Stage18 adds persistent settings sync. The mobile `⚙️ 설정` panel now saves and restores key ON/OFF options through `src/settings/settings-service.js` using the versioned `foxbear-settings-v1.4.0` storage key. Runtime asset cache key: `1.4.0-stage18-settings-persistence`.
+Stage18 adds persistent settings sync. The mobile `⚙️ 설정` panel now saves and restores key ON/OFF options through `src/settings/settings-service.js` using the versioned `foxbear-settings-v1.4.0` storage key. Runtime asset cache key: `1.4.0-stage19-highlight-diagnostics`.
 
 # FoxBear AI Mastering Studio Pro v1.4.0
 

@@ -1,3 +1,8 @@
+## Stage19 notes - Highlight diagnostics
+- Keep highlight comparison logic centralized in `FoxBearHighlightCompareInspector`; avoid duplicating start/duration math in UI modules.
+- Compare popup rows now expose `data-waveform-local-start-sec` and `data-waveform-absolute-start-sec` for future seek/UI tests.
+- Stage19 intentionally does not change mastering DSP; it only hardens compare-window metadata and UI diagnostics.
+
 ## Stage18 - Settings persistence and state sync (2026-07-07)
 
 - Added `src/settings/settings-service.js` with a versioned `foxbear-settings-v1.4.0` localStorage key.
@@ -5,7 +10,7 @@
 - Persists ON/OFF settings when toggled: 화면유지 desired state, 진동피드백, 자동 하이라이트, A/B 루프, 레벨매칭, 차이듣기, 캐시자동정리, 성능가드, 안전점수.
 - Added a `↩️ 설정초기화` action in the mobile settings panel to restore defaults without clearing audio files or exported downloads.
 - Runtime Health now checks `FoxBearSettingsService.applyToContext` so a missing settings module is detected as a boot dependency.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage18-settings-persistence`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage19-highlight-diagnostics`.
 - Added `qa/stage18_settings_persistence_smoke.js`.
 
 QA result: `npm run check` -> 101/101 PASS.
@@ -16,7 +21,7 @@ QA result: `npm run check` -> 101/101 PASS.
 - The original-side `원곡 듣기` button now starts from the stored highlight `startSec` instead of falling back to 0 seconds or the previous Dock position.
 - The master-preview-side `하이라이트 듣기` button still starts at local 0 seconds, but its transport metadata keeps the same absolute highlight start for synced playhead and future mode switches.
 - Added metadata-delayed seek handling so the correct section is applied after audio metadata loads on mobile browsers.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage18-settings-persistence`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage19-highlight-diagnostics`.
 - Added `qa/stage17_highlight_compare_sync_smoke.js` and updated legacy cache-stage smoke tests to accept Stage17.
 
 QA result: `npm run check` -> 99/99 PASS.

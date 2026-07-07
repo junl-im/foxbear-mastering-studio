@@ -7,8 +7,8 @@ const html=read('index.html'); const app=read('src/app.js'); const dockCss=read(
 must(pkg.version==='1.4.0','package version');
 must(html.includes('data-build="1.4.0"'),'build');
 must(app.includes("const APP_VERSION = 'Pro v1.4.0'"),'app version');
-must(html.includes('assets/icons/foxbear-icon-512.png?v=1.4.0-stage18-settings-persistence'),'512 icon cache key');
-must(html.includes('assets/icons/apple-touch-icon.png?v=1.4.0-stage18-settings-persistence'),'apple icon cache key');
+must(html.includes('assets/icons/foxbear-icon-512.png?v=1.4.0-stage19-highlight-diagnostics'),'512 icon cache key');
+must(html.includes('assets/icons/apple-touch-icon.png?v=1.4.0-stage19-highlight-diagnostics'),'apple icon cache key');
 must(html.includes('data-feature-dialog-close="true"'),'feature close hook');
 must(app.includes('function closeFeatureDialogFromEvent'),'close helper');
 must(app.includes('function installManagedModalController'),'state machine install');

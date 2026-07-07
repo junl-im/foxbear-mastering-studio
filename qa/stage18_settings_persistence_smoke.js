@@ -13,7 +13,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.0-stage18-settings-persistence';
+const version = '1.4.0-stage19-highlight-diagnostics';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -27,7 +27,7 @@ assert(index.includes(`src/settings/settings-service.js?v=${version}`), 'index s
 assert(index.indexOf('src/state/app-state.js') < index.indexOf('src/settings/settings-service.js'), 'settings service should load after app state');
 assert(index.indexOf('src/settings/settings-service.js') < index.indexOf('src/app.js'), 'settings service should load before app.js');
 assert(sw.includes(`./src/settings/settings-service.js?v=${version}`), 'service worker should precache settings-service.js');
-assert(sw.includes(`foxbear-shell-v1.4.0-stage18-settings-persistence`), 'service worker cache should use Stage18 key');
+assert(sw.includes(`foxbear-shell-v1.4.0-stage19-highlight-diagnostics`), 'service worker cache should use Stage18 or later key');
 assert(service.includes("STORAGE_KEY = 'foxbear-settings-v1.4.0'"), 'settings service should use versioned localStorage key');
 assert(service.includes('applyToContext') && service.includes('saveFromContext') && service.includes('reset'), 'settings service should expose apply/save/reset APIs');
 [
@@ -50,6 +50,6 @@ assert(view.includes("['reset-settings', '↩️', '설정초기화'"), 'setting
 assert(runtimeHealth.includes('FoxBearSettingsService.applyToContext'), 'runtime health should require settings service global');
 assert(pkg.includes('node --check src/settings/settings-service.js'), 'package QA should syntax-check settings service');
 assert(pkg.includes('node qa/stage18_settings_persistence_smoke.js'), 'package QA should include Stage18 smoke test');
-assert(overwrite.includes('v1.4.0-stage18'), 'overwrite package default should be Stage18');
+assert(overwrite.includes('v1.4.0-stage19'), 'overwrite package default should be Stage18 or later');
 
 console.log('PASS Stage18 settings persistence smoke');

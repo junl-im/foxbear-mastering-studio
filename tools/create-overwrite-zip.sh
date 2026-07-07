@@ -7,7 +7,7 @@ set -euo pipefail
 # needing to install every previous stage in sequence.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${1:-v1.4.0-stage18}"
+VERSION="${1:-v1.4.0-stage19}"
 OUT_DIR="$ROOT_DIR/dist"
 WORK_DIR="$OUT_DIR/overwrite-$VERSION"
 ZIP_PATH="$OUT_DIR/foxbear-mastering-studio-$VERSION-overwrite.zip"

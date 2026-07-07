@@ -2,13 +2,14 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage18-settings-persistence';
+    const FALLBACK_VERSION = '1.4.0-stage19-highlight-diagnostics';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
         'FoxBearCoreUtils',
         'FoxBearRecommendationEngine.createRecommendationEngine',
         'FoxBearMasteringInspector',
+        'FoxBearHighlightCompareInspector.resolveCompareWindow',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',
