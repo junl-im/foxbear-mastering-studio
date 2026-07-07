@@ -2834,6 +2834,10 @@ function seekDockToWaveformPercent(percent, options = {}) {
 }
 
 function getWaveformPointerPercent(event, element) {
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.pointerToPercent === 'function') {
+        return service.pointerToPercent(event, element);
+    }
     return mapWaveformPointerToAudioPercent(event, element);
 }
 
@@ -2846,8 +2850,12 @@ function seekLocalWaveformAudioPercent(bars, percent, options = {}) {
     const pct = clamp(Number(percent || 0), 0, 100) / 100;
     const duration = getWaveformSeekDuration(track, mode, audio, scope);
     if (!Number.isFinite(duration) || duration <= 0) return false;
-    const localSec = clamp(duration * pct, 0, Math.max(0, duration - 0.08));
-    applyBottomPreviewStart(audio, localSec);
+    const service = window.FoxBearWaveformControlService;
+    const localSec = service && typeof service.seekAudioToPercent === 'function'
+        ? service.seekAudioToPercent(audio, pct * 100, duration)
+        : clamp(duration * pct, 0, Math.max(0, duration - 0.08));
+    if (!Number.isFinite(localSec)) return false;
+    if (!service || typeof service.seekAudioToPercent !== 'function') applyBottomPreviewStart(audio, localSec);
     const player = audio.closest('.custom-player');
     const waveform = player?.querySelector?.('.dock-integrated-waveform-bars');
     setPlayheadOnElement(waveform || bars, pct * 100, Boolean(options.play && !audio.ended));
@@ -3041,7 +3049,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage26-unified-waveform-controls');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage27-waveform-control-service');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -11298,11 +11306,15 @@ function getDockPlaybackPercent(track = getSelectedTrack(), mode = state.bottomP
 }
 
 function getWaveformBarElements(element) {
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.getBarElements === 'function') return service.getBarElements(element);
     if (!element || typeof element.querySelectorAll !== 'function') return [];
     return Array.from(element.querySelectorAll('i'));
 }
 
 function getWaveformTimelineModel(element) {
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.getTimelineModel === 'function') return service.getTimelineModel(element);
     const bars = getWaveformBarElements(element);
     const rootRect = element?.getBoundingClientRect?.();
     if (!rootRect || !rootRect.width) return null;
@@ -11318,6 +11330,8 @@ function getWaveformTimelineModel(element) {
 }
 
 function mapAudioPercentToWaveformVisualPercent(element, percent) {
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.audioPercentToVisualPercent === 'function') return service.audioPercentToVisualPercent(element, percent);
     const pct = clamp(Number(percent), 0, 100);
     const model = getWaveformTimelineModel(element);
     if (!model) return pct;
@@ -11326,6 +11340,8 @@ function mapAudioPercentToWaveformVisualPercent(element, percent) {
 }
 
 function mapWaveformPointerToAudioPercent(event, element) {
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.pointerToPercent === 'function') return service.pointerToPercent(event, element);
     const target = element || event?.currentTarget || event?.target;
     if (!target || typeof target.getBoundingClientRect !== 'function') return NaN;
     const x = Number(event?.clientX ?? event?.touches?.[0]?.clientX ?? event?.changedTouches?.[0]?.clientX);
@@ -11349,6 +11365,11 @@ function isWaveformPlaybackModeActive(mode = state.bottomPreviewMode) {
 }
 
 function updateWaveformProgressBars(element, percent) {
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.updateBarProgress === 'function') {
+        service.updateBarProgress(element, percent);
+        return;
+    }
     if (!element || typeof element.querySelectorAll !== 'function' || !Number.isFinite(Number(percent))) return;
     const pct = clamp(Number(percent), 0, 100);
     element.querySelectorAll('i').forEach(bar => {
@@ -11360,6 +11381,11 @@ function updateWaveformProgressBars(element, percent) {
 }
 
 function setPlayheadOnElement(element, percent, playing = false) {
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.setPlayhead === 'function') {
+        service.setPlayhead(element, percent, playing);
+        return;
+    }
     if (!element) return;
     if (!Number.isFinite(Number(percent))) {
         element.classList.remove('has-live-playhead', 'is-playing');
@@ -11496,6 +11522,7 @@ function makeDockWaveformBars(track, mode = state.bottomPreviewMode, options = {
     if (options.extraClass) bars.classList.add(...String(options.extraClass).split(/\s+/).filter(Boolean));
     bars.dataset.waveformBinCount = String(renderValues.length);
     bars.dataset.waveformReady = hasRealValues ? 'true' : 'false';
+    window.FoxBearWaveformControlService?.stampManagedElement?.(bars, role);
     bars.setAttribute('aria-label', hasRealValues ? '통합 피크 파형 플레이어. 막대 높이와 색으로 피크 위치를 확인하고 클릭하면 해당 위치로 이동해 재생합니다.' : '통합 파형 플레이어. 분석 중에는 임시 파형을 표시하고 완료 즉시 실제 피크 파형으로 갱신됩니다.');
     renderValues.forEach((value, index) => {
         const bar = document.createElement('i');
@@ -11612,17 +11639,12 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
             showToast('피크 위치를 아직 계산할 수 없습니다. 분석 완료 후 다시 시도해주세요.');
             return;
         }
-        let maxIndex = 0;
-        let maxValue = -Infinity;
-        values.forEach((value, index) => {
-            const n = Number(value);
-            if (Number.isFinite(n) && n > maxValue) {
-                maxValue = n;
-                maxIndex = index;
-            }
-        });
+        const service = window.FoxBearWaveformControlService;
+        const peakPercent = service && typeof service.findStrongestPeakPercent === 'function'
+            ? service.findStrongestPeakPercent(values)
+            : values.reduce((best, value, index) => Number(value) > Number(values[best] || -Infinity) ? index : best, 0) / Math.max(1, values.length - 1) * 100;
         const startOffset = Number(options.startSec || 0);
-        const localSec = clamp((maxIndex / Math.max(1, values.length - 1)) * duration, 0, Math.max(0, duration - 0.08));
+        const localSec = clamp((Number(peakPercent) / 100) * duration, 0, Math.max(0, duration - 0.08));
         audio.currentTime = clamp(localSec - startOffset, 0, Math.max(0, duration - 0.08));
         sync();
         showToast(`${options.sourceLabel || getDockModeLabel(mode)} 피크 구간으로 이동했습니다.`);
@@ -12322,6 +12344,7 @@ function createABSwitchPlayer(track) {
         title.textContent = label;
         const bars = document.createElement('span');
         bars.className = 'ab-switch-inline-waveform-bars has-live-playhead';
+        window.FoxBearWaveformControlService?.stampManagedElement?.(bars, `ab-${mode}`);
         const values = normalizeWaveformValues(mode === 'mastered' ? getTrackMasterWaveformValues(track) : getTrackOriginalWaveformValues(track), getAdaptiveDockWaveformBinCount('dialog'));
         const markers = mode === 'mastered' ? getTrackMasterWaveformMarkers(track, values) : sampleMarkersFromValues(values);
         const renderValues = values.length ? values : Array.from({ length: getAdaptiveDockWaveformBinCount('dialog') }, (_, index) => clamp(0.18 + Math.sin(index * 0.43) * 0.08, 0.08, 0.34));
@@ -12334,10 +12357,12 @@ function createABSwitchPlayer(track) {
         });
         row.append(title, bars);
         row.addEventListener('click', event => {
-            const rect = bars.getBoundingClientRect ? bars.getBoundingClientRect() : null;
             const duration = Number(activeAudio().duration || durationSec || 0);
-            if (!rect || !Number.isFinite(duration) || duration <= 0) return;
-            const pct = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+            if (!Number.isFinite(duration) || duration <= 0) return;
+            const service = window.FoxBearWaveformControlService;
+            const pct = service && typeof service.pointerToPercent === 'function'
+                ? clamp(service.pointerToPercent(event, bars) / 100, 0, 1)
+                : clamp((event.clientX - bars.getBoundingClientRect().left) / Math.max(1, bars.getBoundingClientRect().width), 0, 1);
             const position = pct * duration;
             originalAudio.currentTime = Math.min(position, Number(originalAudio.duration || duration));
             masteredAudio.currentTime = Math.min(position, Number(masteredAudio.duration || duration));

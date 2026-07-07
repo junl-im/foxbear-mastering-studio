@@ -1,11 +1,53 @@
+# Stage27 handoff - Common waveform control service
+
+Latest build: `v1.4.0-stage27-waveform-control-service`.
+
+Validation target: `npm run check` should pass 114/114. Use `foxbear-mastering-studio-v1.4.0-stage27-overwrite.zip` for cumulative overwrite deployment.
+
+## 다음 대화 인수인계
+
+현재 최신 기준은 Stage27입니다. 다음 대화가 새로 시작되면 반드시 아래 순서로 이어가면 됩니다.
+
+1. 기준 ZIP: `foxbear-mastering-studio-v1.4.0-stage27-full.zip` 또는 작업 폴더 `/mnt/data/foxbear_stage27_work`.
+2. 누적 적용 ZIP: `foxbear-mastering-studio-v1.4.0-stage27-overwrite.zip`.
+3. 최신 asset/cache key: `1.4.0-stage27-waveform-control-service`.
+4. 최신 Service Worker cache: `foxbear-shell-v1.4.0-stage27-waveform-control-service`.
+5. 핵심 신규 모듈: `src/audio/waveform-control-service.js`.
+6. 변경 후에는 반드시 `npm run sri:update`, `npm run check`, `npm run package:clean`, `npm run package:overwrite` 순서로 검증/패키징.
+
+## Stage27 핵심 구조
+
+- `FoxBearWaveformControlService`가 공통 파형 로직을 담당합니다.
+- 기존 `app.js` 함수명은 유지하지만, 내부에서 서비스에 위임합니다.
+- 공통화된 기능: pointer-to-percent, timeline model, audio-to-visual percent, playhead/progress sync, local audio percent seek, strongest peak percent, managed waveform stamp.
+- Dock, A/B inline waveform, mastering settings preview, comparison popup, detail preview가 앞으로 이 서비스 규칙을 공유해야 합니다.
+- 새 파형 UI를 만들 때는 반드시 `FoxBearWaveformControlService.stampManagedElement()` 또는 서비스 API를 사용해야 합니다.
+
+## 회귀 주의 포인트
+
+- 마스터링 설정 미리듣기 팝업 하단에 구버전 `custom-player` 원곡/마스터 grid를 다시 넣지 말 것.
+- Dock/player 위에 `연동정지`, `연동재생` 같은 연동 상태 chip을 다시 노출하지 말 것.
+- 설정 패널에 자동 하이라이트, A/B 루프, 레벨매칭, 차이듣기, 안전점수를 다시 넣지 말 것. 비교 기능은 비교창 내부에 둬야 합니다.
+- 파형 클릭 seek가 Dock, A/B, 비교창, 설정 미리듣기에서 서로 다른 계산식을 쓰지 않도록 관리할 것.
+- 서비스워커 캐시명과 index asset query가 다르면 이전처럼 SRI/cache 문제로 앱 boot가 깨질 수 있습니다.
+
+## 다음 추천 Stage28
+
+`Stage28: waveform-control-view extraction + unmanaged waveform audit`를 추천합니다.
+
+목표:
+- `makeDockWaveformBars`, A/B inline waveform row, 비교창 waveform row, detail waveform row 생성까지 공통 view/helper로 묶기.
+- QA에서 `.waveform-bars`, `.waveform-compare-bars`, `.ab-switch-inline-waveform-bars`, `.dock-integrated-waveform-bars` 중 서비스 stamp가 없는 legacy waveform을 잡기.
+- 가능하면 `app.js`의 waveform rendering code를 `src/ui/waveform-control-view.js`로 더 분리하기.
+
 
 ## Stage26 handoff
 
-Latest build: `v1.4.0-stage26-unified-waveform-controls`.
+Latest build: `v1.4.0-stage27-waveform-control-service`.
 
 Focus: unified waveform controls across the mastering settings preview dialog, Dock-style previews, and A/B deck. The old bottom original/master preview grid inside the mastering settings popup has been removed from that popup path. The top original realtime preview remains the single original preview; the popup now adds only the missing mastered unified waveform player and A/B deck.
 
-Validation: `npm run check` passed 112/112. Use `foxbear-mastering-studio-v1.4.0-stage26-overwrite.zip` for cumulative overwrite deployment.
+Validation: `npm run check` passed 114/114. Use `foxbear-mastering-studio-v1.4.0-stage27-overwrite.zip` for cumulative overwrite deployment.
 
 # Stage25 handoff - Settings cleanup and floating overlay coordination
 
@@ -425,7 +467,7 @@ Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this 
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage26-unified-waveform-controls`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage27-waveform-control-service`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 
@@ -591,6 +633,6 @@ Run `npm run sri:update` after modifying any loaded asset, then run `npm run che
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage26-unified-waveform-controls` and service worker cache to `foxbear-shell-v1.4.0-stage26-unified-waveform-controls`.
+- Bumped asset cache key to `1.4.0-stage27-waveform-control-service` and service worker cache to `foxbear-shell-v1.4.0-stage27-waveform-control-service`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

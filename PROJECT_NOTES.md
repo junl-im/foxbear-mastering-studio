@@ -1,3 +1,18 @@
+# Stage27 project notes - waveform-control-service
+
+Stage27 adds `src/audio/waveform-control-service.js` and makes it the shared control layer for waveform seek/playhead/peak behavior.
+
+Current invariant:
+- Any new waveform surface must use `FoxBearWaveformControlService` for pointer mapping, playhead mapping, seek percent, peak percent, and managed element stamping.
+- `app.js` compatibility wrappers remain, but they should delegate to the service.
+- The latest cache key is `1.4.0-stage27-waveform-control-service`.
+
+다음 대화 인수인계:
+- Start from `/mnt/data/foxbear_stage27_work` or `foxbear-mastering-studio-v1.4.0-stage27-full.zip`.
+- Provide users the overwrite ZIP first: `foxbear-mastering-studio-v1.4.0-stage27-overwrite.zip`.
+- Keep final response order: summary -> QA result -> downloads -> next update recommendation.
+- Recommended next update: Stage28 `waveform-control-view.js` extraction plus unmanaged waveform audit.
+
 
 ## Stage26 notes
 
@@ -665,6 +680,6 @@ Packaging remains cumulative overwrite ZIP only.
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage26-unified-waveform-controls` and service worker cache to `foxbear-shell-v1.4.0-stage26-unified-waveform-controls`.
+- Bumped asset cache key to `1.4.0-stage27-waveform-control-service` and service worker cache to `foxbear-shell-v1.4.0-stage27-waveform-control-service`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

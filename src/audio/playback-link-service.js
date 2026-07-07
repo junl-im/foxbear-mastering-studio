@@ -3,7 +3,7 @@
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.4.0-stage26-unified-waveform-controls';
+    const SERVICE_VERSION = '1.4.0-stage27-waveform-control-service';
     const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';
