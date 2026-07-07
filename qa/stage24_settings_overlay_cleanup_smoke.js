@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.0-stage27-waveform-control-service';
+const version = '1.4.0-stage28-waveform-control-view';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -28,9 +28,9 @@ assert(index.includes(version), 'index should use Stage25 asset query');
 assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stage25 cache key');
 assert(index.includes(`assets/css/components/floating-overlays.css?v=${version}`), 'floating overlay CSS should be loaded');
 assert(sw.includes(`./assets/css/components/floating-overlays.css?v=${version}`), 'SW should precache floating overlay CSS');
-assert(pkg.includes('Stage27 common waveform control service') || pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage25 compare controls rehome'), 'package description should identify Stage25');
+assert(pkg.includes('Stage28 managed waveform view extraction') || pkg.includes('Stage27 common waveform control service') || pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage25 compare controls rehome'), 'package description should identify Stage25');
 assert(pkg.includes('node qa/stage24_settings_overlay_cleanup_smoke.js'), 'package should run Stage25 smoke');
-assert(overwrite.includes('v1.4.0-stage27'), 'overwrite package default should be Stage25');
+assert(overwrite.includes('v1.4.0-stage28'), 'overwrite package default should be Stage25');
 
 assert(playbackService.includes('DEBUG_VISIBLE_CHIPS = false'), 'playback chips should be disabled by default');
 assert(playbackService.includes('existing.remove()'), 'existing playback chips should be removed');

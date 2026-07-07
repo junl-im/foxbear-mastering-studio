@@ -1,3 +1,17 @@
+# FoxBear AI Mastering Studio Changelog
+
+## Stage28 - Waveform control view extraction + unmanaged waveform audit
+
+- Added `src/ui/waveform-control-view.js` as the shared owner for waveform DOM bar creation.
+- Dock integrated waveform, A/B inline waveform, waveform compare popup rows, and detail waveform rows now delegate bar rendering to the managed view helper.
+- Kept `FoxBearWaveformControlService` as the math/control layer for pointer mapping, playhead mapping, seek, peak percent, and stamping.
+- Fixed the A/B inline waveform playhead percent scale so the visual playhead receives 0-100 percent values instead of 0-1 normalized values.
+- Added runtime health coverage and service-worker precache coverage for the new view module.
+- Added `qa/stage28_waveform_control_view_smoke.js` to audit unmanaged waveform DOM creation regressions.
+- Bumped asset/cache key to `1.4.0-stage28-waveform-control-view`.
+
+---
+
 ## v1.4.0 Stage27 - Common waveform control service and next-chat handoff
 
 - Added `src/audio/waveform-control-service.js` as the shared waveform control layer for Dock, A/B, comparison, mastering-settings preview, and inline preview surfaces.
@@ -6,7 +20,7 @@
 - Stamped Dock and A/B waveform bars with the active waveform service version so future QA can detect unmanaged/legacy waveform islands.
 - Added `FoxBearWaveformControlService.setPlayhead` to runtime-health required globals so missing waveform service loading is caught before app UI silently desynchronizes.
 - Added a next-chat handoff section to `HANDOFF.md` / `PROJECT_NOTES.md` with latest ZIP names, current architecture, regression watchlist, and recommended Stage28 direction.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage27-waveform-control-service`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage28-waveform-control-view`.
 - Added `qa/stage27_waveform_control_service_smoke.js`; QA target: 114 checks.
 
 
@@ -16,7 +30,7 @@
 - Kept the top original realtime preview as the single original source and added only the missing mastered unified waveform player below it.
 - Added Dock-style peak waveform controls and a peak jump button to unified waveform players.
 - Added inline A/B waveform controls to the comparison deck so original/master seek/playhead behavior follows the same visual language as Dock and preview players.
-- Bumped asset cache key to `1.4.0-stage27-waveform-control-service`.
+- Bumped asset cache key to `1.4.0-stage28-waveform-control-view`.
 - Added `qa/stage26_unified_waveform_controls_smoke.js`; QA: 114/114 pass.
 
 ## Stage25 - Settings cleanup and floating overlay coordination (2026-07-07)
@@ -26,7 +40,7 @@
 - Removed automatic highlight, A/B loop, level matching, difference-listen, and engine-safety score from the settings panel and from settings persistence. Those compare/playback concepts should live in their own panels instead of global settings.
 - Added `assets/css/components/floating-overlays.css` and `syncFloatingOverlayStack()` so toast/notification overlays move above an active processing HUD and Dock instead of covering or hiding behind them.
 - Added a settings action for `외부 브라우저로 열기`, reusing the existing download-service external-browser helper.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage27-waveform-control-service`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage28-waveform-control-view`.
 - Added `qa/stage25_settings_overlay_cleanup_smoke.js` and updated legacy QA cache-stage expectations through Stage25.
 
 QA result: `npm run check` -> 110/110 PASS.
@@ -40,7 +54,7 @@ QA result: `npm run check` -> 110/110 PASS.
 - `bindExclusivePreview()` now delegates to the playback orchestration service instead of scanning only a limited legacy selector list.
 - Added conflict/orchestrated visual states to `assets/css/components/playback-link.css`.
 - Runtime Health now checks `FoxBearPlaybackLinkService.pauseAllExcept`.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage27-waveform-control-service`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage28-waveform-control-view`.
 - Added `qa/stage23_playback_orchestration_smoke.js`.
 
 QA result: `npm run check` -> 109/109 PASS.
@@ -52,7 +66,7 @@ QA result: `npm run check` -> 109/109 PASS.
 - Added `assets/css/components/playback-link.css` to show `연동 재생`, `연동 정지`, and active-player highlight chips so isolated players are visually connected to the whole system.
 - App boot now installs a DOM audit observer that catches future preview audio nodes and marks them as linked instead of leaving hidden standalone audio islands.
 - Runtime Health now checks `FoxBearPlaybackLinkService.registerAudio`.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage27-waveform-control-service`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage28-waveform-control-view`.
 - Added `qa/stage22_playback_link_audit_smoke.js`.
 
 QA result: `npm run check` -> 108/108 PASS.
@@ -137,7 +151,7 @@ QA target: `npm run check`.
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage27-waveform-control-service`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage28-waveform-control-view`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 
@@ -333,6 +347,6 @@ QA result: `npm run check` passes 92/92.
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage27-waveform-control-service` and service worker cache to `foxbear-shell-v1.4.0-stage27-waveform-control-service`.
+- Bumped asset cache key to `1.4.0-stage28-waveform-control-view` and service worker cache to `foxbear-shell-v1.4.0-stage28-waveform-control-view`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

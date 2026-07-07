@@ -7,8 +7,8 @@ const app=read('src/app.js'); const dockCss=read('assets/css/dock.css'); const h
 must(app.includes("const APP_VERSION = 'Pro v1.4.0'"),'version');
 must(html.includes('data-build="1.4.0"'),'build');
 must(pkg.version==='1.4.0','package version');
-must(sw.includes('foxbear-shell-v1.4.0-stage27-waveform-control-service'),'sw cache');
-must(html.includes('src/ui/dock-controller.js?v=1.4.0-stage27-waveform-control-service'),'dock controller loaded');
+must(sw.includes('foxbear-shell-v1.4.0-stage28-waveform-control-view'),'sw cache');
+must(html.includes('src/ui/dock-controller.js?v=1.4.0-stage28-waveform-control-view'),'dock controller loaded');
 must(app.includes("runDockRemoteSourceMode('original', event)"),'original dispatcher');
 must(app.includes("runDockRemoteSourceMode('mastered', event)"),'mastered dispatcher');
 must(app.includes('function runDockRemoteTranslationMode'),'translation dispatcher');

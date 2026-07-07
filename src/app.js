@@ -3049,7 +3049,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage27-waveform-control-service');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage28-waveform-control-view');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -11501,40 +11501,64 @@ function getBottomPreviewGenreLabel(track) {
     return PRESET_LABELS[preset] || preset || '장르 없음';
 }
 
+
+function createManagedWaveformBars(options = {}) {
+    const view = window.FoxBearWaveformControlView;
+    if (view && typeof view.createBars === 'function') {
+        return view.createBars({ document, ...options });
+    }
+    const service = window.FoxBearWaveformControlService;
+    if (service && typeof service.renderBars === 'function') {
+        const bars = service.renderBars(options.values || [], options.markers || [], {
+            document,
+            tagName: options.tagName || 'div',
+            className: options.className || 'dock-integrated-waveform-bars',
+            barClassPrefix: options.barClassPrefix || 'dock-integrated-waveform',
+            bins: options.bins || 96
+        });
+        if (options.emptyClass && !(options.values || []).length) bars.classList.add(options.emptyClass);
+        if (options.readyClass && options.hasRealValues) bars.classList.add(options.readyClass);
+        if (options.placeholderClass && !options.hasRealValues) bars.classList.add(options.placeholderClass);
+        if (options.dataset && typeof options.dataset === 'object') {
+            Object.entries(options.dataset).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) bars.dataset[key] = String(value);
+            });
+        }
+        bars.dataset.waveformViewFallback = 'service-renderBars';
+        service.stampManagedElement?.(bars, options.role || 'waveform');
+        return bars;
+    }
+    throw new Error('FoxBear waveform view/service is not available');
+}
+
 function makeDockWaveformBars(track, mode = state.bottomPreviewMode, options = {}) {
-    const bars = document.createElement('div');
-    bars.className = 'dock-integrated-waveform-bars dock-waveform-polished';
     const payload = getDockWaveformPayload(track, mode);
     const adaptiveBins = getAdaptiveDockWaveformBinCount('dock');
-    const values = normalizeWaveformValues(payload.values || [], adaptiveBins);
-    const hasRealValues = Boolean(values.length);
-    const markers = hasRealValues ? (payload.markers || sampleMarkersFromValues(values)) : [];
-    const renderValues = hasRealValues ? values : Array.from({ length: adaptiveBins }, (_, index) => {
-        const wave = Math.sin(index * 0.62) * 0.055 + Math.sin(index * 0.19) * 0.035;
-        return clamp(0.18 + wave, 0.08, 0.32);
-    });
-    if (!hasRealValues) bars.classList.add('dock-integrated-waveform-placeholder');
-    else bars.classList.add('dock-integrated-waveform-ready');
+    const rawValues = Array.isArray(payload.values) ? payload.values : [];
+    const hasRealValues = Boolean(rawValues.length);
     const targetMode = mode === 'mastered' ? 'mastered' : (mode === 'masterPreview' ? 'masterPreview' : 'original');
     const role = options.waveformRole || 'dock-player';
+    const extraClass = String(options.extraClass || '').split(/\s+/).filter(Boolean).join(' ');
+    const bars = createManagedWaveformBars({
+        className: `dock-integrated-waveform-bars dock-waveform-polished${extraClass ? ' ' + extraClass : ''}`,
+        values: rawValues,
+        markers: hasRealValues ? payload.markers : [],
+        bins: adaptiveBins,
+        role,
+        barClassPrefix: 'dock-integrated-waveform',
+        readyClass: 'dock-integrated-waveform-ready',
+        placeholderClass: 'dock-integrated-waveform-placeholder',
+        hasRealValues,
+        realMinHeight: 10,
+        placeholderMinHeight: 12,
+        placeholderFactory: index => {
+            const wave = Math.sin(index * 0.62) * 0.055 + Math.sin(index * 0.19) * 0.035;
+            return clamp(0.18 + wave, 0.08, 0.32);
+        }
+    });
     attachWaveformSeekHandlers(bars, targetMode, role);
     if (options.seekTarget) bars.dataset.waveformSeekTarget = options.seekTarget;
-    if (options.extraClass) bars.classList.add(...String(options.extraClass).split(/\s+/).filter(Boolean));
-    bars.dataset.waveformBinCount = String(renderValues.length);
-    bars.dataset.waveformReady = hasRealValues ? 'true' : 'false';
-    window.FoxBearWaveformControlService?.stampManagedElement?.(bars, role);
     bars.setAttribute('aria-label', hasRealValues ? '통합 피크 파형 플레이어. 막대 높이와 색으로 피크 위치를 확인하고 클릭하면 해당 위치로 이동해 재생합니다.' : '통합 파형 플레이어. 분석 중에는 임시 파형을 표시하고 완료 즉시 실제 피크 파형으로 갱신됩니다.');
-    renderValues.forEach((value, index) => {
-        const bar = document.createElement('i');
-        const percent = renderValues.length > 1 ? Math.round(index / (renderValues.length - 1) * 1000) / 10 : 0;
-        bar.dataset.waveformIndex = String(index);
-        bar.dataset.waveformPercent = String(percent);
-        const marker = hasRealValues ? getWaveformMarkerForIndex(markers, index, renderValues.length, value) : 'ok';
-        bar.className = `dock-integrated-waveform-bar dock-integrated-waveform-${marker}`;
-        bar.title = marker === 'clip' ? '클립/초과 피크 구간' : (marker === 'hot' ? '주의 피크 구간' : '일반 피크 구간');
-        bar.style.height = `${Math.max(hasRealValues ? 10 : 12, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
-        bars.appendChild(bar);
-    });
     return bars;
 }
 
@@ -12342,18 +12366,19 @@ function createABSwitchPlayer(track) {
         const title = document.createElement('span');
         title.className = 'ab-switch-inline-waveform-label';
         title.textContent = label;
-        const bars = document.createElement('span');
-        bars.className = 'ab-switch-inline-waveform-bars has-live-playhead';
-        window.FoxBearWaveformControlService?.stampManagedElement?.(bars, `ab-${mode}`);
-        const values = normalizeWaveformValues(mode === 'mastered' ? getTrackMasterWaveformValues(track) : getTrackOriginalWaveformValues(track), getAdaptiveDockWaveformBinCount('dialog'));
+        const values = mode === 'mastered' ? getTrackMasterWaveformValues(track) : getTrackOriginalWaveformValues(track);
         const markers = mode === 'mastered' ? getTrackMasterWaveformMarkers(track, values) : sampleMarkersFromValues(values);
-        const renderValues = values.length ? values : Array.from({ length: getAdaptiveDockWaveformBinCount('dialog') }, (_, index) => clamp(0.18 + Math.sin(index * 0.43) * 0.08, 0.08, 0.34));
-        renderValues.forEach((value, index) => {
-            const bar = document.createElement('i');
-            const marker = values.length ? getWaveformMarkerForIndex(markers, index, renderValues.length, value) : 'ok';
-            bar.className = `dock-integrated-waveform-bar dock-integrated-waveform-${marker}`;
-            bar.style.height = `${Math.max(10, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
-            bars.appendChild(bar);
+        const bars = createManagedWaveformBars({
+            tagName: 'span',
+            className: 'ab-switch-inline-waveform-bars has-live-playhead',
+            values,
+            markers,
+            bins: getAdaptiveDockWaveformBinCount('dialog'),
+            role: `ab-${mode}`,
+            barClassPrefix: 'dock-integrated-waveform',
+            realMinHeight: 10,
+            placeholderMinHeight: 10,
+            placeholderFactory: index => clamp(0.18 + Math.sin(index * 0.43) * 0.08, 0.08, 0.34)
         });
         row.append(title, bars);
         row.addEventListener('click', event => {
@@ -12384,8 +12409,8 @@ function createABSwitchPlayer(track) {
         swap.textContent = active === 'original' ? '마스터 B로 전환' : '원본 A로 전환';
         setPlayerToggleIcon(play, !audio.paused);
         const pct = Number.isFinite(duration) && duration > 0 ? clamp((audio.currentTime || 0) / duration, 0, 1) : 0;
-        setPlayheadOnElement(originalWaveformRow.querySelector('.ab-switch-inline-waveform-bars'), pct, active === 'original' && !audio.paused);
-        setPlayheadOnElement(masteredWaveformRow.querySelector('.ab-switch-inline-waveform-bars'), pct, active === 'mastered' && !audio.paused);
+        setPlayheadOnElement(originalWaveformRow.querySelector('.ab-switch-inline-waveform-bars'), pct * 100, active === 'original' && !audio.paused);
+        setPlayheadOnElement(masteredWaveformRow.querySelector('.ab-switch-inline-waveform-bars'), pct * 100, active === 'mastered' && !audio.paused);
         originalWaveformRow.classList.toggle('active', active === 'original');
         masteredWaveformRow.classList.toggle('active', active === 'mastered');
     };
@@ -12538,18 +12563,35 @@ function renderWaveformPanel(track) {
 }
 
 function makeWaveformRow(label, values = [], markers = []) {
+    const view = window.FoxBearWaveformControlView;
+    if (view && typeof view.createRow === 'function') {
+        return view.createRow({
+            document,
+            label,
+            values,
+            markers,
+            bins: Math.max(8, Array.isArray(values) && values.length ? values.length : 64),
+            rowClassName: 'waveform-row',
+            barsClassName: 'waveform-bars',
+            role: 'detail',
+            barClassPrefix: 'waveform',
+            realMinHeight: 5,
+            placeholderMinHeight: 5
+        });
+    }
     const row = document.createElement('div');
     row.className = 'waveform-row';
     const span = document.createElement('span');
     span.textContent = label;
-    const bars = document.createElement('div');
-    bars.className = 'waveform-bars';
-    values.forEach((value, index) => {
-        const bar = document.createElement('i');
-        const marker = markers[index] || 'ok';
-        bar.className = `waveform-bar waveform-${marker}`;
-        bar.style.height = `${Math.max(5, Math.round(clamp(value, 0, 1) * 100))}%`;
-        bars.appendChild(bar);
+    const bars = createManagedWaveformBars({
+        className: 'waveform-bars',
+        values,
+        markers,
+        bins: Math.max(8, Array.isArray(values) && values.length ? values.length : 64),
+        role: 'detail',
+        barClassPrefix: 'waveform',
+        realMinHeight: 5,
+        placeholderMinHeight: 5
     });
     row.append(span, bars);
     return row;

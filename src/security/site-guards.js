@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage27-waveform-control-service';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage28-waveform-control-view';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

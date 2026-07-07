@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage27-waveform-control-service';
+    const FALLBACK_VERSION = '1.4.0-stage28-waveform-control-view';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -13,6 +13,7 @@
         'FoxBearPlaybackLinkService.registerAudio',
         'FoxBearPlaybackLinkService.pauseAllExcept',
         'FoxBearWaveformControlService.setPlayhead',
+        'FoxBearWaveformControlView.createBars',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',

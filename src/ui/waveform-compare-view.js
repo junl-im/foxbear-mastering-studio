@@ -219,8 +219,36 @@
         row.classList.toggle('is-aligned', Boolean(options.aligned));
         const label = documentRef.createElement('span');
         label.textContent = labelText;
-        const bars = documentRef.createElement('div');
-        bars.className = 'waveform-compare-bars';
+        const popupBins = getAdaptiveDockWaveformBinCount('popup');
+        const waveformView = global.FoxBearWaveformControlView;
+        const service = global.FoxBearWaveformControlService;
+        let bars = null;
+        if (waveformView && typeof waveformView.createBars === 'function') {
+            bars = waveformView.createBars({
+                document: documentRef,
+                className: 'waveform-compare-bars',
+                values,
+                markers,
+                bins: popupBins,
+                role: 'popup',
+                barClassPrefix: 'waveform',
+                emptyClass: 'empty',
+                hasRealValues: Boolean(values && values.length),
+                realMinHeight: 5,
+                placeholderMinHeight: 5
+            });
+        } else if (service && typeof service.renderBars === 'function') {
+            bars = service.renderBars(values || [], markers || [], {
+                document: documentRef,
+                className: 'waveform-compare-bars',
+                barClassPrefix: 'waveform',
+                bins: popupBins
+            });
+        } else {
+            throw new Error('FoxBear waveform view/service is not available');
+        }
+        if (!values || !values.length) bars.classList.add('empty');
+        service?.stampManagedElement?.(bars, 'popup');
         attachWaveformSeekHandlers(bars, sourceMode || tone || state.bottomPreviewMode, 'popup');
         if (options.scope === 'preview') bars.dataset.waveformScope = 'preview';
         if (Number.isFinite(Number(options.startSec))) bars.dataset.waveformStartSec = String(Math.round(Number(options.startSec) * 100) / 100);
@@ -228,30 +256,6 @@
         if (Number.isFinite(Number(options.localStartSec))) bars.dataset.waveformLocalStartSec = String(Math.round(Number(options.localStartSec) * 100) / 100);
         if (Number.isFinite(Number(options.absoluteStartSec ?? options.startSec))) bars.dataset.waveformAbsoluteStartSec = String(Math.round(Number(options.absoluteStartSec ?? options.startSec) * 100) / 100);
         bars.dataset.waveformAligned = options.aligned ? 'true' : 'false';
-        const popupBins = getAdaptiveDockWaveformBinCount('popup');
-        bars.dataset.waveformBinCount = String((values && values.length) || popupBins);
-        const normalized = normalizeWaveformValues(values, popupBins);
-        if (!normalized.length) {
-            bars.classList.add('empty');
-            for (let i = 0; i < popupBins; i += 1) {
-                const bar = documentRef.createElement('i');
-                bar.dataset.waveformIndex = String(i);
-                bar.dataset.waveformPercent = String(Math.round(i / Math.max(1, popupBins - 1) * 1000) / 10);
-                bar.style.height = '8%';
-                bars.appendChild(bar);
-            }
-        } else {
-            normalized.forEach((value, index) => {
-                const bar = documentRef.createElement('i');
-                bar.dataset.waveformIndex = String(index);
-                bar.dataset.waveformPercent = String(normalized.length > 1 ? Math.round(index / (normalized.length - 1) * 1000) / 10 : 0);
-                const marker = getWaveformMarkerForIndex(markers, index, normalized.length, value);
-                bar.className = `waveform-bar waveform-${marker}`;
-                bar.title = marker === 'clip' ? '클립/초과 피크 구간' : (marker === 'hot' ? '주의 피크 구간' : '일반 피크 구간');
-                bar.style.height = `${Math.max(5, Math.round(clamp(value, 0, 1) * 100))}%`;
-                bars.appendChild(bar);
-            });
-        }
         const listen = documentRef.createElement('button');
         listen.type = 'button';
         listen.className = 'waveform-compare-listen';

@@ -28,7 +28,7 @@ const notes = read('PROJECT_NOTES.md');
 assert(core.includes('function getWaveformMarkerForIndex'), 'core utils should export shared waveform marker helper');
 assert(core.includes('getWaveformMarkerForlndex: getWaveformMarkerForIndex'), 'core utils should include lowercase-l alias for typo compatibility');
 assert(app.includes('getWaveformMarkerForIndex = FoxBearCoreUtils.getWaveformMarkerForlndex'), 'app.js should destructure waveform marker helper with fallback alias');
-assert(app.includes('getWaveformMarkerForIndex(markers, index, renderValues.length, value)'), 'Dock waveform renderer should call shared marker helper');
+assert(app.includes('createManagedWaveformBars') && app.includes("barClassPrefix: 'dock-integrated-waveform'"), 'Dock waveform renderer should use managed view with shared marker helper');
 assert(!/getWaveformMarkerForlndex\s*\(/.test(app), 'app.js should not call the typo helper name directly');
 
 assert(app.includes('measured > 0') && app.includes('clamp(measured, minReasonable, maxReasonable)'), 'Dock floating offset should use measured Dock height instead of forcing tall fallback');
@@ -47,7 +47,7 @@ assert(mobileCss.includes('Stage16: Quick panel is now a compact Settings panel'
 assert(dockCss.includes('Stage11.1: pin mobile floating notices'), 'dock.css should include Stage11.1 floating notice anchor layer');
 assert(dockCss.includes('var(--bottom-preview-floating-bottom') && dockCss.includes('var(--bottom-preview-hud-bottom'), 'toast/HUD should use measured floating Dock offsets');
 
-assert(/stage(?:11\.1|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
+assert(/stage(?:11\.1|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw), 'service worker cache should be bumped to stage11.1 or later');
 assert(pkg.qaChecks.includes('node qa/stage11_1_runtime_mobile_hotfix_smoke.js'), 'package QA should include stage11.1 smoke');
 assert(changelog.includes('Stage11.1') && handoff.includes('Stage11.1') && notes.includes('Stage11.1'), 'handoff docs should mention Stage11.1');
 

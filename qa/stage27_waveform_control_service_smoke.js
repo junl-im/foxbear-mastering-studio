@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.0-stage27-waveform-control-service';
+const version = '1.4.0-stage28-waveform-control-view';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -28,7 +28,7 @@ assert(sw.includes(`./src/audio/waveform-control-service.js?v=${version}`), 'ser
 assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stage27 cache key');
 assert(pkg.includes('node --check src/audio/waveform-control-service.js'), 'package should syntax-check waveform service');
 assert(pkg.includes('node qa/stage27_waveform_control_service_smoke.js'), 'package should run Stage27 smoke');
-assert(overwrite.includes('v1.4.0-stage27'), 'overwrite default should be Stage27');
+assert(overwrite.includes('v1.4.0-stage28'), 'overwrite default should be Stage28 or later');
 
 [
   'FoxBearWaveformControlService',
@@ -46,8 +46,8 @@ assert(app.includes('service.pointerToPercent(event, element)'), 'pointer mappin
 assert(app.includes('service.setPlayhead(element, percent, playing)'), 'playhead updates should use service');
 assert(app.includes('service.seekAudioToPercent(audio, pct * 100, duration)'), 'local waveform seek should use service');
 assert(app.includes('service.findStrongestPeakPercent(values)'), 'peak jump should use service');
-assert(app.includes('stampManagedElement?.(bars, role)'), 'Dock waveform bars should be stamped as managed');
-assert(app.includes('stampManagedElement?.(bars, `ab-${mode}`)'), 'A/B waveform bars should be stamped as managed');
+assert(app.includes('createManagedWaveformBars'), 'Dock waveform bars should be created through managed waveform view helper');
+assert(app.includes('role: `ab-${mode}`'), 'A/B waveform bars should still carry managed role metadata');
 assert(runtime.includes('FoxBearWaveformControlService.setPlayhead'), 'runtime health should require waveform service');
 assert(handoff.includes('Stage27') && handoff.includes('다음 대화 인수인계'), 'handoff should include Stage27 next-chat handoff');
 assert(notes.includes('Stage27') && notes.includes('waveform-control-service'), 'project notes should mention Stage27 waveform service');
