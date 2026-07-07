@@ -1,6 +1,6 @@
-# FoxBear v1.4.6 Browser Back / Refresh QA Matrix
+# FoxBear v1.4.7 Browser Back / Refresh QA Matrix
 
-Purpose: verify that the v1.4.1 exit guard still protects active mastering sessions after v1.4.6 Dock/player changes.
+Purpose: verify that the v1.4.1 exit guard still protects active mastering sessions after v1.4.7 Dock/player changes.
 
 ## Expected behavior
 
@@ -19,7 +19,7 @@ Purpose: verify that the v1.4.1 exit guard still protects active mastering sessi
 | iOS standalone PWA | Native prompt is limited | App confirm where standalone Back is available | No hardware Back; test gesture/history paths only. |
 | Desktop Chrome/Edge | Native beforeunload prompt when active | App confirm on toolbar Back | Also verify keyboard Alt-left / Cmd-left. |
 
-## v1.4.6 regression focus
+## v1.4.7 regression focus
 
 - Dock source switches with crossfade must not create extra history entries.
 - Dock mini spectrum rendering must not trigger navigation guard state by itself.

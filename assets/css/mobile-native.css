@@ -479,3 +479,28 @@
         max-height: min(56vh, calc(var(--bottom-preview-viewport-height, 720px) - var(--bottom-preview-height, 0px) - 20px));
     }
 }
+
+/* v1.4.7: align the floating settings gear consistently on PC and PWA docks. */
+.mobile-native-quick-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    aspect-ratio: 1 / 1 !important;
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif !important;
+}
+@media (min-width: 721px) {
+    .mobile-native-layer {
+        left: max(18px, env(safe-area-inset-left, 0px) + 18px) !important;
+        bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 14px) !important;
+        align-items: center !important;
+    }
+    .mobile-native-quick-toggle {
+        width: 42px !important;
+        height: 42px !important;
+        transform: translateZ(0) !important;
+    }
+}
+

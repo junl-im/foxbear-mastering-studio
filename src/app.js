@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.6 - Stage23 playback link audit
+// FoxBear AI Mastering Studio Pro v1.4.7 - Stage23 playback link audit
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -19,7 +19,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const APP_VERSION = 'Pro v1.4.6';
+const APP_VERSION = 'Pro v1.4.7';
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
     MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
@@ -497,7 +497,7 @@ function cacheElements() {
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput', 'referenceStrengthSelect',
         'adaptiveLufsToggle',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
-        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewSpectrum', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -3141,7 +3141,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.6-stability-polish');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.7-dock-fft-removal');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -11865,25 +11865,6 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
 }
 
 
-function renderBottomMiniSpectrum(track, mode = state.bottomPreviewMode) {
-    const host = el.bottomPreviewSpectrum || document.getElementById('bottomPreviewSpectrum');
-    if (!host) return;
-    host.textContent = '';
-    host.classList.toggle('is-empty', !track);
-    if (!track) return;
-    const visualizer = window.FoxBearSpectrumVisualizer;
-    if (!visualizer || typeof visualizer.renderMini !== 'function') {
-        host.textContent = 'FFT 대기';
-        return;
-    }
-    const mini = visualizer.renderMini({
-        document,
-        track,
-        mode,
-        getActiveAudio: () => getActiveSpectrumAudioForTrack(track)
-    });
-    if (mini) host.appendChild(mini);
-}
 
 function renderBottomPreviewDock(options = {}) {
     if (!el.bottomPreviewDock || !el.bottomPreviewPlayer) return;
@@ -11895,7 +11876,6 @@ function renderBottomPreviewDock(options = {}) {
         document.body.classList.remove('bottom-preview-active');
         syncBottomPreviewFloatingOffset();
         syncMediaSessionForDock(null);
-        renderBottomMiniSpectrum(null);
         updateMobileNativeUi();
         state.bottomPreviewMode = 'original';
         state.bottomPreviewTrackId = null;
@@ -11948,7 +11928,6 @@ function renderBottomPreviewDock(options = {}) {
     setBottomPreviewTabState(mode, masteredAvailable);
     renderPreviewTranslationModeControls(mode);
     renderBottomWaveformMini(track, mode);
-    renderBottomMiniSpectrum(track, mode);
     requestAnimationFrame(syncBottomPreviewFloatingOffset);
 
     const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && getBottomPreviewAudio();
@@ -13449,7 +13428,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.4.6',
+        app: 'FoxBear AI Mastering Studio Pro v1.4.7',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

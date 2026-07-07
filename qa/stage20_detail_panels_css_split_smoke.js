@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.6-stability-polish';
+const version = '1.4.7-dock-fft-removal';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -34,7 +34,7 @@ assert(index.indexOf('src/ui/detail-view.js') < index.indexOf('src/app.js'), 'de
 assert(sw.includes(`./assets/css/components/forms.css?v=${version}`), 'service worker should precache forms.css');
 assert(sw.includes(`./assets/css/components/cards.css?v=${version}`), 'service worker should precache cards.css');
 assert(sw.includes(`./src/ui/detail-panels-view.js?v=${version}`), 'service worker should precache detail-panels-view.js');
-assert(sw.includes('foxbear-shell-v1.4.6-stability-polish'), 'service worker cache should use Stage20 key');
+assert(sw.includes('foxbear-shell-v1.4.7-dock-fft-removal'), 'service worker cache should use Stage20 key');
 
 assert(panelsView.includes('FoxBearDetailPanelsView'), 'detail panels module should export FoxBearDetailPanelsView');
 [
@@ -57,7 +57,7 @@ assert(formsCss.includes('Stage20') && formsCss.includes('.field-row') && formsC
 assert(cardsCss.includes('Stage20') && cardsCss.includes('.track-card') && cardsCss.includes('.detail-box') && cardsCss.includes('.preview-card'), 'cards.css should own card/panel selectors');
 assert(pkg.includes('node --check src/ui/detail-panels-view.js'), 'package should syntax-check detail panels view');
 assert(pkg.includes('node qa/stage20_detail_panels_css_split_smoke.js'), 'package should include Stage20 smoke');
-assert(overwrite.includes('v1.4.6'), 'overwrite package default should be Stage20');
+assert(overwrite.includes('v1.4.7'), 'overwrite package default should be Stage20');
 assert(index.includes(version) && sw.includes(version), 'Stage20 asset version should be consistent');
 
 console.log('PASS stage20 detail panels and CSS split smoke');

@@ -1,4 +1,4 @@
-/* FoxBear v1.4.6 spectrum visualizer */
+/* FoxBear v1.4.7 spectrum visualizer */
 .spectrum-visualizer-panel {
     margin: 14px 0;
     padding: 14px;
@@ -87,64 +87,5 @@
     }
 }
 
-/* FoxBear v1.4.6 Dock mini spectrum */
-.bottom-preview-spectrum {
-    order: 2;
-    min-width: 0;
-    display: block;
-}
-
-.bottom-preview-spectrum.is-empty {
-    display: none;
-}
-
-.spectrum-mini-panel {
-    display: grid;
-    grid-template-columns: 30px minmax(80px, 1fr) 22px;
-    align-items: center;
-    gap: 6px;
-    min-height: 34px;
-    padding: 4px 6px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: linear-gradient(90deg, rgba(78,211,255,0.08), rgba(136,119,255,0.06));
-    overflow: hidden;
-}
-
-.spectrum-mini-label,
-.spectrum-mini-badge {
-    color: rgba(222,245,255,0.76);
-    font-size: 0.56rem;
-    font-weight: 900;
-    letter-spacing: 0.03em;
-    text-align: center;
-}
-
-.spectrum-mini-badge {
-    border-radius: 999px;
-    background: rgba(255,255,255,0.09);
-    padding: 2px 0;
-}
-
-.spectrum-mini-canvas {
-    display: block;
-    width: 100%;
-    height: 26px;
-    min-height: 26px;
-    border-radius: 8px;
-    background: rgba(7,10,18,0.72);
-}
-
-@media (max-width: 720px) {
-    .spectrum-mini-panel {
-        grid-template-columns: 26px minmax(64px, 1fr) 20px;
-        min-height: 30px;
-        padding: 3px 5px;
-        gap: 5px;
-    }
-
-    .spectrum-mini-canvas {
-        height: 22px;
-        min-height: 22px;
-    }
-}
+/* FoxBear v1.4.7 Dock mini spectrum */
+/* v1.4.7: Dock mini FFT removed; detail spectrum panel remains the only user-facing FFT view. */

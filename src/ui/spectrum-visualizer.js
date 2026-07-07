@@ -1,9 +1,9 @@
-// FoxBear spectrum visualizer module - v1.4.6
+// FoxBear spectrum visualizer module - v1.4.7
 // Shows the same FFT evidence used by the AI analysis as a compact realtime/static canvas.
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.4.6-stability-polish';
+    const VISUALIZER_VERSION = '1.4.7-dock-fft-removal';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -323,6 +323,11 @@
     function activateAudio(audio, meta = {}) {
         try {
             bindVisibilityLifecycle();
+            if (!hasRenderableCanvas()) {
+                state.live = false;
+                state.lastError = '';
+                return false;
+            }
             const mergedMeta = { ...(audioMetadata.get(audio) || {}), ...(meta || {}) };
             const analyser = connectAudio(audio);
             if (!analyser) return false;

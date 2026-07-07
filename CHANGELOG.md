@@ -1,6 +1,30 @@
+# Changelog
+
+## v1.4.7 - Dock FFT removal + PC settings alignment
+
+- Removed Dock mini FFT/spectrum view from the persistent bottom Dock.
+- Removed `#bottomPreviewSpectrum` and the Dock `renderBottomMiniSpectrum()` path.
+- Kept the detail-page AI spectrum visualizer for users who want FFT evidence.
+- Added a live FFT guard so analyser connections are skipped when no spectrum canvas is mounted, reducing unnecessary audio/canvas work during normal Dock playback.
+- Fixed PC/PWA floating settings gear centering and Dock-relative alignment.
+- Added `qa/v147_dock_fft_removal_stability_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.7.md`.
+- Bumped package/build/cache key to `1.4.7-dock-fft-removal`.
+
 # FoxBear AI Mastering Studio Changelog
 
-## v1.4.6 - Stability polish: FFT lifecycle + Back confirm debounce
+## Historical cumulative anchors
+
+- Stage7 waveform compare CSS cleanup.
+- Stage8 async/mobile Dock polish.
+- Stage9 Dock waveform CSS split.
+- Stage9.1 cumulative overwrite manifest.
+- Stage10 download service split through Stage14 runtime recovery.
+- Stage16 mobile settings/version release through Stage23 playback orchestration.
+- Stage24 settings overlay cleanup through Stage28 waveform-control-view.js / unmanaged waveform audit.
+- v1.4.1 Spectrum Visualizer + Exit Guard, v1.4.2 crossfade/waveform zoom, v1.4.5 external analyser taps.
+
+
+## v1.4.7 - Stability polish: FFT lifecycle + Back confirm debounce
 
 - Stabilized the spectrum visualizer lifecycle after the v1.4.4/v1.4.5 FFT fixes.
 - Added disconnected canvas pruning so removed detail panels or refreshed Dock mini canvases do not keep stale render targets alive.
@@ -9,8 +33,8 @@
 - Added `FoxBearSpectrumVisualizer.getDiagnostics()` for runtime-health and future device QA inspection.
 - Hardened `FoxBearSiteGuards.installNavigationExitGuard()` so repeated installs update options, rapid Back taps do not stack multiple confirms, and cancelled Back re-arms the guard asynchronously.
 - Added `FoxBearSiteGuards.getNavigationExitGuardState()` for runtime-health and manual QA inspection.
-- Added `qa/v146_stability_polish_smoke.js` and refreshed `qa/BROWSER_BACK_QA_MATRIX_1.4.6.md`.
-- Bumped package/build/cache key to `1.4.6-stability-polish`.
+- Added `qa/v146_stability_polish_smoke.js` and refreshed `qa/BROWSER_BACK_QA_MATRIX_1.4.7.md`.
+- Bumped package/build/cache key to `1.4.7-dock-fft-removal`.
 - Validation target: 124/124 PASS.
 
 ---
@@ -21,7 +45,7 @@
 - Added short 96ms fade-out/fade-in transitions for Dock source changes and A/B switching to reduce click/pop artifacts during comparisons.
 - Added detail waveform zoom controls, double-tap zoom, and pinch zoom while keeping re-rendered bars behind the managed waveform view gateway.
 - Added Dock mini FFT spectrum through `FoxBearSpectrumVisualizer.renderMini()` and the new `#bottomPreviewSpectrum` host.
-- Added `qa/BROWSER_BACK_QA_MATRIX_1.4.2.md` for Kakao/Chrome/Safari/PWA back-refresh expectations. v1.4.6 carries this forward as `qa/BROWSER_BACK_QA_MATRIX_1.4.6.md`.
+- Added `qa/BROWSER_BACK_QA_MATRIX_1.4.2.md` for Kakao/Chrome/Safari/PWA back-refresh expectations. v1.4.7 carries this forward as `qa/BROWSER_BACK_QA_MATRIX_1.4.7.md`.
 - Added `qa/v142_crossfade_zoom_spectrum_smoke.js`.
 - Bumped asset/cache key to `1.4.2-crossfade-zoom-spectrum`.
 
@@ -47,7 +71,7 @@
 - Fixed the A/B inline waveform playhead percent scale so the visual playhead receives 0-100 percent values instead of 0-1 normalized values.
 - Added runtime health coverage and service-worker precache coverage for the new view module.
 - Added `qa/stage28_waveform_control_view_smoke.js` to audit unmanaged waveform DOM creation regressions.
-- Bumped asset/cache key to `1.4.6-stability-polish`.
+- Bumped asset/cache key to `1.4.7-dock-fft-removal`.
 
 ---
 
@@ -59,7 +83,7 @@
 - Stamped Dock and A/B waveform bars with the active waveform service version so future QA can detect unmanaged/legacy waveform islands.
 - Added `FoxBearWaveformControlService.setPlayhead` to runtime-health required globals so missing waveform service loading is caught before app UI silently desynchronizes.
 - Added a next-chat handoff section to `HANDOFF.md` / `PROJECT_NOTES.md` with latest ZIP names, current architecture, regression watchlist, and recommended Stage28 direction.
-- Bumped runtime asset queries and service worker cache to `1.4.6-stability-polish`.
+- Bumped runtime asset queries and service worker cache to `1.4.7-dock-fft-removal`.
 - Added `qa/stage27_waveform_control_service_smoke.js`; QA target: 114 checks.
 
 
@@ -69,7 +93,7 @@
 - Kept the top original realtime preview as the single original source and added only the missing mastered unified waveform player below it.
 - Added Dock-style peak waveform controls and a peak jump button to unified waveform players.
 - Added inline A/B waveform controls to the comparison deck so original/master seek/playhead behavior follows the same visual language as Dock and preview players.
-- Bumped asset cache key to `1.4.6-stability-polish`.
+- Bumped asset cache key to `1.4.7-dock-fft-removal`.
 - Added `qa/stage26_unified_waveform_controls_smoke.js`; QA: 114/114 pass.
 
 ## Stage25 - Settings cleanup and floating overlay coordination (2026-07-07)
@@ -79,7 +103,7 @@
 - Removed automatic highlight, A/B loop, level matching, difference-listen, and engine-safety score from the settings panel and from settings persistence. Those compare/playback concepts should live in their own panels instead of global settings.
 - Added `assets/css/components/floating-overlays.css` and `syncFloatingOverlayStack()` so toast/notification overlays move above an active processing HUD and Dock instead of covering or hiding behind them.
 - Added a settings action for `외부 브라우저로 열기`, reusing the existing download-service external-browser helper.
-- Bumped runtime asset queries and service worker cache to `1.4.6-stability-polish`.
+- Bumped runtime asset queries and service worker cache to `1.4.7-dock-fft-removal`.
 - Added `qa/stage25_settings_overlay_cleanup_smoke.js` and updated legacy QA cache-stage expectations through Stage25.
 
 QA result: `npm run check` -> 110/110 PASS.
@@ -93,7 +117,7 @@ QA result: `npm run check` -> 110/110 PASS.
 - `bindExclusivePreview()` now delegates to the playback orchestration service instead of scanning only a limited legacy selector list.
 - Added conflict/orchestrated visual states to `assets/css/components/playback-link.css`.
 - Runtime Health now checks `FoxBearPlaybackLinkService.pauseAllExcept`.
-- Bumped runtime asset queries and service worker cache to `1.4.6-stability-polish`.
+- Bumped runtime asset queries and service worker cache to `1.4.7-dock-fft-removal`.
 - Added `qa/stage23_playback_orchestration_smoke.js`.
 
 QA result: `npm run check` -> 109/109 PASS.
@@ -105,7 +129,7 @@ QA result: `npm run check` -> 109/109 PASS.
 - Added `assets/css/components/playback-link.css` to show `연동 재생`, `연동 정지`, and active-player highlight chips so isolated players are visually connected to the whole system.
 - App boot now installs a DOM audit observer that catches future preview audio nodes and marks them as linked instead of leaving hidden standalone audio islands.
 - Runtime Health now checks `FoxBearPlaybackLinkService.registerAudio`.
-- Bumped runtime asset queries and service worker cache to `1.4.6-stability-polish`.
+- Bumped runtime asset queries and service worker cache to `1.4.7-dock-fft-removal`.
 - Added `qa/stage22_playback_link_audit_smoke.js`.
 
 QA result: `npm run check` -> 108/108 PASS.
@@ -190,7 +214,7 @@ QA target: `npm run check`.
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.6-stability-polish`.
+- Bumped runtime asset queries and service worker cache to `1.4.7-dock-fft-removal`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 
@@ -291,14 +315,14 @@ QA target: `npm run check`.
 
 # FoxBear AI Mastering Studio Changelog
 
-## v1.4.6 - Crossfade transitions + waveform zoom + Dock mini spectrum
+## v1.4.7 - Crossfade transitions + waveform zoom + Dock mini spectrum
 
 - Added short 96ms fade-out/fade-in transitions for Dock source changes and A/B switching to reduce click/pop artifacts during comparisons.
 - Added detail waveform zoom controls, double-tap zoom, and pinch zoom while keeping re-rendered bars behind the managed waveform view gateway.
 - Added Dock mini FFT spectrum through `FoxBearSpectrumVisualizer.renderMini()` and the new `#bottomPreviewSpectrum` host.
-- Added `qa/BROWSER_BACK_QA_MATRIX_1.4.6.md` for Kakao/Chrome/Safari/PWA back-refresh expectations.
+- Added `qa/BROWSER_BACK_QA_MATRIX_1.4.7.md` for Kakao/Chrome/Safari/PWA back-refresh expectations.
 - Added `qa/v142_crossfade_zoom_spectrum_smoke.js`.
-- Bumped asset/cache key to `1.4.6-stability-polish`.
+- Bumped asset/cache key to `1.4.7-dock-fft-removal`.
 
 ---
 
@@ -397,6 +421,6 @@ QA result: `npm run check` passes 92/92.
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.6-stability-polish` and service worker cache to `foxbear-shell-v1.4.6-stability-polish`.
+- Bumped asset cache key to `1.4.7-dock-fft-removal` and service worker cache to `foxbear-shell-v1.4.7-dock-fft-removal`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

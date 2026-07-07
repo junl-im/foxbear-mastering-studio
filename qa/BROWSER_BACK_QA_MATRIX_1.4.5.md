@@ -1,9 +1,9 @@
-# Browser Back / Refresh QA Matrix - v1.4.6
+# Browser Back / Refresh QA Matrix - v1.4.7
 
-v1.4.6 carries forward the v1.4.4 browser/PWA guard matrix and adds FFT external analyser tap coverage for WebAudio preview modes. Use this checklist on real devices after deployment.
+v1.4.7 carries forward the v1.4.4 browser/PWA guard matrix and adds FFT external analyser tap coverage for WebAudio preview modes. Use this checklist on real devices after deployment.
 
 
-Purpose: verify that the v1.4.1 exit guard still protects active mastering sessions after v1.4.6 Dock/player changes.
+Purpose: verify that the v1.4.1 exit guard still protects active mastering sessions after v1.4.7 Dock/player changes.
 
 ## Expected behavior
 
@@ -22,7 +22,7 @@ Purpose: verify that the v1.4.1 exit guard still protects active mastering sessi
 | iOS standalone PWA | Native prompt is limited | App confirm where standalone Back is available | No hardware Back; test gesture/history paths only. |
 | Desktop Chrome/Edge | Native beforeunload prompt when active | App confirm on toolbar Back | Also verify keyboard Alt-left / Cmd-left. |
 
-## v1.4.6 regression focus
+## v1.4.7 regression focus
 
 - Dock source switches with crossfade must not create extra history entries.
 - Dock mini spectrum rendering must not trigger navigation guard state by itself.
