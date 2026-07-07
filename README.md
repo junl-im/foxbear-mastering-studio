@@ -1,17 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.4.4
+# FoxBear AI Mastering Studio Pro v1.4.5
 
-## Current patch: v1.4.4 FFT Live Hotfix
+## Current patch: v1.4.5 Stability Audit
 
-This patch fixes the realtime FFT visualizer path that could look unresponsive in the Dock mini spectrum. The v1.4.2/v1.4.3 visualizer loop required the full detail spectrum canvas, so mini-only usage could activate the analyser and then immediately stop. v1.4.4 allows the live loop to run when either the detail canvas or any Dock mini canvas is mounted.
+This patch stabilizes the FFT visualizer after the Dock mini live-loop hotfix. The key issue was WebAudio ownership: realtime mastering preview, phone/laptop/mono preview translation, and difference listen already create `MediaElementAudioSourceNode` graphs, so the spectrum visualizer must not try to create a second source from the same audio element. v1.4.5 adds external analyser taps and routes those existing graphs into the same full/detail and Dock mini spectrum visualizer.
 
-- Runtime asset cache key: `1.4.4-fft-live-hotfix`
-- Main affected modules: `src/ui/spectrum-visualizer.js`, `src/boot/runtime-health.js`, `index.html`, `sw.js`, `package.json`
-- Retained v1.4.3 feature: playback transition service with safer crossfade recovery
-- Retained v1.4.2 features: Dock/A-B crossfade, detail waveform zoom, Dock mini FFT spectrum, browser back QA matrix
-- New QA: `qa/v144_fft_live_hotfix_smoke.js`
-- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.4.md`
+- Runtime asset cache key: `1.4.5-stability-audit`
+- Main affected modules: `src/ui/spectrum-visualizer.js`, `src/app.js`, `index.html`, `sw.js`, `package.json`
+- New visualizer API: `FoxBearSpectrumVisualizer.registerExternalAnalyser()`
+- New app helpers: `createSpectrumAnalyserTap()` and `registerExternalSpectrumAnalyser()`
+- New QA: `qa/v145_stability_audit_smoke.js`
+- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.5.md`
 
 ## Recent patches
+
+### v1.4.4 FFT Live Hotfix
+
+Fixed the Dock mini FFT appearing static/unresponsive when no full detail spectrum panel was mounted.
+
+### v1.4.3 Playback Transition Service Audit
+
+Moved crossfade behavior into `src/audio/playback-transition-service.js` and improved play rejection volume recovery.
 
 ### v1.4.2 Crossfade + Waveform Zoom + Dock Mini Spectrum
 

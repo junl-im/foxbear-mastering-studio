@@ -1,23 +1,23 @@
-# QA Report - v1.4.4 FFT Live Hotfix
+# QA Report - v1.4.5 Stability Audit
 
 - Date: 2026-07-07
 - Command: `npm run sri:update` then `npm run check`
-- Result: 122/122 PASS
-- Added checks: `qa/v144_fft_live_hotfix_smoke.js` plus runtime-health coverage for `FoxBearSpectrumVisualizer.renderMini`
-- Focus: Dock mini FFT realtime loop, full/mini canvas renderability, AudioContext resume handling, RAF fallback, cache/SRI/runtime-health coverage.
+- Result: 123/123 PASS
+- Added checks: `qa/v145_stability_audit_smoke.js`
+- Focus: FFT live routing across existing WebAudio preview graphs, Dock mini/full canvas routing, external analyser taps, cache/SRI/runtime-health coverage.
 
-## Root cause
+## Root cause addressed
 
-The Dock mini FFT could look static or unresponsive because the realtime spectrum loop in `src/ui/spectrum-visualizer.js` required `state.canvas`, the full detail spectrum canvas. When the Dock mini canvas existed without the detail panel canvas, the analyser could activate but `startLoop()` exited immediately.
+v1.4.4 fixed the mini-only canvas loop, but WebAudio preview modes could still make the live FFT look inactive. Realtime mastering preview, preview translation modes, and difference listen already create `MediaElementAudioSourceNode` graphs. A browser only allows one `createMediaElementSource()` binding per audio element, so the spectrum visualizer had to use analyser taps from those existing graphs instead of creating another source.
 
 ## Fix summary
 
-- Added `hasRenderableCanvas()` so the visualizer accepts either the full detail canvas or one or more Dock mini canvases.
-- Updated the live loop to use `hasRenderableCanvas()` instead of directly requiring `state.canvas`.
-- Kept all live draws routed through `drawEveryCanvas()`, so full and mini canvases stay synchronized.
-- Added `scheduleFrame()`/`cancelFrame()` fallback and explicit suspended `AudioContext` resume before starting the live loop.
-- Added runtime-health required global coverage for `FoxBearSpectrumVisualizer.renderMini`.
+- Added `FoxBearSpectrumVisualizer.registerExternalAnalyser()` and external analyser preference in `connectAudio()`.
+- Added metadata refresh on repeated spectrum audio registration.
+- Added app-level `createSpectrumAnalyserTap()` and `registerExternalSpectrumAnalyser()` helpers.
+- Wired analyser taps into realtime mastering preview, preview translation, and difference-listen WebAudio graphs.
+- Carried forward v1.4.4 `hasRenderableCanvas()` / `drawEveryCanvas()` mini-only loop fix.
 
 ## Limitations
 
-Static QA cannot prove real sound-driven analyser movement in Kakao/Chrome/Safari/PWA. Manual device QA should verify that the Dock FFT moves while audio plays and returns to the static profile when paused.
+Static QA cannot prove real sound-driven analyser movement in Kakao/Chrome/Safari/PWA. Manual device QA should verify Dock/detail FFT movement while playing: normal Dock preview, realtime mastering preview, phone/laptop/mono preview translation, and difference listen.

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.4 - Stage23 playback link audit
+// FoxBear AI Mastering Studio Pro v1.4.5 - Stage23 playback link audit
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -19,7 +19,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const APP_VERSION = 'Pro v1.4.4';
+const APP_VERSION = 'Pro v1.4.5';
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
     MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
@@ -411,6 +411,25 @@ function registerPlaybackLinkedAudio(audio, meta = {}) {
     if (!FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.registerAudio !== 'function') return null;
     return FoxBearPlaybackLinkService.registerAudio(audio, meta);
 }
+
+function createSpectrumAnalyserTap(audioContext) {
+    if (!audioContext || typeof audioContext.createAnalyser !== 'function') return null;
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.82;
+    return analyser;
+}
+
+function registerExternalSpectrumAnalyser(audio, analyser, audioContext, meta = {}) {
+    if (!audio || !analyser) return null;
+    try {
+        window.FoxBearSpectrumVisualizer?.registerExternalAnalyser?.(audio, analyser, audioContext, meta);
+    } catch (error) {
+        console.warn('External spectrum analyser registration failed:', error);
+    }
+    return analyser;
+}
+
 
 function bindUploadInputEventsOnce() {
     if (el.fileDrop && el.fileInput) bindNativeUploadLabel(el.fileDrop, el.fileInput, 'file');
@@ -1278,6 +1297,12 @@ function setupRealtimePreviewEngine(track, audio, statusEl) {
         const context = new AudioContextClass({ latencyHint: 'interactive' });
         const source = context.createMediaElementSource(audio);
         const nodes = createRealtimeMasteringNodes(context, source, track);
+        registerExternalSpectrumAnalyser(audio, nodes.spectrumAnalyser, context, {
+            role: 'mastering-settings-preview',
+            trackId: track?.id || '',
+            mode: 'realtime-preview',
+            label: '실시간 마스터링 FFT'
+        });
         state.realtimePreview = { context, audio, nodes, statusEl, trackId: track.id };
         updateRealtimePreviewSettings(track);
         audio.addEventListener('play', () => {
@@ -1309,6 +1334,7 @@ function createRealtimeMasteringNodes(context, source, track) {
     const width = createRealtimeWidthMatrix(context, Number(track.analysis?.channels || 2) >= 2);
     const limiter = context.createDynamicsCompressor();
     const outputGain = context.createGain();
+    const spectrumAnalyser = createSpectrumAnalyserTap(context);
 
     highPass.type = 'highpass';
     lowShelf.type = 'lowshelf';
@@ -1318,8 +1344,10 @@ function createRealtimeMasteringNodes(context, source, track) {
     metallic.type = 'peaking';
 
     source.connect(inputGain).connect(highPass).connect(lowShelf).connect(lowMid).connect(presence).connect(highShelf).connect(metallic).connect(compressor).connect(width.input);
-    width.output.connect(limiter).connect(outputGain).connect(context.destination);
-    return { inputGain, highPass, lowShelf, lowMid, presence, highShelf, metallic, compressor, width, limiter, outputGain };
+    width.output.connect(limiter).connect(outputGain);
+    if (spectrumAnalyser) outputGain.connect(spectrumAnalyser).connect(context.destination);
+    else outputGain.connect(context.destination);
+    return { inputGain, highPass, lowShelf, lowMid, presence, highShelf, metallic, compressor, width, limiter, outputGain, spectrumAnalyser };
 }
 
 function createRealtimeWidthMatrix(context, enabled) {
@@ -3113,7 +3141,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.4-fft-live-hotfix');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.5-stability-audit');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3277,10 +3305,25 @@ function createDifferencePreviewPlayer(track, options = {}) {
             protect.attack.value = 0.003;
             protect.release.value = 0.08;
             const output = context.createGain();
+            const spectrumAnalyser = createSpectrumAnalyserTap(context);
             output.gain.value = 0.62;
             originalSource.connect(originalInvert).connect(protect);
             compareSource.connect(compareLevel).connect(protect);
-            protect.connect(output).connect(context.destination);
+            protect.connect(output);
+            if (spectrumAnalyser) output.connect(spectrumAnalyser).connect(context.destination);
+            else output.connect(context.destination);
+            registerExternalSpectrumAnalyser(compareAudio, spectrumAnalyser, context, {
+                role: 'difference-compare',
+                trackId: track?.id || '',
+                mode,
+                label: '차이 듣기 FFT'
+            });
+            registerExternalSpectrumAnalyser(originalAudio, spectrumAnalyser, context, {
+                role: 'difference-original',
+                trackId: track?.id || '',
+                mode: 'original',
+                label: '차이 듣기 FFT'
+            });
             graphReady = true;
         } catch (error) {
             console.warn('Difference listen graph unavailable:', error);
@@ -10856,7 +10899,16 @@ function setupPreviewTranslationAudio(audio, options = {}) {
         } else {
             source.connect(first);
         }
-        last.connect(outputGain).connect(context.destination);
+        const spectrumAnalyser = createSpectrumAnalyserTap(context);
+        last.connect(outputGain);
+        if (spectrumAnalyser) outputGain.connect(spectrumAnalyser).connect(context.destination);
+        else outputGain.connect(context.destination);
+        registerExternalSpectrumAnalyser(audio, spectrumAnalyser, context, {
+            role: 'preview-translation',
+            trackId: options.trackId || audio.dataset.spectrumTrackId || '',
+            mode: mode.id,
+            label: `${mode.label || mode.id} FFT`
+        });
         const resume = () => context.resume().catch(() => {});
         audio.addEventListener('play', resume);
         audio.addEventListener('emptied', () => closePreviewTranslationContext(context), { once: true });
@@ -13397,7 +13449,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.4.4',
+        app: 'FoxBear AI Mastering Studio Pro v1.4.5',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

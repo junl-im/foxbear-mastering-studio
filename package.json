@@ -1,8 +1,8 @@
 {
-  "name": "foxbear-github-pro-v1-4-3",
-  "version": "1.4.4",
+  "name": "foxbear-github-pro-v1-4-5",
+  "version": "1.4.5",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.4 FFT live hotfix for Spectrum; Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration retained",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.5 Spectrum stability audit: external FFT analyser taps for WebAudio preview graphs, crossfade, waveform zoom, Dock mini spectrum, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration retained",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -132,6 +132,7 @@
     "node qa/v141_spectrum_exit_guard_smoke.js",
     "node qa/v142_crossfade_zoom_spectrum_smoke.js",
     "node qa/v143_playback_transition_audit_smoke.js",
-    "node qa/v144_fft_live_hotfix_smoke.js"
+    "node qa/v144_fft_live_hotfix_smoke.js",
+    "node qa/v145_stability_audit_smoke.js"
   ]
 }

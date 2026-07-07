@@ -1,9 +1,9 @@
-// FoxBear spectrum visualizer module - v1.4.4
+// FoxBear spectrum visualizer module - v1.4.5
 // Shows the same FFT evidence used by the AI analysis as a compact realtime/static canvas.
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.4.4-fft-live-hotfix';
+    const VISUALIZER_VERSION = '1.4.5-stability-audit';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -12,6 +12,8 @@
     ]);
     const AXIS_LABELS = Object.freeze(['20Hz', '100', '1k', '10k', '22k']);
     const sourceNodes = new WeakMap();
+    const externalAnalyserNodes = new WeakMap();
+    const audioMetadata = new WeakMap();
     const registeredAudio = new WeakSet();
     const state = {
         context: null,
@@ -256,15 +258,39 @@
         return context.resume().then(() => context).catch(() => context);
     }
 
+    function createAnalyser(context) {
+        const analyser = context.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.82;
+        return analyser;
+    }
+
+    function updateAudioMeta(audio, meta = {}) {
+        if (!audio) return {};
+        const prev = audioMetadata.get(audio) || {};
+        const next = { ...prev, ...(meta || {}) };
+        audioMetadata.set(audio, next);
+        if (next.trackId) audio.dataset.spectrumTrackId = String(next.trackId);
+        if (next.mode) audio.dataset.spectrumMode = String(next.mode);
+        if (next.label) audio.dataset.spectrumLabel = String(next.label);
+        return next;
+    }
+
     function connectAudio(audio) {
         if (!audio) return null;
+        const externalRecord = externalAnalyserNodes.get(audio);
+        if (externalRecord?.analyser) {
+            if (externalRecord.context) state.context = externalRecord.context;
+            return externalRecord.analyser;
+        }
         const context = ensureContext();
         let record = sourceNodes.get(audio);
+        if (record?.context?.state === 'closed') {
+            throw new Error('기존 WebAudio 컨텍스트가 종료되어 FFT 연결을 재시도할 수 없습니다.');
+        }
         if (!record) {
             const source = context.createMediaElementSource(audio);
-            const analyser = context.createAnalyser();
-            analyser.fftSize = 2048;
-            analyser.smoothingTimeConstant = 0.82;
+            const analyser = createAnalyser(context);
             source.connect(analyser);
             analyser.connect(context.destination);
             record = { source, analyser, context };
@@ -275,12 +301,13 @@
 
     function activateAudio(audio, meta = {}) {
         try {
+            const mergedMeta = { ...(audioMetadata.get(audio) || {}), ...(meta || {}) };
             const analyser = connectAudio(audio);
             if (!analyser) return false;
             state.analyser = analyser;
             state.data = new Uint8Array(analyser.frequencyBinCount);
             state.live = true;
-            setStatus(`실시간 FFT 분석 중 · ${meta.label || audio.dataset.spectrumLabel || '재생 소스'}`, 'live');
+            setStatus(`실시간 FFT 분석 중 · ${mergedMeta.label || audio.dataset.spectrumLabel || '재생 소스'}`, 'live');
             resumeContext(state.context).finally(() => startLoop());
             return true;
         } catch (error) {
@@ -316,18 +343,25 @@
     }
 
     function registerAudio(audio, meta = {}) {
-        if (!audio || registeredAudio.has(audio)) return audio || null;
+        if (!audio) return null;
+        updateAudioMeta(audio, meta);
+        if (registeredAudio.has(audio)) return audio;
         registeredAudio.add(audio);
-        if (meta.trackId) audio.dataset.spectrumTrackId = String(meta.trackId);
-        if (meta.mode) audio.dataset.spectrumMode = String(meta.mode);
-        if (meta.label) audio.dataset.spectrumLabel = String(meta.label);
-        audio.addEventListener('play', () => activateAudio(audio, meta));
+        audio.addEventListener('play', () => activateAudio(audio));
         audio.addEventListener('pause', () => {
             const active = getLikelyActiveAudio();
             if (state.live && (!active || active === audio)) stopLoopToStatic();
         });
         audio.addEventListener('ended', stopLoopToStatic);
         return audio;
+    }
+
+    function registerExternalAnalyser(audio, analyser, context, meta = {}) {
+        if (!audio || !analyser) return null;
+        updateAudioMeta(audio, meta);
+        externalAnalyserNodes.set(audio, { analyser, context: context || null, meta: audioMetadata.get(audio) || {} });
+        registerAudio(audio, meta);
+        return analyser;
     }
 
     function getLikelyActiveAudio() {
@@ -434,6 +468,7 @@
         renderPanel,
         renderMini,
         registerAudio,
+        registerExternalAnalyser,
         activateCurrentAudio,
         drawStatic
     });

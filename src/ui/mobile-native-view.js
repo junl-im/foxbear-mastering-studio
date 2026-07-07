@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.4 - mobile native view builder
+// FoxBear AI Mastering Studio Pro v1.4.5 - mobile native view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {

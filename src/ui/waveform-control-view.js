@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.4-fft-live-hotfix';
+  const VIEW_VERSION = '1.4.5-stability-audit';
   const DEFAULT_BINS = 96;
 
   function getService() {

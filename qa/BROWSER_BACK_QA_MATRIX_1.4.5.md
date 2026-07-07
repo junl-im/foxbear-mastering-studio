@@ -1,4 +1,7 @@
-# FoxBear v1.4.5 Browser Back / Refresh QA Matrix
+# Browser Back / Refresh QA Matrix - v1.4.5
+
+v1.4.5 carries forward the v1.4.4 browser/PWA guard matrix and adds FFT external analyser tap coverage for WebAudio preview modes. Use this checklist on real devices after deployment.
+
 
 Purpose: verify that the v1.4.1 exit guard still protects active mastering sessions after v1.4.5 Dock/player changes.
 
