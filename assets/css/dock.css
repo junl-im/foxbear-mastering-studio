@@ -1130,3 +1130,22 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     bottom: calc(var(--bottom-preview-height, 154px) + 1px + env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* FoxBear v1.4.2 smooth source transitions */
+.bottom-preview-player.is-crossfading {
+  position: relative !important;
+  min-height: 36px;
+}
+
+.bottom-preview-player.is-crossfading > [data-crossfade-legacy="true"] {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  opacity: 0.001;
+  pointer-events: none !important;
+}
+
+.bottom-preview-player.is-crossfading > :not([data-crossfade-legacy="true"]) {
+  position: relative !important;
+  z-index: 2 !important;
+}

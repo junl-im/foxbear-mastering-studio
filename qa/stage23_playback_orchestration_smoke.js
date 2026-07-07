@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.0-stage28-waveform-control-view';
+const version = '1.4.2-crossfade-zoom-spectrum';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -27,7 +27,7 @@ assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stag
 assert(sw.includes(`./src/audio/playback-link-service.js?v=${version}`), 'SW should precache playback orchestration service');
 assert(pkg.includes('Stage28 managed waveform view extraction') || pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage28 managed waveform view extraction') || pkg.includes('Stage27 common waveform control service') || pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage25 compare controls rehome') || pkg.includes('Stage23 playback orchestration'), 'package description should identify current Stage23+ line');
 assert(pkg.includes('node qa/stage23_playback_orchestration_smoke.js'), 'package should run Stage23 smoke');
-assert(overwrite.includes('v1.4.0-stage28'), 'overwrite package default should be Stage23');
+assert(overwrite.includes('v1.4.2'), 'overwrite package default should be Stage23');
 
 assert(service.includes('ORCHESTRATION_EVENT_NAME'), 'service should define orchestration event');
 assert(service.includes('foxbear:playback-orchestration-change'), 'service should emit orchestration event');

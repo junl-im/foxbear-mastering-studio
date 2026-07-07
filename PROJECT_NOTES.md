@@ -1,3 +1,23 @@
+# v1.4.2 project notes - Crossfade, waveform zoom, Dock mini spectrum
+
+v1.4.2 keeps the new patch release style and uses the runtime/cache key `1.4.2-crossfade-zoom-spectrum`.
+
+Current invariant:
+- Playback transitions should avoid abrupt source cuts. Dock source switches and A/B swaps use `crossfadeAudioPair()` with a short 96ms fade while preserving exclusive playback outside the intentional overlap.
+- Detail waveform zoom is owned by `enhanceWaveformRowZoom()` and must re-render through `createManagedWaveformBars()` so waveform DOM remains managed.
+- `FoxBearSpectrumVisualizer` now owns both full detail panels and Dock mini canvases. It should draw static `analysis.spectrumProfile` first and upgrade to realtime analyser data only after playback.
+- `FoxBearSiteGuards.installNavigationExitGuard()` still owns the Exit Guard for refresh/back/leave protection. `beforeunload` remains native; app-level copy is only reliable on `popstate`/PWA back.
+- Keep `index.html`, `sw.js`, runtime health, and SRI on the same `1.4.2-crossfade-zoom-spectrum` cache key.
+
+다음 대화 인수인계:
+- Start from `/mnt/data/foxbear_v142` or `foxbear-mastering-studio-v1.4.2-full.zip`.
+- Provide users the overwrite ZIP first: `foxbear-mastering-studio-v1.4.2-overwrite.zip`.
+- Required validation: `npm run sri:update`, `npm run check`, `npm run package:clean`, `npm run package:overwrite`.
+- Recommended next update: v1.4.3 playback-transition-service extraction plus real-device back/refresh QA notes.
+
+---
+
+
 # Stage28 project notes - waveform-control-view + unmanaged waveform audit
 
 Stage28 adds `src/ui/waveform-control-view.js` and moves waveform DOM bar creation behind a managed view helper.
@@ -7,11 +27,11 @@ Current invariant:
 - `FoxBearWaveformControlView` owns waveform DOM creation and must stamp generated roots with service/view metadata.
 - New waveform surfaces should use `FoxBearWaveformControlView.createBars()` / `createRow()` or the app-level `createManagedWaveformBars()` gateway.
 - Do not reintroduce direct unmanaged creation of `.waveform-bars`, `.waveform-compare-bars`, `.ab-switch-inline-waveform-bars`, or `.dock-integrated-waveform-bars` in feature modules.
-- The latest cache key is `1.4.0-stage28-waveform-control-view`.
+- The latest cache key is `1.4.2-crossfade-zoom-spectrum`.
 
 다음 대화 인수인계:
-- Start from `/mnt/data/foxbear_review` or `foxbear-mastering-studio-v1.4.0-stage28-full.zip`.
-- Provide users the overwrite ZIP first: `foxbear-mastering-studio-v1.4.0-stage28-overwrite.zip`.
+- Start from `/mnt/data/foxbear_review` or `foxbear-mastering-studio-v1.4.2-full.zip`.
+- Provide users the overwrite ZIP first: `foxbear-mastering-studio-v1.4.2-overwrite.zip`.
 - Keep final response order: summary -> QA result -> downloads -> next update recommendation.
 - Recommended next update: Stage29 CSS ownership audit for legacy waveform selectors in `studio.css` and remaining detail/player polish.
 
@@ -24,7 +44,7 @@ Stage27 adds `src/audio/waveform-control-service.js` and makes it the shared con
 Current invariant:
 - Any new waveform surface must use `FoxBearWaveformControlService` for pointer mapping, playhead mapping, seek percent, peak percent, and managed element stamping.
 - `app.js` compatibility wrappers remain, but they should delegate to the service.
-- The latest cache key is `1.4.0-stage28-waveform-control-view`.
+- The latest cache key is `1.4.2-crossfade-zoom-spectrum`.
 
 다음 대화 인수인계:
 - Start from `/mnt/data/foxbear_stage27_work` or `foxbear-mastering-studio-v1.4.0-stage27-full.zip`.
@@ -699,6 +719,6 @@ Packaging remains cumulative overwrite ZIP only.
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage28-waveform-control-view` and service worker cache to `foxbear-shell-v1.4.0-stage28-waveform-control-view`.
+- Bumped asset cache key to `1.4.2-crossfade-zoom-spectrum` and service worker cache to `foxbear-shell-v1.4.2-crossfade-zoom-spectrum`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

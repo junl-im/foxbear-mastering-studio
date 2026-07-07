@@ -1,17 +1,47 @@
+# v1.4.2 handoff - Crossfade, waveform zoom, Dock mini spectrum
+
+Latest build: `v1.4.2`. Runtime asset key: `1.4.2-crossfade-zoom-spectrum`.
+
+Validation target: `npm run check` should pass after SRI update. Use `foxbear-mastering-studio-v1.4.2-overwrite.zip` for cumulative overwrite deployment.
+
+## 핵심 변경
+
+- Versioning remains patch-based: continue with `1.4.3`, `1.4.4`, then `1.4.10` style releases instead of extending the old `1.4.0-stageXX` line.
+- Added 96ms playback crossfade helpers for Dock source changes and A/B switching, reducing abrupt cuts/click-pop when comparing original and mastered audio.
+- Added detail waveform zoom controls. Users can zoom with `+ / − / 초기화`, double-tap, or pinch; the zoom window re-renders through the managed waveform gateway instead of unmanaged DOM loops.
+- Added Dock mini FFT spectrum via `FoxBearSpectrumVisualizer.renderMini()` and `#bottomPreviewSpectrum`, sharing the existing spectrum profile/live analyser path.
+- Added `qa/BROWSER_BACK_QA_MATRIX_1.4.2.md` to keep Kakao browser, Chrome/Safari mobile, and installed PWA back/refresh behavior explicit.
+- Added `qa/v142_crossfade_zoom_spectrum_smoke.js` to cover the new crossfade, zoom, Dock spectrum, version/cache, and matrix contracts.
+
+## 회귀 주의 포인트
+
+- `bindExclusivePreview()` now accepts `allowAudioElements` so intentional 50-150ms crossfades are not killed by exclusive playback. Do not remove that overlap allowance.
+- Any new waveform zoom render must continue using `createManagedWaveformBars()` / `FoxBearWaveformControlView`; do not reintroduce direct `<i>` bar loops.
+- Dock mini spectrum must remain passive: it should not add history entries, trigger exit guard dirty state, or create hidden audio elements.
+- Browser refresh/close text is still native-only; exact Korean custom copy is reliable only on the app-level back/popstate path.
+- Service worker cache, asset query strings, runtime-health fallback version, and package version must move together.
+
+## 다음 추천
+
+For v1.4.3, move crossfade into a small shared playback-transition service and add focused manual QA notes for actual Kakao/Chrome/Safari/PWA device tests.
+
+---
+
+
 # Stage28 handoff - waveform-control-view extraction + unmanaged waveform audit
 
-Latest build: `v1.4.0-stage28-waveform-control-view`.
+Latest build: `v1.4.2-crossfade-zoom-spectrum`.
 
-Validation target: `npm run check` should pass 116/116. Use `foxbear-mastering-studio-v1.4.0-stage28-overwrite.zip` for cumulative overwrite deployment.
+Validation target: `npm run check` should pass 116/116. Use `foxbear-mastering-studio-v1.4.2-overwrite.zip` for cumulative overwrite deployment.
 
 ## 다음 대화 인수인계
 
 현재 최신 기준은 Stage28입니다. 다음 대화가 새로 시작되면 아래 기준으로 이어가면 됩니다.
 
-1. 기준 ZIP: `foxbear-mastering-studio-v1.4.0-stage28-full.zip` 또는 이번 작업 폴더 `/mnt/data/foxbear_review`.
-2. 누적 적용 ZIP: `foxbear-mastering-studio-v1.4.0-stage28-overwrite.zip`.
-3. 최신 asset/cache key: `1.4.0-stage28-waveform-control-view`.
-4. 최신 Service Worker cache: `foxbear-shell-v1.4.0-stage28-waveform-control-view`.
+1. 기준 ZIP: `foxbear-mastering-studio-v1.4.2-full.zip` 또는 이번 작업 폴더 `/mnt/data/foxbear_review`.
+2. 누적 적용 ZIP: `foxbear-mastering-studio-v1.4.2-overwrite.zip`.
+3. 최신 asset/cache key: `1.4.2-crossfade-zoom-spectrum`.
+4. 최신 Service Worker cache: `foxbear-shell-v1.4.2-crossfade-zoom-spectrum`.
 5. 핵심 신규 모듈: `src/ui/waveform-control-view.js`.
 6. 변경 후에는 반드시 `npm run sri:update`, `npm run check`, `npm run package:clean`, `npm run package:overwrite` 순서로 검증/패키징합니다.
 
@@ -29,7 +59,7 @@ Validation target: `npm run check` should pass 116/116. Use `foxbear-mastering-s
 - 파형 DOM을 새로 만들 때 직접 `bars.className = ...` 후 `<i>` loop를 복붙하지 말고 `FoxBearWaveformControlView.createBars()` 또는 `createManagedWaveformBars()`를 사용해야 합니다.
 - A/B deck의 playhead percent는 `setPlayheadOnElement(..., pct * 100, ...)` 형태를 유지해야 합니다.
 - 비교 팝업 row는 `service.stampManagedElement(..., 'popup')` metadata를 유지해야 합니다.
-- Service Worker cache key와 `index.html` asset query는 반드시 `1.4.0-stage28-waveform-control-view`으로 함께 움직여야 합니다.
+- Service Worker cache key와 `index.html` asset query는 반드시 `1.4.2-crossfade-zoom-spectrum`으로 함께 움직여야 합니다.
 
 ## 다음 패치 후보
 
@@ -39,7 +69,7 @@ Stage29는 `detail-view.js` 쪽 waveform/detail preview 잔여 UI를 더 줄이�
 
 # Stage27 handoff - Common waveform control service
 
-Latest build: `v1.4.0-stage28-waveform-control-view`.
+Latest build: `v1.4.2-crossfade-zoom-spectrum`.
 
 Validation target: `npm run check` should pass 114/114. Use `foxbear-mastering-studio-v1.4.0-stage27-overwrite.zip` for cumulative overwrite deployment.
 
@@ -49,8 +79,8 @@ Validation target: `npm run check` should pass 114/114. Use `foxbear-mastering-s
 
 1. 기준 ZIP: `foxbear-mastering-studio-v1.4.0-stage27-full.zip` 또는 작업 폴더 `/mnt/data/foxbear_stage27_work`.
 2. 누적 적용 ZIP: `foxbear-mastering-studio-v1.4.0-stage27-overwrite.zip`.
-3. 최신 asset/cache key: `1.4.0-stage28-waveform-control-view`.
-4. 최신 Service Worker cache: `foxbear-shell-v1.4.0-stage28-waveform-control-view`.
+3. 최신 asset/cache key: `1.4.2-crossfade-zoom-spectrum`.
+4. 최신 Service Worker cache: `foxbear-shell-v1.4.2-crossfade-zoom-spectrum`.
 5. 핵심 신규 모듈: `src/audio/waveform-control-service.js`.
 6. 변경 후에는 반드시 `npm run sri:update`, `npm run check`, `npm run package:clean`, `npm run package:overwrite` 순서로 검증/패키징.
 
@@ -82,7 +112,7 @@ Validation target: `npm run check` should pass 114/114. Use `foxbear-mastering-s
 
 ## Stage26 handoff
 
-Latest build: `v1.4.0-stage28-waveform-control-view`.
+Latest build: `v1.4.2-crossfade-zoom-spectrum`.
 
 Focus: unified waveform controls across the mastering settings preview dialog, Dock-style previews, and A/B deck. The old bottom original/master preview grid inside the mastering settings popup has been removed from that popup path. The top original realtime preview remains the single original preview; the popup now adds only the missing mastered unified waveform player and A/B deck.
 
@@ -506,7 +536,7 @@ Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this 
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage28-waveform-control-view`.
+- Bumped runtime asset queries and service worker cache to `1.4.2-crossfade-zoom-spectrum`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 
@@ -672,6 +702,6 @@ Run `npm run sri:update` after modifying any loaded asset, then run `npm run che
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage28-waveform-control-view` and service worker cache to `foxbear-shell-v1.4.0-stage28-waveform-control-view`.
+- Bumped asset cache key to `1.4.2-crossfade-zoom-spectrum` and service worker cache to `foxbear-shell-v1.4.2-crossfade-zoom-spectrum`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

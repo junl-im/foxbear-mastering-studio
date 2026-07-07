@@ -1,8 +1,8 @@
 {
-  "name": "foxbear-github-pro-v1-4-0",
-  "version": "1.4.0",
+  "name": "foxbear-github-pro-v1-4-2",
+  "version": "1.4.2",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage28 managed waveform view extraction and audit",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.2 Spectrum crossfade transitions, waveform zoom, Dock mini spectrum, browser back QA matrix; Stage28 managed waveform view extraction",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -25,6 +25,7 @@
     "node --check src/audio/playback-link-service.js",
     "node --check src/audio/waveform-control-service.js",
     "node --check src/ui/waveform-control-view.js",
+    "node --check src/ui/spectrum-visualizer.js",
     "node --check src/ui/modal-controller.js",
     "node --check src/ui/dock-controller.js",
     "node --check src/ui/mobile-native-view.js",
@@ -126,6 +127,8 @@
     "node qa/stage25_compare_controls_rehome_smoke.js",
     "node qa/stage26_unified_waveform_controls_smoke.js",
     "node qa/stage27_waveform_control_service_smoke.js",
-    "node qa/stage28_waveform_control_view_smoke.js"
+    "node qa/stage28_waveform_control_view_smoke.js",
+    "node qa/v141_spectrum_exit_guard_smoke.js",
+    "node qa/v142_crossfade_zoom_spectrum_smoke.js"
   ]
 }

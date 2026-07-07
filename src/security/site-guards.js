@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.4.0 - site and UI guard helpers
+// FoxBear AI Mastering Studio Pro v1.4.2 - site and UI guard helpers
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage28-waveform-control-view';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.2-crossfade-zoom-spectrum';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
@@ -89,6 +89,77 @@
         }, true);
     }
 
+
+    const navigationExitGuardState = {
+        installed: false,
+        allowLeave: false,
+        pushed: false,
+        options: null
+    };
+
+    function installNavigationExitGuard(options = {}) {
+        if (navigationExitGuardState.installed) return true;
+        navigationExitGuardState.installed = true;
+        navigationExitGuardState.options = options || {};
+        tryPushExitGuardState();
+        global.addEventListener('beforeunload', handleBeforeUnloadGuard);
+        global.addEventListener('popstate', handlePopStateGuard);
+        return true;
+    }
+
+    function shouldBlockNavigation() {
+        if (navigationExitGuardState.allowLeave) return false;
+        const shouldBlock = navigationExitGuardState.options?.shouldBlock;
+        try {
+            return typeof shouldBlock === 'function' ? Boolean(shouldBlock()) : false;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function tryPushExitGuardState() {
+        if (navigationExitGuardState.pushed || !global.history || typeof global.history.pushState !== 'function') return;
+        try {
+            global.history.replaceState({ ...(global.history.state || {}), foxbearEntry: true }, '', global.location.href);
+            global.history.pushState({ foxbearExitGuard: true }, '', global.location.href);
+            navigationExitGuardState.pushed = true;
+        } catch (error) {}
+    }
+
+    function handleBeforeUnloadGuard(event) {
+        if (!shouldBlockNavigation()) return;
+        event.preventDefault();
+        event.returnValue = '';
+        return '';
+    }
+
+    function handlePopStateGuard() {
+        if (navigationExitGuardState.allowLeave) return;
+        if (!shouldBlockNavigation()) {
+            leaveViaHistoryBack();
+            return;
+        }
+        const message = '뒤로가기를 누르면 프로그램을 닫고 현재 작업 화면을 나갑니다. 맞습니까?';
+        const confirmed = global.confirm(message);
+        if (confirmed) {
+            navigationExitGuardState.options?.onLeave?.();
+            leaveViaHistoryBack();
+            return;
+        }
+        navigationExitGuardState.pushed = false;
+        tryPushExitGuardState();
+        navigationExitGuardState.options?.onStay?.();
+    }
+
+    function leaveViaHistoryBack() {
+        navigationExitGuardState.allowLeave = true;
+        global.removeEventListener('beforeunload', handleBeforeUnloadGuard);
+        global.removeEventListener('popstate', handlePopStateGuard);
+        setTimeout(() => {
+            try { global.history.back(); } catch (error) {}
+        }, 0);
+    }
+
     function showDecoyPage() {
         try {
             document.body.textContent = '';
@@ -117,6 +188,7 @@
     global.FoxBearSiteGuards = Object.freeze({
         runSiteAccessGuard,
         initUiGuards,
+        installNavigationExitGuard,
         renderSecurityMessage,
         showDecoyPage
     });

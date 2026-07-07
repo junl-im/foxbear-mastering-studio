@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.0 - Stage23 playback link audit
+// FoxBear AI Mastering Studio Pro v1.4.2 - Stage23 playback link audit
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -19,7 +19,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const APP_VERSION = 'Pro v1.4.0';
+const APP_VERSION = 'Pro v1.4.2';
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
     MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
@@ -67,6 +67,8 @@ const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine';
+const PLAYBACK_CROSSFADE_MS = 96;
+const PLAYBACK_FADE_MIN_VOLUME = 0.0001;
 
 const CURVE_CACHE = new Map();
 
@@ -309,6 +311,88 @@ function isBenignPlaybackRejection(error) {
         || message.includes('interrupted by a new load request');
 }
 
+
+function rememberAudioTargetVolume(audio) {
+    if (!audio) return 1;
+    const current = clamp(Number(audio.volume || 1), 0, 1);
+    if (!audio.dataset.foxbearTargetVolume || Number(audio.dataset.foxbearTargetVolume) <= 0) {
+        audio.dataset.foxbearTargetVolume = String(current || 1);
+    }
+    return clamp(Number(audio.dataset.foxbearTargetVolume || current || 1), 0.02, 1);
+}
+
+function cancelAudioFade(audio) {
+    const id = Number(audio?._foxbearFadeRaf || 0);
+    if (id && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(id);
+    if (audio) audio._foxbearFadeRaf = 0;
+}
+
+function fadeAudioVolume(audio, toVolume = 1, durationMs = PLAYBACK_CROSSFADE_MS) {
+    if (!audio) return Promise.resolve(false);
+    cancelAudioFade(audio);
+    const from = clamp(Number(audio.volume || 0), 0, 1);
+    const to = clamp(Number(toVolume), 0, 1);
+    const duration = Math.max(24, Number(durationMs || PLAYBACK_CROSSFADE_MS));
+    if (Math.abs(from - to) < 0.001) {
+        audio.volume = to;
+        return Promise.resolve(true);
+    }
+    return new Promise(resolve => {
+        const start = performance.now();
+        const step = now => {
+            const t = clamp((now - start) / duration, 0, 1);
+            const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            audio.volume = clamp(from + (to - from) * eased, 0, 1);
+            if (t < 1) audio._foxbearFadeRaf = requestAnimationFrame(step);
+            else {
+                audio.volume = to;
+                audio._foxbearFadeRaf = 0;
+                resolve(true);
+            }
+        };
+        audio._foxbearFadeRaf = requestAnimationFrame(step);
+    });
+}
+
+function playAudioWithFadeIn(audio, options = {}) {
+    if (!audio) return Promise.resolve(false);
+    const target = rememberAudioTargetVolume(audio);
+    const duration = Number(options.ms || PLAYBACK_CROSSFADE_MS);
+    if (options.fromZero !== false) audio.volume = PLAYBACK_FADE_MIN_VOLUME;
+    return audio.play().then(() => fadeAudioVolume(audio, target, duration)).then(() => true);
+}
+
+function pauseAudioWithFadeOut(audio, options = {}) {
+    if (!audio) return Promise.resolve(false);
+    const target = rememberAudioTargetVolume(audio);
+    return fadeAudioVolume(audio, PLAYBACK_FADE_MIN_VOLUME, Number(options.ms || PLAYBACK_CROSSFADE_MS)).then(() => {
+        try { audio.pause(); } catch (error) {}
+        audio.volume = target;
+        return true;
+    });
+}
+
+function crossfadeAudioPair(oldAudio, nextAudio, options = {}) {
+    const duration = Number(options.ms || PLAYBACK_CROSSFADE_MS);
+    const oldTarget = rememberAudioTargetVolume(oldAudio);
+    const nextTarget = rememberAudioTargetVolume(nextAudio);
+    if (nextAudio) nextAudio.volume = PLAYBACK_FADE_MIN_VOLUME;
+    const playPromise = nextAudio ? nextAudio.play() : Promise.resolve();
+    return Promise.resolve(playPromise).then(() => {
+        const fades = [];
+        if (oldAudio) fades.push(fadeAudioVolume(oldAudio, PLAYBACK_FADE_MIN_VOLUME, duration));
+        if (nextAudio) fades.push(fadeAudioVolume(nextAudio, nextTarget, duration));
+        return Promise.all(fades).then(() => {
+            if (oldAudio) {
+                try { oldAudio.pause(); } catch (error) {}
+                oldAudio.volume = oldTarget;
+            }
+            if (typeof options.onComplete === 'function') options.onComplete();
+            return true;
+        });
+    });
+}
+
 function handleUnhandledRejection(event) {
     const error = event?.reason;
     if (isBenignPlaybackRejection(error)) {
@@ -365,7 +449,9 @@ function installPlaybackLinkStatusBridge() {
 }
 
 function registerPlaybackLinkedAudio(audio, meta = {}) {
-    if (!audio || !FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.registerAudio !== 'function') return null;
+    if (!audio) return null;
+    try { window.FoxBearSpectrumVisualizer?.registerAudio?.(audio, meta); } catch (error) { console.warn('Spectrum audio registration failed:', error); }
+    if (!FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.registerAudio !== 'function') return null;
     return FoxBearPlaybackLinkService.registerAudio(audio, meta);
 }
 
@@ -417,6 +503,7 @@ function init() {
     runInitStep('악기 레이어 컨트롤', () => setInstrumentControls(DEFAULT_INSTRUMENT_LAYER));
     runInitStep('화면 렌더링', renderAll);
     runInitStep('UI 보호 이벤트', initUiGuards);
+    runInitStep('나가기/새로고침 보호', initNavigationExitGuard);
     runInitStep('Dock 레이아웃 감시', installBottomPreviewLayoutObserver);
     runInitStep('Dock 레이아웃 동기화', scheduleBottomPreviewLayoutSync);
     runInitStep('모바일 편의 기능', initMobileNativeUx);
@@ -434,7 +521,7 @@ function cacheElements() {
         'referencePanel', 'referenceStatus', 'referenceSummary', 'referenceMetrics', 'referenceLoadBtn', 'referenceApplyBtn', 'referenceClearBtn', 'referenceInput', 'referenceStrengthSelect',
         'adaptiveLufsToggle',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
-        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
+        'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewSpectrum', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -1803,6 +1890,26 @@ function pauseAllPreviewAudio() {
     });
 }
 
+function hasMeaningfulWorkspaceState() {
+    return Boolean(
+        state.busy
+        || state.tracks.some(track => track && (track.status !== 'queued' || track.analysis || track.outBlob || track.masteredUrl || track.masterPreviewUrl))
+        || (state.activeDownloadUrls && state.activeDownloadUrls.size > 0)
+    );
+}
+
+function initNavigationExitGuard() {
+    const guards = window.FoxBearSiteGuards;
+    if (!guards || typeof guards.installNavigationExitGuard !== 'function') return false;
+    return guards.installNavigationExitGuard({
+        shouldBlock: hasMeaningfulWorkspaceState,
+        onStay: () => showToast('나가기를 취소했습니다. 작업 화면을 계속 유지합니다.'),
+        onLeave: () => {
+            try { pauseAllPreviewAudio(); } catch (error) {}
+        }
+    });
+}
+
 function bindAdminStatsEvents() {
     updateAdminStatsTriggerVisibility();
     if (el.adminStatsTrigger) {
@@ -3049,7 +3156,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage28-waveform-control-view');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.2-crossfade-zoom-spectrum');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -10317,6 +10424,7 @@ function getDetailViewDeps() {
         renderAll,
         renderMasterComparisonPanel,
         renderABStudioPanel,
+        renderSpectrumPanel,
         renderWaveformPanel,
         renderMasterReportPanel,
         renderQualityGatePanel,
@@ -10772,6 +10880,7 @@ function renderPreviewTranslationModeControls(activeSourceMode = state.bottomPre
 
 function setupPreviewTranslationAudio(audio, options = {}) {
     if (!audio || options.translationMode === false) return null;
+    rememberAudioTargetVolume(audio);
     const mode = getPreviewTranslationMode();
     audio.dataset.previewTranslationMode = mode.id;
     if (mode.id === 'studio') return null;
@@ -11603,9 +11712,9 @@ function toggleBottomPreviewExternalPlayback(event = null) {
         return;
     }
     if (audio.paused || audio.ended) {
-        audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. Dock 재생 버튼을 다시 눌러주세요.'));
+        playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. Dock 재생 버튼을 다시 눌러주세요.'));
     } else {
-        try { audio.pause(); } catch (error) {}
+        pauseAudioWithFadeOut(audio);
     }
 }
 
@@ -11623,6 +11732,7 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     if (state.abLevelMatch && Number.isFinite(options.gainDb)) {
         audio.volume = clamp(Math.pow(10, options.gainDb / 20), 0.02, 1);
     }
+    rememberAudioTargetVolume(audio);
     setupPreviewTranslationAudio(audio, options);
 
     const toggle = document.createElement('button');
@@ -11698,15 +11808,16 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     toggle.addEventListener('click', event => {
         event.preventDefault();
         event.stopPropagation();
-        if (audio.paused) audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
-        else audio.pause();
+        if (audio.paused) playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+        else pauseAudioWithFadeOut(audio);
     });
     audio.addEventListener('loadedmetadata', () => {
         applyBottomPreviewStart(audio, Number(options.startSec || 0));
         sync();
     });
     audio.addEventListener('play', () => {
-        bindExclusivePreview(audio);
+        const allowed = wrap._foxbearCrossfadeOldAudio ? [wrap._foxbearCrossfadeOldAudio] : [];
+        bindExclusivePreview(audio, { allowAudioElements: allowed });
         setPlaying(true);
         onDockAudioTransportEvent(audio);
         sync();
@@ -11726,10 +11837,10 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
 
     wrap._foxbearPlay = () => {
         if (!audio.paused) return Promise.resolve();
-        return audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 통합 파형 재생 버튼을 다시 눌러주세요.'));
+        return playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 통합 파형 재생 버튼을 다시 눌러주세요.'));
     };
     wrap._foxbearPause = () => {
-        try { audio.pause(); } catch (error) {}
+        pauseAudioWithFadeOut(audio);
     };
     registerPlaybackLinkedAudio(audio, {
         role: options.playerRole || (options.waveformRole === 'dock-player' ? 'bottom-dock' : 'inline-preview'),
@@ -11744,6 +11855,27 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     return wrap;
 }
 
+
+function renderBottomMiniSpectrum(track, mode = state.bottomPreviewMode) {
+    const host = el.bottomPreviewSpectrum || document.getElementById('bottomPreviewSpectrum');
+    if (!host) return;
+    host.textContent = '';
+    host.classList.toggle('is-empty', !track);
+    if (!track) return;
+    const visualizer = window.FoxBearSpectrumVisualizer;
+    if (!visualizer || typeof visualizer.renderMini !== 'function') {
+        host.textContent = 'FFT 대기';
+        return;
+    }
+    const mini = visualizer.renderMini({
+        document,
+        track,
+        mode,
+        getActiveAudio: () => getActiveSpectrumAudioForTrack(track)
+    });
+    if (mini) host.appendChild(mini);
+}
+
 function renderBottomPreviewDock(options = {}) {
     if (!el.bottomPreviewDock || !el.bottomPreviewPlayer) return;
     const track = getSelectedTrack();
@@ -11754,6 +11886,7 @@ function renderBottomPreviewDock(options = {}) {
         document.body.classList.remove('bottom-preview-active');
         syncBottomPreviewFloatingOffset();
         syncMediaSessionForDock(null);
+        renderBottomMiniSpectrum(null);
         updateMobileNativeUi();
         state.bottomPreviewMode = 'original';
         state.bottomPreviewTrackId = null;
@@ -11806,10 +11939,15 @@ function renderBottomPreviewDock(options = {}) {
     setBottomPreviewTabState(mode, masteredAvailable);
     renderPreviewTranslationModeControls(mode);
     renderBottomWaveformMini(track, mode);
+    renderBottomMiniSpectrum(track, mode);
     requestAnimationFrame(syncBottomPreviewFloatingOffset);
 
-    const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && el.bottomPreviewPlayer.querySelector('audio');
+    const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && getBottomPreviewAudio();
+    const transitionOldPlayer = !samePlayer ? el.bottomPreviewPlayer.firstElementChild : null;
+    const transitionOldAudio = transitionOldPlayer?.querySelector?.('audio') || null;
+    const canCrossfadeDock = Boolean(transitionOldAudio && !transitionOldAudio.paused && !transitionOldAudio.ended && src);
     let shouldResume = false;
+    let pendingCrossfade = null;
     if (samePlayer) {
         const bars = el.bottomPreviewPlayer.querySelector('.dock-integrated-waveform-bars');
         const payload = getDockWaveformPayload(track, mode);
@@ -11822,7 +11960,13 @@ function renderBottomPreviewDock(options = {}) {
     if (!samePlayer) {
         const previousMode = el.bottomPreviewPlayer.dataset.previewMode || state.bottomPreviewMode;
         captureBottomPreviewTransport(track, previousMode);
-        clearBottomPreviewPlayer();
+        if (!canCrossfadeDock) clearBottomPreviewPlayer();
+        else {
+            transitionOldPlayer.dataset.crossfadeLegacy = 'true';
+            transitionOldAudio.dataset.crossfadeLegacy = 'true';
+            transitionOldAudio.dataset.bottomPreviewActive = 'false';
+            el.bottomPreviewPlayer.classList.add('is-crossfading');
+        }
         if (!src) {
             const empty = document.createElement('div');
             empty.className = 'bottom-preview-empty';
@@ -11836,6 +11980,8 @@ function renderBottomPreviewDock(options = {}) {
             const modeLabel = differenceReady ? '차이 듣기' : (useMastered ? '마스터링' : (useMasterPreview ? '15초 하이라이트 듣기' : '원본'));
             if (audio) {
                 audio.setAttribute('aria-label', `${track.name || '선택 곡'} ${modeLabel} 프리뷰 재생`);
+                audio.dataset.bottomPreviewActive = 'true';
+                if (canCrossfadeDock) player._foxbearCrossfadeOldAudio = transitionOldAudio;
                 audio.addEventListener('play', () => onDockAudioTransportEvent(audio));
                 audio.addEventListener('pause', () => onDockAudioTransportEvent(audio));
                 audio.addEventListener('ended', () => onDockAudioTransportEvent(audio));
@@ -11848,6 +11994,9 @@ function renderBottomPreviewDock(options = {}) {
             el.bottomPreviewPlayer.dataset.previewMode = mode;
             syncDockWaveformPlayhead(audio);
             shouldResume = Boolean(transport.playing);
+            if (canCrossfadeDock && audio) {
+                pendingCrossfade = { oldPlayer: transitionOldPlayer, oldAudio: transitionOldAudio, nextAudio: audio, nextPlayer: player };
+            }
         }
     }
 
@@ -11856,7 +12005,24 @@ function renderBottomPreviewDock(options = {}) {
     const shouldAutoPlay = shouldResume || ((options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id) && (useMastered || useMasterPreview));
     if (shouldAutoPlay) {
         state.bottomPreviewAutoplayTrackId = null;
-        requestAnimationFrame(playBottomPreviewAudio);
+        if (pendingCrossfade) {
+            requestAnimationFrame(() => {
+                crossfadeAudioPair(pendingCrossfade.oldAudio, pendingCrossfade.nextAudio, {
+                    onComplete: () => {
+                        pendingCrossfade.oldPlayer?.remove?.();
+                        el.bottomPreviewPlayer?.classList.remove('is-crossfading');
+                        if (pendingCrossfade.nextPlayer) delete pendingCrossfade.nextPlayer._foxbearCrossfadeOldAudio;
+                        syncBottomPreviewExternalPlayButton(pendingCrossfade.nextAudio, true);
+                    }
+                }).catch(() => {
+                    pendingCrossfade.oldPlayer?.remove?.();
+                    el.bottomPreviewPlayer?.classList.remove('is-crossfading');
+                    playBottomPreviewAudio();
+                });
+            });
+        } else {
+            requestAnimationFrame(playBottomPreviewAudio);
+        }
     }
     syncMediaSessionForDock();
     updateMobileNativeUi();
@@ -11991,7 +12157,10 @@ function setBottomPreviewTabState(mode, masteredAvailable) {
 }
 
 function getBottomPreviewAudio() {
-    return el.bottomPreviewPlayer?.querySelector('audio') || null;
+    return el.bottomPreviewPlayer?.querySelector('audio[data-bottom-preview-active="true"]')
+        || el.bottomPreviewPlayer?.querySelector('audio:not([data-crossfade-legacy="true"])')
+        || el.bottomPreviewPlayer?.querySelector('audio')
+        || null;
 }
 
 function getMasterPreviewStartSec(track) {
@@ -12077,7 +12246,7 @@ function playBottomPreviewAudio() {
     }
     const audio = el.bottomPreviewPlayer?.querySelector('audio');
     if (!audio) return;
-    audio.play().catch(() => showToast('브라우저가 자동 재생을 차단했습니다. 하단 재생 버튼을 눌러주세요.'));
+    playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 자동 재생을 차단했습니다. 하단 재생 버튼을 눌러주세요.'));
 }
 function makePreviewTitle(label, durationSec) {
     const title = document.createElement('strong');
@@ -12179,8 +12348,8 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
     };
 
     toggle.addEventListener('click', () => {
-        if (audio.paused) audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
-        else audio.pause();
+        if (audio.paused) playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+        else pauseAudioWithFadeOut(audio);
     });
     audio.addEventListener('loadedmetadata', () => {
         const bounds = getLoopBounds();
@@ -12188,7 +12357,8 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
         time.textContent = formatPlayerTime(audio.currentTime || 0, getDuration());
     });
     audio.addEventListener('play', () => {
-        bindExclusivePreview(audio);
+        const allowed = wrap._foxbearCrossfadeOldAudio ? [wrap._foxbearCrossfadeOldAudio] : [];
+        bindExclusivePreview(audio, { allowAudioElements: allowed });
         const bounds = getLoopBounds();
         if (bounds && (audio.currentTime < bounds.start || audio.currentTime >= bounds.end)) audio.currentTime = bounds.start;
         setPlaying(true);
@@ -12240,13 +12410,14 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
     return wrap;
 }
 
-function bindExclusivePreview(audio) {
-    if (audio && FoxBearPlaybackLinkService && typeof FoxBearPlaybackLinkService.pauseAllExcept === 'function') {
+function bindExclusivePreview(audio, options = {}) {
+    const allowed = new Set(Array.isArray(options.allowAudioElements) ? options.allowAudioElements.filter(Boolean) : []);
+    if (audio && !allowed.size && FoxBearPlaybackLinkService && typeof FoxBearPlaybackLinkService.pauseAllExcept === 'function') {
         FoxBearPlaybackLinkService.pauseAllExcept(audio, 'legacy-exclusive-preview');
         return;
     }
     document.querySelectorAll('.custom-player audio, .ab-switch-deck audio, .difference-preview-player audio, audio[data-preview-system]').forEach(other => {
-        if (other !== audio) other.pause();
+        if (other !== audio && !allowed.has(other)) other.pause();
     });
 }
 
@@ -12271,6 +12442,8 @@ function createABSwitchPlayer(track) {
     masteredAudio.src = track.masteredUrl;
     const matchGainDb = getABMatchGainDb(track);
     if (state.abLevelMatch && Number.isFinite(matchGainDb)) masteredAudio.volume = clamp(Math.pow(10, matchGainDb / 20), 0.02, 1);
+    rememberAudioTargetVolume(originalAudio);
+    rememberAudioTargetVolume(masteredAudio);
 
     let active = 'original';
     let loopStart = getTrackHighlightStart(track);
@@ -12349,6 +12522,7 @@ function createABSwitchPlayer(track) {
         if (highlightStatus) highlightStatus.textContent = '이동';
         const nextGain = state.abLevelMatch && Number.isFinite(matchGainDb) ? clamp(Math.pow(10, matchGainDb / 20), 0.02, 1) : 1;
         masteredAudio.volume = nextGain;
+        masteredAudio.dataset.foxbearTargetVolume = String(nextGain);
         hint.textContent = state.abLevelMatch ? `마스터본을 ${formatSigned(matchGainDb, 1)} dB로 레벨 매칭해 비교합니다.` : '실제 마스터링 체감 음량으로 비교합니다.';
         if (state.abLoopMode) hint.textContent += ' · 5초 루프 ON';
         if (state.abDifferenceListen) hint.textContent += ' · 차이듣기 ON';
@@ -12427,11 +12601,18 @@ function createABSwitchPlayer(track) {
         const oldAudio = activeAudio();
         const wasPlaying = !oldAudio.paused;
         const position = oldAudio.currentTime || 0;
-        oldAudio.pause();
         active = next;
         const nextAudio = activeAudio();
         nextAudio.currentTime = Math.min(position, Number(nextAudio.duration || durationSec || position));
-        if (wasPlaying) nextAudio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+        if (wasPlaying) {
+            bindExclusivePreview(nextAudio, { allowAudioElements: [oldAudio] });
+            crossfadeAudioPair(oldAudio, nextAudio).catch(() => {
+                try { oldAudio.pause(); } catch (error) {}
+                nextAudio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+            });
+        } else {
+            oldAudio.pause();
+        }
         syncUi();
     };
 
@@ -12441,9 +12622,9 @@ function createABSwitchPlayer(track) {
             bindExclusivePreview(audio);
             const bounds = getLoopBounds();
             if (bounds && (audio.currentTime < bounds.start || audio.currentTime >= bounds.end)) audio.currentTime = bounds.start;
-            audio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+            playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
         } else {
-            audio.pause();
+            pauseAudioWithFadeOut(audio);
         }
         syncUi();
     });
@@ -12539,6 +12720,26 @@ function createABSwitchPlayer(track) {
     return deck;
 }
 
+function renderSpectrumPanel(track) {
+    const visualizer = window.FoxBearSpectrumVisualizer;
+    if (!track || !track.analysis || !el.trackDetail || !visualizer || typeof visualizer.renderPanel !== 'function') return;
+    const panel = visualizer.renderPanel({
+        document,
+        track,
+        getActiveAudio: () => getActiveSpectrumAudioForTrack(track)
+    });
+    if (panel) el.trackDetail.appendChild(panel);
+}
+
+function getActiveSpectrumAudioForTrack(track) {
+    const list = Array.from(document.querySelectorAll('audio'));
+    const trackId = String(track?.id || '');
+    return list.find(audio => !audio.paused && !audio.ended && audio.dataset.spectrumTrackId === trackId)
+        || list.find(audio => !audio.paused && !audio.ended)
+        || list.find(audio => audio.dataset.spectrumTrackId === trackId)
+        || null;
+}
+
 function renderWaveformPanel(track) {
     if (!track || !track.waveformOverview) return;
     const panel = document.createElement('section');
@@ -12565,7 +12766,7 @@ function renderWaveformPanel(track) {
 function makeWaveformRow(label, values = [], markers = []) {
     const view = window.FoxBearWaveformControlView;
     if (view && typeof view.createRow === 'function') {
-        return view.createRow({
+        const row = view.createRow({
             document,
             label,
             values,
@@ -12578,6 +12779,8 @@ function makeWaveformRow(label, values = [], markers = []) {
             realMinHeight: 5,
             placeholderMinHeight: 5
         });
+        enhanceWaveformRowZoom(row, label, values, markers);
+        return row;
     }
     const row = document.createElement('div');
     row.className = 'waveform-row';
@@ -12594,6 +12797,123 @@ function makeWaveformRow(label, values = [], markers = []) {
         placeholderMinHeight: 5
     });
     row.append(span, bars);
+    enhanceWaveformRowZoom(row, label, values, markers);
+    return row;
+}
+
+function enhanceWaveformRowZoom(row, label, values = [], markers = []) {
+    const sourceValues = Array.isArray(values) ? values.slice() : [];
+    if (!row || sourceValues.length < 16) return row;
+    let zoom = 1;
+    let center = 0.5;
+    let lastTap = 0;
+    let pinchStart = null;
+    const status = document.createElement('span');
+    status.className = 'waveform-zoom-status';
+    const controls = document.createElement('div');
+    controls.className = 'waveform-zoom-controls';
+    const makeButton = (text, title, action) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'waveform-zoom-btn';
+        button.textContent = text;
+        button.title = title;
+        button.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            action();
+        });
+        return button;
+    };
+    const render = () => {
+        const total = sourceValues.length;
+        const windowSize = Math.max(8, Math.round(total / zoom));
+        const start = clamp(Math.round(center * total - windowSize / 2), 0, Math.max(0, total - windowSize));
+        const end = Math.min(total, start + windowSize);
+        const subset = sourceValues.slice(start, end);
+        const subsetMarkers = Array.isArray(markers) && markers.length ? markers.slice(start, end) : sampleMarkersFromValues(subset);
+        const oldBars = row.querySelector('.waveform-bars');
+        const nextBars = createManagedWaveformBars({
+            className: 'waveform-bars waveform-bars-zoomable',
+            values: subset,
+            markers: subsetMarkers,
+            bins: Math.max(8, subset.length),
+            role: 'detail-zoom',
+            barClassPrefix: 'waveform',
+            realMinHeight: 5,
+            placeholderMinHeight: 5,
+            dataset: { waveformZoom: `${zoom}x`, waveformWindowStart: start, waveformWindowEnd: end }
+        });
+        nextBars.setAttribute('aria-label', `${label} 확대 파형 ${zoom}배, 전체 ${total}개 bin 중 ${start + 1}-${end} 구간`);
+        nextBars.addEventListener('dblclick', onDoubleTapZoom);
+        nextBars.addEventListener('touchstart', onTouchStart, { passive: true });
+        nextBars.addEventListener('touchmove', onTouchMove, { passive: false });
+        if (oldBars) oldBars.replaceWith(nextBars);
+        status.textContent = zoom === 1 ? '전체' : `${zoom}x · ${Math.round(start / total * 100)}-${Math.round(end / total * 100)}%`;
+        row.classList.toggle('is-waveform-zoomed', zoom > 1);
+    };
+    const setZoom = (nextZoom, nextCenter = center) => {
+        zoom = clamp(Math.round(Number(nextZoom) || 1), 1, 8);
+        center = clamp(Number(nextCenter), 0, 1);
+        render();
+    };
+    const pointerCenter = event => {
+        const bars = row.querySelector('.waveform-bars');
+        const rect = bars?.getBoundingClientRect?.();
+        if (!rect || !rect.width) return center;
+        return clamp((Number(event.clientX || rect.left + rect.width / 2) - rect.left) / rect.width, 0, 1);
+    };
+    function onDoubleTapZoom(event) {
+        event.preventDefault();
+        setZoom(zoom >= 8 ? 1 : zoom * 2, pointerCenter(event));
+    }
+    function onTouchStart(event) {
+        if (event.touches && event.touches.length === 2) {
+            const [a, b] = event.touches;
+            const dx = a.clientX - b.clientX;
+            const dy = a.clientY - b.clientY;
+            pinchStart = { distance: Math.hypot(dx, dy), zoom };
+            return;
+        }
+        const now = Date.now();
+        if (now - lastTap < 320 && event.touches && event.touches[0]) {
+            const touch = event.touches[0];
+            onDoubleTapZoom({ preventDefault(){}, clientX: touch.clientX });
+        }
+        lastTap = now;
+    }
+    function onTouchMove(event) {
+        if (!pinchStart || !event.touches || event.touches.length !== 2) return;
+        const [a, b] = event.touches;
+        const dx = a.clientX - b.clientX;
+        const dy = a.clientY - b.clientY;
+        const distance = Math.hypot(dx, dy);
+        if (!Number.isFinite(distance) || distance <= 0) return;
+        event.preventDefault();
+        const midX = (a.clientX + b.clientX) / 2;
+        const ratio = distance / Math.max(1, pinchStart.distance);
+        const targetZoom = ratio > 1.18 ? pinchStart.zoom * 2 : (ratio < 0.84 ? pinchStart.zoom / 2 : zoom);
+        const bars = row.querySelector('.waveform-bars');
+        const rect = bars?.getBoundingClientRect?.();
+        const nextCenter = rect && rect.width ? clamp((midX - rect.left) / rect.width, 0, 1) : center;
+        setZoom(targetZoom, nextCenter);
+    }
+    controls.append(
+        makeButton('−', '파형 축소', () => setZoom(zoom / 2)),
+        makeButton('+', '파형 확대', () => setZoom(zoom * 2)),
+        makeButton('초기화', '전체 파형 보기', () => setZoom(1, 0.5)),
+        status
+    );
+    row.appendChild(controls);
+    const bars = row.querySelector('.waveform-bars');
+    if (bars) {
+        bars.classList.add('waveform-bars-zoomable');
+        bars.addEventListener('dblclick', onDoubleTapZoom);
+        bars.addEventListener('touchstart', onTouchStart, { passive: true });
+        bars.addEventListener('touchmove', onTouchMove, { passive: false });
+    }
+    status.textContent = '전체';
+    row.dataset.waveformZoomEnabled = 'true';
     return row;
 }
 
@@ -13119,7 +13439,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.4.0',
+        app: 'FoxBear AI Mastering Studio Pro v1.4.2',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

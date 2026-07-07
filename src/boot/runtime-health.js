@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage28-waveform-control-view';
+    const FALLBACK_VERSION = '1.4.2-crossfade-zoom-spectrum';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -14,6 +14,7 @@
         'FoxBearPlaybackLinkService.pauseAllExcept',
         'FoxBearWaveformControlService.setPlayhead',
         'FoxBearWaveformControlView.createBars',
+        'FoxBearSpectrumVisualizer.renderPanel',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',

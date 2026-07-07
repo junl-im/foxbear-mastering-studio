@@ -1,3 +1,17 @@
+# FoxBear AI Mastering Studio Pro v1.4.2
+
+## Current patch: v1.4.2 Crossfade + Waveform Zoom + Dock Mini Spectrum
+
+This patch focuses on listening confidence and mobile/PWA polish. Dock and A/B source changes now use a short 96ms fade-out/fade-in path to reduce click/pop artifacts, detail waveforms can be zoomed with controls plus double-tap/pinch gestures, and the Dock now shows a compact live/static FFT mini spectrum. The existing v1.4.1 refresh/back exit guard remains in place and is documented with a browser QA matrix.
+
+- Runtime asset cache key: `1.4.2-crossfade-zoom-spectrum`
+- Main affected modules: `src/app.js`, `src/ui/spectrum-visualizer.js`, `assets/css/spectrum-visualizer.css`, `assets/css/studio.css`, `assets/css/dock.css`, `index.html`, `sw.js`
+- New QA: `qa/v142_crossfade_zoom_spectrum_smoke.js`
+- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.2.md`
+
+---
+
+
 ## Latest patch: v1.4.0 Stage27
 
 Stage27 adds a shared `FoxBearWaveformControlService` so Dock, A/B, comparison popup, mastering-settings preview, and detail preview waveforms use the same seek/playhead/peak rules. It also strengthens the next-chat handoff documentation for continuing from the latest build.
@@ -7,28 +21,28 @@ Stage27 adds a shared `FoxBearWaveformControlService` so Dock, A/B, comparison p
 
 Stage26 cleans up the mastering settings preview dialog and expands unified waveform controls. The dialog no longer repeats the original source in legacy bottom players; it keeps the top original realtime preview and adds a Dock-style mastered preview plus A/B waveform controls.
 
-# FoxBear AI Mastering Studio Pro v1.4.0
+# FoxBear AI Mastering Studio Pro v1.4.2
 
 ## Current patch: v1.4.0 Stage25
 
 Stage25 cleans up the settings and overlay system. Playback orchestration remains automatic, but visible `연동 정지` status chips are removed from player surfaces. The mobile `⚙️ 설정` panel now focuses on true app settings, adds `외부 브라우저로 열기`, and removes compare-specific controls. Toast/notification layers now auto-stack above active processing HUD/Dock overlays.
 
-- Runtime asset cache key: `1.4.0-stage28-waveform-control-view`
+- Runtime asset cache key: `1.4.2-crossfade-zoom-spectrum`
 - New CSS: `assets/css/components/floating-overlays.css`
 - Main affected modules: `src/ui/mobile-native-view.js`, `src/settings/settings-service.js`, `src/audio/playback-link-service.js`, `src/app.js`
 - QA: 110/110 PASS
 
-# FoxBear AI Mastering Studio Pro v1.4.0
+# FoxBear AI Mastering Studio Pro v1.4.2
 
 ## Current patch: v1.4.0 Stage23
 
 Stage23 upgrades playback linking into playback orchestration. Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players are registered into one service so exclusive players pause each other instead of behaving like disconnected islands. Intentional sync-pairs remain allowed.
 
-- Runtime asset cache key: `1.4.0-stage28-waveform-control-view`
+- Runtime asset cache key: `1.4.2-crossfade-zoom-spectrum`
 - Main module: `src/audio/playback-link-service.js`
 - QA: `qa/stage23_playback_orchestration_smoke.js`
 
-# FoxBear AI Mastering Studio Pro v1.4.0
+# FoxBear AI Mastering Studio Pro v1.4.2
 
 ## Current patch: v1.4.0 Stage23
 
@@ -36,10 +50,10 @@ Stage23 adds a playback-link audit layer so Dock, mastering-settings preview, in
 
 - New playback bus: `src/audio/playback-link-service.js`
 - New linked-state UI layer: `assets/css/components/playback-link.css`
-- Runtime asset cache key: `1.4.0-stage28-waveform-control-view`
+- Runtime asset cache key: `1.4.2-crossfade-zoom-spectrum`
 - QA: 109/109 PASS
 
-# FoxBear AI Mastering Studio Pro v1.4.0
+# FoxBear AI Mastering Studio Pro v1.4.2
 
 Stage19 adds highlight compare diagnostics. The compare popup now resolves original/master-preview windows through `src/audio/highlight-compare-inspector.js`, shows an aligned-window diagnostic chip, and keeps original absolute start and master-preview local start metadata separate. Runtime asset cache key: `1.4.0-stage20-detail-panels-split`.
 
@@ -47,7 +61,7 @@ Stage19 adds highlight compare diagnostics. The compare popup now resolves origi
 
 Stage18 adds persistent settings sync. The mobile `⚙️ 설정` panel now saves and restores key ON/OFF options through `src/settings/settings-service.js` using the versioned `foxbear-settings-v1.4.0` storage key. Runtime asset cache key: `1.4.0-stage20-detail-panels-split`.
 
-# FoxBear AI Mastering Studio Pro v1.4.0
+# FoxBear AI Mastering Studio Pro v1.4.2
 
 ## Latest: Dock / Modal State Machine Refactor
 
@@ -99,6 +113,6 @@ npm run check
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage28-waveform-control-view` and service worker cache to `foxbear-shell-v1.4.0-stage28-waveform-control-view`.
+- Bumped asset cache key to `1.4.2-crossfade-zoom-spectrum` and service worker cache to `foxbear-shell-v1.4.2-crossfade-zoom-spectrum`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

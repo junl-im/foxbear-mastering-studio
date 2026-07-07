@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.0-stage28-waveform-control-view';
+  const VIEW_VERSION = '1.4.2-crossfade-zoom-spectrum';
   const DEFAULT_BINS = 96;
 
   function getService() {

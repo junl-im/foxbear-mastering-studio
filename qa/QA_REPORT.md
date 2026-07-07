@@ -1,3 +1,13 @@
+# QA Report - v1.4.2 Crossfade Zoom Spectrum
+
+- Date: 2026-07-07
+- Command: `npm run sri:update` then `npm run check`
+- Result: 119/119 PASS
+- Added checks: `qa/v142_crossfade_zoom_spectrum_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.2.md`
+- Focus: Dock/A-B crossfade, detail waveform zoom, Dock mini FFT spectrum, browser/PWA back-refresh matrix.
+
+---
+
 
 ## v1.3.57 Dock Waveform Sync + Broad Audio Import
 - Dock 파형 LIVE 위치를 실제 막대 중심 좌표에 맞춰 정렬.
