@@ -46,3 +46,27 @@ Focus: download/share fallback behavior, especially KakaoTalk in-app browser and
 - Performance diagnostics remains available for lag checks.
 
 - external analyser coverage remains required for FFT tap regression checks.
+
+## v1.4.12 Download diagnostics follow-up
+
+Focus: download/share fallback remains stable after adding diagnostic event history and copyable download diagnostics.
+
+| Environment | Scenario | Expected result |
+| --- | --- | --- |
+| KakaoTalk Android in-app | Download mastered WAV/MP3 | Opens share/save first when available; otherwise opens the enlarged save assist sheet. |
+| KakaoTalk Android in-app | Save assist > Diagnostics copy | Copies JSON with environment, capability, file size/type, and recent download/share events. |
+| KakaoTalk Android in-app | Share cancelled | Assist sheet remains usable and diagnostics include `share-failed` or cancelled event metadata. |
+| Chrome Android | Download | Anchor download starts normally; diagnostics include `anchor-download-click`. |
+| Chrome Android | Save assist | Capability badges show share/download/file-picker support without clipping the panel. |
+| iOS Safari | Share | Uses Web Share when file sharing is supported; otherwise opens assist guidance. |
+| Desktop Chrome/Edge | Direct save | File picker path records file-picker diagnostics when supported. |
+| PWA standalone | Diagnostics copy | Snapshot marks standalone/PWA mode and keeps the panel readable above safe areas. |
+
+Manual note: diagnostics JSON can include a user-agent string. Treat it as support/debug information only and avoid uploading it publicly unless needed.
+
+## v1.4.12 cumulative matrix notes
+
+- Performance diagnostics: open with `?perf=1`, confirm the panel appears, use 복사, and confirm it remains hidden by default otherwise.
+- Dock mini FFT: `#bottomPreviewSpectrum` should not exist and runtime health does not require `renderMini`.
+- detail-only FFT: detail spectrum should still open when requested.
+- Back confirm: confirm/debounce behavior should remain stable after download dialogs and save-help sheets are opened.

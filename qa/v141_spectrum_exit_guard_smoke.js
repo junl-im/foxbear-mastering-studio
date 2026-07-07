@@ -12,7 +12,7 @@ const must = (condition, message) => {
   }
 };
 
-const version = '1.4.11-download-share-reliability';
+const version = '1.4.12-download-diagnostics';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = JSON.parse(read('package.json'));
@@ -26,17 +26,17 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const changelog = read('CHANGELOG.md');
 
-must(pkg.version === '1.4.11', 'package version should be 1.4.11');
-must(index.includes('data-build="1.4.11"'), 'index build marker should be 1.4.11');
-must(app.includes("const APP_VERSION = 'Pro v1.4.11'"), 'app version should be Pro v1.4.11');
+must(pkg.version === '1.4.12', 'package version should be 1.4.12');
+must(index.includes('data-build="1.4.12"'), 'index build marker should be 1.4.12');
+must(app.includes("const APP_VERSION = 'Pro v1.4.12'"), 'app version should be Pro v1.4.12');
 must(index.includes(`assets/css/spectrum-visualizer.css?v=${version}`), 'index should load spectrum visualizer CSS');
 must(index.includes(`src/ui/spectrum-visualizer.js?v=${version}`), 'index should load spectrum visualizer script');
 must(sw.includes(`./assets/css/spectrum-visualizer.css?v=${version}`), 'service worker should precache spectrum CSS');
 must(sw.includes(`./src/ui/spectrum-visualizer.js?v=${version}`), 'service worker should precache spectrum module');
-must(sw.includes(`foxbear-shell-v${version}`), 'service worker cache should use v1.4.11 key');
+must(sw.includes(`foxbear-shell-v${version}`), 'service worker cache should use v1.4.12 key');
 must(runtime.includes('FoxBearSpectrumVisualizer.renderPanel'), 'runtime health should require spectrum visualizer');
 must(pkg.qaChecks.includes('node --check src/ui/spectrum-visualizer.js'), 'package should syntax-check spectrum visualizer');
-must(pkg.qaChecks.includes('node qa/v141_spectrum_exit_guard_smoke.js'), 'package should run v1.4.11 smoke');
+must(pkg.qaChecks.includes('node qa/v141_spectrum_exit_guard_smoke.js'), 'package should run v1.4.12 smoke');
 
 [
   'FoxBearSpectrumVisualizer',
@@ -67,8 +67,8 @@ must(app.includes('function hasMeaningfulWorkspaceState()'), 'app should decide 
 must(app.includes("runInitStep('나가기/새로고침 보호', initNavigationExitGuard)"), 'init should install navigation exit guard');
 must(app.includes('pauseAllPreviewAudio();'), 'exit guard leave path should pause preview audio');
 
-must(handoff.includes('v1.4.11') && handoff.includes('Spectrum'), 'handoff should mention v1.4.11 spectrum update');
-must(notes.includes('v1.4.11') && notes.includes('Exit Guard'), 'project notes should mention v1.4.11 exit guard');
-must(changelog.includes('v1.4.11') && changelog.includes('Spectrum'), 'changelog should include v1.4.11 entry');
+must(handoff.includes('v1.4.12') && handoff.includes('Spectrum'), 'handoff should mention v1.4.12 spectrum update');
+must(notes.includes('v1.4.12') && notes.includes('Exit Guard'), 'project notes should mention v1.4.12 exit guard');
+must(changelog.includes('v1.4.12') && changelog.includes('Spectrum'), 'changelog should include v1.4.12 entry');
 
-console.log('PASS v1.4.11 spectrum visualizer and exit guard smoke');
+console.log('PASS v1.4.12 spectrum visualizer and exit guard smoke');

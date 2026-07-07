@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const must = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.11 performance diagnostics smoke: ${message}`);
+    console.error(`FAIL v1.4.12 performance diagnostics smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -23,19 +23,19 @@ const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const readme = read('README.md');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.11.md');
-const version = '1.4.11-download-share-reliability';
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.12.md');
+const version = '1.4.12-download-diagnostics';
 
-must(pkg.version === '1.4.11', 'package version should be 1.4.11');
-must(pkg.name.includes('v1-4-11'), 'package name should use v1.4.11');
-must(index.includes('data-build="1.4.11"'), 'index build marker should be 1.4.11');
+must(pkg.version === '1.4.12', 'package version should be 1.4.12');
+must(pkg.name.includes('v1-4-12'), 'package name should use v1.4.12');
+must(index.includes('data-build="1.4.12"'), 'index build marker should be 1.4.12');
 must(index.includes(`src/boot/performance-diagnostics.js?v=${version}`), 'index should load performance diagnostics JS');
 must(index.includes(`assets/css/boot/performance-diagnostics.css?v=${version}`), 'index should load performance diagnostics CSS');
-must(sw.includes(`foxbear-shell-v${version}`), 'service worker should use v1.4.11 cache key');
+must(sw.includes(`foxbear-shell-v${version}`), 'service worker should use v1.4.12 cache key');
 must(sw.includes(`./src/boot/performance-diagnostics.js?v=${version}`), 'service worker should precache performance diagnostics JS');
 must(sw.includes(`./assets/css/boot/performance-diagnostics.css?v=${version}`), 'service worker should precache performance diagnostics CSS');
 must(pkg.qaChecks.includes('node --check src/boot/performance-diagnostics.js'), 'package should syntax-check diagnostics module');
-must(pkg.qaChecks.includes('node qa/v149_performance_diagnostics_smoke.js'), 'package should run v1.4.11 smoke');
+must(pkg.qaChecks.includes('node qa/v149_performance_diagnostics_smoke.js'), 'package should run v1.4.12 smoke');
 
 must(perf.includes('FoxBearPerformanceDiagnostics'), 'diagnostics global should be exposed');
 must(perf.includes('collectSnapshot'), 'diagnostics should expose collectSnapshot');
@@ -54,10 +54,10 @@ must(!index.includes('bottomPreviewSpectrum'), 'Dock mini spectrum host should r
 must(!spectrum.includes('renderMini'), 'spectrum visualizer should keep renderMini removed');
 must(spectrum.includes('function hasRenderableCanvas'), 'detail-only FFT guard should remain');
 
-must(changelog.includes('v1.4.11') && changelog.includes('Performance diagnostics'), 'changelog should document v1.4.11 diagnostics');
-must(handoff.includes('v1.4.11') && handoff.includes('FoxBearPerformanceDiagnostics'), 'handoff should mention diagnostics global');
-must(notes.includes('v1.4.11') && notes.toLowerCase().includes('performance diagnostics'), 'project notes should mention diagnostics');
-must(readme.includes('v1.4.11') && readme.includes('Ctrl/Command + Alt + P'), 'README should document diagnostics toggle');
-must(matrix.includes('v1.4.11') && matrix.includes('Performance diagnostics'), 'QA matrix should cover v1.4.11 diagnostics');
+must(changelog.includes('v1.4.12') && changelog.includes('Performance diagnostics'), 'changelog should document v1.4.12 diagnostics');
+must(handoff.includes('v1.4.12') && handoff.includes('FoxBearPerformanceDiagnostics'), 'handoff should mention diagnostics global');
+must(notes.includes('v1.4.12') && notes.toLowerCase().includes('performance diagnostics'), 'project notes should mention diagnostics');
+must(readme.includes('v1.4.12') && readme.includes('Ctrl/Command + Alt + P'), 'README should document diagnostics toggle');
+must(matrix.includes('v1.4.12') && matrix.includes('Performance diagnostics'), 'QA matrix should cover v1.4.12 diagnostics');
 
-console.log('PASS v1.4.11 performance diagnostics smoke');
+console.log('PASS v1.4.12 performance diagnostics smoke');

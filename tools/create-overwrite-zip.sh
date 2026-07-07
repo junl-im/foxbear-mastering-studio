@@ -7,7 +7,7 @@ set -euo pipefail
 # needing to install every previous stage in sequence.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Default follows package.json (current v1.4.11) so later patch packages do not keep stale names.
+# Default follows package.json (current v1.4.12) so later patch packages do not keep stale names.
 VERSION="${1:-$(node -e "const p=require('"$ROOT_DIR/package.json"'); process.stdout.write('v' + (p.version || 'dev'))")}"
 OUT_DIR="$ROOT_DIR/dist"
 WORK_DIR="$OUT_DIR/overwrite-$VERSION"

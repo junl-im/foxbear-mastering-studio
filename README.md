@@ -1,52 +1,38 @@
-# FoxBear AI Mastering Studio Pro v1.4.11
+# FoxBear AI Mastering Studio Pro v1.4.12
 
-## Current patch: v1.4.11 Download/share reliability
+## Current patch: v1.4.12 Download diagnostics follow-up
 
-- Runtime asset cache key: `1.4.11-download-share-reliability`
-- Service worker cache: `foxbear-shell-v1.4.11-download-share-reliability`
-- Package version: `1.4.11`
-- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.11.md`
+- Runtime asset cache key: `1.4.12-download-diagnostics`
+- Service worker cache: `foxbear-shell-v1.4.12-download-diagnostics`
+- Package version: `1.4.12`
+- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.12.md`
 
-### v1.4.11 focus
+### v1.4.12 focus
 
-- Larger download popup and save-help panel.
-- Kakao/in-app browser share/save-first fallback.
-- Troubleshooting guide copy and external-browser guidance.
-- Runtime health checks for new download reliability helpers.
+v1.4.11 improved Kakao/in-app browser download and share fallback. v1.4.12 adds copyable diagnostics so failures can be understood instead of guessed.
 
----
+- Main download dialog and save-help sheet include `진단 복사`.
+- Download service records recent save/share events in a bounded in-memory history.
+- Diagnostic snapshot includes browser environment, file size/type, share support, anchor download support, File System Access support, PWA/standalone mode, and recent download/share events.
+- Save-help sheet shows capability badges for fast manual QA.
+- Runtime health checks the new diagnostics helpers.
 
-# FoxBear AI Mastering Studio Pro v1.4.11
+### Manual check
 
-## Current patch: v1.4.11 Performance diagnostics polish
+Open the app in a target browser, finish a mastering output, open the download dialog, try share/download, then press `진단 복사` if something fails. The copied JSON is intended for private support/debug handoff.
 
-This patch adds a hidden, lightweight diagnostics layer for tracking the kind of real-world lag reports that are hard to reproduce in static QA. It does not add another always-visible Dock element.
+## Cumulative compatibility notes
 
-- Runtime asset cache key: `1.4.11-download-share-reliability`
-- Service worker cache: `foxbear-shell-v1.4.11-download-share-reliability`
-- Package version: `1.4.11`
-- Validation target: `npm run check`
-- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.11.md`
-
-### v1.4.11 focus
-
-- Added `src/boot/performance-diagnostics.js` and `assets/css/boot/performance-diagnostics.css`.
-- Exposed `window.FoxBearPerformanceDiagnostics.collectSnapshot()` and `getSummary()` for quick runtime snapshots and warning summaries.
-- Hidden diagnostics panel can be opened with `?perf=1`, `localStorage.foxbear-perf-diagnostics = 'on'`, or `Ctrl/Command + Alt + P`.
-- Snapshot includes audio counts, canvas/spectrum state, runtime-health summary, navigation guard state, playback orchestration summary, optional memory info, and long-task hints when supported.
-- Diagnostics panel now includes 새로고침, 복사, 초기화, and 닫기 controls; use 복사 to hand off a JSON snapshot.
-- Diagnostics refresh is adaptive so hidden/background tabs do less work.
-- Overwrite ZIP packaging now follows the package version instead of a hard-coded default.
+- Download/share fallback from v1.4.11 remains active.
+- Hidden performance diagnostics from v1.4.9/v1.4.10 remain available with `?perf=1` or `Ctrl/Command + Alt + P`.
 - Dock mini FFT remains removed; FFT stays detail-panel only.
-- PC/PWA floating settings gear alignment from v1.4.7 remains retained.
+- PC/PWA floating settings gear alignment remains retained.
 - Crossfade, waveform zoom, browser exit guard, and analyser tap support remain cumulative.
+- Stage7, Stage9, Stage27, and Stage28 QA anchors remain part of the cumulative release line.
 
-## Cumulative QA anchors kept for v1.4.11
+## Cumulative visible/hidden tools
 
-Spectrum and Exit Guard remain cumulative from v1.4.1. Dock mini FFT remains removed, `#bottomPreviewSpectrum` should not exist, and `renderMini` remains removed. The current FFT policy is detail-only FFT. PC settings gear alignment remains retained. Stage27 waveform-control-service and Stage28 waveform-control-view.js unmanaged waveform audit remain active.
-
-## v1.4.11 cumulative compatibility notes
-
-- detail-only FFT remains active; Dock mini FFT stays removed.
-- Ctrl/Command + Alt + P performance diagnostics remains available.
-
+- Spectrum detail view and Exit Guard remain cumulative.
+- Performance diagnostics remain available through `?perf=1` or `Ctrl/Command + Alt + P`; use 복사 for diagnostics handoff.
+- Download diagnostics are copied through `진단 복사` in the download/help flow.
+- detail-only FFT remains active; Dock mini FFT and `renderMini` remain removed.

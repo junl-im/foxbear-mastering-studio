@@ -480,7 +480,7 @@
     }
 }
 
-/* v1.4.11: align the floating settings gear consistently on PC and PWA docks. */
+/* v1.4.12: align the floating settings gear consistently on PC and PWA docks. */
 .mobile-native-quick-toggle {
     display: inline-flex !important;
     align-items: center !important;

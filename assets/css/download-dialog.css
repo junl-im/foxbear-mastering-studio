@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v1.4.11 - download dialog module */
+/* FoxBear AI Mastering Studio Pro v1.4.12 - download dialog module */
 
 .download-options-open { overflow: hidden; }
 
@@ -197,7 +197,7 @@
     }
 }
 
-/* v1.4.11 Download/share reliability: larger dialog, Kakao help, full assist sheet */
+/* v1.4.12 Download/share reliability: larger dialog, Kakao help, full assist sheet */
 .download-options-backdrop {
     padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     align-items: center;
@@ -433,4 +433,37 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     .download-assist-v2 .download-assist-actions {
         grid-template-columns: 1fr !important;
     }
+}
+
+/* v1.4.12 Download diagnostics polish: capability badges and wider fallback actions */
+.download-assist-support {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 10px;
+}
+.download-assist-support b {
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(141,245,232,.10);
+    border: 1px solid rgba(141,245,232,.16);
+    color: rgba(220,255,248,.86);
+    font-size: .54rem;
+    font-weight: 900;
+}
+.download-options-panel-v4 .download-options-actions-fallback {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.download-options-panel-v4 .download-options-actions-fallback button {
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.15;
+}
+@media (max-width: 720px) {
+    .download-options-panel-v4 .download-options-actions-fallback {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@media (max-width: 420px) {
+    .download-assist-support b { font-size: .50rem; }
 }

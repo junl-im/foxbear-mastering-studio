@@ -11,6 +11,26 @@
     ]);
 
     const noop = () => {};
+    const MAX_DOWNLOAD_DIAGNOSTIC_EVENTS = 16;
+    const downloadDiagnosticEvents = [];
+
+    const clonePlain = value => {
+        try { return JSON.parse(JSON.stringify(value)); }
+        catch (error) { return value; }
+    };
+
+    const recordDownloadEvent = (type, detail = {}) => {
+        const event = {
+            at: new Date().toISOString(),
+            type: String(type || 'event'),
+            detail: clonePlain(detail || {})
+        };
+        downloadDiagnosticEvents.push(event);
+        while (downloadDiagnosticEvents.length > MAX_DOWNLOAD_DIAGNOSTIC_EVENTS) downloadDiagnosticEvents.shift();
+        return event;
+    };
+
+    const getDownloadDiagnosticEvents = () => downloadDiagnosticEvents.map(event => ({ ...event, detail: clonePlain(event.detail) }));
 
     const getToast = deps => (typeof deps?.showToast === 'function' ? deps.showToast : noop);
     const getTimestamp = deps => (typeof deps?.timestampForFile === 'function' ? deps.timestampForFile() : new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14));
@@ -101,6 +121,8 @@
         const naver = /NAVER\(inapp/i.test(ua);
         const instagram = /Instagram/i.test(ua);
         const line = /Line\//i.test(ua);
+        const standalone = Boolean(global.matchMedia?.('(display-mode: standalone)')?.matches || global.navigator?.standalone);
+        const secureContext = Boolean(global.isSecureContext);
         const shareApi = Boolean(navigator.share && typeof File !== 'undefined');
         const shareFiles = shareApi && (!navigator.canShare || canShareTinyAudioProbe());
         const anchorDownload = supportsAnchorDownload();
@@ -120,7 +142,7 @@
         const recommendedAction = restricted
             ? (shareFiles ? '공유/저장 먼저' : '저장 도움 먼저')
             : '다운로드';
-        return { ua, restricted, ios, android, kakao, naver, instagram, line, label, detail, shareApi, shareFiles, anchorDownload, filePicker, recommendedAction };
+        return { ua, restricted, ios, android, kakao, naver, instagram, line, standalone, secureContext, label, detail, shareApi, shareFiles, anchorDownload, filePicker, recommendedAction };
     };
 
     const getFileSizeLabel = blob => {
@@ -174,23 +196,77 @@
 
     const copyDownloadTroubleshootingGuide = (fileName, deps = {}) => {
         const text = getDownloadTroubleshootingText(fileName);
+        recordDownloadEvent('troubleshooting-copy', { fileName });
         return copyTextToClipboard(text, deps, '다운로드 문제 해결 안내를 복사했습니다.');
     };
 
+    const getDownloadDiagnostics = (blob = null, fileName = '') => {
+        const env = getDownloadEnvironmentInfo();
+        const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
+        return {
+            version: '1.4.12',
+            generatedAt: new Date().toISOString(),
+            file: {
+                name: safeName || fileName || '',
+                sizeBytes: Number(blob?.size || 0),
+                sizeLabel: getFileSizeLabel(blob),
+                type: String(blob?.type || '')
+            },
+            capability: getDownloadCapabilitySummary(blob, safeName || fileName),
+            environment: {
+                label: env.label,
+                restricted: env.restricted,
+                kakao: env.kakao,
+                ios: env.ios,
+                android: env.android,
+                standalone: env.standalone,
+                secureContext: env.secureContext,
+                shareApi: env.shareApi,
+                shareFiles: env.shareFiles,
+                anchorDownload: env.anchorDownload,
+                filePicker: env.filePicker,
+                recommendedAction: env.recommendedAction,
+                userAgent: env.ua
+            },
+            recentEvents: getDownloadDiagnosticEvents()
+        };
+    };
+
+    const serializeDownloadDiagnostics = (blob = null, fileName = '') => JSON.stringify(getDownloadDiagnostics(blob, fileName), null, 2);
+
+    const copyDownloadDiagnostics = (blob = null, fileName = '', deps = {}) => {
+        recordDownloadEvent('diagnostics-copy', { fileName, sizeBytes: Number(blob?.size || 0), type: blob?.type || '' });
+        return copyTextToClipboard(serializeDownloadDiagnostics(blob, fileName), deps, '다운로드 진단 정보를 복사했습니다.');
+    };
+
     const shareDownloadFile = async (blob, fileName, deps = {}) => {
-        if (!navigator.share || typeof File === 'undefined') throw new Error('파일 공유를 지원하지 않는 브라우저입니다.');
+        if (!navigator.share || typeof File === 'undefined') {
+            recordDownloadEvent('share-unsupported', { fileName, hasNavigatorShare: Boolean(navigator.share), hasFile: typeof File !== 'undefined' });
+            throw new Error('파일 공유를 지원하지 않는 브라우저입니다.');
+        }
         if (!blob) throw new Error('공유할 파일이 없습니다.');
         const safeName = sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob));
         const file = makeShareFile(blob, safeName);
         const payload = { files: [file], title: safeName, text: 'FoxBear Music 마스터링 파일' };
-        if (navigator.canShare && !navigator.canShare({ files: payload.files })) throw new Error('이 파일 형식은 현재 브라우저 공유창에서 보낼 수 없습니다.');
-        await navigator.share(payload);
-        getToast(deps)('공유/저장 요청을 보냈습니다.');
+        if (navigator.canShare && !navigator.canShare({ files: payload.files })) {
+            recordDownloadEvent('share-cannot-share-file', { fileName: safeName, sizeBytes: blob.size, type: blob.type || '' });
+            throw new Error('이 파일 형식은 현재 브라우저 공유창에서 보낼 수 없습니다.');
+        }
+        recordDownloadEvent('share-start', { fileName: safeName, sizeBytes: blob.size, type: blob.type || '' });
+        try {
+            await navigator.share(payload);
+            recordDownloadEvent('share-success', { fileName: safeName, sizeBytes: blob.size, type: blob.type || '' });
+            getToast(deps)('공유/저장 요청을 보냈습니다.');
+        } catch (error) {
+            recordDownloadEvent('share-failed', { fileName: safeName, message: error?.message || String(error), name: error?.name || '' });
+            throw error;
+        }
     };
 
     const saveBlobWithPicker = async (blob, fileName, deps = {}) => {
         if (!supportsFileSystemSave()) throw new Error('File System Access API unsupported');
         const safeName = sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob));
+        recordDownloadEvent('file-picker-start', { fileName: safeName, sizeBytes: Number(blob?.size || 0), type: blob?.type || '' });
         const ext = safeName.includes('.') ? safeName.split('.').pop().toLowerCase() : '';
         const picker = await global.showSaveFilePicker({
             suggestedName: safeName,
@@ -202,11 +278,13 @@
         const writable = await picker.createWritable();
         await writable.write(blob);
         await writable.close();
+        recordDownloadEvent('file-picker-success', { fileName: safeName, sizeBytes: Number(blob?.size || 0), type: blob?.type || '' });
         getToast(deps)(`${safeName} 직접 저장을 완료했습니다.`);
     };
 
     const copyCurrentPageUrl = (deps = {}) => {
         const text = location.href.split('#')[0];
+        recordDownloadEvent('page-url-copy', { url: text });
         copyTextToClipboard(text, deps, '페이지 주소를 복사했습니다. 카카오톡 메뉴에서 외부 브라우저로 열어주세요.')
             .catch(() => getToast(deps)(text));
     };
@@ -220,6 +298,7 @@
 
     const openCurrentPageInExternalBrowser = (deps = {}) => {
         const pageUrl = location.href.split('#')[0];
+        recordDownloadEvent('external-browser-open', { pageUrl });
         const ua = navigator.userAgent || '';
         const showToast = getToast(deps);
         if (/Android/i.test(ua)) {
@@ -294,6 +373,7 @@
 
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         if (url) addActiveUrl(url, deps);
+        recordDownloadEvent('assist-open', { fileName, mimeType, sizeBytes: Number(blob?.size || 0), hasUrl: Boolean(url) });
         const previous = document.getElementById('downloadAssist');
         if (previous) previous.remove();
 
@@ -322,6 +402,20 @@
         const file = document.createElement('span');
         file.className = 'download-assist-file';
         file.textContent = `${fileName} · ${mimeType || 'audio'} · ${getFileSizeLabel(blob)}`;
+
+        const support = document.createElement('div');
+        support.className = 'download-assist-support';
+        const supportItems = [
+            env.shareFiles ? '공유 가능' : '공유 제한',
+            env.anchorDownload ? '기본 다운로드 가능' : '기본 다운로드 제한',
+            env.filePicker ? '직접 저장 가능' : '직접 저장 제한',
+            env.standalone ? 'PWA 모드' : env.label
+        ];
+        supportItems.forEach(text => {
+            const badge = document.createElement('b');
+            badge.textContent = text;
+            support.appendChild(badge);
+        });
 
         const actions = document.createElement('div');
         actions.className = 'download-assist-actions';
@@ -389,6 +483,13 @@
         guideCopy.addEventListener('click', () => copyDownloadTroubleshootingGuide(fileName, deps));
         actions.appendChild(guideCopy);
 
+        const diagnostics = document.createElement('button');
+        diagnostics.type = 'button';
+        diagnostics.className = 'btn-secondary';
+        diagnostics.textContent = '진단 복사';
+        diagnostics.addEventListener('click', () => copyDownloadDiagnostics(blob, fileName, deps));
+        actions.appendChild(diagnostics);
+
         const close = document.createElement('button');
         close.type = 'button';
         close.className = 'btn-secondary';
@@ -396,7 +497,7 @@
         close.addEventListener('click', closePanel);
         actions.appendChild(close);
 
-        panel.append(closeTop, title, message, file);
+        panel.append(closeTop, title, message, file, support);
         appendGuideSteps(panel, env);
         panel.appendChild(actions);
         document.body.appendChild(panel);
@@ -409,6 +510,7 @@
         const safeName = sanitizeDownloadFileName(normalizedName);
         const url = URL.createObjectURL(blob);
         addActiveUrl(url, deps);
+        recordDownloadEvent('object-url-created', { fileName: safeName, sizeBytes: blob.size, type: blob.type || '', restricted: isRestrictedDownloadBrowser() });
 
         const restricted = isRestrictedDownloadBrowser();
         const shouldOpenAssist = restricted || !supportsAnchorDownload();
@@ -422,6 +524,7 @@
         document.body.appendChild(a);
 
         if (restricted) {
+            recordDownloadEvent('anchor-download-skipped-restricted', { fileName: safeName });
             showDownloadAssist(url, safeName, blob.type || 'audio/*', blob, deps);
             getToast(deps)('카카오/인앱 브라우저는 자동 저장이 막힐 수 있습니다. 공유/저장 또는 파일 열기를 사용해주세요.');
             a.remove();
@@ -430,8 +533,10 @@
         }
 
         try {
+            recordDownloadEvent('anchor-download-click', { fileName: safeName });
             a.click();
         } catch (error) {
+            recordDownloadEvent('anchor-download-click-failed', { fileName: safeName, message: error?.message || String(error) });
             console.warn('download click fallback:', error);
         }
 
@@ -453,7 +558,8 @@
         return {
             ...env,
             actualFileShare: blob ? supportsWebShareFiles(blob, fileName || 'foxbear-mastered.wav') : env.shareFiles,
-            fileSize: getFileSizeLabel(blob)
+            fileSize: getFileSizeLabel(blob),
+            diagnosticEventCount: downloadDiagnosticEvents.length
         };
     };
 
@@ -463,6 +569,10 @@
         downloadBlob,
         getDownloadEnvironmentInfo,
         getDownloadCapabilitySummary,
+        getDownloadDiagnostics,
+        serializeDownloadDiagnostics,
+        copyDownloadDiagnostics,
+        getDownloadDiagnosticEvents,
         canShareTinyAudioProbe,
         supportsWebShareDownloadFiles,
         supportsWebShareFiles,

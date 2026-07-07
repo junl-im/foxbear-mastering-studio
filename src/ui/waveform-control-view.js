@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.11-download-share-reliability';
+  const VIEW_VERSION = '1.4.12-download-diagnostics';
   const DEFAULT_BINS = 96;
 
   function getService() {

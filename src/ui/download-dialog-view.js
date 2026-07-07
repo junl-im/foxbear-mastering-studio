@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.11 - download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.4.12 - download dialog view builder
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -17,6 +17,7 @@
             copyCurrentPageUrl,
             openCurrentPageInExternalBrowser,
             copyDownloadTroubleshootingGuide,
+            copyDownloadDiagnostics,
             foxBearHaptic = () => undefined,
             clearNativeBadgeIfDone = () => undefined,
             renderAll = () => undefined,
@@ -180,6 +181,14 @@
             copyGuide.addEventListener('click', () => copyDownloadTroubleshootingGuide(track.outName || track.name || 'FoxBear mastered file'));
             fallbackActions.appendChild(copyGuide);
         }
+        if (typeof copyDownloadDiagnostics === 'function') {
+            const diagnostics = document.createElement('button');
+            diagnostics.type = 'button';
+            diagnostics.className = 'btn-secondary';
+            diagnostics.textContent = '진단 복사';
+            diagnostics.addEventListener('click', () => copyDownloadDiagnostics(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file'));
+            fallbackActions.appendChild(diagnostics);
+        }
         if (env.restricted) {
             const external = document.createElement('button');
             external.type = 'button';
@@ -223,7 +232,7 @@
         download.addEventListener('click', async () => {
             try {
                 const exported = await prepareSelected(selectedFormat === track.outFormat ? '현재 완성 파일을 준비합니다.' : '선택한 포맷으로 변환 중입니다.');
-                // v1.4.11 guard: isRestrictedDownloadBrowser() && supportsWebShareFiles
+                // v1.4.12 guard: isRestrictedDownloadBrowser() && supportsWebShareFiles
                 const restrictedShareFirstCandidate = isRestrictedDownloadBrowser() && typeof supportsWebShareFiles === 'function' && supportsWebShareFiles(exported.blob, exported.fileName);
                 if (isRestrictedDownloadBrowser()) {
                     if (restrictedShareFirstCandidate) {
