@@ -1,12 +1,12 @@
-# Browser Back / Refresh QA Matrix - v1.4.10
+# Browser Back / Refresh QA Matrix - v1.4.11
 
-v1.4.10 removes the Dock mini FFT view because it was not clear enough for users and consumed Dock space. The detail-page spectrum panel remains available for users who want the FFT evidence view.
+v1.4.11 removes the Dock mini FFT view because it was not clear enough for users and consumed Dock space. The detail-page spectrum panel remains available for users who want the FFT evidence view.
 
 Purpose: verify that removing Dock FFT does not break active-session exit protection, Dock playback, crossfade, waveform zoom, or real-time detail spectrum.
 
 ## Browser / PWA surfaces
 
-| Surface | Refresh / close | Back gesture / button | v1.4.10 focus |
+| Surface | Refresh / close | Back gesture / button | v1.4.11 focus |
 | --- | --- | --- | --- |
 | KakaoTalk in-app browser Android | Native beforeunload prompt when supported | App confirm via popstate where available | Dock has no FFT row; Back confirm appears once; playback remains smooth. |
 | Chrome Android browser | Native beforeunload prompt when active | Android Back and toolbar Back | No Dock FFT canvas; crossfade and waveform seek still work. |
@@ -15,7 +15,7 @@ Purpose: verify that removing Dock FFT does not break active-session exit protec
 | iOS standalone PWA | Limited native prompt | No hardware Back | No stale Dock FFT canvas after background/foreground. |
 | Desktop Chrome/Edge | Native beforeunload prompt when active | Toolbar Back / keyboard Back | PC settings gear alignment and Dock compact layout. |
 
-## v1.4.10 regression focus
+## v1.4.11 regression focus
 
 - `#bottomPreviewSpectrum` should not exist in the Dock DOM.
 - Dock render should not call `renderBottomMiniSpectrum()`.

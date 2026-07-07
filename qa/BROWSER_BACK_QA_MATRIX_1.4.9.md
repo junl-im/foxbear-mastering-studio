@@ -1,8 +1,8 @@
-# Browser/PWA QA Matrix - v1.4.10 Performance diagnostics
+# Browser/PWA QA Matrix - v1.4.11 Performance diagnostics
 
 ## Scope
 
-v1.4.10 keeps Dock FFT removed and adds hidden performance diagnostics. This matrix focuses on confirming that diagnostics are available for troubleshooting without changing the normal user experience.
+v1.4.11 keeps Dock FFT removed and adds hidden performance diagnostics. This matrix focuses on confirming that diagnostics are available for troubleshooting without changing the normal user experience.
 
 ## Common checks
 
@@ -38,7 +38,7 @@ v1.4.10 keeps Dock FFT removed and adds hidden performance diagnostics. This mat
 - KakaoTalk in-app browser should still show the guarded Back/exit behavior when supported.
 - Chrome Android, Safari iOS, PWA, beforeunload, and popstate remain covered.
 - External analyser coverage remains important for realtime mastering, preview translation, and difference listen WebAudio graphs.
-- v1.4.10 retains Dock mini FFT removal and Back confirm focus from the stability polish line.
+- v1.4.11 retains Dock mini FFT removal and Back confirm focus from the stability polish line.
 - Dock mini FFT and `#bottomPreviewSpectrum` should not exist.
 - Runtime health does not require `renderMini`.
 - The diagnostics panel should help inspect performance without reintroducing Dock FFT.

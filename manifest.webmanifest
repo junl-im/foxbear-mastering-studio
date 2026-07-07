@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "로컬 브라우저에서 오디오를 분석하고 AI 마스터링하는 모바일 친화형 스튜디오 v1.4.0",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.11 download/share reliability patch.",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -157,5 +157,5 @@
       ]
     }
   },
-  "version": "1.4.10"
+  "version": "1.4.11"
 }

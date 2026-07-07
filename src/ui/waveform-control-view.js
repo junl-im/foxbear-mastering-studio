@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.10-perf-polish';
+  const VIEW_VERSION = '1.4.11-download-share-reliability';
   const DEFAULT_BINS = 96;
 
   function getService() {

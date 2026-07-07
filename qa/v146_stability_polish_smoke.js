@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const must = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.10 stability polish smoke: ${message}`);
+    console.error(`FAIL v1.4.11 stability polish smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -19,16 +19,16 @@ const app = read('src/app.js');
 const spectrum = read('src/ui/spectrum-visualizer.js');
 const guards = read('src/security/site-guards.js');
 const runtime = read('src/boot/runtime-health.js');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.10.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.11.md');
 const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 
-must(pkg.version === '1.4.10', 'package version should be 1.4.10');
-must(app.includes("const APP_VERSION = 'Pro v1.4.10'"), 'app version should be Pro v1.4.10');
-must(index.includes('data-build="1.4.10"'), 'index build marker should be 1.4.10');
-must(index.includes('1.4.10-perf-polish'), 'index should use v1.4.10 cache key');
-must(sw.includes('foxbear-shell-v1.4.10-perf-polish'), 'service worker cache should use v1.4.10 key');
-must(sw.includes('./src/ui/spectrum-visualizer.js?v=1.4.10-perf-polish'), 'service worker should precache v1.4.10 spectrum visualizer');
+must(pkg.version === '1.4.11', 'package version should be 1.4.11');
+must(app.includes("const APP_VERSION = 'Pro v1.4.11'"), 'app version should be Pro v1.4.11');
+must(index.includes('data-build="1.4.11"'), 'index build marker should be 1.4.11');
+must(index.includes('1.4.11-download-share-reliability'), 'index should use v1.4.11 cache key');
+must(sw.includes('foxbear-shell-v1.4.11-download-share-reliability'), 'service worker cache should use v1.4.11 key');
+must(sw.includes('./src/ui/spectrum-visualizer.js?v=1.4.11-download-share-reliability'), 'service worker should precache v1.4.11 spectrum visualizer');
 
 must(spectrum.includes('function pruneDisconnectedCanvases'), 'spectrum should prune disconnected spectrum canvases');
 must(spectrum.includes('if (state.canvas && state.canvas.isConnected === false) state.canvas = null'), 'spectrum should release stale full canvas refs');
@@ -45,9 +45,9 @@ must(guards.includes('function getNavigationExitGuardState'), 'exit guard should
 must(runtime.includes('FoxBearSpectrumVisualizer.getDiagnostics'), 'runtime health should require spectrum diagnostics');
 must(runtime.includes('FoxBearSiteGuards.getNavigationExitGuardState'), 'runtime health should require exit guard diagnostics');
 
-must(matrix.includes('v1.4.10') && matrix.includes('confirm') && matrix.includes('Dock mini FFT'), 'QA matrix should mention v1.4.10 Dock FFT/back confirm focus');
-must(changelog.includes('v1.4.10') && changelog.includes('stability'), 'changelog should include v1.4.10 stability entry');
-must(handoff.includes('v1.4.10') && handoff.includes('stability'), 'handoff should include v1.4.10 stability entry');
-must(pkg.qaChecks.includes('node qa/v146_stability_polish_smoke.js'), 'package should run v1.4.10 polish smoke');
+must(matrix.includes('v1.4.11') && matrix.includes('confirm') && matrix.includes('Dock mini FFT'), 'QA matrix should mention v1.4.11 Dock FFT/back confirm focus');
+must(changelog.includes('v1.4.11') && changelog.includes('stability'), 'changelog should include v1.4.11 stability entry');
+must(handoff.includes('v1.4.11') && handoff.includes('stability'), 'handoff should include v1.4.11 stability entry');
+must(pkg.qaChecks.includes('node qa/v146_stability_polish_smoke.js'), 'package should run v1.4.11 polish smoke');
 
-console.log('PASS v1.4.10 stability polish smoke');
+console.log('PASS v1.4.11 stability polish smoke');

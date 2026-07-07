@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.10-perf-polish';
+    const FALLBACK_VERSION = '1.4.11-download-share-reliability';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -24,6 +24,8 @@
         'FoxBearMobileNativeView.createMobileNativeLayer',
         'FoxBearSettingsService.applyToContext',
         'FoxBearDownloadService.downloadBlob',
+        'FoxBearDownloadService.copyDownloadTroubleshootingGuide',
+        'FoxBearDownloadService.getDownloadCapabilitySummary',
         'FoxBearDownloadDialogView.showDownloadOptionsDialog',
         'FoxBearWaveformCompareView.renderWaveformCompareDialog',
         'FoxBearDetailPanelsView.renderQualityGatePanel',

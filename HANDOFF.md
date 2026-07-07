@@ -1,8 +1,33 @@
-# v1.4.10 handoff - Performance diagnostics polish + Packaging sync
+# v1.4.11 handoff - Download/share reliability + Kakao fallback
 
-Latest build: `v1.4.10`. Runtime asset key: `1.4.10-perf-polish`.
+Latest build: `v1.4.11`. Runtime asset key: `1.4.11-download-share-reliability`.
 
-Validation target: `npm run check` should pass after SRI update. Use `foxbear-mastering-studio-v1.4.10-overwrite.zip` for cumulative overwrite deployment.
+Validation target: `npm run check` should pass after SRI update. Use `foxbear-mastering-studio-v1.4.11-overwrite.zip` for cumulative overwrite deployment.
+
+## What changed
+
+- Download/options dialog upgraded to `download-options-panel-v4` with larger desktop/mobile layout.
+- Save help sheet upgraded to `download-assist-v2`; it now shows share/save, file open, guide copy, address copy, and external-browser fallback where appropriate.
+- Kakao/in-app browsers now get a share/save-first path instead of relying only on `Blob URL + a.download`.
+- External-browser flow warns that in-memory Blob files do not automatically transfer; users may need to reopen and rerun/download in Chrome/Safari.
+- Runtime health now requires the new download troubleshooting globals.
+
+## QA
+
+- `qa/v1411_download_share_reliability_smoke.js` guards the new fallback APIs, enlarged popup CSS, runtime globals, and v1.4.11 cache key.
+- `qa/BROWSER_BACK_QA_MATRIX_1.4.11.md` contains manual Kakao/Chrome/Safari/PWA checks.
+
+## Next recommended patch
+
+- v1.4.12: run real-device Kakao/Chrome/Safari/PWA download QA and tune any environment-specific wording or fallback order.
+
+---
+
+# v1.4.11 handoff - Performance diagnostics polish + Packaging sync
+
+Latest build: `v1.4.11`. Runtime asset key: `1.4.11-download-share-reliability`.
+
+Validation target: `npm run check` should pass after SRI update. Use `foxbear-mastering-studio-v1.4.11-overwrite.zip` for cumulative overwrite deployment.
 
 ## What changed
 
@@ -38,7 +63,7 @@ Validation target: `npm run check` should pass after SRI update. Use `foxbear-ma
 
 - v1.4.11: use diagnostics results to tune any real lag hotspot found on PC/PWA/Kakao/Safari.
 
-## Cumulative QA anchors kept for current v1.4.10
+## Cumulative QA anchors kept for current v1.4.11
 
 - Stage7 waveform compare CSS cleanup remains cumulative.
 - Stage8 async/mobile Dock remains cumulative.
@@ -54,9 +79,9 @@ Validation target: `npm run check` should pass after SRI update. Use `foxbear-ma
 - Exit Guard from v1.4.1 remains active for refresh/back protection.
 - Dock FFT removal remains intentional; `#bottomPreviewSpectrum` should not exist.
 - PC/PWA settings gear alignment remains retained.
-- Stability polish remains active through v1.4.6-v1.4.10.
+- Stability polish remains active through v1.4.6-v1.4.11.
 - Detail-only FFT remains the current policy; runtime health does not require `renderMini`.
-- FoxBearPerformanceDiagnostics is the v1.4.10 troubleshooting global.
+- FoxBearPerformanceDiagnostics is the v1.4.11 troubleshooting global.
 
 ## 다음 패치 후보
 
@@ -66,4 +91,11 @@ Validation target: `npm run check` should pass after SRI update. Use `foxbear-ma
 
 Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage13, Stage14, Stage16, Stage17, Stage18, Stage19, Stage20, Stage21, Stage22, Stage23, Stage24, Stage25, Stage26, Stage27, and Stage28 remain cumulative.
 누적 덮어쓰기 packaging remains supported by the overwrite ZIP.
-v1.4.10 stability entry: performance diagnostics are for stability troubleshooting.
+v1.4.11 stability entry: performance diagnostics are for stability troubleshooting.
+
+## v1.4.11 cumulative compatibility notes
+
+- stability carry-forward remains active.
+- Dock FFT removal and settings gear alignment remain active.
+- detail-only FFT remains active after renderMini removal.
+

@@ -8,7 +8,7 @@ function assert(condition, message) {
     process.exit(1);
   }
 }
-const version = '1.4.10-perf-polish';
+const version = '1.4.11-download-share-reliability';
 const index = read('index.html');
 const sw = read('sw.js');
 const cfg = read('src/config/app-runtime-config.js');
@@ -23,7 +23,7 @@ assert(index.indexOf('src/boot/runtime-health.js') < index.indexOf('src/security
 assert(index.indexOf('src/boot/runtime-health.js') < index.indexOf('src/app.js'), 'runtime health should load before app.js');
 assert(!index.includes('sha384-PLACEHOLDER'), 'runtime health SRI should be real');
 assert(sw.includes(`./src/boot/runtime-health.js?v=${version}`), 'service worker should precache runtime health module');
-assert(sw.includes(`foxbear-shell-v1.4.10-perf-polish`), 'service worker cache name should be stage14 or later');
+assert(sw.includes(`foxbear-shell-v1.4.11-download-share-reliability`), 'service worker cache name should be stage14 or later');
 assert(cfg.includes(`const ASSET_VERSION = '${version}'`), 'runtime config should expose current asset version');
 assert(app.includes("window.FoxBearRuntimeHealth?.markAppReady?.()"), 'app should mark runtime health as ready after init');
 assert(app.includes("window.FoxBearRuntimeHealth?.markBootFailed?.(error)"), 'app should report critical init failures to runtime health');
@@ -34,7 +34,7 @@ assert(health.includes('assetVersionMismatches'), 'runtime health should detect 
 assert(health.includes('fileInput') && health.includes('folderInput'), 'runtime health should check import DOM ids');
 assert(pkg.qaChecks.includes('node --check src/boot/runtime-health.js'), 'package QA should syntax check runtime health');
 assert(pkg.qaChecks.includes('node qa/stage13_runtime_health_smoke.js'), 'package QA should include stage13 smoke');
-assert(overwrite.includes('v1.4.10'), 'overwrite package default should be latest stage or later');
+assert(overwrite.includes('v1.4.11'), 'overwrite package default should be latest stage or later');
 
 const localAssetTags = Array.from(index.matchAll(/<(script|link|img)\b[^>]*(?:src|href)="([^"]+)"[^>]*>/g));
 for (const match of localAssetTags) {

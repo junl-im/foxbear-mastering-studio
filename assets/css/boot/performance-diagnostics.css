@@ -1,4 +1,4 @@
-/* FoxBear v1.4.10 lightweight performance diagnostics panel */
+/* FoxBear v1.4.11 lightweight performance diagnostics panel */
 .foxbear-perf-panel {
     position: fixed;
     right: max(16px, env(safe-area-inset-right));
