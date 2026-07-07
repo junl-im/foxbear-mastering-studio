@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.12 - download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.4.14 - download dialog view builder
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -18,6 +18,7 @@
             openCurrentPageInExternalBrowser,
             copyDownloadTroubleshootingGuide,
             copyDownloadDiagnostics,
+            getRecommendedDownloadFlow,
             foxBearHaptic = () => undefined,
             clearNativeBadgeIfDone = () => undefined,
             renderAll = () => undefined,
@@ -37,6 +38,9 @@
         document.body.classList.remove('download-options-open');
 
         const env = getDownloadEnvironmentInfo();
+        const flow = typeof getRecommendedDownloadFlow === 'function'
+            ? getRecommendedDownloadFlow(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file')
+            : null;
         const backdrop = document.createElement('div');
         backdrop.className = 'download-options-backdrop';
         backdrop.setAttribute('role', 'dialog');
@@ -78,23 +82,40 @@
         });
         envBox.append(envTitle, envDetail, envBadges);
 
+        const flowCard = document.createElement('div');
+        flowCard.className = `download-options-flow-card ${env.restricted ? 'restricted' : 'normal'}`;
+        const flowTitle = document.createElement('strong');
+        flowTitle.textContent = flow?.headline || (env.restricted ? '카카오에서는 공유/저장부터 시도하세요.' : '포맷 선택 후 다운로드하세요.');
+        const flowDetail = document.createElement('span');
+        flowDetail.textContent = flow?.detail || env.detail;
+        const flowBadges = document.createElement('div');
+        flowBadges.className = 'download-options-flow-badges';
+        (flow?.badges || [env.recommendedAction, env.label]).forEach(text => {
+            const badge = document.createElement('b');
+            badge.textContent = text;
+            flowBadges.appendChild(badge);
+        });
         const steps = document.createElement('ol');
-        steps.className = 'download-options-steps';
-        const stepTexts = env.restricted
+        steps.className = 'download-options-steps download-options-steps-compact';
+        const stepItems = flow?.steps || (env.restricted
             ? [
-                '카카오에서는 공유/저장을 먼저 시도하세요.',
-                '공유창이 안 뜨면 저장 도움 → 파일 열기를 사용하세요.',
-                '계속 실패하면 주소 복사 후 Chrome/Safari에서 다시 열어주세요.'
+                { label: '1. 공유/저장', detail: '기기 공유창을 먼저 엽니다.' },
+                { label: '2. 저장 도움', detail: '파일 열기 또는 외부 브라우저 안내를 사용합니다.' }
             ]
             : [
-                '포맷을 고른 뒤 다운로드를 누르세요.',
-                '다른 앱으로 보내려면 파일 공유를 사용하세요.'
-            ];
-        stepTexts.forEach(text => {
+                { label: '다운로드', detail: '기본 저장을 시도합니다.' },
+                { label: '파일 공유', detail: '지원 기기에서 공유창을 엽니다.' }
+            ]);
+        stepItems.forEach(step => {
             const item = document.createElement('li');
-            item.textContent = text;
+            const label = document.createElement('strong');
+            label.textContent = step.label;
+            const detail = document.createElement('span');
+            detail.textContent = step.detail;
+            item.append(label, detail);
             steps.appendChild(item);
         });
+        flowCard.append(flowTitle, flowDetail, flowBadges, steps);
 
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
@@ -148,37 +169,73 @@
         });
         updateSelectedSummary();
 
+        const actionLabel = action => {
+            if (action === 'share') return '파일 공유';
+            if (action === 'assist') return '저장 도움';
+            if (action === 'diagnostics') return '진단 복사';
+            if (action === 'copy') return '주소 복사';
+            return '다운로드';
+        };
+        const primaryAction = flow?.primaryAction || (env.restricted ? (env.shareFiles ? 'share' : 'assist') : 'download');
+        const secondaryAction = primaryAction === 'download' ? (env.shareFiles ? 'share' : 'assist') : 'assist';
+        const tertiaryAction = env.restricted ? 'diagnostics' : (secondaryAction === 'assist' ? 'share' : 'assist');
+        const applyActionMeta = (button, action, recommended = false) => {
+            button.dataset.downloadAction = action;
+            button.classList.toggle('is-recommended', Boolean(recommended));
+            button.setAttribute('aria-label', `${recommended ? '추천: ' : ''}${actionLabel(action)}`);
+            if (recommended) button.setAttribute('data-recommended', 'true');
+        };
+
         const actions = document.createElement('div');
-        actions.className = 'download-options-actions download-options-actions-primary';
+        actions.className = 'download-options-actions download-options-actions-primary download-options-actions-v1414';
         const download = document.createElement('button');
         download.type = 'button';
         download.className = 'btn-primary download-options-primary';
-        download.textContent = env.restricted ? '공유/저장 먼저' : '다운로드';
+        download.textContent = flow?.primaryLabel || actionLabel(primaryAction);
+        applyActionMeta(download, primaryAction, true);
         const share = document.createElement('button');
         share.type = 'button';
         share.className = `btn-secondary download-options-share ${env.shareFiles ? '' : 'is-limited'}`;
-        share.textContent = env.shareFiles ? '파일 공유' : '공유 확인';
-        share.title = env.shareFiles ? '카카오톡, 문자, 파일 앱 등으로 공유합니다.' : '이 브라우저는 파일 공유 API를 지원하지 않을 수 있습니다.';
-        actions.append(download, share);
-
-        const fallbackActions = document.createElement('div');
-        fallbackActions.className = 'download-options-actions download-options-actions-fallback';
+        share.textContent = actionLabel(secondaryAction);
+        share.title = secondaryAction === 'share'
+            ? (env.shareFiles ? '카카오톡, 문자, 파일 앱 등으로 공유합니다.' : '이 브라우저는 파일 공유 API를 지원하지 않을 수 있습니다.')
+            : '파일 열기, 안내 복사, 외부 브라우저 같은 대체 저장 방법을 엽니다.';
+        applyActionMeta(share, secondaryAction, false);
         const help = document.createElement('button');
         help.type = 'button';
-        help.className = 'btn-secondary';
-        help.textContent = '저장 도움';
+        help.className = 'btn-secondary download-options-help';
+        help.textContent = actionLabel(tertiaryAction);
+        applyActionMeta(help, tertiaryAction, false);
+        const moreToggle = document.createElement('button');
+        moreToggle.type = 'button';
+        moreToggle.className = 'btn-secondary download-options-more-toggle';
+        moreToggle.setAttribute('aria-expanded', 'false');
+        moreToggle.textContent = '추가 옵션';
+        actions.append(download, share, help, moreToggle);
+
+        const fallbackActions = document.createElement('div');
+        fallbackActions.className = 'download-options-actions download-options-actions-fallback is-collapsed';
+        fallbackActions.setAttribute('aria-hidden', 'true');
         const copy = document.createElement('button');
         copy.type = 'button';
         copy.className = 'btn-secondary';
         copy.textContent = '주소 복사';
-        copy.addEventListener('click', copyCurrentPageUrl);
-        fallbackActions.append(help, copy);
+        copy.dataset.downloadAction = 'copy';
+        copy.addEventListener('click', () => copyCurrentPageUrl(deps));
+        fallbackActions.append(copy);
+        moreToggle.addEventListener('click', () => {
+            const nextExpanded = fallbackActions.classList.toggle('is-collapsed') === false;
+            fallbackActions.setAttribute('aria-hidden', String(!nextExpanded));
+            moreToggle.setAttribute('aria-expanded', String(nextExpanded));
+            moreToggle.textContent = nextExpanded ? '추가 옵션 닫기' : '추가 옵션';
+        });
         if (typeof copyDownloadTroubleshootingGuide === 'function') {
             const copyGuide = document.createElement('button');
             copyGuide.type = 'button';
             copyGuide.className = 'btn-secondary';
             copyGuide.textContent = '안내 복사';
-            copyGuide.addEventListener('click', () => copyDownloadTroubleshootingGuide(track.outName || track.name || 'FoxBear mastered file'));
+            copyGuide.dataset.downloadAction = 'guide-copy';
+            copyGuide.addEventListener('click', () => copyDownloadTroubleshootingGuide(track.outName || track.name || 'FoxBear mastered file', deps));
             fallbackActions.appendChild(copyGuide);
         }
         if (typeof copyDownloadDiagnostics === 'function') {
@@ -186,7 +243,8 @@
             diagnostics.type = 'button';
             diagnostics.className = 'btn-secondary';
             diagnostics.textContent = '진단 복사';
-            diagnostics.addEventListener('click', () => copyDownloadDiagnostics(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file'));
+            diagnostics.dataset.downloadAction = 'diagnostics';
+            diagnostics.addEventListener('click', () => copyDownloadDiagnostics(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', deps));
             fallbackActions.appendChild(diagnostics);
         }
         if (env.restricted) {
@@ -194,7 +252,8 @@
             external.type = 'button';
             external.className = 'btn-secondary';
             external.textContent = '외부 브라우저';
-            external.addEventListener('click', openCurrentPageInExternalBrowser);
+            external.dataset.downloadAction = 'external-browser';
+            external.addEventListener('click', () => openCurrentPageInExternalBrowser(deps));
             fallbackActions.appendChild(external);
         }
 
@@ -204,7 +263,7 @@
             ? '외부 브라우저로 열면 현재 메모리의 완성 파일은 넘어가지 않을 수 있습니다. 그 경우 Chrome/Safari에서 다시 마스터링 후 다운로드하세요.'
             : '공유는 기기 기본 공유창을 사용합니다. 지원 브라우저에서만 파일 그대로 보낼 수 있습니다.';
 
-        const allButtons = () => [download, share, help, copy, close, ...Array.from(list.querySelectorAll('button')), ...Array.from(fallbackActions.querySelectorAll('button'))];
+        const allButtons = () => [download, share, help, moreToggle, copy, close, ...Array.from(list.querySelectorAll('button')), ...Array.from(fallbackActions.querySelectorAll('button'))];
         const setBusy = busy => {
             allButtons().forEach(button => { button.disabled = Boolean(busy); });
             panel.classList.toggle('working', Boolean(busy));
@@ -226,85 +285,111 @@
         };
 
         const openAssistForExport = exported => {
-            showDownloadAssist(URL.createObjectURL(exported.blob), exported.fileName, exported.blob.type || 'audio/*', exported.blob);
+            showDownloadAssist(URL.createObjectURL(exported.blob), exported.fileName, exported.blob.type || 'audio/*', exported.blob, deps);
         };
 
-        download.addEventListener('click', async () => {
-            try {
-                const exported = await prepareSelected(selectedFormat === track.outFormat ? '현재 완성 파일을 준비합니다.' : '선택한 포맷으로 변환 중입니다.');
-                // v1.4.12 guard: isRestrictedDownloadBrowser() && supportsWebShareFiles
-                const restrictedShareFirstCandidate = isRestrictedDownloadBrowser() && typeof supportsWebShareFiles === 'function' && supportsWebShareFiles(exported.blob, exported.fileName);
-                if (isRestrictedDownloadBrowser()) {
-                    if (restrictedShareFirstCandidate) {
-                        warning.textContent = '카카오/인앱 브라우저에서는 기기 공유/저장창을 먼저 엽니다.';
-                        try {
-                            await shareDownloadFile(exported.blob, exported.fileName);
-                            closeDownloadOptionsDialog(backdrop);
-                            markDone();
-                            return;
-                        } catch (shareError) {
-                            console.warn('restricted browser share-first failed:', shareError);
-                            openAssistForExport(exported);
-                            warning.textContent = '공유/저장이 취소되었거나 막혔습니다. 저장 도움창의 파일 열기 또는 외부 브라우저 안내를 사용하세요.';
-                        }
-                    } else {
+        const runDownloadFlow = async () => {
+            const exported = await prepareSelected(selectedFormat === track.outFormat ? '현재 완성 파일을 준비합니다.' : '선택한 포맷으로 변환 중입니다.');
+            // compatibility anchor: isRestrictedDownloadBrowser() && supportsWebShareFiles
+            const restrictedShareFirstCandidate = isRestrictedDownloadBrowser() && typeof supportsWebShareFiles === 'function' && supportsWebShareFiles(exported.blob, exported.fileName);
+            if (isRestrictedDownloadBrowser()) {
+                if (restrictedShareFirstCandidate) {
+                    warning.textContent = '카카오/인앱 브라우저에서는 기기 공유/저장창을 먼저 엽니다.';
+                    try {
+                        // compatibility anchor: await shareDownloadFile(exported.blob, exported.fileName)
+            await shareDownloadFile(exported.blob, exported.fileName, deps);
+                        closeDownloadOptionsDialog(backdrop);
+                        markDone();
+                        return;
+                    } catch (shareError) {
+                        console.warn('restricted browser share-first failed:', shareError);
                         openAssistForExport(exported);
-                        warning.textContent = '이 카카오/인앱 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 사용하세요.';
+                        warning.textContent = '공유/저장이 취소되었거나 막혔습니다. 저장 도움창의 파일 열기 또는 외부 브라우저 안내를 사용하세요.';
                     }
-                    markDone();
-                    return;
-                }
-                closeDownloadOptionsDialog(backdrop);
-                downloadBlob(exported.blob, exported.fileName);
-                markDone();
-            } catch (error) {
-                console.warn('download export failed:', error);
-                warning.textContent = getErrorMessage(error, '다운로드 파일 생성에 실패했습니다.');
-            } finally {
-                setBusy(false);
-            }
-        });
-
-        share.addEventListener('click', async () => {
-            try {
-                const exported = await prepareSelected(selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.');
-                if (!supportsWebShareDownloadFiles() || !supportsWebShareFiles(exported.blob, exported.fileName)) {
+                } else {
                     openAssistForExport(exported);
-                    warning.textContent = '이 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 열었습니다.';
-                    return;
+                    warning.textContent = '이 카카오/인앱 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 사용하세요.';
                 }
-                await shareDownloadFile(exported.blob, exported.fileName);
                 markDone();
-            } catch (error) {
-                console.warn('share export failed:', error);
-                warning.textContent = getErrorMessage(error, '공유가 취소되었거나 이 브라우저에서 막혔습니다. 저장 도움 또는 다운로드를 사용해보세요.');
-                try {
-                    const fallback = await prepareTrackDownloadBlob(track, selectedFormat);
-                    openAssistForExport(fallback);
-                } catch (fallbackError) {
-                    console.warn('share fallback assist failed:', fallbackError);
-                }
-            } finally {
-                setBusy(false);
+                return;
             }
-        });
+            closeDownloadOptionsDialog(backdrop);
+            downloadBlob(exported.blob, exported.fileName, deps);
+            markDone();
+        };
 
-        help.addEventListener('click', async () => {
-            try {
-                const exported = await prepareSelected(selectedFormat === track.outFormat ? '저장 도움 파일을 준비합니다.' : '저장 도움용 파일로 변환 중입니다.');
+        const runShareFlow = async () => {
+            const exported = await prepareSelected(selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.');
+            if (!supportsWebShareDownloadFiles() || !supportsWebShareFiles(exported.blob, exported.fileName)) {
                 openAssistForExport(exported);
-                warning.textContent = '저장 도움창을 열었습니다. 공유/저장, 파일 열기, 외부 브라우저 안내 중 가능한 방법을 사용하세요.';
-            } catch (error) {
-                console.warn('download assist export failed:', error);
-                warning.textContent = getErrorMessage(error, '저장 도움 파일을 만들지 못했습니다.');
-            } finally {
-                setBusy(false);
+                warning.textContent = '이 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 열었습니다.';
+                return;
             }
-        });
+            await shareDownloadFile(exported.blob, exported.fileName, deps);
+            markDone();
+        };
+
+        const runAssistFlow = async () => {
+            const exported = await prepareSelected(selectedFormat === track.outFormat ? '저장 도움 파일을 준비합니다.' : '저장 도움용 파일로 변환 중입니다.');
+            openAssistForExport(exported);
+            warning.textContent = '저장 도움창을 열었습니다. 공유/저장, 파일 열기, 외부 브라우저 안내 중 가능한 방법을 사용하세요.';
+        };
+
+        const runDiagnosticsFlow = () => {
+            if (typeof copyDownloadDiagnostics !== 'function') {
+                warning.classList.add('show');
+                warning.textContent = '진단 복사 기능을 사용할 수 없습니다.';
+                return Promise.resolve();
+            }
+            warning.classList.add('show');
+            warning.textContent = '현재 파일과 브라우저 진단 정보를 복사합니다.';
+            return copyDownloadDiagnostics(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', deps);
+        };
+
+        const runCopyFlow = () => {
+            warning.classList.add('show');
+            warning.textContent = '현재 페이지 주소를 복사합니다.';
+            copyCurrentPageUrl(deps);
+            return Promise.resolve();
+        };
+
+        const runAction = async action => {
+            if (action === 'share') return runShareFlow();
+            if (action === 'assist') return runAssistFlow();
+            if (action === 'diagnostics') return runDiagnosticsFlow();
+            if (action === 'copy') return runCopyFlow();
+            return runDownloadFlow();
+        };
+
+        const bindActionButton = (button, action, label) => {
+            button.addEventListener('click', async () => {
+                try {
+                    await runAction(action);
+                } catch (error) {
+                    console.warn(`${label || action} flow failed:`, error);
+                    warning.classList.add('show');
+                    warning.textContent = getErrorMessage(error, `${label || actionLabel(action)} 작업에 실패했습니다.`);
+                    if (action === 'share') {
+                        try {
+                            const fallback = await prepareTrackDownloadBlob(track, selectedFormat);
+                            openAssistForExport(fallback);
+                        } catch (fallbackError) {
+                            console.warn('share fallback assist failed:', fallbackError);
+                        }
+                    }
+                } finally {
+                    setBusy(false);
+                }
+            });
+        };
+
+        bindActionButton(download, primaryAction, download.textContent);
+        bindActionButton(share, secondaryAction, share.textContent);
+        bindActionButton(help, tertiaryAction, help.textContent);
 
         close.addEventListener('click', () => closeDownloadOptionsDialog(backdrop));
         backdrop.addEventListener('click', event => { if (event.target === backdrop) closeDownloadOptionsDialog(backdrop); });
-        panel.append(close, title, name, envBox, steps, warning, listLabel, list, selectedSummary, actions, fallbackActions, guide);
+        panel.append(close, title, name, envBox, flowCard, warning, listLabel, list, selectedSummary, actions, fallbackActions, guide);
         backdrop.appendChild(panel);
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');

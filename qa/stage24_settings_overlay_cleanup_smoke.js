@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.12-download-diagnostics';
+const version = '1.4.14-download-action-clarity';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -30,7 +30,7 @@ assert(index.includes(`assets/css/components/floating-overlays.css?v=${version}`
 assert(sw.includes(`./assets/css/components/floating-overlays.css?v=${version}`), 'SW should precache floating overlay CSS');
 assert(pkg.includes('Stage28 managed waveform view extraction') || pkg.includes('Stage27 common waveform control service') || pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage25 compare controls rehome'), 'package description should identify Stage25');
 assert(pkg.includes('node qa/stage24_settings_overlay_cleanup_smoke.js'), 'package should run Stage25 smoke');
-assert(overwrite.includes('v1.4.12'), 'overwrite package default should be Stage25');
+assert(overwrite.includes('v1.4.14'), 'overwrite package default should be Stage25');
 
 assert(playbackService.includes('DEBUG_VISIBLE_CHIPS = false'), 'playback chips should be disabled by default');
 assert(playbackService.includes('existing.remove()'), 'existing playback chips should be removed');

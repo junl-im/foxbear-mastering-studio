@@ -7,12 +7,12 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const must = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.12 FFT live hotfix smoke: ${message}`);
+    console.error(`FAIL v1.4.14 FFT live hotfix smoke: ${message}`);
     process.exit(1);
   }
 };
 
-const version = '1.4.12-download-diagnostics';
+const version = '1.4.14-download-action-clarity';
 const pkg = JSON.parse(read('package.json'));
 const index = read('index.html');
 const sw = read('sw.js');
@@ -20,15 +20,15 @@ const spectrum = read('src/ui/spectrum-visualizer.js');
 const app = read('src/app.js');
 const runtime = read('src/boot/runtime-health.js');
 
-must(pkg.version === '1.4.12', 'package version should be 1.4.12');
-must(app.includes("const APP_VERSION = 'Pro v1.4.12'"), 'app version should be Pro v1.4.12');
-must(index.includes('data-build="1.4.12"'), 'index build marker should be 1.4.12');
-must(index.includes(`src/ui/spectrum-visualizer.js?v=${version}`), 'index should load spectrum visualizer with v1.4.12 cache key');
-must(sw.includes(`./src/ui/spectrum-visualizer.js?v=${version}`), 'service worker should precache spectrum visualizer with v1.4.12 key');
-must(sw.includes(`foxbear-shell-v${version}`), 'service worker cache should use v1.4.12 key');
+must(pkg.version === '1.4.14', 'package version should be 1.4.14');
+must(app.includes("const APP_VERSION = 'Pro v1.4.14'"), 'app version should be Pro v1.4.14');
+must(index.includes('data-build="1.4.14"'), 'index build marker should be 1.4.14');
+must(index.includes(`src/ui/spectrum-visualizer.js?v=${version}`), 'index should load spectrum visualizer with v1.4.14 cache key');
+must(sw.includes(`./src/ui/spectrum-visualizer.js?v=${version}`), 'service worker should precache spectrum visualizer with v1.4.14 key');
+must(sw.includes(`foxbear-shell-v${version}`), 'service worker cache should use v1.4.14 key');
 must(runtime.includes('FoxBearSpectrumVisualizer.renderPanel'), 'runtime health should require detail spectrum API');
 
-must(spectrum.includes("VISUALIZER_VERSION = '1.4.12-download-diagnostics'"), 'spectrum visualizer version should be v1.4.12 hotfix');
+must(spectrum.includes("VISUALIZER_VERSION = '1.4.14-download-action-clarity'"), 'spectrum visualizer version should be v1.4.14 hotfix');
 must(spectrum.includes('function hasRenderableCanvas'), 'visualizer should detect mounted spectrum canvases');
 must(spectrum.includes('if (!hasRenderableCanvas())'), 'live FFT should skip analyser connection when no spectrum canvas is mounted');
 must(!spectrum.includes('!state.live || !state.analyser || !state.data || !state.canvas'), 'live loop must not require the full detail canvas');
@@ -36,8 +36,8 @@ must(spectrum.includes('drawEveryCanvas(values'), 'live loop should draw to all 
 must(spectrum.includes('function scheduleFrame') && spectrum.includes('setTimeout') && spectrum.includes('getFrameDelay'), 'visualizer should support RAF/timeout fallback');
 must(spectrum.includes('function cancelFrame') && spectrum.includes('clearTimeout'), 'visualizer should cancel RAF fallback');
 must(spectrum.includes('function resumeContext') && spectrum.includes('resumeContext(state.context).finally(() => startLoop())'), 'visualizer should resume suspended AudioContext before live loop');
-must(!app.includes('function renderBottomMiniSpectrum'), 'Dock mini spectrum renderer should be removed in v1.4.12');
-must(!app.includes('bottomPreviewSpectrum'), 'Dock mini spectrum ref should be removed in v1.4.12');
-must(pkg.qaChecks.includes('node qa/v144_fft_live_hotfix_smoke.js'), 'v1.4.12 smoke should run in npm check');
+must(!app.includes('function renderBottomMiniSpectrum'), 'Dock mini spectrum renderer should be removed in v1.4.14');
+must(!app.includes('bottomPreviewSpectrum'), 'Dock mini spectrum ref should be removed in v1.4.14');
+must(pkg.qaChecks.includes('node qa/v144_fft_live_hotfix_smoke.js'), 'v1.4.14 smoke should run in npm check');
 
-console.log('PASS v1.4.12 FFT live hotfix smoke');
+console.log('PASS v1.4.14 FFT live hotfix smoke');

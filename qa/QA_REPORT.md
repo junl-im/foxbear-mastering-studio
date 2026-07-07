@@ -1,27 +1,28 @@
-# FoxBear QA Report - v1.4.12
+# QA Report - v1.4.14 Download action clarity
 
 ## Summary
 
-- Version: `1.4.12`
-- Runtime asset key: `1.4.12-download-diagnostics`
-- Focus: Download/share diagnostics follow-up after Kakao/in-app fallback work
-- Result: `npm run check` PASS
-- Checks: 131/131 PASS
+- `npm run sri:update`: PASS
+- `npm run check`: PASS
+- Result: 133/133 PASS
 
-## Commands run
+## Added coverage
 
-```bash
-npm run sri:update
-npm run check
-```
+- `qa/v1414_download_action_clarity_smoke.js`
+- `qa/BROWSER_BACK_QA_MATRIX_1.4.14.md`
 
-## New/updated coverage
+## Focus
 
-- `qa/v1412_download_share_reliability_smoke.js`
-- `qa/v1412_download_diagnostics_followup_smoke.js`
-- `qa/BROWSER_BACK_QA_MATRIX_1.4.12.md`
+- Recommended action button now has explicit `data-download-action` and `data-recommended` metadata.
+- Download/share/help buttons are routed through one action dispatcher instead of separate, easy-to-drift handlers.
+- Kakao/in-app primary action opens share/save first when supported, and falls back to save help when blocked.
+- `showDownloadAssist`, `downloadBlob`, `shareDownloadFile`, URL copy, diagnostics copy, and external browser helpers receive app dependencies so toast/state handling remains available.
+- v1.4.11 Kakao fallback, v1.4.12 diagnostics, and v1.4.13 collapsed advanced options remain cumulative.
 
-## Notes
+## Manual QA still required
 
-- Real-device KakaoTalk, Android Chrome, iOS Safari, and PWA download/share tests still require manual verification.
-- v1.4.12 adds `진단 복사` so failed download/share paths can produce copyable diagnostics for follow-up tuning.
+- KakaoTalk Android in-app: recommended 공유/저장 button and fallback save-help sheet.
+- iOS Safari: file share/save behavior.
+- Android Chrome: normal download and optional file share.
+- Installed PWA: popup layout, back/refresh guards, and copied diagnostics.
+- Desktop Chrome/Edge: recommended badge alignment and File System Access direct save when supported.

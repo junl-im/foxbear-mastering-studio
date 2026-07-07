@@ -1,8 +1,8 @@
-# Browser Back / Refresh QA Matrix - v1.4.12
+# Browser Back / Refresh QA Matrix - v1.4.14
 
-v1.4.12 is a stability-polish pass over v1.4.5. It keeps the external analyser tap coverage, then adds spectrum visibility lifecycle checks and duplicate Back-confirm debounce checks for real browser/PWA testing.
+v1.4.14 is a stability-polish pass over v1.4.5. It keeps the external analyser tap coverage, then adds spectrum visibility lifecycle checks and duplicate Back-confirm debounce checks for real browser/PWA testing.
 
-Purpose: verify that the v1.4.1 exit guard still protects active mastering sessions after v1.4.12 FFT lifecycle and navigation guard changes.
+Purpose: verify that the v1.4.1 exit guard still protects active mastering sessions after v1.4.14 FFT lifecycle and navigation guard changes.
 
 ## Expected behavior
 
@@ -13,7 +13,7 @@ Purpose: verify that the v1.4.1 exit guard still protects active mastering sessi
 
 ## Manual matrix
 
-| Surface | Refresh / close | Back gesture / button | v1.4.12 stability focus |
+| Surface | Refresh / close | Back gesture / button | v1.4.14 stability focus |
 | --- | --- | --- | --- |
 | KakaoTalk in-app browser Android | Native beforeunload prompt when active, if supported | App confirm via popstate where the webview exposes history | Confirm debounce, Dock mini FFT recovery after returning from hidden/foreground state. |
 | Chrome Android browser | Native beforeunload prompt when active | App confirm on Android Back and toolbar Back | Verify rapid Back taps, cancelled prompt re-arm, and live FFT after screen lock/unlock. |
@@ -22,7 +22,7 @@ Purpose: verify that the v1.4.1 exit guard still protects active mastering sessi
 | iOS standalone PWA | Native prompt is limited | App confirm where standalone Back/history is available | No hardware Back; check visibility lifecycle and FFT static fallback. |
 | Desktop Chrome/Edge | Native beforeunload prompt when active | App confirm on toolbar Back and keyboard Back | Also verify Alt-left / Cmd-left and hidden-tab FFT throttling. |
 
-## v1.4.12 regression focus
+## v1.4.14 regression focus
 
 - Dock mini spectrum rendering must resume after document visibility changes from hidden to visible.
 - Hidden-tab FFT should throttle instead of burning a full render loop.

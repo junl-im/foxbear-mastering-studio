@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v1.4.12 - download dialog module */
+/* FoxBear AI Mastering Studio Pro v1.4.14 - download dialog module */
 
 .download-options-open { overflow: hidden; }
 
@@ -197,7 +197,7 @@
     }
 }
 
-/* v1.4.12 Download/share reliability: larger dialog, Kakao help, full assist sheet */
+/* v1.4.14 Download/share reliability: larger dialog, Kakao help, full assist sheet */
 .download-options-backdrop {
     padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     align-items: center;
@@ -435,7 +435,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     }
 }
 
-/* v1.4.12 Download diagnostics polish: capability badges and wider fallback actions */
+/* v1.4.14 Download diagnostics polish: capability badges and wider fallback actions */
 .download-assist-support {
     display: flex;
     flex-wrap: wrap;
@@ -466,4 +466,125 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
 }
 @media (max-width: 420px) {
     .download-assist-support b { font-size: .50rem; }
+}
+
+/* v1.4.14 Download flow polish: simpler recommended path and collapsed advanced actions */
+.download-options-flow-card {
+    display: grid;
+    gap: 7px;
+    margin: 0 0 10px;
+    padding: 11px;
+    border-radius: 17px;
+    border: 1px solid rgba(141,245,232,.16);
+    background: linear-gradient(135deg, rgba(141,245,232,.09), rgba(255,255,255,.045));
+}
+.download-options-flow-card.restricted {
+    border-color: rgba(255,224,108,.25);
+    background: linear-gradient(135deg, rgba(255,224,108,.12), rgba(141,245,232,.06));
+}
+.download-options-flow-card > strong {
+    color: rgba(247,252,255,.96);
+    font-size: .80rem;
+    line-height: 1.25;
+}
+.download-options-flow-card > span {
+    color: rgba(226,238,255,.76);
+    font-size: .65rem;
+    line-height: 1.45;
+}
+.download-options-flow-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.download-options-flow-badges b {
+    padding: 4px 7px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.18);
+    color: rgba(230,247,255,.84);
+    font-size: .51rem;
+    font-weight: 900;
+}
+.download-options-steps-compact {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    background: transparent;
+    display: grid;
+    gap: 5px;
+}
+.download-options-steps-compact li {
+    display: grid;
+    gap: 2px;
+    padding: 7px 8px;
+    border-radius: 12px;
+    background: rgba(0,0,0,.14);
+}
+.download-options-steps-compact li strong {
+    color: rgba(255,255,255,.9);
+    font-size: .62rem;
+    line-height: 1.2;
+}
+.download-options-steps-compact li span {
+    color: rgba(226,238,255,.68);
+    font-size: .57rem;
+    line-height: 1.35;
+}
+.download-options-panel-v4 .download-options-actions-primary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.download-options-panel-v4 .download-options-actions-fallback.is-collapsed {
+    display: none !important;
+}
+.download-options-more-toggle[aria-expanded="true"] {
+    border-color: rgba(141,245,232,.30);
+    background: rgba(141,245,232,.10);
+}
+@media (max-width: 720px) {
+    .download-options-panel-v4 .download-options-actions-primary {
+        grid-template-columns: 1fr 1fr;
+    }
+    .download-options-flow-card {
+        padding: 10px;
+    }
+}
+@media (max-width: 420px) {
+    .download-options-panel-v4 .download-options-actions-primary {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* v1.4.14 Download action clarity: recommended action and explicit button roles */
+.download-options-actions-v1414 button[data-download-action] {
+    position: relative;
+}
+.download-options-actions-v1414 button.is-recommended::after {
+    content: '추천';
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    padding: 2px 5px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.22);
+    color: rgba(255,255,255,.82);
+    font-size: .44rem;
+    font-weight: 950;
+    line-height: 1;
+}
+.download-options-actions-v1414 button[data-download-action="diagnostics"] {
+    border-color: rgba(255,224,108,.20);
+}
+.download-options-actions-v1414 button[data-download-action="assist"] {
+    border-color: rgba(141,245,232,.18);
+}
+.download-options-actions-v1414 button[data-download-action="share"].is-limited {
+    opacity: .82;
+}
+@media (max-width: 420px) {
+    .download-options-actions-v1414 button.is-recommended::after {
+        position: static;
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: middle;
+    }
 }

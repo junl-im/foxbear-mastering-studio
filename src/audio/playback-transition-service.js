@@ -1,8 +1,8 @@
-// FoxBear playback transition service - v1.4.12
+// FoxBear playback transition service - v1.4.14
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.4.12-download-diagnostics';
+    const SERVICE_VERSION = '1.4.14-download-action-clarity';
     const DEFAULT_FADE_MS = 96;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

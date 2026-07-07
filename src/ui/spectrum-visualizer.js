@@ -1,9 +1,9 @@
-// FoxBear spectrum visualizer module - v1.4.12
+// FoxBear spectrum visualizer module - v1.4.14
 // Detail-only FFT visualizer: Dock mini spectrum was removed to keep playback light.
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.4.12-download-diagnostics';
+    const VISUALIZER_VERSION = '1.4.14-download-action-clarity';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],

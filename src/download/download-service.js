@@ -173,6 +173,55 @@
         return lines.join('\n');
     };
 
+
+    const getRecommendedDownloadFlow = (blob = null, fileName = '') => {
+        const env = getDownloadEnvironmentInfo();
+        const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
+        const shareReady = blob ? supportsWebShareFiles(blob, safeName || fileName || 'foxbear-mastered.wav') : env.shareFiles;
+        const directSaveReady = supportsFileSystemSave();
+        const defaultSteps = [
+            { key: 'download', label: '다운로드', detail: '브라우저 기본 저장을 시도합니다.' },
+            { key: 'share', label: '파일 공유', detail: '지원 기기에서는 공유창으로 보냅니다.' },
+            { key: 'assist', label: '저장 도움', detail: '저장이 안 보이면 대체 방법을 보여줍니다.' }
+        ];
+        if (env.restricted) {
+            return {
+                version: '1.4.14',
+                restricted: true,
+                primaryAction: shareReady ? 'share' : 'assist',
+                primaryLabel: shareReady ? '공유/저장' : '저장 도움',
+                secondaryLabel: shareReady ? '저장 도움' : '파일 열기',
+                headline: shareReady ? '카카오에서는 공유/저장이 가장 안정적입니다.' : '이 인앱 브라우저는 파일 공유가 제한될 수 있습니다.',
+                detail: '자동 다운로드에만 기대지 않고 공유/저장, 파일 열기, 외부 브라우저 순서로 안내합니다.',
+                steps: [
+                    { key: 'share', label: '1. 공유/저장', detail: shareReady ? '기기 공유창에서 파일 앱, 카카오톡, 드라이브를 선택합니다.' : '지원되지 않으면 바로 저장 도움으로 넘어갑니다.' },
+                    { key: 'assist', label: '2. 저장 도움', detail: '파일 열기와 안내 복사, 진단 복사를 제공합니다.' },
+                    { key: 'external', label: '3. 외부 브라우저', detail: '계속 실패하면 Chrome/Safari에서 다시 진행합니다.' }
+                ],
+                badges: [
+                    shareReady ? '파일 공유 가능' : '파일 공유 제한',
+                    env.kakao ? '카카오 인앱' : '인앱 브라우저',
+                    directSaveReady ? '직접 저장 가능' : '직접 저장 제한'
+                ]
+            };
+        }
+        return {
+            version: '1.4.14',
+            restricted: false,
+            primaryAction: 'download',
+            primaryLabel: '다운로드',
+            secondaryLabel: shareReady ? '파일 공유' : '저장 도움',
+            headline: '일반 브라우저에서는 다운로드가 우선입니다.',
+            detail: shareReady ? '공유가 필요하면 파일 공유를 함께 사용할 수 있습니다.' : '공유가 제한되면 저장 도움을 사용하세요.',
+            steps: defaultSteps,
+            badges: [
+                env.anchorDownload ? '다운로드 가능' : '다운로드 제한 가능',
+                shareReady ? '파일 공유 가능' : '파일 공유 제한',
+                env.standalone ? 'PWA 모드' : env.label
+            ]
+        };
+    };
+
     const copyTextToClipboard = async (text, deps = {}, successMessage = '복사했습니다.') => {
         const showToast = getToast(deps);
         if (navigator.clipboard && global.isSecureContext) {
@@ -204,7 +253,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.4.12',
+            version: '1.4.14',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -569,6 +618,7 @@
         downloadBlob,
         getDownloadEnvironmentInfo,
         getDownloadCapabilitySummary,
+        getRecommendedDownloadFlow,
         getDownloadDiagnostics,
         serializeDownloadDiagnostics,
         copyDownloadDiagnostics,
