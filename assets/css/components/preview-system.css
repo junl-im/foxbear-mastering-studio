@@ -114,3 +114,43 @@
     .realtime-system-action { min-height: 26px; padding: 4px 7px; font-size: .56rem; }
     .realtime-system-pill { min-height: 20px; padding: 2px 7px; font-size: .52rem; }
 }
+
+/* Stage26: unified waveform controls in mastering settings preview dialog */
+.preview-section-title-unified {
+  margin-top: 14px;
+}
+.preview-dialog-unified-grid {
+  gap: 10px;
+}
+.preview-dialog-unified-card {
+  border-color: rgba(148, 163, 184, 0.22);
+}
+.preview-dialog-unified-player {
+  width: 100%;
+}
+.preview-dialog-waveform-bars {
+  min-height: 42px;
+}
+.dock-integrated-info {
+  gap: 6px;
+}
+.dock-integrated-peak-jump {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.68);
+  color: inherit;
+  font-size: 10px;
+  line-height: 1;
+  padding: 5px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dock-integrated-peak-jump:hover,
+.dock-integrated-peak-jump:focus-visible {
+  border-color: rgba(96, 165, 250, 0.72);
+  outline: none;
+}
+@media (max-width: 720px) {
+  .preview-dialog-waveform-bars { min-height: 36px; }
+  .dock-integrated-peak-jump { padding: 4px 6px; font-size: 9px; }
+}

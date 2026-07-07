@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage25-compare-controls-rehome';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage26-unified-waveform-controls';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

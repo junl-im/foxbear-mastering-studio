@@ -1,10 +1,15 @@
+
+## v1.4.0 Stage26
+
+Stage26 cleans up the mastering settings preview dialog and expands unified waveform controls. The dialog no longer repeats the original source in legacy bottom players; it keeps the top original realtime preview and adds a Dock-style mastered preview plus A/B waveform controls.
+
 # FoxBear AI Mastering Studio Pro v1.4.0
 
 ## Current patch: v1.4.0 Stage25
 
 Stage25 cleans up the settings and overlay system. Playback orchestration remains automatic, but visible `연동 정지` status chips are removed from player surfaces. The mobile `⚙️ 설정` panel now focuses on true app settings, adds `외부 브라우저로 열기`, and removes compare-specific controls. Toast/notification layers now auto-stack above active processing HUD/Dock overlays.
 
-- Runtime asset cache key: `1.4.0-stage25-compare-controls-rehome`
+- Runtime asset cache key: `1.4.0-stage26-unified-waveform-controls`
 - New CSS: `assets/css/components/floating-overlays.css`
 - Main affected modules: `src/ui/mobile-native-view.js`, `src/settings/settings-service.js`, `src/audio/playback-link-service.js`, `src/app.js`
 - QA: 110/110 PASS
@@ -15,7 +20,7 @@ Stage25 cleans up the settings and overlay system. Playback orchestration remain
 
 Stage23 upgrades playback linking into playback orchestration. Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players are registered into one service so exclusive players pause each other instead of behaving like disconnected islands. Intentional sync-pairs remain allowed.
 
-- Runtime asset cache key: `1.4.0-stage25-compare-controls-rehome`
+- Runtime asset cache key: `1.4.0-stage26-unified-waveform-controls`
 - Main module: `src/audio/playback-link-service.js`
 - QA: `qa/stage23_playback_orchestration_smoke.js`
 
@@ -27,7 +32,7 @@ Stage23 adds a playback-link audit layer so Dock, mastering-settings preview, in
 
 - New playback bus: `src/audio/playback-link-service.js`
 - New linked-state UI layer: `assets/css/components/playback-link.css`
-- Runtime asset cache key: `1.4.0-stage25-compare-controls-rehome`
+- Runtime asset cache key: `1.4.0-stage26-unified-waveform-controls`
 - QA: 109/109 PASS
 
 # FoxBear AI Mastering Studio Pro v1.4.0
@@ -90,6 +95,6 @@ npm run check
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage25-compare-controls-rehome` and service worker cache to `foxbear-shell-v1.4.0-stage25-compare-controls-rehome`.
+- Bumped asset cache key to `1.4.0-stage26-unified-waveform-controls` and service worker cache to `foxbear-shell-v1.4.0-stage26-unified-waveform-controls`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

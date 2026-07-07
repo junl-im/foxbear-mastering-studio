@@ -1,3 +1,10 @@
+
+## Stage26 notes
+
+The mastering settings preview popup previously mixed the newer Dock-style realtime player with older custom-player cards below. Stage26 removes that popup-only duplication and starts standardizing waveform controls: Dock-integrated players now expose peak jump behavior, and the A/B deck has inline waveform rows for original/mastered seek and playhead sync.
+
+Next target: extract the shared waveform control builder into a dedicated module so Dock, preview dialog, A/B deck, waveform compare popup, and detail panels do not duplicate waveform rendering logic.
+
 ## Stage25 notes - Settings cleanup and floating overlay stack
 
 - Playback link service remains the owner of cross-player orchestration, but visible chips are disabled by default. Future UI should not reintroduce small status badges over Dock/player surfaces unless a debug mode is explicitly added.
@@ -658,6 +665,6 @@ Packaging remains cumulative overwrite ZIP only.
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage25-compare-controls-rehome` and service worker cache to `foxbear-shell-v1.4.0-stage25-compare-controls-rehome`.
+- Bumped asset cache key to `1.4.0-stage26-unified-waveform-controls` and service worker cache to `foxbear-shell-v1.4.0-stage26-unified-waveform-controls`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

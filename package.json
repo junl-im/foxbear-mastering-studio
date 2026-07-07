@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-0",
   "version": "1.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage25 compare controls rehome and A/B deck role cleanup",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage26 unified waveform controls and preview dialog cleanup",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -121,6 +121,7 @@
     "node qa/stage22_playback_link_audit_smoke.js",
     "node qa/stage23_playback_orchestration_smoke.js",
     "node qa/stage24_settings_overlay_cleanup_smoke.js",
-    "node qa/stage25_compare_controls_rehome_smoke.js"
+    "node qa/stage25_compare_controls_rehome_smoke.js",
+    "node qa/stage26_unified_waveform_controls_smoke.js"
   ]
 }

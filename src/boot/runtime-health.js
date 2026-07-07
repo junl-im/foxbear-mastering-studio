@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage25-compare-controls-rehome';
+    const FALLBACK_VERSION = '1.4.0-stage26-unified-waveform-controls';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',

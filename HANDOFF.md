@@ -1,3 +1,12 @@
+
+## Stage26 handoff
+
+Latest build: `v1.4.0-stage26-unified-waveform-controls`.
+
+Focus: unified waveform controls across the mastering settings preview dialog, Dock-style previews, and A/B deck. The old bottom original/master preview grid inside the mastering settings popup has been removed from that popup path. The top original realtime preview remains the single original preview; the popup now adds only the missing mastered unified waveform player and A/B deck.
+
+Validation: `npm run check` passed 112/112. Use `foxbear-mastering-studio-v1.4.0-stage26-overwrite.zip` for cumulative overwrite deployment.
+
 # Stage25 handoff - Settings cleanup and floating overlay coordination
 
 - Base: v1.4.0 Stage23.
@@ -416,7 +425,7 @@ Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this 
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage25-compare-controls-rehome`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage26-unified-waveform-controls`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 
@@ -582,6 +591,6 @@ Run `npm run sri:update` after modifying any loaded asset, then run `npm run che
 - Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
 - Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
 - Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
-- Bumped asset cache key to `1.4.0-stage25-compare-controls-rehome` and service worker cache to `foxbear-shell-v1.4.0-stage25-compare-controls-rehome`.
+- Bumped asset cache key to `1.4.0-stage26-unified-waveform-controls` and service worker cache to `foxbear-shell-v1.4.0-stage26-unified-waveform-controls`.
 - Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
 - QA: `npm run check` passed 111/111.

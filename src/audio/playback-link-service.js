@@ -3,7 +3,7 @@
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.4.0-stage25-compare-controls-rehome';
+    const SERVICE_VERSION = '1.4.0-stage26-unified-waveform-controls';
     const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';

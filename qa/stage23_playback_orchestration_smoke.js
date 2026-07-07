@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.0-stage25-compare-controls-rehome';
+const version = '1.4.0-stage26-unified-waveform-controls';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -25,9 +25,9 @@ const overwrite = read('tools/create-overwrite-zip.sh');
 assert(index.includes(version), 'index should use Stage23 asset query');
 assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stage23 cache key');
 assert(sw.includes(`./src/audio/playback-link-service.js?v=${version}`), 'SW should precache playback orchestration service');
-assert(pkg.includes('Stage25 compare controls rehome') || pkg.includes('Stage23 playback orchestration'), 'package description should identify current Stage23+ line');
+assert(pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage25 compare controls rehome') || pkg.includes('Stage23 playback orchestration'), 'package description should identify current Stage23+ line');
 assert(pkg.includes('node qa/stage23_playback_orchestration_smoke.js'), 'package should run Stage23 smoke');
-assert(overwrite.includes('v1.4.0-stage25'), 'overwrite package default should be Stage23');
+assert(overwrite.includes('v1.4.0-stage26'), 'overwrite package default should be Stage23');
 
 assert(service.includes('ORCHESTRATION_EVENT_NAME'), 'service should define orchestration event');
 assert(service.includes('foxbear:playback-orchestration-change'), 'service should emit orchestration event');

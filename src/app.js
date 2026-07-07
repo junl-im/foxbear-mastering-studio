@@ -874,11 +874,7 @@ function renderPreviewDialog(track) {
     if (el.previewDialogCaption) el.previewDialogCaption.textContent = '실시간 미리듣기';
     renderRealtimePreviewConsole(track, el.previewDialogBody);
     if (track.masteredUrl) {
-        const compareTitle = document.createElement('div');
-        compareTitle.className = 'preview-section-title';
-        compareTitle.textContent = '완료본 A/B 비교';
-        el.previewDialogBody.appendChild(compareTitle);
-        renderPreviewPlayers(track, el.previewDialogBody, { vertical: true });
+        renderPreviewDialogUnifiedPlayers(track, el.previewDialogBody);
     }
 }
 
@@ -3045,7 +3041,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage25-compare-controls-rehome');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage26-unified-waveform-controls');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -10654,6 +10650,50 @@ function renderPreviewPlayers(track, target = el.trackDetail, options = {}) {
     target.appendChild(previewGrid);
 }
 
+function renderPreviewDialogUnifiedPlayers(track, target) {
+    if (!track || !target) return;
+    const sectionTitle = document.createElement('div');
+    sectionTitle.className = 'preview-section-title preview-section-title-unified';
+    sectionTitle.textContent = '완료본 통합 미리듣기 / A-B 비교';
+    target.appendChild(sectionTitle);
+
+    if (track.masteredUrl) {
+        target.appendChild(createABSwitchPlayer(track));
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'preview-grid preview-grid-vertical preview-dialog-unified-grid';
+
+    if (track.masteredUrl) {
+        const masteredCard = document.createElement('div');
+        masteredCard.className = 'preview-card preview-dialog-unified-card';
+        masteredCard.appendChild(makePreviewTitle('마스터링 완료본', track.masteredDurationSec || track.analysis?.duration));
+        const masteredPlayer = createDockIntegratedWaveformPlayer(track, {
+            src: track.masteredUrl,
+            mode: 'mastered',
+            duration: track.masteredDurationSec || track.analysis?.duration,
+            startSec: getRealtimePreviewStartSec(track),
+            gainDb: getABMatchGainDb(track),
+            translationMode: true,
+            seekTarget: 'local',
+            waveformRole: 'preview-dialog-mastered',
+            waveformClass: 'preview-dialog-waveform-bars',
+            playerClass: 'preview-dialog-unified-player',
+            playerRole: 'preview-dialog-mastered',
+            sourceLabel: '마스터링'
+        });
+        const audio = masteredPlayer.querySelector('audio');
+        if (audio) {
+            audio.dataset.previewSystem = 'preview-dialog-mastered';
+            audio.setAttribute('aria-label', `${track.name || '선택 곡'} 마스터링 완료본 통합 미리듣기 재생`);
+        }
+        masteredCard.appendChild(masteredPlayer);
+        grid.appendChild(masteredCard);
+    }
+
+    target.appendChild(grid);
+}
+
 function getPreviewTranslationMode() {
     const mode = String(state.previewTranslationMode || 'studio');
     return PREVIEW_TRANSLATION_MODES[mode] || PREVIEW_TRANSLATION_MODES.studio;
@@ -11549,14 +11589,49 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     info.className = 'dock-integrated-info';
     const source = document.createElement('span');
     source.className = 'dock-integrated-source';
-    source.textContent = getDockModeLabel(mode);
+    source.textContent = options.sourceLabel || getDockModeLabel(mode);
     source.setAttribute('aria-label', '프리뷰 소스');
     const time = document.createElement('span');
     time.className = 'player-time dock-integrated-time';
     time.setAttribute('aria-label', '재생 시간 / 전체 러닝타임');
     const initialDuration = Number(options.duration || 0);
     time.textContent = formatPlayerTime(0, initialDuration);
-    info.append(source, time);
+    const peak = document.createElement('button');
+    peak.type = 'button';
+    peak.className = 'dock-integrated-peak-jump';
+    peak.textContent = '⚡ 피크';
+    peak.title = '가장 강한 피크 구간으로 이동합니다.';
+    peak.setAttribute('aria-label', '피크 구간으로 이동');
+    info.append(source, time, peak);
+
+    const seekToStrongestPeak = () => {
+        const payload = getDockWaveformPayload(track, mode);
+        const values = Array.isArray(payload?.values) ? payload.values : [];
+        const duration = Number(getDuration() || options.duration || track?.analysis?.duration || track?.masteredDurationSec || 0);
+        if (!values.length || !Number.isFinite(duration) || duration <= 0) {
+            showToast('피크 위치를 아직 계산할 수 없습니다. 분석 완료 후 다시 시도해주세요.');
+            return;
+        }
+        let maxIndex = 0;
+        let maxValue = -Infinity;
+        values.forEach((value, index) => {
+            const n = Number(value);
+            if (Number.isFinite(n) && n > maxValue) {
+                maxValue = n;
+                maxIndex = index;
+            }
+        });
+        const startOffset = Number(options.startSec || 0);
+        const localSec = clamp((maxIndex / Math.max(1, values.length - 1)) * duration, 0, Math.max(0, duration - 0.08));
+        audio.currentTime = clamp(localSec - startOffset, 0, Math.max(0, duration - 0.08));
+        sync();
+        showToast(`${options.sourceLabel || getDockModeLabel(mode)} 피크 구간으로 이동했습니다.`);
+    };
+    peak.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        seekToStrongestPeak();
+    });
 
     const setPlaying = isPlaying => {
         toggle.classList.toggle('playing', Boolean(isPlaying));
@@ -12233,6 +12308,48 @@ function createABSwitchPlayer(track) {
         if (state.abDifferenceListen) hint.textContent += ' · 차이듣기 ON';
     };
 
+    const waveformDeck = document.createElement('div');
+    waveformDeck.className = 'ab-switch-inline-waveforms';
+    waveformDeck.setAttribute('aria-label', 'A/B 통합 파형 컨트롤');
+    const createInlineWaveformRow = (mode, label) => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = `ab-switch-inline-waveform-row ab-waveform-${mode}`;
+        row.dataset.abWaveformMode = mode;
+        row.setAttribute('aria-label', `${label} 파형에서 위치 이동`);
+        const title = document.createElement('span');
+        title.className = 'ab-switch-inline-waveform-label';
+        title.textContent = label;
+        const bars = document.createElement('span');
+        bars.className = 'ab-switch-inline-waveform-bars has-live-playhead';
+        const values = normalizeWaveformValues(mode === 'mastered' ? getTrackMasterWaveformValues(track) : getTrackOriginalWaveformValues(track), getAdaptiveDockWaveformBinCount('dialog'));
+        const markers = mode === 'mastered' ? getTrackMasterWaveformMarkers(track, values) : sampleMarkersFromValues(values);
+        const renderValues = values.length ? values : Array.from({ length: getAdaptiveDockWaveformBinCount('dialog') }, (_, index) => clamp(0.18 + Math.sin(index * 0.43) * 0.08, 0.08, 0.34));
+        renderValues.forEach((value, index) => {
+            const bar = document.createElement('i');
+            const marker = values.length ? getWaveformMarkerForIndex(markers, index, renderValues.length, value) : 'ok';
+            bar.className = `dock-integrated-waveform-bar dock-integrated-waveform-${marker}`;
+            bar.style.height = `${Math.max(10, Math.round(clamp(Number(value) || 0, 0, 1) * 100))}%`;
+            bars.appendChild(bar);
+        });
+        row.append(title, bars);
+        row.addEventListener('click', event => {
+            const rect = bars.getBoundingClientRect ? bars.getBoundingClientRect() : null;
+            const duration = Number(activeAudio().duration || durationSec || 0);
+            if (!rect || !Number.isFinite(duration) || duration <= 0) return;
+            const pct = clamp((event.clientX - rect.left) / Math.max(1, rect.width), 0, 1);
+            const position = pct * duration;
+            originalAudio.currentTime = Math.min(position, Number(originalAudio.duration || duration));
+            masteredAudio.currentTime = Math.min(position, Number(masteredAudio.duration || duration));
+            if (state.abLoopMode) loopStart = position;
+            syncUi();
+        });
+        return row;
+    };
+    const originalWaveformRow = createInlineWaveformRow('original', '원본 A');
+    const masteredWaveformRow = createInlineWaveformRow('mastered', '마스터 B');
+    waveformDeck.append(originalWaveformRow, masteredWaveformRow);
+
     const syncUi = () => {
         const audio = activeAudio();
         const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : durationSec;
@@ -12241,6 +12358,11 @@ function createABSwitchPlayer(track) {
         sourceBadge.textContent = active === 'original' ? '원본 A' : '마스터 B';
         swap.textContent = active === 'original' ? '마스터 B로 전환' : '원본 A로 전환';
         setPlayerToggleIcon(play, !audio.paused);
+        const pct = Number.isFinite(duration) && duration > 0 ? clamp((audio.currentTime || 0) / duration, 0, 1) : 0;
+        setPlayheadOnElement(originalWaveformRow.querySelector('.ab-switch-inline-waveform-bars'), pct, active === 'original' && !audio.paused);
+        setPlayheadOnElement(masteredWaveformRow.querySelector('.ab-switch-inline-waveform-bars'), pct, active === 'mastered' && !audio.paused);
+        originalWaveformRow.classList.toggle('active', active === 'original');
+        masteredWaveformRow.classList.toggle('active', active === 'mastered');
     };
     const getLoopBounds = () => {
         if (!state.abLoopMode) return null;
@@ -12363,7 +12485,7 @@ function createABSwitchPlayer(track) {
         showToast(`비교창을 ${formatPlayerTime(safeStart, duration)} 하이라이트 구간으로 이동했습니다.`);
     });
     syncCompareToolUi();
-    deck.append(head, controls, compareTools, hint, originalAudio, masteredAudio);
+    deck.append(head, controls, waveformDeck, compareTools, hint, originalAudio, masteredAudio);
     return deck;
 }
 

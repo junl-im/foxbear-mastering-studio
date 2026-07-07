@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.0-stage25-compare-controls-rehome';
+const version = '1.4.0-stage26-unified-waveform-controls';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -49,6 +49,6 @@ assert(css.includes('.playback-link-active'), 'CSS should show active linked pla
 assert(runtime.includes('FoxBearPlaybackLinkService.registerAudio'), 'runtime health should require playback link service');
 assert(pkg.includes('node --check src/audio/playback-link-service.js'), 'package should syntax-check playback link service');
 assert(pkg.includes('node qa/stage22_playback_link_audit_smoke.js'), 'package should include Stage23 smoke');
-assert(overwrite.includes('v1.4.0-stage25'), 'overwrite package default should be Stage23');
+assert(overwrite.includes('v1.4.0-stage26'), 'overwrite package default should be Stage23');
 
 console.log('PASS stage22 playback link audit smoke');
