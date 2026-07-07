@@ -1,4 +1,4 @@
-# Stage24 handoff - Settings cleanup and floating overlay coordination
+# Stage25 handoff - Settings cleanup and floating overlay coordination
 
 - Base: v1.4.0 Stage23.
 - Keep playback orchestration active, but do not expose the old `연동 정지` / `연동 재생` chips in Dock/player UI. `FoxBearPlaybackLinkService.DEBUG_VISIBLE_CHIPS` is intentionally `false`, and existing chips are removed when state sync runs.
@@ -7,7 +7,7 @@
 - Added `외부 브라우저로 열기` setting action routed through `openCurrentPageInExternalBrowser()`.
 - Added `assets/css/components/floating-overlays.css` plus `syncFloatingOverlayStack()` in `src/app.js` so toast/notification layers stack above an active processing HUD and Dock.
 - Settings persistence now stores only real app settings: `autoCacheClean`, `smartPerformanceGuard`, `hapticsEnabled`, `wakeLockDesired`, and `storagePersistRequested`.
-- QA: `npm run check` includes `qa/stage24_settings_overlay_cleanup_smoke.js` and passes 110/110.
+- QA: `npm run check` includes `qa/stage25_settings_overlay_cleanup_smoke.js` and passes 110/110.
 
 Manual checks:
 1. Play Dock/settings preview and confirm no `연동 정지` chip is visible over the player.
@@ -416,7 +416,7 @@ Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this 
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage24-settings-overlay-cleanup`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage25-compare-controls-rehome`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 
@@ -573,3 +573,15 @@ Do not remove the runtime health script while `/src/**` and `/assets/**` are ser
 ### QA
 
 Run `npm run sri:update` after modifying any loaded asset, then run `npm run check`.
+
+## Stage25 — Compare controls rehome / A-B deck role cleanup
+
+- Moved comparison-only controls out of the global tool/settings area and into the A/B switch comparison deck.
+- Removed the old global `abMatchBtn` and `abLoopBtn` controls from the main mastering tool grid.
+- Kept settings focused on real app settings: cache cleanup, performance guard, wake/haptic/storage/browser actions.
+- Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
+- Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
+- Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
+- Bumped asset cache key to `1.4.0-stage25-compare-controls-rehome` and service worker cache to `foxbear-shell-v1.4.0-stage25-compare-controls-rehome`.
+- Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
+- QA: `npm run check` passed 111/111.

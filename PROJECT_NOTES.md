@@ -1,4 +1,4 @@
-## Stage24 notes - Settings cleanup and floating overlay stack
+## Stage25 notes - Settings cleanup and floating overlay stack
 
 - Playback link service remains the owner of cross-player orchestration, but visible chips are disabled by default. Future UI should not reintroduce small status badges over Dock/player surfaces unless a debug mode is explicitly added.
 - Settings panel ownership: only durable app preferences and utility actions belong there. Compare-specific controls such as A/B loop, level matching, difference listen, and highlight selection should stay inside compare/detail/Dock contexts.
@@ -649,3 +649,15 @@ Packaging remains cumulative overwrite ZIP only.
 - This is especially important because Firebase Hosting keeps `/src/**` and `/assets/**` immutable for one year.
 - The monitor is loaded before `src/app.js` and does not block the app. It reports via `window.FoxBearRuntimeHealth`, `foxbear:runtime-health` events, console warnings, and `#importStatus` when the app has not already marked itself ready.
 - Stage13 keeps runtime behavior conservative: no audio engine changes, no Dock layout rewrite, no file import logic rewrite.
+
+## Stage25 — Compare controls rehome / A-B deck role cleanup
+
+- Moved comparison-only controls out of the global tool/settings area and into the A/B switch comparison deck.
+- Removed the old global `abMatchBtn` and `abLoopBtn` controls from the main mastering tool grid.
+- Kept settings focused on real app settings: cache cleanup, performance guard, wake/haptic/storage/browser actions.
+- Added A/B deck controls for level matching, 5-second loop, difference listen handoff, and highlight seek.
+- Set automatic highlight A/B default to OFF; highlight movement is now explicit from the comparison deck.
+- Added responsive `.ab-switch-compare-tools` / `.ab-compare-tool` styles in `assets/css/components/cards.css`.
+- Bumped asset cache key to `1.4.0-stage25-compare-controls-rehome` and service worker cache to `foxbear-shell-v1.4.0-stage25-compare-controls-rehome`.
+- Added `qa/stage25_compare_controls_rehome_smoke.js` and updated legacy cache-version QA allowlists to include Stage25.
+- QA: `npm run check` passed 111/111.

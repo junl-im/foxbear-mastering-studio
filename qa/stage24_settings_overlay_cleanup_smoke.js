@@ -7,12 +7,12 @@ const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const assert = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL stage24_settings_overlay_cleanup_smoke: ${message}`);
+    console.error(`FAIL stage25_settings_overlay_cleanup_smoke: ${message}`);
     process.exit(1);
   }
 };
 
-const version = '1.4.0-stage24-settings-overlay-cleanup';
+const version = '1.4.0-stage25-compare-controls-rehome';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -24,13 +24,13 @@ const playbackCss = read('assets/css/components/playback-link.css');
 const overlayCss = read('assets/css/components/floating-overlays.css');
 const overwrite = read('tools/create-overwrite-zip.sh');
 
-assert(index.includes(version), 'index should use Stage24 asset query');
-assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stage24 cache key');
+assert(index.includes(version), 'index should use Stage25 asset query');
+assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stage25 cache key');
 assert(index.includes(`assets/css/components/floating-overlays.css?v=${version}`), 'floating overlay CSS should be loaded');
 assert(sw.includes(`./assets/css/components/floating-overlays.css?v=${version}`), 'SW should precache floating overlay CSS');
-assert(pkg.includes('Stage24 settings overlay cleanup'), 'package description should identify Stage24');
-assert(pkg.includes('node qa/stage24_settings_overlay_cleanup_smoke.js'), 'package should run Stage24 smoke');
-assert(overwrite.includes('v1.4.0-stage24'), 'overwrite package default should be Stage24');
+assert(pkg.includes('Stage25 compare controls rehome'), 'package description should identify Stage25');
+assert(pkg.includes('node qa/stage24_settings_overlay_cleanup_smoke.js'), 'package should run Stage25 smoke');
+assert(overwrite.includes('v1.4.0-stage25'), 'overwrite package default should be Stage25');
 
 assert(playbackService.includes('DEBUG_VISIBLE_CHIPS = false'), 'playback chips should be disabled by default');
 assert(playbackService.includes('existing.remove()'), 'existing playback chips should be removed');
@@ -62,4 +62,4 @@ assert(app.includes("--foxbear-processing-hud-height"), 'app should measure proc
 assert(overlayCss.includes('body.processing-hud-active.bottom-preview-active .toast'), 'toast should move above HUD and Dock');
 assert(overlayCss.includes('z-index: 10040'), 'toast should stack above processing HUD');
 
-console.log('PASS stage24 settings overlay cleanup smoke');
+console.log('PASS stage25 settings overlay cleanup smoke');

@@ -192,18 +192,6 @@ function getDspAmountScoreLabel(track) {
 }
 
 const UTILITY_FEATURE_DEFINITIONS = {
-    abLevelMatch: {
-        label: 'A/B 레벨 매칭',
-        short: '전체 비교 패널 전용 기능입니다. Dock 재생에는 개입하지 않습니다.'
-    },
-    abDifferenceListen: {
-        label: '차이 듣기',
-        short: '전체 비교 패널 전용 기능입니다. Dock transport에는 숨은 상태가 남지 않습니다.'
-    },
-    abLoopMode: {
-        label: '5초 A/B 루프',
-        short: '같은 구간을 짧게 반복해 피치/BPM과 마스터링 차이를 빠르게 확인합니다.'
-    },
     autoCacheClean: {
         label: '분석 캐시 자동정리',
         short: '켜두면 오래된 분석 캐시를 주기적으로 정리합니다. 끄면 캐시를 그대로 보존합니다.'
@@ -224,17 +212,9 @@ const UTILITY_FEATURE_DEFINITIONS = {
             return !track || state.busy || !track.analysis;
         }
     },
-    autoHighlightAB: {
-        label: '자동 하이라이트 A/B',
-        short: '곡에서 차이가 잘 들리는 5초 구간을 찾아 A/B 루프 시작점으로 사용합니다.'
-    },
     smartPerformanceGuard: {
         label: '스마트 성능 가드',
         short: '모바일·긴 파일·저메모리 환경에서 품질 손상 없이 가장 무거운 검사만 자동으로 가볍게 조절합니다.'
-    },
-    engineSafetyMeter: {
-        label: '엔진 안전 점수',
-        short: '현재 설정이 과한지, 보컬/피크/공간감 보호가 충분한지 점수로 보여줍니다.'
     }
 };
 
@@ -459,7 +439,7 @@ function cacheElements() {
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'abMatchBtn', 'abLoopBtn', 'genreLockBtn', 'clearCacheBtn',
+        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'genreLockBtn', 'clearCacheBtn',
         'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotRedoBtn', 'snapshotAiBtn', 'snapshotOriginalBtn', 'snapshotClearBtn', 'snapshotStatus', 'snapshotHistory', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
@@ -629,22 +609,8 @@ async function toggleUtilityFeature(key) {
     if (key === 'autoCacheClean') {
         state.autoCacheClean = !state.autoCacheClean;
         if (state.autoCacheClean) maybeAutoCleanAnalysisCache(true);
-    } else if (key === 'abLevelMatch') {
-        state.abLevelMatch = !state.abLevelMatch;
-    } else if (key === 'abLoopMode') {
-        state.abLoopMode = !state.abLoopMode;
-    } else if (key === 'abDifferenceListen') {
-        state.abDifferenceListen = !state.abDifferenceListen;
-        if (state.abDifferenceListen && state.bottomPreviewMode === 'original') {
-            const track = getSelectedTrack();
-            if (track?.masteredUrl || track?.masterPreviewUrl) state.bottomPreviewMode = track.masteredUrl ? 'mastered' : 'masterPreview';
-        }
-    } else if (key === 'autoHighlightAB') {
-        state.autoHighlightAB = !state.autoHighlightAB;
     } else if (key === 'smartPerformanceGuard') {
         state.smartPerformanceGuard = !state.smartPerformanceGuard;
-    } else if (key === 'engineSafetyMeter') {
-        state.engineSafetyMeter = !state.engineSafetyMeter;
     }
     persistRuntimeSettings();
     renderFeatureButtons();
@@ -1764,8 +1730,6 @@ const ACTION_HELP_TEXTS = {
     zipBtn: '완료된 결과물을 ZIP 파일로 묶어 다운로드합니다.',
     clearBtn: '작업 대기열과 미리듣기 결과를 초기화합니다.',
     clearCacheBtn: '저장된 분석 캐시를 즉시 비웁니다.',
-    abMatchBtn: '원본/마스터링 프리뷰 볼륨을 맞춰 비교합니다.',
-    abLoopBtn: '같은 구간을 5초씩 반복해 차이를 빠르게 비교합니다.',
     genreLockBtn: 'AI 추천값을 다시 적용해도 현재 장르 프리셋을 유지합니다.',
     adaptiveLufsToggle: '곡의 밀도와 장르를 기준으로 LUFS 목표를 자동 보정합니다.',
     snapSemitone: '피치 조정을 반음 단위로 고정해 키 보정이 과하게 흔들리지 않게 합니다.',
@@ -3081,7 +3045,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage24-settings-overlay-cleanup');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage25-compare-controls-rehome');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3591,22 +3555,6 @@ function bindEvents() {
             invalidateAllMasteredOutput(`${getPitchEngineLabel(state.pitchEngine)} 피치/속도 엔진으로 변경되었습니다. 다시 마스터링하세요.`);
             renderAll({ keepDetailAudio: true });
             showToast(`${getPitchEngineLabel(state.pitchEngine)} 피치/속도 엔진으로 변경했습니다.`);
-        });
-    }
-    if (el.abMatchBtn) {
-        el.abMatchBtn.addEventListener('click', () => {
-            captureBottomPreviewTransport(getSelectedTrack(), state.bottomPreviewMode);
-            state.abLevelMatch = !state.abLevelMatch;
-            renderAll({ keepDetailAudio: true });
-            renderBottomPreviewDock({ keepPlaying: true });
-            showToast(state.abLevelMatch ? 'A/B 레벨 매칭을 켰습니다.' : 'A/B 레벨 매칭을 껐습니다.');
-        });
-    }
-    if (el.abLoopBtn) {
-        el.abLoopBtn.addEventListener('click', () => {
-            state.abLoopMode = !state.abLoopMode;
-            renderAll({ keepDetailAudio: true });
-            showToast(state.abLoopMode ? '5초 A/B 루프 비교를 켰습니다.' : '5초 A/B 루프 비교를 껐습니다.');
         });
     }
     if (el.genreLockBtn) {
@@ -10127,9 +10075,7 @@ function renderButtons() {
         const labelCount = selectedTracks.length || actionTracks.length;
         el.masterSelectedBtn.textContent = labelCount > 1 ? `선택 ${labelCount}곡 마스터링` : (labelCount === 1 ? '선택 1곡 마스터링' : '선택 트랙 마스터링');
     }
-    if (el.abMatchBtn) el.abMatchBtn.textContent = state.abLevelMatch ? 'A/B 레벨 매칭 ON' : 'A/B 레벨 매칭 OFF';
     syncBottomCompareTools();
-    if (el.abLoopBtn) el.abLoopBtn.textContent = state.abLoopMode ? '5초 A/B 루프 ON' : '5초 A/B 루프 OFF';
     if (el.genreLockBtn) {
         const active = getSelectedTrack();
         el.genreLockBtn.textContent = active && active.genreLocked ? '장르 잠금 해제' : '장르 잠금';
@@ -12238,6 +12184,55 @@ function createABSwitchPlayer(track) {
     hint.className = 'ab-switch-hint';
     hint.textContent = state.abLevelMatch ? `마스터본을 ${formatSigned(matchGainDb, 1)} dB로 레벨 매칭해 비교합니다.` : '레벨 매칭 OFF · 실제 마스터링 체감 음량으로 비교합니다.';
 
+    const compareTools = document.createElement('div');
+    compareTools.className = 'ab-switch-compare-tools';
+    compareTools.setAttribute('aria-label', '비교 전용 컨트롤');
+    const createCompareToolButton = (key, label, description) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ab-compare-tool';
+        button.dataset.compareTool = key;
+        button.dataset.state = 'off';
+        button.title = description;
+        button.setAttribute('aria-pressed', 'false');
+        const text = document.createElement('span');
+        text.className = 'ab-compare-tool-label';
+        text.textContent = label;
+        const status = document.createElement('b');
+        status.className = 'ab-compare-tool-status';
+        status.textContent = 'OFF';
+        button.append(text, status);
+        return button;
+    };
+    const levelMatchBtn = createCompareToolButton('level-match', '레벨매칭', '원본/마스터 체감 볼륨을 맞춰 비교합니다.');
+    const loopBtn = createCompareToolButton('ab-loop', '5초 루프', '현재 비교 위치를 5초 구간으로 반복합니다.');
+    const differenceBtn = createCompareToolButton('difference-listen', '차이듣기', '마스터에서 원본을 뺀 차이 성분을 Dock 비교 재생으로 확인합니다.');
+    const highlightBtn = createCompareToolButton('highlight-seek', '하이라이트 이동', '분석된 하이라이트 구간으로 A/B 위치를 맞춥니다.');
+    highlightBtn.classList.add('action-only');
+    highlightBtn.removeAttribute('aria-pressed');
+    compareTools.append(levelMatchBtn, loopBtn, differenceBtn, highlightBtn);
+
+    const syncCompareToolUi = () => {
+        const setToggle = (button, active) => {
+            button.classList.toggle('active', Boolean(active));
+            button.dataset.state = active ? 'on' : 'off';
+            button.setAttribute('aria-pressed', String(Boolean(active)));
+            const status = button.querySelector('.ab-compare-tool-status');
+            if (status) status.textContent = active ? 'ON' : 'OFF';
+        };
+        setToggle(levelMatchBtn, state.abLevelMatch);
+        setToggle(loopBtn, state.abLoopMode);
+        setToggle(differenceBtn, state.abDifferenceListen);
+        highlightBtn.dataset.state = 'action';
+        const highlightStatus = highlightBtn.querySelector('.ab-compare-tool-status');
+        if (highlightStatus) highlightStatus.textContent = '이동';
+        const nextGain = state.abLevelMatch && Number.isFinite(matchGainDb) ? clamp(Math.pow(10, matchGainDb / 20), 0.02, 1) : 1;
+        masteredAudio.volume = nextGain;
+        hint.textContent = state.abLevelMatch ? `마스터본을 ${formatSigned(matchGainDb, 1)} dB로 레벨 매칭해 비교합니다.` : '실제 마스터링 체감 음량으로 비교합니다.';
+        if (state.abLoopMode) hint.textContent += ' · 5초 루프 ON';
+        if (state.abDifferenceListen) hint.textContent += ' · 차이듣기 ON';
+    };
+
     const syncUi = () => {
         const audio = activeAudio();
         const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : durationSec;
@@ -12324,7 +12319,51 @@ function createABSwitchPlayer(track) {
         label: 'A/B 마스터',
         durationSec
     });
-    deck.append(head, controls, hint, originalAudio, masteredAudio);
+    levelMatchBtn.addEventListener('click', () => {
+        state.abLevelMatch = !state.abLevelMatch;
+        syncCompareToolUi();
+        syncBottomCompareTools();
+        renderBottomPreviewDock({ keepPlaying: true });
+        showToast(state.abLevelMatch ? '비교창 레벨매칭을 켰습니다.' : '비교창 레벨매칭을 껐습니다.');
+    });
+    loopBtn.addEventListener('click', () => {
+        state.abLoopMode = !state.abLoopMode;
+        if (state.abLoopMode) loopStart = activeAudio().currentTime || getTrackHighlightStart(track);
+        syncCompareToolUi();
+        syncUi();
+        showToast(state.abLoopMode ? '비교창 5초 루프를 켰습니다.' : '비교창 5초 루프를 껐습니다.');
+    });
+    differenceBtn.addEventListener('click', () => {
+        const hasCompare = Boolean(track?.masteredUrl || track?.masterPreviewUrl);
+        if (!hasCompare) {
+            showToast('마스터링 또는 하이라이트 듣기 생성 후 차이듣기를 사용할 수 있습니다.');
+            return;
+        }
+        state.abDifferenceListen = !state.abDifferenceListen;
+        if (state.abDifferenceListen && state.bottomPreviewMode === 'original') {
+            state.bottomPreviewMode = track.masteredUrl ? 'mastered' : 'masterPreview';
+        }
+        syncCompareToolUi();
+        syncBottomCompareTools();
+        renderBottomPreviewDock({ keepPlaying: true, autoPlay: state.abDifferenceListen });
+        showToast(state.abDifferenceListen ? '차이듣기를 켰습니다. Dock 비교 재생에서 차이 성분을 확인합니다.' : '차이듣기를 껐습니다.');
+    });
+    highlightBtn.addEventListener('click', () => {
+        const start = getTrackHighlightStart(track);
+        const duration = Number(activeAudio().duration || durationSec || 0);
+        if (!Number.isFinite(start) || !Number.isFinite(duration) || duration <= 0) {
+            showToast('하이라이트 구간을 아직 계산할 수 없습니다.');
+            return;
+        }
+        const safeStart = clamp(start, 0, Math.max(0, duration - 1));
+        loopStart = safeStart;
+        originalAudio.currentTime = Math.min(safeStart, Number(originalAudio.duration || duration));
+        masteredAudio.currentTime = Math.min(safeStart, Number(masteredAudio.duration || duration));
+        syncUi();
+        showToast(`비교창을 ${formatPlayerTime(safeStart, duration)} 하이라이트 구간으로 이동했습니다.`);
+    });
+    syncCompareToolUi();
+    deck.append(head, controls, compareTools, hint, originalAudio, masteredAudio);
     return deck;
 }
 

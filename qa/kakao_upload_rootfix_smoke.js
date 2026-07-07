@@ -23,6 +23,6 @@ must(app.includes('armPickerReturnWatch'), 'picker return diagnostic missing');
 must(app.includes('카카오톡/인앱 브라우저'), 'Kakao/in-app diagnostic copy missing');
 must(app.includes("return { ok: true, label: '미확인 입력' }"), 'unknown type decode trial missing');
 must(sw.includes("['script', 'style', 'worker'].includes(request.destination)"), 'service worker should network-first scripts/styles');
-must(html.includes('src/app.js?v=1.4.0-stage24-settings-overlay-cleanup'), 'app cache bust key missing');
-must(sw.includes('foxbear-shell-v1.4.0-stage24-settings-overlay-cleanup'), 'SW cache key missing');
+must(html.includes('src/app.js?v=1.4.0-stage25-compare-controls-rehome'), 'app cache bust key missing');
+must(sw.includes('foxbear-shell-v1.4.0-stage25-compare-controls-rehome'), 'SW cache key missing');
 console.log('PASS kakao upload rootfix smoke');

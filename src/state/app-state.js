@@ -44,7 +44,7 @@ const state = {
     abDifferenceListen: false,
     abLoopMode: false,
     autoCacheClean: true,
-    autoHighlightAB: true,
+    autoHighlightAB: false,
     smartPerformanceGuard: true,
     engineSafetyMeter: true,
     cacheReady: false,
