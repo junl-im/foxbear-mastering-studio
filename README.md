@@ -1,13 +1,23 @@
 # FoxBear AI Mastering Studio Pro v1.4.0
 
-## Current patch: v1.4.0 Stage22
+## Current patch: v1.4.0 Stage23
 
-Stage22 adds a playback-link audit layer so Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players no longer behave like disconnected standalone islands.
+Stage23 upgrades playback linking into playback orchestration. Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players are registered into one service so exclusive players pause each other instead of behaving like disconnected islands. Intentional sync-pairs remain allowed.
+
+- Runtime asset cache key: `1.4.0-stage23-playback-orchestration`
+- Main module: `src/audio/playback-link-service.js`
+- QA: `qa/stage23_playback_orchestration_smoke.js`
+
+# FoxBear AI Mastering Studio Pro v1.4.0
+
+## Current patch: v1.4.0 Stage23
+
+Stage23 adds a playback-link audit layer so Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players no longer behave like disconnected standalone islands.
 
 - New playback bus: `src/audio/playback-link-service.js`
 - New linked-state UI layer: `assets/css/components/playback-link.css`
-- Runtime asset cache key: `1.4.0-stage22-playback-link-audit`
-- QA: 108/108 PASS
+- Runtime asset cache key: `1.4.0-stage23-playback-orchestration`
+- QA: 109/109 PASS
 
 # FoxBear AI Mastering Studio Pro v1.4.0
 

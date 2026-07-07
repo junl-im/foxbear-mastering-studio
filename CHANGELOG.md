@@ -1,11 +1,25 @@
-## Stage22 - Playback link audit and cross-player state sync (2026-07-07)
+## Stage23 - Playback orchestration and exclusive player sync (2026-07-07)
+
+- Upgraded `src/audio/playback-link-service.js` from a visual link/audit layer into an orchestration layer.
+- Added exclusive playback enforcement so Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players do not keep playing over each other.
+- Preserved intentional sync-pair playback for difference-listen style paired audio through `groupId` / `groupPolicy` metadata.
+- Added `foxbear:playback-orchestration-change`, `pauseAllExcept()`, `pauseAll()`, and `getOrchestrationSnapshot()` for future cross-panel controls.
+- `bindExclusivePreview()` now delegates to the playback orchestration service instead of scanning only a limited legacy selector list.
+- Added conflict/orchestrated visual states to `assets/css/components/playback-link.css`.
+- Runtime Health now checks `FoxBearPlaybackLinkService.pauseAllExcept`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
+- Added `qa/stage23_playback_orchestration_smoke.js`.
+
+QA result: `npm run check` -> 109/109 PASS.
+
+## Stage23 - Playback link audit and cross-player state sync (2026-07-07)
 
 - Added `src/audio/playback-link-service.js` as a small playback bus for Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players.
 - Registered integrated Dock players, settings preview players, legacy inline preview players, A/B switch audio nodes, and difference-listen audio nodes with role/mode/track metadata.
 - Added `assets/css/components/playback-link.css` to show `연동 재생`, `연동 정지`, and active-player highlight chips so isolated players are visually connected to the whole system.
 - App boot now installs a DOM audit observer that catches future preview audio nodes and marks them as linked instead of leaving hidden standalone audio islands.
 - Runtime Health now checks `FoxBearPlaybackLinkService.registerAudio`.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage22-playback-link-audit`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
 - Added `qa/stage22_playback_link_audit_smoke.js`.
 
 QA result: `npm run check` -> 108/108 PASS.
@@ -90,7 +104,7 @@ QA target: `npm run check`.
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage22-playback-link-audit`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 

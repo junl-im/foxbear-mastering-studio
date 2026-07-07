@@ -1,4 +1,22 @@
-# Stage22 handoff - Playback link audit and cross-player state sync
+# Stage23 handoff - Playback orchestration and exclusive player sync
+
+- Base: v1.4.0 Stage22.
+- Main module: `src/audio/playback-link-service.js`.
+- Purpose: prevent linked preview/player surfaces from playing over each other while preserving intentional paired playback.
+- New public API: `FoxBearPlaybackLinkService.pauseAllExcept(audio, reason)`, `pauseAll(reason)`, `enforceOrchestration(audio, reason)`, and `getOrchestrationSnapshot()`.
+- New event: `foxbear:playback-orchestration-change`. `src/app.js` mirrors this into `document.body.dataset.playbackOrchestration*` for CSS/future UI.
+- Difference-listen style paired audio is allowed through `groupPolicy: sync-pair`; other registered audio is exclusive by default.
+- `bindExclusivePreview()` now delegates to the service and falls back to a broader selector only if the service is unavailable.
+- Runtime Health checks `FoxBearPlaybackLinkService.pauseAllExcept`.
+- QA: `npm run check` includes `qa/stage23_playback_orchestration_smoke.js` and passes 109/109.
+
+Manual checks:
+1. Start Dock playback, then start settings preview; Dock should pause and settings preview should show active linked state.
+2. Start A/B switch after settings preview; settings preview should be paused by orchestration.
+3. Difference-listen paired audio should keep its intentional pair behavior rather than killing its partner.
+4. No standalone preview should show two active exclusive players at once.
+
+# Stage23 handoff - Playback link audit and cross-player state sync
 
 - Base: v1.4.0 Stage21.
 - New module: `src/audio/playback-link-service.js`.
@@ -381,7 +399,7 @@ Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this 
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage22-playback-link-audit`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 

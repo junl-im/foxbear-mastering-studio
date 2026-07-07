@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v1.4.0 - Stage22 playback link status layer */
+/* FoxBear AI Mastering Studio Pro v1.4.0 - Stage23 playback link status layer */
 .playback-linked-player {
     position: relative;
 }
@@ -71,4 +71,30 @@
     .bottom-custom-player .playback-link-chip {
         top: -6px;
     }
+}
+
+.playback-link-chip[data-playback-link-state="orchestrated"] {
+    border-color: rgba(251, 191, 36, .52);
+    background: linear-gradient(135deg, rgba(251, 191, 36, .9), rgba(249, 115, 22, .82));
+    color: #fff7ed;
+}
+
+.playback-link-chip[data-playback-link-state="conflict"] {
+    border-color: rgba(248, 113, 113, .58);
+    background: linear-gradient(135deg, rgba(239, 68, 68, .92), rgba(244, 63, 94, .82));
+    color: #fff1f2;
+}
+
+.playback-linked-player.playback-link-orchestrated {
+    outline: 1px solid rgba(251, 191, 36, .3);
+    box-shadow: 0 0 0 1px rgba(251, 191, 36, .12), 0 12px 30px rgba(245, 158, 11, .1);
+}
+
+.playback-linked-player.playback-link-conflict {
+    outline: 1px solid rgba(248, 113, 113, .42);
+    box-shadow: 0 0 0 1px rgba(248, 113, 113, .16), 0 12px 32px rgba(244, 63, 94, .14);
+}
+
+body[data-playback-orchestration="active"] .playback-linked-player[data-playback-group-policy="exclusive"].playback-link-paused .playback-link-chip {
+    opacity: .7;
 }

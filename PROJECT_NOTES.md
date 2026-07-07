@@ -1,8 +1,17 @@
-## Stage22 notes - Playback link ownership
+## Stage23 notes - Playback orchestration
+
+- `FoxBearPlaybackLinkService` now owns both visual linked-state and exclusive playback orchestration.
+- New player code should call `registerAudio(audio, { role, shell, trackId, mode, absoluteStartSec, durationSec })`.
+- Use `groupPolicy: sync-pair` only for intentionally synchronized paired audio. Most players should remain exclusive.
+- Use `pauseAllExcept(audio, reason)` before starting any legacy/custom player that may not naturally emit the service play event in time.
+- Listen to `foxbear:playback-orchestration-change` for future global player UI, global stop buttons, or diagnostics.
+- CSS states live in `assets/css/components/playback-link.css`: active, paused, orchestrated transition, and conflict.
+
+## Stage23 notes - Playback link ownership
 
 - Use `FoxBearPlaybackLinkService.registerAudio(audio, meta)` for any new player or preview audio element.
 - New player shells should use one of these roles when possible: `bottom-dock`, `mastering-settings-preview`, `inline-preview`, `ab-switch-original`, `ab-switch-mastered`, `difference-original`, `difference-compare`, or a clear feature-specific role.
-- Avoid adding new standalone `<audio>` controls without registering them; the Stage22 DOM audit will catch common selectors, but explicit registration gives better labels and start-time metadata.
+- Avoid adding new standalone `<audio>` controls without registering them; the Stage23 DOM audit will catch common selectors, but explicit registration gives better labels and start-time metadata.
 - `assets/css/components/playback-link.css` owns the linked-state chip and active player outline. Keep Dock/player layout CSS in the Dock/preview CSS files.
 - The global event `foxbear:playback-link-change` is now the preferred hook for future cross-panel playback-state UI.
 

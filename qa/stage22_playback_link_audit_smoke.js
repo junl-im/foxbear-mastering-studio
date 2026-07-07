@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.0-stage22-playback-link-audit';
+const version = '1.4.0-stage23-playback-orchestration';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -22,11 +22,11 @@ const runtime = read('src/boot/runtime-health.js');
 const pkg = read('package.json');
 const overwrite = read('tools/create-overwrite-zip.sh');
 
-assert(index.includes(`assets/css/components/playback-link.css?v=${version}`), 'index should load playback-link.css with Stage22 key');
-assert(index.includes(`src/audio/playback-link-service.js?v=${version}`), 'index should load playback-link-service.js with Stage22 key');
+assert(index.includes(`assets/css/components/playback-link.css?v=${version}`), 'index should load playback-link.css with Stage23 key');
+assert(index.includes(`src/audio/playback-link-service.js?v=${version}`), 'index should load playback-link-service.js with Stage23 key');
 assert(sw.includes(`./assets/css/components/playback-link.css?v=${version}`), 'service worker should precache playback-link.css');
 assert(sw.includes(`./src/audio/playback-link-service.js?v=${version}`), 'service worker should precache playback link service');
-assert(sw.includes(`foxbear-shell-v${version}`) || sw.includes(`foxbear-shell-${version}`), 'service worker cache should use Stage22 key');
+assert(sw.includes(`foxbear-shell-v${version}`) || sw.includes(`foxbear-shell-${version}`), 'service worker cache should use Stage23 key');
 
 assert(service.includes('FoxBearPlaybackLinkService'), 'playback link service should expose global service');
 assert(service.includes('registerAudio'), 'service should register audio players');
@@ -48,7 +48,7 @@ assert(css.includes('.playback-link-chip'), 'CSS should define playback link chi
 assert(css.includes('.playback-link-active'), 'CSS should show active linked player state');
 assert(runtime.includes('FoxBearPlaybackLinkService.registerAudio'), 'runtime health should require playback link service');
 assert(pkg.includes('node --check src/audio/playback-link-service.js'), 'package should syntax-check playback link service');
-assert(pkg.includes('node qa/stage22_playback_link_audit_smoke.js'), 'package should include Stage22 smoke');
-assert(overwrite.includes('v1.4.0-stage22'), 'overwrite package default should be Stage22');
+assert(pkg.includes('node qa/stage22_playback_link_audit_smoke.js'), 'package should include Stage23 smoke');
+assert(overwrite.includes('v1.4.0-stage23'), 'overwrite package default should be Stage23');
 
 console.log('PASS stage22 playback link audit smoke');

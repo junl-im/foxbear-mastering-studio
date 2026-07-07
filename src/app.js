@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.0 - Stage22 playback link audit
+// FoxBear AI Mastering Studio Pro v1.4.0 - Stage23 playback link audit
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -372,6 +372,14 @@ function installPlaybackLinkStatusBridge() {
         document.body.dataset.playbackLinkRole = snapshot.role || '';
         document.body.dataset.playbackLinkState = snapshot.playing ? 'playing' : 'paused';
         document.body.dataset.playbackLinkTime = String(snapshot.absoluteSec ?? '0');
+        if (snapshot.groupPolicy) document.body.dataset.playbackGroupPolicy = snapshot.groupPolicy;
+    });
+    window.addEventListener('foxbear:playback-orchestration-change', event => {
+        const detail = event?.detail || {};
+        document.body.dataset.playbackOrchestration = detail.active ? 'active' : 'idle';
+        document.body.dataset.playbackOrchestrationReason = detail.reason || '';
+        document.body.dataset.playbackOrchestrationPaused = String((detail.paused || []).length);
+        document.body.dataset.playbackOrchestrationConflicts = String(detail.conflictCount || 0);
     });
     return installed;
 }
@@ -3071,7 +3079,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage22-playback-link-audit');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage23-playback-orchestration');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -12164,7 +12172,11 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
 }
 
 function bindExclusivePreview(audio) {
-    document.querySelectorAll('.custom-player audio, .ab-switch-deck audio').forEach(other => {
+    if (audio && FoxBearPlaybackLinkService && typeof FoxBearPlaybackLinkService.pauseAllExcept === 'function') {
+        FoxBearPlaybackLinkService.pauseAllExcept(audio, 'legacy-exclusive-preview');
+        return;
+    }
+    document.querySelectorAll('.custom-player audio, .ab-switch-deck audio, .difference-preview-player audio, audio[data-preview-system]').forEach(other => {
         if (other !== audio) other.pause();
     });
 }

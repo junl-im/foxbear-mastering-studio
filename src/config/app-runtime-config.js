@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
-    const ASSET_VERSION = '1.4.0-stage22-playback-link-audit';
+    const ASSET_VERSION = '1.4.0-stage23-playback-orchestration';
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
     const MP3_ENCODER_WORKER_URL = assetUrl('src/workers/mp3-encoder.worker.js');
