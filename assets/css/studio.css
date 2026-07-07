@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v1.4.8 - legacy overrides and late-stage component styles */
+/* FoxBear AI Mastering Studio Pro v1.4.10 - legacy overrides and late-stage component styles */
 @media (max-width: 1280px) {
     .studio-grid {
         grid-template-columns: 330px minmax(0, 1fr);
@@ -9653,7 +9653,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
 
 /* v1.4.0 Dock / Modal State Machine Refactor: final Dock/modal overrides live in assets/css/dock.css. */
 
-/* FoxBear v1.4.8 detail waveform zoom */
+/* FoxBear v1.4.10 detail waveform zoom */
 .waveform-row[data-waveform-zoom-enabled="true"] {
   position: relative;
   grid-template-columns: minmax(64px, 88px) minmax(0, 1fr);

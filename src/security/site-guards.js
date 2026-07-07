@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.4.8 - site and UI guard helpers
+// FoxBear AI Mastering Studio Pro v1.4.10 - site and UI guard helpers
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.8-dock-spectrum-cleanup';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.10-perf-polish';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

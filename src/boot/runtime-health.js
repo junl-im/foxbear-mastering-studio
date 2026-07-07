@@ -2,10 +2,12 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.8-dock-spectrum-cleanup';
+    const FALLBACK_VERSION = '1.4.10-perf-polish';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
+        'FoxBearPerformanceDiagnostics.collectSnapshot',
+        'FoxBearPerformanceDiagnostics.getSummary',
         'FoxBearCoreUtils',
         'FoxBearRecommendationEngine.createRecommendationEngine',
         'FoxBearMasteringInspector',

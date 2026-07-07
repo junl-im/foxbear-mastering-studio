@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const must = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.8 Dock FFT removal stability smoke: ${message}`);
+    console.error(`FAIL v1.4.10 Dock FFT removal stability smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -20,17 +20,17 @@ const spectrum = read('src/ui/spectrum-visualizer.js');
 const spectrumCss = read('assets/css/spectrum-visualizer.css');
 const mobileCss = read('assets/css/mobile-native.css');
 const runtime = read('src/boot/runtime-health.js');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.8.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.10.md');
 const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const changelog = read('CHANGELOG.md');
 
-must(pkg.version === '1.4.8', 'package version should be 1.4.8');
-must(pkg.name.includes('v1-4-8'), 'package name should be updated for v1.4.8');
-must(index.includes('data-build="1.4.8"'), 'index build marker should be 1.4.8');
-must(app.includes("const APP_VERSION = 'Pro v1.4.8'"), 'app version should be Pro v1.4.8');
-must(index.includes('1.4.8-dock-spectrum-cleanup'), 'index should use v1.4.8 cache key');
-must(sw.includes('foxbear-shell-v1.4.8-dock-spectrum-cleanup'), 'service worker should use v1.4.8 cache key');
+must(pkg.version === '1.4.10', 'package version should be 1.4.10');
+must(pkg.name.includes('v1-4-10'), 'package name should be updated for v1.4.10');
+must(index.includes('data-build="1.4.10"'), 'index build marker should be 1.4.10');
+must(app.includes("const APP_VERSION = 'Pro v1.4.10'"), 'app version should be Pro v1.4.10');
+must(index.includes('1.4.10-perf-polish'), 'index should use v1.4.10 cache key');
+must(sw.includes('foxbear-shell-v1.4.10-perf-polish'), 'service worker should use v1.4.10 cache key');
 
 must(!index.includes('id="bottomPreviewSpectrum"'), 'Dock mini FFT host should be removed from index');
 must(!app.includes('bottomPreviewSpectrum'), 'Dock mini FFT element should not be cached in app refs');
@@ -45,14 +45,14 @@ must(runtime.includes('FoxBearSpectrumVisualizer.renderPanel'), 'runtime health 
 must(spectrum.includes('if (!hasRenderableCanvas())') && spectrum.includes('return false;'), 'live FFT should bail out when no canvas is mounted');
 must(spectrum.includes('function getDiagnostics'), 'spectrum diagnostics should remain');
 
-must(mobileCss.includes('v1.4.8: align the floating settings gear'), 'PC settings gear alignment patch should be present');
+must(mobileCss.includes('v1.4.10: align the floating settings gear'), 'PC settings gear alignment patch should be present');
 must(mobileCss.includes('display: inline-flex !important') && mobileCss.includes('justify-content: center !important'), 'settings gear should be centered by CSS');
 must(mobileCss.includes('@media (min-width: 721px)') && mobileCss.includes('env(safe-area-inset-left'), 'desktop settings gear safe-area alignment should be present');
 
 must(matrix.includes('#bottomPreviewSpectrum') && matrix.includes('should not exist'), 'QA matrix should document Dock FFT removal');
 must(handoff.includes('Dock FFT removal') && handoff.includes('settings gear'), 'handoff should mention Dock FFT removal and settings gear');
 must(notes.includes('Dock mini FFT was removed'), 'project notes should record Dock FFT removal decision');
-must(changelog.includes('v1.4.8') && changelog.includes('Dock FFT removal'), 'changelog should include v1.4.8 Dock FFT removal entry');
-must(pkg.qaChecks.includes('node qa/v147_dock_fft_removal_stability_smoke.js'), 'v1.4.8 smoke should run in npm check');
+must(changelog.includes('v1.4.10') && changelog.includes('Dock FFT removal'), 'changelog should include v1.4.10 Dock FFT removal entry');
+must(pkg.qaChecks.includes('node qa/v147_dock_fft_removal_stability_smoke.js'), 'v1.4.10 smoke should run in npm check');
 
-console.log('PASS v1.4.8 Dock FFT removal stability smoke');
+console.log('PASS v1.4.10 Dock FFT removal stability smoke');

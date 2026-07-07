@@ -19,13 +19,13 @@ const sw = read('sw.js');
 const spectrum = read('src/ui/spectrum-visualizer.js');
 const spectrumCss = read('assets/css/spectrum-visualizer.css');
 const studioCss = read('assets/css/studio.css');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.8.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.10.md');
 
-must(pkg.version === '1.4.8', 'package version should be 1.4.8');
-must(app.includes("const APP_VERSION = 'Pro v1.4.8'"), 'app version should be Pro v1.4.8');
-must(index.includes('data-build="1.4.8"'), 'index build marker should be 1.4.8');
-must(index.includes('1.4.8-dock-spectrum-cleanup'), 'index asset key should be v1.4.8 cache key');
-must(sw.includes('foxbear-shell-v1.4.8-dock-spectrum-cleanup'), 'service worker cache should be bumped');
+must(pkg.version === '1.4.10', 'package version should be 1.4.10');
+must(app.includes("const APP_VERSION = 'Pro v1.4.10'"), 'app version should be Pro v1.4.10');
+must(index.includes('data-build="1.4.10"'), 'index build marker should be 1.4.10');
+must(index.includes('1.4.10-perf-polish'), 'index asset key should be v1.4.10 cache key');
+must(sw.includes('foxbear-shell-v1.4.10-perf-polish'), 'service worker cache should be bumped');
 
 must(app.includes('PLAYBACK_CROSSFADE_MS = 96'), 'crossfade duration constant missing');
 must(app.includes('function crossfadeAudioPair'), 'crossfade pair helper missing');
@@ -35,7 +35,7 @@ must(app.includes('allowAudioElements'), 'exclusive playback should allow crossf
 must(app.includes('pendingCrossfade'), 'Dock source transition crossfade path missing');
 must(app.includes('crossfadeAudioPair(oldAudio, nextAudio)'), 'A/B switch crossfade path missing');
 
-must(!index.includes('id="bottomPreviewSpectrum"'), 'Dock mini spectrum host should be removed in v1.4.8');
+must(!index.includes('id="bottomPreviewSpectrum"'), 'Dock mini spectrum host should be removed in v1.4.10');
 must(!app.includes('bottomPreviewSpectrum'), 'Dock mini spectrum element should not be cached in app refs');
 must(!app.includes('function renderBottomMiniSpectrum'), 'Dock mini spectrum renderer should be removed');
 must(!spectrumCss.includes('.spectrum-mini-panel'), 'Dock mini spectrum CSS should be removed');
@@ -51,6 +51,6 @@ must(studioCss.includes('.waveform-zoom-controls'), 'waveform zoom CSS missing')
 ['KakaoTalk', 'Chrome Android', 'Safari iOS', 'PWA', 'beforeunload', 'popstate'].forEach(token => {
   must(matrix.includes(token), `browser back QA matrix missing ${token}`);
 });
-must(pkg.qaChecks.includes('node qa/v142_crossfade_zoom_spectrum_smoke.js'), 'v1.4.8 smoke should be in package qaChecks');
+must(pkg.qaChecks.includes('node qa/v142_crossfade_zoom_spectrum_smoke.js'), 'v1.4.10 smoke should be in package qaChecks');
 
-console.log('PASS v1.4.8 crossfade zoom spectrum smoke');
+console.log('PASS v1.4.10 crossfade zoom spectrum smoke');

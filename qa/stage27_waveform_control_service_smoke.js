@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.8-dock-spectrum-cleanup';
+const version = '1.4.10-perf-polish';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -28,7 +28,7 @@ assert(sw.includes(`./src/audio/waveform-control-service.js?v=${version}`), 'ser
 assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stage27 cache key');
 assert(pkg.includes('node --check src/audio/waveform-control-service.js'), 'package should syntax-check waveform service');
 assert(pkg.includes('node qa/stage27_waveform_control_service_smoke.js'), 'package should run Stage27 smoke');
-assert(overwrite.includes('v1.4.8'), 'overwrite default should be Stage28 or later');
+assert(overwrite.includes('v1.4.10'), 'overwrite default should be Stage28 or later');
 
 [
   'FoxBearWaveformControlService',

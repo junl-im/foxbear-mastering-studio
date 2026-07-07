@@ -7,7 +7,8 @@ set -euo pipefail
 # needing to install every previous stage in sequence.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${1:-v1.4.8}"
+# Default follows package.json (current v1.4.10) so later patch packages do not keep stale names.
+VERSION="${1:-$(node -e "const p=require('"$ROOT_DIR/package.json"'); process.stdout.write('v' + (p.version || 'dev'))")}"
 OUT_DIR="$ROOT_DIR/dist"
 WORK_DIR="$OUT_DIR/overwrite-$VERSION"
 ZIP_PATH="$OUT_DIR/foxbear-mastering-studio-$VERSION-overwrite.zip"
