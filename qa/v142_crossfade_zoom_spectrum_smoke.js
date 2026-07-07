@@ -19,13 +19,13 @@ const sw = read('sw.js');
 const spectrum = read('src/ui/spectrum-visualizer.js');
 const spectrumCss = read('assets/css/spectrum-visualizer.css');
 const studioCss = read('assets/css/studio.css');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.5.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.6.md');
 
-must(pkg.version === '1.4.5', 'package version should be 1.4.5');
-must(app.includes("const APP_VERSION = 'Pro v1.4.5'"), 'app version should be Pro v1.4.5');
-must(index.includes('data-build="1.4.5"'), 'index build marker should be 1.4.5');
-must(index.includes('1.4.5-stability-audit'), 'index asset key should be v1.4.5 cache key');
-must(sw.includes('foxbear-shell-v1.4.5-stability-audit'), 'service worker cache should be bumped');
+must(pkg.version === '1.4.6', 'package version should be 1.4.6');
+must(app.includes("const APP_VERSION = 'Pro v1.4.6'"), 'app version should be Pro v1.4.6');
+must(index.includes('data-build="1.4.6"'), 'index build marker should be 1.4.6');
+must(index.includes('1.4.6-stability-polish'), 'index asset key should be v1.4.6 cache key');
+must(sw.includes('foxbear-shell-v1.4.6-stability-polish'), 'service worker cache should be bumped');
 
 must(app.includes('PLAYBACK_CROSSFADE_MS = 96'), 'crossfade duration constant missing');
 must(app.includes('function crossfadeAudioPair'), 'crossfade pair helper missing');
@@ -52,6 +52,6 @@ must(studioCss.includes('.waveform-zoom-controls'), 'waveform zoom CSS missing')
 ['KakaoTalk', 'Chrome Android', 'Safari iOS', 'PWA', 'beforeunload', 'popstate'].forEach(token => {
   must(matrix.includes(token), `browser back QA matrix missing ${token}`);
 });
-must(pkg.qaChecks.includes('node qa/v142_crossfade_zoom_spectrum_smoke.js'), 'v1.4.5 smoke should be in package qaChecks');
+must(pkg.qaChecks.includes('node qa/v142_crossfade_zoom_spectrum_smoke.js'), 'v1.4.6 smoke should be in package qaChecks');
 
-console.log('PASS v1.4.5 crossfade zoom spectrum smoke');
+console.log('PASS v1.4.6 crossfade zoom spectrum smoke');

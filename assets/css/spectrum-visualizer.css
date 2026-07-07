@@ -1,4 +1,4 @@
-/* FoxBear v1.4.5 spectrum visualizer */
+/* FoxBear v1.4.6 spectrum visualizer */
 .spectrum-visualizer-panel {
     margin: 14px 0;
     padding: 14px;
@@ -87,7 +87,7 @@
     }
 }
 
-/* FoxBear v1.4.5 Dock mini spectrum */
+/* FoxBear v1.4.6 Dock mini spectrum */
 .bottom-preview-spectrum {
     order: 2;
     min-width: 0;

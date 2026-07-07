@@ -1,9 +1,9 @@
-# QA Report - v1.4.5 Stability Audit
+# QA Report - v1.4.6 Stability Audit
 
 - Date: 2026-07-07
 - Command: `npm run sri:update` then `npm run check`
 - Result: 123/123 PASS
-- Added checks: `qa/v145_stability_audit_smoke.js`
+- Added checks: `qa/v146_stability_audit_smoke.js`
 - Focus: FFT live routing across existing WebAudio preview graphs, Dock mini/full canvas routing, external analyser taps, cache/SRI/runtime-health coverage.
 
 ## Root cause addressed

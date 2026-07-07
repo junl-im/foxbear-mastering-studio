@@ -1,9 +1,9 @@
-// FoxBear spectrum visualizer module - v1.4.5
+// FoxBear spectrum visualizer module - v1.4.6
 // Shows the same FFT evidence used by the AI analysis as a compact realtime/static canvas.
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.4.5-stability-audit';
+    const VISUALIZER_VERSION = '1.4.6-stability-polish';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -26,7 +26,11 @@
         track: null,
         getActiveAudio: null,
         raf: 0,
+        frameFallback: false,
         live: false,
+        lastLiveValues: [],
+        lastFrameAt: 0,
+        visibilityBound: false,
         lastError: ''
     };
 
@@ -195,37 +199,54 @@
         if (state.metaNode) state.metaNode.textContent = message;
     }
 
-    function pruneMiniCanvases() {
+    function pruneDisconnectedCanvases() {
+        if (state.canvas && state.canvas.isConnected === false) state.canvas = null;
         if (!state.miniCanvases || typeof state.miniCanvases.forEach !== 'function') return;
         state.miniCanvases.forEach(canvas => {
-            if (!canvas || !canvas.isConnected) state.miniCanvases.delete(canvas);
+            if (!canvas || canvas.isConnected === false) state.miniCanvases.delete(canvas);
         });
     }
 
+    function pruneMiniCanvases() {
+        pruneDisconnectedCanvases();
+    }
+
     function hasRenderableCanvas() {
-        pruneMiniCanvases();
+        pruneDisconnectedCanvases();
         return Boolean((state.canvas && state.canvas.isConnected !== false) || state.miniCanvases.size > 0);
     }
 
     function drawEveryCanvas(values, options = {}) {
         let rendered = false;
-        rendered = drawBars(state.canvas, values, options) || rendered;
-        pruneMiniCanvases();
+        pruneDisconnectedCanvases();
+        if (state.canvas && state.canvas.isConnected !== false) rendered = drawBars(state.canvas, values, options) || rendered;
         state.miniCanvases.forEach(canvas => {
             rendered = drawBars(canvas, values, { ...options, mini: true }) || rendered;
         });
         return rendered;
     }
 
+    function isDocumentHidden() {
+        return Boolean(global.document && global.document.visibilityState === 'hidden');
+    }
+
+    function getFrameDelay() {
+        return isDocumentHidden() ? 250 : 33;
+    }
+
     function scheduleFrame(callback) {
-        if (typeof global.requestAnimationFrame === 'function') return global.requestAnimationFrame(callback);
-        return global.setTimeout(callback, 33);
+        if (!isDocumentHidden() && typeof global.requestAnimationFrame === 'function') {
+            state.frameFallback = false;
+            return global.requestAnimationFrame(callback);
+        }
+        state.frameFallback = true;
+        return global.setTimeout(() => callback(now()), getFrameDelay());
     }
 
     function cancelFrame(id) {
         if (!id) return;
-        if (typeof global.cancelAnimationFrame === 'function') global.cancelAnimationFrame(id);
-        else global.clearTimeout(id);
+        if (state.frameFallback || typeof global.cancelAnimationFrame !== 'function') global.clearTimeout(id);
+        else global.cancelAnimationFrame(id);
     }
 
     function drawStatic(track = state.track) {
@@ -301,6 +322,7 @@
 
     function activateAudio(audio, meta = {}) {
         try {
+            bindVisibilityLifecycle();
             const mergedMeta = { ...(audioMetadata.get(audio) || {}), ...(meta || {}) };
             const analyser = connectAudio(audio);
             if (!analyser) return false;
@@ -330,16 +352,33 @@
 
     function startLoop() {
         if (state.raf) cancelFrame(state.raf);
-        const tick = () => {
+        const tick = tickNow => {
             if (!state.live || !state.analyser || !state.data || !hasRenderableCanvas()) {
                 state.raf = 0;
                 return;
             }
+            const elapsed = Number(tickNow || now()) - Number(state.lastFrameAt || 0);
+            if (isDocumentHidden() && elapsed < 240) {
+                state.raf = scheduleFrame(tick);
+                return;
+            }
             const values = profileFromAnalyser(state.analyser, state.data);
+            state.lastLiveValues = values;
+            state.lastFrameAt = Number(tickNow || now());
             drawEveryCanvas(values, { focusHz: state.track?.analysis?.targetDynamicFreq || state.track?.analysis?.harshPeakHz || 0 });
             state.raf = scheduleFrame(tick);
         };
         state.raf = scheduleFrame(tick);
+    }
+
+    function bindVisibilityLifecycle() {
+        if (state.visibilityBound || !global.document || typeof global.document.addEventListener !== 'function') return;
+        state.visibilityBound = true;
+        global.document.addEventListener('visibilitychange', () => {
+            if (isDocumentHidden()) return;
+            if (state.live && state.analyser && hasRenderableCanvas()) startLoop();
+            else activateCurrentAudio();
+        });
     }
 
     function registerAudio(audio, meta = {}) {
@@ -430,6 +469,7 @@
         state.metaNode = meta;
         state.track = track;
         state.getActiveAudio = typeof options.getActiveAudio === 'function' ? options.getActiveAudio : null;
+        bindVisibilityLifecycle();
         drawStatic(track);
         setTimeout(activateCurrentAudio, 40);
         return panel;
@@ -457,10 +497,27 @@
         shell.append(label, canvas, badge);
         state.track = track;
         state.getActiveAudio = typeof options.getActiveAudio === 'function' ? options.getActiveAudio : state.getActiveAudio;
+        bindVisibilityLifecycle();
         state.miniCanvases.add(canvas);
         drawStatic(track);
         setTimeout(activateCurrentAudio, 40);
         return shell;
+    }
+
+    function getDiagnostics() {
+        pruneDisconnectedCanvases();
+        const active = getLikelyActiveAudio();
+        return Object.freeze({
+            version: VISUALIZER_VERSION,
+            live: Boolean(state.live),
+            hasAnalyser: Boolean(state.analyser),
+            contextState: state.context?.state || '',
+            hasPanelCanvas: Boolean(state.canvas && state.canvas.isConnected !== false),
+            miniCanvasCount: state.miniCanvases.size,
+            activeLabel: active?.dataset?.spectrumLabel || '',
+            lastError: state.lastError || '',
+            lastLiveValueCount: state.lastLiveValues.length
+        });
     }
 
     global.FoxBearSpectrumVisualizer = Object.freeze({
@@ -470,6 +527,7 @@
         registerAudio,
         registerExternalAnalyser,
         activateCurrentAudio,
-        drawStatic
+        drawStatic,
+        getDiagnostics
     });
 })(window);

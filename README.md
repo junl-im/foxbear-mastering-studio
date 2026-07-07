@@ -1,34 +1,24 @@
-# FoxBear AI Mastering Studio Pro v1.4.5
+# FoxBear AI Mastering Studio Pro v1.4.6
 
-## Current patch: v1.4.5 Stability Audit
+## Current patch: v1.4.6 Stability Polish
 
-This patch stabilizes the FFT visualizer after the Dock mini live-loop hotfix. The key issue was WebAudio ownership: realtime mastering preview, phone/laptop/mono preview translation, and difference listen already create `MediaElementAudioSourceNode` graphs, so the spectrum visualizer must not try to create a second source from the same audio element. v1.4.5 adds external analyser taps and routes those existing graphs into the same full/detail and Dock mini spectrum visualizer.
+This patch stabilizes the spectrum visualizer and browser exit guard after the recent FFT/live preview work. v1.4.6 keeps the external analyser taps from v1.4.5, then adds disconnected canvas pruning, hidden-tab FFT throttling, visibility recovery, runtime diagnostics, and duplicate Back-confirm debounce.
 
-- Runtime asset cache key: `1.4.5-stability-audit`
-- Main affected modules: `src/ui/spectrum-visualizer.js`, `src/app.js`, `index.html`, `sw.js`, `package.json`
-- New visualizer API: `FoxBearSpectrumVisualizer.registerExternalAnalyser()`
-- New app helpers: `createSpectrumAnalyserTap()` and `registerExternalSpectrumAnalyser()`
-- New QA: `qa/v145_stability_audit_smoke.js`
-- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.5.md`
+- Runtime asset cache key: `1.4.6-stability-polish`
+- Service worker cache: `foxbear-shell-v1.4.6-stability-polish`
+- Package version: `1.4.6`
+- New QA: `qa/v146_stability_polish_smoke.js`
+- Manual QA doc: `qa/BROWSER_BACK_QA_MATRIX_1.4.6.md`
 
-## Recent patches
+## Validation
 
-### v1.4.4 FFT Live Hotfix
+Run:
 
-Fixed the Dock mini FFT appearing static/unresponsive when no full detail spectrum panel was mounted.
+```bash
+npm run sri:update
+npm run check
+npm run package:clean
+npm run package:overwrite
+```
 
-### v1.4.3 Playback Transition Service Audit
-
-Moved crossfade behavior into `src/audio/playback-transition-service.js` and improved play rejection volume recovery.
-
-### v1.4.2 Crossfade + Waveform Zoom + Dock Mini Spectrum
-
-Dock and A/B source changes gained a short fade-out/fade-in path to reduce click/pop artifacts. Detail waveforms can be zoomed with controls plus double-tap/pinch gestures, and the Dock shows a compact live/static FFT mini spectrum.
-
-### v1.4.1 Spectrum Visualizer + Exit Guard
-
-The analysis detail view gained an FFT spectrum canvas backed by existing `analysis.spectrumProfile` data and live Web Audio analyser data when playback is active. Browser refresh/close/back protection was added with native `beforeunload` and app-level `popstate` handling.
-
-### Stage28 Waveform Control View Extraction
-
-Waveform DOM bar creation was centralized in `src/ui/waveform-control-view.js`, while `src/audio/waveform-control-service.js` remains the math/control owner for seek/playhead/peak behavior.
+Expected smoke target: `124/124 PASS`.

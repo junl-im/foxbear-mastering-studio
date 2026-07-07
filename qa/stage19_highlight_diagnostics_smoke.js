@@ -22,14 +22,14 @@ const inspector = read('src/audio/highlight-compare-inspector.js');
 const compareCss = read('assets/css/waveform-compare.css');
 const runtimeHealth = read('src/boot/runtime-health.js');
 const overwrite = read('tools/create-overwrite-zip.sh');
-const version = '1.4.5-stability-audit';
+const version = '1.4.6-stability-polish';
 
 assert(index.includes(`src/audio/highlight-compare-inspector.js?v=${version}`), 'highlight compare inspector should load from index');
 assert(sw.includes(`./src/audio/highlight-compare-inspector.js?v=${version}`), 'service worker should precache highlight compare inspector');
-assert(sw.includes(`foxbear-shell-v1.4.5-stability-audit`), 'service worker cache should use Stage19 key');
+assert(sw.includes(`foxbear-shell-v1.4.6-stability-polish`), 'service worker cache should use Stage19 key');
 assert(pkg.includes('node --check src/audio/highlight-compare-inspector.js'), 'package should syntax-check highlight compare inspector');
 assert(pkg.includes('node qa/stage19_highlight_diagnostics_smoke.js'), 'package should run Stage19 smoke');
-assert(overwrite.includes('v1.4.5'), 'overwrite package default should be Stage19');
+assert(overwrite.includes('v1.4.6'), 'overwrite package default should be Stage19');
 
 assert(inspector.includes('FoxBearHighlightCompareInspector'), 'inspector global export missing');
 assert(inspector.includes('resolveCompareWindow'), 'resolveCompareWindow missing');

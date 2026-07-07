@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.4.5 - site and UI guard helpers
+// FoxBear AI Mastering Studio Pro v1.4.6 - site and UI guard helpers
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.5-stability-audit';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.6-stability-polish';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
@@ -94,13 +94,17 @@
         installed: false,
         allowLeave: false,
         pushed: false,
+        confirmOpen: false,
         options: null
     };
 
     function installNavigationExitGuard(options = {}) {
-        if (navigationExitGuardState.installed) return true;
+        navigationExitGuardState.options = { ...(navigationExitGuardState.options || {}), ...(options || {}) };
+        if (navigationExitGuardState.installed) {
+            tryPushExitGuardState();
+            return true;
+        }
         navigationExitGuardState.installed = true;
-        navigationExitGuardState.options = options || {};
         tryPushExitGuardState();
         global.addEventListener('beforeunload', handleBeforeUnloadGuard);
         global.addEventListener('popstate', handlePopStateGuard);
@@ -135,19 +139,30 @@
 
     function handlePopStateGuard() {
         if (navigationExitGuardState.allowLeave) return;
+        if (navigationExitGuardState.confirmOpen) {
+            navigationExitGuardState.pushed = false;
+            tryPushExitGuardState();
+            return;
+        }
         if (!shouldBlockNavigation()) {
             leaveViaHistoryBack();
             return;
         }
         const message = '뒤로가기를 누르면 프로그램을 닫고 현재 작업 화면을 나갑니다. 맞습니까?';
-        const confirmed = global.confirm(message);
+        let confirmed = false;
+        navigationExitGuardState.confirmOpen = true;
+        try {
+            confirmed = global.confirm(message);
+        } finally {
+            navigationExitGuardState.confirmOpen = false;
+        }
         if (confirmed) {
             navigationExitGuardState.options?.onLeave?.();
             leaveViaHistoryBack();
             return;
         }
         navigationExitGuardState.pushed = false;
-        tryPushExitGuardState();
+        setTimeout(tryPushExitGuardState, 0);
         navigationExitGuardState.options?.onStay?.();
     }
 
@@ -185,10 +200,20 @@
         }
     }
 
+    function getNavigationExitGuardState() {
+        return Object.freeze({
+            installed: navigationExitGuardState.installed,
+            pushed: navigationExitGuardState.pushed,
+            allowLeave: navigationExitGuardState.allowLeave,
+            confirmOpen: navigationExitGuardState.confirmOpen
+        });
+    }
+
     global.FoxBearSiteGuards = Object.freeze({
         runSiteAccessGuard,
         initUiGuards,
         installNavigationExitGuard,
+        getNavigationExitGuardState,
         renderSecurityMessage,
         showDecoyPage
     });

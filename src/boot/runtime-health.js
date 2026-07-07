@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.5-stability-audit';
+    const FALLBACK_VERSION = '1.4.6-stability-polish';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -17,6 +17,7 @@
         'FoxBearWaveformControlView.createBars',
         'FoxBearSpectrumVisualizer.renderPanel',
         'FoxBearSpectrumVisualizer.renderMini',
+        'FoxBearSpectrumVisualizer.getDiagnostics',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',
@@ -26,7 +27,8 @@
         'FoxBearWaveformCompareView.renderWaveformCompareDialog',
         'FoxBearDetailPanelsView.renderQualityGatePanel',
         'FoxBearDetailView.renderDetail',
-        'FoxBearSiteGuards.runSiteAccessGuard'
+        'FoxBearSiteGuards.runSiteAccessGuard',
+        'FoxBearSiteGuards.getNavigationExitGuardState'
     ]);
     const REQUIRED_DOM_IDS = Object.freeze([
         'fileInput',
