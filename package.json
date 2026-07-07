@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-0",
   "version": "1.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage23 playback orchestration and exclusive player sync",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage24 settings overlay cleanup and floating HUD stack coordination",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -119,6 +119,7 @@
     "node qa/stage20_detail_panels_css_split_smoke.js",
     "node qa/stage21_unified_preview_system_smoke.js",
     "node qa/stage22_playback_link_audit_smoke.js",
-    "node qa/stage23_playback_orchestration_smoke.js"
+    "node qa/stage23_playback_orchestration_smoke.js",
+    "node qa/stage24_settings_overlay_cleanup_smoke.js"
   ]
 }

@@ -1,3 +1,15 @@
+## Stage24 - Settings cleanup and floating overlay coordination (2026-07-07)
+
+- Removed visible playback-link status chips such as `연동 정지` / `연동 재생` from player surfaces. Playback orchestration remains automatic and internal.
+- Cleaned the mobile `⚙️ 설정` panel so it contains real app settings only: 바로가기 추가, 외부 브라우저로 열기, 화면켜짐유지, 진동알림, 저장보호, 캐시자동정리, 성능가드, 분석캐시정리, 설정초기화, 재생복구.
+- Removed automatic highlight, A/B loop, level matching, difference-listen, and engine-safety score from the settings panel and from settings persistence. Those compare/playback concepts should live in their own panels instead of global settings.
+- Added `assets/css/components/floating-overlays.css` and `syncFloatingOverlayStack()` so toast/notification overlays move above an active processing HUD and Dock instead of covering or hiding behind them.
+- Added a settings action for `외부 브라우저로 열기`, reusing the existing download-service external-browser helper.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage24-settings-overlay-cleanup`.
+- Added `qa/stage24_settings_overlay_cleanup_smoke.js` and updated legacy QA cache-stage expectations through Stage24.
+
+QA result: `npm run check` -> 110/110 PASS.
+
 ## Stage23 - Playback orchestration and exclusive player sync (2026-07-07)
 
 - Upgraded `src/audio/playback-link-service.js` from a visual link/audit layer into an orchestration layer.
@@ -7,7 +19,7 @@
 - `bindExclusivePreview()` now delegates to the playback orchestration service instead of scanning only a limited legacy selector list.
 - Added conflict/orchestrated visual states to `assets/css/components/playback-link.css`.
 - Runtime Health now checks `FoxBearPlaybackLinkService.pauseAllExcept`.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage24-settings-overlay-cleanup`.
 - Added `qa/stage23_playback_orchestration_smoke.js`.
 
 QA result: `npm run check` -> 109/109 PASS.
@@ -19,7 +31,7 @@ QA result: `npm run check` -> 109/109 PASS.
 - Added `assets/css/components/playback-link.css` to show `연동 재생`, `연동 정지`, and active-player highlight chips so isolated players are visually connected to the whole system.
 - App boot now installs a DOM audit observer that catches future preview audio nodes and marks them as linked instead of leaving hidden standalone audio islands.
 - Runtime Health now checks `FoxBearPlaybackLinkService.registerAudio`.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage24-settings-overlay-cleanup`.
 - Added `qa/stage22_playback_link_audit_smoke.js`.
 
 QA result: `npm run check` -> 108/108 PASS.
@@ -104,7 +116,7 @@ QA target: `npm run check`.
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage24-settings-overlay-cleanup`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 

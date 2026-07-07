@@ -1,9 +1,10 @@
 // FoxBear AI Mastering Studio Pro v1.4.0 - playback link service
-// Stage23: orchestrates Dock, settings preview, comparison, and inline players so only intentional sync-pairs can play together.
+// Stage24: keeps playback orchestration automatic while removing intrusive visible status chips.
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.4.0-stage23-playback-orchestration';
+    const SERVICE_VERSION = '1.4.0-stage24-settings-overlay-cleanup';
+    const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';
     const AUDIO_SELECTOR = '.custom-player audio, .ab-switch-deck audio, .difference-preview-player audio, audio[data-preview-system]';
@@ -91,13 +92,18 @@
     }
 
     function ensureShellChip(shell) {
-        if (!shell || shell.dataset.playbackLinkChip === 'false') return null;
-        let chip = shell.querySelector(':scope > .playback-link-chip');
+        if (!shell) return null;
+        const existing = shell.querySelector?.(':scope > .playback-link-chip');
+        if (!DEBUG_VISIBLE_CHIPS || shell.dataset.playbackLinkChip === 'false') {
+            if (existing) existing.remove();
+            return null;
+        }
+        let chip = existing;
         if (!chip) {
             chip = document.createElement('span');
             chip.className = 'playback-link-chip';
-            chip.textContent = '연동 대기';
-            chip.setAttribute('aria-label', '플레이어 연동 상태');
+            chip.textContent = '자동 연동';
+            chip.setAttribute('aria-label', '플레이어 자동 연동 상태');
             shell.appendChild(chip);
         }
         return chip;
@@ -350,6 +356,7 @@
         EVENT_NAME,
         ORCHESTRATION_EVENT_NAME,
         AUDIO_SELECTOR,
+        DEBUG_VISIBLE_CHIPS,
         registerAudio,
         inferAndRegister,
         installDomAudit,

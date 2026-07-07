@@ -1711,6 +1711,7 @@ function updateProcessingHud() {
         el.processingHud.classList.remove('show');
         el.processingHud.setAttribute('aria-hidden', 'true');
         if (el.processingHudBar) el.processingHudBar.style.width = '0%';
+        syncFloatingOverlayStack();
         return;
     }
     const progress = clamp(Number(running.progress || 0), 0, 100);
@@ -1722,6 +1723,23 @@ function updateProcessingHud() {
     if (el.processingHudText) el.processingHudText.textContent = `${running.name} · ${running.report || '처리 중'} · ${visibleProgress}% 단계`;
     if (el.processingHudPercent) el.processingHudPercent.textContent = `${visibleProgress}%`;
     if (el.processingHudBar) el.processingHudBar.style.width = `${visibleProgress}%`;
+    syncFloatingOverlayStack();
+}
+
+function syncFloatingOverlayStack() {
+    const root = document.documentElement;
+    const body = document.body;
+    if (!root || !body) return;
+    const hud = el.processingHud || document.getElementById('processingHud');
+    const hudVisible = Boolean(hud && hud.classList.contains('show') && hud.getAttribute('aria-hidden') !== 'true');
+    body.classList.toggle('processing-hud-active', hudVisible);
+    if (!hudVisible) {
+        root.style.setProperty('--foxbear-processing-hud-height', '0px');
+        return;
+    }
+    const rect = hud.getBoundingClientRect ? hud.getBoundingClientRect() : { height: 0 };
+    const measured = Math.ceil(Math.max(rect.height || 0, hud.offsetHeight || 0, hud.scrollHeight || 0, 52));
+    root.style.setProperty('--foxbear-processing-hud-height', `${measured}px`);
 }
 
 const ACTION_HELP_TEXTS = {
@@ -2397,7 +2415,7 @@ function installMobileNativeGlobalListeners() {
         event.preventDefault();
         ensureMobileNativeState().deferredInstallPrompt = event;
         updateMobileNativeUi();
-        showToast('FoxBear를 홈 화면 앱처럼 설치할 수 있습니다. ⚙️ 설정에서 앱추가를 누르세요.');
+        showToast('FoxBear를 홈 화면 앱처럼 설치할 수 있습니다. ⚙️ 설정에서 바로가기 추가를 누르세요.');
     });
     window.addEventListener('appinstalled', () => {
         const mobile = ensureMobileNativeState();
@@ -2459,6 +2477,9 @@ function handleMobileNativeAction(action) {
         case 'install':
             promptInstallFoxBearPwa();
             return;
+        case 'external-browser':
+            openCurrentPageInExternalBrowser();
+            return;
         case 'wake':
             toggleFoxBearWakeLock();
             return;
@@ -2480,23 +2501,8 @@ function handleMobileNativeAction(action) {
         case 'auto-cache-clean':
             toggleUtilityFeature('autoCacheClean');
             return;
-        case 'auto-highlight':
-            toggleUtilityFeature('autoHighlightAB');
-            return;
-        case 'ab-loop':
-            toggleUtilityFeature('abLoopMode');
-            return;
-        case 'ab-level-match':
-            toggleUtilityFeature('abLevelMatch');
-            return;
-        case 'ab-difference':
-            toggleUtilityFeature('abDifferenceListen');
-            return;
         case 'smart-performance':
             toggleUtilityFeature('smartPerformanceGuard');
-            return;
-        case 'engine-safety':
-            toggleUtilityFeature('engineSafetyMeter');
             return;
     }
 }
@@ -2520,14 +2526,10 @@ function updateMobileNativeUi() {
         setMobileNativeSettingState('wake', Boolean(mobile.wakeLockActive || mobile.wakeLockDesired), supportsWakeLock() ? null : 'OFF');
         setMobileNativeSettingState('haptic', Boolean(mobile.hapticsEnabled));
         setMobileNativeSettingState('persist', mobile.storagePersisted === true, mobile.storagePersisted === null ? 'OFF' : null);
-        setMobileNativeSettingState('auto-highlight', Boolean(state.autoHighlightAB));
-        setMobileNativeSettingState('ab-loop', Boolean(state.abLoopMode));
-        setMobileNativeSettingState('ab-level-match', Boolean(state.abLevelMatch));
-        setMobileNativeSettingState('ab-difference', Boolean(state.abDifferenceListen));
         setMobileNativeSettingState('auto-cache-clean', Boolean(state.autoCacheClean));
         setMobileNativeSettingState('smart-performance', Boolean(state.smartPerformanceGuard));
-        setMobileNativeSettingState('engine-safety', Boolean(state.engineSafetyMeter));
         setMobileNativeActionState('install', mobile.installed ? 'ON' : '추가', mobile.installed);
+        setMobileNativeActionState('external-browser', '열기', false);
         setMobileNativeActionState('clear-cache', '실행', false);
         setMobileNativeActionState('reset-settings', '초기화', false);
         setMobileNativeActionState('restore', playing ? '실행' : '대기', playing);
@@ -3079,7 +3081,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage23-playback-orchestration');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage24-settings-overlay-cleanup');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -13097,6 +13099,7 @@ function showToast(message, options = {}) {
     }
     const text = String(message || '').trim();
     if (!text) return;
+    syncFloatingOverlayStack();
     target.classList.add('foxbear-toast-stack', 'show');
     target.setAttribute('role', 'status');
     target.setAttribute('aria-live', 'polite');

@@ -98,3 +98,8 @@
 body[data-playback-orchestration="active"] .playback-linked-player[data-playback-group-policy="exclusive"].playback-link-paused .playback-link-chip {
     opacity: .7;
 }
+
+/* Stage24: playback orchestration is automatic; never expose the old status chip over Dock/player UI. */
+.playback-link-chip {
+    display: none !important;
+}

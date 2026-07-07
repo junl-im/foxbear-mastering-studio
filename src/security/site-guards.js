@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage23-playback-orchestration';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.0-stage24-settings-overlay-cleanup';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

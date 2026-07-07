@@ -1,10 +1,21 @@
 # FoxBear AI Mastering Studio Pro v1.4.0
 
+## Current patch: v1.4.0 Stage24
+
+Stage24 cleans up the settings and overlay system. Playback orchestration remains automatic, but visible `연동 정지` status chips are removed from player surfaces. The mobile `⚙️ 설정` panel now focuses on true app settings, adds `외부 브라우저로 열기`, and removes compare-specific controls. Toast/notification layers now auto-stack above active processing HUD/Dock overlays.
+
+- Runtime asset cache key: `1.4.0-stage24-settings-overlay-cleanup`
+- New CSS: `assets/css/components/floating-overlays.css`
+- Main affected modules: `src/ui/mobile-native-view.js`, `src/settings/settings-service.js`, `src/audio/playback-link-service.js`, `src/app.js`
+- QA: 110/110 PASS
+
+# FoxBear AI Mastering Studio Pro v1.4.0
+
 ## Current patch: v1.4.0 Stage23
 
 Stage23 upgrades playback linking into playback orchestration. Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players are registered into one service so exclusive players pause each other instead of behaving like disconnected islands. Intentional sync-pairs remain allowed.
 
-- Runtime asset cache key: `1.4.0-stage23-playback-orchestration`
+- Runtime asset cache key: `1.4.0-stage24-settings-overlay-cleanup`
 - Main module: `src/audio/playback-link-service.js`
 - QA: `qa/stage23_playback_orchestration_smoke.js`
 
@@ -16,7 +27,7 @@ Stage23 adds a playback-link audit layer so Dock, mastering-settings preview, in
 
 - New playback bus: `src/audio/playback-link-service.js`
 - New linked-state UI layer: `assets/css/components/playback-link.css`
-- Runtime asset cache key: `1.4.0-stage23-playback-orchestration`
+- Runtime asset cache key: `1.4.0-stage24-settings-overlay-cleanup`
 - QA: 109/109 PASS
 
 # FoxBear AI Mastering Studio Pro v1.4.0

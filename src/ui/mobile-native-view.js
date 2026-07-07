@@ -90,17 +90,13 @@
         settingGrid.setAttribute('role', 'group');
         settingGrid.setAttribute('aria-label', '앱 설정');
         [
-            ['install', '📲', '앱추가', { actionOnly: true, stateLabel: '추가' }],
-            ['wake', '☀️', '화면유지'],
-            ['haptic', '📳', '진동피드백'],
+            ['install', '📲', '바로가기 추가', { actionOnly: true, stateLabel: '추가' }],
+            ['external-browser', '🌐', '외부 브라우저로 열기', { actionOnly: true, stateLabel: '열기' }],
+            ['wake', '☀️', '화면켜짐유지'],
+            ['haptic', '📳', '진동알림'],
             ['persist', '🛡️', '저장보호'],
-            ['auto-highlight', '✨', '자동 하이라이트'],
-            ['ab-loop', '🔁', 'A/B 루프'],
-            ['ab-level-match', '⚖️', '레벨매칭'],
-            ['ab-difference', '🧪', '차이듣기'],
             ['auto-cache-clean', '🧹', '캐시자동정리'],
             ['smart-performance', '🧠', '성능가드'],
-            ['engine-safety', '🧯', '안전점수'],
             ['clear-cache', '🗑️', '분석캐시정리', { actionOnly: true }],
             ['reset-settings', '↩️', '설정초기화', { actionOnly: true, stateLabel: '초기화' }],
             ['restore', '♻️', '재생복구', { actionOnly: true }]

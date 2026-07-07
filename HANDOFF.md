@@ -1,3 +1,20 @@
+# Stage24 handoff - Settings cleanup and floating overlay coordination
+
+- Base: v1.4.0 Stage23.
+- Keep playback orchestration active, but do not expose the old `연동 정지` / `연동 재생` chips in Dock/player UI. `FoxBearPlaybackLinkService.DEBUG_VISIBLE_CHIPS` is intentionally `false`, and existing chips are removed when state sync runs.
+- Mobile settings panel is now for real app settings only. Removed from settings: automatic highlight, A/B loop, level matching, difference-listen, and engine-safety score.
+- Renamed settings labels: `앱추가` -> `바로가기 추가`, `화면유지` -> `화면켜짐유지`, `진동피드백` -> `진동알림`.
+- Added `외부 브라우저로 열기` setting action routed through `openCurrentPageInExternalBrowser()`.
+- Added `assets/css/components/floating-overlays.css` plus `syncFloatingOverlayStack()` in `src/app.js` so toast/notification layers stack above an active processing HUD and Dock.
+- Settings persistence now stores only real app settings: `autoCacheClean`, `smartPerformanceGuard`, `hapticsEnabled`, `wakeLockDesired`, and `storagePersistRequested`.
+- QA: `npm run check` includes `qa/stage24_settings_overlay_cleanup_smoke.js` and passes 110/110.
+
+Manual checks:
+1. Play Dock/settings preview and confirm no `연동 정지` chip is visible over the player.
+2. Open `⚙️ 설정`; confirm removed compare options are gone and new labels appear.
+3. Tap `외부 브라우저로 열기`; Android should attempt an intent, iOS/unsupported browsers should show copy/instruction flow.
+4. Start a mastering/progress HUD and trigger a toast; toast should appear above the HUD/Dock stack.
+
 # Stage23 handoff - Playback orchestration and exclusive player sync
 
 - Base: v1.4.0 Stage22.
@@ -399,7 +416,7 @@ Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this 
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage23-playback-orchestration`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage24-settings-overlay-cleanup`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 

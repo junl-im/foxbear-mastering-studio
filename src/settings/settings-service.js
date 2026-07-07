@@ -7,12 +7,7 @@
 
     const DEFAULTS = Object.freeze({
         autoCacheClean: true,
-        autoHighlightAB: true,
-        abLoopMode: false,
-        abLevelMatch: false,
-        abDifferenceListen: false,
         smartPerformanceGuard: true,
-        engineSafetyMeter: true,
         hapticsEnabled: true,
         wakeLockDesired: false,
         storagePersistRequested: false
@@ -21,12 +16,7 @@
     const BOOLEAN_KEYS = Object.freeze(Object.keys(DEFAULTS));
     const STATE_KEYS = Object.freeze([
         'autoCacheClean',
-        'autoHighlightAB',
-        'abLoopMode',
-        'abLevelMatch',
-        'abDifferenceListen',
         'smartPerformanceGuard',
-        'engineSafetyMeter'
     ]);
     const MOBILE_KEYS = Object.freeze([
         'hapticsEnabled',
@@ -102,12 +92,7 @@
         const mobile = context.mobile || {};
         return sanitize({
             autoCacheClean: state.autoCacheClean,
-            autoHighlightAB: state.autoHighlightAB,
-            abLoopMode: state.abLoopMode,
-            abLevelMatch: state.abLevelMatch,
-            abDifferenceListen: state.abDifferenceListen,
             smartPerformanceGuard: state.smartPerformanceGuard,
-            engineSafetyMeter: state.engineSafetyMeter,
             hapticsEnabled: mobile.hapticsEnabled,
             wakeLockDesired: mobile.wakeLockDesired,
             storagePersistRequested: mobile.storagePersistRequested

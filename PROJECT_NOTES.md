@@ -1,3 +1,10 @@
+## Stage24 notes - Settings cleanup and floating overlay stack
+
+- Playback link service remains the owner of cross-player orchestration, but visible chips are disabled by default. Future UI should not reintroduce small status badges over Dock/player surfaces unless a debug mode is explicitly added.
+- Settings panel ownership: only durable app preferences and utility actions belong there. Compare-specific controls such as A/B loop, level matching, difference listen, and highlight selection should stay inside compare/detail/Dock contexts.
+- Floating overlay rule: when processing HUD is active, toast/notification layers should stack above it using `body.processing-hud-active` and `--foxbear-processing-hud-height`.
+- New CSS layer: `assets/css/components/floating-overlays.css`. Keep overlay z-index/anchor repairs here instead of scattering more overrides into `studio.css` or `dock.css`.
+
 ## Stage23 notes - Playback orchestration
 
 - `FoxBearPlaybackLinkService` now owns both visual linked-state and exclusive playback orchestration.
