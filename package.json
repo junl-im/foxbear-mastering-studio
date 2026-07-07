@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-0",
   "version": "1.4.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage21 unified preview system and mastering-settings player integration",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.0 Stage22 playback link audit and cross-player state sync",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -22,6 +22,7 @@
     "node --check src/recommendation/recommendation-engine.js",
     "node --check src/audio/mastering-inspector.js",
     "node --check src/audio/highlight-compare-inspector.js",
+    "node --check src/audio/playback-link-service.js",
     "node --check src/ui/modal-controller.js",
     "node --check src/ui/dock-controller.js",
     "node --check src/ui/mobile-native-view.js",
@@ -116,6 +117,7 @@
     "node qa/stage18_settings_persistence_smoke.js",
     "node qa/stage19_highlight_diagnostics_smoke.js",
     "node qa/stage20_detail_panels_css_split_smoke.js",
-    "node qa/stage21_unified_preview_system_smoke.js"
+    "node qa/stage21_unified_preview_system_smoke.js",
+    "node qa/stage22_playback_link_audit_smoke.js"
   ]
 }

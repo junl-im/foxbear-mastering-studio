@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.0-stage21-unified-preview-system';
+    const FALLBACK_VERSION = '1.4.0-stage22-playback-link-audit';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -10,6 +10,7 @@
         'FoxBearRecommendationEngine.createRecommendationEngine',
         'FoxBearMasteringInspector',
         'FoxBearHighlightCompareInspector.resolveCompareWindow',
+        'FoxBearPlaybackLinkService.registerAudio',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',

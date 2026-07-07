@@ -1,3 +1,20 @@
+# Stage22 handoff - Playback link audit and cross-player state sync
+
+- Base: v1.4.0 Stage21.
+- New module: `src/audio/playback-link-service.js`.
+- New CSS: `assets/css/components/playback-link.css`.
+- Purpose: prevent Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players from behaving like disconnected UI islands.
+- The service registers audio nodes with role/mode/track metadata and emits `foxbear:playback-link-change` whenever playback state changes.
+- The app installs a DOM audit observer during boot, so future dynamically-created `.custom-player`, `.ab-switch-deck`, and `.difference-preview-player` audio nodes are linked automatically.
+- Visual chips now show linked state such as `연동 재생` / `연동 정지` and highlight the active player shell.
+- Runtime Health checks `FoxBearPlaybackLinkService.registerAudio`.
+- QA: `npm run check` includes `qa/stage22_playback_link_audit_smoke.js` and passes 108/108.
+
+Manual checks:
+1. Open the mastering-settings preview and confirm the player shows an `연동` chip.
+2. Play Dock, settings preview, A/B switch, and difference-listen players one by one; only the active player should show the active linked state.
+3. Confirm Dock transport still pauses other preview players through existing exclusive-play behavior.
+
 ## Stage20 handoff - Detail panels and CSS component split
 
 - Base: v1.4.0 Stage19.
@@ -364,7 +381,7 @@ Continue Stage8/Stage9 with `assets/css/dock-waveform.css` separation once this 
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage21-unified-preview-system`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage22-playback-link-audit`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 

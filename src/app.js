@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.0 - Stage21 unified preview system
+// FoxBear AI Mastering Studio Pro v1.4.0 - Stage22 playback link audit
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -16,6 +16,7 @@ const {
     samplePeakMarkers
 } = FoxBearCoreUtils;
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
+const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const APP_VERSION = 'Pro v1.4.0';
@@ -358,6 +359,28 @@ function bindEmergencyUploadOnly() {
     }
 }
 
+
+function installPlaybackLinkStatusBridge() {
+    if (!FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.installDomAudit !== 'function') {
+        console.warn('FoxBear playback link service is unavailable; players will use local status only.');
+        return false;
+    }
+    const installed = FoxBearPlaybackLinkService.installDomAudit(document);
+    window.addEventListener('foxbear:playback-link-change', event => {
+        const snapshot = event?.detail?.snapshot;
+        if (!snapshot) return;
+        document.body.dataset.playbackLinkRole = snapshot.role || '';
+        document.body.dataset.playbackLinkState = snapshot.playing ? 'playing' : 'paused';
+        document.body.dataset.playbackLinkTime = String(snapshot.absoluteSec ?? '0');
+    });
+    return installed;
+}
+
+function registerPlaybackLinkedAudio(audio, meta = {}) {
+    if (!audio || !FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.registerAudio !== 'function') return null;
+    return FoxBearPlaybackLinkService.registerAudio(audio, meta);
+}
+
 function bindUploadInputEventsOnce() {
     if (el.fileDrop && el.fileInput) bindNativeUploadLabel(el.fileDrop, el.fileInput, 'file');
     if (el.folderDrop && el.folderInput) bindNativeUploadLabel(el.folderDrop, el.folderInput, 'folder');
@@ -389,6 +412,7 @@ function init() {
     runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true });
     runInitStep('설정 저장값 복원', restorePersistedSettings);
     runInitStep('Dock 리모컨 보호 이벤트', installDockRemoteDelegation);
+    runInitStep('플레이어 연동 상태 감시', installPlaybackLinkStatusBridge);
     runInitStep('슬라이더 UI', renderSliders);
     runInitStep('기능 버튼 UI', renderFeatureButtons);
     runInitStep('버튼형 팝업 보호 이벤트', bindFeatureOpenHardFallback);
@@ -977,7 +1001,10 @@ function createRealtimePreviewSystemBridge(track, audio, statusEl) {
     const peak = document.createElement('span');
     peak.className = 'realtime-system-pill';
     peak.textContent = '피크/플레이헤드 표시';
-    meta.append(pill, peak);
+    const bus = document.createElement('span');
+    bus.className = 'realtime-system-pill is-bus-linked';
+    bus.textContent = '전역 재생상태 연동';
+    meta.append(pill, peak, bus);
 
     const actions = document.createElement('div');
     actions.className = 'realtime-system-actions';
@@ -3044,7 +3071,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage21-unified-preview-system');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.0-stage22-playback-link-audit');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3268,6 +3295,24 @@ function createDifferencePreviewPlayer(track, options = {}) {
         audio.addEventListener('error', () => context && closePreviewTranslationContext(context), { once: true });
     });
 
+    registerPlaybackLinkedAudio(compareAudio, {
+        role: 'difference-compare',
+        shell: wrap,
+        trackId: track?.id || '',
+        mode,
+        label: '차이 비교',
+        absoluteStartSec: compareOffset,
+        durationSec
+    });
+    registerPlaybackLinkedAudio(originalAudio, {
+        role: 'difference-original',
+        shell: wrap,
+        trackId: track?.id || '',
+        mode: 'original',
+        label: '차이 원본',
+        absoluteStartSec: originalOffset,
+        durationSec
+    });
     wrap._foxbearPlay = playBoth;
     wrap._foxbearPause = pauseBoth;
     wrap.append(toggle, seek, time, badge, compareAudio, originalAudio);
@@ -11609,6 +11654,15 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     wrap._foxbearPause = () => {
         try { audio.pause(); } catch (error) {}
     };
+    registerPlaybackLinkedAudio(audio, {
+        role: options.playerRole || (options.waveformRole === 'dock-player' ? 'bottom-dock' : 'inline-preview'),
+        shell: wrap,
+        trackId: track?.id || '',
+        mode,
+        label: options.playerRole === 'mastering-settings-preview' ? '설정 미리듣기' : getDockModeLabel(mode),
+        absoluteStartSec: mode === 'masterPreview' ? getMasterPreviewStartSec(track) : 0,
+        durationSec: getDuration()
+    });
     wrap.append(toggle, waveform, info, audio);
     return wrap;
 }
@@ -12097,6 +12151,14 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
         }
     });
 
+    registerPlaybackLinkedAudio(audio, {
+        role: options.playerRole || 'inline-preview',
+        shell: wrap,
+        mode: options.mode || (gainDb ? 'mastered' : 'original'),
+        label: options.label || (gainDb ? '마스터 미리듣기' : '원음 미리듣기'),
+        absoluteStartSec: Number.isFinite(Number(options.absoluteStartSec)) ? Number(options.absoluteStartSec) : 0,
+        durationSec: getDuration()
+    });
     wrap.append(toggle, seek, time, loopBadge, audio);
     return wrap;
 }
@@ -12232,6 +12294,22 @@ function createABSwitchPlayer(track) {
         audio.addEventListener('ended', syncUi);
     });
 
+    registerPlaybackLinkedAudio(originalAudio, {
+        role: 'ab-switch-original',
+        shell: deck,
+        trackId: track?.id || '',
+        mode: 'original',
+        label: 'A/B 원본',
+        durationSec
+    });
+    registerPlaybackLinkedAudio(masteredAudio, {
+        role: 'ab-switch-mastered',
+        shell: deck,
+        trackId: track?.id || '',
+        mode: 'mastered',
+        label: 'A/B 마스터',
+        durationSec
+    });
     deck.append(head, controls, hint, originalAudio, masteredAudio);
     return deck;
 }

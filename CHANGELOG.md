@@ -1,3 +1,15 @@
+## Stage22 - Playback link audit and cross-player state sync (2026-07-07)
+
+- Added `src/audio/playback-link-service.js` as a small playback bus for Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players.
+- Registered integrated Dock players, settings preview players, legacy inline preview players, A/B switch audio nodes, and difference-listen audio nodes with role/mode/track metadata.
+- Added `assets/css/components/playback-link.css` to show `연동 재생`, `연동 정지`, and active-player highlight chips so isolated players are visually connected to the whole system.
+- App boot now installs a DOM audit observer that catches future preview audio nodes and marks them as linked instead of leaving hidden standalone audio islands.
+- Runtime Health now checks `FoxBearPlaybackLinkService.registerAudio`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage22-playback-link-audit`.
+- Added `qa/stage22_playback_link_audit_smoke.js`.
+
+QA result: `npm run check` -> 108/108 PASS.
+
 ## Stage20 - Detail panels extraction and component CSS split (2026-07-07)
 
 - Added `src/ui/detail-panels-view.js` and moved the detail sub-panel renderers for quality gate, A/B studio panel, master report, processing flow, engine safety, low-mono compatibility, and master comparison meters out of `src/app.js`.
@@ -78,7 +90,7 @@ QA target: `npm run check`.
 - Added local waveform seeking for non-Dock integrated players while preserving Dock waveform seek behavior.
 - Added system bridge actions: pull current Dock position into the realtime preview, send realtime preview position back to Dock, open the large waveform comparison, and jump to a strong peak.
 - Added `assets/css/components/preview-system.css` for the unified preview bridge and player styling.
-- Bumped runtime asset queries and service worker cache to `1.4.0-stage21-unified-preview-system`.
+- Bumped runtime asset queries and service worker cache to `1.4.0-stage22-playback-link-audit`.
 - Added `qa/stage21_unified_preview_system_smoke.js`.
 
 

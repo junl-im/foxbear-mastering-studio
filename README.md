@@ -1,5 +1,16 @@
 # FoxBear AI Mastering Studio Pro v1.4.0
 
+## Current patch: v1.4.0 Stage22
+
+Stage22 adds a playback-link audit layer so Dock, mastering-settings preview, inline preview, A/B switch, and difference-listen players no longer behave like disconnected standalone islands.
+
+- New playback bus: `src/audio/playback-link-service.js`
+- New linked-state UI layer: `assets/css/components/playback-link.css`
+- Runtime asset cache key: `1.4.0-stage22-playback-link-audit`
+- QA: 108/108 PASS
+
+# FoxBear AI Mastering Studio Pro v1.4.0
+
 Stage19 adds highlight compare diagnostics. The compare popup now resolves original/master-preview windows through `src/audio/highlight-compare-inspector.js`, shows an aligned-window diagnostic chip, and keeps original absolute start and master-preview local start metadata separate. Runtime asset cache key: `1.4.0-stage20-detail-panels-split`.
 
 ## Current patch: v1.4.0 Stage18

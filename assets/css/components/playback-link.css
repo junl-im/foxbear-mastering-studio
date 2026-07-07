@@ -1,0 +1,74 @@
+/* FoxBear AI Mastering Studio Pro v1.4.0 - Stage22 playback link status layer */
+.playback-linked-player {
+    position: relative;
+}
+
+.playback-link-chip {
+    position: absolute;
+    right: 8px;
+    top: -9px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 18px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, .28);
+    background: rgba(15, 23, 42, .82);
+    color: rgba(226, 232, 240, .92);
+    font-size: .64rem;
+    font-weight: 800;
+    line-height: 1;
+    pointer-events: none;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .2);
+    backdrop-filter: blur(8px);
+}
+
+.playback-link-chip[data-playback-link-state="active"] {
+    border-color: rgba(45, 212, 191, .56);
+    background: linear-gradient(135deg, rgba(20, 184, 166, .92), rgba(14, 165, 233, .84));
+    color: #ecfeff;
+}
+
+.playback-link-chip[data-playback-link-state="paused"] {
+    opacity: .82;
+}
+
+.playback-linked-player.playback-link-active {
+    outline: 1px solid rgba(45, 212, 191, .34);
+    box-shadow: 0 0 0 1px rgba(45, 212, 191, .12), 0 14px 34px rgba(14, 165, 233, .12);
+}
+
+.realtime-system-pill.is-bus-linked,
+.preview-system-connection-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 999px;
+    padding: 4px 8px;
+    border: 1px solid rgba(45, 212, 191, .28);
+    background: rgba(20, 184, 166, .12);
+    color: rgba(204, 251, 241, .94);
+    font-size: .68rem;
+    font-weight: 800;
+}
+
+.ab-switch-deck .playback-link-chip,
+.difference-preview-player .playback-link-chip {
+    top: -8px;
+    right: 10px;
+}
+
+@media (max-width: 720px) {
+    .playback-link-chip {
+        right: 5px;
+        top: -7px;
+        font-size: .58rem;
+        padding: 2px 5px;
+    }
+
+    .bottom-custom-player .playback-link-chip {
+        top: -6px;
+    }
+}
