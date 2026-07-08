@@ -39,7 +39,7 @@
 <link rel="stylesheet" href="assets/css/spectrum-visualizer.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-uCa5FpPLJqIBBPSmYjVah53MqqhTf00BBhQ1oPvun/pLuyKnzDghoIo5LkOGyul7" />
 <link rel="stylesheet" href="assets/css/export.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-9P/xpiGGxbxvzCBrO0C8efRcriAp2CnuiQR42hLW5OeerBMU6mXoQMr7ySteVqIZ" />
 <link rel="stylesheet" href="assets/css/download-dialog.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-GyvgRTymYVT5cNVVJ+qih/UNQN9vcCkziTi8XDeEAcKthYGeg/aiZ/SDaduQhuB4" />
-<link rel="stylesheet" href="assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-15T0WZCRqDS/NFX4LDlFg38ieD7V+OEbowU+EYQVlVSLk0crMY983Tu8atfLGJV+" />
+<link rel="stylesheet" href="assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix" integrity="sha384-cDZofGdTg0i3hxnxQ/Q/o0srEimcmgRP0dfyudQ56moRIsMogXieFFnpDeOO1UaL" data-cache-hotfix="bulk-hud-close" />
 <link rel="stylesheet" href="assets/css/mobile-native.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-9rQneBsdPQBqddUefdSA4owvNrETYzYcmeLBRhufGVYOK3o1ZArupXtcyEHQYqO9" />
 <link rel="stylesheet" href="assets/css/dock-ui-repair.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-CuI4jurqPOlKh0dXjXweKndqaxFWLGqG9IbIL4T6calfCrKq0sWJLp0eO9gCwvlp" />
 <link rel="stylesheet" href="assets/css/components/floating-overlays.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-8XqV1Kbbrfv+jPsJUjLpbKRoNc71fZzRieoysJ7Y/CUx3d7h+HM6/6jS1ALQ7Sgg" />
@@ -623,7 +623,7 @@
             </div>
             <div class="bulk-import-hud-percent" id="bulkImportHudPercent">0%</div>
             <button id="bulkImportHudToggle" class="bulk-import-hud-toggle" type="button" aria-expanded="true">접기</button>
-            <button id="bulkImportHudClose" class="bulk-import-hud-close" type="button">숨김</button>
+            <button id="bulkImportHudClose" class="bulk-import-hud-close" type="button" aria-label="대량 작업 HUD 숨기기">×</button>
         </div>
         <div class="bulk-import-hud-bar"><i id="bulkImportHudBar"></i></div>
         <div id="bulkImportHudList" class="bulk-import-hud-list" role="list" aria-label="대량 업로드 곡별 분석 진행 상황"></div>

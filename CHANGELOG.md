@@ -1,3 +1,10 @@
+# v1.4.26 - Bulk HUD Asset / Close Button Hotfix
+
+- Fixed a potential `assets/css/bulk-import-hud.css` stale-cache/SRI boot failure by adding a targeted cache-bust parameter to the Bulk HUD stylesheet URL while keeping the existing `v=1.4.26-wake-lock-state-sync` runtime version.
+- Service worker precache now uses the same cache-busted Bulk HUD CSS URL, avoiding old cached CSS being checked against the new stylesheet SRI.
+- Reworked the Bulk HUD close control to match the shared overlay close-button feel: circular `×`, accessible label, fixed equal dimensions, and centered inline-flex alignment.
+- Added `qa/v1427_1_bulk_hud_asset_close_hotfix_smoke.js`; final QA is now `150/150 PASS`.
+
 # v1.4.26 - Bulk Mastering HUD Continuity Patch
 
 - Extended the existing 2+ track Bulk Import HUD so it can switch into a mastering phase instead of disappearing after analysis completes.

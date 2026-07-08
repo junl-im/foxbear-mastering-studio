@@ -60,14 +60,30 @@
 }
 .bulk-import-hud-toggle,
 .bulk-import-hud-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 30px;
     border: 1px solid rgba(255,255,255,.14);
     border-radius: 999px;
-    padding: 5px 10px;
     background: rgba(255,255,255,.07);
     color: var(--ink);
-    font-size: .62rem;
     font-weight: 900;
+    line-height: 1;
+    text-align: center;
+    vertical-align: middle;
+}
+.bulk-import-hud-toggle {
+    padding: 5px 10px;
+    font-size: .62rem;
+}
+.bulk-import-hud-close {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1rem;
 }
 .bulk-import-hud-bar {
     height: 7px;
@@ -167,9 +183,9 @@ body.bottom-preview-active .bulk-import-hud {
     .bulk-import-hud-card { padding: 9px; border-radius: 18px; gap: 7px; }
     .bulk-import-hud-head { grid-template-columns: auto minmax(0,1fr) auto; }
     .bulk-import-hud-toggle,
-    .bulk-import-hud-close { min-height: 28px; padding: 4px 8px; font-size: .54rem; }
-    .bulk-import-hud-toggle { grid-column: 2; justify-self: start; }
-    .bulk-import-hud-close { grid-column: 3; justify-self: end; }
+    .bulk-import-hud-close { min-height: 28px; }
+    .bulk-import-hud-toggle { grid-column: 2; justify-self: start; padding: 4px 8px; font-size: .54rem; }
+    .bulk-import-hud-close { grid-column: 3; justify-self: end; width: 28px; min-width: 28px; height: 28px; padding: 0; font-size: .95rem; }
     .bulk-import-hud-face { width: 30px; height: 30px; }
     .bulk-import-hud-copy strong { font-size: .68rem; }
     .bulk-import-hud-copy span { font-size: .55rem; }

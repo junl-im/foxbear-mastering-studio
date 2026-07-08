@@ -1,3 +1,10 @@
+# QA Report - v1.4.26 Bulk HUD Asset / Close Button Hotfix
+
+- Final result: **150/150 PASS** via `npm run check`.
+- Verified: SRI validation, runtime/cache-bust smoke, existing bulk import/mastering HUD continuity QA, and the new Bulk HUD asset/close hotfix smoke.
+- Focus: prevent stale service-worker CSS from triggering `load-error-or-sri-block` and align the Bulk HUD close button with the shared circular overlay UI.
+- Manual test still needed: deploy over the previous build and verify Runtime Health no longer reports `assets/css/bulk-import-hud.css` as a resource failure.
+
 # QA Report - v1.4.26 Bulk Mastering HUD Continuity Patch
 
 - Final result: **149/149 PASS** via `npm run check`.

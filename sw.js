@@ -48,7 +48,7 @@ const CORE_ASSETS = [
   './assets/css/spectrum-visualizer.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/export.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/download-dialog.css?v=1.4.26-wake-lock-state-sync',
-  './assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync',
+  './assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix',
   './assets/css/mobile-native.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/dock-ui-repair.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/components/floating-overlays.css?v=1.4.26-wake-lock-state-sync',

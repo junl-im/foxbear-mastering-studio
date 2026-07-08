@@ -1,3 +1,9 @@
+# Handoff - v1.4.26 Bulk HUD Asset / Close Button Hotfix
+
+Latest hotfix addresses the reported `bulk-import-hud.css` `load-error-or-sri-block` by changing only that stylesheet URL to `?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix` and mirroring it in `sw.js`. This keeps Runtime Health version checks stable while forcing a fresh CSS cache entry.
+
+The Bulk HUD close button now uses the shared overlay-style circular `×` control with `aria-label="대량 작업 HUD 숨기기"` and fixed 30px/28px desktop/mobile centering. Key files: `index.html`, `sw.js`, `assets/css/bulk-import-hud.css`, `qa/v1427_1_bulk_hud_asset_close_hotfix_smoke.js`. QA result: `150/150 PASS`.
+
 # Handoff - v1.4.26 Bulk Mastering HUD Continuity Patch
 
 Latest patch keeps the existing large `bulkImportHud` alive across the next workflow step. For 2+ selected/all-track mastering, `beginBulkMasteringHudBatch()` calls `FoxBearBulkImportHudView.beginMasteringBatch()` so the same scrollable HUD switches from analysis counts to mastering counts.
