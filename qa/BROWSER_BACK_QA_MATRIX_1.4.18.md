@@ -4,7 +4,7 @@
 v1.4.21 keeps the v1.4.11-v1.4.17 download/share fallback stack, but makes the first download dialog shorter.
 
 ## Static expectations
-- Build markers use `1.4.23-audio-decode-memory-guard`.
+- Build markers use `1.4.24-bulk-import-hud`.
 - `FoxBearDownloadService.getDownloadDialogCompactHint()` is exposed.
 - Runtime Health checks `FoxBearDownloadService.getDownloadDialogCompactHint`.
 - Main dialog renders `.download-options-compact-hint` before warning/receipt/checklist content.

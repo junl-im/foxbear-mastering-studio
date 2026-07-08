@@ -17,11 +17,11 @@ function assert(condition, message) {
   }
 }
 
-assert(pkg.version === '1.4.23', 'package version should be 1.4.23');
-assert(pkg.name === 'foxbear-github-pro-v1-4-23', 'package name should be v1-4-23');
-assert(html.includes('data-build="1.4.23"'), 'index build should be 1.4.23');
-assert(config.includes("ASSET_VERSION = '1.4.23-audio-decode-memory-guard'"), 'asset key should be v1.4.23 bulk import guard');
-assert(sw.includes("foxbear-shell-v1.4.23-audio-decode-memory-guard"), 'service worker cache should be v1.4.23 bulk import guard');
+assert(pkg.version === '1.4.24', 'package version should be 1.4.24');
+assert(pkg.name === 'foxbear-github-pro-v1-4-24', 'package name should be v1-4-24');
+assert(html.includes('data-build="1.4.24"'), 'index build should be 1.4.24');
+assert(config.includes("ASSET_VERSION = '1.4.24-bulk-import-hud'"), 'asset key should be v1.4.24 bulk import guard');
+assert(sw.includes("foxbear-shell-v1.4.24-bulk-import-hud"), 'service worker cache should be v1.4.24 bulk import guard');
 
 assert(config.includes('IMPORT_ANALYSIS_CONCURRENCY: 1'), 'runtime config should force single analysis worker for bulk imports');
 assert(config.includes('LARGE_IMPORT_BATCH_THRESHOLD: 12'), 'runtime config should define large import threshold');

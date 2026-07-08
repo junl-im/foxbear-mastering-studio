@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.23-audio-decode-memory-guard';
+    const FALLBACK_VERSION = '1.4.24-bulk-import-hud';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -40,6 +40,7 @@
         'FoxBearDownloadService.copyDownloadDiagnostics',
         'FoxBearDownloadDialogView.showDownloadOptionsDialog',
         'FoxBearBulkImportGuard.getSnapshot',
+        'FoxBearBulkImportHud.getSnapshot',
         'FoxBearMasteringGuard.getSnapshot',
         'FoxBearRenderScheduler.getSnapshot',
         'FoxBearWaveformCompareView.renderWaveformCompareDialog',

@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const assert = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.23 audio decode memory guard smoke: ${message}`);
+    console.error(`FAIL v1.4.24 audio decode memory guard smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -20,17 +20,17 @@ const runtime = read('src/boot/runtime-health.js');
 const perf = read('src/boot/performance-diagnostics.js');
 const index = read('index.html');
 const sw = read('sw.js');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.23.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.24.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.4.23', 'package version should be 1.4.23');
-assert(pkg.name === 'foxbear-github-pro-v1-4-23', 'package name should be v1-4-23');
-assert(index.includes('data-build="1.4.23"'), 'index build marker should be 1.4.23');
-assert(config.includes("ASSET_VERSION = '1.4.23-audio-decode-memory-guard'"), 'runtime asset key should be v1.4.23');
-assert(sw.includes('foxbear-shell-v1.4.23-audio-decode-memory-guard'), 'service worker cache should use v1.4.23 key');
+assert(pkg.version === '1.4.24', 'package version should be 1.4.24');
+assert(pkg.name === 'foxbear-github-pro-v1-4-24', 'package name should be v1-4-24');
+assert(index.includes('data-build="1.4.24"'), 'index build marker should be 1.4.24');
+assert(config.includes("ASSET_VERSION = '1.4.24-bulk-import-hud'"), 'runtime asset key should be v1.4.24');
+assert(sw.includes('foxbear-shell-v1.4.24-bulk-import-hud'), 'service worker cache should use v1.4.24 key');
 
-assert(decode.includes("SERVICE_VERSION = '1.4.23-audio-decode-memory-guard'"), 'decode service should be bumped');
+assert(decode.includes("SERVICE_VERSION = '1.4.24-bulk-import-hud'"), 'decode service should be bumped');
 assert(decode.includes('const MAX_DECODE_EVENTS'), 'decode diagnostics event cap should exist');
 assert(decode.includes('activeDecodes'), 'decode diagnostics should track active decodes');
 assert(decode.includes('function getDecodedBufferSummary'), 'decode service should summarize decoded buffers');
@@ -45,11 +45,11 @@ assert(runtime.includes('FoxBearAudioDecodeService.getDiagnostics'), 'runtime he
 assert(perf.includes('audioDecode = safeCall'), 'performance diagnostics should collect decode diagnostics');
 assert(perf.includes('audio-decode-active'), 'performance summary should warn while decode is active');
 assert(perf.includes('audioDecode:'), 'performance summary should expose audio decode status');
-assert(index.includes('src/audio/audio-decode-service.js?v=1.4.23-audio-decode-memory-guard'), 'index should load versioned decode service');
-assert(sw.includes('./src/audio/audio-decode-service.js?v=1.4.23-audio-decode-memory-guard'), 'service worker should precache decode service');
-assert(pkg.qaChecks.includes('node qa/v1423_audio_decode_memory_guard_smoke.js'), 'package QA should include v1.4.23 smoke');
-assert(matrix.includes('Audio Decode Memory Guard'), 'matrix should document v1.4.23 audio decode guard scope');
-assert(qaReport.includes('144/144 PASS') || qaReport.includes('v1.4.23 final QA'), 'QA report should mention v1.4.23 final QA');
-assert(changelog.includes('v1.4.23'), 'changelog should mention v1.4.23');
+assert(index.includes('src/audio/audio-decode-service.js?v=1.4.24-bulk-import-hud'), 'index should load versioned decode service');
+assert(sw.includes('./src/audio/audio-decode-service.js?v=1.4.24-bulk-import-hud'), 'service worker should precache decode service');
+assert(pkg.qaChecks.includes('node qa/v1423_audio_decode_memory_guard_smoke.js'), 'package QA should include v1.4.24 smoke');
+assert(matrix.includes('Audio Decode Memory Guard'), 'matrix should document v1.4.24 audio decode guard scope');
+assert(qaReport.includes('144/144 PASS') || qaReport.includes('v1.4.24 final QA'), 'QA report should mention v1.4.24 final QA');
+assert(changelog.includes('v1.4.24'), 'changelog should mention v1.4.24');
 
-console.log('PASS v1.4.23 audio decode diagnostics and memory guard smoke');
+console.log('PASS v1.4.24 audio decode diagnostics and memory guard smoke');

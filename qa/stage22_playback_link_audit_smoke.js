@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.23-audio-decode-memory-guard';
+const version = '1.4.24-bulk-import-hud';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -49,6 +49,6 @@ assert(css.includes('.playback-link-active'), 'CSS should show active linked pla
 assert(runtime.includes('FoxBearPlaybackLinkService.registerAudio'), 'runtime health should require playback link service');
 assert(pkg.includes('node --check src/audio/playback-link-service.js'), 'package should syntax-check playback link service');
 assert(pkg.includes('node qa/stage22_playback_link_audit_smoke.js'), 'package should include Stage23 smoke');
-assert(overwrite.includes('v1.4.23'), 'overwrite package default should be Stage23');
+assert(overwrite.includes('v1.4.24'), 'overwrite package default should be Stage23');
 
 console.log('PASS stage22 playback link audit smoke');

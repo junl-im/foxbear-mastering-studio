@@ -1,5 +1,16 @@
+## v1.4.24 - Bulk Import HUD
 
-## v1.4.23 - Audio Decode Memory Guard
+- Added a dedicated scrollable Bulk Import HUD for 2+ track imports.
+- The HUD shows overall percent, completed/active/pending/error counts, and one row per imported song.
+- 35-track PC imports keep the v1.4.20 safe sequential analysis queue, but now the user can see where the batch is.
+- Added collapse and hide controls for the current batch HUD.
+- Added `FoxBearBulkImportHud.getSnapshot()` and performance diagnostics integration.
+- Runtime Health now checks `FoxBearBulkImportHud.getSnapshot`.
+- Added `qa/v1424_bulk_import_hud_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.24.md`.
+- Final QA target: 146/146 PASS.
+
+
+## v1.4.24 - Audio Decode Memory Guard
 
 - Added audio decode diagnostics in `FoxBearAudioDecodeService.getDiagnostics()`.
 - Tracks active/completed/failed decodes, recent decode events, last decoded PCM size, and last error.
@@ -9,14 +20,14 @@
 - v1.4.22 mastering queue throttle, v1.4.21 render scheduler, and 35-track sequential import guard remain carried forward.
 - Dock FFT removal carry-forward: Dock mini FFT remains removed and detail-only spectrum stays available.
 
-## v1.4.23 - Mastering Queue Throttle / Diagnostics
+## v1.4.24 - Mastering Queue Throttle / Diagnostics
 
 - Added `FoxBearMasteringGuard.getSnapshot()` for active mastering diagnostics.
 - `setMasteringProgress()` now uses `scheduleRenderAll('mastering-progress', ...)` so every 5% progress step does not force an immediate full render.
 - Mastering final UI refresh still flushes immediately through `scheduleRenderAll('mastering-final', { immediate: true })`.
 - Added explicit transient buffer cleanup in the mastering `finally` path.
 - Performance diagnostics now include `masteringQueue` and a `mastering-active` warning.
-- Added `qa/v1422_mastering_queue_throttle_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.23.md`.
+- Added `qa/v1422_mastering_queue_throttle_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.24.md`.
 - v1.4.21 render scheduler, silent wake-lock import, stable analysis cache key, and audio decode service carry forward.
 
 
@@ -38,7 +49,7 @@
 - Kept `getDownloadDialogCompactHint()` and all diagnostics/checklist copy tools as fallback support behind `추가 옵션`.
 - App download dialog dependencies now pass receipt/checklist/compact-hint/display-profile helpers explicitly.
 - Runtime Health now checks the dialog display profile helper.
-- Updated cache key to `1.4.23-audio-decode-memory-guard`.
+- Updated cache key to `1.4.24-bulk-import-hud`.
 
 ## v1.4.17 - Download recovery compact polish
 - Added `FoxBearDownloadService.getDownloadCompactRecoveryPlan()` for a shorter user-facing save order.
@@ -169,12 +180,12 @@ renderMini cleanup carry-forward: v1.4.21 keeps the removed Dock mini spectrum A
 Download dialog carry-forward: `getDownloadDialogCompactHint` and `getDownloadDialogDisplayProfile` remain active in v1.4.21.
 
 
-## v1.4.23 carry-forward anchors
+## v1.4.24 carry-forward anchors
 
 Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
 
 
-### v1.4.23 Carry-forward QA anchors
+### v1.4.24 Carry-forward QA anchors
 - Dock FFT removal remains intact; `#bottomPreviewSpectrum` is absent and detail-only FFT stays on the detail analysis screen.
 - `renderMini` remains removed from Dock spectrum cleanup.
 - Performance diagnostics and Packaging polish are retained with adaptive refresh and copy/복사 flows.

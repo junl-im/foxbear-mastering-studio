@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.23 - mastering queue throttle and resource polish
+// FoxBear AI Mastering Studio Pro v1.4.24 - bulk progress HUD polish
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -19,7 +19,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const APP_VERSION = 'Pro v1.4.23';
+const APP_VERSION = 'Pro v1.4.24';
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
     MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
@@ -57,7 +57,9 @@ const {
     IMPORT_ANALYSIS_CONCURRENCY = 1,
     LARGE_IMPORT_BATCH_THRESHOLD = 12,
     IMPORT_QUEUE_YIELD_MS = 90,
-    MASTERING_PROGRESS_RENDER_DELAY_MS = 110
+    MASTERING_PROGRESS_RENDER_DELAY_MS = 110,
+    BULK_IMPORT_HUD_MIN_TRACKS = 2,
+    BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
 const TRUSTED_SCRIPT_PATHS = Object.freeze(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [
     WAV_ENCODER_WORKER_URL,
@@ -77,6 +79,8 @@ const SAFE_IMPORT_ANALYSIS_CONCURRENCY = Math.max(1, Math.min(2, Number(IMPORT_A
 const SAFE_LARGE_IMPORT_BATCH_THRESHOLD = Math.max(4, Number(LARGE_IMPORT_BATCH_THRESHOLD) || 12);
 const SAFE_IMPORT_QUEUE_YIELD_MS = Math.max(30, Number(IMPORT_QUEUE_YIELD_MS) || 90);
 const SAFE_MASTERING_PROGRESS_RENDER_DELAY_MS = Math.max(60, Number(MASTERING_PROGRESS_RENDER_DELAY_MS) || 110);
+const SAFE_BULK_IMPORT_HUD_MIN_TRACKS = Math.max(2, Number(BULK_IMPORT_HUD_MIN_TRACKS) || 2);
+const SAFE_BULK_IMPORT_HUD_DONE_HOLD_MS = Math.max(3000, Number(BULK_IMPORT_HUD_DONE_HOLD_MS) || 15000);
 const importAnalysisQueue = [];
 const importAnalysisQueuedIds = new Set();
 let importAnalysisActiveCount = 0;
@@ -501,6 +505,7 @@ function init() {
     runInitStep('기본 프리셋', () => applyPresetToControlsOnly('custom'));
     runInitStep('피치/속도 컨트롤', () => setTransformControls(DEFAULT_TRANSFORM));
     runInitStep('악기 레이어 컨트롤', () => setInstrumentControls(DEFAULT_INSTRUMENT_LAYER));
+    runInitStep('대량 작업 HUD', initBulkImportHudEvents);
     runInitStep('화면 렌더링', renderAll);
     runInitStep('UI 보호 이벤트', initUiGuards);
     runInitStep('나가기/새로고침 보호', initNavigationExitGuard);
@@ -524,6 +529,7 @@ function cacheElements() {
         'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
+        'bulkImportHud', 'bulkImportHudTitle', 'bulkImportHudText', 'bulkImportHudPercent', 'bulkImportHudBar', 'bulkImportHudList', 'bulkImportHudToggle', 'bulkImportHudClose',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
         'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'genreLockBtn', 'clearCacheBtn',
@@ -1789,15 +1795,25 @@ function syncFloatingOverlayStack() {
     const body = document.body;
     if (!root || !body) return;
     const hud = el.processingHud || document.getElementById('processingHud');
+    const bulkHud = el.bulkImportHud || document.getElementById('bulkImportHud');
     const hudVisible = Boolean(hud && hud.classList.contains('show') && hud.getAttribute('aria-hidden') !== 'true');
+    const bulkVisible = Boolean(bulkHud && bulkHud.classList.contains('show') && bulkHud.getAttribute('aria-hidden') !== 'true');
     body.classList.toggle('processing-hud-active', hudVisible);
+    body.classList.toggle('bulk-import-hud-active', bulkVisible);
     if (!hudVisible) {
         root.style.setProperty('--foxbear-processing-hud-height', '0px');
+    } else {
+        const rect = hud.getBoundingClientRect ? hud.getBoundingClientRect() : { height: 0 };
+        const measured = Math.ceil(Math.max(rect.height || 0, hud.offsetHeight || 0, hud.scrollHeight || 0, 52));
+        root.style.setProperty('--foxbear-processing-hud-height', `${measured}px`);
+    }
+    if (!bulkVisible) {
+        root.style.setProperty('--foxbear-bulk-import-hud-height', '0px');
         return;
     }
-    const rect = hud.getBoundingClientRect ? hud.getBoundingClientRect() : { height: 0 };
-    const measured = Math.ceil(Math.max(rect.height || 0, hud.offsetHeight || 0, hud.scrollHeight || 0, 52));
-    root.style.setProperty('--foxbear-processing-hud-height', `${measured}px`);
+    const bulkRect = bulkHud.getBoundingClientRect ? bulkHud.getBoundingClientRect() : { height: 0 };
+    const bulkMeasured = Math.ceil(Math.max(bulkRect.height || 0, bulkHud.offsetHeight || 0, bulkHud.scrollHeight || 0, 80));
+    root.style.setProperty('--foxbear-bulk-import-hud-height', `${bulkMeasured}px`);
 }
 
 const ACTION_HELP_TEXTS = {
@@ -3166,7 +3182,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.23-audio-decode-memory-guard');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.24-bulk-import-hud');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3975,6 +3991,47 @@ function updateImportStatus(message, tone = 'info') {
     target.dataset.tone = tone || 'info';
 }
 
+function getBulkImportHudView() {
+    const view = window.FoxBearBulkImportHudView;
+    if (!view || typeof view.update !== 'function') return null;
+    return view;
+}
+function getBulkImportHudDeps() {
+    return {
+        el,
+        state,
+        clamp,
+        statusLabel,
+        syncFloatingOverlayStack,
+        minTracks: SAFE_BULK_IMPORT_HUD_MIN_TRACKS,
+        doneHoldMs: SAFE_BULK_IMPORT_HUD_DONE_HOLD_MS,
+        getLargeBatchThreshold: () => SAFE_LARGE_IMPORT_BATCH_THRESHOLD
+    };
+}
+function initBulkImportHudEvents() {
+    const view = getBulkImportHudView();
+    if (!view || typeof view.init !== 'function') return null;
+    view.init(getBulkImportHudDeps());
+    return view;
+}
+function beginBulkImportHudBatch(tracks, options = {}) {
+    const view = getBulkImportHudView();
+    if (!view || typeof view.beginBatch !== 'function') return null;
+    view.configure?.(getBulkImportHudDeps());
+    return view.beginBatch(tracks, options);
+}
+function updateBulkImportHud() {
+    const view = getBulkImportHudView();
+    if (!view || typeof view.update !== 'function') return null;
+    view.configure?.(getBulkImportHudDeps());
+    return view.update();
+}
+
+function getBulkImportHudSnapshot() {
+    const view = getBulkImportHudView();
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.4.24-bulk-import-hud', total: 0, pending: 0, active: 0, fallback: true });
+}
+
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
 }
@@ -4227,8 +4284,10 @@ function updateImportAnalysisQueueStatus(context = '') {
     const snapshot = getImportAnalysisQueueSnapshot(); const totalWorking = snapshot.active + snapshot.pending;
     if (!totalWorking) {
         if (context === 'complete') updateImportStatus('대량 업로드 분석 대기열 완료', 'ready');
+        updateBulkImportHud();
         return snapshot;
     }
+    updateBulkImportHud();
     updateImportStatus(`분석 대기열 진행 중 · 실행 ${snapshot.active} / 대기 ${snapshot.pending}${context ? ` · ${context}` : ''}`, 'active');
     return snapshot;
 }
@@ -4313,7 +4372,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.4.23-audio-decode-memory-guard',
+        version: '1.4.24-bulk-import-hud',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4354,7 +4413,7 @@ function markMasteringQueueEnd(track, status = 'done') {
 }
 
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.4.23-audio-decode-memory-guard',
+    version: '1.4.24-bulk-import-hud',
     getSnapshot: getMasteringQueueSnapshot
 });
 
@@ -4434,6 +4493,7 @@ async function handleFiles(fileList) {
 
     clearFileInputs();
     if (added) {
+        beginBulkImportHudBatch(addedTracks, { largeBatch, skippedByLimit });
         scheduleRenderAll('import-register', { keepDetailAudio: true, immediate: !largeBatch, delayMs: largeBatch ? 120 : 0 });
         queueTracksForAnalysis(addedTracks, { largeBatch, skippedByLimit });
         const queueText = largeBatch
@@ -4526,7 +4586,11 @@ function createTrack(file) {
         masterPreviewUrl: null,
         masterPreviewInfo: null,
         masterPreviewStatus: 'idle',
-        analysisPromise: null
+        analysisPromise: null,
+        bulkImportBatchId: '',
+        bulkImportOrder: 0,
+        bulkImportTotal: 0,
+        bulkImportLargeBatch: false
     };
 }
 
@@ -10357,6 +10421,7 @@ function renderAll(options = {}) {
     renderBottomPreviewDock(options);
     updateRealtimePreviewSettings();
     updateProcessingHud();
+    updateBulkImportHud();
     updateMobileNativeUi();
     syncEnhancedSelectButtons();
 }
@@ -13652,7 +13717,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.4.23',
+        app: 'FoxBear AI Mastering Studio Pro v1.4.24',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

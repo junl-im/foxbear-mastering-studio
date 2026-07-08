@@ -1,3 +1,39 @@
+# FoxBear Browser Back QA Matrix v1.4.24 - Bulk Import HUD
+
+## New v1.4.24 Scope
+
+v1.4.24 adds a dedicated **Bulk Import HUD** for imports of 2 or more files. It targets the user report that 35곡 PC imports need a taller, scrollable list with per-song progress instead of a single vague HUD/toast.
+
+## Expected Bulk Import HUD behavior
+
+| Scenario | Expected result |
+| --- | --- |
+| Import 1 file | Existing single-track flow remains: analysis runs and recommendation selection popup can appear. Bulk Import HUD stays hidden. |
+| Import 2 files | Bulk Import HUD appears with overall percent, done/active/pending/error counts, and one row per file. |
+| Import 12+ files | Large-batch safe mode remains active and Bulk Import HUD shows a vertically bounded scroll list. |
+| Import 35 files on PC / PC 35곡 import | Registration happens once, analysis remains sequential, and the HUD shows 35 rows in order with 스크롤 support. |
+| Long file names | Row text truncates with ellipsis; status badge, progress meter, and percent remain visible. |
+| Analysis in progress | Active row shows analyzing/report text; overall header shows active and pending counts. |
+| Per-file decode/analysis error | Error row remains visible and the total error count increases; other files continue. |
+| Batch complete | HUD shows completion briefly, then can disappear after the hold window or be hidden manually. |
+| Toggle list | `접기` hides row list; `목록 보기` restores scrollable list. |
+| Hide HUD | `숨김` dismisses only the current batch HUD; a new import batch can show it again. |
+| Dock/processing HUD visible | Bulk HUD stacks above the processing HUD/Dock safe area and does not cover the bottom player. |
+| Performance diagnostics | `FoxBearBulkImportHud.getSnapshot()` and `?perf=1` expose bulk HUD state. |
+
+## Static QA anchors for v1.4.24
+
+- `bulkImportHud`, `bulkImportHudList`, `bulkImportHudToggle`, `bulkImportHudClose` exist in `index.html`.
+- `FoxBearBulkImportHudView.beginBatch()` assigns `bulkImportBatchId`, `bulkImportOrder`, and `bulkImportTotal` to each imported track.
+- `FoxBearBulkImportHudView.update()` renders a list row per imported track without `innerHTML`.
+- `.bulk-import-hud-list` is bounded and scrollable.
+- Runtime health requires `FoxBearBulkImportHud.getSnapshot`.
+- Performance diagnostics collects `bulkImportHud` state and warns with `bulk-import-hud-active`.
+
+## Manual QA notes
+
+Actual 35-track PC import, long-list scrolling, and bottom Dock stacking should be verified on a real browser/device. This environment validates static wiring, SRI, syntax, and automated smoke tests only.
+
 # v1.4.24 Mastering Queue Throttle QA Matrix
 
 Scope: mastering progress render throttling, queue diagnostics, and v1.4.21 bulk import carry-forward.

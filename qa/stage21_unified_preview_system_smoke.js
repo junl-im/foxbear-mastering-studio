@@ -18,7 +18,7 @@ const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
 const overwrite = read('tools/create-overwrite-zip.sh');
-const version = '1.4.23-audio-decode-memory-guard';
+const version = '1.4.24-bulk-import-hud';
 
 assert(index.includes(`assets/css/components/preview-system.css?v=${version}`), 'index should load preview-system.css with Stage21 cache key');
 assert(sw.includes(`./assets/css/components/preview-system.css?v=${version}`), 'service worker should precache preview-system.css');
@@ -36,7 +36,7 @@ assert(css.includes('.realtime-dock-linked-player'), 'preview system CSS should 
 assert(css.includes('.realtime-system-bridge'), 'preview system CSS should style bridge actions');
 assert(!app.includes("createPreviewPlayer(track.originalUrl, 0, track.analysis?.duration, state.abLoopMode, getTrackHighlightStart(track), { translationMode: false })"), 'legacy realtime createPreviewPlayer call should be removed');
 assert(index.includes(version), 'index should use Stage21 asset version');
-assert(overwrite.includes('v1.4.23'), 'overwrite package default should be Stage21');
+assert(overwrite.includes('v1.4.24'), 'overwrite package default should be Stage21');
 assert(pkg.includes('node qa/stage21_unified_preview_system_smoke.js'), 'package should include Stage21 smoke');
 
 console.log('PASS stage21 unified preview system smoke');

@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.23-audio-decode-memory-guard';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.24-bulk-import-hud';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

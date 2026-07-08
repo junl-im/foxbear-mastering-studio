@@ -1,11 +1,21 @@
-## v1.4.23 - Mastering Queue Throttle
+## v1.4.24 - Bulk Import HUD
 
-Current patch: **v1.4.23 Mastering Queue Throttle**.
+Current patch: **v1.4.24 Bulk Import HUD**.
+
+This patch adds a long, scrollable, multi-track HUD for imports of 2 or more files. A 35-track PC batch now keeps sequential analysis safety while showing each song row with status, progress, and error state.
+
+- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.24-release.zip`
+- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.24-overwrite.zip`
+- QA: `146/146 PASS`
+
+## v1.4.24 - Mastering Queue Throttle
+
+Current patch: **v1.4.24 Mastering Queue Throttle**.
 
 This patch keeps v1.4.21's 35-track import protection and adds a lighter mastering progress path. Progress updates are still visible, but they are scheduled through the render scheduler instead of forcing a full `renderAll()` for every progress step. Use `?perf=1` or `FoxBearMasteringGuard.getSnapshot()` to inspect active mastering state.
 
-- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.23-release.zip`
-- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.23-overwrite.zip`
+- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.24-release.zip`
+- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.24-overwrite.zip`
 
 
 ### v1.4.21 performance diagnostics
@@ -75,17 +85,17 @@ v1.4.21 detail-only FFT note: Dock mini FFT remains removed; detail-only FFT rem
 Download dialog micro hint carry-forward: v1.4.21 keeps the short first-screen download hint while advanced diagnostics stay under additional options.
 
 
-## v1.4.23 carry-forward anchors
+## v1.4.24 carry-forward anchors
 
 Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
 
 
-## v1.4.23 Carry-forward notes
+## v1.4.24 Carry-forward notes
 - Spectrum remains detail-only; Dock mini FFT stays removed.
 - Performance diagnostics remains available with Ctrl/Command + Alt + P, getSummary, and 복사 controls.
 - Download/share dialog keeps compact hints, additional options, and diagnostics copy flows.
 
-## v1.4.23 - Audio Decode Memory Guard
+## v1.4.24 - Audio Decode Memory Guard
 
 - Added audio decode diagnostics in `FoxBearAudioDecodeService.getDiagnostics()`.
 - Tracks active/completed/failed decodes, recent decode events, last decoded PCM size, and last error.

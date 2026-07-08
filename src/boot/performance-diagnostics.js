@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.4.23-audio-decode-memory-guard';
+    const DIAGNOSTICS_VERSION = '1.4.24-bulk-import-hud';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -116,6 +116,7 @@
         if (snapshot.dom.canvases > 6) warnings.push('many-canvas-nodes');
         if (snapshot.runtime && !snapshot.runtime.ok) warnings.push('runtime-health-check');
         if ((snapshot.importQueue?.active || 0) + (snapshot.importQueue?.pending || 0) > 0) warnings.push('bulk-import-active');
+        if (snapshot.bulkImportHud && snapshot.bulkImportHud.total >= 2 && !snapshot.bulkImportHud.complete) warnings.push('bulk-import-hud-active');
         if ((snapshot.audioDecode?.activeDecodes || 0) > 0) warnings.push('audio-decode-active');
         if ((snapshot.audioDecode?.failedCount || 0) > 0 && snapshot.audioDecode?.lastError) warnings.push('audio-decode-last-error');
         if ((snapshot.masteringQueue?.active || 0) > 0) warnings.push('mastering-active');
@@ -132,6 +133,7 @@
             canvases: snapshot.dom.canvases,
             spectrumPanels: snapshot.dom.spectrumPanels,
             importQueue: snapshot.importQueue ? { active: snapshot.importQueue.active || 0, pending: snapshot.importQueue.pending || 0 } : null,
+            bulkImportHud: snapshot.bulkImportHud ? { total: snapshot.bulkImportHud.total || 0, done: snapshot.bulkImportHud.done || 0, percent: snapshot.bulkImportHud.percent || 0, expanded: Boolean(snapshot.bulkImportHud.expanded) } : null,
             audioDecode: snapshot.audioDecode ? { active: snapshot.audioDecode.activeDecodes || 0, completedCount: snapshot.audioDecode.completedCount || 0, failedCount: snapshot.audioDecode.failedCount || 0, lastDecodedPcmMB: snapshot.audioDecode.lastDecodedPcmMB || 0 } : null,
             masteringQueue: snapshot.masteringQueue ? { active: snapshot.masteringQueue.active || 0, completedCount: snapshot.masteringQueue.completedCount || 0, failedCount: snapshot.masteringQueue.failedCount || 0 } : null,
             renderQueuePending: Boolean(snapshot.renderScheduler?.pending),
@@ -152,6 +154,7 @@
         const navigationGuard = safeCall(() => global.FoxBearSiteGuards?.getNavigationExitGuardState?.(), null);
         const playback = safeCall(() => global.FoxBearPlaybackLinkService?.getOrchestrationSnapshot?.(), null);
         const importQueue = safeCall(() => global.FoxBearBulkImportGuard?.getSnapshot?.(), null);
+        const bulkImportHud = safeCall(() => global.FoxBearBulkImportHud?.getSnapshot?.(), null);
         const audioDecode = safeCall(() => global.FoxBearAudioDecodeService?.getDiagnostics?.(), null);
         const renderScheduler = safeCall(() => global.FoxBearRenderScheduler?.getSnapshot?.(), null);
         const masteringQueue = safeCall(() => global.FoxBearMasteringGuard?.getSnapshot?.(), null);
@@ -176,6 +179,7 @@
             spectrum,
             navigationGuard,
             importQueue,
+            bulkImportHud,
             audioDecode,
             masteringQueue,
             renderScheduler,

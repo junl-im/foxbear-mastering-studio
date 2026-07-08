@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const assert = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.23 mastering queue throttle smoke: ${message}`);
+    console.error(`FAIL v1.4.24 mastering queue throttle smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -19,15 +19,15 @@ const runtime = read('src/boot/runtime-health.js');
 const perf = read('src/boot/performance-diagnostics.js');
 const index = read('index.html');
 const sw = read('sw.js');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.23.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.24.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.4.23', 'package version should be 1.4.23');
-assert(pkg.name === 'foxbear-github-pro-v1-4-23', 'package name should be v1-4-23');
-assert(index.includes('data-build="1.4.23"'), 'index build marker should be 1.4.23');
-assert(config.includes("ASSET_VERSION = '1.4.23-audio-decode-memory-guard'"), 'runtime asset key should be v1.4.23');
-assert(sw.includes('foxbear-shell-v1.4.23-audio-decode-memory-guard'), 'service worker cache should use v1.4.23 key');
+assert(pkg.version === '1.4.24', 'package version should be 1.4.24');
+assert(pkg.name === 'foxbear-github-pro-v1-4-24', 'package name should be v1-4-24');
+assert(index.includes('data-build="1.4.24"'), 'index build marker should be 1.4.24');
+assert(config.includes("ASSET_VERSION = '1.4.24-bulk-import-hud'"), 'runtime asset key should be v1.4.24');
+assert(sw.includes('foxbear-shell-v1.4.24-bulk-import-hud'), 'service worker cache should use v1.4.24 key');
 
 assert(config.includes('MASTERING_PROGRESS_RENDER_DELAY_MS: 110'), 'runtime config should expose progress render delay');
 assert(app.includes('SAFE_MASTERING_PROGRESS_RENDER_DELAY_MS'), 'app should normalize mastering progress render delay');
@@ -44,9 +44,9 @@ assert(perf.includes('masteringQueue = safeCall'), 'performance diagnostics shou
 assert(perf.includes('mastering-active'), 'performance diagnostics should warn while mastering is active');
 assert(perf.includes('masteringQueue:'), 'performance summary should include mastering queue');
 assert(runtime.includes('FoxBearMasteringGuard.getSnapshot'), 'runtime health should require mastering guard');
-assert(pkg.qaChecks.includes('node qa/v1422_mastering_queue_throttle_smoke.js'), 'package QA should include v1.4.23 smoke');
-assert(matrix.includes('v1.4.23 Mastering Queue Throttle'), 'matrix should document v1.4.23 scope');
-assert(qaReport.includes('144/144 PASS') || qaReport.includes('v1.4.23 final QA'), 'QA report should mention v1.4.23 final QA');
-assert(changelog.includes('v1.4.23'), 'changelog should mention v1.4.23');
+assert(pkg.qaChecks.includes('node qa/v1422_mastering_queue_throttle_smoke.js'), 'package QA should include v1.4.24 smoke');
+assert(matrix.includes('v1.4.24 Mastering Queue Throttle'), 'matrix should document v1.4.24 scope');
+assert(qaReport.includes('144/144 PASS') || qaReport.includes('v1.4.24 final QA'), 'QA report should mention v1.4.24 final QA');
+assert(changelog.includes('v1.4.24'), 'changelog should mention v1.4.24');
 
-console.log('PASS v1.4.23 mastering queue throttle and diagnostics smoke');
+console.log('PASS v1.4.24 mastering queue throttle and diagnostics smoke');
