@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.26 service worker
+// FoxBear AI Mastering Studio Pro v1.4.27 service worker
 'use strict';
 
 const CACHE_NAME = 'foxbear-shell-v1.4.26-wake-lock-state-sync';
@@ -67,6 +67,12 @@ const CORE_ASSETS = [
   './src/audio/playback-link-service.js?v=1.4.26-wake-lock-state-sync',
   './src/audio/playback-transition-service.js?v=1.4.26-wake-lock-state-sync',
   './src/audio/audio-decode-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/audio/import-queue-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/audio/analysis-cache-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/audio/memory-guard-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/audio/quality-gate-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/audio/mastering-orchestrator-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/state/track-lifecycle-service.js?v=1.4.26-wake-lock-state-sync',
   './src/audio/waveform-control-service.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/waveform-control-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/spectrum-visualizer.js?v=1.4.26-wake-lock-state-sync',

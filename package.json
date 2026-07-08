@@ -2,13 +2,14 @@
   "name": "foxbear-github-pro-v1-4-26",
   "version": "1.4.26",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Spectrum stability carry-forward, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Bulk Import HUD, render scheduler, mastering queue throttle, and audio decode diagnostics.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Spectrum stability carry-forward, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Bulk Import HUD, render scheduler, mastering queue throttle, audio decode diagnostics, v1.4.27 release cleanup, and v1.4.28 app slim-down orchestration split.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
     "sri:update": "python3 tools/update-sri.py",
     "package:clean": "bash tools/create-release-zip.sh",
-    "package:overwrite": "bash tools/create-overwrite-zip.sh"
+    "package:overwrite": "bash tools/create-overwrite-zip.sh",
+    "qa:browser": "npx playwright test qa/browser/runtime-health-playwright.spec.js"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -25,6 +26,12 @@
     "node --check src/audio/playback-link-service.js",
     "node --check src/audio/playback-transition-service.js",
     "node --check src/audio/audio-decode-service.js",
+    "node --check src/audio/import-queue-service.js",
+    "node --check src/audio/analysis-cache-service.js",
+    "node --check src/audio/memory-guard-service.js",
+    "node --check src/audio/quality-gate-service.js",
+    "node --check src/audio/mastering-orchestrator-service.js",
+    "node --check src/state/track-lifecycle-service.js",
     "node --check src/audio/waveform-control-service.js",
     "node --check src/ui/waveform-control-view.js",
     "node --check src/ui/spectrum-visualizer.js",
@@ -160,6 +167,10 @@
     "node qa/v1425_exit_guard_fallback_smoke.js",
     "node qa/v1426_wake_lock_state_sync_smoke.js",
     "node qa/v1427_bulk_mastering_hud_smoke.js",
-    "node qa/v1427_1_bulk_hud_asset_close_hotfix_smoke.js"
+    "node qa/v1427_1_bulk_hud_asset_close_hotfix_smoke.js",
+    "node qa/v1427_release_cleanup_smoke.js",
+    "node qa/v1428_module_memory_guard_smoke.js",
+    "node qa/v1428_app_slimdown_orchestration_smoke.js",
+    "node qa/v151_browser_qa_scaffold_smoke.js"
   ]
 }

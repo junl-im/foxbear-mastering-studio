@@ -1,62 +1,73 @@
-# FoxBear AI Mastering Studio Pro v1.4.26
+# FoxBear AI Mastering Studio Pro v1.4.28
 
-## v1.4.26 Wake Lock state sync
+## Current patch: v1.4.28 App Slim-down Orchestration Split
 
-This release separates the persistent `화면켜짐유지` user setting from temporary automatic Wake Lock protection used during playback, analysis, import, and mastering. Automatic protection is shown as `AUTO` and stays silent; manual toggles remain explicit `ON/OFF`.
+This maintenance patch continues the roadmap after the Bulk HUD, Wake Lock, and release-cleanup fixes. It keeps the existing `1.4.26-wake-lock-state-sync` asset key for deployment compatibility while documenting the current maintenance layer as `v1.4.28`.
 
-## FoxBear AI Mastering Studio Pro v1.4.26
+## What changed
 
-This build adds an Exit Guard fallback hotfix. If a user presses browser Back and chooses to leave, the app now navigates away when possible and shows a clear exit fallback screen when the browser/PWA refuses to close the tab/window automatically.
+- Added `src/audio/mastering-orchestrator-service.js` and delegated selected/all-track batch mastering through `getMasteringBatchRunner().runBatch()`.
+- Expanded `src/audio/import-queue-service.js` with `createTrackAnalysisQueue()` so queue pumping and per-track analysis execution are owned by the service layer.
+- Reduced `src/app.js` to below the v1.4.28 slim-down budget while preserving legacy smoke compatibility anchors.
+- Added `qa/v1428_app_slimdown_orchestration_smoke.js` for the orchestration split.
+- Cleaned the top-level README/HANDOFF/QA documents so current release notes are separated from historical v1.4.21-v1.4.26 notes.
+- Moved legacy accumulated handoff notes into `docs/history/`.
+- Added Markdown code-fence parity checks to `qa/docs_handoff_smoke.js`.
+- Updated worker header comments to the current release line.
+- Added extracted service modules for the next app.js slim-down phase:
+  - `src/audio/import-queue-service.js`
+  - `src/audio/analysis-cache-service.js`
+  - `src/audio/memory-guard-service.js`
+  - `src/audio/quality-gate-service.js`
+  - `src/state/track-lifecycle-service.js`
+- Added `FoxBearMemoryGuard.getSnapshot()` and completed-batch mastered-buffer release policy.
+- Added a browser QA scaffold for Playwright without forcing Playwright into the default `npm run check` path.
 
-## v1.4.26 - Bulk Import HUD
+## Runtime compatibility
 
-Current patch: **v1.4.26 Bulk Import HUD**.
+The app still uses:
 
-This patch adds a long, scrollable, multi-track HUD for imports of 2 or more files. A 35-track PC batch now keeps sequential analysis safety while showing each song row with status, progress, and error state.
+```text
+1.4.26-wake-lock-state-sync
+```
 
-- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.26-release.zip`
-- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.26-overwrite.zip`
-- QA: `146/146 PASS`
-
-## v1.4.26 - Mastering Queue Throttle
-
-Current patch: **v1.4.26 Mastering Queue Throttle**.
-
-This patch keeps v1.4.21's 35-track import protection and adds a lighter mastering progress path. Progress updates are still visible, but they are scheduled through the render scheduler instead of forcing a full `renderAll()` for every progress step. Use `?perf=1` or `FoxBearMasteringGuard.getSnapshot()` to inspect active mastering state.
-
-- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.26-release.zip`
-- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.26-overwrite.zip`
-
-
-### v1.4.21 performance diagnostics
-
-Use `?perf=1` or Ctrl/Command + Alt + P to open Performance diagnostics while a bulk import is queued.
-## v1.4.21 detail-only FFT note
-
-Dock mini FFT remains removed; spectrum visualizer remains detail-only while bulk import guard handles 35-track PC imports.
-
-## v1.4.21 bulk import guard
-
-v1.4.21 addresses a PC crash report where selecting 35 songs could trigger a browser `STATUS_BREAKPOINT` page error. The app still accepts up to 35 tracks, but decoding and analysis now run through a safe single-lane queue so many files do not allocate ArrayBuffers and AudioContexts at the same time.
-
-# FoxBear AI Mastering Studio Pro v1.4.21
-
-Current patch: **v1.4.21 Download dialog micro hint**.
-
-## Highlights
-- The download popup now shows a shorter first-screen hint for Kakao/in-app and mobile browsers.
-- Kakao/in-app users see the practical order first: `공유/저장 → 파일 열기`.
-- Diagnostics, `안내 복사`, `진단 복사`, and `체크리스트 복사` remain under `추가 옵션`.
-- The flow-step rendering path was cleaned so each step is appended once.
-- Dock FFT remains removed; FFT is detail-screen only.
+This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the maintenance work as v1.4.28.
 
 ## QA
 
+Run the default static/smoke suite:
+
 ```bash
+npm run sri:update
+npm run check
+```
 
-## v1.4.26 Diagnostics and Download Notes
+Current expected result after this patch:
 
-- Performance diagnostics: open with `?perf=1` or `Ctrl/Command + Alt + P`; use 복사 to copy the report.
-- Download dialog micro hint and first-screen declutter remain active.
-- detail-only FFT remains active; Dock mini FFT/renderMini remain removed.
+```text
+160/160 PASS
+```
 
+Optional real-browser scaffold:
+
+```bash
+npm run qa:browser
+```
+
+The browser command requires Playwright browsers to be installed in the local development environment.
+
+## Historical notes
+
+Older v1.4.21-v1.4.26 accumulated notes are preserved in:
+
+```text
+docs/history/README_legacy_v1.4.21_to_v1.4.26.md
+docs/history/HANDOFF_legacy_v1.4.21_to_v1.4.26.md
+docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
+```
+
+## Carry-forward user notes
+
+- v1.4.26 detail-only FFT remains active; Dock mini FFT/renderMini stay removed.
+- v1.4.26 Performance diagnostics can be opened with `?perf=1` or `Ctrl/Command + Alt + P`, and the diagnostics panel keeps a 복사 action for support reports.
+- Download dialog micro hint and first-screen declutter remain active for Kakao/in-app and mobile download flows.

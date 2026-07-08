@@ -1,3 +1,33 @@
+# v1.4.28 Notes - App Slim-down Orchestration Split
+
+- Import analysis queue orchestration has moved behind `FoxBearImportQueueService.createTrackAnalysisQueue()`.
+- Selected/all-track mastering batch loops now run through `FoxBearMasteringOrchestratorService.createMasteringBatchRunner()`.
+- Keep the existing runtime/cache asset key `1.4.26-wake-lock-state-sync` until the deployment line is intentionally bumped.
+- Next focus: v1.4.29 real 35-track memory profiling and buffer-retention tuning.
+
+# Project Notes - v1.4.27
+
+This patch starts the next roadmap without risky engine rewrites. It cleans the release handoff, adds code-fence validation, and introduces reusable services that `src/app.js` can delegate to while the full split continues in later patches.
+
+## Current engineering focus
+
+- Keep the Bulk Import HUD and Bulk Mastering HUD continuity intact.
+- Reduce future app.js pressure through service boundaries.
+- Preserve download Blob availability while releasing completed non-selected `masteredBuffer` references.
+- Make memory state inspectable through `FoxBearMemoryGuard.getSnapshot()` and performance diagnostics.
+- Prepare Playwright browser QA for later real-device/full-flow coverage.
+
+## Carry-forward anchors
+
+- Stage7: compare modal and `waveform-compare-view.js`.
+- Stage9: Dock waveform CSS split.
+- Stage9.1: cumulative overwrite packaging remains supported.
+- Stage10: download service split.
+- Stage11.1: runtime mobile hotfix remains supported.
+- Stage11/Stage12: large modular renovation and detail view split.
+- Stage27/Stage28: waveform control service/view split. Stage28 unmanaged waveform audit remains documented.
+- Wake Lock state sync, Bulk Import HUD, Bulk Mastering HUD continuity, and Bulk HUD close hotfix remain active.
+
 # Project Notes - v1.4.26
 
 - Wake Lock now has a clear split between saved user setting and automatic temporary protection.
@@ -44,6 +74,7 @@ The 35-track import path previously risked launching all decode/analysis jobs co
 ## Legacy anchors
 - Stage7: compare modal and `waveform-compare-view.js`.
 - Stage9: Dock waveform CSS split.
+- Stage9.1: cumulative overwrite packaging remains supported.
 - Stage13: Runtime Health.
 - Stage14: Runtime recovery.
 - Stage23: playback orchestration.
@@ -137,3 +168,9 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 - Stage28 unmanaged waveform audit and waveform-control-view.js extraction remain active.
 - Dock mini FFT was removed; detail FFT remains detail-only.
 - Exit Guard fallback is current in v1.4.26.
+
+## Legacy QA compatibility notes
+
+- v1.4.26 Exit Guard fallback remains active for back navigation and direct-launch fallback behavior.
+- Dock mini FFT was removed by design; renderMini remains removed and detail-only FFT is the intended path.
+- v1.4.26 performance diagnostics remain available with adaptive refresh and copy support.

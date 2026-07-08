@@ -1,3 +1,31 @@
+# v1.4.28 - App Slim-down Orchestration Split
+
+- Added `src/audio/mastering-orchestrator-service.js` for selected/all-track mastering batch orchestration.
+- Expanded `src/audio/import-queue-service.js` with `createTrackAnalysisQueue()` so analysis queue pumping is service-owned.
+- `src/app.js` now delegates import queue operations through `getImportAnalysisQueueController()` and mastering batches through `getMasteringBatchRunner().runBatch()`.
+- `src/app.js` is under the v1.4.28 slim-down line budget while keeping Bulk Import HUD, Bulk Mastering HUD continuity, memory guard, and Wake Lock behavior carried forward.
+- Added `qa/v1428_app_slimdown_orchestration_smoke.js`; current default QA target is `160/160 PASS`.
+
+# v1.4.27 - Release Cleanup + Modular Guard Foundation
+
+- Cleaned current README/HANDOFF/QA docs and moved legacy v1.4.21-v1.4.26 accumulated notes into `docs/history/`.
+- Added Markdown code-fence parity checks to `qa/docs_handoff_smoke.js`.
+- Updated worker headers to the current v1.4.27 carry-forward line.
+- Added the first safe app.js slim-down support modules: `import-queue-service.js`, `analysis-cache-service.js`, `memory-guard-service.js`, `quality-gate-service.js`, and `track-lifecycle-service.js`.
+- Added `FoxBearMemoryGuard.getSnapshot()` and a completed-batch mastered-buffer release policy so 35-track mastering can keep Blob downloads while releasing non-selected AudioBuffers.
+- Performance diagnostics now includes `memoryGuard` data.
+- Added optional Playwright browser QA scaffold under `qa/browser/`; default QA remains static/smoke.
+- Current QA target: `158/158 PASS`.
+
+
+## Legacy v1.4.26 carry-forward anchors
+
+- v1.4.26 Spectrum stability and Exit Guard behavior remain carried forward.
+- v1.4.26 stability polish remains active.
+- v1.4.26 Dock FFT removal and renderMini cleanup remain active; detail-only FFT remains available.
+- v1.4.26 Performance diagnostics and Packaging polish remain active.
+- Download dialog micro hint and display profile helpers remain active: `getDownloadDialogCompactHint` and `getDownloadDialogDisplayProfile`.
+
 # v1.4.26 - Bulk HUD Asset / Close Button Hotfix
 
 - Fixed a potential `assets/css/bulk-import-hud.css` stale-cache/SRI boot failure by adding a targeted cache-bust parameter to the Bulk HUD stylesheet URL while keeping the existing `v=1.4.26-wake-lock-state-sync` runtime version.
