@@ -23,9 +23,9 @@ const history = [
   'docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md'
 ];
 
-assert(readme.includes('v1.5.0 Engine Quality Gate') || readme.includes('v1.4.29 Memory Stabilization') || readme.includes('v1.4.28 App Slim-down') || readme.includes('v1.4.27 Release Cleanup'), 'README missing current release cleanup/slim-down heading');
-assert(handoff.includes('v1.5.0 Engine Quality Gate') || handoff.includes('v1.4.29 Memory Stabilization') || handoff.includes('v1.4.28 App Slim-down') || handoff.includes('v1.4.27 Release Cleanup'), 'HANDOFF missing current release cleanup/slim-down heading');
-assert(qaReport.includes('163/163 PASS'), 'QA report missing current final count');
+assert(readme.includes('v1.5.1 Real Browser Automation') || readme.includes('v1.5.0 Engine Quality Gate') || readme.includes('v1.4.29 Memory Stabilization') || readme.includes('v1.4.28 App Slim-down') || readme.includes('v1.4.27 Release Cleanup'), 'README missing current release cleanup/slim-down heading');
+assert(handoff.includes('v1.5.1 Real Browser Automation') || handoff.includes('v1.5.0 Engine Quality Gate') || handoff.includes('v1.4.29 Memory Stabilization') || handoff.includes('v1.4.28 App Slim-down') || handoff.includes('v1.4.27 Release Cleanup'), 'HANDOFF missing current release cleanup/slim-down heading');
+assert(qaReport.includes('170/170 PASS'), 'QA report missing current final count');
 assert(readme.includes('docs/history/README_legacy_v1.4.21_to_v1.4.26.md'), 'README missing historical docs pointer');
 history.forEach(path => assert(fs.existsSync(path), `${path} missing`));
 

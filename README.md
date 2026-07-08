@@ -1,8 +1,17 @@
-# FoxBear AI Mastering Studio Pro v1.5.0
+# FoxBear AI Mastering Studio Pro v1.5.1
 
-## Current patch: v1.5.0 Engine Quality Gate
+## Current patch: v1.5.1 Real Browser Automation
 
-This patch strengthens the mastering result evaluation layer on top of the v1.4.29 memory stabilization work. It keeps the existing `1.4.26-wake-lock-state-sync` runtime/cache key for deployment compatibility while documenting the current maintenance layer as `v1.5.0`.
+This patch adds opt-in Playwright real-browser automation on top of the v1.5.0 engine quality gate work. It keeps the existing `1.4.26-wake-lock-state-sync` runtime/cache key for deployment compatibility while documenting the current maintenance layer as `v1.5.1`.
+
+## Real Browser Automation additions
+
+- Added `playwright.config.js` with desktop Chromium and mobile PWA-style Chromium projects.
+- Added `qa/browser/run-browser-e2e.js`, which starts a local static server and then runs Playwright specs.
+- Added shared browser helpers in `qa/browser/helpers/foxbear-e2e-helpers.js`, including synthetic WAV fixture generation, Runtime Health assertions, Wake Lock mocks, and service worker snapshots.
+- Expanded browser specs for Runtime Health, console errors, PWA back navigation resilience, Wake Lock request/release mocking, service worker update checks, and 35-track import/master/export flow coverage.
+- Added `npm run qa:browser`, `npm run qa:browser:external`, `npm run qa:browser:deep`, and `npm run qa:browser:install`.
+- Added `qa/v151_real_browser_automation_smoke.js` to keep the browser automation surface checked by the default static QA suite.
 
 ## Engine Quality Gate additions
 
@@ -37,7 +46,7 @@ The app still uses:
 1.4.26-wake-lock-state-sync
 ```
 
-This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the current maintenance work as v1.5.0.
+This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the current maintenance work as v1.5.1.
 
 ## Memory diagnostics
 
@@ -67,16 +76,29 @@ npm run check
 Current expected result after this patch:
 
 ```text
-163/163 PASS
+170/170 PASS
 ```
 
-Optional real-browser scaffold:
+Optional real-browser automation:
 
 ```bash
+npm run qa:browser:install
 npm run qa:browser
 ```
 
-The browser command requires Playwright browsers to be installed in the local development environment.
+For an already deployed URL:
+
+```bash
+FOXBEAR_E2E_URL=https://example.com npm run qa:browser:external
+```
+
+For the longer 35-track master/export path, run:
+
+```bash
+npm run qa:browser:deep
+```
+
+The browser commands require Playwright and its Chromium browser to be installed in the local development environment.
 
 ## Historical notes
 

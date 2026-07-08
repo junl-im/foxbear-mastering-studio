@@ -2,14 +2,17 @@
   "name": "foxbear-github-pro-v1-4-26",
   "version": "1.4.26",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Stage21, Stage20, Stage18, Stage17 carry-forward, Spectrum stability carry-forward, Bulk Import/Mastering HUD continuity, v1.4.27 release cleanup, v1.4.28 app slim-down orchestration split, v1.4.29 memory stabilization, and v1.5.0 engine QualityGate/short-term LUFS/reference-profile reinforcement.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Stage21, Stage20, Stage18, Stage17 carry-forward, Spectrum stability carry-forward, Bulk Import/Mastering HUD continuity, v1.4.27 release cleanup, v1.4.28 app slim-down orchestration split, v1.4.29 memory stabilization, and v1.5.0 engine QualityGate/short-term LUFS/reference-profile reinforcement, and v1.5.1 Playwright real browser automation for runtime health/PWA back/Wake Lock/service worker/35-track import-master-export scenarios.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
     "sri:update": "python3 tools/update-sri.py",
     "package:clean": "bash tools/create-release-zip.sh",
     "package:overwrite": "bash tools/create-overwrite-zip.sh",
-    "qa:browser": "npx playwright test qa/browser/runtime-health-playwright.spec.js"
+    "qa:browser": "node qa/browser/run-browser-e2e.js",
+    "qa:browser:external": "npx playwright test qa/browser",
+    "qa:browser:deep": "FOXBEAR_E2E_DEEP=1 node qa/browser/run-browser-e2e.js",
+    "qa:browser:install": "npx playwright install chromium"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -174,6 +177,13 @@
     "node qa/v1428_app_slimdown_orchestration_smoke.js",
     "node qa/v1429_memory_stabilization_smoke.js",
     "node qa/v150_engine_quality_gate_smoke.js",
-    "node qa/v151_browser_qa_scaffold_smoke.js"
+    "node --check playwright.config.js",
+    "node --check qa/browser/helpers/foxbear-e2e-helpers.js",
+    "node --check qa/browser/run-browser-e2e.js",
+    "node --check qa/browser/runtime-health-playwright.spec.js",
+    "node --check qa/browser/pwa-back-wakelock-sw-playwright.spec.js",
+    "node --check qa/browser/bulk-35-import-master-export-playwright.spec.js",
+    "node qa/v151_browser_qa_scaffold_smoke.js",
+    "node qa/v151_real_browser_automation_smoke.js"
   ]
 }

@@ -48,9 +48,9 @@ assert(worker.includes('v1.5.0'), 'worker header not updated to v1.5.0');
 assert(ref.includes('createLogBands') && ref.includes('makeProfileFromBands') && ref.includes('compareProfiles'), 'reference profile service helpers missing');
 assert(ref.includes('1.5.0-reference-profile-64-96'), 'reference profile service version missing');
 
-assert(readme.includes('v1.5.0 Engine Quality Gate'), 'README not updated to v1.5.0');
-assert(handoff.includes('v1.5.0 Engine Quality Gate'), 'HANDOFF not updated to v1.5.0');
-assert(qaReport.includes('163/163 PASS'), 'QA report missing 163/163 PASS');
-assert(changelog.startsWith('# v1.5.0 - Engine Quality Gate'), 'CHANGELOG v1.5.0 entry missing at top');
+assert(readme.includes('Engine Quality Gate additions') || readme.includes('v1.5.0 Engine Quality Gate'), 'README missing engine quality gate carry-forward');
+assert(handoff.includes('v1.5.0 Engine Quality Gate') || handoff.includes('QualityGate v2.1'), 'HANDOFF missing engine quality gate carry-forward');
+assert(qaReport.includes('170/170 PASS'), 'QA report missing 170/170 PASS');
+assert((changelog.startsWith('# v1.5.1 - Real Browser Automation') || changelog.startsWith('# v1.5.0 - Engine Quality Gate')), 'CHANGELOG v1.5.0 entry missing at top');
 
 console.log('PASS v1.5.0 engine quality gate smoke');

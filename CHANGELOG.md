@@ -1,3 +1,12 @@
+# v1.5.1 - Real Browser Automation
+
+- Added Playwright browser automation for runtime health, console errors, PWA back navigation, Wake Lock mock request/release, service worker update, and 35-track import/master/export scenarios.
+- Added `playwright.config.js` with desktop Chromium and mobile PWA-style Chromium projects.
+- Added `qa/browser/run-browser-e2e.js` to start a local static server and invoke Playwright from `npm run qa:browser`.
+- Added `qa/browser/helpers/foxbear-e2e-helpers.js` with synthetic WAV fixtures, Runtime Health assertions, Wake Lock mocks, and service worker snapshots.
+- Added `npm run qa:browser`, `npm run qa:browser:external`, `npm run qa:browser:deep`, and `npm run qa:browser:install`.
+- Added `qa/v151_real_browser_automation_smoke.js`; current default QA target is `170/170 PASS`.
+
 # v1.5.0 - Engine Quality Gate
 
 - Upgraded `src/audio/quality-gate-service.js` to QualityGate v2.1 with short-term LUFS, limiter overcorrection, de-esser overcorrection, multiband overcorrection, mobile translation correction amount, and risk flag checks.

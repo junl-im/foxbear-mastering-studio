@@ -1,3 +1,11 @@
+# v1.5.1 Notes - Real Browser Automation
+
+- Real browser automation is now opt-in through Playwright rather than included in the default static smoke suite.
+- `npm run qa:browser` starts a local static server and checks Runtime Health in real Chromium.
+- `npm run qa:browser:deep` enables the longer 35-track import/master/export path.
+- Keep `npm run check` fast and deterministic; use browser QA before release/deploy or when debugging PWA/mobile/regression issues.
+- Next focus after browser automation: tune memory and export behavior against actual PC/iOS/Android runs, then consider deeper engine/reference matching changes.
+
 # v1.4.28 Notes - App Slim-down Orchestration Split
 
 - Import analysis queue orchestration has moved behind `FoxBearImportQueueService.createTrackAnalysisQueue()`.
