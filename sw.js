@@ -70,6 +70,7 @@ const CORE_ASSETS = [
   './src/audio/import-queue-service.js?v=1.4.26-wake-lock-state-sync',
   './src/audio/analysis-cache-service.js?v=1.4.26-wake-lock-state-sync',
   './src/audio/memory-guard-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/audio/reference-profile-service.js?v=1.4.26-wake-lock-state-sync',
   './src/audio/quality-gate-service.js?v=1.4.26-wake-lock-state-sync',
   './src/audio/mastering-orchestrator-service.js?v=1.4.26-wake-lock-state-sync',
   './src/state/track-lifecycle-service.js?v=1.4.26-wake-lock-state-sync',

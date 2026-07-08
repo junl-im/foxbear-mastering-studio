@@ -1,27 +1,33 @@
-# FoxBear AI Mastering Studio Pro v1.4.28
+# FoxBear AI Mastering Studio Pro v1.5.0
 
-## Current patch: v1.4.28 App Slim-down Orchestration Split
+## Current patch: v1.5.0 Engine Quality Gate
 
-This maintenance patch continues the roadmap after the Bulk HUD, Wake Lock, and release-cleanup fixes. It keeps the existing `1.4.26-wake-lock-state-sync` asset key for deployment compatibility while documenting the current maintenance layer as `v1.4.28`.
+This patch strengthens the mastering result evaluation layer on top of the v1.4.29 memory stabilization work. It keeps the existing `1.4.26-wake-lock-state-sync` runtime/cache key for deployment compatibility while documenting the current maintenance layer as `v1.5.0`.
 
-## What changed
+## Engine Quality Gate additions
 
-- Added `src/audio/mastering-orchestrator-service.js` and delegated selected/all-track batch mastering through `getMasteringBatchRunner().runBatch()`.
-- Expanded `src/audio/import-queue-service.js` with `createTrackAnalysisQueue()` so queue pumping and per-track analysis execution are owned by the service layer.
-- Reduced `src/app.js` to below the v1.4.28 slim-down budget while preserving legacy smoke compatibility anchors.
-- Added `qa/v1428_app_slimdown_orchestration_smoke.js` for the orchestration split.
-- Cleaned the top-level README/HANDOFF/QA documents so current release notes are separated from historical v1.4.21-v1.4.26 notes.
-- Moved legacy accumulated handoff notes into `docs/history/`.
-- Added Markdown code-fence parity checks to `qa/docs_handoff_smoke.js`.
-- Updated worker header comments to the current release line.
-- Added extracted service modules for the next app.js slim-down phase:
+- Upgraded `src/audio/quality-gate-service.js` to QualityGate v2.1 with short-term LUFS checks, limiter overcorrection detection, de-esser overcorrection detection, multiband overcorrection detection, mobile translation correction amount checks, and risk flag summaries.
+- Added short-term LUFS telemetry to `src/workers/master-finalizer.worker.js` and the in-app finalizer fallback.
+- Extended `createMasterReport()` with `loudness.shortTermBefore`, `loudness.shortTermAfter`, and a 3s/1s short-term LUFS standard note.
+- Added `src/audio/reference-profile-service.js` as the 64/96-band log-spectrum profile helper foundation for the next reference-matching upgrade.
+- Preserved v1.4.29 memory policy behavior: completed download Blobs remain available while non-selected mastered AudioBuffers are released.
+- Added `qa/v150_engine_quality_gate_smoke.js` to lock the new engine QA surface.
+
+## v1.4.29 Memory Stabilization carry-forward
+
+- Upgraded `src/audio/memory-guard-service.js` to v1.4.29 with a large-batch retention policy for completed mastered AudioBuffers.
+- Added dynamic memory policy options for large batches, low-memory/mobile environments, selected-track retention, recent-track retention, and mastered-buffer byte budgets.
+- Added `FoxBearMemoryGuard.diagnose()` for before/after memory diagnostics and policy sweep reporting from the browser console.
+- Added automatic post-batch memory sweep after selected/all-track mastering batches complete.
+- Added per-track performance memory metadata: `performanceInfo.masteredBufferBytes` and `performanceInfo.outBlobBytes`.
+- Kept completed `outBlob` downloads and mastered URLs while releasing non-selected completed `masteredBuffer` objects according to policy.
+- Preserved the v1.4.28 app slim-down orchestration boundaries:
   - `src/audio/import-queue-service.js`
+  - `src/audio/mastering-orchestrator-service.js`
   - `src/audio/analysis-cache-service.js`
-  - `src/audio/memory-guard-service.js`
   - `src/audio/quality-gate-service.js`
   - `src/state/track-lifecycle-service.js`
-- Added `FoxBearMemoryGuard.getSnapshot()` and completed-batch mastered-buffer release policy.
-- Added a browser QA scaffold for Playwright without forcing Playwright into the default `npm run check` path.
+- Added `qa/v1429_memory_stabilization_smoke.js` to lock the memory policy, diagnostics bridge, and docs.
 
 ## Runtime compatibility
 
@@ -31,7 +37,23 @@ The app still uses:
 1.4.26-wake-lock-state-sync
 ```
 
-This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the maintenance work as v1.4.28.
+This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the current maintenance work as v1.5.0.
+
+## Memory diagnostics
+
+After a large batch, open the browser console and run:
+
+```js
+FoxBearMemoryGuard.getSnapshot()
+```
+
+To force a diagnostic sweep and see before/after retention data:
+
+```js
+FoxBearMemoryGuard.diagnose()
+```
+
+The snapshot now reports retained mastered-buffer count/bytes, Blob bytes, preview Blob bytes, policy budget, low-memory mode, pressure level, released completed buffer count, and the largest retained mastered buffers.
 
 ## QA
 
@@ -45,7 +67,7 @@ npm run check
 Current expected result after this patch:
 
 ```text
-160/160 PASS
+163/163 PASS
 ```
 
 Optional real-browser scaffold:
@@ -71,3 +93,4 @@ docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
 - v1.4.26 detail-only FFT remains active; Dock mini FFT/renderMini stay removed.
 - v1.4.26 Performance diagnostics can be opened with `?perf=1` or `Ctrl/Command + Alt + P`, and the diagnostics panel keeps a 복사 action for support reports.
 - Download dialog micro hint and first-screen declutter remain active for Kakao/in-app and mobile download flows.
+- Bulk Import HUD and Bulk Mastering HUD continuity remain active for 2+ track workflows.

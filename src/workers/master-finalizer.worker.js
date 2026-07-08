@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.4.27 - dynamic de-esser, mobile guard, multiband dynamics, 4x FIR true-peak
+// FoxBear Pro finalizer worker v1.5.0 - short-term LUFS telemetry, dynamic de-esser, mobile guard, multiband dynamics, 4x FIR true-peak
 'use strict';
 
 self.onmessage = event => {
@@ -46,6 +46,7 @@ self.onmessage = event => {
             peakAfter = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
         }
         const loudnessAfter = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
+        const shortTermLufs = measureShortTermLufsStatsBuffers(data, sampleRate, length, channels);
         const finalPeak = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
 
         const transfers = data.map(arr => arr.buffer);
@@ -62,6 +63,7 @@ self.onmessage = event => {
                 ceilingDb,
                 loudnessBefore,
                 loudnessAfter,
+                shortTermLufs,
                 peakBefore,
                 peakAfter: finalPeak,
                 gainDb: targetGainDb + 20 * Math.log10(Math.max(1e-9, finalSafetyGain)),
@@ -146,6 +148,50 @@ function measureKWeightedGatedLoudness(buffers, sampleRate, length, channels) {
     const selected = gated.length ? gated : powers;
     const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
     return loudnessDbFromPower(mean);
+}
+
+
+function measureShortTermLufsStatsBuffers(buffers, sampleRate, length, channels) {
+    if (!buffers || !buffers.length || length <= 0) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: 0, hopSec: 0 };
+    const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
+    const usableChannels = Math.max(1, Math.min(channels || buffers.length || 1, buffers.length));
+    const filtered = filterKWeightedBuffers(buffers, safeRate, length, usableChannels);
+    const chunkSize = Math.max(256, Math.round(safeRate * 0.100));
+    const chunkCount = Math.max(1, Math.ceil(length / chunkSize));
+    const chunkPowers = new Array(chunkCount).fill(0);
+    for (let chunk = 0; chunk < chunkCount; chunk += 1) {
+        const start = chunk * chunkSize;
+        const end = Math.min(length, start + chunkSize);
+        let sum = 0;
+        let count = 0;
+        for (let i = start; i < end; i += 1) {
+            let channelPower = 0;
+            for (let ch = 0; ch < usableChannels; ch += 1) {
+                const sample = filtered[ch][i] || 0;
+                channelPower += sample * sample;
+            }
+            sum += channelPower;
+            count += 1;
+        }
+        chunkPowers[chunk] = sum / Math.max(1, count);
+    }
+    const chunkSec = chunkSize / safeRate;
+    const windowChunks = Math.max(1, Math.min(chunkCount, Math.round(3.0 / Math.max(0.001, chunkSec))));
+    const hopChunks = Math.max(1, Math.round(1.0 / Math.max(0.001, chunkSec)));
+    const values = [];
+    for (let start = 0; start < chunkCount; start += hopChunks) {
+        const end = Math.min(chunkCount, start + windowChunks);
+        let sum = 0;
+        for (let i = start; i < end; i += 1) sum += chunkPowers[i] || 0;
+        const db = loudnessDbFromPower(sum / Math.max(1, end - start));
+        if (db > -70) values.push(db);
+        if (end >= chunkCount) break;
+    }
+    if (!values.length) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: Number((windowChunks * chunkSec).toFixed(2)), hopSec: Number((hopChunks * chunkSec).toFixed(2)) };
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const mean = values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
+    return { min: Number(min.toFixed(2)), max: Number(max.toFixed(2)), mean: Number(mean.toFixed(2)), range: Number((max - min).toFixed(2)), count: values.length, windowSec: Number((windowChunks * chunkSec).toFixed(2)), hopSec: Number((hopChunks * chunkSec).toFixed(2)) };
 }
 
 function filterKWeightedBuffers(buffers, sampleRate, length, channels) {

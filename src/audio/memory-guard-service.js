@@ -1,10 +1,17 @@
-// FoxBear memory guard service v1.4.27 - completed-batch buffer policy and diagnostics
+// FoxBear memory guard service v1.4.29 - large-batch buffer retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
+    const DEFAULT_POLICY_VERSION = 'v1.4.29-memory-stabilization';
+    const MB = 1024 * 1024;
+
     function toNumber(value, fallback = 0) {
         const n = Number(value);
         return Number.isFinite(n) ? n : fallback;
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
     }
 
     function getAudioBufferBytes(buffer) {
@@ -14,58 +21,170 @@
         return channels * length * 4;
     }
 
-    function getTrackBufferBytes(track) {
-        return getAudioBufferBytes(track?.masteredBuffer);
-    }
-
     function getBlobBytes(blob) {
         return Math.max(0, toNumber(blob?.size, 0));
     }
 
+    function getTrackBufferBytes(track) {
+        return getAudioBufferBytes(track?.masteredBuffer);
+    }
+
+    function getTrackOutputBytes(track) {
+        return getBlobBytes(track?.outBlob) + getBlobBytes(track?.masterPreviewBlob);
+    }
+
     function getTrackSortTime(track) {
         return Math.max(
+            Date.parse(track?.performanceInfo?.completedAt || '') || 0,
             toNumber(track?.performanceInfo?.completedAt, 0),
             toNumber(track?.updatedAt, 0),
-            toNumber(track?.createdAt, 0)
+            toNumber(track?.createdAt, 0),
+            toNumber(track?.memoryPolicyTouchedAt, 0)
         );
     }
 
-    function releaseCompletedMasteredBuffers(tracks, options = {}) {
+    function getDeviceMemoryGb() {
+        return toNumber(global.navigator?.deviceMemory, 0);
+    }
+
+    function isProbablyMobile() {
+        const ua = String(global.navigator?.userAgent || '').toLowerCase();
+        const coarse = Boolean(global.matchMedia && global.matchMedia('(pointer: coarse)').matches);
+        return coarse || /android|iphone|ipad|ipod|mobile|kakaotalk|naver|instagram|fbav|samsungbrowser/.test(ua);
+    }
+
+    function normalizePolicy(tracks, options = {}) {
         const list = Array.isArray(tracks) ? tracks : [];
-        const selectedId = options.selectedId || '';
-        const keepRecent = Math.max(0, Math.floor(toNumber(options.keepRecent, 1)));
-        const maxRetainedBuffers = Math.max(1, Math.floor(toNumber(options.maxRetainedBuffers, 2)));
-        const completedWithBuffers = list
-            .filter(track => track && track.status === 'done' && track.masteredBuffer && track.outBlob)
-            .sort((a, b) => getTrackSortTime(b) - getTrackSortTime(a));
-        const keepIds = new Set();
-        if (selectedId) keepIds.add(selectedId);
-        completedWithBuffers.slice(0, keepRecent).forEach(track => keepIds.add(track.id));
-        const retainedBefore = completedWithBuffers.length;
-        let released = 0;
-        let releasedBytes = 0;
-        completedWithBuffers.forEach((track, index) => {
-            const mustReleaseByCount = index >= maxRetainedBuffers;
-            if (!mustReleaseByCount && keepIds.has(track.id)) return;
-            if (!mustReleaseByCount && retainedBefore <= maxRetainedBuffers) return;
-            releasedBytes += getTrackBufferBytes(track);
-            track.masteredBuffer = null;
-            track.memoryPolicyReleasedAt = Date.now();
-            released += 1;
-        });
+        const completedCount = list.filter(track => track && track.status === 'done').length;
+        const batchSize = Math.max(
+            completedCount,
+            toNumber(options.batchSize, 0),
+            ...list.map(track => toNumber(track?.bulkMasteringTotal, 0))
+        );
+        const deviceMemoryGb = options.deviceMemoryGb != null ? toNumber(options.deviceMemoryGb, 0) : getDeviceMemoryGb();
+        const mobile = options.mobile != null ? Boolean(options.mobile) : isProbablyMobile();
+        const largeBatch = Boolean(options.largeBatch) || batchSize >= 12;
+        const lowMemory = Boolean(options.lowMemory) || mobile || (deviceMemoryGb > 0 && deviceMemoryGb <= 4) || batchSize >= 24;
+        const defaultMaxBuffers = lowMemory || largeBatch ? 1 : 2;
+        const defaultKeepRecent = lowMemory || largeBatch ? 0 : 1;
+        const defaultBudgetMb = lowMemory ? 96 : largeBatch ? 160 : 256;
         return Object.freeze({
-            released,
-            releasedBytes,
-            retainedBuffers: completedWithBuffers.length - released,
-            selectedId,
-            keepRecent,
-            maxRetainedBuffers,
+            version: DEFAULT_POLICY_VERSION,
+            selectedId: String(options.selectedId || ''),
+            keepSelected: options.keepSelected !== false,
+            keepRecent: Math.max(0, Math.floor(toNumber(options.keepRecent, defaultKeepRecent))),
+            maxRetainedBuffers: Math.max(1, Math.floor(toNumber(options.maxRetainedBuffers, defaultMaxBuffers))),
+            maxMasteredBufferBytes: Math.max(16 * MB, Math.floor(toNumber(options.maxMasteredBufferBytes, defaultBudgetMb * MB))),
+            releasePreviewBuffers: options.releasePreviewBuffers !== false,
+            largeBatch,
+            lowMemory,
+            mobile,
+            deviceMemoryGb,
+            batchSize,
             reason: options.reason || 'completed-batch-policy'
         });
     }
 
+    function buildRetentionPlan(tracks, policy) {
+        const completedWithBuffers = tracks
+            .filter(track => track && track.status === 'done' && track.masteredBuffer && track.outBlob)
+            .map(track => ({ track, bytes: getTrackBufferBytes(track), sortTime: getTrackSortTime(track) }))
+            .sort((a, b) => b.sortTime - a.sortTime);
+        const keepIds = new Set();
+        if (policy.keepSelected && policy.selectedId) keepIds.add(policy.selectedId);
+        completedWithBuffers.slice(0, policy.keepRecent).forEach(item => keepIds.add(item.track.id));
+
+        const retained = [];
+        const release = [];
+        let retainedBytes = 0;
+        for (const item of completedWithBuffers) {
+            const protectedById = keepIds.has(item.track.id);
+            const underCount = retained.length < policy.maxRetainedBuffers;
+            const underBudget = retainedBytes + item.bytes <= policy.maxMasteredBufferBytes;
+            if (protectedById || (underCount && underBudget)) {
+                retained.push(item);
+                retainedBytes += item.bytes;
+            } else {
+                release.push(item);
+            }
+        }
+
+        if (retainedBytes > policy.maxMasteredBufferBytes && retained.length > 1) {
+            const selectedId = policy.selectedId;
+            const candidates = retained
+                .filter(item => !(policy.keepSelected && selectedId && item.track.id === selectedId))
+                .sort((a, b) => a.sortTime - b.sortTime);
+            while (retainedBytes > policy.maxMasteredBufferBytes && candidates.length) {
+                const item = candidates.shift();
+                const index = retained.indexOf(item);
+                if (index >= 0) retained.splice(index, 1);
+                release.push(item);
+                retainedBytes -= item.bytes;
+            }
+        }
+
+        return Object.freeze({ retained, release, retainedBytes });
+    }
+
+    function releaseCompletedMasteredBuffers(tracks, options = {}) {
+        const list = Array.isArray(tracks) ? tracks : [];
+        const policy = normalizePolicy(list, options);
+        const plan = buildRetentionPlan(list, policy);
+        let released = 0;
+        let releasedBytes = 0;
+        plan.release.forEach(({ track, bytes }) => {
+            releasedBytes += bytes;
+            track.masteredBuffer = null;
+            track.memoryPolicyReleasedAt = Date.now();
+            track.memoryPolicyReleaseReason = policy.reason;
+            released += 1;
+        });
+        return Object.freeze({
+            version: DEFAULT_POLICY_VERSION,
+            released,
+            releasedBytes,
+            retainedBuffers: plan.retained.length,
+            retainedBytes: plan.retainedBytes,
+            selectedId: policy.selectedId,
+            keepRecent: policy.keepRecent,
+            maxRetainedBuffers: policy.maxRetainedBuffers,
+            maxMasteredBufferBytes: policy.maxMasteredBufferBytes,
+            largeBatch: policy.largeBatch,
+            lowMemory: policy.lowMemory,
+            mobile: policy.mobile,
+            deviceMemoryGb: policy.deviceMemoryGb,
+            batchSize: policy.batchSize,
+            reason: policy.reason
+        });
+    }
+
+    function summarizeTrack(track) {
+        return Object.freeze({
+            id: track?.id || '',
+            name: track?.name || '',
+            status: track?.status || '',
+            hasMasteredBuffer: Boolean(track?.masteredBuffer),
+            masteredBufferBytes: getTrackBufferBytes(track),
+            outBlobBytes: getBlobBytes(track?.outBlob),
+            previewBlobBytes: getBlobBytes(track?.masterPreviewBlob),
+            memoryPolicyReleasedAt: toNumber(track?.memoryPolicyReleasedAt, 0),
+            completedAt: track?.performanceInfo?.completedAt || ''
+        });
+    }
+
+    function classifyPressure(masteredBufferBytes, heap, policy) {
+        const heapLimit = toNumber(heap?.jsHeapSizeLimit, 0);
+        const heapUsed = toNumber(heap?.usedJSHeapSize, 0);
+        if (policy.lowMemory && masteredBufferBytes > policy.maxMasteredBufferBytes) return 'high';
+        if (heapLimit && heapUsed / heapLimit > 0.82) return 'high';
+        if (masteredBufferBytes > policy.maxMasteredBufferBytes * 0.85) return 'medium';
+        if (heapLimit && heapUsed / heapLimit > 0.68) return 'medium';
+        return 'normal';
+    }
+
     function getSnapshot(tracks, options = {}) {
         const list = Array.isArray(tracks) ? tracks : [];
+        const policy = normalizePolicy(list, options);
         const completed = list.filter(track => track && track.status === 'done');
         const masteredBuffers = completed.filter(track => track.masteredBuffer);
         const masteredBufferBytes = masteredBuffers.reduce((sum, track) => sum + getTrackBufferBytes(track), 0);
@@ -76,28 +195,67 @@
             totalJSHeapSize: toNumber(performance.memory.totalJSHeapSize, 0),
             usedJSHeapSize: toNumber(performance.memory.usedJSHeapSize, 0)
         } : null;
+        const largestMasteredBuffers = masteredBuffers
+            .slice()
+            .sort((a, b) => getTrackBufferBytes(b) - getTrackBufferBytes(a))
+            .slice(0, 5)
+            .map(summarizeTrack);
+        const releasedCount = completed.filter(track => track.memoryPolicyReleasedAt && !track.masteredBuffer && track.outBlob).length;
+        const pressure = classifyPressure(masteredBufferBytes, heap, policy);
         return Object.freeze({
-            version: '1.4.27-release-cleanup',
+            version: DEFAULT_POLICY_VERSION,
             trackCount: list.length,
             completedCount: completed.length,
             masteredBufferCount: masteredBuffers.length,
             masteredBufferBytes,
             outBlobBytes,
             previewBlobBytes,
-            selectedId: options.selectedId || '',
+            totalRetainedBytes: masteredBufferBytes + outBlobBytes + previewBlobBytes,
+            releasedCompletedBufferCount: releasedCount,
+            selectedId: policy.selectedId,
+            pressure,
             policy: Object.freeze({
-                keepSelected: options.keepSelected !== false,
-                keepRecent: Math.max(0, Math.floor(toNumber(options.keepRecent, 1))),
-                maxRetainedBuffers: Math.max(1, Math.floor(toNumber(options.maxRetainedBuffers, 2)))
+                keepSelected: policy.keepSelected,
+                keepRecent: policy.keepRecent,
+                maxRetainedBuffers: policy.maxRetainedBuffers,
+                maxMasteredBufferBytes: policy.maxMasteredBufferBytes,
+                largeBatch: policy.largeBatch,
+                lowMemory: policy.lowMemory,
+                mobile: policy.mobile,
+                batchSize: policy.batchSize
             }),
+            largestMasteredBuffers,
             heap
         });
     }
 
+    function diagnoseCompletedBatch(tracks, options = {}) {
+        const before = getSnapshot(tracks, options);
+        const policyResult = releaseCompletedMasteredBuffers(tracks, Object.assign({}, options, {
+            reason: options.reason || 'batch-memory-diagnostic'
+        }));
+        const after = getSnapshot(tracks, options);
+        const warnings = [];
+        if (after.masteredBufferCount > after.policy.maxRetainedBuffers) warnings.push('masteredBuffer retention count above policy');
+        if (after.masteredBufferBytes > after.policy.maxMasteredBufferBytes) warnings.push('masteredBuffer bytes above policy budget');
+        if (after.pressure === 'high') warnings.push('memory pressure remains high after sweep');
+        return Object.freeze({
+            version: DEFAULT_POLICY_VERSION,
+            before,
+            policyResult,
+            after,
+            warnings,
+            ok: warnings.length === 0
+        });
+    }
+
     global.FoxBearMemoryGuardService = Object.freeze({
-        version: '1.4.27-release-cleanup',
+        version: DEFAULT_POLICY_VERSION,
         getAudioBufferBytes,
+        getTrackOutputBytes,
+        normalizePolicy,
         releaseCompletedMasteredBuffers,
-        getSnapshot
+        getSnapshot,
+        diagnoseCompletedBatch
     });
 })(window);

@@ -4104,16 +4104,26 @@ window.FoxBearMasteringGuard = Object.freeze({
     version: '1.4.26-wake-lock-state-sync',
     getSnapshot: getMasteringQueueSnapshot
 });
-function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy') {
-    const service = getMemoryGuardService();
-    if (!service || typeof service.releaseCompletedMasteredBuffers !== 'function') return null;
-    const result = service.releaseCompletedMasteredBuffers(state.tracks, {
+function getMasteringMemoryPolicyOptions(reason = 'completed-batch-policy', extra = {}) {
+    const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
+    const activeBatchSize = Math.max(
+        completedCount,
+        ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite)
+    );
+    return Object.assign({
         selectedId: state.selectedId,
         keepSelected: true,
-        keepRecent: 1,
-        maxRetainedBuffers: 2,
+        keepRecent: activeBatchSize >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD ? 0 : 1,
+        maxRetainedBuffers: activeBatchSize >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD ? 1 : 2,
+        largeBatch: activeBatchSize >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD,
+        batchSize: activeBatchSize,
         reason
-    });
+    }, extra || {});
+}
+function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', extra = {}) {
+    const service = getMemoryGuardService();
+    if (!service || typeof service.releaseCompletedMasteredBuffers !== 'function') return null;
+    const result = service.releaseCompletedMasteredBuffers(state.tracks, getMasteringMemoryPolicyOptions(reason, extra));
     if (result && result.released) {
         console.info('FoxBear memory guard released completed mastered buffers:', result);
     }
@@ -4122,19 +4132,32 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy') 
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
     if (!service || typeof service.getSnapshot !== 'function') {
-        return Object.freeze({ version: '1.4.27-release-cleanup', unavailable: true, trackCount: state.tracks.length });
+        return Object.freeze({ version: 'v1.4.29-memory-stabilization', unavailable: true, trackCount: state.tracks.length });
     }
-    return service.getSnapshot(state.tracks, {
-        selectedId: state.selectedId,
-        keepSelected: true,
-        keepRecent: 1,
-        maxRetainedBuffers: 2
-    });
+    return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
+}
+function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
+    const service = getMemoryGuardService();
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') {
+        return Object.freeze({ version: 'v1.4.29-memory-stabilization', unavailable: true });
+    }
+    const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
+    console.info('FoxBear memory guard diagnostic:', result);
+    return result;
+}
+function afterMasteringBatchMemorySweep(batchSummary = {}) {
+    const completed = Number(batchSummary.completed || 0);
+    if (!completed) return null;
+    const result = diagnoseCompletedMasteringMemory('batch-complete-sweep');
+    const released = Number(result?.policyResult?.released || 0);
+    if (released) showToast(`메모리 안정화 · 완료 버퍼 ${released}개 자동 해제`);
+    return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: '1.4.27-release-cleanup',
+    version: 'v1.4.29-memory-stabilization',
     getSnapshot: getMemoryGuardSnapshot,
-    applyPolicy: applyCompletedMasteringMemoryPolicy
+    applyPolicy: applyCompletedMasteringMemoryPolicy,
+    diagnose: diagnoseCompletedMasteringMemory
 });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
@@ -5235,6 +5258,7 @@ function getMasteringBatchRunner() {
             beginHudBatch: beginBulkMasteringHudBatch,
             setBusy: value => { state.busy = Boolean(value); },
             beforeBatch: () => { if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile(); },
+            afterBatch: afterMasteringBatchMemorySweep,
             render: options => renderAll(options || {}),
             prepareTrack: track => preparePrimaryActionTrack(track),
             masterTrack
@@ -5254,7 +5278,9 @@ function getMasteringBatchRunner() {
                         preparePrimaryActionTrack(track);
                         if (await masterTrack(track, true, batchOptions.masterOptions || {})) completed += 1;
                     }
-                    return Object.freeze({ total: tracks.length, completed, failed: tracks.length - completed, ok: completed > 0 });
+                    const result = Object.freeze({ total: tracks.length, completed, failed: tracks.length - completed, ok: completed > 0 });
+                    afterMasteringBatchMemorySweep(result);
+                    return result;
                 } finally {
                     state.busy = false;
                     renderAll(batchOptions.finalRenderOptions || {});
@@ -8264,10 +8290,13 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
     const after = calculateAudioStats(finalBuffer);
     const beforeLufs = Number.isFinite(track?.analysis?.loudnessIntegrated) ? track.analysis.loudnessIntegrated : before?.approxLufs;
     const afterLufs = Number.isFinite(finalizeInfo?.loudnessAfter) ? finalizeInfo.loudnessAfter : after?.approxLufs;
+    const shortTermBefore = measureShortTermLufsStats(beforeBuffer);
+    const shortTermAfter = finalizeInfo?.shortTermLufs || measureShortTermLufsStats(finalBuffer);
     const spatialBudget = track?.analysis?.spatialBudgetApplied || null;
     return {
         before: { ...before, approxLufs: beforeLufs },
         after: { ...after, approxLufs: afterLufs },
+        loudness: { shortTermBefore, shortTermAfter, standard: 'approx short-term K-weighted LUFS, 3s window / 1s hop' },
         target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), baseLufs: Number(state.targetLufs), adaptiveLufs: Boolean(state.adaptiveTargetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength, referenceMatchStrength: getReferenceMatchStrengthAmount() },
         finalizer: {
             mode: finalizeInfo?.mode || '',
@@ -8337,8 +8366,7 @@ function measureApproxGatedLoudness(buffer) {
 function measureKWeightedGatedLoudness(buffer) {
     if (!buffer || !buffer.length) return -90;
     const sampleRate = Math.max(3000, Math.min(384000, buffer.sampleRate || 44100));
-    const length = Math.max(1, buffer.length || 1);
-    const channels = Math.max(1, Math.min(2, buffer.numberOfChannels || 1));
+    const length = Math.max(1, buffer.length || 1), channels = Math.max(1, Math.min(2, buffer.numberOfChannels || 1));
     const filtered = filterKWeightedAudioBuffer(buffer, sampleRate, length, channels);
     const frameSize = Math.max(1024, Math.round(sampleRate * 0.400));
     const hopSize = Math.max(512, Math.round(frameSize / 4));
@@ -8368,6 +8396,33 @@ function measureKWeightedGatedLoudness(buffer) {
     const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
     return loudnessDbFromPower(mean);
 }
+
+function measureShortTermLufsStats(buffer, options = {}) {
+    if (!buffer || !buffer.length) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: 0, hopSec: 0 };
+    const sampleRate = Math.max(3000, Math.min(384000, buffer.sampleRate || 44100));
+    const length = Math.max(1, buffer.length || 1);
+    const channels = Math.max(1, Math.min(2, buffer.numberOfChannels || 1));
+    const filtered = filterKWeightedAudioBuffer(buffer, sampleRate, length, channels);
+    const chunkSize = Math.max(256, Math.round(sampleRate * 0.100));
+    const chunkCount = Math.max(1, Math.ceil(length / chunkSize));
+    const chunkPowers = Array.from({ length: chunkCount }, (_, chunk) => {
+        const start = chunk * chunkSize, end = Math.min(length, start + chunkSize);
+        let sum = 0, count = 0;
+        for (let i = start; i < end; i += 1) { let channelPower = 0; for (let ch = 0; ch < channels; ch += 1) { const sample = filtered[ch][i] || 0; channelPower += sample * sample; } sum += channelPower; count += 1; }
+        return sum / Math.max(1, count);
+    });
+    const chunkSec = chunkSize / sampleRate, windowChunks = Math.max(1, Math.min(chunkCount, Math.round(Number(options.windowSec || 3) / Math.max(0.001, chunkSec)))), hopChunks = Math.max(1, Math.round(Number(options.hopSec || 1) / Math.max(0.001, chunkSec)));
+    const values = [];
+    for (let start = 0; start < chunkCount; start += hopChunks) {
+        const end = Math.min(chunkCount, start + windowChunks), sum = chunkPowers.slice(start, end).reduce((acc, value) => acc + value, 0), db = loudnessDbFromPower(sum / Math.max(1, end - start));
+        if (db > -70) values.push(db); if (end >= chunkCount) break;
+    }
+    const windowSec = Number((windowChunks * chunkSec).toFixed(2)), hopSec = Number((hopChunks * chunkSec).toFixed(2));
+    if (!values.length) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec, hopSec };
+    const min = Math.min(...values), max = Math.max(...values), mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+    return { min: Number(min.toFixed(2)), max: Number(max.toFixed(2)), mean: Number(mean.toFixed(2)), range: Number((max - min).toFixed(2)), count: values.length, windowSec, hopSec };
+}
+
 function filterKWeightedAudioBuffer(buffer, sampleRate, length, channels) {
     const output = [];
     for (let ch = 0; ch < channels; ch += 1) {
@@ -8444,6 +8499,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         const peakInfo = applyTransparentLimiterGuard(working, targetDb, options.truePeak !== false, qualityMode);
         sanitizeAudioBuffer(working, 'finalizer-fallback-output');
         const loudnessAfter = measureApproxGatedLoudness(working);
+        const shortTermLufs = measureShortTermLufsStats(working);
         return {
             buffer: working,
             info: {
@@ -8453,6 +8509,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
                 ceilingDb: targetDb,
                 loudnessBefore,
                 loudnessAfter,
+                shortTermLufs,
                 peakBefore: peakInfo.peakBefore,
                 peakAfter: peakInfo.peakAfter,
                 gainDb: loudnessGainDb + 20 * Math.log10(Math.max(1e-9, peakInfo.gain || 1)),
@@ -9515,6 +9572,11 @@ function finishPerformanceProfile(track, buffer, blob) {
     track.performanceInfo.realtimeRatio = durationMs > 0 ? totalMs / durationMs : 0;
     track.performanceInfo.outputSize = blob?.size || 0;
     track.performanceInfo.completedAt = new Date().toISOString();
+    const memoryService = getMemoryGuardService();
+    if (memoryService && typeof memoryService.getAudioBufferBytes === 'function') {
+        track.performanceInfo.masteredBufferBytes = memoryService.getAudioBufferBytes(buffer);
+        track.performanceInfo.outBlobBytes = blob?.size || 0;
+    }
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;

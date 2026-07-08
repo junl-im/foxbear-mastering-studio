@@ -1,3 +1,21 @@
+# v1.5.0 - Engine Quality Gate
+
+- Upgraded `src/audio/quality-gate-service.js` to QualityGate v2.1 with short-term LUFS, limiter overcorrection, de-esser overcorrection, multiband overcorrection, mobile translation correction amount, and risk flag checks.
+- Added short-term LUFS telemetry to the master finalizer worker and in-app fallback finalizer.
+- Extended master reports with `loudness.shortTermBefore` and `loudness.shortTermAfter` for diagnostics and future detail-panel surfacing.
+- Added `src/audio/reference-profile-service.js` as the 64/96-band log-spectrum helper foundation for the next reference-matching upgrade.
+- Kept v1.4.29 large-batch memory stabilization behavior carried forward.
+- Added `qa/v150_engine_quality_gate_smoke.js`; current default QA target is `163/163 PASS`.
+
+# v1.4.29 - Memory Stabilization
+
+- Upgraded `src/audio/memory-guard-service.js` with dynamic large-batch and low-memory retention policy for completed mastered AudioBuffers.
+- Added `FoxBearMemoryGuard.diagnose()` for before/after completed-batch memory sweeps from the browser console.
+- Added automatic post-batch memory sweep after selected/all-track mastering batches complete.
+- Added performance memory metadata for completed masters: `masteredBufferBytes` and `outBlobBytes`.
+- Completed download Blobs remain available while non-selected completed `masteredBuffer` objects are released according to policy.
+- Added `qa/v1429_memory_stabilization_smoke.js`; current default QA target is `161/161 PASS`.
+
 # v1.4.28 - App Slim-down Orchestration Split
 
 - Added `src/audio/mastering-orchestrator-service.js` for selected/all-track mastering batch orchestration.

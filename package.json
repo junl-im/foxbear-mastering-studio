@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-26",
   "version": "1.4.26",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Spectrum stability carry-forward, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Bulk Import HUD, render scheduler, mastering queue throttle, audio decode diagnostics, v1.4.27 release cleanup, and v1.4.28 app slim-down orchestration split.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Stage21, Stage20, Stage18, Stage17 carry-forward, Spectrum stability carry-forward, Bulk Import/Mastering HUD continuity, v1.4.27 release cleanup, v1.4.28 app slim-down orchestration split, v1.4.29 memory stabilization, and v1.5.0 engine QualityGate/short-term LUFS/reference-profile reinforcement.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -29,6 +29,7 @@
     "node --check src/audio/import-queue-service.js",
     "node --check src/audio/analysis-cache-service.js",
     "node --check src/audio/memory-guard-service.js",
+    "node --check src/audio/reference-profile-service.js",
     "node --check src/audio/quality-gate-service.js",
     "node --check src/audio/mastering-orchestrator-service.js",
     "node --check src/state/track-lifecycle-service.js",
@@ -171,6 +172,8 @@
     "node qa/v1427_release_cleanup_smoke.js",
     "node qa/v1428_module_memory_guard_smoke.js",
     "node qa/v1428_app_slimdown_orchestration_smoke.js",
+    "node qa/v1429_memory_stabilization_smoke.js",
+    "node qa/v150_engine_quality_gate_smoke.js",
     "node qa/v151_browser_qa_scaffold_smoke.js"
   ]
 }
