@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.14 - download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.4.18 - download dialog view builder
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -18,7 +18,12 @@
             openCurrentPageInExternalBrowser,
             copyDownloadTroubleshootingGuide,
             copyDownloadDiagnostics,
+            copyDownloadRecoveryChecklist,
             getRecommendedDownloadFlow,
+            getDownloadActionReceipt,
+            getDownloadRecoveryChecklist,
+            getDownloadCompactRecoveryPlan,
+            getDownloadDialogCompactHint,
             foxBearHaptic = () => undefined,
             clearNativeBadgeIfDone = () => undefined,
             renderAll = () => undefined,
@@ -40,6 +45,9 @@
         const env = getDownloadEnvironmentInfo();
         const flow = typeof getRecommendedDownloadFlow === 'function'
             ? getRecommendedDownloadFlow(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file')
+            : null;
+        const compactHint = typeof getDownloadDialogCompactHint === 'function'
+            ? getDownloadDialogCompactHint(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : null;
         const backdrop = document.createElement('div');
         backdrop.className = 'download-options-backdrop';
@@ -106,7 +114,8 @@
                 { label: '다운로드', detail: '기본 저장을 시도합니다.' },
                 { label: '파일 공유', detail: '지원 기기에서 공유창을 엽니다.' }
             ]);
-        stepItems.forEach(step => {
+        const visibleStepLimit = Number(compactHint?.visibleStepLimit || 0) || (env.restricted ? 3 : 2);
+        stepItems.slice(0, visibleStepLimit).forEach(step => {
             const item = document.createElement('li');
             const label = document.createElement('strong');
             label.textContent = step.label;
@@ -116,6 +125,17 @@
             steps.appendChild(item);
         });
         flowCard.append(flowTitle, flowDetail, flowBadges, steps);
+
+        const compactHintBar = document.createElement('div');
+        compactHintBar.className = `download-options-compact-hint ${env.restricted ? 'restricted' : 'normal'}`;
+        compactHintBar.dataset.downloadHintMode = compactHint?.mode || (env.restricted ? 'restricted-micro' : 'standard-micro');
+        const compactHintTitle = document.createElement('strong');
+        compactHintTitle.textContent = compactHint?.headline || (env.restricted ? '카카오 저장 순서' : '다운로드 확인');
+        const compactHintDetail = document.createElement('span');
+        compactHintDetail.textContent = compactHint?.detail || (env.restricted ? '공유/저장 후 안 되면 파일 열기를 사용하세요.' : '다운로드 폴더를 먼저 확인하세요.');
+        const compactHintMore = document.createElement('small');
+        compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
+        compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
@@ -151,6 +171,7 @@
             const selected = options.find(option => option.format === selectedFormat);
             warning.classList.add('show');
             warning.textContent = selected ? `${selected.label} ${selected.detail} 선택됨 · ${env.restricted ? '공유/저장 먼저 누르세요.' : '다운로드 또는 파일 공유를 누르세요.'}` : '포맷을 선택했습니다.';
+            renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail} 준비됨` : '포맷 선택됨');
         };
 
         options.forEach(option => {
@@ -247,6 +268,15 @@
             diagnostics.addEventListener('click', () => copyDownloadDiagnostics(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', deps));
             fallbackActions.appendChild(diagnostics);
         }
+        if (typeof copyDownloadRecoveryChecklist === 'function') {
+            const checklistCopy = document.createElement('button');
+            checklistCopy.type = 'button';
+            checklistCopy.className = 'btn-secondary';
+            checklistCopy.textContent = '체크리스트 복사';
+            checklistCopy.dataset.downloadAction = 'checklist-copy';
+            checklistCopy.addEventListener('click', () => copyDownloadRecoveryChecklist(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog', deps));
+            fallbackActions.appendChild(checklistCopy);
+        }
         if (env.restricted) {
             const external = document.createElement('button');
             external.type = 'button';
@@ -263,6 +293,79 @@
             ? '외부 브라우저로 열면 현재 메모리의 완성 파일은 넘어가지 않을 수 있습니다. 그 경우 Chrome/Safari에서 다시 마스터링 후 다운로드하세요.'
             : '공유는 기기 기본 공유창을 사용합니다. 지원 브라우저에서만 파일 그대로 보낼 수 있습니다.';
 
+
+        const checklistPanel = document.createElement('div');
+        checklistPanel.className = 'download-options-checklist download-options-checklist-compact';
+        const renderChecklist = (action = primaryAction, exported = null) => {
+            const blob = exported?.blob || track.outBlob || null;
+            const fileName = exported?.fileName || track.outName || track.name || 'FoxBear mastered file';
+            const plan = typeof getDownloadDialogCompactHint === 'function'
+                ? getDownloadDialogCompactHint(blob, fileName, action)
+                : (typeof getDownloadCompactRecoveryPlan === 'function'
+                    ? getDownloadCompactRecoveryPlan(blob, fileName, action)
+                    : null);
+            const checklist = !plan && typeof getDownloadRecoveryChecklist === 'function'
+                ? getDownloadRecoveryChecklist(blob, fileName, action)
+                : null;
+            const viewModel = plan || checklist;
+            checklistPanel.replaceChildren();
+            if (!viewModel) return;
+            const heading = document.createElement('strong');
+            heading.textContent = viewModel.headline || '저장 체크리스트';
+            const summary = document.createElement('span');
+            summary.textContent = viewModel.summary || '아래 순서대로 확인하세요.';
+            const items = document.createElement('ol');
+            items.className = 'download-options-checklist-steps download-options-checklist-steps-compact';
+            const maxSteps = plan ? (env.restricted ? 3 : 2) : (env.restricted ? 4 : 3);
+            (viewModel.steps || []).slice(0, maxSteps).forEach(step => {
+                const item = document.createElement('li');
+                const label = document.createElement('b');
+                label.textContent = step.label || step.key || '확인';
+                const detail = document.createElement('span');
+                detail.textContent = step.detail || '';
+                item.append(label, detail);
+                items.appendChild(item);
+            });
+            if (plan?.optionalAction) {
+                const optional = document.createElement('em');
+                optional.className = 'download-options-checklist-optional';
+                optional.textContent = `안 되면 추가 옵션에서 ${plan.optionalAction.label}를 사용하세요.`;
+                checklistPanel.append(heading, summary, items, optional);
+                return;
+            }
+            checklistPanel.append(heading, summary, items);
+        };
+
+        const receipt = document.createElement('div');
+        receipt.className = 'download-options-receipt';
+        receipt.setAttribute('aria-live', 'polite');
+        const renderReceipt = (action, exported = null, status = '') => {
+            const fallbackReceipt = {
+                title: status || `${actionLabel(action)} 준비`,
+                detail: '버튼을 누르면 선택한 파일 형식으로 준비한 뒤 다음 저장 방법을 안내합니다.',
+                nextSteps: [env.restricted ? '공유/저장 또는 저장 도움을 차례로 사용하세요.' : '다운로드 폴더 또는 저장 도움을 확인하세요.'],
+                badges: [env.label]
+            };
+            const data = typeof getDownloadActionReceipt === 'function'
+                ? getDownloadActionReceipt(action, exported?.blob || track.outBlob || null, exported?.fileName || track.outName || track.name || 'FoxBear mastered file')
+                : fallbackReceipt;
+            receipt.replaceChildren();
+            const titleLine = document.createElement('strong');
+            titleLine.textContent = status || data.title || fallbackReceipt.title;
+            const detailLine = document.createElement('span');
+            detailLine.textContent = data.detail || fallbackReceipt.detail;
+            const stepList = document.createElement('ul');
+            stepList.className = 'download-options-receipt-steps';
+            (data.nextSteps || fallbackReceipt.nextSteps).slice(0, 3).forEach(step => {
+                const item = document.createElement('li');
+                item.textContent = step;
+                stepList.appendChild(item);
+            });
+            receipt.append(titleLine, detailLine, stepList);
+            renderChecklist(action, exported);
+        };
+        renderReceipt(primaryAction);
+
         const allButtons = () => [download, share, help, moreToggle, copy, close, ...Array.from(list.querySelectorAll('button')), ...Array.from(fallbackActions.querySelectorAll('button'))];
         const setBusy = busy => {
             allButtons().forEach(button => { button.disabled = Boolean(busy); });
@@ -273,6 +376,7 @@
             setBusy(true);
             warning.classList.add('show');
             warning.textContent = statusText;
+            renderReceipt(primaryAction, null, statusText);
             return prepareTrackDownloadBlob(track, selectedFormat);
         };
 
@@ -298,21 +402,25 @@
                     try {
                         // compatibility anchor: await shareDownloadFile(exported.blob, exported.fileName)
             await shareDownloadFile(exported.blob, exported.fileName, deps);
+                        renderReceipt('share', exported, '공유/저장창을 열었습니다.');
                         closeDownloadOptionsDialog(backdrop);
                         markDone();
                         return;
                     } catch (shareError) {
                         console.warn('restricted browser share-first failed:', shareError);
                         openAssistForExport(exported);
+                        renderReceipt('assist', exported, '공유 실패 후 저장 도움으로 전환했습니다.');
                         warning.textContent = '공유/저장이 취소되었거나 막혔습니다. 저장 도움창의 파일 열기 또는 외부 브라우저 안내를 사용하세요.';
                     }
                 } else {
                     openAssistForExport(exported);
+                    renderReceipt('assist', exported, '파일 공유 제한으로 저장 도움을 열었습니다.');
                     warning.textContent = '이 카카오/인앱 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 사용하세요.';
                 }
                 markDone();
                 return;
             }
+            renderReceipt('download', exported, '다운로드를 시작했습니다.');
             closeDownloadOptionsDialog(backdrop);
             downloadBlob(exported.blob, exported.fileName, deps);
             markDone();
@@ -322,16 +430,19 @@
             const exported = await prepareSelected(selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.');
             if (!supportsWebShareDownloadFiles() || !supportsWebShareFiles(exported.blob, exported.fileName)) {
                 openAssistForExport(exported);
+                renderReceipt('assist', exported, '파일 공유 제한으로 저장 도움을 열었습니다.');
                 warning.textContent = '이 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 열었습니다.';
                 return;
             }
             await shareDownloadFile(exported.blob, exported.fileName, deps);
+            renderReceipt('share', exported, '공유/저장창을 열었습니다.');
             markDone();
         };
 
         const runAssistFlow = async () => {
             const exported = await prepareSelected(selectedFormat === track.outFormat ? '저장 도움 파일을 준비합니다.' : '저장 도움용 파일로 변환 중입니다.');
             openAssistForExport(exported);
+            renderReceipt('assist', exported, '저장 도움창을 열었습니다.');
             warning.textContent = '저장 도움창을 열었습니다. 공유/저장, 파일 열기, 외부 브라우저 안내 중 가능한 방법을 사용하세요.';
         };
 
@@ -343,12 +454,14 @@
             }
             warning.classList.add('show');
             warning.textContent = '현재 파일과 브라우저 진단 정보를 복사합니다.';
+            renderReceipt('diagnostics', null, '진단 정보를 복사합니다.');
             return copyDownloadDiagnostics(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', deps);
         };
 
         const runCopyFlow = () => {
             warning.classList.add('show');
             warning.textContent = '현재 페이지 주소를 복사합니다.';
+            renderReceipt('copy', null, '현재 페이지 주소를 복사합니다.');
             copyCurrentPageUrl(deps);
             return Promise.resolve();
         };
@@ -369,6 +482,7 @@
                     console.warn(`${label || action} flow failed:`, error);
                     warning.classList.add('show');
                     warning.textContent = getErrorMessage(error, `${label || actionLabel(action)} 작업에 실패했습니다.`);
+                    renderReceipt(action, null, warning.textContent);
                     if (action === 'share') {
                         try {
                             const fallback = await prepareTrackDownloadBlob(track, selectedFormat);
@@ -389,7 +503,7 @@
 
         close.addEventListener('click', () => closeDownloadOptionsDialog(backdrop));
         backdrop.addEventListener('click', event => { if (event.target === backdrop) closeDownloadOptionsDialog(backdrop); });
-        panel.append(close, title, name, envBox, flowCard, warning, listLabel, list, selectedSummary, actions, fallbackActions, guide);
+        panel.append(close, title, name, envBox, flowCard, compactHintBar, warning, receipt, checklistPanel, listLabel, list, selectedSummary, actions, fallbackActions, guide);
         backdrop.appendChild(panel);
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');

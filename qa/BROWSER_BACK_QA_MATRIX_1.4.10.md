@@ -1,8 +1,8 @@
-# Browser/PWA QA Matrix - v1.4.14 Performance diagnostics
+# Browser/PWA QA Matrix - v1.4.18 Performance diagnostics
 
 ## Scope
 
-v1.4.14 keeps Dock FFT removed and polishes hidden performance diagnostics with adaptive refresh, warning summaries, copyable snapshots, and package-version synced overwrite ZIP generation. This matrix focuses on confirming that diagnostics are available for troubleshooting without changing the normal user experience.
+v1.4.18 keeps Dock FFT removed and polishes hidden performance diagnostics with adaptive refresh, warning summaries, copyable snapshots, and package-version synced overwrite ZIP generation. This matrix focuses on confirming that diagnostics are available for troubleshooting without changing the normal user experience.
 
 ## Common checks
 
@@ -42,7 +42,7 @@ v1.4.14 keeps Dock FFT removed and polishes hidden performance diagnostics with 
 - KakaoTalk in-app browser should still show the guarded Back/exit behavior when supported.
 - Chrome Android, Safari iOS, PWA, beforeunload, and popstate remain covered.
 - External analyser coverage remains important for realtime mastering, preview translation, and difference listen WebAudio graphs.
-- v1.4.14 retains Dock mini FFT removal and Back confirm focus from the stability polish line.
+- v1.4.18 retains Dock mini FFT removal and Back confirm focus from the stability polish line.
 - Dock mini FFT and `#bottomPreviewSpectrum` should not exist.
 - Runtime health does not require `renderMini`.
 - The diagnostics panel should help inspect performance without reintroducing Dock FFT.
@@ -52,4 +52,4 @@ v1.4.14 keeps Dock FFT removed and polishes hidden performance diagnostics with 
 external analyser coverage remains part of the WebAudio QA path.
 runtime health does not require `renderMini` after Dock spectrum cleanup.
 
-- v1.4.14 Performance diagnostics polish includes adaptive refresh, getSummary, copyable snapshots, and Packaging sync.
+- v1.4.18 Performance diagnostics polish includes adaptive refresh, getSummary, copyable snapshots, and Packaging sync.

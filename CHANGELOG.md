@@ -1,79 +1,116 @@
 # Changelog
 
-## v1.4.14 - Download action clarity
+## v1.4.18 - Download dialog micro hint
+- Added `FoxBearDownloadService.getDownloadDialogCompactHint()` for a shorter first-screen download/save hint.
+- Main download popup now renders `.download-options-compact-hint` so Kakao/mobile users see only the next two actions first.
+- Diagnostics, 안내 복사, 체크리스트 복사, and external-browser guidance remain available under `추가 옵션`.
+- Capped first-screen flow steps with `visibleStepLimit` to avoid a long popup on mobile.
+- Fixed duplicate flow-step append logic in `download-dialog-view.js`.
+- Runtime Health now checks the dialog micro hint helper.
+- Updated cache key to `1.4.18-download-dialog-micro-hint`.
 
-- Kept the v1.4.11 Kakao/in-app fallback, v1.4.12 diagnostics, and v1.4.13 recommended-flow card.
-- Fixed the download popup button semantics so visible buttons map to explicit actions: `download`, `share`, `assist`, `diagnostics`, or `copy`.
-- Added `data-download-action` and `data-recommended` metadata to the main action buttons for QA and future visual debugging.
-- Routed primary, secondary, and tertiary buttons through a single action dispatcher to avoid future drift between labels and handlers.
-- Passed app dependencies into download/share/save-help/copy helpers so toast and active object URL tracking remain available.
-- Added `.download-options-actions-v1414` and recommended-action badge styling.
-- Added `qa/v1414_download_action_clarity_smoke.js` and refreshed `qa/BROWSER_BACK_QA_MATRIX_1.4.14.md`.
-- Bumped package/build/cache key to `1.4.14-download-action-clarity`.
+## v1.4.17 - Download recovery compact polish
+- Added `FoxBearDownloadService.getDownloadCompactRecoveryPlan()` for a shorter user-facing save order.
+- Kept full `getDownloadRecoveryChecklist()` and diagnostics JSON for support/debugging, but made the visible dialog checklist more compact.
+- Fixed the clipboard textarea fallback so it does not attempt to remove the same temporary element twice.
+
+## v1.4.16 - Download recovery checklist
+- Added save recovery checklist helpers and checklist copy.
+
+## v1.4.15 - Download receipt polish
+- Added download action receipts and next-step status cards.
+- Improved Kakao/mobile post-action guidance.
+
+## v1.4.14 - Download action clarity
+- Unified download/share/assist action dispatch.
+- Added explicit `data-download-action` QA anchors.
+
+## v1.4.13 - Download flow polish
+- Added recommended download flow cards.
+- Collapsed secondary copy/diagnostics options.
 
 ## v1.4.12 - Download diagnostics follow-up
+- Added download diagnostics JSON copy and event tracing.
 
-- Added bounded download/share diagnostic event history and copyable diagnostics JSON.
-- Added capability badges to the save-help sheet.
-- Added `진단 복사` to the main download dialog and save-help sheet.
+## v1.4.11 - Download/share reliability
+- Added Kakao/in-app browser fallback path for Blob download restrictions.
 
-## v1.4.11 - Download/share reliability + Kakao fallback
+## v1.4.10 - Performance diagnostics packaging polish
+- Improved hidden performance diagnostics and package version sync.
 
-- Strengthened the mastered-file download flow for KakaoTalk/in-app browsers where client Blob downloads may silently fail.
-- Enlarged the download/options popup and save-help sheet so mobile/PWA content is not clipped.
-- Added share/save-first behavior, save help, file-open fallback, troubleshooting-guide copy, and Android external-browser intent fallback.
+## v1.4.9 - Performance diagnostics
+- Added hidden performance diagnostics panel.
 
-## v1.4.10 - Performance diagnostics polish + Packaging sync
+## v1.4.8 - Dock spectrum cleanup
+- Fully removed Dock mini FFT remnants.
 
-- Polished the hidden performance diagnostics panel with adaptive refresh, snapshot copy, and package overwrite version sync.
-- Fixed `tools/create-overwrite-zip.sh` so overwrite package names follow `package.json`.
+## v1.4.7 - Dock FFT removal
+- Removed Dock FFT to simplify the player and reduce render work.
 
-## Historical cumulative anchors
+## v1.4.6 - Stability polish
+- Stabilized FFT lifecycle and navigation guard state.
 
-- Stage7 waveform compare CSS cleanup and `waveform-compare-view.js` remain cumulative.
-- Stage8 async/mobile Dock polish remains cumulative.
-- Stage9 Dock waveform CSS split and Stage9.1 cumulative overwrite manifest remain cumulative.
-- Stage10 download service split through Stage14 runtime recovery remain cumulative.
-- Stage16 mobile settings/version release through Stage23 playback orchestration remain cumulative.
-- Stage24 settings overlay cleanup through Stage28 waveform-control-view.js / unmanaged waveform audit remain cumulative.
-- v1.4.1 Spectrum Visualizer + Exit Guard, v1.4.2 crossfade/waveform zoom, v1.4.7 Dock FFT removal, and v1.4.8 detail-only FFT cleanup remain cumulative.
+## v1.4.5 - FFT analyser stabilization
+- Stabilized WebAudio analyser taps.
 
-## Cumulative smoke compatibility notes for v1.4.14
+## v1.4.4 - FFT live hotfix
+- Fixed mini-only FFT loop issue.
 
-- Stage8 compact mobile Dock overlay anchors remain documented.
-- Stage9 Dock waveform dedicated CSS layer remains documented.
-- Stage9.1 cumulative overwrite manifest and 누적 덮어쓰기 packaging remain documented.
-- Stage10 download service split remains documented.
-- Stage11 large modular renovation and Stage11.1 runtime mobile hotfix remain documented.
-- Stage12 detail view split remains documented.
-- Stage13 runtime health and Stage14 runtime recovery remain documented.
-- v1.4.14 Download flow polish keeps v1.4.11 Kakao fallback and v1.4.12 diagnostics cumulative.
-- Dock FFT removal remains intentional; `renderMini` remains removed and FFT is detail-only.
-- Performance diagnostics and Packaging polish remain cumulative.
+## v1.4.3 - Playback transition audit
+- Split playback transition service and hardened fade recovery.
 
+## v1.4.2 - Crossfade / zoom / Dock spectrum
+- Added crossfade, waveform zoom, and Dock mini spectrum.
 
-## Cumulative compatibility smoke anchors
+## v1.4.1 - Spectrum / exit guard
+- Added spectrum visualizer and refresh/back guard.
 
-- Stage8 compact mobile Dock overlay anchors remain documented.
-- Stage9 Dock waveform CSS split remains documented.
-- Stage9.1 cumulative overwrite manifest and 누적 덮어쓰기 packaging remain documented.
-- Stage10 download service split remains documented.
-- Stage11 large modular renovation remains documented.
-- Stage11.1 runtime/mobile hotfix remains documented.
-- Stage12 detail view split remains documented.
-- Stage27 다음 대화 인수인계: `waveform-control-service.js` remains the shared waveform calculation/control service.
-- v1.4.14 Exit Guard remains active for refresh/back protection.
-- v1.4.14 Spectrum remains available in the detail-only FFT panel.
-- v1.4.14 stability polish remains active for FFT lifecycle and Back confirm debounce.
-- FFT external analyser coverage remains documented for preview translation and difference listen graphs.
-- Dock FFT removal remains intentional; `#bottomPreviewSpectrum` should not exist.
-- renderMini cleanup remains intentional; `renderMini` is removed and FFT is detail-only.
-- Performance diagnostics remain available; `FoxBearPerformanceDiagnostics.getSummary()` and snapshot 복사 remain supported.
-- Performance diagnostics uses adaptive refresh and keeps Packaging overwrite naming synced with `package.json`.
-- Safari iOS, Chrome Android, Kakao Android, Desktop Chrome/Edge, and installed PWA remain part of manual QA coverage.
+## Stage28
+- Extracted `waveform-control-view.js` and kept managed waveform rendering paths.
 
-## v1.4.14 cumulative stability/renderMini notes
+## Stage27
+- Added common waveform control service.
 
-- v1.4.14 stability anchors from earlier patches remain cumulative.
-- Dock mini FFT remains removed and `renderMini` remains removed.
-- Detail-only FFT remains the current policy.
+## Stage26
+- Unified waveform controls.
+
+## Stage25
+- Rehomed compare controls.
+
+## Stage23
+- Added playback orchestration foundations.
+
+## Stage14
+- Runtime recovery and asset health monitoring.
+
+## Stage13
+- Runtime health checks and boot failure visibility.
+
+## Stage9
+- Dock waveform CSS split and cumulative overwrite manifest checks.
+
+## Stage7
+- `waveform-compare-view.js` split and compare modal cleanup.
+
+## Compatibility anchor notes for cumulative QA
+- Stage8: async mobile Dock rejection handling and compact mobile Dock overlay anchors remain supported.
+- Stage9.1: cumulative overwrite packaging and 누적 덮어쓰기 manifest checks remain supported.
+- Stage10: download service split remains in `src/download/download-service.js`.
+- Stage11: large modular renovation remains active through recommendation engine and base components.
+- Stage11.1: runtime/mobile hotfix and Dock-attached quick panel cleanup remain active.
+- Stage12: detail view split remains active.
+- Stage13 and Stage14: Runtime Health and runtime recovery remain active.
+- v1.4.18 Spectrum / Exit Guard stability: Spectrum remains detail-only, Exit Guard remains enabled.
+- v1.4.18 Dock FFT removal: Dock FFT removal remains intentional; settings gear alignment remains active.
+- v1.4.18 renderMini cleanup: removed Dock mini FFT renderMini path remains removed.
+- v1.4.18 Performance diagnostics: `FoxBearPerformanceDiagnostics` remains available with `getSummary`, adaptive refresh, and 복사 actions.
+- v1.4.18 Packaging: overwrite packages derive the version from package.json.
+
+## v1.4.18 cumulative compatibility anchors
+- stability: navigation confirm debounce, FFT lifecycle stabilization, and external analyser coverage remain active.
+- Dock FFT removal and settings gear alignment remain active.
+- Performance diagnostics and adaptive refresh remain available.
+- Packaging polish remains active: overwrite ZIP naming follows `package.json`.
+- renderMini cleanup remains active; runtime health does not require `renderMini` and FFT remains detail-only.
+- Download/share fallback remains active: share/save, save assist, diagnostics copy, checklist copy, and external browser guidance remain available.
+- Dock FFT removal remains active; `#bottomPreviewSpectrum` should not exist and detail-only FFT remains intentional.

@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.14-download-action-clarity';
+    const FALLBACK_VERSION = '1.4.18-download-dialog-micro-hint';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -27,6 +27,11 @@
         'FoxBearDownloadService.copyDownloadTroubleshootingGuide',
         'FoxBearDownloadService.getDownloadCapabilitySummary',
         'FoxBearDownloadService.getRecommendedDownloadFlow',
+        'FoxBearDownloadService.getDownloadActionReceipt',
+        'FoxBearDownloadService.getDownloadRecoveryChecklist',
+        'FoxBearDownloadService.getDownloadCompactRecoveryPlan',
+        'FoxBearDownloadService.getDownloadDialogCompactHint',
+        'FoxBearDownloadService.copyDownloadRecoveryChecklist',
         'FoxBearDownloadService.getDownloadDiagnostics',
         'FoxBearDownloadService.copyDownloadDiagnostics',
         'FoxBearDownloadDialogView.showDownloadOptionsDialog',

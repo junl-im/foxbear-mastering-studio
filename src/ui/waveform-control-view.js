@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.14-download-action-clarity';
+  const VIEW_VERSION = '1.4.18-download-dialog-micro-hint';
   const DEFAULT_BINS = 96;
 
   function getService() {

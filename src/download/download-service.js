@@ -186,7 +186,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.4.14',
+                version: '1.4.18',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -206,7 +206,7 @@
             };
         }
         return {
-            version: '1.4.14',
+            version: '1.4.18',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -220,6 +220,191 @@
                 env.standalone ? 'PWA 모드' : env.label
             ]
         };
+    };
+
+
+    const getDownloadActionReceipt = (action = 'download', blob = null, fileName = '') => {
+        const env = getDownloadEnvironmentInfo();
+        const normalizedAction = ['download', 'share', 'assist', 'diagnostics', 'copy', 'external'].includes(action) ? action : 'download';
+        const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : 'FoxBear mastered file';
+        const fileSize = getFileSizeLabel(blob);
+        const commonFile = `${safeName} · ${fileSize}`;
+        const restricted = env.restricted;
+        const receiptMap = {
+            download: restricted
+                ? {
+                    title: '인앱 브라우저라 저장 도움으로 전환될 수 있습니다.',
+                    detail: `${commonFile} 준비 후 공유/저장 또는 파일 열기 순서로 안내합니다.`,
+                    nextSteps: ['공유창이 뜨면 파일 저장/드라이브/메신저를 선택하세요.', '공유창이 안 뜨면 저장 도움의 파일 열기를 누르세요.', '계속 실패하면 주소 복사 후 Chrome/Safari에서 다시 여세요.']
+                }
+                : {
+                    title: '다운로드를 시작합니다.',
+                    detail: `${commonFile} 파일을 브라우저 기본 저장 방식으로 내려받습니다.`,
+                    nextSteps: ['다운로드 표시줄 또는 다운로드 폴더를 확인하세요.', '저장이 안 보이면 저장 도움을 사용하세요.']
+                },
+            share: {
+                title: restricted ? '공유/저장창을 먼저 여는 흐름입니다.' : '기기 공유창으로 파일을 보냅니다.',
+                detail: `${commonFile} 파일을 공유 가능한 오디오 파일로 준비합니다.`,
+                nextSteps: ['공유창에서 파일 앱, 드라이브, 메신저, 메일 중 가능한 대상을 고르세요.', '공유가 취소되거나 막히면 저장 도움으로 이어집니다.']
+            },
+            assist: {
+                title: '저장 도움창을 엽니다.',
+                detail: `${commonFile} 파일을 열기/공유/복사 안내와 함께 보여줍니다.`,
+                nextSteps: ['파일 열기를 눌러 새 화면에서 저장을 시도하세요.', '인앱 브라우저에서는 외부 브라우저 안내를 참고하세요.', '문제가 계속되면 진단 복사를 눌러 상태를 확인하세요.']
+            },
+            diagnostics: {
+                title: '진단 정보를 복사합니다.',
+                detail: '파일 저장 실패 원인을 확인할 수 있도록 브라우저/공유/다운로드 상태를 복사합니다.',
+                nextSteps: ['복사된 JSON을 메모장이나 대화창에 붙여 확인하세요.', '파일 자체는 공유되지 않고 상태 정보만 복사됩니다.']
+            },
+            copy: {
+                title: '현재 페이지 주소를 복사합니다.',
+                detail: '외부 브라우저에서 다시 열 수 있도록 현재 앱 주소를 복사합니다.',
+                nextSteps: ['Chrome/Safari 주소창에 붙여넣어 여세요.', '메모리의 완성 파일은 넘어가지 않을 수 있어 다시 마스터링이 필요할 수 있습니다.']
+            },
+            external: {
+                title: '외부 브라우저로 열기를 시도합니다.',
+                detail: '인앱 브라우저 제한을 피하기 위해 Chrome/Safari 이동을 안내합니다.',
+                nextSteps: ['새 브라우저에서 앱이 열리면 파일을 다시 불러와 마스터링하세요.', '현재 Blob 파일은 브라우저 간 직접 전달되지 않을 수 있습니다.']
+            }
+        };
+        const receipt = receiptMap[normalizedAction] || receiptMap.download;
+        return {
+            version: '1.4.18',
+            action: normalizedAction,
+            title: receipt.title,
+            detail: receipt.detail,
+            nextSteps: receipt.nextSteps.slice(),
+            badges: [env.label, restricted ? '인앱 fallback' : '일반 저장', env.shareFiles ? '공유 가능' : '공유 제한'],
+            file: { name: safeName, sizeLabel: fileSize, sizeBytes: Number(blob?.size || 0), type: blob?.type || '' },
+            environment: { label: env.label, restricted, kakao: env.kakao, ios: env.ios, android: env.android, standalone: env.standalone }
+        };
+    };
+
+
+    const getDownloadRecoveryChecklist = (blob = null, fileName = '', lastAction = '') => {
+        const env = getDownloadEnvironmentInfo();
+        const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : 'FoxBear mastered file';
+        const fileSize = getFileSizeLabel(blob);
+        const shareReady = blob ? supportsWebShareFiles(blob, safeName) : env.shareFiles;
+        const restricted = env.restricted;
+        const normalizedLastAction = String(lastAction || '').replace(/[^a-z-]+/gi, '') || 'ready';
+        const headline = restricted
+            ? '카카오/인앱 저장 체크리스트'
+            : '다운로드 확인 체크리스트';
+        const summary = restricted
+            ? '자동 다운로드가 안 보이면 고장이라기보다 브라우저 제한일 가능성이 큽니다. 아래 순서대로만 확인하세요.'
+            : '다운로드가 바로 보이지 않으면 브라우저 저장 위치와 도움창을 차례로 확인하세요.';
+        const steps = restricted
+            ? [
+                { key: 'share', label: '1. 공유/저장', detail: shareReady ? '공유창에서 파일 앱, 드라이브, 카카오톡, 메일 중 가능한 곳을 선택합니다.' : '공유창이 제한되면 바로 저장 도움으로 넘어갑니다.' },
+                { key: 'open', label: '2. 파일 열기', detail: '저장 도움창에서 파일 열기를 누른 뒤 브라우저 메뉴의 저장/공유를 확인합니다.' },
+                { key: 'diagnostics', label: '3. 진단 복사', detail: '계속 실패하면 진단 복사를 눌러 브라우저/파일 상태를 확인합니다.' },
+                { key: 'external', label: '4. 외부 브라우저', detail: '마지막으로 주소 복사 후 Chrome/Safari에서 다시 마스터링하고 저장합니다.' }
+            ]
+            : [
+                { key: 'download', label: '1. 다운로드 폴더 확인', detail: '브라우저 다운로드 표시줄 또는 다운로드 폴더를 먼저 확인합니다.' },
+                { key: 'share', label: '2. 파일 공유', detail: shareReady ? '필요하면 기기 공유창으로 파일을 보냅니다.' : '공유가 제한되면 저장 도움을 사용합니다.' },
+                { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
+            ];
+        return {
+            version: '1.4.18',
+            lastAction: normalizedLastAction,
+            headline,
+            summary,
+            primaryAction: restricted ? (shareReady ? 'share' : 'assist') : 'download',
+            fallbackAction: restricted ? 'diagnostics' : 'assist',
+            file: { name: safeName, sizeLabel: fileSize, sizeBytes: Number(blob?.size || 0), type: blob?.type || '' },
+            environment: { label: env.label, restricted, kakao: env.kakao, ios: env.ios, android: env.android, standalone: env.standalone, shareFiles: env.shareFiles, anchorDownload: env.anchorDownload, filePicker: env.filePicker },
+            steps
+        };
+    };
+
+
+
+    const getDownloadCompactRecoveryPlan = (blob = null, fileName = '', lastAction = '') => {
+        const checklist = getDownloadRecoveryChecklist(blob, fileName, lastAction);
+        const env = checklist.environment || getDownloadEnvironmentInfo();
+        const restricted = Boolean(env.restricted);
+        const maxVisibleSteps = restricted ? 3 : 2;
+        const compactSteps = (checklist.steps || []).slice(0, maxVisibleSteps).map((step, index) => ({
+            key: step.key || `step-${index + 1}`,
+            label: String(step.label || `단계 ${index + 1}`).replace(/^\d+\.\s*/, ''),
+            detail: step.detail || ''
+        }));
+        const optionalStep = restricted
+            ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
+            : (checklist.steps || []).find(step => step.key === 'assist') || null;
+        return {
+            version: '1.4.18',
+            mode: restricted ? 'restricted-compact' : 'standard-compact',
+            lastAction: checklist.lastAction,
+            headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
+            summary: restricted
+                ? '카카오 안에서는 자동 다운로드보다 공유/파일 열기가 더 안정적입니다.'
+                : '대부분은 다운로드 폴더 확인 또는 저장 도움으로 해결됩니다.',
+            primaryAction: checklist.primaryAction,
+            fallbackAction: checklist.fallbackAction,
+            firstActionLabel: restricted ? '공유/저장' : '다운로드',
+            fallbackLabel: restricted ? '파일 열기' : '저장 도움',
+            copyLabel: '체크리스트 복사',
+            optionalAction: optionalStep ? {
+                key: optionalStep.key,
+                label: String(optionalStep.label || '').replace(/^\d+\.\s*/, '') || '추가 확인',
+                detail: optionalStep.detail || ''
+            } : null,
+            file: checklist.file,
+            environment: checklist.environment,
+            steps: compactSteps
+        };
+    };
+
+
+    const getDownloadDialogCompactHint = (blob = null, fileName = '', lastAction = '') => {
+        const plan = getDownloadCompactRecoveryPlan(blob, fileName, lastAction);
+        const env = plan.environment || getDownloadEnvironmentInfo();
+        const restricted = Boolean(env.restricted);
+        const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
+        const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
+        return {
+            version: '1.4.18',
+            mode: restricted ? 'restricted-micro' : 'standard-micro',
+            lastAction: plan.lastAction,
+            headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
+            detail: restricted
+                ? `${primaryLabel}을 먼저 누르고, 안 보이면 저장 도움의 ${fallbackLabel}를 누르세요.`
+                : '저장이 안 보이면 다운로드 폴더를 확인하고, 필요할 때만 저장 도움을 여세요.',
+            primaryAction: plan.primaryAction,
+            fallbackAction: plan.fallbackAction,
+            primaryLabel,
+            fallbackLabel,
+            advancedLabel: restricted ? '진단/주소 복사는 추가 옵션에 있습니다.' : '공유/진단은 추가 옵션에 있습니다.',
+            visibleStepLimit: restricted ? 2 : 1,
+            steps: (plan.steps || []).slice(0, restricted ? 2 : 1),
+            file: plan.file,
+            environment: plan.environment
+        };
+    };
+
+    const serializeDownloadRecoveryChecklist = (blob = null, fileName = '', lastAction = '') => {
+        const checklist = getDownloadRecoveryChecklist(blob, fileName, lastAction);
+        const lines = [
+            'FoxBear 저장 체크리스트',
+            `파일: ${checklist.file.name} (${checklist.file.sizeLabel})`,
+            `브라우저: ${checklist.environment.label}`,
+            `최근 동작: ${checklist.lastAction}`,
+            '',
+            checklist.summary,
+            '',
+            ...checklist.steps.map(step => `${step.label}: ${step.detail}`)
+        ];
+        return lines.join('\n');
+    };
+
+    const copyDownloadRecoveryChecklist = (blob = null, fileName = '', lastAction = '', deps = {}) => {
+        const text = serializeDownloadRecoveryChecklist(blob, fileName, lastAction);
+        recordDownloadEvent('recovery-checklist-copy', { fileName, lastAction });
+        return copyTextToClipboard(text, deps, '저장 체크리스트를 복사했습니다.');
     };
 
     const copyTextToClipboard = async (text, deps = {}, successMessage = '복사했습니다.') => {
@@ -253,7 +438,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.4.14',
+            version: '1.4.18',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -466,6 +651,25 @@
             support.appendChild(badge);
         });
 
+        const recoveryChecklist = getDownloadRecoveryChecklist(blob, fileName, 'assist');
+        const checklist = document.createElement('div');
+        checklist.className = 'download-assist-checklist';
+        const checklistTitle = document.createElement('strong');
+        checklistTitle.textContent = recoveryChecklist.headline;
+        const checklistSummary = document.createElement('span');
+        checklistSummary.textContent = recoveryChecklist.summary;
+        const checklistSteps = document.createElement('ol');
+        recoveryChecklist.steps.slice(0, env.restricted ? 4 : 3).forEach(step => {
+            const item = document.createElement('li');
+            const label = document.createElement('b');
+            label.textContent = step.label;
+            const detail = document.createElement('span');
+            detail.textContent = step.detail;
+            item.append(label, detail);
+            checklistSteps.appendChild(item);
+        });
+        checklist.append(checklistTitle, checklistSummary, checklistSteps);
+
         const actions = document.createElement('div');
         actions.className = 'download-assist-actions';
 
@@ -539,6 +743,13 @@
         diagnostics.addEventListener('click', () => copyDownloadDiagnostics(blob, fileName, deps));
         actions.appendChild(diagnostics);
 
+        const checklistCopy = document.createElement('button');
+        checklistCopy.type = 'button';
+        checklistCopy.className = 'btn-secondary';
+        checklistCopy.textContent = '체크리스트 복사';
+        checklistCopy.addEventListener('click', () => copyDownloadRecoveryChecklist(blob, fileName, 'assist', deps));
+        actions.appendChild(checklistCopy);
+
         const close = document.createElement('button');
         close.type = 'button';
         close.className = 'btn-secondary';
@@ -546,7 +757,7 @@
         close.addEventListener('click', closePanel);
         actions.appendChild(close);
 
-        panel.append(closeTop, title, message, file, support);
+        panel.append(closeTop, title, message, file, support, checklist);
         appendGuideSteps(panel, env);
         panel.appendChild(actions);
         document.body.appendChild(panel);
@@ -619,6 +830,12 @@
         getDownloadEnvironmentInfo,
         getDownloadCapabilitySummary,
         getRecommendedDownloadFlow,
+        getDownloadActionReceipt,
+        getDownloadRecoveryChecklist,
+        getDownloadCompactRecoveryPlan,
+        getDownloadDialogCompactHint,
+        serializeDownloadRecoveryChecklist,
+        copyDownloadRecoveryChecklist,
         getDownloadDiagnostics,
         serializeDownloadDiagnostics,
         copyDownloadDiagnostics,

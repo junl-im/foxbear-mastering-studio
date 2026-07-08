@@ -1,28 +1,20 @@
-# QA Report - v1.4.14 Download action clarity
+# QA Report - v1.4.18 Download dialog micro hint
 
-## Summary
+## Result
+- `npm run check`: 137/137 PASS
 
-- `npm run sri:update`: PASS
-- `npm run check`: PASS
-- Result: 133/133 PASS
+## Added QA
+- `qa/v1418_download_dialog_micro_hint_smoke.js`
+- `qa/BROWSER_BACK_QA_MATRIX_1.4.18.md`
 
-## Added coverage
+## Scope
+- `FoxBearDownloadService.getDownloadDialogCompactHint()` is exposed and required by Runtime Health.
+- Main download dialog renders `.download-options-compact-hint`.
+- First-screen flow steps are capped with `visibleStepLimit`.
+- Additional diagnostics/copy/external-browser tools remain behind `추가 옵션`.
+- Duplicate flow-step append logic was removed from `download-dialog-view.js`.
+- v1.4.17 compact recovery checklist remains available as a fallback and carry-forward smoke.
+- Cache/version/SRI packaging path.
 
-- `qa/v1414_download_action_clarity_smoke.js`
-- `qa/BROWSER_BACK_QA_MATRIX_1.4.14.md`
-
-## Focus
-
-- Recommended action button now has explicit `data-download-action` and `data-recommended` metadata.
-- Download/share/help buttons are routed through one action dispatcher instead of separate, easy-to-drift handlers.
-- Kakao/in-app primary action opens share/save first when supported, and falls back to save help when blocked.
-- `showDownloadAssist`, `downloadBlob`, `shareDownloadFile`, URL copy, diagnostics copy, and external browser helpers receive app dependencies so toast/state handling remains available.
-- v1.4.11 Kakao fallback, v1.4.12 diagnostics, and v1.4.13 collapsed advanced options remain cumulative.
-
-## Manual QA still required
-
-- KakaoTalk Android in-app: recommended 공유/저장 button and fallback save-help sheet.
-- iOS Safari: file share/save behavior.
-- Android Chrome: normal download and optional file share.
-- Installed PWA: popup layout, back/refresh guards, and copied diagnostics.
-- Desktop Chrome/Edge: recommended badge alignment and File System Access direct save when supported.
+## Manual QA still needed
+Actual KakaoTalk in-app browser, Android Chrome, iOS Safari, Android PWA, and iOS PWA tests were not run in this environment.

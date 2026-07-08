@@ -5,7 +5,7 @@ const fs = require('fs');
 const read = file => fs.readFileSync(file, 'utf8');
 const assert = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.14 download diagnostics follow-up smoke: ${message}`);
+    console.error(`FAIL v1.4.18 download diagnostics follow-up smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -16,9 +16,9 @@ const dialog = read('src/ui/download-dialog-view.js');
 const css = read('assets/css/download-dialog.css');
 const app = read('src/app.js');
 const runtime = read('src/boot/runtime-health.js');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.14.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.18.md');
 
-assert(pkg.version === '1.4.14', 'package version should be 1.4.14');
+assert(pkg.version === '1.4.18', 'package version should be 1.4.18');
 assert(service.includes('MAX_DOWNLOAD_DIAGNOSTIC_EVENTS'), 'download service should cap diagnostic history');
 assert(service.includes('recordDownloadEvent'), 'download service should record events');
 assert(service.includes('getDownloadDiagnosticEvents'), 'download service should expose recent events');
@@ -37,7 +37,7 @@ assert(runtime.includes('FoxBearDownloadService.getDownloadDiagnostics'), 'runti
 assert(runtime.includes('FoxBearDownloadService.copyDownloadDiagnostics'), 'runtime health should require copyDownloadDiagnostics');
 assert(css.includes('.download-assist-support'), 'CSS should style assist capability badges');
 assert(css.includes('repeat(5, minmax(0, 1fr))'), 'fallback actions should handle extra diagnostics action on desktop');
-assert(matrix.includes('v1.4.14 Download flow polish'), 'QA matrix should document v1.4.14 download checks');
+assert(matrix.includes('v1.4.18 Download flow polish'), 'QA matrix should document v1.4.18 download checks');
 assert(matrix.includes('Diagnostics copy') || matrix.includes('진단 복사'), 'QA matrix should include diagnostics copy scenario');
 
-console.log('PASS v1.4.14 download diagnostics follow-up smoke');
+console.log('PASS v1.4.18 download diagnostics follow-up smoke');

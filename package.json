@@ -1,8 +1,8 @@
 {
-  "name": "foxbear-github-pro-v1-4-14",
-  "version": "1.4.14",
+  "name": "foxbear-github-pro-v1-4-18",
+  "version": "1.4.18",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.14 Download action clarity, Kakao/mobile save button semantics, Download/share diagnostics, Performance diagnostics, Packaging sync, Spectrum, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.18 Download dialog micro hint, Kakao/mobile save flow clarity, Download/share diagnostics, Performance diagnostics, Packaging sync, Spectrum, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -143,6 +143,10 @@
     "node qa/v1412_download_share_reliability_smoke.js",
     "node qa/v1412_download_diagnostics_followup_smoke.js",
     "node qa/v1413_download_flow_polish_smoke.js",
-    "node qa/v1414_download_action_clarity_smoke.js"
+    "node qa/v1414_download_action_clarity_smoke.js",
+    "node qa/v1415_download_receipt_polish_smoke.js",
+    "node qa/v1416_download_recovery_checklist_smoke.js",
+    "node qa/v1417_download_recovery_compact_smoke.js",
+    "node qa/v1418_download_dialog_micro_hint_smoke.js"
   ]
 }

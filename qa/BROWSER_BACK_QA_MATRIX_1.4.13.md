@@ -1,4 +1,4 @@
-# v1.4.14 Download flow polish QA matrix
+# v1.4.18 Download flow polish QA matrix
 
 Scope: keep the v1.4.11/v1.4.12 Kakao/mobile download fallbacks, but make the main download popup easier to understand and less crowded.
 
@@ -36,7 +36,7 @@ External-browser open cannot transfer the in-memory Blob. If Kakao blocks all cl
 - Installed PWA: confirm back confirm debounce, Performance diagnostics, and package cache key.
 - Desktop Chrome/Edge: confirm primary buttons align and File System Access direct save remains available when supported.
 - FFT external analyser coverage remains active for preview translation and difference compare audio graphs.
-- v1.4.14 Dock FFT/back confirm focus remains cumulative from v1.4.6/v1.4.7 stability work.
+- v1.4.18 Dock FFT/back confirm focus remains cumulative from v1.4.6/v1.4.7 stability work.
 - Dock FFT removal remains intentional; `#bottomPreviewSpectrum` should not exist.
 - renderMini cleanup remains intentional; `renderMini` is removed and FFT is detail-only.
 - Performance diagnostics and Packaging polish remain cumulative; `getSummary`, adaptive refresh, and snapshot 복사 stay supported.

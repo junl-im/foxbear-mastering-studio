@@ -1,81 +1,79 @@
-# v1.4.14 handoff - Download action clarity
+# Handoff - FoxBear AI Mastering Studio Pro v1.4.18
 
-Latest build: `v1.4.14`. Runtime asset key: `1.4.14-download-action-clarity`.
-
-Validation target: `npm run check` -> 133/133 PASS after SRI update. Use `foxbear-mastering-studio-v1.4.14-overwrite.zip` for cumulative overwrite deployment.
+## Current patch
+v1.4.18 focuses on making the download/share dialog even shorter on the first screen while keeping all Kakao/mobile fallback tools intact.
 
 ## What changed
-
-- Download/share reliability from v1.4.11 remains active for Kakao/in-app browsers.
-- Download diagnostics from v1.4.12 remain active for copied support reports.
-- Recommended-flow card from v1.4.13 remains active.
-- v1.4.14 fixes action clarity: visible buttons now map to explicit `data-download-action` values.
-- Primary, secondary, and tertiary actions are routed through one dispatcher instead of three separate handlers.
-- The recommended button gets `data-recommended="true"` and a small `추천` badge.
-- App dependencies are now passed into share/download/assist/copy helpers from the dialog, preserving toast and active object URL tracking.
-- `진단 복사`, `안내 복사`, `주소 복사`, and `외부 브라우저` remain available after expanding advanced options.
+- Added micro hint helper:
+  - `FoxBearDownloadService.getDownloadDialogCompactHint()`
+- Main download popup now includes:
+  - `.download-options-compact-hint`
+  - `data-download-hint-mode`
+  - `visibleStepLimit`-capped flow steps
+- Advanced recovery tools remain under `추가 옵션`:
+  - 주소 복사
+  - 안내 복사
+  - 진단 복사
+  - 체크리스트 복사
+  - 외부 브라우저
+- Fixed duplicate `steps.appendChild(item)` logic in `download-dialog-view.js`.
+- Runtime Health requires the dialog micro hint helper.
+- Cache key is `1.4.18-download-dialog-micro-hint`.
 
 ## QA
+Run:
 
-- `qa/v1412_download_share_reliability_smoke.js` guards the Kakao/share/download fallback line.
-- `qa/v1412_download_diagnostics_followup_smoke.js` guards the diagnostics event/copy flow.
-- `qa/v1413_download_flow_polish_smoke.js` guards the recommended-flow card and collapsed advanced actions.
-- `qa/v1414_download_action_clarity_smoke.js` guards action metadata, unified dispatch, dependency passing, and recommended badge CSS.
-- `qa/BROWSER_BACK_QA_MATRIX_1.4.14.md` contains Kakao/Chrome/Safari/PWA manual checks.
+```bash
+npm run sri:update
+npm run check
+npm run package:clean
+npm run package:overwrite
+```
 
-## Manual QA priorities
+Expected current result: `137/137 PASS`.
 
-- KakaoTalk Android in-app: 추천 공유/저장 should open the share/save path first, then fallback to save help if blocked.
-- KakaoTalk Android in-app: 저장 도움 should open the help sheet directly.
-- KakaoTalk Android in-app: 진단 복사 should copy diagnostics without re-encoding.
-- Chrome Android: popup should recommend normal download first, with advanced options collapsed.
-- Desktop Chrome/Edge: primary buttons and the 추천 badge should stay aligned without clipping.
-
-## Keep in mind
-
-- External-browser open cannot transfer the in-memory mastered Blob. Users may need to reopen and rerun/download in Chrome/Safari.
-- Diagnostics JSON may include a user-agent string. Treat it as support/debug information.
-- Dock FFT remains intentionally removed. Detail-panel FFT remains available.
+## Manual QA focus
+- Kakao in-app browser: verify the dialog first screen is short and points to `공유/저장 → 파일 열기`.
+- Kakao in-app browser: verify diagnostics/checklist copy remain under `추가 옵션`.
+- Android Chrome: verify normal download remains primary and the micro hint is not distracting.
+- iOS Safari/PWA: verify the popup fits in the viewport and buttons remain reachable.
+- Desktop Chrome/Edge: verify format options and primary actions remain clear.
 
 ## 다음 패치 후보
+- v1.4.19: real-device Kakao/Android/iOS wording tuning if screenshots or copied diagnostics are available.
+- Further reduce download popup copy if users still find it dense.
+- Consider a one-tap simple save mode for non-technical users.
 
-- v1.4.15: real-device Kakao/Chrome/Safari/PWA download QA tuning based on copied diagnostics and observed popup behavior.
+## Legacy anchors for QA continuity
+- Stage7: `waveform-compare-view.js` split and compare modal cleanup.
+- Stage9: Dock waveform CSS split and cumulative overwrite QA.
+- Stage13: Runtime Health boot monitor.
+- Stage14: Runtime recovery and asset mismatch reporting.
+- Stage23: playback orchestration.
+- Stage25: compare controls rehome.
+- Stage26: unified waveform controls.
+- Stage27: waveform control service.
+- Stage28: waveform control view extraction.
 
-## Cumulative QA anchors kept for current v1.4.14
+## Cumulative QA anchors
+- Stage8: async mobile Dock and compact overlay behavior.
+- Stage9.1: 누적 덮어쓰기 packaging remains documented.
+- Stage10: download service split.
+- Stage11: recommendation/base-components modular renovation.
+- Stage11.1: runtime mobile hotfix.
+- Stage12: detail view split.
+- Stage13: runtime health.
+- Stage14: runtime recovery.
+- Stage27 다음 대화 인수인계: waveform-control-service remains active.
+- Stage28 view extraction: waveform-control-view.js remains active.
+- Dock FFT removal and settings gear alignment remain active.
+- detail-only FFT remains the current Spectrum behavior.
+- Exit Guard remains active for refresh/back protection.
+- FoxBearPerformanceDiagnostics remains available; use `getSummary` or Ctrl/Command + Alt + P for diagnostics.
 
-- Stage7 waveform compare CSS cleanup remains cumulative.
-- Stage9 Dock waveform CSS split remains cumulative.
-- Stage27 waveform-control-service remains the common waveform math/control layer.
-- Stage28 waveform-control-view.js view extraction remains active for unmanaged waveform audit.
-- Spectrum from v1.4.1 remains detail-only after Dock FFT removal.
-- Exit Guard from v1.4.1 remains active for refresh/back protection.
-- PC settings gear alignment from v1.4.7 remains retained.
-- FoxBearPerformanceDiagnostics remains available through `FoxBearPerformanceDiagnostics.collectSnapshot()` and `FoxBearPerformanceDiagnostics.getSummary()`.
-- Packaging polish remains active; overwrite ZIP naming follows `package.json`.
-
-
-## Cumulative compatibility smoke anchors
-
-- Stage8 compact mobile Dock overlay anchors remain documented.
-- Stage9 Dock waveform CSS split remains documented.
-- Stage9.1 cumulative overwrite manifest and 누적 덮어쓰기 packaging remain documented.
-- Stage10 download service split remains documented.
-- Stage11 large modular renovation remains documented.
-- Stage11.1 runtime/mobile hotfix remains documented.
-- Stage12 detail view split remains documented.
-- Stage27 다음 대화 인수인계: `waveform-control-service.js` remains the shared waveform calculation/control service.
-- v1.4.14 Exit Guard remains active for refresh/back protection.
-- v1.4.14 Spectrum remains available in the detail-only FFT panel.
-- v1.4.14 stability polish remains active for FFT lifecycle and Back confirm debounce.
-- FFT external analyser coverage remains documented for preview translation and difference listen graphs.
-- Dock FFT removal remains intentional; `#bottomPreviewSpectrum` should not exist.
-- renderMini cleanup remains intentional; `renderMini` is removed and FFT is detail-only.
-- Performance diagnostics remain available; `FoxBearPerformanceDiagnostics.getSummary()` and snapshot 복사 remain supported.
-- Performance diagnostics uses adaptive refresh and keeps Packaging overwrite naming synced with `package.json`.
-- Safari iOS, Chrome Android, Kakao Android, Desktop Chrome/Edge, and installed PWA remain part of manual QA coverage.
-
-## v1.4.14 cumulative stability/renderMini notes
-
-- v1.4.14 stability anchors remain active.
-- detail-only FFT remains active; Dock mini FFT is intentionally absent.
-- `renderMini` remains removed and runtime health should not require it.
+## v1.4.18 cumulative compatibility anchors
+- stability: navigation confirm debounce and FFT lifecycle stabilization remain active.
+- Dock FFT removal and settings gear alignment remain active.
+- Performance diagnostics use adaptive refresh and copy support.
+- Packaging polish remains active for release/overwrite ZIP naming.
+- Download/share fallback remains active while first-screen dialog copy is shorter.

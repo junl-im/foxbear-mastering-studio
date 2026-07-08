@@ -1,4 +1,4 @@
-# v1.4.14 Download action clarity QA matrix
+# v1.4.18 Download action clarity QA matrix
 
 Scope: keep the v1.4.11/v1.4.12 Kakao/mobile download fallbacks and v1.4.13 flow polish, then make the visible buttons match their real actions.
 
@@ -40,7 +40,7 @@ External-browser open cannot transfer the in-memory Blob. If Kakao blocks all cl
 - Installed PWA: confirm back confirm debounce, Performance diagnostics, and package cache key.
 - Desktop Chrome/Edge: confirm primary buttons align and File System Access direct save remains available when supported.
 - FFT external analyser coverage remains active for preview translation and difference compare audio graphs.
-- v1.4.14 Dock FFT/back confirm focus remains cumulative from v1.4.6/v1.4.7 stability work.
+- v1.4.18 Dock FFT/back confirm focus remains cumulative from v1.4.6/v1.4.7 stability work.
 - Dock FFT removal remains intentional; `#bottomPreviewSpectrum` should not exist.
 - renderMini cleanup remains intentional; `renderMini` is removed and FFT is detail-only.
 - Performance diagnostics and Packaging polish remain cumulative; `getSummary`, adaptive refresh, and snapshot 복사 stay supported.
@@ -52,4 +52,4 @@ External-browser open cannot transfer the in-memory Blob. If Kakao blocks all cl
 - confirm debounce remains active for fast hardware Back presses.
 - Dock mini FFT remains removed from the Dock; this is intentional.
 - runtime health does not require `renderMini`; detail-only FFT uses `renderPanel`.
-- v1.4.14 Download flow polish remains cumulative while v1.4.14 Download action clarity resolves button/action ambiguity.
+- v1.4.18 Download flow polish remains cumulative while v1.4.18 Download action clarity resolves button/action ambiguity.
