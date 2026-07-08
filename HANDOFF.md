@@ -1,10 +1,19 @@
-# Handoff - v1.5.1 Real Browser Automation
+# Handoff - v1.5.2 Export Guard + Low Memory UX
 
 ## Current status
 
-Latest package layer: `v1.5.1` maintenance patch on top of the `1.4.26-wake-lock-state-sync` runtime/cache key.
+Latest package layer: `v1.5.2` maintenance patch on top of the `1.4.26-wake-lock-state-sync` runtime/cache key.
 
-The previous Bulk HUD asset/close-button hotfix, Bulk Mastering HUD continuity patch, v1.4.27 release cleanup, v1.4.28 app-slimdown orchestration split, v1.4.29 Memory Stabilization, and v1.5.0 Engine Quality Gate carry-forward are active.
+The previous Bulk HUD asset/close-button hotfix, Bulk Mastering HUD continuity patch, v1.4.27 release cleanup, v1.4.28 app-slimdown orchestration split, v1.4.29 Memory Stabilization, v1.5.0 Engine Quality Gate, and v1.5.1 browser automation carry-forward are active.
+
+## v1.5.2 export guard and low-memory UX
+
+- `src/download/export-guard-service.js` now owns ZIP/export readiness planning, generated ZIP Blob validation, memory-pressure classification, and export diagnostics.
+- `downloadZip()` calls Export Guard before creating the ZIP and validates the generated Blob before triggering download.
+- `FoxBearExportGuard.getReadiness()` exposes completed count, output bytes, estimated ZIP bytes, memory pressure, and warnings from the browser console.
+- `FoxBearExportGuard.getDiagnostics()` keeps recent ZIP plan/validation events for manual debugging.
+- The post-batch memory sweep now warns when pressure remains medium/high so users can choose per-track downloads before a large ZIP export.
+- The 35-track Playwright deep scenario now checks Export Guard readiness before clicking ZIP export.
 
 ## v1.5.1 browser QA automation
 
@@ -42,7 +51,7 @@ npm run check
 Expected result:
 
 ```text
-170/170 PASS
+172/172 PASS
 ```
 
 Optional browser QA automation:
@@ -79,8 +88,8 @@ pressure should be normal or medium after the sweep, not high
 
 1. Follow-up memory tuning after real-device runs
    - tune buffer byte budgets against PC/iOS/Android results
-   - add user-facing low-memory warning if pressure remains high
-   - add export verification after completed buffers are released
+   - tune Export Guard thresholds against real PC/iOS/Android results
+   - add a richer low-memory panel if toast-only warnings are not visible enough
 
 ## Carry-forward anchors
 

@@ -2,7 +2,7 @@
   "name": "foxbear-github-pro-v1-4-26",
   "version": "1.4.26",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Stage21, Stage20, Stage18, Stage17 carry-forward, Spectrum stability carry-forward, Bulk Import/Mastering HUD continuity, v1.4.27 release cleanup, v1.4.28 app slim-down orchestration split, v1.4.29 memory stabilization, and v1.5.0 engine QualityGate/short-term LUFS/reference-profile reinforcement, and v1.5.1 Playwright real browser automation for runtime health/PWA back/Wake Lock/service worker/35-track import-master-export scenarios.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Stage21, Stage20, Stage18, Stage17 carry-forward, Spectrum stability carry-forward, Bulk Import/Mastering HUD continuity, v1.4.27 release cleanup, v1.4.28 app slim-down orchestration split, v1.4.29 memory stabilization, and v1.5.0 engine QualityGate/short-term LUFS/reference-profile reinforcement, and v1.5.1 Playwright real browser automation for runtime health/PWA back/Wake Lock/service worker/35-track import-master-export scenarios, and v1.5.2 ZIP/export validation plus low-memory UX advisories.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -43,6 +43,7 @@
     "node --check src/ui/dock-controller.js",
     "node --check src/ui/mobile-native-view.js",
     "node --check src/download/download-service.js",
+    "node --check src/download/export-guard-service.js",
     "node --check src/ui/download-dialog-view.js",
     "node --check src/ui/bulk-import-hud-view.js",
     "node --check src/ui/waveform-compare-view.js",
@@ -184,6 +185,7 @@
     "node --check qa/browser/pwa-back-wakelock-sw-playwright.spec.js",
     "node --check qa/browser/bulk-35-import-master-export-playwright.spec.js",
     "node qa/v151_browser_qa_scaffold_smoke.js",
-    "node qa/v151_real_browser_automation_smoke.js"
+    "node qa/v151_real_browser_automation_smoke.js",
+    "node qa/v152_export_guard_low_memory_smoke.js"
   ]
 }

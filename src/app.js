@@ -144,6 +144,7 @@ function getTrackLifecycleService() {
 function getMemoryGuardService() {
     return window.FoxBearMemoryGuardService || null;
 }
+function getExportGuardService() { return window.FoxBearExportGuardService || null; }
 function getQualityGateService() {
     return window.FoxBearQualityGateService || null;
 }
@@ -4151,6 +4152,7 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     const result = diagnoseCompletedMasteringMemory('batch-complete-sweep');
     const released = Number(result?.policyResult?.released || 0);
     if (released) showToast(`메모리 안정화 · 완료 버퍼 ${released}개 자동 해제`);
+    const pressure = String(result?.after?.pressure || 'normal'); if (pressure !== 'normal') showToast(`메모리 ${pressure === 'high' ? '위험' : '주의'} · ZIP/export 전 곡별 저장도 준비하세요`);
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
@@ -4159,6 +4161,7 @@ window.FoxBearMemoryGuard = Object.freeze({
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.2-export-guard-low-memory-ux', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -8396,7 +8399,6 @@ function measureKWeightedGatedLoudness(buffer) {
     const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
     return loudnessDbFromPower(mean);
 }
-
 function measureShortTermLufsStats(buffer, options = {}) {
     if (!buffer || !buffer.length) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: 0, hopSec: 0 };
     const sampleRate = Math.max(3000, Math.min(384000, buffer.sampleRate || 44100));
@@ -8422,7 +8424,6 @@ function measureShortTermLufsStats(buffer, options = {}) {
     const min = Math.min(...values), max = Math.max(...values), mean = values.reduce((sum, value) => sum + value, 0) / values.length;
     return { min: Number(min.toFixed(2)), max: Number(max.toFixed(2)), mean: Number(mean.toFixed(2)), range: Number((max - min).toFixed(2)), count: values.length, windowSec, hopSec };
 }
-
 function filterKWeightedAudioBuffer(buffer, sampleRate, length, channels) {
     const output = [];
     for (let ch = 0; ch < channels; ch += 1) {
@@ -8742,26 +8743,23 @@ function writeString(view, offset, string) {
 async function downloadZip() {
     const completed = state.tracks.filter(track => track.outBlob);
     if (!completed.length) return;
+    const exportGuard = getExportGuardService();
+    const zipPlan = exportGuard?.prepareZipExportPlan ? exportGuard.prepareZipExportPlan(completed, { memorySnapshot: getMemoryGuardSnapshot(), fileNameForTrack: track => track.outName || `${safeBaseName(track.name)}_mastered.wav`, makeUniqueName: makeUniqueZipName }) : null;
+    if (zipPlan && !zipPlan.ok) { showToast(zipPlan.warningMessage || 'ZIP으로 내보낼 파일을 확인하세요.'); return; }
     if (!window.JSZip) {
-        if (completed.length === 1) {
-            downloadTrack(completed[0]);
-            showToast('ZIP 라이브러리 없이 단일 파일로 저장했습니다.');
-        } else {
-            showToast('ZIP 라이브러리를 불러오지 못했습니다. 각 트랙 카드의 파일 다운로드를 사용하세요.');
-        }
+        if (completed.length === 1) { downloadTrack(completed[0]); showToast('ZIP 라이브러리 없이 단일 파일로 저장했습니다.'); }
+        else showToast('ZIP 라이브러리를 불러오지 못했습니다. 각 트랙 카드의 파일 다운로드를 사용하세요.');
         return;
     }
     const zip = new JSZip();
     const usedNames = new Set();
-    completed.forEach(track => {
-        const fileName = makeUniqueZipName(track.outName || `${safeBaseName(track.name)}_mastered.wav`, usedNames);
-        zip.file(fileName, track.outBlob);
-    });
+    (zipPlan?.files || completed.map(track => ({ fileName: makeUniqueZipName(track.outName || `${safeBaseName(track.name)}_mastered.wav`, usedNames), blob: track.outBlob }))).forEach(file => zip.file(file.fileName, file.blob));
+    if (zipPlan?.warningMessage) showToast(zipPlan.warningMessage);
     showToast(`${completed.length}개 마스터 파일만 ZIP으로 압축 중...`);
     const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 5 } });
-    downloadBlob(blob, `foxbear_mastered_${timestampForFile()}.zip`);
-    showToast('마스터 파일 ZIP 다운로드를 시작했습니다.');
-    renderAll({ keepDetailAudio: true });
+    const zipValidation = exportGuard?.validateZipBlob ? exportGuard.validateZipBlob(blob, zipPlan || { completedCount: completed.length, outputBytes: completed.reduce((sum, track) => sum + Number(track.outBlob?.size || 0), 0) }) : { ok: Boolean(blob) };
+    if (!zipValidation.ok) { showToast('ZIP 검증 실패 · 곡별 다운로드를 사용해 주세요.'); return; }
+    downloadBlob(blob, `foxbear_mastered_${timestampForFile()}.zip`); showToast('마스터 파일 ZIP 다운로드를 시작했습니다.'); renderAll({ keepDetailAudio: true });
 }
 function makeUniqueZipName(fileName, usedNames) {
     const safeName = fileName || 'mastered.wav';

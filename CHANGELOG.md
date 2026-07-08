@@ -1,3 +1,12 @@
+# v1.5.2 - Export Guard + Low Memory UX
+
+- Added `src/download/export-guard-service.js` for ZIP/export readiness planning, generated ZIP Blob validation, memory-pressure classification, and export diagnostics.
+- Wired `downloadZip()` through Export Guard before compression and after ZIP Blob generation, with a safe fallback to per-track downloads if validation fails.
+- Added `FoxBearExportGuard.getReadiness()` and `FoxBearExportGuard.getDiagnostics()` for console-based 35-track export checks.
+- Added low-memory/large-output UX warnings around completed-batch memory sweeps and ZIP export attempts.
+- Extended the 35-track Playwright deep flow to inspect Export Guard readiness before ZIP export.
+- Added `qa/v152_export_guard_low_memory_smoke.js`; current default QA target is `172/172 PASS`.
+
 # v1.5.1 - Real Browser Automation
 
 - Added Playwright browser automation for runtime health, console errors, PWA back navigation, Wake Lock mock request/release, service worker update, and 35-track import/master/export scenarios.

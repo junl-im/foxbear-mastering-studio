@@ -26,6 +26,7 @@ test.describe('FoxBear 35-track import/master/export browser scenario', () => {
         runtime: window.FoxBearRuntimeHealth && window.FoxBearRuntimeHealth.getReport && window.FoxBearRuntimeHealth.getReport(),
         bulk: window.FoxBearBulkImportHudView && window.FoxBearBulkImportHudView.getSnapshot && window.FoxBearBulkImportHudView.getSnapshot(),
         memory: window.FoxBearMemoryGuard && window.FoxBearMemoryGuard.getSnapshot && window.FoxBearMemoryGuard.getSnapshot(),
+        exportReadiness: window.FoxBearExportGuard && window.FoxBearExportGuard.getReadiness && window.FoxBearExportGuard.getReadiness(),
         masterAllDisabled: document.querySelector('#masterAllBtn')?.disabled ?? true,
         masterSelectedDisabled: document.querySelector('#masterSelectedBtn')?.disabled ?? true,
         zipDisabled: document.querySelector('#zipBtn')?.disabled ?? true,
@@ -50,11 +51,14 @@ test.describe('FoxBear 35-track import/master/export browser scenario', () => {
       const after = await page.evaluate(() => ({
         bulk: window.FoxBearBulkImportHudView && window.FoxBearBulkImportHudView.getSnapshot && window.FoxBearBulkImportHudView.getSnapshot(),
         memory: window.FoxBearMemoryGuard && window.FoxBearMemoryGuard.getSnapshot && window.FoxBearMemoryGuard.getSnapshot(),
+        exportReadiness: window.FoxBearExportGuard && window.FoxBearExportGuard.getReadiness && window.FoxBearExportGuard.getReadiness(),
         zipDisabled: document.querySelector('#zipBtn')?.disabled ?? true
       }));
       expect(after.memory).toBeTruthy();
       expect(after.memory.masteredBufferCount || 0).toBeLessThanOrEqual(2);
+      expect(after.exportReadiness && after.exportReadiness.completedCount).toBeGreaterThan(0);
       expect(after.zipDisabled).toBeFalsy();
+      await page.locator('#zipBtn').click({ timeout: 30000 });
     } finally {
       removeDirSafe(temp.dir);
     }

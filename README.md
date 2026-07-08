@@ -1,8 +1,17 @@
-# FoxBear AI Mastering Studio Pro v1.5.1
+# FoxBear AI Mastering Studio Pro v1.5.2
 
-## Current patch: v1.5.1 Real Browser Automation
+## Current patch: v1.5.2 Export Guard + Low Memory UX
 
-This patch adds opt-in Playwright real-browser automation on top of the v1.5.0 engine quality gate work. It keeps the existing `1.4.26-wake-lock-state-sync` runtime/cache key for deployment compatibility while documenting the current maintenance layer as `v1.5.1`.
+This patch adds ZIP/export validation and low-memory UX advisories on top of the v1.5.1 Playwright browser automation work. It keeps the existing `1.4.26-wake-lock-state-sync` runtime/cache key for deployment compatibility while documenting the current maintenance layer as `v1.5.2`.
+
+## Export Guard + Low Memory UX additions
+
+- Added `src/download/export-guard-service.js` as the Export Guard layer for ZIP/export readiness checks.
+- `downloadZip()` now builds a validated ZIP export plan before compression and validates the generated ZIP Blob before download.
+- Added `FoxBearExportGuard.getReadiness()` and `FoxBearExportGuard.getDiagnostics()` for browser-console checks during 35-track export testing.
+- Low-memory and large-output conditions now produce user-facing advice before/after batch memory sweeps and before ZIP export.
+- The 35-track Playwright deep scenario now inspects Export Guard readiness before export.
+- Added `qa/v152_export_guard_low_memory_smoke.js` to lock the new export validation and low-memory UX surface.
 
 ## Real Browser Automation additions
 
@@ -46,7 +55,7 @@ The app still uses:
 1.4.26-wake-lock-state-sync
 ```
 
-This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the current maintenance work as v1.5.1.
+This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the current maintenance work as v1.5.2.
 
 ## Memory diagnostics
 
@@ -76,7 +85,7 @@ npm run check
 Current expected result after this patch:
 
 ```text
-170/170 PASS
+172/172 PASS
 ```
 
 Optional real-browser automation:

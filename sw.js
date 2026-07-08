@@ -81,6 +81,7 @@ const CORE_ASSETS = [
   './src/ui/dock-controller.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/mobile-native-view.js?v=1.4.26-wake-lock-state-sync',
   './src/download/download-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/download/export-guard-service.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/download-dialog-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/bulk-import-hud-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/waveform-compare-view.js?v=1.4.26-wake-lock-state-sync',
