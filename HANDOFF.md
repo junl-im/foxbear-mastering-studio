@@ -1,3 +1,9 @@
+# Handoff - v1.4.26 Bulk Mastering HUD Continuity Patch
+
+Latest patch keeps the existing large `bulkImportHud` alive across the next workflow step. For 2+ selected/all-track mastering, `beginBulkMasteringHudBatch()` calls `FoxBearBulkImportHudView.beginMasteringBatch()` so the same scrollable HUD switches from analysis counts to mastering counts.
+
+Key files: `src/ui/bulk-import-hud-view.js`, `src/app.js`, `assets/css/bulk-import-hud.css`, `qa/v1427_bulk_mastering_hud_smoke.js`. QA result: `149/149 PASS`.
+
 # Handoff - v1.4.26 Wake Lock State Sync
 
 Latest release: v1.4.26. The Wake Lock setting is now state-synced: user intent is `ON/OFF`, temporary runtime protection is `AUTO`, and automatic protection should not emit `화면유지 ON` toast messages. Use `window.FoxBearWakeLockController.getSnapshot()` to inspect live state.

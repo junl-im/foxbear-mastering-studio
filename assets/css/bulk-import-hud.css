@@ -187,3 +187,19 @@ body.bottom-preview-active .bulk-import-hud {
     .bulk-import-row-main small { font-size: .50rem; }
     .bulk-import-row-percent { font-size: .52rem; }
 }
+.bulk-import-hud[data-phase="mastering"] .bulk-import-hud-card {
+    border-color: rgba(184,156,255,.34);
+    box-shadow: 0 24px 80px rgba(0,0,0,.54), inset 0 1px 0 rgba(255,255,255,.08);
+}
+.bulk-import-hud[data-phase="mastering"] .bulk-import-hud-face {
+    background: rgba(184,156,255,.12);
+    border-color: rgba(184,156,255,.24);
+}
+.bulk-import-hud[data-phase="mastering"] .bulk-import-hud-bar i,
+.bulk-import-hud[data-phase="mastering"] .bulk-import-row-meter i {
+    background: linear-gradient(90deg, rgba(184,156,255,.96), rgba(141,245,232,.96));
+}
+.bulk-import-row.is-processing .bulk-import-row-state {
+    color: #efe6ff;
+    border-color: rgba(184,156,255,.36);
+}

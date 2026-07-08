@@ -1,3 +1,11 @@
+# v1.4.26 - Bulk Mastering HUD Continuity Patch
+
+- Extended the existing 2+ track Bulk Import HUD so it can switch into a mastering phase instead of disappearing after analysis completes.
+- Added `beginMasteringBatch()` to `src/ui/bulk-import-hud-view.js` with per-track mastering order, pending/active/done/error counts, and mastering-specific labels.
+- `masterSelectedTracks()` and `masterAllTracks()` now start the large HUD for multi-track mastering batches, reusing the import batch when possible.
+- `setMasteringProgress()`, mastering queue start, and mastering queue end now refresh the large HUD directly so 35-track batches visibly continue from analysis to mastering.
+- Added `qa/v1427_bulk_mastering_hud_smoke.js`; final QA is now `149/149 PASS`.
+
 # v1.4.26 - Wake Lock State Sync Hotfix
 
 - Fixed the confusing state where automatic screen wake protection could be active while the settings panel still looked like a normal OFF toggle.

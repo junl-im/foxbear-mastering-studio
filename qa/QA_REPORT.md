@@ -1,3 +1,10 @@
+# QA Report - v1.4.26 Bulk Mastering HUD Continuity Patch
+
+- Final result: **149/149 PASS** via `npm run check`.
+- Verified: SRI, syntax checks, modular budget, existing bulk import HUD QA, Wake Lock carry-forward QA, and new bulk mastering HUD continuity smoke.
+- Focus: 2+ / 35-track batches now keep the large HUD visible from import analysis into the mastering phase.
+- Manual test still needed: real PC 35-track import → master all flow, mobile scroll feel, and PWA/service worker update behavior.
+
 # QA Report - v1.4.26 Wake Lock State Sync
 
 - Final result: **148/148 PASS** via `npm run check`.

@@ -1,6 +1,5 @@
 // FoxBear AI Mastering Studio Pro v1.4.26 - bulk progress HUD polish
 'use strict';
-
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -4021,6 +4020,12 @@ function beginBulkImportHudBatch(tracks, options = {}) {
     view.configure?.(getBulkImportHudDeps());
     return view.beginBatch(tracks, options);
 }
+function beginBulkMasteringHudBatch(tracks, options = {}) {
+    const items = Array.isArray(tracks) ? tracks.filter(Boolean) : []; const view = getBulkImportHudView();
+    if (!view || !items.length) return null;
+    view.configure?.(getBulkImportHudDeps());
+    return typeof view.beginMasteringBatch === 'function' ? view.beginMasteringBatch(items, options) : (typeof view.beginBatch === 'function' ? view.beginBatch(items, options) : null);
+}
 function updateBulkImportHud() {
     const view = getBulkImportHudView();
     if (!view || typeof view.update !== 'function') return null;
@@ -4032,7 +4037,6 @@ function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
     return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.4.26-wake-lock-state-sync', total: 0, pending: 0, active: 0, fallback: true });
 }
-
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
 }
@@ -4251,7 +4255,6 @@ function bindNativeUploadLabel(label, input, kind = 'file') {
         openUploadPicker(kind);
     });
 }
-
 function setupDropZone(zone) {
     zone.addEventListener('dragover', event => {
         event.preventDefault();
@@ -4264,7 +4267,6 @@ function setupDropZone(zone) {
         if (event.dataTransfer && event.dataTransfer.files) handleFiles(event.dataTransfer.files);
     });
 }
-
 
 function getImportAnalysisQueueSnapshot() {
     return Object.freeze({
@@ -4369,7 +4371,6 @@ window.FoxBearBulkImportGuard = Object.freeze({
     get concurrency() { return SAFE_IMPORT_ANALYSIS_CONCURRENCY; },
     get largeBatchThreshold() { return SAFE_LARGE_IMPORT_BATCH_THRESHOLD; }
 });
-
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
@@ -4397,6 +4398,7 @@ function markMasteringQueueStart(track, mode = 'single') {
     if (!masteringQueueState.startedAt) masteringQueueState.startedAt = now;
     masteringQueueState.lastStartedAt = now;
     masteringQueueState.lastStatus = mode || 'active';
+    updateBulkImportHud();
     return getMasteringQueueSnapshot();
 }
 
@@ -4410,14 +4412,13 @@ function markMasteringQueueEnd(track, status = 'done') {
     else if (status === 'error') masteringQueueState.failedCount += 1;
     if (!masteringQueueState.activeIds.size) masteringQueueState.startedAt = 0;
     masteringQueueState.lastStatus = status || 'idle';
+    updateBulkImportHud();
     return getMasteringQueueSnapshot();
 }
-
 window.FoxBearMasteringGuard = Object.freeze({
     version: '1.4.26-wake-lock-state-sync',
     getSnapshot: getMasteringQueueSnapshot
 });
-
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5678,6 +5679,7 @@ async function masterSelectedTracks(options = {}) {
         return false;
     }
 
+    beginBulkMasteringHudBatch(candidates, { source: options.source || 'selected', largeBatch: candidates.length >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD, inheritImportBatch: true });
     state.busy = true;
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     renderAll({ keepDetailAudio: true });
@@ -5705,6 +5707,7 @@ async function masterAllTracks() {
     const candidates = state.tracks.filter(track => !['processing', 'analyzing'].includes(track.status) && !track.error);
     if (!candidates.length) return;
 
+    beginBulkMasteringHudBatch(candidates, { source: 'all', largeBatch: candidates.length >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD, inheritImportBatch: true });
     state.busy = true;
     if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     renderAll();
@@ -5718,7 +5721,6 @@ async function masterAllTracks() {
         renderAll();
     }
 }
-
 function quantizeProgressStep(value, step = 5) {
     const n = clamp(Number(value || 0), 0, 100);
     if (n >= 100) return 100;
@@ -5741,6 +5743,7 @@ async function setMasteringProgress(track, targetProgress, report = '', options 
     for (const step of steps) {
         track.progress = step;
         if (report) track.report = report;
+        if (track.bulkMasteringBatchId || track.bulkImportBatchId) updateBulkImportHud();
         scheduleRenderAll('mastering-progress', {
             keepDetailAudio: true,
             delayMs: Number.isFinite(Number(options.renderDelayMs)) ? Number(options.renderDelayMs) : SAFE_MASTERING_PROGRESS_RENDER_DELAY_MS,
@@ -5749,7 +5752,6 @@ async function setMasteringProgress(track, targetProgress, report = '', options 
         if (!options.noYield) await yieldToBrowser();
     }
 }
-
 async function waitForTrackAnalysisIfNeeded(track, purpose = '마스터링') {
     if (!track) return false;
     if (track.analysis && track.status !== 'analyzing') return true;
@@ -5782,7 +5784,6 @@ async function waitForTrackAnalysisIfNeeded(track, purpose = '마스터링') {
     if (track.error) return false;
     return Boolean(track.analysis);
 }
-
 async function masterTrack(track, calledFromBatch = false, options = {}) {
     const notifyBlocked = Boolean(options.notifyBlocked);
     const forceIfIdle = Boolean(options.forceIfIdle);
@@ -5998,7 +5999,6 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
     }
     return completedSuccessfully;
 }
-
 function autoTrimSilenceBuffer(buffer) {
     const sampleRate = buffer.sampleRate;
     const channels = buffer.numberOfChannels;

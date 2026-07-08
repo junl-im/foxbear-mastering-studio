@@ -8,6 +8,7 @@
     let eventsBound = false;
     const hudState = {
         batchId: '',
+        phase: 'import',
         total: 0,
         startedAt: 0,
         completedAt: 0,
@@ -67,11 +68,21 @@
         return api;
     }
 
+    function makeBatchId(prefix, tracks = [], options = {}) {
+        if (options.batchId) return String(options.batchId);
+        if (options.inheritImportBatch !== false) {
+            const inherited = tracks.map(track => track && track.bulkImportBatchId).filter(Boolean);
+            if (inherited.length && inherited.every(id => id === inherited[0])) return inherited[0];
+        }
+        return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
     function beginBatch(tracks, options = {}) {
         const items = Array.isArray(tracks) ? tracks.filter(Boolean) : [];
         if (items.length < getMinTracks()) return getSnapshot();
-        const batchId = `bulk-import-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        const batchId = makeBatchId('bulk-import', items, Object.assign({}, options, { inheritImportBatch: false }));
         hudState.batchId = batchId;
+        hudState.phase = 'import';
         hudState.total = items.length;
         hudState.startedAt = Date.now();
         hudState.completedAt = 0;
@@ -87,24 +98,76 @@
         return getSnapshot();
     }
 
+    function beginMasteringBatch(tracks, options = {}) {
+        const items = Array.isArray(tracks) ? tracks.filter(Boolean) : [];
+        if (items.length < getMinTracks()) return getSnapshot();
+        const batchId = makeBatchId('bulk-mastering', items, options);
+        hudState.batchId = batchId;
+        hudState.phase = 'mastering';
+        hudState.total = items.length;
+        hudState.startedAt = Date.now();
+        hudState.completedAt = 0;
+        hudState.dismissedBatchId = '';
+        hudState.expanded = true;
+        items.forEach((track, index) => {
+            track.bulkMasteringBatchId = batchId;
+            track.bulkMasteringOrder = index + 1;
+            track.bulkMasteringTotal = items.length;
+            track.bulkMasteringLargeBatch = Boolean(options.largeBatch || items.length >= getLargeBatchThreshold());
+            track.bulkMasteringStartedAt = hudState.startedAt;
+        });
+        update();
+        return getSnapshot();
+    }
+
+    function isMasteringPhase() {
+        return hudState.phase === 'mastering';
+    }
+
+    function getTrackOrder(track, index = 0) {
+        if (!track) return index + 1;
+        return isMasteringPhase()
+            ? Number(track.bulkMasteringOrder || track.bulkImportOrder || index + 1)
+            : Number(track.bulkImportOrder || track.bulkMasteringOrder || index + 1);
+    }
+
     function getTracks() {
         const allTracks = getStateTracks();
         if (hudState.batchId) {
-            const batch = allTracks.filter(track => track && track.bulkImportBatchId === hudState.batchId);
-            if (batch.length) return batch.sort((a, b) => Number(a.bulkImportOrder || 0) - Number(b.bulkImportOrder || 0));
+            const batch = allTracks.filter(track => track && (
+                isMasteringPhase()
+                    ? track.bulkMasteringBatchId === hudState.batchId
+                    : track.bulkImportBatchId === hudState.batchId
+            ));
+            if (batch.length) return batch.sort((a, b) => getTrackOrder(a) - getTrackOrder(b));
         }
-        return allTracks.filter(track => track && track.bulkRecommendationMode === 'auto-apply' && ['queued', 'analyzing', 'ready', 'error'].includes(track.status));
+        const visibleStatuses = isMasteringPhase()
+            ? ['queued', 'analyzing', 'ready', 'processing', 'done', 'error']
+            : ['queued', 'analyzing', 'ready', 'error'];
+        return allTracks.filter(track => track && track.bulkRecommendationMode === 'auto-apply' && visibleStatuses.includes(track.status));
     }
 
     function getTrackProgress(track) {
         if (!track) return 0;
-        if (track.status === 'ready' || track.status === 'done' || track.analysis) return 100;
         if (track.status === 'error') return 100;
+        if (isMasteringPhase()) {
+            if (track.status === 'done' || track.outBlob || track.masteredUrl) return 100;
+            if (track.status === 'processing') return clampValue(Number(track.progress || 0), 0, 99);
+            return 0;
+        }
+        if (track.status === 'ready' || track.status === 'done' || track.analysis) return 100;
         return clampValue(Number(track.progress || 0), 0, 100);
     }
 
     function getStatusLabel(track) {
         if (!track) return '대기';
+        if (isMasteringPhase()) {
+            if (track.status === 'queued' || track.status === 'ready') return '마스터링 대기';
+            if (track.status === 'analyzing') return track.analysisCacheHit ? '캐시 적용' : '사전 분석 중';
+            if (track.status === 'processing') return '마스터링 중';
+            if (track.status === 'done') return '완성';
+            if (track.status === 'error') return '오류';
+        }
         if (track.status === 'queued') return '대기';
         if (track.status === 'analyzing') return track.analysisCacheHit ? '캐시 적용' : '분석 중';
         if (track.status === 'ready') return '추천 완료';
@@ -115,13 +178,30 @@
         return track.status || '대기';
     }
 
+    function isTrackDoneForSummary(track) {
+        if (!track) return false;
+        if (isMasteringPhase()) return track.status === 'done' || Boolean(track.outBlob || track.masteredUrl);
+        return Boolean(track.analysis || ['ready', 'processing', 'done'].includes(track.status));
+    }
+
+    function isTrackActiveForSummary(track) {
+        if (!track) return false;
+        return isMasteringPhase() ? track.status === 'processing' : track.status === 'analyzing';
+    }
+
+    function isTrackPendingForSummary(track) {
+        if (!track) return false;
+        if (isMasteringPhase()) return !isTrackDoneForSummary(track) && track.status !== 'processing' && track.status !== 'error';
+        return track.status === 'queued';
+    }
+
     function getSummary() {
         const tracks = getTracks();
         const total = Math.max(Number(hudState.total || 0), tracks.length);
-        const done = tracks.filter(track => track && (track.analysis || ['ready', 'processing', 'done'].includes(track.status))).length;
+        const done = tracks.filter(isTrackDoneForSummary).length;
         const errors = tracks.filter(track => track && track.status === 'error').length;
-        const active = tracks.filter(track => track && track.status === 'analyzing').length;
-        const pending = tracks.filter(track => track && track.status === 'queued').length;
+        const active = tracks.filter(isTrackActiveForSummary).length;
+        const pending = tracks.filter(isTrackPendingForSummary).length;
         const progressSum = tracks.reduce((sum, track) => sum + getTrackProgress(track), 0);
         const percent = total > 0 ? Math.round(clampValue(progressSum / total, 0, 100)) : 0;
         const complete = total > 0 && tracks.length > 0 && done + errors >= total && !active && !pending;
@@ -130,6 +210,7 @@
         return Object.freeze({
             version: VIEW_VERSION,
             batchId: hudState.batchId,
+            phase: hudState.phase || 'import',
             total,
             count: tracks.length,
             done,
@@ -152,6 +233,7 @@
         return Object.freeze({
             version: summary.version,
             batchId: summary.batchId,
+            phase: summary.phase,
             total: summary.total,
             count: summary.count,
             done: summary.done,
@@ -170,6 +252,7 @@
     function shouldShow(summary) {
         if (!summary || summary.total < getMinTracks() || summary.dismissed) return false;
         if (summary.active || summary.pending) return true;
+        if (summary.phase === 'mastering' && summary.count && !summary.complete) return true;
         if (summary.complete && summary.completedAt) return Date.now() - summary.completedAt <= getHoldMs();
         return false;
     }
@@ -184,6 +267,7 @@
         hud.setAttribute('aria-hidden', visible ? 'false' : 'true');
         hud.dataset.expanded = summary.expanded ? 'true' : 'false';
         hud.dataset.complete = summary.complete ? 'true' : 'false';
+        hud.dataset.phase = summary.phase || 'import';
         hud.dataset.bulkMode = summary.total >= getLargeBatchThreshold() ? 'large' : 'multi';
         if (!visible) {
             syncStack();
@@ -195,8 +279,15 @@
         const bar = getEl('bulkImportHudBar');
         const list = getEl('bulkImportHudList');
         const toggle = getEl('bulkImportHudToggle');
-        if (title) title.textContent = summary.complete ? '대량 업로드 분석 완료' : `대량 업로드 분석 HUD · ${summary.total}곡`;
-        if (text) text.textContent = `${summary.done}/${summary.total} 완료 · 분석 ${summary.active} · 대기 ${summary.pending} · 오류 ${summary.errors}`;
+        const face = hud.querySelector?.('.bulk-import-hud-face');
+        const mastering = summary.phase === 'mastering';
+        if (face) face.textContent = mastering ? '🎛️' : '📦';
+        if (title) title.textContent = summary.complete
+            ? (mastering ? '대량 마스터링 완료' : '대량 업로드 분석 완료')
+            : (mastering ? `대량 마스터링 HUD · ${summary.total}곡` : `대량 업로드 분석 HUD · ${summary.total}곡`);
+        if (text) text.textContent = mastering
+            ? `${summary.done}/${summary.total} 완성 · 마스터링 ${summary.active} · 대기 ${summary.pending} · 오류 ${summary.errors}`
+            : `${summary.done}/${summary.total} 완료 · 분석 ${summary.active} · 대기 ${summary.pending} · 오류 ${summary.errors}`;
         if (percent) percent.textContent = `${summary.percent}%`;
         if (bar) bar.style.width = `${summary.percent}%`;
         if (toggle) {
@@ -218,7 +309,7 @@
             row.dataset.trackId = track.id || '';
             const number = global.document.createElement('span');
             number.className = 'bulk-import-row-number';
-            number.textContent = String(track.bulkImportOrder || index + 1).padStart(2, '0');
+            number.textContent = String(getTrackOrder(track, index)).padStart(2, '0');
             const main = global.document.createElement('span');
             main.className = 'bulk-import-row-main';
             const name = global.document.createElement('strong');
@@ -253,6 +344,7 @@
         configure,
         init,
         beginBatch,
+        beginMasteringBatch,
         update,
         getSnapshot,
         getSummary

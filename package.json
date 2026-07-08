@@ -158,6 +158,7 @@
     "node qa/v1423_audio_decode_memory_guard_smoke.js",
     "node qa/v1424_bulk_import_hud_smoke.js",
     "node qa/v1425_exit_guard_fallback_smoke.js",
-    "node qa/v1426_wake_lock_state_sync_smoke.js"
+    "node qa/v1426_wake_lock_state_sync_smoke.js",
+    "node qa/v1427_bulk_mastering_hud_smoke.js"
   ]
 }
