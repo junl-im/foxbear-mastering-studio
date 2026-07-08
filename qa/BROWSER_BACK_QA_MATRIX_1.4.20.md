@@ -1,8 +1,8 @@
-# FoxBear v1.4.20 Browser QA Matrix - Bulk Import Guard
+# FoxBear v1.4.21 Browser QA Matrix - Bulk Import Guard
 
 ## Focus
 
-This matrix covers the PC crash report where selecting 35 songs caused a `STATUS_BREAKPOINT` page error. v1.4.20 should keep the maximum 35-track selection limit, but analysis must run through a safe queue instead of starting every decode job at once.
+This matrix covers the PC crash report where selecting 35 songs caused a `STATUS_BREAKPOINT` page error. v1.4.21 should keep the maximum 35-track selection limit, but analysis must run through a safe queue instead of starting every decode job at once.
 
 ## PC Chrome / Edge
 
@@ -42,7 +42,7 @@ This matrix covers the PC crash report where selecting 35 songs caused a `STATUS
 - external analyser coverage: realtime mastering preview, phone/laptop/mono translation preview and difference-listen paths should continue routing into the detail FFT analyser without creating duplicate media element source nodes.
 - Dock FFT remains removed; detail spectrum renderPanel remains available.
 
-## v1.4.20 Dock mini FFT / back confirm regression
+## v1.4.21 Dock mini FFT / back confirm regression
 
 - Dock mini FFT remains removed while detail FFT stays available.
 - Browser back confirm and refresh confirm should still appear during active import/analysis work.
@@ -61,22 +61,22 @@ This matrix covers the PC crash report where selecting 35 songs caused a `STATUS
 - Performance diagnostics remain available with `?perf=1` and Ctrl/Command + Alt + P.
 - During a 35-track queued import, use `FoxBearPerformanceDiagnostics.collectSnapshot()` and `FoxBearBulkImportGuard.getSnapshot()` to confirm active/pending counts.
 
-## v1.4.20 Download flow polish
+## v1.4.21 Download flow polish
 
 - Diagnostics copy / 진단 복사 should remain available from download advanced options.
 - Download/share fallback UI should remain responsive while 35-track import analysis is queued.
 - Advanced actions are hidden behind 추가 옵션 by default and remain available on demand.
 
-## v1.4.20 Download action clarity
+## v1.4.21 Download action clarity
 
 - Primary/secondary/tertiary buttons must expose `data-download-action` metadata.
 - Recommended action badge should remain visible and match the actual handler.
 
-## v1.4.20 Download dialog micro hint
+## v1.4.21 Download dialog micro hint
 
 - First-screen hint should show only the short recommended action.
 - Extra diagnostics/copy/checklist actions should stay behind 추가 옵션.
 
-## v1.4.20 Download dialog first-screen declutter
+## v1.4.21 Download dialog first-screen declutter
 
 - Download dialog should open with short idle receipt and no checklist until a download/share/help action is used.

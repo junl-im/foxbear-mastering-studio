@@ -1,7 +1,7 @@
-# v1.4.20 Download dialog first-screen declutter QA Matrix
+# v1.4.21 Download dialog first-screen declutter QA Matrix
 
 ## Scope
-v1.4.20 keeps all v1.4.11~v1.4.18 Kakao/mobile download fallback tools, but reduces what is visible when the download dialog first opens.
+v1.4.21 keeps all v1.4.11~v1.4.18 Kakao/mobile download fallback tools, but reduces what is visible when the download dialog first opens.
 
 ## Static expectations
 - `FoxBearDownloadService.getDownloadDialogDisplayProfile()` exists and reports `restricted-declutter` / `standard-declutter` modes.
@@ -32,9 +32,9 @@ v1.4.20 keeps all v1.4.11~v1.4.18 Kakao/mobile download fallback tools, but redu
 ## Carry-forward legacy anchors
 - KakaoTalk, Chrome Android, Safari iOS, PWA, beforeunload, popstate are still part of the browser-back matrix.
 - Performance diagnostics remain available behind `?perf=1` and `Ctrl/Command + Alt + P`.
-- v1.4.20 Download flow polish carry-forward: recommendations, receipt, checklist, and diagnostics copy remain connected.
-- v1.4.20 Download action clarity carry-forward: all primary buttons keep `data-download-action` metadata.
-- v1.4.20 Download dialog micro hint carry-forward: `download-options-compact-hint` remains visible.
+- v1.4.21 Download flow polish carry-forward: recommendations, receipt, checklist, and diagnostics copy remain connected.
+- v1.4.21 Download action clarity carry-forward: all primary buttons keep `data-download-action` metadata.
+- v1.4.21 Download dialog micro hint carry-forward: `download-options-compact-hint` remains visible.
 - Advanced actions are hidden behind `추가 옵션` / additional options by default.
 - Diagnostics copy / 진단 복사 remains available under additional options.
 - FFT external analyser / external analyser coverage remains intact for realtime preview paths.

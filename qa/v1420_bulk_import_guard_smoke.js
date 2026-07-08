@@ -12,16 +12,16 @@ const sw = read('sw.js');
 
 function assert(condition, message) {
   if (!condition) {
-    console.error(`FAIL v1420 bulk import guard smoke: ${message}`);
+    console.error(`FAIL v1421 bulk import guard smoke: ${message}`);
     process.exit(1);
   }
 }
 
-assert(pkg.version === '1.4.20', 'package version should be 1.4.20');
-assert(pkg.name === 'foxbear-github-pro-v1-4-20', 'package name should be v1-4-20');
-assert(html.includes('data-build="1.4.20"'), 'index build should be 1.4.20');
-assert(config.includes("ASSET_VERSION = '1.4.20-bulk-import-guard'"), 'asset key should be v1.4.20 bulk import guard');
-assert(sw.includes("foxbear-shell-v1.4.20-bulk-import-guard"), 'service worker cache should be v1.4.20 bulk import guard');
+assert(pkg.version === '1.4.23', 'package version should be 1.4.23');
+assert(pkg.name === 'foxbear-github-pro-v1-4-23', 'package name should be v1-4-23');
+assert(html.includes('data-build="1.4.23"'), 'index build should be 1.4.23');
+assert(config.includes("ASSET_VERSION = '1.4.23-audio-decode-memory-guard'"), 'asset key should be v1.4.23 bulk import guard');
+assert(sw.includes("foxbear-shell-v1.4.23-audio-decode-memory-guard"), 'service worker cache should be v1.4.23 bulk import guard');
 
 assert(config.includes('IMPORT_ANALYSIS_CONCURRENCY: 1'), 'runtime config should force single analysis worker for bulk imports');
 assert(config.includes('LARGE_IMPORT_BATCH_THRESHOLD: 12'), 'runtime config should define large import threshold');
@@ -35,4 +35,4 @@ assert(!app.includes('const analysisJob = analyzeTrack(track);\n        track.an
 assert(app.includes('FoxBearBulkImportGuard'), 'bulk import guard diagnostics should be exposed');
 assert(runtime.includes("'FoxBearBulkImportGuard.getSnapshot'"), 'runtime health should check bulk import guard diagnostics');
 
-console.log('PASS v1420 bulk import guard smoke: sequential queue prevents 35-track decode storms');
+console.log('PASS v1421 bulk import guard smoke: sequential queue prevents 35-track decode storms');

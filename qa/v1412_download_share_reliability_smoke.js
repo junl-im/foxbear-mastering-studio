@@ -4,7 +4,7 @@ const fs = require('fs');
 const read = file => fs.readFileSync(file, 'utf8');
 const assert = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.20 download/share reliability smoke: ${message}`);
+    console.error(`FAIL v1.4.23 download/share reliability smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.4.20', 'package version should be 1.4.20');
-assert(index.includes('data-build="1.4.20"'), 'index data-build should be 1.4.20');
-assert(index.includes('1.4.20-bulk-import-guard'), 'index assets should use v1.4.20 cache key');
-assert(sw.includes('foxbear-shell-v1.4.20-bulk-import-guard'), 'service worker cache should use v1.4.20 key');
+assert(pkg.version === '1.4.23', 'package version should be 1.4.23');
+assert(index.includes('data-build="1.4.23"'), 'index data-build should be 1.4.23');
+assert(index.includes('1.4.23-audio-decode-memory-guard'), 'index assets should use v1.4.23 cache key');
+assert(sw.includes('foxbear-shell-v1.4.23-audio-decode-memory-guard'), 'service worker cache should use v1.4.23 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');
@@ -57,4 +57,4 @@ assert(runtime.includes('FoxBearDownloadService.getDownloadCapabilitySummary'), 
 assert(runtime.includes('FoxBearDownloadService.getDownloadDiagnostics'), 'runtime health should require diagnostics global');
 assert(runtime.includes('FoxBearDownloadService.copyDownloadDiagnostics'), 'runtime health should require diagnostics copy global');
 
-console.log('PASS v1.4.20 download/share reliability smoke');
+console.log('PASS v1.4.23 download/share reliability smoke');

@@ -13,11 +13,11 @@ const previewCss = fs.readFileSync('assets/css/components/preview-system.css', '
 const cardsCss = fs.readFileSync('assets/css/components/cards.css', 'utf8');
 const pkg = fs.readFileSync('package.json', 'utf8');
 const overwrite = fs.readFileSync('tools/create-overwrite-zip.sh', 'utf8');
-const version = '1.4.20-bulk-import-guard';
+const version = '1.4.23-audio-decode-memory-guard';
 assert(index.includes(version), 'index should use Stage26 asset key');
 assert(sw.includes(`foxbear-shell-v${version}`) || sw.includes(`foxbear-shell-${version}`), 'service worker should use Stage26 cache key');
 assert(pkg.includes('node qa/stage26_unified_waveform_controls_smoke.js'), 'package should run Stage26 smoke');
-assert(overwrite.includes('v1.4.20'), 'overwrite default should be Stage26');
+assert(overwrite.includes('v1.4.23'), 'overwrite default should be Stage26');
 assert(app.includes('renderPreviewDialogUnifiedPlayers(track, el.previewDialogBody)'), 'preview dialog should use unified player renderer');
 assert(app.includes('function renderPreviewDialogUnifiedPlayers'), 'unified preview dialog renderer missing');
 assert(!app.includes("renderPreviewPlayers(track, el.previewDialogBody, { vertical: true })"), 'preview dialog should not render legacy bottom preview grid');

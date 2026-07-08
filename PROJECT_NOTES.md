@@ -1,14 +1,18 @@
+## v1.4.23 project notes
 
-- v1.4.20 performance diagnostics can be used with bulk import queue snapshots for PC crash investigations.
-## v1.4.20 notes - bulk import memory safety
+The v1.4.23 patch focuses on the second half of the 35-track stability work: after v1.4.20 made decode/analysis sequential and v1.4.21 throttled general renders, v1.4.23 prevents mastering progress updates from forcing repeated full UI renders. Diagnostics now expose active mastering state with render queue state so PC lag reports can be tied to import, render, or mastering work.
 
-The 35-track import path previously risked launching all decode/analysis jobs concurrently. v1.4.20 changes this to queued analysis after batch registration, reducing peak ArrayBuffer, AudioContext and render pressure. This is expected to mitigate PC Chrome/Edge `STATUS_BREAKPOINT` crashes on maximum-size imports.
+
+- v1.4.21 performance diagnostics can be used with bulk import queue snapshots for PC crash investigations.
+## v1.4.21 notes - bulk import memory safety
+
+The 35-track import path previously risked launching all decode/analysis jobs concurrently. v1.4.21 changes this to queued analysis after batch registration, reducing peak ArrayBuffer, AudioContext and render pressure. This is expected to mitigate PC Chrome/Edge `STATUS_BREAKPOINT` crashes on maximum-size imports.
 
 # Project Notes - FoxBear AI Mastering Studio
 
-## v1.4.20 Download dialog micro hint
+## v1.4.21 Download dialog micro hint
 - v1.4.17 made the recovery checklist compact, but the first dialog could still feel verbose.
-- v1.4.20 adds `getDownloadDialogCompactHint()` for a micro first-screen hint.
+- v1.4.21 adds `getDownloadDialogCompactHint()` for a micro first-screen hint.
 - The dialog now shows only the most practical next actions first.
 - Advanced support actions remain in `추가 옵션` instead of occupying the main screen.
 - The dialog flow-step append path was cleaned to avoid duplicate append logic.
@@ -39,9 +43,9 @@ The 35-track import path previously risked launching all decode/analysis jobs co
 - Stage28: unmanaged waveform audit and waveform-control-view.js extraction remain valid.
 - Dock mini FFT was removed by design; renderMini removed and detail-only FFT remains.
 - Exit Guard remains active for refresh/back protection.
-- v1.4.20 performance diagnostics remain available with adaptive refresh and copy support.
+- v1.4.21 performance diagnostics remain available with adaptive refresh and copy support.
 
-## v1.4.20 cumulative compatibility anchors
+## v1.4.21 cumulative compatibility anchors
 - stability notes: navigation confirm debounce, FFT lifecycle stabilization, and external analyser coverage remain active.
 - Dock FFT removal remains intentional and settings gear alignment remains active.
 - Performance diagnostics remain available with adaptive refresh and copy support.
@@ -49,9 +53,45 @@ The 35-track import path previously risked launching all decode/analysis jobs co
 - Download/share reliability remains active with a shorter first-screen dialog.
 
 
-## v1.4.20 Download dialog first-screen declutter
+## v1.4.21 Download dialog first-screen declutter
 - Added `FoxBearDownloadService.getDownloadDialogDisplayProfile()` to keep the initial download/share dialog short.
 - The first open state uses `download-options-panel-v5`, `data-download-display-mode`, and an idle receipt.
 - The full checklist stays hidden on open and appears only after a download/share/assist action needs it.
 - Advanced diagnostics, address copy, guide copy, checklist copy, and external-browser guidance remain under `추가 옵션`.
-- Final static QA target: `138/138 PASS`.
+- Final static QA target: `142/142 PASS`.
+
+## v1.4.21 - Render Scheduler + Bulk Import UI Throttle
+
+- Added `FoxBearRenderScheduler` to merge repeated `renderAll()` calls into scheduled frame updates during analysis/import.
+- Bulk import analysis remains sequential, and large-batch UI refreshes are throttled so 35-track imports are less likely to stutter or crash.
+- Automatic Wake Lock activation during analysis/playback is now silent; manual settings toggles still show user feedback.
+- Single-file imports keep the AI recommendation choice dialog, while multi-file and large-batch imports auto-apply each track's AI recommendation without one popup per file.
+- Playback transitions use a smoother 140ms fade and wait for the next audio element to be media-ready before fading out the old source.
+- Analysis cache keys now use `ANALYSIS_ENGINE_CACHE_VERSION` instead of `APP_VERSION`, reducing unnecessary re-analysis across patch releases.
+- Added `FoxBearAudioDecodeService` as the first decode-path split from `src/app.js`.
+
+Dock mini FFT was removed and remains removed in v1.4.21 while detail-only FFT is preserved.
+
+renderMini was removed with the Dock mini FFT cleanup and remains removed in v1.4.21.
+
+
+## v1.4.23 carry-forward anchors
+
+Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
+
+
+## v1.4.23 Carry-forward QA anchors
+- Dock mini FFT was removed; detail-only FFT remains the supported spectrum view.
+- renderMini removed from Dock spectrum/runtime health carry-forward.
+- v1.4.23 performance diagnostics keeps adaptive refresh, getSummary, and copy/복사 support.
+- Download flow polish and action clarity remain in the compact first-screen dialog.
+
+## v1.4.23 - Audio Decode Memory Guard
+
+- Added audio decode diagnostics in `FoxBearAudioDecodeService.getDiagnostics()`.
+- Tracks active/completed/failed decodes, recent decode events, last decoded PCM size, and last error.
+- `decodeAudioFile()` now explicitly releases its temporary `ArrayBuffer` reference in `finally` after Web Audio decoding.
+- Performance diagnostics now include `audioDecode` and warn on `audio-decode-active` / `audio-decode-last-error`.
+- Runtime Health now requires `FoxBearAudioDecodeService.getDiagnostics`.
+- v1.4.22 mastering queue throttle, v1.4.21 render scheduler, and 35-track sequential import guard remain carried forward.
+

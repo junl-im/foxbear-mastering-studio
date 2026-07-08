@@ -1,8 +1,8 @@
-# Browser / PWA QA Matrix - v1.4.20 Dock Spectrum Cleanup
+# Browser / PWA QA Matrix - v1.4.21 Dock Spectrum Cleanup
 
-v1.4.20 finishes the Dock FFT removal by deleting the leftover mini-spectrum API/runtime requirement. The persistent Dock should stay focused on playback, waveform, source switching, and export actions. The FFT spectrum remains available only in the detail analysis panel.
+v1.4.21 finishes the Dock FFT removal by deleting the leftover mini-spectrum API/runtime requirement. The persistent Dock should stay focused on playback, waveform, source switching, and export actions. The FFT spectrum remains available only in the detail analysis panel.
 
-| Environment | Refresh / close expectation | Back expectation | v1.4.20 checks |
+| Environment | Refresh / close expectation | Back expectation | v1.4.21 checks |
 | --- | --- | --- | --- |
 | KakaoTalk in-app browser Android | Native beforeunload prompt if supported by WebView | App confirm via history/popstate if exposed | Dock has no FFT row; no repeated confirm dialogs; detail spectrum opens only in analysis detail. |
 | Chrome Android tab | Native beforeunload prompt during active work | One app confirm, then stay on cancel | Dock playback feels lighter; original/master crossfade still works. |
@@ -23,6 +23,6 @@ v1.4.20 finishes the Dock FFT removal by deleting the leftover mini-spectrum API
 
 Static DOM expectation: `#bottomPreviewSpectrum` should not exist in the Dock DOM.
 
-Compatibility note: older v1.4.6/v1.4.7 QA smoke still phrases this area as "Dock mini FFT"; in v1.4.20 the expected result is that Dock mini FFT remains removed while Back confirm behavior still works.
+Compatibility note: older v1.4.6/v1.4.7 QA smoke still phrases this area as "Dock mini FFT"; in v1.4.21 the expected result is that Dock mini FFT remains removed while Back confirm behavior still works.
 
 External analyser coverage: preview translation, realtime mastering preview, and difference-listen graphs should still feed the detail-only FFT panel through registered external analyser taps when the panel is mounted.

@@ -1,4 +1,4 @@
-# Browser / PWA QA Matrix - v1.4.20 Download + Share Reliability
+# Browser / PWA QA Matrix - v1.4.21 Download + Share Reliability
 
 Focus: download/share fallback behavior, especially KakaoTalk in-app browser and mobile WebView style environments.
 
@@ -36,7 +36,7 @@ Focus: download/share fallback behavior, especially KakaoTalk in-app browser and
 - Performance diagnostics from v1.4.9/v1.4.10 should still open with `?perf=1` or `Ctrl/Command + Alt + P`.
 
 
-## v1.4.20 cumulative UI/performance carry-forward notes
+## v1.4.21 cumulative UI/performance carry-forward notes
 
 - External analyser coverage remains part of the QA scope for preview translation and difference-listen WebAudio graphs.
 - confirm / popstate / beforeunload behavior remains covered so back confirm debounce does not regress.
@@ -47,7 +47,7 @@ Focus: download/share fallback behavior, especially KakaoTalk in-app browser and
 
 - external analyser coverage remains required for FFT tap regression checks.
 
-## v1.4.20 Download diagnostics follow-up
+## v1.4.21 Download diagnostics follow-up
 
 Focus: download/share fallback remains stable after adding diagnostic event history and copyable download diagnostics.
 
@@ -64,7 +64,7 @@ Focus: download/share fallback remains stable after adding diagnostic event hist
 
 Manual note: diagnostics JSON can include a user-agent string. Treat it as support/debug information only and avoid uploading it publicly unless needed.
 
-## v1.4.20 cumulative matrix notes
+## v1.4.21 cumulative matrix notes
 
 - Performance diagnostics: open with `?perf=1`, confirm the panel appears, use 복사, and confirm it remains hidden by default otherwise.
 - Dock mini FFT: `#bottomPreviewSpectrum` should not exist and runtime health does not require `renderMini`.

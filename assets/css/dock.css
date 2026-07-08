@@ -1131,7 +1131,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   }
 }
 
-/* FoxBear v1.4.20 smooth source transitions */
+/* FoxBear v1.4.21 smooth source transitions */
 .bottom-preview-player.is-crossfading {
   position: relative !important;
   min-height: 36px;

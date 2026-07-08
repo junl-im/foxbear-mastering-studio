@@ -1,4 +1,4 @@
-# Browser / PWA QA Matrix - v1.4.20 Download + Share Reliability
+# Browser / PWA QA Matrix - v1.4.21 Download + Share Reliability
 
 Focus: download/share fallback behavior, especially KakaoTalk in-app browser and mobile WebView style environments.
 
@@ -36,7 +36,7 @@ Focus: download/share fallback behavior, especially KakaoTalk in-app browser and
 - Performance diagnostics from v1.4.9/v1.4.10 should still open with `?perf=1` or `Ctrl/Command + Alt + P`.
 
 
-## v1.4.20 cumulative UI/performance carry-forward notes
+## v1.4.21 cumulative UI/performance carry-forward notes
 
 - External analyser coverage remains part of the QA scope for preview translation and difference-listen WebAudio graphs.
 - confirm / popstate / beforeunload behavior remains covered so back confirm debounce does not regress.

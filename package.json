@@ -1,8 +1,8 @@
 {
-  "name": "foxbear-github-pro-v1-4-20",
-  "version": "1.4.20",
+  "name": "foxbear-github-pro-v1-4-23",
+  "version": "1.4.23",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.20 Bulk import guard for 35-track PC selections, sequential analysis queue, Download dialog first-screen declutter, Kakao/mobile save flow clarity, Download/share diagnostics, Performance diagnostics, Spectrum, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.23 Audio decode memory guard, decode diagnostics, and v1.4.22 mastering queue throttle carry-forward. Spectrum detail FFT remains detail-only; Stage28 managed waveform view, Stage27 waveform service, Stage26 unified waveform controls, Stage25 compare controls, Stage23 playback orchestration.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -24,6 +24,7 @@
     "node --check src/audio/highlight-compare-inspector.js",
     "node --check src/audio/playback-link-service.js",
     "node --check src/audio/playback-transition-service.js",
+    "node --check src/audio/audio-decode-service.js",
     "node --check src/audio/waveform-control-service.js",
     "node --check src/ui/waveform-control-view.js",
     "node --check src/ui/spectrum-visualizer.js",
@@ -38,6 +39,7 @@
     "node --check src/security/site-guards.js",
     "node --check src/boot/runtime-health.js",
     "node --check src/boot/performance-diagnostics.js",
+    "node --check src/boot/render-scheduler.js",
     "node --check sw.js",
     "node --check src/app.js",
     "node qa/no_duplicate_functions_smoke.js",
@@ -149,6 +151,9 @@
     "node qa/v1417_download_recovery_compact_smoke.js",
     "node qa/v1418_download_dialog_micro_hint_smoke.js",
     "node qa/v1419_download_dialog_declutter_smoke.js",
-    "node qa/v1420_bulk_import_guard_smoke.js"
+    "node qa/v1420_bulk_import_guard_smoke.js",
+    "node qa/v1421_render_scheduler_bulk_import_smoke.js",
+    "node qa/v1422_mastering_queue_throttle_smoke.js",
+    "node qa/v1423_audio_decode_memory_guard_smoke.js"
   ]
 }

@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.4.20 download/share reliability patch.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.23 audio decode memory guard patch.",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -157,5 +157,5 @@
       ]
     }
   },
-  "version": "1.4.20"
+  "version": "1.4.23"
 }

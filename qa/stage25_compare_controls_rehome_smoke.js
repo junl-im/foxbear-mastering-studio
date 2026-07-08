@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.20-bulk-import-guard';
+const version = '1.4.23-audio-decode-memory-guard';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -27,7 +27,7 @@ assert(index.includes(version), 'index should use Stage25 asset query');
 assert(sw.includes(`foxbear-shell-v${version}`), 'service worker should use Stage25 cache key');
 assert(pkg.includes('Stage28 managed waveform view extraction') || pkg.includes('Stage27 common waveform control service') || pkg.includes('Stage26 unified waveform controls') || pkg.includes('Stage25 compare controls rehome'), 'package description should identify Stage25');
 assert(pkg.includes('node qa/stage25_compare_controls_rehome_smoke.js'), 'package should run Stage25 smoke');
-assert(overwrite.includes('v1.4.20'), 'overwrite package default should be Stage25');
+assert(overwrite.includes('v1.4.23'), 'overwrite package default should be Stage25');
 
 assert(!index.includes('id="abMatchBtn"'), 'global A/B level-match button should be removed from main tools grid');
 assert(!index.includes('id="abLoopBtn"'), 'global A/B loop button should be removed from main tools grid');

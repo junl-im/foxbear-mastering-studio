@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const assert = (condition, message) => {
+  if (!condition) {
+    console.error(`FAIL v1.4.23 audio decode memory guard smoke: ${message}`);
+    process.exit(1);
+  }
+};
+
+const pkg = JSON.parse(read('package.json'));
+const app = read('src/app.js');
+const config = read('src/config/app-runtime-config.js');
+const decode = read('src/audio/audio-decode-service.js');
+const runtime = read('src/boot/runtime-health.js');
+const perf = read('src/boot/performance-diagnostics.js');
+const index = read('index.html');
+const sw = read('sw.js');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.23.md');
+const qaReport = read('qa/QA_REPORT.md');
+const changelog = read('CHANGELOG.md');
+
+assert(pkg.version === '1.4.23', 'package version should be 1.4.23');
+assert(pkg.name === 'foxbear-github-pro-v1-4-23', 'package name should be v1-4-23');
+assert(index.includes('data-build="1.4.23"'), 'index build marker should be 1.4.23');
+assert(config.includes("ASSET_VERSION = '1.4.23-audio-decode-memory-guard'"), 'runtime asset key should be v1.4.23');
+assert(sw.includes('foxbear-shell-v1.4.23-audio-decode-memory-guard'), 'service worker cache should use v1.4.23 key');
+
+assert(decode.includes("SERVICE_VERSION = '1.4.23-audio-decode-memory-guard'"), 'decode service should be bumped');
+assert(decode.includes('const MAX_DECODE_EVENTS'), 'decode diagnostics event cap should exist');
+assert(decode.includes('activeDecodes'), 'decode diagnostics should track active decodes');
+assert(decode.includes('function getDecodedBufferSummary'), 'decode service should summarize decoded buffers');
+assert(decode.includes('function estimateDecodedPcmBytes'), 'decode service should estimate PCM memory');
+assert(decode.includes('function getDiagnostics'), 'decode service should expose diagnostics');
+assert(decode.includes('arrayBuffer = null;'), 'decode service should release ArrayBuffer reference in finally');
+assert(decode.includes("pushEvent('decode-start'") && decode.includes("pushEvent('decode-complete'") && decode.includes("pushEvent('decode-failed'"), 'decode events should record lifecycle');
+assert(decode.includes('verifyMediaElementCanLoad'), 'media element fallback check should remain');
+
+assert(app.includes('FoxBearAudioDecodeService') && app.includes('service.decodeAudioFile'), 'app should continue delegating decode path');
+assert(runtime.includes('FoxBearAudioDecodeService.getDiagnostics'), 'runtime health should require decode diagnostics');
+assert(perf.includes('audioDecode = safeCall'), 'performance diagnostics should collect decode diagnostics');
+assert(perf.includes('audio-decode-active'), 'performance summary should warn while decode is active');
+assert(perf.includes('audioDecode:'), 'performance summary should expose audio decode status');
+assert(index.includes('src/audio/audio-decode-service.js?v=1.4.23-audio-decode-memory-guard'), 'index should load versioned decode service');
+assert(sw.includes('./src/audio/audio-decode-service.js?v=1.4.23-audio-decode-memory-guard'), 'service worker should precache decode service');
+assert(pkg.qaChecks.includes('node qa/v1423_audio_decode_memory_guard_smoke.js'), 'package QA should include v1.4.23 smoke');
+assert(matrix.includes('Audio Decode Memory Guard'), 'matrix should document v1.4.23 audio decode guard scope');
+assert(qaReport.includes('144/144 PASS') || qaReport.includes('v1.4.23 final QA'), 'QA report should mention v1.4.23 final QA');
+assert(changelog.includes('v1.4.23'), 'changelog should mention v1.4.23');
+
+console.log('PASS v1.4.23 audio decode diagnostics and memory guard smoke');

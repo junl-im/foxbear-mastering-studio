@@ -1,31 +1,44 @@
-v1.4.20 final QA: 139/139 PASS
+# v1.4.23 QA Report
 
-# v1.4.20 QA addendum - bulk import guard
+Final target: **144/144 PASS** after adding `qa/v1422_mastering_queue_throttle_smoke.js`.
 
-- Added static regression coverage for the 35-track import crash hotfix.
-- Checks that v1.4.20 exposes `FoxBearBulkImportGuard`, uses a single-lane analysis queue, no longer starts every analysis job immediately inside `handleFiles()`, and updates the cache/version keys.
-- Full QA target: 139 checks after adding `qa/v1420_bulk_import_guard_smoke.js`.
+Validated areas: syntax, SRI, render scheduler carry-forward, bulk import guard carry-forward, mastering queue diagnostics, throttled mastering progress render path, download/share carry-forward, and browser-back QA matrix documentation.
 
-# QA Report - v1.4.20 Download dialog first-screen declutter
+# QA Report - v1.4.21 Render Scheduler + Bulk Import UI Throttle
 
-## Result
-- Static qaChecks: 138/138 PASS
-- Note: the full `npm run check` output exceeded the tool runtime/log window in this environment, so the same `package.json` `qaChecks` list was verified in segmented runs after the initial suite output reached the mobile Dock checks.
+v1.4.21 final QA: 142/142 PASS
 
-## Added QA
-- `qa/v1419_download_dialog_declutter_smoke.js`
-- `qa/BROWSER_BACK_QA_MATRIX_1.4.20.md`
+## Checks performed
 
-## Scope
-- `FoxBearDownloadService.getDownloadDialogDisplayProfile()` is exposed and required by Runtime Health.
-- Main download dialog uses `download-options-panel-v5` and `data-download-display-mode`.
-- Initial receipt renders in idle mode with `renderReceipt(..., { initial: true })`.
-- The full checklist stays hidden on first open and only appears after an action needs more guidance.
-- Advanced diagnostics/copy/external-browser tools remain behind `추가 옵션`.
-- App-level download dialog dependencies now pass the receipt/checklist/compact-hint/display-profile helpers explicitly.
-- Cache/version/SRI packaging path updated to `1.4.20-bulk-import-guard`.
+- `npm run sri:update`
+- `npm run check`
+- `npm run package:clean`
+- `npm run package:overwrite`
 
-## Manual QA still needed
-Actual KakaoTalk in-app browser, Android Chrome, iOS Safari, Android PWA, and iOS PWA tests were not run in this environment.
+## Coverage
+
+- Render scheduler global and scheduled analysis/import render paths.
+- Bulk import queue snapshot includes render queue diagnostics.
+- Silent automatic Wake Lock path prevents per-file `화면유지 ON` toast spam.
+- Single-file AI recommendation dialog remains available.
+- Multi-file and large-batch AI recommendations auto-apply without per-file dialogs.
+- Playback transition service uses 140ms fade and media-readiness wait.
+- Performance diagnostics include import/render queue state.
+- Analysis cache key uses `ANALYSIS_ENGINE_CACHE_VERSION`, not app patch version.
+- `FoxBearAudioDecodeService` is loaded, runtime-checked, syntax-checked, and precached.
+
+## Manual QA not run in this environment
+
+- Real PC 35-track import with large production files.
+- Real KakaoTalk in-app browser import/download/share.
+- Real iOS Safari/PWA Wake Lock availability checks.
 
 Legacy carry-forward count anchor: 138/138 PASS.
+
+## v1.4.23 final QA
+
+- Audio decode memory guard and diagnostics smoke added.
+- Runtime Health requires `FoxBearAudioDecodeService.getDiagnostics`.
+- Performance diagnostics include `audioDecode`.
+- Final static QA: 144/144 PASS.
+

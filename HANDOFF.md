@@ -1,18 +1,27 @@
+## v1.4.23 handoff - Mastering Queue Throttle
 
-- v1.4.20 FoxBearPerformanceDiagnostics remains available; combine with FoxBearBulkImportGuard.getSnapshot() for 35-track import debugging.
-## v1.4.20 stability handoff - 35-track PC import crash guard
+- Latest version: `1.4.23` with cache key `1.4.23-audio-decode-memory-guard`.
+- New runtime diagnostic: `FoxBearMasteringGuard.getSnapshot()`.
+- Mastering progress renders are throttled through `scheduleRenderAll('mastering-progress', ...)`; final completion flushes immediately.
+- Performance diagnostics now capture `masteringQueue` beside import/render queue snapshots.
+- QA target: `qa/v1422_mastering_queue_throttle_smoke.js`; matrix: `qa/BROWSER_BACK_QA_MATRIX_1.4.23.md`.
+- Next safe direction: split mastering queue/worker orchestration out of `src/app.js`, then add a memory cleanup policy for very large completed batches.
+
+
+- v1.4.21 FoxBearPerformanceDiagnostics remains available; combine with FoxBearBulkImportGuard.getSnapshot() for 35-track import debugging.
+## v1.4.21 stability handoff - 35-track PC import crash guard
 
 - Base: v1.4.19.
 - User report: selecting 35 songs on PC caused a `STATUS_BREAKPOINT` page error.
 - Patch: `handleFiles()` now registers tracks in a batch, renders once, then calls `queueTracksForAnalysis()` instead of starting `analyzeTrack()` for every track immediately.
 - New guard: `FoxBearBulkImportGuard.getSnapshot()` exposes pending/active/concurrency diagnostics.
 - Config: `IMPORT_ANALYSIS_CONCURRENCY = 1`, `LARGE_IMPORT_BATCH_THRESHOLD = 12`, `IMPORT_QUEUE_YIELD_MS = 90`.
-- QA: `qa/v1420_bulk_import_guard_smoke.js` plus browser matrix `qa/BROWSER_BACK_QA_MATRIX_1.4.20.md`.
+- QA: `qa/v1421_bulk_import_guard_smoke.js` plus browser matrix `qa/BROWSER_BACK_QA_MATRIX_1.4.21.md`.
 
-# Handoff - FoxBear AI Mastering Studio Pro v1.4.20
+# Handoff - FoxBear AI Mastering Studio Pro v1.4.21
 
 ## Current patch
-v1.4.20 focuses on decluttering the first screen of the download/share dialog while keeping all Kakao/mobile fallback tools intact.
+v1.4.21 focuses on decluttering the first screen of the download/share dialog while keeping all Kakao/mobile fallback tools intact.
 
 ## What changed
 - Added display profile helper:
@@ -32,7 +41,7 @@ v1.4.20 focuses on decluttering the first screen of the download/share dialog wh
   - 외부 브라우저
 - App-level deps pass receipt/checklist/compact-hint/display-profile helpers explicitly.
 - Runtime Health requires the dialog display profile helper.
-- Cache key is `1.4.20-bulk-import-guard`.
+- Cache key is `1.4.23-audio-decode-memory-guard`.
 
 ## QA
 Run:
@@ -44,7 +53,7 @@ npm run package:clean
 npm run package:overwrite
 ```
 
-Expected current result: `138/138 PASS`.
+Expected current result: `142/142 PASS`.
 
 ## Manual QA focus
 - Kakao in-app browser: verify the dialog first screen is short and points to `공유/저장 → 파일 열기`.
@@ -54,7 +63,7 @@ Expected current result: `138/138 PASS`.
 - Desktop Chrome/Edge: verify format options and primary actions remain clear.
 
 ## 다음 패치 후보
-- v1.4.20: real-device Kakao/Android/iOS wording tuning if screenshots or copied diagnostics are available.
+- v1.4.21: real-device Kakao/Android/iOS wording tuning if screenshots or copied diagnostics are available.
 - Further reduce download popup copy if users still find it dense.
 - Consider a one-tap simple save mode for non-technical users.
 
@@ -85,9 +94,48 @@ Expected current result: `138/138 PASS`.
 - Exit Guard remains active for refresh/back protection.
 - FoxBearPerformanceDiagnostics remains available; use `getSummary` or Ctrl/Command + Alt + P for diagnostics.
 
-## v1.4.20 cumulative compatibility anchors
+## v1.4.21 cumulative compatibility anchors
 - stability: navigation confirm debounce and FFT lifecycle stabilization remain active.
 - Dock FFT removal and settings gear alignment remain active.
 - Performance diagnostics use adaptive refresh and copy support.
 - Packaging polish remains active for release/overwrite ZIP naming.
 - Download/share fallback remains active while first-screen dialog copy is shorter.
+
+## v1.4.21 - Render Scheduler + Bulk Import UI Throttle
+
+- Added `FoxBearRenderScheduler` to merge repeated `renderAll()` calls into scheduled frame updates during analysis/import.
+- Bulk import analysis remains sequential, and large-batch UI refreshes are throttled so 35-track imports are less likely to stutter or crash.
+- Automatic Wake Lock activation during analysis/playback is now silent; manual settings toggles still show user feedback.
+- Single-file imports keep the AI recommendation choice dialog, while multi-file and large-batch imports auto-apply each track's AI recommendation without one popup per file.
+- Playback transitions use a smoother 140ms fade and wait for the next audio element to be media-ready before fading out the old source.
+- Analysis cache keys now use `ANALYSIS_ENGINE_CACHE_VERSION` instead of `APP_VERSION`, reducing unnecessary re-analysis across patch releases.
+- Added `FoxBearAudioDecodeService` as the first decode-path split from `src/app.js`.
+
+
+Stability carry-forward: v1.4.21 keeps render scheduler and bulk import stability checks active.
+
+Dock FFT removal carry-forward: Dock FFT removal remains active and the settings gear alignment patch is retained in v1.4.21.
+
+v1.4.21 detail-only FFT carry-forward: Dock mini spectrum/renderMini stays removed; detail-only FFT stays available.
+
+
+## v1.4.23 carry-forward anchors
+
+Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
+
+
+## v1.4.23 Carry-forward QA anchors
+- Dock FFT removal remains active; PC settings gear alignment patch is retained for the floating settings gear.
+- Detail-only FFT remains active and `renderMini` is removed from Dock/runtime health paths.
+- FoxBearPerformanceDiagnostics remains available with getSummary and adaptive refresh/copy support.
+- Download action clarity, checklist, compact hints, and first-screen declutter remain carried forward.
+
+## v1.4.23 - Audio Decode Memory Guard
+
+- Added audio decode diagnostics in `FoxBearAudioDecodeService.getDiagnostics()`.
+- Tracks active/completed/failed decodes, recent decode events, last decoded PCM size, and last error.
+- `decodeAudioFile()` now explicitly releases its temporary `ArrayBuffer` reference in `finally` after Web Audio decoding.
+- Performance diagnostics now include `audioDecode` and warn on `audio-decode-active` / `audio-decode-last-error`.
+- Runtime Health now requires `FoxBearAudioDecodeService.getDiagnostics`.
+- v1.4.22 mastering queue throttle, v1.4.21 render scheduler, and 35-track sequential import guard remain carried forward.
+

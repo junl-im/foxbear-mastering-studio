@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.20-bulk-import-guard';
+  const VIEW_VERSION = '1.4.23-audio-decode-memory-guard';
   const DEFAULT_BINS = 96;
 
   function getService() {

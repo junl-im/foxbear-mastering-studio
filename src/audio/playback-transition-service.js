@@ -1,9 +1,9 @@
-// FoxBear playback transition service - v1.4.20
+// FoxBear playback transition service - v1.4.21
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.4.20-bulk-import-guard';
-    const DEFAULT_FADE_MS = 96;
+    const SERVICE_VERSION = '1.4.23-audio-decode-memory-guard';
+    const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;
 
@@ -22,6 +22,30 @@
 
     function now() {
         return global.performance && typeof global.performance.now === 'function' ? global.performance.now() : Date.now();
+    }
+
+    function waitForMediaReady(audio, timeoutMs = 900) {
+        if (!audio) return Promise.resolve(false);
+        if (audio.readyState >= 2) return Promise.resolve(true);
+        return new Promise(resolve => {
+            let settled = false;
+            const done = value => {
+                if (settled) return;
+                settled = true;
+                global.clearTimeout(timer);
+                audio.removeEventListener('canplay', onReady);
+                audio.removeEventListener('loadeddata', onReady);
+                audio.removeEventListener('error', onError);
+                resolve(value);
+            };
+            const onReady = () => done(true);
+            const onError = () => done(false);
+            const timer = global.setTimeout(() => done(false), Math.max(120, Number(timeoutMs || 900)));
+            audio.addEventListener('canplay', onReady, { once: true });
+            audio.addEventListener('loadeddata', onReady, { once: true });
+            audio.addEventListener('error', onError, { once: true });
+            try { audio.load?.(); } catch (error) {}
+        });
     }
 
     function rememberTargetVolume(audio) {
@@ -102,7 +126,8 @@
         const oldTarget = rememberTargetVolume(oldAudio);
         const nextTarget = rememberTargetVolume(nextAudio);
         if (nextAudio) nextAudio.volume = FADE_MIN_VOLUME;
-        const playPromise = nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve();
+        const readyPromise = nextAudio ? waitForMediaReady(nextAudio, options.readyTimeoutMs || 900) : Promise.resolve(false);
+        const playPromise = readyPromise.then(() => nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve());
         return Promise.resolve(playPromise)
             .then(() => {
                 const fades = [];
@@ -134,6 +159,7 @@
         rememberTargetVolume,
         cancelFade,
         fadeVolume,
+        waitForMediaReady,
         playWithFadeIn,
         pauseWithFadeOut,
         crossfadePair
