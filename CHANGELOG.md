@@ -1,4 +1,19 @@
-## v1.4.24 - Bulk Import HUD
+# v1.4.26 - Wake Lock State Sync Hotfix
+
+- Fixed the confusing state where automatic screen wake protection could be active while the settings panel still looked like a normal OFF toggle.
+- Split Wake Lock into user setting `ON/OFF` and temporary work-protection `AUTO` mode.
+- Automatic playback/import/mastering Wake Lock acquisition stays silent; only manual user toggles may show a toast.
+- Manual Wake Lock request failure now reverts the saved setting back to OFF instead of leaving a false ON state.
+- Added `FoxBearWakeLockController.getSnapshot()` and performance diagnostics integration.
+
+## v1.4.26 - Exit Guard Fallback Hotfix
+
+- Fixed the browser/PWA back-navigation leave path where confirming “나가기” could appear to do nothing when there was no previous browser history entry to navigate to.
+- The leave path now removes `beforeunload`/`popstate` guards, attempts `history.go(-1)`, then tries `window.close()`, and finally renders a safe exit fallback screen if the browser refuses to close the tab/window.
+- Added leave-attempt diagnostics to `FoxBearSiteGuards.getNavigationExitGuardState()`.
+- Added v1.4.26 QA coverage for exit fallback behavior.
+
+## v1.4.26 - Bulk Import HUD
 
 - Added a dedicated scrollable Bulk Import HUD for 2+ track imports.
 - The HUD shows overall percent, completed/active/pending/error counts, and one row per imported song.
@@ -6,11 +21,11 @@
 - Added collapse and hide controls for the current batch HUD.
 - Added `FoxBearBulkImportHud.getSnapshot()` and performance diagnostics integration.
 - Runtime Health now checks `FoxBearBulkImportHud.getSnapshot`.
-- Added `qa/v1424_bulk_import_hud_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.24.md`.
+- Added `qa/v1424_bulk_import_hud_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.26.md`.
 - Final QA target: 146/146 PASS.
 
 
-## v1.4.24 - Audio Decode Memory Guard
+## v1.4.26 - Audio Decode Memory Guard
 
 - Added audio decode diagnostics in `FoxBearAudioDecodeService.getDiagnostics()`.
 - Tracks active/completed/failed decodes, recent decode events, last decoded PCM size, and last error.
@@ -20,14 +35,14 @@
 - v1.4.22 mastering queue throttle, v1.4.21 render scheduler, and 35-track sequential import guard remain carried forward.
 - Dock FFT removal carry-forward: Dock mini FFT remains removed and detail-only spectrum stays available.
 
-## v1.4.24 - Mastering Queue Throttle / Diagnostics
+## v1.4.26 - Mastering Queue Throttle / Diagnostics
 
 - Added `FoxBearMasteringGuard.getSnapshot()` for active mastering diagnostics.
 - `setMasteringProgress()` now uses `scheduleRenderAll('mastering-progress', ...)` so every 5% progress step does not force an immediate full render.
 - Mastering final UI refresh still flushes immediately through `scheduleRenderAll('mastering-final', { immediate: true })`.
 - Added explicit transient buffer cleanup in the mastering `finally` path.
 - Performance diagnostics now include `masteringQueue` and a `mastering-active` warning.
-- Added `qa/v1422_mastering_queue_throttle_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.24.md`.
+- Added `qa/v1422_mastering_queue_throttle_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.26.md`.
 - v1.4.21 render scheduler, silent wake-lock import, stable analysis cache key, and audio decode service carry forward.
 
 
@@ -49,7 +64,7 @@
 - Kept `getDownloadDialogCompactHint()` and all diagnostics/checklist copy tools as fallback support behind `추가 옵션`.
 - App download dialog dependencies now pass receipt/checklist/compact-hint/display-profile helpers explicitly.
 - Runtime Health now checks the dialog display profile helper.
-- Updated cache key to `1.4.24-bulk-import-hud`.
+- Updated cache key to `1.4.26-wake-lock-state-sync`.
 
 ## v1.4.17 - Download recovery compact polish
 - Added `FoxBearDownloadService.getDownloadCompactRecoveryPlan()` for a shorter user-facing save order.
@@ -180,13 +195,36 @@ renderMini cleanup carry-forward: v1.4.21 keeps the removed Dock mini spectrum A
 Download dialog carry-forward: `getDownloadDialogCompactHint` and `getDownloadDialogDisplayProfile` remain active in v1.4.21.
 
 
-## v1.4.24 carry-forward anchors
+## v1.4.26 carry-forward anchors
 
 Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
 
 
-### v1.4.24 Carry-forward QA anchors
+### v1.4.26 Carry-forward QA anchors
 - Dock FFT removal remains intact; `#bottomPreviewSpectrum` is absent and detail-only FFT stays on the detail analysis screen.
 - `renderMini` remains removed from Dock spectrum cleanup.
 - Performance diagnostics and Packaging polish are retained with adaptive refresh and copy/복사 flows.
 - Download dialog clarity, recovery checklist, micro hint, and first-screen declutter remain carried forward.
+
+### v1.4.26 carry-forward QA notes
+
+- stability, Dock FFT removal, settings gear alignment, renderMini cleanup, performance diagnostics, download flow polish, download action clarity, micro hint/declutter, Render Scheduler, Mastering Queue Throttle, Audio Decode Memory Guard, and Bulk Import HUD remain carried forward.
+- Stage13, Stage14, Stage27, and Stage28 documentation anchors remain intentionally referenced for legacy QA/handoff continuity.
+- Dock mini FFT was removed; detail FFT remains detail-only.
+- Dock FFT removal and settings gear alignment remain part of the current regression line.
+- Stage27 waveform-control-service and Stage28 waveform-control-view.js extraction remain active; unmanaged waveform audit remains tracked.
+
+
+## v1.4.26 Carry-forward Documentation Anchors
+
+- Performance diagnostics remain available with `FoxBearPerformanceDiagnostics`, `getSummary`, adaptive refresh, and Packaging-safe overwrite generation.
+- renderMini cleanup remains active: runtime health does not require `renderMini`; detail-only FFT remains the intended model.
+- Download dialog micro hint helper `getDownloadDialogCompactHint` remains carried forward.
+- Download display profile helper `getDownloadDialogDisplayProfile` remains carried forward.
+- Dock FFT removal, settings gear alignment, Download flow polish, Download action clarity, Download dialog micro hint, and Download dialog first-screen declutter remain covered.
+
+## v1.4.26 Spectrum / Dock FFT removal carry-forward
+
+- Spectrum detail-only FFT remains active in v1.4.26.
+- Dock FFT removal remains carried forward, including `#bottomPreviewSpectrum` absence.
+- settings gear alignment remains carried forward.

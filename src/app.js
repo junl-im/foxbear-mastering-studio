@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.24 - bulk progress HUD polish
+// FoxBear AI Mastering Studio Pro v1.4.26 - bulk progress HUD polish
 'use strict';
 
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
@@ -19,7 +19,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const APP_VERSION = 'Pro v1.4.24';
+const APP_VERSION = 'Pro v1.4.26';
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
     MP3_ENCODER_WORKER_URL = 'src/workers/mp3-encoder.worker.js',
@@ -489,6 +489,7 @@ function init() {
     runInitStep('화면 요소 연결', cacheElements, { critical: true });
     runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true });
     runInitStep('설정 저장값 복원', restorePersistedSettings);
+    runInitStep('화면유지 컨트롤러 노출', exposeFoxBearWakeLockController);
     runInitStep('Dock 리모컨 보호 이벤트', installDockRemoteDelegation);
     runInitStep('플레이어 연동 상태 감시', installPlaybackLinkStatusBridge);
     runInitStep('슬라이더 UI', renderSliders);
@@ -2431,7 +2432,7 @@ function resetPersistedSettings() {
     const mobile = ensureMobileNativeState();
     const defaults = service.reset();
     service.applyToContext({ state, mobile }, defaults);
-    releaseFoxBearWakeLock();
+    releaseFoxBearWakeLock({ clearDesired: true, persist: false, reason: 'settings-reset' });
     renderFeatureButtons();
     renderAll({ keepDetailAudio: true });
     updateMobileNativeUi();
@@ -2440,24 +2441,7 @@ function resetPersistedSettings() {
 
 function ensureMobileNativeState() {
     if (!state.mobileNative) {
-        state.mobileNative = {
-            installed: false,
-            safeMode: false,
-            hapticsEnabled: true,
-            wakeLockDesired: false,
-            wakeLockActive: false,
-            wakeLockSentinel: null,
-            wakeLockBusy: false,
-            deferredInstallPrompt: null,
-            quickPanelOpen: false,
-            storagePersisted: null,
-            lastHapticAt: 0,
-            sharedLaunchHandled: false,
-            lastVisibilityHiddenAt: 0,
-            serviceWorkerReady: false,
-            badgeCount: 0,
-            pageRestoreToastAt: 0
-        };
+        state.mobileNative = { installed: false, safeMode: false, hapticsEnabled: true, wakeLockDesired: false, wakeLockActive: false, wakeLockAutoActive: false, wakeLockSentinel: null, wakeLockBusy: false, wakeLockLastMode: 'off', wakeLockLastReason: '', wakeLockLastError: null, wakeLockLastRequestAt: 0, wakeLockRequestCount: 0, wakeLockManualRequestCount: 0, wakeLockAutoRequestCount: 0, deferredInstallPrompt: null, quickPanelOpen: false, storagePersisted: null, lastHapticAt: 0, sharedLaunchHandled: false, lastVisibilityHiddenAt: 0, serviceWorkerReady: false, badgeCount: 0, pageRestoreToastAt: 0 };
     }
     return state.mobileNative;
 }
@@ -2607,15 +2591,18 @@ function updateMobileNativeUi() {
     const audio = getBottomPreviewAudio ? getBottomPreviewAudio() : null;
     const playing = Boolean(audio && !audio.paused && !audio.ended);
     const mediaReady = Boolean('mediaSession' in navigator);
+    const wakeSnapshot = getFoxBearWakeLockSnapshot();
     if (el.mobileNativeStatus) {
-        const wake = mobile.wakeLockActive ? '화면유지' : '앱 편의';
+        const wake = wakeSnapshot.active ? (wakeSnapshot.mode === 'auto' ? '자동보호' : '화면유지') : '앱 편의';
         const media = mediaReady ? '잠금화면' : '기본';
         el.mobileNativeStatus.textContent = `${wake} · ${media}${playing ? ' · 재생중' : ''}`;
-        el.mobileNativeStatus.classList.toggle('wake-active', mobile.wakeLockActive);
+        el.mobileNativeStatus.classList.toggle('wake-active', wakeSnapshot.active);
+        el.mobileNativeStatus.classList.toggle('wake-auto', wakeSnapshot.mode === 'auto');
         el.mobileNativeStatus.classList.toggle('safe-mode', safeMode);
     }
     if (el.mobileNativePanel) {
-        setMobileNativeSettingState('wake', Boolean(mobile.wakeLockActive || mobile.wakeLockDesired), supportsWakeLock() ? null : 'OFF');
+        const wakeLabel = supportsWakeLock() ? wakeSnapshot.settingLabel : 'OFF';
+        setMobileNativeSettingState('wake', wakeSnapshot.userEnabled, wakeLabel);
         setMobileNativeSettingState('haptic', Boolean(mobile.hapticsEnabled));
         setMobileNativeSettingState('persist', mobile.storagePersisted === true, mobile.storagePersisted === null ? 'OFF' : null);
         setMobileNativeSettingState('auto-cache-clean', Boolean(state.autoCacheClean));
@@ -2642,12 +2629,9 @@ function setNativeStatusText(key, text) {
 function setMobileNativeSettingState(action, active, labelOverride = null) {
     const button = el.mobileNativePanel?.querySelector(`[data-native-action="${action}"]`);
     if (!button) return;
-    const enabled = Boolean(active);
-    const label = labelOverride || (enabled ? 'ON' : 'OFF');
-    button.dataset.state = label.toLowerCase() === 'on' ? 'on' : (label.toLowerCase() === 'off' ? 'off' : 'action');
-    button.classList.toggle('is-on', enabled);
-    button.classList.toggle('is-off', !enabled);
-    button.setAttribute('aria-pressed', String(enabled));
+    const enabled = Boolean(active), label = labelOverride || (enabled ? 'ON' : 'OFF'), normalized = String(label || '').toLowerCase(), auto = normalized === 'auto' || normalized === '자동';
+    button.dataset.state = auto ? 'auto' : (normalized === 'on' ? 'on' : (normalized === 'off' ? 'off' : 'action'));
+    button.classList.toggle('is-on', enabled && !auto); button.classList.toggle('is-off', !enabled && !auto); button.classList.toggle('is-auto', auto); button.setAttribute('aria-pressed', auto ? 'mixed' : String(enabled));
     const stateNode = button.querySelector('[data-setting-state]');
     if (stateNode) stateNode.textContent = label;
 }
@@ -2672,75 +2656,92 @@ function detectMobileSafeMode() {
     return mobile.safeMode;
 }
 
+function getWakeLockActivityReason() {
+    const audio = getBottomPreviewAudio ? getBottomPreviewAudio() : null;
+    if (state.busy) return 'busy';
+    if (state.tracks?.some(track => track.status === 'processing')) return 'mastering';
+    if (state.tracks?.some(track => track.status === 'analyzing')) return 'analyzing';
+    return audio && !audio.paused && !audio.ended ? 'playback' : '';
+}
+
+function getFoxBearWakeLockSnapshot() {
+    const mobile = ensureMobileNativeState();
+    const activityReason = getWakeLockActivityReason();
+    const userEnabled = Boolean(mobile.wakeLockDesired);
+    const active = Boolean(mobile.wakeLockActive);
+    const autoActive = Boolean(active && !userEnabled && mobile.wakeLockAutoActive);
+    const mode = active ? (autoActive ? 'auto' : 'manual') : (userEnabled ? 'armed' : 'off');
+    const settingLabel = userEnabled ? 'ON' : (autoActive ? 'AUTO' : 'OFF');
+    return Object.freeze({ supported: supportsWakeLock(), active, autoActive, userEnabled, desired: userEnabled, mode, settingLabel, activityReason, busy: Boolean(mobile.wakeLockBusy), hasSentinel: Boolean(mobile.wakeLockSentinel), lastMode: mobile.wakeLockLastMode || 'off', lastReason: mobile.wakeLockLastReason || '', lastError: mobile.wakeLockLastError || null, lastRequestAt: Number(mobile.wakeLockLastRequestAt || 0), requestCount: Number(mobile.wakeLockRequestCount || 0), manualRequestCount: Number(mobile.wakeLockManualRequestCount || 0), autoRequestCount: Number(mobile.wakeLockAutoRequestCount || 0) });
+}
+function exposeFoxBearWakeLockController() {
+    window.FoxBearWakeLockController = Object.freeze({ getSnapshot: getFoxBearWakeLockSnapshot, supportsWakeLock, request: requestFoxBearWakeLock, release: releaseFoxBearWakeLock, sync: syncWakeLockForCurrentActivity });
+}
 function supportsWakeLock() {
     return Boolean(navigator.wakeLock && typeof navigator.wakeLock.request === 'function');
 }
 
 async function requestFoxBearWakeLock(reason = '', options = {}) {
-    const mobile = ensureMobileNativeState();
-    const notify = options.toast === true;
+    const mobile = ensureMobileNativeState(), auto = options.auto === true, notify = options.toast === true && !auto, requestMode = auto && !mobile.wakeLockDesired ? 'auto' : 'manual';
+    mobile.wakeLockLastMode = requestMode; mobile.wakeLockLastReason = reason || ''; mobile.wakeLockLastRequestAt = Date.now(); mobile.wakeLockRequestCount = Number(mobile.wakeLockRequestCount || 0) + 1;
+    if (requestMode === 'auto') mobile.wakeLockAutoRequestCount = Number(mobile.wakeLockAutoRequestCount || 0) + 1; else mobile.wakeLockManualRequestCount = Number(mobile.wakeLockManualRequestCount || 0) + 1;
     if (!supportsWakeLock()) {
+        mobile.wakeLockActive = false; mobile.wakeLockAutoActive = false; mobile.wakeLockLastError = 'unsupported';
+        if (!auto && mobile.wakeLockDesired) { mobile.wakeLockDesired = false; persistRuntimeSettings(); }
         if (notify && reason) showToast('이 브라우저는 화면유지 Wake Lock을 지원하지 않습니다.');
-        updateMobileNativeUi();
-        return false;
+        updateMobileNativeUi(); return false;
     }
-    if (mobile.wakeLockSentinel || mobile.wakeLockBusy) return Boolean(mobile.wakeLockSentinel);
+    if (mobile.wakeLockSentinel || mobile.wakeLockBusy) {
+        if (mobile.wakeLockSentinel) { mobile.wakeLockActive = true; mobile.wakeLockAutoActive = Boolean(auto && !mobile.wakeLockDesired); }
+        return Boolean(mobile.wakeLockSentinel);
+    }
     mobile.wakeLockBusy = true;
     try {
         const sentinel = await navigator.wakeLock.request('screen');
-        mobile.wakeLockSentinel = sentinel;
-        mobile.wakeLockActive = true;
+        mobile.wakeLockSentinel = sentinel; mobile.wakeLockActive = true; mobile.wakeLockAutoActive = Boolean(auto && !mobile.wakeLockDesired); mobile.wakeLockLastError = null;
         sentinel.addEventListener('release', () => {
             const current = ensureMobileNativeState();
             if (current.wakeLockSentinel === sentinel) current.wakeLockSentinel = null;
-            current.wakeLockActive = false;
-            updateMobileNativeUi();
+            current.wakeLockActive = false; current.wakeLockAutoActive = false; updateMobileNativeUi();
         });
         if (notify && reason) showToast(`화면유지 ON · ${reason}`);
-        updateMobileNativeUi();
-        return true;
+        updateMobileNativeUi(); return true;
     } catch (error) {
         console.warn('wake lock failed:', error);
-        mobile.wakeLockActive = false;
+        mobile.wakeLockActive = false; mobile.wakeLockAutoActive = false; mobile.wakeLockLastError = error?.name || error?.message || 'request-failed';
+        if (!auto && mobile.wakeLockDesired) { mobile.wakeLockDesired = false; persistRuntimeSettings(); }
         if (notify && reason) showToast('화면유지를 켤 수 없습니다. 브라우저 권한/배터리 정책을 확인하세요.');
-        updateMobileNativeUi();
-        return false;
-    } finally {
-        mobile.wakeLockBusy = false;
-    }
+        updateMobileNativeUi(); return false;
+    } finally { mobile.wakeLockBusy = false; }
 }
 
-async function releaseFoxBearWakeLock() {
-    const mobile = ensureMobileNativeState();
-    const sentinel = mobile.wakeLockSentinel;
-    mobile.wakeLockDesired = false;
-    if (sentinel && typeof sentinel.release === 'function') {
-        try { await sentinel.release(); } catch (error) {}
-    }
-    mobile.wakeLockSentinel = null;
-    mobile.wakeLockActive = false;
-    persistRuntimeSettings();
+async function releaseFoxBearWakeLock(options = {}) {
+    const mobile = ensureMobileNativeState(), sentinel = mobile.wakeLockSentinel, clearDesired = options.clearDesired !== false, persist = options.persist !== false;
+    if (clearDesired) mobile.wakeLockDesired = false;
+    mobile.wakeLockLastMode = options.reason || (clearDesired ? 'manual-off' : 'auto-off');
+    if (sentinel && typeof sentinel.release === 'function') { try { await sentinel.release(); } catch (error) {} }
+    mobile.wakeLockSentinel = null; mobile.wakeLockActive = false; mobile.wakeLockAutoActive = false;
+    if (persist && clearDesired) persistRuntimeSettings();
     updateMobileNativeUi();
 }
 
 function toggleFoxBearWakeLock() {
     const mobile = ensureMobileNativeState();
-    if (mobile.wakeLockActive || mobile.wakeLockDesired) {
-        releaseFoxBearWakeLock();
+    if (mobile.wakeLockDesired) {
+        releaseFoxBearWakeLock({ clearDesired: true, persist: true, reason: 'manual-off' });
         showToast('화면유지를 껐습니다.');
     } else {
         mobile.wakeLockDesired = true;
+        mobile.wakeLockAutoActive = false;
         persistRuntimeSettings();
-        requestFoxBearWakeLock('프리뷰/마스터링 중 화면이 꺼지지 않게 유지합니다.', { toast: true });
+        requestFoxBearWakeLock('프리뷰/마스터링 중 화면이 꺼지지 않게 유지합니다.', { toast: true, auto: false });
     }
 }
 
 function syncWakeLockForCurrentActivity() {
-    const mobile = ensureMobileNativeState();
-    const audio = getBottomPreviewAudio ? getBottomPreviewAudio() : null;
-    const active = Boolean(state.busy || state.tracks?.some(track => track.status === 'processing' || track.status === 'analyzing') || (audio && !audio.paused && !audio.ended));
-    if ((mobile.wakeLockDesired || active) && document.visibilityState === 'visible') requestFoxBearWakeLock('작업 보호 중', { toast: false, auto: true });
-    else if (!mobile.wakeLockDesired && !active && mobile.wakeLockSentinel) releaseFoxBearWakeLock();
+    const mobile = ensureMobileNativeState(), activityReason = getWakeLockActivityReason(), active = Boolean(activityReason);
+    if ((mobile.wakeLockDesired || active) && document.visibilityState === 'visible') requestFoxBearWakeLock(active && !mobile.wakeLockDesired ? `자동 보호 · ${activityReason}` : '사용자 설정 유지', { toast: false, auto: active && !mobile.wakeLockDesired });
+    else if (!mobile.wakeLockDesired && !active && mobile.wakeLockSentinel) releaseFoxBearWakeLock({ clearDesired: false, persist: false, reason: 'auto-idle' });
 }
 
 function toggleFoxBearHaptics() {
@@ -3182,7 +3183,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.24-bulk-import-hud');
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.26-wake-lock-state-sync');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -4029,7 +4030,7 @@ function updateBulkImportHud() {
 
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.4.24-bulk-import-hud', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.4.26-wake-lock-state-sync', total: 0, pending: 0, active: 0, fallback: true });
 }
 
 function showToastSafe(message) {
@@ -4372,7 +4373,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.4.24-bulk-import-hud',
+        version: '1.4.26-wake-lock-state-sync',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4413,7 +4414,7 @@ function markMasteringQueueEnd(track, status = 'done') {
 }
 
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.4.24-bulk-import-hud',
+    version: '1.4.26-wake-lock-state-sync',
     getSnapshot: getMasteringQueueSnapshot
 });
 
@@ -13717,7 +13718,7 @@ function createDoneReport(track) {
 
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.4.24',
+        app: 'FoxBear AI Mastering Studio Pro v1.4.26',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -3,83 +3,83 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.4.24 - Mastering queue throttle and stability polish" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.4.26 - Mastering queue throttle and stability polish" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://www.gstatic.com/firebasejs/; script-src-elem 'self' https://www.gstatic.com/firebasejs/; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com https://www.googleapis.com; worker-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types foxbear; upgrade-insecure-requests" />
 <meta name="referrer" content="no-referrer" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.4.24</title>
-<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/foxbear-icon-16.png?v=1.4.24-bulk-import-hud"  integrity="sha384-nUTqUQgpCWumQsE45RgofLVSk/PXWOUsrX5mXPdWIdVKLS8jrwp8/+egm6QTNT/t" />
-<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/foxbear-icon-32.png?v=1.4.24-bulk-import-hud"  integrity="sha384-Fkls1SBW/DSNAXRModCoCGIPHvAhjtak6szroUrhRHHC64IuYJvIkt2sPmLBn6Td" />
-<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/foxbear-icon-192.png?v=1.4.24-bulk-import-hud"  integrity="sha384-6O7X6v22ItYsdmye3mld640f8oD/M6Hztq2+JEdetMvSlMViIOcfkoKya6FdKbBS" />
-<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-icon-512.png?v=1.4.24-bulk-import-hud"  integrity="sha384-1AhdK2RiNtdrXEwSvKJrl+IHbiCr4OT4K18N8PxUpuxa+BRTyVpl9Yj3Omh7d7R9" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=1.4.24-bulk-import-hud"  integrity="sha384-i+a6eWW1IGYFDhElRLe45DmHQ9h3vfWjSn9SX6D5ab1RTfrW/tRkf2Ie48cTETg2" />
-<meta name="msapplication-TileImage" content="assets/icons/foxbear-icon-144.png?v=1.4.24-bulk-import-hud" />
+<title>FoxBear Mastering PRO v1.4.26</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/foxbear-icon-16.png?v=1.4.26-wake-lock-state-sync"  integrity="sha384-nUTqUQgpCWumQsE45RgofLVSk/PXWOUsrX5mXPdWIdVKLS8jrwp8/+egm6QTNT/t" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/foxbear-icon-32.png?v=1.4.26-wake-lock-state-sync"  integrity="sha384-Fkls1SBW/DSNAXRModCoCGIPHvAhjtak6szroUrhRHHC64IuYJvIkt2sPmLBn6Td" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/foxbear-icon-192.png?v=1.4.26-wake-lock-state-sync"  integrity="sha384-6O7X6v22ItYsdmye3mld640f8oD/M6Hztq2+JEdetMvSlMViIOcfkoKya6FdKbBS" />
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-icon-512.png?v=1.4.26-wake-lock-state-sync"  integrity="sha384-1AhdK2RiNtdrXEwSvKJrl+IHbiCr4OT4K18N8PxUpuxa+BRTyVpl9Yj3Omh7d7R9" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=1.4.26-wake-lock-state-sync"  integrity="sha384-i+a6eWW1IGYFDhElRLe45DmHQ9h3vfWjSn9SX6D5ab1RTfrW/tRkf2Ie48cTETg2" />
+<meta name="msapplication-TileImage" content="assets/icons/foxbear-icon-144.png?v=1.4.26-wake-lock-state-sync" />
 <meta name="theme-color" content="#101f36" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="FoxBear" />
 <meta name="mobile-web-app-capable" content="yes" />
-<link rel="manifest" href="manifest.webmanifest?v=1.4.24-bulk-import-hud"  integrity="sha384-zmR3wFXniRlCAMa1M/yOfkSJ9mWIsNSt8f0Jos6P5rtM+bkB4s3nNZR7aJ5ZW+lR" />
-<script src="src/boot/runtime-health.js?v=1.4.24-bulk-import-hud" integrity="sha384-kEjA5FAECSWhSvLsSWoZH8aI58yY5xDWMu56WptLO0iB9nWRAQBw6U4MEwmi6sfb"></script>
-<script defer src="src/boot/performance-diagnostics.js?v=1.4.24-bulk-import-hud" integrity="sha384-hAdXWZvBHICSjL1MESWeguW1SUrY2sTuNn9X1SuN1aOOFgq0t+rJb5DibtI2nXmS"></script>
-<script defer src="src/boot/render-scheduler.js?v=1.4.24-bulk-import-hud" integrity="sha384-HRXJ4ZpkaeyXKmdPF/vvbHZ554y38Hu+tB5G+B2fhtuPIuO0CQ1Ju9DdFZ5LjKzv"></script>
-<link rel="stylesheet" href="assets/css/boot/performance-diagnostics.css?v=1.4.24-bulk-import-hud" integrity="sha384-ncX1NTnbM7M7isDLIFwJifZCgxs97EMPDWJIZXu78mAAqaYCyUPKU0/fcAzElabn" />
-<link rel="stylesheet" href="assets/css/boot/runtime-health.css?v=1.4.24-bulk-import-hud" integrity="sha384-TmD8Vt2GANQEqm/39xNbGJ5RYgiACB4yKWmtTQ2IZpx1ZRT+StsXKf6rD6oz93MQ" />
-<link rel="stylesheet" href="assets/css/theme.css?v=1.4.24-bulk-import-hud" integrity="sha384-23aOfWNsxtFpkjtf3V3D+YwB7CElYhBzM8xIPVQHOg1KvCwCo4FAo0ufBKEwQjg2" />
-<link rel="stylesheet" href="assets/css/layout.css?v=1.4.24-bulk-import-hud" integrity="sha384-7hwysbEme8gxMYZ5Wr4+Mfh4sfr8ZNsCGaykvqye3L/kHuR4VsbQOhKOyZMjvbfq" />
-<link rel="stylesheet" href="assets/css/components/base-components.css?v=1.4.24-bulk-import-hud"  integrity="sha384-q9EvT43yj50iEKvd2snerpgPfA3qGOB+24Idar5+8LbrlPHDuC4JELhe9Iv3SAzN" />
-<link rel="stylesheet" href="assets/css/components/forms.css?v=1.4.24-bulk-import-hud" integrity="sha384-Ko/kDzxGFU4XRgtHPHiiMkjkziHXvyrKwoLGN4BES5DbJ0Em6W/8QIijgFYjEB3Q" />
-<link rel="stylesheet" href="assets/css/components/cards.css?v=1.4.24-bulk-import-hud" integrity="sha384-+F4R6UA7okr3UaKtiKOOdDkzjpSTi05PZlZxDraRP1vynQDmtla4Ao0uyrPBPQQr" />
-<link rel="stylesheet" href="assets/css/components/preview-system.css?v=1.4.24-bulk-import-hud" integrity="sha384-UwkR/1OloA+Te6XWxgwlXYkNGoYiuBhwjdC/SF+K9uP6kYXCuq8Yh+iH0OmYM332" />
-<link rel="stylesheet" href="assets/css/components/playback-link.css?v=1.4.24-bulk-import-hud" integrity="sha384-DeHUi9k2QT5qC3xrOEz+loe1Ju1EpOWIG/XqZT4Ei/Hj73vr7cfwTfKREwe2QfO2" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.4.24-bulk-import-hud" integrity="sha384-+cvqfEvXXaTB6PPHNPi2nE282C0Cxjo+ridHeGDswmSh7Re1OtiRsdmxZOIpmPWy" />
-<link rel="stylesheet" href="assets/css/dock.css?v=1.4.24-bulk-import-hud" integrity="sha384-kF64+E1qAK47XLCooamiOMx9bbWx8bu99Y2OlFWRDksUN7Yerb9U5mx7AJPET/iN" />
-<link rel="stylesheet" href="assets/css/dock-waveform.css?v=1.4.24-bulk-import-hud" integrity="sha384-kAkSUr0Lm4U0sJ0ngyqmEfWpVMXMdXUc0F57tqoq01aD4j4SjyRqGpc5hvsajbbs" />
-<link rel="stylesheet" href="assets/css/waveform-compare.css?v=1.4.24-bulk-import-hud" integrity="sha384-j393HucPhRqc9elX/0AjnpERQBhKS6PKrVkzAcl/5JGxgP2g8iN5/nInq8uY7uMz" />
-<link rel="stylesheet" href="assets/css/spectrum-visualizer.css?v=1.4.24-bulk-import-hud" integrity="sha384-uCa5FpPLJqIBBPSmYjVah53MqqhTf00BBhQ1oPvun/pLuyKnzDghoIo5LkOGyul7" />
-<link rel="stylesheet" href="assets/css/export.css?v=1.4.24-bulk-import-hud" integrity="sha384-9P/xpiGGxbxvzCBrO0C8efRcriAp2CnuiQR42hLW5OeerBMU6mXoQMr7ySteVqIZ" />
-<link rel="stylesheet" href="assets/css/download-dialog.css?v=1.4.24-bulk-import-hud" integrity="sha384-qefUYAksql9tN2SKeu39UdSBGt6FaVnPeUP3a2EOgb8i+n8bIYv4LN3htNjc9X6B" />
-<link rel="stylesheet" href="assets/css/bulk-import-hud.css?v=1.4.24-bulk-import-hud" integrity="sha384-f3DxkHVy/yq3CguHoSwNZoeGMh0wJfd471mX2ReXlUfFPwsv35ExDpTeIQP/27YY" />
-<link rel="stylesheet" href="assets/css/mobile-native.css?v=1.4.24-bulk-import-hud" integrity="sha384-ms/3Bk+B9pXXhb+ScnLiNSwYlpXA+UshC4AHrzvRq0jVKfFel6P2ya3mhCM5aAId" />
-<link rel="stylesheet" href="assets/css/dock-ui-repair.css?v=1.4.24-bulk-import-hud" integrity="sha384-CuI4jurqPOlKh0dXjXweKndqaxFWLGqG9IbIL4T6calfCrKq0sWJLp0eO9gCwvlp" />
-<link rel="stylesheet" href="assets/css/components/floating-overlays.css?v=1.4.24-bulk-import-hud" integrity="sha384-8XqV1Kbbrfv+jPsJUjLpbKRoNc71fZzRieoysJ7Y/CUx3d7h+HM6/6jS1ALQ7Sgg" />
+<link rel="manifest" href="manifest.webmanifest?v=1.4.26-wake-lock-state-sync"  integrity="sha384-0zRz4ovd1WdgDK7OROhldobrQ6SvL84/0ZNkPGDWVXPJFoa8hut2E/ptB3unkYY5" />
+<script src="src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-4e5GI1X1JuTa9yL+lO5hF91Bp9DyIQjeLaMHJ96Dz/fnuqvzfqks1j5bAt2TqKeI"></script>
+<script defer src="src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-S+/AcbF0ixshpTg9kuRIGVEHx+uCascbcgkxmCe3siuGM87HYvqb7ic5DSi7bafO"></script>
+<script defer src="src/boot/render-scheduler.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-hOkiySpv01THv2pq8k05XBxJ+UeFMdxTub+fcvtmLwbOMBmHTTIYgPCNB/3Z3HnI"></script>
+<link rel="stylesheet" href="assets/css/boot/performance-diagnostics.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-ncX1NTnbM7M7isDLIFwJifZCgxs97EMPDWJIZXu78mAAqaYCyUPKU0/fcAzElabn" />
+<link rel="stylesheet" href="assets/css/boot/runtime-health.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-TmD8Vt2GANQEqm/39xNbGJ5RYgiACB4yKWmtTQ2IZpx1ZRT+StsXKf6rD6oz93MQ" />
+<link rel="stylesheet" href="assets/css/theme.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-23aOfWNsxtFpkjtf3V3D+YwB7CElYhBzM8xIPVQHOg1KvCwCo4FAo0ufBKEwQjg2" />
+<link rel="stylesheet" href="assets/css/layout.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-7hwysbEme8gxMYZ5Wr4+Mfh4sfr8ZNsCGaykvqye3L/kHuR4VsbQOhKOyZMjvbfq" />
+<link rel="stylesheet" href="assets/css/components/base-components.css?v=1.4.26-wake-lock-state-sync"  integrity="sha384-q9EvT43yj50iEKvd2snerpgPfA3qGOB+24Idar5+8LbrlPHDuC4JELhe9Iv3SAzN" />
+<link rel="stylesheet" href="assets/css/components/forms.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-Ko/kDzxGFU4XRgtHPHiiMkjkziHXvyrKwoLGN4BES5DbJ0Em6W/8QIijgFYjEB3Q" />
+<link rel="stylesheet" href="assets/css/components/cards.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-+F4R6UA7okr3UaKtiKOOdDkzjpSTi05PZlZxDraRP1vynQDmtla4Ao0uyrPBPQQr" />
+<link rel="stylesheet" href="assets/css/components/preview-system.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-UwkR/1OloA+Te6XWxgwlXYkNGoYiuBhwjdC/SF+K9uP6kYXCuq8Yh+iH0OmYM332" />
+<link rel="stylesheet" href="assets/css/components/playback-link.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-DeHUi9k2QT5qC3xrOEz+loe1Ju1EpOWIG/XqZT4Ei/Hj73vr7cfwTfKREwe2QfO2" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-xxTe/W3Zi+4oDTacVrtWMYS+jhqC3AMjf5fqk4GAEcyGBTNzld1stVabgE8cFgq6" />
+<link rel="stylesheet" href="assets/css/dock.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-kF64+E1qAK47XLCooamiOMx9bbWx8bu99Y2OlFWRDksUN7Yerb9U5mx7AJPET/iN" />
+<link rel="stylesheet" href="assets/css/dock-waveform.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-kAkSUr0Lm4U0sJ0ngyqmEfWpVMXMdXUc0F57tqoq01aD4j4SjyRqGpc5hvsajbbs" />
+<link rel="stylesheet" href="assets/css/waveform-compare.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-j393HucPhRqc9elX/0AjnpERQBhKS6PKrVkzAcl/5JGxgP2g8iN5/nInq8uY7uMz" />
+<link rel="stylesheet" href="assets/css/spectrum-visualizer.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-uCa5FpPLJqIBBPSmYjVah53MqqhTf00BBhQ1oPvun/pLuyKnzDghoIo5LkOGyul7" />
+<link rel="stylesheet" href="assets/css/export.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-9P/xpiGGxbxvzCBrO0C8efRcriAp2CnuiQR42hLW5OeerBMU6mXoQMr7ySteVqIZ" />
+<link rel="stylesheet" href="assets/css/download-dialog.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-GyvgRTymYVT5cNVVJ+qih/UNQN9vcCkziTi8XDeEAcKthYGeg/aiZ/SDaduQhuB4" />
+<link rel="stylesheet" href="assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-VEzMhz3I9tmUdQo1uwtRUP3M860oAYAbnPkDKwkafyFIhnsgVsy7pZ270fAY9+Jr" />
+<link rel="stylesheet" href="assets/css/mobile-native.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-9rQneBsdPQBqddUefdSA4owvNrETYzYcmeLBRhufGVYOK3o1ZArupXtcyEHQYqO9" />
+<link rel="stylesheet" href="assets/css/dock-ui-repair.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-CuI4jurqPOlKh0dXjXweKndqaxFWLGqG9IbIL4T6calfCrKq0sWJLp0eO9gCwvlp" />
+<link rel="stylesheet" href="assets/css/components/floating-overlays.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-8XqV1Kbbrfv+jPsJUjLpbKRoNc71fZzRieoysJ7Y/CUx3d7h+HM6/6jS1ALQ7Sgg" />
 <script defer src="vendor/jszip/jszip.min.js?v=3.10.1" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"></script>
-<script type="module" src="src/firebase-bootstrap.js?v=1.4.24-bulk-import-hud" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
-<script defer src="src/config/mastering-presets.js?v=1.4.24-bulk-import-hud" integrity="sha384-3TQnXS/btzUb9y0BaQAxJvPvpVhLkFCKDdUQRhw+SRhcAykviYa/HTUgF5UWHZWG"></script>
-<script defer src="src/config/genre-presets.js?v=1.4.24-bulk-import-hud" integrity="sha384-bO3M4x0BUsQfjOWneOzkdHliyxTuLMcXk+mGZgcYaMme3thIfG3Qt8eXxai1KXoo"></script>
-<script defer src="src/config/reference-targets.js?v=1.4.24-bulk-import-hud" integrity="sha384-NdbACfxz22yKzDWG7YdS3v11/tjqekxiaEfjphOoADbW9lbiRfPhc9bORU2RZ9o/"></script>
-<script defer src="src/config/app-runtime-config.js?v=1.4.24-bulk-import-hud" integrity="sha384-qAg/z4ed29MoJJg3JZqXCCUCFgiqdWBrnkjhgyZPinKSVzqnpdYVFmMOWp0w+0oq"></script>
-<script defer src="src/state/app-state.js?v=1.4.24-bulk-import-hud" integrity="sha384-qfJc1UAHMO/zIA2X60c1j1w2mQXa2I+3VjK6Ul7AA7MPxnQT2BDtD9pb+OxWuGj8"></script>
-<script defer src="src/settings/settings-service.js?v=1.4.24-bulk-import-hud" integrity="sha384-Hvs1B2TpIZvj98aBrfJL0lA/ahPfX9X1PUDYGB1/sMv3J+5+xbG1inOzIZl4nPsv"></script>
-<script defer src="src/utils/core-utils.js?v=1.4.24-bulk-import-hud" integrity="sha384-1yqh6kSnMCLtOMPB9EzXPHMn4sHeNlLd9mAybuOtWENiASb/YDwsxLXZk13jyfbY"></script>
-<script defer src="src/recommendation/recommendation-engine.js?v=1.4.24-bulk-import-hud" integrity="sha384-Nm7LeJ6AjkpJH519mDbB7GPbZ7RMduFludLvzPQDD9XF+elEx8231gRPquFvF+lU"></script>
-<script defer src="src/audio/mastering-inspector.js?v=1.4.24-bulk-import-hud" integrity="sha384-J49B1oj6gNmJUokgNfPRNHlSLfacHHXNGSZUQ5EZNpcElMTLGhfaTCDFTK6l7SB3"></script>
-<script defer src="src/audio/highlight-compare-inspector.js?v=1.4.24-bulk-import-hud" integrity="sha384-0JYnnW/9TP4N/9K3JmoVR/QyWPg+l/STxV5NMrV9kl+F9roSAuVRtSLY3Njv7LHq"></script>
-<script defer src="src/audio/playback-link-service.js?v=1.4.24-bulk-import-hud" integrity="sha384-+4b/w6sjP9GI7xfpSG3GXzxJLFDXbi5jV/tEfxA0zO75ytV7Fnf5wTOy+pc7Xx4h"></script>
-<script defer src="src/audio/playback-transition-service.js?v=1.4.24-bulk-import-hud" integrity="sha384-w27WZLTmtGurPc5bGjarlQIWYrNCrr6pvt8vthIn+Pt/Gh6iIm/GfXYKf38aJK0b"></script>
-<script defer src="src/audio/audio-decode-service.js?v=1.4.24-bulk-import-hud" integrity="sha384-HOPT5SLHiyM6LFdndNlILO26waXvhWTQvLpw7TNTGlvOSEotXXajNFU4L/AEJclL"></script>
-<script defer src="src/audio/waveform-control-service.js?v=1.4.24-bulk-import-hud" integrity="sha384-cQcnyjIcfY/fJbZ/63X3IWQuYzY7TOXWkPhwc83zOGxqnwTBz47mcchV7aToxcNf"></script>
-<script defer src="src/ui/waveform-control-view.js?v=1.4.24-bulk-import-hud" integrity="sha384-CorkpCyRVqK8Kaab4m8l1BRxleBHGkg/EMGSHH8wTOwQN2T3pab29HixR8WkwTld"></script>
-<script defer src="src/ui/spectrum-visualizer.js?v=1.4.24-bulk-import-hud" integrity="sha384-L7Cp++5MaQ3G1E/DIr3XMmWl2RFnl510bCSK+NXVdmPUz/seaSzfGSH0YhThdvfI"></script>
-<script defer src="src/ui/modal-controller.js?v=1.4.24-bulk-import-hud" integrity="sha384-YlFHyiRPUhz5xfVLRGVupCI2hZ0MZ01xZGr4T+Af+uhu4Hbdfhst/y95y+6qn/DT"></script>
-<script defer src="src/ui/dock-controller.js?v=1.4.24-bulk-import-hud" integrity="sha384-7JIuE+mXEE0yCggTqxIw/AmozCvgmsUljMxTUyOxKH9e9IgHV6mv8dqrQqYu5oY8"></script>
-<script defer src="src/ui/mobile-native-view.js?v=1.4.24-bulk-import-hud" integrity="sha384-ey5uou97whUbpxqjl6YTablxtOGJAihlobhmZRAx3XAWmnbD6Oe55oyCzTzb+D+7"></script>
-<script defer src="src/download/download-service.js?v=1.4.24-bulk-import-hud" integrity="sha384-WfzClpx2akwQvQt/cuDa9zGH94/PhZBRRI1aJv+pqaRblXAIgsajF4/8o0JQz5U/"></script>
-<script defer src="src/ui/download-dialog-view.js?v=1.4.24-bulk-import-hud" integrity="sha384-KEsHeSY7J3efNUlcUIQ0ATLsIl8wEXeed3bnEzy0vfEmkutWeVxUvRNkWALXHj/S"></script>
-<script defer src="src/ui/waveform-compare-view.js?v=1.4.24-bulk-import-hud" integrity="sha384-y5o3/+2MHImUaGARSoa5pQzDiFseAQErgL2nEWein9ZEr7qfSIl2VUdi92oYLwpP" ></script>
-<script defer src="src/ui/detail-panels-view.js?v=1.4.24-bulk-import-hud" integrity="sha384-42jueo4tpLyOGxEsXs33dogigo+4X1N9xDn3XXXpjP9+5YsEtS/8NvY5xA/+phgK"></script>
-<script defer src="src/ui/detail-view.js?v=1.4.24-bulk-import-hud" integrity="sha384-f2yYHpDh50HCAKoE5N0NUlNspR3BgFgSCD8rYjmDkVRaMYLt02SdgY6r3wt9u+EU"></script>
-<script defer src="src/security/site-guards.js?v=1.4.24-bulk-import-hud" integrity="sha384-jhfiryle5CjBEmc0vtYtPkbh0kDzFqpW+NbbjEfmNUQcuLpWomkIsteh8zRNeV1h"></script>
-<script defer src="src/ui/bulk-import-hud-view.js?v=1.4.24-bulk-import-hud" integrity="sha384-tRcZcxim9PxXgMd9H6ESHwl3EkgjWpkflFt/1Brlxo/UXE8PsoBCbpjCeah5G1Tg"></script>
-<script defer src="src/app.js?v=1.4.24-bulk-import-hud" integrity="sha384-OClA+woVCtl4cotenb3LR7D4O+q+c8QbOWnfEL5AAC0hiGeQaXShX0RjCmrOBNiA"></script>
+<script type="module" src="src/firebase-bootstrap.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
+<script defer src="src/config/mastering-presets.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-3TQnXS/btzUb9y0BaQAxJvPvpVhLkFCKDdUQRhw+SRhcAykviYa/HTUgF5UWHZWG"></script>
+<script defer src="src/config/genre-presets.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-bO3M4x0BUsQfjOWneOzkdHliyxTuLMcXk+mGZgcYaMme3thIfG3Qt8eXxai1KXoo"></script>
+<script defer src="src/config/reference-targets.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-NdbACfxz22yKzDWG7YdS3v11/tjqekxiaEfjphOoADbW9lbiRfPhc9bORU2RZ9o/"></script>
+<script defer src="src/config/app-runtime-config.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-SKx0wl7YOjGQYlL847gfR6PMPtoRZc/vQU9L8iNR1zQzxWXViFTrE7YGjFQBGFd0"></script>
+<script defer src="src/state/app-state.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-qfJc1UAHMO/zIA2X60c1j1w2mQXa2I+3VjK6Ul7AA7MPxnQT2BDtD9pb+OxWuGj8"></script>
+<script defer src="src/settings/settings-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-Hvs1B2TpIZvj98aBrfJL0lA/ahPfX9X1PUDYGB1/sMv3J+5+xbG1inOzIZl4nPsv"></script>
+<script defer src="src/utils/core-utils.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-1yqh6kSnMCLtOMPB9EzXPHMn4sHeNlLd9mAybuOtWENiASb/YDwsxLXZk13jyfbY"></script>
+<script defer src="src/recommendation/recommendation-engine.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-Nm7LeJ6AjkpJH519mDbB7GPbZ7RMduFludLvzPQDD9XF+elEx8231gRPquFvF+lU"></script>
+<script defer src="src/audio/mastering-inspector.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-J49B1oj6gNmJUokgNfPRNHlSLfacHHXNGSZUQ5EZNpcElMTLGhfaTCDFTK6l7SB3"></script>
+<script defer src="src/audio/highlight-compare-inspector.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-0JYnnW/9TP4N/9K3JmoVR/QyWPg+l/STxV5NMrV9kl+F9roSAuVRtSLY3Njv7LHq"></script>
+<script defer src="src/audio/playback-link-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-4T9VBPV4s1Hb5EIcrwStGvqoP90Ou95SJGIthNhvD9aJc5RsHzb+CG0Qj07+rWOK"></script>
+<script defer src="src/audio/playback-transition-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-2EI7iA8RTrjx8fmjNoU5/ACBpdMS6fQnNLMW6c7EnUkTxQNp+hbAPPIh0BJ5JpiR"></script>
+<script defer src="src/audio/audio-decode-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-EU9ophfosoKwbi4PA3Jj1ABkH2bDbccB3CWMaVG7h/U2KmVelpKgSppLq3QIYHWv"></script>
+<script defer src="src/audio/waveform-control-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-GKVUPVAIS5ILINGwd6HXNczEuZiPKAgGXMP6186of8gzRipuyQJoyxfo+KD9SwCH"></script>
+<script defer src="src/ui/waveform-control-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-Xx1M2DnMjWcfETwWYzfjCxtbhFcSN0VIub9wrg/ZWKC+4rwoIOcy6a6RkC37yxZ0"></script>
+<script defer src="src/ui/spectrum-visualizer.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-XzWY1nUiNdHPDLQmYcxYV6tEvdKI6BV0csj2KccH5u42kRuWP0tY3WtvFNjvcM7g"></script>
+<script defer src="src/ui/modal-controller.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-YlFHyiRPUhz5xfVLRGVupCI2hZ0MZ01xZGr4T+Af+uhu4Hbdfhst/y95y+6qn/DT"></script>
+<script defer src="src/ui/dock-controller.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-7JIuE+mXEE0yCggTqxIw/AmozCvgmsUljMxTUyOxKH9e9IgHV6mv8dqrQqYu5oY8"></script>
+<script defer src="src/ui/mobile-native-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-ey5uou97whUbpxqjl6YTablxtOGJAihlobhmZRAx3XAWmnbD6Oe55oyCzTzb+D+7"></script>
+<script defer src="src/download/download-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-V6fVmj8vJFH3QJ5ZsUDEZ2nLiBrp7miV4I/LuAOrE2s3LVF6iet9elMfx+1wwcre"></script>
+<script defer src="src/ui/download-dialog-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-6cAop1hqVPH+/VfSM9jWjt8u54TJAHh+eXPAbb7IYRaGSKNOXFSZ8vAzA2/J2FX/"></script>
+<script defer src="src/ui/waveform-compare-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-y5o3/+2MHImUaGARSoa5pQzDiFseAQErgL2nEWein9ZEr7qfSIl2VUdi92oYLwpP" ></script>
+<script defer src="src/ui/detail-panels-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-42jueo4tpLyOGxEsXs33dogigo+4X1N9xDn3XXXpjP9+5YsEtS/8NvY5xA/+phgK"></script>
+<script defer src="src/ui/detail-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-f2yYHpDh50HCAKoE5N0NUlNspR3BgFgSCD8rYjmDkVRaMYLt02SdgY6r3wt9u+EU"></script>
+<script defer src="src/security/site-guards.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-zSeQkVF4TDDOjUzeFqmtgETc39j4dIjCH4tFL5y2DF81HplDYFwyjY1U564Ge2zS"></script>
+<script defer src="src/ui/bulk-import-hud-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-j27qH5d+y/ZfPb3UwQSyjIjpg9j1/lWaQk/txGp+4cyCEBaYCDdVvNZ6p9kjYGnE"></script>
+<script defer src="src/app.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-3yh3zGpnNgBUoMhOrAmwyK24TTKQ2bxwNxla3pkJ1//V9GYFQCmCvZeY7zwJ4qay"></script>
 </head>
-<body data-build="1.4.24">
+<body data-build="1.4.26">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.4.24</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.4.26</button>
                     <span id="adminStatsTrigger" class="badge badge-device" role="presentation" tabindex="-1" aria-label="PC · 모바일 호환 안내">PC · 모바일 호환</span>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
@@ -478,7 +478,7 @@
 
 
 <div id="subscribeNudge" class="subscribe-nudge" role="status" aria-live="polite">
-    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.4.24-bulk-import-hud" alt="" /></div>
+    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.4.26-wake-lock-state-sync" alt="" /></div>
     <div class="subscribe-mini-copy">
         <strong>곰같은여우 Music 응원하기</strong>
         <span>좋았다면 채널 구독으로 힘을 주세요.</span>
@@ -491,7 +491,7 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.4.24</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.4.26</span>
         <h2 id="programInfoTitle">무료로 쉽게 완성하는 음질 개선과 마스터링</h2>
         <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.<br>작업은 내 브라우저 안에서 진행되어 파일을 서버로 올리지 않고도 빠르게 확인할 수 있습니다.</p>
         <div class="program-info-grid program-info-roadmap">

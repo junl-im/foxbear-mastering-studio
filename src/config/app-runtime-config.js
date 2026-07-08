@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.4.24 - runtime constants
+// FoxBear AI Mastering Studio Pro v1.4.26 - runtime constants
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
-    const ASSET_VERSION = '1.4.24-bulk-import-hud';
+    const ASSET_VERSION = '1.4.26-wake-lock-state-sync';
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
     const MP3_ENCODER_WORKER_URL = assetUrl('src/workers/mp3-encoder.worker.js');
@@ -16,7 +16,7 @@
     const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
 
     global.FoxBearRuntimeConfig = Object.freeze({
-        APP_VERSION: 'Pro v1.4.24',
+        APP_VERSION: 'Pro v1.4.26',
         ASSET_VERSION,
         WAV_ENCODER_WORKER_URL,
         MP3_ENCODER_WORKER_URL,

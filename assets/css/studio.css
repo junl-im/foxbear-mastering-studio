@@ -9713,3 +9713,27 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     justify-content: flex-start;
   }
 }
+
+/* v1.4.26: browser/PWA exit fallback screen actions */
+.security-message-actions,
+.foxbear-exit-fallback-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 18px;
+}
+.foxbear-exit-fallback-button {
+    min-width: 148px;
+    min-height: 42px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+@media (max-width: 520px) {
+    .foxbear-exit-fallback-actions {
+        flex-direction: column;
+    }
+    .foxbear-exit-fallback-button {
+        width: 100%;
+    }
+}

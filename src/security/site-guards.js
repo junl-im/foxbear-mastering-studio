@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.24-bulk-import-hud';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.26-wake-lock-state-sync';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
@@ -90,11 +90,22 @@
     }
 
 
+    const EXIT_FALLBACK_DELAY_MS = 650;
+    const EXIT_CLOSE_DELAY_MS = 220;
+
     const navigationExitGuardState = {
         installed: false,
         allowLeave: false,
         pushed: false,
         confirmOpen: false,
+        pageHiding: false,
+        leaveAttempts: 0,
+        exitAttemptToken: 0,
+        lastLeaveReason: '',
+        lastLeaveMethod: '',
+        fallbackRendered: false,
+        fallbackTimer: 0,
+        closeTimer: 0,
         options: null
     };
 
@@ -108,6 +119,7 @@
         tryPushExitGuardState();
         global.addEventListener('beforeunload', handleBeforeUnloadGuard);
         global.addEventListener('popstate', handlePopStateGuard);
+        global.addEventListener('pagehide', handlePageHideGuard);
         return true;
     }
 
@@ -137,6 +149,11 @@
         return '';
     }
 
+    function handlePageHideGuard() {
+        navigationExitGuardState.pageHiding = true;
+        clearExitFallbackTimers();
+    }
+
     function handlePopStateGuard() {
         if (navigationExitGuardState.allowLeave) return;
         if (navigationExitGuardState.confirmOpen) {
@@ -145,7 +162,7 @@
             return;
         }
         if (!shouldBlockNavigation()) {
-            leaveViaHistoryBack();
+            leaveViaHistoryBack('unblocked-popstate');
             return;
         }
         const message = '뒤로가기를 누르면 프로그램을 닫고 현재 작업 화면을 나갑니다. 맞습니까?';
@@ -158,7 +175,7 @@
         }
         if (confirmed) {
             navigationExitGuardState.options?.onLeave?.();
-            leaveViaHistoryBack();
+            leaveViaHistoryBack('confirmed-popstate');
             return;
         }
         navigationExitGuardState.pushed = false;
@@ -166,13 +183,101 @@
         navigationExitGuardState.options?.onStay?.();
     }
 
-    function leaveViaHistoryBack() {
+    function clearExitFallbackTimers() {
+        if (navigationExitGuardState.fallbackTimer) {
+            try { global.clearTimeout(navigationExitGuardState.fallbackTimer); } catch (error) {}
+            navigationExitGuardState.fallbackTimer = 0;
+        }
+        if (navigationExitGuardState.closeTimer) {
+            try { global.clearTimeout(navigationExitGuardState.closeTimer); } catch (error) {}
+            navigationExitGuardState.closeTimer = 0;
+        }
+    }
+
+    function leaveViaHistoryBack(reason = 'confirmed-popstate') {
         navigationExitGuardState.allowLeave = true;
+        navigationExitGuardState.leaveAttempts += 1;
+        navigationExitGuardState.exitAttemptToken += 1;
+        navigationExitGuardState.lastLeaveReason = reason;
+        navigationExitGuardState.lastLeaveMethod = 'history-go-back';
+        navigationExitGuardState.fallbackRendered = false;
+        const attemptToken = navigationExitGuardState.exitAttemptToken;
+        clearExitFallbackTimers();
         global.removeEventListener('beforeunload', handleBeforeUnloadGuard);
         global.removeEventListener('popstate', handlePopStateGuard);
         setTimeout(() => {
-            try { global.history.back(); } catch (error) {}
+            try {
+                if (global.history && typeof global.history.go === 'function') global.history.go(-1);
+                else if (global.history && typeof global.history.back === 'function') global.history.back();
+            } catch (error) {}
         }, 0);
+        scheduleExitFallback(attemptToken);
+    }
+
+    function scheduleExitFallback(attemptToken) {
+        navigationExitGuardState.closeTimer = global.setTimeout(() => {
+            if (!isActiveExitAttempt(attemptToken)) return;
+            navigationExitGuardState.lastLeaveMethod = 'window-close-fallback';
+            try { global.close(); } catch (error) {}
+        }, EXIT_CLOSE_DELAY_MS);
+        navigationExitGuardState.fallbackTimer = global.setTimeout(() => {
+            if (!isActiveExitAttempt(attemptToken)) return;
+            navigationExitGuardState.lastLeaveMethod = 'exit-fallback-screen';
+            renderExitFallbackScreen();
+        }, EXIT_FALLBACK_DELAY_MS);
+    }
+
+    function isActiveExitAttempt(attemptToken) {
+        if (navigationExitGuardState.exitAttemptToken !== attemptToken) return false;
+        if (navigationExitGuardState.pageHiding) return false;
+        if (document.visibilityState === 'hidden') return false;
+        return true;
+    }
+
+    function renderExitFallbackScreen() {
+        if (navigationExitGuardState.fallbackRendered) return;
+        navigationExitGuardState.fallbackRendered = true;
+        try {
+            document.body.textContent = '';
+            document.body.className = 'security-message-page foxbear-exit-fallback-page';
+            const main = document.createElement('main');
+            main.className = 'security-message-wrap foxbear-exit-fallback-wrap';
+            const section = document.createElement('section');
+            section.className = 'security-message-card foxbear-exit-fallback-card';
+            const mark = document.createElement('div');
+            mark.className = 'security-message-icon';
+            mark.textContent = '🦊';
+            const title = document.createElement('h1');
+            title.textContent = 'FoxBear 작업 화면을 나갔습니다';
+            const paragraph = document.createElement('p');
+            paragraph.append('브라우저 보안 정책 때문에 탭/창이 자동으로 닫히지 않을 수 있습니다.');
+            paragraph.appendChild(document.createElement('br'));
+            paragraph.append('이 화면이 보이면 탭을 닫거나, 아래 버튼으로 이전 화면 이동을 다시 시도하세요.');
+            const actions = document.createElement('div');
+            actions.className = 'security-message-actions foxbear-exit-fallback-actions';
+            const backButton = document.createElement('button');
+            backButton.type = 'button';
+            backButton.className = 'btn-secondary foxbear-exit-fallback-button';
+            backButton.textContent = '뒤로가기 한 번 더';
+            backButton.addEventListener('click', () => {
+                navigationExitGuardState.lastLeaveMethod = 'fallback-manual-back';
+                try { global.history.go(-1); } catch (error) {}
+            });
+            const reloadButton = document.createElement('button');
+            reloadButton.type = 'button';
+            reloadButton.className = 'btn-primary foxbear-exit-fallback-button';
+            reloadButton.textContent = '작업 화면 다시 열기';
+            reloadButton.addEventListener('click', () => {
+                navigationExitGuardState.allowLeave = false;
+                try { global.location.reload(); } catch (error) {}
+            });
+            actions.append(backButton, reloadButton);
+            section.append(mark, title, paragraph, actions);
+            main.appendChild(section);
+            document.body.appendChild(main);
+        } catch (error) {
+            renderSecurityMessage('FoxBear 작업 화면을 나갔습니다', '탭이 자동으로 닫히지 않으면 브라우저 탭을 닫아주세요.');
+        }
     }
 
     function showDecoyPage() {
@@ -205,7 +310,14 @@
             installed: navigationExitGuardState.installed,
             pushed: navigationExitGuardState.pushed,
             allowLeave: navigationExitGuardState.allowLeave,
-            confirmOpen: navigationExitGuardState.confirmOpen
+            confirmOpen: navigationExitGuardState.confirmOpen,
+            pageHiding: navigationExitGuardState.pageHiding,
+            leaveAttempts: navigationExitGuardState.leaveAttempts,
+            lastLeaveReason: navigationExitGuardState.lastLeaveReason,
+            lastLeaveMethod: navigationExitGuardState.lastLeaveMethod,
+            fallbackRendered: navigationExitGuardState.fallbackRendered,
+            fallbackDelayMs: EXIT_FALLBACK_DELAY_MS,
+            closeDelayMs: EXIT_CLOSE_DELAY_MS
         });
     }
 

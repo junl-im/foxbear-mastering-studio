@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.4.24-bulk-import-hud';
+    const DIAGNOSTICS_VERSION = '1.4.26-wake-lock-state-sync';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -120,6 +120,8 @@
         if ((snapshot.audioDecode?.activeDecodes || 0) > 0) warnings.push('audio-decode-active');
         if ((snapshot.audioDecode?.failedCount || 0) > 0 && snapshot.audioDecode?.lastError) warnings.push('audio-decode-last-error');
         if ((snapshot.masteringQueue?.active || 0) > 0) warnings.push('mastering-active');
+        if (snapshot.wakeLock?.active && snapshot.wakeLock?.mode === 'auto') warnings.push('wake-lock-auto-active');
+        if (snapshot.wakeLock?.lastError) warnings.push('wake-lock-last-error');
         if (snapshot.renderScheduler?.pending) warnings.push('render-queue-pending');
         if (snapshot.spectrum?.live && snapshot.dom.spectrumPanels < 1) warnings.push('spectrum-live-without-panel');
         if (longTaskMax >= 200) warnings.push('heavy-long-task');
@@ -136,6 +138,7 @@
             bulkImportHud: snapshot.bulkImportHud ? { total: snapshot.bulkImportHud.total || 0, done: snapshot.bulkImportHud.done || 0, percent: snapshot.bulkImportHud.percent || 0, expanded: Boolean(snapshot.bulkImportHud.expanded) } : null,
             audioDecode: snapshot.audioDecode ? { active: snapshot.audioDecode.activeDecodes || 0, completedCount: snapshot.audioDecode.completedCount || 0, failedCount: snapshot.audioDecode.failedCount || 0, lastDecodedPcmMB: snapshot.audioDecode.lastDecodedPcmMB || 0 } : null,
             masteringQueue: snapshot.masteringQueue ? { active: snapshot.masteringQueue.active || 0, completedCount: snapshot.masteringQueue.completedCount || 0, failedCount: snapshot.masteringQueue.failedCount || 0 } : null,
+            wakeLock: snapshot.wakeLock ? { active: Boolean(snapshot.wakeLock.active), mode: snapshot.wakeLock.mode || 'off', settingLabel: snapshot.wakeLock.settingLabel || 'OFF', userEnabled: Boolean(snapshot.wakeLock.userEnabled) } : null,
             renderQueuePending: Boolean(snapshot.renderScheduler?.pending),
             visibility: snapshot.visibility,
             hint: snapshot.frameBudgetHint
@@ -158,6 +161,7 @@
         const audioDecode = safeCall(() => global.FoxBearAudioDecodeService?.getDiagnostics?.(), null);
         const renderScheduler = safeCall(() => global.FoxBearRenderScheduler?.getSnapshot?.(), null);
         const masteringQueue = safeCall(() => global.FoxBearMasteringGuard?.getSnapshot?.(), null);
+        const wakeLock = safeCall(() => global.FoxBearWakeLockController?.getSnapshot?.(), null);
         const snapshot = Object.freeze({
             version: DIAGNOSTICS_VERSION,
             reason,
@@ -182,6 +186,7 @@
             bulkImportHud,
             audioDecode,
             masteringQueue,
+            wakeLock,
             renderScheduler,
             playback: playback ? {
                 reason: playback.reason || '',

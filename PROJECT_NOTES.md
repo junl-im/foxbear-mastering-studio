@@ -1,12 +1,24 @@
-## v1.4.24 project notes
+# Project Notes - v1.4.26
 
-v1.4.24 focuses on user visibility during large imports. v1.4.20 prevented 35-track decode storms; v1.4.21 reduced render pressure; v1.4.22 and v1.4.23 improved mastering/decode diagnostics. This patch adds the missing UX layer: a dedicated scrollable Bulk Import HUD with one row per song.
+- Wake Lock now has a clear split between saved user setting and automatic temporary protection.
+- Settings panel can show `AUTO` when work protection is active while the user setting is otherwise OFF.
+- Performance diagnostics include the wake lock snapshot and warnings for auto-active/error states.
+
+## v1.4.26 Notes - Exit Guard fallback
+
+- Problem: choosing leave after browser Back could appear stuck when the app was launched directly and there was no previous history entry.
+- Fix: leave path now records attempt metadata, removes navigation blockers, calls `history.go(-1)`, attempts `window.close()`, and renders a safe fallback screen if still visible.
+- Browser limitation remains: normal web pages cannot always close tabs/windows programmatically, so the fallback screen is intentional.
+
+## v1.4.26 project notes
+
+v1.4.26 focuses on user visibility during large imports. v1.4.20 prevented 35-track decode storms; v1.4.21 reduced render pressure; v1.4.22 and v1.4.23 improved mastering/decode diagnostics. This patch adds the missing UX layer: a dedicated scrollable Bulk Import HUD with one row per song.
 
 Direction after this patch: real-device PC 35-track validation, then optional batch mastering HUD reuse and `src/app.js` slimming.
 
-## v1.4.24 project notes
+## v1.4.26 project notes
 
-The v1.4.24 patch focuses on the second half of the 35-track stability work: after v1.4.20 made decode/analysis sequential and v1.4.21 throttled general renders, v1.4.24 prevents mastering progress updates from forcing repeated full UI renders. Diagnostics now expose active mastering state with render queue state so PC lag reports can be tied to import, render, or mastering work.
+The v1.4.26 patch focuses on the second half of the 35-track stability work: after v1.4.20 made decode/analysis sequential and v1.4.21 throttled general renders, v1.4.26 prevents mastering progress updates from forcing repeated full UI renders. Diagnostics now expose active mastering state with render queue state so PC lag reports can be tied to import, render, or mastering work.
 
 
 - v1.4.21 performance diagnostics can be used with bulk import queue snapshots for PC crash investigations.
@@ -81,18 +93,18 @@ Dock mini FFT was removed and remains removed in v1.4.21 while detail-only FFT i
 renderMini was removed with the Dock mini FFT cleanup and remains removed in v1.4.21.
 
 
-## v1.4.24 carry-forward anchors
+## v1.4.26 carry-forward anchors
 
 Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
 
 
-## v1.4.24 Carry-forward QA anchors
+## v1.4.26 Carry-forward QA anchors
 - Dock mini FFT was removed; detail-only FFT remains the supported spectrum view.
 - renderMini removed from Dock spectrum/runtime health carry-forward.
-- v1.4.24 performance diagnostics keeps adaptive refresh, getSummary, and copy/복사 support.
+- v1.4.26 performance diagnostics keeps adaptive refresh, getSummary, and copy/복사 support.
 - Download flow polish and action clarity remain in the compact first-screen dialog.
 
-## v1.4.24 - Audio Decode Memory Guard
+## v1.4.26 - Audio Decode Memory Guard
 
 - Added audio decode diagnostics in `FoxBearAudioDecodeService.getDiagnostics()`.
 - Tracks active/completed/failed decodes, recent decode events, last decoded PCM size, and last error.
@@ -101,3 +113,27 @@ Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup,
 - Runtime Health now requires `FoxBearAudioDecodeService.getDiagnostics`.
 - v1.4.22 mastering queue throttle, v1.4.21 render scheduler, and 35-track sequential import guard remain carried forward.
 
+
+### v1.4.26 carry-forward QA notes
+
+- stability, Dock FFT removal, settings gear alignment, renderMini cleanup, performance diagnostics, download flow polish, download action clarity, micro hint/declutter, Render Scheduler, Mastering Queue Throttle, Audio Decode Memory Guard, and Bulk Import HUD remain carried forward.
+- Stage13, Stage14, Stage27, and Stage28 documentation anchors remain intentionally referenced for legacy QA/handoff continuity.
+- Dock mini FFT was removed; detail FFT remains detail-only.
+- Dock FFT removal and settings gear alignment remain part of the current regression line.
+- Stage27 waveform-control-service and Stage28 waveform-control-view.js extraction remain active; unmanaged waveform audit remains tracked.
+
+## v1.4.26 Carry-forward Notes
+
+- Performance diagnostics use adaptive refresh and can copy diagnostic reports.
+- renderMini removed; detail-only FFT is the current supported path.
+- Download flow polish, action clarity, micro hint, and first-screen declutter remain active.
+
+
+## v1.4.26 Historical QA anchors
+
+Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27, and Stage28 remain documented as current carry-forward anchors.
+
+- Stage27 waveform-control-service remains active.
+- Stage28 unmanaged waveform audit and waveform-control-view.js extraction remain active.
+- Dock mini FFT was removed; detail FFT remains detail-only.
+- Exit Guard fallback is current in v1.4.26.

@@ -625,7 +625,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     .download-options-receipt > span { font-size: .60rem; }
 }
 
-/* v1.4.24 Download recovery checklist compact mode: keep the next save action visible without crowding the main buttons. */
+/* v1.4.26 Download recovery checklist compact mode: keep the next save action visible without crowding the main buttons. */
 .download-options-checklist,
 .download-assist-checklist {
     border: 1px solid rgba(255, 224, 108, .16);
@@ -701,7 +701,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
 }
 
 
-/* v1.4.24 Download dialog micro hint: keep the first screen short while preserving diagnostics under additional options. */
+/* v1.4.26 Download dialog micro hint: keep the first screen short while preserving diagnostics under additional options. */
 .download-options-compact-hint {
     border: 1px solid rgba(109, 215, 255, .18);
     background: rgba(109, 215, 255, .065);
@@ -744,7 +744,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     }
 }
 
-/* v1.4.24 Download dialog first-screen declutter: keep diagnostics/checklist hidden until an action needs them. */
+/* v1.4.26 Download dialog first-screen declutter: keep diagnostics/checklist hidden until an action needs them. */
 .download-options-panel-v5[data-download-display-mode$="declutter"] .download-options-receipt.is-idle {
     padding: 8px 10px;
     gap: 3px;

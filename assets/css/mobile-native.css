@@ -506,4 +506,21 @@
 
 
 
-/* v1.4.24: align the floating settings gear consistently on PC and PWA docks. */
+/* v1.4.26: align the floating settings gear consistently on PC and PWA docks. */
+
+/* v1.4.26: Wake Lock AUTO state distinguishes temporary work protection from the user's persistent setting. */
+.mobile-native-status.wake-auto {
+    border-color: rgba(255, 213, 112, 0.58);
+    background: linear-gradient(135deg, rgba(89, 68, 20, 0.94), rgba(22, 48, 74, 0.92));
+}
+.mobile-native-setting.is-auto,
+.mobile-native-setting[data-state="auto"] {
+    border-color: rgba(255, 213, 112, 0.42);
+    background: linear-gradient(135deg, rgba(115, 82, 22, 0.24), rgba(27, 68, 100, 0.16));
+}
+.mobile-native-setting.is-auto .mobile-native-setting-state,
+.mobile-native-setting[data-state="auto"] .mobile-native-setting-state {
+    background: rgba(255, 213, 112, 0.18);
+    border-color: rgba(255, 213, 112, 0.38);
+    color: #fff3ca;
+}

@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.4.24
+// FoxBear audio decode service - v1.4.26
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.4.24-bulk-import-hud';
+    const SERVICE_VERSION = '1.4.26-wake-lock-state-sync';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 

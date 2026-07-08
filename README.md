@@ -1,21 +1,31 @@
-## v1.4.24 - Bulk Import HUD
+# FoxBear AI Mastering Studio Pro v1.4.26
 
-Current patch: **v1.4.24 Bulk Import HUD**.
+## v1.4.26 Wake Lock state sync
+
+This release separates the persistent `화면켜짐유지` user setting from temporary automatic Wake Lock protection used during playback, analysis, import, and mastering. Automatic protection is shown as `AUTO` and stays silent; manual toggles remain explicit `ON/OFF`.
+
+## FoxBear AI Mastering Studio Pro v1.4.26
+
+This build adds an Exit Guard fallback hotfix. If a user presses browser Back and chooses to leave, the app now navigates away when possible and shows a clear exit fallback screen when the browser/PWA refuses to close the tab/window automatically.
+
+## v1.4.26 - Bulk Import HUD
+
+Current patch: **v1.4.26 Bulk Import HUD**.
 
 This patch adds a long, scrollable, multi-track HUD for imports of 2 or more files. A 35-track PC batch now keeps sequential analysis safety while showing each song row with status, progress, and error state.
 
-- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.24-release.zip`
-- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.24-overwrite.zip`
+- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.26-release.zip`
+- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.26-overwrite.zip`
 - QA: `146/146 PASS`
 
-## v1.4.24 - Mastering Queue Throttle
+## v1.4.26 - Mastering Queue Throttle
 
-Current patch: **v1.4.24 Mastering Queue Throttle**.
+Current patch: **v1.4.26 Mastering Queue Throttle**.
 
 This patch keeps v1.4.21's 35-track import protection and adds a lighter mastering progress path. Progress updates are still visible, but they are scheduled through the render scheduler instead of forcing a full `renderAll()` for every progress step. Use `?perf=1` or `FoxBearMasteringGuard.getSnapshot()` to inspect active mastering state.
 
-- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.24-release.zip`
-- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.24-overwrite.zip`
+- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.26-release.zip`
+- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.26-overwrite.zip`
 
 
 ### v1.4.21 performance diagnostics
@@ -43,64 +53,10 @@ Current patch: **v1.4.21 Download dialog micro hint**.
 ## QA
 
 ```bash
-npm run check
-```
 
-## Release artifacts
-- Full release ZIP: `dist/foxbear-mastering-studio-v1.4.21-release.zip`
-- Overwrite ZIP: `dist/foxbear-mastering-studio-v1.4.21-overwrite.zip`
+## v1.4.26 Diagnostics and Download Notes
 
-## Diagnostics
-- Performance diagnostics: open with `?perf=1` or `Ctrl/Command + Alt + P`.
-- Download diagnostics: use `추가 옵션 → 진단 복사`.
-- User-friendly save order: use `추가 옵션 → 체크리스트 복사`.
-
-## Detail-only FFT
-- v1.4.21 keeps FFT detail-only. Dock mini FFT and `renderMini` remain removed.
-
-
-## v1.4.21 Download dialog first-screen declutter
-- Added `FoxBearDownloadService.getDownloadDialogDisplayProfile()` to keep the initial download/share dialog short.
-- The first open state uses `download-options-panel-v5`, `data-download-display-mode`, and an idle receipt.
-- The full checklist stays hidden on open and appears only after a download/share/assist action needs it.
-- Advanced diagnostics, address copy, guide copy, checklist copy, and external-browser guidance remain under `추가 옵션`.
-- Final static QA target: `142/142 PASS`.
-
-## Download dialog micro hint
-
-v1.4.21 keeps the Download dialog micro hint flow while adding bulk import protection.
-
-## v1.4.21 - Render Scheduler + Bulk Import UI Throttle
-
-- Added `FoxBearRenderScheduler` to merge repeated `renderAll()` calls into scheduled frame updates during analysis/import.
-- Bulk import analysis remains sequential, and large-batch UI refreshes are throttled so 35-track imports are less likely to stutter or crash.
-- Automatic Wake Lock activation during analysis/playback is now silent; manual settings toggles still show user feedback.
-- Single-file imports keep the AI recommendation choice dialog, while multi-file and large-batch imports auto-apply each track's AI recommendation without one popup per file.
-- Playback transitions use a smoother 140ms fade and wait for the next audio element to be media-ready before fading out the old source.
-- Analysis cache keys now use `ANALYSIS_ENGINE_CACHE_VERSION` instead of `APP_VERSION`, reducing unnecessary re-analysis across patch releases.
-- Added `FoxBearAudioDecodeService` as the first decode-path split from `src/app.js`.
-
-v1.4.21 detail-only FFT note: Dock mini FFT remains removed; detail-only FFT remains available in the analysis detail screen.
-
-Download dialog micro hint carry-forward: v1.4.21 keeps the short first-screen download hint while advanced diagnostics stay under additional options.
-
-
-## v1.4.24 carry-forward anchors
-
-Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
-
-
-## v1.4.24 Carry-forward notes
-- Spectrum remains detail-only; Dock mini FFT stays removed.
-- Performance diagnostics remains available with Ctrl/Command + Alt + P, getSummary, and 복사 controls.
-- Download/share dialog keeps compact hints, additional options, and diagnostics copy flows.
-
-## v1.4.24 - Audio Decode Memory Guard
-
-- Added audio decode diagnostics in `FoxBearAudioDecodeService.getDiagnostics()`.
-- Tracks active/completed/failed decodes, recent decode events, last decoded PCM size, and last error.
-- `decodeAudioFile()` now explicitly releases its temporary `ArrayBuffer` reference in `finally` after Web Audio decoding.
-- Performance diagnostics now include `audioDecode` and warn on `audio-decode-active` / `audio-decode-last-error`.
-- Runtime Health now requires `FoxBearAudioDecodeService.getDiagnostics`.
-- v1.4.22 mastering queue throttle, v1.4.21 render scheduler, and 35-track sequential import guard remain carried forward.
+- Performance diagnostics: open with `?perf=1` or `Ctrl/Command + Alt + P`; use 복사 to copy the report.
+- Download dialog micro hint and first-screen declutter remain active.
+- detail-only FFT remains active; Dock mini FFT/renderMini remain removed.
 

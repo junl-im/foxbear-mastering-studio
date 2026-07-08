@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const assert = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.24 download dialog declutter smoke: ${message}`);
+    console.error(`FAIL v1.4.26 download dialog declutter smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -20,15 +20,15 @@ const dialog = read('src/ui/download-dialog-view.js');
 const app = read('src/app.js');
 const css = read('assets/css/download-dialog.css');
 const runtime = read('src/boot/runtime-health.js');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.24.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.4.24', 'package version should be 1.4.24');
-assert(pkg.name === 'foxbear-github-pro-v1-4-24', 'package name should match 1.4.24');
-assert(index.includes('data-build="1.4.24"'), 'index build marker should be 1.4.24');
-assert(index.includes('1.4.24-bulk-import-hud'), 'index should use declutter asset key');
-assert(sw.includes('foxbear-shell-v1.4.24-bulk-import-hud'), 'service worker should use v1.4.24 cache key');
+assert(pkg.version === '1.4.26', 'package version should be 1.4.26');
+assert(pkg.name === 'foxbear-github-pro-v1-4-26', 'package name should match 1.4.26');
+assert(index.includes('data-build="1.4.26"'), 'index build marker should be 1.4.26');
+assert(index.includes('1.4.26-wake-lock-state-sync'), 'index should use declutter asset key');
+assert(sw.includes('foxbear-shell-v1.4.26-wake-lock-state-sync'), 'service worker should use v1.4.26 cache key');
 
 assert(service.includes('getDownloadDialogDisplayProfile'), 'download service should expose display profile helper');
 assert(service.includes("mode: restricted ? 'restricted-declutter' : 'standard-declutter'"), 'display profile should distinguish restricted and standard modes');
@@ -46,13 +46,13 @@ assert(dialog.includes('getDownloadActionReceipt,'), 'app deps should pass actio
 assert(app.includes('getDownloadDialogDisplayProfile,'), 'app deps should pass display profile into dialog');
 assert(app.includes('function getDownloadDialogDisplayProfile'), 'app should provide display profile wrapper');
 
-assert(css.includes('v1.4.24 Download dialog first-screen declutter'), 'CSS should document declutter styles');
+assert(css.includes('v1.4.26 Download dialog first-screen declutter'), 'CSS should document declutter styles');
 assert(css.includes('.download-options-panel-v5[data-download-display-mode$="declutter"]'), 'CSS should style declutter mode');
 assert(css.includes('.download-options-checklist.is-empty'), 'CSS should hide empty checklist');
 
-assert(pkg.qaChecks.includes('node qa/v1419_download_dialog_declutter_smoke.js'), 'package QA should include v1.4.24 smoke');
-assert(matrix.includes('v1.4.24 Download dialog first-screen declutter'), 'matrix should document v1.4.24 scope');
-assert(qaReport.includes('144/144 PASS') || qaReport.includes('v1.4.24 final QA'), 'QA report should mention final v1.4.24 pass count');
+assert(pkg.qaChecks.includes('node qa/v1419_download_dialog_declutter_smoke.js'), 'package QA should include v1.4.26 smoke');
+assert(matrix.includes('v1.4.26 Download dialog first-screen declutter'), 'matrix should document v1.4.26 scope');
+assert(qaReport.includes('144/144 PASS') || qaReport.includes('v1.4.26 final QA'), 'QA report should mention final v1.4.26 pass count');
 assert(changelog.includes('getDownloadDialogDisplayProfile'), 'changelog should mention display profile helper');
 
-console.log('PASS v1.4.24 download dialog declutter smoke');
+console.log('PASS v1.4.26 download dialog declutter smoke');

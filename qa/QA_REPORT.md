@@ -1,12 +1,37 @@
-# FoxBear QA Report - v1.4.24
+# QA Report - v1.4.26 Wake Lock State Sync
+
+- Final result: **148/148 PASS** via `npm run check`.
+- Verified: SRI, syntax checks, modular budget, Wake Lock state sync smoke, and all carry-forward QA.
+- Focus: split persistent `화면켜짐유지` user setting from temporary automatic Wake Lock protection.
+- Manual test still needed: real PC/PWA/mobile browser Wake Lock behavior and toast/UI feel.
+
+# QA Report - v1.4.26 Wake Lock State Sync
+
+- v1.4.26 final QA target: 148/148 PASS.
+- Focus: Wake Lock user setting vs automatic work-protection state sync.
+- Added QA: `qa/v1426_wake_lock_state_sync_smoke.js`.
+- Expected manual follow-up: verify on PC/PWA/mobile that automatic playback/import/mastering protection shows `AUTO` silently, while manual `화면켜짐유지` toggles persist as `ON/OFF`.
+
+# QA Report - v1.4.26 Exit Guard Fallback
+
+- v1.4.26 final QA: 147/147 PASS.
+- Carry-forward references: 146/146 PASS from v1.4.24 Bulk Import HUD line plus new v1.4.26 exit fallback smoke.
+- Focus: browser/PWA Back -> leave path, direct-launch fallback screen, navigation guard diagnostics.
+
+# QA Report - v1.4.26 Exit Guard Fallback
+
+- Result: 147/147 PASS via `npm run check`.
+- Focus: browser/PWA Back -> leave path, direct-launch fallback screen, navigation guard diagnostics.
+
+# FoxBear QA Report - v1.4.26
 
 Result: **146/146 PASS**
 
-v1.4.24 final QA: **146/146 PASS**
+v1.4.26 final QA: **146/146 PASS**
 
 ## Summary
 
-v1.4.24 adds a dedicated Bulk Import HUD for multi-track imports. It keeps the v1.4.20 sequential analysis guard, v1.4.21 render scheduler, v1.4.22 mastering queue throttle, and v1.4.23 decode diagnostics while adding a scrollable list of per-track import/analysis progress.
+v1.4.26 adds a dedicated Bulk Import HUD for multi-track imports. It keeps the v1.4.20 sequential analysis guard, v1.4.21 render scheduler, v1.4.22 mastering queue throttle, and v1.4.23 decode diagnostics while adding a scrollable list of per-track import/analysis progress.
 
 ## Verified
 
@@ -18,7 +43,7 @@ v1.4.24 adds a dedicated Bulk Import HUD for multi-track imports. It keeps the v
 ## Added QA
 
 - `qa/v1424_bulk_import_hud_smoke.js`
-- `qa/BROWSER_BACK_QA_MATRIX_1.4.24.md`
+- `qa/BROWSER_BACK_QA_MATRIX_1.4.26.md`
 
 ## Limits
 

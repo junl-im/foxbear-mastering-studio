@@ -1,4 +1,4 @@
-# v1.4.24 Mastering Queue Throttle QA Matrix
+# v1.4.26 Mastering Queue Throttle QA Matrix
 
 Scope: mastering progress render throttling, queue diagnostics, and v1.4.21 bulk import carry-forward.
 
@@ -38,7 +38,7 @@ Scope: mastering progress render throttling, queue diagnostics, and v1.4.21 bulk
 
 ## Carry-forward anchors for cumulative smoke tests
 
-- v1.4.24 Render Scheduler + Bulk Import UI Throttle.
+- v1.4.26 Render Scheduler + Bulk Import UI Throttle.
 - Spectrum detail-only mode remains available; Dock mini FFT remains intentionally removed.
 - Exit Guard / browser back confirm remains enabled for active import, mastering, and meaningful workspace state.
 - Dock mini FFT removal remains intentional; settings gear alignment remains carried forward.
@@ -48,19 +48,19 @@ Scope: mastering progress render throttling, queue diagnostics, and v1.4.21 bulk
 
 ## Download/share carry-forward scenarios
 
-- v1.4.24 Download flow polish: recommended flow card remains present for restricted and normal browsers.
+- v1.4.26 Download flow polish: recommended flow card remains present for restricted and normal browsers.
 - Advanced actions are hidden behind the additional options toggle by default.
 - Download diagnostics follow-up: 진단 복사 remains available for Kakao/mobile failures.
 - Download action clarity: buttons keep stable `data-download-action` values.
 - Download receipt polish: action receipt appears after download/share/assist actions.
 - Recovery checklist compact/micro hint/declutter flows remain carried forward.
 
-- v1.4.24 Download dialog micro hint: first screen shows only the compact hint while advanced actions stay behind additional options.
+- v1.4.26 Download dialog micro hint: first screen shows only the compact hint while advanced actions stay behind additional options.
 
-- v1.4.24 Download dialog first-screen declutter: receipt/checklist stay hidden on initial open and appear after user action.
+- v1.4.26 Download dialog first-screen declutter: receipt/checklist stay hidden on initial open and appear after user action.
 
 
-## v1.4.24 exact carry-forward smoke anchors
+## v1.4.26 exact carry-forward smoke anchors
 
 Legacy browser matrix tokens retained for automated carry-forward QA: KakaoTalk, Chrome Android, Safari iOS, PWA, beforeunload, popstate.
 
@@ -68,19 +68,19 @@ Dock FFT removal carry-forward: `#bottomPreviewSpectrum` should not exist in the
 
 renderMini cleanup carry-forward: runtime health does not require `renderMini`, and Dock spectrum cleanup keeps `FoxBearSpectrumVisualizer.renderMini` removed.
 
-Performance diagnostics carry-forward: v1.4.24 Performance diagnostics must still expose `FoxBearPerformanceDiagnostics`, `collectSnapshot`, `getSummary`, adaptive refresh, copy/복사 controls, and Ctrl/Command + Alt + P access.
+Performance diagnostics carry-forward: v1.4.26 Performance diagnostics must still expose `FoxBearPerformanceDiagnostics`, `collectSnapshot`, `getSummary`, adaptive refresh, copy/복사 controls, and Ctrl/Command + Alt + P access.
 
-v1.4.24 Download action clarity: download dialog buttons keep `data-download-action` roles, recommended action badges, and dispatcher-backed actions. Advanced actions are hidden behind the additional options control.
+v1.4.26 Download action clarity: download dialog buttons keep `data-download-action` roles, recommended action badges, and dispatcher-backed actions. Advanced actions are hidden behind the additional options control.
 
-v1.4.24 Download flow polish: recommended flow card remains concise. Advanced actions are hidden behind the additional options control.
+v1.4.26 Download flow polish: recommended flow card remains concise. Advanced actions are hidden behind the additional options control.
 
-v1.4.24 Download recovery checklist: checklist copy remains available from advanced/help flows while first screen stays compact.
+v1.4.26 Download recovery checklist: checklist copy remains available from advanced/help flows while first screen stays compact.
 
-v1.4.24 Download dialog micro hint: compact first-screen hint remains visible before advanced diagnostics.
+v1.4.26 Download dialog micro hint: compact first-screen hint remains visible before advanced diagnostics.
 
-v1.4.24 Download dialog first-screen declutter: receipt/checklist details stay hidden until an action or help flow asks for them.
+v1.4.26 Download dialog first-screen declutter: receipt/checklist details stay hidden until an action or help flow asks for them.
 
-## v1.4.24 Audio Decode Memory Guard
+## v1.4.26 Audio Decode Memory Guard
 
 - `FoxBearAudioDecodeService.getDiagnostics()` is available in runtime health and console.
 - Decode diagnostics expose active/completed/failed decode counts and recent decode lifecycle events.

@@ -1,8 +1,8 @@
-// FoxBear Bulk Import HUD view - v1.4.24
+// FoxBear Bulk Import HUD view - v1.4.26
 (function initBulkImportHudView(global) {
     'use strict';
 
-    const VIEW_VERSION = '1.4.24-bulk-import-hud';
+    const VIEW_VERSION = '1.4.26-wake-lock-state-sync';
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

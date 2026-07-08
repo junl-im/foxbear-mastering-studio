@@ -1,8 +1,8 @@
 {
-  "name": "foxbear-github-pro-v1-4-24",
-  "version": "1.4.24",
+  "name": "foxbear-github-pro-v1-4-26",
+  "version": "1.4.26",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.24 Bulk Import HUD with scrollable 35-track progress rows. Spectrum detail FFT remains detail-only; Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, and Stage23 playback orchestration carry forward.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Spectrum stability carry-forward, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Bulk Import HUD, render scheduler, mastering queue throttle, and audio decode diagnostics.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -156,6 +156,8 @@
     "node qa/v1421_render_scheduler_bulk_import_smoke.js",
     "node qa/v1422_mastering_queue_throttle_smoke.js",
     "node qa/v1423_audio_decode_memory_guard_smoke.js",
-    "node qa/v1424_bulk_import_hud_smoke.js"
+    "node qa/v1424_bulk_import_hud_smoke.js",
+    "node qa/v1425_exit_guard_fallback_smoke.js",
+    "node qa/v1426_wake_lock_state_sync_smoke.js"
   ]
 }
