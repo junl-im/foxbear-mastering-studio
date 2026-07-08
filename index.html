@@ -3,79 +3,79 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="FoxBear AI Mastering Studio Pro v1.4.18 - Performance diagnostics and stability polish" />
+<meta name="description" content="FoxBear AI Mastering Studio Pro v1.4.20 - Performance diagnostics and stability polish" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://www.gstatic.com/firebasejs/; script-src-elem 'self' https://www.gstatic.com/firebasejs/; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com https://www.googleapis.com; worker-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types foxbear; upgrade-insecure-requests" />
 <meta name="referrer" content="no-referrer" />
 <meta name="robots" content="noai, noimageai" />
 <meta name="googlebot" content="notranslate" />
-<title>FoxBear Mastering PRO v1.4.18</title>
-<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/foxbear-icon-16.png?v=1.4.18-download-dialog-micro-hint"  integrity="sha384-nUTqUQgpCWumQsE45RgofLVSk/PXWOUsrX5mXPdWIdVKLS8jrwp8/+egm6QTNT/t" />
-<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/foxbear-icon-32.png?v=1.4.18-download-dialog-micro-hint"  integrity="sha384-Fkls1SBW/DSNAXRModCoCGIPHvAhjtak6szroUrhRHHC64IuYJvIkt2sPmLBn6Td" />
-<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/foxbear-icon-192.png?v=1.4.18-download-dialog-micro-hint"  integrity="sha384-6O7X6v22ItYsdmye3mld640f8oD/M6Hztq2+JEdetMvSlMViIOcfkoKya6FdKbBS" />
-<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-icon-512.png?v=1.4.18-download-dialog-micro-hint"  integrity="sha384-1AhdK2RiNtdrXEwSvKJrl+IHbiCr4OT4K18N8PxUpuxa+BRTyVpl9Yj3Omh7d7R9" />
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=1.4.18-download-dialog-micro-hint"  integrity="sha384-i+a6eWW1IGYFDhElRLe45DmHQ9h3vfWjSn9SX6D5ab1RTfrW/tRkf2Ie48cTETg2" />
-<meta name="msapplication-TileImage" content="assets/icons/foxbear-icon-144.png?v=1.4.18-download-dialog-micro-hint" />
+<title>FoxBear Mastering PRO v1.4.20</title>
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/foxbear-icon-16.png?v=1.4.20-bulk-import-guard"  integrity="sha384-nUTqUQgpCWumQsE45RgofLVSk/PXWOUsrX5mXPdWIdVKLS8jrwp8/+egm6QTNT/t" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/foxbear-icon-32.png?v=1.4.20-bulk-import-guard"  integrity="sha384-Fkls1SBW/DSNAXRModCoCGIPHvAhjtak6szroUrhRHHC64IuYJvIkt2sPmLBn6Td" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/foxbear-icon-192.png?v=1.4.20-bulk-import-guard"  integrity="sha384-6O7X6v22ItYsdmye3mld640f8oD/M6Hztq2+JEdetMvSlMViIOcfkoKya6FdKbBS" />
+<link rel="icon" type="image/png" sizes="512x512" href="assets/icons/foxbear-icon-512.png?v=1.4.20-bulk-import-guard"  integrity="sha384-1AhdK2RiNtdrXEwSvKJrl+IHbiCr4OT4K18N8PxUpuxa+BRTyVpl9Yj3Omh7d7R9" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=1.4.20-bulk-import-guard"  integrity="sha384-i+a6eWW1IGYFDhElRLe45DmHQ9h3vfWjSn9SX6D5ab1RTfrW/tRkf2Ie48cTETg2" />
+<meta name="msapplication-TileImage" content="assets/icons/foxbear-icon-144.png?v=1.4.20-bulk-import-guard" />
 <meta name="theme-color" content="#101f36" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="FoxBear" />
 <meta name="mobile-web-app-capable" content="yes" />
-<link rel="manifest" href="manifest.webmanifest?v=1.4.18-download-dialog-micro-hint"  integrity="sha384-lsEq7lHbVqAOABZmR+bl89vrdjqYaXw/ZZkDrUcuKxyvX1KGsa/8AeZQYWr1v1IR" />
-<script src="src/boot/runtime-health.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-e/OuuIg4cpYCIDve3KoMkOq/cf1x6exx7HAPOP40DVJSBGoRcicQ9/WlEKWhneFD"></script>
-<script defer src="src/boot/performance-diagnostics.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-FIORRyCDj8wVtcMWkokTbmF5Fs9UAJWR0zEACLQsAuJd7XplDz5Nkcco4VC+rNj1"></script>
-<link rel="stylesheet" href="assets/css/boot/performance-diagnostics.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-6RHj6/U45qkzKzrPWDIWUWJgXKbWTtKBLGkqsPq42A9axe0kep+rsW6VA5XOjqse" />
-<link rel="stylesheet" href="assets/css/boot/runtime-health.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-TmD8Vt2GANQEqm/39xNbGJ5RYgiACB4yKWmtTQ2IZpx1ZRT+StsXKf6rD6oz93MQ" />
-<link rel="stylesheet" href="assets/css/theme.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-RF8zDTHZXc4GG6rAiLKtVjZpVRCrBGIwm2TFIy8sWbEUcgOUC6uFx9ein9H7Fnw+" />
-<link rel="stylesheet" href="assets/css/layout.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-qU42xTI4l90RuTIjyOSuHW6MvJ3fmvBgCPLWg8ya3DxZMfc4WvQZgPNJX6djI2dl" />
-<link rel="stylesheet" href="assets/css/components/base-components.css?v=1.4.18-download-dialog-micro-hint"  integrity="sha384-LK/j/Qe3PA1TYqOfZBXHhS75snG7VVDY2NSJtTE0KvRlfQ0kdKBPA5CS8Zx3MPAx" />
-<link rel="stylesheet" href="assets/css/components/forms.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-OF5UOV81qGuji/TI0vOIzMUtw861HJEqd/vl+wPy8di66r3QjnWQlqpbzB+0AKW/" />
-<link rel="stylesheet" href="assets/css/components/cards.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-VoBEqwaK2EwBXF0tpijGm9ZWjZY7Hu1hVjJj7IeUkS8sljHApMGRv83RnU/n6w+c" />
-<link rel="stylesheet" href="assets/css/components/preview-system.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-AvgBHRCwLf5o7IVJ4/UDa+BfOf13CgK9FTv3NQexBZORMQOQgdtxDY86hVNFYcig" />
-<link rel="stylesheet" href="assets/css/components/playback-link.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-k6gGcmsO0SHoQIf3+Uny5n77ecr4uk0ZPaOOe1lokjpsKg+okH4Nsowb+jYn8HAv" />
-<link rel="stylesheet" href="assets/css/studio.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-0L9qVP3BZdMQIfoVxTKd1rM94AcbCUQw7ODb+Nxfr+kxelh7KyA+seRzh+qbTWO8" />
-<link rel="stylesheet" href="assets/css/dock.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-zDS2mZuyKx+9cUETJxPKSmVzVJ6guYShaP5eTvnq5Rks/c4FcBuEBTxoNHOqu0CD" />
-<link rel="stylesheet" href="assets/css/dock-waveform.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-kAkSUr0Lm4U0sJ0ngyqmEfWpVMXMdXUc0F57tqoq01aD4j4SjyRqGpc5hvsajbbs" />
-<link rel="stylesheet" href="assets/css/waveform-compare.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-j393HucPhRqc9elX/0AjnpERQBhKS6PKrVkzAcl/5JGxgP2g8iN5/nInq8uY7uMz" />
-<link rel="stylesheet" href="assets/css/spectrum-visualizer.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-SyQYMkPAB+Ckvpng0/3KG/W/WE6Bw2KsE1uAS0BH3LvzUHAXckZHgRetnQQhJB1S" />
-<link rel="stylesheet" href="assets/css/export.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-9P/xpiGGxbxvzCBrO0C8efRcriAp2CnuiQR42hLW5OeerBMU6mXoQMr7ySteVqIZ" />
-<link rel="stylesheet" href="assets/css/download-dialog.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-g1DOOZyWaQLbY+fxSkL747jsPZwnSVnSWgwudBuuX1LwQwWGi5+sPTxlLnOr+f4H" />
-<link rel="stylesheet" href="assets/css/mobile-native.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-rgYEUOguZ/7PtysR6waRCF04DHPWbhL2cgpxPSybvp6nfEKezfDD1GTAndd6zo6N" />
-<link rel="stylesheet" href="assets/css/dock-ui-repair.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-CuI4jurqPOlKh0dXjXweKndqaxFWLGqG9IbIL4T6calfCrKq0sWJLp0eO9gCwvlp" />
-<link rel="stylesheet" href="assets/css/components/floating-overlays.css?v=1.4.18-download-dialog-micro-hint" integrity="sha384-XxtplMElvaKFrciZ6ogbqbPYy2iK6nXwX8vD8tEzyom/mv0kWhYzWi+FA37wdLIA" />
+<link rel="manifest" href="manifest.webmanifest?v=1.4.20-bulk-import-guard"  integrity="sha384-H6UAGf4P/rAG+BCZhzJ5tdp8K+F99/f4jlLnLxfp1O9Nhr8AfWzCFflXg3G147ms" />
+<script src="src/boot/runtime-health.js?v=1.4.20-bulk-import-guard" integrity="sha384-zfkIjC+Tw+F8HfxMWPwcXs2z+vSI7eEe4Kwo/jzfnFRh3NVyHuETclLf3GQEpWh1"></script>
+<script defer src="src/boot/performance-diagnostics.js?v=1.4.20-bulk-import-guard" integrity="sha384-uhoE2tbYCCJzDVpcmuESOjmwJ8ey/zmw4pz/NPaWK01ShzCg96WVYWenIMbRvan8"></script>
+<link rel="stylesheet" href="assets/css/boot/performance-diagnostics.css?v=1.4.20-bulk-import-guard" integrity="sha384-2t5aZRxiFnX00CVNSN3gEdguBM2P3ugJiDNgWD/3wB932aQOyrq/sMFNNHzn/15H" />
+<link rel="stylesheet" href="assets/css/boot/runtime-health.css?v=1.4.20-bulk-import-guard" integrity="sha384-TmD8Vt2GANQEqm/39xNbGJ5RYgiACB4yKWmtTQ2IZpx1ZRT+StsXKf6rD6oz93MQ" />
+<link rel="stylesheet" href="assets/css/theme.css?v=1.4.20-bulk-import-guard" integrity="sha384-NoPjtXQk9q9TMHEo/nJ/hX7NalNbuZgFhYDr4qsutQC3k4AeZJKxKgT1g7p03pLp" />
+<link rel="stylesheet" href="assets/css/layout.css?v=1.4.20-bulk-import-guard" integrity="sha384-EWROnQTzUua51Wge9jFBAsasBa+5PzAQqJBKwYS+nmiVLMiPR0OoJDki6ABtOKql" />
+<link rel="stylesheet" href="assets/css/components/base-components.css?v=1.4.20-bulk-import-guard"  integrity="sha384-jbwB5j/fKlrB1tMJdBUt/SThJZF2c/y4pqW6HVzq3YOKBZmQ+48PoFucL6nfVPX+" />
+<link rel="stylesheet" href="assets/css/components/forms.css?v=1.4.20-bulk-import-guard" integrity="sha384-xCXUVSnvHp0RM4XMyqC8dvdPTI2DLNE3iXt7km3VZu6n2ZO8Ue0nuDVflKwD2PSy" />
+<link rel="stylesheet" href="assets/css/components/cards.css?v=1.4.20-bulk-import-guard" integrity="sha384-BfTSZqMgr6ihUuolH92AxjNGDJN3qqwZ6iupuUQG1HkzfwpnlIjJlJQSHMf374/s" />
+<link rel="stylesheet" href="assets/css/components/preview-system.css?v=1.4.20-bulk-import-guard" integrity="sha384-2u4mH2zHWQj/6Xqto6FTeKvqnK2dD50VGolPA17go8/NAD1XswVihsOsOCV1zNva" />
+<link rel="stylesheet" href="assets/css/components/playback-link.css?v=1.4.20-bulk-import-guard" integrity="sha384-dKfuZnrTieAJEv31/tGGJFGlYE4MQ1Q7HztzXxGFb7ayeZ7W4XkvBx8s7GuuT7i3" />
+<link rel="stylesheet" href="assets/css/studio.css?v=1.4.20-bulk-import-guard" integrity="sha384-Ep1G1ZnqXDZbF93Aq0r9056HmDl+J75/lI6VVnbL+bPTOyfY57wiC9hT/SpVZp8b" />
+<link rel="stylesheet" href="assets/css/dock.css?v=1.4.20-bulk-import-guard" integrity="sha384-K1CUQKiu/J4Bjptxtd47dYBGvDZGKak4QoXMCPOS18schE53KkiwAAFlkgW3H1va" />
+<link rel="stylesheet" href="assets/css/dock-waveform.css?v=1.4.20-bulk-import-guard" integrity="sha384-kAkSUr0Lm4U0sJ0ngyqmEfWpVMXMdXUc0F57tqoq01aD4j4SjyRqGpc5hvsajbbs" />
+<link rel="stylesheet" href="assets/css/waveform-compare.css?v=1.4.20-bulk-import-guard" integrity="sha384-j393HucPhRqc9elX/0AjnpERQBhKS6PKrVkzAcl/5JGxgP2g8iN5/nInq8uY7uMz" />
+<link rel="stylesheet" href="assets/css/spectrum-visualizer.css?v=1.4.20-bulk-import-guard" integrity="sha384-GpCWkjYiPe8GDrmU5slqTtc4vD6DKnCTI1fSrxLZXVp2BVA4Yflr6aT9dU7h4ue0" />
+<link rel="stylesheet" href="assets/css/export.css?v=1.4.20-bulk-import-guard" integrity="sha384-9P/xpiGGxbxvzCBrO0C8efRcriAp2CnuiQR42hLW5OeerBMU6mXoQMr7ySteVqIZ" />
+<link rel="stylesheet" href="assets/css/download-dialog.css?v=1.4.20-bulk-import-guard" integrity="sha384-zNA7L4Fsj0gbUfGCrPqInkWuhmzIrGuobgyiOiTJgCMsz2lId+S9BIEUutBG+i57" />
+<link rel="stylesheet" href="assets/css/mobile-native.css?v=1.4.20-bulk-import-guard" integrity="sha384-UOzs2o795Wa13K8MAYPYk39Y7sa9jwBSNujPKi2R6E1kLZjVjKodVtz6FsgdWA+l" />
+<link rel="stylesheet" href="assets/css/dock-ui-repair.css?v=1.4.20-bulk-import-guard" integrity="sha384-CuI4jurqPOlKh0dXjXweKndqaxFWLGqG9IbIL4T6calfCrKq0sWJLp0eO9gCwvlp" />
+<link rel="stylesheet" href="assets/css/components/floating-overlays.css?v=1.4.20-bulk-import-guard" integrity="sha384-lbg0LJXVJUw7OsOMj52Q01Mqno9uQnOWESN7y8pJshvFnU9mWDWKV1tDbHPYjo5T" />
 <script defer src="vendor/jszip/jszip.min.js?v=3.10.1" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"></script>
-<script type="module" src="src/firebase-bootstrap.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
-<script defer src="src/config/mastering-presets.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-3TQnXS/btzUb9y0BaQAxJvPvpVhLkFCKDdUQRhw+SRhcAykviYa/HTUgF5UWHZWG"></script>
-<script defer src="src/config/genre-presets.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-bO3M4x0BUsQfjOWneOzkdHliyxTuLMcXk+mGZgcYaMme3thIfG3Qt8eXxai1KXoo"></script>
-<script defer src="src/config/reference-targets.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-NdbACfxz22yKzDWG7YdS3v11/tjqekxiaEfjphOoADbW9lbiRfPhc9bORU2RZ9o/"></script>
-<script defer src="src/config/app-runtime-config.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-jQWXuzSViH5xTAxi007As2o+5yXrDx26PdeOiHSsoSiS92fXRSqtGMlaEaJEC5fa"></script>
-<script defer src="src/state/app-state.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-qfJc1UAHMO/zIA2X60c1j1w2mQXa2I+3VjK6Ul7AA7MPxnQT2BDtD9pb+OxWuGj8"></script>
-<script defer src="src/settings/settings-service.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-ZJEsi2Mq5SHL5+G1D0QlY5aw8Teev8HW/qwy/ZI6WiQ6ikzkDrZ9prph+EIf7ZND"></script>
-<script defer src="src/utils/core-utils.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-1yqh6kSnMCLtOMPB9EzXPHMn4sHeNlLd9mAybuOtWENiASb/YDwsxLXZk13jyfbY"></script>
-<script defer src="src/recommendation/recommendation-engine.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-BIxqqufh/DPyjQRDIaYGs5ISsnhUbDB2Os2WcCz3ey4zskI+Or2+9MFNWykYwfQZ"></script>
-<script defer src="src/audio/mastering-inspector.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-J49B1oj6gNmJUokgNfPRNHlSLfacHHXNGSZUQ5EZNpcElMTLGhfaTCDFTK6l7SB3"></script>
-<script defer src="src/audio/highlight-compare-inspector.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-ue0VJK7bPyrZRASU+auDwKFfUH7yiUDP6Pf3XGgf12QrjlE7/SlwI0hNKESJAw0u"></script>
-<script defer src="src/audio/playback-link-service.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-HyyBUtE8+9G0RjnOINuSOw13wwHGm13f9iS+z3aDGHQb+bLvYzd/iaodvPZ+8iIS"></script>
-<script defer src="src/audio/playback-transition-service.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-f4QvxRJKSOs3CZNOuK3uOzHCeJ5X93FjULfajbGUxIHamPrQHqy3t7dkWZJZ8Yid"></script>
-<script defer src="src/audio/waveform-control-service.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-+QejysADCjTshbVDIi0hQZ++9lLuwhBLnm54zAkVkpugmCou9uTyoW5vav4uTvZL"></script>
-<script defer src="src/ui/waveform-control-view.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-Ouaas5lQNzW2WGYMYJXVb7p3NYWxmKFbK7S0fKEw6mPvvQvLVKbq22kT94dMOHl/"></script>
-<script defer src="src/ui/spectrum-visualizer.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-CEkekFS9z6XXnpv6dqOJORpn2gyfTm+42vUdQv3LuR8p5VMPt5nJ5rrWpxEuIoB5"></script>
-<script defer src="src/ui/modal-controller.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-YlFHyiRPUhz5xfVLRGVupCI2hZ0MZ01xZGr4T+Af+uhu4Hbdfhst/y95y+6qn/DT"></script>
-<script defer src="src/ui/dock-controller.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-7JIuE+mXEE0yCggTqxIw/AmozCvgmsUljMxTUyOxKH9e9IgHV6mv8dqrQqYu5oY8"></script>
-<script defer src="src/ui/mobile-native-view.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-MUTBc7sMeZqfh/7qM4VLPcxYYJ7dgQ2qogbAI04Y6/H6omE5Fj8lbof/8qeYx9ln"></script>
-<script defer src="src/download/download-service.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-PihjzVrDsen06YlkwfwzIBZlX4ije1/HQMB8H7Mdcz0diQ+PMo9exuqdXr6zGItz"></script>
-<script defer src="src/ui/download-dialog-view.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-fuCbtY7uNc8vuGjm7QKaTF5Rd2TY2kYWuM+s3T6/yqlDgNKtRDjQu7Fa3y7fztZE"></script>
-<script defer src="src/ui/waveform-compare-view.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-y5o3/+2MHImUaGARSoa5pQzDiFseAQErgL2nEWein9ZEr7qfSIl2VUdi92oYLwpP" ></script>
-<script defer src="src/ui/detail-panels-view.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-42jueo4tpLyOGxEsXs33dogigo+4X1N9xDn3XXXpjP9+5YsEtS/8NvY5xA/+phgK"></script>
-<script defer src="src/ui/detail-view.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-f2yYHpDh50HCAKoE5N0NUlNspR3BgFgSCD8rYjmDkVRaMYLt02SdgY6r3wt9u+EU"></script>
-<script defer src="src/security/site-guards.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-tK/ZYzV/vrb7Umq/Io95SGCsPEo/iJHv+N0yXea+/n3wY3PmNe9tIV9MgqrB5htL"></script>
-<script defer src="src/app.js?v=1.4.18-download-dialog-micro-hint" integrity="sha384-NZjlr26OBt30COTIrd/GmmO2+iZHfH2cXH7vO60bujK3Yc6x5RhArx3LO94ZMigZ"></script>
+<script type="module" src="src/firebase-bootstrap.js?v=1.4.20-bulk-import-guard" integrity="sha384-F4TmOm1YlHgzkn9bzMyWOQfnXGQ6FKCG9El9aEfbatx9rJWo7ZKymfTThtwOQeyo"></script>
+<script defer src="src/config/mastering-presets.js?v=1.4.20-bulk-import-guard" integrity="sha384-3TQnXS/btzUb9y0BaQAxJvPvpVhLkFCKDdUQRhw+SRhcAykviYa/HTUgF5UWHZWG"></script>
+<script defer src="src/config/genre-presets.js?v=1.4.20-bulk-import-guard" integrity="sha384-bO3M4x0BUsQfjOWneOzkdHliyxTuLMcXk+mGZgcYaMme3thIfG3Qt8eXxai1KXoo"></script>
+<script defer src="src/config/reference-targets.js?v=1.4.20-bulk-import-guard" integrity="sha384-NdbACfxz22yKzDWG7YdS3v11/tjqekxiaEfjphOoADbW9lbiRfPhc9bORU2RZ9o/"></script>
+<script defer src="src/config/app-runtime-config.js?v=1.4.20-bulk-import-guard" integrity="sha384-utfuh6e/sco5zV4CAx//NsOsOVMS4WG7rn992d7MH42PuPvHb6tqq34v+KRyn0SC"></script>
+<script defer src="src/state/app-state.js?v=1.4.20-bulk-import-guard" integrity="sha384-qfJc1UAHMO/zIA2X60c1j1w2mQXa2I+3VjK6Ul7AA7MPxnQT2BDtD9pb+OxWuGj8"></script>
+<script defer src="src/settings/settings-service.js?v=1.4.20-bulk-import-guard" integrity="sha384-3NZYwRPlvyrUgUzM0VmsX7YGR3cSTPM1TbCARuTr63Tz65KBSzrvgrxnoFOdtBlA"></script>
+<script defer src="src/utils/core-utils.js?v=1.4.20-bulk-import-guard" integrity="sha384-1yqh6kSnMCLtOMPB9EzXPHMn4sHeNlLd9mAybuOtWENiASb/YDwsxLXZk13jyfbY"></script>
+<script defer src="src/recommendation/recommendation-engine.js?v=1.4.20-bulk-import-guard" integrity="sha384-ZXMgmW0BJ26ASPJD8VV+86XlpQIEY8905rT86h86ZqJ2MY8TDLvTErl33++jE/1M"></script>
+<script defer src="src/audio/mastering-inspector.js?v=1.4.20-bulk-import-guard" integrity="sha384-J49B1oj6gNmJUokgNfPRNHlSLfacHHXNGSZUQ5EZNpcElMTLGhfaTCDFTK6l7SB3"></script>
+<script defer src="src/audio/highlight-compare-inspector.js?v=1.4.20-bulk-import-guard" integrity="sha384-qXZXXyx2/HYCiG5FK4vpI5hJ2CrYhHwLjd8CKyJkB2LbsUWzttifkkPmli6qVncG"></script>
+<script defer src="src/audio/playback-link-service.js?v=1.4.20-bulk-import-guard" integrity="sha384-UtIONkSU4Y5OZuTsbtbbuJeUvCfgQNrmfayA4Ddvzek5nIkvlkfUKKHs7gRebCzu"></script>
+<script defer src="src/audio/playback-transition-service.js?v=1.4.20-bulk-import-guard" integrity="sha384-aMLXkCkadpi+QenIamJNh1BUvV2znbqzmz78zcrpiltrzl+sNWcW1xfg4Ip6Cfvw"></script>
+<script defer src="src/audio/waveform-control-service.js?v=1.4.20-bulk-import-guard" integrity="sha384-Xmp9Gb02zExbDbH8cGEZw/VKoojfLSZDAGIoePyF492LQZzBaGmr2i0C7CrJVxy6"></script>
+<script defer src="src/ui/waveform-control-view.js?v=1.4.20-bulk-import-guard" integrity="sha384-BHdycBxEJVFefIBF/khEreGFASK6wmpT96QnCmi6au+m7lKxij5fQZbB0stcsljI"></script>
+<script defer src="src/ui/spectrum-visualizer.js?v=1.4.20-bulk-import-guard" integrity="sha384-T/p9RVGta9Y8S+mic6iWFQlvA4rsbS5EM4AwmkXcq458PPKZ3FqWUHXHqqBGcFmu"></script>
+<script defer src="src/ui/modal-controller.js?v=1.4.20-bulk-import-guard" integrity="sha384-YlFHyiRPUhz5xfVLRGVupCI2hZ0MZ01xZGr4T+Af+uhu4Hbdfhst/y95y+6qn/DT"></script>
+<script defer src="src/ui/dock-controller.js?v=1.4.20-bulk-import-guard" integrity="sha384-7JIuE+mXEE0yCggTqxIw/AmozCvgmsUljMxTUyOxKH9e9IgHV6mv8dqrQqYu5oY8"></script>
+<script defer src="src/ui/mobile-native-view.js?v=1.4.20-bulk-import-guard" integrity="sha384-WNYUhQJqlsnXRTOAyNVo2zHtkOld+ATH5L3+6e1J57RY8LANpFkjbvj3T4Zn2IYi"></script>
+<script defer src="src/download/download-service.js?v=1.4.20-bulk-import-guard" integrity="sha384-H6YKBqx31utVb5L52yv8Mnxpx9Rj1RUruyyf4tE3x31JpPjzp6dBH1yQfJfSrt31"></script>
+<script defer src="src/ui/download-dialog-view.js?v=1.4.20-bulk-import-guard" integrity="sha384-XvXU7aHiZtLjCxihAUEPuPrd9uRs4uorU86h6EM/tC2BKfhdccwpZ0IUe6stTJZ9"></script>
+<script defer src="src/ui/waveform-compare-view.js?v=1.4.20-bulk-import-guard" integrity="sha384-y5o3/+2MHImUaGARSoa5pQzDiFseAQErgL2nEWein9ZEr7qfSIl2VUdi92oYLwpP" ></script>
+<script defer src="src/ui/detail-panels-view.js?v=1.4.20-bulk-import-guard" integrity="sha384-42jueo4tpLyOGxEsXs33dogigo+4X1N9xDn3XXXpjP9+5YsEtS/8NvY5xA/+phgK"></script>
+<script defer src="src/ui/detail-view.js?v=1.4.20-bulk-import-guard" integrity="sha384-f2yYHpDh50HCAKoE5N0NUlNspR3BgFgSCD8rYjmDkVRaMYLt02SdgY6r3wt9u+EU"></script>
+<script defer src="src/security/site-guards.js?v=1.4.20-bulk-import-guard" integrity="sha384-7FwEJje51rlTB5I/c5t6w3Qt1Uddivitb0Itpr4kdv7K/RBaw0oAAKIo3gxRE/Y0"></script>
+<script defer src="src/app.js?v=1.4.20-bulk-import-guard" integrity="sha384-xudBPpimJyxwviy++yWHPgdegXKlhghfQNShyF3gONkRi5WlHe3C3Ed7NK3h4XTL"></script>
 </head>
-<body data-build="1.4.18">
+<body data-build="1.4.20">
 <div class="app-shell">
     <header class="studio-hero">
         <section class="brand-panel brand-panel-unified" aria-label="앱 소개">
             <div class="brand-topline">
                 <div class="brand-kicker">
-                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.4.18</button>
+                    <button id="programInfoBtn" class="badge badge-version version-info-trigger" type="button" data-help="프로그램 기능과 처리 방식을 자세히 봅니다.">버전 정보 v1.4.20</button>
                     <span id="adminStatsTrigger" class="badge badge-device" role="presentation" tabindex="-1" aria-label="PC · 모바일 호환 안내">PC · 모바일 호환</span>
                 </div>
                 <div class="brand-right-actions" aria-label="채널 및 제작자">
@@ -474,7 +474,7 @@
 
 
 <div id="subscribeNudge" class="subscribe-nudge" role="status" aria-live="polite">
-    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.4.18-download-dialog-micro-hint" alt="" /></div>
+    <div class="subscribe-mini-face" aria-hidden="true"><img src="assets/icons/foxbear-music.png?v=1.4.20-bulk-import-guard" alt="" /></div>
     <div class="subscribe-mini-copy">
         <strong>곰같은여우 Music 응원하기</strong>
         <span>좋았다면 채널 구독으로 힘을 주세요.</span>
@@ -487,7 +487,7 @@
 <div id="programInfoDialog" class="program-info-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="programInfoTitle">
     <section class="program-info-panel" tabindex="-1">
         <button id="programInfoClose" class="program-info-close" type="button" aria-label="프로그램 설명 닫기">×</button>
-        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.4.18</span>
+        <span class="program-info-eyebrow">FoxBear Mastering PRO v1.4.20</span>
         <h2 id="programInfoTitle">무료로 쉽게 완성하는 음질 개선과 마스터링</h2>
         <p>FoxBear는 복잡한 장비나 유료 프로그램 없이도 누구나 자신의 음악을 쉽게 정리하고, 더 듣기 좋은 음질로 마스터링할 수 있도록 만든 로컬 브라우저 스튜디오입니다.<br>작업은 내 브라우저 안에서 진행되어 파일을 서버로 올리지 않고도 빠르게 확인할 수 있습니다.</p>
         <div class="program-info-grid program-info-roadmap">

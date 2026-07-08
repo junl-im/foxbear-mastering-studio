@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.4.18 - runtime constants
+// FoxBear AI Mastering Studio Pro v1.4.20 - runtime constants
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
-    const ASSET_VERSION = '1.4.18-download-dialog-micro-hint';
+    const ASSET_VERSION = '1.4.20-bulk-import-guard';
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
     const MP3_ENCODER_WORKER_URL = assetUrl('src/workers/mp3-encoder.worker.js');
@@ -16,7 +16,7 @@
     const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
 
     global.FoxBearRuntimeConfig = Object.freeze({
-        APP_VERSION: 'Pro v1.4.18',
+        APP_VERSION: 'Pro v1.4.20',
         ASSET_VERSION,
         WAV_ENCODER_WORKER_URL,
         MP3_ENCODER_WORKER_URL,
@@ -33,6 +33,9 @@
         ]),
         MAX_FILES: 35,
         MAX_FILE_SIZE: 220 * 1024 * 1024,
+        IMPORT_ANALYSIS_CONCURRENCY: 1,
+        LARGE_IMPORT_BATCH_THRESHOLD: 12,
+        IMPORT_QUEUE_YIELD_MS: 90,
         CORE_AUDIO_EXTENSIONS: Object.freeze(CORE_AUDIO_EXTENSIONS),
         CONTAINER_AUDIO_EXTENSIONS: Object.freeze(CONTAINER_AUDIO_EXTENSIONS),
         EXPERIMENTAL_AUDIO_EXTENSIONS: Object.freeze(EXPERIMENTAL_AUDIO_EXTENSIONS),

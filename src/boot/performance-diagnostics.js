@@ -1,9 +1,9 @@
-// FoxBear lightweight performance diagnostics - v1.4.18
+// FoxBear lightweight performance diagnostics - v1.4.20
 // Hidden by default. Enable with ?perf=1, localStorage foxbear-perf-diagnostics=on, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.4.18-download-dialog-micro-hint';
+    const DIAGNOSTICS_VERSION = '1.4.20-bulk-import-guard';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

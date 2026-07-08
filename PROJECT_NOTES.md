@@ -1,8 +1,14 @@
+
+- v1.4.20 performance diagnostics can be used with bulk import queue snapshots for PC crash investigations.
+## v1.4.20 notes - bulk import memory safety
+
+The 35-track import path previously risked launching all decode/analysis jobs concurrently. v1.4.20 changes this to queued analysis after batch registration, reducing peak ArrayBuffer, AudioContext and render pressure. This is expected to mitigate PC Chrome/Edge `STATUS_BREAKPOINT` crashes on maximum-size imports.
+
 # Project Notes - FoxBear AI Mastering Studio
 
-## v1.4.18 Download dialog micro hint
+## v1.4.20 Download dialog micro hint
 - v1.4.17 made the recovery checklist compact, but the first dialog could still feel verbose.
-- v1.4.18 adds `getDownloadDialogCompactHint()` for a micro first-screen hint.
+- v1.4.20 adds `getDownloadDialogCompactHint()` for a micro first-screen hint.
 - The dialog now shows only the most practical next actions first.
 - Advanced support actions remain in `추가 옵션` instead of occupying the main screen.
 - The dialog flow-step append path was cleaned to avoid duplicate append logic.
@@ -33,11 +39,19 @@
 - Stage28: unmanaged waveform audit and waveform-control-view.js extraction remain valid.
 - Dock mini FFT was removed by design; renderMini removed and detail-only FFT remains.
 - Exit Guard remains active for refresh/back protection.
-- v1.4.18 performance diagnostics remain available with adaptive refresh and copy support.
+- v1.4.20 performance diagnostics remain available with adaptive refresh and copy support.
 
-## v1.4.18 cumulative compatibility anchors
+## v1.4.20 cumulative compatibility anchors
 - stability notes: navigation confirm debounce, FFT lifecycle stabilization, and external analyser coverage remain active.
 - Dock FFT removal remains intentional and settings gear alignment remains active.
 - Performance diagnostics remain available with adaptive refresh and copy support.
 - Packaging polish remains active for version-synced overwrite ZIP names.
 - Download/share reliability remains active with a shorter first-screen dialog.
+
+
+## v1.4.20 Download dialog first-screen declutter
+- Added `FoxBearDownloadService.getDownloadDialogDisplayProfile()` to keep the initial download/share dialog short.
+- The first open state uses `download-options-panel-v5`, `data-download-display-mode`, and an idle receipt.
+- The full checklist stays hidden on open and appears only after a download/share/assist action needs it.
+- Advanced diagnostics, address copy, guide copy, checklist copy, and external-browser guidance remain under `추가 옵션`.
+- Final static QA target: `138/138 PASS`.

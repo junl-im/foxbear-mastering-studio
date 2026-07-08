@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.4.18-download-dialog-micro-hint';
+    const FALLBACK_VERSION = '1.4.20-bulk-import-guard';
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
@@ -31,10 +31,12 @@
         'FoxBearDownloadService.getDownloadRecoveryChecklist',
         'FoxBearDownloadService.getDownloadCompactRecoveryPlan',
         'FoxBearDownloadService.getDownloadDialogCompactHint',
+        'FoxBearDownloadService.getDownloadDialogDisplayProfile',
         'FoxBearDownloadService.copyDownloadRecoveryChecklist',
         'FoxBearDownloadService.getDownloadDiagnostics',
         'FoxBearDownloadService.copyDownloadDiagnostics',
         'FoxBearDownloadDialogView.showDownloadOptionsDialog',
+        'FoxBearBulkImportGuard.getSnapshot',
         'FoxBearWaveformCompareView.renderWaveformCompareDialog',
         'FoxBearDetailPanelsView.renderQualityGatePanel',
         'FoxBearDetailView.renderDetail',

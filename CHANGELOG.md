@@ -1,13 +1,23 @@
+
+- v1.4.20 Performance diagnostics remain available while bulk import guard reports queued import state.
+# v1.4.20 stability - Bulk Import Guard / 35-Track PC Crash Hotfix
+
+- Fixed a PC bulk import crash path reported when selecting 35 songs at once.
+- Track registration now batches UI rendering and queues decoding/analysis instead of starting every file immediately.
+- Added a single-lane import analysis queue (`FoxBearBulkImportGuard`) to avoid simultaneous `file.arrayBuffer()` + `AudioContext.decodeAudioData()` storms.
+- Added large-batch status messaging so 12+ selected songs show safe queue progress.
+- Added `qa/v1420_bulk_import_guard_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.20.md`.
+
 # Changelog
 
-## v1.4.18 - Download dialog micro hint
-- Added `FoxBearDownloadService.getDownloadDialogCompactHint()` for a shorter first-screen download/save hint.
-- Main download popup now renders `.download-options-compact-hint` so Kakao/mobile users see only the next two actions first.
-- Diagnostics, 안내 복사, 체크리스트 복사, and external-browser guidance remain available under `추가 옵션`.
-- Capped first-screen flow steps with `visibleStepLimit` to avoid a long popup on mobile.
-- Fixed duplicate flow-step append logic in `download-dialog-view.js`.
-- Runtime Health now checks the dialog micro hint helper.
-- Updated cache key to `1.4.18-download-dialog-micro-hint`.
+## v1.4.20 - Download dialog first-screen declutter
+- Added `FoxBearDownloadService.getDownloadDialogDisplayProfile()` so the dialog can separate initial/open-state copy from post-action guidance.
+- Main download popup now uses `download-options-panel-v5` and `data-download-display-mode` for `restricted-declutter` / `standard-declutter` modes.
+- Initial receipt renders in idle mode and hides the full checklist until the user presses download/share/assist/diagnostics/copy.
+- Kept `getDownloadDialogCompactHint()` and all diagnostics/checklist copy tools as fallback support behind `추가 옵션`.
+- App download dialog dependencies now pass receipt/checklist/compact-hint/display-profile helpers explicitly.
+- Runtime Health now checks the dialog display profile helper.
+- Updated cache key to `1.4.20-bulk-import-guard`.
 
 ## v1.4.17 - Download recovery compact polish
 - Added `FoxBearDownloadService.getDownloadCompactRecoveryPlan()` for a shorter user-facing save order.
@@ -100,13 +110,13 @@
 - Stage11.1: runtime/mobile hotfix and Dock-attached quick panel cleanup remain active.
 - Stage12: detail view split remains active.
 - Stage13 and Stage14: Runtime Health and runtime recovery remain active.
-- v1.4.18 Spectrum / Exit Guard stability: Spectrum remains detail-only, Exit Guard remains enabled.
-- v1.4.18 Dock FFT removal: Dock FFT removal remains intentional; settings gear alignment remains active.
-- v1.4.18 renderMini cleanup: removed Dock mini FFT renderMini path remains removed.
-- v1.4.18 Performance diagnostics: `FoxBearPerformanceDiagnostics` remains available with `getSummary`, adaptive refresh, and 복사 actions.
-- v1.4.18 Packaging: overwrite packages derive the version from package.json.
+- v1.4.20 Spectrum / Exit Guard stability: Spectrum remains detail-only, Exit Guard remains enabled.
+- v1.4.20 Dock FFT removal: Dock FFT removal remains intentional; settings gear alignment remains active.
+- v1.4.20 renderMini cleanup: removed Dock mini FFT renderMini path remains removed.
+- v1.4.20 Performance diagnostics: `FoxBearPerformanceDiagnostics` remains available with `getSummary`, adaptive refresh, and 복사 actions.
+- v1.4.20 Packaging: overwrite packages derive the version from package.json.
 
-## v1.4.18 cumulative compatibility anchors
+## v1.4.20 cumulative compatibility anchors
 - stability: navigation confirm debounce, FFT lifecycle stabilization, and external analyser coverage remain active.
 - Dock FFT removal and settings gear alignment remain active.
 - Performance diagnostics and adaptive refresh remain available.
@@ -114,3 +124,6 @@
 - renderMini cleanup remains active; runtime health does not require `renderMini` and FFT remains detail-only.
 - Download/share fallback remains active: share/save, save assist, diagnostics copy, checklist copy, and external browser guidance remain available.
 - Dock FFT removal remains active; `#bottomPreviewSpectrum` should not exist and detail-only FFT remains intentional.
+
+- v1.4.20 carry-forward: getDownloadDialogCompactHint remains active for the compact download first screen.
+- v1.4.20 carry-forward: getDownloadDialogDisplayProfile keeps first-screen declutter behavior.

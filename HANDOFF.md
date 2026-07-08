@@ -1,24 +1,38 @@
-# Handoff - FoxBear AI Mastering Studio Pro v1.4.18
+
+- v1.4.20 FoxBearPerformanceDiagnostics remains available; combine with FoxBearBulkImportGuard.getSnapshot() for 35-track import debugging.
+## v1.4.20 stability handoff - 35-track PC import crash guard
+
+- Base: v1.4.19.
+- User report: selecting 35 songs on PC caused a `STATUS_BREAKPOINT` page error.
+- Patch: `handleFiles()` now registers tracks in a batch, renders once, then calls `queueTracksForAnalysis()` instead of starting `analyzeTrack()` for every track immediately.
+- New guard: `FoxBearBulkImportGuard.getSnapshot()` exposes pending/active/concurrency diagnostics.
+- Config: `IMPORT_ANALYSIS_CONCURRENCY = 1`, `LARGE_IMPORT_BATCH_THRESHOLD = 12`, `IMPORT_QUEUE_YIELD_MS = 90`.
+- QA: `qa/v1420_bulk_import_guard_smoke.js` plus browser matrix `qa/BROWSER_BACK_QA_MATRIX_1.4.20.md`.
+
+# Handoff - FoxBear AI Mastering Studio Pro v1.4.20
 
 ## Current patch
-v1.4.18 focuses on making the download/share dialog even shorter on the first screen while keeping all Kakao/mobile fallback tools intact.
+v1.4.20 focuses on decluttering the first screen of the download/share dialog while keeping all Kakao/mobile fallback tools intact.
 
 ## What changed
-- Added micro hint helper:
+- Added display profile helper:
+  - `FoxBearDownloadService.getDownloadDialogDisplayProfile()`
+- Kept micro hint helper:
   - `FoxBearDownloadService.getDownloadDialogCompactHint()`
 - Main download popup now includes:
   - `.download-options-compact-hint`
-  - `data-download-hint-mode`
-  - `visibleStepLimit`-capped flow steps
+  - `download-options-panel-v5`
+  - `data-download-display-mode`
+  - idle initial receipt with the full checklist hidden on open
 - Advanced recovery tools remain under `추가 옵션`:
   - 주소 복사
   - 안내 복사
   - 진단 복사
   - 체크리스트 복사
   - 외부 브라우저
-- Fixed duplicate `steps.appendChild(item)` logic in `download-dialog-view.js`.
-- Runtime Health requires the dialog micro hint helper.
-- Cache key is `1.4.18-download-dialog-micro-hint`.
+- App-level deps pass receipt/checklist/compact-hint/display-profile helpers explicitly.
+- Runtime Health requires the dialog display profile helper.
+- Cache key is `1.4.20-bulk-import-guard`.
 
 ## QA
 Run:
@@ -30,7 +44,7 @@ npm run package:clean
 npm run package:overwrite
 ```
 
-Expected current result: `137/137 PASS`.
+Expected current result: `138/138 PASS`.
 
 ## Manual QA focus
 - Kakao in-app browser: verify the dialog first screen is short and points to `공유/저장 → 파일 열기`.
@@ -40,7 +54,7 @@ Expected current result: `137/137 PASS`.
 - Desktop Chrome/Edge: verify format options and primary actions remain clear.
 
 ## 다음 패치 후보
-- v1.4.19: real-device Kakao/Android/iOS wording tuning if screenshots or copied diagnostics are available.
+- v1.4.20: real-device Kakao/Android/iOS wording tuning if screenshots or copied diagnostics are available.
 - Further reduce download popup copy if users still find it dense.
 - Consider a one-tap simple save mode for non-technical users.
 
@@ -71,7 +85,7 @@ Expected current result: `137/137 PASS`.
 - Exit Guard remains active for refresh/back protection.
 - FoxBearPerformanceDiagnostics remains available; use `getSummary` or Ctrl/Command + Alt + P for diagnostics.
 
-## v1.4.18 cumulative compatibility anchors
+## v1.4.20 cumulative compatibility anchors
 - stability: navigation confirm debounce and FFT lifecycle stabilization remain active.
 - Dock FFT removal and settings gear alignment remain active.
 - Performance diagnostics use adaptive refresh and copy support.

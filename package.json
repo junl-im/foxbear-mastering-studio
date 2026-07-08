@@ -1,8 +1,8 @@
 {
-  "name": "foxbear-github-pro-v1-4-18",
-  "version": "1.4.18",
+  "name": "foxbear-github-pro-v1-4-20",
+  "version": "1.4.20",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.18 Download dialog micro hint, Kakao/mobile save flow clarity, Download/share diagnostics, Performance diagnostics, Packaging sync, Spectrum, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration.",
+  "description": "FoxBear AI Mastering Studio Pro v1.4.20 Bulk import guard for 35-track PC selections, sequential analysis queue, Download dialog first-screen declutter, Kakao/mobile save flow clarity, Download/share diagnostics, Performance diagnostics, Spectrum, Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "node qa/run_all_checks.js",
@@ -147,6 +147,8 @@
     "node qa/v1415_download_receipt_polish_smoke.js",
     "node qa/v1416_download_recovery_checklist_smoke.js",
     "node qa/v1417_download_recovery_compact_smoke.js",
-    "node qa/v1418_download_dialog_micro_hint_smoke.js"
+    "node qa/v1418_download_dialog_micro_hint_smoke.js",
+    "node qa/v1419_download_dialog_declutter_smoke.js",
+    "node qa/v1420_bulk_import_guard_smoke.js"
   ]
 }

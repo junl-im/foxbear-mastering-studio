@@ -14,19 +14,19 @@ const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 
-must(pkg.version === '1.4.18', 'package version should be current 1.4.18');
-must(pkg.name === 'foxbear-github-pro-v1-4-18', 'package name should be current v1-4-18');
-must(html.includes('data-build="1.4.18"'), 'index build marker should be current');
-must(html.includes('1.4.18-download-dialog-micro-hint'), 'index should use current asset key');
-must(sw.includes('foxbear-shell-v1.4.18-download-dialog-micro-hint'), 'service worker cache should use current key');
+must(pkg.version === '1.4.20', 'package version should be current 1.4.20');
+must(pkg.name === 'foxbear-github-pro-v1-4-20', 'package name should be current v1-4-20');
+must(html.includes('data-build="1.4.20"'), 'index build marker should be current');
+must(html.includes('1.4.20-bulk-import-guard'), 'index should use current asset key');
+must(sw.includes('foxbear-shell-v1.4.20-bulk-import-guard'), 'service worker cache should use current key');
 
 must(service.includes('getDownloadActionReceipt'), 'download service should expose action receipt helper');
-must(service.includes("version: '1.4.18'"), 'download receipt/diagnostics should report current version');
+must(service.includes("version: '1.4.20'"), 'download receipt/diagnostics should report current version');
 must(service.includes('nextSteps'), 'download receipt should include next steps');
 must(runtime.includes('FoxBearDownloadService.getDownloadActionReceipt'), 'runtime health should require receipt helper');
 
 must(dialog.includes('download-options-receipt'), 'dialog should render receipt/status block');
-must(dialog.includes('renderReceipt(primaryAction)'), 'dialog should initialize receipt with primary action');
+must(dialog.includes("renderReceipt(primaryAction, null, '', { initial: true })") || dialog.includes('renderReceipt(primaryAction)'), 'dialog should initialize receipt with primary action');
 must(dialog.includes("renderReceipt('assist', exported"), 'dialog should show assist receipt after fallback');
 must(dialog.includes("renderReceipt('diagnostics'"), 'dialog should show diagnostics receipt');
 must(dialog.includes('aria-live'), 'receipt should be polite live region');
@@ -34,8 +34,8 @@ must(css.includes('.download-options-receipt'), 'download dialog CSS should styl
 must(css.includes('Download receipt polish'), 'CSS should include receipt polish comment');
 
 must(pkg.qaChecks.includes('node qa/v1415_download_receipt_polish_smoke.js'), 'package qaChecks should include receipt smoke');
-must(fs.existsSync(path.join(root, 'qa/BROWSER_BACK_QA_MATRIX_1.4.18.md')), 'current browser matrix should exist');
-must(qaReport.includes('v1.4.18'), 'QA report should mention current version');
-must(changelog.includes('v1.4.18'), 'changelog should mention current version');
-must(handoff.includes('v1.4.18'), 'handoff should mention current version');
+must(fs.existsSync(path.join(root, 'qa/BROWSER_BACK_QA_MATRIX_1.4.20.md')), 'current browser matrix should exist');
+must(qaReport.includes('v1.4.20'), 'QA report should mention current version');
+must(changelog.includes('v1.4.20'), 'changelog should mention current version');
+must(handoff.includes('v1.4.20'), 'handoff should mention current version');
 console.log('PASS v1.4.15 download receipt polish smoke on current line');

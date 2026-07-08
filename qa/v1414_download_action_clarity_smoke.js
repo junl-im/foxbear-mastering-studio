@@ -5,7 +5,7 @@ const fs = require('fs');
 const read = file => fs.readFileSync(file, 'utf8');
 const assert = (condition, message) => {
   if (!condition) {
-    console.error(`FAIL v1.4.18 download action clarity smoke: ${message}`);
+    console.error(`FAIL v1.4.20 download action clarity smoke: ${message}`);
     process.exit(1);
   }
 };
@@ -17,15 +17,15 @@ const app = read('src/app.js');
 const dialog = read('src/ui/download-dialog-view.js');
 const service = read('src/download/download-service.js');
 const css = read('assets/css/download-dialog.css');
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.18.md');
+const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.20.md');
 
-assert(pkg.version === '1.4.18', 'package version should be 1.4.18');
-assert(pkg.name === 'foxbear-github-pro-v1-4-18', 'package name should match v1.4.18');
-assert(index.includes('data-build="1.4.18"'), 'index build should be v1.4.18');
-assert(index.includes('1.4.18-download-dialog-micro-hint'), 'index should use v1.4.18 action clarity cache key');
-assert(sw.includes('foxbear-shell-v1.4.18-download-dialog-micro-hint'), 'service worker should use action clarity cache key');
+assert(pkg.version === '1.4.20', 'package version should be 1.4.20');
+assert(pkg.name === 'foxbear-github-pro-v1-4-20', 'package name should match v1.4.20');
+assert(index.includes('data-build="1.4.20"'), 'index build should be v1.4.20');
+assert(index.includes('1.4.20-bulk-import-guard'), 'index should use v1.4.20 action clarity cache key');
+assert(sw.includes('foxbear-shell-v1.4.20-bulk-import-guard'), 'service worker should use action clarity cache key');
 
-assert(service.includes("version: '1.4.18'"), 'download diagnostics/flow should report v1.4.18');
+assert(service.includes("version: '1.4.20'"), 'download diagnostics/flow should report v1.4.20');
 assert(service.includes('getRecommendedDownloadFlow'), 'recommended flow helper should remain in download service');
 
 assert(dialog.includes('const actionLabel = action =>'), 'dialog should map action labels explicitly');
@@ -49,12 +49,12 @@ assert(dialog.includes('copyDownloadDiagnostics(track.outBlob || null, track.out
 assert(dialog.includes('openCurrentPageInExternalBrowser(deps)'), 'external browser helper should receive deps');
 
 assert(app.includes('showToast,\n        foxBearHaptic'), 'app should pass showToast into download dialog deps');
-assert(css.includes('.download-options-actions-v1414'), 'CSS should style v1.4.18 action row');
+assert(css.includes('.download-options-actions-v1414'), 'CSS should style v1.4.20 action row');
 assert(css.includes('button.is-recommended::after'), 'CSS should show recommended action badge');
 assert(css.includes('data-download-action="diagnostics"'), 'CSS should include diagnostics action selector');
 
-assert(matrix.includes('v1.4.18 Download action clarity'), 'QA matrix should document action clarity');
+assert(matrix.includes('v1.4.20 Download action clarity'), 'QA matrix should document action clarity');
 assert(matrix.includes('data-download-action'), 'QA matrix should include button action metadata checks');
 assert(matrix.includes('Advanced actions are hidden behind'), 'QA matrix should retain advanced action collapse scenario');
 
-console.log('PASS v1.4.18 download action clarity smoke');
+console.log('PASS v1.4.20 download action clarity smoke');

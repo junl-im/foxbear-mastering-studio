@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.18 - download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.4.20 - download dialog view builder
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -24,6 +24,7 @@
             getDownloadRecoveryChecklist,
             getDownloadCompactRecoveryPlan,
             getDownloadDialogCompactHint,
+            getDownloadDialogDisplayProfile,
             foxBearHaptic = () => undefined,
             clearNativeBadgeIfDone = () => undefined,
             renderAll = () => undefined,
@@ -49,6 +50,21 @@
         const compactHint = typeof getDownloadDialogCompactHint === 'function'
             ? getDownloadDialogCompactHint(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : null;
+        const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
+            ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
+            : {
+                version: '1.4.20',
+                mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
+                headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
+                detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
+                initialWarning: env.restricted ? '공유/저장을 먼저 누르세요.' : '다운로드를 먼저 누르세요.',
+                receiptIdle: true,
+                maxInitialReceiptSteps: env.restricted ? 1 : 0,
+                maxActionReceiptSteps: 2,
+                showChecklistOnOpen: false,
+                showChecklistAfterAction: true,
+                advancedCollapsed: true
+            };
         const backdrop = document.createElement('div');
         backdrop.className = 'download-options-backdrop';
         backdrop.setAttribute('role', 'dialog');
@@ -56,7 +72,8 @@
         backdrop.setAttribute('aria-label', '다운로드 및 공유');
 
         const panel = document.createElement('section');
-        panel.className = `download-options-panel download-options-panel-v3 download-options-panel-v4 ${env.restricted ? 'restricted' : 'normal'}`;
+        panel.className = `download-options-panel download-options-panel-v3 download-options-panel-v4 download-options-panel-v5 ${env.restricted ? 'restricted' : 'normal'}`;
+        panel.dataset.downloadDisplayMode = displayProfile.mode || (env.restricted ? 'restricted-declutter' : 'standard-declutter');
         panel.tabIndex = -1;
         const close = document.createElement('button');
         close.type = 'button';
@@ -93,9 +110,9 @@
         const flowCard = document.createElement('div');
         flowCard.className = `download-options-flow-card ${env.restricted ? 'restricted' : 'normal'}`;
         const flowTitle = document.createElement('strong');
-        flowTitle.textContent = flow?.headline || (env.restricted ? '카카오에서는 공유/저장부터 시도하세요.' : '포맷 선택 후 다운로드하세요.');
+        flowTitle.textContent = displayProfile.headline || flow?.headline || (env.restricted ? '카카오에서는 공유/저장부터 시도하세요.' : '포맷 선택 후 다운로드하세요.');
         const flowDetail = document.createElement('span');
-        flowDetail.textContent = flow?.detail || env.detail;
+        flowDetail.textContent = displayProfile.detail || flow?.detail || env.detail;
         const flowBadges = document.createElement('div');
         flowBadges.className = 'download-options-flow-badges';
         (flow?.badges || [env.recommendedAction, env.label]).forEach(text => {
@@ -139,9 +156,9 @@
 
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
-        warning.textContent = env.restricted
-            ? '카카오톡 안에서 다운로드가 안 보이면 정상입니다. 공유/저장 → 저장 도움 → 외부 브라우저 순서로 시도하세요.'
-            : '포맷을 선택한 뒤 아래 다운로드 또는 파일 공유 버튼을 눌러주세요.';
+        warning.textContent = displayProfile.initialWarning || (env.restricted
+            ? '공유/저장을 먼저 누르세요. 안 되면 저장 도움을 사용하세요.'
+            : '포맷을 선택한 뒤 다운로드 버튼을 눌러주세요.');
 
         const listLabel = document.createElement('span');
         listLabel.className = 'download-options-section-label';
@@ -230,13 +247,13 @@
         const moreToggle = document.createElement('button');
         moreToggle.type = 'button';
         moreToggle.className = 'btn-secondary download-options-more-toggle';
-        moreToggle.setAttribute('aria-expanded', 'false');
-        moreToggle.textContent = '추가 옵션';
+        moreToggle.setAttribute('aria-expanded', String(displayProfile.advancedCollapsed === false));
+        moreToggle.textContent = displayProfile.advancedCollapsed === false ? '추가 옵션 닫기' : '추가 옵션';
         actions.append(download, share, help, moreToggle);
 
         const fallbackActions = document.createElement('div');
         fallbackActions.className = 'download-options-actions download-options-actions-fallback is-collapsed';
-        fallbackActions.setAttribute('aria-hidden', 'true');
+        fallbackActions.setAttribute('aria-hidden', String(displayProfile.advancedCollapsed !== false));
         const copy = document.createElement('button');
         copy.type = 'button';
         copy.className = 'btn-secondary';
@@ -339,7 +356,8 @@
         const receipt = document.createElement('div');
         receipt.className = 'download-options-receipt';
         receipt.setAttribute('aria-live', 'polite');
-        const renderReceipt = (action, exported = null, status = '') => {
+        const renderReceipt = (action, exported = null, status = '', options = {}) => {
+            const initial = Boolean(options.initial);
             const fallbackReceipt = {
                 title: status || `${actionLabel(action)} 준비`,
                 detail: '버튼을 누르면 선택한 파일 형식으로 준비한 뒤 다음 저장 방법을 안내합니다.',
@@ -350,21 +368,33 @@
                 ? getDownloadActionReceipt(action, exported?.blob || track.outBlob || null, exported?.fileName || track.outName || track.name || 'FoxBear mastered file')
                 : fallbackReceipt;
             receipt.replaceChildren();
+            receipt.classList.toggle('is-idle', initial && displayProfile.receiptIdle !== false);
             const titleLine = document.createElement('strong');
-            titleLine.textContent = status || data.title || fallbackReceipt.title;
+            titleLine.textContent = status || (initial ? (displayProfile.headline || data.title) : data.title) || fallbackReceipt.title;
             const detailLine = document.createElement('span');
-            detailLine.textContent = data.detail || fallbackReceipt.detail;
+            detailLine.textContent = initial ? (displayProfile.initialWarning || displayProfile.detail || data.detail || fallbackReceipt.detail) : (data.detail || fallbackReceipt.detail);
+            const maxSteps = Number(initial ? displayProfile.maxInitialReceiptSteps : displayProfile.maxActionReceiptSteps);
+            const stepSource = data.nextSteps || fallbackReceipt.nextSteps;
             const stepList = document.createElement('ul');
             stepList.className = 'download-options-receipt-steps';
-            (data.nextSteps || fallbackReceipt.nextSteps).slice(0, 3).forEach(step => {
+            stepSource.slice(0, Number.isFinite(maxSteps) ? Math.max(0, maxSteps) : 2).forEach(step => {
                 const item = document.createElement('li');
                 item.textContent = step;
                 stepList.appendChild(item);
             });
-            receipt.append(titleLine, detailLine, stepList);
-            renderChecklist(action, exported);
+            receipt.append(titleLine, detailLine);
+            if (stepList.children.length) receipt.appendChild(stepList);
+            if (initial && displayProfile.showChecklistOnOpen === false) {
+                checklistPanel.replaceChildren();
+                checklistPanel.classList.add('is-empty');
+                return;
+            }
+            if (!initial && displayProfile.showChecklistAfterAction !== false) {
+                checklistPanel.classList.remove('is-empty');
+                renderChecklist(action, exported);
+            }
         };
-        renderReceipt(primaryAction);
+        renderReceipt(primaryAction, null, '', { initial: true });
 
         const allButtons = () => [download, share, help, moreToggle, copy, close, ...Array.from(list.querySelectorAll('button')), ...Array.from(fallbackActions.querySelectorAll('button'))];
         const setBusy = busy => {

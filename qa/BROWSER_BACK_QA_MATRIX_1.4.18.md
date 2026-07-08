@@ -1,10 +1,10 @@
-# v1.4.18 Download dialog micro hint QA matrix
+# v1.4.20 Download dialog micro hint QA matrix
 
 ## Scope
-v1.4.18 keeps the v1.4.11-v1.4.17 download/share fallback stack, but makes the first download dialog shorter.
+v1.4.20 keeps the v1.4.11-v1.4.17 download/share fallback stack, but makes the first download dialog shorter.
 
 ## Static expectations
-- Build markers use `1.4.18-download-dialog-micro-hint`.
+- Build markers use `1.4.20-bulk-import-guard`.
 - `FoxBearDownloadService.getDownloadDialogCompactHint()` is exposed.
 - Runtime Health checks `FoxBearDownloadService.getDownloadDialogCompactHint`.
 - Main dialog renders `.download-options-compact-hint` before warning/receipt/checklist content.
@@ -42,7 +42,7 @@ v1.4.18 keeps the v1.4.11-v1.4.17 download/share fallback stack, but makes the f
 - FFT external analyser coverage remains active for realtime preview, translation preview, and difference-listen paths.
 
 ## Stability regression anchor
-- v1.4.18 confirm behavior remains covered through beforeunload/popstate checks.
+- v1.4.20 confirm behavior remains covered through beforeunload/popstate checks.
 - Dock mini FFT remains removed by design; the download dialog micro hint patch must not reintroduce Dock spectrum UI.
 
 ## Dock FFT removal regression anchor
@@ -52,11 +52,11 @@ v1.4.18 keeps the v1.4.11-v1.4.17 download/share fallback stack, but makes the f
 - runtime health does not require `renderMini`; Dock mini spectrum remains removed and detail FFT remains available.
 
 ## Performance diagnostics regression anchor
-- v1.4.18 Performance diagnostics remain available through `?perf=1` and Ctrl/Command + Alt + P.
+- v1.4.20 Performance diagnostics remain available through `?perf=1` and Ctrl/Command + Alt + P.
 
-## v1.4.18 Download flow polish diagnostics anchor
+## v1.4.20 Download flow polish diagnostics anchor
 - Diagnostics copy / 진단 복사 remains available from 추가 옵션 and save-assist paths.
 - Advanced actions are hidden behind `추가 옵션` by default so the first download screen stays short.
 
-## v1.4.18 Download action clarity anchor
+## v1.4.20 Download action clarity anchor
 - Primary and secondary buttons keep explicit `data-download-action` values for download/share/assist/diagnostics/copy.

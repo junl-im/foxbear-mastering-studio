@@ -1,4 +1,4 @@
-/* FoxBear AI Mastering Studio Pro v1.4.18 - download dialog module */
+/* FoxBear AI Mastering Studio Pro v1.4.20 - download dialog module */
 
 .download-options-open { overflow: hidden; }
 
@@ -197,7 +197,7 @@
     }
 }
 
-/* v1.4.18 Download/share reliability: larger dialog, Kakao help, full assist sheet */
+/* v1.4.20 Download/share reliability: larger dialog, Kakao help, full assist sheet */
 .download-options-backdrop {
     padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
     align-items: center;
@@ -435,7 +435,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     }
 }
 
-/* v1.4.18 Download diagnostics polish: capability badges and wider fallback actions */
+/* v1.4.20 Download diagnostics polish: capability badges and wider fallback actions */
 .download-assist-support {
     display: flex;
     flex-wrap: wrap;
@@ -468,7 +468,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     .download-assist-support b { font-size: .50rem; }
 }
 
-/* v1.4.18 Download flow polish: simpler recommended path and collapsed advanced actions */
+/* v1.4.20 Download flow polish: simpler recommended path and collapsed advanced actions */
 .download-options-flow-card {
     display: grid;
     gap: 7px;
@@ -554,7 +554,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     }
 }
 
-/* v1.4.18 Download action clarity: recommended action and explicit button roles */
+/* v1.4.20 Download action clarity: recommended action and explicit button roles */
 .download-options-actions-v1414 button[data-download-action] {
     position: relative;
 }
@@ -589,7 +589,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     }
 }
 
-/* v1.4.18 Download receipt polish: show what happened and what to do next. */
+/* v1.4.20 Download receipt polish: show what happened and what to do next. */
 .download-options-receipt {
     border: 1px solid rgba(80, 210, 255, .18);
     background: rgba(5, 18, 32, .58);
@@ -625,7 +625,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     .download-options-receipt > span { font-size: .60rem; }
 }
 
-/* v1.4.18 Download recovery checklist compact mode: keep the next save action visible without crowding the main buttons. */
+/* v1.4.20 Download recovery checklist compact mode: keep the next save action visible without crowding the main buttons. */
 .download-options-checklist,
 .download-assist-checklist {
     border: 1px solid rgba(255, 224, 108, .16);
@@ -701,7 +701,7 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
 }
 
 
-/* v1.4.18 Download dialog micro hint: keep the first screen short while preserving diagnostics under additional options. */
+/* v1.4.20 Download dialog micro hint: keep the first screen short while preserving diagnostics under additional options. */
 .download-options-compact-hint {
     border: 1px solid rgba(109, 215, 255, .18);
     background: rgba(109, 215, 255, .065);
@@ -741,5 +741,32 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     }
     .download-options-compact-hint span {
         font-size: .56rem;
+    }
+}
+
+/* v1.4.20 Download dialog first-screen declutter: keep diagnostics/checklist hidden until an action needs them. */
+.download-options-panel-v5[data-download-display-mode$="declutter"] .download-options-receipt.is-idle {
+    padding: 8px 10px;
+    gap: 3px;
+    border-color: rgba(255, 255, 255, .08);
+    background: rgba(255, 255, 255, .045);
+}
+.download-options-panel-v5 .download-options-receipt.is-idle .download-options-receipt-steps {
+    margin-top: 2px;
+}
+.download-options-panel-v5 .download-options-receipt.is-idle .download-options-receipt-steps:empty,
+.download-options-panel-v5 .download-options-checklist.is-empty {
+    display: none;
+}
+.download-options-panel-v5 .download-options-receipt.is-idle > strong {
+    font-size: .67rem;
+}
+.download-options-panel-v5 .download-options-receipt.is-idle > span {
+    font-size: .54rem;
+    color: rgba(225, 238, 246, .66);
+}
+@media (max-width: 640px) {
+    .download-options-panel-v5[data-download-display-mode$="declutter"] .download-options-receipt.is-idle {
+        padding: 7px 9px;
     }
 }
