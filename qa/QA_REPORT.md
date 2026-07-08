@@ -1,11 +1,12 @@
-# QA Report - v1.5.3 Bulk HUD Visibility + Inline Master All
+# QA Report - v1.5.4 Boot SRI Recovery
 
 ## Result
 
 ```text
-173/173 PASS
+174/174 PASS
 ```
 
+Previous v1.5.3 static target: `173/173 PASS`.
 Previous v1.5.2 static target: `172/172 PASS`.
 Previous v1.5.1 static target: `170/170 PASS`.
 
@@ -29,6 +30,8 @@ npm run check
 - `qa/v150_engine_quality_gate_smoke.js`
 - `qa/v151_real_browser_automation_smoke.js`
 - `qa/v152_export_guard_low_memory_smoke.js`
+- `qa/v153_bulk_hud_visibility_masterall_smoke.js`
+- `qa/v154_boot_sri_recovery_smoke.js`
 
 ## Manual follow-up still needed
 
@@ -48,7 +51,7 @@ docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
 
 ## Carry-forward v1.4.26 QA anchor
 
-v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility. Current QA is higher because v1.5.3 adds Bulk HUD visibility/master-all UX checks on top of v1.5.2 Export Guard checks on top of v1.5.1 real-browser automation smokes on top of v1.5.0 engine quality gate checks on top of v1.4.29 Memory Stabilization, release cleanup, service-module, app-slimdown orchestration, memory-guard, and browser-scaffold checks.
+v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility. Current QA is higher because v1.5.4 adds boot SRI/cache recovery checks and v1.5.3 adds Bulk HUD visibility/master-all UX checks on top of v1.5.2 Export Guard checks on top of v1.5.1 real-browser automation smokes on top of v1.5.0 engine quality gate checks on top of v1.4.29 Memory Stabilization, release cleanup, service-module, app-slimdown orchestration, memory-guard, and browser-scaffold checks.
 
 ## v1.5.3 coverage
 
@@ -56,3 +59,11 @@ v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility
 - Verifies hidden HUD restore through a `보이기` control beside the floating settings gear.
 - Verifies the large HUD inline `전체 마스터링` action delegates to the existing main full-mastering button.
 - Verifies v1.5.3 stale-cache keys and service worker precache alignment.
+
+
+## v1.5.4 coverage
+
+- Verifies boot-critical `runtime-health.js`, `performance-diagnostics.js`, and `app.js` use the fresh `h=boot-sri-v154` cache-bust key in both `index.html` and `sw.js`.
+- Verifies the generated SRI hashes match the actual bytes for the three boot-critical scripts.
+- Verifies the service worker shell cache name was bumped to `foxbear-shell-v1.5.4-boot-sri-recovery`.
+- Verifies Runtime Health cache recovery clears broader app/workbox/precache caches and unregisters service workers before reload.

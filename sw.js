@@ -1,7 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.4.27 service worker
+// FoxBear AI Mastering Studio Pro v1.5.4 service worker · boot SRI recovery
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.4.26-wake-lock-state-sync';
+const CACHE_NAME = 'foxbear-shell-v1.5.4-boot-sri-recovery';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.4.26-wake-lock-state-sync'];
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -88,10 +89,10 @@ const CORE_ASSETS = [
   './src/ui/detail-panels-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/detail-view.js?v=1.4.26-wake-lock-state-sync',
   './src/security/site-guards.js?v=1.4.26-wake-lock-state-sync',
-  './src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync',
-  './src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync',
+  './src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v154',
+  './src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v154',
   './src/boot/render-scheduler.js?v=1.4.26-wake-lock-state-sync',
-  './src/app.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-v153',
+  './src/app.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v154',
   './assets/icons/foxbear-music.png?v=1.4.26-wake-lock-state-sync'
 ];
 
@@ -103,7 +104,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME).map(name => caches.delete(name)));
+    await Promise.all(names.filter(name => (name.startsWith('foxbear-shell-') || LEGACY_CACHE_NAMES.includes(name)) && name !== CACHE_NAME).map(name => caches.delete(name)));
     await self.clients.claim();
   })());
 });

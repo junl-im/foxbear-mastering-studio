@@ -1,3 +1,10 @@
+# v1.5.4 - Boot SRI Recovery
+
+- Added fresh boot cache-bust keys for `runtime-health.js`, `performance-diagnostics.js`, and `app.js` to avoid stale cached JS bytes causing SRI blocks after deployment.
+- Bumped the service worker shell cache generation to `foxbear-shell-v1.5.4-boot-sri-recovery`.
+- Strengthened Runtime Health `캐시 초기화 후 재시도` to clear broader app/workbox/precache caches, update/unregister service workers, and reload with a fresh URL.
+- Added `qa/v154_boot_sri_recovery_smoke.js`; current default QA target is `174/174 PASS`.
+
 # v1.5.3 - Bulk HUD Visibility + Inline Master All
 
 - Renamed the large bulk HUD toggle copy from `접기` to `숨김` and made it hide the current bulk HUD batch.

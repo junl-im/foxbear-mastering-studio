@@ -1,6 +1,13 @@
-# FoxBear AI Mastering Studio Pro v1.5.3
+# FoxBear AI Mastering Studio Pro v1.5.4
 
-## Current patch: v1.5.3 Bulk HUD Visibility + Inline Master All
+
+## Current patch: v1.5.4 Boot SRI Recovery
+
+Compatibility note: previous maintenance layer `v1.5.3 Bulk HUD Visibility + Inline Master All` remains carried forward.
+
+This hotfix targets the reported boot-stall case where `src/boot/performance-diagnostics.js` and `src/app.js` can be blocked by stale cached bytes that no longer match the current SRI hash. The boot-critical scripts now use a fresh `h=boot-sri-v154` cache-bust key, the service worker shell cache generation was bumped to `foxbear-shell-v1.5.4-boot-sri-recovery`, and the Runtime Health recovery action now clears broader app/workbox/precache caches while updating and unregistering service workers before a hard reload.
+
+## Previous patch: v1.5.3 Bulk HUD Visibility + Inline Master All
 
 Compatibility note: previous maintenance layer `v1.5.2 Export Guard + Low Memory UX` remains carried forward.
 
@@ -59,7 +66,7 @@ The app still uses:
 1.4.26-wake-lock-state-sync
 ```
 
-This is intentional. The cache key remains stable to avoid surprising deployed users, while the release documentation and new modules mark the current maintenance work as v1.5.2.
+This is intentional. The asset `v=` compatibility key remains stable to avoid surprising deployed users, while targeted `h=` cache-bust keys and the service worker shell cache generation advance for boot-critical hotfixes.
 
 ## Memory diagnostics
 
@@ -89,7 +96,7 @@ npm run check
 Current expected result after this patch:
 
 ```text
-173/173 PASS
+174/174 PASS
 ```
 
 Optional real-browser automation:

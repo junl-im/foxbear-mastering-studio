@@ -41,7 +41,7 @@ assert(browserBulk.includes('FoxBearExportGuard') && browserBulk.includes('expor
 assert(readme.includes('v1.5.2') && readme.includes('Export Guard'), 'README missing v1.5.2 export guard notes');
 assert(handoff.includes('v1.5.2') && handoff.includes('FoxBearExportGuard'), 'HANDOFF missing v1.5.2 handoff notes');
 assert(qaReport.includes('172/172 PASS') && qaReport.includes('v1.5.2'), 'QA report should record 172/172 PASS and v1.5.2');
-assert(changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX'), 'CHANGELOG v1.5.2 entry missing at top');
+assert(changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX'), 'CHANGELOG v1.5.2 entry missing at top');
 assert(app.split(/\r?\n/).length < 12950, 'app.js should stay below slim-down line budget');
 
 console.log('PASS v1.5.2 export guard low-memory smoke');

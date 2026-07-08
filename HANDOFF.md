@@ -1,12 +1,20 @@
-# Handoff - v1.5.3 Bulk HUD Visibility + Inline Master All
+# Handoff - v1.5.4 Boot SRI Recovery
 
 ## Current status
 
-Latest package layer: `v1.5.3` maintenance patch on top of the `1.4.26-wake-lock-state-sync` runtime/cache key.
+Latest package layer: `v1.5.4` boot SRI recovery hotfix on top of the `1.4.26-wake-lock-state-sync` runtime asset version key.
 
-Compatibility note: previous maintenance layer `v1.5.2 Export Guard + Low Memory UX` remains carried forward.
+Compatibility note: previous maintenance layers `v1.5.3 Bulk HUD Visibility + Inline Master All` and `v1.5.2 Export Guard + Low Memory UX` remain carried forward.
 
 The previous Bulk HUD asset/close-button hotfix, Bulk Mastering HUD continuity patch, v1.4.27 release cleanup, v1.4.28 app-slimdown orchestration split, v1.4.29 Memory Stabilization, v1.5.0 Engine Quality Gate, and v1.5.1 browser automation carry-forward are active.
+
+
+## v1.5.4 boot SRI recovery
+
+- Added fresh boot cache-bust keys (`h=boot-sri-v154`) to `runtime-health.js`, `performance-diagnostics.js`, and `app.js`.
+- Bumped the service worker shell cache generation to `foxbear-shell-v1.5.4-boot-sri-recovery` so stale shell entries cannot satisfy the new boot-critical script URLs.
+- Strengthened Runtime Health `캐시 초기화 후 재시도` to clear `foxbear-*`, `workbox-*`, and `precache-*` caches, request service worker update, unregister service workers, and then reload with a fresh URL.
+- Added `qa/v154_boot_sri_recovery_smoke.js` to lock boot script SRI/cache-bust alignment.
 
 ## v1.5.3 bulk HUD visibility and inline full-mastering action
 
@@ -61,7 +69,7 @@ npm run check
 Expected result:
 
 ```text
-173/173 PASS
+174/174 PASS
 ```
 
 Optional browser QA automation:

@@ -187,6 +187,7 @@
     "node qa/v151_browser_qa_scaffold_smoke.js",
     "node qa/v151_real_browser_automation_smoke.js",
     "node qa/v152_export_guard_low_memory_smoke.js",
-    "node qa/v153_bulk_hud_visibility_masterall_smoke.js"
+    "node qa/v153_bulk_hud_visibility_masterall_smoke.js",
+    "node qa/v154_boot_sri_recovery_smoke.js"
   ]
 }

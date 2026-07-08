@@ -1,4 +1,4 @@
-// FoxBear runtime health monitor - Stage14 runtime recovery
+// FoxBear runtime health monitor - v1.5.4 boot SRI recovery
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
@@ -340,13 +340,19 @@
         try {
             if ('caches' in global) {
                 const names = await global.caches.keys();
-                await Promise.all(names.filter(name => /^foxbear-shell-/.test(name)).map(name => global.caches.delete(name)));
+                await Promise.all(names
+                    .filter(name => /^foxbear-|^workbox-|^precache-/i.test(name))
+                    .map(name => global.caches.delete(name)));
             }
             if ('serviceWorker' in navigator) {
                 const regs = await navigator.serviceWorker.getRegistrations();
-                await Promise.all(regs.map(reg => reg.unregister()));
+                await Promise.all(regs.map(async reg => {
+                    try { await reg.update?.(); } catch (error) {}
+                    return reg.unregister();
+                }));
             }
             sessionStorage.setItem('foxbearRuntimeRecovery', String(Date.now()));
+            sessionStorage.setItem('foxbearBypassSwOnce', '1');
         } catch (error) {
             console.warn('[FoxBearRuntimeHealth] cache recovery failed', error);
         }
