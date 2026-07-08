@@ -1,11 +1,13 @@
-# QA Report - v1.5.4 Boot SRI Recovery
+# QA Report - v1.5.6 Export Progress Recovery
 
 ## Result
 
 ```text
-174/174 PASS
+178/178 PASS
 ```
 
+Previous v1.5.5 static target: `176/176 PASS`.
+Previous v1.5.4 static target: `174/174 PASS`.
 Previous v1.5.3 static target: `173/173 PASS`.
 Previous v1.5.2 static target: `172/172 PASS`.
 Previous v1.5.1 static target: `170/170 PASS`.
@@ -32,6 +34,8 @@ npm run check
 - `qa/v152_export_guard_low_memory_smoke.js`
 - `qa/v153_bulk_hud_visibility_masterall_smoke.js`
 - `qa/v154_boot_sri_recovery_smoke.js`
+- `qa/v155_update_safety_asset_health_smoke.js`
+- `qa/v156_export_progress_recovery_smoke.js`
 
 ## Manual follow-up still needed
 
@@ -51,7 +55,23 @@ docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
 
 ## Carry-forward v1.4.26 QA anchor
 
-v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility. Current QA is higher because v1.5.4 adds boot SRI/cache recovery checks and v1.5.3 adds Bulk HUD visibility/master-all UX checks on top of v1.5.2 Export Guard checks on top of v1.5.1 real-browser automation smokes on top of v1.5.0 engine quality gate checks on top of v1.4.29 Memory Stabilization, release cleanup, service-module, app-slimdown orchestration, memory-guard, and browser-scaffold checks.
+v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility. Current QA is higher because v1.5.5 adds Update Safety asset-health checks and v1.5.4 adds boot SRI/cache recovery checks and v1.5.3 adds Bulk HUD visibility/master-all UX checks on top of v1.5.2 Export Guard checks on top of v1.5.1 real-browser automation smokes on top of v1.5.0 engine quality gate checks on top of v1.4.29 Memory Stabilization, release cleanup, service-module, app-slimdown orchestration, memory-guard, and browser-scaffold checks.
+
+
+## v1.5.6 coverage
+
+- Verifies `src/download/export-progress-view.js` is loaded after Export Guard and before `src/app.js`.
+- Verifies the visible export panel IDs, progress bar, checklist, and fallback `곡별 다운로드 위치 보기` action exist.
+- Verifies `downloadZip()` updates `FoxBearExportProgressView` for plan, progress, completion, validation failure, and errors.
+- Verifies boot/update safety keys moved to `boot-sri-v156` and `update-safety-v156`, and service worker cache generation is `foxbear-shell-v1.5.6-export-progress-recovery`.
+
+## v1.5.5 coverage
+
+- Verifies `src/boot/update-safety-service.js` is loaded before other deferred boot diagnostics and exposed as `FoxBearUpdateSafety`.
+- Verifies boot-critical assets use `h=boot-sri-v155` in both `index.html` and `sw.js`.
+- Verifies the service worker cache generation is `foxbear-shell-v1.5.5-update-safety` and v1.5.4 is treated as legacy.
+- Verifies Runtime Health can copy Update Safety diagnostics and can request `FOXBEAR_PURGE_CACHES` before unregister/reload.
+- Verifies patched JS/CSS service-worker fetches use network-first no-store handling for patch-busted assets.
 
 ## v1.5.3 coverage
 

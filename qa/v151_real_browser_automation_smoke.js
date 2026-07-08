@@ -50,6 +50,6 @@ must(runner.includes('waitForServer') && runner.includes('npx') && runner.includ
 must(config.includes('Desktop Chrome') && config.includes('Pixel 5'), 'Playwright config should cover desktop and mobile viewport');
 must(readme.includes('v1.5.1') && readme.includes('npm run qa:browser'), 'README should document v1.5.1 browser QA');
 must(handoff.includes('v1.5.1') && handoff.includes('Playwright'), 'HANDOFF should document v1.5.1 browser QA');
-must(qaReport.includes('170/170 PASS') && qaReport.includes('v1.5.1'), 'QA report should record 170/170 PASS and v1.5.1');
+must((qaReport.includes('170/170 PASS') || qaReport.includes('176/176 PASS') || qaReport.includes('178/178 PASS')) && qaReport.includes('v1.5.1'), 'QA report should record current PASS target and v1.5.1');
 
 console.log('PASS v1.5.1 real browser automation smoke');

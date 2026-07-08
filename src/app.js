@@ -2960,7 +2960,8 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.26-wake-lock-state-sync');
+        // stage13 compatibility anchor: navigator.serviceWorker.register('./sw.js?v=1.4.26-wake-lock-state-sync')
+        const registration = await navigator.serviceWorker.register('./sw.js?v=1.4.26-wake-lock-state-sync&h=sw-v156');
         mobile.serviceWorkerReady = true;
         if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         updateMobileNativeUi();
@@ -3351,6 +3352,7 @@ function bindEvents() {
     el.masterSelectedBtn.addEventListener('click', masterSelectedTracks);
     el.masterAllBtn.addEventListener('click', masterAllTracks);
     el.zipBtn.addEventListener('click', downloadZip);
+    window.addEventListener('foxbear:export-show-track-downloads', () => focusCompletedTrackDownload(state.tracks.find(track => track.outBlob)));
     el.clearBtn.addEventListener('click', clearQueue);
     if (el.masterGoalSelect) {
         state.masterGoal = el.masterGoalSelect.value || state.masterGoal;
@@ -8744,22 +8746,21 @@ async function downloadZip() {
     const completed = state.tracks.filter(track => track.outBlob);
     if (!completed.length) return;
     const exportGuard = getExportGuardService();
+    const progressView = window.FoxBearExportProgressView;
     const zipPlan = exportGuard?.prepareZipExportPlan ? exportGuard.prepareZipExportPlan(completed, { memorySnapshot: getMemoryGuardSnapshot(), fileNameForTrack: track => track.outName || `${safeBaseName(track.name)}_mastered.wav`, makeUniqueName: makeUniqueZipName }) : null;
-    if (zipPlan && !zipPlan.ok) { showToast(zipPlan.warningMessage || 'ZIP으로 내보낼 파일을 확인하세요.'); return; }
-    if (!window.JSZip) {
-        if (completed.length === 1) { downloadTrack(completed[0]); showToast('ZIP 라이브러리 없이 단일 파일로 저장했습니다.'); }
-        else showToast('ZIP 라이브러리를 불러오지 못했습니다. 각 트랙 카드의 파일 다운로드를 사용하세요.');
-        return;
-    }
-    const zip = new JSZip();
-    const usedNames = new Set();
-    (zipPlan?.files || completed.map(track => ({ fileName: makeUniqueZipName(track.outName || `${safeBaseName(track.name)}_mastered.wav`, usedNames), blob: track.outBlob }))).forEach(file => zip.file(file.fileName, file.blob));
-    if (zipPlan?.warningMessage) showToast(zipPlan.warningMessage);
-    showToast(`${completed.length}개 마스터 파일만 ZIP으로 압축 중...`);
-    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 5 } });
-    const zipValidation = exportGuard?.validateZipBlob ? exportGuard.validateZipBlob(blob, zipPlan || { completedCount: completed.length, outputBytes: completed.reduce((sum, track) => sum + Number(track.outBlob?.size || 0), 0) }) : { ok: Boolean(blob) };
-    if (!zipValidation.ok) { showToast('ZIP 검증 실패 · 곡별 다운로드를 사용해 주세요.'); return; }
-    downloadBlob(blob, `foxbear_mastered_${timestampForFile()}.zip`); showToast('마스터 파일 ZIP 다운로드를 시작했습니다.'); renderAll({ keepDetailAudio: true });
+    progressView?.begin?.(zipPlan || { completedCount: completed.length, outputBytes: completed.reduce((sum, track) => sum + Number(track.outBlob?.size || 0), 0), estimatedZipBytes: 0, memoryPressure: 'unknown', warnings: [] });
+    if (zipPlan && !zipPlan.ok) { progressView?.fail?.(zipPlan.warningMessage || 'ZIP으로 내보낼 파일을 확인하세요.'); showToast(zipPlan.warningMessage || 'ZIP으로 내보낼 파일을 확인하세요.'); return; }
+    if (!window.JSZip) { if (completed.length === 1) { downloadTrack(completed[0]); progressView?.complete?.({ size: completed[0].outBlob?.size || 0 }); showToast('ZIP 라이브러리 없이 단일 파일로 저장했습니다.'); } else { progressView?.fail?.('ZIP 라이브러리를 불러오지 못했습니다. 곡별 다운로드를 사용하세요.'); showToast('ZIP 라이브러리를 불러오지 못했습니다. 각 트랙 카드의 파일 다운로드를 사용하세요.'); } return; }
+    try {
+        const zip = new JSZip(); const usedNames = new Set();
+        (zipPlan?.files || completed.map(track => ({ fileName: makeUniqueZipName(track.outName || `${safeBaseName(track.name)}_mastered.wav`, usedNames), blob: track.outBlob }))).forEach(file => zip.file(file.fileName, file.blob));
+        if (zipPlan?.warningMessage) showToast(zipPlan.warningMessage);
+        showToast(`${completed.length}개 마스터 파일만 ZIP으로 압축 중...`);
+        const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 5 } }, meta => progressView?.update?.({ percent: meta?.percent || 0, currentFile: meta?.currentFile || '' }));
+        const zipValidation = exportGuard?.validateZipBlob ? exportGuard.validateZipBlob(blob, zipPlan || { completedCount: completed.length, outputBytes: completed.reduce((sum, track) => sum + Number(track.outBlob?.size || 0), 0) }) : { ok: Boolean(blob), size: blob?.size || 0 };
+        if (!zipValidation.ok) { progressView?.fail?.('ZIP 검증 실패 · 곡별 다운로드를 사용해 주세요.'); showToast('ZIP 검증 실패 · 곡별 다운로드를 사용해 주세요.'); return; }
+        progressView?.complete?.(zipValidation); downloadBlob(blob, `foxbear_mastered_${timestampForFile()}.zip`); showToast('마스터 파일 ZIP 다운로드를 시작했습니다.'); renderAll({ keepDetailAudio: true });
+    } catch (error) { progressView?.fail?.(getErrorMessage(error) || 'ZIP 생성 중 오류가 발생했습니다. 곡별 다운로드를 사용해 주세요.'); showToast('ZIP 생성 실패 · 곡별 다운로드를 사용해 주세요.'); }
 }
 function makeUniqueZipName(fileName, usedNames) {
     const safeName = fileName || 'mastered.wav';

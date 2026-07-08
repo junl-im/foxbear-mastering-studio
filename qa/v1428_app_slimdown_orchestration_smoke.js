@@ -32,6 +32,6 @@ assert(orchestrator.includes('createMasteringBatchRunner'), 'mastering batch run
 assert(orchestrator.includes('runBatch'), 'mastering orchestrator should expose runBatch');
 assert(app.includes('getMasteringBatchRunner().runBatch(candidates'), 'masterSelected/masterAll should delegate to mastering batch runner');
 assert(app.split(/\r?\n/).length < 12950, 'app.js should be under the v1.4.28 slim-down line budget');
-assert(changelog.includes('v1.4.28') && handoff.includes('v1.4.29') && qaReport.includes('170/170 PASS'), 'docs should carry forward v1.4.28 and report current QA count');
+assert(changelog.includes('v1.4.28') && handoff.includes('v1.4.29') && (qaReport.includes('170/170 PASS') || qaReport.includes('178/178 PASS')), 'docs should carry forward v1.4.28 and report current QA count');
 
 console.log('PASS v1.4.28 app slim-down orchestration smoke');

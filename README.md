@@ -1,7 +1,36 @@
-# FoxBear AI Mastering Studio Pro v1.5.4
+# FoxBear AI Mastering Studio Pro v1.5.6
 
 
-## Current patch: v1.5.4 Boot SRI Recovery
+
+## Current patch: v1.5.6 Export Progress Recovery
+
+Compatibility note: previous maintenance layer `v1.5.5 Update Safety` remains carried forward.
+
+This patch adds a visible ZIP/export progress panel and `src/download/export-progress-view.js`, exposed as `FoxBearExportProgressView`, so large batch exports show readiness, memory warnings, ZIP generation progress, validation success/failure, and a fallback `곡별 다운로드 위치 보기` action. Boot-critical cache keys moved to `h=boot-sri-v156`, Update Safety moved to `h=update-safety-v156`, and the service worker shell cache generation is now `foxbear-shell-v1.5.6-export-progress-recovery`.
+
+Console checks after deployment:
+
+```js
+FoxBearExportProgressView.getSnapshot()
+FoxBearExportGuard.getReadiness()
+FoxBearUpdateSafety.getReport()
+```
+
+## Previous patch: v1.5.5 Update Safety
+
+Compatibility note: previous maintenance layer `v1.5.4 Boot SRI Recovery` remains carried forward.
+
+This patch adds `src/boot/update-safety-service.js`, exposed as `FoxBearUpdateSafety`, to inventory local scripts/styles, detect boot cache-bust drift, classify SRI/load-block risk, and provide a copyable recovery plan. Boot-critical assets now use `h=boot-sri-v155`, the service worker shell cache generation is `foxbear-shell-v1.5.5-update-safety`, and service worker cache purge can be requested via `FOXBEAR_PURGE_CACHES` before unregister/reload recovery.
+
+Console checks after deployment:
+
+```js
+FoxBearUpdateSafety.getReport()
+FoxBearUpdateSafety.getAssetInventory()
+FoxBearUpdateSafety.copyReport()
+```
+
+## Previous patch: v1.5.4 Boot SRI Recovery
 
 Compatibility note: previous maintenance layer `v1.5.3 Bulk HUD Visibility + Inline Master All` remains carried forward.
 
@@ -96,7 +125,7 @@ npm run check
 Current expected result after this patch:
 
 ```text
-174/174 PASS
+176/176 PASS
 ```
 
 Optional real-browser automation:

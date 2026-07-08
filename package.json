@@ -188,6 +188,10 @@
     "node qa/v151_real_browser_automation_smoke.js",
     "node qa/v152_export_guard_low_memory_smoke.js",
     "node qa/v153_bulk_hud_visibility_masterall_smoke.js",
-    "node qa/v154_boot_sri_recovery_smoke.js"
+    "node qa/v154_boot_sri_recovery_smoke.js",
+    "node --check src/boot/update-safety-service.js",
+    "node qa/v155_update_safety_asset_health_smoke.js",
+    "node --check src/download/export-progress-view.js",
+    "node qa/v156_export_progress_recovery_smoke.js"
   ]
 }

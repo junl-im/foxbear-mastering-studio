@@ -40,8 +40,8 @@ assert(app.includes("activeBatchSize >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD ? 1 : 
 
 assert((readme.includes('v1.5.2 Export Guard + Low Memory UX') || readme.includes('v1.5.1 Real Browser Automation') || readme.includes('v1.5.0 Engine Quality Gate')) && readme.includes('v1.4.29 Memory Stabilization'), 'README missing v1.5.0 and v1.4.29 carry-forward');
 assert((handoff.includes('v1.5.2 Export Guard + Low Memory UX') || handoff.includes('v1.5.1 Real Browser Automation') || handoff.includes('v1.5.0 Engine Quality Gate')) && handoff.includes('v1.4.29 Memory Stabilization'), 'HANDOFF missing v1.5.0 and v1.4.29 carry-forward');
-assert(qaReport.includes('170/170 PASS'), 'QA report missing 170/170 PASS');
-assert((changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX') || changelog.startsWith('# v1.5.1 - Real Browser Automation') || changelog.startsWith('# v1.5.0 - Engine Quality Gate')) && changelog.includes('# v1.4.29 - Memory Stabilization'), 'CHANGELOG missing v1.5.0 top and v1.4.29 carry-forward');
+assert(qaReport.includes('170/170 PASS') || qaReport.includes('176/176 PASS') || qaReport.includes('178/178 PASS'), 'QA report missing current PASS anchor');
+assert((changelog.startsWith('# v1.5.6 - Export Progress Recovery') || changelog.startsWith('# v1.5.5 - Update Safety + Asset Health') || changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX') || changelog.startsWith('# v1.5.1 - Real Browser Automation') || changelog.startsWith('# v1.5.0 - Engine Quality Gate')) && changelog.includes('# v1.4.29 - Memory Stabilization'), 'CHANGELOG missing v1.5.0 top and v1.4.29 carry-forward');
 assert(app.split(/\r?\n/).length < 12950, 'app.js should remain under the v1.4.28 slim-down line budget');
 
 console.log('PASS v1.4.29 memory stabilization smoke');

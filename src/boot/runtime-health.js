@@ -1,4 +1,4 @@
-// FoxBear runtime health monitor - v1.5.4 boot SRI recovery
+// FoxBear runtime health monitor - v1.5.5 update safety
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
@@ -6,6 +6,8 @@
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
         'FoxBearRuntimeConfig',
+        'FoxBearUpdateSafety.getReport',
+        'FoxBearUpdateSafety.getRecoveryPlan',
         'FoxBearPerformanceDiagnostics.collectSnapshot',
         'FoxBearPerformanceDiagnostics.getSummary',
         'FoxBearCoreUtils',
@@ -295,6 +297,7 @@
         appendButton(actions, '새로고침', hardRefresh);
         appendButton(actions, '캐시 초기화 후 재시도', clearCachesAndReload);
         appendButton(actions, '리포트 복사', copyReport);
+        appendButton(actions, '업데이트 점검 복사', copyUpdateSafetyReport);
 
         panel.append(header, summary, details, actions);
         document.body.appendChild(panel);
@@ -345,9 +348,12 @@
                     .map(name => global.caches.delete(name)));
             }
             if ('serviceWorker' in navigator) {
+                const controller = navigator.serviceWorker.controller;
+                try { controller?.postMessage?.({ type: 'FOXBEAR_PURGE_CACHES' }); } catch (error) {}
                 const regs = await navigator.serviceWorker.getRegistrations();
                 await Promise.all(regs.map(async reg => {
                     try { await reg.update?.(); } catch (error) {}
+                    try { reg.active?.postMessage?.({ type: 'FOXBEAR_PURGE_CACHES' }); } catch (error) {}
                     return reg.unregister();
                 }));
             }
@@ -369,6 +375,19 @@
             console.warn('[FoxBearRuntimeHealth] report copy fallback', text);
             setImportStatus('리포트 복사 권한이 없어 콘솔에 리포트를 남겼습니다.', 'warn');
         }
+    }
+
+    async function copyUpdateSafetyReport() {
+        try {
+            if (global.FoxBearUpdateSafety?.copyReport) {
+                await global.FoxBearUpdateSafety.copyReport();
+                setImportStatus('업데이트 안전성 리포트를 클립보드에 복사했습니다.', 'ready');
+                return;
+            }
+        } catch (error) {
+            console.warn('[FoxBearRuntimeHealth] update safety report copy failed', error);
+        }
+        setImportStatus('업데이트 안전성 모듈을 찾지 못했습니다. 런타임 리포트를 먼저 복사하세요.', 'warn');
     }
 
     function runBootStallCheck() {

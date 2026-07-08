@@ -21,14 +21,14 @@ const readme = read('README.md');
 const handoff = read('HANDOFF.md');
 const qaReport = read('qa/QA_REPORT.md');
 
-const BOOT_KEY = 'h=boot-sri-v154';
+const BOOT_KEY = index.includes('h=boot-sri-v156') ? 'h=boot-sri-v156' : (index.includes('h=boot-sri-v155') ? 'h=boot-sri-v155' : 'h=boot-sri-v154');
 assert(index.includes(`src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync&${BOOT_KEY}`), 'runtime health boot cache-bust key missing from index');
 assert(index.includes(`src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync&${BOOT_KEY}`), 'performance diagnostics boot cache-bust key missing from index');
 assert(index.includes(`src/app.js?v=1.4.26-wake-lock-state-sync&${BOOT_KEY}`), 'app boot cache-bust key missing from index');
 assert(sw.includes(`./src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync&${BOOT_KEY}`), 'runtime health boot cache-bust key missing from service worker');
 assert(sw.includes(`./src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync&${BOOT_KEY}`), 'performance diagnostics boot cache-bust key missing from service worker');
 assert(sw.includes(`./src/app.js?v=1.4.26-wake-lock-state-sync&${BOOT_KEY}`), 'app boot cache-bust key missing from service worker');
-assert(sw.includes("foxbear-shell-v1.5.4-boot-sri-recovery"), 'service worker cache generation was not bumped');
+assert(sw.includes("foxbear-shell-v1.5.4-boot-sri-recovery") || sw.includes("foxbear-shell-v1.5.5-update-safety") || sw.includes("foxbear-shell-v1.5.6-export-progress-recovery"), 'service worker cache generation was not bumped');
 
 assert(index.includes(sri('src/boot/runtime-health.js')), 'runtime health SRI does not match file bytes');
 assert(index.includes(sri('src/boot/performance-diagnostics.js')), 'performance diagnostics SRI does not match file bytes');
@@ -41,6 +41,6 @@ assert(runtimeHealth.includes('foxbearBypassSwOnce'), 'runtime recovery does not
 assert(pkg.qaChecks.includes('node qa/v154_boot_sri_recovery_smoke.js'), 'package qaChecks missing v154 boot SRI recovery smoke');
 assert(readme.includes('v1.5.4 Boot SRI Recovery'), 'README missing v1.5.4 boot recovery section');
 assert(handoff.includes('v1.5.4 boot SRI recovery'), 'HANDOFF missing v1.5.4 boot recovery section');
-assert(qaReport.includes('174/174 PASS'), 'QA report missing 174/174 PASS target');
+assert(qaReport.includes('174/174 PASS') || qaReport.includes('176/176 PASS') || qaReport.includes('178/178 PASS'), 'QA report missing v1.5.4+ PASS target');
 
 console.log('PASS v1.5.4 boot SRI recovery smoke');

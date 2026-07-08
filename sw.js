@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.5.4 service worker · boot SRI recovery
+// FoxBear AI Mastering Studio Pro v1.5.6 service worker · export progress recovery
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.5.4-boot-sri-recovery';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.4.26-wake-lock-state-sync'];
+const CACHE_NAME = 'foxbear-shell-v1.5.6-export-progress-recovery';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.4.26-wake-lock-state-sync', 'foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety'];
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -47,7 +47,7 @@ const CORE_ASSETS = [
   './assets/css/dock-waveform.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/waveform-compare.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/spectrum-visualizer.css?v=1.4.26-wake-lock-state-sync',
-  './assets/css/export.css?v=1.4.26-wake-lock-state-sync',
+  './assets/css/export.css?v=1.4.26-wake-lock-state-sync&h=export-progress-v156',
   './assets/css/download-dialog.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix&ui=v153',
   './assets/css/mobile-native.css?v=1.4.26-wake-lock-state-sync',
@@ -82,17 +82,19 @@ const CORE_ASSETS = [
   './src/ui/dock-controller.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/mobile-native-view.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-restore-v153',
   './src/download/download-service.js?v=1.4.26-wake-lock-state-sync',
-  './src/download/export-guard-service.js?v=1.4.26-wake-lock-state-sync',
+  './src/download/export-guard-service.js?v=1.4.26-wake-lock-state-sync&h=export-v156',
+  './src/download/export-progress-view.js?v=1.4.26-wake-lock-state-sync&h=export-progress-v156',
   './src/ui/download-dialog-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/bulk-import-hud-view.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-v153',
   './src/ui/waveform-compare-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/detail-panels-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/detail-view.js?v=1.4.26-wake-lock-state-sync',
   './src/security/site-guards.js?v=1.4.26-wake-lock-state-sync',
-  './src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v154',
-  './src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v154',
+  './src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v156',
+  './src/boot/update-safety-service.js?v=1.4.26-wake-lock-state-sync&h=update-safety-v156',
+  './src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v156',
   './src/boot/render-scheduler.js?v=1.4.26-wake-lock-state-sync',
-  './src/app.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v154',
+  './src/app.js?v=1.4.26-wake-lock-state-sync&h=boot-sri-v156',
   './assets/icons/foxbear-music.png?v=1.4.26-wake-lock-state-sync'
 ];
 
@@ -105,12 +107,20 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
     await Promise.all(names.filter(name => (name.startsWith('foxbear-shell-') || LEGACY_CACHE_NAMES.includes(name)) && name !== CACHE_NAME).map(name => caches.delete(name)));
+    if (self.registration?.navigationPreload) {
+      try { await self.registration.navigationPreload.enable(); } catch (error) {}
+    }
     await self.clients.claim();
   })());
 });
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && event.data.type === 'FOXBEAR_PURGE_CACHES') {
+    event.waitUntil(purgeFoxBearCaches().then(() => {
+      try { event.source?.postMessage?.({ type: 'FOXBEAR_PURGE_CACHES_DONE', cacheName: CACHE_NAME }); } catch (error) {}
+    }));
+  }
 });
 
 self.addEventListener('fetch', event => {
@@ -127,11 +137,33 @@ self.addEventListener('fetch', event => {
     return;
   }
   if (['script', 'style', 'worker'].includes(request.destination) || /\.(?:js|css)(?:$|\?)/.test(url.pathname + url.search)) {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirstNoFallbackOnIntegrityAssets(request));
     return;
   }
   event.respondWith(staleWhileRevalidate(request));
 });
+
+async function purgeFoxBearCaches() {
+  const names = await caches.keys();
+  await Promise.all(names
+    .filter(name => /^foxbear-|^workbox-|^precache-/i.test(name) || LEGACY_CACHE_NAMES.includes(name))
+    .map(name => caches.delete(name)));
+}
+
+async function networkFirstNoFallbackOnIntegrityAssets(request) {
+  const url = new URL(request.url);
+  const hasPatchBust = url.searchParams.has('h') || url.searchParams.has('ui');
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const fresh = await fetch(request, { cache: hasPatchBust ? 'no-store' : 'default' });
+    if (fresh && fresh.ok) cache.put(request, fresh.clone()).catch(() => undefined);
+    return fresh;
+  } catch (error) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    return Response.error();
+  }
+}
 
 async function networkFirst(request) {
   const cache = await caches.open(CACHE_NAME);

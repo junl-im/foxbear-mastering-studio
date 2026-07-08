@@ -1,3 +1,21 @@
+# v1.5.6 - Export Progress Recovery
+
+- Added `src/download/export-progress-view.js` and the `FoxBearExportProgressView` browser global for visible ZIP/export progress diagnostics.
+- Added an export progress panel under the main action buttons with readiness checklist, progress bar, completion state, failure state, and `곡별 다운로드 위치 보기` fallback.
+- Updated `downloadZip()` to call the progress panel during plan validation, `JSZip.generateAsync()` progress callbacks, ZIP Blob validation, success, and failure.
+- Bumped boot/update safety cache-bust keys to `boot-sri-v156` and `update-safety-v156`.
+- Bumped the service worker shell cache to `foxbear-shell-v1.5.6-export-progress-recovery` and carried v1.5.5 as a legacy cache generation.
+- Added `qa/v156_export_progress_recovery_smoke.js`; current default QA target is `178/178 PASS`.
+
+# v1.5.5 - Update Safety + Asset Health
+
+- Added `src/boot/update-safety-service.js` and the `FoxBearUpdateSafety` diagnostics global.
+- Boot-critical scripts now use `h=boot-sri-v155`; `update-safety-service.js` uses `h=update-safety-v155`.
+- Bumped the service worker shell cache generation to `foxbear-shell-v1.5.5-update-safety` and retained v1.5.4 as a legacy cache generation.
+- Runtime Health recovery now asks the active service worker to purge app caches through `FOXBEAR_PURGE_CACHES` before unregister/reload.
+- Service worker JS/CSS requests with patch-bust keys now use network-first no-store handling to reduce stale fallback risk.
+- Added `qa/v155_update_safety_asset_health_smoke.js`; current default QA target is `176/176 PASS`.
+
 # v1.5.4 - Boot SRI Recovery
 
 - Added fresh boot cache-bust keys for `runtime-health.js`, `performance-diagnostics.js`, and `app.js` to avoid stale cached JS bytes causing SRI blocks after deployment.

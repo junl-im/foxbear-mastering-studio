@@ -40,8 +40,8 @@ assert(app.includes('ZIP/export 전 곡별 저장도 준비하세요'), 'low-mem
 assert(browserBulk.includes('FoxBearExportGuard') && browserBulk.includes('exportReadiness'), 'browser 35-track spec should inspect export readiness');
 assert(readme.includes('v1.5.2') && readme.includes('Export Guard'), 'README missing v1.5.2 export guard notes');
 assert(handoff.includes('v1.5.2') && handoff.includes('FoxBearExportGuard'), 'HANDOFF missing v1.5.2 handoff notes');
-assert(qaReport.includes('172/172 PASS') && qaReport.includes('v1.5.2'), 'QA report should record 172/172 PASS and v1.5.2');
-assert(changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX'), 'CHANGELOG v1.5.2 entry missing at top');
+assert((qaReport.includes('172/172 PASS') || qaReport.includes('176/176 PASS') || qaReport.includes('178/178 PASS')) && qaReport.includes('v1.5.2'), 'QA report should record current PASS target and v1.5.2');
+assert(changelog.startsWith('# v1.5.6 - Export Progress Recovery') || changelog.startsWith('# v1.5.5 - Update Safety + Asset Health') || changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX'), 'CHANGELOG v1.5.2 entry missing at top');
 assert(app.split(/\r?\n/).length < 12950, 'app.js should stay below slim-down line budget');
 
 console.log('PASS v1.5.2 export guard low-memory smoke');

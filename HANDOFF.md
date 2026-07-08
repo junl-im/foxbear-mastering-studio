@@ -1,13 +1,34 @@
-# Handoff - v1.5.4 Boot SRI Recovery
+# Handoff - v1.5.6 Export Progress Recovery
 
 ## Current status
 
-Latest package layer: `v1.5.4` boot SRI recovery hotfix on top of the `1.4.26-wake-lock-state-sync` runtime asset version key.
+Latest package layer: `v1.5.6` export progress recovery patch on top of the `1.4.26-wake-lock-state-sync` runtime asset version key.
 
-Compatibility note: previous maintenance layers `v1.5.3 Bulk HUD Visibility + Inline Master All` and `v1.5.2 Export Guard + Low Memory UX` remain carried forward.
+Compatibility note: previous maintenance layers `v1.5.5 Update Safety`, `v1.5.4 Boot SRI Recovery`, `v1.5.3 Bulk HUD Visibility + Inline Master All`, and `v1.5.2 Export Guard + Low Memory UX` remain carried forward.
 
 The previous Bulk HUD asset/close-button hotfix, Bulk Mastering HUD continuity patch, v1.4.27 release cleanup, v1.4.28 app-slimdown orchestration split, v1.4.29 Memory Stabilization, v1.5.0 Engine Quality Gate, and v1.5.1 browser automation carry-forward are active.
 
+
+## v1.5.6 export progress recovery
+
+- Added `src/download/export-progress-view.js` and the `FoxBearExportProgressView` browser global.
+- Added a visible ZIP/export progress panel under the main action buttons with readiness checklist, progress bar, completion state, and failure state.
+- `downloadZip()` now updates the panel during `JSZip.generateAsync()` and surfaces validation failures with `곡별 다운로드 위치 보기`.
+- The panel dispatches `foxbear:export-show-track-downloads`, and `src/app.js` focuses the first completed track download action as a safe fallback path.
+- Boot-critical scripts now use `h=boot-sri-v156`; `update-safety-service.js` uses `h=update-safety-v156`.
+- Service worker cache generation is now `foxbear-shell-v1.5.6-export-progress-recovery`, with v1.5.5 listed as a legacy cache generation.
+- Static QA added: `qa/v156_export_progress_recovery_smoke.js`.
+
+
+## v1.5.5 update safety
+
+- Added `src/boot/update-safety-service.js` and the `FoxBearUpdateSafety` browser global.
+- `FoxBearUpdateSafety.getReport()` inventories local assets, verifies boot-critical cache-bust keys, reports SRI/load-block risk from Runtime Health, and returns a recovery plan.
+- Boot-critical scripts now use `h=boot-sri-v155`; `update-safety-service.js` uses `h=update-safety-v155`.
+- Service worker cache generation is now `foxbear-shell-v1.5.5-update-safety`, with v1.5.4 listed as a legacy cache generation.
+- Runtime Health recovery now also sends `FOXBEAR_PURGE_CACHES` to active service workers before unregistering and reloading.
+- Service worker script/style fetches with patch-bust keys use network-first no-store handling to reduce stale JS/CSS fallback risk.
+- Static QA added: `qa/v155_update_safety_asset_health_smoke.js`.
 
 ## v1.5.4 boot SRI recovery
 
@@ -69,7 +90,7 @@ npm run check
 Expected result:
 
 ```text
-174/174 PASS
+176/176 PASS
 ```
 
 Optional browser QA automation:
