@@ -508,7 +508,7 @@ function cacheElements() {
         'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
         'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
-        'bulkImportHud', 'bulkImportHudTitle', 'bulkImportHudText', 'bulkImportHudPercent', 'bulkImportHudBar', 'bulkImportHudList', 'bulkImportHudToggle', 'bulkImportHudClose',
+        'bulkImportHud', 'bulkImportHudTitle', 'bulkImportHudText', 'bulkImportHudPercent', 'bulkImportHudBar', 'bulkImportHudList', 'bulkImportHudToggle', 'bulkImportHudClose', 'bulkImportHudMasterAll', 'bulkImportHudRestore',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
         'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'genreLockBtn', 'clearCacheBtn',
@@ -2284,9 +2284,8 @@ function initMobileNativeUx() {
 function createMobileNativeLayer() {
     const refs = window.FoxBearMobileNativeView?.createMobileNativeLayer?.(document);
     if (!refs) return;
-    el.mobileNativeStatus = refs.status || el.mobileNativeStatus;
-    el.mobileNativeQuickToggle = refs.toggle || el.mobileNativeQuickToggle;
-    el.mobileNativePanel = refs.panel || el.mobileNativePanel;
+    el.mobileNativeStatus = refs.status || el.mobileNativeStatus; el.mobileNativeQuickToggle = refs.toggle || el.mobileNativeQuickToggle;
+    el.bulkImportHudRestore = refs.bulkHudRestore || el.bulkImportHudRestore; el.mobileNativePanel = refs.panel || el.mobileNativePanel;
 }
 function bindMobileNativeEvents() {
     createMobileNativeLayer();
@@ -3730,6 +3729,7 @@ function getBulkImportHudDeps() {
         clamp,
         statusLabel,
         syncFloatingOverlayStack,
+        showToast: showToastSafe, onMasterAll: () => masterAllTracks(),
         minTracks: SAFE_BULK_IMPORT_HUD_MIN_TRACKS,
         doneHoldMs: SAFE_BULK_IMPORT_HUD_DONE_HOLD_MS,
         getLargeBatchThreshold: () => SAFE_LARGE_IMPORT_BATCH_THRESHOLD

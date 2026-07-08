@@ -1,10 +1,20 @@
-# Handoff - v1.5.2 Export Guard + Low Memory UX
+# Handoff - v1.5.3 Bulk HUD Visibility + Inline Master All
 
 ## Current status
 
-Latest package layer: `v1.5.2` maintenance patch on top of the `1.4.26-wake-lock-state-sync` runtime/cache key.
+Latest package layer: `v1.5.3` maintenance patch on top of the `1.4.26-wake-lock-state-sync` runtime/cache key.
+
+Compatibility note: previous maintenance layer `v1.5.2 Export Guard + Low Memory UX` remains carried forward.
 
 The previous Bulk HUD asset/close-button hotfix, Bulk Mastering HUD continuity patch, v1.4.27 release cleanup, v1.4.28 app-slimdown orchestration split, v1.4.29 Memory Stabilization, v1.5.0 Engine Quality Gate, and v1.5.1 browser automation carry-forward are active.
+
+## v1.5.3 bulk HUD visibility and inline full-mastering action
+
+- The large bulk HUD no longer uses the confusing `접기` copy; the control now says `숨김` and hides the whole current bulk HUD batch.
+- A small `보이기` button is created beside the floating settings gear and is only visible when the current bulk HUD batch was hidden but can still be restored.
+- The large HUD now includes `전체 마스터링`, delegating to the existing main full-mastering button so behavior stays identical.
+- Changed assets use targeted cache-bust keys: `bulk-hud-v153`, `bulk-hud-restore-v153`, and `ui=v153`; the service worker precache mirrors those keys.
+- Static QA added: `qa/v153_bulk_hud_visibility_masterall_smoke.js`.
 
 ## v1.5.2 export guard and low-memory UX
 
@@ -51,7 +61,7 @@ npm run check
 Expected result:
 
 ```text
-172/172 PASS
+173/173 PASS
 ```
 
 Optional browser QA automation:

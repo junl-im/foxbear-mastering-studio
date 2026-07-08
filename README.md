@@ -1,8 +1,10 @@
-# FoxBear AI Mastering Studio Pro v1.5.2
+# FoxBear AI Mastering Studio Pro v1.5.3
 
-## Current patch: v1.5.2 Export Guard + Low Memory UX
+## Current patch: v1.5.3 Bulk HUD Visibility + Inline Master All
 
-This patch adds ZIP/export validation and low-memory UX advisories on top of the v1.5.1 Playwright browser automation work. It keeps the existing `1.4.26-wake-lock-state-sync` runtime/cache key for deployment compatibility while documenting the current maintenance layer as `v1.5.2`.
+Compatibility note: previous maintenance layer `v1.5.2 Export Guard + Low Memory UX` remains carried forward.
+
+This patch refines the large bulk import/mastering HUD: `접기` is renamed to `숨김`, hidden HUDs can be restored from a small `보이기` button beside the floating settings gear, and the HUD now exposes an inline `전체 마스터링` action that delegates to the existing main full-mastering button. It keeps the existing `1.4.26-wake-lock-state-sync` runtime/cache key for deployment compatibility while documenting the current maintenance layer as `v1.5.3`.
 
 ## Export Guard + Low Memory UX additions
 
@@ -14,6 +16,8 @@ This patch adds ZIP/export validation and low-memory UX advisories on top of the
 - Added `qa/v152_export_guard_low_memory_smoke.js` to lock the new export validation and low-memory UX surface.
 
 ## Real Browser Automation additions
+
+- v1.5.1 browser QA remains available through `npm run qa:browser`, `npm run qa:browser:external`, and `npm run qa:browser:deep`.
 
 - Added `playwright.config.js` with desktop Chromium and mobile PWA-style Chromium projects.
 - Added `qa/browser/run-browser-e2e.js`, which starts a local static server and then runs Playwright specs.
@@ -85,7 +89,7 @@ npm run check
 Current expected result after this patch:
 
 ```text
-172/172 PASS
+173/173 PASS
 ```
 
 Optional real-browser automation:
@@ -125,3 +129,11 @@ docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
 - v1.4.26 Performance diagnostics can be opened with `?perf=1` or `Ctrl/Command + Alt + P`, and the diagnostics panel keeps a 복사 action for support reports.
 - Download dialog micro hint and first-screen declutter remain active for Kakao/in-app and mobile download flows.
 - Bulk Import HUD and Bulk Mastering HUD continuity remain active for 2+ track workflows.
+
+## v1.5.3 Bulk HUD visibility and full-mastering action
+
+- Renamed the large HUD toggle copy from `접기` to `숨김` so it clearly means hiding the whole large HUD.
+- Added a small `보이기` restore button next to the floating settings gear; it appears only while a hidden bulk HUD batch is still restorable.
+- Added `전체 마스터링` inside the large HUD and wired it to the existing main `#masterAllBtn` flow, with the same disabled/busy behavior.
+- Added targeted stale-cache keys for the changed HUD/mobile/app assets and mirrored them in the service worker precache.
+- Added `qa/v153_bulk_hud_visibility_masterall_smoke.js` to lock the UX and packaging surface.

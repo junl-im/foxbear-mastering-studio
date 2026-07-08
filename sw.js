@@ -48,7 +48,7 @@ const CORE_ASSETS = [
   './assets/css/spectrum-visualizer.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/export.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/download-dialog.css?v=1.4.26-wake-lock-state-sync',
-  './assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix',
+  './assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix&ui=v153',
   './assets/css/mobile-native.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/dock-ui-repair.css?v=1.4.26-wake-lock-state-sync',
   './assets/css/components/floating-overlays.css?v=1.4.26-wake-lock-state-sync',
@@ -79,11 +79,11 @@ const CORE_ASSETS = [
   './src/ui/spectrum-visualizer.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/modal-controller.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/dock-controller.js?v=1.4.26-wake-lock-state-sync',
-  './src/ui/mobile-native-view.js?v=1.4.26-wake-lock-state-sync',
+  './src/ui/mobile-native-view.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-restore-v153',
   './src/download/download-service.js?v=1.4.26-wake-lock-state-sync',
   './src/download/export-guard-service.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/download-dialog-view.js?v=1.4.26-wake-lock-state-sync',
-  './src/ui/bulk-import-hud-view.js?v=1.4.26-wake-lock-state-sync',
+  './src/ui/bulk-import-hud-view.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-v153',
   './src/ui/waveform-compare-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/detail-panels-view.js?v=1.4.26-wake-lock-state-sync',
   './src/ui/detail-view.js?v=1.4.26-wake-lock-state-sync',
@@ -91,7 +91,7 @@ const CORE_ASSETS = [
   './src/boot/runtime-health.js?v=1.4.26-wake-lock-state-sync',
   './src/boot/performance-diagnostics.js?v=1.4.26-wake-lock-state-sync',
   './src/boot/render-scheduler.js?v=1.4.26-wake-lock-state-sync',
-  './src/app.js?v=1.4.26-wake-lock-state-sync',
+  './src/app.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-v153',
   './assets/icons/foxbear-music.png?v=1.4.26-wake-lock-state-sync'
 ];
 

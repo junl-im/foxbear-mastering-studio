@@ -1,4 +1,4 @@
-/* v1.4.26: bulk import progress HUD for multi-track batches */
+/* v1.5.3: bulk import/mastering progress HUD controls */
 .bulk-import-hud {
     position: fixed;
     left: 50%;
@@ -85,6 +85,27 @@
     border-radius: 50%;
     font-size: 1rem;
 }
+
+.bulk-import-hud-restore {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    border: 1px solid rgba(116, 233, 255, 0.38);
+    border-radius: 999px;
+    padding: 0 10px;
+    background: linear-gradient(135deg, rgba(12, 28, 44, 0.94), rgba(20, 50, 78, 0.9));
+    color: #eaffff;
+    box-shadow: 0 10px 28px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+.bulk-import-hud-restore[hidden],
+.bulk-import-hud-restore[aria-hidden="true"] {
+    display: none !important;
+}
 .bulk-import-hud-bar {
     height: 7px;
     border-radius: 999px;
@@ -98,6 +119,30 @@
     border-radius: inherit;
     background: linear-gradient(90deg, rgba(120,215,255,.92), rgba(184,156,255,.96));
     transition: width .18s ease;
+}
+
+.bulk-import-hud-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.bulk-import-hud-master-all {
+    min-height: 31px;
+    border: 1px solid rgba(116, 233, 255, 0.35);
+    border-radius: 999px;
+    padding: 6px 12px;
+    background: linear-gradient(135deg, rgba(31, 162, 255, 0.3), rgba(111, 255, 190, 0.18));
+    color: #f3feff;
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+.bulk-import-hud-master-all:disabled {
+    cursor: not-allowed;
+    opacity: .48;
+    filter: grayscale(.25);
 }
 .bulk-import-hud-list {
     display: grid;
@@ -184,6 +229,8 @@ body.bottom-preview-active .bulk-import-hud {
     .bulk-import-hud-head { grid-template-columns: auto minmax(0,1fr) auto; }
     .bulk-import-hud-toggle,
     .bulk-import-hud-close { min-height: 28px; }
+    .bulk-import-hud-actions { justify-content: stretch; }
+    .bulk-import-hud-master-all { width: 100%; min-height: 30px; font-size: .58rem; }
     .bulk-import-hud-toggle { grid-column: 2; justify-self: start; padding: 4px 8px; font-size: .54rem; }
     .bulk-import-hud-close { grid-column: 3; justify-self: end; width: 28px; min-width: 28px; height: 28px; padding: 0; font-size: .95rem; }
     .bulk-import-hud-face { width: 30px; height: 30px; }

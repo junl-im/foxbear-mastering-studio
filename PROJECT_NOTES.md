@@ -182,3 +182,9 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 - v1.4.26 Exit Guard fallback remains active for back navigation and direct-launch fallback behavior.
 - Dock mini FFT was removed by design; renderMini remains removed and detail-only FFT is the intended path.
 - v1.4.26 performance diagnostics remain available with adaptive refresh and copy support.
+
+## v1.5.3 note - Bulk HUD visibility controls
+
+- `접기` in the large HUD is now `숨김` and hides the current bulk HUD batch.
+- The floating mobile/native settings layer creates `#bulkImportHudRestore` (`보이기`) only for hidden, restorable bulk batches.
+- `#bulkImportHudMasterAll` delegates to the existing main `#masterAllBtn` full-mastering behavior.

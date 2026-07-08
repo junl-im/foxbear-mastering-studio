@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.4.21 - mobile native view builder
+// FoxBear AI Mastering Studio Pro v1.5.3 - mobile native view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -27,6 +27,7 @@
                 layer: existing,
                 status: null,
                 toggle: doc.getElementById('mobileNativeQuickToggle'),
+                bulkHudRestore: doc.getElementById('bulkImportHudRestore'),
                 panel: doc.getElementById('mobileNativePanel')
             };
         }
@@ -46,6 +47,16 @@
             ariaExpanded: false,
             ariaControls: 'mobileNativePanel'
         });
+
+        const bulkHudRestore = createButton({
+            id: 'bulkImportHudRestore',
+            className: 'bulk-import-hud-restore',
+            text: '보이기',
+            title: '숨긴 대량 작업 HUD 다시 보이기',
+            ariaLabel: '숨긴 대량 작업 HUD 보이기'
+        });
+        bulkHudRestore.hidden = true;
+        bulkHudRestore.setAttribute('aria-hidden', 'true');
 
         const panel = doc.createElement('section');
         panel.id = 'mobileNativePanel';
@@ -103,10 +114,10 @@
         ].forEach(([action, icon, label, options]) => settingGrid.appendChild(createSettingButton(action, icon, label, options || {})));
 
         panel.append(panelHead, settingGrid);
-        layer.append(toggle, panel);
+        layer.append(toggle, bulkHudRestore, panel);
         doc.body.appendChild(layer);
 
-        return { layer, status, toggle, panel };
+        return { layer, status, toggle, bulkHudRestore, panel };
     }
 
     global.FoxBearMobileNativeView = Object.freeze({ createMobileNativeLayer });

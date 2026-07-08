@@ -51,6 +51,6 @@ assert(ref.includes('1.5.0-reference-profile-64-96'), 'reference profile service
 assert(readme.includes('Engine Quality Gate additions') || readme.includes('v1.5.0 Engine Quality Gate'), 'README missing engine quality gate carry-forward');
 assert(handoff.includes('v1.5.0 Engine Quality Gate') || handoff.includes('QualityGate v2.1'), 'HANDOFF missing engine quality gate carry-forward');
 assert(qaReport.includes('170/170 PASS'), 'QA report missing 170/170 PASS');
-assert((changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX') || changelog.startsWith('# v1.5.1 - Real Browser Automation') || changelog.startsWith('# v1.5.0 - Engine Quality Gate')), 'CHANGELOG v1.5.0 entry missing at top');
+assert((changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX') || changelog.startsWith('# v1.5.1 - Real Browser Automation') || changelog.startsWith('# v1.5.0 - Engine Quality Gate')), 'CHANGELOG v1.5.0 entry missing at top');
 
 console.log('PASS v1.5.0 engine quality gate smoke');

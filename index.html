@@ -39,7 +39,7 @@
 <link rel="stylesheet" href="assets/css/spectrum-visualizer.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-uCa5FpPLJqIBBPSmYjVah53MqqhTf00BBhQ1oPvun/pLuyKnzDghoIo5LkOGyul7" />
 <link rel="stylesheet" href="assets/css/export.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-9P/xpiGGxbxvzCBrO0C8efRcriAp2CnuiQR42hLW5OeerBMU6mXoQMr7ySteVqIZ" />
 <link rel="stylesheet" href="assets/css/download-dialog.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-GyvgRTymYVT5cNVVJ+qih/UNQN9vcCkziTi8XDeEAcKthYGeg/aiZ/SDaduQhuB4" />
-<link rel="stylesheet" href="assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix" integrity="sha384-cDZofGdTg0i3hxnxQ/Q/o0srEimcmgRP0dfyudQ56moRIsMogXieFFnpDeOO1UaL" data-cache-hotfix="bulk-hud-close" />
+<link rel="stylesheet" href="assets/css/bulk-import-hud.css?v=1.4.26-wake-lock-state-sync&h=bulk-hud-close-hotfix&ui=v153" integrity="sha384-1d1a7/Qbp7nUzsiykqA2Jtb4YjPdnZIH5ST7gjgR2FsCxV7+jYTD0c2tD3KZILbV" data-cache-hotfix="bulk-hud-close" />
 <link rel="stylesheet" href="assets/css/mobile-native.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-9rQneBsdPQBqddUefdSA4owvNrETYzYcmeLBRhufGVYOK3o1ZArupXtcyEHQYqO9" />
 <link rel="stylesheet" href="assets/css/dock-ui-repair.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-CuI4jurqPOlKh0dXjXweKndqaxFWLGqG9IbIL4T6calfCrKq0sWJLp0eO9gCwvlp" />
 <link rel="stylesheet" href="assets/css/components/floating-overlays.css?v=1.4.26-wake-lock-state-sync" integrity="sha384-8XqV1Kbbrfv+jPsJUjLpbKRoNc71fZzRieoysJ7Y/CUx3d7h+HM6/6jS1ALQ7Sgg" />
@@ -63,7 +63,7 @@
 <script defer src="src/ui/spectrum-visualizer.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-XzWY1nUiNdHPDLQmYcxYV6tEvdKI6BV0csj2KccH5u42kRuWP0tY3WtvFNjvcM7g"></script>
 <script defer src="src/ui/modal-controller.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-YlFHyiRPUhz5xfVLRGVupCI2hZ0MZ01xZGr4T+Af+uhu4Hbdfhst/y95y+6qn/DT"></script>
 <script defer src="src/ui/dock-controller.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-7JIuE+mXEE0yCggTqxIw/AmozCvgmsUljMxTUyOxKH9e9IgHV6mv8dqrQqYu5oY8"></script>
-<script defer src="src/ui/mobile-native-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-ey5uou97whUbpxqjl6YTablxtOGJAihlobhmZRAx3XAWmnbD6Oe55oyCzTzb+D+7"></script>
+<script defer src="src/ui/mobile-native-view.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-restore-v153" integrity="sha384-KhesHhno9/N6zonYujyNPFSIpn0neI33xkkoa0FS3SDW3HHccF6F4ctKT+2GzcW3"></script>
 <script defer src="src/download/download-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-V6fVmj8vJFH3QJ5ZsUDEZ2nLiBrp7miV4I/LuAOrE2s3LVF6iet9elMfx+1wwcre"></script>
 <script defer src="src/download/export-guard-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-My7gbje+pAYP+ZsJRSASZ2zJ6NDPXAML7kO5h91yMupSXhAH896f7htBSUt/ScCb"></script>
 <script defer src="src/ui/download-dialog-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-6cAop1hqVPH+/VfSM9jWjt8u54TJAHh+eXPAbb7IYRaGSKNOXFSZ8vAzA2/J2FX/"></script>
@@ -78,8 +78,8 @@
 <script defer src="src/audio/quality-gate-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-w1deaQbW79oTTfcFJIGdRxGGA7g4WJJLwKD/rg8or1maMDTkarFCuO7Qfodm8WfX"></script>
 <script defer src="src/audio/mastering-orchestrator-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-63gySiXL1fyJQ0ntd6G3v3ddemXj7BUfWpkavFtd6bW32wpM1UTSAJCwX2spIrf2"></script>
 <script defer src="src/state/track-lifecycle-service.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-445bf1C8vdmzf+9nOTpkzZupefQmpWoSk9Eej5mf4tVZ+F+fr2NxfpNV12QkO3Pz"></script>
-<script defer src="src/ui/bulk-import-hud-view.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-vzeYkR9we7LeAcUldxGlPd89O7q8WpLragy0BXvf6sOHRmxmKQfKDBBiM0Ey3MED"></script>
-<script defer src="src/app.js?v=1.4.26-wake-lock-state-sync" integrity="sha384-YECZ0NHrz2tYE8ScMP+YlA1KbJGEiJoQeN6IMuOZYSsUDWMpFjxvt1ILHE+zQhMu"></script>
+<script defer src="src/ui/bulk-import-hud-view.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-v153" integrity="sha384-SSfqKO5Vdukv5Pl8kMKY8eYMGPD9HjwN/Tpe6DFtq9CqGa+WjnFkVL3BhLYF5Xun"></script>
+<script defer src="src/app.js?v=1.4.26-wake-lock-state-sync&h=bulk-hud-v153" integrity="sha384-Q+LK4rNpmjviaJNeS8La8t8SBhFAjJwTarwy1RFmYDjp+ziCVSFnGzrzuHmkAG14"></script>
 </head>
 <body data-build="1.4.26">
 <div class="app-shell">
@@ -630,10 +630,13 @@
                 <span id="bulkImportHudText">대량 파일 분석 상태를 준비 중입니다.</span>
             </div>
             <div class="bulk-import-hud-percent" id="bulkImportHudPercent">0%</div>
-            <button id="bulkImportHudToggle" class="bulk-import-hud-toggle" type="button" aria-expanded="true">접기</button>
+            <button id="bulkImportHudToggle" class="bulk-import-hud-toggle" type="button" aria-label="대량 작업 HUD 숨김" aria-expanded="true">숨김</button>
             <button id="bulkImportHudClose" class="bulk-import-hud-close" type="button" aria-label="대량 작업 HUD 숨기기">×</button>
         </div>
         <div class="bulk-import-hud-bar"><i id="bulkImportHudBar"></i></div>
+        <div class="bulk-import-hud-actions" aria-label="대량 작업 빠른 실행">
+            <button id="bulkImportHudMasterAll" class="bulk-import-hud-master-all" type="button" disabled>전체 마스터링</button>
+        </div>
         <div id="bulkImportHudList" class="bulk-import-hud-list" role="list" aria-label="대량 업로드 곡별 분석 진행 상황"></div>
     </div>
 </div>

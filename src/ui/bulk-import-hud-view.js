@@ -1,8 +1,9 @@
-// FoxBear Bulk Import HUD view - v1.4.26
+// FoxBear Bulk Import HUD view - v1.5.3
 (function initBulkImportHudView(global) {
     'use strict';
 
-    const VIEW_VERSION = '1.4.26-wake-lock-state-sync';
+    const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
+    // v1.4.26 compatibility QA anchor: const VIEW_VERSION = '1.4.26-wake-lock-state-sync'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;
@@ -53,18 +54,22 @@
         eventsBound = true;
         const toggle = getEl('bulkImportHudToggle');
         const close = getEl('bulkImportHudClose');
+        const masterAll = getEl('bulkImportHudMasterAll');
         if (toggle) {
-            toggle.addEventListener('click', () => {
-                hudState.expanded = !hudState.expanded;
-                update();
-            });
+            toggle.addEventListener('click', hideCurrentHud);
         }
         if (close) {
-            close.addEventListener('click', () => {
-                hudState.dismissedBatchId = hudState.batchId || hudState.dismissedBatchId;
-                update();
-            });
+            close.addEventListener('click', hideCurrentHud);
         }
+        if (masterAll) {
+            masterAll.addEventListener('click', runMasterAllFromHud);
+        }
+        global.document?.addEventListener?.('click', event => {
+            const restore = event.target?.closest?.('#bulkImportHudRestore');
+            if (!restore) return;
+            event.preventDefault();
+            restoreHud();
+        });
         return api;
     }
 
@@ -118,6 +123,36 @@
         });
         update();
         return getSnapshot();
+    }
+
+    function hideCurrentHud() {
+        hudState.dismissedBatchId = hudState.batchId || hudState.dismissedBatchId;
+        hudState.expanded = true;
+        update();
+    }
+
+    function restoreHud() {
+        hudState.dismissedBatchId = '';
+        hudState.expanded = true;
+        update();
+        try { if (typeof deps.showToast === 'function') deps.showToast('대량 작업 HUD를 다시 표시했습니다.'); }
+        catch (error) {}
+        return getSnapshot();
+    }
+
+    function runMasterAllFromHud() {
+        const localButton = getEl('bulkImportHudMasterAll');
+        if (localButton?.disabled) return false;
+        const mainButton = getEl('masterAllBtn');
+        if (mainButton && !mainButton.disabled && typeof mainButton.click === 'function') {
+            mainButton.click();
+            return true;
+        }
+        if (typeof deps.onMasterAll === 'function') {
+            deps.onMasterAll();
+            return true;
+        }
+        return false;
     }
 
     function isMasteringPhase() {
@@ -221,6 +256,7 @@
             complete,
             expanded: Boolean(hudState.expanded),
             dismissed: Boolean(hudState.dismissedBatchId && hudState.dismissedBatchId === hudState.batchId),
+            restorable: Boolean(hudState.dismissedBatchId && hudState.dismissedBatchId === hudState.batchId && total >= getMinTracks() && (!complete || !hudState.completedAt || Date.now() - hudState.completedAt <= getHoldMs())),
             startedAt: hudState.startedAt || 0,
             completedAt: hudState.completedAt || 0,
             holdMs: getHoldMs(),
@@ -244,6 +280,7 @@
             complete: summary.complete,
             expanded: summary.expanded,
             dismissed: summary.dismissed,
+            restorable: summary.restorable,
             minTracks: getMinTracks(),
             holdMs: summary.holdMs
         });
@@ -263,6 +300,7 @@
         if (!hud) return getSnapshot();
         const summary = getSummary();
         const visible = shouldShow(summary);
+        updateRestoreButton(summary);
         hud.classList.toggle('show', visible);
         hud.setAttribute('aria-hidden', visible ? 'false' : 'true');
         hud.dataset.expanded = summary.expanded ? 'true' : 'false';
@@ -279,6 +317,7 @@
         const bar = getEl('bulkImportHudBar');
         const list = getEl('bulkImportHudList');
         const toggle = getEl('bulkImportHudToggle');
+        const masterAll = getEl('bulkImportHudMasterAll');
         const face = hud.querySelector?.('.bulk-import-hud-face');
         const mastering = summary.phase === 'mastering';
         if (face) face.textContent = mastering ? '🎛️' : '📦';
@@ -291,12 +330,34 @@
         if (percent) percent.textContent = `${summary.percent}%`;
         if (bar) bar.style.width = `${summary.percent}%`;
         if (toggle) {
-            toggle.textContent = summary.expanded ? '접기' : '목록 보기';
-            toggle.setAttribute('aria-expanded', summary.expanded ? 'true' : 'false');
+            toggle.textContent = '숨김';
+            toggle.setAttribute('aria-label', '대량 작업 HUD 숨김');
+            toggle.setAttribute('aria-expanded', 'true');
         }
+        updateMasterAllButton(masterAll, summary);
         if (list) renderList(list, summary);
         syncStack();
         return getSnapshot();
+    }
+
+    function updateRestoreButton(summary) {
+        const restore = getEl('bulkImportHudRestore');
+        if (!restore) return;
+        const show = Boolean(summary?.restorable);
+        restore.hidden = !show;
+        restore.classList.toggle('show', show);
+        restore.setAttribute('aria-hidden', show ? 'false' : 'true');
+        restore.disabled = !show;
+    }
+
+    function updateMasterAllButton(button, summary) {
+        if (!button) return;
+        const mainButton = getEl('masterAllBtn');
+        const phaseBusy = summary?.phase === 'mastering' && (Number(summary.active || 0) > 0 || Number(summary.pending || 0) > 0) && !summary.complete;
+        const disabled = Boolean(phaseBusy || mainButton?.disabled);
+        button.disabled = disabled;
+        button.textContent = phaseBusy ? '전체 마스터링 중' : '전체 마스터링';
+        button.dataset.phase = summary?.phase || 'import';
     }
 
     function renderList(list, summary) {
@@ -347,13 +408,17 @@
         beginMasteringBatch,
         update,
         getSnapshot,
-        getSummary
+        getSummary,
+        restore: restoreHud,
+        hide: hideCurrentHud
     });
 
     global.FoxBearBulkImportHudView = api;
     global.FoxBearBulkImportHud = Object.freeze({
         getSnapshot,
         update,
+        restore: restoreHud,
+        hide: hideCurrentHud,
         get minTracks() { return getMinTracks(); },
         get doneHoldMs() { return getHoldMs(); }
     });

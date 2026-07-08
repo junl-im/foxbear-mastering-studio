@@ -1,3 +1,11 @@
+# v1.5.3 - Bulk HUD Visibility + Inline Master All
+
+- Renamed the large bulk HUD toggle copy from `접기` to `숨김` and made it hide the current bulk HUD batch.
+- Added a small `보이기` restore button next to the floating settings gear; it is visible only while a hidden bulk HUD batch is restorable.
+- Added an inline `전체 마스터링` button inside the large HUD that delegates to the existing main full-mastering flow.
+- Added targeted stale-cache keys for the changed HUD/mobile/app assets and mirrored the keys in `sw.js`.
+- Added `qa/v153_bulk_hud_visibility_masterall_smoke.js`; current default QA target is `173/173 PASS`.
+
 # v1.5.2 - Export Guard + Low Memory UX
 
 - Added `src/download/export-guard-service.js` for ZIP/export readiness planning, generated ZIP Blob validation, memory-pressure classification, and export diagnostics.
