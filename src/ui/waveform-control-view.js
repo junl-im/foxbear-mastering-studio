@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.15-e2e-runtime-classification';
+  const VIEW_VERSION = '1.5.16-e2e-server-pipe-deadlock-fix';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -1,3 +1,11 @@
+# v1.5.16 - E2E Static Server Pipe Deadlock Fix
+
+- Fixed the GitHub Actions browser gate deadlock that appeared after the first successful Playwright page loads.
+- Replaced the synchronous Playwright child process with an awaited asynchronous process so Node can continuously drain the local Python static server's access-log pipes.
+- Added bounded static-server diagnostics and prints the server log tail automatically when browser QA fails.
+- Added a regression stress test that completes 1,800 HTTP requests while the child process runs, exceeding normal pipe-buffer capacity and proving the server remains responsive.
+- Kept the cumulative GitHub Desktop overwrite workflow so this patch includes every change from v1.5.7 through v1.5.16.
+
 # v1.5.15 - E2E Runtime Classification & Browser API Stability
 
 - Runtime Health now separates optional Firebase/Firestore network outages into `runtimeWarnings` instead of treating them as fatal app errors.

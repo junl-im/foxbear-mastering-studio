@@ -1,32 +1,26 @@
-# Handoff - v1.5.15
+# Handoff - v1.5.16
 
 ## Maintainer workflow
 
-The project owner applies patches and commits with **GitHub Desktop**. Future handoffs must therefore include a GitHub Desktop-safe overwrite package, visible root-file checklist, and Actions follow-up instead of assuming command-line Git. The detailed procedure is in `GITHUB_DESKTOP_HANDOFF.md`.
+The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-The required flow is:
+## Current patch: E2E static-server pipe deadlock fix
 
-1. `Fetch origin` before applying a patch.
-2. Prefer a patch branch when reviewing a cumulative overwrite.
-3. Extract the ZIP to a temporary folder, then copy its contents into the repository root.
-4. Review `Changes` and confirm root config/workflow files are present.
-5. Commit, then use `Publish branch` or `Push origin`.
-6. Inspect the GitHub Actions release gate and retain `browser-qa-*` artifacts on failure.
+The release gate failure was not an application boot defect. `qa/browser/run-browser-e2e.js` started Python's static server with piped stdout/stderr, then launched Playwright with `spawnSync`. While the synchronous child ran, the parent Node event loop could not drain those pipes. After enough HTML/CSS/JS requests, Python blocked while writing access logs, and all later Playwright navigations timed out at `domcontentloaded`.
 
-## Current patch
+Changes:
 
-- `HANDOFF_PACKAGE.json` defines the transferable file contract and identifies GitHub Desktop as the target client.
-- `npm run handoff:check` verifies the applied repository state before static or browser QA.
-- `npm run check:release` now runs `version:check`, `handoff:check`, static QA, and browser QA in that order.
-- Overwrite packages now carry previously omitted transferable roots such as `docs/`, `.gitignore`, `robots.txt`, and `design-preview.html`.
-- Both overwrite and full-release archives are extracted and semantically verified after creation.
-- Full-release archives no longer carry the local `.firebaserc` Firebase project binding.
+- Playwright now runs through an awaited asynchronous child process.
+- The local server's output buffer is bounded to the latest 256 KiB.
+- Browser failures print the static server diagnostic tail.
+- `qa/v1516_e2e_server_pipe_deadlock_smoke.js` sends 1,800 requests during an asynchronous child run and verifies the final request and a follow-up request succeed.
+- The overwrite ZIP is cumulative and includes all v1.5.7-v1.5.16 runtime, QA, workflow, and packaging files.
 
 ```text
-product: 1.5.14
-build: github-desktop-handoff-preflight
-asset generation: 1.5.14-github-desktop-handoff-preflight
-service worker cache: foxbear-shell-v1.5.14-github-desktop-handoff-preflight
+product: 1.5.16
+build: e2e-server-pipe-deadlock-fix
+asset generation: 1.5.16-e2e-server-pipe-deadlock-fix
+service worker cache: foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix
 ```
 
 Verification:
@@ -36,17 +30,11 @@ npm ci
 npm run version:check
 npm run handoff:check
 npm run check
-npm run package:all
 npm run qa:browser
+npm run package:all
 ```
 
-Browser PASS must be confirmed by GitHub Actions.
-
-## Next safe direction
-
-- Split `src/app.js` by controller responsibility without increasing global state coupling.
-- Continue event-listener lifecycle hardening with idempotent init and `AbortController`.
-- Add a lightweight pull-request workflow so GitHub Desktop patch branches can validate before merging to `main`.
+Expected static result: `196/196 PASS`. Browser PASS must be confirmed in GitHub Actions when Chromium is available.
 
 ## Previous handoff: v1.5.13 Handoff Package Integrity
 

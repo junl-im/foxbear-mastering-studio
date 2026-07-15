@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.15-e2e-runtime-classification';
+const version = '1.5.16-e2e-server-pipe-deadlock-fix';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

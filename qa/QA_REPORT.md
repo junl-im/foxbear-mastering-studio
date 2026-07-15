@@ -1,50 +1,38 @@
-# QA Report - v1.5.15 E2E Runtime Classification
+# QA Report - v1.5.16 E2E Static Server Pipe Deadlock Fix
 
 ## Result
 
 ```text
-195/195 PASS
-Browser QA: GitHub Actions rerun required
+196/196 PASS
+Browser QA: GitHub Actions confirmation required
 ```
 
-v1.5.15 final QA static target: `195/195 PASS`. This is not a browser QA pass.
+v1.5.16 final QA static target: `196/196 PASS`. The Chromium browser run must still be confirmed by GitHub Actions.
 
-Previous v1.5.12 static target: `189/189 PASS`.
-Previous v1.5.11 static target: `188/188 PASS`.
-Previous v1.5.10 static target: `186/186 PASS`.
-Previous v1.5.9 static target: `185/185 PASS`.
-Previous v1.5.8 static target: `183/183 PASS`.
+Historical static anchors retained for regression compatibility:
+
+- v1.5.9: `185/185 PASS`
+- v1.5.8: `183/183 PASS`
+- v1.5.2 Export Guard + Low Memory UX remains covered.
 
 Commands:
 
 ```bash
+npm ci
 npm run version:check
+npm run handoff:check
 npm run check
-npm run package:overwrite
-node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.15-overwrite.zip
 npm run qa:browser
+npm run package:all
 ```
 
-## Verified
+## v1.5.16 coverage
 
-- The cumulative overwrite archive includes `playwright.config.js`.
-- Overwrite packaging verifies required config, workflows, browser helpers, source trees, and forbidden dependency/result trees after ZIP creation.
-- The CI worker smoke loads the effective Playwright config with `CI=true` and requires 1-2 workers.
-- Runtime Health browser waits use the application-owned `appReady` state rather than health-object existence.
-- Service-worker readiness is bounded and Wake Lock mocks create a fresh sentinel per request.
-- GitHub checkout/setup-node/upload-artifact workflows use Node 24-based v6 actions.
-- Existing syntax, SRI, audio-context, memory, export, Dock, PWA, version recovery, header layout, and documentation regression checks.
-
-## New checks
-
-- `node --check tools/verify-overwrite-zip.js`
-- `qa/v1513_handoff_package_integrity_smoke.js`
-
-## Browser follow-up
-
-- Push v1.5.15 and confirm all 10 desktop/mobile Playwright tests pass.
-- If a browser test fails, inspect the embedded Runtime Health report and the uploaded `browser-qa-*` trace bundle.
-
+- Replaces the blocking Playwright `spawnSync` execution with an awaited asynchronous child process.
+- Keeps the Node event loop available to drain Python static-server stdout/stderr while browser assets are requested.
+- Bounds captured server output to the latest 256 KiB and prints it when browser QA fails.
+- Stress-tests 1,800 HTTP requests and a follow-up request to guard against pipe-buffer deadlock.
+- Retains all v1.5.7-v1.5.15 release, Runtime Health, PWA, export, audio, and handoff checks.
 
 ## v1.5.15 coverage
 

@@ -1,17 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.15
+# FoxBear AI Mastering Studio Pro v1.5.16
 
-## Current patch: v1.5.15 E2E Runtime Classification
+## Current patch: v1.5.16 E2E Static Server Pipe Deadlock Fix
 
-The v1.5.12 handoff documented the two-worker CI limit, but its cumulative overwrite ZIP omitted `playwright.config.js`. v1.5.13 fixes the transfer package, verifies the generated archive contents automatically, and tests the effective CI worker value rather than one exact source string.
+GitHub Actions에서 첫 브라우저 테스트 몇 개만 통과한 뒤 모든 `page.goto()`가 20초 타임아웃으로 실패하던 문제를 수정했습니다. 로컬 Python 정적 서버의 요청 로그를 파이프로 수집하면서 Playwright를 `spawnSync`로 실행해 Node 이벤트 루프가 멈췄고, 로그 파이프가 가득 차면 서버 자체가 응답을 중단하는 구조가 원인이었습니다.
+
+Playwright 실행을 비동기 자식 프로세스로 전환해 서버 로그를 계속 비우도록 했으며, 실패 시 정적 서버 로그 tail을 출력합니다. 1,800회 연속 요청 회귀 테스트로 일반적인 파이프 버퍼 용량을 넘어선 뒤에도 서버가 정상 응답하는 것을 검증합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.13
-build: handoff-package-integrity
-asset generation: 1.5.13-handoff-package-integrity
-service worker cache: foxbear-shell-v1.5.13-handoff-package-integrity
+product: 1.5.16
+build: e2e-server-pipe-deadlock-fix
+asset generation: 1.5.16-e2e-server-pipe-deadlock-fix
+service worker cache: foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix
 ```
+
+## Previous patch: v1.5.15 E2E Runtime Classification
+
+Runtime Health의 선택적 Firebase/Firestore 네트워크 오류 분류, Wake Lock 및 서비스워커 E2E 안정화 변경은 그대로 포함됩니다.
 
 ## Previous patch: v1.5.12 CI Runtime Readiness and Node 24 Actions
 

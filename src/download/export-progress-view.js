@@ -1,8 +1,8 @@
-// FoxBear export progress view v1.5.15 - ZIP working-set visibility and fallback recovery
+// FoxBear export progress view v1.5.16 - ZIP working-set visibility and fallback recovery
 'use strict';
 
 (function attachFoxBearExportProgressView(global) {
-    const VERSION = 'v1.5.15-e2e-runtime-classification';
+    const VERSION = 'v1.5.16-e2e-server-pipe-deadlock-fix';
     const LEGACY_VERSION = 'v1.5.6-export-progress-recovery';
     let snapshot = Object.freeze({ version: VERSION, visible: false, state: 'idle', percent: 0, completedCount: 0, outputBytes: 0, message: '' });
     let refs = null;

@@ -33,7 +33,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.15`
-- Build ID: `e2e-runtime-classification`
-- Asset version: `1.5.15-e2e-runtime-classification`
-- Service worker cache: `foxbear-shell-v1.5.15-e2e-runtime-classification`
+- Product version: `1.5.16`
+- Build ID: `e2e-server-pipe-deadlock-fix`
+- Asset version: `1.5.16-e2e-server-pipe-deadlock-fix`
+- Service worker cache: `foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix`

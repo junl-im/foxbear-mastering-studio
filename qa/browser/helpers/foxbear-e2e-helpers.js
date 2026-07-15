@@ -195,8 +195,15 @@ function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DE
     env: process.env
   });
   let output = '';
-  child.stdout.on('data', chunk => { output += chunk.toString(); });
-  child.stderr.on('data', chunk => { output += chunk.toString(); });
+  const maxOutputBytes = 256 * 1024;
+  const appendOutput = chunk => {
+    output += chunk.toString();
+    if (Buffer.byteLength(output) > maxOutputBytes) {
+      output = output.slice(-maxOutputBytes);
+    }
+  };
+  child.stdout.on('data', appendOutput);
+  child.stderr.on('data', appendOutput);
   const stop = () => {
     if (!child.killed) child.kill('SIGTERM');
   };
