@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.13-handoff-package-integrity';
+  const VIEW_VERSION = '1.5.14-github-desktop-handoff-preflight';
   const DEFAULT_BINS = 96;
 
   function getService() {

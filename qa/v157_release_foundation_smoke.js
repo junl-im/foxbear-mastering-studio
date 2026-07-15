@@ -46,13 +46,13 @@ assert(runtimeConfig.includes('global.FoxBearBuildInfo') && app.includes('releas
 assert(sw.includes(`const CACHE_NAME = '${meta.cacheName}'`) && sw.includes('foxbear-shell-v1.5.6-export-progress-recovery'), 'service worker current/legacy cache metadata incomplete');
 assert(changelog.startsWith(`# v${meta.productVersion} -`), 'CHANGELOG latest release missing');
 assert((changelog.match(/^# Changelog$/gm) || []).length === 0, 'duplicate generic Changelog heading remains');
-assert(!changelog.includes('## v1.5.13 carry-forward anchors') && !changelog.includes('## v1.5.13 Carry-forward Documentation Anchors'), 'carry-forward anchor sections should not return');
+assert(!changelog.includes('## v1.5.14 carry-forward anchors') && !changelog.includes('## v1.5.14 Carry-forward Documentation Anchors'), 'carry-forward anchor sections should not return');
 assert(status.includes('Dock mini FFT remains removed') && status.includes('npm run check:release'), 'STATUS invariants incomplete');
 assert(versioning.includes('package.json') && versioning.includes('source of truth') && versioning.includes('Asset version'), 'VERSIONING semantics incomplete');
 assert(checklist.includes('npm ci') && checklist.includes('npm run check:release') && checklist.includes('npm run qa:browser:deep'), 'release checklist incomplete');
 assert(adr.includes('Keep FFT Out of the Dock Player') && adr.includes('#bottomPreviewSpectrum') && adr.includes('renderMini'), 'Dock FFT ADR incomplete');
 assert(runner.includes("require.resolve('@playwright/test/cli')") && !runner.includes("spawnSync('npx'"), 'browser runner must use pinned local Playwright CLI');
-assert(pkg.scripts['check:release'] === 'npm run version:check && npm run check:static && npm run qa:browser', 'release gate script mismatch');
+assert(pkg.scripts['check:release'].includes('npm run version:check') && pkg.scripts['check:release'].includes('npm run handoff:check') && pkg.scripts['check:release'].includes('npm run check:static') && pkg.scripts['check:release'].includes('npm run qa:browser'), 'release gate script mismatch');
 assert(pkg.scripts['version:sync'] && pkg.scripts['version:check'], 'version sync/check scripts missing');
 assert(syncTool.includes('protectedLabels') && syncTool.includes('Historical QA names'), 'version sync should preserve historical QA labels');
 for (const workflow of [pages, fallback]) {
@@ -66,6 +66,6 @@ for (const workflow of [pages, fallback]) {
 for (const file of ['STATUS.md', 'VERSIONING.md', 'RELEASE_CHECKLIST.md', 'package-lock.json']) {
   assert(overwrite.includes(`copy_path "${file}"`), `overwrite package missing ${file}`);
 }
-assert((pkg.qaChecks || []).includes('node qa/v157_release_foundation_smoke.js'), 'v1.5.13 smoke missing from qaChecks');
+assert((pkg.qaChecks || []).includes('node qa/v157_release_foundation_smoke.js'), 'v1.5.14 smoke missing from qaChecks');
 
 console.log('PASS v1.5.7 release foundation smoke');

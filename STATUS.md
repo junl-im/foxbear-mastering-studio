@@ -9,6 +9,8 @@ This document contains rules that remain true across releases. Actual changes be
 - Visible release labels must be runtime-bound to generated `FoxBearBuildInfo`; stale static HTML labels are repaired by `FoxBearReleasePresentation`.
 - A release candidate must pass `npm run check:release`; static QA alone is not a release gate.
 - A cumulative overwrite package is not releasable until `tools/verify-overwrite-zip.js` confirms required root configuration, workflows, runtime trees, and exclusions.
+- GitHub Desktop is the default patch client; every handoff must include `GITHUB_DESKTOP_HANDOFF.md`, `HANDOFF_PACKAGE.json`, and a passing `npm run handoff:check`.
+- Both cumulative overwrite and full-release ZIPs must pass post-creation semantic verification.
 - Browser QA readiness must wait for `FoxBearRuntimeHealth.appReady`; creation of the health object is not boot completion.
 - The opt-in 35-track deep browser path remains a separate release-candidate/manual check because it is intentionally expensive.
 
@@ -31,7 +33,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.13`
-- Build ID: `handoff-package-integrity`
-- Asset version: `1.5.13-handoff-package-integrity`
-- Service worker cache: `foxbear-shell-v1.5.13-handoff-package-integrity`
+- Product version: `1.5.14`
+- Build ID: `github-desktop-handoff-preflight`
+- Asset version: `1.5.14-github-desktop-handoff-preflight`
+- Service worker cache: `foxbear-shell-v1.5.14-github-desktop-handoff-preflight`

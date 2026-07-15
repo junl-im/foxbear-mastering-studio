@@ -96,6 +96,11 @@ function sync() {
   manifest.description = `FoxBear AI Mastering Studio Pro v${meta.productVersion} (${meta.buildId}).`;
   write('manifest.webmanifest', `${JSON.stringify(manifest, null, 2)}\n`);
 
+  const handoffPackage = JSON.parse(read('HANDOFF_PACKAGE.json'));
+  handoffPackage.productVersion = meta.productVersion;
+  handoffPackage.buildId = meta.buildId;
+  write('HANDOFF_PACKAGE.json', `${JSON.stringify(handoffPackage, null, 2)}\n`);
+
   let index = read('index.html');
   index = index.replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="FoxBear AI Mastering Studio Pro v${meta.productVersion} - ${meta.buildId}" />`);
   write('index.html', index);
@@ -127,6 +132,7 @@ function validate() {
   const expect = (condition, message) => { if (!condition) failures.push(message); };
   const pkgLock = fs.existsSync(path.join(ROOT, 'package-lock.json')) ? JSON.parse(read('package-lock.json')) : null;
   const manifest = JSON.parse(read('manifest.webmanifest'));
+  const handoffPackage = JSON.parse(read('HANDOFF_PACKAGE.json'));
   const buildInfo = read('src/config/build-info.js');
   const index = read('index.html');
   const sw = read('sw.js');
@@ -139,6 +145,9 @@ function validate() {
 
   expect(buildInfo === renderBuildInfo(meta), 'src/config/build-info.js is not synchronized with package.json');
   expect(manifest.version === meta.productVersion, 'manifest.webmanifest version is not synchronized');
+  expect(handoffPackage.productVersion === meta.productVersion, 'HANDOFF_PACKAGE.json version is not synchronized');
+  expect(handoffPackage.buildId === meta.buildId, 'HANDOFF_PACKAGE.json buildId is not synchronized');
+  expect(handoffPackage.targetClient === 'GitHub Desktop', 'HANDOFF_PACKAGE.json target client is not GitHub Desktop');
   expect(manifest.description.includes(`v${meta.productVersion}`) && manifest.description.includes(meta.buildId), 'manifest.webmanifest description is not synchronized');
   expect(index.includes(`<title>FoxBear Mastering PRO v${meta.productVersion}</title>`), 'index title is not synchronized');
   expect(index.includes(`data-build="${meta.productVersion}"`), 'index data-build is not synchronized');

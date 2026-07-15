@@ -13,6 +13,7 @@ cd "${ROOT_DIR}"
 zip -qr "${OUTPUT_FILE}" . \
   -x '.git/*' \
   -x '.firebase/*' \
+  -x '.firebaserc' \
   -x 'node_modules/*' \
   -x 'dist/*' \
   -x 'qa/browser-results/*' \
@@ -21,5 +22,7 @@ zip -qr "${OUTPUT_FILE}" . \
   -x '*.zip' \
   -x 'check.log' \
   -x '.DS_Store'
+
+node "${ROOT_DIR}/tools/verify-release-zip.js" "${OUTPUT_FILE}"
 
 echo "Created ${OUTPUT_FILE}"

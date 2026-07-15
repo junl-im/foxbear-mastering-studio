@@ -1,3 +1,11 @@
+# Current Project Notes - v1.5.14
+
+- The owner uses GitHub Desktop for fetch, branch review, commit, and push. Handoffs must not assume command-line Git.
+- `HANDOFF_PACKAGE.json` is now the transferable package contract.
+- `npm run handoff:check` validates the applied repository before the release gate.
+- Overwrite and release ZIPs are both verified after creation.
+- `.firebaserc` remains local and is intentionally excluded from transferable release archives.
+
 # Project Notes - v1.5.13
 
 ## Handoff and cumulative package integrity

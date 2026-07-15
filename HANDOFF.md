@@ -1,4 +1,54 @@
-# Handoff - v1.5.13 Handoff Package Integrity
+# Handoff - v1.5.14 GitHub Desktop Handoff Preflight
+
+## Maintainer workflow
+
+The project owner applies patches and commits with **GitHub Desktop**. Future handoffs must therefore include a GitHub Desktop-safe overwrite package, visible root-file checklist, and Actions follow-up instead of assuming command-line Git. The detailed procedure is in `GITHUB_DESKTOP_HANDOFF.md`.
+
+The required flow is:
+
+1. `Fetch origin` before applying a patch.
+2. Prefer a patch branch when reviewing a cumulative overwrite.
+3. Extract the ZIP to a temporary folder, then copy its contents into the repository root.
+4. Review `Changes` and confirm root config/workflow files are present.
+5. Commit, then use `Publish branch` or `Push origin`.
+6. Inspect the GitHub Actions release gate and retain `browser-qa-*` artifacts on failure.
+
+## Current patch
+
+- `HANDOFF_PACKAGE.json` defines the transferable file contract and identifies GitHub Desktop as the target client.
+- `npm run handoff:check` verifies the applied repository state before static or browser QA.
+- `npm run check:release` now runs `version:check`, `handoff:check`, static QA, and browser QA in that order.
+- Overwrite packages now carry previously omitted transferable roots such as `docs/`, `.gitignore`, `robots.txt`, and `design-preview.html`.
+- Both overwrite and full-release archives are extracted and semantically verified after creation.
+- Full-release archives no longer carry the local `.firebaserc` Firebase project binding.
+
+```text
+product: 1.5.14
+build: github-desktop-handoff-preflight
+asset generation: 1.5.14-github-desktop-handoff-preflight
+service worker cache: foxbear-shell-v1.5.14-github-desktop-handoff-preflight
+```
+
+Verification:
+
+```bash
+npm ci
+npm run version:check
+npm run handoff:check
+npm run check
+npm run package:all
+npm run qa:browser
+```
+
+Browser PASS must be confirmed by GitHub Actions.
+
+## Next safe direction
+
+- Split `src/app.js` by controller responsibility without increasing global state coupling.
+- Continue event-listener lifecycle hardening with idempotent init and `AbortController`.
+- Add a lightweight pull-request workflow so GitHub Desktop patch branches can validate before merging to `main`.
+
+## Previous handoff: v1.5.13 Handoff Package Integrity
 
 ## Root cause of the 188/189 CI failure
 
@@ -6,7 +56,7 @@ The v1.5.12 handoff correctly stated that CI Playwright workers were capped at t
 
 This was a delivery-package defect, not an undocumented runtime decision.
 
-## Current patch
+### v1.5.13 changes
 
 - `tools/create-overwrite-zip.sh` now copies `playwright.config.js`.
 - Every overwrite archive is verified after creation by `tools/verify-overwrite-zip.js`.
@@ -36,7 +86,7 @@ Expected static result: `191/191 PASS`. Browser PASS must be confirmed by GitHub
 
 ## Previous handoff: v1.5.12 CI Runtime Readiness and Node 24 Actions
 
-## Current patch
+### v1.5.12 changes
 
 The v1.5.11 browser gate still raced because `waitForRuntimeHealth()` only waited for the Runtime Health object, not for `appReady`. v1.5.12 waits for the application-owned ready state, reports the last health snapshot on timeout, waits explicitly for an active service worker, creates fresh Wake Lock sentinels, and caps CI Playwright workers at two.
 

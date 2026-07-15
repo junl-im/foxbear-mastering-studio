@@ -1,3 +1,14 @@
+# v1.5.14 - GitHub Desktop Handoff Preflight
+
+- Recorded GitHub Desktop as the default handoff client and added `GITHUB_DESKTOP_HANDOFF.md` with branch, extract, review, commit, push, and Actions-failure steps.
+- Added `HANDOFF_PACKAGE.json` as a versioned package contract for required files, required trees, forbidden archive content, and future deletion instructions.
+- Added `npm run handoff:check` and `tools/verify-handoff-state.js` to detect wrong-folder extraction, missing root configuration, release metadata mismatch, unbounded Playwright workers, and incomplete workflow transfer before browser QA.
+- Made `check:release` run the handoff preflight before static and browser QA.
+- Expanded cumulative overwrite packaging to include `.gitignore`, `design-preview.html`, `robots.txt`, `docs/`, the GitHub Desktop guide, and the package contract.
+- Reworked overwrite verification to validate the extracted archive against the package contract instead of hard-coding one historical patch file.
+- Added full-release ZIP verification and excluded local `.firebaserc` project binding from transferable release archives.
+- Added `qa/v1514_github_desktop_handoff_smoke.js`.
+
 # v1.5.13 - Handoff Package Integrity
 
 - Fixed the v1.5.12 cumulative overwrite package, which documented the two-worker Playwright limit but accidentally omitted `playwright.config.js`; this caused the new v1.5.12 smoke test to arrive without the configuration it validated.

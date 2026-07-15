@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.5.13',
-    appVersion: 'Pro v1.5.13',
-    buildId: 'handoff-package-integrity',
-    assetVersion: '1.5.13-handoff-package-integrity',
-    cacheName: 'foxbear-shell-v1.5.13-handoff-package-integrity',
-    bootRevision: 'boot-sri-v1513',
-    updateSafetyRevision: 'update-safety-v1513',
-    serviceWorkerRevision: 'sw-v1513'
+    productVersion: '1.5.14',
+    appVersion: 'Pro v1.5.14',
+    buildId: 'github-desktop-handoff-preflight',
+    assetVersion: '1.5.14-github-desktop-handoff-preflight',
+    cacheName: 'foxbear-shell-v1.5.14-github-desktop-handoff-preflight',
+    bootRevision: 'boot-sri-v1514',
+    updateSafetyRevision: 'update-safety-v1514',
+    serviceWorkerRevision: 'sw-v1514'
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

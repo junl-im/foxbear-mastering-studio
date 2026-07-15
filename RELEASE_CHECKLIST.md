@@ -1,5 +1,35 @@
 # Release Checklist
 
+## GitHub Desktop patch application
+
+- Confirm the repository shown in GitHub Desktop is the intended FoxBear repository.
+- Click `Fetch origin` before extracting a patch.
+- Prefer a `patch/vX.Y.Z` branch for review.
+- Extract the overwrite ZIP outside the repository, then copy its contents into the repository root.
+- Reject a nested `foxbear-mastering-studio-v...-overwrite/` folder inside the repository.
+- In `Changes`, confirm `package.json`, `package-lock.json`, `playwright.config.js`, both Pages workflows, `HANDOFF.md`, and `HANDOFF_PACKAGE.json` are present.
+- Check `HANDOFF_PACKAGE.json.deletePaths`; remove only paths listed there.
+- Run `npm run handoff:check` when a terminal is available.
+- Commit in GitHub Desktop and use `Publish branch` or `Push origin`.
+- Confirm the Actions release gate; preserve `browser-qa-*` artifacts when it fails.
+
+## Required release gate
+
+```bash
+npm ci
+npm run version:check
+npm run handoff:check
+npm run check:release
+```
+
+## Package verification
+
+```bash
+npm run package:all
+node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.14-release.zip
+node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.14-overwrite.zip
+```
+
 ## Metadata and dependency reproducibility
 
 ```bash

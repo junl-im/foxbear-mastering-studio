@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "targetClient": "GitHub Desktop",
+  "applyMode": "extract-overwrite-zip-into-repository-root",
+  "productVersion": "1.5.14",
+  "buildId": "github-desktop-handoff-preflight",
+  "requiredFiles": [
+    ".gitignore",
+    ".github/workflows/pages.yml",
+    ".github/workflows/pages-branch-fallback.yml",
+    "CHANGELOG.md",
+    "GITHUB_DESKTOP_HANDOFF.md",
+    "HANDOFF.md",
+    "HANDOFF_PACKAGE.json",
+    "PROJECT_NOTES.md",
+    "README.md",
+    "RELEASE_CHECKLIST.md",
+    "STATUS.md",
+    "VERSIONING.md",
+    "design-preview.html",
+    "index.html",
+    "manifest.webmanifest",
+    "package.json",
+    "package-lock.json",
+    "playwright.config.js",
+    "robots.txt",
+    "sw.js",
+    "qa/browser/helpers/foxbear-e2e-helpers.js",
+    "qa/browser/run-browser-e2e.js",
+    "tools/create-overwrite-zip.sh",
+    "tools/create-release-zip.sh",
+    "tools/verify-handoff-state.js",
+    "tools/verify-overwrite-zip.js",
+    "tools/verify-release-zip.js"
+  ],
+  "requiredPrefixes": [
+    "assets/",
+    "docs/",
+    "qa/",
+    "src/",
+    "tools/",
+    "vendor/"
+  ],
+  "forbiddenArchivePrefixes": [
+    ".git/",
+    ".firebase/",
+    "dist/",
+    "node_modules/",
+    "playwright-report/",
+    "qa/browser-results/",
+    "test-results/"
+  ],
+  "forbiddenArchiveFiles": [
+    ".firebaserc",
+    "check.log"
+  ],
+  "deletePaths": []
+}

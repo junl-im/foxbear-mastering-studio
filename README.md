@@ -1,17 +1,26 @@
-# FoxBear AI Mastering Studio Pro v1.5.13
+# FoxBear AI Mastering Studio Pro v1.5.14
 
-## Current patch: v1.5.13 Handoff Package Integrity
+## GitHub Desktop update workflow
 
-The v1.5.12 handoff documented the two-worker CI limit, but its cumulative overwrite ZIP omitted `playwright.config.js`. v1.5.13 fixes the transfer package, verifies the generated archive contents automatically, and tests the effective CI worker value rather than one exact source string.
+The maintainer applies cumulative patches with GitHub Desktop. Read `GITHUB_DESKTOP_HANDOFF.md` before copying an overwrite ZIP into the repository. The release gate runs `npm run handoff:check` before static and browser QA so missing root files or a wrong extraction location fail early.
+
+
+## Current patch: v1.5.14 GitHub Desktop Handoff Preflight
+
+GitHub Desktop is now the documented default patch client. `HANDOFF_PACKAGE.json` defines the required transfer contract, `npm run handoff:check` validates an applied patch before QA, and both overwrite/full-release ZIPs are verified after creation. The full release intentionally excludes the local `.firebaserc` project binding.
 
 Release metadata:
 
 ```text
-product: 1.5.13
-build: handoff-package-integrity
-asset generation: 1.5.13-handoff-package-integrity
-service worker cache: foxbear-shell-v1.5.13-handoff-package-integrity
+product: 1.5.14
+build: github-desktop-handoff-preflight
+asset generation: 1.5.14-github-desktop-handoff-preflight
+service worker cache: foxbear-shell-v1.5.14-github-desktop-handoff-preflight
 ```
+
+## Previous patch: v1.5.13 Handoff Package Integrity
+
+The v1.5.12 handoff documented the two-worker CI limit, but its cumulative overwrite ZIP omitted `playwright.config.js`. v1.5.13 fixed the transfer package and added post-creation overwrite verification.
 
 ## Previous patch: v1.5.12 CI Runtime Readiness and Node 24 Actions
 

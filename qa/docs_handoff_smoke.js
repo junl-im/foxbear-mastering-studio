@@ -33,6 +33,8 @@ const qaReport = read('qa/QA_REPORT.md');
 const status = read('STATUS.md');
 const versioning = read('VERSIONING.md');
 const releaseChecklist = read('RELEASE_CHECKLIST.md');
+const desktopHandoff = read('GITHUB_DESKTOP_HANDOFF.md');
+const handoffPackage = JSON.parse(read('HANDOFF_PACKAGE.json'));
 const dockFftDecision = read('docs/decisions/0001-dock-fft-removal.md');
 
 assert(changelog.includes('Stage7'), 'CHANGELOG.md does not mention the actual Stage7 change');
@@ -41,6 +43,8 @@ assert(changelog.includes('waveform-compare-view.js'), 'CHANGELOG.md does not me
 assert(status.includes('Dock mini FFT remains removed'), 'STATUS.md is missing the Dock FFT invariant');
 assert(versioning.includes('source of truth'), 'VERSIONING.md is missing source-of-truth guidance');
 assert(releaseChecklist.includes('npm run check:release'), 'RELEASE_CHECKLIST.md is missing the release gate');
+assert(desktopHandoff.includes('GitHub Desktop') && desktopHandoff.includes('Push origin'), 'GitHub Desktop handoff guide is incomplete');
+assert(handoffPackage.targetClient === 'GitHub Desktop', 'HANDOFF_PACKAGE.json target client is incorrect');
 assert(dockFftDecision.includes('renderMini'), 'Dock FFT ADR is missing the renderMini decision');
 assert(handoff.includes('Stage7'), 'HANDOFF.md does not mention Stage7');
 assert(handoff.includes('Stage9'), 'HANDOFF.md does not mention Stage9');
@@ -60,6 +64,7 @@ assert(qaReport.includes('docs/history/'), 'QA_REPORT.md does not point to histo
   'STATUS.md',
   'VERSIONING.md',
   'RELEASE_CHECKLIST.md',
+  'GITHUB_DESKTOP_HANDOFF.md',
   'docs/decisions/0001-dock-fft-removal.md',
   'docs/history/README_legacy_v1.4.21_to_v1.4.26.md',
   'docs/history/HANDOFF_legacy_v1.4.21_to_v1.4.26.md',

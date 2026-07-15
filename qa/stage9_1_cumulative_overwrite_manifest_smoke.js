@@ -21,6 +21,7 @@ const notes = fs.readFileSync('PROJECT_NOTES.md', 'utf8');
   'src',
   'assets',
   'vendor',
+  'docs',
   'qa',
   'tools',
   '.github/workflows',
@@ -28,6 +29,10 @@ const notes = fs.readFileSync('PROJECT_NOTES.md', 'utf8');
   'sw.js',
   'package.json',
   'playwright.config.js',
+  '.gitignore',
+  'robots.txt',
+  'GITHUB_DESKTOP_HANDOFF.md',
+  'HANDOFF_PACKAGE.json',
   'CHANGELOG.md',
   'HANDOFF.md',
   'PROJECT_NOTES.md'

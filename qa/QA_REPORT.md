@@ -1,3 +1,25 @@
+# QA Report - v1.5.14 GitHub Desktop Handoff Preflight
+
+## Result
+
+```text
+194/194 PASS
+Browser QA: GitHub Actions confirmation required
+```
+
+v1.5.14 final QA: `194/194 PASS`. This is a static and executable smoke result, not a browser PASS.
+
+## New coverage
+
+- GitHub Desktop handoff documentation and root extraction checks.
+- Package-contract metadata synchronization.
+- Repository preflight through `npm run handoff:check`.
+- Contract-driven overwrite verification.
+- Full-release archive verification.
+- Exclusion of local `.firebaserc` binding from transferable release ZIPs.
+
+## Previous report: v1.5.13
+
 # QA Report - v1.5.13 Handoff Package Integrity
 
 ## Result
