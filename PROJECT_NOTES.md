@@ -1,3 +1,13 @@
+# Project Notes - v1.5.11
+
+## AudioContext lifecycle and browser QA stability
+
+- Web Audio context ownership is centralized and inspectable by purpose, owner, state, age, resume count, and recent lifecycle events.
+- Preview/difference/spectrum/decode paths release their managed contexts through a common API.
+- Browser E2E readiness now follows `DOMContentLoaded` plus FoxBear Runtime Health instead of global network idleness.
+- CI navigation failures terminate earlier and retain downloadable Playwright diagnostics.
+- The next structural focus is controller extraction from `src/app.js` after this lifecycle boundary is stable.
+
 # Project Notes - v1.5.10
 
 ## Header Settings relocation

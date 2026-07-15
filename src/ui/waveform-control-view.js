@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.10-header-settings-relocation';
+  const VIEW_VERSION = '1.5.11-audio-context-ci-stability';
   const DEFAULT_BINS = 96;
 
   function getService() {

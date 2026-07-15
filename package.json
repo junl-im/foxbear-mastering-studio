@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.10",
+  "version": "1.5.11",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -32,6 +32,7 @@
     "node --check src/audio/highlight-compare-inspector.js",
     "node --check src/audio/playback-link-service.js",
     "node --check src/audio/playback-transition-service.js",
+    "node --check src/audio/audio-context-manager.js",
     "node --check src/audio/audio-decode-service.js",
     "node --check src/audio/import-queue-service.js",
     "node --check src/audio/analysis-cache-service.js",
@@ -204,15 +205,16 @@
     "node qa/v158_pcm_zip_memory_hardening_smoke.js",
     "node --check src/boot/release-presentation-service.js",
     "node qa/v159_version_display_cache_recovery_smoke.js",
-    "node qa/v1510_header_settings_relocation_smoke.js"
+    "node qa/v1510_header_settings_relocation_smoke.js",
+    "node qa/v1511_audio_context_lifecycle_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "header-settings-relocation",
-    "assetVersion": "1.5.10-header-settings-relocation",
-    "cacheName": "foxbear-shell-v1.5.10-header-settings-relocation",
-    "bootRevision": "boot-sri-v1510",
-    "updateSafetyRevision": "update-safety-v1510",
-    "serviceWorkerRevision": "sw-v1510"
+    "buildId": "audio-context-ci-stability",
+    "assetVersion": "1.5.11-audio-context-ci-stability",
+    "cacheName": "foxbear-shell-v1.5.11-audio-context-ci-stability",
+    "bootRevision": "boot-sri-v1511",
+    "updateSafetyRevision": "update-safety-v1511",
+    "serviceWorkerRevision": "sw-v1511"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

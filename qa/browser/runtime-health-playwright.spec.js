@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { getReleaseMetadata } = require('../../tools/release-metadata');
-const { APP_URL, expectRuntimeHealthy } = require('./helpers/foxbear-e2e-helpers');
+const { expectRuntimeHealthy, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 
 const RELEASE = getReleaseMetadata();
 
@@ -14,7 +14,7 @@ test.describe('FoxBear browser runtime health', () => {
       }
     });
 
-    await page.goto(APP_URL, { waitUntil: 'networkidle' });
+    await navigateToApp(page);
     const report = await expectRuntimeHealthy(expect, page);
     expect(report.version).toContain(RELEASE.assetVersion);
     const releasePresentation = await page.evaluate(() => window.FoxBearReleasePresentation?.getReport?.());

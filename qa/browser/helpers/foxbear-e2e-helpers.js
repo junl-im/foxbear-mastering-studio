@@ -59,6 +59,17 @@ function removeDirSafe(dir) {
   try { fs.rmSync(dir, { recursive: true, force: true }); } catch (_) {}
 }
 
+async function navigateToApp(page, options = {}) {
+  const timeout = Number(options.timeout || 20000);
+  const url = options.url || APP_URL;
+  const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+  if (response && !response.ok()) {
+    throw new Error(`FoxBear E2E navigation failed: ${response.status()} ${response.statusText()} ${url}`);
+  }
+  await page.waitForFunction(() => document.readyState !== 'loading', null, { timeout: Math.min(timeout, 5000) });
+  return response;
+}
+
 async function waitForRuntimeHealth(page, options = {}) {
   const timeout = Number(options.timeout || 20000);
   await page.waitForFunction(() => Boolean(window.FoxBearRuntimeHealth && window.FoxBearRuntimeHealth.getReport), null, { timeout });
@@ -152,6 +163,7 @@ module.exports = {
   getServiceWorkerSnapshot,
   installWakeLockMock,
   makeTinyWavBuffer,
+  navigateToApp,
   removeDirSafe,
   startStaticServer,
   waitForRuntimeHealth

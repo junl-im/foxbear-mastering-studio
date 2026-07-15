@@ -1,19 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.10
+# FoxBear AI Mastering Studio Pro v1.5.11
 
-## Current patch: v1.5.10 Header Settings Relocation
+## Current patch: v1.5.11 AudioContext Lifecycle and CI Navigation Stability
 
-The application Settings trigger now lives in the upper-right brand row immediately after the `DESIGNED BY` card. Wide desktop layouts show a labeled `⚙️ 설정` button; narrower tablet and mobile layouts collapse it to a compact square gear.
+Web Audio context ownership is centralized through `FoxBearAudioContextManager`. Realtime mastering preview, difference A/B, preview translation, spectrum visualization, and decode operations now expose purpose/state diagnostics and release contexts through a common lifecycle.
 
-The settings panel remains a body-level fixed portal and follows the trigger position at runtime. This avoids clipping inside the decorative hero card and keeps the panel inside the viewport across resize, orientation, and scroll changes. The hidden Bulk HUD restore button remains independent near the lower-left Dock edge.
+The real-browser release gate no longer waits for global `networkidle`. It navigates to `domcontentloaded` and then waits for `FoxBearRuntimeHealth.appReady`, avoiding CI timeouts caused by optional Firebase, service-worker, or other persistent network activity. Failed GitHub Actions runs upload Playwright diagnostics automatically.
 
 Release metadata:
 
 ```text
-product: 1.5.10
-build: header-settings-relocation
-asset generation: 1.5.10-header-settings-relocation
-service worker cache: foxbear-shell-v1.5.10-header-settings-relocation
+product: 1.5.11
+build: audio-context-ci-stability
+asset generation: 1.5.11-audio-context-ci-stability
+service worker cache: foxbear-shell-v1.5.11-audio-context-ci-stability
 ```
+
+## Previous patch: v1.5.10 Header Settings Relocation
+
+The Settings trigger remains beside the `DESIGNED BY` card, with a body-level viewport-safe panel and independent Bulk HUD recovery control.
 
 ## Previous patch: v1.5.9 Version Display and Cache Recovery
 

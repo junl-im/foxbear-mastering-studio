@@ -53,7 +53,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.10',
+                version: '1.5.11',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',

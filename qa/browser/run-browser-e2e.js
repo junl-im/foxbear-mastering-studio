@@ -36,7 +36,16 @@ function waitForServer(url, timeoutMs = 12000) {
   try {
     await waitForServer(APP_URL);
     const args = [playwrightCli, 'test', 'qa/browser'];
-    const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: { ...process.env, FOXBEAR_E2E_URL: APP_URL } });
+    const localBypass = ['127.0.0.1', 'localhost', '::1'];
+    const mergeNoProxy = value => Array.from(new Set(String(value || '').split(',').map(item => item.trim()).filter(Boolean).concat(localBypass))).join(',');
+    const childEnv = {
+      ...process.env,
+      FOXBEAR_E2E_URL: APP_URL,
+      NO_PROXY: mergeNoProxy(process.env.NO_PROXY),
+      no_proxy: mergeNoProxy(process.env.no_proxy)
+    };
+    console.log(`FoxBear browser QA target: ${APP_URL}`);
+    const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: childEnv });
     exitCode = Number.isInteger(result.status) ? result.status : 1;
   } catch (error) {
     console.error(`FAIL browser E2E bootstrap: ${error && error.message ? error.message : error}`);

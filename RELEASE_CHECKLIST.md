@@ -68,3 +68,12 @@ Inspect generated ZIP names and run `npm run version:check` once more after any 
 - Open the panel at desktop, tablet, and 320-390px mobile widths and confirm it is not clipped and stays inside the viewport.
 - Rotate a mobile device or resize the browser while the panel is open and confirm its right/top alignment updates.
 - Hide an active Bulk HUD and confirm the separate lower-left `보이기` recovery control still works.
+
+## v1.5.11 AudioContext and browser CI checks
+
+- Confirm `FoxBearAudioContextManager.getDiagnostics().activeCount` returns to zero after closing preview/difference dialogs and after decode completion.
+- Confirm Performance Diagnostics includes the `audioContexts` snapshot.
+- Confirm the normal Playwright suite no longer contains `waitUntil: 'networkidle'`.
+- Confirm a failed Actions browser run uploads the `browser-qa-*` artifact with trace/error context.
+- Confirm `npm run qa:browser` reaches the application-owned Runtime Health readiness signal instead of waiting for Firebase/PWA network silence.
+

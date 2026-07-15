@@ -1,14 +1,15 @@
-# QA Report - v1.5.10 Header Settings Relocation
+# QA Report - v1.5.11 AudioContext Lifecycle and CI Navigation Stability
 
 ## Result
 
 ```text
-186/186 PASS
-Browser QA: geometry assertions added; standard Chromium execution still required
+188/188 PASS
+Browser QA: network-idle timeout removed; GitHub Actions rerun required
 ```
 
-v1.5.10 final QA static target: `186/186 PASS`. This is not a browser QA pass.
+v1.5.11 final QA static target: `188/188 PASS`. This is not a browser QA pass.
 
+Previous v1.5.10 static target: `186/186 PASS`.
 Previous v1.5.9 static target: `185/185 PASS`.
 Previous v1.5.8 static target: `183/183 PASS`.
 Previous v1.5.7 static target: `182/182 PASS`.
@@ -23,21 +24,21 @@ npm run qa:browser
 
 ## Verified
 
-- Header mount ordering and responsive Settings trigger styling.
-- Body-level settings panel portal and trigger-relative viewport positioning.
-- Independent Bulk HUD restore placement.
-- Existing syntax, SRI, runtime, audio, memory, export, Dock, PWA, version recovery, and documentation regression checks.
+- Central AudioContext lifecycle, diagnostics, owner cleanup, and pagehide cleanup.
+- Realtime preview, A/B difference, translation, spectrum, and decode context integration.
+- Browser navigation uses `domcontentloaded` plus Runtime Health readiness, with no `networkidle` gates.
+- CI uploads Playwright traces and error context on browser gate failure.
+- Existing syntax, SRI, runtime, audio, memory, export, Dock, PWA, version recovery, header layout, and documentation regression checks.
 
-## New check
+## New checks
 
-- `qa/v1510_header_settings_relocation_smoke.js`
-- Playwright runtime-health geometry checks for designer/Settings order and opened-panel viewport bounds.
+- `node --check src/audio/audio-context-manager.js`
+- `qa/v1511_audio_context_lifecycle_smoke.js`
 
-## Manual follow-up still needed
+## Browser follow-up
 
-- Run the pinned Playwright Chromium suite on a normal development machine or CI runner.
-- Verify the header at 1440px, 768px, 390px, and 320px widths.
-- Verify mobile rotation and browser resize while Settings is open.
+- Rerun the GitHub Actions release gate and confirm all 10 desktop/mobile tests pass.
+- If a browser test still fails, download the `browser-qa-*` artifact and inspect `error-context.md` and `trace.zip`.
 
 ## Historical reports
 

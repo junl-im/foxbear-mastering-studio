@@ -1,3 +1,14 @@
+# v1.5.11 - AudioContext Lifecycle and CI Navigation Stability
+
+- Added `src/audio/audio-context-manager.js` to centralize Web Audio creation, resume, close, owner cleanup, pagehide cleanup, and diagnostics.
+- Routed realtime mastering preview, difference preview, translation preview, spectrum visualization, and decode contexts through the lifecycle manager.
+- Added AudioContext counts and purpose/state diagnostics to Performance Diagnostics and Runtime Health.
+- Fixed a CI-wide Playwright timeout: browser tests no longer wait for `networkidle`, which can remain pending while Firebase/PWA connections are active.
+- Added `navigateToApp()` with `domcontentloaded` plus the existing Runtime Health readiness assertion, and applied it to all desktop/mobile browser specs.
+- Added a 20-second navigation ceiling and local proxy-bypass environment normalization so failures stop quickly and report the actual boot issue.
+- GitHub Actions now uploads Playwright traces, screenshots, videos, and error context when the release gate fails.
+- Added `qa/v1511_audio_context_lifecycle_smoke.js`; current static QA target is `188/188 PASS`.
+
 # v1.5.10 - Header Settings Relocation
 
 - Moved the settings trigger from the lower-left Dock edge to the top-right brand area, immediately to the right of the `DESIGNED BY` card.

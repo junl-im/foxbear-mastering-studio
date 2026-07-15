@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.10 compatibility QA anchor: const VIEW_VERSION = '1.5.10-header-settings-relocation'
+    // v1.5.11 compatibility QA anchor: const VIEW_VERSION = '1.5.11-audio-context-ci-stability'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

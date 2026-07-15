@@ -1,12 +1,15 @@
-# Handoff - v1.5.10 Header Settings Relocation
+# Handoff - v1.5.11 AudioContext Lifecycle and CI Navigation Stability
 
 ## What changed
 
-- The Settings trigger now sits in the upper-right brand row, directly to the right of the `DESIGNED BY` card.
-- Desktop shows `⚙️ 설정`; tablet and mobile use a compact gear to protect header width.
-- The panel is still rendered at body level and positioned from the trigger geometry, so it is not clipped by the hero card.
-- Hidden Bulk HUD recovery remains a separate lower-left control.
-- Resize, orientation, and scroll changes refresh the panel anchor position.
+- Web Audio contexts are created and released through `FoxBearAudioContextManager`.
+- Realtime preview, difference A/B, translation preview, spectrum, and decode contexts report purpose/state diagnostics and close on owner disposal or page hide.
+- Playwright navigation now waits for `domcontentloaded` and then FoxBear Runtime Health instead of waiting for global network idleness.
+- Browser navigation has a 20-second ceiling, local proxy bypass values are normalized, and GitHub Actions uploads browser artifacts after failures.
+
+## CI failure fixed
+
+The previous 10-test failure stopped at each `page.goto()` call because `waitUntil: 'networkidle'` could not complete while optional Firebase/PWA traffic remained active. The browser suite now waits for the application-owned readiness signal.
 
 ## Verification
 
@@ -17,23 +20,20 @@ npm run check
 npm run qa:browser
 ```
 
-Expected static result: `186/186 PASS`.
-
-Manual layout checks:
-
-1. Confirm Settings appears immediately to the right of `DESIGNED BY` on desktop.
-2. Confirm the trigger becomes a square gear at tablet/mobile widths without wrapping the brand row.
-3. Open Settings at 1440px, 768px, 390px, and 320px widths and confirm the panel stays within the viewport.
-4. Hide an active Bulk HUD and confirm the `보이기` restore control remains available near the lower-left Dock edge.
+Expected static result: `188/188 PASS`.
 
 Release metadata:
 
 ```text
-product: 1.5.10
-build: header-settings-relocation
-asset generation: 1.5.10-header-settings-relocation
-service worker cache: foxbear-shell-v1.5.10-header-settings-relocation
+product: 1.5.11
+build: audio-context-ci-stability
+asset generation: 1.5.11-audio-context-ci-stability
+service worker cache: foxbear-shell-v1.5.11-audio-context-ci-stability
 ```
+
+## Previous patch: v1.5.10 Header Settings Relocation
+
+The top-right Settings layout and viewport-safe panel positioning remain active.
 
 ## Previous patch: v1.5.9 Version Display and Cache Recovery
 

@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { APP_URL, createSyntheticWavFiles, expectRuntimeHealthy, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
+const { createSyntheticWavFiles, expectRuntimeHealthy, navigateToApp, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
 
 const RUN_DEEP = process.env.FOXBEAR_E2E_DEEP === '1';
 
@@ -8,7 +8,7 @@ test.describe('FoxBear 35-track import/master/export browser scenario', () => {
     test.setTimeout(RUN_DEEP ? 180000 : 60000);
     const temp = createSyntheticWavFiles(35, { seconds: RUN_DEEP ? 0.45 : 0.18, gain: 0.08 });
     try {
-      await page.goto(APP_URL, { waitUntil: 'networkidle' });
+      await navigateToApp(page);
       await expectRuntimeHealthy(expect, page);
       await expect(page.locator('#fileInput')).toHaveCount(1);
 

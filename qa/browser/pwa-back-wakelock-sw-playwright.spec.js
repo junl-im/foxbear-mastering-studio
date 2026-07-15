@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { APP_URL, expectRuntimeHealthy, getServiceWorkerSnapshot, installWakeLockMock } = require('./helpers/foxbear-e2e-helpers');
+const { expectRuntimeHealthy, getServiceWorkerSnapshot, installWakeLockMock, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 
 test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () => {
   test.beforeEach(async ({ page }) => {
@@ -7,19 +7,19 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
   });
 
   test('keeps app healthy after history back/forward navigation', async ({ page }) => {
-    await page.goto(APP_URL, { waitUntil: 'networkidle' });
+    await navigateToApp(page);
     await expectRuntimeHealthy(expect, page);
 
     await page.evaluate(() => {
       history.pushState({ foxbearE2E: true }, '', '#foxbear-e2e-back-test');
       window.dispatchEvent(new PopStateEvent('popstate', { state: { foxbearE2E: true } }));
     });
-    await page.goBack({ waitUntil: 'networkidle' }).catch(() => null);
+    await page.goBack({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => null);
     await expectRuntimeHealthy(expect, page);
   });
 
   test('exposes wake lock controller and handles mocked request/release', async ({ page }) => {
-    await page.goto(APP_URL, { waitUntil: 'networkidle' });
+    await navigateToApp(page);
     await expectRuntimeHealthy(expect, page);
     await page.waitForFunction(() => Boolean(window.FoxBearWakeLockController && window.FoxBearWakeLockController.getSnapshot));
 
@@ -39,7 +39,7 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
   });
 
   test('registers and updates service worker without runtime health failures', async ({ page }) => {
-    await page.goto(APP_URL, { waitUntil: 'networkidle' });
+    await navigateToApp(page);
     await expectRuntimeHealthy(expect, page);
 
     const before = await getServiceWorkerSnapshot(page);

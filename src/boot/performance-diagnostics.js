@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.10-header-settings-relocation';
+    const DIAGNOSTICS_VERSION = '1.5.11-audio-context-ci-stability';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -118,6 +118,8 @@
         if ((snapshot.importQueue?.active || 0) + (snapshot.importQueue?.pending || 0) > 0) warnings.push('bulk-import-active');
         if (snapshot.bulkImportHud && snapshot.bulkImportHud.total >= 2 && !snapshot.bulkImportHud.complete) warnings.push('bulk-import-hud-active');
         if ((snapshot.audioDecode?.activeDecodes || 0) > 0) warnings.push('audio-decode-active');
+        if ((snapshot.audioContexts?.activeCount || 0) > 5) warnings.push('many-audio-contexts');
+        if ((snapshot.audioContexts?.interruptedCount || 0) > 0) warnings.push('audio-context-interrupted');
         if ((snapshot.audioDecode?.failedCount || 0) > 0 && snapshot.audioDecode?.lastError) warnings.push('audio-decode-last-error');
         if ((snapshot.masteringQueue?.active || 0) > 0) warnings.push('mastering-active');
         if ((snapshot.memoryGuard?.masteredBufferCount || 0) > 2) warnings.push('mastered-buffer-retention');
@@ -138,6 +140,7 @@
             importQueue: snapshot.importQueue ? { active: snapshot.importQueue.active || 0, pending: snapshot.importQueue.pending || 0 } : null,
             bulkImportHud: snapshot.bulkImportHud ? { total: snapshot.bulkImportHud.total || 0, done: snapshot.bulkImportHud.done || 0, percent: snapshot.bulkImportHud.percent || 0, expanded: Boolean(snapshot.bulkImportHud.expanded) } : null,
             audioDecode: snapshot.audioDecode ? { active: snapshot.audioDecode.activeDecodes || 0, completedCount: snapshot.audioDecode.completedCount || 0, failedCount: snapshot.audioDecode.failedCount || 0, lastDecodedPcmMB: snapshot.audioDecode.lastDecodedPcmMB || 0 } : null,
+            audioContexts: snapshot.audioContexts ? { active: snapshot.audioContexts.activeCount || 0, running: snapshot.audioContexts.runningCount || 0, suspended: snapshot.audioContexts.suspendedCount || 0, byPurpose: snapshot.audioContexts.byPurpose || {} } : null,
             masteringQueue: snapshot.masteringQueue ? { active: snapshot.masteringQueue.active || 0, completedCount: snapshot.masteringQueue.completedCount || 0, failedCount: snapshot.masteringQueue.failedCount || 0 } : null,
             memoryGuard: snapshot.memoryGuard ? { completedCount: snapshot.memoryGuard.completedCount || 0, masteredBufferCount: snapshot.memoryGuard.masteredBufferCount || 0, masteredBufferBytes: snapshot.memoryGuard.masteredBufferBytes || 0, outBlobBytes: snapshot.memoryGuard.outBlobBytes || 0 } : null,
             wakeLock: snapshot.wakeLock ? { active: Boolean(snapshot.wakeLock.active), mode: snapshot.wakeLock.mode || 'off', settingLabel: snapshot.wakeLock.settingLabel || 'OFF', userEnabled: Boolean(snapshot.wakeLock.userEnabled) } : null,
@@ -161,6 +164,7 @@
         const importQueue = safeCall(() => global.FoxBearBulkImportGuard?.getSnapshot?.(), null);
         const bulkImportHud = safeCall(() => global.FoxBearBulkImportHud?.getSnapshot?.(), null);
         const audioDecode = safeCall(() => global.FoxBearAudioDecodeService?.getDiagnostics?.(), null);
+        const audioContexts = safeCall(() => global.FoxBearAudioContextManager?.getDiagnostics?.(), null);
         const renderScheduler = safeCall(() => global.FoxBearRenderScheduler?.getSnapshot?.(), null);
         const masteringQueue = safeCall(() => global.FoxBearMasteringGuard?.getSnapshot?.(), null);
         const wakeLock = safeCall(() => global.FoxBearWakeLockController?.getSnapshot?.(), null);
@@ -188,6 +192,7 @@
             importQueue,
             bulkImportHud,
             audioDecode,
+            audioContexts,
             masteringQueue,
             memoryGuard,
             wakeLock,

@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / 'index.html'
-TAG_RE = re.compile(r'<(?:script|link)[^>]+integrity="sha384-[^"]+"[^>]*>')
+TAG_RE = re.compile(r'<(?:script|link)\b[^>]*(?:src|href)="[^"]+"[^>]*>')
 ASSET_RE = re.compile(r'(?:src|href)="([^"]+)"')
 INTEGRITY_RE = re.compile(r'integrity="sha384-[^"]+"')
 
@@ -28,7 +28,10 @@ def update_tag(match: re.Match[str]) -> str:
     asset_path = ROOT / asset
     if not asset_path.is_file():
         return tag
-    return INTEGRITY_RE.sub(f'integrity="{sri_for(asset_path)}"', tag)
+    integrity = f'integrity="{sri_for(asset_path)}"'
+    if INTEGRITY_RE.search(tag):
+        return INTEGRITY_RE.sub(integrity, tag)
+    return tag[:-1].rstrip() + f' {integrity}>'
 
 
 def main() -> int:

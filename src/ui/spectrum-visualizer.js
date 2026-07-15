@@ -3,7 +3,7 @@
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.5.10-header-settings-relocation';
+    const VISUALIZER_VERSION = '1.5.11-audio-context-ci-stability';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -17,6 +17,7 @@
     const registeredAudio = new WeakSet();
     const state = {
         context: null,
+        ownsContext: false,
         analyser: null,
         data: null,
         canvas: null,
@@ -255,15 +256,32 @@
     }
 
     function ensureContext() {
-        const AudioContextClass = global.AudioContext || global.webkitAudioContext;
-        if (!AudioContextClass) throw new Error('Web Audio API 미지원');
-        if (!state.context || state.context.state === 'closed') state.context = new AudioContextClass();
+        if (!global.AudioContext && !global.webkitAudioContext) throw new Error('Web Audio API 미지원');
+        if (!state.context || state.context.state === 'closed' || !state.ownsContext) {
+            const manager = global.FoxBearAudioContextManager;
+            state.context = manager && typeof manager.create === 'function'
+                ? manager.create({ purpose: 'spectrum-visualizer', ownerId: 'spectrum-visualizer', replaceOwner: true, latencyHint: 'interactive' })
+                : Reflect.construct(global.AudioContext || global.webkitAudioContext, [{ latencyHint: 'interactive' }]);
+            state.ownsContext = true;
+        }
         return state.context;
     }
 
     function resumeContext(context) {
+        const manager = global.FoxBearAudioContextManager;
+        if (manager && typeof manager.resume === 'function') return manager.resume(context, 'spectrum-live');
         if (!context || context.state !== 'suspended' || typeof context.resume !== 'function') return Promise.resolve(context);
         return context.resume().then(() => context).catch(() => context);
+    }
+
+    function releaseOwnedContext(reason = 'spectrum-release') {
+        const context = state.context;
+        const manager = global.FoxBearAudioContextManager;
+        if (!context || !state.ownsContext) return;
+        if (manager && typeof manager.close === 'function') manager.close(context, reason);
+        else if (context.state !== 'closed' && typeof context.close === 'function') context.close().catch(() => {});
+        state.context = null;
+        state.ownsContext = false;
     }
 
     function createAnalyser(context) {
@@ -288,7 +306,8 @@
         if (!audio) return null;
         const externalRecord = externalAnalyserNodes.get(audio);
         if (externalRecord?.analyser) {
-            if (externalRecord.context) state.context = externalRecord.context;
+            if (externalRecord.context && state.context && state.context !== externalRecord.context && state.ownsContext) releaseOwnedContext('spectrum-external-analyser');
+            if (externalRecord.context) { state.context = externalRecord.context; state.ownsContext = false; }
             return externalRecord.analyser;
         }
         const context = ensureContext();

@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.10-header-settings-relocation';
+    const FALLBACK_VERSION = '1.5.11-audio-context-ci-stability';
     if (global.FoxBearBuildInfo?.assetVersion && global.FoxBearBuildInfo.assetVersion !== FALLBACK_VERSION) console.warn('[FoxBear] runtime health metadata mismatch', { fallback: FALLBACK_VERSION, build: global.FoxBearBuildInfo.assetVersion });
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
@@ -20,6 +20,7 @@
         'FoxBearPlaybackLinkService.pauseAllExcept',
         'FoxBearPlaybackTransitionService.crossfadePair',
         'FoxBearPlaybackTransitionService.waitForMediaReady',
+        'FoxBearAudioContextManager.getDiagnostics',
         'FoxBearAudioDecodeService.decodeAudioFile',
         'FoxBearAudioDecodeService.getDiagnostics',
         'FoxBearWaveformControlService.setPlayhead',

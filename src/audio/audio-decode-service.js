@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.10
+// FoxBear audio decode service - v1.5.11
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.10-header-settings-relocation';
+    const SERVICE_VERSION = '1.5.11-audio-context-ci-stability';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 
@@ -70,8 +70,33 @@
     }
 
     async function ensureAudioContextRunning(audioContext) {
+        const manager = global.FoxBearAudioContextManager;
+        if (manager && typeof manager.resume === 'function') return manager.resume(audioContext, 'audio-decode');
         if (!audioContext || audioContext.state !== 'suspended' || typeof audioContext.resume !== 'function') return;
         try { await audioContext.resume(); } catch (error) {}
+    }
+
+
+    function createManagedDecodeContext(latencyHint) {
+        const manager = global.FoxBearAudioContextManager;
+        if (manager && typeof manager.create === 'function') {
+            return manager.create({
+                purpose: 'audio-decode',
+                ownerId: `audio-decode:${Date.now()}:${state.activeDecodes}`,
+                latencyHint: latencyHint || 'playback',
+                transient: true
+            });
+        }
+        const AudioContextClass = global.AudioContext || global.webkitAudioContext;
+        if (!AudioContextClass) throw new Error('이 브라우저는 Web Audio API를 지원하지 않습니다.');
+        return Reflect.construct(AudioContextClass, [{ latencyHint: latencyHint || 'playback' }]);
+    }
+
+    function closeManagedDecodeContext(context) {
+        const manager = global.FoxBearAudioContextManager;
+        if (manager && typeof manager.close === 'function') return manager.close(context, 'audio-decode-complete');
+        if (!context || context.state === 'closed' || typeof context.close !== 'function') return Promise.resolve(true);
+        return context.close().then(() => true).catch(() => false);
     }
 
     function decodeAudioDataCompat(audioContext, arrayBuffer) {
@@ -159,8 +184,7 @@
     }
 
     async function decodeAudioFile(file, options = {}) {
-        const AudioContextClass = global.AudioContext || global.webkitAudioContext;
-        if (!AudioContextClass) throw new Error('이 브라우저는 Web Audio API를 지원하지 않습니다. Chrome, Edge, Safari 최신 버전에서 다시 시도해주세요.');
+        if (!global.AudioContext && !global.webkitAudioContext) throw new Error('이 브라우저는 Web Audio API를 지원하지 않습니다. Chrome, Edge, Safari 최신 버전에서 다시 시도해주세요.');
         const startedMs = nowMs();
         state.activeDecodes += 1;
         state.lastStartedAt = Date.now();
@@ -176,7 +200,7 @@
             catch (error) { throw new Error('선택한 파일을 읽지 못했습니다. 파일 권한 또는 클라우드 다운로드 상태를 확인해주세요.'); }
             if (!arrayBuffer || !arrayBuffer.byteLength) throw new Error('선택한 파일이 비어 있거나 읽을 수 없습니다.');
 
-            audioContext = new AudioContextClass({ latencyHint: options.latencyHint || 'playback' });
+            audioContext = createManagedDecodeContext(options.latencyHint || 'playback');
             await ensureAudioContextRunning(audioContext);
             const decoded = await decodeAudioDataCompat(audioContext, arrayBuffer);
             const summary = getDecodedBufferSummary(decoded) || {};
@@ -206,7 +230,7 @@
             throw finalError;
         } finally {
             arrayBuffer = null;
-            if (audioContext && audioContext.close) await audioContext.close().catch(() => {});
+            if (audioContext) await closeManagedDecodeContext(audioContext);
             state.activeDecodes = Math.max(0, state.activeDecodes - 1);
         }
     }
