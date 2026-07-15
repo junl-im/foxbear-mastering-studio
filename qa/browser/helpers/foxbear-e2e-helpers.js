@@ -172,6 +172,27 @@ async function expectRuntimeHealthy(expect, page, options = {}) {
   return report;
 }
 
+async function warmServiceWorkerCache(page, options = {}) {
+  const timeout = Number(options.timeout || 30000);
+  const force = options.force === true;
+  return await page.evaluate(async ({ timeout, force }) => {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    const registration = registrations.find(item => item.active || item.waiting || item.installing) || registrations[0];
+    const worker = navigator.serviceWorker.controller || registration?.active || registration?.waiting || registration?.installing;
+    if (!worker) throw new Error('service-worker-warm-target-missing');
+    return await new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => reject(new Error(`service-worker-warm-timeout-${timeout}ms`)), timeout);
+      channel.port1.onmessage = event => {
+        if (event.data?.type !== 'FOXBEAR_WARM_CACHE_DONE') return;
+        clearTimeout(timer);
+        resolve(event.data);
+      };
+      worker.postMessage({ type: 'FOXBEAR_WARM_CACHE', force }, [channel.port2]);
+    });
+  }, { timeout, force });
+}
+
 async function installWakeLockMock(page) {
   await page.addInitScript(() => {
     const createSentinel = type => {
@@ -296,5 +317,6 @@ module.exports = {
   removeDirSafe,
   startStaticServer,
   waitForRuntimeHealth,
-  waitForServiceWorkerReady
+  waitForServiceWorkerReady,
+  warmServiceWorkerCache
 };

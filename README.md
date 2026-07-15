@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.5.19
+# FoxBear AI Mastering Studio Pro v1.5.20
 
 ## Current patch: v1.5.19 CI Runtime Isolation and Package Hardening
 

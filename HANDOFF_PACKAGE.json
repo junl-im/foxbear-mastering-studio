@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.19",
-  "buildId": "ci-runtime-isolation-package-hardening",
+  "productVersion": "1.5.20",
+  "buildId": "idempotent-pwa-cache-warm",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

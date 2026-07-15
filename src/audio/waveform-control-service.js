@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.19-ci-runtime-isolation-package-hardening';
+    const SERVICE_VERSION = '1.5.20-idempotent-pwa-cache-warm';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
 

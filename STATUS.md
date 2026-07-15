@@ -33,7 +33,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.19`
-- Build ID: `ci-runtime-isolation-package-hardening`
-- Asset version: `1.5.19-ci-runtime-isolation-package-hardening`
-- Service worker cache: `foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening`
+- Product version: `1.5.20`
+- Build ID: `idempotent-pwa-cache-warm`
+- Asset version: `1.5.20-idempotent-pwa-cache-warm`
+- Service worker cache: `foxbear-shell-v1.5.20-idempotent-pwa-cache-warm`

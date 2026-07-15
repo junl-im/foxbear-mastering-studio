@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.19",
+  "version": "1.5.20",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.19-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.19-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.20-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.20-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite"
   },
   "qaChecks": [
@@ -221,15 +221,16 @@
     "node qa/v1516_e2e_server_pipe_deadlock_smoke.js",
     "node qa/v1517_browser_contract_fix_smoke.js",
     "node qa/v1518_ci_diagnostics_packaging_smoke.js",
-    "node qa/v1519_ci_runtime_isolation_packaging_smoke.js"
+    "node qa/v1519_ci_runtime_isolation_packaging_smoke.js",
+    "node qa/v1520_service_worker_cache_warm_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "ci-runtime-isolation-package-hardening",
-    "assetVersion": "1.5.19-ci-runtime-isolation-package-hardening",
-    "cacheName": "foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening",
-    "bootRevision": "boot-sri-v1519",
-    "updateSafetyRevision": "update-safety-v1519",
-    "serviceWorkerRevision": "sw-v1519"
+    "buildId": "idempotent-pwa-cache-warm",
+    "assetVersion": "1.5.20-idempotent-pwa-cache-warm",
+    "cacheName": "foxbear-shell-v1.5.20-idempotent-pwa-cache-warm",
+    "bootRevision": "boot-sri-v1520",
+    "updateSafetyRevision": "update-safety-v1520",
+    "serviceWorkerRevision": "sw-v1520"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

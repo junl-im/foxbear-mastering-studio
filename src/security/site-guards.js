@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.19-ci-runtime-isolation-package-hardening';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.20-idempotent-pwa-cache-warm';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

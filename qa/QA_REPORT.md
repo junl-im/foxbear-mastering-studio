@@ -1,3 +1,9 @@
+# FoxBear QA Report - v1.5.20
+
+- Static regression target: 200/200 checks.
+- v1.5.20 adds idempotent service-worker cache warming: cached assets are skipped, explicit force refresh remains available, and browser QA verifies a repeated warm downloads zero assets.
+- Historical Wake Lock, download recovery, runtime health, PWA readiness, package hygiene, and CI isolation contracts remain active.
+
 # FoxBear QA Report - v1.5.19
 
 Current release gate target: metadata/handoff checks, 199 static checks, and 10 desktop/mobile Playwright tests. Optional Firebase remotes are isolated in the core browser suite; same-origin request failures, page errors, Runtime Health failures, and application console errors remain fatal.

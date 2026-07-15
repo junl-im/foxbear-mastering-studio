@@ -24,14 +24,14 @@ const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 const readme = read('README.md');
 
-assert(pkg.version === '1.5.19', 'package version should be 1.5.19');
-assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.5.19');
-assert(index.includes('data-build="1.5.19"'), 'index build marker should be 1.5.19');
-assert(index.includes('1.5.19-ci-runtime-isolation-package-hardening'), 'index should use micro hint asset key');
-assert(sw.includes('foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening'), 'service worker should use micro hint cache key');
+assert(pkg.version === '1.5.20', 'package version should be 1.5.20');
+assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.5.20');
+assert(index.includes('data-build="1.5.20"'), 'index build marker should be 1.5.20');
+assert(index.includes('1.5.20-idempotent-pwa-cache-warm'), 'index should use micro hint asset key');
+assert(sw.includes('foxbear-shell-v1.5.20-idempotent-pwa-cache-warm'), 'service worker should use micro hint cache key');
 
 assert(service.includes('getDownloadDialogCompactHint'), 'download service should expose dialog micro hint helper');
-assert(service.includes("version: '1.5.19'"), 'download helpers should report v1.5.19');
+assert(service.includes("version: '1.5.20'"), 'download helpers should report v1.5.20');
 assert(service.includes("mode: restricted ? 'restricted-micro' : 'standard-micro'"), 'micro hint should distinguish restricted and standard modes');
 assert(service.includes('visibleStepLimit: restricted ? 2 : 1'), 'micro hint should cap first-screen steps');
 assert(service.includes('advancedLabel'), 'micro hint should route diagnostics/copy to additional options');
@@ -49,10 +49,10 @@ assert(css.includes('Download dialog micro hint'), 'CSS should document micro hi
 assert(css.includes('.download-options-compact-hint.restricted'), 'CSS should style restricted micro hint');
 assert(css.includes('.download-options-compact-hint small'), 'CSS should style advanced hint copy');
 
-assert(pkg.qaChecks.includes('node qa/v1418_download_dialog_micro_hint_smoke.js'), 'package QA should include v1.5.19 micro hint smoke');
-assert(matrix.includes('v1.4.26 Download dialog micro hint'), 'matrix should document v1.5.19 micro hint flow');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention final v1.5.19 pass count');
+assert(pkg.qaChecks.includes('node qa/v1418_download_dialog_micro_hint_smoke.js'), 'package QA should include v1.5.20 micro hint smoke');
+assert(matrix.includes('v1.4.26 Download dialog micro hint'), 'matrix should document v1.5.20 micro hint flow');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention final v1.5.20 pass count');
 assert(changelog.includes('getDownloadDialogCompactHint'), 'changelog should mention micro hint helper');
-assert(readme.includes('Download dialog micro hint'), 'README should mention v1.5.19 scope');
+assert(readme.includes('Download dialog micro hint'), 'README should mention v1.5.20 scope');
 
 console.log('PASS v1.4.26 download dialog micro hint smoke');

@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.5.19 service worker · ci-runtime-isolation-package-hardening
+// FoxBear AI Mastering Studio Pro v1.5.20 service worker · idempotent-pwa-cache-warm
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.7-release-foundation', 'foxbear-shell-v1.5.8-pcm-zip-memory-hardening', 'foxbear-shell-v1.5.9-version-display-cache-recovery', 'foxbear-shell-v1.5.10-header-settings-relocation', 'foxbear-shell-v1.5.11-audio-context-ci-stability', 'foxbear-shell-v1.5.12-ci-runtime-readiness', 'foxbear-shell-v1.5.13-handoff-package-integrity', 'foxbear-shell-v1.5.14-github-desktop-handoff-preflight', 'foxbear-shell-v1.5.15-e2e-runtime-classification', 'foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix', 'foxbear-shell-v1.5.17-browser-contract-fix', 'foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness'];
+const CACHE_NAME = 'foxbear-shell-v1.5.20-idempotent-pwa-cache-warm';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.7-release-foundation', 'foxbear-shell-v1.5.8-pcm-zip-memory-hardening', 'foxbear-shell-v1.5.9-version-display-cache-recovery', 'foxbear-shell-v1.5.10-header-settings-relocation', 'foxbear-shell-v1.5.11-audio-context-ci-stability', 'foxbear-shell-v1.5.12-ci-runtime-readiness', 'foxbear-shell-v1.5.13-handoff-package-integrity', 'foxbear-shell-v1.5.14-github-desktop-handoff-preflight', 'foxbear-shell-v1.5.15-e2e-runtime-classification', 'foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix', 'foxbear-shell-v1.5.17-browser-contract-fix', 'foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness', 'foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening'];
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -27,125 +27,133 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/icons/foxbear-icon-32.png?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/icons/foxbear-icon-192.png?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/icons/foxbear-icon-512.png?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/icons/apple-touch-icon.png?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './manifest.webmanifest?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/boot/performance-diagnostics.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/boot/runtime-health.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/theme.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/layout.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/components/base-components.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/components/forms.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/components/cards.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/components/preview-system.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/components/playback-link.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/studio.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/dock.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/dock-waveform.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/waveform-compare.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/spectrum-visualizer.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/export.css?v=1.5.19-ci-runtime-isolation-package-hardening&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/bulk-import-hud.css?v=1.5.19-ci-runtime-isolation-package-hardening&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/dock-ui-repair.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/components/floating-overlays.css?v=1.5.19-ci-runtime-isolation-package-hardening',
+  './assets/icons/foxbear-icon-16.png?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/icons/foxbear-icon-32.png?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/icons/foxbear-icon-192.png?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/icons/foxbear-icon-512.png?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/icons/apple-touch-icon.png?v=1.5.20-idempotent-pwa-cache-warm',
+  './manifest.webmanifest?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/boot/performance-diagnostics.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/boot/runtime-health.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/theme.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/layout.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/components/base-components.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/components/forms.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/components/cards.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/components/preview-system.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/components/playback-link.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/studio.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/dock.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/dock-waveform.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/waveform-compare.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/spectrum-visualizer.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/export.css?v=1.5.20-idempotent-pwa-cache-warm&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/bulk-import-hud.css?v=1.5.20-idempotent-pwa-cache-warm&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/dock-ui-repair.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/components/floating-overlays.css?v=1.5.20-idempotent-pwa-cache-warm',
   './vendor/jszip/jszip.min.js?v=3.10.1',
-  './src/config/build-info.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/boot/release-presentation-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/firebase-bootstrap.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/config/mastering-presets.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/config/genre-presets.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/config/reference-targets.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/config/app-runtime-config.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/state/app-state.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/settings/settings-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/utils/core-utils.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/recommendation/recommendation-engine.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/mastering-inspector.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/highlight-compare-inspector.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/playback-link-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/playback-transition-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/audio-context-manager.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/audio-decode-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/import-queue-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/analysis-cache-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/memory-guard-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/reference-profile-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/quality-gate-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/mastering-orchestrator-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/state/track-lifecycle-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/audio/waveform-control-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/waveform-control-view.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/spectrum-visualizer.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/modal-controller.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/dock-controller.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/mobile-native-view.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=bulk-hud-restore-v153',
-  './src/download/download-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/download/export-guard-service.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=export-v156',
-  './src/download/export-progress-view.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=export-progress-v156',
-  './src/ui/download-dialog-view.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/bulk-import-hud-view.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/detail-panels-view.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/detail-view.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/security/site-guards.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/boot/runtime-health.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=boot-sri-v1519',
-  './src/boot/update-safety-service.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=update-safety-v1519',
-  './src/boot/performance-diagnostics.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=boot-sri-v1519',
-  './src/boot/render-scheduler.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/app.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=boot-sri-v1519',
-  './assets/icons/foxbear-music.png?v=1.5.19-ci-runtime-isolation-package-hardening'
+  './src/config/build-info.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/boot/release-presentation-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/firebase-bootstrap.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/config/mastering-presets.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/config/genre-presets.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/config/reference-targets.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/config/app-runtime-config.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/state/app-state.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/settings/settings-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/utils/core-utils.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/recommendation/recommendation-engine.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/mastering-inspector.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/highlight-compare-inspector.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/playback-link-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/playback-transition-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/audio-context-manager.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/audio-decode-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/import-queue-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/analysis-cache-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/memory-guard-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/reference-profile-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/quality-gate-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/mastering-orchestrator-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/state/track-lifecycle-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/audio/waveform-control-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/waveform-control-view.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/spectrum-visualizer.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/modal-controller.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/dock-controller.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/mobile-native-view.js?v=1.5.20-idempotent-pwa-cache-warm&h=bulk-hud-restore-v153',
+  './src/download/download-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/download/export-guard-service.js?v=1.5.20-idempotent-pwa-cache-warm&h=export-v156',
+  './src/download/export-progress-view.js?v=1.5.20-idempotent-pwa-cache-warm&h=export-progress-v156',
+  './src/ui/download-dialog-view.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/bulk-import-hud-view.js?v=1.5.20-idempotent-pwa-cache-warm&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/detail-panels-view.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/detail-view.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/security/site-guards.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/boot/runtime-health.js?v=1.5.20-idempotent-pwa-cache-warm&h=boot-sri-v1520',
+  './src/boot/update-safety-service.js?v=1.5.20-idempotent-pwa-cache-warm&h=update-safety-v1520',
+  './src/boot/performance-diagnostics.js?v=1.5.20-idempotent-pwa-cache-warm&h=boot-sri-v1520',
+  './src/boot/render-scheduler.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/app.js?v=1.5.20-idempotent-pwa-cache-warm&h=boot-sri-v1520',
+  './assets/icons/foxbear-music.png?v=1.5.20-idempotent-pwa-cache-warm'
 ];
 
 const INSTALL_ASSETS = [
   './',
   './index.html',
-  './manifest.webmanifest?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/boot/runtime-health.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/theme.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/layout.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/components/base-components.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/studio.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './assets/css/mobile-native.css?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/config/build-info.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/boot/runtime-health.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=boot-sri-v1519',
-  './src/boot/update-safety-service.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=update-safety-v1519',
-  './src/boot/release-presentation-service.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/config/app-runtime-config.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/state/app-state.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/utils/core-utils.js?v=1.5.19-ci-runtime-isolation-package-hardening',
-  './src/ui/mobile-native-view.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=bulk-hud-restore-v153',
-  './src/app.js?v=1.5.19-ci-runtime-isolation-package-hardening&h=boot-sri-v1519',
-  './assets/icons/foxbear-music.png?v=1.5.19-ci-runtime-isolation-package-hardening'
+  './manifest.webmanifest?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/boot/runtime-health.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/theme.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/layout.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/components/base-components.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/studio.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './assets/css/mobile-native.css?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/config/build-info.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/boot/runtime-health.js?v=1.5.20-idempotent-pwa-cache-warm&h=boot-sri-v1520',
+  './src/boot/update-safety-service.js?v=1.5.20-idempotent-pwa-cache-warm&h=update-safety-v1520',
+  './src/boot/release-presentation-service.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/config/app-runtime-config.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/state/app-state.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/utils/core-utils.js?v=1.5.20-idempotent-pwa-cache-warm',
+  './src/ui/mobile-native-view.js?v=1.5.20-idempotent-pwa-cache-warm&h=bulk-hud-restore-v153',
+  './src/app.js?v=1.5.20-idempotent-pwa-cache-warm&h=boot-sri-v1520',
+  './assets/icons/foxbear-music.png?v=1.5.20-idempotent-pwa-cache-warm'
 ];
 const INSTALL_ASSET_SET = new Set(INSTALL_ASSETS);
 const WARM_ASSETS = CORE_ASSETS.filter(asset => !INSTALL_ASSET_SET.has(asset));
 let warmCachePromise = null;
 
-async function warmFoxBearCoreCache() {
+async function warmFoxBearCoreCache(options = {}) {
   if (warmCachePromise) return warmCachePromise;
+  const force = options.force === true;
   warmCachePromise = (async () => {
     const cache = await caches.open(CACHE_NAME);
     const failures = [];
     let cursor = 0;
+    let cached = 0;
+    let alreadyCached = 0;
     const worker = async () => {
       while (cursor < WARM_ASSETS.length) {
         const asset = WARM_ASSETS[cursor++];
         try {
+          if (!force && await cache.match(asset)) {
+            alreadyCached += 1;
+            continue;
+          }
           const response = await fetch(asset, { cache: 'reload' });
           if (!response || !response.ok) throw new Error(`HTTP ${response?.status || 0}`);
           await cache.put(asset, response.clone());
+          cached += 1;
         } catch (error) {
           failures.push({ asset, error: error?.message || String(error) });
         }
       }
     };
     await Promise.all(Array.from({ length: Math.min(6, Math.max(1, WARM_ASSETS.length)) }, worker));
-    return { cached: WARM_ASSETS.length - failures.length, failed: failures.length, failures };
+    return { total: WARM_ASSETS.length, cached, alreadyCached, failed: failures.length, failures, force };
   })();
   try {
     return await warmCachePromise;
@@ -181,7 +189,15 @@ self.addEventListener('message', event => {
     try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}
   }
   if (event.data && event.data.type === 'FOXBEAR_WARM_CACHE') {
-    event.waitUntil(warmFoxBearCoreCache().then(result => {
+    const force = event.data.force === true;
+    event.waitUntil((force ? warmFoxBearCoreCache({ force: true }) : warmFoxBearCoreCache()).catch(error => ({
+      total: WARM_ASSETS.length,
+      cached: 0,
+      alreadyCached: 0,
+      failed: WARM_ASSETS.length,
+      failures: [{ asset: '*', error: error?.message || String(error) }],
+      force
+    })).then(result => {
       const payload = { type: 'FOXBEAR_WARM_CACHE_DONE', cacheName: CACHE_NAME, ...result };
       try { event.ports?.[0]?.postMessage?.(payload); } catch (error) {}
       try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}

@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.19-ci-runtime-isolation-package-hardening';
+    const SERVICE_VERSION = '1.5.20-idempotent-pwa-cache-warm';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

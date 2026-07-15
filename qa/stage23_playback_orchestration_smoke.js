@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.19-ci-runtime-isolation-package-hardening';
+const version = '1.5.20-idempotent-pwa-cache-warm';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

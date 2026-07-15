@@ -1,3 +1,11 @@
+# v1.5.20 - Idempotent PWA Cache Warm
+
+- Changed service-worker background warming to fetch only assets missing from the current release cache instead of re-downloading the full warm asset set on every page load.
+- Added cache-warm result accounting for total, newly cached, already cached, failed, and forced refresh counts.
+- Prevented normal browser QA pages from automatically warming the full cache; the dedicated service-worker scenario now triggers and verifies one warm explicitly.
+- Added a second warm assertion that requires zero additional downloads, protecting repeat visits from redundant network traffic.
+- Added `qa/v1520_service_worker_cache_warm_smoke.js` with an executable cache simulation covering initial, repeated, and forced warming.
+
 # v1.5.19 - CI Runtime Isolation and Package Hardening
 
 - Isolated optional Firebase SDK/backend traffic in Playwright with deterministic E2E modules, preventing remote console noise from failing the core runtime-health contract while preserving same-origin request and page-error checks.

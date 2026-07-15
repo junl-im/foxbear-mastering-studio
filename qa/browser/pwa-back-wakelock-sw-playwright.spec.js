@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { expectRuntimeHealthy, installWakeLockMock, navigateToApp, waitForServiceWorkerReady } = require('./helpers/foxbear-e2e-helpers');
+const { expectRuntimeHealthy, installWakeLockMock, navigateToApp, waitForServiceWorkerReady, warmServiceWorkerCache } = require('./helpers/foxbear-e2e-helpers');
 
 test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () => {
   test.beforeEach(async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
     expect(requestResult.released.active).toBeFalsy();
   });
 
-  test('registers and updates service worker without runtime health failures', async ({ page }) => {
+  test('registers, warms, and updates service worker without runtime health failures', async ({ page }, testInfo) => {
     await navigateToApp(page);
     await expectRuntimeHealthy(expect, page);
 
@@ -56,6 +56,18 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
     expect(before.supported).toBeTruthy();
     expect(before.ready).toBeTruthy();
     expect(before.registrations).toBeGreaterThan(0);
+
+    if (testInfo.project.name === 'chromium-desktop') {
+      const warmed = await warmServiceWorkerCache(page);
+      expect(warmed.failed, JSON.stringify(warmed.failures || [])).toBe(0);
+      expect(warmed.total).toBeGreaterThan(0);
+      expect((warmed.cached || 0) + (warmed.alreadyCached || 0)).toBe(warmed.total);
+
+      const repeated = await warmServiceWorkerCache(page);
+      expect(repeated.failed, JSON.stringify(repeated.failures || [])).toBe(0);
+      expect(repeated.cached).toBe(0);
+      expect(repeated.alreadyCached).toBe(repeated.total);
+    }
 
     const updated = await page.evaluate(async () => {
       const registrations = await navigator.serviceWorker.getRegistrations();
