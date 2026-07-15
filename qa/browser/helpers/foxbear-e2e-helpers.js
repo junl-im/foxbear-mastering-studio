@@ -10,6 +10,58 @@ const DEFAULT_HOST = process.env.FOXBEAR_E2E_HOST || '127.0.0.1';
 const DEFAULT_BIND_HOST = process.env.FOXBEAR_E2E_BIND_HOST || '127.0.0.1';
 const APP_URL = process.env.FOXBEAR_E2E_URL || `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
 
+const OPTIONAL_REMOTE_MOCK_PAGES = new WeakSet();
+const FIREBASE_E2E_MODULES = Object.freeze({
+  'firebase-app.js': `export function initializeApp(config = {}) { return { options: config, name: '[DEFAULT]' }; }`,
+  'firebase-auth.js': `
+    const makeUser = () => ({ uid: 'foxbear-e2e-user', isAnonymous: true });
+    export function getAuth(app) { return { app, currentUser: makeUser() }; }
+    export function onAuthStateChanged(auth, callback) { queueMicrotask(() => callback(auth.currentUser)); return () => {}; }
+    export async function signInAnonymously(auth) { auth.currentUser ||= makeUser(); return { user: auth.currentUser }; }
+  `,
+  'firebase-firestore.js': `
+    export function getFirestore(app) { return { app }; }
+    export function collection(_db, name) { return { name }; }
+    export function doc(_db, ...parts) { return { parts }; }
+    export function query(source, ...clauses) { return { source, clauses }; }
+    export function where(...args) { return { type: 'where', args }; }
+    export function orderBy(...args) { return { type: 'orderBy', args }; }
+    export function limit(value) { return { type: 'limit', value }; }
+    export function serverTimestamp() { return { __foxbearServerTimestamp: true }; }
+    export async function addDoc() { return { id: 'foxbear-e2e-doc' }; }
+    export async function getDoc() { return { exists: () => false, data: () => ({}) }; }
+    export async function getDocs() { return { forEach() {} }; }
+    export async function getCountFromServer() { return { data: () => ({ count: 0 }) }; }
+  `,
+  'firebase-remote-config.js': `
+    export async function isSupported() { return false; }
+    export function getRemoteConfig(app) { return { app, settings: {}, defaultConfig: {} }; }
+    export async function fetchAndActivate() { return false; }
+    export function getValue() { return { asString: () => '', asBoolean: () => false }; }
+  `
+});
+
+async function installOptionalRemoteMocks(page) {
+  if (!page || typeof page.route !== 'function') return;
+  if (OPTIONAL_REMOTE_MOCK_PAGES.has(page)) return;
+  OPTIONAL_REMOTE_MOCK_PAGES.add(page);
+  await page.route('https://www.gstatic.com/firebasejs/**', async route => {
+    let fileName = '';
+    try { fileName = new URL(route.request().url()).pathname.split('/').pop() || ''; } catch (_) {}
+    const body = FIREBASE_E2E_MODULES[fileName];
+    if (!body) return route.abort('blockedbyclient');
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/javascript; charset=utf-8',
+      headers: {
+        'access-control-allow-origin': '*',
+        'cache-control': 'no-store'
+      },
+      body
+    });
+  });
+}
+
 function makeTinyWavBuffer({ seconds = 0.35, sampleRate = 16000, frequency = 440, gain = 0.12 } = {}) {
   const channels = 1;
   const bitsPerSample = 16;
@@ -62,6 +114,13 @@ function removeDirSafe(dir) {
 async function navigateToApp(page, options = {}) {
   const timeout = Number(options.timeout || 20000);
   const url = options.url || APP_URL;
+  await installOptionalRemoteMocks(page);
+  if (typeof page.addInitScript === 'function') {
+    await page.addInitScript(() => {
+      window.__FOXBEAR_E2E__ = true;
+      window.__FOXBEAR_SKIP_OPTIONAL_REMOTE__ = true;
+    });
+  }
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
   if (response && !response.ok()) {
     throw new Error(`FoxBear E2E navigation failed: ${response.status()} ${response.statusText()} ${url}`);
@@ -192,6 +251,10 @@ async function waitForServiceWorkerReady(page, options = {}) {
 }
 
 function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DEFAULT_BIND_HOST } = {}) {
+  const probeToken = `foxbear-e2e-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const probePath = `.foxbear-e2e-probe-${process.pid}-${Date.now()}.txt`;
+  const probeFile = path.join(cwd, probePath);
+  fs.writeFileSync(probeFile, probeToken, 'utf8');
   const child = spawn('python3', ['-m', 'http.server', String(port), '--bind', host], {
     cwd,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -207,10 +270,14 @@ function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DE
   };
   child.stdout.on('data', appendOutput);
   child.stderr.on('data', appendOutput);
+  const cleanupProbe = () => {
+    try { fs.rmSync(probeFile, { force: true }); } catch (_) {}
+  };
   const stop = () => {
     if (!child.killed) child.kill('SIGTERM');
+    cleanupProbe();
   };
-  return { child, stop, getOutput: () => output };
+  return { child, stop, getOutput: () => output, probePath, probeToken, cleanupProbe };
 }
 
 module.exports = {
@@ -218,9 +285,11 @@ module.exports = {
   DEFAULT_BIND_HOST,
   DEFAULT_HOST,
   DEFAULT_PORT,
+  FIREBASE_E2E_MODULES,
   createSyntheticWavFiles,
   expectRuntimeHealthy,
   getServiceWorkerSnapshot,
+  installOptionalRemoteMocks,
   installWakeLockMock,
   makeTinyWavBuffer,
   navigateToApp,

@@ -53,6 +53,11 @@ function replaceAll(text, from, to) {
 
 function sync() {
   const previous = detectPrevious();
+  const pkg = JSON.parse(read('package.json'));
+  pkg.scripts = pkg.scripts || {};
+  pkg.scripts['package:verify:overwrite'] = `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`;
+  pkg.scripts['package:verify:release'] = `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`;
+  write('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
   const runtimeTargets = [
     ...filesUnder('src', '.js'),
     path.join(ROOT, 'index.html')
@@ -130,6 +135,7 @@ function sync() {
 function validate() {
   const failures = [];
   const expect = (condition, message) => { if (!condition) failures.push(message); };
+  const pkg = JSON.parse(read('package.json'));
   const pkgLock = fs.existsSync(path.join(ROOT, 'package-lock.json')) ? JSON.parse(read('package-lock.json')) : null;
   const manifest = JSON.parse(read('manifest.webmanifest'));
   const handoffPackage = JSON.parse(read('HANDOFF_PACKAGE.json'));
@@ -166,6 +172,8 @@ function validate() {
   expect(readme.startsWith(`# FoxBear AI Mastering Studio Pro v${meta.productVersion}`), 'README title does not match package version');
   expect(handoff.startsWith(`# Handoff - v${meta.productVersion}`), 'HANDOFF title does not match package version');
   expect(pkgLock && pkgLock.version === meta.productVersion, 'package-lock.json is missing or version is not synchronized');
+  expect(pkg.scripts?.['package:verify:overwrite'] === `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`, 'package:verify:overwrite script is not synchronized');
+  expect(pkg.scripts?.['package:verify:release'] === `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`, 'package:verify:release script is not synchronized');
 
   if (failures.length) {
     failures.forEach(message => console.error(`FAIL ${message}`));

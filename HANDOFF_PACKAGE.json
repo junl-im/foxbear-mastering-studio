@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.18",
-  "buildId": "ci-diagnostics-pwa-readiness",
+  "productVersion": "1.5.19",
+  "buildId": "ci-runtime-isolation-package-hardening",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",
@@ -31,7 +31,9 @@
     "tools/create-release-zip.sh",
     "tools/verify-handoff-state.js",
     "tools/verify-overwrite-zip.js",
-    "tools/verify-release-zip.js"
+    "tools/verify-release-zip.js",
+    "tools/archive-hygiene.js",
+    "qa/v1519_ci_runtime_isolation_packaging_smoke.js"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -52,7 +54,8 @@
   ],
   "forbiddenArchiveFiles": [
     ".firebaserc",
-    "check.log"
+    "check.log",
+    "qa/static-audit.txt"
   ],
   "deletePaths": []
 }

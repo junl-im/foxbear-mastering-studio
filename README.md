@@ -1,19 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.18
+# FoxBear AI Mastering Studio Pro v1.5.19
 
-## Current patch: v1.5.18 CI Diagnostics and PWA Readiness
+## Current patch: v1.5.19 CI Runtime Isolation and Package Hardening
 
-v1.5.17에서 서비스워커 등록 자체는 정상화되어 `sw.js`와 프리캐시 자산 요청까지 진행됐지만, 전체 자산 팩을 설치 단계에서 한 번에 캐시하면서 활성 준비 상태가 불필요하게 늦어질 수 있었습니다. 설치 단계는 핵심 셸만 캐시하고, 나머지 자산은 활성화 뒤 최대 6개 동시 요청으로 워밍하도록 분리했습니다.
+GitHub Actions에서 남은 두 실패는 핵심 앱 부팅 오류가 아니라 Firebase 원격 SDK/백엔드가 남긴 선택적 콘솔 오류를 `runtime-health` 테스트가 치명 오류로 취급한 문제였습니다. 브라우저 QA는 이제 Firebase 모듈을 결정적으로 모킹해 핵심 앱, PWA, 서비스워커, UI 계약을 외부 네트워크와 분리합니다. 대신 같은 출처의 요청 실패, 처리되지 않은 페이지 예외, 실제 애플리케이션 `console.error`는 별도 배열로 더 엄격하게 검사합니다.
 
-브라우저 실패 시에는 Playwright JSON 결과에서 실제 실패 테스트와 첫 오류를 다시 요약합니다. 정적 서버 요청 로그 전체는 아티팩트에 저장하고 Actions 화면에는 HTTP 상태 요약과 마지막 요청만 출력하므로, 수백 줄의 `200` 로그가 핵심 오류를 밀어내지 않습니다. Release/Overwrite ZIP은 개발 로그와 브라우저 결과 폴더를 포함하면 검증 단계에서 즉시 실패합니다.
+로컬 QA 서버에는 실행마다 고유한 ownership probe를 생성해, 포트 4173을 다른 프로세스가 점유해도 잘못된 페이지를 테스트하지 않습니다. 뒤로/앞으로 테스트는 오류를 삼키지 않고 실제 왕복을 검증합니다. 패키징은 버전별 검증 명령 자동 동기화, 심볼릭 링크·경로 탈출·QA 임시 파일 차단을 포함합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.18
-build: ci-diagnostics-pwa-readiness
-asset generation: 1.5.18-ci-diagnostics-pwa-readiness
-service worker cache: foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness
+product: 1.5.19
+build: ci-runtime-isolation-package-hardening
+asset generation: 1.5.19-ci-runtime-isolation-package-hardening
+service worker cache: foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening
 ```
+
+## Previous patch: v1.5.18 CI Diagnostics and PWA Readiness
+
+v1.5.18의 서비스워커 준비 최적화, Playwright 실패 요약, 정적 서버 로그 보존, 패키지 임시 산출물 차단은 그대로 포함됩니다.
 
 ## Previous patch: v1.5.17 Browser Contract Fix
 

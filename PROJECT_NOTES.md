@@ -1,3 +1,10 @@
+# Current Project Notes - v1.5.19
+
+- Core browser QA is deterministic and does not depend on Firebase CDN/backend availability.
+- Optional remote isolation must not weaken local request, page exception, Runtime Health, PWA, or service-worker checks.
+- The local server ownership probe prevents accidental testing of an unrelated process on the configured port.
+- Package filenames are release-metadata-managed; archive verifiers reject symlinks, unsafe paths, and scratch artifacts.
+
 # Current Project Notes - v1.5.14
 
 - The owner uses GitHub Desktop for fetch, branch review, commit, and push. Handoffs must not assume command-line Git.

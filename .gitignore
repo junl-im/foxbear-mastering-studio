@@ -8,3 +8,11 @@ dist/
 qa/browser-results/
 test-results/
 playwright-report/
+
+# Local QA scratch output
+qa/static-audit*.txt
+qa/browser-check*.txt
+qa/static-check*.txt
+*.tmp
+*.trace
+.foxbear-e2e-probe-*.txt

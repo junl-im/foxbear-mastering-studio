@@ -1,3 +1,7 @@
+# FoxBear QA Report - v1.5.19
+
+Current release gate target: metadata/handoff checks, 199 static checks, and 10 desktop/mobile Playwright tests. Optional Firebase remotes are isolated in the core browser suite; same-origin request failures, page errors, Runtime Health failures, and application console errors remain fatal.
+
 # QA Report - v1.5.18 CI Diagnostics and PWA Readiness
 
 ## Result

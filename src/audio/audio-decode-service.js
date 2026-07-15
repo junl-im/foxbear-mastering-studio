@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.18
+// FoxBear audio decode service - v1.5.19
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.18-ci-diagnostics-pwa-readiness';
+    const SERVICE_VERSION = '1.5.19-ci-runtime-isolation-package-hardening';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 

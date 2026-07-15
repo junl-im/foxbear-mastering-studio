@@ -25,7 +25,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Security and resilience invariants
 
-- Optional Firebase/Firestore network outages are Runtime Health warnings; they must not be promoted to fatal application errors.
+- Optional Firebase/Firestore network outages are Runtime Health warnings; they must not be promoted to fatal application errors. Browser QA must isolate these optional remotes from the core runtime contract.
 
 - CSP, Trusted Types, SRI verification, Runtime Health, Update Safety, and service worker cache recovery remain enabled.
 - Original audio is processed locally and is not uploaded to Firebase Storage by the mastering flow.
@@ -33,7 +33,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.18`
-- Build ID: `ci-diagnostics-pwa-readiness`
-- Asset version: `1.5.18-ci-diagnostics-pwa-readiness`
-- Service worker cache: `foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness`
+- Product version: `1.5.19`
+- Build ID: `ci-runtime-isolation-package-hardening`
+- Asset version: `1.5.19-ci-runtime-isolation-package-hardening`
+- Service worker cache: `foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening`

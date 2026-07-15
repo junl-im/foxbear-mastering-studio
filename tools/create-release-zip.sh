@@ -10,6 +10,20 @@ mkdir -p "${OUTPUT_DIR}"
 rm -f "${OUTPUT_FILE}"
 
 cd "${ROOT_DIR}"
+
+SYMLINKS="$(find . -type l \
+  -not -path './.git/*' \
+  -not -path './node_modules/*' \
+  -not -path './dist/*' \
+  -not -path './qa/browser-results/*' \
+  -not -path './test-results/*' \
+  -not -path './playwright-report/*' \
+  -not -path './coverage/*' -print)"
+if [ -n "${SYMLINKS}" ]; then
+  echo "Release source contains symbolic links:" >&2
+  printf '%s\n' "${SYMLINKS}" >&2
+  exit 1
+fi
 zip -qr "${OUTPUT_FILE}" . \
   -x '.git/*' \
   -x '.firebase/*' \
@@ -26,6 +40,12 @@ zip -qr "${OUTPUT_FILE}" . \
   -x 'coverage' \
   -x '*.zip' \
   -x '*.log' \
+  -x '*.tmp' \
+  -x '*.trace' \
+  -x 'qa/static-audit*.txt' \
+  -x 'qa/browser-check*.txt' \
+  -x 'qa/static-check*.txt' \
+  -x '.foxbear-e2e-probe-*.txt' \
   -x '.last-run.json' \
   -x '.DS_Store'
 

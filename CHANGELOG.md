@@ -1,3 +1,13 @@
+# v1.5.19 - CI Runtime Isolation and Package Hardening
+
+- Isolated optional Firebase SDK/backend traffic in Playwright with deterministic E2E modules, preventing remote console noise from failing the core runtime-health contract while preserving same-origin request and page-error checks.
+- Added actionable assertion labels for console errors, page exceptions, and local request failures.
+- Added an ownership probe for the local QA server so a different process on port 4173 cannot be mistaken for the FoxBear app.
+- Strengthened history coverage to require a successful back and forward round trip without swallowing navigation errors.
+- Synchronized versioned package verification script filenames from `package.json` and added validation so they cannot remain pinned to an older release.
+- Hardened Release/Overwrite archives against symbolic links, path traversal, QA scratch reports, temporary files, and trace leakage.
+- Added `qa/v1519_ci_runtime_isolation_packaging_smoke.js`.
+
 # v1.5.18 - CI Diagnostics and PWA Readiness
 
 - Split service-worker installation into a small critical shell and a bounded background cache warm, so `navigator.serviceWorker.ready` is not blocked by the full 90+ asset pack.

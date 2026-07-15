@@ -1,25 +1,26 @@
-# Handoff - v1.5.18
+# Handoff - v1.5.19
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: CI diagnostics and PWA readiness
+## Current patch: CI runtime isolation and package hardening
 
 Changes:
 
-- Service-worker installation caches only the critical shell before activation; the remaining runtime pack is warmed in the background with bounded concurrency.
-- Browser QA uses one full readiness timeout for the active service worker and emits a distinct registration-versus-activation diagnosis.
-- Playwright writes `qa/browser-results/results.json`; the runner repeats the failed test names and first useful errors at the end of the Actions log.
-- Full static-server output is stored as `qa/browser-results/static-server.log`; only a compact HTTP summary is printed.
-- Release and overwrite archives exclude and reject transient logs, test reports, coverage, and browser results.
-- `qa/v1518_ci_diagnostics_packaging_smoke.js` protects these contracts.
+- Playwright replaces optional Firebase CDN modules with deterministic local E2E modules, removing external-network console noise from the core runtime test.
+- Same-origin request failures, uncaught page exceptions, and application console errors are asserted separately with their actual values in the failure message.
+- The local Python server exposes a unique ownership probe; an occupied port or exited server process now fails before Playwright starts.
+- History QA requires both backward and forward navigation and no longer catches and discards navigation failures.
+- `version:sync` owns the versioned Release/Overwrite verification script filenames.
+- Archive verification rejects symlinks, unsafe ZIP paths, scratch audit text, temporary files, traces, logs, nested ZIPs, and browser-result trees.
+- `qa/v1519_ci_runtime_isolation_packaging_smoke.js` protects these contracts.
 
 ```text
-product: 1.5.18
-build: ci-diagnostics-pwa-readiness
-asset generation: 1.5.18-ci-diagnostics-pwa-readiness
-service worker cache: foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness
+product: 1.5.19
+build: ci-runtime-isolation-package-hardening
+asset generation: 1.5.19-ci-runtime-isolation-package-hardening
+service worker cache: foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening
 ```
 
 Verification:
@@ -31,9 +32,15 @@ npm run handoff:check
 npm run check
 npm run qa:browser
 npm run package:all
+npm run package:verify:release
+npm run package:verify:overwrite
 ```
 
-Expected static result: `198/198 PASS`.
+Expected static result: `199/199 PASS`.
+
+## Previous handoff: v1.5.18 CI Diagnostics and PWA Readiness
+
+The v1.5.18 service-worker readiness and concise failure diagnostics remain included.
 
 ## Previous handoff: v1.5.17 Browser Contract Fix
 

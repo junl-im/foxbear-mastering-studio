@@ -10,11 +10,18 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
     await navigateToApp(page);
     await expectRuntimeHealthy(expect, page);
 
+    const baseUrl = page.url().split('#')[0];
     await page.evaluate(() => {
       history.pushState({ foxbearE2E: true }, '', '#foxbear-e2e-back-test');
-      window.dispatchEvent(new PopStateEvent('popstate', { state: { foxbearE2E: true } }));
     });
-    await page.goBack({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => null);
+    await expect(page).toHaveURL(/#foxbear-e2e-back-test$/);
+
+    await page.goBack({ timeout: 15000 });
+    await expect(page).toHaveURL(baseUrl);
+    await expectRuntimeHealthy(expect, page);
+
+    await page.goForward({ timeout: 15000 });
+    await expect(page).toHaveURL(/#foxbear-e2e-back-test$/);
     await expectRuntimeHealthy(expect, page);
   });
 

@@ -64,9 +64,20 @@ copy_path ".github/workflows"
 # Keep packages small and safe.
 find "$WORK_DIR" -name '.DS_Store' -delete
 find "$WORK_DIR" -type f -name '*.log' -delete
+find "$WORK_DIR" -type f -name '*.tmp' -delete
+find "$WORK_DIR" -type f -name '*.trace' -delete
+find "$WORK_DIR/qa" -maxdepth 1 -type f \( -name 'static-audit*.txt' -o -name 'browser-check*.txt' -o -name 'static-check*.txt' \) -delete
 find "$WORK_DIR" -type f -name '.last-run.json' -delete
+find "$WORK_DIR" -type f -name '.foxbear-e2e-probe-*.txt' -delete
 find "$WORK_DIR" -name '*.zip' -delete
 rm -rf "$WORK_DIR/qa/browser-results" "$WORK_DIR/test-results" "$WORK_DIR/playwright-report" "$WORK_DIR/coverage"
+
+SYMLINKS="$(find "$WORK_DIR" -type l -print)"
+if [ -n "$SYMLINKS" ]; then
+  echo "Overwrite package contains symbolic links:" >&2
+  printf '%s\n' "$SYMLINKS" >&2
+  exit 1
+fi
 
 rm -f "$ZIP_PATH"
 (cd "$WORK_DIR" && zip -qr "$ZIP_PATH" .)

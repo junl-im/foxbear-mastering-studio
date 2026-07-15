@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.18-ci-diagnostics-pwa-readiness';
+  const VIEW_VERSION = '1.5.19-ci-runtime-isolation-package-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

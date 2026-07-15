@@ -12,14 +12,29 @@ const RESULTS_DIR = path.resolve(process.cwd(), 'qa/browser-results');
 const PLAYWRIGHT_JSON_PATH = path.join(RESULTS_DIR, 'results.json');
 const STATIC_SERVER_LOG_PATH = path.join(RESULTS_DIR, 'static-server.log');
 
-function waitForServer(url, timeoutMs = 12000) {
+function waitForServer(url, timeoutMs = 12000, options = {}) {
   const started = Date.now();
+  const expectedBody = String(options.expectedBody || '');
+  const child = options.child || null;
   return new Promise((resolve, reject) => {
+    let lastStatus = 0;
+    let lastBody = '';
     const attempt = () => {
+      if (child && child.exitCode != null) {
+        return reject(new Error(`FoxBear static server exited before readiness (code ${child.exitCode}).`));
+      }
       const req = http.get(url, res => {
-        res.resume();
-        if (res.statusCode && res.statusCode < 500) return resolve();
-        retry();
+        lastStatus = Number(res.statusCode || 0);
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', chunk => { body += chunk; });
+        res.on('end', () => {
+          lastBody = body;
+          const statusOk = lastStatus >= 200 && lastStatus < 300;
+          const bodyOk = !expectedBody || body.trim() === expectedBody;
+          if (statusOk && bodyOk) return resolve();
+          retry();
+        });
       });
       req.on('error', retry);
       req.setTimeout(1000, () => {
@@ -28,7 +43,10 @@ function waitForServer(url, timeoutMs = 12000) {
       });
     };
     const retry = () => {
-      if (Date.now() - started > timeoutMs) return reject(new Error(`Timed out waiting for ${url}`));
+      if (Date.now() - started > timeoutMs) {
+        const detail = `status=${lastStatus || 'none'}, body=${JSON.stringify(lastBody.slice(0, 120))}`;
+        return reject(new Error(`Timed out waiting for the FoxBear-owned server probe ${url} (${detail})`));
+      }
       setTimeout(attempt, 250);
     };
     attempt();
@@ -178,7 +196,11 @@ async function main() {
   const server = externalUrl ? null : startStaticServer({ cwd: process.cwd(), port: DEFAULT_PORT, host: DEFAULT_BIND_HOST });
   let exitCode = 0;
   try {
-    await waitForServer(APP_URL);
+    const readinessUrl = server ? `${APP_URL}/${server.probePath}` : APP_URL;
+    await waitForServer(readinessUrl, 12000, {
+      expectedBody: server?.probeToken || '',
+      child: server?.child || null
+    });
     ensureResultsDir();
     const forwardedArgs = process.argv.slice(2);
     const args = [playwrightCli, 'test', 'qa/browser', ...forwardedArgs];

@@ -38,10 +38,11 @@ Also test a real PC and at least one real mobile/PWA device with a large batch. 
 ```bash
 npm run package:clean
 npm run package:overwrite
-node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v$(node -p "require('./package.json').version")-overwrite.zip
+npm run package:verify:release
+npm run package:verify:overwrite
 ```
 
-The overwrite command also runs this verification internally. Confirm that `playwright.config.js`, both Pages workflows, browser helpers, and runtime source trees are present. Inspect generated ZIP names and run `npm run version:check` once more after any packaging-related edit.
+The overwrite command also runs this verification internally through `tools/verify-overwrite-zip.js`; the release package uses `tools/verify-release-zip.js`. Confirm that `playwright.config.js`, both Pages workflows, browser helpers, and runtime source trees are present. Inspect generated ZIP names and run `npm run version:check` once more after any packaging-related edit.
 
 ## v1.5.8 memory/export checks
 
@@ -98,3 +99,13 @@ The overwrite command also runs this verification internally. Confirm that `play
 ## GitHub Desktop overwrite deletion check
 
 - Before copying an overwrite package, inspect `HANDOFF_PACKAGE.json.deletePaths`. Remove each listed repository-relative path in GitHub Desktop's working tree before committing. An empty array means no deletion step is required.
+
+
+## v1.5.19 CI isolation and archive checks
+
+- Confirm Runtime Health browser QA reports `localRequestFailures`, `pageErrors`, or `consoleErrors` with actual values when deliberately broken.
+- Confirm Firebase CDN/backend availability does not affect the normal 10-test core browser gate.
+- Confirm the history test performs both `goBack` and `goForward` without a swallowed error.
+- Occupy the configured E2E port with an unrelated server and confirm the ownership probe rejects it.
+- Confirm both package verification scripts point to the current `package.json.version`.
+- Confirm ZIP verification rejects a symbolic link, `../` entry, `qa/static-audit.txt`, `.tmp`, and `.trace` artifact.
