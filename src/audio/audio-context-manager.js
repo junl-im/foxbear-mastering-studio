@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.14-github-desktop-handoff-preflight';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.15-e2e-runtime-classification';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

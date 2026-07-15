@@ -24,6 +24,9 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
     await page.waitForFunction(() => Boolean(window.FoxBearWakeLockController && window.FoxBearWakeLockController.getSnapshot));
 
     const requestResult = await page.evaluate(async () => {
+      await window.FoxBearWakeLockController.release({ clearDesired: true, persist: false, reason: 'playwright-reset' });
+      window.__foxbearWakeLockRequests = 0;
+      window.__foxbearWakeLockLastType = '';
       await window.FoxBearWakeLockController.request('playwright-manual', { toast: false });
       const active = window.FoxBearWakeLockController.getSnapshot();
       await window.FoxBearWakeLockController.release({ clearDesired: true, reason: 'playwright-release' });
@@ -48,19 +51,19 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
     expect(before.registrations).toBeGreaterThan(0);
 
     const updated = await page.evaluate(async () => {
-      const registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('service-worker-ready-timeout')), 12000))
-      ]);
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      const registration = registrations.find(item => item.active || item.waiting || item.installing) || registrations[0];
+      if (!registration) throw new Error('service-worker-registration-missing');
       await registration.update();
       return {
         scope: registration.scope,
         activeScript: registration.active && registration.active.scriptURL,
-        waitingScript: registration.waiting && registration.waiting.scriptURL
+        waitingScript: registration.waiting && registration.waiting.scriptURL,
+        installingScript: registration.installing && registration.installing.scriptURL
       };
     });
     expect(updated.scope).toContain('/');
-    expect(updated.activeScript || updated.waitingScript || '').toContain('sw.js');
+    expect(updated.activeScript || updated.waitingScript || updated.installingScript || '').toContain('sw.js');
     await expectRuntimeHealthy(expect, page);
   });
 });

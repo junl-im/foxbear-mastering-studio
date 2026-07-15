@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.14-github-desktop-handoff-preflight';
+const version = '1.5.15-e2e-runtime-classification';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

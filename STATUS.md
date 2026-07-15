@@ -9,8 +9,6 @@ This document contains rules that remain true across releases. Actual changes be
 - Visible release labels must be runtime-bound to generated `FoxBearBuildInfo`; stale static HTML labels are repaired by `FoxBearReleasePresentation`.
 - A release candidate must pass `npm run check:release`; static QA alone is not a release gate.
 - A cumulative overwrite package is not releasable until `tools/verify-overwrite-zip.js` confirms required root configuration, workflows, runtime trees, and exclusions.
-- GitHub Desktop is the default patch client; every handoff must include `GITHUB_DESKTOP_HANDOFF.md`, `HANDOFF_PACKAGE.json`, and a passing `npm run handoff:check`.
-- Both cumulative overwrite and full-release ZIPs must pass post-creation semantic verification.
 - Browser QA readiness must wait for `FoxBearRuntimeHealth.appReady`; creation of the health object is not boot completion.
 - The opt-in 35-track deep browser path remains a separate release-candidate/manual check because it is intentionally expensive.
 
@@ -27,13 +25,15 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Security and resilience invariants
 
+- Optional Firebase/Firestore network outages are Runtime Health warnings; they must not be promoted to fatal application errors.
+
 - CSP, Trusted Types, SRI verification, Runtime Health, Update Safety, and service worker cache recovery remain enabled.
 - Original audio is processed locally and is not uploaded to Firebase Storage by the mastering flow.
 - ZIP export must pre-release completed PCM, package audio with `STORE`, enforce a working-set safety limit, validate generated Blob integrity, and provide a per-track fallback.
 
 ## Current release
 
-- Product version: `1.5.14`
-- Build ID: `github-desktop-handoff-preflight`
-- Asset version: `1.5.14-github-desktop-handoff-preflight`
-- Service worker cache: `foxbear-shell-v1.5.14-github-desktop-handoff-preflight`
+- Product version: `1.5.15`
+- Build ID: `e2e-runtime-classification`
+- Asset version: `1.5.15-e2e-runtime-classification`
+- Service worker cache: `foxbear-shell-v1.5.15-e2e-runtime-classification`

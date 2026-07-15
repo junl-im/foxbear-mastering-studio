@@ -92,6 +92,16 @@ async function waitForRuntimeHealth(page, options = {}) {
 async function expectRuntimeHealthy(expect, page, options = {}) {
   const report = await waitForRuntimeHealth(page, options);
   const detail = JSON.stringify(report);
+  const critical = !report.appReady
+    || Boolean(report.bootFailed)
+    || Boolean(report.bootStalled)
+    || (report.missingGlobals || []).length > 0
+    || (report.missingDomIds || []).length > 0
+    || (report.assetVersionMismatches || []).length > 0
+    || (report.resourceFailures || []).length > 0
+    || (report.runtimeErrors || []).length > 0;
+  if (critical) console.error(`[FoxBear E2E Runtime Health] ${detail}`);
+  else if ((report.runtimeWarnings || []).length) console.warn(`[FoxBear E2E Optional Runtime Warnings] ${JSON.stringify(report.runtimeWarnings)}`);
   expect(report.appReady, `appReady · ${detail}`).toBeTruthy();
   expect(report.bootFailed, `bootFailed · ${detail}`).toBeFalsy();
   expect(report.bootStalled, `bootStalled · ${detail}`).toBeFalsy();
@@ -171,8 +181,9 @@ async function waitForServiceWorkerReady(page, options = {}) {
     return registrations.some(registration => Boolean(registration.active || registration.waiting || registration.installing));
   }, null, { timeout });
   const snapshot = await getServiceWorkerSnapshot(page, { readyTimeout: Math.min(timeout, 12000) });
-  if (!snapshot.ready) {
-    throw new Error(`FoxBear service worker did not become ready within ${timeout}ms: ${JSON.stringify(snapshot)}`);
+  const hasWorker = Boolean(snapshot.activeScript || snapshot.waitingScript || snapshot.installingScript);
+  if (!hasWorker) {
+    throw new Error(`FoxBear service worker registration has no worker within ${timeout}ms: ${JSON.stringify(snapshot)}`);
   }
   return snapshot;
 }

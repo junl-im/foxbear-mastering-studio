@@ -1,35 +1,13 @@
-# QA Report - v1.5.14 GitHub Desktop Handoff Preflight
+# QA Report - v1.5.15 E2E Runtime Classification
 
 ## Result
 
 ```text
-194/194 PASS
-Browser QA: GitHub Actions confirmation required
-```
-
-v1.5.14 final QA: `194/194 PASS`. This is a static and executable smoke result, not a browser PASS.
-
-## New coverage
-
-- GitHub Desktop handoff documentation and root extraction checks.
-- Package-contract metadata synchronization.
-- Repository preflight through `npm run handoff:check`.
-- Contract-driven overwrite verification.
-- Full-release archive verification.
-- Exclusion of local `.firebaserc` binding from transferable release ZIPs.
-
-## Previous report: v1.5.13
-
-# QA Report - v1.5.13 Handoff Package Integrity
-
-## Result
-
-```text
-191/191 PASS
+195/195 PASS
 Browser QA: GitHub Actions rerun required
 ```
 
-v1.5.13 final QA static target: `191/191 PASS`. This is not a browser QA pass.
+v1.5.15 final QA static target: `195/195 PASS`. This is not a browser QA pass.
 
 Previous v1.5.12 static target: `189/189 PASS`.
 Previous v1.5.11 static target: `188/188 PASS`.
@@ -43,7 +21,7 @@ Commands:
 npm run version:check
 npm run check
 npm run package:overwrite
-node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.13-overwrite.zip
+node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.15-overwrite.zip
 npm run qa:browser
 ```
 
@@ -64,8 +42,17 @@ npm run qa:browser
 
 ## Browser follow-up
 
-- Push v1.5.13 and confirm all 10 desktop/mobile Playwright tests pass.
+- Push v1.5.15 and confirm all 10 desktop/mobile Playwright tests pass.
 - If a browser test fails, inspect the embedded Runtime Health report and the uploaded `browser-qa-*` trace bundle.
+
+
+## v1.5.15 coverage
+
+- Separates optional Firebase/Firestore network outages into Runtime Health warnings rather than fatal runtime errors.
+- Logs complete critical Runtime Health JSON directly in GitHub Actions output.
+- Resets Wake Lock sentinel state before manual request/release E2E.
+- Validates service-worker registrations by active/waiting/installing worker state instead of relying only on `navigator.serviceWorker.ready`.
+- Recovers `index.html` release asset metadata from the stale v1.5.13 generation.
 
 ## Historical reports
 

@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.14-github-desktop-handoff-preflight';
+    const FALLBACK_VERSION = '1.5.15-e2e-runtime-classification';
     if (global.FoxBearBuildInfo?.assetVersion && global.FoxBearBuildInfo.assetVersion !== FALLBACK_VERSION) console.warn('[FoxBear] runtime health metadata mismatch', { fallback: FALLBACK_VERSION, build: global.FoxBearBuildInfo.assetVersion });
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
@@ -74,6 +74,7 @@
         bootStalled: false,
         resourceFailures: [],
         runtimeErrors: [],
+        runtimeWarnings: [],
         lastReport: null,
         firstCheckedAt: 0,
         panel: null,
@@ -134,9 +135,24 @@
         console.warn('[FoxBearRuntimeHealth] resource failed', failure, report);
     }
 
-    function recordRuntimeError(error, reason) {
+    function normalizeRuntimeIssue(error, reason) {
         const message = error?.message || String(error || 'unknown runtime error');
-        uniquePush(state.runtimeErrors, Object.freeze({ reason, message, at: Date.now() }), item => `${item.reason}:${item.message}`, 12);
+        const code = error?.code || error?.name || '';
+        const stack = typeof error?.stack === 'string' ? error.stack.slice(0, 1200) : '';
+        return Object.freeze({ reason, message, code: String(code || ''), stack, at: Date.now() });
+    }
+
+    function isOptionalRemoteRuntimeIssue(issue) {
+        const text = `${issue.code} ${issue.message} ${issue.stack}`;
+        const firebaseIdentity = /firebase|firestore|remote config|identitytoolkit|firebaseio|googleapis|gstatic/i.test(text);
+        const networkFailure = /network-request-failed|failed to fetch|could not reach|client is offline|backend didn't respond|backend did not respond|unavailable|err_name_not_resolved|err_connection_|networkerror/i.test(text);
+        return firebaseIdentity && networkFailure;
+    }
+
+    function recordRuntimeError(error, reason) {
+        const issue = normalizeRuntimeIssue(error, reason);
+        const target = isOptionalRemoteRuntimeIssue(issue) ? state.runtimeWarnings : state.runtimeErrors;
+        uniquePush(target, issue, item => `${item.reason}:${item.code}:${item.message}`, 12);
     }
 
     function findMissingGlobals() {
@@ -189,6 +205,7 @@
             assetVersionMismatches,
             resourceFailures: state.resourceFailures.slice(),
             runtimeErrors: state.runtimeErrors.slice(),
+            runtimeWarnings: state.runtimeWarnings.slice(),
             checkedAt: Date.now()
         });
     }

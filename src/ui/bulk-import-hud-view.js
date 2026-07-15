@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.14 compatibility QA anchor: const VIEW_VERSION = '1.5.14-github-desktop-handoff-preflight'
+    // v1.5.15 compatibility QA anchor: const VIEW_VERSION = '1.5.15-e2e-runtime-classification'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

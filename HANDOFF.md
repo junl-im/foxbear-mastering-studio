@@ -1,4 +1,4 @@
-# Handoff - v1.5.14 GitHub Desktop Handoff Preflight
+# Handoff - v1.5.15
 
 ## Maintainer workflow
 
@@ -372,3 +372,10 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 - v1.4.26 detail-only FFT remains active; full spectrum rendering belongs in the detail panel only.
 - FoxBearPerformanceDiagnostics remains available with collectSnapshot, getSummary, copy, and adaptive summary diagnostics.
 - v1.4.26 뒤로가기 / Exit Guard fallback remains active for browser and PWA back navigation.
+
+## v1.5.15 browser QA classification
+
+- GitHub Actions의 선택적 Firebase/Firestore 네트워크 실패는 `runtimeWarnings`로 기록하며 앱 boot 실패로 판정하지 않습니다.
+- `runtimeErrors`에는 실제 앱 예외만 남아야 합니다.
+- 브라우저 QA가 실패하면 Actions 로그의 `[FoxBear E2E Runtime Health]` JSON을 먼저 확인합니다.
+- GitHub Desktop에서 누적 ZIP 적용 후 `package.json`, `package-lock.json`, `src/boot/runtime-health.js`, `qa/browser/` 변경이 모두 표시되는지 확인합니다.

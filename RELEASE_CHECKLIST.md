@@ -1,35 +1,5 @@
 # Release Checklist
 
-## GitHub Desktop patch application
-
-- Confirm the repository shown in GitHub Desktop is the intended FoxBear repository.
-- Click `Fetch origin` before extracting a patch.
-- Prefer a `patch/vX.Y.Z` branch for review.
-- Extract the overwrite ZIP outside the repository, then copy its contents into the repository root.
-- Reject a nested `foxbear-mastering-studio-v...-overwrite/` folder inside the repository.
-- In `Changes`, confirm `package.json`, `package-lock.json`, `playwright.config.js`, both Pages workflows, `HANDOFF.md`, and `HANDOFF_PACKAGE.json` are present.
-- Check `HANDOFF_PACKAGE.json.deletePaths`; remove only paths listed there.
-- Run `npm run handoff:check` when a terminal is available.
-- Commit in GitHub Desktop and use `Publish branch` or `Push origin`.
-- Confirm the Actions release gate; preserve `browser-qa-*` artifacts when it fails.
-
-## Required release gate
-
-```bash
-npm ci
-npm run version:check
-npm run handoff:check
-npm run check:release
-```
-
-## Package verification
-
-```bash
-npm run package:all
-node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.14-release.zip
-node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.14-overwrite.zip
-```
-
 ## Metadata and dependency reproducibility
 
 ```bash
@@ -124,3 +94,7 @@ The overwrite command also runs this verification internally. Confirm that `play
 - Confirm `npm run package:overwrite` prints `PASS overwrite ZIP contents verified`.
 - Confirm `CI=true node -e "const c=require('./playwright.config.js'); console.log(c.workers)"` prints `1` or `2`.
 - Apply the overwrite ZIP to a clean v1.5.11 tree and confirm `npm run check` does not fail at `v1512_ci_runtime_readiness_smoke.js`.
+
+## GitHub Desktop overwrite deletion check
+
+- Before copying an overwrite package, inspect `HANDOFF_PACKAGE.json.deletePaths`. Remove each listed repository-relative path in GitHub Desktop's working tree before committing. An empty array means no deletion step is required.

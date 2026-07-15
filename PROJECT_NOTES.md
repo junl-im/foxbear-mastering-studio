@@ -253,3 +253,11 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 - `접기` in the large HUD is now `숨김` and hides the current bulk HUD batch.
 - The floating mobile/native settings layer creates `#bulkImportHudRestore` (`보이기`) only for hidden, restorable bulk batches.
 - `#bulkImportHudMasterAll` delegates to the existing main `#masterAllBtn` full-mastering behavior.
+
+
+## v1.5.15 E2E runtime classification
+
+- 선택적 Firebase 원격 실패와 앱의 치명적 런타임 오류를 분리했다.
+- Wake Lock/Service Worker Playwright 시나리오의 상태 격리를 강화했다.
+- 실제 실패 시 Runtime Health 전체 JSON이 Actions 로그에 노출된다.
+- index.html에 남아 있던 v1.5.13 자산 세대도 현재 릴리스로 복구했다.

@@ -1,3 +1,12 @@
+# v1.5.15 - E2E Runtime Classification & Browser API Stability
+
+- Runtime Health now separates optional Firebase/Firestore network outages into `runtimeWarnings` instead of treating them as fatal app errors.
+- Playwright prints the full critical Runtime Health report directly in Actions logs when a browser assertion fails.
+- Wake Lock E2E resets any previous sentinel before the manual request/release scenario.
+- Service-worker E2E validates an actual active/waiting/installing worker and updates the existing registration without relying only on `navigator.serviceWorker.ready`.
+- Recovered runtime HTML metadata that was still pinned to the v1.5.13 asset generation.
+- GitHub Desktop remains the default patch handoff workflow.
+
 # v1.5.14 - GitHub Desktop Handoff Preflight
 
 - Recorded GitHub Desktop as the default handoff client and added `GITHUB_DESKTOP_HANDOFF.md` with branch, extract, review, commit, push, and Actions-failure steps.

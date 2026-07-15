@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.14
+// FoxBear audio decode service - v1.5.15
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.14-github-desktop-handoff-preflight';
+    const SERVICE_VERSION = '1.5.15-e2e-runtime-classification';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 

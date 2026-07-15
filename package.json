@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.14",
+  "version": "1.5.15",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.14-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.14-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.15-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.15-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite"
   },
   "qaChecks": [
@@ -216,15 +216,16 @@
     "node --check tools/verify-overwrite-zip.js",
     "node --check tools/verify-handoff-state.js",
     "node --check tools/verify-release-zip.js",
-    "node qa/v1514_github_desktop_handoff_smoke.js"
+    "node qa/v1514_github_desktop_handoff_smoke.js",
+    "node qa/v1515_e2e_runtime_classification_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "github-desktop-handoff-preflight",
-    "assetVersion": "1.5.14-github-desktop-handoff-preflight",
-    "cacheName": "foxbear-shell-v1.5.14-github-desktop-handoff-preflight",
-    "bootRevision": "boot-sri-v1514",
-    "updateSafetyRevision": "update-safety-v1514",
-    "serviceWorkerRevision": "sw-v1514"
+    "buildId": "e2e-runtime-classification",
+    "assetVersion": "1.5.15-e2e-runtime-classification",
+    "cacheName": "foxbear-shell-v1.5.15-e2e-runtime-classification",
+    "bootRevision": "boot-sri-v1515",
+    "updateSafetyRevision": "update-safety-v1515",
+    "serviceWorkerRevision": "sw-v1515"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

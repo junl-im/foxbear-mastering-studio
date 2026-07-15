@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.14-github-desktop-handoff-preflight';
+    const DIAGNOSTICS_VERSION = '1.5.15-e2e-runtime-classification';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -185,6 +185,7 @@
                 appReady: Boolean(runtimeReport.appReady),
                 resourceFailures: runtimeReport.resourceFailures?.length || 0,
                 runtimeErrors: runtimeReport.runtimeErrors?.length || 0,
+                runtimeWarnings: runtimeReport.runtimeWarnings?.length || 0,
                 missingGlobals: runtimeReport.missingGlobals?.length || 0
             } : null,
             spectrum,
@@ -303,7 +304,7 @@
             `canvas: ${snapshot.dom.canvases} · spectrum panels ${snapshot.dom.spectrumPanels}`,
             `memory: ${memory}`,
             `spectrum: ${spectrum}`,
-            `runtime: ${snapshot.runtime ? (snapshot.runtime.ok ? 'ok' : 'check') : 'n/a'} · errors ${snapshot.runtime?.runtimeErrors ?? 0}`,
+            `runtime: ${snapshot.runtime ? (snapshot.runtime.ok ? 'ok' : 'check') : 'n/a'} · errors ${snapshot.runtime?.runtimeErrors ?? 0} · warnings ${snapshot.runtime?.runtimeWarnings ?? 0}`,
             `nav guard: ${snapshot.navigationGuard?.installed ? 'on' : 'off'} · confirm ${snapshot.navigationGuard?.confirmOpen ? 'open' : 'idle'}`,
             `long tasks: ${snapshot.longTasks.length}${snapshot.longTasks.length ? ' · max ' + Math.max(...snapshot.longTasks.map(item => item.durationMs || 0)) + 'ms' : ''}`,
             `warnings: ${(state.lastSummary?.warnings || []).join(', ') || 'none'}`

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.14",
-  "buildId": "github-desktop-handoff-preflight",
+  "productVersion": "1.5.15",
+  "buildId": "e2e-runtime-classification",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

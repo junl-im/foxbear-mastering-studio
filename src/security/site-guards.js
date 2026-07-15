@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.14-github-desktop-handoff-preflight';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.15-e2e-runtime-classification';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
