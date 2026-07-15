@@ -30,10 +30,18 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const readme = read('README.md');
 const qaReport = read('qa/QA_REPORT.md');
+const status = read('STATUS.md');
+const versioning = read('VERSIONING.md');
+const releaseChecklist = read('RELEASE_CHECKLIST.md');
+const dockFftDecision = read('docs/decisions/0001-dock-fft-removal.md');
 
-assert(changelog.includes('Stage7'), 'CHANGELOG.md does not mention Stage7');
-assert(changelog.includes('Stage9'), 'CHANGELOG.md does not mention Stage9');
-assert(changelog.includes('waveform-compare-view.js'), 'CHANGELOG.md does not mention compare view module');
+assert(changelog.includes('Stage7'), 'CHANGELOG.md does not mention the actual Stage7 change');
+assert(changelog.includes('Stage9'), 'CHANGELOG.md does not mention the actual Stage9 change');
+assert(changelog.includes('waveform-compare-view.js'), 'CHANGELOG.md does not mention the actual compare view module change');
+assert(status.includes('Dock mini FFT remains removed'), 'STATUS.md is missing the Dock FFT invariant');
+assert(versioning.includes('source of truth'), 'VERSIONING.md is missing source-of-truth guidance');
+assert(releaseChecklist.includes('npm run check:release'), 'RELEASE_CHECKLIST.md is missing the release gate');
+assert(dockFftDecision.includes('renderMini'), 'Dock FFT ADR is missing the renderMini decision');
 assert(handoff.includes('Stage7'), 'HANDOFF.md does not mention Stage7');
 assert(handoff.includes('Stage9'), 'HANDOFF.md does not mention Stage9');
 assert(handoff.includes('Next patch candidates') || handoff.includes('Next safe direction') || handoff.includes('다음 패치 후보'), 'HANDOFF.md is missing next patch section');
@@ -49,6 +57,10 @@ assert(qaReport.includes('docs/history/'), 'QA_REPORT.md does not point to histo
   'qa/QA_REPORT.md',
   'PROJECT_NOTES.md',
   'CHANGELOG.md',
+  'STATUS.md',
+  'VERSIONING.md',
+  'RELEASE_CHECKLIST.md',
+  'docs/decisions/0001-dock-fft-removal.md',
   'docs/history/README_legacy_v1.4.21_to_v1.4.26.md',
   'docs/history/HANDOFF_legacy_v1.4.21_to_v1.4.26.md',
   'docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md'

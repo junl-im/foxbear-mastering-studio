@@ -186,7 +186,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.4.26',
+                version: '1.5.7',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -206,7 +206,7 @@
             };
         }
         return {
-            version: '1.4.26',
+            version: '1.5.7',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -270,7 +270,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.4.26',
+            version: '1.5.7',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -308,7 +308,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.4.26',
+            version: '1.5.7',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -336,7 +336,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.4.26',
+            version: '1.5.7',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -367,7 +367,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.4.26',
+            version: '1.5.7',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -392,7 +392,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.4.26',
+            version: '1.5.7',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -461,7 +461,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.4.26',
+            version: '1.5.7',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',

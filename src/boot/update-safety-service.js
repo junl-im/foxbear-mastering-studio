@@ -3,7 +3,7 @@
     'use strict';
 
     const PATCH_ID = 'v1.5.6-export-progress-recovery';
-    const EXPECTED_BOOT_KEY = 'boot-sri-v156';
+    const EXPECTED_BOOT_KEY = 'boot-sri-v157';
     const BOOT_CRITICAL_RE = /(?:src\/boot\/runtime-health\.js|src\/boot\/performance-diagnostics\.js|src\/app\.js)$/;
     const LOCAL_ASSET_RE = /^(?:\.\/)?(?:src\/|assets\/|manifest\.webmanifest|sw\.js|vendor\/)/;
     const state = {
@@ -111,7 +111,7 @@
             return Object.freeze([
                 'Runtime Health 복구 패널에서 캐시 초기화 후 재시도를 실행합니다.',
                 '같은 문제가 반복되면 배포 서버/CDN이 최신 index.html과 JS를 같은 세대로 제공하는지 확인합니다.',
-                '직접 확인 시 app.js, performance-diagnostics.js, runtime-health.js의 h=boot-sri-v156와 SRI가 일치해야 합니다.'
+                '직접 확인 시 app.js, performance-diagnostics.js, runtime-health.js의 h=boot-sri-v157와 SRI가 일치해야 합니다.'
             ]);
         }
         if (active.level === 'warn') {

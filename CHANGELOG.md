@@ -1,3 +1,15 @@
+# v1.5.7 - Release Foundation Cleanup
+
+- Unified the product release line at `1.5.7` across package, manifest, visible UI, runtime metadata, service worker generation, and package naming.
+- Added generated `src/config/build-info.js` plus `tools/release-metadata.js` and `tools/sync-release-metadata.js`; `package.json` is now the release metadata source of truth.
+- Added `VERSIONING.md`, `STATUS.md`, `RELEASE_CHECKLIST.md`, and ADR 0001 for the intentional Dock FFT removal.
+- Added a pinned Playwright development dependency and lock file workflow; browser QA now uses the local Playwright CLI instead of an accidental global/downloaded command.
+- Added `check:release` and made deployment workflows install dependencies/Chromium and run the real browser QA gate.
+- Removed repeated carry-forward paragraphs and the duplicate Changelog heading; CHANGELOG now records actual changes while ongoing rules live in STATUS/ADR documents.
+- Added `qa/v157_release_foundation_smoke.js` and forward-compatible release metadata checks.
+- Limited release metadata synchronization to executable metadata while preserving historical QA PASS/FAIL labels, so older regression guards keep their original release identity.
+- Documentation migration index: Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Spectrum stability, Dock FFT removal, `renderMini` cleanup, Performance diagnostics, Packaging, Exit Guard, Wake Lock, `getDownloadDialogCompactHint`, and `getDownloadDialogDisplayProfile` are now tracked through `STATUS.md`, history docs, and ADRs instead of repeated release bullets.
+
 # v1.5.6 - Export Progress Recovery
 
 - Added `src/download/export-progress-view.js` and the `FoxBearExportProgressView` browser global for visible ZIP/export progress diagnostics.
@@ -86,15 +98,6 @@
 - Added optional Playwright browser QA scaffold under `qa/browser/`; default QA remains static/smoke.
 - Current QA target: `158/158 PASS`.
 
-
-## Legacy v1.4.26 carry-forward anchors
-
-- v1.4.26 Spectrum stability and Exit Guard behavior remain carried forward.
-- v1.4.26 stability polish remains active.
-- v1.4.26 Dock FFT removal and renderMini cleanup remain active; detail-only FFT remains available.
-- v1.4.26 Performance diagnostics and Packaging polish remain active.
-- Download dialog micro hint and display profile helpers remain active: `getDownloadDialogCompactHint` and `getDownloadDialogDisplayProfile`.
-
 # v1.4.26 - Bulk HUD Asset / Close Button Hotfix
 
 - Fixed a potential `assets/css/bulk-import-hud.css` stale-cache/SRI boot failure by adding a targeted cache-bust parameter to the Bulk HUD stylesheet URL while keeping the existing `v=1.4.26-wake-lock-state-sync` runtime version.
@@ -167,7 +170,6 @@
 - Added large-batch status messaging so 12+ selected songs show safe queue progress.
 - Added `qa/v1421_bulk_import_guard_smoke.js` and `qa/BROWSER_BACK_QA_MATRIX_1.4.21.md`.
 
-# Changelog
 
 ## v1.4.21 - Download dialog first-screen declutter
 - Added `FoxBearDownloadService.getDownloadDialogDisplayProfile()` so the dialog can separate initial/open-state copy from post-action guidance.
@@ -261,82 +263,3 @@
 ## Stage7
 - `waveform-compare-view.js` split and compare modal cleanup.
 
-## Compatibility anchor notes for cumulative QA
-- Stage8: async mobile Dock rejection handling and compact mobile Dock overlay anchors remain supported.
-- Stage9.1: cumulative overwrite packaging and 누적 덮어쓰기 manifest checks remain supported.
-- Stage10: download service split remains in `src/download/download-service.js`.
-- Stage11: large modular renovation remains active through recommendation engine and base components.
-- Stage11.1: runtime/mobile hotfix and Dock-attached quick panel cleanup remain active.
-- Stage12: detail view split remains active.
-- Stage13 and Stage14: Runtime Health and runtime recovery remain active.
-- v1.4.21 Spectrum / Exit Guard stability: Spectrum remains detail-only, Exit Guard remains enabled.
-- v1.4.21 Dock FFT removal: Dock FFT removal remains intentional; settings gear alignment remains active.
-- v1.4.21 renderMini cleanup: removed Dock mini FFT renderMini path remains removed.
-- v1.4.21 Performance diagnostics: `FoxBearPerformanceDiagnostics` remains available with `getSummary`, adaptive refresh, and 복사 actions.
-- v1.4.21 Packaging: overwrite packages derive the version from package.json.
-
-## v1.4.21 cumulative compatibility anchors
-- stability: navigation confirm debounce, FFT lifecycle stabilization, and external analyser coverage remain active.
-- Dock FFT removal and settings gear alignment remain active.
-- Performance diagnostics and adaptive refresh remain available.
-- Packaging polish remains active: overwrite ZIP naming follows `package.json`.
-- renderMini cleanup remains active; runtime health does not require `renderMini` and FFT remains detail-only.
-- Download/share fallback remains active: share/save, save assist, diagnostics copy, checklist copy, and external browser guidance remain available.
-- Dock FFT removal remains active; `#bottomPreviewSpectrum` should not exist and detail-only FFT remains intentional.
-
-- v1.4.21 carry-forward: getDownloadDialogCompactHint remains active for the compact download first screen.
-- v1.4.21 carry-forward: getDownloadDialogDisplayProfile keeps first-screen declutter behavior.
-
-## v1.4.21 - Render Scheduler + Bulk Import UI Throttle
-
-- Added `FoxBearRenderScheduler` to merge repeated `renderAll()` calls into scheduled frame updates during analysis/import.
-- Bulk import analysis remains sequential, and large-batch UI refreshes are throttled so 35-track imports are less likely to stutter or crash.
-- Automatic Wake Lock activation during analysis/playback is now silent; manual settings toggles still show user feedback.
-- Single-file imports keep the AI recommendation choice dialog, while multi-file and large-batch imports auto-apply each track's AI recommendation without one popup per file.
-- Playback transitions use a smoother 140ms fade and wait for the next audio element to be media-ready before fading out the old source.
-- Analysis cache keys now use `ANALYSIS_ENGINE_CACHE_VERSION` instead of `APP_VERSION`, reducing unnecessary re-analysis across patch releases.
-- Added `FoxBearAudioDecodeService` as the first decode-path split from `src/app.js`.
-
-
-Stability carry-forward: v1.4.21 keeps render scheduler and bulk import stability checks active.
-
-Dock FFT removal carry-forward: v1.4.21 preserves Dock FFT removal while focusing on render scheduling and import stability.
-
-renderMini cleanup carry-forward: v1.4.21 keeps the removed Dock mini spectrum API out of runtime health while detail-only FFT remains available.
-
-Download dialog carry-forward: `getDownloadDialogCompactHint` and `getDownloadDialogDisplayProfile` remain active in v1.4.21.
-
-
-## v1.4.26 carry-forward anchors
-
-Spectrum detail-only FFT, Exit Guard, Dock mini FFT removal, renderMini cleanup, stability, confirm, Download dialog compact hint, getDownloadDialogDisplayProfile, Stage28, Stage27, Stage26, Stage25, Stage23, Stage21, Stage20, Stage18, Stage17.
-
-
-### v1.4.26 Carry-forward QA anchors
-- Dock FFT removal remains intact; `#bottomPreviewSpectrum` is absent and detail-only FFT stays on the detail analysis screen.
-- `renderMini` remains removed from Dock spectrum cleanup.
-- Performance diagnostics and Packaging polish are retained with adaptive refresh and copy/복사 flows.
-- Download dialog clarity, recovery checklist, micro hint, and first-screen declutter remain carried forward.
-
-### v1.4.26 carry-forward QA notes
-
-- stability, Dock FFT removal, settings gear alignment, renderMini cleanup, performance diagnostics, download flow polish, download action clarity, micro hint/declutter, Render Scheduler, Mastering Queue Throttle, Audio Decode Memory Guard, and Bulk Import HUD remain carried forward.
-- Stage13, Stage14, Stage27, and Stage28 documentation anchors remain intentionally referenced for legacy QA/handoff continuity.
-- Dock mini FFT was removed; detail FFT remains detail-only.
-- Dock FFT removal and settings gear alignment remain part of the current regression line.
-- Stage27 waveform-control-service and Stage28 waveform-control-view.js extraction remain active; unmanaged waveform audit remains tracked.
-
-
-## v1.4.26 Carry-forward Documentation Anchors
-
-- Performance diagnostics remain available with `FoxBearPerformanceDiagnostics`, `getSummary`, adaptive refresh, and Packaging-safe overwrite generation.
-- renderMini cleanup remains active: runtime health does not require `renderMini`; detail-only FFT remains the intended model.
-- Download dialog micro hint helper `getDownloadDialogCompactHint` remains carried forward.
-- Download display profile helper `getDownloadDialogDisplayProfile` remains carried forward.
-- Dock FFT removal, settings gear alignment, Download flow polish, Download action clarity, Download dialog micro hint, and Download dialog first-screen declutter remain covered.
-
-## v1.4.26 Spectrum / Dock FFT removal carry-forward
-
-- Spectrum detail-only FFT remains active in v1.4.26.
-- Dock FFT removal remains carried forward, including `#bottomPreviewSpectrum` absence.
-- settings gear alignment remains carried forward.

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.4.26-wake-lock-state-sync';
+const version = '1.5.7-release-foundation';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
@@ -30,7 +30,7 @@ assert(sw.includes(`foxbear-shell-v${version}`), 'service worker cache should us
 assert(pkg.includes('node --check src/ui/waveform-control-view.js'), 'package should syntax-check waveform-control-view');
 assert(pkg.includes('node qa/stage28_waveform_control_view_smoke.js'), 'package should run Stage28 smoke');
 assert(runtime.includes('FoxBearWaveformControlView.createBars'), 'runtime health should require waveform view');
-assert(overwrite.includes('v1.4.26'), 'overwrite default should be Stage28');
+assert(overwrite.includes('package.json') && overwrite.includes("'v' + (p.version || 'dev')"), 'overwrite default should be Stage28');
 
 const serviceIndex = index.indexOf('src/audio/waveform-control-service.js');
 const viewIndex = index.indexOf('src/ui/waveform-control-view.js');

@@ -7,6 +7,7 @@ const { spawn } = require('child_process');
 
 const DEFAULT_PORT = Number(process.env.FOXBEAR_E2E_PORT || 4173);
 const DEFAULT_HOST = process.env.FOXBEAR_E2E_HOST || '127.0.0.1';
+const DEFAULT_BIND_HOST = process.env.FOXBEAR_E2E_BIND_HOST || '127.0.0.1';
 const APP_URL = process.env.FOXBEAR_E2E_URL || `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
 
 function makeTinyWavBuffer({ seconds = 0.35, sampleRate = 16000, frequency = 440, gain = 0.12 } = {}) {
@@ -126,7 +127,7 @@ async function getServiceWorkerSnapshot(page) {
   });
 }
 
-function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DEFAULT_HOST } = {}) {
+function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DEFAULT_BIND_HOST } = {}) {
   const child = spawn('python3', ['-m', 'http.server', String(port), '--bind', host], {
     cwd,
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -143,6 +144,7 @@ function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DE
 
 module.exports = {
   APP_URL,
+  DEFAULT_BIND_HOST,
   DEFAULT_HOST,
   DEFAULT_PORT,
   createSyntheticWavFiles,

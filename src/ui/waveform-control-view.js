@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.4.26-wake-lock-state-sync';
+  const VIEW_VERSION = '1.5.7-release-foundation';
   const DEFAULT_BINS = 96;
 
   function getService() {

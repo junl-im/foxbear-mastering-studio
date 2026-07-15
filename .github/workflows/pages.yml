@@ -17,13 +17,25 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate JavaScript and static contracts
-        run: npm run check
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install pinned dependencies
+        run: npm ci
+
+      - name: Install Chromium for browser QA
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Run release gate
+        run: npm run check:release
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -24,18 +24,18 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const readme = read('README.md');
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
-const version = '1.4.26-wake-lock-state-sync';
+const version = '1.5.7-release-foundation';
 
-must(pkg.version === '1.4.26', 'package version should be 1.4.26');
-must(pkg.name.includes('v1-4-26'), 'package name should use v1.4.26');
-must(index.includes('data-build="1.4.26"'), 'index build marker should be 1.4.26');
+must(pkg.version === '1.5.7', 'package version should be 1.5.7');
+must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1.5.7');
+must(index.includes('data-build="1.5.7"'), 'index build marker should be 1.5.7');
 must(index.includes(`src/boot/performance-diagnostics.js?v=${version}`), 'index should load performance diagnostics JS');
 must(index.includes(`assets/css/boot/performance-diagnostics.css?v=${version}`), 'index should load performance diagnostics CSS');
-must(sw.includes(`foxbear-shell-v${version}`), 'service worker should use v1.4.26 cache key');
+must(sw.includes(`foxbear-shell-v${version}`), 'service worker should use v1.5.7 cache key');
 must(sw.includes(`./src/boot/performance-diagnostics.js?v=${version}`), 'service worker should precache performance diagnostics JS');
 must(sw.includes(`./assets/css/boot/performance-diagnostics.css?v=${version}`), 'service worker should precache performance diagnostics CSS');
 must(pkg.qaChecks.includes('node --check src/boot/performance-diagnostics.js'), 'package should syntax-check diagnostics module');
-must(pkg.qaChecks.includes('node qa/v149_performance_diagnostics_smoke.js'), 'package should run v1.4.26 smoke');
+must(pkg.qaChecks.includes('node qa/v149_performance_diagnostics_smoke.js'), 'package should run v1.5.7 smoke');
 
 must(perf.includes('FoxBearPerformanceDiagnostics'), 'diagnostics global should be exposed');
 must(perf.includes('collectSnapshot'), 'diagnostics should expose collectSnapshot');
@@ -54,10 +54,10 @@ must(!index.includes('bottomPreviewSpectrum'), 'Dock mini spectrum host should r
 must(!spectrum.includes('renderMini'), 'spectrum visualizer should keep renderMini removed');
 must(spectrum.includes('function hasRenderableCanvas'), 'detail-only FFT guard should remain');
 
-must(changelog.includes('v1.4.26') && changelog.includes('Performance diagnostics'), 'changelog should document v1.4.26 diagnostics');
-must(handoff.includes('v1.4.26') && handoff.includes('FoxBearPerformanceDiagnostics'), 'handoff should mention diagnostics global');
-must(notes.includes('v1.4.26') && notes.toLowerCase().includes('performance diagnostics'), 'project notes should mention diagnostics');
-must(readme.includes('v1.4.26') && readme.includes('Ctrl/Command + Alt + P'), 'README should document diagnostics toggle');
-must(matrix.includes('v1.4.26') && matrix.includes('Performance diagnostics'), 'QA matrix should cover v1.4.26 diagnostics');
+must(changelog.includes('v1.5.7') && changelog.includes('Performance diagnostics'), 'changelog should document v1.5.7 diagnostics');
+must(handoff.includes('v1.5.7') && handoff.includes('FoxBearPerformanceDiagnostics'), 'handoff should mention diagnostics global');
+must(notes.includes('v1.5.7') && notes.toLowerCase().includes('performance diagnostics'), 'project notes should mention diagnostics');
+must(readme.includes('v1.5.7') && readme.includes('Ctrl/Command + Alt + P'), 'README should document diagnostics toggle');
+must(matrix.includes('v1.4.26') && matrix.includes('Performance diagnostics'), 'QA matrix should cover v1.5.7 diagnostics');
 
 console.log('PASS v1.4.26 performance diagnostics smoke');

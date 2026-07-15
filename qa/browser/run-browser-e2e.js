@@ -3,7 +3,8 @@
 
 const http = require('http');
 const { spawnSync } = require('child_process');
-const { APP_URL, DEFAULT_PORT, DEFAULT_HOST, startStaticServer } = require('./helpers/foxbear-e2e-helpers');
+const playwrightCli = require.resolve('@playwright/test/cli');
+const { APP_URL, DEFAULT_PORT, DEFAULT_BIND_HOST, startStaticServer } = require('./helpers/foxbear-e2e-helpers');
 
 function waitForServer(url, timeoutMs = 12000) {
   const started = Date.now();
@@ -30,17 +31,19 @@ function waitForServer(url, timeoutMs = 12000) {
 
 (async () => {
   const externalUrl = Boolean(process.env.FOXBEAR_E2E_URL);
-  const server = externalUrl ? null : startStaticServer({ cwd: process.cwd(), port: DEFAULT_PORT, host: DEFAULT_HOST });
+  const server = externalUrl ? null : startStaticServer({ cwd: process.cwd(), port: DEFAULT_PORT, host: DEFAULT_BIND_HOST });
+  let exitCode = 0;
   try {
     await waitForServer(APP_URL);
-    const args = ['playwright', 'test', 'qa/browser'];
-    const result = spawnSync('npx', args, { stdio: 'inherit', shell: process.platform === 'win32', env: { ...process.env, FOXBEAR_E2E_URL: APP_URL } });
-    process.exit(result.status || 0);
+    const args = [playwrightCli, 'test', 'qa/browser'];
+    const result = spawnSync(process.execPath, args, { stdio: 'inherit', env: { ...process.env, FOXBEAR_E2E_URL: APP_URL } });
+    exitCode = Number.isInteger(result.status) ? result.status : 1;
   } catch (error) {
     console.error(`FAIL browser E2E bootstrap: ${error && error.message ? error.message : error}`);
     if (server) console.error(server.getOutput());
-    process.exit(1);
+    exitCode = 1;
   } finally {
     if (server) server.stop();
   }
+  process.exitCode = exitCode;
 })();

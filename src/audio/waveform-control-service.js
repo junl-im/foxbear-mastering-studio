@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.4.26-wake-lock-state-sync';
+    const SERVICE_VERSION = '1.5.7-release-foundation';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
 

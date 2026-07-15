@@ -1,3 +1,13 @@
+# Project Notes - v1.5.7
+
+## Release foundation cleanup
+
+- Product, build, asset, and service-worker identifiers are now explicitly separated.
+- `package.json` is the release source of truth; use `npm run version:sync` and `npm run version:check`.
+- Persistent invariants moved to `STATUS.md`; the Dock FFT decision moved to ADR 0001.
+- `npm run check:release` is the release gate and includes real Chromium Playwright tests.
+- The 35-track deep flow remains an explicit release-candidate/manual test.
+
 # v1.5.1 Notes - Real Browser Automation
 
 - Real browser automation is now opt-in through Playwright rather than included in the default static smoke suite.

@@ -1,8 +1,18 @@
-# Handoff - v1.5.6 Export Progress Recovery
+# Handoff - v1.5.7 Release Foundation Cleanup
 
 ## Current status
 
-Latest package layer: `v1.5.6` export progress recovery patch on top of the `1.4.26-wake-lock-state-sync` runtime asset version key.
+Latest product release: `v1.5.7`; build ID `release-foundation-cleanup`; asset generation `1.5.7-release-foundation`; service worker cache `foxbear-shell-v1.5.7-release-foundation`.
+
+Release workflow:
+
+```bash
+npm ci
+npm run qa:browser:install
+npm run check:release
+```
+
+Durable rules are in `STATUS.md`; version semantics are in `VERSIONING.md`; release steps are in `RELEASE_CHECKLIST.md`. Dock FFT remains intentionally removed per `docs/decisions/0001-dock-fft-removal.md`.
 
 Compatibility note: previous maintenance layers `v1.5.5 Update Safety`, `v1.5.4 Boot SRI Recovery`, `v1.5.3 Bulk HUD Visibility + Inline Master All`, and `v1.5.2 Export Guard + Low Memory UX` remain carried forward.
 
@@ -62,7 +72,7 @@ The previous Bulk HUD asset/close-button hotfix, Bulk Mastering HUD continuity p
 - `qa/browser/runtime-health-playwright.spec.js` checks browser boot, Runtime Health, resource failures, missing globals/DOM ids, asset version mismatches, runtime errors, and console errors.
 - `qa/browser/pwa-back-wakelock-sw-playwright.spec.js` covers PWA back/forward resilience, mocked Wake Lock request/release, and service worker update registration.
 - `qa/browser/bulk-35-import-master-export-playwright.spec.js` uploads 35 generated WAV files and verifies Bulk HUD continuity. With `FOXBEAR_E2E_DEEP=1`, it proceeds into full master/export assertions.
-- Browser automation remains opt-in and is not part of `npm run check` because Playwright browsers may not be installed on every packaging machine.
+- `npm run check` remains the fast static suite, but release sign-off must use `npm run check:release`, which includes the desktop/mobile Playwright gate.
 
 ## Key changes in this patch
 
@@ -90,10 +100,11 @@ npm run check
 Expected result:
 
 ```text
-176/176 PASS
+182/182 PASS (static suite)
+Playwright desktop/mobile suite PASS (release environment)
 ```
 
-Optional browser QA automation:
+Release browser QA automation:
 
 ```bash
 npm run qa:browser:install

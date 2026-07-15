@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.4.26 compatibility QA anchor: const VIEW_VERSION = '1.4.26-wake-lock-state-sync'
+    // v1.5.7 compatibility QA anchor: const VIEW_VERSION = '1.5.7-release-foundation'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.4.26-wake-lock-state-sync';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.7-release-foundation';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

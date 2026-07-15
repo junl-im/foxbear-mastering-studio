@@ -1,10 +1,13 @@
-# QA Report - v1.5.6 Export Progress Recovery
+# QA Report - v1.5.7 Release Foundation Cleanup
 
 ## Result
 
 ```text
-178/178 PASS
+182/182 PASS
+Browser QA: runner/spec discovery verified; standard Chromium execution still required
 ```
+
+v1.5.7 final QA static target: `182/182 PASS`. This is not a browser QA pass.
 
 Previous v1.5.5 static target: `176/176 PASS`.
 Previous v1.5.4 static target: `174/174 PASS`.
@@ -12,10 +15,12 @@ Previous v1.5.3 static target: `173/173 PASS`.
 Previous v1.5.2 static target: `172/172 PASS`.
 Previous v1.5.1 static target: `170/170 PASS`.
 
-Command:
+Commands:
 
 ```bash
+npm run version:check
 npm run check
+npm run qa:browser
 ```
 
 ## Verified
@@ -36,14 +41,16 @@ npm run check
 - `qa/v154_boot_sri_recovery_smoke.js`
 - `qa/v155_update_safety_asset_health_smoke.js`
 - `qa/v156_export_progress_recovery_smoke.js`
+- `qa/v157_release_foundation_smoke.js`
 
 ## Manual follow-up still needed
 
 - Real PC 35-track import → analysis → master all → export.
 - Check `FoxBearMemoryGuard.getSnapshot()` before/after export and after several repeated mastering runs.
 - Real mobile/PWA Bulk HUD scrolling, close button feel, and low-memory policy behavior.
-- Optional Playwright browser execution in a development environment with browsers installed: `npm run qa:browser`.
+- Required Playwright execution on a normal development machine or CI runner with the pinned browser installed: `npm run qa:browser`.
 - Deep 35-track browser flow remains opt-in via `npm run qa:browser:deep` because it can take significantly longer than static QA.
+- Review-container note: the runner started the local server and discovered all 10 desktop/mobile tests, but the managed system Chromium blocked every URL with `ERR_BLOCKED_BY_ADMINISTRATOR` before app navigation. This environment result is not counted as a product failure or a browser pass.
 
 ## Historical reports
 
@@ -57,6 +64,16 @@ docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
 
 v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility. Current QA is higher because v1.5.5 adds Update Safety asset-health checks and v1.5.4 adds boot SRI/cache recovery checks and v1.5.3 adds Bulk HUD visibility/master-all UX checks on top of v1.5.2 Export Guard checks on top of v1.5.1 real-browser automation smokes on top of v1.5.0 engine quality gate checks on top of v1.4.29 Memory Stabilization, release cleanup, service-module, app-slimdown orchestration, memory-guard, and browser-scaffold checks.
 
+
+
+## v1.5.7 coverage
+
+- Verifies package/manifest/UI/build/cache metadata synchronization from `package.json`.
+- Verifies generated `src/config/build-info.js`, release documentation, and version synchronization tooling.
+- Verifies `@playwright/test` is pinned and represented in `package-lock.json`.
+- Verifies deployment workflows run `npm ci`, install Chromium, and execute `npm run check:release`.
+- Verifies CHANGELOG no longer contains duplicate headings or repeated carry-forward sections.
+- Verifies release synchronization preserves historical QA labels instead of renaming old regression guards to the current release.
 
 ## v1.5.6 coverage
 

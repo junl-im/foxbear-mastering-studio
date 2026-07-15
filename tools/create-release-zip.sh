@@ -15,6 +15,9 @@ zip -qr "${OUTPUT_FILE}" . \
   -x '.firebase/*' \
   -x 'node_modules/*' \
   -x 'dist/*' \
+  -x 'qa/browser-results/*' \
+  -x 'test-results/*' \
+  -x 'playwright-report/*' \
   -x '*.zip' \
   -x 'check.log' \
   -x '.DS_Store'

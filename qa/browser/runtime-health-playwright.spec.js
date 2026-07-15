@@ -1,5 +1,8 @@
 const { test, expect } = require('@playwright/test');
+const { getReleaseMetadata } = require('../../tools/release-metadata');
 const { APP_URL, expectRuntimeHealthy } = require('./helpers/foxbear-e2e-helpers');
+
+const RELEASE = getReleaseMetadata();
 
 test.describe('FoxBear browser runtime health', () => {
   test('boots without missing globals, DOM ids, resource failures, or console errors', async ({ page }) => {
@@ -13,7 +16,7 @@ test.describe('FoxBear browser runtime health', () => {
 
     await page.goto(APP_URL, { waitUntil: 'networkidle' });
     const report = await expectRuntimeHealthy(expect, page);
-    expect(report.version).toContain('1.4.26-wake-lock-state-sync');
+    expect(report.version).toContain(RELEASE.assetVersion);
     expect(consoleErrors).toEqual([]);
   });
 });

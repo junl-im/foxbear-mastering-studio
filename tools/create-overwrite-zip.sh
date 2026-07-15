@@ -7,7 +7,7 @@ set -euo pipefail
 # needing to install every previous stage in sequence.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Default follows package.json (current v1.4.26) so later patch packages do not keep stale names.
+# Default follows package.json so later patch packages do not keep stale names.
 VERSION="${1:-$(node -e "const p=require('"$ROOT_DIR/package.json"'); process.stdout.write('v' + (p.version || 'dev'))")}"
 OUT_DIR="$ROOT_DIR/dist"
 WORK_DIR="$OUT_DIR/overwrite-$VERSION"
@@ -41,6 +41,10 @@ copy_path "HANDOFF.md"
 copy_path "PROJECT_NOTES.md"
 copy_path "README.md"
 copy_path "FIREBASE_SETUP.md"
+copy_path "package-lock.json"
+copy_path "RELEASE_CHECKLIST.md"
+copy_path "VERSIONING.md"
+copy_path "STATUS.md"
 
 # Cumulative runtime source and style layers.
 copy_path "src"
@@ -54,6 +58,7 @@ copy_path ".github/workflows"
 find "$WORK_DIR" -name '.DS_Store' -delete
 find "$WORK_DIR" -name 'check.log' -delete
 find "$WORK_DIR" -name '*.zip' -delete
+rm -rf "$WORK_DIR/qa/browser-results" "$WORK_DIR/test-results" "$WORK_DIR/playwright-report"
 
 rm -f "$ZIP_PATH"
 (cd "$WORK_DIR" && zip -qr "$ZIP_PATH" .)

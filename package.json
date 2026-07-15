@@ -1,18 +1,22 @@
 {
-  "name": "foxbear-github-pro-v1-4-26",
-  "version": "1.4.26",
+  "name": "foxbear-mastering-studio",
+  "version": "1.5.7",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.4.26 Wake Lock state sync hotfix with Stage28 managed waveform view extraction, Stage27 common waveform control service, Stage26 unified waveform controls, Stage25 compare controls rehome, Stage23 playback orchestration, Stage21, Stage20, Stage18, Stage17 carry-forward, Spectrum stability carry-forward, Bulk Import/Mastering HUD continuity, v1.4.27 release cleanup, v1.4.28 app slim-down orchestration split, v1.4.29 memory stabilization, and v1.5.0 engine QualityGate/short-term LUFS/reference-profile reinforcement, and v1.5.1 Playwright real browser automation for runtime health/PWA back/Wake Lock/service worker/35-track import-master-export scenarios, and v1.5.2 ZIP/export validation plus low-memory UX advisories, and v1.5.3 Bulk HUD 숨김/보이기 restore plus inline full-mastering action.",
+  "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
-    "check": "node qa/run_all_checks.js",
+    "check": "npm run check:static",
     "sri:update": "python3 tools/update-sri.py",
     "package:clean": "bash tools/create-release-zip.sh",
     "package:overwrite": "bash tools/create-overwrite-zip.sh",
     "qa:browser": "node qa/browser/run-browser-e2e.js",
-    "qa:browser:external": "npx playwright test qa/browser",
+    "qa:browser:external": "playwright test qa/browser",
     "qa:browser:deep": "FOXBEAR_E2E_DEEP=1 node qa/browser/run-browser-e2e.js",
-    "qa:browser:install": "npx playwright install chromium"
+    "qa:browser:install": "playwright install chromium",
+    "version:sync": "node tools/sync-release-metadata.js",
+    "version:check": "node tools/sync-release-metadata.js --check",
+    "check:static": "node qa/run_all_checks.js",
+    "check:release": "npm run version:check && npm run check:static && npm run qa:browser"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -192,6 +196,21 @@
     "node --check src/boot/update-safety-service.js",
     "node qa/v155_update_safety_asset_health_smoke.js",
     "node --check src/download/export-progress-view.js",
-    "node qa/v156_export_progress_recovery_smoke.js"
-  ]
+    "node qa/v156_export_progress_recovery_smoke.js",
+    "node --check src/config/build-info.js",
+    "node --check tools/release-metadata.js",
+    "node --check tools/sync-release-metadata.js",
+    "node qa/v157_release_foundation_smoke.js"
+  ],
+  "foxbearRelease": {
+    "buildId": "release-foundation-cleanup",
+    "assetVersion": "1.5.7-release-foundation",
+    "cacheName": "foxbear-shell-v1.5.7-release-foundation",
+    "bootRevision": "boot-sri-v157",
+    "updateSafetyRevision": "update-safety-v157",
+    "serviceWorkerRevision": "sw-v157"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.1"
+  }
 }

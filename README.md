@@ -1,8 +1,21 @@
-# FoxBear AI Mastering Studio Pro v1.5.6
+# FoxBear AI Mastering Studio Pro v1.5.7
 
 
 
-## Current patch: v1.5.6 Export Progress Recovery
+## Current patch: v1.5.7 Release Foundation Cleanup
+
+This patch makes `package.json` the release metadata source of truth, adds generated `src/config/build-info.js`, separates durable rules into `STATUS.md` and `docs/decisions/`, pins Playwright through `package-lock.json`, and adds a release gate that runs both static QA and real Chromium automation. See `VERSIONING.md` and `RELEASE_CHECKLIST.md`.
+
+Release metadata:
+
+```text
+product: 1.5.7
+build: release-foundation-cleanup
+asset generation: 1.5.7-release-foundation
+service worker cache: foxbear-shell-v1.5.7-release-foundation
+```
+
+## Previous patch: v1.5.6 Export Progress Recovery
 
 Compatibility note: previous maintenance layer `v1.5.5 Update Safety` remains carried forward.
 
@@ -89,13 +102,14 @@ This patch refines the large bulk import/mastering HUD: `접기` is renamed to `
 
 ## Runtime compatibility
 
-The app still uses:
+The current release metadata is synchronized from `package.json`:
 
 ```text
-1.4.26-wake-lock-state-sync
+1.5.7
+1.5.7-release-foundation
 ```
 
-This is intentional. The asset `v=` compatibility key remains stable to avoid surprising deployed users, while targeted `h=` cache-bust keys and the service worker shell cache generation advance for boot-critical hotfixes.
+Use `npm run version:sync` after a version/build change and `npm run version:check` before release. Cache-only changes use build/asset/revision fields rather than a second semantic product version.
 
 ## Memory diagnostics
 
@@ -115,24 +129,23 @@ The snapshot now reports retained mastered-buffer count/bytes, Blob bytes, previ
 
 ## QA
 
-Run the default static/smoke suite:
+Install reproducible dependencies and Chromium on a new machine:
 
 ```bash
-npm run sri:update
+npm ci
+npm run qa:browser:install
+```
+
+Run fast static QA during development:
+
+```bash
 npm run check
 ```
 
-Current expected result after this patch:
-
-```text
-176/176 PASS
-```
-
-Optional real-browser automation:
+Run the required release gate before packaging/deploying:
 
 ```bash
-npm run qa:browser:install
-npm run qa:browser
+npm run check:release
 ```
 
 For an already deployed URL:
@@ -147,7 +160,7 @@ For the longer 35-track master/export path, run:
 npm run qa:browser:deep
 ```
 
-The browser commands require Playwright and its Chromium browser to be installed in the local development environment.
+Playwright is pinned in `devDependencies`; `npm ci` and `package-lock.json` make the test runner reproducible.
 
 ## Historical notes
 
@@ -159,10 +172,10 @@ docs/history/HANDOFF_legacy_v1.4.21_to_v1.4.26.md
 docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
 ```
 
-## Carry-forward user notes
+## Current invariant summary
 
-- v1.4.26 detail-only FFT remains active; Dock mini FFT/renderMini stay removed.
-- v1.4.26 Performance diagnostics can be opened with `?perf=1` or `Ctrl/Command + Alt + P`, and the diagnostics panel keeps a 복사 action for support reports.
+- v1.5.7 detail-only FFT remains active; Dock mini FFT/renderMini stay removed. The decision is recorded in `docs/decisions/0001-dock-fft-removal.md`.
+- Performance diagnostics can be opened with `?perf=1` or `Ctrl/Command + Alt + P`, and the diagnostics panel keeps a 복사 action for support reports.
 - Download dialog micro hint and first-screen declutter remain active for Kakao/in-app and mobile download flows.
 - Bulk Import HUD and Bulk Mastering HUD continuity remain active for 2+ track workflows.
 

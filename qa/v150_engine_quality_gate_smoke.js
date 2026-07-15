@@ -22,9 +22,9 @@ const changelog = read('CHANGELOG.md');
 
 assert(pkg.qaChecks.includes('node --check src/audio/reference-profile-service.js'), 'reference profile syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v150_engine_quality_gate_smoke.js'), 'v1.5.0 smoke missing from package QA');
-assert(index.includes('src/audio/reference-profile-service.js?v=1.4.26-wake-lock-state-sync'), 'reference profile service not loaded in index');
+assert(index.includes('src/audio/reference-profile-service.js?v=1.5.7-release-foundation'), 'reference profile service not loaded in index');
 assert(index.indexOf('src/audio/reference-profile-service.js') < index.indexOf('src/audio/quality-gate-service.js'), 'reference profile service should load before quality gate');
-assert(sw.includes('./src/audio/reference-profile-service.js?v=1.4.26-wake-lock-state-sync'), 'reference profile service not precached');
+assert(sw.includes('./src/audio/reference-profile-service.js?v=1.5.7-release-foundation'), 'reference profile service not precached');
 
 assert(gate.includes('QualityGate v2.1'), 'QualityGate v2.1 label missing');
 assert(gate.includes('shortTermOverTargetWarnDb'), 'short-term LUFS rules missing');
@@ -51,6 +51,6 @@ assert(ref.includes('1.5.0-reference-profile-64-96'), 'reference profile service
 assert(readme.includes('Engine Quality Gate additions') || readme.includes('v1.5.0 Engine Quality Gate'), 'README missing engine quality gate carry-forward');
 assert(handoff.includes('v1.5.0 Engine Quality Gate') || handoff.includes('QualityGate v2.1'), 'HANDOFF missing engine quality gate carry-forward');
 assert(qaReport.includes('170/170 PASS') || qaReport.includes('176/176 PASS') || qaReport.includes('178/178 PASS'), 'QA report missing current PASS anchor');
-assert((changelog.startsWith('# v1.5.6 - Export Progress Recovery') || changelog.startsWith('# v1.5.5 - Update Safety + Asset Health') || changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX') || changelog.startsWith('# v1.5.1 - Real Browser Automation') || changelog.startsWith('# v1.5.0 - Engine Quality Gate')), 'CHANGELOG v1.5.0 entry missing at top');
+assert((changelog.startsWith('# v1.5.7 - Release Foundation Cleanup') || changelog.startsWith('# v1.5.6 - Export Progress Recovery') || changelog.startsWith('# v1.5.5 - Update Safety + Asset Health') || changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX') || changelog.startsWith('# v1.5.1 - Real Browser Automation') || changelog.startsWith('# v1.5.0 - Engine Quality Gate')), 'CHANGELOG v1.5.0 entry missing at top');
 
 console.log('PASS v1.5.0 engine quality gate smoke');
