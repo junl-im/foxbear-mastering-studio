@@ -1,3 +1,11 @@
+# v1.5.13 - Handoff Package Integrity
+
+- Fixed the v1.5.12 cumulative overwrite package, which documented the two-worker Playwright limit but accidentally omitted `playwright.config.js`; this caused the new v1.5.12 smoke test to arrive without the configuration it validated.
+- Added `playwright.config.js` to every cumulative overwrite ZIP.
+- Added `tools/verify-overwrite-zip.js`; overwrite packaging now fails immediately when required root configuration, workflows, QA helpers, or source trees are absent, or when dependency/test-result trees leak into the archive.
+- Changed the v1.5.12 worker smoke from an exact source-string assertion to a semantic config probe that loads Playwright with `CI=true` and requires an effective worker count of 1-2.
+- Extended the cumulative overwrite manifest regression guard and added `qa/v1513_handoff_package_integrity_smoke.js`.
+
 # v1.5.12 - CI Runtime Readiness and Node 24 Actions
 
 - Fixed the Playwright Runtime Health race: browser QA now waits for `FoxBearRuntimeHealth.getReport().appReady` or an explicit boot failure instead of stopping as soon as the health object exists.

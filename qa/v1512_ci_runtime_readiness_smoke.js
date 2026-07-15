@@ -3,6 +3,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
@@ -24,7 +25,10 @@ const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
   assert(helperSource.includes('const createSentinel = type =>'), 'Wake Lock mock must create a fresh sentinel per request');
   assert(pwaSpec.includes('waitForServiceWorkerReady(page)'), 'PWA test must wait for an active service worker');
   assert(runtimeSpec.includes('genericNetworkNoise'), 'runtime console check must filter browser-only network noise');
-  assert(config.includes('workers: process.env.CI ? 2 : undefined'), 'CI browser workers must be bounded');
+  const configProbe = spawnSync(process.execPath, ['-e', "process.env.CI='true'; const config=require('./playwright.config.js'); process.stdout.write(String(config.workers));"], { cwd: ROOT, encoding: 'utf8' });
+  assert.strictEqual(configProbe.status, 0, `Playwright config probe failed: ${configProbe.stderr || configProbe.stdout}`);
+  const ciWorkers = Number(configProbe.stdout.trim());
+  assert(Number.isInteger(ciWorkers) && ciWorkers >= 1 && ciWorkers <= 2, `CI browser workers must be bounded to 1-2, received: ${configProbe.stdout.trim() || 'empty'}`);
   assert(runner.includes('process.argv.slice(2)') && runner.includes('...forwardedArgs'), 'browser runner must forward Playwright CLI arguments');
 
   for (const [name, workflow] of [['pages', pagesWorkflow], ['fallback', fallbackWorkflow]]) {

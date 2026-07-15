@@ -1,3 +1,12 @@
+# Project Notes - v1.5.13
+
+## Handoff and cumulative package integrity
+
+- The v1.5.12 CI logic was documented correctly, but `playwright.config.js` was missing from the cumulative overwrite archive.
+- Handoff correctness now includes artifact completeness: the generated overwrite ZIP is self-verified before it can be distributed.
+- Playwright worker QA inspects the effective configuration under `CI=true`, avoiding formatting-sensitive source assertions.
+- Any future root-level runtime or CI configuration added to the overwrite package must be covered by the archive verifier.
+
 # Project Notes - v1.5.11
 
 ## AudioContext lifecycle and browser QA stability

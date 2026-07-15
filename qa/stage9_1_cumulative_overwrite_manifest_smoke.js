@@ -27,6 +27,7 @@ const notes = fs.readFileSync('PROJECT_NOTES.md', 'utf8');
   'index.html',
   'sw.js',
   'package.json',
+  'playwright.config.js',
   'CHANGELOG.md',
   'HANDOFF.md',
   'PROJECT_NOTES.md'
@@ -35,6 +36,7 @@ const notes = fs.readFileSync('PROJECT_NOTES.md', 'utf8');
 });
 
 assert(packageJson.scripts && packageJson.scripts['package:overwrite'], 'package.json is missing package:overwrite script');
+assert(script.includes('verify-overwrite-zip.js'), 'overwrite package script does not verify the produced archive');
 assert(changelog.includes('Stage9.1'), 'CHANGELOG.md does not mention Stage9.1');
 assert(handoff.includes('Stage9.1'), 'HANDOFF.md does not mention Stage9.1');
 assert(notes.includes('Stage9.1'), 'PROJECT_NOTES.md does not mention Stage9.1');

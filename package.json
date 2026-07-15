@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.12",
+  "version": "1.5.13",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -207,15 +207,17 @@
     "node qa/v159_version_display_cache_recovery_smoke.js",
     "node qa/v1510_header_settings_relocation_smoke.js",
     "node qa/v1511_audio_context_lifecycle_smoke.js",
-    "node qa/v1512_ci_runtime_readiness_smoke.js"
+    "node qa/v1512_ci_runtime_readiness_smoke.js",
+    "node qa/v1513_handoff_package_integrity_smoke.js",
+    "node --check tools/verify-overwrite-zip.js"
   ],
   "foxbearRelease": {
-    "buildId": "ci-runtime-readiness",
-    "assetVersion": "1.5.12-ci-runtime-readiness",
-    "cacheName": "foxbear-shell-v1.5.12-ci-runtime-readiness",
-    "bootRevision": "boot-sri-v1512",
-    "updateSafetyRevision": "update-safety-v1512",
-    "serviceWorkerRevision": "sw-v1512"
+    "buildId": "handoff-package-integrity",
+    "assetVersion": "1.5.13-handoff-package-integrity",
+    "cacheName": "foxbear-shell-v1.5.13-handoff-package-integrity",
+    "bootRevision": "boot-sri-v1513",
+    "updateSafetyRevision": "update-safety-v1513",
+    "serviceWorkerRevision": "sw-v1513"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

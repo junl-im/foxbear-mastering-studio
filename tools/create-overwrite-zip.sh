@@ -29,6 +29,7 @@ copy_path "index.html"
 copy_path "sw.js"
 copy_path "manifest.webmanifest"
 copy_path "package.json"
+copy_path "playwright.config.js"
 copy_path "firebase.json"
 copy_path "firestore.rules"
 copy_path "firestore.indexes.json"
@@ -62,5 +63,6 @@ rm -rf "$WORK_DIR/qa/browser-results" "$WORK_DIR/test-results" "$WORK_DIR/playwr
 
 rm -f "$ZIP_PATH"
 (cd "$WORK_DIR" && zip -qr "$ZIP_PATH" .)
+node "$ROOT_DIR/tools/verify-overwrite-zip.js" "$ZIP_PATH"
 
 echo "$ZIP_PATH"

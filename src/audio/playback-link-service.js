@@ -3,7 +3,7 @@
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.5.12-ci-runtime-readiness';
+    const SERVICE_VERSION = '1.5.13-handoff-package-integrity';
     const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';

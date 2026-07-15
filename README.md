@@ -1,6 +1,19 @@
-# FoxBear AI Mastering Studio Pro v1.5.12
+# FoxBear AI Mastering Studio Pro v1.5.13
 
-## Current patch: v1.5.12 CI Runtime Readiness and Node 24 Actions
+## Current patch: v1.5.13 Handoff Package Integrity
+
+The v1.5.12 handoff documented the two-worker CI limit, but its cumulative overwrite ZIP omitted `playwright.config.js`. v1.5.13 fixes the transfer package, verifies the generated archive contents automatically, and tests the effective CI worker value rather than one exact source string.
+
+Release metadata:
+
+```text
+product: 1.5.13
+build: handoff-package-integrity
+asset generation: 1.5.13-handoff-package-integrity
+service worker cache: foxbear-shell-v1.5.13-handoff-package-integrity
+```
+
+## Previous patch: v1.5.12 CI Runtime Readiness and Node 24 Actions
 
 Playwright now waits for the application-owned `FoxBearRuntimeHealth.appReady` state instead of treating creation of the health object as boot completion. Service-worker readiness is bounded and explicit, Wake Lock mocks use a fresh sentinel per request, and CI concurrency is capped at two browser workers. GitHub workflow JavaScript actions now use Node 24-based v6 releases.
 

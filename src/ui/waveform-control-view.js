@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.12-ci-runtime-readiness';
+  const VIEW_VERSION = '1.5.13-handoff-package-integrity';
   const DEFAULT_BINS = 96;
 
   function getService() {

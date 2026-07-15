@@ -1,4 +1,40 @@
-# Handoff - v1.5.12 CI Runtime Readiness and Node 24 Actions
+# Handoff - v1.5.13 Handoff Package Integrity
+
+## Root cause of the 188/189 CI failure
+
+The v1.5.12 handoff correctly stated that CI Playwright workers were capped at two, but the cumulative overwrite ZIP did not include `playwright.config.js`. Applying that ZIP therefore delivered `qa/v1512_ci_runtime_readiness_smoke.js` while leaving the repository's v1.5.11 Playwright config unchanged. The smoke test correctly failed because the transferred code and transferred configuration were inconsistent.
+
+This was a delivery-package defect, not an undocumented runtime decision.
+
+## Current patch
+
+- `tools/create-overwrite-zip.sh` now copies `playwright.config.js`.
+- Every overwrite archive is verified after creation by `tools/verify-overwrite-zip.js`.
+- Required root config, both Pages workflows, browser helpers, QA, tools, runtime sources, and assets must exist in the produced ZIP.
+- `node_modules`, browser results, test results, and report trees are rejected.
+- The CI worker regression test now loads the effective Playwright config with `CI=true` and accepts only 1-2 workers instead of depending on one exact source-code spelling.
+
+```text
+product: 1.5.13
+build: handoff-package-integrity
+asset generation: 1.5.13-handoff-package-integrity
+service worker cache: foxbear-shell-v1.5.13-handoff-package-integrity
+```
+
+Verification:
+
+```bash
+npm ci
+npm run version:check
+npm run check
+npm run package:overwrite
+node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.13-overwrite.zip
+npm run qa:browser
+```
+
+Expected static result: `191/191 PASS`. Browser PASS must be confirmed by GitHub Actions.
+
+## Previous handoff: v1.5.12 CI Runtime Readiness and Node 24 Actions
 
 ## Current patch
 

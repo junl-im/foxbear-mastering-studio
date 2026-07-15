@@ -8,6 +8,7 @@ This document contains rules that remain true across releases. Actual changes be
 - Product version, manifest version, visible UI version, service worker generation, and package filename must pass `npm run version:check`.
 - Visible release labels must be runtime-bound to generated `FoxBearBuildInfo`; stale static HTML labels are repaired by `FoxBearReleasePresentation`.
 - A release candidate must pass `npm run check:release`; static QA alone is not a release gate.
+- A cumulative overwrite package is not releasable until `tools/verify-overwrite-zip.js` confirms required root configuration, workflows, runtime trees, and exclusions.
 - Browser QA readiness must wait for `FoxBearRuntimeHealth.appReady`; creation of the health object is not boot completion.
 - The opt-in 35-track deep browser path remains a separate release-candidate/manual check because it is intentionally expensive.
 
@@ -30,7 +31,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.12`
-- Build ID: `ci-runtime-readiness`
-- Asset version: `1.5.12-ci-runtime-readiness`
-- Service worker cache: `foxbear-shell-v1.5.12-ci-runtime-readiness`
+- Product version: `1.5.13`
+- Build ID: `handoff-package-integrity`
+- Asset version: `1.5.13-handoff-package-integrity`
+- Service worker cache: `foxbear-shell-v1.5.13-handoff-package-integrity`

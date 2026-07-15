@@ -10,7 +10,9 @@ module.exports = defineConfig({
   testDir: './qa/browser',
   timeout: 60000,
   expect: { timeout: 10000 },
+  navigationTimeout: 20000,
   fullyParallel: false,
+  workers: process.env.CI ? 2 : undefined,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list']],
   use: {

@@ -1,14 +1,15 @@
-# QA Report - v1.5.12 CI Runtime Readiness and Node 24 Actions
+# QA Report - v1.5.13 Handoff Package Integrity
 
 ## Result
 
 ```text
-189/189 PASS
+191/191 PASS
 Browser QA: GitHub Actions rerun required
 ```
 
-v1.5.12 final QA static target: `189/189 PASS`. This is not a browser QA pass.
+v1.5.13 final QA static target: `191/191 PASS`. This is not a browser QA pass.
 
+Previous v1.5.12 static target: `189/189 PASS`.
 Previous v1.5.11 static target: `188/188 PASS`.
 Previous v1.5.10 static target: `186/186 PASS`.
 Previous v1.5.9 static target: `185/185 PASS`.
@@ -19,26 +20,29 @@ Commands:
 ```bash
 npm run version:check
 npm run check
+npm run package:overwrite
+node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.13-overwrite.zip
 npm run qa:browser
 ```
 
 ## Verified
 
+- The cumulative overwrite archive includes `playwright.config.js`.
+- Overwrite packaging verifies required config, workflows, browser helpers, source trees, and forbidden dependency/result trees after ZIP creation.
+- The CI worker smoke loads the effective Playwright config with `CI=true` and requires 1-2 workers.
 - Runtime Health browser waits use the application-owned `appReady` state rather than health-object existence.
-- Readiness timeouts include the latest Runtime Health report.
-- Service-worker readiness is bounded and explicit before update checks.
-- Wake Lock mocks create a fresh sentinel per request.
-- CI Playwright concurrency is capped at two workers.
+- Service-worker readiness is bounded and Wake Lock mocks create a fresh sentinel per request.
 - GitHub checkout/setup-node/upload-artifact workflows use Node 24-based v6 actions.
 - Existing syntax, SRI, audio-context, memory, export, Dock, PWA, version recovery, header layout, and documentation regression checks.
 
 ## New checks
 
-- `qa/v1512_ci_runtime_readiness_smoke.js`
+- `node --check tools/verify-overwrite-zip.js`
+- `qa/v1513_handoff_package_integrity_smoke.js`
 
 ## Browser follow-up
 
-- Push v1.5.12 and confirm all 10 desktop/mobile Playwright tests pass.
+- Push v1.5.13 and confirm all 10 desktop/mobile Playwright tests pass.
 - If a browser test fails, inspect the embedded Runtime Health report and the uploaded `browser-qa-*` trace bundle.
 
 ## Historical reports

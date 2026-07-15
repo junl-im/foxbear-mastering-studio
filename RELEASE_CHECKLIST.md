@@ -38,9 +38,10 @@ Also test a real PC and at least one real mobile/PWA device with a large batch. 
 ```bash
 npm run package:clean
 npm run package:overwrite
+node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v$(node -p "require('./package.json').version")-overwrite.zip
 ```
 
-Inspect generated ZIP names and run `npm run version:check` once more after any packaging-related edit.
+The overwrite command also runs this verification internally. Confirm that `playwright.config.js`, both Pages workflows, browser helpers, and runtime source trees are present. Inspect generated ZIP names and run `npm run version:check` once more after any packaging-related edit.
 
 ## v1.5.8 memory/export checks
 
@@ -85,3 +86,11 @@ Inspect generated ZIP names and run `npm run version:check` once more after any 
 - Confirm workflow annotations no longer report Node 20 deprecation for checkout, setup-node, or upload-artifact.
 - On failure, inspect `browser-qa-*` and use the Runtime Health report embedded in the Playwright error before opening the trace.
 
+
+
+## v1.5.13 handoff/package checks
+
+- Confirm the cumulative overwrite ZIP contains `playwright.config.js`.
+- Confirm `npm run package:overwrite` prints `PASS overwrite ZIP contents verified`.
+- Confirm `CI=true node -e "const c=require('./playwright.config.js'); console.log(c.workers)"` prints `1` or `2`.
+- Apply the overwrite ZIP to a clean v1.5.11 tree and confirm `npm run check` does not fail at `v1512_ci_runtime_readiness_smoke.js`.
