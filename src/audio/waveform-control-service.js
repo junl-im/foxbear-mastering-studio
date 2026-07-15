@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.16-e2e-server-pipe-deadlock-fix';
+    const SERVICE_VERSION = '1.5.17-browser-contract-fix';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
 

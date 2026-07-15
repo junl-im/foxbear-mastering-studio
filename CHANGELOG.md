@@ -1,3 +1,11 @@
+# v1.5.17 - Browser Contract Fix
+
+- Fixed manual Wake Lock requests being released immediately by the idle activity synchronizer.
+- Fixed service worker registration under the enforced Trusted Types CSP by adding the versioned worker URL to the trusted script allowlist and passing a TrustedScriptURL to `navigator.serviceWorker.register()`.
+- Fixed the header settings control rendering to the left of the designer card despite its DOM position by assigning the settings host a flex order after the designer card.
+- Added `qa/v1517_browser_contract_fix_smoke.js` to protect all three browser contracts.
+- Retained the v1.5.16 asynchronous E2E server runner fix.
+
 # v1.5.16 - E2E Static Server Pipe Deadlock Fix
 
 - Fixed the GitHub Actions browser gate deadlock that appeared after the first successful Playwright page loads.

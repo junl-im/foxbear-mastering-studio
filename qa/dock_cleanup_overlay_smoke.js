@@ -23,5 +23,5 @@ assert(app.includes("setProperty('--bottom-preview-height'"), 'Dock height CSS v
 assert(app.includes("setProperty('--bottom-preview-floating-bottom'"), 'Floating overlay bottom CSS variable must be updated dynamically');
 assert(css.includes('--bottom-preview-floating-bottom'), 'CSS must consume floating overlay bottom variable');
 assert(css.includes('.bottom-preview-compare-tools') && css.includes('display: none !important'), 'Legacy compare tools CSS should be hidden defensively');
-assert(index.includes('v1.5.16') && app.includes('Pro v1.5.16'), 'Version should be v1.5.16');
+assert(index.includes('v1.5.17') && app.includes('Pro v1.5.17'), 'Version should be v1.5.17');
 console.log('PASS dock cleanup overlay smoke');

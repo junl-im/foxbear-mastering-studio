@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.16-e2e-server-pipe-deadlock-fix';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.17-browser-contract-fix';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

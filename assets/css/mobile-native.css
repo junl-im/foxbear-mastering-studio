@@ -534,6 +534,7 @@
     justify-content: flex-end;
     flex: 0 0 auto;
     min-width: 0;
+    order: 3;
     z-index: 1260;
 }
 

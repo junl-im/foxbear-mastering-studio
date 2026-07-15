@@ -1,4 +1,42 @@
-# Handoff - v1.5.16
+# Handoff - v1.5.17
+
+## Maintainer workflow
+
+The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
+
+## Current patch: Browser contract fix
+
+The v1.5.16 runner fix removed the static-server pipe deadlock. The next Actions run exposed three independent browser contract defects that had previously been hidden behind navigation timeouts.
+
+Changes:
+
+- Manual Wake Lock requests now arm the in-memory user intent before UI synchronization, so the newly acquired sentinel is not released as idle.
+- The versioned service worker URL is included in the Trusted Types allowlist and registration uses `resolveFoxBearScriptUrl()`.
+- `headerSettingsHost` receives flex `order: 3`, keeping the settings trigger to the right of the designer card on desktop and mobile.
+- `qa/v1517_browser_contract_fix_smoke.js` guards all three fixes.
+
+```text
+product: 1.5.17
+build: browser-contract-fix
+asset generation: 1.5.17-browser-contract-fix
+service worker cache: foxbear-shell-v1.5.17-browser-contract-fix
+```
+
+Verification:
+
+```bash
+npm ci
+npm run version:check
+npm run handoff:check
+npm run check
+npm run qa:browser
+npm run package:all
+```
+
+Expected static result: `197/197 PASS`.
+
+## Previous handoff: v1.5.16 E2E Static Server Pipe Deadlock Fix
+
 
 ## Maintainer workflow
 

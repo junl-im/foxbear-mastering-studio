@@ -1,13 +1,13 @@
-# QA Report - v1.5.16 E2E Static Server Pipe Deadlock Fix
+# QA Report - v1.5.17 Browser Contract Fix
 
 ## Result
 
 ```text
-196/196 PASS
+197/197 PASS
 Browser QA: GitHub Actions confirmation required
 ```
 
-v1.5.16 final QA static target: `196/196 PASS`. The Chromium browser run must still be confirmed by GitHub Actions.
+v1.5.17 final QA static target: `197/197 PASS`. The Chromium browser run must still be confirmed by GitHub Actions.
 
 Historical static anchors retained for regression compatibility:
 
@@ -25,6 +25,13 @@ npm run check
 npm run qa:browser
 npm run package:all
 ```
+
+## v1.5.17 coverage
+
+- Verifies manual Wake Lock requests remain active until an explicit release instead of being immediately cleared by idle synchronization.
+- Verifies the service worker registration URL passes through the Trusted Types policy before `navigator.serviceWorker.register()`.
+- Verifies the header settings host renders after the designer card through an explicit flex order.
+- Retains the v1.5.16 asynchronous static-server runner and pipe-deadlock stress guard.
 
 ## v1.5.16 coverage
 

@@ -117,7 +117,7 @@ function sync() {
       .map(match => match[1])
       .filter(name => name && name !== meta.cacheName);
     if (previous.cacheName && previous.cacheName !== meta.cacheName) names.push(previous.cacheName);
-    const uniqueNames = [...new Set(names)].slice(-12);
+    const uniqueNames = [...new Set(names)].slice(-13);
     sw = sw.replace(legacyMatch[0], `const LEGACY_CACHE_NAMES = [${uniqueNames.map(name => `'${name}'`).join(', ')}];`);
   }
   write('sw.js', sw);
@@ -160,7 +160,7 @@ function validate() {
   expect(sw.includes(`./src/config/build-info.js?v=${meta.assetVersion}`), 'service worker does not precache build-info');
   expect(sw.includes(`./src/boot/release-presentation-service.js?v=${meta.assetVersion}`), 'service worker does not precache release presentation service');
   expect(!legacyCacheList.includes(`'${meta.cacheName}'`), 'current cache name must not appear in legacy cache list');
-  expect(app.includes(`h=${meta.serviceWorkerRevision}`), 'service worker registration revision is not synchronized');
+  expect(app.includes(`serviceWorkerRevision || '${meta.serviceWorkerRevision}'`) && app.includes('navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL))'), 'service worker registration revision is not synchronized');
   expect(updateSafety.includes(`BUILD_INFO.bootRevision || '${meta.bootRevision}'`), 'Update Safety expected boot revision fallback is not synchronized');
   expect(changelog.startsWith(`# v${meta.productVersion} -`), 'CHANGELOG latest entry does not match package version');
   expect(readme.startsWith(`# FoxBear AI Mastering Studio Pro v${meta.productVersion}`), 'README title does not match package version');

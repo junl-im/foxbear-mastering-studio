@@ -1,6 +1,21 @@
-# FoxBear AI Mastering Studio Pro v1.5.16
+# FoxBear AI Mastering Studio Pro v1.5.17
 
-## Current patch: v1.5.16 E2E Static Server Pipe Deadlock Fix
+## Current patch: v1.5.17 Browser Contract Fix
+
+v1.5.16에서 정적 서버 파이프 교착을 제거한 뒤 실제 브라우저 검증이 진행되면서 Wake Lock, Service Worker, 헤더 설정 위치의 독립적인 결함 세 가지가 드러났습니다.
+
+수동 Wake Lock 요청은 이제 사용자 의도를 먼저 arm하여 UI 동기화가 새 sentinel을 즉시 해제하지 않습니다. Trusted Types CSP 환경에서는 버전이 포함된 `sw.js` URL을 allowlist에 추가하고 `TrustedScriptURL`로 등록합니다. 설정 버튼에는 제작자 카드 이후의 flex order를 지정해 데스크톱과 모바일 모두 오른쪽 배치를 보장합니다.
+
+Release metadata:
+
+```text
+product: 1.5.17
+build: browser-contract-fix
+asset generation: 1.5.17-browser-contract-fix
+service worker cache: foxbear-shell-v1.5.17-browser-contract-fix
+```
+
+## Previous patch: v1.5.16 E2E Static Server Pipe Deadlock Fix
 
 GitHub Actions에서 첫 브라우저 테스트 몇 개만 통과한 뒤 모든 `page.goto()`가 20초 타임아웃으로 실패하던 문제를 수정했습니다. 로컬 Python 정적 서버의 요청 로그를 파이프로 수집하면서 Playwright를 `spawnSync`로 실행해 Node 이벤트 루프가 멈췄고, 로그 파이프가 가득 차면 서버 자체가 응답을 중단하는 구조가 원인이었습니다.
 

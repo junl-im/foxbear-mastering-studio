@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.16",
-  "buildId": "e2e-server-pipe-deadlock-fix",
+  "productVersion": "1.5.17",
+  "buildId": "browser-contract-fix",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",
