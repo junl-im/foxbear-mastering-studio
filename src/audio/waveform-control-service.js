@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.9-version-display-cache-recovery';
+    const SERVICE_VERSION = '1.5.10-header-settings-relocation';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
 

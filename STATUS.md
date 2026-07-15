@@ -18,6 +18,7 @@ This document contains rules that remain true across releases. Actual changes be
 - Completed download Blobs and playback URLs remain available; completed mastered PCM uses `release-after-encode` and must be zero-retention by default.
 - Bulk import analysis remains sequential and general UI rendering remains scheduler/throttle controlled for large batches.
 - Wake Lock distinguishes user intent from temporary automatic protection.
+- The Settings trigger remains in the upper-right brand action row; its panel stays a body-level viewport portal and must not return to a Dock-obscuring floating position.
 
 ## Security and resilience invariants
 
@@ -27,7 +28,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.9`
-- Build ID: `version-display-cache-recovery`
-- Asset version: `1.5.9-version-display-cache-recovery`
-- Service worker cache: `foxbear-shell-v1.5.9-version-display-cache-recovery`
+- Product version: `1.5.10`
+- Build ID: `header-settings-relocation`
+- Asset version: `1.5.10-header-settings-relocation`
+- Service worker cache: `foxbear-shell-v1.5.10-header-settings-relocation`

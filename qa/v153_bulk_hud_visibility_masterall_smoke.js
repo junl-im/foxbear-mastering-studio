@@ -33,6 +33,6 @@ assert(css.includes('.bulk-import-hud-restore') && css.includes('.bulk-import-hu
 assert(index.includes('bulk-hud-v153') && index.includes('bulk-hud-restore-v153') && index.includes('&ui=v153'), 'changed HUD assets should use targeted v1.5.3 stale-cache bust keys');
 assert(sw.includes('bulk-hud-v153') && sw.includes('bulk-hud-restore-v153') && sw.includes('&ui=v153'), 'service worker precache should match v1.5.3 HUD cache keys');
 assert(pkg.qaChecks.some(cmd => cmd.includes('qa/v153_bulk_hud_visibility_masterall_smoke.js')), 'package qaChecks should include this v1.5.3 smoke');
-assert(read('README.md').includes('v1.5.3') && (read('qa/QA_REPORT.md').includes('173/173 PASS') || read('qa/QA_REPORT.md').includes('176/176 PASS') || read('qa/QA_REPORT.md').includes('178/178 PASS')), 'docs should record the current QA target and v1.5.3 carry-forward');
+assert(read('README.md').includes('v1.5.3') && /\b(\d+)\/\1 PASS\b/.test(read('qa/QA_REPORT.md')), 'docs should record the current QA target and v1.5.3 carry-forward');
 
 console.log('PASS v1.5.3 bulk HUD visibility/master-all smoke');

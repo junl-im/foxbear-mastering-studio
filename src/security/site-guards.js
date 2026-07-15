@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.9-version-display-cache-recovery';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.10-header-settings-relocation';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

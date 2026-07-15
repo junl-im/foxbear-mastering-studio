@@ -1,3 +1,14 @@
+# v1.5.10 - Header Settings Relocation
+
+- Moved the settings trigger from the lower-left Dock edge to the top-right brand area, immediately to the right of the `DESIGNED BY` card.
+- Added a dedicated `#headerSettingsHost` mount so the header layout remains deterministic instead of relying on a fixed floating control.
+- Kept the settings panel as a body-level fixed portal and aligned it to the trigger at runtime, preventing the hero card's decorative `overflow: hidden` from clipping the panel.
+- Added responsive trigger layouts: labeled `⚙️ 설정` on wide desktop, compact square gear on tablet, and smaller safe-area-aware controls on narrow mobile screens.
+- Kept the hidden Bulk HUD restore button independent at the lower-left Dock edge so moving Settings does not remove batch recovery access.
+- Added viewport-bound panel sizing and repositioning on resize, orientation change, and scroll.
+- Extended real-browser QA to verify the settings trigger is to the right of the designer card and that the opened panel remains inside the viewport.
+- Added `qa/v1510_header_settings_relocation_smoke.js`; current static QA target is `186/186 PASS`.
+
 # v1.5.9 - Version Display and Cache Recovery
 
 - Added `src/boot/release-presentation-service.js` so the visible top version button, program-info eyebrow, document title, body build markers, and metadata are repaired from generated `FoxBearBuildInfo` at runtime instead of relying only on duplicated static strings.

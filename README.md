@@ -1,27 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.9
+# FoxBear AI Mastering Studio Pro v1.5.10
 
-## Current patch: v1.5.9 Version Display and Cache Recovery
+## Current patch: v1.5.10 Header Settings Relocation
 
-The release badge at the top of the app is now bound to generated `FoxBearBuildInfo` through `FoxBearReleasePresentation`, rather than being trusted as an isolated hard-coded HTML string. The same service synchronizes the program-info heading, document title, body build markers, and exposes a diagnostics report.
+The application Settings trigger now lives in the upper-right brand row immediately after the `DESIGNED BY` card. Wide desktop layouts show a labeled `⚙️ 설정` button; narrower tablet and mobile layouts collapse it to a compact square gear.
 
-PWA navigation now requests the newest HTML with navigation preload or `cache: 'no-store'` before using the offline shell. The manifest description, Update Safety patch metadata, and service-worker legacy cache list are synchronized by the release tooling.
+The settings panel remains a body-level fixed portal and follows the trigger position at runtime. This avoids clipping inside the decorative hero card and keeps the panel inside the viewport across resize, orientation, and scroll changes. The hidden Bulk HUD restore button remains independent near the lower-left Dock edge.
 
 Release metadata:
 
 ```text
-product: 1.5.9
-build: version-display-cache-recovery
-asset generation: 1.5.9-version-display-cache-recovery
-service worker cache: foxbear-shell-v1.5.9-version-display-cache-recovery
+product: 1.5.10
+build: header-settings-relocation
+asset generation: 1.5.10-header-settings-relocation
+service worker cache: foxbear-shell-v1.5.10-header-settings-relocation
 ```
 
-Console checks after deployment:
+## Previous patch: v1.5.9 Version Display and Cache Recovery
 
-```js
-FoxBearReleasePresentation.getReport()
-FoxBearReleasePresentation.requestServiceWorkerReleaseInfo()
-FoxBearUpdateSafety.getReport()
-```
+Visible release labels remain synchronized from `FoxBearBuildInfo`, and stale PWA HTML recovery remains active.
 
 ## Previous patch: v1.5.8 PCM and ZIP Memory Hardening
 

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.9-version-display-cache-recovery';
+const version = '1.5.10-header-settings-relocation';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

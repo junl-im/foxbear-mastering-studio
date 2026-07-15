@@ -59,3 +59,12 @@ Inspect generated ZIP names and run `npm run version:check` once more after any 
 - Run `await FoxBearReleasePresentation.requestServiceWorkerReleaseInfo()` and confirm `matches === true` after the new worker controls the page.
 - Confirm `manifest.webmanifest.description` contains the current product version and build ID.
 - Reload an upgraded PWA twice and confirm an older cached top-version label does not return.
+
+
+## v1.5.10 header settings layout checks
+
+- Confirm `#mobileNativeQuickToggle` is mounted inside `#headerSettingsHost`, after the designer card.
+- Confirm wide desktop shows `⚙️ 설정`; tablet/mobile show a compact square gear without brand-row wrapping.
+- Open the panel at desktop, tablet, and 320-390px mobile widths and confirm it is not clipped and stays inside the viewport.
+- Rotate a mobile device or resize the browser while the panel is open and confirm its right/top alignment updates.
+- Hide an active Bulk HUD and confirm the separate lower-left `보이기` recovery control still works.

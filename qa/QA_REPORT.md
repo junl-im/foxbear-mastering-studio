@@ -1,19 +1,17 @@
-# QA Report - v1.5.9 Version Display and Cache Recovery
+# QA Report - v1.5.10 Header Settings Relocation
 
 ## Result
 
 ```text
-185/185 PASS
-Browser QA: runner/spec discovery verified; standard Chromium execution still required
+186/186 PASS
+Browser QA: geometry assertions added; standard Chromium execution still required
 ```
 
-v1.5.9 final QA static target: `185/185 PASS`. This is not a browser QA pass.
+v1.5.10 final QA static target: `186/186 PASS`. This is not a browser QA pass.
 
+Previous v1.5.9 static target: `185/185 PASS`.
 Previous v1.5.8 static target: `183/183 PASS`.
-
 Previous v1.5.7 static target: `182/182 PASS`.
-Previous v1.5.6 static target: `178/178 PASS`.
-Previous v1.5.5 static target: `176/176 PASS`.
 
 Commands:
 
@@ -25,34 +23,21 @@ npm run qa:browser
 
 ## Verified
 
-- Syntax checks for extracted service modules.
-- Existing SRI verification.
-- Existing runtime, modular, audio engine, dock, download, Wake Lock, Bulk Import HUD, Bulk Mastering HUD, asset/close-button, release-cleanup, browser-scaffold, and orchestration carry-forward smokes.
-- Markdown code-fence parity for current docs and historical docs.
-- Static verification for the v1.5.0 QualityGate v2.1 checks, short-term LUFS telemetry, limiter/de-esser/multiband overcorrection detection, mobile translation amount warnings, 64/96-band reference profile service, v1.4.29 memory policy carry-forward, v1.5.1 Playwright browser automation coverage, and v1.5.2 Export Guard ZIP validation/low-memory UX coverage.
+- Header mount ordering and responsive Settings trigger styling.
+- Body-level settings panel portal and trigger-relative viewport positioning.
+- Independent Bulk HUD restore placement.
+- Existing syntax, SRI, runtime, audio, memory, export, Dock, PWA, version recovery, and documentation regression checks.
 
 ## New check
 
-- `qa/v1429_memory_stabilization_smoke.js`
-- `qa/v150_engine_quality_gate_smoke.js`
-- `qa/v151_real_browser_automation_smoke.js`
-- `qa/v152_export_guard_low_memory_smoke.js`
-- `qa/v153_bulk_hud_visibility_masterall_smoke.js`
-- `qa/v154_boot_sri_recovery_smoke.js`
-- `qa/v155_update_safety_asset_health_smoke.js`
-- `qa/v156_export_progress_recovery_smoke.js`
-- `qa/v157_release_foundation_smoke.js`
-- `qa/v158_pcm_zip_memory_hardening_smoke.js`
-- `qa/v159_version_display_cache_recovery_smoke.js`
+- `qa/v1510_header_settings_relocation_smoke.js`
+- Playwright runtime-health geometry checks for designer/Settings order and opened-panel viewport bounds.
 
 ## Manual follow-up still needed
 
-- Real PC 35-track import → analysis → master all → export.
-- Check `FoxBearMemoryGuard.getSnapshot()` before/after export and after several repeated mastering runs.
-- Real mobile/PWA Bulk HUD scrolling, close button feel, and low-memory policy behavior.
-- Required Playwright execution on a normal development machine or CI runner with the pinned browser installed: `npm run qa:browser`.
-- Deep 35-track browser flow remains opt-in via `npm run qa:browser:deep` because it can take significantly longer than static QA.
-- Review-container note for v1.5.9: the runner discovered all 10 desktop/mobile tests, but the pinned Playwright Chromium executable is not installed in this container. The launch error occurs before app navigation and is not counted as a product failure or a browser pass.
+- Run the pinned Playwright Chromium suite on a normal development machine or CI runner.
+- Verify the header at 1440px, 768px, 390px, and 320px widths.
+- Verify mobile rotation and browser resize while Settings is open.
 
 ## Historical reports
 

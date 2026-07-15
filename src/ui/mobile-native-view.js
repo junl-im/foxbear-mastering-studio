@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.3 - mobile native view builder
+// FoxBear AI Mastering Studio Pro v1.5.10 - header-mounted settings view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -17,19 +17,47 @@
         return button;
     }
 
+    function installPanelPositioning(globalObject, toggle, panel) {
+        if (!toggle || !panel || panel.dataset.positioningBound === 'true') return;
+        panel.dataset.positioningBound = 'true';
+
+        const positionPanel = () => {
+            const rect = toggle.getBoundingClientRect();
+            const viewportWidth = Math.max(320, Number(globalObject.innerWidth) || document.documentElement.clientWidth || 320);
+            const viewportHeight = Math.max(480, Number(globalObject.innerHeight) || document.documentElement.clientHeight || 480);
+            const safeGap = viewportWidth <= 720 ? 7 : 10;
+            const edge = viewportWidth <= 720 ? 8 : 14;
+            const top = Math.max(edge, Math.round(rect.bottom + safeGap));
+            const right = Math.max(edge, Math.round(viewportWidth - rect.right));
+            const maxHeight = Math.max(240, Math.round(viewportHeight - top - edge));
+            panel.style.setProperty('--mobile-native-panel-top', `${top}px`);
+            panel.style.setProperty('--mobile-native-panel-right', `${right}px`);
+            panel.style.setProperty('--mobile-native-panel-max-height', `${maxHeight}px`);
+        };
+
+        toggle.addEventListener('click', () => globalObject.requestAnimationFrame(positionPanel), { passive: true });
+        globalObject.addEventListener('resize', positionPanel, { passive: true });
+        globalObject.addEventListener('orientationchange', positionPanel, { passive: true });
+        globalObject.addEventListener('scroll', positionPanel, { passive: true, capture: true });
+        positionPanel();
+    }
+
     function createMobileNativeLayer(doc = document) {
         if (!doc.body) return null;
+        const headerHost = doc.getElementById('headerSettingsHost');
         const existing = doc.getElementById('mobileNativeLayer');
         if (existing) {
             const legacyStatus = doc.getElementById('mobileNativeStatus');
             if (legacyStatus && legacyStatus.parentNode) legacyStatus.parentNode.removeChild(legacyStatus);
-            return {
-                layer: existing,
-                status: null,
-                toggle: doc.getElementById('mobileNativeQuickToggle'),
-                bulkHudRestore: doc.getElementById('bulkImportHudRestore'),
-                panel: doc.getElementById('mobileNativePanel')
-            };
+            const toggle = doc.getElementById('mobileNativeQuickToggle');
+            const bulkHudRestore = doc.getElementById('bulkImportHudRestore');
+            const panel = doc.getElementById('mobileNativePanel');
+            if (headerHost && existing.parentNode !== headerHost) headerHost.appendChild(existing);
+            existing.dataset.placement = headerHost ? 'header' : 'floating-fallback';
+            if (bulkHudRestore && bulkHudRestore.parentNode !== doc.body) doc.body.appendChild(bulkHudRestore);
+            if (panel && panel.parentNode !== doc.body) doc.body.appendChild(panel);
+            installPanelPositioning(global, toggle, panel);
+            return { layer: existing, status: null, toggle, bulkHudRestore, panel };
         }
 
         const layer = doc.createElement('div');
@@ -44,6 +72,7 @@
             className: 'mobile-native-quick-toggle',
             text: '⚙️',
             title: '설정 열기',
+            ariaLabel: '앱 설정 열기',
             ariaExpanded: false,
             ariaControls: 'mobileNativePanel'
         });
@@ -114,8 +143,11 @@
         ].forEach(([action, icon, label, options]) => settingGrid.appendChild(createSettingButton(action, icon, label, options || {})));
 
         panel.append(panelHead, settingGrid);
-        layer.append(toggle, bulkHudRestore, panel);
-        doc.body.appendChild(layer);
+        layer.append(toggle);
+        layer.dataset.placement = headerHost ? 'header' : 'floating-fallback';
+        (headerHost || doc.body).appendChild(layer);
+        doc.body.append(bulkHudRestore, panel);
+        installPanelPositioning(global, toggle, panel);
 
         return { layer, status, toggle, bulkHudRestore, panel };
     }

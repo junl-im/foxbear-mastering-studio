@@ -524,3 +524,141 @@
     border-color: rgba(255, 213, 112, 0.38);
     color: #fff3ca;
 }
+
+
+/* v1.5.10: move the settings trigger beside the top-right designer card. */
+.header-settings-host {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    min-width: 0;
+    z-index: 1260;
+}
+
+.mobile-native-layer[data-placement="header"] {
+    position: relative !important;
+    inset: auto !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    z-index: 1260 !important;
+    display: inline-flex !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
+    pointer-events: auto !important;
+}
+
+.mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle {
+    width: auto !important;
+    min-width: 78px !important;
+    height: 44px !important;
+    padding: 0 13px !important;
+    border-radius: 15px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    border-color: rgba(141, 245, 232, 0.34) !important;
+    background: linear-gradient(135deg, rgba(18, 49, 68, 0.96), rgba(26, 67, 91, 0.90)) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 12px 28px rgba(0,0,0,0.24) !important;
+    font-size: 17px !important;
+    transform: none !important;
+}
+
+.mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle::after {
+    content: '설정';
+    color: rgba(238, 253, 255, 0.94);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: .72rem;
+    font-weight: 900;
+    letter-spacing: -.02em;
+}
+
+.mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle:hover,
+.mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle:focus-visible,
+.mobile-native-panel-open .mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle {
+    border-color: rgba(141, 245, 232, 0.68) !important;
+    background: linear-gradient(135deg, rgba(22, 70, 78, 0.98), rgba(38, 82, 112, 0.94)) !important;
+}
+
+.mobile-native-panel {
+    position: fixed !important;
+    left: auto !important;
+    right: var(--mobile-native-panel-right, 14px) !important;
+    top: var(--mobile-native-panel-top, 74px) !important;
+    bottom: auto !important;
+    width: min(420px, calc(100vw - 28px)) !important;
+    max-height: min(68vh, var(--mobile-native-panel-max-height, calc(100vh - 88px))) !important;
+    z-index: 1320 !important;
+    transform-origin: top right !important;
+    transform: translateY(-8px) scale(.985) !important;
+}
+
+.mobile-native-panel-open .mobile-native-panel {
+    transform: translateY(0) scale(1) !important;
+}
+
+/* Keep the hidden-batch restore affordance independent from the header layout. */
+body > .bulk-import-hud-restore {
+    position: fixed;
+    left: max(10px, env(safe-area-inset-left, 0px) + 10px);
+    bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 10px);
+    z-index: 1182;
+}
+
+@media (max-width: 920px) {
+    .mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle {
+        min-width: 44px !important;
+        width: 44px !important;
+        padding: 0 !important;
+    }
+    .mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle::after {
+        display: none;
+    }
+}
+
+@media (max-width: 720px) {
+    .brand-right-actions {
+        align-items: flex-start !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
+    }
+    .header-settings-host {
+        align-self: flex-start;
+    }
+    .mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle {
+        width: 36px !important;
+        min-width: 36px !important;
+        height: 36px !important;
+        border-radius: 12px !important;
+        font-size: 15px !important;
+    }
+    .mobile-native-panel {
+        right: var(--mobile-native-panel-right, 8px) !important;
+        width: min(390px, calc(100vw - 16px)) !important;
+        max-height: min(64vh, var(--mobile-native-panel-max-height, calc(100vh - 72px))) !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .brand-right-actions .designer-mini {
+        min-width: 82px !important;
+        max-width: 96px !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+    }
+    .mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle {
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        border-radius: 11px !important;
+        font-size: 14px !important;
+    }
+    .mobile-native-panel {
+        width: calc(100vw - 12px) !important;
+        right: 6px !important;
+    }
+}

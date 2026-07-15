@@ -1,5 +1,45 @@
-# Handoff - v1.5.9 Version Display and Cache Recovery
+# Handoff - v1.5.10 Header Settings Relocation
 
+## What changed
+
+- The Settings trigger now sits in the upper-right brand row, directly to the right of the `DESIGNED BY` card.
+- Desktop shows `⚙️ 설정`; tablet and mobile use a compact gear to protect header width.
+- The panel is still rendered at body level and positioned from the trigger geometry, so it is not clipped by the hero card.
+- Hidden Bulk HUD recovery remains a separate lower-left control.
+- Resize, orientation, and scroll changes refresh the panel anchor position.
+
+## Verification
+
+```bash
+npm ci
+npm run version:check
+npm run check
+npm run qa:browser
+```
+
+Expected static result: `186/186 PASS`.
+
+Manual layout checks:
+
+1. Confirm Settings appears immediately to the right of `DESIGNED BY` on desktop.
+2. Confirm the trigger becomes a square gear at tablet/mobile widths without wrapping the brand row.
+3. Open Settings at 1440px, 768px, 390px, and 320px widths and confirm the panel stays within the viewport.
+4. Hide an active Bulk HUD and confirm the `보이기` restore control remains available near the lower-left Dock edge.
+
+Release metadata:
+
+```text
+product: 1.5.10
+build: header-settings-relocation
+asset generation: 1.5.10-header-settings-relocation
+service worker cache: foxbear-shell-v1.5.10-header-settings-relocation
+```
+
+## Previous patch: v1.5.9 Version Display and Cache Recovery
+
+The runtime-bound version labels, manifest synchronization, navigation no-store recovery, and service-worker generation diagnostics remain active.
+
+## Archived v1.5.9 handoff details
 ## What changed
 
 - The top version badge and program-info version are synchronized at runtime from generated `FoxBearBuildInfo` by `FoxBearReleasePresentation`.

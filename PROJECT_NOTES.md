@@ -1,3 +1,13 @@
+# Project Notes - v1.5.10
+
+## Header Settings relocation
+
+- Settings is now a header utility beside the designer card instead of a Dock-adjacent floating control.
+- The trigger mounts into `#headerSettingsHost`; the panel stays portaled to `document.body` to avoid hero clipping.
+- Responsive behavior preserves a readable desktop label and compact tablet/mobile controls.
+- Bulk HUD restore remains independent from Settings placement.
+- The next structural focus remains centralized AudioContext ownership and lifecycle management.
+
 # Project Notes - v1.5.9
 
 ## Version display and stale-shell recovery
