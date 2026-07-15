@@ -47,7 +47,17 @@
         if (urls && typeof urls.delete === 'function') urls.delete(url);
     };
 
-    const getDownloadFormatOptions = () => DEFAULT_FORMAT_OPTIONS.map(option => ({ ...option }));
+    const getDownloadFormatOptions = (track = null) => DEFAULT_FORMAT_OPTIONS.map(option => {
+        const current = Boolean(track && option.format === track.outFormat);
+        const canReencode = Boolean(track?.masteredBuffer);
+        const available = !track || current || canReencode;
+        return {
+            ...option,
+            current,
+            available,
+            unavailableReason: available ? '' : '완료 PCM이 메모리 안정화를 위해 해제되어 다른 포맷은 재마스터링이 필요합니다.'
+        };
+    });
 
     const getFallbackMasteredFileName = (track, deps, options = {}) => {
         if (typeof deps?.buildMasteredFileName === 'function') return deps.buildMasteredFileName(track, options);
@@ -58,19 +68,27 @@
 
     const prepareTrackDownloadBlob = async (track, format, deps = {}) => {
         if (!track || !track.outBlob) throw new Error('완성된 마스터링 파일이 없습니다.');
-        if (format === track.outFormat || !track.masteredBuffer) {
+        const requestedFormat = format || track.outFormat || 'wav24';
+        if (requestedFormat === track.outFormat) {
             const outputFormat = track.outFormat || 'wav24';
             const fileName = track.outName || getFallbackMasteredFileName(track, deps, {
                 format: outputFormat,
                 extension: /mp3/.test(outputFormat) ? 'mp3' : 'wav'
             });
-            return { blob: track.outBlob, fileName };
+            return { blob: track.outBlob, fileName, format: outputFormat, reused: true };
+        }
+        if (!track.masteredBuffer) {
+            const error = new Error('메모리 안정화를 위해 완료 PCM이 해제되었습니다. 다른 포맷은 출력 포맷을 변경한 뒤 다시 마스터링해 주세요.');
+            error.code = 'FORMAT_REQUIRES_REMASTER';
+            error.currentFormat = track.outFormat || '';
+            error.requestedFormat = requestedFormat;
+            throw error;
         }
         if (typeof deps.encodeMasterOutputAsync !== 'function') throw new Error('선택한 포맷을 인코딩할 수 없습니다.');
-        const encoded = await deps.encodeMasterOutputAsync(track.masteredBuffer, format);
+        const encoded = await deps.encodeMasterOutputAsync(track.masteredBuffer, requestedFormat);
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('선택한 포맷 파일을 만들지 못했습니다.');
         const fileName = getFallbackMasteredFileName(track, deps, encoded);
-        return { blob: encoded.blob, fileName };
+        return { blob: encoded.blob, fileName, format: encoded.format || requestedFormat, reused: false };
     };
 
     const canShareTinyAudioProbe = () => {
@@ -186,7 +204,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.5.7',
+                version: '1.5.9',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -206,7 +224,7 @@
             };
         }
         return {
-            version: '1.5.7',
+            version: '1.5.9',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -270,7 +288,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.5.7',
+            version: '1.5.9',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -308,7 +326,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.5.7',
+            version: '1.5.9',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -336,7 +354,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.5.7',
+            version: '1.5.9',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -367,7 +385,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.5.7',
+            version: '1.5.9',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -392,7 +410,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.5.7',
+            version: '1.5.9',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -461,7 +479,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.5.7',
+            version: '1.5.9',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',

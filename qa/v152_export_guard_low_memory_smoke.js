@@ -21,10 +21,10 @@ const changelog = read('CHANGELOG.md');
 
 assert(pkg.qaChecks.includes('node --check src/download/export-guard-service.js'), 'export guard syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v152_export_guard_low_memory_smoke.js'), 'v1.5.2 smoke missing from package QA');
-assert(index.includes('src/download/export-guard-service.js?v=1.5.7-release-foundation'), 'export guard not loaded in index');
+assert(index.includes('src/download/export-guard-service.js?v=1.5.9-version-display-cache-recovery'), 'export guard not loaded in index');
 assert(index.indexOf('src/download/download-service.js') < index.indexOf('src/download/export-guard-service.js'), 'export guard should load after download service');
 assert(index.indexOf('src/download/export-guard-service.js') < index.indexOf('src/ui/download-dialog-view.js'), 'export guard should load before dialog/app dependencies');
-assert(sw.includes('./src/download/export-guard-service.js?v=1.5.7-release-foundation'), 'export guard not precached');
+assert(sw.includes('./src/download/export-guard-service.js?v=1.5.9-version-display-cache-recovery'), 'export guard not precached');
 assert(guard.includes('v1.5.2-export-guard-low-memory-ux'), 'export guard version missing');
 assert(guard.includes('prepareZipExportPlan'), 'zip export plan helper missing');
 assert(guard.includes('validateZipBlob'), 'zip blob validation helper missing');
@@ -33,15 +33,15 @@ assert(guard.includes('classifyMemoryPressure'), 'memory pressure classifier mis
 assert(guard.includes('getExportReadiness'), 'export readiness helper missing');
 assert(app.includes('getExportGuardService'), 'app export guard accessor missing');
 assert(app.includes('prepareZipExportPlan(completed'), 'downloadZip should use export guard plan');
-assert(app.includes('validateZipBlob(blob'), 'downloadZip should validate generated ZIP blob');
+assert(app.includes('validateZipBlob(zipBlob'), 'downloadZip should validate generated ZIP blob');
 assert(app.includes('FoxBearExportGuard'), 'browser console export guard bridge missing');
 assert(app.includes('ZIP 검증 실패'), 'ZIP validation failure UX missing');
 assert(app.includes('ZIP/export 전 곡별 저장도 준비하세요'), 'low-memory UX toast missing');
 assert(browserBulk.includes('FoxBearExportGuard') && browserBulk.includes('exportReadiness'), 'browser 35-track spec should inspect export readiness');
 assert(readme.includes('v1.5.2') && readme.includes('Export Guard'), 'README missing v1.5.2 export guard notes');
 assert(handoff.includes('v1.5.2') && handoff.includes('FoxBearExportGuard'), 'HANDOFF missing v1.5.2 handoff notes');
-assert((qaReport.includes('172/172 PASS') || qaReport.includes('176/176 PASS') || qaReport.includes('178/178 PASS')) && qaReport.includes('v1.5.2'), 'QA report should record current PASS target and v1.5.2');
-assert(changelog.startsWith('# v1.5.7 - Release Foundation Cleanup') || changelog.startsWith('# v1.5.6 - Export Progress Recovery') || changelog.startsWith('# v1.5.5 - Update Safety + Asset Health') || changelog.startsWith('# v1.5.4 - Boot SRI Recovery') || changelog.startsWith('# v1.5.3 - Bulk HUD Visibility + Inline Master All') || changelog.startsWith('# v1.5.2 - Export Guard + Low Memory UX'), 'CHANGELOG v1.5.2 entry missing at top');
+assert((qaReport.includes('183/183 PASS') || qaReport.includes('182/182 PASS') || qaReport.includes('178/178 PASS')) && qaReport.includes('v1.5.2'), 'QA report should record current PASS target and v1.5.2');
+assert(changelog.startsWith('# v') && changelog.includes('# v1.5.2 - Export Guard + Low Memory UX'), 'CHANGELOG current heading or v1.5.2 history missing');
 assert(app.split(/\r?\n/).length < 12950, 'app.js should stay below slim-down line budget');
 
 console.log('PASS v1.5.2 export guard low-memory smoke');

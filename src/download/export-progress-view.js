@@ -1,8 +1,9 @@
-// FoxBear export progress view v1.5.6 - visible ZIP/export progress and fallback recovery
+// FoxBear export progress view v1.5.9 - ZIP working-set visibility and fallback recovery
 'use strict';
 
 (function attachFoxBearExportProgressView(global) {
-    const VERSION = 'v1.5.6-export-progress-recovery';
+    const VERSION = 'v1.5.9-version-display-cache-recovery';
+    const LEGACY_VERSION = 'v1.5.6-export-progress-recovery';
     let snapshot = Object.freeze({ version: VERSION, visible: false, state: 'idle', percent: 0, completedCount: 0, outputBytes: 0, message: '' });
     let refs = null;
 
@@ -57,8 +58,9 @@
         const warnings = Array.isArray(plan.warnings) ? plan.warnings : [];
         const items = [
             `완료 파일 ${Number(plan.completedCount || 0)}개`,
+            `포장 방식 ${plan.compression || 'STORE'} · ${plan.strategy || 'zip'}`,
             `예상 ZIP 크기 ${formatBytes(plan.estimatedZipBytes || plan.outputBytes || 0)}`,
-            `메모리 상태 ${plan.memoryPressure || 'normal'}`,
+            plan.estimatedWorkingSetBytes ? `예상 작업 메모리 ${formatBytes(plan.estimatedWorkingSetBytes)} / 한도 ${formatBytes(plan.workingSetLimitBytes || 0)}` : `메모리 상태 ${plan.memoryPressure || 'normal'}`,
             warnings.length ? `주의 ${warnings[0]}` : '내보내기 준비 완료'
         ];
         r.checklist.textContent = '';
@@ -81,7 +83,7 @@
         if (r.openDownloads) r.openDownloads.hidden = Number(plan.completedCount || 0) <= 0;
         const percent = setProgress(0);
         renderChecklist(plan);
-        snapshot = Object.freeze({ version: VERSION, visible: true, state: 'planning', percent, completedCount: Number(plan.completedCount || 0), outputBytes: Number(plan.outputBytes || 0), memoryPressure: plan.memoryPressure || 'normal', message: '' });
+        snapshot = Object.freeze({ version: VERSION, legacyVersion: LEGACY_VERSION, visible: true, state: 'planning', percent, completedCount: Number(plan.completedCount || 0), outputBytes: Number(plan.outputBytes || 0), estimatedWorkingSetBytes: Number(plan.estimatedWorkingSetBytes || 0), workingSetLimitBytes: Number(plan.workingSetLimitBytes || 0), memoryPressure: plan.memoryPressure || 'normal', strategy: plan.strategy || 'zip', message: '' });
         return snapshot;
     }
 
@@ -131,5 +133,5 @@
 
     function getSnapshot() { return Object.freeze({ ...snapshot }); }
 
-    global.FoxBearExportProgressView = Object.freeze({ version: VERSION, begin, update, complete, fail, hide, getSnapshot, formatBytes });
+    global.FoxBearExportProgressView = Object.freeze({ version: VERSION, legacyVersion: LEGACY_VERSION, begin, update, complete, fail, hide, getSnapshot, formatBytes });
 })(window);

@@ -26,7 +26,7 @@ must(html.includes('id="fileInput"') && html.includes('id="folderInput"'), 'file
 must(/<label id="fileDrop"[\s\S]*?<input type="file" id="fileInput"/.test(html), 'file label nested native picker path missing');
 must(/<label id="folderDrop"[\s\S]*?<input type="file" id="folderInput"/.test(html), 'folder label nested native picker path missing');
 must(html.includes('webkitdirectory') && html.includes('directory'), 'folder input directory attributes missing');
-must(sw.includes('networkFirst(request)'), 'service worker navigation network-first update missing');
+must(sw.includes('networkFirstNavigation(request') && sw.includes("fetch(request, { cache: 'no-store' })"), 'service worker navigation fresh-network strategy missing');
 must(sw.includes('staleWhileRevalidate(request)'), 'service worker stale-while-revalidate missing');
 
 console.log('PASS file/folder open hotfix smoke');

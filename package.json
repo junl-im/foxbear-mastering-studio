@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.7",
+  "version": "1.5.9",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -200,15 +200,18 @@
     "node --check src/config/build-info.js",
     "node --check tools/release-metadata.js",
     "node --check tools/sync-release-metadata.js",
-    "node qa/v157_release_foundation_smoke.js"
+    "node qa/v157_release_foundation_smoke.js",
+    "node qa/v158_pcm_zip_memory_hardening_smoke.js",
+    "node --check src/boot/release-presentation-service.js",
+    "node qa/v159_version_display_cache_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "release-foundation-cleanup",
-    "assetVersion": "1.5.7-release-foundation",
-    "cacheName": "foxbear-shell-v1.5.7-release-foundation",
-    "bootRevision": "boot-sri-v157",
-    "updateSafetyRevision": "update-safety-v157",
-    "serviceWorkerRevision": "sw-v157"
+    "buildId": "version-display-cache-recovery",
+    "assetVersion": "1.5.9-version-display-cache-recovery",
+    "cacheName": "foxbear-shell-v1.5.9-version-display-cache-recovery",
+    "bootRevision": "boot-sri-v159",
+    "updateSafetyRevision": "update-safety-v159",
+    "serviceWorkerRevision": "sw-v159"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

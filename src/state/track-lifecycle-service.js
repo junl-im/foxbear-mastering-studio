@@ -82,7 +82,10 @@
             bulkMasteringOrder: 0,
             bulkMasteringTotal: 0,
             bulkMasteringSource: '',
-            memoryPolicyReleasedAt: 0
+            memoryPolicyReleasedAt: 0,
+            memoryPolicyTouchedAt: 0,
+            memoryPolicyReleaseReason: '',
+            memoryPolicyRetentionMode: ''
         };
     }
 

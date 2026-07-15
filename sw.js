@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.5.7 service worker · release-foundation-cleanup
+// FoxBear AI Mastering Studio Pro v1.5.9 service worker · version-display-cache-recovery
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.5.7-release-foundation';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.4.26-wake-lock-state-sync', 'foxbear-shell-v1.5.7-release-foundation', 'foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery'];
+const CACHE_NAME = 'foxbear-shell-v1.5.9-version-display-cache-recovery';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.4.26-wake-lock-state-sync', 'foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.7-release-foundation', 'foxbear-shell-v1.5.8-pcm-zip-memory-hardening'];
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -27,76 +27,77 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.5.7-release-foundation',
-  './assets/icons/foxbear-icon-32.png?v=1.5.7-release-foundation',
-  './assets/icons/foxbear-icon-192.png?v=1.5.7-release-foundation',
-  './assets/icons/foxbear-icon-512.png?v=1.5.7-release-foundation',
-  './assets/icons/apple-touch-icon.png?v=1.5.7-release-foundation',
-  './manifest.webmanifest?v=1.5.7-release-foundation',
-  './assets/css/boot/performance-diagnostics.css?v=1.5.7-release-foundation',
-  './assets/css/boot/runtime-health.css?v=1.5.7-release-foundation',
-  './assets/css/theme.css?v=1.5.7-release-foundation',
-  './assets/css/layout.css?v=1.5.7-release-foundation',
-  './assets/css/components/base-components.css?v=1.5.7-release-foundation',
-  './assets/css/components/forms.css?v=1.5.7-release-foundation',
-  './assets/css/components/cards.css?v=1.5.7-release-foundation',
-  './assets/css/components/preview-system.css?v=1.5.7-release-foundation',
-  './assets/css/components/playback-link.css?v=1.5.7-release-foundation',
-  './assets/css/studio.css?v=1.5.7-release-foundation',
-  './assets/css/dock.css?v=1.5.7-release-foundation',
-  './assets/css/dock-waveform.css?v=1.5.7-release-foundation',
-  './assets/css/waveform-compare.css?v=1.5.7-release-foundation',
-  './assets/css/spectrum-visualizer.css?v=1.5.7-release-foundation',
-  './assets/css/export.css?v=1.5.7-release-foundation&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.5.7-release-foundation',
-  './assets/css/bulk-import-hud.css?v=1.5.7-release-foundation&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.5.7-release-foundation',
-  './assets/css/dock-ui-repair.css?v=1.5.7-release-foundation',
-  './assets/css/components/floating-overlays.css?v=1.5.7-release-foundation',
+  './assets/icons/foxbear-icon-16.png?v=1.5.9-version-display-cache-recovery',
+  './assets/icons/foxbear-icon-32.png?v=1.5.9-version-display-cache-recovery',
+  './assets/icons/foxbear-icon-192.png?v=1.5.9-version-display-cache-recovery',
+  './assets/icons/foxbear-icon-512.png?v=1.5.9-version-display-cache-recovery',
+  './assets/icons/apple-touch-icon.png?v=1.5.9-version-display-cache-recovery',
+  './manifest.webmanifest?v=1.5.9-version-display-cache-recovery',
+  './assets/css/boot/performance-diagnostics.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/boot/runtime-health.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/theme.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/layout.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/components/base-components.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/components/forms.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/components/cards.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/components/preview-system.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/components/playback-link.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/studio.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/dock.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/dock-waveform.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/waveform-compare.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/spectrum-visualizer.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/export.css?v=1.5.9-version-display-cache-recovery&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/bulk-import-hud.css?v=1.5.9-version-display-cache-recovery&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/dock-ui-repair.css?v=1.5.9-version-display-cache-recovery',
+  './assets/css/components/floating-overlays.css?v=1.5.9-version-display-cache-recovery',
   './vendor/jszip/jszip.min.js?v=3.10.1',
-  './src/config/build-info.js?v=1.5.7-release-foundation',
-  './src/firebase-bootstrap.js?v=1.5.7-release-foundation',
-  './src/config/mastering-presets.js?v=1.5.7-release-foundation',
-  './src/config/genre-presets.js?v=1.5.7-release-foundation',
-  './src/config/reference-targets.js?v=1.5.7-release-foundation',
-  './src/config/app-runtime-config.js?v=1.5.7-release-foundation',
-  './src/state/app-state.js?v=1.5.7-release-foundation',
-  './src/settings/settings-service.js?v=1.5.7-release-foundation',
-  './src/utils/core-utils.js?v=1.5.7-release-foundation',
-  './src/recommendation/recommendation-engine.js?v=1.5.7-release-foundation',
-  './src/audio/mastering-inspector.js?v=1.5.7-release-foundation',
-  './src/audio/highlight-compare-inspector.js?v=1.5.7-release-foundation',
-  './src/audio/playback-link-service.js?v=1.5.7-release-foundation',
-  './src/audio/playback-transition-service.js?v=1.5.7-release-foundation',
-  './src/audio/audio-decode-service.js?v=1.5.7-release-foundation',
-  './src/audio/import-queue-service.js?v=1.5.7-release-foundation',
-  './src/audio/analysis-cache-service.js?v=1.5.7-release-foundation',
-  './src/audio/memory-guard-service.js?v=1.5.7-release-foundation',
-  './src/audio/reference-profile-service.js?v=1.5.7-release-foundation',
-  './src/audio/quality-gate-service.js?v=1.5.7-release-foundation',
-  './src/audio/mastering-orchestrator-service.js?v=1.5.7-release-foundation',
-  './src/state/track-lifecycle-service.js?v=1.5.7-release-foundation',
-  './src/audio/waveform-control-service.js?v=1.5.7-release-foundation',
-  './src/ui/waveform-control-view.js?v=1.5.7-release-foundation',
-  './src/ui/spectrum-visualizer.js?v=1.5.7-release-foundation',
-  './src/ui/modal-controller.js?v=1.5.7-release-foundation',
-  './src/ui/dock-controller.js?v=1.5.7-release-foundation',
-  './src/ui/mobile-native-view.js?v=1.5.7-release-foundation&h=bulk-hud-restore-v153',
-  './src/download/download-service.js?v=1.5.7-release-foundation',
-  './src/download/export-guard-service.js?v=1.5.7-release-foundation&h=export-v156',
-  './src/download/export-progress-view.js?v=1.5.7-release-foundation&h=export-progress-v156',
-  './src/ui/download-dialog-view.js?v=1.5.7-release-foundation',
-  './src/ui/bulk-import-hud-view.js?v=1.5.7-release-foundation&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.5.7-release-foundation',
-  './src/ui/detail-panels-view.js?v=1.5.7-release-foundation',
-  './src/ui/detail-view.js?v=1.5.7-release-foundation',
-  './src/security/site-guards.js?v=1.5.7-release-foundation',
-  './src/boot/runtime-health.js?v=1.5.7-release-foundation&h=boot-sri-v157',
-  './src/boot/update-safety-service.js?v=1.5.7-release-foundation&h=update-safety-v157',
-  './src/boot/performance-diagnostics.js?v=1.5.7-release-foundation&h=boot-sri-v157',
-  './src/boot/render-scheduler.js?v=1.5.7-release-foundation',
-  './src/app.js?v=1.5.7-release-foundation&h=boot-sri-v157',
-  './assets/icons/foxbear-music.png?v=1.5.7-release-foundation'
+  './src/config/build-info.js?v=1.5.9-version-display-cache-recovery',
+  './src/boot/release-presentation-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/firebase-bootstrap.js?v=1.5.9-version-display-cache-recovery',
+  './src/config/mastering-presets.js?v=1.5.9-version-display-cache-recovery',
+  './src/config/genre-presets.js?v=1.5.9-version-display-cache-recovery',
+  './src/config/reference-targets.js?v=1.5.9-version-display-cache-recovery',
+  './src/config/app-runtime-config.js?v=1.5.9-version-display-cache-recovery',
+  './src/state/app-state.js?v=1.5.9-version-display-cache-recovery',
+  './src/settings/settings-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/utils/core-utils.js?v=1.5.9-version-display-cache-recovery',
+  './src/recommendation/recommendation-engine.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/mastering-inspector.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/highlight-compare-inspector.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/playback-link-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/playback-transition-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/audio-decode-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/import-queue-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/analysis-cache-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/memory-guard-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/reference-profile-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/quality-gate-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/mastering-orchestrator-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/state/track-lifecycle-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/audio/waveform-control-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/waveform-control-view.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/spectrum-visualizer.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/modal-controller.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/dock-controller.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/mobile-native-view.js?v=1.5.9-version-display-cache-recovery&h=bulk-hud-restore-v153',
+  './src/download/download-service.js?v=1.5.9-version-display-cache-recovery',
+  './src/download/export-guard-service.js?v=1.5.9-version-display-cache-recovery&h=export-v156',
+  './src/download/export-progress-view.js?v=1.5.9-version-display-cache-recovery&h=export-progress-v156',
+  './src/ui/download-dialog-view.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/bulk-import-hud-view.js?v=1.5.9-version-display-cache-recovery&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/detail-panels-view.js?v=1.5.9-version-display-cache-recovery',
+  './src/ui/detail-view.js?v=1.5.9-version-display-cache-recovery',
+  './src/security/site-guards.js?v=1.5.9-version-display-cache-recovery',
+  './src/boot/runtime-health.js?v=1.5.9-version-display-cache-recovery&h=boot-sri-v159',
+  './src/boot/update-safety-service.js?v=1.5.9-version-display-cache-recovery&h=update-safety-v159',
+  './src/boot/performance-diagnostics.js?v=1.5.9-version-display-cache-recovery&h=boot-sri-v159',
+  './src/boot/render-scheduler.js?v=1.5.9-version-display-cache-recovery',
+  './src/app.js?v=1.5.9-version-display-cache-recovery&h=boot-sri-v159',
+  './assets/icons/foxbear-music.png?v=1.5.9-version-display-cache-recovery'
 ];
 
 self.addEventListener('install', event => {
@@ -117,6 +118,11 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && event.data.type === 'FOXBEAR_GET_RELEASE_INFO') {
+    const payload = { type: 'FOXBEAR_RELEASE_INFO', cacheName: CACHE_NAME, assetVersion: CACHE_NAME.replace(/^foxbear-shell-v/, '') };
+    try { event.ports?.[0]?.postMessage?.(payload); } catch (error) {}
+    try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}
+  }
   if (event.data && event.data.type === 'FOXBEAR_PURGE_CACHES') {
     event.waitUntil(purgeFoxBearCaches().then(() => {
       try { event.source?.postMessage?.({ type: 'FOXBEAR_PURGE_CACHES_DONE', cacheName: CACHE_NAME }); } catch (error) {}
@@ -134,7 +140,7 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirstNavigation(request, event.preloadResponse));
     return;
   }
   if (['script', 'style', 'worker'].includes(request.destination) || /\.(?:js|css)(?:$|\?)/.test(url.pathname + url.search)) {
@@ -166,11 +172,20 @@ async function networkFirstNoFallbackOnIntegrityAssets(request) {
   }
 }
 
-async function networkFirst(request) {
+async function networkFirstNavigation(request, preloadResponse) {
   const cache = await caches.open(CACHE_NAME);
   try {
-    const fresh = await fetch(request);
-    if (fresh && fresh.ok) cache.put(request, fresh.clone()).catch(() => undefined);
+    const preload = await preloadResponse;
+    if (preload && preload.ok) {
+      cache.put(request, preload.clone()).catch(() => undefined);
+      cache.put('./index.html', preload.clone()).catch(() => undefined);
+      return preload;
+    }
+    const fresh = await fetch(request, { cache: 'no-store' });
+    if (fresh && fresh.ok) {
+      cache.put(request, fresh.clone()).catch(() => undefined);
+      cache.put('./index.html', fresh.clone()).catch(() => undefined);
+    }
     return fresh;
   } catch (error) {
     const cached = await cache.match(request);

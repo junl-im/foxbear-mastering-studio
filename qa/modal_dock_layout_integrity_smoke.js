@@ -4,9 +4,9 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const app=read('src/app.js'); const html=read('index.html'); const dockCss=read('assets/css/dock.css');
-must(app.includes("const APP_VERSION = 'Pro v1.5.7'"),'version');
+must(app.includes("const APP_VERSION = 'Pro v1.5.9'"),'version');
 must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine'"),'slug');
-must(html.includes('data-build="1.5.7"'),'build');
+must(html.includes('data-build="1.5.9"'),'build');
 must(html.includes('id="featureDialog" class="feature-dialog-backdrop" hidden'),'feature hidden');
 must(html.includes('id="previewDialog" class="preview-dialog-backdrop" hidden'),'preview hidden');
 must(html.includes('data-preview-dialog-close="true"'),'preview close marker');

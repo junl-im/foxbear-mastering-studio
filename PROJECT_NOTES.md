@@ -1,3 +1,21 @@
+# Project Notes - v1.5.9
+
+## Version display and stale-shell recovery
+
+- Visible release labels are runtime-bound to `FoxBearBuildInfo` through `FoxBearReleasePresentation`.
+- Navigation uses a no-store network attempt before cached-shell fallback, while service-worker generation can be queried for diagnostics.
+- Manifest description, Update Safety release metadata, and legacy cache lists are release-tool-managed.
+- v1.5.8 PCM/ZIP memory protections remain unchanged.
+
+# Project Notes - v1.5.8
+
+## PCM and ZIP memory hardening
+
+- Completed mastered PCM now follows `release-after-encode`; encoded Blobs and playback URLs remain available while `masteredBuffer` is released after the track reaches `done`.
+- ZIP export uses a preflight memory sweep, JSZip `STORE`, `streamFiles`, and a working-set safety ceiling with per-track fallback.
+- Alternate output formats require re-mastering after PCM release; the download dialog disables unavailable choices instead of serving the current format under a different label.
+- Carry-forward systems remain active: Spectrum detail rendering, Exit Guard and its fallback screen, FoxBear Performance Diagnostics, and adaptive diagnostics refresh behavior.
+
 # Project Notes - v1.5.7
 
 ## Release foundation cleanup

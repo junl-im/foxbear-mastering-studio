@@ -1,17 +1,14 @@
-// FoxBear memory guard service v1.4.29 - large-batch buffer retention policy and diagnostics
+// FoxBear memory guard service v1.5.9 - release-after-encode PCM retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const DEFAULT_POLICY_VERSION = 'v1.4.29-memory-stabilization';
+    const VERSION = 'v1.5.9-version-display-cache-recovery';
+    const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 
     function toNumber(value, fallback = 0) {
         const n = Number(value);
         return Number.isFinite(n) ? n : fallback;
-    }
-
-    function clamp(value, min, max) {
-        return Math.min(max, Math.max(min, value));
     }
 
     function getAudioBufferBytes(buffer) {
@@ -65,23 +62,30 @@
         const mobile = options.mobile != null ? Boolean(options.mobile) : isProbablyMobile();
         const largeBatch = Boolean(options.largeBatch) || batchSize >= 12;
         const lowMemory = Boolean(options.lowMemory) || mobile || (deviceMemoryGb > 0 && deviceMemoryGb <= 4) || batchSize >= 24;
-        const defaultMaxBuffers = lowMemory || largeBatch ? 1 : 2;
-        const defaultKeepRecent = lowMemory || largeBatch ? 0 : 1;
-        const defaultBudgetMb = lowMemory ? 96 : largeBatch ? 160 : 256;
+        const forceReleaseAll = options.forceReleaseAll === true;
+        const retainCompletedPcm = !forceReleaseAll && options.retainCompletedPcm === true;
+        const defaultMaxBuffers = retainCompletedPcm ? (lowMemory || largeBatch ? 1 : 2) : 0;
+        const defaultKeepRecent = retainCompletedPcm ? (lowMemory || largeBatch ? 0 : 1) : 0;
+        const defaultBudgetMb = retainCompletedPcm ? (lowMemory ? 96 : largeBatch ? 160 : 256) : 0;
+        const maxRetainedBuffers = Math.max(0, Math.floor(toNumber(options.maxRetainedBuffers, defaultMaxBuffers)));
+        const maxMasteredBufferBytes = Math.max(0, Math.floor(toNumber(options.maxMasteredBufferBytes, defaultBudgetMb * MB)));
         return Object.freeze({
-            version: DEFAULT_POLICY_VERSION,
+            version: VERSION,
+            legacyVersion: LEGACY_POLICY_VERSION,
+            retentionMode: retainCompletedPcm ? 'bounded-reencode-cache' : 'release-after-encode',
+            retainCompletedPcm,
+            forceReleaseAll,
             selectedId: String(options.selectedId || ''),
-            keepSelected: options.keepSelected !== false,
-            keepRecent: Math.max(0, Math.floor(toNumber(options.keepRecent, defaultKeepRecent))),
-            maxRetainedBuffers: Math.max(1, Math.floor(toNumber(options.maxRetainedBuffers, defaultMaxBuffers))),
-            maxMasteredBufferBytes: Math.max(16 * MB, Math.floor(toNumber(options.maxMasteredBufferBytes, defaultBudgetMb * MB))),
-            releasePreviewBuffers: options.releasePreviewBuffers !== false,
+            keepSelected: retainCompletedPcm && options.keepSelected !== false,
+            keepRecent: retainCompletedPcm ? Math.max(0, Math.floor(toNumber(options.keepRecent, defaultKeepRecent))) : 0,
+            maxRetainedBuffers: retainCompletedPcm ? maxRetainedBuffers : 0,
+            maxMasteredBufferBytes: retainCompletedPcm ? maxMasteredBufferBytes : 0,
             largeBatch,
             lowMemory,
             mobile,
             deviceMemoryGb,
             batchSize,
-            reason: options.reason || 'completed-batch-policy'
+            reason: options.reason || 'release-after-encode'
         });
     }
 
@@ -90,6 +94,11 @@
             .filter(track => track && track.status === 'done' && track.masteredBuffer && track.outBlob)
             .map(track => ({ track, bytes: getTrackBufferBytes(track), sortTime: getTrackSortTime(track) }))
             .sort((a, b) => b.sortTime - a.sortTime);
+
+        if (!policy.retainCompletedPcm || policy.maxRetainedBuffers <= 0 || policy.maxMasteredBufferBytes <= 0) {
+            return Object.freeze({ retained: [], release: completedWithBuffers, retainedBytes: 0 });
+        }
+
         const keepIds = new Set();
         if (policy.keepSelected && policy.selectedId) keepIds.add(policy.selectedId);
         completedWithBuffers.slice(0, policy.keepRecent).forEach(item => keepIds.add(item.track.id));
@@ -101,25 +110,14 @@
             const protectedById = keepIds.has(item.track.id);
             const underCount = retained.length < policy.maxRetainedBuffers;
             const underBudget = retainedBytes + item.bytes <= policy.maxMasteredBufferBytes;
-            if (protectedById || (underCount && underBudget)) {
+            if (protectedById && underBudget && retained.length < policy.maxRetainedBuffers) {
+                retained.push(item);
+                retainedBytes += item.bytes;
+            } else if (underCount && underBudget) {
                 retained.push(item);
                 retainedBytes += item.bytes;
             } else {
                 release.push(item);
-            }
-        }
-
-        if (retainedBytes > policy.maxMasteredBufferBytes && retained.length > 1) {
-            const selectedId = policy.selectedId;
-            const candidates = retained
-                .filter(item => !(policy.keepSelected && selectedId && item.track.id === selectedId))
-                .sort((a, b) => a.sortTime - b.sortTime);
-            while (retainedBytes > policy.maxMasteredBufferBytes && candidates.length) {
-                const item = candidates.shift();
-                const index = retained.indexOf(item);
-                if (index >= 0) retained.splice(index, 1);
-                release.push(item);
-                retainedBytes -= item.bytes;
             }
         }
 
@@ -132,17 +130,29 @@
         const plan = buildRetentionPlan(list, policy);
         let released = 0;
         let releasedBytes = 0;
+        const releasedIds = [];
         plan.release.forEach(({ track, bytes }) => {
             releasedBytes += bytes;
+            releasedIds.push(track.id || '');
             track.masteredBuffer = null;
-            track.memoryPolicyReleasedAt = Date.now();
+            track.memoryPolicyTouchedAt = Date.now();
+            track.memoryPolicyReleasedAt = track.memoryPolicyTouchedAt;
             track.memoryPolicyReleaseReason = policy.reason;
+            track.memoryPolicyRetentionMode = policy.retentionMode;
             released += 1;
         });
+        plan.retained.forEach(({ track }) => {
+            track.memoryPolicyTouchedAt = Date.now();
+            track.memoryPolicyRetentionMode = policy.retentionMode;
+        });
         return Object.freeze({
-            version: DEFAULT_POLICY_VERSION,
+            version: VERSION,
+            legacyVersion: LEGACY_POLICY_VERSION,
+            retentionMode: policy.retentionMode,
+            retainCompletedPcm: policy.retainCompletedPcm,
             released,
             releasedBytes,
+            releasedIds,
             retainedBuffers: plan.retained.length,
             retainedBytes: plan.retainedBytes,
             selectedId: policy.selectedId,
@@ -168,6 +178,8 @@
             outBlobBytes: getBlobBytes(track?.outBlob),
             previewBlobBytes: getBlobBytes(track?.masterPreviewBlob),
             memoryPolicyReleasedAt: toNumber(track?.memoryPolicyReleasedAt, 0),
+            memoryPolicyReleaseReason: track?.memoryPolicyReleaseReason || '',
+            memoryPolicyRetentionMode: track?.memoryPolicyRetentionMode || '',
             completedAt: track?.performanceInfo?.completedAt || ''
         });
     }
@@ -175,9 +187,10 @@
     function classifyPressure(masteredBufferBytes, heap, policy) {
         const heapLimit = toNumber(heap?.jsHeapSizeLimit, 0);
         const heapUsed = toNumber(heap?.usedJSHeapSize, 0);
+        if (masteredBufferBytes > 0 && !policy.retainCompletedPcm) return 'high';
         if (policy.lowMemory && masteredBufferBytes > policy.maxMasteredBufferBytes) return 'high';
         if (heapLimit && heapUsed / heapLimit > 0.82) return 'high';
-        if (masteredBufferBytes > policy.maxMasteredBufferBytes * 0.85) return 'medium';
+        if (policy.maxMasteredBufferBytes > 0 && masteredBufferBytes > policy.maxMasteredBufferBytes * 0.85) return 'medium';
         if (heapLimit && heapUsed / heapLimit > 0.68) return 'medium';
         return 'normal';
     }
@@ -203,7 +216,8 @@
         const releasedCount = completed.filter(track => track.memoryPolicyReleasedAt && !track.masteredBuffer && track.outBlob).length;
         const pressure = classifyPressure(masteredBufferBytes, heap, policy);
         return Object.freeze({
-            version: DEFAULT_POLICY_VERSION,
+            version: VERSION,
+            legacyVersion: LEGACY_POLICY_VERSION,
             trackCount: list.length,
             completedCount: completed.length,
             masteredBufferCount: masteredBuffers.length,
@@ -215,6 +229,8 @@
             selectedId: policy.selectedId,
             pressure,
             policy: Object.freeze({
+                retentionMode: policy.retentionMode,
+                retainCompletedPcm: policy.retainCompletedPcm,
                 keepSelected: policy.keepSelected,
                 keepRecent: policy.keepRecent,
                 maxRetainedBuffers: policy.maxRetainedBuffers,
@@ -240,7 +256,8 @@
         if (after.masteredBufferBytes > after.policy.maxMasteredBufferBytes) warnings.push('masteredBuffer bytes above policy budget');
         if (after.pressure === 'high') warnings.push('memory pressure remains high after sweep');
         return Object.freeze({
-            version: DEFAULT_POLICY_VERSION,
+            version: VERSION,
+            legacyVersion: LEGACY_POLICY_VERSION,
             before,
             policyResult,
             after,
@@ -250,7 +267,8 @@
     }
 
     global.FoxBearMemoryGuardService = Object.freeze({
-        version: DEFAULT_POLICY_VERSION,
+        version: VERSION,
+        legacyVersion: LEGACY_POLICY_VERSION,
         getAudioBufferBytes,
         getTrackOutputBytes,
         normalizePolicy,

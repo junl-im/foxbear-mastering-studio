@@ -1,19 +1,31 @@
-# FoxBear AI Mastering Studio Pro v1.5.7
+# FoxBear AI Mastering Studio Pro v1.5.9
 
+## Current patch: v1.5.9 Version Display and Cache Recovery
 
+The release badge at the top of the app is now bound to generated `FoxBearBuildInfo` through `FoxBearReleasePresentation`, rather than being trusted as an isolated hard-coded HTML string. The same service synchronizes the program-info heading, document title, body build markers, and exposes a diagnostics report.
 
-## Current patch: v1.5.7 Release Foundation Cleanup
-
-This patch makes `package.json` the release metadata source of truth, adds generated `src/config/build-info.js`, separates durable rules into `STATUS.md` and `docs/decisions/`, pins Playwright through `package-lock.json`, and adds a release gate that runs both static QA and real Chromium automation. See `VERSIONING.md` and `RELEASE_CHECKLIST.md`.
+PWA navigation now requests the newest HTML with navigation preload or `cache: 'no-store'` before using the offline shell. The manifest description, Update Safety patch metadata, and service-worker legacy cache list are synchronized by the release tooling.
 
 Release metadata:
 
 ```text
-product: 1.5.7
-build: release-foundation-cleanup
-asset generation: 1.5.7-release-foundation
-service worker cache: foxbear-shell-v1.5.7-release-foundation
+product: 1.5.9
+build: version-display-cache-recovery
+asset generation: 1.5.9-version-display-cache-recovery
+service worker cache: foxbear-shell-v1.5.9-version-display-cache-recovery
 ```
+
+Console checks after deployment:
+
+```js
+FoxBearReleasePresentation.getReport()
+FoxBearReleasePresentation.requestServiceWorkerReleaseInfo()
+FoxBearUpdateSafety.getReport()
+```
+
+## Previous patch: v1.5.8 PCM and ZIP Memory Hardening
+
+Completed masters use `release-after-encode`; ZIP export uses STORE packaging and working-set limits with per-track fallback. Those memory protections remain active in v1.5.9.
 
 ## Previous patch: v1.5.6 Export Progress Recovery
 

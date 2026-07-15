@@ -1,19 +1,19 @@
-# QA Report - v1.5.7 Release Foundation Cleanup
+# QA Report - v1.5.9 Version Display and Cache Recovery
 
 ## Result
 
 ```text
-182/182 PASS
+185/185 PASS
 Browser QA: runner/spec discovery verified; standard Chromium execution still required
 ```
 
-v1.5.7 final QA static target: `182/182 PASS`. This is not a browser QA pass.
+v1.5.9 final QA static target: `185/185 PASS`. This is not a browser QA pass.
 
+Previous v1.5.8 static target: `183/183 PASS`.
+
+Previous v1.5.7 static target: `182/182 PASS`.
+Previous v1.5.6 static target: `178/178 PASS`.
 Previous v1.5.5 static target: `176/176 PASS`.
-Previous v1.5.4 static target: `174/174 PASS`.
-Previous v1.5.3 static target: `173/173 PASS`.
-Previous v1.5.2 static target: `172/172 PASS`.
-Previous v1.5.1 static target: `170/170 PASS`.
 
 Commands:
 
@@ -42,6 +42,8 @@ npm run qa:browser
 - `qa/v155_update_safety_asset_health_smoke.js`
 - `qa/v156_export_progress_recovery_smoke.js`
 - `qa/v157_release_foundation_smoke.js`
+- `qa/v158_pcm_zip_memory_hardening_smoke.js`
+- `qa/v159_version_display_cache_recovery_smoke.js`
 
 ## Manual follow-up still needed
 
@@ -50,7 +52,7 @@ npm run qa:browser
 - Real mobile/PWA Bulk HUD scrolling, close button feel, and low-memory policy behavior.
 - Required Playwright execution on a normal development machine or CI runner with the pinned browser installed: `npm run qa:browser`.
 - Deep 35-track browser flow remains opt-in via `npm run qa:browser:deep` because it can take significantly longer than static QA.
-- Review-container note: the runner started the local server and discovered all 10 desktop/mobile tests, but the managed system Chromium blocked every URL with `ERR_BLOCKED_BY_ADMINISTRATOR` before app navigation. This environment result is not counted as a product failure or a browser pass.
+- Review-container note for v1.5.9: the runner discovered all 10 desktop/mobile tests, but the pinned Playwright Chromium executable is not installed in this container. The launch error occurs before app navigation and is not counted as a product failure or a browser pass.
 
 ## Historical reports
 
@@ -65,6 +67,25 @@ docs/history/QA_REPORT_legacy_v1.4.21_to_v1.4.26.md
 v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility. Current QA is higher because v1.5.5 adds Update Safety asset-health checks and v1.5.4 adds boot SRI/cache recovery checks and v1.5.3 adds Bulk HUD visibility/master-all UX checks on top of v1.5.2 Export Guard checks on top of v1.5.1 real-browser automation smokes on top of v1.5.0 engine quality gate checks on top of v1.4.29 Memory Stabilization, release cleanup, service-module, app-slimdown orchestration, memory-guard, and browser-scaffold checks.
 
 
+
+
+
+## v1.5.9 coverage
+
+- Executes `FoxBearReleasePresentation` against stale v1.4.26 HTML labels and verifies the visible button, info heading, title, body build markers, and metadata are repaired to the generated release version.
+- Verifies the manifest description follows the current product version/build ID.
+- Verifies service-worker navigation uses preload/no-store before offline fallback and exposes `FOXBEAR_GET_RELEASE_INFO`.
+- Verifies Update Safety derives patch/boot metadata from `FoxBearBuildInfo`.
+- Verifies the active cache generation is absent from `LEGACY_CACHE_NAMES`.
+
+## v1.5.8 coverage
+
+- Executes the Memory Guard in a VM and verifies default completed PCM retention is zero.
+- Verifies the newly completed track reaches `done` before the release policy runs.
+- Verifies explicit bounded re-encode retention remains opt-in and budget-limited.
+- Executes Export Guard planning for safe desktop and unsafe low-memory mobile batches.
+- Verifies ZIP strategy is `STORE` + `streamFiles` with a working-set ceiling and per-track fallback.
+- Verifies alternate-format requests fail with `FORMAT_REQUIRES_REMASTER` instead of returning a mislabeled current-format Blob.
 
 ## v1.5.7 coverage
 

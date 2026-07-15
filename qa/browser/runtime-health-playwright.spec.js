@@ -17,6 +17,10 @@ test.describe('FoxBear browser runtime health', () => {
     await page.goto(APP_URL, { waitUntil: 'networkidle' });
     const report = await expectRuntimeHealthy(expect, page);
     expect(report.version).toContain(RELEASE.assetVersion);
+    const releasePresentation = await page.evaluate(() => window.FoxBearReleasePresentation?.getReport?.());
+    expect(releasePresentation?.productVersion).toBe(RELEASE.productVersion);
+    await expect(page.locator('[data-release-label="version-button"]')).toHaveText(`버전 정보 v${RELEASE.productVersion}`);
+    await expect(page.locator('[data-release-label="program-eyebrow"]')).toHaveText(`FoxBear Mastering PRO v${RELEASE.productVersion}`);
     expect(consoleErrors).toEqual([]);
   });
 });

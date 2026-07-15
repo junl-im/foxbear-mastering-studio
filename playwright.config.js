@@ -4,6 +4,7 @@
 const { defineConfig, devices } = require('@playwright/test');
 
 const baseURL = process.env.FOXBEAR_E2E_URL || 'http://127.0.0.1:4173';
+const systemChromium = process.env.FOXBEAR_CHROMIUM_PATH || undefined;
 
 module.exports = defineConfig({
   testDir: './qa/browser',
@@ -16,7 +17,8 @@ module.exports = defineConfig({
     baseURL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure'
+    video: systemChromium ? 'off' : 'retain-on-failure',
+    ...(systemChromium ? { launchOptions: { executablePath: systemChromium } } : {})
   },
   projects: [
     {

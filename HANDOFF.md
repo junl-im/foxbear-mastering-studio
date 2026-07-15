@@ -1,6 +1,68 @@
-# Handoff - v1.5.7 Release Foundation Cleanup
+# Handoff - v1.5.9 Version Display and Cache Recovery
 
-## Current status
+## What changed
+
+- The top version badge and program-info version are synchronized at runtime from generated `FoxBearBuildInfo` by `FoxBearReleasePresentation`.
+- PWA manifest description now follows the current product version/build ID.
+- Service-worker navigation bypasses the HTTP cache before falling back offline, reducing stale HTML after deployment.
+- The page can query the active service worker with `FOXBEAR_GET_RELEASE_INFO` and compare cache/asset generations.
+- Update Safety no longer carries a stale v1.5.6 patch ID.
+- Release synchronization removes the active cache name from `LEGACY_CACHE_NAMES`.
+
+## Verification
+
+```bash
+npm ci
+npm run version:check
+npm run check
+npm run qa:browser
+```
+
+Expected static result: `185/185 PASS`.
+
+Deployment console checks:
+
+```js
+FoxBearReleasePresentation.getReport()
+await FoxBearReleasePresentation.requestServiceWorkerReleaseInfo()
+FoxBearUpdateSafety.getReport()
+```
+
+## Previous handoff: v1.5.8 PCM and ZIP Memory Hardening
+
+
+## What changed
+
+- Completed `masteredBuffer` PCM is released by default after encoding and after the track is marked `done`.
+- `outBlob`, `masteredUrl`, reports, waveform overview, and download state remain available.
+- The download dialog disables formats that would require a released PCM buffer instead of silently serving the wrong/current format.
+- ZIP export force-releases PCM before planning, uses JSZip `STORE` with `streamFiles`, and estimates a browser working-set ceiling.
+- Unsafe low-memory/mobile ZIP attempts stop before allocation and open the per-track download recovery path.
+
+## Verification
+
+```bash
+npm ci
+npm run version:check
+npm run check
+npm run qa:browser
+```
+
+Expected static result: `183/183 PASS`.
+
+Manual large-batch checks:
+
+```js
+FoxBearMemoryGuard.getSnapshot()
+FoxBearExportGuard.getReadiness()
+FoxBearExportGuard.getDiagnostics()
+```
+
+The expected completed-master snapshot is `masteredBufferCount: 0` unless a future feature explicitly opts into the bounded re-encode cache.
+
+## Previous handoff: v1.5.7 Release Foundation Cleanup
+
+### Current status
 
 Latest product release: `v1.5.7`; build ID `release-foundation-cleanup`; asset generation `1.5.7-release-foundation`; service worker cache `foxbear-shell-v1.5.7-release-foundation`.
 

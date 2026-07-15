@@ -142,6 +142,11 @@
     cursor: wait;
 }
 
+.download-format-option.unavailable:disabled {
+    cursor: not-allowed;
+    border-style: dashed;
+}
+
 .download-options-actions {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, .82fr);

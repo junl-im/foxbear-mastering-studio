@@ -1,3 +1,24 @@
+# v1.5.9 - Version Display and Cache Recovery
+
+- Added `src/boot/release-presentation-service.js` so the visible top version button, program-info eyebrow, document title, body build markers, and metadata are repaired from generated `FoxBearBuildInfo` at runtime instead of relying only on duplicated static strings.
+- Fixed the PWA manifest description that was still reporting `v1.4.26` even while `manifest.version` and the application were on v1.5.8.
+- Changed service-worker navigation handling to use navigation preload or a `cache: 'no-store'` network request before falling back to the cached shell, reducing stale top-version HTML after deployments.
+- Added service-worker release-generation diagnostics through `FOXBEAR_GET_RELEASE_INFO`; the page can now compare its expected asset/cache generation with the active worker.
+- Made Update Safety derive its patch ID and boot revision from `FoxBearBuildInfo`, removing another stale hard-coded v1.5.6 identifier.
+- Fixed release synchronization so the current cache generation cannot remain inside `LEGACY_CACHE_NAMES` after a version bump.
+- Added executable regression coverage in `qa/v159_version_display_cache_recovery_smoke.js`; current static QA target is `185/185 PASS`.
+
+# v1.5.8 - PCM and ZIP Memory Hardening
+
+- Changed completed-master PCM retention to `release-after-encode`: once the encoded `outBlob` and playback URL exist, `masteredBuffer` is released by default, including the just-completed selected track.
+- Fixed the memory-policy ordering bug where the newly completed track was still marked `processing` when the release sweep ran and therefore escaped cleanup.
+- Made alternate download formats explicit: the current encoded format remains immediately downloadable, while unavailable re-encoding choices are disabled and explain that re-mastering is required after PCM release.
+- Added a ZIP preflight sweep that force-releases completed PCM before export planning.
+- Changed audio ZIP packaging from DEFLATE level 5 to `STORE` with `streamFiles`, avoiding low-value audio recompression CPU and compression-buffer overhead.
+- Added estimated ZIP working-set limits by mobile/device-memory tier; unsafe exports are blocked before allocation and redirected to per-track downloads.
+- Strengthened STORE ZIP size validation and exposed strategy, working-set estimate, safety limit, and individual-download requirement through `FoxBearExportGuard`.
+- Added executable regression coverage in `qa/v158_pcm_zip_memory_hardening_smoke.js`; current static QA target is `183/183 PASS`.
+
 # v1.5.7 - Release Foundation Cleanup
 
 - Unified the product release line at `1.5.7` across package, manifest, visible UI, runtime metadata, service worker generation, and package naming.

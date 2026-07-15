@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.7-release-foundation';
+const version = '1.5.9-version-display-cache-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

@@ -53,7 +53,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.7',
+                version: '1.5.9',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -166,7 +166,7 @@
 
         const list = document.createElement('div');
         list.className = 'download-options-list selectable';
-        const options = getDownloadFormatOptions();
+        const options = getDownloadFormatOptions(track);
         let selectedFormat = track.outFormat && options.some(option => option.format === track.outFormat) ? track.outFormat : options[0].format;
 
         const selectedSummary = document.createElement('div');
@@ -174,10 +174,19 @@
 
         const updateSelectedSummary = () => {
             const selected = options.find(option => option.format === selectedFormat) || options[0];
-            selectedSummary.textContent = `${selected.label} ${selected.detail} · 버튼을 눌러야 저장/공유가 시작됩니다.`;
+            const unavailableCount = options.filter(option => option.available === false).length;
+            selectedSummary.textContent = unavailableCount
+                ? `${selected.label} ${selected.detail} · 현재 완성 포맷만 즉시 저장할 수 있습니다. 다른 포맷은 재마스터링이 필요합니다.`
+                : `${selected.label} ${selected.detail} · 버튼을 눌러야 저장/공유가 시작됩니다.`;
         };
 
         const setSelected = format => {
+            const next = options.find(option => option.format === format);
+            if (!next || next.available === false) {
+                warning.classList.add('show');
+                warning.textContent = next?.unavailableReason || '이 포맷은 현재 완성 파일에서 만들 수 없습니다.';
+                return;
+            }
             selectedFormat = format;
             Array.from(list.querySelectorAll('.download-format-option')).forEach(button => {
                 const active = button.dataset.format === selectedFormat;
@@ -197,10 +206,17 @@
             button.className = `download-format-option ${option.format === selectedFormat ? 'current' : ''}`;
             button.dataset.format = option.format;
             button.setAttribute('aria-pressed', String(option.format === selectedFormat));
+            if (option.available === false) {
+                button.disabled = true;
+                button.dataset.permanentDisabled = 'true';
+                button.classList.add('unavailable');
+                button.setAttribute('aria-disabled', 'true');
+                button.title = option.unavailableReason || '다른 포맷은 재마스터링이 필요합니다.';
+            }
             const main = document.createElement('span');
             main.textContent = option.label;
             const sub = document.createElement('b');
-            sub.textContent = option.detail;
+            sub.textContent = option.available === false ? `${option.detail} · 재마스터링 필요` : option.detail;
             button.append(main, sub);
             button.addEventListener('click', () => setSelected(option.format));
             list.appendChild(button);
@@ -398,7 +414,7 @@
 
         const allButtons = () => [download, share, help, moreToggle, copy, close, ...Array.from(list.querySelectorAll('button')), ...Array.from(fallbackActions.querySelectorAll('button'))];
         const setBusy = busy => {
-            allButtons().forEach(button => { button.disabled = Boolean(busy); });
+            allButtons().forEach(button => { button.disabled = Boolean(busy) || button.dataset.permanentDisabled === 'true'; });
             panel.classList.toggle('working', Boolean(busy));
         };
 
