@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.17-browser-contract-fix';
+const version = '1.5.18-ci-diagnostics-pwa-readiness';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

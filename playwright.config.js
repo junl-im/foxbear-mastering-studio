@@ -14,7 +14,10 @@ module.exports = defineConfig({
   fullyParallel: false,
   workers: process.env.CI ? 2 : undefined,
   retries: process.env.CI ? 1 : 0,
-  reporter: [['list']],
+  reporter: [
+    ['list'],
+    ['json', { outputFile: 'qa/browser-results/results.json' }]
+  ],
   use: {
     baseURL,
     trace: 'retain-on-failure',

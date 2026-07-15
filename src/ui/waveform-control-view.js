@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.17-browser-contract-fix';
+  const VIEW_VERSION = '1.5.18-ci-diagnostics-pwa-readiness';
   const DEFAULT_BINS = 96;
 
   function getService() {

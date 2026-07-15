@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.17",
+  "version": "1.5.18",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -219,15 +219,16 @@
     "node qa/v1514_github_desktop_handoff_smoke.js",
     "node qa/v1515_e2e_runtime_classification_smoke.js",
     "node qa/v1516_e2e_server_pipe_deadlock_smoke.js",
-    "node qa/v1517_browser_contract_fix_smoke.js"
+    "node qa/v1517_browser_contract_fix_smoke.js",
+    "node qa/v1518_ci_diagnostics_packaging_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "browser-contract-fix",
-    "assetVersion": "1.5.17-browser-contract-fix",
-    "cacheName": "foxbear-shell-v1.5.17-browser-contract-fix",
-    "bootRevision": "boot-sri-v1517",
-    "updateSafetyRevision": "update-safety-v1517",
-    "serviceWorkerRevision": "sw-v1517"
+    "buildId": "ci-diagnostics-pwa-readiness",
+    "assetVersion": "1.5.18-ci-diagnostics-pwa-readiness",
+    "cacheName": "foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness",
+    "bootRevision": "boot-sri-v1518",
+    "updateSafetyRevision": "update-safety-v1518",
+    "serviceWorkerRevision": "sw-v1518"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

@@ -180,10 +180,13 @@ async function waitForServiceWorkerReady(page, options = {}) {
     const registrations = await navigator.serviceWorker.getRegistrations().catch(() => []);
     return registrations.some(registration => Boolean(registration.active || registration.waiting || registration.installing));
   }, null, { timeout });
-  const snapshot = await getServiceWorkerSnapshot(page, { readyTimeout: Math.min(timeout, 12000) });
+  const snapshot = await getServiceWorkerSnapshot(page, { readyTimeout: timeout });
   const hasWorker = Boolean(snapshot.activeScript || snapshot.waitingScript || snapshot.installingScript);
   if (!hasWorker) {
     throw new Error(`FoxBear service worker registration has no worker within ${timeout}ms: ${JSON.stringify(snapshot)}`);
+  }
+  if (!snapshot.ready) {
+    throw new Error(`FoxBear service worker did not reach the active ready state within ${timeout}ms: ${JSON.stringify(snapshot)}`);
   }
   return snapshot;
 }

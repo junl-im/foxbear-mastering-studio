@@ -1,25 +1,25 @@
-# Handoff - v1.5.17
+# Handoff - v1.5.18
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: Browser contract fix
-
-The v1.5.16 runner fix removed the static-server pipe deadlock. The next Actions run exposed three independent browser contract defects that had previously been hidden behind navigation timeouts.
+## Current patch: CI diagnostics and PWA readiness
 
 Changes:
 
-- Manual Wake Lock requests now arm the in-memory user intent before UI synchronization, so the newly acquired sentinel is not released as idle.
-- The versioned service worker URL is included in the Trusted Types allowlist and registration uses `resolveFoxBearScriptUrl()`.
-- `headerSettingsHost` receives flex `order: 3`, keeping the settings trigger to the right of the designer card on desktop and mobile.
-- `qa/v1517_browser_contract_fix_smoke.js` guards all three fixes.
+- Service-worker installation caches only the critical shell before activation; the remaining runtime pack is warmed in the background with bounded concurrency.
+- Browser QA uses one full readiness timeout for the active service worker and emits a distinct registration-versus-activation diagnosis.
+- Playwright writes `qa/browser-results/results.json`; the runner repeats the failed test names and first useful errors at the end of the Actions log.
+- Full static-server output is stored as `qa/browser-results/static-server.log`; only a compact HTTP summary is printed.
+- Release and overwrite archives exclude and reject transient logs, test reports, coverage, and browser results.
+- `qa/v1518_ci_diagnostics_packaging_smoke.js` protects these contracts.
 
 ```text
-product: 1.5.17
-build: browser-contract-fix
-asset generation: 1.5.17-browser-contract-fix
-service worker cache: foxbear-shell-v1.5.17-browser-contract-fix
+product: 1.5.18
+build: ci-diagnostics-pwa-readiness
+asset generation: 1.5.18-ci-diagnostics-pwa-readiness
+service worker cache: foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness
 ```
 
 Verification:
@@ -33,7 +33,11 @@ npm run qa:browser
 npm run package:all
 ```
 
-Expected static result: `197/197 PASS`.
+Expected static result: `198/198 PASS`.
+
+## Previous handoff: v1.5.17 Browser Contract Fix
+
+The v1.5.17 manual Wake Lock, Trusted Types service-worker registration, and header order corrections remain included.
 
 ## Previous handoff: v1.5.16 E2E Static Server Pipe Deadlock Fix
 

@@ -1,13 +1,13 @@
-# QA Report - v1.5.17 Browser Contract Fix
+# QA Report - v1.5.18 CI Diagnostics and PWA Readiness
 
 ## Result
 
 ```text
-197/197 PASS
+198/198 PASS
 Browser QA: GitHub Actions confirmation required
 ```
 
-v1.5.17 final QA static target: `197/197 PASS`. The Chromium browser run must still be confirmed by GitHub Actions.
+v1.5.18 final QA static target: `198/198 PASS`. The bundled Playwright Chromium run must still be confirmed by GitHub Actions.
 
 Historical static anchors retained for regression compatibility:
 
@@ -25,6 +25,14 @@ npm run check
 npm run qa:browser
 npm run package:all
 ```
+
+## v1.5.18 coverage
+
+- Verifies service-worker installation uses a critical shell and background warm phase instead of blocking activation on the full asset list.
+- Verifies service-worker readiness uses one bounded timeout and distinguishes registration from active readiness.
+- Verifies Playwright JSON diagnostics preserve failed test names and useful assertion messages at the end of the run.
+- Verifies full server logs are saved to browser artifacts while Actions output remains compact.
+- Verifies release and overwrite archives exclude and reject transient logs, results, reports, and coverage directories.
 
 ## v1.5.17 coverage
 

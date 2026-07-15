@@ -33,7 +33,7 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.17`
-- Build ID: `browser-contract-fix`
-- Asset version: `1.5.17-browser-contract-fix`
-- Service worker cache: `foxbear-shell-v1.5.17-browser-contract-fix`
+- Product version: `1.5.18`
+- Build ID: `ci-diagnostics-pwa-readiness`
+- Asset version: `1.5.18-ci-diagnostics-pwa-readiness`
+- Service worker cache: `foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness`

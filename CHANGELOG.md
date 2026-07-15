@@ -1,3 +1,12 @@
+# v1.5.18 - CI Diagnostics and PWA Readiness
+
+- Split service-worker installation into a small critical shell and a bounded background cache warm, so `navigator.serviceWorker.ready` is not blocked by the full 90+ asset pack.
+- Wait for the active service-worker state with one consistent timeout and report a distinct readiness error when registration exists but activation does not complete.
+- Added a Playwright JSON reporter and a concise end-of-run failure summary so the real assertion remains visible after GitHub Actions truncates long logs.
+- Persist full static-server output to the browser QA artifact while printing only request counts, HTTP failures, warnings, and the final twelve requests in the Actions log.
+- Removed transient `*.log`, browser-result, report, coverage, and `.last-run.json` files from release packages and made both ZIP verifiers reject them.
+- Added `qa/v1518_ci_diagnostics_packaging_smoke.js`.
+
 # v1.5.17 - Browser Contract Fix
 
 - Fixed manual Wake Lock requests being released immediately by the idle activity synchronizer.

@@ -17,10 +17,16 @@ zip -qr "${OUTPUT_FILE}" . \
   -x 'node_modules/*' \
   -x 'dist/*' \
   -x 'qa/browser-results/*' \
+  -x 'qa/browser-results' \
   -x 'test-results/*' \
+  -x 'test-results' \
   -x 'playwright-report/*' \
+  -x 'playwright-report' \
+  -x 'coverage/*' \
+  -x 'coverage' \
   -x '*.zip' \
-  -x 'check.log' \
+  -x '*.log' \
+  -x '.last-run.json' \
   -x '.DS_Store'
 
 node "${ROOT_DIR}/tools/verify-release-zip.js" "${OUTPUT_FILE}"

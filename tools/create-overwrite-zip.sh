@@ -63,9 +63,10 @@ copy_path ".github/workflows"
 
 # Keep packages small and safe.
 find "$WORK_DIR" -name '.DS_Store' -delete
-find "$WORK_DIR" -name 'check.log' -delete
+find "$WORK_DIR" -type f -name '*.log' -delete
+find "$WORK_DIR" -type f -name '.last-run.json' -delete
 find "$WORK_DIR" -name '*.zip' -delete
-rm -rf "$WORK_DIR/qa/browser-results" "$WORK_DIR/test-results" "$WORK_DIR/playwright-report"
+rm -rf "$WORK_DIR/qa/browser-results" "$WORK_DIR/test-results" "$WORK_DIR/playwright-report" "$WORK_DIR/coverage"
 
 rm -f "$ZIP_PATH"
 (cd "$WORK_DIR" && zip -qr "$ZIP_PATH" .)

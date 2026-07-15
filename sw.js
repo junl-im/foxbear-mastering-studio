@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.5.17 service worker · browser-contract-fix
+// FoxBear AI Mastering Studio Pro v1.5.18 service worker · ci-diagnostics-pwa-readiness
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.5.17-browser-contract-fix';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.7-release-foundation', 'foxbear-shell-v1.5.8-pcm-zip-memory-hardening', 'foxbear-shell-v1.5.9-version-display-cache-recovery', 'foxbear-shell-v1.5.10-header-settings-relocation', 'foxbear-shell-v1.5.11-audio-context-ci-stability', 'foxbear-shell-v1.5.12-ci-runtime-readiness', 'foxbear-shell-v1.5.13-handoff-package-integrity', 'foxbear-shell-v1.5.14-github-desktop-handoff-preflight', 'foxbear-shell-v1.5.15-e2e-runtime-classification', 'foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix'];
+const CACHE_NAME = 'foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.7-release-foundation', 'foxbear-shell-v1.5.8-pcm-zip-memory-hardening', 'foxbear-shell-v1.5.9-version-display-cache-recovery', 'foxbear-shell-v1.5.10-header-settings-relocation', 'foxbear-shell-v1.5.11-audio-context-ci-stability', 'foxbear-shell-v1.5.12-ci-runtime-readiness', 'foxbear-shell-v1.5.13-handoff-package-integrity', 'foxbear-shell-v1.5.14-github-desktop-handoff-preflight', 'foxbear-shell-v1.5.15-e2e-runtime-classification', 'foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix', 'foxbear-shell-v1.5.17-browser-contract-fix'];
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -27,83 +27,139 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.5.17-browser-contract-fix',
-  './assets/icons/foxbear-icon-32.png?v=1.5.17-browser-contract-fix',
-  './assets/icons/foxbear-icon-192.png?v=1.5.17-browser-contract-fix',
-  './assets/icons/foxbear-icon-512.png?v=1.5.17-browser-contract-fix',
-  './assets/icons/apple-touch-icon.png?v=1.5.17-browser-contract-fix',
-  './manifest.webmanifest?v=1.5.17-browser-contract-fix',
-  './assets/css/boot/performance-diagnostics.css?v=1.5.17-browser-contract-fix',
-  './assets/css/boot/runtime-health.css?v=1.5.17-browser-contract-fix',
-  './assets/css/theme.css?v=1.5.17-browser-contract-fix',
-  './assets/css/layout.css?v=1.5.17-browser-contract-fix',
-  './assets/css/components/base-components.css?v=1.5.17-browser-contract-fix',
-  './assets/css/components/forms.css?v=1.5.17-browser-contract-fix',
-  './assets/css/components/cards.css?v=1.5.17-browser-contract-fix',
-  './assets/css/components/preview-system.css?v=1.5.17-browser-contract-fix',
-  './assets/css/components/playback-link.css?v=1.5.17-browser-contract-fix',
-  './assets/css/studio.css?v=1.5.17-browser-contract-fix',
-  './assets/css/dock.css?v=1.5.17-browser-contract-fix',
-  './assets/css/dock-waveform.css?v=1.5.17-browser-contract-fix',
-  './assets/css/waveform-compare.css?v=1.5.17-browser-contract-fix',
-  './assets/css/spectrum-visualizer.css?v=1.5.17-browser-contract-fix',
-  './assets/css/export.css?v=1.5.17-browser-contract-fix&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.5.17-browser-contract-fix',
-  './assets/css/bulk-import-hud.css?v=1.5.17-browser-contract-fix&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.5.17-browser-contract-fix',
-  './assets/css/dock-ui-repair.css?v=1.5.17-browser-contract-fix',
-  './assets/css/components/floating-overlays.css?v=1.5.17-browser-contract-fix',
+  './assets/icons/foxbear-icon-16.png?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/icons/foxbear-icon-32.png?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/icons/foxbear-icon-192.png?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/icons/foxbear-icon-512.png?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/icons/apple-touch-icon.png?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './manifest.webmanifest?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/boot/performance-diagnostics.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/boot/runtime-health.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/theme.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/layout.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/components/base-components.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/components/forms.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/components/cards.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/components/preview-system.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/components/playback-link.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/studio.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/dock.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/dock-waveform.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/waveform-compare.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/spectrum-visualizer.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/export.css?v=1.5.18-ci-diagnostics-pwa-readiness&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/bulk-import-hud.css?v=1.5.18-ci-diagnostics-pwa-readiness&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/dock-ui-repair.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/components/floating-overlays.css?v=1.5.18-ci-diagnostics-pwa-readiness',
   './vendor/jszip/jszip.min.js?v=3.10.1',
-  './src/config/build-info.js?v=1.5.17-browser-contract-fix',
-  './src/boot/release-presentation-service.js?v=1.5.17-browser-contract-fix',
-  './src/firebase-bootstrap.js?v=1.5.17-browser-contract-fix',
-  './src/config/mastering-presets.js?v=1.5.17-browser-contract-fix',
-  './src/config/genre-presets.js?v=1.5.17-browser-contract-fix',
-  './src/config/reference-targets.js?v=1.5.17-browser-contract-fix',
-  './src/config/app-runtime-config.js?v=1.5.17-browser-contract-fix',
-  './src/state/app-state.js?v=1.5.17-browser-contract-fix',
-  './src/settings/settings-service.js?v=1.5.17-browser-contract-fix',
-  './src/utils/core-utils.js?v=1.5.17-browser-contract-fix',
-  './src/recommendation/recommendation-engine.js?v=1.5.17-browser-contract-fix',
-  './src/audio/mastering-inspector.js?v=1.5.17-browser-contract-fix',
-  './src/audio/highlight-compare-inspector.js?v=1.5.17-browser-contract-fix',
-  './src/audio/playback-link-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/playback-transition-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/audio-context-manager.js?v=1.5.17-browser-contract-fix',
-  './src/audio/audio-decode-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/import-queue-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/analysis-cache-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/memory-guard-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/reference-profile-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/quality-gate-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/mastering-orchestrator-service.js?v=1.5.17-browser-contract-fix',
-  './src/state/track-lifecycle-service.js?v=1.5.17-browser-contract-fix',
-  './src/audio/waveform-control-service.js?v=1.5.17-browser-contract-fix',
-  './src/ui/waveform-control-view.js?v=1.5.17-browser-contract-fix',
-  './src/ui/spectrum-visualizer.js?v=1.5.17-browser-contract-fix',
-  './src/ui/modal-controller.js?v=1.5.17-browser-contract-fix',
-  './src/ui/dock-controller.js?v=1.5.17-browser-contract-fix',
-  './src/ui/mobile-native-view.js?v=1.5.17-browser-contract-fix&h=bulk-hud-restore-v153',
-  './src/download/download-service.js?v=1.5.17-browser-contract-fix',
-  './src/download/export-guard-service.js?v=1.5.17-browser-contract-fix&h=export-v156',
-  './src/download/export-progress-view.js?v=1.5.17-browser-contract-fix&h=export-progress-v156',
-  './src/ui/download-dialog-view.js?v=1.5.17-browser-contract-fix',
-  './src/ui/bulk-import-hud-view.js?v=1.5.17-browser-contract-fix&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.5.17-browser-contract-fix',
-  './src/ui/detail-panels-view.js?v=1.5.17-browser-contract-fix',
-  './src/ui/detail-view.js?v=1.5.17-browser-contract-fix',
-  './src/security/site-guards.js?v=1.5.17-browser-contract-fix',
-  './src/boot/runtime-health.js?v=1.5.17-browser-contract-fix&h=boot-sri-v1517',
-  './src/boot/update-safety-service.js?v=1.5.17-browser-contract-fix&h=update-safety-v1517',
-  './src/boot/performance-diagnostics.js?v=1.5.17-browser-contract-fix&h=boot-sri-v1517',
-  './src/boot/render-scheduler.js?v=1.5.17-browser-contract-fix',
-  './src/app.js?v=1.5.17-browser-contract-fix&h=boot-sri-v1517',
-  './assets/icons/foxbear-music.png?v=1.5.17-browser-contract-fix'
+  './src/config/build-info.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/boot/release-presentation-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/firebase-bootstrap.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/config/mastering-presets.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/config/genre-presets.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/config/reference-targets.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/config/app-runtime-config.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/state/app-state.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/settings/settings-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/utils/core-utils.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/recommendation/recommendation-engine.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/mastering-inspector.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/highlight-compare-inspector.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/playback-link-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/playback-transition-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/audio-context-manager.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/audio-decode-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/import-queue-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/analysis-cache-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/memory-guard-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/reference-profile-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/quality-gate-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/mastering-orchestrator-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/state/track-lifecycle-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/audio/waveform-control-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/waveform-control-view.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/spectrum-visualizer.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/modal-controller.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/dock-controller.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/mobile-native-view.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=bulk-hud-restore-v153',
+  './src/download/download-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/download/export-guard-service.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=export-v156',
+  './src/download/export-progress-view.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=export-progress-v156',
+  './src/ui/download-dialog-view.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/bulk-import-hud-view.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/detail-panels-view.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/detail-view.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/security/site-guards.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/boot/runtime-health.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=boot-sri-v1518',
+  './src/boot/update-safety-service.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=update-safety-v1518',
+  './src/boot/performance-diagnostics.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=boot-sri-v1518',
+  './src/boot/render-scheduler.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/app.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=boot-sri-v1518',
+  './assets/icons/foxbear-music.png?v=1.5.18-ci-diagnostics-pwa-readiness'
 ];
 
+const INSTALL_ASSETS = [
+  './',
+  './index.html',
+  './manifest.webmanifest?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/boot/runtime-health.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/theme.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/layout.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/components/base-components.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/studio.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './assets/css/mobile-native.css?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/config/build-info.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/boot/runtime-health.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=boot-sri-v1518',
+  './src/boot/update-safety-service.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=update-safety-v1518',
+  './src/boot/release-presentation-service.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/config/app-runtime-config.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/state/app-state.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/utils/core-utils.js?v=1.5.18-ci-diagnostics-pwa-readiness',
+  './src/ui/mobile-native-view.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=bulk-hud-restore-v153',
+  './src/app.js?v=1.5.18-ci-diagnostics-pwa-readiness&h=boot-sri-v1518',
+  './assets/icons/foxbear-music.png?v=1.5.18-ci-diagnostics-pwa-readiness'
+];
+const INSTALL_ASSET_SET = new Set(INSTALL_ASSETS);
+const WARM_ASSETS = CORE_ASSETS.filter(asset => !INSTALL_ASSET_SET.has(asset));
+let warmCachePromise = null;
+
+async function warmFoxBearCoreCache() {
+  if (warmCachePromise) return warmCachePromise;
+  warmCachePromise = (async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const failures = [];
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < WARM_ASSETS.length) {
+        const asset = WARM_ASSETS[cursor++];
+        try {
+          const response = await fetch(asset, { cache: 'reload' });
+          if (!response || !response.ok) throw new Error(`HTTP ${response?.status || 0}`);
+          await cache.put(asset, response.clone());
+        } catch (error) {
+          failures.push({ asset, error: error?.message || String(error) });
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(6, Math.max(1, WARM_ASSETS.length)) }, worker));
+    return { cached: WARM_ASSETS.length - failures.length, failed: failures.length, failures };
+  })();
+  try {
+    return await warmCachePromise;
+  } finally {
+    warmCachePromise = null;
+  }
+}
+
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS)).catch(() => undefined));
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(INSTALL_ASSETS);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {
@@ -123,6 +179,13 @@ self.addEventListener('message', event => {
     const payload = { type: 'FOXBEAR_RELEASE_INFO', cacheName: CACHE_NAME, assetVersion: CACHE_NAME.replace(/^foxbear-shell-v/, '') };
     try { event.ports?.[0]?.postMessage?.(payload); } catch (error) {}
     try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}
+  }
+  if (event.data && event.data.type === 'FOXBEAR_WARM_CACHE') {
+    event.waitUntil(warmFoxBearCoreCache().then(result => {
+      const payload = { type: 'FOXBEAR_WARM_CACHE_DONE', cacheName: CACHE_NAME, ...result };
+      try { event.ports?.[0]?.postMessage?.(payload); } catch (error) {}
+      try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}
+    }));
   }
   if (event.data && event.data.type === 'FOXBEAR_PURGE_CACHES') {
     event.waitUntil(purgeFoxBearCaches().then(() => {

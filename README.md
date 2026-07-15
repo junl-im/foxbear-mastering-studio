@@ -1,19 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.17
+# FoxBear AI Mastering Studio Pro v1.5.18
 
-## Current patch: v1.5.17 Browser Contract Fix
+## Current patch: v1.5.18 CI Diagnostics and PWA Readiness
 
-v1.5.16에서 정적 서버 파이프 교착을 제거한 뒤 실제 브라우저 검증이 진행되면서 Wake Lock, Service Worker, 헤더 설정 위치의 독립적인 결함 세 가지가 드러났습니다.
+v1.5.17에서 서비스워커 등록 자체는 정상화되어 `sw.js`와 프리캐시 자산 요청까지 진행됐지만, 전체 자산 팩을 설치 단계에서 한 번에 캐시하면서 활성 준비 상태가 불필요하게 늦어질 수 있었습니다. 설치 단계는 핵심 셸만 캐시하고, 나머지 자산은 활성화 뒤 최대 6개 동시 요청으로 워밍하도록 분리했습니다.
 
-수동 Wake Lock 요청은 이제 사용자 의도를 먼저 arm하여 UI 동기화가 새 sentinel을 즉시 해제하지 않습니다. Trusted Types CSP 환경에서는 버전이 포함된 `sw.js` URL을 allowlist에 추가하고 `TrustedScriptURL`로 등록합니다. 설정 버튼에는 제작자 카드 이후의 flex order를 지정해 데스크톱과 모바일 모두 오른쪽 배치를 보장합니다.
+브라우저 실패 시에는 Playwright JSON 결과에서 실제 실패 테스트와 첫 오류를 다시 요약합니다. 정적 서버 요청 로그 전체는 아티팩트에 저장하고 Actions 화면에는 HTTP 상태 요약과 마지막 요청만 출력하므로, 수백 줄의 `200` 로그가 핵심 오류를 밀어내지 않습니다. Release/Overwrite ZIP은 개발 로그와 브라우저 결과 폴더를 포함하면 검증 단계에서 즉시 실패합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.17
-build: browser-contract-fix
-asset generation: 1.5.17-browser-contract-fix
-service worker cache: foxbear-shell-v1.5.17-browser-contract-fix
+product: 1.5.18
+build: ci-diagnostics-pwa-readiness
+asset generation: 1.5.18-ci-diagnostics-pwa-readiness
+service worker cache: foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness
 ```
+
+## Previous patch: v1.5.17 Browser Contract Fix
+
+수동 Wake Lock 요청 유지, Trusted Types 기반 서비스워커 등록, 헤더 설정 버튼 순서 수정은 그대로 포함됩니다.
 
 ## Previous patch: v1.5.16 E2E Static Server Pipe Deadlock Fix
 
