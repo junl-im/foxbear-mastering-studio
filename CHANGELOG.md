@@ -1,3 +1,14 @@
+# v1.5.12 - CI Runtime Readiness and Node 24 Actions
+
+- Fixed the Playwright Runtime Health race: browser QA now waits for `FoxBearRuntimeHealth.getReport().appReady` or an explicit boot failure instead of stopping as soon as the health object exists.
+- Added timeout diagnostics that include the latest Runtime Health report, making CI failures actionable without opening a trace first.
+- Added bounded service-worker readiness polling and changed PWA tests to wait for an active registration before update assertions.
+- Reworked the Wake Lock mock to create a fresh sentinel for every request and avoid stale release listeners across app activity.
+- Limited CI Playwright concurrency to two workers so mobile/PWA boot checks are not starved by six simultaneous audio-heavy contexts.
+- Restricted the console-error assertion to application errors while ignoring browser-only optional remote network noise already covered by Runtime Health resource checks.
+- Migrated `actions/checkout`, `actions/setup-node`, and `actions/upload-artifact` from v4 to Node 24-based v6 actions.
+- Added `qa/v1512_ci_runtime_readiness_smoke.js`; current static QA target is `189/189 PASS`.
+
 # v1.5.11 - AudioContext Lifecycle and CI Navigation Stability
 
 - Added `src/audio/audio-context-manager.js` to centralize Web Audio creation, resume, close, owner cleanup, pagehide cleanup, and diagnostics.

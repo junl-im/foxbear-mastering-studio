@@ -22,9 +22,9 @@ const changelog = read('CHANGELOG.md');
 
 assert(pkg.qaChecks.includes('node --check src/audio/reference-profile-service.js'), 'reference profile syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v150_engine_quality_gate_smoke.js'), 'v1.5.0 smoke missing from package QA');
-assert(index.includes('src/audio/reference-profile-service.js?v=1.5.11-audio-context-ci-stability'), 'reference profile service not loaded in index');
+assert(index.includes('src/audio/reference-profile-service.js?v=1.5.12-ci-runtime-readiness'), 'reference profile service not loaded in index');
 assert(index.indexOf('src/audio/reference-profile-service.js') < index.indexOf('src/audio/quality-gate-service.js'), 'reference profile service should load before quality gate');
-assert(sw.includes('./src/audio/reference-profile-service.js?v=1.5.11-audio-context-ci-stability'), 'reference profile service not precached');
+assert(sw.includes('./src/audio/reference-profile-service.js?v=1.5.12-ci-runtime-readiness'), 'reference profile service not precached');
 
 assert(gate.includes('QualityGate v2.1'), 'QualityGate v2.1 label missing');
 assert(gate.includes('shortTermOverTargetWarnDb'), 'short-term LUFS rules missing');

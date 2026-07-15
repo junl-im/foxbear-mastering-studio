@@ -35,7 +35,8 @@ function waitForServer(url, timeoutMs = 12000) {
   let exitCode = 0;
   try {
     await waitForServer(APP_URL);
-    const args = [playwrightCli, 'test', 'qa/browser'];
+    const forwardedArgs = process.argv.slice(2);
+    const args = [playwrightCli, 'test', 'qa/browser', ...forwardedArgs];
     const localBypass = ['127.0.0.1', 'localhost', '::1'];
     const mergeNoProxy = value => Array.from(new Set(String(value || '').split(',').map(item => item.trim()).filter(Boolean).concat(localBypass))).join(',');
     const childEnv = {

@@ -1,6 +1,19 @@
-# FoxBear AI Mastering Studio Pro v1.5.11
+# FoxBear AI Mastering Studio Pro v1.5.12
 
-## Current patch: v1.5.11 AudioContext Lifecycle and CI Navigation Stability
+## Current patch: v1.5.12 CI Runtime Readiness and Node 24 Actions
+
+Playwright now waits for the application-owned `FoxBearRuntimeHealth.appReady` state instead of treating creation of the health object as boot completion. Service-worker readiness is bounded and explicit, Wake Lock mocks use a fresh sentinel per request, and CI concurrency is capped at two browser workers. GitHub workflow JavaScript actions now use Node 24-based v6 releases.
+
+Release metadata:
+
+```text
+product: 1.5.12
+build: ci-runtime-readiness
+asset generation: 1.5.12-ci-runtime-readiness
+service worker cache: foxbear-shell-v1.5.12-ci-runtime-readiness
+```
+
+## Previous patch: v1.5.11 AudioContext Lifecycle and CI Navigation Stability
 
 Web Audio context ownership is centralized through `FoxBearAudioContextManager`. Realtime mastering preview, difference A/B, preview translation, spectrum visualization, and decode operations now expose purpose/state diagnostics and release contexts through a common lifecycle.
 

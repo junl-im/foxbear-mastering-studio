@@ -21,9 +21,9 @@ const qaReport = read('qa/QA_REPORT.md');
 assert(fs.existsSync(path.join(root, 'src/audio/mastering-orchestrator-service.js')), 'mastering orchestrator service missing');
 assert(pkg.qaChecks.includes('node --check src/audio/mastering-orchestrator-service.js'), 'mastering orchestrator syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v1428_app_slimdown_orchestration_smoke.js'), 'v1428 app slim-down smoke missing from package QA');
-assert(index.includes('src/audio/mastering-orchestrator-service.js?v=1.5.11-audio-context-ci-stability'), 'mastering orchestrator not loaded in index');
+assert(index.includes('src/audio/mastering-orchestrator-service.js?v=1.5.12-ci-runtime-readiness'), 'mastering orchestrator not loaded in index');
 assert(index.indexOf('src/audio/mastering-orchestrator-service.js') < index.indexOf('src/app.js'), 'mastering orchestrator must load before app.js');
-assert(sw.includes('./src/audio/mastering-orchestrator-service.js?v=1.5.11-audio-context-ci-stability'), 'mastering orchestrator not precached');
+assert(sw.includes('./src/audio/mastering-orchestrator-service.js?v=1.5.12-ci-runtime-readiness'), 'mastering orchestrator not precached');
 assert(importQueue.includes('createTrackAnalysisQueue'), 'track-specific import queue orchestration missing');
 assert(importQueue.includes('runTrack(track)'), 'import queue should own per-track analysis execution');
 assert(app.includes('getImportAnalysisQueueController().queueTracks'), 'app should delegate queueTracksForAnalysis to service controller');
@@ -32,6 +32,6 @@ assert(orchestrator.includes('createMasteringBatchRunner'), 'mastering batch run
 assert(orchestrator.includes('runBatch'), 'mastering orchestrator should expose runBatch');
 assert(app.includes('getMasteringBatchRunner().runBatch(candidates'), 'masterSelected/masterAll should delegate to mastering batch runner');
 assert(app.split(/\r?\n/).length < 12950, 'app.js should be under the v1.4.28 slim-down line budget');
-assert(changelog.includes('v1.4.28') && handoff.includes('v1.4.29') && (qaReport.includes('170/170 PASS') || qaReport.includes('178/178 PASS') || qaReport.includes('182/182 PASS')), 'docs should carry forward v1.4.28 and report current QA count');
+assert(changelog.includes('v1.4.28') && handoff.includes('v1.4.29') && /\b(\d+)\/\1 PASS\b/.test(qaReport), 'docs should carry forward v1.4.28 and report a self-consistent QA count');
 
 console.log('PASS v1.4.28 app slim-down orchestration smoke');

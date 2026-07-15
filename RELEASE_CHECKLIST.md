@@ -76,4 +76,12 @@ Inspect generated ZIP names and run `npm run version:check` once more after any 
 - Confirm the normal Playwright suite no longer contains `waitUntil: 'networkidle'`.
 - Confirm a failed Actions browser run uploads the `browser-qa-*` artifact with trace/error context.
 - Confirm `npm run qa:browser` reaches the application-owned Runtime Health readiness signal instead of waiting for Firebase/PWA network silence.
+## v1.5.12 CI readiness checks
+
+- Confirm `waitForRuntimeHealth()` waits for `report.appReady || report.bootFailed` and prints the latest report on timeout.
+- Confirm GitHub Actions runs no more than two Playwright workers and all 10 desktop/mobile tests finish.
+- Confirm the PWA suite waits for an active service-worker registration before `registration.update()`.
+- Confirm Wake Lock request/release passes with a fresh mocked sentinel.
+- Confirm workflow annotations no longer report Node 20 deprecation for checkout, setup-node, or upload-artifact.
+- On failure, inspect `browser-qa-*` and use the Runtime Health report embedded in the Playwright error before opening the trace.
 

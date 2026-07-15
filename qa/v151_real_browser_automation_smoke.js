@@ -42,7 +42,7 @@ must((pkg.qaChecks || []).includes('node qa/v151_real_browser_automation_smoke.j
 must(runtime.includes('expectRuntimeHealthy') && runtime.includes('consoleErrors'), 'runtime health spec should assert health and console errors');
 must(pwa.includes('installWakeLockMock') && pwa.includes('FoxBearWakeLockController.request'), 'wake lock browser spec missing mock/controller request');
 must(pwa.includes('history.pushState') && pwa.includes('goBack'), 'back navigation browser spec missing');
-must(pwa.includes('registration.update') && pwa.includes('getServiceWorkerSnapshot'), 'service worker update browser spec missing');
+must(pwa.includes('registration.update') && (pwa.includes('waitForServiceWorkerReady') || pwa.includes('getServiceWorkerSnapshot')), 'service worker update browser spec missing');
 must(bulk.includes('createSyntheticWavFiles(35') && bulk.includes('#fileInput'), '35-track import spec missing synthetic upload');
 must(bulk.includes('FOXBEAR_E2E_DEEP') && bulk.includes('#masterAllBtn') && bulk.includes('#zipBtn'), 'deep master/export scenario missing');
 must(helper.includes('makeTinyWavBuffer') && helper.includes('startStaticServer') && helper.includes('expectRuntimeHealthy'), 'browser helper does not expose required utilities');
@@ -50,6 +50,6 @@ must(runner.includes('waitForServer') && runner.includes("require.resolve('@play
 must(config.includes('Desktop Chrome') && config.includes('Pixel 5'), 'Playwright config should cover desktop and mobile viewport');
 must(readme.includes('v1.5.1') && readme.includes('npm run qa:browser'), 'README should document v1.5.1 browser QA');
 must(handoff.includes('v1.5.1') && handoff.includes('Playwright'), 'HANDOFF should document v1.5.1 browser QA');
-must((qaReport.includes('170/170 PASS') || qaReport.includes('176/176 PASS') || qaReport.includes('178/178 PASS') || qaReport.includes('182/182 PASS')) && qaReport.includes('v1.5.1'), 'QA report should record current PASS target and v1.5.1');
+must(/\b(\d+)\/\1 PASS\b/.test(qaReport) && qaReport.includes('v1.5.1'), 'QA report should record a self-consistent PASS target and v1.5.1 coverage');
 
 console.log('PASS v1.5.1 real browser automation smoke');

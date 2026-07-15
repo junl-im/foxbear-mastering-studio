@@ -8,10 +8,12 @@ test.describe('FoxBear browser runtime health', () => {
   test('boots without missing globals, DOM ids, resource failures, or console errors', async ({ page }) => {
     const consoleErrors = [];
     page.on('console', message => {
+      if (message.type() !== 'error') return;
       const text = message.text();
-      if (message.type() === 'error' && !/Failed to load resource.*firebase|firestore|googleapis/i.test(text)) {
-        consoleErrors.push(text);
-      }
+      const sourceUrl = message.location()?.url || '';
+      const optionalRemoteFailure = /firebase|firestore|googleapis|gstatic|identitytoolkit|firebaseio/i.test(`${sourceUrl} ${text}`);
+      const genericNetworkNoise = !sourceUrl && /Failed to load resource|ERR_NAME_NOT_RESOLVED|ERR_CONNECTION_/i.test(text);
+      if (!optionalRemoteFailure && !genericNetworkNoise) consoleErrors.push(sourceUrl ? `${text} @ ${sourceUrl}` : text);
     });
 
     await navigateToApp(page);

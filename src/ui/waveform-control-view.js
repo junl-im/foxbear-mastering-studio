@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.11-audio-context-ci-stability';
+  const VIEW_VERSION = '1.5.12-ci-runtime-readiness';
   const DEFAULT_BINS = 96;
 
   function getService() {

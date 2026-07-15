@@ -46,7 +46,7 @@ assert(runtimeConfig.includes('global.FoxBearBuildInfo') && app.includes('releas
 assert(sw.includes(`const CACHE_NAME = '${meta.cacheName}'`) && sw.includes('foxbear-shell-v1.5.6-export-progress-recovery'), 'service worker current/legacy cache metadata incomplete');
 assert(changelog.startsWith(`# v${meta.productVersion} -`), 'CHANGELOG latest release missing');
 assert((changelog.match(/^# Changelog$/gm) || []).length === 0, 'duplicate generic Changelog heading remains');
-assert(!changelog.includes('## v1.5.11 carry-forward anchors') && !changelog.includes('## v1.5.11 Carry-forward Documentation Anchors'), 'carry-forward anchor sections should not return');
+assert(!changelog.includes('## v1.5.12 carry-forward anchors') && !changelog.includes('## v1.5.12 Carry-forward Documentation Anchors'), 'carry-forward anchor sections should not return');
 assert(status.includes('Dock mini FFT remains removed') && status.includes('npm run check:release'), 'STATUS invariants incomplete');
 assert(versioning.includes('package.json') && versioning.includes('source of truth') && versioning.includes('Asset version'), 'VERSIONING semantics incomplete');
 assert(checklist.includes('npm ci') && checklist.includes('npm run check:release') && checklist.includes('npm run qa:browser:deep'), 'release checklist incomplete');
@@ -56,7 +56,9 @@ assert(pkg.scripts['check:release'] === 'npm run version:check && npm run check:
 assert(pkg.scripts['version:sync'] && pkg.scripts['version:check'], 'version sync/check scripts missing');
 assert(syncTool.includes('protectedLabels') && syncTool.includes('Historical QA names'), 'version sync should preserve historical QA labels');
 for (const workflow of [pages, fallback]) {
-  assert(workflow.includes('actions/setup-node@v4'), 'workflow missing Node setup');
+  assert(workflow.includes('actions/checkout@v6'), 'workflow missing Node 24 checkout action');
+  assert(workflow.includes('actions/setup-node@v6'), 'workflow missing Node 24 setup action');
+  assert(workflow.includes('actions/upload-artifact@v6'), 'workflow missing Node 24 artifact action');
   assert(workflow.includes('npm ci'), 'workflow missing reproducible dependency install');
   assert(workflow.includes('playwright install --with-deps chromium'), 'workflow missing Chromium dependency install');
   assert(workflow.includes('npm run check:release'), 'workflow missing release gate');
@@ -64,6 +66,6 @@ for (const workflow of [pages, fallback]) {
 for (const file of ['STATUS.md', 'VERSIONING.md', 'RELEASE_CHECKLIST.md', 'package-lock.json']) {
   assert(overwrite.includes(`copy_path "${file}"`), `overwrite package missing ${file}`);
 }
-assert((pkg.qaChecks || []).includes('node qa/v157_release_foundation_smoke.js'), 'v1.5.11 smoke missing from qaChecks');
+assert((pkg.qaChecks || []).includes('node qa/v157_release_foundation_smoke.js'), 'v1.5.12 smoke missing from qaChecks');
 
 console.log('PASS v1.5.7 release foundation smoke');

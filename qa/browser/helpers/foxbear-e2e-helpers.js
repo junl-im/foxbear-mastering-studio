@@ -71,41 +71,60 @@ async function navigateToApp(page, options = {}) {
 }
 
 async function waitForRuntimeHealth(page, options = {}) {
-  const timeout = Number(options.timeout || 20000);
-  await page.waitForFunction(() => Boolean(window.FoxBearRuntimeHealth && window.FoxBearRuntimeHealth.getReport), null, { timeout });
+  const timeout = Number(options.timeout || 30000);
+  try {
+    await page.waitForFunction(() => {
+      const health = window.FoxBearRuntimeHealth;
+      if (!health || typeof health.getReport !== 'function') return false;
+      const report = health.getReport();
+      return Boolean(report && (report.appReady || report.bootFailed));
+    }, null, { timeout });
+  } catch (error) {
+    const snapshot = await page.evaluate(() => {
+      try { return window.FoxBearRuntimeHealth?.getReport?.() || null; } catch (_) { return null; }
+    }).catch(() => null);
+    const detail = snapshot ? ` Last Runtime Health report: ${JSON.stringify(snapshot)}` : '';
+    throw new Error(`FoxBear app did not reach appReady within ${timeout}ms.${detail}`, { cause: error });
+  }
   return await page.evaluate(() => window.FoxBearRuntimeHealth.getReport());
 }
 
 async function expectRuntimeHealthy(expect, page, options = {}) {
   const report = await waitForRuntimeHealth(page, options);
-  expect(report.appReady, 'appReady').toBeTruthy();
-  expect(report.bootFailed, 'bootFailed').toBeFalsy();
-  expect(report.missingGlobals || [], 'missingGlobals').toEqual([]);
-  expect(report.missingDomIds || [], 'missingDomIds').toEqual([]);
-  expect(report.assetVersionMismatches || [], 'assetVersionMismatches').toEqual([]);
-  expect(report.resourceFailures || [], 'resourceFailures').toEqual([]);
-  expect(report.runtimeErrors || [], 'runtimeErrors').toEqual([]);
+  const detail = JSON.stringify(report);
+  expect(report.appReady, `appReady · ${detail}`).toBeTruthy();
+  expect(report.bootFailed, `bootFailed · ${detail}`).toBeFalsy();
+  expect(report.bootStalled, `bootStalled · ${detail}`).toBeFalsy();
+  expect(report.missingGlobals || [], `missingGlobals · ${detail}`).toEqual([]);
+  expect(report.missingDomIds || [], `missingDomIds · ${detail}`).toEqual([]);
+  expect(report.assetVersionMismatches || [], `assetVersionMismatches · ${detail}`).toEqual([]);
+  expect(report.resourceFailures || [], `resourceFailures · ${detail}`).toEqual([]);
+  expect(report.runtimeErrors || [], `runtimeErrors · ${detail}`).toEqual([]);
   return report;
 }
 
 async function installWakeLockMock(page) {
   await page.addInitScript(() => {
-    const listeners = new Set();
-    const sentinel = {
-      released: false,
-      type: 'screen',
-      addEventListener(type, listener) {
-        if (type === 'release' && typeof listener === 'function') listeners.add(listener);
-      },
-      removeEventListener(type, listener) {
-        if (type === 'release') listeners.delete(listener);
-      },
-      async release() {
-        this.released = true;
-        listeners.forEach(listener => {
-          try { listener.call(this, { type: 'release' }); } catch (_) {}
-        });
-      }
+    const createSentinel = type => {
+      const listeners = new Set();
+      return {
+        released: false,
+        type,
+        addEventListener(eventType, listener) {
+          if (eventType === 'release' && typeof listener === 'function') listeners.add(listener);
+        },
+        removeEventListener(eventType, listener) {
+          if (eventType === 'release') listeners.delete(listener);
+        },
+        async release() {
+          if (this.released) return;
+          this.released = true;
+          listeners.forEach(listener => {
+            try { listener.call(this, { type: 'release' }); } catch (_) {}
+          });
+          listeners.clear();
+        }
+      };
     };
     Object.defineProperty(navigator, 'wakeLock', {
       configurable: true,
@@ -113,6 +132,8 @@ async function installWakeLockMock(page) {
         async request(type) {
           window.__foxbearWakeLockRequests = (window.__foxbearWakeLockRequests || 0) + 1;
           window.__foxbearWakeLockLastType = type;
+          const sentinel = createSentinel(type);
+          window.__foxbearWakeLockLastSentinel = sentinel;
           return sentinel;
         }
       }
@@ -120,22 +141,40 @@ async function installWakeLockMock(page) {
   });
 }
 
-async function getServiceWorkerSnapshot(page) {
-  return await page.evaluate(async () => {
+async function getServiceWorkerSnapshot(page, options = {}) {
+  const readyTimeout = Number(options.readyTimeout || 12000);
+  return await page.evaluate(async timeout => {
     if (!('serviceWorker' in navigator)) return { supported: false };
-    const registration = await navigator.serviceWorker.ready.catch(() => null);
+    const registration = await Promise.race([
+      navigator.serviceWorker.ready.catch(() => null),
+      new Promise(resolve => setTimeout(() => resolve(null), timeout))
+    ]);
     const registrations = await navigator.serviceWorker.getRegistrations().catch(() => []);
     return {
       supported: true,
       ready: Boolean(registration),
       controller: Boolean(navigator.serviceWorker.controller),
       registrations: registrations.length,
-      scope: registration?.scope || null,
-      activeScript: registration?.active?.scriptURL || null,
-      waitingScript: registration?.waiting?.scriptURL || null,
-      installingScript: registration?.installing?.scriptURL || null
+      scope: registration?.scope || registrations[0]?.scope || null,
+      activeScript: registration?.active?.scriptURL || registrations[0]?.active?.scriptURL || null,
+      waitingScript: registration?.waiting?.scriptURL || registrations[0]?.waiting?.scriptURL || null,
+      installingScript: registration?.installing?.scriptURL || registrations[0]?.installing?.scriptURL || null
     };
-  });
+  }, readyTimeout);
+}
+
+async function waitForServiceWorkerReady(page, options = {}) {
+  const timeout = Number(options.timeout || 30000);
+  await page.waitForFunction(async () => {
+    if (!('serviceWorker' in navigator)) return false;
+    const registrations = await navigator.serviceWorker.getRegistrations().catch(() => []);
+    return registrations.some(registration => Boolean(registration.active || registration.waiting || registration.installing));
+  }, null, { timeout });
+  const snapshot = await getServiceWorkerSnapshot(page, { readyTimeout: Math.min(timeout, 12000) });
+  if (!snapshot.ready) {
+    throw new Error(`FoxBear service worker did not become ready within ${timeout}ms: ${JSON.stringify(snapshot)}`);
+  }
+  return snapshot;
 }
 
 function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DEFAULT_BIND_HOST } = {}) {
@@ -166,5 +205,6 @@ module.exports = {
   navigateToApp,
   removeDirSafe,
   startStaticServer,
-  waitForRuntimeHealth
+  waitForRuntimeHealth,
+  waitForServiceWorkerReady
 };

@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { expectRuntimeHealthy, getServiceWorkerSnapshot, installWakeLockMock, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
+const { expectRuntimeHealthy, installWakeLockMock, navigateToApp, waitForServiceWorkerReady } = require('./helpers/foxbear-e2e-helpers');
 
 test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () => {
   test.beforeEach(async ({ page }) => {
@@ -42,13 +42,16 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
     await navigateToApp(page);
     await expectRuntimeHealthy(expect, page);
 
-    const before = await getServiceWorkerSnapshot(page);
+    const before = await waitForServiceWorkerReady(page);
     expect(before.supported).toBeTruthy();
     expect(before.ready).toBeTruthy();
     expect(before.registrations).toBeGreaterThan(0);
 
     const updated = await page.evaluate(async () => {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('service-worker-ready-timeout')), 12000))
+      ]);
       await registration.update();
       return {
         scope: registration.scope,

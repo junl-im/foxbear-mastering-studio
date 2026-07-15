@@ -1,4 +1,31 @@
-# Handoff - v1.5.11 AudioContext Lifecycle and CI Navigation Stability
+# Handoff - v1.5.12 CI Runtime Readiness and Node 24 Actions
+
+## Current patch
+
+The v1.5.11 browser gate still raced because `waitForRuntimeHealth()` only waited for the Runtime Health object, not for `appReady`. v1.5.12 waits for the application-owned ready state, reports the last health snapshot on timeout, waits explicitly for an active service worker, creates fresh Wake Lock sentinels, and caps CI Playwright workers at two.
+
+GitHub workflow actions were migrated to `actions/checkout@v6`, `actions/setup-node@v6`, and `actions/upload-artifact@v6` for Node 24 runtime compatibility.
+
+```text
+product: 1.5.12
+build: ci-runtime-readiness
+asset generation: 1.5.12-ci-runtime-readiness
+service worker cache: foxbear-shell-v1.5.12-ci-runtime-readiness
+```
+
+Verification:
+
+```bash
+npm ci
+npm run version:check
+npm run check
+npm run qa:browser
+```
+
+Expected static result: `189/189 PASS`. Browser PASS must be confirmed by GitHub Actions.
+
+## Previous handoff: v1.5.11 AudioContext Lifecycle and CI Navigation Stability
+
 
 ## What changed
 

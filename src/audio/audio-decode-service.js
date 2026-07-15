@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.11
+// FoxBear audio decode service - v1.5.12
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.11-audio-context-ci-stability';
+    const SERVICE_VERSION = '1.5.12-ci-runtime-readiness';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 
