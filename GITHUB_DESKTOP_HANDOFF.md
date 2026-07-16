@@ -12,7 +12,7 @@ FoxBear 패치는 **GitHub Desktop을 기본 Git 클라이언트로 사용하는
 권장 브랜치 이름:
 
 ```text
-patch/v1.5.25
+patch/v1.5.26
 ```
 
 ## 누적 덮어쓰기 ZIP 적용
@@ -62,7 +62,7 @@ npm run check
 권장 커밋 메시지:
 
 ```text
-Apply FoxBear v1.5.25 handoff patch
+Apply FoxBear v1.5.26 handoff patch
 ```
 
 ## 실패 시 먼저 볼 것

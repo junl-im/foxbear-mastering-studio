@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.25-e2e-preview-stability';
+  const VIEW_VERSION = '1.5.26-engraved-command-header';
   const DEFAULT_BINS = 96;
 
   function getService() {

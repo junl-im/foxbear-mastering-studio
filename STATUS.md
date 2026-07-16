@@ -33,13 +33,14 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.25`
-- Build ID: `e2e-preview-stability`
-- Asset version: `1.5.25-e2e-preview-stability`
-- Service worker cache: `foxbear-shell-v1.5.25-e2e-preview-stability`
-- Static QA target: `207/207 PASS`
+- Product version: `1.5.26`
+- Build ID: `engraved-command-header`
+- Asset version: `1.5.26-engraved-command-header`
+- Service worker cache: `foxbear-shell-v1.5.26-engraved-command-header`
+- Static QA target: `208/208 PASS`
 - Browser QA target: `12/12 PASS` on local system Chromium plus the GitHub Actions gate
-- Header metadata and designer signature remain one-line, borderless, and independent from Settings width.
+- Header command metadata and designer signature remain one-line, borderless, engraved, and independent from Settings width.
+- The visible header order remains `BUILD/version → mobile/PC compatibility → AI MUSIC MASTERING STUDIO → DESIGNED BY → icon-only Settings`.
 - Preview translation changes reuse one active media element and crossfade persistent studio/phone/laptop/mono routes.
 
 

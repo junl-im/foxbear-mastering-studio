@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.25 - header-mounted settings view builder
+// FoxBear AI Mastering Studio Pro v1.5.26 - header-mounted settings view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -70,7 +70,7 @@
         const toggle = createButton({
             id: 'mobileNativeQuickToggle',
             className: 'mobile-native-quick-toggle',
-            text: '⚙️',
+            text: '⚙',
             title: '설정 열기',
             ariaLabel: '앱 설정 열기',
             ariaExpanded: false,

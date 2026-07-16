@@ -1,18 +1,18 @@
-# FoxBear AI Mastering Studio Pro v1.5.25
+# FoxBear AI Mastering Studio Pro v1.5.26
 
-## Current patch: v1.5.25 Deterministic Preview E2E Stability
+## Current patch: v1.5.26 Engraved Command Header
 
-프리뷰 전환 브라우저 테스트의 남은 경쟁 조건을 제거했습니다. 숨겨진 선택 팝업은 부모 backdrop까지 확인해 차단 모달로 오인하지 않으며, 파일 분석 큐와 렌더 스케줄러가 완전히 안정된 뒤 데스크톱 또는 모바일의 실제 재생 버튼을 클릭합니다.
+상단 메타데이터 영역을 참고 이미지처럼 얇고 정돈된 커맨드 바로 다시 구성했습니다. 왼쪽은 `BUILD · v1.5.26 · 모바일 · PC 호환 · AI MUSIC MASTERING STUDIO`, 오른쪽은 `DESIGNED BY 곰같은여우`와 아이콘 전용 설정 버튼입니다.
 
-전환 중 재생 유지 검사는 브라우저의 `play`/`pause` 이벤트 발생 횟수가 아니라 전환 코드가 `audio.play()` 또는 `audio.pause()`를 다시 호출했는지를 직접 추적합니다. 12초 테스트 오디오를 사용해 병렬 CI 부하에서 자연 종료가 섞이지 않도록 했습니다.
+버전 정보 버튼과 설정 패널 기능은 그대로 유지하면서 카드형 배경, 테두리, `with AI`, `설정` 텍스트를 제거했습니다. 별도의 최종 CSS 레이어로 분리해 과거 반응형 규칙이 제작자 문구를 아래로 밀거나 모바일에서 줄바꿈시키지 못하도록 했습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.25
-build: e2e-preview-stability
-asset generation: 1.5.25-e2e-preview-stability
-service worker cache: foxbear-shell-v1.5.25-e2e-preview-stability
+product: 1.5.26
+build: engraved-command-header
+asset generation: 1.5.26-engraved-command-header
+service worker cache: foxbear-shell-v1.5.26-engraved-command-header
 ```
 
 ## Previous patch: v1.5.24 Responsive Preview Control and Visible Dialog Readiness

@@ -54,7 +54,7 @@ function replaceAll(text, from, to) {
 function canonicalizeRuntimeMetadata(text) {
   return String(text)
     .replace(/FoxBear Mastering PRO v\d+\.\d+\.\d+/g, `FoxBear Mastering PRO v${meta.productVersion}`)
-    .replace(/버전 정보 v\d+\.\d+\.\d+/g, `버전 정보 v${meta.productVersion}`)
+    .replace(/(?:버전 정보|BUILD) v\d+\.\d+\.\d+/g, `BUILD v${meta.productVersion}`)
     .replace(/\bPro v\d+\.\d+\.\d+\b/g, meta.appVersion)
     .replace(/data-build="\d+\.\d+\.\d+"/g, `data-build="${meta.productVersion}"`)
     .replace(/\?v=\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*/g, `?v=${meta.assetVersion}`)
@@ -136,7 +136,11 @@ function sync() {
       .map(match => match[1])
       .filter(name => name && name !== meta.cacheName);
     if (previous.cacheName && previous.cacheName !== meta.cacheName) names.push(previous.cacheName);
-    const requiredLegacyNames = ['foxbear-shell-v1.5.4-boot-sri-recovery'];
+    const requiredLegacyNames = [
+      'foxbear-shell-v1.5.4-boot-sri-recovery',
+      'foxbear-shell-v1.5.5-update-safety',
+      'foxbear-shell-v1.5.6-export-progress-recovery'
+    ];
     const recentNames = [...new Set(names.filter(name => !requiredLegacyNames.includes(name)))].slice(-20);
     const uniqueNames = [...requiredLegacyNames, ...recentNames];
     sw = sw.replace(legacyMatch[0], `const LEGACY_CACHE_NAMES = [${uniqueNames.map(name => `'${name}'`).join(', ')}];`);

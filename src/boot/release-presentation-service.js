@@ -65,7 +65,7 @@
             description.setAttribute('content', expectedDescription);
         }
 
-        setText('[data-release-label="version-button"]', `버전 정보 ${VERSION_LABEL}`, mismatches);
+        setText('[data-release-label="version-button"]', VERSION_LABEL, mismatches);
         setText('[data-release-label="program-eyebrow"]', `FoxBear Mastering PRO ${VERSION_LABEL}`, mismatches);
         setText('[data-release-label="version-only"]', VERSION_LABEL, mismatches);
         setText('[data-release-label="app-version"]', APP_VERSION, mismatches);

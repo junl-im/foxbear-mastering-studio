@@ -31,7 +31,9 @@ def update_tag(match: re.Match[str]) -> str:
     integrity = f'integrity="{sri_for(asset_path)}"'
     if INTEGRITY_RE.search(tag):
         return INTEGRITY_RE.sub(integrity, tag)
-    return tag[:-1].rstrip() + f' {integrity}>'
+    self_closing = tag.rstrip().endswith('/>')
+    base = tag.rstrip()[:-2].rstrip() if self_closing else tag.rstrip()[:-1].rstrip()
+    return f"{base} {integrity}{' />' if self_closing else '>'}"
 
 
 def main() -> int:

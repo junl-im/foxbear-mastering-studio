@@ -18,7 +18,7 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(view.includes("text: '⚙️'") && view.includes("panelTitle.textContent = '설정'"), 'mobile quick toggle should become a gear settings panel');
+assert(view.includes("text: '⚙'") && view.includes("panelTitle.textContent = '설정'"), 'mobile quick toggle should remain an icon-only gear settings panel');
 assert(view.includes("panel.setAttribute('aria-label', 'FoxBear 모바일 설정 패널')"), 'settings panel should have settings aria label');
 assert(!view.includes("['original'") && !view.includes("['phone'") && !view.includes("['mono'"), 'settings panel should remove Dock-duplicated original/phone/mono controls');
 assert(view.includes("['install', '📲', '바로가기 추가'") && view.includes("['external-browser', '🌐', '외부 브라우저로 열기'") && view.includes("['smart-performance', '🧠', '성능가드'"), 'settings panel should include shortcut, external browser, and real option settings');
@@ -36,8 +36,8 @@ assert(css.includes('.mobile-native-setting-grid') && css.includes('.mobile-nati
 assert(css.includes("content: '⚙️'"), 'settings panel heading should use gear visual');
 assert(css.includes('data-state="on"') && css.includes('data-state="off"'), 'CSS should style ON/OFF states');
 
-assert(index.includes('1.5.25-e2e-preview-stability'), 'index asset query should use Stage16 cache key');
-assert(sw.includes('foxbear-shell-v1.5.25-e2e-preview-stability'), 'service worker cache should use Stage16 cache key');
+assert(index.includes('1.5.26-engraved-command-header'), 'index asset query should use Stage16 cache key');
+assert(sw.includes('foxbear-shell-v1.5.26-engraved-command-header'), 'service worker cache should use Stage16 cache key');
 assert(pkg.qaChecks.includes('node qa/stage16_mobile_settings_panel_smoke.js'), 'package QA should include Stage16 settings smoke');
 
 console.log('PASS stage16 mobile settings panel smoke');

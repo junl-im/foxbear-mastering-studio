@@ -29,7 +29,7 @@ assert(pkg.version === meta.productVersion, 'package version should match releas
 assert(manifest.version === meta.productVersion, 'manifest version should match package version');
 assert(html.includes(`<title>FoxBear Mastering PRO v${meta.productVersion}</title>`), 'title should show product version');
 assert(html.includes(`data-build="${meta.productVersion}"`), 'body data-build should match product version');
-assert(html.includes(`버전 정보 v${meta.productVersion}`), 'visible version button should match product version');
+assert(html.includes(`<span class="brand-command-label">BUILD</span>`) && html.includes(`data-release-label="version-button">v${meta.productVersion}</strong>`), 'visible build version should match product version');
 assert(html.includes(`FoxBear Mastering PRO v${meta.productVersion}`), 'program info should match product version');
 assert(app.includes(`const APP_VERSION = '${meta.appVersion}'`), 'app version constant should match product version');
 assert(config.includes(`'${meta.assetVersion}'`) && config.includes('global.FoxBearBuildInfo'), 'runtime config should consume synchronized asset metadata');
@@ -37,7 +37,7 @@ assert(health.includes(`'${meta.assetVersion}'`) && health.includes('global.FoxB
 assert(buildInfo === renderBuildInfo(meta), 'generated build-info should match package metadata');
 assert(sw.includes(`const CACHE_NAME = '${meta.cacheName}'`), 'service worker cache should match release metadata');
 assert(app.includes(`./sw.js?v=${meta.assetVersion}&h=${meta.serviceWorkerRevision}`), 'service worker registration should match release metadata');
-['src/config/build-info.js', 'src/app.js', 'src/boot/runtime-health.js', 'assets/css/mobile-native.css', 'manifest.webmanifest'].forEach(asset => {
+['src/config/build-info.js', 'src/app.js', 'src/boot/runtime-health.js', 'assets/css/mobile-native.css', 'assets/css/header-command-bar.css', 'manifest.webmanifest'].forEach(asset => {
   assert(html.includes(`${asset}?v=${meta.assetVersion}`), `${asset} should use current asset version in index.html`);
   assert(sw.includes(`./${asset}?v=${meta.assetVersion}`), `${asset} should use current asset version in sw.js`);
 });

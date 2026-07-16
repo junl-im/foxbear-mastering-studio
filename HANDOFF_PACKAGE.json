@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.25",
-  "buildId": "e2e-preview-stability",
+  "productVersion": "1.5.26",
+  "buildId": "engraved-command-header",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

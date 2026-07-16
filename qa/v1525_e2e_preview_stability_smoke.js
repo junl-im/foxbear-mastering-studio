@@ -27,8 +27,10 @@ assert(spec.includes('probe.playCalls += 1') && spec.includes('probe.pauseCalls 
   'routing must track explicit media method calls rather than browser event timing');
 assert(spec.includes('routing called audio.pause()') && spec.includes('routing called audio.play()'),
   'routing failures must identify the exact forbidden media method');
-assert(sync.includes("requiredLegacyNames = ['foxbear-shell-v1.5.4-boot-sri-recovery']"),
-  'release sync must permanently retain the boot-SRI recovery cache generation');
+assert(sync.includes("'foxbear-shell-v1.5.4-boot-sri-recovery'")
+  && sync.includes("'foxbear-shell-v1.5.5-update-safety'")
+  && sync.includes("'foxbear-shell-v1.5.6-export-progress-recovery'"),
+  'release sync must permanently retain foundational recovery cache generations');
 assert(!spec.includes('expect(result.pauseCount).toBe(0)') && !spec.includes('expect(result.playCount).toBe(0)'),
   'flaky media event-count assertions must not return');
 assert(runner.includes('function hasExplicitTestTarget(args = [])')

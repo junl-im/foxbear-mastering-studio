@@ -62,7 +62,7 @@ assert(!studioCss.includes('.download-options-open { overflow: hidden; }'), 'dow
 assert(!studioCss.includes('.download-options-panel-v2 {'), 'download dialog v2 base panel rule still lives in studio.css');
 
 ['assets/css/download-dialog.css', 'src/config/app-runtime-config.js', 'src/ui/mobile-native-view.js', 'src/security/site-guards.js'].forEach(asset => {
-  assert(sw.includes(`./${asset}?v=1.5.25-e2e-preview-stability`), `${asset} missing from service worker CORE_ASSETS`);
+  assert(sw.includes(`./${asset}?v=1.5.26-engraved-command-header`), `${asset} missing from service worker CORE_ASSETS`);
 });
 
 console.log('PASS module split stage3 smoke');

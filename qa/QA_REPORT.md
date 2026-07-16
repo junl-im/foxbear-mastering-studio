@@ -1,3 +1,21 @@
+# FoxBear QA Report - v1.5.26
+
+Current release gate target: metadata/handoff checks, 208 static checks, and 12 desktop/mobile Playwright tests.
+
+## v1.5.26 coverage
+
+- Verifies the command header uses the requested left/right text order.
+- Verifies the build version token remains runtime-bound without destroying the nested header markup.
+- Verifies the designer signature is `DESIGNED BY 곰같은여우` with no visible `with AI` suffix.
+- Verifies the Settings trigger contains only one gear glyph and no pseudo-element label.
+- Verifies the final header CSS is SRI-protected and included in both install and warm service-worker caches.
+- Browser QA measures one-line geometry, ordering, overflow, transparent surfaces, and Settings-panel placement on desktop and mobile.
+
+```text
+208/208 PASS
+Browser QA: desktop 6/6 PASS, mobile 6/6 PASS on local Chromium
+```
+
 # FoxBear QA Report - v1.5.25
 
 Current release gate target: metadata/handoff checks, 207 static checks, and 12 desktop/mobile Playwright tests.

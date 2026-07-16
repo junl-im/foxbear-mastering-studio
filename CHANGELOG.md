@@ -1,3 +1,11 @@
+# v1.5.26 - Engraved Command Header
+
+- Rebuilt the top metadata row as a compact command bar: `BUILD`, runtime version, `모바일 · PC 호환`, and `AI MUSIC MASTERING STUDIO` on the left; `DESIGNED BY 곰같은여우` and an icon-only Settings control on the right.
+- Removed the legacy card/badge treatment and the `with AI` suffix from the visible designer signature.
+- Added a dedicated final CSS layer so historical mobile/studio rules cannot push the designer signature or Settings control onto another line.
+- Added responsive spacing, engraved typography, tiny device glyphs, and a subtle divider while preserving the program-info and Settings behaviors.
+- Added `qa/v1526_engraved_command_header_smoke.js`; static QA is `208/208 PASS` and actual Chromium browser QA is desktop `6/6` plus mobile `6/6`.
+
 # v1.5.25 - Deterministic Preview E2E Stability
 
 - Fixed rendered-dialog detection to walk the full ancestor chain, so hidden select-popup panels inside an `aria-hidden`/transparent backdrop are not misclassified as blockers.

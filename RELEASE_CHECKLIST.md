@@ -1,4 +1,4 @@
-## v1.5.25 deterministic preview E2E checks
+## v1.5.26 engraved command header checks
 
 - [ ] Import queue reports `active: 0` and `pending: 0` before preview playback.
 - [ ] Render scheduler reports neither pending nor in-render work before playback.

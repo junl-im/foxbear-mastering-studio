@@ -51,53 +51,91 @@ test.describe('FoxBear browser runtime health', () => {
     expect(report.version).toContain(RELEASE.assetVersion);
     const releasePresentation = await page.evaluate(() => window.FoxBearReleasePresentation?.getReport?.());
     expect(releasePresentation?.productVersion).toBe(RELEASE.productVersion);
-    await expect(page.locator('[data-release-label="version-button"]')).toHaveText(`버전 정보 v${RELEASE.productVersion}`);
+    await expect(page.locator('[data-release-label="version-button"]')).toHaveText(`v${RELEASE.productVersion}`);
     await expect(page.locator('[data-release-label="program-eyebrow"]')).toHaveText(`FoxBear Mastering PRO v${RELEASE.productVersion}`);
 
     const headerSettings = await page.evaluate(() => {
-      const topLine = document.querySelector('.brand-topline');
-      const kicker = document.querySelector('.brand-topline .brand-kicker');
-      const badges = Array.from(kicker?.querySelectorAll('.badge') || []);
+      const topLine = document.querySelector('.brand-command-bar');
+      const kicker = document.querySelector('.brand-command-left');
+      const build = document.querySelector('.brand-command-build');
+      const device = document.querySelector('.brand-command-device');
+      const studio = document.querySelector('.brand-command-studio');
       const designer = document.querySelector('.brand-right-actions .designer-mini');
+      const actions = document.querySelector('.brand-right-actions');
       const host = document.getElementById('headerSettingsHost');
       const toggle = document.getElementById('mobileNativeQuickToggle');
-      if (!topLine || !kicker || badges.length < 2 || !designer || !host || !toggle) return null;
-      const topLineRect = topLine.getBoundingClientRect();
-      const kickerRect = kicker.getBoundingClientRect();
-      const designerRect = designer.getBoundingClientRect();
-      const toggleRect = toggle.getBoundingClientRect();
+      if (!topLine || !kicker || !build || !device || !studio || !designer || !actions || !host || !toggle) return null;
+      const rect = node => node.getBoundingClientRect();
+      const topLineRect = rect(topLine);
+      const kickerRect = rect(kicker);
+      const buildRect = rect(build);
+      const deviceRect = rect(device);
+      const studioRect = rect(studio);
+      const actionsRect = rect(actions);
+      const designerRect = rect(designer);
+      const toggleRect = rect(toggle);
       const designerStyle = getComputedStyle(designer);
-      const centers = [kickerRect, designerRect, toggleRect].map(rect => (rect.top + rect.bottom) / 2);
+      const buildStyle = getComputedStyle(build);
+      const toggleStyle = getComputedStyle(toggle);
+      const afterStyle = getComputedStyle(toggle, '::after');
+      const centers = [buildRect, deviceRect, studioRect, designerRect, toggleRect].map(box => (box.top + box.bottom) / 2);
       return {
         hostParentClass: host.parentElement?.className || '',
         placement: toggle.parentElement?.dataset?.placement || '',
+        buildText: build.textContent.replace(/\s+/g, ' ').trim(),
+        deviceText: device.textContent.replace(/\s+/g, ' ').trim(),
+        studioText: studio.textContent.trim(),
+        designerText: designer.textContent.replace(/\s+/g, ' ').trim(),
+        toggleText: toggle.textContent.trim(),
+        toggleAfter: afterStyle.content,
+        buildRight: buildRect.right,
+        deviceLeft: deviceRect.left,
+        deviceRight: deviceRect.right,
+        studioLeft: studioRect.left,
+        studioRight: studioRect.right,
+        actionsLeft: actionsRect.left,
         designerRight: designerRect.right,
         toggleLeft: toggleRect.left,
         toggleRight: toggleRect.right,
+        toggleWidth: toggleRect.width,
         viewportWidth: window.innerWidth,
         compact: window.innerWidth <= 720,
         topLineHeight: topLineRect.height,
         centerSpread: Math.max(...centers) - Math.min(...centers),
         kickerOverflow: Math.max(0, kicker.scrollWidth - kicker.clientWidth),
-        badgeTopSpread: Math.max(...badges.map(node => node.getBoundingClientRect().top)) - Math.min(...badges.map(node => node.getBoundingClientRect().top)),
+        rowOverlap: Math.max(0, kickerRect.right - actionsRect.left),
+        studioVisibleWidth: studioRect.width,
         designerBorder: [designerStyle.borderTopWidth, designerStyle.borderRightWidth, designerStyle.borderBottomWidth, designerStyle.borderLeftWidth],
         designerBackground: designerStyle.backgroundColor,
-        designerWhiteSpace: designerStyle.whiteSpace
+        buildBackground: buildStyle.backgroundColor,
+        designerWhiteSpace: designerStyle.whiteSpace,
+        toggleBackground: toggleStyle.backgroundColor
       };
     });
     expect(headerSettings).not.toBeNull();
     expect(headerSettings.hostParentClass).toContain('brand-right-actions');
     expect(headerSettings.placement).toBe('header');
+    expect(headerSettings.buildText).toBe(`BUILD v${RELEASE.productVersion}`);
+    expect(headerSettings.deviceText).toBe('모바일 · PC 호환');
+    expect(headerSettings.studioText).toBe('AI MUSIC MASTERING STUDIO');
+    expect(headerSettings.designerText).toBe('DESIGNED BY 곰같은여우');
+    expect(headerSettings.toggleText).toBe('⚙');
+    expect(['none', 'normal', '""']).toContain(headerSettings.toggleAfter);
+    expect(headerSettings.buildRight).toBeLessThanOrEqual(headerSettings.deviceLeft + 1);
+    expect(headerSettings.deviceRight).toBeLessThanOrEqual(headerSettings.studioLeft + 1);
+    expect(headerSettings.studioRight).toBeLessThanOrEqual(headerSettings.actionsLeft + 1);
     expect(headerSettings.toggleLeft).toBeGreaterThanOrEqual(headerSettings.designerRight - 2);
     expect(headerSettings.toggleRight).toBeLessThanOrEqual(headerSettings.viewportWidth + 1);
-    expect(headerSettings.topLineHeight).toBeLessThanOrEqual(headerSettings.compact ? 40 : 44);
+    expect(headerSettings.toggleWidth).toBeLessThanOrEqual(30);
+    expect(headerSettings.topLineHeight).toBeLessThanOrEqual(headerSettings.compact ? 38 : 42);
     expect(headerSettings.centerSpread).toBeLessThanOrEqual(8);
     expect(headerSettings.kickerOverflow).toBeLessThanOrEqual(2);
-    expect(headerSettings.badgeTopSpread).toBeLessThanOrEqual(2);
+    expect(headerSettings.rowOverlap).toBeLessThanOrEqual(1);
+    expect(headerSettings.studioVisibleWidth).toBeGreaterThan(12);
     expect(headerSettings.designerBorder).toEqual(['0px', '0px', '0px', '0px']);
     expect(headerSettings.designerBackground).toBe('rgba(0, 0, 0, 0)');
+    expect(headerSettings.buildBackground).toBe('rgba(0, 0, 0, 0)');
     expect(headerSettings.designerWhiteSpace).toBe('nowrap');
-
     await page.locator('#mobileNativeQuickToggle').click();
     await expect(page.locator('#mobileNativePanel')).toBeVisible();
     const panelBounds = await page.locator('#mobileNativePanel').boundingBox();

@@ -1,25 +1,25 @@
-# Handoff - v1.5.25
+# Handoff - v1.5.26
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.25 deterministic preview E2E stability
+## Current patch: v1.5.26 engraved command header
 
 Changes:
 
-- Classifies blocking dialogs using the complete rendered ancestor chain.
-- Waits for import queue, render scheduler, media metadata, and control layout stability before playback.
-- Tracks explicit `audio.play()` and `audio.pause()` calls during studio/phone/laptop/mono routing.
-- Uses a 12-second synthetic preview fixture to avoid natural-end timing noise.
-- Allows targeted browser-spec reruns without silently executing the full suite.
-- Locally verified desktop 6/6 and mobile 6/6 Chromium browser tests.
+- Replaces the badge/card header with a single engraved command row.
+- Shows `BUILD`, the runtime-bound version, `모바일 · PC 호환`, and `AI MUSIC MASTERING STUDIO` on the left.
+- Shows `DESIGNED BY 곰같은여우` and an icon-only Settings trigger on the right.
+- Preserves program-information click behavior, administrator trigger behavior, and the body-level Settings panel portal.
+- Adds a final isolated CSS layer and desktop/mobile geometry assertions.
+- Verified the final release in actual Chromium: desktop 6/6 and mobile PWA 6/6.
 
 ```text
-product: 1.5.25
-build: e2e-preview-stability
-asset generation: 1.5.25-e2e-preview-stability
-service worker cache: foxbear-shell-v1.5.25-e2e-preview-stability
+product: 1.5.26
+build: engraved-command-header
+asset generation: 1.5.26-engraved-command-header
+service worker cache: foxbear-shell-v1.5.26-engraved-command-header
 ```
 
 Verification:

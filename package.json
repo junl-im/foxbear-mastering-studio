@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.25",
+  "version": "1.5.26",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.25-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.25-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.26-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.26-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite"
   },
   "qaChecks": [
@@ -229,15 +229,16 @@
     "node qa/v1522_header_preview_routing_smoke.js",
     "node qa/v1523_e2e_preview_readiness_smoke.js",
     "node qa/v1524_e2e_responsive_preview_control_smoke.js",
-    "node qa/v1525_e2e_preview_stability_smoke.js"
+    "node qa/v1525_e2e_preview_stability_smoke.js",
+    "node qa/v1526_engraved_command_header_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "e2e-preview-stability",
-    "assetVersion": "1.5.25-e2e-preview-stability",
-    "cacheName": "foxbear-shell-v1.5.25-e2e-preview-stability",
-    "bootRevision": "boot-sri-v1525",
-    "updateSafetyRevision": "update-safety-v1525",
-    "serviceWorkerRevision": "sw-v1525"
+    "buildId": "engraved-command-header",
+    "assetVersion": "1.5.26-engraved-command-header",
+    "cacheName": "foxbear-shell-v1.5.26-engraved-command-header",
+    "bootRevision": "boot-sri-v1526",
+    "updateSafetyRevision": "update-safety-v1526",
+    "serviceWorkerRevision": "sw-v1526"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

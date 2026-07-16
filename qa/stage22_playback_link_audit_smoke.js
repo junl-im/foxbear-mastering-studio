@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.25-e2e-preview-stability';
+const version = '1.5.26-engraved-command-header';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

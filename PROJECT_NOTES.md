@@ -1,6 +1,6 @@
-# Current Project Notes - v1.5.25
+# Current Project Notes - v1.5.26
 
-## v1.5.25 focus
+## v1.5.26 focus
 
 - Browser readiness must wait for queue, render, media, and layout stability instead of a single DOM condition.
 - Hidden descendants of transparent or `aria-hidden` overlay roots are not blocking dialogs.
