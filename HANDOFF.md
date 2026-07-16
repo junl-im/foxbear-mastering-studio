@@ -1,24 +1,23 @@
-# Handoff - v1.5.23
+# Handoff - v1.5.24
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.23 deterministic preview playback readiness
+## Current patch: v1.5.24 responsive preview control readiness
 
 Changes:
 
-- Isolates the unrelated single-track AI recommendation modal only in the preview-routing browser scenario.
-- Requires the Dock play button to be visible, enabled, and the owner of its center-point hit test before clicking.
-- Reports modal count and the topmost intercepting element instead of consuming the full test timeout.
-- Keeps production dialog behavior and other browser scenarios unchanged.
-- Preserves the v1.5.22 persistent MediaElementSource and smooth translation crossfade routing.
+- Uses the external Dock play button on desktop and the integrated Dock play toggle on mobile.
+- Counts only actually rendered blocking dialogs; permanently mounted hidden modal roots no longer create false failures.
+- Adds viewport-specific assertions and click-interception diagnostics before playback.
+- Preserves the production recommendation popup and the v1.5.22 persistent audio/crossfade implementation.
 
 ```text
-product: 1.5.23
-build: e2e-preview-readiness
-asset generation: 1.5.23-e2e-preview-readiness
-service worker cache: foxbear-shell-v1.5.23-e2e-preview-readiness
+product: 1.5.24
+build: e2e-responsive-preview-control
+asset generation: 1.5.24-e2e-responsive-preview-control
+service worker cache: foxbear-shell-v1.5.24-e2e-responsive-preview-control
 ```
 
 Verification:

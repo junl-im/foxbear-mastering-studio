@@ -1,6 +1,57 @@
 const { test, expect } = require('@playwright/test');
 const { createSyntheticWavFiles, expectRuntimeHealthy, navigateToApp, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
 
+const RESPONSIVE_PLAY_CONTROL = '#bottomPreviewPlayBtn:visible, #bottomPreviewPlayer .dock-integrated-toggle:visible';
+
+async function readPlaybackReadiness(page, playButton = null) {
+  const buttonState = playButton
+    ? await playButton.evaluate(button => {
+        const rect = button.getBoundingClientRect();
+        const center = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return {
+          id: button.id || null,
+          className: button.className || null,
+          disabled: Boolean(button.disabled),
+          visible: rect.width > 0 && rect.height > 0,
+          topElement: center?.id || center?.className || center?.tagName || null,
+          clickTargetOwned: Boolean(center && button.contains(center))
+        };
+      }).catch(() => null)
+    : null;
+
+  return await page.evaluate(buttonState => {
+    const isActuallyVisible = element => {
+      if (!element || element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== 'none'
+        && style.visibility !== 'hidden'
+        && Number.parseFloat(style.opacity || '1') > 0
+        && rect.width > 0
+        && rect.height > 0;
+    };
+    const dialogs = Array.from(document.querySelectorAll('.ai-recommend-dialog-backdrop, [aria-modal="true"]'))
+      .filter(isActuallyVisible)
+      .map(element => ({
+        id: element.id || null,
+        className: element.className || null,
+        ariaHidden: element.getAttribute('aria-hidden')
+      }));
+    const audio = document.querySelector('#bottomPreviewPlayer audio[data-bottom-preview-active="true"]');
+    return {
+      dialogs,
+      button: buttonState,
+      audio: audio ? {
+        readyState: audio.readyState,
+        duration: audio.duration,
+        paused: audio.paused,
+        ended: audio.ended
+      } : null,
+      viewportWidth: window.innerWidth
+    };
+  }, buttonState);
+}
+
 test.describe('FoxBear uninterrupted preview translation routing', () => {
   test('keeps one playing audio element while switching studio, phone, laptop, and mono', async ({ page }) => {
     test.setTimeout(75000);
@@ -14,24 +65,20 @@ test.describe('FoxBear uninterrupted preview translation routing', () => {
         return Boolean(audio && audio.readyState >= 1 && audio.duration > 1);
       }, null, { timeout: 30000 });
 
-      const playButton = page.locator('#bottomPreviewPlayBtn');
+      const playButton = page.locator(RESPONSIVE_PLAY_CONTROL).first();
       await expect(playButton).toBeVisible({ timeout: 10000 });
       await expect(playButton).toBeEnabled({ timeout: 10000 });
-      const beforePlay = await page.evaluate(() => {
-        const button = document.querySelector('#bottomPreviewPlayBtn');
-        const rect = button?.getBoundingClientRect?.();
-        const center = rect ? document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) : null;
-        return {
-          modalCount: document.querySelectorAll('.ai-recommend-dialog-backdrop, [aria-modal="true"]:not([hidden])').length,
-          buttonDisabled: Boolean(button?.disabled),
-          buttonVisible: Boolean(rect && rect.width > 0 && rect.height > 0),
-          topElement: center?.id || center?.className || center?.tagName || null,
-          clickTargetOwned: Boolean(button && center && button.contains(center))
-        };
-      });
-      expect(beforePlay.modalCount, `blocking dialogs before playback · ${JSON.stringify(beforePlay)}`).toBe(0);
-      expect(beforePlay.buttonDisabled, `play button disabled · ${JSON.stringify(beforePlay)}`).toBeFalsy();
-      expect(beforePlay.clickTargetOwned, `play button intercepted · ${JSON.stringify(beforePlay)}`).toBeTruthy();
+      const beforePlay = await readPlaybackReadiness(page, playButton);
+      expect(beforePlay.dialogs, `blocking dialogs before playback · ${JSON.stringify(beforePlay)}`).toEqual([]);
+      expect(beforePlay.button?.disabled, `play button disabled · ${JSON.stringify(beforePlay)}`).toBeFalsy();
+      expect(beforePlay.button?.visible, `play button hidden · ${JSON.stringify(beforePlay)}`).toBeTruthy();
+      expect(beforePlay.button?.clickTargetOwned, `play button intercepted · ${JSON.stringify(beforePlay)}`).toBeTruthy();
+      if (beforePlay.viewportWidth <= 720) {
+        expect(beforePlay.button?.className || '', `mobile must use integrated play control · ${JSON.stringify(beforePlay)}`).toContain('dock-integrated-toggle');
+      } else {
+        expect(beforePlay.button?.id, `desktop must use external play control · ${JSON.stringify(beforePlay)}`).toBe('bottomPreviewPlayBtn');
+      }
+
       await playButton.click({ timeout: 10000 });
       await page.waitForFunction(() => {
         const audio = document.querySelector('#bottomPreviewPlayer audio[data-bottom-preview-active="true"]');

@@ -33,15 +33,22 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.23`
-- Build ID: `e2e-preview-readiness`
-- Asset version: `1.5.23-e2e-preview-readiness`
-- Service worker cache: `foxbear-shell-v1.5.23-e2e-preview-readiness`
-- Static QA target: `205/205 PASS`
+- Product version: `1.5.24`
+- Build ID: `e2e-responsive-preview-control`
+- Asset version: `1.5.24-e2e-responsive-preview-control`
+- Service worker cache: `foxbear-shell-v1.5.24-e2e-responsive-preview-control`
+- Static QA target: `206/206 PASS`
 - Browser QA target: 12 desktop/mobile Playwright tests
 - Header metadata and designer signature remain one-line, borderless, and independent from Settings width.
 - Preview translation changes reuse one active media element and crossfade persistent studio/phone/laptop/mono routes.
 
+
+
+## v1.5.24 responsive browser-control invariant
+
+- Cross-device E2E scenarios must select controls by actual rendered visibility, not by assuming a desktop ID is visible on mobile.
+- Blocking dialogs must be classified by computed visibility and layout bounds; permanently mounted hidden modal roots are not blockers.
+- The preview-routing scenario must still perform a real user click on the visible play control before asserting uninterrupted mode transitions.
 
 ## v1.5.23 browser readiness invariant
 

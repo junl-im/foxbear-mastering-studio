@@ -1,17 +1,16 @@
-# FoxBear QA Report - v1.5.23
+# FoxBear QA Report - v1.5.24
 
-Current release gate target: metadata/handoff checks, 205 static checks, and 12 desktop/mobile Playwright tests.
+Current release gate target: metadata/handoff checks, 206 static checks, and 12 desktop/mobile Playwright tests.
 
-## v1.5.23 coverage
+## v1.5.24 coverage
 
-- Verifies the preview-routing scenario explicitly isolates the unrelated single-track AI recommendation modal.
-- Verifies the Dock play button is visible, enabled, unobstructed, and owns its center-point click target before playback.
-- Verifies click-interception diagnostics include modal count and the topmost blocking element.
-- Verifies the E2E-only flag is opt-in and does not globally suppress production dialogs.
-- Carries forward v1.5.22 persistent MediaElementSource and crossfade routing contracts.
+- Verifies the preview-routing browser test chooses the external desktop control or integrated mobile control according to the rendered viewport.
+- Verifies hidden modal roots are excluded using computed rendered visibility rather than DOM presence.
+- Verifies Dock repair CSS loads after base Dock CSS and exposes the mobile integrated play toggle.
+- Carries forward the persistent audio element, one MediaElementSource, one steady-state DSP route, and no play/pause calls during mode switching.
 
 ```text
-205/205 PASS
+206/206 PASS
 Browser QA: GitHub Actions confirmation required
 ```
 

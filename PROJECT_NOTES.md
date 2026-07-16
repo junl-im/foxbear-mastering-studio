@@ -1,3 +1,12 @@
+# Current Project Notes - v1.5.24
+
+## v1.5.24 focus
+
+- Browser QA must target the control actually visible at the active viewport; desktop-only IDs are not a cross-device contract.
+- Modal readiness is based on rendered visibility, not merely `aria-modal` DOM presence.
+- A false E2E failure must be corrected in the test contract without weakening production behavior or bypassing the real playback click.
+- The v1.5.22 persistent MediaElementSource and smooth translation routing remain unchanged.
+
 # Current Project Notes - v1.5.22
 
 ## v1.5.22 focus

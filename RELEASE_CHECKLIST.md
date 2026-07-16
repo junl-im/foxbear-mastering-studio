@@ -1,3 +1,12 @@
+## v1.5.24 responsive preview-control checks
+
+- [ ] Desktop preview routing uses the visible `#bottomPreviewPlayBtn`.
+- [ ] Mobile preview routing uses the visible `.dock-integrated-toggle`.
+- [ ] Hidden `aria-modal` roots are not counted as blocking dialogs.
+- [ ] The selected play control is visible, enabled, and owns its center-point hit test.
+- [ ] Studio → Smartphone → Laptop → Mono → Studio keeps the same playing audio element without pause/restart.
+- [ ] `node qa/v1524_e2e_responsive_preview_control_smoke.js` passes.
+
 ## v1.5.22 header and preview-routing checks
 
 - [ ] Version, PC/mobile compatibility, and DESIGN BY labels remain on one compact line without card borders.

@@ -1,3 +1,11 @@
+# v1.5.24 - Responsive Preview Control and Visible Dialog Readiness
+
+- Fixed the preview-routing browser scenario to use the visible desktop external play control or the visible mobile integrated Dock play control instead of requiring a desktop-only button at every viewport.
+- Replaced DOM-presence modal counting with rendered-visibility checks that respect `hidden`, `aria-hidden`, computed display/visibility/opacity, and non-zero layout bounds.
+- Added viewport-specific assertions so desktop must use `#bottomPreviewPlayBtn` while mobile must use `.dock-integrated-toggle`.
+- Added `qa/v1524_e2e_responsive_preview_control_smoke.js` to protect CSS load order, responsive control selection, and visible-dialog classification.
+- Kept the v1.5.22 persistent audio element and crossfade engine unchanged; this patch corrects the E2E contract that was producing the two false failures.
+
 # v1.5.23 - Deterministic Preview Playback Readiness
 
 - Fixed the new uninterrupted preview Playwright test racing the single-track AI recommendation modal after analysis.

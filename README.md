@@ -1,19 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.23
+# FoxBear AI Mastering Studio Pro v1.5.24
 
-## Current patch: v1.5.23 Deterministic Preview Playback Readiness
+## Current patch: v1.5.24 Responsive Preview Control and Visible Dialog Readiness
 
-단일 파일 분석 완료 직후 자동 AI 추천 팝업이 열리면서 프리뷰 전환 브라우저 테스트의 Dock 재생 버튼 클릭을 가로막던 테스트 준비 조건 문제를 수정했습니다. 프리뷰 전환 테스트만 `disableAutoDialogs: true`를 명시적으로 사용하며, 실제 앱과 다른 브라우저 테스트의 팝업 동작은 그대로 유지합니다.
+브라우저 QA가 데스크톱 전용 외부 재생 버튼만 찾던 문제를 수정했습니다. 데스크톱에서는 `#bottomPreviewPlayBtn`, 모바일에서는 실제 사용자에게 표시되는 `.dock-integrated-toggle`을 선택합니다.
 
-재생 전에는 버튼 표시·활성화·중앙점 hit-test 소유권·차단 모달 0개를 확인합니다. 다시 막히면 최상단 방해 요소를 즉시 출력합니다.
+DOM에 상시 존재하지만 CSS로 숨겨진 `aria-modal` 요소를 열린 모달로 오인하지 않도록, `hidden`, `aria-hidden`, 계산된 `display/visibility/opacity`, 실제 레이아웃 크기를 함께 확인합니다. 오디오 전환 엔진은 변경하지 않았습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.23
-build: e2e-preview-readiness
-asset generation: 1.5.23-e2e-preview-readiness
-service worker cache: foxbear-shell-v1.5.23-e2e-preview-readiness
+product: 1.5.24
+build: e2e-responsive-preview-control
+asset generation: 1.5.24-e2e-responsive-preview-control
+service worker cache: foxbear-shell-v1.5.24-e2e-responsive-preview-control
 ```
+
+## Previous patch: v1.5.23 Deterministic Preview Playback Readiness
+
+단일 파일 분석 완료 시 자동 추천 팝업을 해당 E2E 시나리오에서만 격리하는 계약은 유지됩니다. v1.5.24는 그 위에 실제 표시 상태와 반응형 재생 컨트롤 선택을 추가합니다.
 
 ## Previous patch: v1.5.22 Header Signature and Uninterrupted Preview Routing
 
