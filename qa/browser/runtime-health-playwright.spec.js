@@ -59,23 +59,31 @@ test.describe('FoxBear browser runtime health', () => {
       const kicker = document.querySelector('.brand-command-left');
       const build = document.querySelector('.brand-command-build');
       const device = document.querySelector('.brand-command-device');
+      const deviceIcons = device?.querySelector('.brand-command-device-icons');
+      const screenIcon = deviceIcons?.querySelector('.is-screen');
+      const phoneIcon = deviceIcons?.querySelector('.is-phone');
       const studio = document.querySelector('.brand-command-studio');
       const designer = document.querySelector('.brand-right-actions .designer-mini');
       const actions = document.querySelector('.brand-right-actions');
       const host = document.getElementById('headerSettingsHost');
       const toggle = document.getElementById('mobileNativeQuickToggle');
-      if (!topLine || !kicker || !build || !device || !studio || !designer || !actions || !host || !toggle) return null;
+      if (!topLine || !kicker || !build || !device || !deviceIcons || !screenIcon || !phoneIcon || !studio || !designer || !actions || !host || !toggle) return null;
       const rect = node => node.getBoundingClientRect();
       const topLineRect = rect(topLine);
       const kickerRect = rect(kicker);
       const buildRect = rect(build);
       const deviceRect = rect(device);
+      const deviceIconsRect = rect(deviceIcons);
+      const screenIconRect = rect(screenIcon);
+      const phoneIconRect = rect(phoneIcon);
       const studioRect = rect(studio);
       const actionsRect = rect(actions);
       const designerRect = rect(designer);
       const toggleRect = rect(toggle);
+      const topLineStyle = getComputedStyle(topLine);
       const designerStyle = getComputedStyle(designer);
       const buildStyle = getComputedStyle(build);
+      const deviceIconsStyle = getComputedStyle(deviceIcons);
       const toggleStyle = getComputedStyle(toggle);
       const afterStyle = getComputedStyle(toggle, '::after');
       const centers = [buildRect, deviceRect, studioRect, designerRect, toggleRect].map(box => (box.top + box.bottom) / 2);
@@ -91,6 +99,11 @@ test.describe('FoxBear browser runtime health', () => {
         buildRight: buildRect.right,
         deviceLeft: deviceRect.left,
         deviceRight: deviceRect.right,
+        deviceIconsWidth: deviceIconsRect.width,
+        deviceIconsHeight: deviceIconsRect.height,
+        screenIconWidth: screenIconRect.width,
+        phoneIconWidth: phoneIconRect.width,
+        deviceIconsDisplay: deviceIconsStyle.display,
         studioLeft: studioRect.left,
         studioRight: studioRect.right,
         actionsLeft: actionsRect.left,
@@ -101,6 +114,7 @@ test.describe('FoxBear browser runtime health', () => {
         viewportWidth: window.innerWidth,
         compact: window.innerWidth <= 720,
         topLineHeight: topLineRect.height,
+        topLineBorderBottom: topLineStyle.borderBottomWidth,
         centerSpread: Math.max(...centers) - Math.min(...centers),
         kickerOverflow: Math.max(0, kicker.scrollWidth - kicker.clientWidth),
         rowOverlap: Math.max(0, kickerRect.right - actionsRect.left),
@@ -117,6 +131,11 @@ test.describe('FoxBear browser runtime health', () => {
     expect(headerSettings.placement).toBe('header');
     expect(headerSettings.buildText).toBe(`BUILD v${RELEASE.productVersion}`);
     expect(headerSettings.deviceText).toBe('모바일 · PC 호환');
+    expect(['flex', 'inline-flex']).toContain(headerSettings.deviceIconsDisplay);
+    expect(headerSettings.deviceIconsWidth).toBeGreaterThan(8);
+    expect(headerSettings.deviceIconsHeight).toBeGreaterThan(5);
+    expect(headerSettings.screenIconWidth).toBeGreaterThan(5);
+    expect(headerSettings.phoneIconWidth).toBeGreaterThan(2);
     expect(headerSettings.studioText).toBe('AI MUSIC MASTERING STUDIO');
     expect(headerSettings.designerText).toBe('DESIGNED BY 곰같은여우');
     expect(headerSettings.toggleText).toBe('⚙');
@@ -128,6 +147,7 @@ test.describe('FoxBear browser runtime health', () => {
     expect(headerSettings.toggleRight).toBeLessThanOrEqual(headerSettings.viewportWidth + 1);
     expect(headerSettings.toggleWidth).toBeLessThanOrEqual(30);
     expect(headerSettings.topLineHeight).toBeLessThanOrEqual(headerSettings.compact ? 38 : 42);
+    expect(headerSettings.topLineBorderBottom).toBe('0px');
     expect(headerSettings.centerSpread).toBeLessThanOrEqual(8);
     expect(headerSettings.kickerOverflow).toBeLessThanOrEqual(2);
     expect(headerSettings.rowOverlap).toBeLessThanOrEqual(1);

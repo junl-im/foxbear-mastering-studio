@@ -32,9 +32,9 @@ assert(!html.includes('DESIGN BY</span>') && !html.includes('곰같은여우 <em
 assert(html.indexOf('assets/css/header-command-bar.css') > html.indexOf('assets/css/components/floating-overlays.css'), 'command header CSS must load last');
 assert(sw.includes(`./assets/css/header-command-bar.css?v=${meta.assetVersion}`), 'command header CSS missing from service-worker cache');
 assert(!html.includes('/ integrity='), 'SRI updater produced a malformed self-closing link tag');
-assert(sriTool.includes("self_closing = tag.rstrip().endswith('/>')"), 'SRI updater must preserve self-closing tags when adding a new hash');
+assert(sriTool.includes('misplaced_self_close') && sriTool.includes('finish_tag'), 'SRI updater must preserve and normalize self-closing tags');
 assert(css.includes('.brand-command-left') && css.includes('.brand-command-studio'), 'command header layout rules missing');
-assert(css.includes('border-bottom: 1px solid') && css.includes('background: transparent !important'), 'engraved divider/transparent treatment missing');
+assert(css.includes('border-bottom: 0 !important') && css.includes('background: transparent !important'), 'borderless engraved/transparent treatment missing');
 assert(css.includes('.mobile-native-quick-toggle::after') && css.includes('content: none !important'), 'settings text label must stay removed');
 assert(mobileView.includes("text: '⚙'"), 'settings control should use one text-style gear glyph');
 assert(!mobileView.includes("text: '⚙️'"), 'emoji-style settings glyph should not return');

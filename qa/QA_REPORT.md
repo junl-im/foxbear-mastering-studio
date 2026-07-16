@@ -1,3 +1,20 @@
+# FoxBear QA Report - v1.5.27
+
+Current release gate target: metadata/handoff checks, 209 static checks, and 12 desktop/mobile Playwright tests.
+
+## v1.5.27 coverage
+
+- Verifies the runtime admin-state refresh preserves and rebuilds the desktop/phone glyph structure.
+- Verifies compact mobile CSS keeps both device glyphs rendered and the command-header divider removed.
+- Verifies every local JavaScript/CSS asset has exactly one valid SHA-384 integrity attribute.
+- Verifies malformed `/ integrity=` tags are both repaired by the updater and rejected by the verifier.
+- Browser QA measures the rendered glyph boxes and zero-width divider on desktop and mobile.
+
+```text
+209/209 PASS
+Browser QA: desktop 6/6 PASS, mobile 6/6 PASS on actual Chromium
+```
+
 # FoxBear QA Report - v1.5.26
 
 Current release gate target: metadata/handoff checks, 208 static checks, and 12 desktop/mobile Playwright tests.

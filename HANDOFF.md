@@ -1,25 +1,24 @@
-# Handoff - v1.5.26
+# Handoff - v1.5.27
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.26 engraved command header
+## Current patch: v1.5.27 device glyph and SRI hardening
 
 Changes:
 
-- Replaces the badge/card header with a single engraved command row.
-- Shows `BUILD`, the runtime-bound version, `모바일 · PC 호환`, and `AI MUSIC MASTERING STUDIO` on the left.
-- Shows `DESIGNED BY 곰같은여우` and an icon-only Settings trigger on the right.
-- Preserves program-information click behavior, administrator trigger behavior, and the body-level Settings panel portal.
-- Adds a final isolated CSS layer and desktop/mobile geometry assertions.
-- Verified the final release in actual Chromium: desktop 6/6 and mobile PWA 6/6.
+- Keeps the cyan desktop and pink phone line glyphs visible before `모바일 · PC 호환`, including compact mobile widths.
+- Removes the thin divider below the top command header.
+- Fixes the runtime admin-state refresh that previously replaced the structured compatibility markup with plain text and silently erased the icons.
+- Repairs malformed local asset tags such as `/ integrity=` and makes the SRI verifier reject missing, duplicate, malformed, or mismatched integrity coverage.
+- Preserves the v1.5.22 preview-routing engine, v1.5.25 deterministic browser readiness, and v1.5.26 command-header order.
 
 ```text
-product: 1.5.26
-build: engraved-command-header
-asset generation: 1.5.26-engraved-command-header
-service worker cache: foxbear-shell-v1.5.26-engraved-command-header
+product: 1.5.27
+build: device-glyph-sri-hardening
+asset generation: 1.5.27-device-glyph-sri-hardening
+service worker cache: foxbear-shell-v1.5.27-device-glyph-sri-hardening
 ```
 
 Verification:
@@ -35,7 +34,7 @@ npm run package:verify:release
 npm run package:verify:overwrite
 ```
 
-Expected static result: `207/207 PASS`.
+Expected static result: `209/209 PASS`.
 Expected browser result: `12 passed`.
 
 ## Previous handoff: v1.5.22 header signature and uninterrupted preview routing

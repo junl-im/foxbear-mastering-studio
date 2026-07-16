@@ -1,3 +1,12 @@
+# Current Project Notes - v1.5.27
+
+## v1.5.27 focus
+
+- Runtime refresh code must preserve structured header markup; plain `textContent` replacement is not safe for badges containing glyph elements.
+- Compact-width design rules may scale device glyphs but must not remove them.
+- SRI correctness includes valid tag shape and complete local JavaScript/CSS coverage, not only matching hashes on tags that happen to contain `integrity`.
+- Header design changes remain isolated from audio routing and mastering DSP.
+
 # Current Project Notes - v1.5.26
 
 ## v1.5.26 focus

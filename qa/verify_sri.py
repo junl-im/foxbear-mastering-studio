@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate SHA-384 SRI hashes in index.html against local assets."""
+"""Validate local JS/CSS SHA-384 SRI coverage and tag shape in index.html."""
 from __future__ import annotations
 
 import base64
@@ -10,25 +10,60 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / 'index.html'
+TAG_RE = re.compile(r'<(?:script|link)\b[^>]*(?:src|href)="[^"]+"[^>]*>', re.IGNORECASE)
+ASSET_RE = re.compile(r'(?:src|href)="([^"]+)"', re.IGNORECASE)
+INTEGRITY_RE = re.compile(r'integrity="(sha384-[^"]+)"', re.IGNORECASE)
+MISPLACED_SELF_CLOSE_RE = re.compile(r'\s+/\s+(?=integrity=)', re.IGNORECASE)
 
 
-def main() -> int:
-    html = INDEX.read_text(encoding='utf-8')
+def is_local_code_asset(asset: str) -> bool:
+    value = str(asset or '').strip()
+    if not value or value.startswith(('#', 'data:', 'blob:', '//')):
+        return False
+    if re.match(r'^[a-z][a-z0-9+.-]*:', value, re.IGNORECASE):
+        return False
+    clean = value.split('?', 1)[0].split('#', 1)[0].lower()
+    return clean.endswith(('.js', '.css'))
+
+
+def expected_sri(path: Path) -> str:
+    digest = hashlib.sha384(path.read_bytes()).digest()
+    return 'sha384-' + base64.b64encode(digest).decode('ascii')
+
+
+def validate_html(html: str, root: Path = ROOT) -> list[str]:
     failures: list[str] = []
-    tags = re.findall(r'<(?:script|link)[^>]+integrity="sha384-[^"]+"[^>]*>', html)
-    for tag in tags:
-        match = re.search(r'(?:src|href)="([^"]+)"', tag)
-        if not match:
+    seen_assets: set[str] = set()
+    for tag in TAG_RE.findall(html):
+        asset_match = ASSET_RE.search(tag)
+        if not asset_match:
             continue
-        asset = match.group(1).split('?', 1)[0]
-        path = ROOT / asset
+        asset_url = asset_match.group(1)
+        if not is_local_code_asset(asset_url):
+            continue
+        asset = asset_url.split('?', 1)[0].split('#', 1)[0]
+        seen_assets.add(asset)
+        if MISPLACED_SELF_CLOSE_RE.search(tag):
+            failures.append(f'{asset}: malformed self-closing slash before integrity')
+        integrity_matches = INTEGRITY_RE.findall(tag)
+        if len(integrity_matches) != 1:
+            failures.append(f'{asset}: expected exactly one SHA-384 integrity attribute, found {len(integrity_matches)}')
+            continue
+        path = root / asset
         if not path.is_file():
             failures.append(f'{asset}: missing local asset')
             continue
-        actual = re.search(r'integrity="([^"]+)"', tag).group(1)
-        expected = 'sha384-' + base64.b64encode(hashlib.sha384(path.read_bytes()).digest()).decode('ascii')
+        actual = integrity_matches[0]
+        expected = expected_sri(path)
         if actual != expected:
             failures.append(f'{asset}: expected {expected}, found {actual}')
+    if not seen_assets:
+        failures.append('index.html: no local JavaScript or CSS assets were inspected')
+    return failures
+
+
+def main() -> int:
+    failures = validate_html(INDEX.read_text(encoding='utf-8'))
     if failures:
         print('FAIL SRI validation')
         for failure in failures:

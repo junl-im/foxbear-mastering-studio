@@ -23,11 +23,11 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.5.26', 'package version should be 1.5.26');
+assert(pkg.version === '1.5.27', 'package version should be 1.5.27');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-assert(index.includes('data-build="1.5.26"'), 'index build marker should be 1.5.26');
-assert(config.includes("ASSET_VERSION = '1.5.26-engraved-command-header'"), 'runtime asset key should be v1.5.26');
-assert(sw.includes('foxbear-shell-v1.5.26-engraved-command-header'), 'service worker cache should use v1.5.26 key');
+assert(index.includes('data-build="1.5.27"'), 'index build marker should be 1.5.27');
+assert(config.includes("ASSET_VERSION = '1.5.27-device-glyph-sri-hardening'"), 'runtime asset key should be v1.5.27');
+assert(sw.includes('foxbear-shell-v1.5.27-device-glyph-sri-hardening'), 'service worker cache should use v1.5.27 key');
 
 assert(config.includes('MASTERING_PROGRESS_RENDER_DELAY_MS: 110'), 'runtime config should expose progress render delay');
 assert(app.includes('SAFE_MASTERING_PROGRESS_RENDER_DELAY_MS'), 'app should normalize mastering progress render delay');
@@ -44,9 +44,9 @@ assert(perf.includes('masteringQueue = safeCall'), 'performance diagnostics shou
 assert(perf.includes('mastering-active'), 'performance diagnostics should warn while mastering is active');
 assert(perf.includes('masteringQueue:'), 'performance summary should include mastering queue');
 assert(runtime.includes('FoxBearMasteringGuard.getSnapshot'), 'runtime health should require mastering guard');
-assert(pkg.qaChecks.includes('node qa/v1422_mastering_queue_throttle_smoke.js'), 'package QA should include v1.5.26 smoke');
-assert(matrix.includes('v1.4.26 Mastering Queue Throttle'), 'matrix should document v1.5.26 scope');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.5.26 final QA');
-assert(changelog.includes('v1.5.26'), 'changelog should mention v1.5.26');
+assert(pkg.qaChecks.includes('node qa/v1422_mastering_queue_throttle_smoke.js'), 'package QA should include v1.5.27 smoke');
+assert(matrix.includes('v1.4.26 Mastering Queue Throttle'), 'matrix should document v1.5.27 scope');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.5.27 final QA');
+assert(changelog.includes('v1.5.27'), 'changelog should mention v1.5.27');
 
 console.log('PASS v1.4.26 mastering queue throttle and diagnostics smoke');

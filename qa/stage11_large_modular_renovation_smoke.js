@@ -45,16 +45,16 @@ assert(app.includes('function getRecommendationEngine()'), 'app.js recommendatio
 assert(app.includes('getRecommendationEngine().recommendPreset'), 'app recommendPreset wrapper should delegate to module');
 assert(app.includes('getRecommendationEngine().buildRecommendationExplainability'), 'app explainability wrapper should delegate to module');
 assert(!app.includes('const keywordMap = {'), 'heavy recommendation scoring map should not remain in app.js');
-assert(app.split(/\r?\n/).length < 13960, 'app.js should stay within the post-v1.5.26 modular size budget');
+assert(app.split(/\r?\n/).length < 13960, 'app.js should stay within the post-v1.5.27 modular size budget');
 
 assert(components.includes('.upload-stage') && components.includes('.track-card') && components.includes('.btn-primary'), 'base component CSS should own upload, track-card, and button rules');
 assert(components.includes('.toast') && components.includes('.pitch-tool'), 'base component CSS should own toast and pitch tool base rules');
 assert(!studio.trimStart().startsWith('.upload-stage {'), 'studio.css should no longer start with the initial upload-stage base rule');
 assert(studio.split(/\r?\n/).length < 9800, 'studio.css should shrink after base component split');
 
-assert(/stage(?:11(?:\.1)?|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.5.26-engraved-command-header'), 'service worker cache should be bumped to stage11 or later');
-assert(sw.includes('./assets/css/components/base-components.css?v=1.5.26-engraved-command-header'), 'service worker should precache base-components.css');
-assert(sw.includes('./src/recommendation/recommendation-engine.js?v=1.5.26-engraved-command-header'), 'service worker should precache recommendation engine');
+assert(/stage(?:11(?:\.1)?|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.5.27-device-glyph-sri-hardening'), 'service worker cache should be bumped to stage11 or later');
+assert(sw.includes('./assets/css/components/base-components.css?v=1.5.27-device-glyph-sri-hardening'), 'service worker should precache base-components.css');
+assert(sw.includes('./src/recommendation/recommendation-engine.js?v=1.5.27-device-glyph-sri-hardening'), 'service worker should precache recommendation engine');
 assert(pkg.qaChecks.includes('node --check src/recommendation/recommendation-engine.js'), 'package QA should syntax-check recommendation engine');
 assert(pkg.qaChecks.includes('node qa/stage11_large_modular_renovation_smoke.js'), 'package QA should include stage11 smoke');
 assert(changelog.includes('Stage11') && handoff.includes('Stage11') && notes.includes('Stage11'), 'handoff docs should mention Stage11');

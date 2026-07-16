@@ -1,3 +1,13 @@
+## v1.5.27 device glyph and SRI hardening checks
+
+- [ ] The cyan desktop and pink phone glyphs remain visible after application boot on desktop and mobile.
+- [ ] `updateAdminStatsTriggerVisibility()` does not erase nested compatibility markup.
+- [ ] The top command header has no bottom divider.
+- [ ] `python3 qa/verify_sri.py` checks every local JavaScript/CSS asset and rejects missing or malformed integrity attributes.
+- [ ] `python3 qa/v1527_header_device_sri_hardening_smoke.py` passes.
+- [ ] Desktop browser project passes 6/6.
+- [ ] Mobile browser project passes 6/6.
+
 ## v1.5.26 engraved command header checks
 
 - [ ] Import queue reports `active: 0` and `pending: 0` before preview playback.

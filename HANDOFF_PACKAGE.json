@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.26",
-  "buildId": "engraved-command-header",
+  "productVersion": "1.5.27",
+  "buildId": "device-glyph-sri-hardening",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

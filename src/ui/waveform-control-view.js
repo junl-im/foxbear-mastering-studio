@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.26-engraved-command-header';
+  const VIEW_VERSION = '1.5.27-device-glyph-sri-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

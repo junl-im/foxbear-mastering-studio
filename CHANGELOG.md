@@ -1,3 +1,12 @@
+# v1.5.27 - Device Glyph and SRI Hardening
+
+- Preserved the cyan desktop and pink phone glyphs through the runtime administrator-state refresh instead of letting `textContent` erase their structured markup after boot.
+- Kept the device glyph pair visible on compact mobile widths and removed the command-header bottom divider.
+- Hardened the SRI updater so a slash accidentally placed before `integrity` is normalized into a valid self-closing local asset tag.
+- Hardened SRI verification to reject malformed tag shape, missing integrity attributes, duplicate integrity attributes, missing local assets, and hash mismatches for every local JavaScript/CSS asset.
+- Extended browser geometry coverage to require rendered device glyphs and a zero-width header divider on desktop and mobile.
+- Added `qa/v1527_header_device_sri_hardening_smoke.py`; the release gate now contains 209 static checks and 12 desktop/mobile browser tests.
+
 # v1.5.26 - Engraved Command Header
 
 - Rebuilt the top metadata row as a compact command bar: `BUILD`, runtime version, `모바일 · PC 호환`, and `AI MUSIC MASTERING STUDIO` on the left; `DESIGNED BY 곰같은여우` and an icon-only Settings control on the right.

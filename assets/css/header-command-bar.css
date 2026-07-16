@@ -1,4 +1,4 @@
-/* v1.5.26: engraved command-bar header inspired by compact studio control surfaces. */
+/* v1.5.27: persistent device glyphs, borderless command header, and compact responsive alignment. */
 .brand-topline.brand-command-bar {
     position: relative !important;
     display: grid !important;
@@ -7,8 +7,9 @@
     gap: clamp(8px, 1.2vw, 16px) !important;
     min-height: 34px !important;
     margin: 0 0 10px !important;
-    padding: 0 0 9px !important;
-    border-bottom: 1px solid rgba(166, 200, 223, .10) !important;
+    padding: 0 !important;
+    border-bottom: 0 !important;
+    box-shadow: none !important;
 }
 
 .brand-command-left {
@@ -94,8 +95,10 @@
     display: inline-flex;
     align-items: flex-end;
     gap: 3px;
+    flex: 0 0 auto;
     height: 12px;
-    color: rgba(121, 220, 241, .82);
+    color: rgba(121, 220, 241, .88);
+    filter: drop-shadow(0 0 5px rgba(121, 220, 241, .10));
 }
 
 .brand-command-device-icons i {
@@ -224,7 +227,7 @@
         gap: 6px !important;
         min-height: 30px !important;
         margin-bottom: 8px !important;
-        padding-bottom: 7px !important;
+        padding-bottom: 0 !important;
     }
 
     .brand-command-left {
@@ -299,7 +302,10 @@
     }
 
     .brand-command-device-icons {
-        display: none;
+        display: inline-flex;
+        transform: scale(.78);
+        transform-origin: center;
+        margin: 0 -2px 0 -1px;
     }
 
     .brand-command-studio {

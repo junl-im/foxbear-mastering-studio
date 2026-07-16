@@ -1,18 +1,18 @@
-# FoxBear AI Mastering Studio Pro v1.5.26
+# FoxBear AI Mastering Studio Pro v1.5.27
 
-## Current patch: v1.5.26 Engraved Command Header
+## Current patch: v1.5.27 Device Glyph and SRI Hardening
 
-상단 메타데이터 영역을 참고 이미지처럼 얇고 정돈된 커맨드 바로 다시 구성했습니다. 왼쪽은 `BUILD · v1.5.26 · 모바일 · PC 호환 · AI MUSIC MASTERING STUDIO`, 오른쪽은 `DESIGNED BY 곰같은여우`와 아이콘 전용 설정 버튼입니다.
+상단의 `모바일 · PC 호환` 앞에 청록색 데스크톱과 분홍색 스마트폰 라인 아이콘을 유지하고, 헤더 아래 경계선은 제거했습니다. v1.5.26에는 아이콘 HTML이 있어도 관리자 상태 확인 과정에서 `textContent`가 내부 아이콘 요소를 지우는 코드 꼬임이 있었으며, 이번 패치에서 구조를 안전하게 다시 그리도록 수정했습니다.
 
-버전 정보 버튼과 설정 패널 기능은 그대로 유지하면서 카드형 배경, 테두리, `with AI`, `설정` 텍스트를 제거했습니다. 별도의 최종 CSS 레이어로 분리해 과거 반응형 규칙이 제작자 문구를 아래로 밀거나 모바일에서 줄바꿈시키지 못하도록 했습니다.
+릴리스 점검 중 v1.5.26 ZIP의 마지막 CSS `<link>`에 `/ integrity=`가 들어간 잘못된 SRI 태그도 발견했습니다. SRI 갱신 도구가 기존 해시만 교체하고 잘못된 슬래시 위치는 복구하지 못했던 문제로, 갱신기와 검증기를 함께 강화했습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.26
-build: engraved-command-header
-asset generation: 1.5.26-engraved-command-header
-service worker cache: foxbear-shell-v1.5.26-engraved-command-header
+product: 1.5.27
+build: device-glyph-sri-hardening
+asset generation: 1.5.27-device-glyph-sri-hardening
+service worker cache: foxbear-shell-v1.5.27-device-glyph-sri-hardening
 ```
 
 ## Previous patch: v1.5.24 Responsive Preview Control and Visible Dialog Readiness
