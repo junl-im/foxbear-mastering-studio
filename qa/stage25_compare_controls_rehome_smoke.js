@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.22-header-preview-routing-polish';
+const version = '1.5.23-e2e-preview-readiness';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

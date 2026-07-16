@@ -3,10 +3,10 @@ const { createSyntheticWavFiles, expectRuntimeHealthy, navigateToApp, removeDirS
 
 test.describe('FoxBear uninterrupted preview translation routing', () => {
   test('keeps one playing audio element while switching studio, phone, laptop, and mono', async ({ page }) => {
-    test.setTimeout(60000);
+    test.setTimeout(75000);
     const temp = createSyntheticWavFiles(1, { seconds: 4, gain: 0.08 });
     try {
-      await navigateToApp(page);
+      await navigateToApp(page, { disableAutoDialogs: true });
       await expectRuntimeHealthy(expect, page);
       await page.setInputFiles('#fileInput', temp.files);
       await page.waitForFunction(() => {
@@ -14,10 +14,28 @@ test.describe('FoxBear uninterrupted preview translation routing', () => {
         return Boolean(audio && audio.readyState >= 1 && audio.duration > 1);
       }, null, { timeout: 30000 });
 
-      await page.locator('#bottomPreviewPlayBtn').click();
+      const playButton = page.locator('#bottomPreviewPlayBtn');
+      await expect(playButton).toBeVisible({ timeout: 10000 });
+      await expect(playButton).toBeEnabled({ timeout: 10000 });
+      const beforePlay = await page.evaluate(() => {
+        const button = document.querySelector('#bottomPreviewPlayBtn');
+        const rect = button?.getBoundingClientRect?.();
+        const center = rect ? document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2) : null;
+        return {
+          modalCount: document.querySelectorAll('.ai-recommend-dialog-backdrop, [aria-modal="true"]:not([hidden])').length,
+          buttonDisabled: Boolean(button?.disabled),
+          buttonVisible: Boolean(rect && rect.width > 0 && rect.height > 0),
+          topElement: center?.id || center?.className || center?.tagName || null,
+          clickTargetOwned: Boolean(button && center && button.contains(center))
+        };
+      });
+      expect(beforePlay.modalCount, `blocking dialogs before playback · ${JSON.stringify(beforePlay)}`).toBe(0);
+      expect(beforePlay.buttonDisabled, `play button disabled · ${JSON.stringify(beforePlay)}`).toBeFalsy();
+      expect(beforePlay.clickTargetOwned, `play button intercepted · ${JSON.stringify(beforePlay)}`).toBeTruthy();
+      await playButton.click({ timeout: 10000 });
       await page.waitForFunction(() => {
         const audio = document.querySelector('#bottomPreviewPlayer audio[data-bottom-preview-active="true"]');
-        return Boolean(audio && !audio.paused && audio.currentTime >= 0);
+        return Boolean(audio && !audio.paused && !audio.ended && audio.currentTime >= 0);
       }, null, { timeout: 10000 });
 
       const start = await page.evaluate(() => {

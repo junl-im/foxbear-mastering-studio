@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.22 (header-preview-routing-polish).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.23 (e2e-preview-readiness).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -157,5 +157,5 @@
       ]
     }
   },
-  "version": "1.5.22"
+  "version": "1.5.23"
 }

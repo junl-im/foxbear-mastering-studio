@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.22 compatibility QA anchor: const VIEW_VERSION = '1.5.22-header-preview-routing-polish'
+    // v1.5.23 compatibility QA anchor: const VIEW_VERSION = '1.5.23-e2e-preview-readiness'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

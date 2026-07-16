@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.22",
-  "buildId": "header-preview-routing-polish",
+  "productVersion": "1.5.23",
+  "buildId": "e2e-preview-readiness",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

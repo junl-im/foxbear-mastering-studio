@@ -6,7 +6,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const app = fs.readFileSync(path.join(root, 'src/app.js'), 'utf8');
 const state = fs.readFileSync(path.join(root, 'src/state/app-state.js'), 'utf8');
 function must(cond, msg) { if (!cond) throw new Error(msg); }
-must(html.includes('data-build="1.5.22"'), 'index build should be v1.5.22');
+must(html.includes('data-build="1.5.23"'), 'index build should be v1.5.23');
 must(html.includes('<label for="targetLufsSelect">라우드니스 타깃 (Loudness Target)</label>'), 'loudness target select label missing');
 must(html.includes('id="targetLufsSelect"'), 'loudness target select missing');
 must(!html.includes('id="adaptiveLufsToggle"'), 'separate adaptive LUFS checkbox should not be visible in loudness target panel');

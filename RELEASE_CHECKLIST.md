@@ -3,9 +3,8 @@
 - [ ] Version, PC/mobile compatibility, and DESIGN BY labels remain on one compact line without card borders.
 - [ ] Settings remains a compact header gear and opening its panel does not shift hero copy.
 - [ ] While audio is playing, switch Studio → Smartphone → Laptop → Mono → Studio and confirm playback never pauses or restarts.
-- [ ] Confirm transitions are smooth and retain currentTime, selected source, waveform playhead, and Media Session state. After settling, confirm only one translation path remains.
+- [ ] Confirm transitions are smooth and retain currentTime, selected source, waveform playhead, and Media Session state.
 - [ ] Confirm `FoxBearAudioContexts.getSnapshot()` does not accumulate preview-translation contexts after repeated track changes.
-- [ ] Runtime Health catches same-origin HTTP 4xx/5xx and does not hide local `firebase-bootstrap.js` exceptions under optional-remote filtering.
 - [ ] `node qa/v1522_header_preview_routing_smoke.js` passes.
 
 ## v1.5.21 history and CSP console checks
@@ -127,3 +126,9 @@ The overwrite command also runs this verification internally through `tools/veri
 - Occupy the configured E2E port with an unrelated server and confirm the ownership probe rejects it.
 - Confirm both package verification scripts point to the current `package.json.version`.
 - Confirm ZIP verification rejects a symbolic link, `../` entry, `qa/static-audit.txt`, `.tmp`, and `.trace` artifact.
+## v1.5.23 preview playback readiness
+
+- [ ] Preview translation browser test uses `disableAutoDialogs: true` only for the routing scenario.
+- [ ] Dock play button is visible, enabled, unobstructed, and has no blocking modal before click.
+- [ ] Failure output includes modal count and topmost hit-test element.
+

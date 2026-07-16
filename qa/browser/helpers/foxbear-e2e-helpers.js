@@ -114,12 +114,14 @@ function removeDirSafe(dir) {
 async function navigateToApp(page, options = {}) {
   const timeout = Number(options.timeout || 20000);
   const url = options.url || APP_URL;
+  const disableAutoDialogs = options.disableAutoDialogs === true;
   await installOptionalRemoteMocks(page);
   if (typeof page.addInitScript === 'function') {
-    await page.addInitScript(() => {
+    await page.addInitScript(({ disableAutoDialogs }) => {
       window.__FOXBEAR_E2E__ = true;
       window.__FOXBEAR_SKIP_OPTIONAL_REMOTE__ = true;
-    });
+      window.__FOXBEAR_E2E_DISABLE_AUTO_DIALOGS__ = disableAutoDialogs;
+    }, { disableAutoDialogs });
   }
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
   if (response && !response.ok()) {

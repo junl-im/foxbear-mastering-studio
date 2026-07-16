@@ -1,13 +1,25 @@
+# FoxBear QA Report - v1.5.23
+
+Current release gate target: metadata/handoff checks, 205 static checks, and 12 desktop/mobile Playwright tests.
+
+## v1.5.23 coverage
+
+- Verifies the preview-routing scenario explicitly isolates the unrelated single-track AI recommendation modal.
+- Verifies the Dock play button is visible, enabled, unobstructed, and owns its center-point click target before playback.
+- Verifies click-interception diagnostics include modal count and the topmost blocking element.
+- Verifies the E2E-only flag is opt-in and does not globally suppress production dialogs.
+- Carries forward v1.5.22 persistent MediaElementSource and crossfade routing contracts.
+
+```text
+205/205 PASS
+Browser QA: GitHub Actions confirmation required
+```
+
 # FoxBear QA Report - v1.5.22
 
 Current release gate target: metadata/handoff checks, 203 static checks, and 12 desktop/mobile Playwright tests.
 
 ## v1.5.22 coverage
-
-- Compact single-row header assertions cover vertical alignment, clipping, borderless designer styling, and settings placement on desktop and mobile.
-- Preview translation keeps one media source, uses lazy temporary DSP routes for 120ms crossfades, and releases inactive routes and listeners.
-- Runtime Health browser QA now catches same-origin HTTP 4xx/5xx responses and scopes optional Firebase filtering to actual remote URLs, so local bootstrap errors cannot be hidden.
-- Desktop and mobile Playwright coverage imports a WAV, starts playback, switches all four environments, and requires the same advancing audio element with zero pause/replay events.
 
 - Verifies the header version/device/designer signature is borderless, compact, and no longer displaced by Settings.
 - Verifies one persistent MediaElementSource owns studio, phone, laptop, and mono routes.

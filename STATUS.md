@@ -33,11 +33,18 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.22`
-- Build ID: `header-preview-routing-polish`
-- Asset version: `1.5.22-header-preview-routing-polish`
-- Service worker cache: `foxbear-shell-v1.5.22-header-preview-routing-polish`
-- Static QA target: `204/204 PASS`
+- Product version: `1.5.23`
+- Build ID: `e2e-preview-readiness`
+- Asset version: `1.5.23-e2e-preview-readiness`
+- Service worker cache: `foxbear-shell-v1.5.23-e2e-preview-readiness`
+- Static QA target: `205/205 PASS`
 - Browser QA target: 12 desktop/mobile Playwright tests
 - Header metadata and designer signature remain one-line, borderless, and independent from Settings width.
 - Preview translation changes reuse one active media element and crossfade persistent studio/phone/laptop/mono routes.
+
+
+## v1.5.23 browser readiness invariant
+
+- Feature-specific browser scenarios must explicitly isolate unrelated blocking dialogs rather than relying on timing.
+- A playback click is actionable only after the target is visible, enabled, and owns the center-point hit test.
+- E2E-only flags must be opt-in per scenario and must not globally change production behavior.

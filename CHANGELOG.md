@@ -1,3 +1,11 @@
+# v1.5.23 - Deterministic Preview Playback Readiness
+
+- Fixed the new uninterrupted preview Playwright test racing the single-track AI recommendation modal after analysis.
+- Added a targeted `disableAutoDialogs` E2E navigation option; it is enabled only by the preview-routing scenario and does not globally suppress dialogs in browser QA or production.
+- Added explicit checks that the Dock play button is visible, enabled, unobstructed at its center point, and free of blocking modal overlays before playback begins.
+- Added click-interception diagnostics so future failures report the topmost blocking element instead of consuming the full test timeout.
+- Added `qa/v1523_e2e_preview_readiness_smoke.js` to protect the isolation and readiness contract.
+
 # v1.5.22 - Header Signature and Uninterrupted Preview Routing
 
 - Restyled the top version, device compatibility, and designer labels as compact borderless engraved text so the Settings control no longer pushes the designer label or hero copy downward.

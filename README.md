@@ -1,10 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.5.22
+# FoxBear AI Mastering Studio Pro v1.5.23
 
-## Current patch: v1.5.22 Header Signature and Uninterrupted Preview Routing
+## Current patch: v1.5.23 Deterministic Preview Playback Readiness
+
+단일 파일 분석 완료 직후 자동 AI 추천 팝업이 열리면서 프리뷰 전환 브라우저 테스트의 Dock 재생 버튼 클릭을 가로막던 테스트 준비 조건 문제를 수정했습니다. 프리뷰 전환 테스트만 `disableAutoDialogs: true`를 명시적으로 사용하며, 실제 앱과 다른 브라우저 테스트의 팝업 동작은 그대로 유지합니다.
+
+재생 전에는 버튼 표시·활성화·중앙점 hit-test 소유권·차단 모달 0개를 확인합니다. 다시 막히면 최상단 방해 요소를 즉시 출력합니다.
+
+Release metadata:
+
+```text
+product: 1.5.23
+build: e2e-preview-readiness
+asset generation: 1.5.23-e2e-preview-readiness
+service worker cache: foxbear-shell-v1.5.23-e2e-preview-readiness
+```
+
+## Previous patch: v1.5.22 Header Signature and Uninterrupted Preview Routing
 
 상단의 버전 정보, PC·모바일 호환, DESIGN BY 표시는 카드 테두리를 제거하고 화면에 새겨진 듯한 한 줄 시그니처로 정리했습니다. 설정 버튼은 작은 원형 기어로 축소해 제작자 문구와 소개 글이 아래로 밀리지 않도록 했습니다.
 
-스마트폰·노트북·모노·스튜디오 전환은 더 이상 재생 중인 오디오 요소를 삭제하고 다시 만들지 않습니다. 하나의 `MediaElementSource`를 유지하면서 현재 출력 경로만 상시 사용하고, 전환 순간에만 다음 경로를 지연 생성해 120ms 동안 교차 전환합니다. 전환이 끝나면 이전 필터 경로를 해제하므로 재생 위치와 상태를 유지하면서 모바일 CPU 사용도 줄입니다.
+스마트폰·노트북·모노·스튜디오 전환은 더 이상 재생 중인 오디오 요소를 삭제하고 다시 만들지 않습니다. 하나의 `MediaElementSource`에 네 출력 경로를 미리 구성하고 Gain만 120ms 동안 교차 전환하므로 재생 위치와 재생 상태를 유지합니다.
 
 Release metadata:
 

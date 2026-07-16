@@ -282,3 +282,7 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 - Wake Lock/Service Worker Playwright 시나리오의 상태 격리를 강화했다.
 - 실제 실패 시 Runtime Health 전체 JSON이 Actions 로그에 노출된다.
 - index.html에 남아 있던 v1.5.13 자산 세대도 현재 릴리스로 복구했다.
+## v1.5.23 audit note
+
+The v1.5.22 browser failure was caused by a test-fixture race: single-file analysis could open the AI recommendation modal between media readiness and the Dock play-button click. The preview-routing scenario now opts into targeted automatic-dialog isolation and validates click ownership before playback.
+

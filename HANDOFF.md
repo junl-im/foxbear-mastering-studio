@@ -1,15 +1,47 @@
-# Handoff - v1.5.22
+# Handoff - v1.5.23
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.22 header signature and uninterrupted preview routing
+## Current patch: v1.5.23 deterministic preview playback readiness
+
+Changes:
+
+- Isolates the unrelated single-track AI recommendation modal only in the preview-routing browser scenario.
+- Requires the Dock play button to be visible, enabled, and the owner of its center-point hit test before clicking.
+- Reports modal count and the topmost intercepting element instead of consuming the full test timeout.
+- Keeps production dialog behavior and other browser scenarios unchanged.
+- Preserves the v1.5.22 persistent MediaElementSource and smooth translation crossfade routing.
+
+```text
+product: 1.5.23
+build: e2e-preview-readiness
+asset generation: 1.5.23-e2e-preview-readiness
+service worker cache: foxbear-shell-v1.5.23-e2e-preview-readiness
+```
+
+Verification:
+
+```bash
+npm ci
+npm run version:check
+npm run handoff:check
+npm run check
+npm run qa:browser
+npm run package:all
+npm run package:verify:release
+npm run package:verify:overwrite
+```
+
+Expected static result: `205/205 PASS`.
+
+## Previous handoff: v1.5.22 header signature and uninterrupted preview routing
 
 Changes:
 
 - Converts the version/device/designer header cards into compact borderless engraved labels and shrinks the Settings trigger so the top copy does not wrap downward.
-- Keeps one MediaElementSource and lazily creates only the next translation route during a studio/phone/laptop/mono crossfade; inactive DSP routes are disconnected after the transition.
+- Adds a persistent four-path Web Audio translation graph for studio, phone, laptop, and mono playback.
 - Switches translation modes by crossfading gain paths without replacing the active audio element or restarting playback.
 - Keeps translation contexts under `FoxBearAudioContextManager` ownership and closes them with the player lifecycle.
 - Adds static and simulated routing coverage in `qa/v1522_header_preview_routing_smoke.js`.
