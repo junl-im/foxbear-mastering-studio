@@ -1,12 +1,18 @@
-# FoxBear QA Report - v1.5.20
+# FoxBear QA Report - v1.5.21
 
-- Static regression target: 200/200 checks.
-- v1.5.20 adds idempotent service-worker cache warming: cached assets are skipped, explicit force refresh remains available, and browser QA verifies a repeated warm downloads zero assets.
-- Historical Wake Lock, download recovery, runtime health, PWA readiness, package hygiene, and CI isolation contracts remain active.
+Current release gate target: metadata/handoff checks, 201 static checks, and 10 desktop/mobile Playwright tests.
 
-# FoxBear QA Report - v1.5.19
+## v1.5.21 coverage
 
-Current release gate target: metadata/handoff checks, 199 static checks, and 10 desktop/mobile Playwright tests. Optional Firebase remotes are isolated in the core browser suite; same-origin request failures, page errors, Runtime Health failures, and application console errors remain fatal.
+- Verifies meta-delivered CSP does not include unsupported `frame-ancestors` and therefore does not produce Chromium console errors.
+- Verifies Firebase Hosting's effective HTTP CSP retains `frame-ancestors 'none'`.
+- Verifies browser forward navigation traverses the FoxBear exit-guard sentinel and reaches the E2E hash entry without swallowing failures.
+- Carries forward v1.5.20 idempotent cache-warm and v1.5.19 deterministic Firebase isolation contracts.
+
+```text
+201/201 PASS
+Browser QA: GitHub Actions confirmation required
+```
 
 # QA Report - v1.5.18 CI Diagnostics and PWA Readiness
 

@@ -33,7 +33,11 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.20`
-- Build ID: `idempotent-pwa-cache-warm`
-- Asset version: `1.5.20-idempotent-pwa-cache-warm`
-- Service worker cache: `foxbear-shell-v1.5.20-idempotent-pwa-cache-warm`
+- Product version: `1.5.21`
+- Build ID: `history-csp-console-contract-fix`
+- Asset version: `1.5.21-history-csp-console-contract-fix`
+- Service worker cache: `foxbear-shell-v1.5.21-history-csp-console-contract-fix`
+- Static QA target: `201/201 PASS`
+- Browser QA target: 10 desktop/mobile Playwright tests
+- Meta CSP intentionally omits `frame-ancestors`; deploy HTTP CSP retains `frame-ancestors 'none'`.
+- Back/forward QA traverses the exit-guard sentinel before requiring the E2E hash entry.

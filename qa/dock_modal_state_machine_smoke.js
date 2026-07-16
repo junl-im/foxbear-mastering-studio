@@ -15,12 +15,12 @@ function must(condition, message) {
   }
 }
 
-must(pkg.version === '1.5.20', 'package version should be 1.5.20');
-must(html.includes('data-build="1.5.20"'), 'index build should be 1.5.20');
-must(app.includes("const APP_VERSION = 'Pro v1.5.20'"), 'app version should be Pro v1.5.20');
+must(pkg.version === '1.5.21', 'package version should be 1.5.21');
+must(html.includes('data-build="1.5.21"'), 'index build should be 1.5.21');
+must(app.includes("const APP_VERSION = 'Pro v1.5.21'"), 'app version should be Pro v1.5.21');
 must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine'"), 'DSP slug should be state machine slug');
-must(html.includes('src/ui/modal-controller.js?v=1.5.20-idempotent-pwa-cache-warm'), 'modal controller script should be loaded');
-must(html.includes('src/ui/dock-controller.js?v=1.5.20-idempotent-pwa-cache-warm'), 'dock controller script should be loaded');
+must(html.includes('src/ui/modal-controller.js?v=1.5.21-history-csp-console-contract-fix'), 'modal controller script should be loaded');
+must(html.includes('src/ui/dock-controller.js?v=1.5.21-history-csp-console-contract-fix'), 'dock controller script should be loaded');
 must(modal.includes('class FoxBearModalStateMachine'), 'modal state machine class missing');
 must(modal.includes('setOpen(name, open'), 'modal controller must centralize hard open/close');
 must(modal.includes("document.addEventListener('click'"), 'modal controller should own modal click dispatch');

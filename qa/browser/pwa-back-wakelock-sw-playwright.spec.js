@@ -20,7 +20,12 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
     await expect(page).toHaveURL(baseUrl);
     await expectRuntimeHealthy(expect, page);
 
-    await page.goForward({ timeout: 15000 });
+    // FoxBear installs one same-URL history sentinel for the exit guard. After
+    // the backward traversal, Chromium may need one forward step for that
+    // sentinel and a second step for the E2E hash entry.
+    for (let step = 0; step < 2 && !/#foxbear-e2e-back-test$/.test(page.url()); step += 1) {
+      await page.goForward({ timeout: 15000 });
+    }
     await expect(page).toHaveURL(/#foxbear-e2e-back-test$/);
     await expectRuntimeHealthy(expect, page);
   });

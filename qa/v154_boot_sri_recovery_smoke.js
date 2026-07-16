@@ -21,14 +21,14 @@ const readme = read('README.md');
 const handoff = read('HANDOFF.md');
 const qaReport = read('qa/QA_REPORT.md');
 
-const BOOT_KEY = ['h=boot-sri-v1520','h=boot-sri-v156','h=boot-sri-v155','h=boot-sri-v154'].find(key => index.includes(key));
-assert(index.includes(`src/boot/runtime-health.js?v=1.5.20-idempotent-pwa-cache-warm&${BOOT_KEY}`), 'runtime health boot cache-bust key missing from index');
-assert(index.includes(`src/boot/performance-diagnostics.js?v=1.5.20-idempotent-pwa-cache-warm&${BOOT_KEY}`), 'performance diagnostics boot cache-bust key missing from index');
-assert(index.includes(`src/app.js?v=1.5.20-idempotent-pwa-cache-warm&${BOOT_KEY}`), 'app boot cache-bust key missing from index');
-assert(sw.includes(`./src/boot/runtime-health.js?v=1.5.20-idempotent-pwa-cache-warm&${BOOT_KEY}`), 'runtime health boot cache-bust key missing from service worker');
-assert(sw.includes(`./src/boot/performance-diagnostics.js?v=1.5.20-idempotent-pwa-cache-warm&${BOOT_KEY}`), 'performance diagnostics boot cache-bust key missing from service worker');
-assert(sw.includes(`./src/app.js?v=1.5.20-idempotent-pwa-cache-warm&${BOOT_KEY}`), 'app boot cache-bust key missing from service worker');
-assert(sw.includes("foxbear-shell-v1.5.4-boot-sri-recovery") || sw.includes("foxbear-shell-v1.5.5-update-safety") || sw.includes("foxbear-shell-v1.5.6-export-progress-recovery") || sw.includes("foxbear-shell-v1.5.20-idempotent-pwa-cache-warm"), 'service worker cache generation was not bumped');
+const BOOT_KEY = ['h=boot-sri-v1521','h=boot-sri-v156','h=boot-sri-v155','h=boot-sri-v154'].find(key => index.includes(key));
+assert(index.includes(`src/boot/runtime-health.js?v=1.5.21-history-csp-console-contract-fix&${BOOT_KEY}`), 'runtime health boot cache-bust key missing from index');
+assert(index.includes(`src/boot/performance-diagnostics.js?v=1.5.21-history-csp-console-contract-fix&${BOOT_KEY}`), 'performance diagnostics boot cache-bust key missing from index');
+assert(index.includes(`src/app.js?v=1.5.21-history-csp-console-contract-fix&${BOOT_KEY}`), 'app boot cache-bust key missing from index');
+assert(sw.includes(`./src/boot/runtime-health.js?v=1.5.21-history-csp-console-contract-fix&${BOOT_KEY}`), 'runtime health boot cache-bust key missing from service worker');
+assert(sw.includes(`./src/boot/performance-diagnostics.js?v=1.5.21-history-csp-console-contract-fix&${BOOT_KEY}`), 'performance diagnostics boot cache-bust key missing from service worker');
+assert(sw.includes(`./src/app.js?v=1.5.21-history-csp-console-contract-fix&${BOOT_KEY}`), 'app boot cache-bust key missing from service worker');
+assert(sw.includes("foxbear-shell-v1.5.4-boot-sri-recovery") || sw.includes("foxbear-shell-v1.5.5-update-safety") || sw.includes("foxbear-shell-v1.5.6-export-progress-recovery") || sw.includes("foxbear-shell-v1.5.21-history-csp-console-contract-fix"), 'service worker cache generation was not bumped');
 
 assert(index.includes(sri('src/boot/runtime-health.js')), 'runtime health SRI does not match file bytes');
 assert(index.includes(sri('src/boot/performance-diagnostics.js')), 'performance diagnostics SRI does not match file bytes');

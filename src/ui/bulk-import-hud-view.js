@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.20 compatibility QA anchor: const VIEW_VERSION = '1.5.20-idempotent-pwa-cache-warm'
+    // v1.5.21 compatibility QA anchor: const VIEW_VERSION = '1.5.21-history-csp-console-contract-fix'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

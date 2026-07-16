@@ -1,3 +1,11 @@
+## v1.5.21 history and CSP console checks
+
+- [ ] `index.html` and `design-preview.html` meta CSP omit `frame-ancestors`.
+- [ ] Firebase Hosting HTTP CSP retains `frame-ancestors 'none'`.
+- [ ] Back/forward Playwright coverage reaches `#foxbear-e2e-back-test` after traversing at most one exit-guard sentinel.
+- [ ] Runtime Health browser QA reports no CSP console errors.
+- [ ] `node qa/v1521_history_csp_console_contract_smoke.js` passes.
+
 # Release Checklist
 
 ## Metadata and dependency reproducibility

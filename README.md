@@ -1,19 +1,27 @@
-# FoxBear AI Mastering Studio Pro v1.5.20
+# FoxBear AI Mastering Studio Pro v1.5.21
 
-## Current patch: v1.5.19 CI Runtime Isolation and Package Hardening
+## Current patch: v1.5.21 History and CSP Console Contract Fix
 
-GitHub Actions에서 남은 두 실패는 핵심 앱 부팅 오류가 아니라 Firebase 원격 SDK/백엔드가 남긴 선택적 콘솔 오류를 `runtime-health` 테스트가 치명 오류로 취급한 문제였습니다. 브라우저 QA는 이제 Firebase 모듈을 결정적으로 모킹해 핵심 앱, PWA, 서비스워커, UI 계약을 외부 네트워크와 분리합니다. 대신 같은 출처의 요청 실패, 처리되지 않은 페이지 예외, 실제 애플리케이션 `console.error`는 별도 배열로 더 엄격하게 검사합니다.
+GitHub Actions에서 남은 네 실패 중 두 개는 HTML meta CSP에 넣을 수 없는 `frame-ancestors` 지시문을 Chromium이 콘솔 오류로 보고한 문제였습니다. 해당 지시문은 meta 정책에서 제거하고, 실제 효력이 있는 Firebase Hosting HTTP CSP 헤더에는 그대로 유지합니다.
 
-로컬 QA 서버에는 실행마다 고유한 ownership probe를 생성해, 포트 4173을 다른 프로세스가 점유해도 잘못된 페이지를 테스트하지 않습니다. 뒤로/앞으로 테스트는 오류를 삼키지 않고 실제 왕복을 검증합니다. 패키징은 버전별 검증 명령 자동 동기화, 심볼릭 링크·경로 탈출·QA 임시 파일 차단을 포함합니다.
+나머지 두 실패는 FoxBear의 나가기 보호가 동일 URL의 history sentinel을 하나 추가한다는 점을 Playwright 앞으로 이동 테스트가 고려하지 않아 발생했습니다. 브라우저 QA는 이제 sentinel을 거친 뒤 테스트 hash 항목까지 최대 두 번의 실제 forward traversal로 도달해야 통과합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.19
-build: ci-runtime-isolation-package-hardening
-asset generation: 1.5.19-ci-runtime-isolation-package-hardening
-service worker cache: foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening
+product: 1.5.21
+build: history-csp-console-contract-fix
+asset generation: 1.5.21-history-csp-console-contract-fix
+service worker cache: foxbear-shell-v1.5.21-history-csp-console-contract-fix
 ```
+
+## Previous patch: v1.5.20 Idempotent PWA Cache Warm
+
+서비스워커는 현재 릴리스 캐시에 없는 자산만 보충하며, 반복 warm은 추가 fetch 0회를 요구합니다. 일반 브라우저 테스트에서는 자동 전체 warm을 생략하고 서비스워커 전용 경로에서 명시적으로 검증합니다.
+
+## Previous patch: v1.5.19 CI Runtime Isolation and Package Hardening
+
+Firebase 선택 원격 통신 격리, 동일 출처 요청 실패·페이지 예외·콘솔 오류 분리, 로컬 서버 ownership probe, 아카이브 보안 검증은 그대로 포함됩니다.
 
 ## Previous patch: v1.5.18 CI Diagnostics and PWA Readiness
 

@@ -1,24 +1,25 @@
-# Handoff - v1.5.20
+# Handoff - v1.5.21
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: idempotent PWA cache warm
+## Current patch: v1.5.21 history and CSP console contract fix
 
 Changes:
 
-- Service-worker background warming skips assets already present in the current release cache.
-- Repeated page loads no longer force a reload of the complete 73-asset warm set.
-- Browser QA suppresses automatic warming and exercises it explicitly in the service-worker test.
-- The dedicated browser contract requires a repeated warm to report zero new downloads.
-- `qa/v1520_service_worker_cache_warm_smoke.js` simulates initial, repeated, and forced cache warming.
+- HTML meta CSP removes the unsupported `frame-ancestors` directive so Chromium does not emit a deterministic console error during runtime-health QA.
+- Firebase Hosting retains `frame-ancestors 'none'` in the effective HTTP CSP response header.
+- History QA traverses the same-URL exit-guard sentinel and then reaches `#foxbear-e2e-back-test` through at most two real forward steps.
+- Release metadata synchronization repairs mixed stale runtime labels and URLs instead of relying on one previous version value.
+- v1.5.20 idempotent service-worker cache warming remains included.
+- `qa/v1521_history_csp_console_contract_smoke.js` protects the CSP split, history sentinel, and metadata recovery contracts.
 
 ```text
-product: 1.5.20
-build: idempotent-pwa-cache-warm
-asset generation: 1.5.20-idempotent-pwa-cache-warm
-service worker cache: foxbear-shell-v1.5.20-idempotent-pwa-cache-warm
+product: 1.5.21
+build: history-csp-console-contract-fix
+asset generation: 1.5.21-history-csp-console-contract-fix
+service worker cache: foxbear-shell-v1.5.21-history-csp-console-contract-fix
 ```
 
 Verification:
@@ -34,11 +35,46 @@ npm run package:verify:release
 npm run package:verify:overwrite
 ```
 
-Expected static result: `200/200 PASS`.
+Expected static result: `201/201 PASS`.
+
+## Previous handoff: v1.5.20 Idempotent PWA Cache Warm
+
+The v1.5.20 cache warm fetches only missing current-cache assets, reports cache hits, and requires the repeated warm path to perform zero additional fetches.
 
 ## Previous handoff: v1.5.19 CI Runtime Isolation and Package Hardening
 
-The v1.5.19 deterministic Firebase isolation, server ownership probe, history round trip, and archive hardening remain included.
+
+Changes:
+
+- Playwright replaces optional Firebase CDN modules with deterministic local E2E modules, removing external-network console noise from the core runtime test.
+- Same-origin request failures, uncaught page exceptions, and application console errors are asserted separately with their actual values in the failure message.
+- The local Python server exposes a unique ownership probe; an occupied port or exited server process now fails before Playwright starts.
+- History QA requires both backward and forward navigation and no longer catches and discards navigation failures.
+- `version:sync` owns the versioned Release/Overwrite verification script filenames.
+- Archive verification rejects symlinks, unsafe ZIP paths, scratch audit text, temporary files, traces, logs, nested ZIPs, and browser-result trees.
+- `qa/v1519_ci_runtime_isolation_packaging_smoke.js` protects these contracts.
+
+```text
+product: 1.5.19
+build: ci-runtime-isolation-package-hardening
+asset generation: 1.5.19-ci-runtime-isolation-package-hardening
+service worker cache: foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening
+```
+
+Verification:
+
+```bash
+npm ci
+npm run version:check
+npm run handoff:check
+npm run check
+npm run qa:browser
+npm run package:all
+npm run package:verify:release
+npm run package:verify:overwrite
+```
+
+Expected static result: `199/199 PASS`.
 
 ## Previous handoff: v1.5.18 CI Diagnostics and PWA Readiness
 

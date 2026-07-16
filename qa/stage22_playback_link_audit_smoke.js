@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.20-idempotent-pwa-cache-warm';
+const version = '1.5.21-history-csp-console-contract-fix';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

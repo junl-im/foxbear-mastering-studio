@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.3.53 - extracted runtime state module
+// FoxBear AI Mastering Studio Pro v1.5.21 - extracted runtime state module
 'use strict';
 
 const state = {

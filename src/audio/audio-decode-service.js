@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.20
+// FoxBear audio decode service - v1.5.21
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.20-idempotent-pwa-cache-warm';
+    const SERVICE_VERSION = '1.5.21-history-csp-console-contract-fix';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 

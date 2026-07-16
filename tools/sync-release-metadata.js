@@ -51,6 +51,17 @@ function replaceAll(text, from, to) {
   return from && from !== to ? text.split(from).join(to) : text;
 }
 
+function canonicalizeRuntimeMetadata(text) {
+  return String(text)
+    .replace(/FoxBear Mastering PRO v\d+\.\d+\.\d+/g, `FoxBear Mastering PRO v${meta.productVersion}`)
+    .replace(/버전 정보 v\d+\.\d+\.\d+/g, `버전 정보 v${meta.productVersion}`)
+    .replace(/\bPro v\d+\.\d+\.\d+\b/g, meta.appVersion)
+    .replace(/data-build="\d+\.\d+\.\d+"/g, `data-build="${meta.productVersion}"`)
+    .replace(/\?v=\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*/g, `?v=${meta.assetVersion}`)
+    .replace(/&h=boot-sri-v\d+/g, `&h=${meta.bootRevision}`)
+    .replace(/&h=update-safety-v\d+/g, `&h=${meta.updateSafetyRevision}`);
+}
+
 function sync() {
   const previous = detectPrevious();
   const pkg = JSON.parse(read('package.json'));
@@ -76,7 +87,7 @@ function sync() {
   };
 
   for (const file of runtimeTargets) {
-    const text = applyMetadataReplacements(fs.readFileSync(file, 'utf8'));
+    const text = canonicalizeRuntimeMetadata(applyMetadataReplacements(fs.readFileSync(file, 'utf8')));
     fs.writeFileSync(file, text);
   }
 
@@ -112,6 +123,9 @@ function sync() {
 
   let sw = read('sw.js');
   sw = replaceAll(sw, previous.assetVersion, meta.assetVersion);
+  sw = sw.replace(/\?v=\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*/g, `?v=${meta.assetVersion}`);
+  sw = sw.replace(/&h=boot-sri-v\d+/g, `&h=${meta.bootRevision}`);
+  sw = sw.replace(/&h=update-safety-v\d+/g, `&h=${meta.updateSafetyRevision}`);
   sw = replaceAll(sw, previous.bootRevision, meta.bootRevision);
   sw = replaceAll(sw, previous.updateSafetyRevision, meta.updateSafetyRevision);
   sw = sw.replace(/const CACHE_NAME = '[^']+';/, `const CACHE_NAME = '${meta.cacheName}';`);

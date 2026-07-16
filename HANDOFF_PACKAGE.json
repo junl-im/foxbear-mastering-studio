@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.20",
-  "buildId": "idempotent-pwa-cache-warm",
+  "productVersion": "1.5.21",
+  "buildId": "history-csp-console-contract-fix",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

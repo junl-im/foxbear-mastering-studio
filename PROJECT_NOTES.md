@@ -1,4 +1,9 @@
-# Current Project Notes - v1.5.19
+# Current Project Notes - v1.5.21
+
+## v1.5.21 focus
+
+- Keep `frame-ancestors` in deploy HTTP headers only; meta CSP must stay free of unsupported directives.
+- Browser history QA must account for the exit-guard sentinel without swallowing failed navigation.
 
 - Core browser QA is deterministic and does not depend on Firebase CDN/backend availability.
 - Optional remote isolation must not weaken local request, page exception, Runtime Health, PWA, or service-worker checks.

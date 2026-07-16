@@ -1,10 +1,17 @@
+# v1.5.21 - History and CSP Console Contract Fix
+
+- Removed `frame-ancestors` from HTML meta CSP declarations because Chromium ignores that directive in meta-delivered policies and reports it as a console error; retained the effective directive in Firebase Hosting HTTP headers.
+- Updated Playwright back/forward coverage to account for FoxBear's same-URL exit-guard history sentinel while still requiring real forward traversal to the E2E hash entry.
+- Added `qa/v1521_history_csp_console_contract_smoke.js` to protect the meta/header CSP split and history-sentinel contract.
+- Reconciled release documentation that remained labeled v1.5.19 after the v1.5.20 cache-warm release.
+
 # v1.5.20 - Idempotent PWA Cache Warm
 
-- Changed service-worker background warming to fetch only assets missing from the current release cache instead of re-downloading the full warm asset set on every page load.
-- Added cache-warm result accounting for total, newly cached, already cached, failed, and forced refresh counts.
-- Prevented normal browser QA pages from automatically warming the full cache; the dedicated service-worker scenario now triggers and verifies one warm explicitly.
-- Added a second warm assertion that requires zero additional downloads, protecting repeat visits from redundant network traffic.
-- Added `qa/v1520_service_worker_cache_warm_smoke.js` with an executable cache simulation covering initial, repeated, and forced warming.
+- Changed service-worker cache warming to fetch only assets missing from the current release cache instead of reloading the full warm set on every app visit.
+- Added cache-warm result counters for newly cached assets, existing cache hits, failures, totals, and forced refreshes.
+- Disabled automatic full cache warming in ordinary Playwright scenarios and retained explicit warm validation in the service-worker browser test.
+- Added a repeat-warm regression contract requiring zero additional fetches when all warm assets are already cached.
+- Added `qa/v1520_service_worker_cache_warm_smoke.js`.
 
 # v1.5.19 - CI Runtime Isolation and Package Hardening
 
