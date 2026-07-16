@@ -14,14 +14,14 @@ const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 
-must(pkg.version === '1.5.28', 'package version should be current 1.5.28');
+must(pkg.version === '1.5.29', 'package version should be current 1.5.29');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should be current v1-4-26');
-must(html.includes('data-build="1.5.28"'), 'index build marker should be current');
-must(html.includes('1.5.28-resilience-lifecycle-offline-recovery'), 'index should use current asset key');
-must(sw.includes('foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery'), 'service worker cache should use current key');
+must(html.includes('data-build="1.5.29"'), 'index build marker should be current');
+must(html.includes('1.5.29-analysis-update-lifecycle'), 'index should use current asset key');
+must(sw.includes('foxbear-shell-v1.5.29-analysis-update-lifecycle'), 'service worker cache should use current key');
 
 must(service.includes('getDownloadActionReceipt'), 'download service should expose action receipt helper');
-must(service.includes("version: '1.5.28'"), 'download receipt/diagnostics should report current version');
+must(service.includes("version: '1.5.29'"), 'download receipt/diagnostics should report current version');
 must(service.includes('nextSteps'), 'download receipt should include next steps');
 must(runtime.includes('FoxBearDownloadService.getDownloadActionReceipt'), 'runtime health should require receipt helper');
 
@@ -35,7 +35,7 @@ must(css.includes('Download receipt polish'), 'CSS should include receipt polish
 
 must(pkg.qaChecks.includes('node qa/v1415_download_receipt_polish_smoke.js'), 'package qaChecks should include receipt smoke');
 must(fs.existsSync(path.join(root, 'qa/BROWSER_BACK_QA_MATRIX_1.4.26.md')), 'current browser matrix should exist');
-must(qaReport.includes('v1.5.28'), 'QA report should mention current version');
-must(changelog.includes('v1.5.28'), 'changelog should mention current version');
-must(handoff.includes('v1.5.28'), 'handoff should mention current version');
+must(qaReport.includes('v1.5.29'), 'QA report should mention current version');
+must(changelog.includes('v1.5.29'), 'changelog should mention current version');
+must(handoff.includes('v1.5.29'), 'handoff should mention current version');
 console.log('PASS v1.4.15 download receipt polish smoke on current line');

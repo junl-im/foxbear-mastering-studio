@@ -1,3 +1,21 @@
+# FoxBear QA Report - v1.5.29
+
+Current release gate: metadata/handoff checks, 213 static checks, and 14 desktop/mobile Playwright tests.
+
+## v1.5.29 coverage
+
+- Cancels active and pending import analysis across file read, decode, worker analysis, cache write, and state application.
+- Rejects stale asynchronous results after queue clear, track removal, or replacement.
+- Defers waiting service-worker activation while analysis, mastering, decoding, rendering, or playback is active.
+- Requires a stable idle window before automatic `SKIP_WAITING` and suppresses duplicate activation requests while controller change is pending.
+- Recovers script, style, worker, and navigation requests from current or retained legacy caches for offline failures and HTTP non-success responses.
+- Browser QA clears active bulk analysis, verifies no stale resurrection, imports a replacement track, and confirms real playback.
+
+```text
+213/213 PASS
+Browser QA: desktop 7/7 PASS, mobile 7/7 PASS on actual Chromium
+```
+
 # FoxBear QA Report - v1.5.28
 
 Current release gate target: metadata/handoff checks, 210 static checks, and 12 desktop/mobile Playwright tests.

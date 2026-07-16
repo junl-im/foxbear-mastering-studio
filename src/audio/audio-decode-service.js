@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.28
+// FoxBear audio decode service - v1.5.29
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.28-resilience-lifecycle-offline-recovery';
+    const SERVICE_VERSION = '1.5.29-analysis-update-lifecycle';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 
@@ -30,6 +30,39 @@
         if (!Number.isFinite(number)) return 0;
         const factor = Math.pow(10, digits);
         return Math.round(number * factor) / factor;
+    }
+
+    function makeAbortError(signal, fallback = 'audio-decode-cancelled') {
+        const reason = signal?.reason;
+        if (reason instanceof Error) return reason;
+        const error = new Error(String(reason || fallback));
+        error.name = 'AbortError';
+        error.code = 'FOXBEAR_ANALYSIS_CANCELLED';
+        return error;
+    }
+
+    function throwIfAborted(signal) {
+        if (signal?.aborted) throw makeAbortError(signal);
+    }
+
+    function awaitWithAbort(promise, signal, onAbort) {
+        if (!signal) return Promise.resolve(promise);
+        throwIfAborted(signal);
+        return new Promise((resolve, reject) => {
+            let settled = false;
+            const finish = (callback, value) => {
+                if (settled) return;
+                settled = true;
+                try { signal.removeEventListener?.('abort', abort); } catch (error) {}
+                callback(value);
+            };
+            const abort = () => {
+                try { onAbort?.(); } catch (error) {}
+                finish(reject, makeAbortError(signal));
+            };
+            signal.addEventListener?.('abort', abort, { once: true });
+            Promise.resolve(promise).then(value => finish(resolve, value), error => finish(reject, error));
+        });
     }
 
     function pushEvent(type, detail = {}) {
@@ -112,8 +145,9 @@
         });
     }
 
-    async function verifyMediaElementCanLoad(file, timeoutMs = DEFAULT_METADATA_TIMEOUT_MS) {
+    async function verifyMediaElementCanLoad(file, timeoutMs = DEFAULT_METADATA_TIMEOUT_MS, signal = null) {
         if (!file || typeof global.document === 'undefined') return { ok: false, reason: '미디어 엘리먼트 확인 불가' };
+        throwIfAborted(signal);
         const url = global.URL.createObjectURL(file);
         const audio = global.document.createElement('audio');
         audio.preload = 'metadata';
@@ -123,11 +157,14 @@
             const done = result => {
                 if (settled) return;
                 settled = true;
+                try { signal?.removeEventListener?.('abort', abort); } catch (error) {}
                 try { global.clearTimeout(timer); } catch (error) {}
                 try { audio.removeAttribute('src'); audio.load(); } catch (error) {}
                 try { global.URL.revokeObjectURL(url); } catch (error) {}
                 resolve(result);
             };
+            const abort = () => done({ ok: false, aborted: true, reason: 'aborted' });
+            signal?.addEventListener?.('abort', abort, { once: true });
             const timer = global.setTimeout(() => done({ ok: false, reason: 'metadata timeout' }), Math.max(500, Number(timeoutMs || DEFAULT_METADATA_TIMEOUT_MS)));
             audio.addEventListener('loadedmetadata', () => done({ ok: true, duration: Number(audio.duration || 0) }), { once: true });
             audio.addEventListener('error', () => done({ ok: false, reason: audio.error?.message || `media error ${audio.error?.code || ''}`.trim() }), { once: true });
@@ -193,16 +230,20 @@
         state.lastError = '';
         pushEvent('decode-start', { fileName: state.lastFileName, sizeBytes: state.lastFileSize });
 
+        const signal = options.signal || null;
         let arrayBuffer = null;
         let audioContext = null;
         try {
-            try { arrayBuffer = await file.arrayBuffer(); }
+            throwIfAborted(signal);
+            try { arrayBuffer = await awaitWithAbort(file.arrayBuffer(), signal); }
             catch (error) { throw new Error('선택한 파일을 읽지 못했습니다. 파일 권한 또는 클라우드 다운로드 상태를 확인해주세요.'); }
             if (!arrayBuffer || !arrayBuffer.byteLength) throw new Error('선택한 파일이 비어 있거나 읽을 수 없습니다.');
 
+            throwIfAborted(signal);
             audioContext = createManagedDecodeContext(options.latencyHint || 'playback');
-            await ensureAudioContextRunning(audioContext);
-            const decoded = await decodeAudioDataCompat(audioContext, arrayBuffer);
+            await awaitWithAbort(ensureAudioContextRunning(audioContext), signal, () => closeManagedDecodeContext(audioContext));
+            const decoded = await awaitWithAbort(decodeAudioDataCompat(audioContext, arrayBuffer), signal, () => closeManagedDecodeContext(audioContext));
+            throwIfAborted(signal);
             const summary = getDecodedBufferSummary(decoded) || {};
             state.completedCount += 1;
             state.lastCompletedAt = Date.now();
@@ -217,9 +258,13 @@
             });
             return decoded;
         } catch (error) {
+            if (error?.name === 'AbortError' || error?.code === 'FOXBEAR_ANALYSIS_CANCELLED' || signal?.aborted) {
+                pushEvent('decode-cancelled', { fileName: state.lastFileName, elapsedMs: round(nowMs() - startedMs, 1) });
+                throw makeAbortError(signal);
+            }
             let finalError = error;
             if (!String(error?.message || '').includes('선택한 파일을 읽지 못했습니다') && !String(error?.message || '').includes('비어 있거나')) {
-                const mediaCheck = await verifyMediaElementCanLoad(file, options.metadataTimeoutMs).catch(() => null);
+                const mediaCheck = await verifyMediaElementCanLoad(file, options.metadataTimeoutMs, signal).catch(() => null);
                 finalError = createDecodeError(file, error, mediaCheck);
                 pushEvent('decode-media-check', { fileName: state.lastFileName, mediaOk: Boolean(mediaCheck?.ok), reason: mediaCheck?.reason || '' });
             }

@@ -1,20 +1,26 @@
-# FoxBear AI Mastering Studio Pro v1.5.28
+# FoxBear AI Mastering Studio Pro v1.5.29
 
-## Current patch: v1.5.28 Resilience, Lifecycle, and Offline Recovery
+## Current patch: v1.5.29 Analysis and Update Lifecycle
 
-320px급 초소형 화면에서는 필수 BUILD·버전·기기 아이콘·호환 문구·제작자·설정만 남기고 선택적인 스튜디오 설명을 숨겨 헤더 겹침을 방지합니다.
+대량 파일 분석 중 큐 초기화나 트랙 삭제가 실행되면 대기 작업뿐 아니라 이미 시작된 파일 읽기·디코딩·워커 분석도 취소됩니다. 취소되거나 교체된 트랙의 오래된 분석 결과가 다시 화면과 상태를 갱신하지 못하도록 단계별 생명주기 검사를 추가했습니다.
 
-반복적인 Dock 재생기 교체에서 제거된 `<audio>`와 이벤트 리스너가 Playback Link Service에 남지 않도록 명시적 해제·정리 진단을 추가했습니다. 프리뷰 전환 종료가 존재하지 않는 `window.FoxBearAudioContexts` 별칭을 호출해 AudioContext가 남던 결함도 실제 Chromium에서 발견해 `FoxBearAudioContextManager` 기반 종료와 DOM 분리 감시로 수정했습니다. 큐 전체 삭제와 단일 트랙 삭제는 동일한 리소스 해제 경로를 사용하며, 오브젝트 URL·자동 리마스터 타이머·하단 프리뷰 상태를 함께 정리합니다.
-
-서비스워커는 최신 두 세대의 이전 캐시를 실제 복구 캐시로 보존하고, 현재 세대가 오프라인에서 응답하지 못할 때 자산과 내비게이션 셸을 이전 캐시에서 복구합니다.
+서비스워커 업데이트는 분석·마스터링·디코딩·렌더링·재생이 진행 중일 때 즉시 활성화되지 않습니다. 작업이 안정적으로 idle인 상태가 확인된 뒤 새 워커를 활성화하며, 네트워크가 404 또는 5xx를 반환해도 현재 캐시와 보존된 이전 캐시에서 앱 셸을 복구합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.28
-build: resilience-lifecycle-offline-recovery
-asset generation: 1.5.28-resilience-lifecycle-offline-recovery
-service worker cache: foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery
+product: 1.5.29
+build: analysis-update-lifecycle
+asset generation: 1.5.29-analysis-update-lifecycle
+service worker cache: foxbear-shell-v1.5.29-analysis-update-lifecycle
+```
+
+Verification:
+
+```text
+static QA: 213/213 PASS
+actual Chromium desktop: 7/7 PASS
+actual Chromium mobile PWA: 7/7 PASS
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

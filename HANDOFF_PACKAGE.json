@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.28",
-  "buildId": "resilience-lifecycle-offline-recovery",
+  "productVersion": "1.5.29",
+  "buildId": "analysis-update-lifecycle",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.28 (resilience-lifecycle-offline-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.29 (analysis-update-lifecycle).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -157,5 +157,5 @@
       ]
     }
   },
-  "version": "1.5.28"
+  "version": "1.5.29"
 }

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.28 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.29 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -17,7 +17,7 @@ const {
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.28';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.29';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -60,7 +60,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.28-resilience-lifecycle-offline-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1528'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.29-analysis-update-lifecycle'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1529'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -2983,8 +2983,9 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.28-resilience-lifecycle-offline-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=sw-v1528')
-        const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)); if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.29-analysis-update-lifecycle') · navigator.serviceWorker.register('./sw.js?v=1.5.29-analysis-update-lifecycle&h=sw-v1529')
+        const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
+        window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
         const activeWorker = readyRegistration?.active || registration?.active || null;
         mobile.serviceWorkerReady = Boolean(activeWorker);
@@ -3790,7 +3791,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.28-resilience-lifecycle-offline-recovery', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.29-analysis-update-lifecycle', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4015,8 +4016,13 @@ function getImportAnalysisQueueController() {
             largeBatchThreshold: SAFE_LARGE_IMPORT_BATCH_THRESHOLD,
             yieldMs: SAFE_IMPORT_QUEUE_YIELD_MS,
             isTrackStillImported,
-            runTrack: analyzeTrack,
+            runTrack: (track, task) => analyzeTrack(track, task),
             reportTrackAnalysisError,
+            onCancel: track => {
+                if (!isTrackStillImported(track)) return;
+                track.report = '분석 작업 취소 중';
+                scheduleRenderAll('analysis-cancel', { keepDetailAudio: true });
+            },
             getRenderQueue: () => typeof getRenderSchedulerSnapshot === 'function' ? getRenderSchedulerSnapshot() : null,
             onStatus: (snapshot, context) => updateImportAnalysisQueueStatus(context, snapshot)
         });
@@ -4038,6 +4044,8 @@ function getImportAnalysisQueueController() {
             queueTracks: () => this.getSnapshot?.() || Object.freeze({ active: 0, pending: 0 }),
             schedule: () => null,
             runPump: () => null,
+            cancelTrack: () => null,
+            cancelAll: () => null,
             clear: () => null
         });
     }
@@ -4062,7 +4070,7 @@ function updateImportAnalysisQueueStatus(context = '', snapshotOverride = null) 
     return snapshot;
 }
 function reportTrackAnalysisError(track, error) {
-    if (!track) return;
+    if (!track || isAnalysisCancellationError(error)) return;
     track.status = 'error';
     track.error = getErrorMessage(error, '분석 실패');
     track.report = track.error;
@@ -4085,13 +4093,15 @@ function runImportAnalysisPump() {
 window.FoxBearBulkImportGuard = Object.freeze({
     getSnapshot: getImportAnalysisQueueSnapshot,
     queueTracksForAnalysis,
+    cancelTrack: (trackOrId, reason) => getImportAnalysisQueueController().cancelTrack?.(trackOrId, reason),
+    cancelAll: reason => getImportAnalysisQueueController().cancelAll?.(reason),
     get concurrency() { return SAFE_IMPORT_ANALYSIS_CONCURRENCY; },
     get largeBatchThreshold() { return SAFE_LARGE_IMPORT_BATCH_THRESHOLD; }
 });
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.28-resilience-lifecycle-offline-recovery',
+        version: '1.5.29-analysis-update-lifecycle',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4131,7 +4141,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.28-resilience-lifecycle-offline-recovery',
+    version: '1.5.29-analysis-update-lifecycle',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4151,12 +4161,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.28-resilience-lifecycle-offline-recovery', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.29-analysis-update-lifecycle', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.28-resilience-lifecycle-offline-recovery', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.29-analysis-update-lifecycle', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4171,12 +4181,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.28-resilience-lifecycle-offline-recovery',
+    version: 'v1.5.29-analysis-update-lifecycle',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.28-resilience-lifecycle-offline-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.29-analysis-update-lifecycle', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -4299,32 +4309,48 @@ function createTrack(file) {
         createObjectURL: blob => URL.createObjectURL(blob)
     });
 }
-async function analyzeTrack(track) {
+function makeAnalysisCancelledError(stage = 'analysis-cancelled') { const error = new Error(`분석 작업이 취소되었습니다. (${stage})`); error.name = 'AbortError'; error.code = 'FOXBEAR_ANALYSIS_CANCELLED'; return error; }
+function isAnalysisCancellationError(error) { return Boolean(error && (error.name === 'AbortError' || error.code === 'FOXBEAR_ANALYSIS_CANCELLED')); }
+function assertAnalysisTaskActive(track, task, stage = 'analysis') {
+    if (task && typeof task.throwIfCancelled === 'function') task.throwIfCancelled();
+    if (task?.signal?.aborted || task?.cancelled) throw makeAnalysisCancelledError(stage);
+    if (!isTrackStillImported(track)) throw makeAnalysisCancelledError(`${stage}-track-removed`);
+    if (track?.analysisTask && task && track.analysisTask !== task) throw makeAnalysisCancelledError(`${stage}-superseded`);
+    return true;
+}
+async function analyzeTrack(track, task = null) {
+    assertAnalysisTaskActive(track, task, 'start');
     track.status = 'analyzing';
     track.progress = 10;
     track.report = '임시 오디오 메모리 매핑 중';
     scheduleRenderAll('analysis-start', { keepDetailAudio: true });
     let analysis = await readAnalysisCache(track);
+    assertAnalysisTaskActive(track, task, 'cache-read');
     if (analysis) {
         track.analysisCacheHit = true;
         track.progress = 72;
         track.report = '분석 캐시 적중 · 장르/마스터링 추천값 계산 중';
         scheduleRenderAll('analysis-cache-hit', { keepDetailAudio: true });
     } else {
-        const buffer = await decodeAudio(track.file);
+        const buffer = await decodeAudio(track.file, task);
+        assertAnalysisTaskActive(track, task, 'decode');
         track.progress = 50;
         track.report = '밝기, 스테레오 폭, 공진 힌트 분석 중';
         scheduleRenderAll('analysis-progress', { keepDetailAudio: true });
-        analysis = await analyzeBufferAsync(buffer);
+        analysis = await analyzeBufferAsync(buffer, task);
+        assertAnalysisTaskActive(track, task, 'worker-analysis');
         analysis.abHighlightStartSec = estimateABHighlightStart(buffer);
         analysis.waveformOverview = sampleWaveformOverview(buffer, DOCK_WAVEFORM_BINS);
+        assertAnalysisTaskActive(track, task, 'analysis-summary');
         track.abHighlightStartSec = analysis.abHighlightStartSec;
         track.analysisCacheHit = false;
         await writeAnalysisCache(track, analysis);
+        assertAnalysisTaskActive(track, task, 'cache-write');
     }
     if (analysis && Number.isFinite(Number(analysis.abHighlightStartSec))) track.abHighlightStartSec = Number(analysis.abHighlightStartSec);
     const recommendation = safeRecommendPreset(track.name, analysis, 'track');
     const settings = makeRecommendedSettings(recommendation.preset, analysis);
+    assertAnalysisTaskActive(track, task, 'state-apply');
     track.analysis = analysis;
     track.recommendedPreset = recommendation.preset;
     track.preset = recommendation.preset;
@@ -4343,13 +4369,15 @@ async function analyzeTrack(track) {
     try { forceRefreshBottomPreviewDock(track, 'analysis-complete'); } catch (error) { console.warn('Dock refresh after analysis failed:', error); }
     try { maybeShowSingleTrackAiRecommendationDialog(track); } catch (error) { console.warn('Single track recommendation dialog failed:', error); }
 }
-async function decodeAudio(file) {
+async function decodeAudio(file, task = null) {
     const service = window.FoxBearAudioDecodeService;
     if (!service || typeof service.decodeAudioFile !== 'function') {
         throw new Error('오디오 디코딩 서비스를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');
     }
-    return await service.decodeAudioFile(file, { latencyHint: 'playback', metadataTimeoutMs: 4500 });
+    if (task && typeof task.throwIfCancelled === 'function') task.throwIfCancelled();
+    return await service.decodeAudioFile(file, { latencyHint: 'playback', metadataTimeoutMs: 4500, signal: task?.signal || null });
 }
+
 function getAnalysisCacheKey(track) {
     const service = getAnalysisCacheService();
     if (service && typeof service.getCacheKey === 'function') return service.getCacheKey(track, getAnalysisCacheOptions());
@@ -4382,8 +4410,12 @@ async function clearAnalysisCache(options = {}) {
         console.warn('Analysis cache clear failed:', error);
     }
 }
-async function analyzeBufferAsync(buffer) {
-    if (!window.Worker) return analyzeBuffer(buffer);
+async function analyzeBufferAsync(buffer, task = null) {
+    if (task && typeof task.throwIfCancelled === 'function') task.throwIfCancelled();
+    if (!window.Worker) {
+        if (task?.signal?.aborted) throw makeAnalysisCancelledError('main-analysis');
+        return analyzeBuffer(buffer);
+    }
     try {
         const worker = createFoxBearWorker(ANALYSIS_WORKER_URL);
         const channels = buffer.numberOfChannels;
@@ -4397,29 +4429,36 @@ async function analyzeBufferAsync(buffer) {
             channelBuffers
         };
         const result = await new Promise((resolve, reject) => {
-            const timer = setTimeout(() => {
+            let settled = false;
+            const finish = (callback, value) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                try { task?.signal?.removeEventListener?.('abort', abort); } catch (error) {}
                 worker.terminate();
-                reject(new Error('분석 워커 시간이 초과되어 메인 분석으로 전환합니다.'));
-            }, 30000);
+                callback(value);
+            };
+            const abort = () => finish(reject, makeAnalysisCancelledError('worker-analysis'));
+            const timer = setTimeout(() => finish(reject, new Error('분석 워커 시간이 초과되어 메인 분석으로 전환합니다.')), 30000);
+            task?.signal?.addEventListener?.('abort', abort, { once: true });
             worker.onmessage = event => {
-                clearTimeout(timer);
-                worker.terminate();
-                if (event.data && event.data.ok) resolve(event.data.analysis);
-                else reject(new Error(event.data?.error || '분석 워커 실패'));
+                if (event.data && event.data.ok) finish(resolve, event.data.analysis);
+                else finish(reject, new Error(event.data?.error || '분석 워커 실패'));
             };
-            worker.onerror = error => {
-                clearTimeout(timer);
-                worker.terminate();
-                reject(new Error(getErrorMessage(error, '워커 실행 오류')));
-            };
-            worker.postMessage(payload, channelBuffers);
+            worker.onerror = error => finish(reject, new Error(getErrorMessage(error, '워커 실행 오류')));
+            if (task?.signal?.aborted) abort();
+            else worker.postMessage(payload, channelBuffers);
         });
+        if (task && typeof task.throwIfCancelled === 'function') task.throwIfCancelled();
         return result;
     } catch (error) {
+        if (isAnalysisCancellationError(error) || task?.signal?.aborted) throw makeAnalysisCancelledError('analysis-cancelled');
         console.warn('Analysis worker fallback:', error);
+        if (task && typeof task.throwIfCancelled === 'function') task.throwIfCancelled();
         return analyzeBuffer(buffer);
     }
 }
+
 function analyzeBuffer(buffer) {
     const channels = Math.max(1, Math.min(buffer.numberOfChannels || 1, 32));
     const totalSamples = Math.max(0, buffer.length || 0);
@@ -9088,6 +9127,7 @@ function releaseTrackResourcesSafely(track) {
     return null;
 }
 function clearQueue() {
+    getImportAnalysisQueueController().cancelAll?.('queue-cleared');
     clearBottomPreviewPlayer();
     if (state.autoRemasterTimers) { state.autoRemasterTimers.forEach(timer => clearTimeout(timer)); state.autoRemasterTimers.clear(); }
     state.tracks.forEach(releaseTrackResourcesSafely);
@@ -9736,7 +9776,8 @@ function renderButtons() {
     el.masterSelectedBtn.disabled = !canProcessSelected;
     el.masterAllBtn.disabled = !canProcessAll;
     el.zipBtn.disabled = !hasCompleted || state.busy;
-    el.clearBtn.disabled = !hasTracks || state.busy;
+    const unsafeClearBusy = Boolean(state.masterPreviewRenderingTrackId || masteringQueueState.activeIds.size || state.tracks.some(track => track.status === 'processing'));
+    el.clearBtn.disabled = !hasTracks || unsafeClearBusy;
     if (el.masterSelectedBtn) {
         const labelCount = selectedTracks.length || actionTracks.length;
         el.masterSelectedBtn.textContent = labelCount > 1 ? `선택 ${labelCount}곡 마스터링` : (labelCount === 1 ? '선택 1곡 마스터링' : '선택 트랙 마스터링');
@@ -12625,6 +12666,7 @@ function clearTrackSelection(id) {
 function removeTrack(id) {
     const index = state.tracks.findIndex(track => track.id === id);
     if (index < 0) return;
+    getImportAnalysisQueueController().cancelTrack?.(id, 'track-removed');
     const previewOwned = state.bottomPreviewTrackId === id || state.bottomPreviewTransport?.trackId === id;
     if (previewOwned) clearBottomPreviewPlayer();
     const timer = state.autoRemasterTimers?.get(id);
@@ -12692,7 +12734,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.28',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.29',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

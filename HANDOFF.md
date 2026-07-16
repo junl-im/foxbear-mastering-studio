@@ -1,25 +1,24 @@
-# Handoff - v1.5.28
+# Handoff - v1.5.29
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.28 resilience, lifecycle, and offline recovery
+## Current patch: v1.5.29 analysis and update lifecycle
 
 Changes:
 
-- Prevents 320px command-header overlap while retaining essential release, compatibility, designer, and Settings controls.
-- Prunes detached playback audio elements and removes their event listeners instead of retaining them in a strong registry.
-- Fixes Preview Translation context teardown to use `FoxBearAudioContextManager` and closes disconnected controllers.
-- Uses centralized resource cleanup for clear-queue and remove-track flows.
-- Retains two legacy service-worker generations and uses them as real offline asset/navigation recovery fallbacks.
-- Cleans stale E2E ownership probes, rejects Python bytecode cache artifacts, and expands actual-browser coverage for compact geometry, repeated switching cleanup, and offline recovery.
+- Cancels active and pending import analysis when the queue is cleared or a track is removed.
+- Rejects stale decode, worker, cache, and recommendation results after a track has been removed or replaced.
+- Defers service-worker activation while critical work or playback is active, then activates after a stable idle window.
+- Falls back to current and retained legacy caches for non-success network responses as well as offline failures.
+- Adds a browser scenario covering active cancellation, stale-work suppression, replacement import, and replacement playback.
 
 ```text
-product: 1.5.28
-build: resilience-lifecycle-offline-recovery
-asset generation: 1.5.28-resilience-lifecycle-offline-recovery
-service worker cache: foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery
+product: 1.5.29
+build: analysis-update-lifecycle
+asset generation: 1.5.29-analysis-update-lifecycle
+service worker cache: foxbear-shell-v1.5.29-analysis-update-lifecycle
 ```
 
 Verification:
@@ -35,8 +34,8 @@ npm run package:verify:release
 npm run package:verify:overwrite
 ```
 
-Expected static result: `210/210 PASS`.
-Expected browser result: `12 passed`.
+Verified static result: `213/213 PASS`.
+Verified browser result: desktop `7/7`, mobile `7/7` on actual Chromium; GitHub Actions should report `14 passed`.
 
 ## Previous handoff: v1.5.27 device glyph and SRI hardening
 

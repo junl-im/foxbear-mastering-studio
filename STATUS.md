@@ -33,20 +33,19 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.28`
-- Build ID: `resilience-lifecycle-offline-recovery`
-- Asset version: `1.5.28-resilience-lifecycle-offline-recovery`
-- Service worker cache: `foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery`
-- Static QA target: `210/210 PASS`
-- Browser QA target: `12/12 PASS` on local system Chromium plus the GitHub Actions gate
+- Product version: `1.5.29`
+- Build ID: `analysis-update-lifecycle`
+- Asset version: `1.5.29-analysis-update-lifecycle`
+- Service worker cache: `foxbear-shell-v1.5.29-analysis-update-lifecycle`
+- Static QA target: `213/213 PASS`
+- Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
+- Active and pending import analysis must be cancellable; removed tracks must never receive stale decode, worker, cache, or recommendation results.
+- Waiting service workers must defer activation while analysis, mastering, decoding, rendering, or playback is active and require a stable idle window.
+- Network-first script, style, worker, and navigation requests must recover from current or retained legacy caches on offline failures and HTTP non-success responses.
 - Header command metadata and designer signature remain one-line, borderless, engraved, and independent from Settings width.
-- At 320px the optional studio descriptor yields before essential BUILD, compatibility, designer, and Settings controls.
 - Detached playback audio elements and their listeners must be pruned; queue teardown must return playback and managed AudioContext diagnostics to zero.
-- The newest two legacy service-worker caches remain available for actual offline recovery while older generations are pruned.
 - Local JavaScript/CSS SRI coverage must be complete, correctly shaped, and hash-valid.
-- Preview translation changes reuse one active media element and crossfade studio/phone/laptop/mono routes.
-
 
 ## v1.5.25 deterministic preview stability invariant
 

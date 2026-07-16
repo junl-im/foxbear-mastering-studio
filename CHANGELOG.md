@@ -1,3 +1,12 @@
+# v1.5.29 - Analysis and Update Lifecycle
+
+- Added cancellable import-analysis tasks so queue clear and track removal abort pending file reads, decoding, worker analysis, and stale result application.
+- Prevented completed work from mutating tracks that were removed or replaced while analysis was running.
+- Added a service-worker update coordinator that defers `SKIP_WAITING` while analysis, mastering, decoding, rendering, or playback is active and activates only after a stable idle window.
+- Hardened service-worker network-first recovery so HTTP 404/5xx responses fall back to current or retained legacy caches instead of replacing a working offline shell with an error response.
+- Added a real-browser cancellation/replacement scenario that clears active bulk analysis, verifies no stale resurrection, imports a replacement track, and confirms playback.
+- Added `qa/v1529_analysis_update_lifecycle_smoke.js`; the release gate passed 213 static checks and actual Chromium desktop 7/7 plus mobile 7/7 browser tests.
+
 # v1.5.28 - Resilience, Lifecycle, and Offline Recovery
 
 - Prevented 320px-class command-header overlap by hiding only the optional studio descriptor while preserving BUILD, version, device glyphs, compatibility text, designer identity, and Settings.

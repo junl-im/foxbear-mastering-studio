@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.28-resilience-lifecycle-offline-recovery';
+  const VIEW_VERSION = '1.5.29-analysis-update-lifecycle';
   const DEFAULT_BINS = 96;
 
   function getService() {

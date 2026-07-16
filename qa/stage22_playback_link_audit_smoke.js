@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.28-resilience-lifecycle-offline-recovery';
+const version = '1.5.29-analysis-update-lifecycle';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
