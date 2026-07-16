@@ -13,8 +13,10 @@ const repairCss = read('assets/css/dock-ui-repair.css');
 const html = read('index.html');
 
 assert(
-  spec.includes("const RESPONSIVE_PLAY_CONTROL = '#bottomPreviewPlayBtn:visible, #bottomPreviewPlayer .dock-integrated-toggle:visible';"),
-  'preview playback E2E must select the visible desktop or mobile control'
+  spec.includes("window.matchMedia?.('(max-width: 720px)')?.matches === true")
+    && spec.includes("'#bottomPreviewPlayer .dock-integrated-toggle'")
+    && spec.includes("'#bottomPreviewPlayBtn'"),
+  'preview playback E2E must select the viewport-specific desktop or mobile control'
 );
 assert(
   spec.includes("if (beforePlay.viewportWidth <= 720)")
@@ -23,12 +25,12 @@ assert(
   'preview playback E2E must assert the viewport-specific control contract'
 );
 assert(
-  spec.includes("element.hidden || element.getAttribute('aria-hidden') === 'true'")
-    && spec.includes("style.display !== 'none'")
-    && spec.includes("style.visibility !== 'hidden'")
-    && spec.includes("rect.width > 0")
-    && spec.includes("rect.height > 0"),
-  'blocking-dialog diagnostics must use rendered visibility rather than DOM presence'
+  spec.includes('for (let node = element; node && node.nodeType === Node.ELEMENT_NODE; node = node.parentElement)')
+    && spec.includes("node.getAttribute('aria-hidden') === 'true'")
+    && spec.includes("style.display === 'none'")
+    && spec.includes("style.visibility === 'hidden'")
+    && spec.includes('rect.width <= 0 || rect.height <= 0'),
+  'blocking-dialog diagnostics must use rendered visibility across the ancestor chain'
 );
 assert(
   !spec.includes("document.querySelectorAll('.ai-recommend-dialog-backdrop, [aria-modal=\"true\"]:not([hidden])').length"),

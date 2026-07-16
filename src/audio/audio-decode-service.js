@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.24
+// FoxBear audio decode service - v1.5.25
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.24-e2e-responsive-preview-control';
+    const SERVICE_VERSION = '1.5.25-e2e-preview-stability';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 

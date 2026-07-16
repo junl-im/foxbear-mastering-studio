@@ -1,3 +1,12 @@
+# v1.5.25 - Deterministic Preview E2E Stability
+
+- Fixed rendered-dialog detection to walk the full ancestor chain, so hidden select-popup panels inside an `aria-hidden`/transparent backdrop are not misclassified as blockers.
+- Waits for the import queue, render scheduler, active audio metadata, and the viewport-specific play control to remain stable before the real user click.
+- Increased the synthetic preview fixture to 12 seconds and replaced flaky media event-count assertions with explicit `audio.play()`/`audio.pause()` call tracking.
+- Fixed the browser runner so an explicitly requested spec path runs only that spec instead of silently prepending the entire browser suite.
+- Verified the preview scenario three consecutive times on desktop and mobile, then completed the full desktop 6/6 and mobile 6/6 Chromium suites locally.
+- Added `qa/v1525_e2e_preview_stability_smoke.js`; current static QA target is `207/207 PASS`.
+
 # v1.5.24 - Responsive Preview Control and Visible Dialog Readiness
 
 - Fixed the preview-routing browser scenario to use the visible desktop external play control or the visible mobile integrated Dock play control instead of requiring a desktop-only button at every viewport.

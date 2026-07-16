@@ -1,3 +1,20 @@
+# FoxBear QA Report - v1.5.25
+
+Current release gate target: metadata/handoff checks, 207 static checks, and 12 desktop/mobile Playwright tests.
+
+## v1.5.25 coverage
+
+- Verifies dialog visibility through hidden, transparent, pointer-disabled, and `aria-hidden` ancestors.
+- Verifies import queue and render scheduler idle state before preview playback.
+- Verifies a stable viewport-specific play control before the real click.
+- Verifies one persistent audio element with zero explicit `play()`/`pause()` calls through studio/phone/laptop/mono routing.
+- Verifies targeted spec arguments do not expand into the full browser suite.
+
+```text
+207/207 PASS
+Browser QA: desktop 6/6 PASS, mobile 6/6 PASS on local Chromium
+```
+
 # FoxBear QA Report - v1.5.24
 
 Current release gate target: metadata/handoff checks, 206 static checks, and 12 desktop/mobile Playwright tests.

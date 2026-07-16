@@ -33,16 +33,23 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.24`
-- Build ID: `e2e-responsive-preview-control`
-- Asset version: `1.5.24-e2e-responsive-preview-control`
-- Service worker cache: `foxbear-shell-v1.5.24-e2e-responsive-preview-control`
-- Static QA target: `206/206 PASS`
-- Browser QA target: 12 desktop/mobile Playwright tests
+- Product version: `1.5.25`
+- Build ID: `e2e-preview-stability`
+- Asset version: `1.5.25-e2e-preview-stability`
+- Service worker cache: `foxbear-shell-v1.5.25-e2e-preview-stability`
+- Static QA target: `207/207 PASS`
+- Browser QA target: `12/12 PASS` on local system Chromium plus the GitHub Actions gate
 - Header metadata and designer signature remain one-line, borderless, and independent from Settings width.
 - Preview translation changes reuse one active media element and crossfade persistent studio/phone/laptop/mono routes.
 
 
+
+## v1.5.25 deterministic preview stability invariant
+
+- Blocking-dialog visibility must include hidden/transparent ancestors, not only the dialog node itself.
+- Preview playback must begin only after import and render queues are idle and the chosen control has a stable hit-test.
+- Translation routing must be judged by explicit media method calls; incidental browser event timing is not the contract.
+- The synthetic preview fixture must remain long enough that natural media completion cannot overlap the routing assertions.
 
 ## v1.5.24 responsive browser-control invariant
 

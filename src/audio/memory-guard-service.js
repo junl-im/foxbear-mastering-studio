@@ -1,8 +1,8 @@
-// FoxBear memory guard service v1.5.24 - release-after-encode PCM retention policy and diagnostics
+// FoxBear memory guard service v1.5.25 - release-after-encode PCM retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const VERSION = 'v1.5.24-e2e-responsive-preview-control';
+    const VERSION = 'v1.5.25-e2e-preview-stability';
     const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 

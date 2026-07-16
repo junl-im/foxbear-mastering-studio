@@ -89,6 +89,13 @@ function ensureResultsDir() {
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
 }
 
+function hasExplicitTestTarget(args = []) {
+  return args.some(arg => {
+    const value = String(arg || '');
+    return !value.startsWith('-') && (value.endsWith('.spec.js') || value.startsWith('qa/browser/'));
+  });
+}
+
 function firstUsefulErrorText(result) {
   const errors = Array.isArray(result?.errors) ? result.errors : [];
   const first = errors.find(error => error && (error.message || error.stack));
@@ -203,7 +210,8 @@ async function main() {
     });
     ensureResultsDir();
     const forwardedArgs = process.argv.slice(2);
-    const args = [playwrightCli, 'test', 'qa/browser', ...forwardedArgs];
+    const defaultTarget = hasExplicitTestTarget(forwardedArgs) ? [] : ['qa/browser'];
+    const args = [playwrightCli, 'test', ...defaultTarget, ...forwardedArgs];
     const childEnv = {
       ...process.env,
       FOXBEAR_E2E_URL: APP_URL,
@@ -243,6 +251,7 @@ if (require.main === module) {
 
 module.exports = {
   collectPlaywrightFailures,
+  hasExplicitTestTarget,
   main,
   mergeNoProxy,
   persistAndPrintStaticServerDiagnostics,

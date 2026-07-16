@@ -1,23 +1,25 @@
-# Handoff - v1.5.24
+# Handoff - v1.5.25
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.24 responsive preview control readiness
+## Current patch: v1.5.25 deterministic preview E2E stability
 
 Changes:
 
-- Uses the external Dock play button on desktop and the integrated Dock play toggle on mobile.
-- Counts only actually rendered blocking dialogs; permanently mounted hidden modal roots no longer create false failures.
-- Adds viewport-specific assertions and click-interception diagnostics before playback.
-- Preserves the production recommendation popup and the v1.5.22 persistent audio/crossfade implementation.
+- Classifies blocking dialogs using the complete rendered ancestor chain.
+- Waits for import queue, render scheduler, media metadata, and control layout stability before playback.
+- Tracks explicit `audio.play()` and `audio.pause()` calls during studio/phone/laptop/mono routing.
+- Uses a 12-second synthetic preview fixture to avoid natural-end timing noise.
+- Allows targeted browser-spec reruns without silently executing the full suite.
+- Locally verified desktop 6/6 and mobile 6/6 Chromium browser tests.
 
 ```text
-product: 1.5.24
-build: e2e-responsive-preview-control
-asset generation: 1.5.24-e2e-responsive-preview-control
-service worker cache: foxbear-shell-v1.5.24-e2e-responsive-preview-control
+product: 1.5.25
+build: e2e-preview-stability
+asset generation: 1.5.25-e2e-preview-stability
+service worker cache: foxbear-shell-v1.5.25-e2e-preview-stability
 ```
 
 Verification:
@@ -33,7 +35,8 @@ npm run package:verify:release
 npm run package:verify:overwrite
 ```
 
-Expected static result: `205/205 PASS`.
+Expected static result: `207/207 PASS`.
+Expected browser result: `12 passed`.
 
 ## Previous handoff: v1.5.22 header signature and uninterrupted preview routing
 

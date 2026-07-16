@@ -18,7 +18,7 @@ assert(index.includes('src/audio/preview-translation-service.js'), 'preview tran
 assert(index.indexOf('src/audio/audio-context-manager.js') < index.indexOf('src/audio/preview-translation-service.js'), 'audio context manager must load before preview translation service');
 assert(index.indexOf('src/audio/preview-translation-service.js') < index.indexOf('src/app.js'), 'preview translation service must load before app.js');
 assert(sw.includes('./src/audio/preview-translation-service.js?v='), 'service worker must cache preview translation service');
-assert(browserSpec.includes('__foxbearTranslationPlaybackProbe') && browserSpec.includes('pauseCount') && browserSpec.includes('sameAudio'), 'real browser translation continuity contract missing');
+assert(browserSpec.includes('__foxbearTranslationPlaybackProbe') && browserSpec.includes('pauseCalls') && browserSpec.includes('playCalls') && browserSpec.includes('sameAudio'), 'real browser translation continuity contract missing');
 const runtimeSpec = read('qa/browser/runtime-health-playwright.spec.js');
 assert(runtimeSpec.includes("page.on('response'") && runtimeSpec.includes('response.status() >= 400'), 'browser QA must catch same-origin HTTP errors, not only network failures');
 assert(runtimeSpec.includes('isOptionalRemoteUrl') && !runtimeSpec.includes('/firebase|firestore|googleapis|gstatic|identitytoolkit|firebaseio|remote config/i'), 'optional remote filtering must be URL-scoped and must not hide local firebase-bootstrap errors');

@@ -1,3 +1,12 @@
+# Current Project Notes - v1.5.25
+
+## v1.5.25 focus
+
+- Browser readiness must wait for queue, render, media, and layout stability instead of a single DOM condition.
+- Hidden descendants of transparent or `aria-hidden` overlay roots are not blocking dialogs.
+- Uninterrupted routing is defined by one media element with zero explicit replay/pause calls during mode changes.
+- Browser test claims are based on actual Chromium execution, not static collection alone.
+
 # Current Project Notes - v1.5.24
 
 ## v1.5.24 focus

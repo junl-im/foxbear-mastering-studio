@@ -136,7 +136,9 @@ function sync() {
       .map(match => match[1])
       .filter(name => name && name !== meta.cacheName);
     if (previous.cacheName && previous.cacheName !== meta.cacheName) names.push(previous.cacheName);
-    const uniqueNames = [...new Set(names)].slice(-20);
+    const requiredLegacyNames = ['foxbear-shell-v1.5.4-boot-sri-recovery'];
+    const recentNames = [...new Set(names.filter(name => !requiredLegacyNames.includes(name)))].slice(-20);
+    const uniqueNames = [...requiredLegacyNames, ...recentNames];
     sw = sw.replace(legacyMatch[0], `const LEGACY_CACHE_NAMES = [${uniqueNames.map(name => `'${name}'`).join(', ')}];`);
   }
   write('sw.js', sw);

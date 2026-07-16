@@ -1,3 +1,14 @@
+## v1.5.25 deterministic preview E2E checks
+
+- [ ] Import queue reports `active: 0` and `pending: 0` before preview playback.
+- [ ] Render scheduler reports neither pending nor in-render work before playback.
+- [ ] The desktop/mobile play control owns its center-point hit test for at least 220 ms.
+- [ ] Hidden select-popup panels are excluded through ancestor visibility checks.
+- [ ] Studio → phone → laptop → mono → studio keeps one audio element.
+- [ ] Translation changes call neither `audio.play()` nor `audio.pause()`.
+- [ ] Desktop browser project passes 6/6.
+- [ ] Mobile browser project passes 6/6.
+
 ## v1.5.24 responsive preview-control checks
 
 - [ ] Desktop preview routing uses the visible `#bottomPreviewPlayBtn`.

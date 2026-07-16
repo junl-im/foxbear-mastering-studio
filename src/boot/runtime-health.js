@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.24-e2e-responsive-preview-control';
+    const FALLBACK_VERSION = '1.5.25-e2e-preview-stability';
     if (global.FoxBearBuildInfo?.assetVersion && global.FoxBearBuildInfo.assetVersion !== FALLBACK_VERSION) console.warn('[FoxBear] runtime health metadata mismatch', { fallback: FALLBACK_VERSION, build: global.FoxBearBuildInfo.assetVersion });
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([

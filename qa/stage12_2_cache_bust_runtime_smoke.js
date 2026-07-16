@@ -15,11 +15,11 @@ const index = read('index.html');
 const sw = read('sw.js');
 const cfg = read('src/config/app-runtime-config.js');
 const pkg = JSON.parse(read('package.json'));
-const version = '1.5.24-e2e-responsive-preview-control';
+const version = '1.5.25-e2e-preview-stability';
 
 assert(index.includes(`?v=${version}`), 'index.html should use the stage12.2 cache-busting asset version');
 assert(sw.includes(`?v=${version}`), 'service worker precache should use the stage12.2 asset version');
-assert(sw.includes('foxbear-shell-v1.5.24-e2e-responsive-preview-control'), 'service worker cache name should be stage12.2 cachefix');
+assert(sw.includes('foxbear-shell-v1.5.25-e2e-preview-stability'), 'service worker cache name should be stage12.2 cachefix');
 assert(!index.includes('?v=1.4.0-dock-modal-state-machine'), 'index.html should not keep the stale immutable asset query');
 assert(!sw.includes('?v=1.4.0-dock-modal-state-machine'), 'sw.js should not keep the stale immutable asset query');
 

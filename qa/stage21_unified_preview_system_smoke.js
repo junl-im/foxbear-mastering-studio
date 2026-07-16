@@ -18,7 +18,7 @@ const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
 const overwrite = read('tools/create-overwrite-zip.sh');
-const version = '1.5.24-e2e-responsive-preview-control';
+const version = '1.5.25-e2e-preview-stability';
 
 assert(index.includes(`assets/css/components/preview-system.css?v=${version}`), 'index should load preview-system.css with Stage21 cache key');
 assert(sw.includes(`./assets/css/components/preview-system.css?v=${version}`), 'service worker should precache preview-system.css');

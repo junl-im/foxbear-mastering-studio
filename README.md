@@ -1,19 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.24
+# FoxBear AI Mastering Studio Pro v1.5.25
 
-## Current patch: v1.5.24 Responsive Preview Control and Visible Dialog Readiness
+## Current patch: v1.5.25 Deterministic Preview E2E Stability
 
-브라우저 QA가 데스크톱 전용 외부 재생 버튼만 찾던 문제를 수정했습니다. 데스크톱에서는 `#bottomPreviewPlayBtn`, 모바일에서는 실제 사용자에게 표시되는 `.dock-integrated-toggle`을 선택합니다.
+프리뷰 전환 브라우저 테스트의 남은 경쟁 조건을 제거했습니다. 숨겨진 선택 팝업은 부모 backdrop까지 확인해 차단 모달로 오인하지 않으며, 파일 분석 큐와 렌더 스케줄러가 완전히 안정된 뒤 데스크톱 또는 모바일의 실제 재생 버튼을 클릭합니다.
 
-DOM에 상시 존재하지만 CSS로 숨겨진 `aria-modal` 요소를 열린 모달로 오인하지 않도록, `hidden`, `aria-hidden`, 계산된 `display/visibility/opacity`, 실제 레이아웃 크기를 함께 확인합니다. 오디오 전환 엔진은 변경하지 않았습니다.
+전환 중 재생 유지 검사는 브라우저의 `play`/`pause` 이벤트 발생 횟수가 아니라 전환 코드가 `audio.play()` 또는 `audio.pause()`를 다시 호출했는지를 직접 추적합니다. 12초 테스트 오디오를 사용해 병렬 CI 부하에서 자연 종료가 섞이지 않도록 했습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.24
-build: e2e-responsive-preview-control
-asset generation: 1.5.24-e2e-responsive-preview-control
-service worker cache: foxbear-shell-v1.5.24-e2e-responsive-preview-control
+product: 1.5.25
+build: e2e-preview-stability
+asset generation: 1.5.25-e2e-preview-stability
+service worker cache: foxbear-shell-v1.5.25-e2e-preview-stability
 ```
+
+## Previous patch: v1.5.24 Responsive Preview Control and Visible Dialog Readiness
+
+데스크톱과 모바일의 실제 표시 재생 버튼을 구분하는 반응형 계약은 그대로 유지됩니다.
 
 ## Previous patch: v1.5.23 Deterministic Preview Playback Readiness
 

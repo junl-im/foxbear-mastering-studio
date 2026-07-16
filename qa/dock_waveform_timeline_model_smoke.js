@@ -13,8 +13,8 @@ const dockWaveformCss = fs.readFileSync('assets/css/dock-waveform.css', 'utf8');
 const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const html = fs.readFileSync('index.html', 'utf8');
 
-must(app.includes("const APP_VERSION = 'Pro v1.5.24'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.5.24"'), 'index build should be v1.5.24');
+must(app.includes("const APP_VERSION = 'Pro v1.5.25'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.5.25"'), 'index build should be v1.5.25');
 must(app.includes('function getWaveformTimelineModel'), 'timeline model helper missing');
 must(app.includes('model.plotLeft + model.plotWidth * (pct / 100)'), 'continuous visual playhead mapping missing');
 must(app.includes('(x - model.plotLeft) / Math.max(1, model.plotWidth)'), 'continuous pointer mapping missing');
