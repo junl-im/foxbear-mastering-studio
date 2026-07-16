@@ -1,3 +1,12 @@
+# Current Project Notes - v1.5.22
+
+## v1.5.22 focus
+
+- Header metadata should read as a subtle engraved signature, not as three competing cards.
+- Preview translation must never replace the active media element merely to change phone/laptop/mono coloration.
+- One managed AudioContext and one MediaElementSource should serve all translation modes for a player lifecycle; only the active DSP route should remain after each crossfade.
+- Mode changes use short gain ramps and preserve playback position, transport state, waveform sync, Wake Lock, and Media Session.
+
 # Current Project Notes - v1.5.21
 
 ## v1.5.21 focus

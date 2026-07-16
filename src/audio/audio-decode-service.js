@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.21
+// FoxBear audio decode service - v1.5.22
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.21-history-csp-console-contract-fix';
+    const SERVICE_VERSION = '1.5.22-header-preview-routing-polish';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 

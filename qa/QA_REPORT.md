@@ -1,6 +1,28 @@
+# FoxBear QA Report - v1.5.22
+
+Current release gate target: metadata/handoff checks, 203 static checks, and 12 desktop/mobile Playwright tests.
+
+## v1.5.22 coverage
+
+- Compact single-row header assertions cover vertical alignment, clipping, borderless designer styling, and settings placement on desktop and mobile.
+- Preview translation keeps one media source, uses lazy temporary DSP routes for 120ms crossfades, and releases inactive routes and listeners.
+- Runtime Health browser QA now catches same-origin HTTP 4xx/5xx responses and scopes optional Firebase filtering to actual remote URLs, so local bootstrap errors cannot be hidden.
+- Desktop and mobile Playwright coverage imports a WAV, starts playback, switches all four environments, and requires the same advancing audio element with zero pause/replay events.
+
+- Verifies the header version/device/designer signature is borderless, compact, and no longer displaced by Settings.
+- Verifies one persistent MediaElementSource owns studio, phone, laptop, and mono routes.
+- Verifies translation mode changes ramp route gains without calling media `play()` or `pause()`.
+- Verifies the translation service is SRI-protected and included in the service-worker release cache.
+- Re-runs engine, golden audio, AudioContext lifecycle, Update Safety, PWA, and package integrity checks.
+
+```text
+204/204 PASS
+Browser QA: GitHub Actions confirmation required
+```
+
 # FoxBear QA Report - v1.5.21
 
-Current release gate target: metadata/handoff checks, 201 static checks, and 10 desktop/mobile Playwright tests.
+Current release gate target: metadata/handoff checks, 201 static checks, and 12 desktop/mobile Playwright tests.
 
 ## v1.5.21 coverage
 

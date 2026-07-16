@@ -1,25 +1,24 @@
-# Handoff - v1.5.21
+# Handoff - v1.5.22
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.21 history and CSP console contract fix
+## Current patch: v1.5.22 header signature and uninterrupted preview routing
 
 Changes:
 
-- HTML meta CSP removes the unsupported `frame-ancestors` directive so Chromium does not emit a deterministic console error during runtime-health QA.
-- Firebase Hosting retains `frame-ancestors 'none'` in the effective HTTP CSP response header.
-- History QA traverses the same-URL exit-guard sentinel and then reaches `#foxbear-e2e-back-test` through at most two real forward steps.
-- Release metadata synchronization repairs mixed stale runtime labels and URLs instead of relying on one previous version value.
-- v1.5.20 idempotent service-worker cache warming remains included.
-- `qa/v1521_history_csp_console_contract_smoke.js` protects the CSP split, history sentinel, and metadata recovery contracts.
+- Converts the version/device/designer header cards into compact borderless engraved labels and shrinks the Settings trigger so the top copy does not wrap downward.
+- Keeps one MediaElementSource and lazily creates only the next translation route during a studio/phone/laptop/mono crossfade; inactive DSP routes are disconnected after the transition.
+- Switches translation modes by crossfading gain paths without replacing the active audio element or restarting playback.
+- Keeps translation contexts under `FoxBearAudioContextManager` ownership and closes them with the player lifecycle.
+- Adds static and simulated routing coverage in `qa/v1522_header_preview_routing_smoke.js`.
 
 ```text
-product: 1.5.21
-build: history-csp-console-contract-fix
-asset generation: 1.5.21-history-csp-console-contract-fix
-service worker cache: foxbear-shell-v1.5.21-history-csp-console-contract-fix
+product: 1.5.22
+build: header-preview-routing-polish
+asset generation: 1.5.22-header-preview-routing-polish
+service worker cache: foxbear-shell-v1.5.22-header-preview-routing-polish
 ```
 
 Verification:
@@ -35,7 +34,11 @@ npm run package:verify:release
 npm run package:verify:overwrite
 ```
 
-Expected static result: `201/201 PASS`.
+Expected static result: `204/204 PASS`.
+
+## Previous handoff: v1.5.21 History and CSP Console Contract Fix
+
+The v1.5.21 CSP and history-sentinel fixes remain included.
 
 ## Previous handoff: v1.5.20 Idempotent PWA Cache Warm
 

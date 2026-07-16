@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.21 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.22 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -17,7 +17,7 @@ const {
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.21';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.22';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -60,7 +60,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.21-history-csp-console-contract-fix'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1521'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.22-header-preview-routing-polish'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1522'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -2633,12 +2633,14 @@ function applyPreviewTranslationMode(mode, options = {}) {
         if (options.toast) showToast('먼저 음원을 불러온 뒤 재생환경을 바꿀 수 있습니다.');
         return false;
     }
-    captureBottomPreviewTransport(track, state.bottomPreviewMode);
     state.previewTranslationMode = target;
     state.bottomPreviewTrackId = track.id;
-    renderBottomPreviewDock({ keepPlaying: options.keepPlaying !== false });
+    const audio = getBottomPreviewAudio();
+    const switchedInPlace = Boolean(audio?._foxbearTranslationController?.setMode?.(target, { fadeMs: 120 }));
+    if (switchedInPlace) renderPreviewTranslationModeControls(state.bottomPreviewMode);
+    else renderBottomPreviewDock({ keepPlaying: options.keepPlaying !== false });
     foxBearHaptic('switch');
-    if (options.toast) showToast(`${PREVIEW_TRANSLATION_MODES[target].label} 모드로 전환했습니다.`);
+    if (options.toast) showToast(`${PREVIEW_TRANSLATION_MODES[target].label} 모드로 부드럽게 전환했습니다.`);
     return true;
 }
 function jumpDockToImportantPeak(track = getSelectedTrack()) {
@@ -2957,7 +2959,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.21-history-csp-console-contract-fix') · navigator.serviceWorker.register('./sw.js?v=1.5.21-history-csp-console-contract-fix&h=sw-v1521')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.22-header-preview-routing-polish') · navigator.serviceWorker.register('./sw.js?v=1.5.22-header-preview-routing-polish&h=sw-v1522')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)); if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
         const activeWorker = readyRegistration?.active || registration?.active || null;
@@ -3764,7 +3766,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.21-history-csp-console-contract-fix', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.22-header-preview-routing-polish', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4065,7 +4067,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.21-history-csp-console-contract-fix',
+        version: '1.5.22-header-preview-routing-polish',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4105,7 +4107,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.21-history-csp-console-contract-fix',
+    version: '1.5.22-header-preview-routing-polish',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4125,12 +4127,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.21-history-csp-console-contract-fix', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.22-header-preview-routing-polish', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.21-history-csp-console-contract-fix', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.22-header-preview-routing-polish', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4145,12 +4147,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.21-history-csp-console-contract-fix',
+    version: 'v1.5.22-header-preview-routing-polish',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.21-history-csp-console-contract-fix', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.22-header-preview-routing-polish', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -10354,96 +10356,25 @@ function setupPreviewTranslationAudio(audio, options = {}) {
     if (!audio || options.translationMode === false) return null;
     rememberAudioTargetVolume(audio);
     const mode = getPreviewTranslationMode();
-    audio.dataset.previewTranslationMode = mode.id;
-    if (mode.id === 'studio') return null;
-    if (!window.AudioContext && !window.webkitAudioContext) return null;
+    if (options.persistentTranslation !== true && mode.id === 'studio') return null;
     try {
-        const context = FoxBearAudioContexts.create({ purpose: 'preview-translation', ownerId: `preview-translation:${options.trackId || audio.dataset.spectrumTrackId || 'track'}:${Date.now()}`, latencyHint: 'interactive' });
-        const source = context.createMediaElementSource(audio);
-        const outputGain = context.createGain();
-        outputGain.gain.value = mode.id === 'phone' ? 0.92 : 0.96;
-        const filters = createPreviewTranslationFilterChain(context, mode.id);
-        const first = filters[0] || outputGain;
-        const last = filters[filters.length - 1] || outputGain;
-        if (mode.id === 'mono') {
-            connectPreviewMonoMatrix(context, source, first);
-        } else {
-            source.connect(first);
-        }
-        const spectrumAnalyser = createSpectrumAnalyserTap(context);
-        last.connect(outputGain);
-        if (spectrumAnalyser) outputGain.connect(spectrumAnalyser).connect(context.destination);
-        else outputGain.connect(context.destination);
-        registerExternalSpectrumAnalyser(audio, spectrumAnalyser, context, {
-            role: 'preview-translation',
-            trackId: options.trackId || audio.dataset.spectrumTrackId || '',
+        const controller = window.FoxBearPreviewTranslationService?.attach?.(audio, {
             mode: mode.id,
-            label: `${mode.label || mode.id} FFT`
+            persistent: options.persistentTranslation === true,
+            createContext: () => FoxBearAudioContexts.create({ purpose: 'preview-translation', ownerId: `preview-translation:${options.trackId || audio.dataset.spectrumTrackId || 'track'}:${Date.now()}`, latencyHint: 'interactive' }),
+            createAnalyser: createSpectrumAnalyserTap
         });
-        const resume = () => FoxBearAudioContexts.resume(context, 'preview-translation-play');
-        audio.addEventListener('play', resume);
-        audio.addEventListener('emptied', () => closePreviewTranslationContext(context), { once: true });
-        audio.addEventListener('error', () => closePreviewTranslationContext(context), { once: true });
-        audio._foxbearTranslationContext = context;
-        return context;
+        if (!controller) return null;
+        registerExternalSpectrumAnalyser(audio, controller.analyser, controller.context, { role: 'preview-translation', trackId: options.trackId || audio.dataset.spectrumTrackId || '', mode: mode.id, label: `${mode.label || mode.id} FFT` });
+        return controller.context;
     } catch (error) {
-        console.warn('Preview translation mode unavailable:', error);
+        console.warn('Preview translation graph unavailable:', error);
         return null;
     }
 }
-function createPreviewTranslationFilterChain(context, modeId) {
-    const highPass = context.createBiquadFilter();
-    highPass.type = 'highpass';
-    highPass.frequency.value = modeId === 'phone' ? 170 : (modeId === 'laptop' ? 105 : 55);
-    highPass.Q.value = modeId === 'phone' ? 0.78 : 0.65;
-    const lowShelf = context.createBiquadFilter();
-    lowShelf.type = 'lowshelf';
-    lowShelf.frequency.value = modeId === 'phone' ? 310 : (modeId === 'laptop' ? 180 : 130);
-    lowShelf.gain.value = modeId === 'phone' ? -9 : (modeId === 'laptop' ? -5.5 : -1.2);
-    const bodyCut = context.createBiquadFilter();
-    bodyCut.type = 'peaking';
-    bodyCut.frequency.value = modeId === 'phone' ? 430 : (modeId === 'laptop' ? 360 : 260);
-    bodyCut.Q.value = modeId === 'phone' ? 1.05 : 0.82;
-    bodyCut.gain.value = modeId === 'phone' ? -3.2 : (modeId === 'laptop' ? -1.6 : -0.6);
-    const presence = context.createBiquadFilter();
-    presence.type = 'peaking';
-    presence.frequency.value = modeId === 'phone' ? 3300 : (modeId === 'laptop' ? 2900 : 2500);
-    presence.Q.value = modeId === 'phone' ? 1.28 : 0.95;
-    presence.gain.value = modeId === 'phone' ? 2.6 : (modeId === 'laptop' ? 1.2 : 0);
-    const harsh = context.createBiquadFilter();
-    harsh.type = 'peaking';
-    harsh.frequency.value = modeId === 'phone' ? 4700 : 5200;
-    harsh.Q.value = 1.15;
-    harsh.gain.value = modeId === 'phone' ? 1.1 : (modeId === 'laptop' ? 0.6 : 0);
-    const lowPass = context.createBiquadFilter();
-    lowPass.type = 'lowpass';
-    lowPass.frequency.value = modeId === 'phone' ? 7200 : (modeId === 'laptop' ? 11800 : 18000);
-    lowPass.Q.value = modeId === 'phone' ? 0.62 : 0.55;
-    return [highPass, lowShelf, bodyCut, presence, harsh, lowPass].reduce((chain, node, index, arr) => {
-        if (index > 0) arr[index - 1].connect(node);
-        chain.push(node);
-        return chain;
-    }, []);
-}
-function connectPreviewMonoMatrix(context, source, firstNode) {
-    const splitter = context.createChannelSplitter(2);
-    const merger = context.createChannelMerger(2);
-    const lToL = context.createGain();
-    const rToL = context.createGain();
-    const lToR = context.createGain();
-    const rToR = context.createGain();
-    [lToL, rToL, lToR, rToR].forEach(g => { g.gain.value = 0.5; });
-    source.connect(splitter);
-    splitter.connect(lToL, 0); lToL.connect(merger, 0, 0);
-    splitter.connect(rToL, 1); rToL.connect(merger, 0, 0);
-    splitter.connect(lToR, 0); lToR.connect(merger, 0, 1);
-    splitter.connect(rToR, 1); rToR.connect(merger, 0, 1);
-    merger.connect(firstNode);
-}
-function closePreviewTranslationContext(context) {
-    if (!context || context.state === 'closed') return;
-    FoxBearAudioContexts.close(context, 'preview-translation-close');
-}
+function createPreviewTranslationFilterChain(context, modeId) { return window.FoxBearPreviewTranslationService?.createFilterChain?.(context, modeId) || []; }
+function connectPreviewMonoMatrix(context, source, firstNode) { return window.FoxBearPreviewTranslationService?.connectMonoMatrix?.(context, source, firstNode) || []; }
+function closePreviewTranslationContext(context) { if (context && context.state !== 'closed') FoxBearAudioContexts.close(context, 'preview-translation-close'); }
 function getBottomPreviewDockTrack() {
     const dockTrackId = state.bottomPreviewTrackId;
     const dockTrack = dockTrackId ? state.tracks.find(track => track.id === dockTrackId) : null;
@@ -11297,7 +11228,7 @@ function renderBottomPreviewDock(options = {}) {
     const differenceReady = false;
     const gainDb = 0;
     const waveformSignature = getDockWaveformSignature(track, mode);
-    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|dock-clean|${getPreviewTranslationMode().id}|wave:${waveformSignature}`;
+    const key = `${track.id}|${mode}|${src || ''}|${state.abLoopMode && !useMasterPreview ? 'loop' : 'free'}|dock-clean|wave:${waveformSignature}`;
     el.bottomPreviewDock.classList.add('show');
     el.bottomPreviewDock.setAttribute('aria-hidden', 'false');
     document.body.classList.add('bottom-preview-active');
@@ -11353,7 +11284,7 @@ function renderBottomPreviewDock(options = {}) {
             el.bottomPreviewPlayer.appendChild(empty);
         } else {
             const transport = getPendingBottomPreviewTransport(track, mode, duration, options.autoPlay || state.bottomPreviewAutoplayTrackId === track.id);
-            const player = createDockIntegratedWaveformPlayer(track, { src, mode, duration, startSec: transport.startSec, gainDb, translationMode: true });
+            const player = createDockIntegratedWaveformPlayer(track, { src, mode, duration, startSec: transport.startSec, gainDb, translationMode: true, persistentTranslation: true });
             player.classList.add('bottom-custom-player');
             const audio = player.querySelector('audio');
             const modeLabel = differenceReady ? '차이 듣기' : (useMastered ? '마스터링' : (useMasterPreview ? '15초 하이라이트 듣기' : '원본'));
@@ -11596,7 +11527,8 @@ function clearBottomPreviewPlayer() {
     Array.from(el.bottomPreviewPlayer.children).forEach(child => { try { child._foxbearDispose?.(); } catch (error) {} });
     el.bottomPreviewPlayer.querySelectorAll('audio').forEach(audio => {
         try { audio.pause(); } catch (error) {}
-        if (audio._foxbearTranslationContext) closePreviewTranslationContext(audio._foxbearTranslationContext);
+        if (audio._foxbearTranslationController?.close) audio._foxbearTranslationController.close();
+        else if (audio._foxbearTranslationContext) closePreviewTranslationContext(audio._foxbearTranslationContext);
         try { audio.removeAttribute('src'); audio.load(); } catch (error) {}
     });
     el.bottomPreviewPlayer.textContent = '';
@@ -12734,7 +12666,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.21',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.22',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.21-history-csp-console-contract-fix';
+  const VIEW_VERSION = '1.5.22-header-preview-routing-polish';
   const DEFAULT_BINS = 96;
 
   function getService() {

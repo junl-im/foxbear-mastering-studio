@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.21",
+  "version": "1.5.22",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.21-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.21-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.22-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.22-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite"
   },
   "qaChecks": [
@@ -37,6 +37,7 @@
     "node --check src/audio/playback-link-service.js",
     "node --check src/audio/playback-transition-service.js",
     "node --check src/audio/audio-context-manager.js",
+    "node --check src/audio/preview-translation-service.js",
     "node --check src/audio/audio-decode-service.js",
     "node --check src/audio/import-queue-service.js",
     "node --check src/audio/analysis-cache-service.js",
@@ -193,6 +194,7 @@
     "node --check qa/browser/runtime-health-playwright.spec.js",
     "node --check qa/browser/pwa-back-wakelock-sw-playwright.spec.js",
     "node --check qa/browser/bulk-35-import-master-export-playwright.spec.js",
+    "node --check qa/browser/preview-translation-playback-playwright.spec.js",
     "node qa/v151_browser_qa_scaffold_smoke.js",
     "node qa/v151_real_browser_automation_smoke.js",
     "node qa/v152_export_guard_low_memory_smoke.js",
@@ -223,15 +225,16 @@
     "node qa/v1518_ci_diagnostics_packaging_smoke.js",
     "node qa/v1519_ci_runtime_isolation_packaging_smoke.js",
     "node qa/v1520_service_worker_cache_warm_smoke.js",
-    "node qa/v1521_history_csp_console_contract_smoke.js"
+    "node qa/v1521_history_csp_console_contract_smoke.js",
+    "node qa/v1522_header_preview_routing_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "history-csp-console-contract-fix",
-    "assetVersion": "1.5.21-history-csp-console-contract-fix",
-    "cacheName": "foxbear-shell-v1.5.21-history-csp-console-contract-fix",
-    "bootRevision": "boot-sri-v1521",
-    "updateSafetyRevision": "update-safety-v1521",
-    "serviceWorkerRevision": "sw-v1521"
+    "buildId": "header-preview-routing-polish",
+    "assetVersion": "1.5.22-header-preview-routing-polish",
+    "cacheName": "foxbear-shell-v1.5.22-header-preview-routing-polish",
+    "bootRevision": "boot-sri-v1522",
+    "updateSafetyRevision": "update-safety-v1522",
+    "serviceWorkerRevision": "sw-v1522"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

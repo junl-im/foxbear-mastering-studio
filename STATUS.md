@@ -33,11 +33,11 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.21`
-- Build ID: `history-csp-console-contract-fix`
-- Asset version: `1.5.21-history-csp-console-contract-fix`
-- Service worker cache: `foxbear-shell-v1.5.21-history-csp-console-contract-fix`
-- Static QA target: `201/201 PASS`
-- Browser QA target: 10 desktop/mobile Playwright tests
-- Meta CSP intentionally omits `frame-ancestors`; deploy HTTP CSP retains `frame-ancestors 'none'`.
-- Back/forward QA traverses the exit-guard sentinel before requiring the E2E hash entry.
+- Product version: `1.5.22`
+- Build ID: `header-preview-routing-polish`
+- Asset version: `1.5.22-header-preview-routing-polish`
+- Service worker cache: `foxbear-shell-v1.5.22-header-preview-routing-polish`
+- Static QA target: `204/204 PASS`
+- Browser QA target: 12 desktop/mobile Playwright tests
+- Header metadata and designer signature remain one-line, borderless, and independent from Settings width.
+- Preview translation changes reuse one active media element and crossfade persistent studio/phone/laptop/mono routes.

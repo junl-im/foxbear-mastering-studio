@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.21-history-csp-console-contract-fix';
+    const SERVICE_VERSION = '1.5.22-header-preview-routing-polish';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
 

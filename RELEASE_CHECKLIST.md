@@ -1,3 +1,13 @@
+## v1.5.22 header and preview-routing checks
+
+- [ ] Version, PC/mobile compatibility, and DESIGN BY labels remain on one compact line without card borders.
+- [ ] Settings remains a compact header gear and opening its panel does not shift hero copy.
+- [ ] While audio is playing, switch Studio → Smartphone → Laptop → Mono → Studio and confirm playback never pauses or restarts.
+- [ ] Confirm transitions are smooth and retain currentTime, selected source, waveform playhead, and Media Session state. After settling, confirm only one translation path remains.
+- [ ] Confirm `FoxBearAudioContexts.getSnapshot()` does not accumulate preview-translation contexts after repeated track changes.
+- [ ] Runtime Health catches same-origin HTTP 4xx/5xx and does not hide local `firebase-bootstrap.js` exceptions under optional-remote filtering.
+- [ ] `node qa/v1522_header_preview_routing_smoke.js` passes.
+
 ## v1.5.21 history and CSP console checks
 
 - [ ] `index.html` and `design-preview.html` meta CSP omit `frame-ancestors`.
@@ -89,7 +99,7 @@ The overwrite command also runs this verification internally through `tools/veri
 ## v1.5.12 CI readiness checks
 
 - Confirm `waitForRuntimeHealth()` waits for `report.appReady || report.bootFailed` and prints the latest report on timeout.
-- Confirm GitHub Actions runs no more than two Playwright workers and all 10 desktop/mobile tests finish.
+- Confirm GitHub Actions runs no more than two Playwright workers and all 12 desktop/mobile tests finish.
 - Confirm the PWA suite waits for an active service-worker registration before `registration.update()`.
 - Confirm Wake Lock request/release passes with a fresh mocked sentinel.
 - Confirm workflow annotations no longer report Node 20 deprecation for checkout, setup-node, or upload-artifact.

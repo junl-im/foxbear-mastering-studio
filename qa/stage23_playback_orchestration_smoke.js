@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.21-history-csp-console-contract-fix';
+const version = '1.5.22-header-preview-routing-polish';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

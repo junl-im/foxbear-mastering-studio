@@ -1,21 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.5.21
+# FoxBear AI Mastering Studio Pro v1.5.22
 
-## Current patch: v1.5.21 History and CSP Console Contract Fix
+## Current patch: v1.5.22 Header Signature and Uninterrupted Preview Routing
 
-GitHub Actions에서 남은 네 실패 중 두 개는 HTML meta CSP에 넣을 수 없는 `frame-ancestors` 지시문을 Chromium이 콘솔 오류로 보고한 문제였습니다. 해당 지시문은 meta 정책에서 제거하고, 실제 효력이 있는 Firebase Hosting HTTP CSP 헤더에는 그대로 유지합니다.
+상단의 버전 정보, PC·모바일 호환, DESIGN BY 표시는 카드 테두리를 제거하고 화면에 새겨진 듯한 한 줄 시그니처로 정리했습니다. 설정 버튼은 작은 원형 기어로 축소해 제작자 문구와 소개 글이 아래로 밀리지 않도록 했습니다.
 
-나머지 두 실패는 FoxBear의 나가기 보호가 동일 URL의 history sentinel을 하나 추가한다는 점을 Playwright 앞으로 이동 테스트가 고려하지 않아 발생했습니다. 브라우저 QA는 이제 sentinel을 거친 뒤 테스트 hash 항목까지 최대 두 번의 실제 forward traversal로 도달해야 통과합니다.
+스마트폰·노트북·모노·스튜디오 전환은 더 이상 재생 중인 오디오 요소를 삭제하고 다시 만들지 않습니다. 하나의 `MediaElementSource`를 유지하면서 현재 출력 경로만 상시 사용하고, 전환 순간에만 다음 경로를 지연 생성해 120ms 동안 교차 전환합니다. 전환이 끝나면 이전 필터 경로를 해제하므로 재생 위치와 상태를 유지하면서 모바일 CPU 사용도 줄입니다.
 
 Release metadata:
 
 ```text
-product: 1.5.21
-build: history-csp-console-contract-fix
-asset generation: 1.5.21-history-csp-console-contract-fix
-service worker cache: foxbear-shell-v1.5.21-history-csp-console-contract-fix
+product: 1.5.22
+build: header-preview-routing-polish
+asset generation: 1.5.22-header-preview-routing-polish
+service worker cache: foxbear-shell-v1.5.22-header-preview-routing-polish
 ```
 
-## Previous patch: v1.5.20 Idempotent PWA Cache Warm
+## Previous patch: v1.5.21 History and CSP Console Contract Fix
+
+meta CSP 경고 제거와 history sentinel 왕복 검증은 그대로 포함됩니다.
+
+ Idempotent PWA Cache Warm
 
 서비스워커는 현재 릴리스 캐시에 없는 자산만 보충하며, 반복 warm은 추가 fetch 0회를 요구합니다. 일반 브라우저 테스트에서는 자동 전체 warm을 생략하고 서비스워커 전용 경로에서 명시적으로 검증합니다.
 

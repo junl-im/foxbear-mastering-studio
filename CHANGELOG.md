@@ -1,3 +1,12 @@
+# v1.5.22 - Header Signature and Uninterrupted Preview Routing
+
+- Restyled the top version, device compatibility, and designer labels as compact borderless engraved text so the Settings control no longer pushes the designer label or hero copy downward.
+- Reduced the header Settings trigger to a compact circular gear while keeping the settings panel in its viewport portal.
+- Replaced smartphone, laptop, mono, and studio mode changes that rebuilt the active audio element with one persistent MediaElementSource and lazily created crossfade routes.
+- Translation modes now crossfade gain paths in place without pausing, reloading, or restarting the media element.
+- Added `src/audio/preview-translation-service.js` and `qa/v1522_header_preview_routing_smoke.js` to verify one MediaElementSource, one steady-state route, temporary crossfade routes, listener/context cleanup, no play/pause calls during mode changes, compact header layout, and release-cache inclusion.
+- Re-ran the engine bench, golden audio pack, AudioContext lifecycle checks, Update Safety checks, and release packaging checks.
+
 # v1.5.21 - History and CSP Console Contract Fix
 
 - Removed `frame-ancestors` from HTML meta CSP declarations because Chromium ignores that directive in meta-delivered policies and reports it as a console error; retained the effective directive in Firebase Hosting HTTP headers.
