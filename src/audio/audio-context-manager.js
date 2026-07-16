@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.27-device-glyph-sri-hardening';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.28-resilience-lifecycle-offline-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

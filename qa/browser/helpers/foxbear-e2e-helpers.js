@@ -273,7 +273,19 @@ async function waitForServiceWorkerReady(page, options = {}) {
   return snapshot;
 }
 
+function cleanupStaleServerProbes(cwd = process.cwd()) {
+  let removed = 0;
+  try {
+    for (const name of fs.readdirSync(cwd)) {
+      if (!/^\.foxbear-e2e-probe-\d+-\d+\.txt$/.test(name)) continue;
+      try { fs.rmSync(path.join(cwd, name), { force: true }); removed += 1; } catch (_) {}
+    }
+  } catch (_) {}
+  return removed;
+}
+
 function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DEFAULT_BIND_HOST } = {}) {
+  cleanupStaleServerProbes(cwd);
   const probeToken = `foxbear-e2e-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const probePath = `.foxbear-e2e-probe-${process.pid}-${Date.now()}.txt`;
   const probeFile = path.join(cwd, probePath);
@@ -296,6 +308,7 @@ function startStaticServer({ cwd = process.cwd(), port = DEFAULT_PORT, host = DE
   const cleanupProbe = () => {
     try { fs.rmSync(probeFile, { force: true }); } catch (_) {}
   };
+  child.once('exit', cleanupProbe);
   const stop = () => {
     if (!child.killed) child.kill('SIGTERM');
     cleanupProbe();
@@ -309,6 +322,7 @@ module.exports = {
   DEFAULT_HOST,
   DEFAULT_PORT,
   FIREBASE_E2E_MODULES,
+  cleanupStaleServerProbes,
   createSyntheticWavFiles,
   expectRuntimeHealthy,
   getServiceWorkerSnapshot,

@@ -164,6 +164,35 @@ test.describe('FoxBear browser runtime health', () => {
     expect(panelBounds.x + panelBounds.width).toBeLessThanOrEqual(headerSettings.viewportWidth + 1);
     await page.locator('#mobileNativePanel [data-native-action="close"]').click();
 
+    await page.setViewportSize({ width: 320, height: 700 });
+    await page.waitForTimeout(120);
+    const narrowHeader = await page.evaluate(() => {
+      const left = document.querySelector('.brand-command-left');
+      const actions = document.querySelector('.brand-right-actions');
+      const studio = document.querySelector('.brand-command-studio');
+      const icons = document.querySelector('.brand-command-device-icons');
+      const toggle = document.getElementById('mobileNativeQuickToggle');
+      if (!left || !actions || !studio || !icons || !toggle) return null;
+      const leftRect = left.getBoundingClientRect();
+      const actionsRect = actions.getBoundingClientRect();
+      const iconsRect = icons.getBoundingClientRect();
+      const toggleRect = toggle.getBoundingClientRect();
+      return {
+        rowOverlap: Math.max(0, leftRect.right - actionsRect.left),
+        leftOverflow: Math.max(0, left.scrollWidth - left.clientWidth),
+        studioDisplay: getComputedStyle(studio).display,
+        iconsWidth: iconsRect.width,
+        toggleRight: toggleRect.right,
+        viewportWidth: innerWidth
+      };
+    });
+    expect(narrowHeader).not.toBeNull();
+    expect(narrowHeader.rowOverlap).toBeLessThanOrEqual(1);
+    expect(narrowHeader.leftOverflow).toBeLessThanOrEqual(2);
+    expect(narrowHeader.studioDisplay).toBe('none');
+    expect(narrowHeader.iconsWidth).toBeGreaterThan(8);
+    expect(narrowHeader.toggleRight).toBeLessThanOrEqual(narrowHeader.viewportWidth + 1);
+
     expect(localRequestFailures, `localRequestFailures · ${JSON.stringify(localRequestFailures)}`).toEqual([]);
     expect(pageErrors, `pageErrors · ${JSON.stringify(pageErrors)}`).toEqual([]);
     expect(consoleErrors, `consoleErrors · ${JSON.stringify(consoleErrors)}`).toEqual([]);

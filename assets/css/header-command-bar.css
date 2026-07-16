@@ -327,3 +327,16 @@
         font-size: 12px !important;
     }
 }
+
+/* v1.5.28: preserve the essential command tokens on 320px-class screens. */
+@media (max-width: 360px) {
+    .brand-command-studio {
+        display: none !important;
+    }
+}
+
+@media (max-width: 330px) {
+    .brand-command-bar .designer-mini span {
+        display: none !important;
+    }
+}

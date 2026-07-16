@@ -1,6 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.27
+# FoxBear AI Mastering Studio Pro v1.5.28
 
-## Current patch: v1.5.27 Device Glyph and SRI Hardening
+## Current patch: v1.5.28 Resilience, Lifecycle, and Offline Recovery
+
+320px급 초소형 화면에서는 필수 BUILD·버전·기기 아이콘·호환 문구·제작자·설정만 남기고 선택적인 스튜디오 설명을 숨겨 헤더 겹침을 방지합니다.
+
+반복적인 Dock 재생기 교체에서 제거된 `<audio>`와 이벤트 리스너가 Playback Link Service에 남지 않도록 명시적 해제·정리 진단을 추가했습니다. 프리뷰 전환 종료가 존재하지 않는 `window.FoxBearAudioContexts` 별칭을 호출해 AudioContext가 남던 결함도 실제 Chromium에서 발견해 `FoxBearAudioContextManager` 기반 종료와 DOM 분리 감시로 수정했습니다. 큐 전체 삭제와 단일 트랙 삭제는 동일한 리소스 해제 경로를 사용하며, 오브젝트 URL·자동 리마스터 타이머·하단 프리뷰 상태를 함께 정리합니다.
+
+서비스워커는 최신 두 세대의 이전 캐시를 실제 복구 캐시로 보존하고, 현재 세대가 오프라인에서 응답하지 못할 때 자산과 내비게이션 셸을 이전 캐시에서 복구합니다.
+
+Release metadata:
+
+```text
+product: 1.5.28
+build: resilience-lifecycle-offline-recovery
+asset generation: 1.5.28-resilience-lifecycle-offline-recovery
+service worker cache: foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery
+```
+
+## Previous patch: v1.5.27 Device Glyph and SRI Hardening
 
 상단의 `모바일 · PC 호환` 앞에 청록색 데스크톱과 분홍색 스마트폰 라인 아이콘을 유지하고, 헤더 아래 경계선은 제거했습니다. v1.5.26에는 아이콘 HTML이 있어도 관리자 상태 확인 과정에서 `textContent`가 내부 아이콘 요소를 지우는 코드 꼬임이 있었으며, 이번 패치에서 구조를 안전하게 다시 그리도록 수정했습니다.
 

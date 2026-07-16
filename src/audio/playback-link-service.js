@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.27 - playback link service
+// FoxBear AI Mastering Studio Pro v1.5.28 - playback link service
 // Stage25: keeps playback orchestration automatic while removing intrusive visible status chips.
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.5.27-device-glyph-sri-hardening';
+    const SERVICE_VERSION = '1.5.28-resilience-lifecycle-offline-recovery';
     const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';
@@ -11,6 +11,7 @@
     const PLAYER_SHELL_SELECTOR = '.dock-integrated-player, .custom-player, .ab-switch-deck, .difference-preview-player, .realtime-player-card';
     const SYNC_PAIR_ROLE_RE = /^(?:difference-|waveform-compare-sync-)/;
     const registry = new WeakMap();
+    const bindings = new WeakMap();
     const registeredAudios = new Set();
     let lastSnapshot = null;
     let lastOrchestration = null;
@@ -168,6 +169,7 @@
     }
 
     function buildPlayingList() {
+        pruneDisconnected();
         return Array.from(registeredAudios)
             .filter(audio => audio && !audio.paused && !audio.ended)
             .map(audio => snapshotFor(audio, registry.get(audio) || {}));
@@ -182,6 +184,7 @@
     }
 
     function enforceOrchestration(activeAudio, reason = 'play') {
+        pruneDisconnected();
         const activeMeta = registry.get(activeAudio) || {};
         const paused = [];
         registeredAudios.forEach(other => {
@@ -203,6 +206,7 @@
     }
 
     function flagConflicts(activeAudio, playing = buildPlayingList()) {
+        pruneDisconnected();
         const activeMeta = registry.get(activeAudio) || {};
         registeredAudios.forEach(audio => {
             if (!audio || audio === activeAudio || audio.paused || audio.ended) return;
@@ -239,22 +243,52 @@
         return snapshot;
     }
 
-    function bindAudio(audio, meta) {
-        if (!audio || audio.dataset.playbackLinkBound === 'true') return;
+    function unregisterAudio(audio, reason = 'unregister') {
+        if (!audio) return false;
+        const handlers = bindings.get(audio);
+        if (handlers) {
+            Object.entries(handlers).forEach(([type, handler]) => {
+                try { audio.removeEventListener(type, handler); } catch (error) {}
+            });
+        }
+        bindings.delete(audio);
+        const meta = registry.get(audio) || {};
+        registry.delete(audio);
+        const removed = registeredAudios.delete(audio);
+        if (audio.dataset) {
+            delete audio.dataset.playbackLinkBound;
+            delete audio.dataset.playbackLinkId;
+            delete audio.dataset.playbackRole;
+            delete audio.dataset.playbackGroup;
+            delete audio.dataset.playbackGroupPolicy;
+        }
+        if (removed) dispatchOrchestration({ reason, active: null, paused: [], playing: buildPlayingList(), conflictCount: 0, removedId: meta.id || '' });
+        return removed;
+    }
+
+    function pruneDisconnected() {
+        const stale = Array.from(registeredAudios).filter(audio => audio && audio.isConnected === false);
+        stale.forEach(audio => unregisterAudio(audio, 'dom-detached'));
+        return stale.length;
+    }
+
+    function bindAudio(audio) {
+        if (!audio || bindings.has(audio)) return;
+        const handlers = {
+            play: () => { enforceOrchestration(audio, 'play'); publish(audio, 'play'); },
+            pause: () => publish(audio, 'pause'),
+            ended: () => publish(audio, 'ended'),
+            timeupdate: () => {
+                const snapshot = registry.get(audio);
+                if (snapshot?.lastUiUpdate && Date.now() - snapshot.lastUiUpdate < 400) return;
+                if (snapshot) snapshot.lastUiUpdate = Date.now();
+                publish(audio, 'timeupdate');
+            },
+            loadedmetadata: () => publish(audio, 'loadedmetadata')
+        };
+        Object.entries(handlers).forEach(([type, handler]) => audio.addEventListener(type, handler));
+        bindings.set(audio, handlers);
         audio.dataset.playbackLinkBound = 'true';
-        audio.addEventListener('play', () => {
-            enforceOrchestration(audio, 'play');
-            publish(audio, 'play');
-        });
-        audio.addEventListener('pause', () => publish(audio, 'pause'));
-        audio.addEventListener('ended', () => publish(audio, 'ended'));
-        audio.addEventListener('timeupdate', () => {
-            const snapshot = registry.get(audio);
-            if (snapshot?.lastUiUpdate && Date.now() - snapshot.lastUiUpdate < 400) return;
-            if (snapshot) snapshot.lastUiUpdate = Date.now();
-            publish(audio, 'timeupdate');
-        });
-        audio.addEventListener('loadedmetadata', () => publish(audio, 'loadedmetadata'));
     }
 
     function registerAudio(audio, meta = {}) {
@@ -289,7 +323,7 @@
             if (next.groupId) shell.dataset.playbackGroup = next.groupId;
             setShellState(shell, audio.paused ? 'paused' : 'active', audio.paused ? '연동 대기' : `연동 재생 · ${formatTime(audio.currentTime || 0)}`);
         }
-        bindAudio(audio, next);
+        bindAudio(audio);
         return publish(audio, 'register');
     }
 
@@ -316,6 +350,7 @@
                         if (node?.nodeType === 1 && (node.matches?.(AUDIO_SELECTOR) || node.querySelector?.(AUDIO_SELECTOR))) needsScan = true;
                     });
                 });
+                pruneDisconnected();
                 if (needsScan) scan(root);
             });
             observer.observe(root.documentElement || root.body || root, { childList: true, subtree: true });
@@ -328,6 +363,7 @@
     }
 
     function pauseAll(reason = 'pause-all') {
+        pruneDisconnected();
         const paused = [];
         registeredAudios.forEach(audio => {
             const meta = registry.get(audio) || {};
@@ -351,6 +387,20 @@
         return registry.has(audio);
     }
 
+    function getDiagnostics() {
+        const prunedCount = pruneDisconnected();
+        const audios = Array.from(registeredAudios);
+        return Object.freeze({
+            version: SERVICE_VERSION,
+            registeredCount: audios.length,
+            connectedCount: audios.filter(audio => audio?.isConnected !== false).length,
+            playingCount: audios.filter(audio => audio && !audio.paused && !audio.ended).length,
+            prunedCount,
+            lastSnapshot,
+            lastOrchestration
+        });
+    }
+
     global.FoxBearPlaybackLinkService = Object.freeze({
         SERVICE_VERSION,
         EVENT_NAME,
@@ -358,14 +408,17 @@
         AUDIO_SELECTOR,
         DEBUG_VISIBLE_CHIPS,
         registerAudio,
+        unregisterAudio,
         inferAndRegister,
         installDomAudit,
         scan,
+        pruneDisconnected,
         pauseAllExcept,
         pauseAll,
         enforceOrchestration,
         getSnapshot,
         getOrchestrationSnapshot,
+        getDiagnostics,
         isRegistered,
         formatTime
     });

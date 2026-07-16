@@ -1,8 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.27 service worker · device-glyph-sri-hardening
+// FoxBear AI Mastering Studio Pro v1.5.28 service worker · resilience-lifecycle-offline-recovery
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.5.27-device-glyph-sri-hardening';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.7-release-foundation', 'foxbear-shell-v1.5.8-pcm-zip-memory-hardening', 'foxbear-shell-v1.5.9-version-display-cache-recovery', 'foxbear-shell-v1.5.10-header-settings-relocation', 'foxbear-shell-v1.5.11-audio-context-ci-stability', 'foxbear-shell-v1.5.12-ci-runtime-readiness', 'foxbear-shell-v1.5.13-handoff-package-integrity', 'foxbear-shell-v1.5.14-github-desktop-handoff-preflight', 'foxbear-shell-v1.5.15-e2e-runtime-classification', 'foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix', 'foxbear-shell-v1.5.17-browser-contract-fix', 'foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness', 'foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening', 'foxbear-shell-v1.5.20-idempotent-pwa-cache-warm', 'foxbear-shell-v1.5.21-history-csp-console-contract-fix', 'foxbear-shell-v1.5.22-header-preview-routing-polish', 'foxbear-shell-v1.5.23-e2e-preview-readiness', 'foxbear-shell-v1.5.24-e2e-responsive-preview-control', 'foxbear-shell-v1.5.25-e2e-preview-stability', 'foxbear-shell-v1.5.26-engraved-command-header'];
+const CACHE_NAME = 'foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery';
+const RECOVERY_CACHE_LIMIT = 2;
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.8-pcm-zip-memory-hardening', 'foxbear-shell-v1.5.9-version-display-cache-recovery', 'foxbear-shell-v1.5.10-header-settings-relocation', 'foxbear-shell-v1.5.11-audio-context-ci-stability', 'foxbear-shell-v1.5.12-ci-runtime-readiness', 'foxbear-shell-v1.5.13-handoff-package-integrity', 'foxbear-shell-v1.5.14-github-desktop-handoff-preflight', 'foxbear-shell-v1.5.15-e2e-runtime-classification', 'foxbear-shell-v1.5.16-e2e-server-pipe-deadlock-fix', 'foxbear-shell-v1.5.17-browser-contract-fix', 'foxbear-shell-v1.5.18-ci-diagnostics-pwa-readiness', 'foxbear-shell-v1.5.19-ci-runtime-isolation-package-hardening', 'foxbear-shell-v1.5.20-idempotent-pwa-cache-warm', 'foxbear-shell-v1.5.21-history-csp-console-contract-fix', 'foxbear-shell-v1.5.22-header-preview-routing-polish', 'foxbear-shell-v1.5.23-e2e-preview-readiness', 'foxbear-shell-v1.5.24-e2e-responsive-preview-control', 'foxbear-shell-v1.5.25-e2e-preview-stability', 'foxbear-shell-v1.5.26-engraved-command-header', 'foxbear-shell-v1.5.27-device-glyph-sri-hardening'];
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -27,104 +28,104 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.5.27-device-glyph-sri-hardening',
-  './assets/icons/foxbear-icon-32.png?v=1.5.27-device-glyph-sri-hardening',
-  './assets/icons/foxbear-icon-192.png?v=1.5.27-device-glyph-sri-hardening',
-  './assets/icons/foxbear-icon-512.png?v=1.5.27-device-glyph-sri-hardening',
-  './assets/icons/apple-touch-icon.png?v=1.5.27-device-glyph-sri-hardening',
-  './manifest.webmanifest?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/boot/performance-diagnostics.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/boot/runtime-health.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/theme.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/layout.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/components/base-components.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/components/forms.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/components/cards.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/components/preview-system.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/components/playback-link.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/studio.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/dock.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/dock-waveform.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/waveform-compare.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/spectrum-visualizer.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/export.css?v=1.5.27-device-glyph-sri-hardening&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/bulk-import-hud.css?v=1.5.27-device-glyph-sri-hardening&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/dock-ui-repair.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/components/floating-overlays.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/header-command-bar.css?v=1.5.27-device-glyph-sri-hardening',
+  './assets/icons/foxbear-icon-16.png?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/icons/foxbear-icon-32.png?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/icons/foxbear-icon-192.png?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/icons/foxbear-icon-512.png?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/icons/apple-touch-icon.png?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './manifest.webmanifest?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/boot/performance-diagnostics.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/boot/runtime-health.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/theme.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/layout.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/components/base-components.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/components/forms.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/components/cards.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/components/preview-system.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/components/playback-link.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/studio.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/dock.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/dock-waveform.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/waveform-compare.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/spectrum-visualizer.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/export.css?v=1.5.28-resilience-lifecycle-offline-recovery&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/bulk-import-hud.css?v=1.5.28-resilience-lifecycle-offline-recovery&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/dock-ui-repair.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/components/floating-overlays.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/header-command-bar.css?v=1.5.28-resilience-lifecycle-offline-recovery',
   './vendor/jszip/jszip.min.js?v=3.10.1',
-  './src/config/build-info.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/boot/release-presentation-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/firebase-bootstrap.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/config/mastering-presets.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/config/genre-presets.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/config/reference-targets.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/config/app-runtime-config.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/state/app-state.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/settings/settings-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/utils/core-utils.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/recommendation/recommendation-engine.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/mastering-inspector.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/highlight-compare-inspector.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/playback-link-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/playback-transition-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/audio-context-manager.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/preview-translation-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/audio-decode-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/import-queue-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/analysis-cache-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/memory-guard-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/reference-profile-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/quality-gate-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/mastering-orchestrator-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/state/track-lifecycle-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/waveform-control-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/waveform-control-view.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/spectrum-visualizer.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/modal-controller.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/dock-controller.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/mobile-native-view.js?v=1.5.27-device-glyph-sri-hardening&h=bulk-hud-restore-v153',
-  './src/download/download-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/download/export-guard-service.js?v=1.5.27-device-glyph-sri-hardening&h=export-v156',
-  './src/download/export-progress-view.js?v=1.5.27-device-glyph-sri-hardening&h=export-progress-v156',
-  './src/ui/download-dialog-view.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/bulk-import-hud-view.js?v=1.5.27-device-glyph-sri-hardening&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/detail-panels-view.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/detail-view.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/security/site-guards.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/boot/runtime-health.js?v=1.5.27-device-glyph-sri-hardening&h=boot-sri-v1527',
-  './src/boot/update-safety-service.js?v=1.5.27-device-glyph-sri-hardening&h=update-safety-v1527',
-  './src/boot/performance-diagnostics.js?v=1.5.27-device-glyph-sri-hardening&h=boot-sri-v1527',
-  './src/boot/render-scheduler.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/app.js?v=1.5.27-device-glyph-sri-hardening&h=boot-sri-v1527',
-  './assets/icons/foxbear-music.png?v=1.5.27-device-glyph-sri-hardening'
+  './src/config/build-info.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/boot/release-presentation-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/firebase-bootstrap.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/config/mastering-presets.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/config/genre-presets.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/config/reference-targets.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/config/app-runtime-config.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/state/app-state.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/settings/settings-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/utils/core-utils.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/recommendation/recommendation-engine.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/mastering-inspector.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/highlight-compare-inspector.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/playback-link-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/playback-transition-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/audio-context-manager.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/preview-translation-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/audio-decode-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/import-queue-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/analysis-cache-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/memory-guard-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/reference-profile-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/quality-gate-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/mastering-orchestrator-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/state/track-lifecycle-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/waveform-control-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/waveform-control-view.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/spectrum-visualizer.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/modal-controller.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/dock-controller.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/mobile-native-view.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=bulk-hud-restore-v153',
+  './src/download/download-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/download/export-guard-service.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=export-v156',
+  './src/download/export-progress-view.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=export-progress-v156',
+  './src/ui/download-dialog-view.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/bulk-import-hud-view.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/detail-panels-view.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/detail-view.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/security/site-guards.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/boot/runtime-health.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=boot-sri-v1528',
+  './src/boot/update-safety-service.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=update-safety-v1528',
+  './src/boot/performance-diagnostics.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=boot-sri-v1528',
+  './src/boot/render-scheduler.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/app.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=boot-sri-v1528',
+  './assets/icons/foxbear-music.png?v=1.5.28-resilience-lifecycle-offline-recovery'
 ];
 
 const INSTALL_ASSETS = [
   './',
   './index.html',
-  './manifest.webmanifest?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/boot/runtime-health.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/theme.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/layout.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/components/base-components.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/studio.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/mobile-native.css?v=1.5.27-device-glyph-sri-hardening',
-  './assets/css/header-command-bar.css?v=1.5.27-device-glyph-sri-hardening',
-  './src/config/build-info.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/boot/runtime-health.js?v=1.5.27-device-glyph-sri-hardening&h=boot-sri-v1527',
-  './src/boot/update-safety-service.js?v=1.5.27-device-glyph-sri-hardening&h=update-safety-v1527',
-  './src/boot/release-presentation-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/config/app-runtime-config.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/state/app-state.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/utils/core-utils.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/audio/preview-translation-service.js?v=1.5.27-device-glyph-sri-hardening',
-  './src/ui/mobile-native-view.js?v=1.5.27-device-glyph-sri-hardening&h=bulk-hud-restore-v153',
-  './src/app.js?v=1.5.27-device-glyph-sri-hardening&h=boot-sri-v1527',
-  './assets/icons/foxbear-music.png?v=1.5.27-device-glyph-sri-hardening'
+  './manifest.webmanifest?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/boot/runtime-health.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/theme.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/layout.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/components/base-components.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/studio.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/mobile-native.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './assets/css/header-command-bar.css?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/config/build-info.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/boot/runtime-health.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=boot-sri-v1528',
+  './src/boot/update-safety-service.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=update-safety-v1528',
+  './src/boot/release-presentation-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/config/app-runtime-config.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/state/app-state.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/utils/core-utils.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/audio/preview-translation-service.js?v=1.5.28-resilience-lifecycle-offline-recovery',
+  './src/ui/mobile-native-view.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=bulk-hud-restore-v153',
+  './src/app.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=boot-sri-v1528',
+  './assets/icons/foxbear-music.png?v=1.5.28-resilience-lifecycle-offline-recovery'
 ];
 const INSTALL_ASSET_SET = new Set(INSTALL_ASSETS);
 const WARM_ASSETS = CORE_ASSETS.filter(asset => !INSTALL_ASSET_SET.has(asset));
@@ -174,10 +175,26 @@ self.addEventListener('install', event => {
   })());
 });
 
+function getAvailableRecoveryCacheNames(names = []) {
+  const available = new Set(names);
+  return LEGACY_CACHE_NAMES.filter(name => available.has(name)).slice(-RECOVERY_CACHE_LIMIT).reverse();
+}
+
+async function matchFoxBearRecoveryCache(request, fallbackRequest = null) {
+  const names = getAvailableRecoveryCacheNames(await caches.keys());
+  for (const name of names) {
+    const cache = await caches.open(name);
+    const cached = await cache.match(request) || (fallbackRequest ? await cache.match(fallbackRequest) : null);
+    if (cached) return cached;
+  }
+  return null;
+}
+
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter(name => (name.startsWith('foxbear-shell-') || LEGACY_CACHE_NAMES.includes(name)) && name !== CACHE_NAME).map(name => caches.delete(name)));
+    const keep = new Set([CACHE_NAME, ...getAvailableRecoveryCacheNames(names)]);
+    await Promise.all(names.filter(name => name.startsWith('foxbear-shell-') && !keep.has(name)).map(name => caches.delete(name)));
     if (self.registration?.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); } catch (error) {}
     }
@@ -250,7 +267,7 @@ async function networkFirstNoFallbackOnIntegrityAssets(request) {
     if (fresh && fresh.ok) cache.put(request, fresh.clone()).catch(() => undefined);
     return fresh;
   } catch (error) {
-    const cached = await cache.match(request);
+    const cached = await cache.match(request) || await matchFoxBearRecoveryCache(request);
     if (cached) return cached;
     return Response.error();
   }
@@ -272,14 +289,14 @@ async function networkFirstNavigation(request, preloadResponse) {
     }
     return fresh;
   } catch (error) {
-    const cached = await cache.match(request);
-    return cached || cache.match('./index.html') || Response.error();
+    const cached = await cache.match(request) || await cache.match('./index.html');
+    return cached || await matchFoxBearRecoveryCache(request, './index.html') || Response.error();
   }
 }
 
 async function staleWhileRevalidate(request) {
   const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
+  const cached = await cache.match(request) || await matchFoxBearRecoveryCache(request);
   const freshPromise = fetch(request).then(response => {
     if (response && response.ok) cache.put(request, response.clone()).catch(() => undefined);
     return response;

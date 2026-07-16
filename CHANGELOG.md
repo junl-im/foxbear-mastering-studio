@@ -1,3 +1,15 @@
+# v1.5.28 - Resilience, Lifecycle, and Offline Recovery
+
+- Prevented 320px-class command-header overlap by hiding only the optional studio descriptor while preserving BUILD, version, device glyphs, compatibility text, designer identity, and Settings.
+- Added explicit unregister/prune lifecycle support to Playback Link Service so removed audio elements and their event listeners are not retained across repeated Dock/player rebuilds.
+- Fixed Preview Translation teardown calling the nonexistent `window.FoxBearAudioContexts` alias; it now closes contexts through `FoxBearAudioContextManager` and prunes disconnected controllers.
+- Centralized track resource release for queue clear and single-track removal, including bottom preview teardown, auto-remaster timer cancellation, object URL release, and transport state reset.
+- Made service-worker recovery caches functional: activation retains the newest two legacy caches and offline fetch/navigation can fall back to them when the current generation is unavailable.
+- Added stale E2E ownership-probe cleanup before server startup and on child exit.
+- Excluded and rejected Python `__pycache__`, `*.pyc`, and `*.pyo` artifacts after independent ZIP extraction exposed bytecode contamination.
+- Expanded real-browser coverage for 320px header geometry, repeated preview-mode switching plus clear-queue cleanup, and an offline legacy-cache recovery probe.
+- Added `qa/v1528_resilience_lifecycle_offline_smoke.js`; the release gate now contains 210 static checks and 12 desktop/mobile browser tests.
+
 # v1.5.27 - Device Glyph and SRI Hardening
 
 - Preserved the cyan desktop and pink phone glyphs through the runtime administrator-state refresh instead of letting `textContent` erase their structured markup after boot.

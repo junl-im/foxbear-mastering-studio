@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.27 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.28 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -17,7 +17,7 @@ const {
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.27';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.28';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -60,7 +60,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.27-device-glyph-sri-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1527'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.28-resilience-lifecycle-offline-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1528'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -2983,7 +2983,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.27-device-glyph-sri-hardening') · navigator.serviceWorker.register('./sw.js?v=1.5.27-device-glyph-sri-hardening&h=sw-v1527')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.28-resilience-lifecycle-offline-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.28-resilience-lifecycle-offline-recovery&h=sw-v1528')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)); if (registration?.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
         const activeWorker = readyRegistration?.active || registration?.active || null;
@@ -3790,7 +3790,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.27-device-glyph-sri-hardening', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.28-resilience-lifecycle-offline-recovery', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4091,7 +4091,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.27-device-glyph-sri-hardening',
+        version: '1.5.28-resilience-lifecycle-offline-recovery',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4131,7 +4131,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.27-device-glyph-sri-hardening',
+    version: '1.5.28-resilience-lifecycle-offline-recovery',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4151,12 +4151,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.27-device-glyph-sri-hardening', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.28-resilience-lifecycle-offline-recovery', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.27-device-glyph-sri-hardening', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.28-resilience-lifecycle-offline-recovery', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4171,12 +4171,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.27-device-glyph-sri-hardening',
+    version: 'v1.5.28-resilience-lifecycle-offline-recovery',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.27-device-glyph-sri-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.28-resilience-lifecycle-offline-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -9080,19 +9080,24 @@ function scheduleAutoRemaster(track) {
 function invalidateAllMasteredOutput(report) {
     state.tracks.forEach(track => invalidateMasteredOutput(track, report));
 }
+function releaseTrackResourcesSafely(track) {
+    const lifecycle = getTrackLifecycleService();
+    if (lifecycle?.releaseTrackResources) return lifecycle.releaseTrackResources(track, { revokeObjectURL: url => URL.revokeObjectURL(url) });
+    ['originalUrl', 'masteredUrl', 'masterPreviewUrl'].forEach(key => { if (track?.[key]) URL.revokeObjectURL(track[key]); if (track) track[key] = null; });
+    if (track) { track.masteredBuffer = null; track.masterPreviewBlob = null; track.masterPreviewInfo = null; track.outBlob = null; }
+    return null;
+}
 function clearQueue() {
+    clearBottomPreviewPlayer();
     if (state.autoRemasterTimers) { state.autoRemasterTimers.forEach(timer => clearTimeout(timer)); state.autoRemasterTimers.clear(); }
-    state.tracks.forEach(track => {
-        if (track.originalUrl) URL.revokeObjectURL(track.originalUrl);
-        if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
-        if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
-    });
+    state.tracks.forEach(releaseTrackResourcesSafely);
     state.tracks = [];
     state.selectedId = null;
     state.selectedIds.clear();
     state.bottomPreviewMode = 'original';
     state.bottomPreviewTrackId = null;
     state.bottomPreviewAutoplayTrackId = null;
+    state.bottomPreviewTransport = null;
     if (state.expandedDetailIds) state.expandedDetailIds.clear();
     if (state.collapsedDetailIds) state.collapsedDetailIds.clear();
     state.busy = false;
@@ -12620,17 +12625,14 @@ function clearTrackSelection(id) {
 function removeTrack(id) {
     const index = state.tracks.findIndex(track => track.id === id);
     if (index < 0) return;
+    const previewOwned = state.bottomPreviewTrackId === id || state.bottomPreviewTransport?.trackId === id;
+    if (previewOwned) clearBottomPreviewPlayer();
+    const timer = state.autoRemasterTimers?.get(id);
+    if (timer) { clearTimeout(timer); state.autoRemasterTimers.delete(id); }
     const [track] = state.tracks.splice(index, 1);
     state.selectedIds.delete(id);
-    const lifecycle = getTrackLifecycleService();
-    if (lifecycle && typeof lifecycle.releaseTrackResources === 'function') {
-        lifecycle.releaseTrackResources(track, { revokeObjectURL: url => URL.revokeObjectURL(url) });
-    } else {
-        if (track.originalUrl) URL.revokeObjectURL(track.originalUrl);
-        if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
-        if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
-        track.masteredBuffer = null;
-    }
+    releaseTrackResourcesSafely(track);
+    if (previewOwned) { state.bottomPreviewTrackId = null; state.bottomPreviewAutoplayTrackId = null; state.bottomPreviewTransport = null; }
     if (state.selectedId === id) {
         state.selectedId = state.tracks[0] ? state.tracks[0].id : null;
         const selected = getSelectedTrack();
@@ -12690,7 +12692,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.27',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.28',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -2,11 +2,44 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.27-device-glyph-sri-hardening';
+    const SERVICE_VERSION = '1.5.28-resilience-lifecycle-offline-recovery';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;
     const MODE_LEVELS = Object.freeze({ studio: 1, phone: 0.92, laptop: 0.96, mono: 0.96 });
+    const activeControllers = new Set();
+    let lifecycleObserver = null;
+
+    function getContextManager() {
+        return global.FoxBearAudioContextManager || global.FoxBearAudioContexts || null;
+    }
+
+    function closeManagedContext(context, reason = 'preview-translation-close') {
+        if (!context || context.state === 'closed') return Promise.resolve(true);
+        const manager = getContextManager();
+        if (manager && typeof manager.close === 'function') return Promise.resolve(manager.close(context, reason));
+        if (typeof context.close === 'function') return Promise.resolve(context.close()).then(() => true).catch(() => false);
+        return Promise.resolve(false);
+    }
+
+    function pruneDisconnected() {
+        let count = 0;
+        Array.from(activeControllers).forEach(controller => {
+            if (controller.audio?.isConnected !== false) return;
+            controller.close('dom-detached');
+            count += 1;
+        });
+        return count;
+    }
+
+    function installDomLifecycleAudit(root = global.document) {
+        if (lifecycleObserver || !root || typeof global.MutationObserver !== 'function') return false;
+        const target = root.documentElement || root.body || root;
+        if (!target || typeof target.nodeType !== 'number') return false;
+        lifecycleObserver = new global.MutationObserver(() => { pruneDisconnected(); });
+        lifecycleObserver.observe(target, { childList: true, subtree: true });
+        return true;
+    }
 
     function normalizeMode(mode) {
         return MODES.includes(String(mode || '')) ? String(mode) : 'studio';
@@ -135,7 +168,8 @@
 
         const resume = () => {
             if (closed || context.state === 'running' || context.state === 'closed') return Promise.resolve(context.state === 'running');
-            return Promise.resolve(global.FoxBearAudioContexts?.resume?.(context, 'preview-translation-switch') || context.resume?.()).then(() => true).catch(() => false);
+            const manager = getContextManager();
+            return Promise.resolve(manager?.resume?.(context, 'preview-translation-switch') || context.resume?.()).then(() => true).catch(() => false);
         };
 
         const scheduleCleanup = durationMs => {
@@ -169,7 +203,7 @@
         let controller = null;
         const onPlay = () => { resume(); };
         const onTerminal = () => { controller?.close(); };
-        const close = () => {
+        const close = (reason = 'preview-translation-close') => {
             if (closed) return;
             closed = true;
             switchRevision += 1;
@@ -184,10 +218,12 @@
             try { analyser?.disconnect?.(); } catch (error) {}
             if (audio._foxbearTranslationController === controller) audio._foxbearTranslationController = null;
             if (audio._foxbearTranslationContext === context) audio._foxbearTranslationContext = null;
-            global.FoxBearAudioContexts?.close?.(context, 'preview-translation-close');
+            activeControllers.delete(controller);
+            closeManagedContext(context, reason);
         };
         controller = {
             version: SERVICE_VERSION,
+            audio,
             context,
             analyser,
             paths,
@@ -207,6 +243,8 @@
         audio.dataset.previewTranslationMode = initialMode;
         audio._foxbearTranslationContext = context;
         audio._foxbearTranslationController = controller;
+        activeControllers.add(controller);
+        installDomLifecycleAudit();
         audio.addEventListener('play', onPlay);
         audio.addEventListener('emptied', onTerminal, { once: true });
         audio.addEventListener('error', onTerminal, { once: true });
@@ -221,6 +259,14 @@
         normalizeMode,
         createFilterChain,
         connectMonoMatrix,
-        attach
+        attach,
+        pruneDisconnected,
+        installDomLifecycleAudit,
+        getDiagnostics: () => Object.freeze({
+            version: SERVICE_VERSION,
+            activeCount: activeControllers.size,
+            connectedCount: Array.from(activeControllers).filter(controller => controller.audio?.isConnected !== false).length,
+            contexts: Object.freeze(Array.from(activeControllers).map(controller => controller.getSnapshot()))
+        })
     });
 })(window);

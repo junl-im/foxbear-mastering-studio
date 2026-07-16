@@ -1,24 +1,25 @@
-# Handoff - v1.5.27
+# Handoff - v1.5.28
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.27 device glyph and SRI hardening
+## Current patch: v1.5.28 resilience, lifecycle, and offline recovery
 
 Changes:
 
-- Keeps the cyan desktop and pink phone line glyphs visible before `모바일 · PC 호환`, including compact mobile widths.
-- Removes the thin divider below the top command header.
-- Fixes the runtime admin-state refresh that previously replaced the structured compatibility markup with plain text and silently erased the icons.
-- Repairs malformed local asset tags such as `/ integrity=` and makes the SRI verifier reject missing, duplicate, malformed, or mismatched integrity coverage.
-- Preserves the v1.5.22 preview-routing engine, v1.5.25 deterministic browser readiness, and v1.5.26 command-header order.
+- Prevents 320px command-header overlap while retaining essential release, compatibility, designer, and Settings controls.
+- Prunes detached playback audio elements and removes their event listeners instead of retaining them in a strong registry.
+- Fixes Preview Translation context teardown to use `FoxBearAudioContextManager` and closes disconnected controllers.
+- Uses centralized resource cleanup for clear-queue and remove-track flows.
+- Retains two legacy service-worker generations and uses them as real offline asset/navigation recovery fallbacks.
+- Cleans stale E2E ownership probes, rejects Python bytecode cache artifacts, and expands actual-browser coverage for compact geometry, repeated switching cleanup, and offline recovery.
 
 ```text
-product: 1.5.27
-build: device-glyph-sri-hardening
-asset generation: 1.5.27-device-glyph-sri-hardening
-service worker cache: foxbear-shell-v1.5.27-device-glyph-sri-hardening
+product: 1.5.28
+build: resilience-lifecycle-offline-recovery
+asset generation: 1.5.28-resilience-lifecycle-offline-recovery
+service worker cache: foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery
 ```
 
 Verification:
@@ -34,10 +35,12 @@ npm run package:verify:release
 npm run package:verify:overwrite
 ```
 
-Expected static result: `209/209 PASS`.
+Expected static result: `210/210 PASS`.
 Expected browser result: `12 passed`.
 
-## Previous handoff: v1.5.22 header signature and uninterrupted preview routing
+## Previous handoff: v1.5.27 device glyph and SRI hardening
+
+v1.5.22 header signature and uninterrupted preview routing
 
 Changes:
 

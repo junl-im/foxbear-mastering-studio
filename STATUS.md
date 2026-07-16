@@ -33,17 +33,19 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.27`
-- Build ID: `device-glyph-sri-hardening`
-- Asset version: `1.5.27-device-glyph-sri-hardening`
-- Service worker cache: `foxbear-shell-v1.5.27-device-glyph-sri-hardening`
-- Static QA target: `209/209 PASS`
+- Product version: `1.5.28`
+- Build ID: `resilience-lifecycle-offline-recovery`
+- Asset version: `1.5.28-resilience-lifecycle-offline-recovery`
+- Service worker cache: `foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery`
+- Static QA target: `210/210 PASS`
 - Browser QA target: `12/12 PASS` on local system Chromium plus the GitHub Actions gate
+- Visible release labels remain repaired by `FoxBearReleasePresentation`.
 - Header command metadata and designer signature remain one-line, borderless, engraved, and independent from Settings width.
-- The visible header order remains `BUILD/version → desktop/phone glyphs + mobile/PC compatibility → AI MUSIC MASTERING STUDIO → DESIGNED BY → icon-only Settings`.
+- At 320px the optional studio descriptor yields before essential BUILD, compatibility, designer, and Settings controls.
+- Detached playback audio elements and their listeners must be pruned; queue teardown must return playback and managed AudioContext diagnostics to zero.
+- The newest two legacy service-worker caches remain available for actual offline recovery while older generations are pruned.
 - Local JavaScript/CSS SRI coverage must be complete, correctly shaped, and hash-valid.
-- Preview translation changes reuse one active media element and crossfade persistent studio/phone/laptop/mono routes.
-
+- Preview translation changes reuse one active media element and crossfade studio/phone/laptop/mono routes.
 
 
 ## v1.5.25 deterministic preview stability invariant
@@ -64,3 +66,11 @@ This document contains rules that remain true across releases. Actual changes be
 - Feature-specific browser scenarios must explicitly isolate unrelated blocking dialogs rather than relying on timing.
 - A playback click is actionable only after the target is visible, enabled, and owns the center-point hit test.
 - E2E-only flags must be opt-in per scenario and must not globally change production behavior.
+## v1.5.28 audit status
+
+- Compact 320px header priority rule is guarded by static and rendered geometry tests.
+- Playback Link Service exposes lifecycle diagnostics and must return to zero after queue teardown.
+- Queue clear and track removal use centralized resource release.
+- The newest two legacy service-worker caches are preserved as actual offline recovery sources.
+- Stale E2E ownership probes are cleaned before each server start.
+

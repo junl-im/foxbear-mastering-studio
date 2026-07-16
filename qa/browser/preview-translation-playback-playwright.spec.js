@@ -153,7 +153,8 @@ test.describe('FoxBear uninterrupted preview translation routing', () => {
       expect(start.mode).toBe('studio');
       expect(start.pathCount).toBe(1);
 
-      for (const mode of ['phone', 'laptop', 'mono', 'studio']) {
+      const stressModes = Array.from({ length: 3 }, () => ['phone', 'laptop', 'mono', 'studio']).flat();
+      for (const mode of stressModes) {
         await page.locator(`[data-preview-translation-mode="${mode}"]`).click();
         await page.waitForFunction(target => {
           const audio = document.querySelector('#bottomPreviewPlayer audio[data-bottom-preview-active="true"]');
@@ -193,6 +194,29 @@ test.describe('FoxBear uninterrupted preview translation routing', () => {
       expect(result.mode, `final translation mode · ${detail}`).toBe('studio');
       expect(result.contextState, `translation AudioContext closed · ${detail}`).not.toBe('closed');
       expect(result.pathCount, `stale translation paths · ${detail}`).toBe(1);
+
+      const beforeClear = await page.evaluate(() => ({
+        playbackLinks: window.FoxBearPlaybackLinkService?.getDiagnostics?.() || null,
+        audioContexts: window.FoxBearAudioContextManager?.getDiagnostics?.() || null
+      }));
+      expect(beforeClear.playbackLinks?.registeredCount || 0).toBeGreaterThan(0);
+      await page.locator('#clearBtn').click();
+      await page.waitForFunction(() => {
+        const links = window.FoxBearPlaybackLinkService?.getDiagnostics?.();
+        const contexts = window.FoxBearAudioContextManager?.getDiagnostics?.();
+        return document.querySelectorAll('#bottomPreviewPlayer audio').length === 0
+          && document.querySelectorAll('#trackList [data-track-id]').length === 0
+          && (links?.registeredCount || 0) === 0
+          && (contexts?.activeCount || 0) === 0;
+      }, null, { timeout: 10000 });
+      const afterClear = await page.evaluate(() => ({
+        dockHidden: document.querySelector('#bottomPreviewDock')?.getAttribute('aria-hidden'),
+        playbackLinks: window.FoxBearPlaybackLinkService?.getDiagnostics?.() || null,
+        audioContexts: window.FoxBearAudioContextManager?.getDiagnostics?.() || null
+      }));
+      expect(afterClear.dockHidden).toBe('true');
+      expect(afterClear.playbackLinks?.registeredCount || 0).toBe(0);
+      expect(afterClear.audioContexts?.activeCount || 0).toBe(0);
     } finally {
       removeDirSafe(temp.dir);
     }

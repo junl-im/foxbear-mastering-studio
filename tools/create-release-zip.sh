@@ -38,6 +38,10 @@ zip -qr "${OUTPUT_FILE}" . \
   -x 'playwright-report' \
   -x 'coverage/*' \
   -x 'coverage' \
+  -x '*/__pycache__/*' \
+  -x '__pycache__/*' \
+  -x '*.pyc' \
+  -x '*.pyo' \
   -x '*.zip' \
   -x '*.log' \
   -x '*.tmp' \

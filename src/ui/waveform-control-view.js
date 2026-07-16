@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.27-device-glyph-sri-hardening';
+  const VIEW_VERSION = '1.5.28-resilience-lifecycle-offline-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

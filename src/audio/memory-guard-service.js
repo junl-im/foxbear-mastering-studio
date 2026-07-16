@@ -1,8 +1,8 @@
-// FoxBear memory guard service v1.5.27 - release-after-encode PCM retention policy and diagnostics
+// FoxBear memory guard service v1.5.28 - release-after-encode PCM retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const VERSION = 'v1.5.27-device-glyph-sri-hardening';
+    const VERSION = 'v1.5.28-resilience-lifecycle-offline-recovery';
     const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 

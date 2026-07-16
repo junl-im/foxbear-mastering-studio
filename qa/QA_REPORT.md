@@ -1,3 +1,21 @@
+# FoxBear QA Report - v1.5.28
+
+Current release gate target: metadata/handoff checks, 210 static checks, and 12 desktop/mobile Playwright tests.
+
+## v1.5.28 coverage
+
+- Measures 320px command-header geometry and essential-control visibility in a real browser.
+- Exercises repeated studio/phone/laptop/mono switching and then clears the queue, requiring zero retained playback registrations and managed AudioContexts.
+- Simulates detached-audio pruning and verifies listener removal through Playback Link Service diagnostics.
+- Verifies Preview Translation teardown uses the managed AudioContext service; actual Chromium queue teardown must return managed context count to zero.
+- Verifies clear-queue/remove-track resource release and stale E2E ownership-probe cleanup.
+- Verifies service-worker activation retains only the newest two recovery generations and that an offline request can be served from a legacy cache.
+
+```text
+210/210 PASS
+Browser QA target: desktop 6/6, mobile 6/6
+```
+
 # FoxBear QA Report - v1.5.27
 
 Current release gate target: metadata/handoff checks, 209 static checks, and 12 desktop/mobile Playwright tests.
