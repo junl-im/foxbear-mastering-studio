@@ -1,3 +1,12 @@
+# v1.5.32 - Kakao External Browser Local Flow
+
+- Added a synchronous KakaoTalk entry guard before the main application boot so restricted in-app sessions are moved to a lightweight external-browser landing before any audio file is selected or mastered.
+- Added a same-origin validated landing page that tries the Kakao external-browser scheme, provides an Android intent fallback, supports address copy, and allows an explicit in-app bypass without redirect loops.
+- Preserved the local-only privacy model: after opening Chrome, Samsung Internet, or Safari, import, mastering, MP3/WAV encoding, and download all remain inside that browser on the device.
+- Documented the hard boundary that an already-generated Blob in Kakao WebView memory cannot be transferred to a newly opened browser context; users must share/save it first or reopen the source file in the external browser.
+- Upgraded the download fallback to prefer the Kakao external-browser scheme and include an Android browser fallback URL.
+- Added service-worker/offline packaging coverage and v1.5.32 regression tests for the entry guard, safe target validation, launcher controls, and cumulative overwrite packaging.
+
 # v1.5.31 - Player and Download Stability
 
 - Prevented mastering completion from creating a second Dock player while the original track is playing; the active original player remains in place until the user explicitly selects the mastered tab.

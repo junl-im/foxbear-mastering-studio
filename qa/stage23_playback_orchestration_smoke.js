@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.31-player-download-stability';
+const version = '1.5.32-kakao-external-browser-local-flow';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

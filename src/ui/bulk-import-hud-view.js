@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.31 compatibility QA anchor: const VIEW_VERSION = '1.5.31-player-download-stability'
+    // v1.5.32 compatibility QA anchor: const VIEW_VERSION = '1.5.32-kakao-external-browser-local-flow'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

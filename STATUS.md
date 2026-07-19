@@ -33,13 +33,16 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.31`
-- Build ID: `player-download-stability`
-- Asset version: `1.5.31-player-download-stability`
-- Service worker cache: `foxbear-shell-v1.5.31-player-download-stability`
-- Static QA target: `215/215 PASS`
+- Product version: `1.5.32`
+- Build ID: `kakao-external-browser-local-flow`
+- Asset version: `1.5.32-kakao-external-browser-local-flow`
+- Service worker cache: `foxbear-shell-v1.5.32-kakao-external-browser-local-flow`
+- Static QA target: `216/216 PASS`
 - Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
+- KakaoTalk entry must route to the lightweight external-browser landing before import/mastering unless the user explicitly chooses the in-app bypass.
+- The external-browser landing must accept same-origin targets only and must not imply that Kakao WebView Blob memory transfers into Chrome/Safari.
+- The preferred Kakao workflow is external browser first, then local import/master/encode/download without server upload.
 - Mastering completion must preserve a currently playing original Dock player and must not mount a second player outside an explicit user-gesture crossfade.
 - Normal browsers may retain one bounded selected-track PCM for MP3/WAV re-encoding; restricted in-app browsers expose only the completed file.
 - The download dialog and save-assist panel remain compact; diagnostics and historical guidance helpers may exist without being mounted by default.

@@ -1,3 +1,21 @@
+# FoxBear QA Report - v1.5.32
+
+Current release gate target: metadata/handoff checks and 216 static checks. Real KakaoTalk device validation remains a release-candidate manual check because the Kakao WebView and OS browser handoff cannot be emulated faithfully by static Node tests.
+
+## v1.5.32 coverage
+
+- Requires the Kakao entry guard to load before build information and all heavy application modules.
+- Simulates Kakao, normal-browser, and explicit in-app-bypass entry behavior.
+- Verifies the lightweight landing contains Kakao scheme, Android intent, copy, and continue controls.
+- Requires same-origin target validation to prevent open redirects.
+- Requires the service worker and cumulative overwrite ZIP to include the landing and guard assets.
+- Preserves the local-only workflow while explicitly guarding against the false assumption that an in-memory Blob transfers between Kakao WebView and an external browser.
+
+```text
+216/216 PASS target
+Browser QA: run in GitHub Actions or an unrestricted local environment; final Kakao handoff requires an Android/iOS device
+```
+
 # FoxBear QA Report - v1.5.31
 
 Current release gate: metadata/handoff checks and 215 static checks. A focused Playwright run was attempted, but this workspace does not contain the required Chromium executable; actual browser QA remains a CI or unrestricted-local gate.

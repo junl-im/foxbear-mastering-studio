@@ -1,3 +1,13 @@
+# Current Project Notes - v1.5.32
+
+## v1.5.32 focus
+
+- KakaoTalk detection occurs before the heavy studio boot and before the user selects an audio file.
+- The external-browser landing accepts only same-origin targets and provides a deliberate in-app bypass to prevent redirect loops.
+- Local processing means browser-local memory, not device-global shared memory; Kakao WebView Blob URLs and AudioBuffers do not migrate into Chrome/Safari.
+- The preferred flow is external browser first, local import/master/encode second, normal browser download last.
+- Existing completed output inside Kakao should use Web Share/file open before leaving; otherwise the source file must be selected again outside Kakao.
+
 # Current Project Notes - v1.5.31
 
 ## v1.5.31 focus

@@ -26,6 +26,7 @@ copy_path() {
 
 # Runtime entry files and deployment config.
 copy_path "index.html"
+copy_path "external-browser.html"
 copy_path "sw.js"
 copy_path "manifest.webmanifest"
 copy_path "package.json"

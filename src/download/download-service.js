@@ -204,7 +204,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.5.31',
+                version: '1.5.32',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -224,7 +224,7 @@
             };
         }
         return {
-            version: '1.5.31',
+            version: '1.5.32',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -288,7 +288,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.5.31',
+            version: '1.5.32',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -326,7 +326,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.5.31',
+            version: '1.5.32',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -354,7 +354,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.5.31',
+            version: '1.5.32',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -385,7 +385,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.5.31',
+            version: '1.5.32',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -410,7 +410,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.5.31',
+            version: '1.5.32',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -479,7 +479,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.5.31',
+            version: '1.5.32',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -564,29 +564,41 @@
             .catch(() => getToast(deps)(text));
     };
 
+    const buildKakaoExternalBrowserUrl = pageUrl => `kakaotalk://web/openExternal?url=${encodeURIComponent(pageUrl)}`;
+
     const buildExternalBrowserIntentUrl = pageUrl => {
         const parsed = new URL(pageUrl);
         const scheme = parsed.protocol.replace(':', '') || 'https';
-        const path = `${parsed.host}${parsed.pathname}${parsed.search}`;
-        return `intent://${path}#Intent;scheme=${scheme};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end`;
+        const path = `${parsed.host}${parsed.pathname}${parsed.search}${parsed.hash}`;
+        const fallback = encodeURIComponent(parsed.href);
+        return `intent://${path}#Intent;scheme=${scheme};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url=${fallback};end`;
     };
 
     const openCurrentPageInExternalBrowser = (deps = {}) => {
-        const pageUrl = location.href.split('#')[0];
-        recordDownloadEvent('external-browser-open', { pageUrl });
+        const pageUrl = new URL(location.href.split('#')[0]);
+        pageUrl.searchParams.delete('foxbearInApp');
+        pageUrl.searchParams.set('foxbearExternal', '1');
+        recordDownloadEvent('external-browser-open', { pageUrl: pageUrl.href, kakao: isKakaoInAppBrowser() });
         const ua = navigator.userAgent || '';
         const showToast = getToast(deps);
-        if (/Android/i.test(ua)) {
-            try {
-                global.location.href = buildExternalBrowserIntentUrl(pageUrl);
+        try {
+            if (isKakaoInAppBrowser()) {
+                global.location.href = buildKakaoExternalBrowserUrl(pageUrl.href);
+                setTimeout(() => {
+                    if (document.visibilityState === 'visible') copyCurrentPageUrl(deps);
+                }, 1000);
+                return;
+            }
+            if (/Android/i.test(ua)) {
+                global.location.href = buildExternalBrowserIntentUrl(pageUrl.href);
                 setTimeout(() => copyCurrentPageUrl(deps), 900);
                 return;
-            } catch (error) {
-                console.warn('external browser intent failed:', error);
             }
+        } catch (error) {
+            console.warn('external browser launch failed:', error);
         }
         copyCurrentPageUrl(deps);
-        showToast('iPhone 카카오톡은 오른쪽 위 메뉴에서 Safari/브라우저로 열기를 눌러주세요.');
+        showToast('오른쪽 위 메뉴에서 Safari/기본 브라우저로 열어주세요.');
     };
 
     const normalizeDownloadFileNameForBlob = (fileName, blob) => {
@@ -646,7 +658,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.5.31 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.5.32 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         if (url) addActiveUrl(url, deps);
@@ -894,6 +906,7 @@
         supportsAnchorDownload,
         isRestrictedDownloadBrowser,
         isKakaoInAppBrowser,
+        buildKakaoExternalBrowserUrl,
         buildExternalBrowserIntentUrl,
         getDownloadTroubleshootingText,
         copyDownloadTroubleshootingGuide,

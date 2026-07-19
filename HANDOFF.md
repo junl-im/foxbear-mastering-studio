@@ -1,25 +1,25 @@
-# Handoff - v1.5.31
+# Handoff - v1.5.32
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.31 player and download stability
+## Current patch: v1.5.32 Kakao external-browser local flow
 
 Changes:
 
-- Preserves the currently playing original Dock player when mastering completes, instead of appending a second mastered player.
-- Restricts Dock crossfades to explicit user gestures and deduplicates asynchronous refreshes.
-- Keeps one selected-track final PCM buffer within a bounded normal-browser memory budget for MP3/WAV re-encoding.
-- Uses a compact download dialog with format choices and only essential save/share actions.
-- Uses native file share/save first in Kakao/in-app browsers, with file-open and external-browser fallbacks.
-- Static QA passed 215/215. This workspace could not launch Playwright because its Chromium executable is not installed; run the browser gate in GitHub Actions or a prepared local environment.
+- Runs a synchronous KakaoTalk entry guard before the normal application boot.
+- Routes Kakao entry to `external-browser.html`, which attempts the Kakao external-browser scheme and provides Android intent, URL-copy, and explicit in-app fallback actions.
+- Validates the target as same-origin to avoid turning the landing page into an open redirect.
+- Keeps the privacy-first local workflow: the user opens the full browser first, then imports, masters, encodes, and downloads locally without uploading the source audio.
+- Does not claim that an existing Kakao WebView Blob can move across browser sandboxes; completed in-app output must be shared/saved first or recreated from the original file in the external browser.
+- Adds the landing files to the service-worker shell and cumulative overwrite package.
 
 ```text
-product: 1.5.31
-build: player-download-stability
-asset generation: 1.5.31-player-download-stability
-service worker cache: foxbear-shell-v1.5.31-player-download-stability
+product: 1.5.32
+build: kakao-external-browser-local-flow
+asset generation: 1.5.32-kakao-external-browser-local-flow
+service worker cache: foxbear-shell-v1.5.32-kakao-external-browser-local-flow
 ```
 
 Verification:

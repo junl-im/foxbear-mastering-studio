@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.31
+// FoxBear service worker update coordinator v1.5.32
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.31-player-download-stability';
+  const VERSION = '1.5.32-kakao-external-browser-local-flow';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const state = {

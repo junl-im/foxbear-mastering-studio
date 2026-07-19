@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="description" content="FoxBear를 카카오톡 밖의 기본 브라우저에서 안전하게 시작합니다." />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; frame-src 'none'; form-action 'none'; script-src 'self'; script-src-elem 'self'; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data:; connect-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; upgrade-insecure-requests" />
+<meta name="referrer" content="no-referrer" />
+<meta name="theme-color" content="#08111f" />
+<title>기본 브라우저에서 FoxBear 시작</title>
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icons/foxbear-icon-192.png" />
+<link rel="stylesheet" href="assets/css/external-browser.css" integrity="sha384-qB4SdR3dQ++HG8EZUNmkLV9/uH+gvmASN6+Q/oUQQ64e9l6yfuIBaOLgOE5qbOi6" />
+<script defer src="src/boot/kakao-external-browser.js" integrity="sha384-JyY+2DS/FgUEqgxyhwd7WkOkQ+gZ+iCOwIW1x2fACu6m2tVK3kNIBMpcLdbawdqF"></script>
+</head>
+<body>
+<main class="external-browser-card">
+  <div class="external-browser-brand">
+    <img src="assets/icons/foxbear-icon-96.png" alt="" width="44" height="44" />
+    <span>FoxBear Mastering Studio</span>
+  </div>
+  <h1>기본 브라우저에서 시작해주세요</h1>
+  <p class="external-browser-lead">카카오톡 안에서는 음악 재생과 파일 저장이 제한될 수 있습니다. Chrome, Samsung Internet 또는 Safari에서 열면 마스터링부터 다운로드까지 기기 안에서 처리됩니다.</p>
+  <p class="external-browser-note"><strong>파일은 서버로 보내지 않습니다.</strong><br />외부 브라우저에서 원곡을 다시 선택하면 마스터링 결과도 그 브라우저의 로컬 메모리에서 만들어지고 기기 다운로드 폴더로 저장됩니다.</p>
+  <div class="external-browser-actions">
+    <button id="openExternalBrowser" class="primary" type="button">기본 브라우저에서 시작</button>
+    <button id="openAndroidBrowser" type="button" hidden>Android 브라우저 선택</button>
+    <button id="copyExternalUrl" type="button">주소 복사</button>
+    <a id="continueInKakao" class="quiet" href="./index.html?foxbearInApp=1">카카오톡에서 계속 사용</a>
+  </div>
+  <p id="externalBrowserStatus" role="status" aria-live="polite">기본 브라우저로 자동 전환을 시도합니다.</p>
+</main>
+</body>
+</html>

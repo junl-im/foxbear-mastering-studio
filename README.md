@@ -1,27 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.5.31
+# FoxBear AI Mastering Studio Pro v1.5.32
 
-## Current patch: v1.5.31 Player and Download Stability
+## Current patch: v1.5.32 Kakao External Browser Local Flow
 
-원곡을 듣는 중 마스터링이 끝나도 Dock 플레이어를 새로 추가하지 않습니다. 재생 중인 원곡은 그대로 유지되고, 사용자가 `마스터` 탭을 직접 눌렀을 때만 단일 플레이어의 소스가 전환됩니다. 비동기 완료·새로고침 경로에서는 크로스페이드를 만들지 않으며 중복된 플레이어 요소도 자동 정리합니다.
+카카오톡 링크로 들어오면 전체 스튜디오를 바로 실행하지 않고, 먼저 아주 가벼운 외부 브라우저 안내 페이지로 이동합니다. 안내 페이지는 기본 브라우저 자동 전환을 한 번 시도하고, 실패하면 `기본 브라우저에서 시작`, Android 브라우저 선택, 주소 복사 버튼을 제공합니다. 사용자가 명시적으로 선택한 경우에만 카카오톡 안에서 계속 진행할 수 있습니다.
 
-일반 브라우저에서는 선택된 한 곡의 최종 PCM만 메모리 한도 안에서 유지해 다운로드 창에서 MP3 128/192/320 kbps와 WAV 16/24/32-bit를 선택할 수 있습니다. 카카오톡 등 인앱 브라우저는 메모리 안정성을 위해 현재 완성 파일만 제공하며, 화면은 `기기에 저장/공유`, `파일 열기`, `외부 브라우저` 세 동작으로 단순화했습니다.
-
-Download dialog micro hint 호환 도우미는 유지하지만 기본 팝업에는 긴 환경 설명·체크리스트·진단 카드를 표시하지 않습니다.
+가장 중요한 원칙은 **파일을 선택하기 전에 외부 브라우저로 이동하는 것**입니다. Chrome, Samsung Internet, Safari에서 원곡을 선택하면 디코딩, 분석, 마스터링, MP3/WAV 인코딩과 다운로드가 모두 해당 브라우저의 로컬 메모리에서 처리되므로 서버 업로드가 필요하지 않습니다. 카카오톡 안에서 이미 만든 Blob 결과는 별도 브라우저 메모리로 전달되지 않으므로, 그 시점에는 먼저 공유/저장하거나 외부 브라우저에서 원곡을 다시 선택해야 합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.31
-build: player-download-stability
-asset generation: 1.5.31-player-download-stability
-service worker cache: foxbear-shell-v1.5.31-player-download-stability
+product: 1.5.32
+build: kakao-external-browser-local-flow
+asset generation: 1.5.32-kakao-external-browser-local-flow
+service worker cache: foxbear-shell-v1.5.32-kakao-external-browser-local-flow
 ```
 
 Verification:
 
 ```text
-static QA: 215/215 PASS
-real-browser QA: attempted here, but Playwright Chromium is not installed; run npm run qa:browser in CI or an unrestricted local environment
+static QA target: 216/216 PASS
+real-browser QA: run npm run qa:browser in CI or an unrestricted local environment
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

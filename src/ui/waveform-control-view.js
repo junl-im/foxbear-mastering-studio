@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.31-player-download-stability';
+  const VIEW_VERSION = '1.5.32-kakao-external-browser-local-flow';
   const DEFAULT_BINS = 96;
 
   function getService() {
