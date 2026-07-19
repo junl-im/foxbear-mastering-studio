@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.29-analysis-update-lifecycle';
+    const SERVICE_VERSION = '1.5.30-inapp-playback-recovery';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;
@@ -46,6 +46,34 @@
             audio.addEventListener('error', onError, { once: true });
             try { audio.load?.(); } catch (error) {}
         });
+    }
+
+    function getInAppCompatibility(userAgent = global.navigator?.userAgent || '') {
+        const ua = String(userAgent || '');
+        const kakao = /KAKAOTALK|KakaoTalk/i.test(ua);
+        const restricted = kakao || /NAVER\(inapp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+        return Object.freeze({ restricted, kakao, label: kakao ? '카카오톡 인앱 브라우저' : (restricted ? '인앱 브라우저' : '일반 브라우저') });
+    }
+
+    function configureAudioElement(audio) {
+        if (!audio) return audio;
+        audio.preload = 'metadata';
+        audio.playsInline = true;
+        audio.setAttribute?.('playsinline', '');
+        audio.setAttribute?.('webkit-playsinline', '');
+        try { audio.disableRemotePlayback = true; } catch (error) {}
+        return audio;
+    }
+
+    function resumeAudioGraphForGesture(audio) {
+        try { audio?._foxbearTranslationController?.resume?.(); } catch (error) {}
+        try { audio?._foxbearResumeAudioGraph?.(); } catch (error) {}
+    }
+
+    function playSynchronizedPair(context, audioElements, reason = 'synchronized-play') {
+        const manager = global.FoxBearAudioContextManager;
+        const resumePromise = context && manager?.resume ? manager.resume(context, reason) : Promise.resolve(true);
+        return Promise.all([resumePromise, ...(audioElements || []).map(audio => audio?.play?.() || Promise.resolve())]);
     }
 
     function rememberTargetVolume(audio) {
@@ -92,6 +120,7 @@
 
     function playWithFadeIn(audio, options = {}) {
         if (!audio) return Promise.resolve(false);
+        resumeAudioGraphForGesture(audio);
         const target = rememberTargetVolume(audio);
         const duration = Number(options.ms || DEFAULT_FADE_MS);
         if (options.fromZero !== false) audio.volume = FADE_MIN_VOLUME;
@@ -126,9 +155,16 @@
         const oldTarget = rememberTargetVolume(oldAudio);
         const nextTarget = rememberTargetVolume(nextAudio);
         if (nextAudio) nextAudio.volume = FADE_MIN_VOLUME;
+        // A source switch initiated by a real tap must call play() in the same
+        // activation task. Deferring it behind metadata readiness loses user
+        // activation in KakaoTalk and several mobile WebViews.
+        let immediatePlay = null;
+        if (options.userGesture && nextAudio && typeof nextAudio.play === 'function') {
+            try { immediatePlay = nextAudio.play(); } catch (error) { immediatePlay = Promise.reject(error); }
+        }
         const readyPromise = nextAudio ? waitForMediaReady(nextAudio, options.readyTimeoutMs || 900) : Promise.resolve(false);
-        const playPromise = readyPromise.then(() => nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve());
-        return Promise.resolve(playPromise)
+        const playPromise = immediatePlay || readyPromise.then(() => nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve());
+        return Promise.all([Promise.resolve(playPromise), readyPromise])
             .then(() => {
                 const fades = [];
                 if (oldAudio) fades.push(fadeVolume(oldAudio, FADE_MIN_VOLUME, duration));
@@ -160,6 +196,10 @@
         cancelFade,
         fadeVolume,
         waitForMediaReady,
+        getInAppCompatibility,
+        configureAudioElement,
+        resumeAudioGraphForGesture,
+        playSynchronizedPair,
         playWithFadeIn,
         pauseWithFadeOut,
         crossfadePair

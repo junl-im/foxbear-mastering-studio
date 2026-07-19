@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.29
+// FoxBear audio decode service - v1.5.30
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.29-analysis-update-lifecycle';
+    const SERVICE_VERSION = '1.5.30-inapp-playback-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MAX_DECODE_EVENTS = 24;
 

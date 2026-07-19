@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.29
+// FoxBear service worker update coordinator v1.5.30
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.29-analysis-update-lifecycle';
+  const VERSION = '1.5.30-inapp-playback-recovery';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const state = {

@@ -1,3 +1,13 @@
+# v1.5.30 - In-App Playback Recovery
+
+- Kept default Studio playback on the native HTMLMediaElement route so KakaoTalk and restrictive Android WebViews cannot mute it behind a suspended AudioContext.
+- Added inline/mobile media attributes and an in-app compatibility policy that safely falls back from WebAudio translation and realtime processing to native playback.
+- Started source switches, A/B crossfades, realtime graph resume, and difference-listen media playback inside the original user gesture instead of after deferred metadata/context waits.
+- Stopped mastering completion from attempting policy-blocked autoplay; the mastered source is selected and starts reliably on the next user tap.
+- Reworked the detail FFT input to use captureStream/MediaStreamSource when available, avoiding createMediaElementSource ownership of the audible playback route.
+- Preserved managed AudioContexts across BFCache pagehide and rebuilt closed translation routes after app/browser restoration.
+- Added v1.5.30 regression guards for native Studio routing, BFCache lifecycle, gesture-safe transitions, non-invasive spectrum capture, and the updated lazy translation E2E contract.
+
 # v1.5.29 - Analysis and Update Lifecycle
 
 - Added cancellable import-analysis tasks so queue clear and track removal abort pending file reads, decoding, worker analysis, and stale result application.

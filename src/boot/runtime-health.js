@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.29-analysis-update-lifecycle';
+    const FALLBACK_VERSION = '1.5.30-inapp-playback-recovery';
     if (global.FoxBearBuildInfo?.assetVersion && global.FoxBearBuildInfo.assetVersion !== FALLBACK_VERSION) console.warn('[FoxBear] runtime health metadata mismatch', { fallback: FALLBACK_VERSION, build: global.FoxBearBuildInfo.assetVersion });
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([

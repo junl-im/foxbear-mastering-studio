@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.29 compatibility QA anchor: const VIEW_VERSION = '1.5.29-analysis-update-lifecycle'
+    // v1.5.30 compatibility QA anchor: const VIEW_VERSION = '1.5.30-inapp-playback-recovery'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

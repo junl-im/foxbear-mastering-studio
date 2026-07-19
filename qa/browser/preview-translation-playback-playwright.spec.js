@@ -150,8 +150,11 @@ test.describe('FoxBear uninterrupted preview translation routing', () => {
           pathCount: Object.keys(audio._foxbearTranslationController?.paths || {}).length
         };
       });
-      expect(start.mode).toBe('studio');
-      expect(start.pathCount).toBe(1);
+      // Studio mode intentionally stays on the native HTMLMediaElement route.
+      // The WebAudio translation controller is attached lazily only after a
+      // user selects phone/laptop/mono, avoiding silent playback in WebViews.
+      expect(start.mode).toBeNull();
+      expect(start.pathCount).toBe(0);
 
       const stressModes = Array.from({ length: 3 }, () => ['phone', 'laptop', 'mono', 'studio']).flat();
       for (const mode of stressModes) {

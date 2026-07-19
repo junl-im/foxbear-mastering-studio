@@ -1,3 +1,21 @@
+# FoxBear QA Report - v1.5.30
+
+Current release gate target: metadata/handoff checks, 214 static checks, and desktop/mobile Playwright coverage.
+
+## v1.5.30 coverage
+
+- Verifies Studio playback remains on the native HTML media route until a user explicitly selects a translation mode.
+- Verifies KakaoTalk and other restricted in-app browsers fall back to stable native playback.
+- Verifies source switches, A/B crossfades, realtime graph resume, and synchronized difference playback start inside the user activation task.
+- Verifies mastering completion does not attempt blocked asynchronous autoplay.
+- Verifies the detail spectrum uses a duplicated captureStream route instead of taking ownership of the audible media element.
+- Verifies BFCache pagehide preserves live managed AudioContexts and restored closed translation routes are rebuilt.
+
+```text
+214/214 PASS
+Browser QA: local execution requires unrestricted localhost navigation; run npm run qa:browser in CI or a normal workstation.
+```
+
 # FoxBear QA Report - v1.5.29
 
 Current release gate: metadata/handoff checks, 213 static checks, and 14 desktop/mobile Playwright tests.

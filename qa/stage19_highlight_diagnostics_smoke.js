@@ -22,11 +22,11 @@ const inspector = read('src/audio/highlight-compare-inspector.js');
 const compareCss = read('assets/css/waveform-compare.css');
 const runtimeHealth = read('src/boot/runtime-health.js');
 const overwrite = read('tools/create-overwrite-zip.sh');
-const version = '1.5.29-analysis-update-lifecycle';
+const version = '1.5.30-inapp-playback-recovery';
 
 assert(index.includes(`src/audio/highlight-compare-inspector.js?v=${version}`), 'highlight compare inspector should load from index');
 assert(sw.includes(`./src/audio/highlight-compare-inspector.js?v=${version}`), 'service worker should precache highlight compare inspector');
-assert(sw.includes(`foxbear-shell-v1.5.29-analysis-update-lifecycle`), 'service worker cache should use Stage19 key');
+assert(sw.includes(`foxbear-shell-v1.5.30-inapp-playback-recovery`), 'service worker cache should use Stage19 key');
 assert(pkg.includes('node --check src/audio/highlight-compare-inspector.js'), 'package should syntax-check highlight compare inspector');
 assert(pkg.includes('node qa/stage19_highlight_diagnostics_smoke.js'), 'package should run Stage19 smoke');
 assert(overwrite.includes('package.json') && overwrite.includes("'v' + (p.version || 'dev')"), 'overwrite package default should be Stage19');

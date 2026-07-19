@@ -26,7 +26,7 @@ assert(runtimeSpec.includes('kickerOverflow') && runtimeSpec.includes('centerSpr
 assert(app.includes('audio?._foxbearTranslationController?.setMode?.(target'), 'translation buttons must switch the active graph in place');
 assert(!app.includes("|dock-clean|${getPreviewTranslationMode().id}|"), 'translation mode must not force Dock audio element replacement');
 assert(app.includes('persistentTranslation: true'), 'Dock player must opt into persistent in-place routing');
-assert(app.includes("options.persistentTranslation !== true && mode.id === 'studio'"), 'non-Dock studio players must avoid unnecessary AudioContext graphs');
+assert(app.includes("mode.id === 'studio' || getInAppAudioCompatibility().restricted"), 'Studio and restricted in-app playback must avoid unnecessary AudioContext graphs');
 assert(app.includes('부드럽게 전환했습니다'), 'translation switch should communicate smooth in-place routing');
 assert(css.includes('compact engraved header signature'), 'header signature polish marker missing');
 assert(css.includes('.designer-mini::before { content: none !important; }'), 'designer signature decoration must be borderless');

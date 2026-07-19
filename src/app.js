@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.29 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.30 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -17,7 +17,7 @@ const {
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.29';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.30';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -60,7 +60,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.29-analysis-update-lifecycle'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1529'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.30-inapp-playback-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1530'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -335,24 +335,21 @@ function isBenignPlaybackRejection(error) {
         || message.includes('interrupted by a call to pause')
         || message.includes('interrupted by a new load request');
 }
-function getPlaybackTransitionService() {
-    return window.FoxBearPlaybackTransitionService || null;
-}
-function rememberAudioTargetVolume(audio) {
-    return getPlaybackTransitionService()?.rememberTargetVolume?.(audio) ?? 1;
-}
-function cancelAudioFade(audio) {
-    return getPlaybackTransitionService()?.cancelFade?.(audio);
-}
+function getPlaybackTransitionService() { return window.FoxBearPlaybackTransitionService || null; }
+function getInAppAudioCompatibility() { return getPlaybackTransitionService()?.getInAppCompatibility?.() || { restricted: false, kakao: false, label: '일반 브라우저' }; }
+function configurePreviewAudioElement(audio) { return getPlaybackTransitionService()?.configureAudioElement?.(audio) || audio; }
+function rememberAudioTargetVolume(audio) { return getPlaybackTransitionService()?.rememberTargetVolume?.(audio) ?? 1; }
+function cancelAudioFade(audio) { return getPlaybackTransitionService()?.cancelFade?.(audio); }
 function fadeAudioVolume(audio, toVolume = 1, durationMs = PLAYBACK_CROSSFADE_MS) {
     const service = getPlaybackTransitionService();
     if (service && typeof service.fadeVolume === 'function') return service.fadeVolume(audio, toVolume, durationMs);
     return Promise.resolve(false);
 }
 function playAudioWithFadeIn(audio, options = {}) {
+    if (!audio) return Promise.resolve(false);
     const service = getPlaybackTransitionService();
     if (service && typeof service.playWithFadeIn === 'function') return service.playWithFadeIn(audio, { ms: PLAYBACK_CROSSFADE_MS, ...options });
-    return audio?.play?.() || Promise.resolve(false);
+    return audio.play?.() || Promise.resolve(false);
 }
 function pauseAudioWithFadeOut(audio, options = {}) {
     const service = getPlaybackTransitionService();
@@ -935,7 +932,7 @@ function renderRealtimePreviewConsole(track, target) {
         duration: track.analysis?.duration,
         startSec: previewStart,
         gainDb: 0,
-        translationMode: true,
+        translationMode: false,
         seekTarget: 'local',
         waveformRole: 'realtime-preview',
         waveformClass: 'realtime-preview-waveform-bars',
@@ -1225,6 +1222,7 @@ function schedulePreviewUiRefresh() {
 }
 function setupRealtimePreviewEngine(track, audio, statusEl) {
     cleanupRealtimePreview();
+    if (getInAppAudioCompatibility().restricted) { if (statusEl) statusEl.textContent = '인앱 호환 재생'; return; }
     if (!window.AudioContext && !window.webkitAudioContext) {
         if (statusEl) statusEl.textContent = 'WebAudio 미지원';
         return;
@@ -1239,6 +1237,7 @@ function setupRealtimePreviewEngine(track, audio, statusEl) {
             mode: 'realtime-preview',
             label: '실시간 마스터링 FFT'
         });
+        audio._foxbearResumeAudioGraph = () => FoxBearAudioContexts.resume(context, 'realtime-preview-user-gesture');
         state.realtimePreview = { context, audio, nodes, statusEl, trackId: track.id };
         updateRealtimePreviewSettings(track);
         audio.addEventListener('play', () => {
@@ -1396,7 +1395,7 @@ function cleanupRealtimePreview() {
     state.previewRenderTimer = null;
     const preview = state.realtimePreview;
     if (!preview) return;
-    try { if (preview.audio) { preview.audio.pause(); preview.audio.removeAttribute('src'); preview.audio.load(); } } catch (error) {}
+    try { if (preview.audio) { delete preview.audio._foxbearResumeAudioGraph; preview.audio.pause(); preview.audio.removeAttribute('src'); preview.audio.load(); } } catch (error) {}
     FoxBearAudioContexts.close(preview.context, 'realtime-preview-cleanup');
     state.realtimePreview = null;
 }
@@ -2650,7 +2649,9 @@ function trackHasMasterSource(track) {
     return Boolean(track && (track.masteredUrl || track.masterPreviewUrl));
 }
 function applyPreviewTranslationMode(mode, options = {}) {
-    const target = PREVIEW_TRANSLATION_MODES[mode] ? mode : 'studio';
+    let target = PREVIEW_TRANSLATION_MODES[mode] ? mode : 'studio';
+    const compatibility = getInAppAudioCompatibility();
+    if (compatibility.restricted && target !== 'studio') { target = 'studio'; if (options.toast) showToast(`${compatibility.label}에서는 안정적인 음악 재생을 위해 스튜디오 모드로 재생합니다.`); }
     if (state.previewTranslationMode === target && !options.toast) return true;
     const track = options.track || activateMainTrackFromDock(resolveMainActiveTrackForDock()) || getSelectedTrack();
     if (!track) {
@@ -2660,11 +2661,12 @@ function applyPreviewTranslationMode(mode, options = {}) {
     state.previewTranslationMode = target;
     state.bottomPreviewTrackId = track.id;
     const audio = getBottomPreviewAudio();
+    if (audio && target !== 'studio' && !audio._foxbearTranslationController) setupPreviewTranslationAudio(audio, { persistentTranslation: true, trackId: track.id, mode: state.bottomPreviewMode });
     const switchedInPlace = Boolean(audio?._foxbearTranslationController?.setMode?.(target, { fadeMs: 120 }));
-    if (switchedInPlace) renderPreviewTranslationModeControls(state.bottomPreviewMode);
-    else renderBottomPreviewDock({ keepPlaying: options.keepPlaying !== false });
+    if (switchedInPlace || (audio && target === 'studio' && !audio._foxbearTranslationController)) renderPreviewTranslationModeControls(state.bottomPreviewMode);
+    else renderBottomPreviewDock({ keepPlaying: options.keepPlaying !== false, userGesture: Boolean(options.userGesture) });
     foxBearHaptic('switch');
-    if (options.toast) showToast(`${PREVIEW_TRANSLATION_MODES[target].label} 모드로 부드럽게 전환했습니다.`);
+    if (options.toast && !(compatibility.restricted && mode !== 'studio')) showToast(`${PREVIEW_TRANSLATION_MODES[target].label} 모드로 부드럽게 전환했습니다.`);
     return true;
 }
 function jumpDockToImportantPeak(track = getSelectedTrack()) {
@@ -2969,6 +2971,10 @@ function handleMobilePageShow() {
 function restoreDockTransportAfterReturn(forceNotice = false) {
     const track = getSelectedTrack();
     if (!track) return;
+    const before = getBottomPreviewAudio();
+    const controller = before?._foxbearTranslationController;
+    if (controller?.closed || controller?.context?.state === 'closed') { captureBottomPreviewTransport(track, state.bottomPreviewMode); if (el.bottomPreviewPlayer) delete el.bottomPreviewPlayer.dataset.previewKey; }
+    else if (before && !before.paused && controller?.resume) try { controller.resume(); } catch (error) {}
     renderBottomPreviewDock({ keepPlaying: true });
     scheduleBottomPreviewLayoutSync();
     syncMediaSessionForDock();
@@ -2983,7 +2989,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.29-analysis-update-lifecycle') · navigator.serviceWorker.register('./sw.js?v=1.5.29-analysis-update-lifecycle&h=sw-v1529')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.30-inapp-playback-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.30-inapp-playback-recovery&h=sw-v1530')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3075,11 +3081,9 @@ function createDifferencePreviewPlayer(track, options = {}) {
     const originalOffset = mode === 'masterPreview' ? getMasterPreviewStartSec(track) : 0;
     const matchGainDb = Number.isFinite(Number(options.gainDb)) ? Number(options.gainDb) : getABMatchGainDb(track);
     const compareGain = state.abLevelMatch && Number.isFinite(matchGainDb) ? clamp(Math.pow(10, matchGainDb / 20), 0.04, 1.25) : 1;
-    const originalAudio = document.createElement('audio');
-    originalAudio.preload = 'metadata';
+    const originalAudio = configurePreviewAudioElement(document.createElement('audio'));
     originalAudio.src = track.originalUrl;
-    const compareAudio = document.createElement('audio');
-    compareAudio.preload = 'metadata';
+    const compareAudio = configurePreviewAudioElement(document.createElement('audio'));
     compareAudio.src = options.compareUrl;
     const toggle = document.createElement('button');
     toggle.type = 'button';
@@ -3166,12 +3170,12 @@ function createDifferencePreviewPlayer(track, options = {}) {
     };
     const playBoth = async () => {
         bindExclusivePreview(compareAudio);
-        ensureGraph();
-        if (context) await FoxBearAudioContexts.resume(context, 'difference-preview-play');
+        if (getInAppAudioCompatibility().restricted) { showToast('현재 인앱 브라우저에서는 차이 듣기 대신 원본/마스터 A/B 재생을 사용해주세요.'); setPlaying(false); return false; }
+        if (!ensureGraph()) { showToast('이 브라우저에서는 차이 듣기 오디오 그래프를 만들 수 없습니다.'); setPlaying(false); return false; }
         const start = Number(options.startSec || 0);
         if (compareAudio.readyState < 1 || Math.abs(localPosition() - start) > 0.15) seekLocal(Number.isFinite(start) ? start : 0);
         try {
-            await Promise.all([originalAudio.play(), compareAudio.play()]);
+            await getPlaybackTransitionService().playSynchronizedPair(context, [originalAudio, compareAudio], 'difference-preview-play');
             setPlaying(true);
         } catch (error) {
             try { originalAudio.pause(); compareAudio.pause(); } catch (pauseError) {}
@@ -3791,7 +3795,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.29-analysis-update-lifecycle', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.30-inapp-playback-recovery', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4101,7 +4105,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.29-analysis-update-lifecycle',
+        version: '1.5.30-inapp-playback-recovery',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4141,7 +4145,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.29-analysis-update-lifecycle',
+    version: '1.5.30-inapp-playback-recovery',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4161,12 +4165,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.29-analysis-update-lifecycle', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.30-inapp-playback-recovery', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.29-analysis-update-lifecycle', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.30-inapp-playback-recovery', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4181,12 +4185,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.29-analysis-update-lifecycle',
+    version: 'v1.5.30-inapp-playback-recovery',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.29-analysis-update-lifecycle', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.30-inapp-playback-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5623,7 +5627,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         track.downloadAttention = true;
         if (state.selectedId === track.id) {
             state.bottomPreviewMode = 'mastered';
-            state.bottomPreviewAutoplayTrackId = track.id;
+            state.bottomPreviewAutoplayTrackId = null;
         }
         track.report = createDoneReport(track);
         await setMasteringProgress(track, 100, track.report);
@@ -10374,7 +10378,7 @@ function runDockRemoteTranslationMode(mode, event = null) {
         showToast('먼저 음원을 불러온 뒤 재생환경을 바꿀 수 있습니다.');
         return false;
     }
-    applyPreviewTranslationMode(mode, { keepPlaying: true, toast: true, track });
+    applyPreviewTranslationMode(mode, { keepPlaying: true, toast: true, track, userGesture: true });
     return true;
 }
 function syncBottomCompareTools() {
@@ -10426,7 +10430,7 @@ function setupPreviewTranslationAudio(audio, options = {}) {
     if (!audio || options.translationMode === false) return null;
     rememberAudioTargetVolume(audio);
     const mode = getPreviewTranslationMode();
-    if (options.persistentTranslation !== true && mode.id === 'studio') return null;
+    if (mode.id === 'studio' || getInAppAudioCompatibility().restricted) return null;
     try {
         const controller = window.FoxBearPreviewTranslationService?.attach?.(audio, {
             mode: mode.id,
@@ -10516,7 +10520,7 @@ function runDockRemoteSourceMode(mode, event = null) {
     state.bottomPreviewMode = nextMode;
     state.bottomPreviewTrackId = track.id;
     state.bottomPreviewAutoplayTrackId = track.id;
-    renderBottomPreviewDock({ autoPlay: true, keepPlaying: true });
+    renderBottomPreviewDock({ autoPlay: true, keepPlaying: true, userGesture: true });
     foxBearHaptic('switch');
     showToast(nextMode === 'mastered' ? '마스터링 프리뷰로 전환했습니다.' : '원곡 프리뷰로 전환했습니다.');
     return true;
@@ -11140,8 +11144,7 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     if (options.playerClass) wrap.classList.add(...String(options.playerClass).split(/\s+/).filter(Boolean));
     wrap.dataset.waveformMode = mode;
     if (options.playerRole) wrap.dataset.playerRole = options.playerRole;
-    const audio = document.createElement('audio');
-    audio.preload = 'metadata';
+    const audio = configurePreviewAudioElement(document.createElement('audio'));
     audio.src = options.src || '';
     if (state.abLevelMatch && Number.isFinite(options.gainDb)) {
         audio.volume = clamp(Math.pow(10, options.gainDb / 20), 0.02, 1);
@@ -11385,8 +11388,9 @@ function renderBottomPreviewDock(options = {}) {
     if (shouldAutoPlay) {
         state.bottomPreviewAutoplayTrackId = null;
         if (pendingCrossfade) {
-            requestAnimationFrame(() => {
+            const runCrossfade = () => {
                 crossfadeAudioPair(pendingCrossfade.oldAudio, pendingCrossfade.nextAudio, {
+                    userGesture: Boolean(options.userGesture),
                     onComplete: () => {
                         pendingCrossfade.oldPlayer?.remove?.();
                         el.bottomPreviewPlayer?.classList.remove('is-crossfading');
@@ -11398,10 +11402,9 @@ function renderBottomPreviewDock(options = {}) {
                     el.bottomPreviewPlayer?.classList.remove('is-crossfading');
                     playBottomPreviewAudio();
                 });
-            });
-        } else {
-            requestAnimationFrame(playBottomPreviewAudio);
-        }
+            };
+            options.userGesture ? runCrossfade() : requestAnimationFrame(runCrossfade);
+        } else options.userGesture ? playBottomPreviewAudio() : requestAnimationFrame(playBottomPreviewAudio);
     }
     syncMediaSessionForDock();
     updateMobileNativeUi();
@@ -11657,8 +11660,7 @@ function setPlayerToggleIcon(button, isPlaying) {
 function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare = false, loopStartHint = NaN, options = {}) {
     const wrap = document.createElement('div');
     wrap.className = `custom-player ${loopCompare ? 'ab-loop-player' : ''}`;
-    const audio = document.createElement('audio');
-    audio.preload = 'metadata';
+    const audio = configurePreviewAudioElement(document.createElement('audio'));
     audio.src = src;
     if (state.abLevelMatch && Number.isFinite(gainDb)) {
         audio.volume = clamp(Math.pow(10, gainDb / 20), 0.02, 1);
@@ -11784,11 +11786,9 @@ function createABSwitchPlayer(track) {
     const sourceBadge = document.createElement('span');
     sourceBadge.textContent = '원본 A';
     head.append(title, sourceBadge);
-    const originalAudio = document.createElement('audio');
-    originalAudio.preload = 'metadata';
+    const originalAudio = configurePreviewAudioElement(document.createElement('audio'));
     originalAudio.src = track.originalUrl;
-    const masteredAudio = document.createElement('audio');
-    masteredAudio.preload = 'metadata';
+    const masteredAudio = configurePreviewAudioElement(document.createElement('audio'));
     masteredAudio.src = track.masteredUrl;
     const matchGainDb = getABMatchGainDb(track);
     if (state.abLevelMatch && Number.isFinite(matchGainDb)) masteredAudio.volume = clamp(Math.pow(10, matchGainDb / 20), 0.02, 1);
@@ -11940,7 +11940,7 @@ function createABSwitchPlayer(track) {
         loopStart = clamp(loopStart, 0, Math.max(0, duration - length));
         return { start: loopStart, end: Math.min(duration, loopStart + length) };
     };
-    const switchTo = next => {
+    const switchTo = (next, options = {}) => {
         const oldAudio = activeAudio();
         const wasPlaying = !oldAudio.paused;
         const position = oldAudio.currentTime || 0;
@@ -11949,7 +11949,7 @@ function createABSwitchPlayer(track) {
         nextAudio.currentTime = Math.min(position, Number(nextAudio.duration || durationSec || position));
         if (wasPlaying) {
             bindExclusivePreview(nextAudio, { allowAudioElements: [oldAudio] });
-            crossfadeAudioPair(oldAudio, nextAudio).catch(() => {
+            crossfadeAudioPair(oldAudio, nextAudio, { userGesture: Boolean(options.userGesture) }).catch(() => {
                 try { oldAudio.pause(); } catch (error) {}
                 nextAudio.play().catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
             });
@@ -11970,7 +11970,7 @@ function createABSwitchPlayer(track) {
         }
         syncUi();
     });
-    swap.addEventListener('click', () => switchTo(active === 'original' ? 'mastered' : 'original'));
+    swap.addEventListener('click', () => switchTo(active === 'original' ? 'mastered' : 'original', { userGesture: true }));
     seek.addEventListener('input', () => {
         const duration = Number(activeAudio().duration || durationSec || 0);
         if (Number.isFinite(duration) && duration > 0) {
@@ -12734,7 +12734,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.29',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.30',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

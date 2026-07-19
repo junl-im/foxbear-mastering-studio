@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.29-analysis-update-lifecycle';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.30-inapp-playback-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();
@@ -214,7 +214,11 @@
     }
 
     if (typeof global.addEventListener === 'function') {
-        global.addEventListener('pagehide', () => { closeAll('pagehide'); });
+        global.addEventListener('pagehide', event => {
+            // BFCache keeps the document alive. Closing contexts here leaves
+            // restored media elements permanently wired to a closed graph.
+            if (!event?.persisted) closeAll('pagehide');
+        });
     }
 
     global.FoxBearAudioContextManager = Object.freeze({

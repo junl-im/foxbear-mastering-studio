@@ -3,7 +3,7 @@
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.5.29-analysis-update-lifecycle';
+    const VISUALIZER_VERSION = '1.5.30-inapp-playback-recovery';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -255,6 +255,11 @@
         }
     }
 
+    function isRestrictedInAppBrowser() {
+        const ua = String(global.navigator?.userAgent || '');
+        return /KAKAOTALK|KakaoTalk|NAVER\(inapp|FBAN|FBAV|Instagram|Line\//i.test(ua);
+    }
+
     function ensureContext() {
         if (!global.AudioContext && !global.webkitAudioContext) throw new Error('Web Audio API 미지원');
         if (!state.context || state.context.state === 'closed' || !state.ownsContext) {
@@ -310,17 +315,32 @@
             if (externalRecord.context) { state.context = externalRecord.context; state.ownsContext = false; }
             return externalRecord.analyser;
         }
+        if (isRestrictedInAppBrowser()) {
+            throw new Error('인앱 브라우저에서는 비침습 FFT를 사용하지 않습니다.');
+        }
         const context = ensureContext();
         let record = sourceNodes.get(audio);
         if (record?.context?.state === 'closed') {
             throw new Error('기존 WebAudio 컨텍스트가 종료되어 FFT 연결을 재시도할 수 없습니다.');
         }
         if (!record) {
-            const source = context.createMediaElementSource(audio);
+            // Never take ownership of the audible media element with
+            // createMediaElementSource(). A suspended context would mute native
+            // playback. Capture a duplicate stream for FFT and send only that
+            // duplicate to a zero-gain sink.
+            const capture = audio.captureStream || audio.mozCaptureStream;
+            if (typeof capture !== 'function' || typeof context.createMediaStreamSource !== 'function') {
+                throw new Error('비침습 실시간 FFT를 지원하지 않는 브라우저입니다.');
+            }
+            const stream = capture.call(audio);
+            if (!stream || !stream.getAudioTracks?.().length) throw new Error('FFT용 오디오 스트림을 만들지 못했습니다.');
+            const source = context.createMediaStreamSource(stream);
             const analyser = createAnalyser(context);
+            const silentSink = context.createGain();
+            silentSink.gain.value = 0;
             source.connect(analyser);
-            analyser.connect(context.destination);
-            record = { source, analyser, context };
+            analyser.connect(silentSink).connect(context.destination);
+            record = { source, analyser, silentSink, stream, context };
             sourceNodes.set(audio, record);
         }
         return record.analyser;

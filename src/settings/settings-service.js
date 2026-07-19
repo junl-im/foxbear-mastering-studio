@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.29 - settings persistence service
+// FoxBear AI Mastering Studio Pro v1.5.30 - settings persistence service
 'use strict';
 
 (function attachFoxBearSettingsService(global) {

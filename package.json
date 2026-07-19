@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.29",
+  "version": "1.5.30",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.29-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.29-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.30-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.30-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite"
   },
   "qaChecks": [
@@ -235,15 +235,16 @@
     "node qa/v1528_resilience_lifecycle_offline_smoke.js",
     "node qa/v1529_analysis_update_lifecycle_smoke.js",
     "node --check src/boot/service-worker-update-service.js",
-    "node --check qa/browser/analysis-cancel-replacement-playback-playwright.spec.js"
+    "node --check qa/browser/analysis-cancel-replacement-playback-playwright.spec.js",
+    "node qa/v1530_inapp_playback_compatibility_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "analysis-update-lifecycle",
-    "assetVersion": "1.5.29-analysis-update-lifecycle",
-    "cacheName": "foxbear-shell-v1.5.29-analysis-update-lifecycle",
-    "bootRevision": "boot-sri-v1529",
-    "updateSafetyRevision": "update-safety-v1529",
-    "serviceWorkerRevision": "sw-v1529"
+    "buildId": "inapp-playback-recovery",
+    "assetVersion": "1.5.30-inapp-playback-recovery",
+    "cacheName": "foxbear-shell-v1.5.30-inapp-playback-recovery",
+    "bootRevision": "boot-sri-v1530",
+    "updateSafetyRevision": "update-safety-v1530",
+    "serviceWorkerRevision": "sw-v1530"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

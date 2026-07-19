@@ -1,26 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.5.29
+# FoxBear AI Mastering Studio Pro v1.5.30
 
-## Current patch: v1.5.29 Analysis and Update Lifecycle
+## Current patch: v1.5.30 In-App Playback Recovery
 
-대량 파일 분석 중 큐 초기화나 트랙 삭제가 실행되면 대기 작업뿐 아니라 이미 시작된 파일 읽기·디코딩·워커 분석도 취소됩니다. 취소되거나 교체된 트랙의 오래된 분석 결과가 다시 화면과 상태를 갱신하지 못하도록 단계별 생명주기 검사를 추가했습니다.
+카카오톡 인앱 브라우저에서는 기본 스튜디오 재생을 Web Audio 그래프에 강제로 연결하지 않고 네이티브 HTML 오디오 경로로 유지합니다. 스마트폰·노트북·모노 재생환경은 사용자가 직접 선택한 일반 브라우저에서만 지연 연결하며, 제한적인 인앱 브라우저에서는 안정적인 스튜디오 모드로 자동 폴백합니다.
 
-서비스워커 업데이트는 분석·마스터링·디코딩·렌더링·재생이 진행 중일 때 즉시 활성화되지 않습니다. 작업이 안정적으로 idle인 상태가 확인된 뒤 새 워커를 활성화하며, 네트워크가 404 또는 5xx를 반환해도 현재 캐시와 보존된 이전 캐시에서 앱 셸을 복구합니다.
+마스터링 완료 뒤 비동기 자동재생을 제거했고, 원본/마스터 전환과 A/B 교차재생은 실제 클릭·터치 이벤트 안에서 바로 재생을 시작합니다. FFT는 가능한 경우 captureStream 복제 경로를 사용해 실제 청취 오디오를 가로채지 않으며, BFCache 복귀 시 살아 있는 AudioContext를 닫지 않습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.29
-build: analysis-update-lifecycle
-asset generation: 1.5.29-analysis-update-lifecycle
-service worker cache: foxbear-shell-v1.5.29-analysis-update-lifecycle
+product: 1.5.30
+build: inapp-playback-recovery
+asset generation: 1.5.30-inapp-playback-recovery
+service worker cache: foxbear-shell-v1.5.30-inapp-playback-recovery
 ```
 
 Verification:
 
 ```text
-static QA: 213/213 PASS
-actual Chromium desktop: 7/7 PASS
-actual Chromium mobile PWA: 7/7 PASS
+static QA: 214/214 PASS
+real-browser QA: run npm run qa:browser in CI or an unrestricted local environment
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

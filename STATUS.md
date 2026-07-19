@@ -33,19 +33,20 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.29`
-- Build ID: `analysis-update-lifecycle`
-- Asset version: `1.5.29-analysis-update-lifecycle`
-- Service worker cache: `foxbear-shell-v1.5.29-analysis-update-lifecycle`
-- Static QA target: `213/213 PASS`
-- Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
+- Product version: `1.5.30`
+- Build ID: `inapp-playback-recovery`
+- Asset version: `1.5.30-inapp-playback-recovery`
+- Service worker cache: `foxbear-shell-v1.5.30-inapp-playback-recovery`
+- Static QA target: `214/214 PASS`
+- Browser QA target: desktop/mobile Playwright on actual Chromium through the GitHub Actions gate
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
-- Active and pending import analysis must be cancellable; removed tracks must never receive stale decode, worker, cache, or recommendation results.
-- Waiting service workers must defer activation while analysis, mastering, decoding, rendering, or playback is active and require a stable idle window.
-- Network-first script, style, worker, and navigation requests must recover from current or retained legacy caches on offline failures and HTTP non-success responses.
-- Header command metadata and designer signature remain one-line, borderless, engraved, and independent from Settings width.
-- Detached playback audio elements and their listeners must be pruned; queue teardown must return playback and managed AudioContext diagnostics to zero.
-- Local JavaScript/CSS SRI coverage must be complete, correctly shaped, and hash-valid.
+- Default Studio playback must remain on the native HTMLMediaElement route; WebAudio translation is attached only after explicit user selection.
+- KakaoTalk and restricted in-app browsers must fall back to native playback without realtime/translation graph ownership.
+- Mastering completion must not autoplay outside the original user gesture.
+- Source switching and A/B crossfade must start media playback inside the originating click/touch task.
+- BFCache pagehide must preserve live managed AudioContexts; closed restored translation graphs must be rebuilt.
+- Spectrum visualization must not take ownership of or mute the audible media-element route.
+
 
 ## v1.5.25 deterministic preview stability invariant
 

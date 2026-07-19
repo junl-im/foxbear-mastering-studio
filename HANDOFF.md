@@ -1,24 +1,24 @@
-# Handoff - v1.5.29
+# Handoff - v1.5.30
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.29 analysis and update lifecycle
+## Current patch: v1.5.30 in-app playback recovery
 
 Changes:
 
-- Cancels active and pending import analysis when the queue is cleared or a track is removed.
-- Rejects stale decode, worker, cache, and recommendation results after a track has been removed or replaced.
-- Defers service-worker activation while critical work or playback is active, then activates after a stable idle window.
-- Falls back to current and retained legacy caches for non-success network responses as well as offline failures.
-- Adds a browser scenario covering active cancellation, stale-work suppression, replacement import, and replacement playback.
+- Keeps default Studio playback native for KakaoTalk and restrictive Android WebViews.
+- Lazily attaches WebAudio translation only after an explicit user selection and falls back safely in restricted in-app browsers.
+- Moves source-switch, A/B crossfade, difference playback, and graph resume calls into the original click/touch activation.
+- Removes mastering-completion autoplay and restores/rebuilds audio routes safely after app switching and BFCache navigation.
+- Prevents the spectrum visualizer from taking ownership of and muting the audible media-element route.
 
 ```text
-product: 1.5.29
-build: analysis-update-lifecycle
-asset generation: 1.5.29-analysis-update-lifecycle
-service worker cache: foxbear-shell-v1.5.29-analysis-update-lifecycle
+product: 1.5.30
+build: inapp-playback-recovery
+asset generation: 1.5.30-inapp-playback-recovery
+service worker cache: foxbear-shell-v1.5.30-inapp-playback-recovery
 ```
 
 Verification:
@@ -34,8 +34,7 @@ npm run package:verify:release
 npm run package:verify:overwrite
 ```
 
-Verified static result: `213/213 PASS`.
-Verified browser result: desktop `7/7`, mobile `7/7` on actual Chromium; GitHub Actions should report `14 passed`.
+Verified static result: `214/214 PASS`. Browser automation requires an environment where local HTTP navigation is allowed; this sandbox blocked localhost with `net::ERR_BLOCKED_BY_ADMINISTRATOR`.
 
 ## Previous handoff: v1.5.27 device glyph and SRI hardening
 
