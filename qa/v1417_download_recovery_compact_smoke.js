@@ -18,7 +18,7 @@ const dialog = read('src/ui/download-dialog-view.js');
 const css = read('assets/css/download-dialog.css');
 const runtime = read('src/boot/runtime-health.js');
 
-assert(pkg.version === '1.5.30', 'package version should carry forward to 1.5.30');
+assert(pkg.version === '1.5.31', 'package version should carry forward to 1.5.31');
 assert(service.includes('getDownloadCompactRecoveryPlan'), 'compact recovery plan helper should remain available');
 assert(service.includes('copyDownloadRecoveryChecklist'), 'checklist copy helper should remain available');
 assert(!service.includes('area.remove();\n        area.remove();'), 'clipboard fallback should not remove the same textarea twice');

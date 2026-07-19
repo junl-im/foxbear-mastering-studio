@@ -17,7 +17,7 @@ This document contains rules that remain true across releases. Actual changes be
 - Spectrum FFT is shown in the detailed analysis view only.
 - Dock mini FFT remains removed; `#bottomPreviewSpectrum` and the former `renderMini` path must not return without a new measured performance decision.
 - Loudness-matched A/B behavior remains the intended comparison model.
-- Completed download Blobs and playback URLs remain available; completed mastered PCM uses `release-after-encode` and must be zero-retention by default.
+- Completed download Blobs and playback URLs remain available; completed mastered PCM uses `release-after-encode` by default, with at most one selected-track bounded re-encode buffer retained in normal browsers.
 - Bulk import analysis remains sequential and general UI rendering remains scheduler/throttle controlled for large batches.
 - Wake Lock distinguishes user intent from temporary automatic protection.
 - All managed Web Audio contexts must be created and released through `FoxBearAudioContextManager`; diagnostics must remain visible through Runtime Health/Performance Diagnostics.
@@ -33,20 +33,22 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.30`
-- Build ID: `inapp-playback-recovery`
-- Asset version: `1.5.30-inapp-playback-recovery`
-- Service worker cache: `foxbear-shell-v1.5.30-inapp-playback-recovery`
-- Static QA target: `214/214 PASS`
-- Browser QA target: desktop/mobile Playwright on actual Chromium through the GitHub Actions gate
+- Product version: `1.5.31`
+- Build ID: `player-download-stability`
+- Asset version: `1.5.31-player-download-stability`
+- Service worker cache: `foxbear-shell-v1.5.31-player-download-stability`
+- Static QA target: `215/215 PASS`
+- Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
-- Default Studio playback must remain on the native HTMLMediaElement route; WebAudio translation is attached only after explicit user selection.
-- KakaoTalk and restricted in-app browsers must fall back to native playback without realtime/translation graph ownership.
-- Mastering completion must not autoplay outside the original user gesture.
-- Source switching and A/B crossfade must start media playback inside the originating click/touch task.
-- BFCache pagehide must preserve live managed AudioContexts; closed restored translation graphs must be rebuilt.
-- Spectrum visualization must not take ownership of or mute the audible media-element route.
-
+- Mastering completion must preserve a currently playing original Dock player and must not mount a second player outside an explicit user-gesture crossfade.
+- Normal browsers may retain one bounded selected-track PCM for MP3/WAV re-encoding; restricted in-app browsers expose only the completed file.
+- The download dialog and save-assist panel remain compact; diagnostics and historical guidance helpers may exist without being mounted by default.
+- Active and pending import analysis must be cancellable; removed tracks must never receive stale decode, worker, cache, or recommendation results.
+- Waiting service workers must defer activation while analysis, mastering, decoding, rendering, or playback is active and require a stable idle window.
+- Network-first script, style, worker, and navigation requests must recover from current or retained legacy caches on offline failures and HTTP non-success responses.
+- Header command metadata and designer signature remain one-line, borderless, engraved, and independent from Settings width.
+- Detached playback audio elements and their listeners must be pruned; queue teardown must return playback and managed AudioContext diagnostics to zero.
+- Local JavaScript/CSS SRI coverage must be complete, correctly shaped, and hash-valid.
 
 ## v1.5.25 deterministic preview stability invariant
 

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.30-inapp-playback-recovery';
+  const VIEW_VERSION = '1.5.31-player-download-stability';
   const DEFAULT_BINS = 96;
 
   function getService() {

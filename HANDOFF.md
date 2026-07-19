@@ -1,24 +1,25 @@
-# Handoff - v1.5.30
+# Handoff - v1.5.31
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.30 in-app playback recovery
+## Current patch: v1.5.31 player and download stability
 
 Changes:
 
-- Keeps default Studio playback native for KakaoTalk and restrictive Android WebViews.
-- Lazily attaches WebAudio translation only after an explicit user selection and falls back safely in restricted in-app browsers.
-- Moves source-switch, A/B crossfade, difference playback, and graph resume calls into the original click/touch activation.
-- Removes mastering-completion autoplay and restores/rebuilds audio routes safely after app switching and BFCache navigation.
-- Prevents the spectrum visualizer from taking ownership of and muting the audible media-element route.
+- Preserves the currently playing original Dock player when mastering completes, instead of appending a second mastered player.
+- Restricts Dock crossfades to explicit user gestures and deduplicates asynchronous refreshes.
+- Keeps one selected-track final PCM buffer within a bounded normal-browser memory budget for MP3/WAV re-encoding.
+- Uses a compact download dialog with format choices and only essential save/share actions.
+- Uses native file share/save first in Kakao/in-app browsers, with file-open and external-browser fallbacks.
+- Static QA passed 215/215. This workspace could not launch Playwright because its Chromium executable is not installed; run the browser gate in GitHub Actions or a prepared local environment.
 
 ```text
-product: 1.5.30
-build: inapp-playback-recovery
-asset generation: 1.5.30-inapp-playback-recovery
-service worker cache: foxbear-shell-v1.5.30-inapp-playback-recovery
+product: 1.5.31
+build: player-download-stability
+asset generation: 1.5.31-player-download-stability
+service worker cache: foxbear-shell-v1.5.31-player-download-stability
 ```
 
 Verification:
@@ -33,8 +34,6 @@ npm run package:all
 npm run package:verify:release
 npm run package:verify:overwrite
 ```
-
-Verified static result: `214/214 PASS`. Browser automation requires an environment where local HTTP navigation is allowed; this sandbox blocked localhost with `net::ERR_BLOCKED_BY_ADMINISTRATOR`.
 
 ## Previous handoff: v1.5.27 device glyph and SRI hardening
 

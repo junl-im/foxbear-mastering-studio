@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.30-inapp-playback-recovery';
+const version = '1.5.31-player-download-stability';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

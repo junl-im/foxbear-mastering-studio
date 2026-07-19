@@ -1,25 +1,27 @@
-# FoxBear AI Mastering Studio Pro v1.5.30
+# FoxBear AI Mastering Studio Pro v1.5.31
 
-## Current patch: v1.5.30 In-App Playback Recovery
+## Current patch: v1.5.31 Player and Download Stability
 
-카카오톡 인앱 브라우저에서는 기본 스튜디오 재생을 Web Audio 그래프에 강제로 연결하지 않고 네이티브 HTML 오디오 경로로 유지합니다. 스마트폰·노트북·모노 재생환경은 사용자가 직접 선택한 일반 브라우저에서만 지연 연결하며, 제한적인 인앱 브라우저에서는 안정적인 스튜디오 모드로 자동 폴백합니다.
+원곡을 듣는 중 마스터링이 끝나도 Dock 플레이어를 새로 추가하지 않습니다. 재생 중인 원곡은 그대로 유지되고, 사용자가 `마스터` 탭을 직접 눌렀을 때만 단일 플레이어의 소스가 전환됩니다. 비동기 완료·새로고침 경로에서는 크로스페이드를 만들지 않으며 중복된 플레이어 요소도 자동 정리합니다.
 
-마스터링 완료 뒤 비동기 자동재생을 제거했고, 원본/마스터 전환과 A/B 교차재생은 실제 클릭·터치 이벤트 안에서 바로 재생을 시작합니다. FFT는 가능한 경우 captureStream 복제 경로를 사용해 실제 청취 오디오를 가로채지 않으며, BFCache 복귀 시 살아 있는 AudioContext를 닫지 않습니다.
+일반 브라우저에서는 선택된 한 곡의 최종 PCM만 메모리 한도 안에서 유지해 다운로드 창에서 MP3 128/192/320 kbps와 WAV 16/24/32-bit를 선택할 수 있습니다. 카카오톡 등 인앱 브라우저는 메모리 안정성을 위해 현재 완성 파일만 제공하며, 화면은 `기기에 저장/공유`, `파일 열기`, `외부 브라우저` 세 동작으로 단순화했습니다.
+
+Download dialog micro hint 호환 도우미는 유지하지만 기본 팝업에는 긴 환경 설명·체크리스트·진단 카드를 표시하지 않습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.30
-build: inapp-playback-recovery
-asset generation: 1.5.30-inapp-playback-recovery
-service worker cache: foxbear-shell-v1.5.30-inapp-playback-recovery
+product: 1.5.31
+build: player-download-stability
+asset generation: 1.5.31-player-download-stability
+service worker cache: foxbear-shell-v1.5.31-player-download-stability
 ```
 
 Verification:
 
 ```text
-static QA: 214/214 PASS
-real-browser QA: run npm run qa:browser in CI or an unrestricted local environment
+static QA: 215/215 PASS
+real-browser QA: attempted here, but Playwright Chromium is not installed; run npm run qa:browser in CI or an unrestricted local environment
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

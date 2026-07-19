@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.30",
-  "buildId": "inapp-playback-recovery",
+  "productVersion": "1.5.31",
+  "buildId": "player-download-stability",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

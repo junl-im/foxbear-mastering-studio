@@ -775,3 +775,45 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
         padding: 7px 9px;
     }
 }
+
+/* v1.5.31: one-screen format picker and compact in-app save fallback. */
+.download-options-panel-simple {
+    max-width: 560px;
+    gap: 10px;
+}
+.download-options-panel-simple .download-options-name {
+    margin-bottom: 2px;
+}
+.download-options-panel-simple .download-options-warning {
+    margin: 0;
+    padding: 8px 10px;
+    font-size: .67rem;
+}
+.download-options-panel-simple .download-options-selected-summary {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: .64rem;
+    color: rgba(225, 238, 246, .72);
+}
+.download-options-panel-simple .download-options-actions-primary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.download-options-panel-simple.restricted .download-options-actions-primary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.download-assist-simple {
+    max-width: 520px;
+}
+.download-assist-simple .download-assist-actions {
+    margin-top: 4px;
+}
+@media (max-width: 640px) {
+    .download-options-panel-simple .download-options-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .download-options-panel-simple.restricted .download-options-actions-primary {
+        grid-template-columns: 1fr;
+    }
+}

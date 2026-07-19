@@ -1,3 +1,14 @@
+# v1.5.31 - Player and Download Stability
+
+- Prevented mastering completion from creating a second Dock player while the original track is playing; the active original player remains in place until the user explicitly selects the mastered tab.
+- Limited Dock crossfades to real user-gesture source switches, deduplicated refresh requests, and pruned stale player elements left by interrupted transitions.
+- Retained one selected-track master PCM buffer within a bounded memory budget in normal browsers so MP3/WAV formats can be chosen without remastering.
+- Kept restricted in-app browsers on release-after-encode memory policy and reduced their format list to the already completed file.
+- Replaced the verbose download dialog with a one-screen format picker and essential actions only.
+- Simplified Kakao/in-app fallback to native file share/save, file open, and external-browser actions; compacted the secondary save-assist panel.
+- Added v1.5.31 regression coverage for single-player completion, refresh deduplication, bounded re-encode retention, simplified download UI, and Kakao fallbacks.
+- Kept the legacy `getDownloadDialogCompactHint` helper and Wake Lock state-sync contract covered while removing their verbose first-screen presentation.
+
 # v1.5.30 - In-App Playback Recovery
 
 - Kept default Studio playback on the native HTMLMediaElement route so KakaoTalk and restrictive Android WebViews cannot mute it behind a suspended AudioContext.

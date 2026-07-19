@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.30-inapp-playback-recovery';
+    const SERVICE_VERSION = '1.5.31-player-download-stability';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
 

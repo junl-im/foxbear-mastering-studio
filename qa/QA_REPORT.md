@@ -1,19 +1,18 @@
-# FoxBear QA Report - v1.5.30
+# FoxBear QA Report - v1.5.31
 
-Current release gate target: metadata/handoff checks, 214 static checks, and desktop/mobile Playwright coverage.
+Current release gate: metadata/handoff checks and 215 static checks. A focused Playwright run was attempted, but this workspace does not contain the required Chromium executable; actual browser QA remains a CI or unrestricted-local gate.
 
-## v1.5.30 coverage
+## v1.5.31 coverage
 
-- Verifies Studio playback remains on the native HTML media route until a user explicitly selects a translation mode.
-- Verifies KakaoTalk and other restricted in-app browsers fall back to stable native playback.
-- Verifies source switches, A/B crossfades, realtime graph resume, and synchronized difference playback start inside the user activation task.
-- Verifies mastering completion does not attempt blocked asynchronous autoplay.
-- Verifies the detail spectrum uses a duplicated captureStream route instead of taking ownership of the audible media element.
-- Verifies BFCache pagehide preserves live managed AudioContexts and restored closed translation routes are rebuilt.
+- Preserves the single active original Dock player when mastering completes during playback; no automatic second player or non-gesture crossfade is created.
+- Deduplicates Dock refreshes, removes stale player shells, and keeps source switches user-gesture-bound.
+- Retains one selected-track PCM within a bounded memory budget in normal browsers for MP3 128/192/320 kbps and WAV 16/24/32-bit re-encoding.
+- Keeps restricted Kakao/in-app browsers on the completed-file-only policy and provides compact share/save, file-open, and external-browser fallbacks.
+- Verifies the simplified download and save-assist surfaces while preserving legacy diagnostics helpers without mounting verbose cards.
 
 ```text
-214/214 PASS
-Browser QA: local execution requires unrestricted localhost navigation; run npm run qa:browser in CI or a normal workstation.
+215/215 PASS
+Browser QA: not executed here - Playwright Chromium executable is not installed; run in GitHub Actions or an unrestricted local environment
 ```
 
 # FoxBear QA Report - v1.5.29

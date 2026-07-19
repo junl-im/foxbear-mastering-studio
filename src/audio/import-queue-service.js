@@ -190,7 +190,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.30-inapp-playback-recovery',
+                version: '1.5.31-player-download-stability',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,

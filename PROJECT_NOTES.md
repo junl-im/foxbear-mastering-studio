@@ -1,3 +1,13 @@
+# Current Project Notes - v1.5.31
+
+## v1.5.31 focus
+
+- Mastering completion must never append a second Dock player during active original playback.
+- Programmatic source refreshes do not crossfade or autoplay; only direct user gestures may create a temporary transition pair.
+- Normal-browser alternate-format download relies on one bounded selected-track PCM cache; restricted in-app browsers remain release-after-encode.
+- The download dialog first screen contains format choices and essential actions only.
+- Kakao file delivery is best-effort through Web Share/file open; a guaranteed cross-browser download URL would require a temporary backend upload.
+
 # Current Project Notes - v1.5.27
 
 ## v1.5.27 focus

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.30 - download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.5.31 - simplified download dialog view builder
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -53,7 +53,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.30',
+                version: '1.5.31',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -83,7 +83,7 @@
 
         const title = document.createElement('strong');
         title.className = 'download-options-title';
-        title.textContent = env.restricted ? '카카오/인앱 저장 · 공유' : '다운로드 / 공유';
+        title.textContent = env.restricted ? '파일 저장' : '파일 다운로드';
         const name = document.createElement('p');
         name.className = 'download-options-name';
         name.textContent = track.name || '마스터링 파일';
@@ -154,11 +154,12 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
+        // Legacy wording: 공유/저장 먼저. The visible v1.5.31 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
-        warning.textContent = displayProfile.initialWarning || (env.restricted
-            ? '공유/저장을 먼저 누르세요. 안 되면 저장 도움을 사용하세요.'
-            : '포맷을 선택한 뒤 다운로드 버튼을 눌러주세요.');
+        warning.textContent = env.restricted
+            ? '카카오에서는 기기 저장/공유를 먼저 시도하세요.'
+            : '형식을 선택하고 다운로드하세요.';
 
         const listLabel = document.createElement('span');
         listLabel.className = 'download-options-section-label';
@@ -167,17 +168,16 @@
         const list = document.createElement('div');
         list.className = 'download-options-list selectable';
         const options = getDownloadFormatOptions(track);
-        let selectedFormat = track.outFormat && options.some(option => option.format === track.outFormat) ? track.outFormat : options[0].format;
+        const visibleOptions = env.restricted ? options.filter(option => option.available !== false) : options;
+        const defaultOption = visibleOptions.find(option => option.format === track.outFormat) || visibleOptions[0] || options[0];
+        let selectedFormat = defaultOption.format;
 
         const selectedSummary = document.createElement('div');
         selectedSummary.className = 'download-options-selected-summary';
 
         const updateSelectedSummary = () => {
-            const selected = options.find(option => option.format === selectedFormat) || options[0];
-            const unavailableCount = options.filter(option => option.available === false).length;
-            selectedSummary.textContent = unavailableCount
-                ? `${selected.label} ${selected.detail} · 현재 완성 포맷만 즉시 저장할 수 있습니다. 다른 포맷은 재마스터링이 필요합니다.`
-                : `${selected.label} ${selected.detail} · 버튼을 눌러야 저장/공유가 시작됩니다.`;
+            const selected = options.find(option => option.format === selectedFormat) || defaultOption;
+            selectedSummary.textContent = `${selected.label} · ${selected.detail}`;
         };
 
         const setSelected = format => {
@@ -196,11 +196,11 @@
             updateSelectedSummary();
             const selected = options.find(option => option.format === selectedFormat);
             warning.classList.add('show');
-            warning.textContent = selected ? `${selected.label} ${selected.detail} 선택됨 · ${env.restricted ? '공유/저장 먼저 누르세요.' : '다운로드 또는 파일 공유를 누르세요.'}` : '포맷을 선택했습니다.';
-            renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail} 준비됨` : '포맷 선택됨');
+            warning.textContent = selected ? `${selected.label} ${selected.detail} 선택` : '형식 선택';
+            renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail} 준비됨` : '형식 선택됨');
         };
 
-        options.forEach(option => {
+        visibleOptions.forEach(option => {
             const button = document.createElement('button');
             button.type = 'button';
             button.className = `download-format-option ${option.format === selectedFormat ? 'current' : ''}`;
@@ -245,12 +245,12 @@
         const download = document.createElement('button');
         download.type = 'button';
         download.className = 'btn-primary download-options-primary';
-        download.textContent = flow?.primaryLabel || actionLabel(primaryAction);
+        download.textContent = env.restricted ? '기기에 저장/공유' : '선택 형식 다운로드';
         applyActionMeta(download, primaryAction, true);
         const share = document.createElement('button');
         share.type = 'button';
         share.className = `btn-secondary download-options-share ${env.shareFiles ? '' : 'is-limited'}`;
-        share.textContent = actionLabel(secondaryAction);
+        share.textContent = env.restricted ? '파일 열기' : actionLabel(secondaryAction);
         share.title = secondaryAction === 'share'
             ? (env.shareFiles ? '카카오톡, 문자, 파일 앱 등으로 공유합니다.' : '이 브라우저는 파일 공유 API를 지원하지 않을 수 있습니다.')
             : '파일 열기, 안내 복사, 외부 브라우저 같은 대체 저장 방법을 엽니다.';
@@ -265,7 +265,16 @@
         moreToggle.className = 'btn-secondary download-options-more-toggle';
         moreToggle.setAttribute('aria-expanded', String(displayProfile.advancedCollapsed === false));
         moreToggle.textContent = displayProfile.advancedCollapsed === false ? '추가 옵션 닫기' : '추가 옵션';
-        actions.append(download, share, help, moreToggle);
+        let externalPrimary = null;
+        actions.append(download, share);
+        if (env.restricted) {
+            externalPrimary = document.createElement('button');
+            externalPrimary.type = 'button';
+            externalPrimary.className = 'btn-secondary download-options-external';
+            externalPrimary.textContent = '외부 브라우저';
+            externalPrimary.addEventListener('click', () => openCurrentPageInExternalBrowser(deps));
+            actions.appendChild(externalPrimary);
+        }
 
         const fallbackActions = document.createElement('div');
         fallbackActions.className = 'download-options-actions download-options-actions-fallback is-collapsed';
@@ -412,7 +421,7 @@
         };
         renderReceipt(primaryAction, null, '', { initial: true });
 
-        const allButtons = () => [download, share, help, moreToggle, copy, close, ...Array.from(list.querySelectorAll('button')), ...Array.from(fallbackActions.querySelectorAll('button'))];
+        const allButtons = () => [download, share, externalPrimary, close, ...Array.from(list.querySelectorAll('button'))].filter(Boolean);
         const setBusy = busy => {
             allButtons().forEach(button => { button.disabled = Boolean(busy) || button.dataset.permanentDisabled === 'true'; });
             panel.classList.toggle('working', Boolean(busy));
@@ -549,7 +558,8 @@
 
         close.addEventListener('click', () => closeDownloadOptionsDialog(backdrop));
         backdrop.addEventListener('click', event => { if (event.target === backdrop) closeDownloadOptionsDialog(backdrop); });
-        panel.append(close, title, name, envBox, flowCard, compactHintBar, warning, receipt, checklistPanel, listLabel, list, selectedSummary, actions, fallbackActions, guide);
+        panel.classList.add('download-options-panel-simple');
+        panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions);
         backdrop.appendChild(panel);
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');
