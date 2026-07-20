@@ -7,13 +7,13 @@ const dockWaveformCss = fs.readFileSync('assets/css/dock-waveform.css', 'utf8');
 const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 function must(cond, msg) { if (!cond) { console.error(msg); process.exit(1); } }
-must(html.includes('data-build="1.5.36"'), 'index build should be v1.5.36');
-must(app.includes("const APP_VERSION = 'Pro v1.5.36'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.5.37"'), 'index build should be v1.5.37');
+must(app.includes("const APP_VERSION = 'Pro v1.5.37'"), 'app version should be v1.4.0');
 must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine'"), 'DSP slug should be v1.4.0');
-must(pkg.version === '1.5.36', 'package version should be 1.5.36');
+must(pkg.version === '1.5.37', 'package version should be 1.5.37');
 must(app.includes('function getAdaptiveDockWaveformBinCount'), 'adaptive dock waveform bin count helper missing');
 must(app.includes('function updateWaveformProgressBars'), 'waveform progress bar class helper missing');
-must(app.includes("bar.classList.toggle('is-played'"), 'played waveform segment class update missing');
+must(app.includes("--waveform-progress-pct") && !app.includes("bar.classList.toggle('is-played'"), 'CSS-variable waveform progress optimization missing');
 must(app.includes('dock-waveform-polished'), 'polished dock waveform class missing');
 must(css.includes('v1.4.0 Dock / Modal State Machine Refactor'), 'v1.4.0 waveform CSS section missing');
 must(css.includes('align-items: center !important'), 'mirror waveform center alignment missing');

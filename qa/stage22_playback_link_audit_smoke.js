@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.36-interaction-lifecycle-hardening';
+const version = '1.5.37-memory-import-waveform-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

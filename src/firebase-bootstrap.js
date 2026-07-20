@@ -1,27 +1,27 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js';
-import {
-    addDoc,
-    collection,
-    doc,
-    getCountFromServer,
-    getDoc,
-    getDocs,
-    getFirestore,
-    limit,
-    orderBy,
-    query,
-    serverTimestamp,
-    where
-} from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js';
-import {
-    fetchAndActivate,
-    getRemoteConfig,
-    getValue,
-    isSupported as isRemoteConfigSupported
-} from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-remote-config.js';
+let initializeApp;
+let getAuth;
+let onAuthStateChanged;
+let signInAnonymously;
+let addDoc;
+let collection;
+let doc;
+let getCountFromServer;
+let getDoc;
+let getDocs;
+let getFirestore;
+let limit;
+let orderBy;
+let query;
+let serverTimestamp;
+let where;
+let fetchAndActivate;
+let getRemoteConfig;
+let getValue;
+let isRemoteConfigSupported;
+let firebaseModulesPromise = null;
 
 const FIREBASE_SDK_VERSION = '12.14.0';
+const FIREBASE_MODULE_BASE = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
 const FIREBASE_CONFIG = Object.freeze({
     apiKey: 'AIzaSyBvYuYlN6etTd3B6C_ZGvsaAktbWJU8yOs',
     authDomain: 'foxbear-music.firebaseapp.com',
@@ -61,6 +61,23 @@ const bridgeState = {
     storageEnabled: false,
     storageReason: 'Spark 무료 요금제에서는 Cloud Storage for Firebase를 사용하지 않습니다.'
 };
+
+async function loadFirebaseModules() {
+    if (firebaseModulesPromise) return firebaseModulesPromise;
+    firebaseModulesPromise = Promise.all([
+        import(`${FIREBASE_MODULE_BASE}/firebase-app.js`),
+        import(`${FIREBASE_MODULE_BASE}/firebase-auth.js`),
+        import(`${FIREBASE_MODULE_BASE}/firebase-firestore.js`),
+        import(`${FIREBASE_MODULE_BASE}/firebase-remote-config.js`)
+    ]).then(([appModule, authModule, firestoreModule, remoteConfigModule]) => {
+        ({ initializeApp } = appModule);
+        ({ getAuth, onAuthStateChanged, signInAnonymously } = authModule);
+        ({ addDoc, collection, doc, getCountFromServer, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, where } = firestoreModule);
+        ({ fetchAndActivate, getRemoteConfig, getValue, isSupported: isRemoteConfigSupported } = remoteConfigModule);
+        return true;
+    });
+    return firebaseModulesPromise;
+}
 
 function dispatchFirebaseEvent(type, extra = {}) {
     window.dispatchEvent(new CustomEvent(type, {
@@ -238,6 +255,7 @@ function exposeBridge(extra = {}) {
 
 async function bootFirebase() {
     try {
+        await loadFirebaseModules();
         bridgeState.app = initializeApp(FIREBASE_CONFIG);
         bridgeState.auth = getAuth(bridgeState.app);
         bridgeState.db = getFirestore(bridgeState.app);
@@ -263,4 +281,12 @@ async function bootFirebase() {
 }
 
 exposeBridge();
-bootFirebase();
+function scheduleFirebaseBoot() {
+    const start = () => bootFirebase();
+    if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(start, { timeout: 2500 });
+        return;
+    }
+    window.setTimeout(start, 650);
+}
+scheduleFirebaseBoot();

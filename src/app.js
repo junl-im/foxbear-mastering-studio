@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.36 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.37 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -18,7 +18,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.36';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.37';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -61,7 +61,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.36-interaction-lifecycle-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1536'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.37-memory-import-waveform-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1537'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -78,6 +78,7 @@ const SAFE_BULK_IMPORT_HUD_MIN_TRACKS = Math.max(2, Number(BULK_IMPORT_HUD_MIN_T
 const SAFE_BULK_IMPORT_HUD_DONE_HOLD_MS = Math.max(3000, Number(BULK_IMPORT_HUD_DONE_HOLD_MS) || 15000);
 let importAnalysisController = null;
 let masteringBatchRunner = null;
+let dockWaveformPlayheadRaf = 0, dockWaveformPendingAudio = null;
 // v1.4.28 compatibility QA anchors: const importAnalysisQueue = [] ; importAnalysisActiveCount < SAFE_IMPORT_ANALYSIS_CONCURRENCY ; 대량 업로드 안전 모드 ; Analysis error handler failed ; beginBulkMasteringHudBatch(candidates, { source: options.source || 'selected' ; beginBulkMasteringHudBatch(candidates, { source: 'all'
 const masteringQueueState = {
     activeIds: new Set(),
@@ -2991,7 +2992,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.36-interaction-lifecycle-hardening') · navigator.serviceWorker.register('./sw.js?v=1.5.36-interaction-lifecycle-hardening&h=sw-v1536')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.37-memory-import-waveform-hardening') · navigator.serviceWorker.register('./sw.js?v=1.5.37-memory-import-waveform-hardening&h=sw-v1537')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3797,7 +3798,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.36-interaction-lifecycle-hardening', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.37-memory-import-waveform-hardening', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4101,6 +4102,7 @@ function runImportAnalysisPump() {
 }
 window.FoxBearBulkImportGuard = Object.freeze({
     getSnapshot: getImportAnalysisQueueSnapshot,
+    getPolicy: getImportMemoryPolicy,
     queueTracksForAnalysis,
     cancelTrack: (trackOrId, reason) => getImportAnalysisQueueController().cancelTrack?.(trackOrId, reason),
     cancelAll: reason => getImportAnalysisQueueController().cancelAll?.(reason),
@@ -4110,7 +4112,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.36-interaction-lifecycle-hardening',
+        version: '1.5.37-memory-import-waveform-hardening',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4150,7 +4152,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.36-interaction-lifecycle-hardening',
+    version: '1.5.37-memory-import-waveform-hardening',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4161,7 +4163,9 @@ function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra 
 }
 function getSingleTrackDownloadReencodePolicy(track, calledFromBatch = false) {
     if (!track || calledFromBatch || state.selectedId !== track.id || isRestrictedDownloadBrowser()) return {};
-    const bytes = Math.max(0, Number(track.masteredBuffer?.numberOfChannels || 0) * Number(track.masteredBuffer?.length || 0) * 4), budget = (window.matchMedia?.('(pointer: coarse)')?.matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')) ? 128 * 1024 * 1024 : 384 * 1024 * 1024;
+    const mobile = Boolean(window.matchMedia?.('(pointer: coarse)')?.matches || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '')), deviceMemoryGb = Math.max(0, Number(navigator.deviceMemory || 0));
+    if (mobile || (deviceMemoryGb > 0 && deviceMemoryGb <= 4)) return {}; // encoded Blob only on mobile/low-memory devices
+    const bytes = Math.max(0, Number(track.masteredBuffer?.numberOfChannels || 0) * Number(track.masteredBuffer?.length || 0) * 4), budget = 384 * 1024 * 1024;
     return !bytes || bytes > budget ? {} : { retainCompletedPcm: true, forceReleaseAll: false, keepSelected: true, keepRecent: 0, maxRetainedBuffers: 1, maxMasteredBufferBytes: budget };
 }
 function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', extra = {}) {
@@ -4175,12 +4179,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.36-interaction-lifecycle-hardening', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.37-memory-import-waveform-hardening', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.36-interaction-lifecycle-hardening', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.37-memory-import-waveform-hardening', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4195,12 +4199,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.36-interaction-lifecycle-hardening',
+    version: 'v1.5.37-memory-import-waveform-hardening',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.36-interaction-lifecycle-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.37-memory-import-waveform-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -4228,67 +4232,44 @@ async function handleNativeInputFiles(fileList, kind = 'file') {
 async function handleFiles(fileList) {
     const incoming = Array.from(fileList || []).filter(Boolean);
     if (!incoming.length) return { added: 0, invalid: 0, limited: 0 };
+    const plan = planImportFilesForCurrentDevice(incoming), { policy: importPolicy, accepted, invalidEntries, memoryRejected, skippedByLimit, skippedByMemory, largeBatch } = plan;
     updateImportStatus(`${incoming.length}개 항목 수신 · 파일 형식 확인 중`, 'active');
-    if (state.tracks.length + incoming.length > MAX_FILES) {
-        showToast(`최대 ${MAX_FILES}개까지만 추가할 수 있습니다.`);
-    }
-    const room = Math.max(0, MAX_FILES - state.tracks.length);
-    const limited = incoming.slice(0, room);
-    const skippedByLimit = Math.max(0, incoming.length - limited.length);
-    const singleUploadDialogCandidate = limited.length === 1;
-    const largeBatch = limited.length >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD;
-    const addedTracks = [];
-    let added = 0;
-    let invalid = 0;
-    for (const file of limited) {
-        const validation = validateAudioFile(file);
-        if (!validation.ok) {
-            invalid += 1;
-            showToastSafe(`${file.name || '선택 파일'}: ${validation.reason}`);
-            updateImportStatus(`${file.name || '선택 파일'}: ${validation.reason}`, 'error');
-            continue;
-        }
+    if (state.tracks.length + incoming.length > importPolicy.maxFiles) showToast(`현재 기기에서는 최대 ${importPolicy.maxFiles}개까지만 추가할 수 있습니다.`);
+    invalidEntries.forEach(({ file, validation }) => { showToastSafe(`${file.name || '선택 파일'}: ${validation.reason}`); updateImportStatus(`${file.name || '선택 파일'}: ${validation.reason}`, 'error'); });
+    memoryRejected.forEach(file => { const reason = `현재 기기 안전 한도(${formatBytes(importPolicy.maxBatchBytes)})를 넘어 제외했습니다.`; showToastSafe(`${file.name || '선택 파일'}: ${reason}`); updateImportStatus(`${file.name || '선택 파일'}: ${reason}`, 'warn'); });
+    const singleUploadDialogCandidate = accepted.length === 1, addedTracks = [];
+    for (const { file, validation } of accepted) {
         const track = createTrack(file);
-        track.importLabel = validation.label;
-        track.importedAt = new Date().toISOString();
-        track.autoAiRecommendDialog = singleUploadDialogCandidate;
-        track.bulkRecommendationMode = singleUploadDialogCandidate ? 'single-dialog' : 'auto-apply';
-        track.report = largeBatch
-            ? `대량 업로드 안전 대기열 등록 중 (${added + 1}/${limited.length}) · AI 추천값 자동 적용 예정`
-            : (singleUploadDialogCandidate ? '분석 후 추천값 선택 팝업 준비 중' : '분석 대기열 등록 중 · AI 추천값 자동 적용 예정');
+        Object.assign(track, { importLabel: validation.label, importedAt: new Date().toISOString(), importQueueYieldMs: importPolicy.queueYieldMs, importMemoryPolicy: importPolicy.label, autoAiRecommendDialog: singleUploadDialogCandidate, bulkRecommendationMode: singleUploadDialogCandidate ? 'single-dialog' : 'auto-apply', report: largeBatch ? `대량 업로드 안전 대기열 등록 중 (${addedTracks.length + 1}/${accepted.length}) · AI 추천값 자동 적용 예정` : (singleUploadDialogCandidate ? '분석 후 추천값 선택 팝업 준비 중' : '분석 대기열 등록 중 · AI 추천값 자동 적용 예정') });
         state.tracks.push(track);
-        // v1.3.69: importing a track must also make it an action target.
-        // Previously only selectedId was set, while selectedIds stayed empty;
-        // main/Dock action paths could then ask the user to select a song even
-        // though the freshly imported song was visible in the Dock.
         if (state.selectedIds && typeof state.selectedIds.add === 'function') state.selectedIds.add(track.id);
-        if (!state.selectedId || singleUploadDialogCandidate) {
-            state.selectedId = track.id;
-            state.bottomPreviewTrackId = track.id;
-            applyTrackToControls(track);
-        }
-        added += 1;
+        if (!state.selectedId || singleUploadDialogCandidate) { state.selectedId = track.id; state.bottomPreviewTrackId = track.id; applyTrackToControls(track); }
         addedTracks.push(track);
     }
     clearFileInputs();
+    const added = addedTracks.length, invalid = invalidEntries.length;
     if (added) {
-        beginBulkImportHudBatch(addedTracks, { largeBatch, skippedByLimit });
+        beginBulkImportHudBatch(addedTracks, { largeBatch, skippedByLimit: skippedByLimit + skippedByMemory });
         scheduleRenderAll('import-register', { keepDetailAudio: true, immediate: !largeBatch, delayMs: largeBatch ? 120 : 0 });
-        queueTracksForAnalysis(addedTracks, { largeBatch, skippedByLimit });
-        const queueText = largeBatch
-            ? `대량 업로드 안전 모드로 ${SAFE_IMPORT_ANALYSIS_CONCURRENCY}곡씩 순차 분석합니다.`
-            : '오디오 디코딩/분석 대기열을 시작합니다.';
-        const recommendationText = singleUploadDialogCandidate ? '추천값 선택 팝업을 준비합니다.' : '각 곡 AI 추천값은 자동 적용됩니다.';
-        showToastSafe(`${added}개 트랙 등록 완료. ${queueText} ${recommendationText}${skippedByLimit ? ` · ${skippedByLimit}개는 최대 개수 제한으로 제외` : ''}`);
-    } else if (invalid) {
-        showToastSafe('선택한 파일을 열 수 없습니다. WAV, MP3 또는 PCM AIFF 파일로 다시 시도해주세요.');
-    }
-    return { added, invalid, limited: skippedByLimit };
+        queueTracksForAnalysis(addedTracks, { largeBatch, skippedByLimit: skippedByLimit + skippedByMemory, yieldMs: importPolicy.queueYieldMs });
+        const queueText = largeBatch ? `대량 업로드 안전 모드로 ${SAFE_IMPORT_ANALYSIS_CONCURRENCY}곡씩 순차 분석하고 곡 사이 ${importPolicy.queueYieldMs}ms 휴지합니다.` : '오디오 디코딩/분석 대기열을 시작합니다.', recommendationText = singleUploadDialogCandidate ? '추천값 선택 팝업을 준비합니다.' : '각 곡 AI 추천값은 자동 적용됩니다.', skippedText = [skippedByLimit ? `${skippedByLimit}개 최대 개수 제한` : '', skippedByMemory ? `${skippedByMemory}개 메모리 한도` : ''].filter(Boolean).join(' · ');
+        showToastSafe(`${added}개 트랙 등록 완료. ${queueText} ${recommendationText}${skippedText ? ` · ${skippedText}으로 제외` : ''}`);
+    } else if (invalid) showToastSafe('선택한 파일을 열 수 없습니다. WAV, MP3 또는 PCM AIFF 파일로 다시 시도해주세요.');
+    return { added, invalid, limited: skippedByLimit + skippedByMemory };
 }
-function validateAudioFile(file) {
+function getImportMemoryPolicy() {
+    const service = window.FoxBearImportQueueService;
+    return service?.createImportMemoryPolicy?.({ maxFiles: MAX_FILES, maxFileSize: MAX_FILE_SIZE, lowMemoryMaxFiles: FoxBearRuntimeConfig.LOW_MEMORY_MAX_FILES, lowMemoryMaxFileSize: FoxBearRuntimeConfig.LOW_MEMORY_MAX_FILE_SIZE, lowMemoryBatchBytes: FoxBearRuntimeConfig.LOW_MEMORY_IMPORT_BATCH_BYTES, normalYieldMs: SAFE_IMPORT_QUEUE_YIELD_MS, lowMemoryYieldMs: FoxBearRuntimeConfig.LOW_MEMORY_IMPORT_YIELD_MS, largeBatchThreshold: SAFE_LARGE_IMPORT_BATCH_THRESHOLD, coarsePointer: Boolean(window.matchMedia?.('(pointer: coarse)')?.matches), userAgent: navigator.userAgent, deviceMemory: navigator.deviceMemory }) || Object.freeze({ lowMemory: false, mobile: false, deviceMemoryGb: 0, maxFiles: MAX_FILES, maxFileSize: MAX_FILE_SIZE, maxBatchBytes: Number.MAX_SAFE_INTEGER, queueYieldMs: SAFE_IMPORT_QUEUE_YIELD_MS, label: 'standard' });
+}
+function planImportFilesForCurrentDevice(fileList) {
+    const service = window.FoxBearImportQueueService, policy = getImportMemoryPolicy();
+    return service?.planImportFiles?.(fileList, state.tracks.length, { maxFiles: MAX_FILES, maxFileSize: MAX_FILE_SIZE, lowMemoryMaxFiles: FoxBearRuntimeConfig.LOW_MEMORY_MAX_FILES, lowMemoryMaxFileSize: FoxBearRuntimeConfig.LOW_MEMORY_MAX_FILE_SIZE, lowMemoryBatchBytes: FoxBearRuntimeConfig.LOW_MEMORY_IMPORT_BATCH_BYTES, normalYieldMs: SAFE_IMPORT_QUEUE_YIELD_MS, lowMemoryYieldMs: FoxBearRuntimeConfig.LOW_MEMORY_IMPORT_YIELD_MS, largeBatchThreshold: SAFE_LARGE_IMPORT_BATCH_THRESHOLD, coarsePointer: policy.mobile, userAgent: navigator.userAgent, deviceMemory: navigator.deviceMemory }, validateAudioFile) || { policy, incoming: fileList, accepted: fileList.map(file => ({ file, validation: validateAudioFile(file, policy) })).filter(item => item.validation.ok), invalidEntries: [], memoryRejected: [], acceptedBytes: 0, skippedByLimit: 0, skippedByMemory: 0, largeBatch: fileList.length >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD };
+}
+function validateAudioFile(file, importPolicy = getImportMemoryPolicy()) {
     const type = String(file?.type || '').toLowerCase();
     if (Number(file?.size || 0) <= 0) return { ok: false, reason: '빈 파일입니다.' };
-    if (file.size > MAX_FILE_SIZE) return { ok: false, reason: `파일이 너무 큽니다. 최대 ${formatBytes(MAX_FILE_SIZE)}까지 권장합니다.` };
+    const maxFileSize = Math.max(1, Number(importPolicy?.maxFileSize || MAX_FILE_SIZE));
+    if (file.size > maxFileSize) return { ok: false, reason: `현재 기기에서는 파일당 최대 ${formatBytes(maxFileSize)}까지 안전하게 처리할 수 있습니다.` };
     const capabilityService = getAudioImportCapabilityService();
     const capability = capabilityService?.getFileCapability?.(file) || null;
     if (capability && !capability.ok) return { ok: false, reason: `${capability.reason} WAV, MP3 또는 PCM AIFF로 변환해 주세요.`, label: capability.label };
@@ -5326,7 +5307,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.36-interaction-lifecycle-hardening-fallback',
+            version: '1.5.37-memory-import-waveform-hardening-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -10907,14 +10888,10 @@ function updateWaveformProgressBars(element, percent) {
         service.updateBarProgress(element, percent);
         return;
     }
-    if (!element || typeof element.querySelectorAll !== 'function' || !Number.isFinite(Number(percent))) return;
+    if (!element || !Number.isFinite(Number(percent))) return;
     const pct = clamp(Number(percent), 0, 100);
-    element.querySelectorAll('i').forEach(bar => {
-        const barPct = Number(bar.dataset.waveformPercent || 0);
-        const played = Number.isFinite(barPct) && barPct <= pct;
-        bar.classList.toggle('is-played', played);
-        bar.classList.toggle('is-current', Number.isFinite(barPct) && Math.abs(barPct - pct) <= 1.2);
-    });
+    if (element.dataset.waveformCssProgressReady !== 'true') { element.dataset.waveformCssProgressReady = 'true'; element.querySelectorAll?.('i.is-played, i.is-current').forEach(bar => bar.classList.remove('is-played', 'is-current')); }
+    element.style.setProperty('--waveform-progress-pct', `${mapAudioPercentToWaveformVisualPercent(element, pct)}%`);
 }
 function setPlayheadOnElement(element, percent, playing = false) {
     const service = window.FoxBearWaveformControlService;
@@ -10929,7 +10906,7 @@ function setPlayheadOnElement(element, percent, playing = false) {
         element.style.removeProperty('--waveform-progress-pct');
         element.removeAttribute('aria-valuenow');
         delete element.dataset.waveformPlaybackPercent;
-        element.querySelectorAll?.('i.is-played, i.is-current').forEach(bar => bar.classList.remove('is-played', 'is-current'));
+        if (element.dataset.waveformCssProgressReady !== 'true') { element.dataset.waveformCssProgressReady = 'true'; element.querySelectorAll?.('i.is-played, i.is-current').forEach(bar => bar.classList.remove('is-played', 'is-current')); }
         return;
     }
     const pct = clamp(Number(percent), 0, 100);
@@ -10943,7 +10920,7 @@ function setPlayheadOnElement(element, percent, playing = false) {
     element.classList.toggle('is-playing', Boolean(playing));
     updateWaveformProgressBars(element, pct);
 }
-function syncDockWaveformPlayhead(audioOverride = null) {
+function performDockWaveformPlayheadSync(audioOverride = null) {
     const track = getSelectedTrack();
     const audio = audioOverride || getBottomPreviewAudio();
     const playing = Boolean(audio && !audio.paused && !audio.ended);
@@ -10960,6 +10937,11 @@ function syncDockWaveformPlayhead(audioOverride = null) {
     });
     const card = dialog.querySelector('.waveform-compare-card');
     if (card) setPlayheadOnElement(card, primaryPercent ?? getDockPlaybackPercent(track, state.bottomPreviewMode, getWaveformModeScope(state.bottomPreviewMode, 'popup')), playing);
+}
+function syncDockWaveformPlayhead(audioOverride = null) {
+    dockWaveformPendingAudio = audioOverride || dockWaveformPendingAudio || null;
+    if (dockWaveformPlayheadRaf) return;
+    dockWaveformPlayheadRaf = requestAnimationFrame(() => { const pendingAudio = dockWaveformPendingAudio; dockWaveformPendingAudio = null; dockWaveformPlayheadRaf = 0; performDockWaveformPlayheadSync(pendingAudio); });
 }
 function openWaveformCompareDialog() {
     const track = activateMainTrackFromDock(resolveMainActiveTrackForDock());
@@ -12734,7 +12716,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.36',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.37',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.36-interaction-lifecycle-hardening',
+            version: '1.5.37-memory-import-waveform-hardening',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.36-interaction-lifecycle-hardening',
+        version: '1.5.37-memory-import-waveform-hardening',
         createMasteringBatchRunner
     });
 })(window);

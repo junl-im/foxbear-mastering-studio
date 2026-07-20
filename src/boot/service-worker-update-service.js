@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.36
+// FoxBear service worker update coordinator v1.5.37
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.36-interaction-lifecycle-hardening';
+  const VERSION = '1.5.37-memory-import-waveform-hardening';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const state = {

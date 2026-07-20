@@ -1,3 +1,13 @@
+# v1.5.37 - Memory, Import, Waveform Hardening
+
+- Added an explicit Service Worker bypass for `blob:`/`data:` and every non-HTTP(S) request before cache routing.
+- Disabled completed PCM retention on mobile and low-memory devices while preserving one-track desktop re-encoding when it fits the desktop budget.
+- Added a low-memory import policy: 10-track cap, 128 MB per file, 400 MB per selection, concurrency 1, and a 200 ms inter-track cooldown.
+- Replaced per-frame waveform bar class mutations with CSS-variable progress and cached bar lookup, then rAF-throttled Dock playhead synchronization.
+- Moved Firebase SDK loading behind dynamic imports scheduled with `requestIdleCallback`/timeout fallback so it no longer delays `DOMContentLoaded`.
+- Added `.githooks/pre-commit` and `npm run hooks:install` so release metadata drift is rejected before commit as well as in CI.
+- Added v1.5.37 regression coverage for the six user-reported risk areas.
+
 # v1.5.36 - Interaction Lifecycle Hardening
 
 - Preserved transient user activation for direct file saving by invoking `showSaveFilePicker()` before asynchronous Blob inspection.

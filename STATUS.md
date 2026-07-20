@@ -1,10 +1,10 @@
-# FoxBear Status - v1.5.36
+# FoxBear Status - v1.5.37
 
 ## Current status
 
-Interaction lifecycle hardening is implemented for transient user activation, direct file picker ordering, same-format immediate sharing, converted-format second-click sharing, download action deduplication, bounded Blob URL cleanup, global busy-state isolation, awaited ZIP/report downloads, and BFCache navigation-exit restoration.
+User-reported memory and startup hardening is implemented for Service Worker non-network URL bypass, mobile PCM release, adaptive import limits, CSS-variable waveform progress, idle Firebase loading, and pre-commit version validation.
 
-Static release gate target: `224/224 PASS`. Actual Chromium execution remains dependent on an installed Playwright browser binary; Chrome/Safari share and direct-save behavior plus Kakao Android/iPhone external-open paths require real-device validation.
+Static release gate target: `225/225 PASS`. Actual Chromium execution remains dependent on an installed Playwright browser binary; Chrome/Safari share and direct-save behavior plus Kakao Android/iPhone external-open paths require real-device validation.
 
 This document contains rules that remain true across releases. Actual changes belong in `CHANGELOG.md`; historical implementation details belong in `docs/history/`; architectural decisions belong in `docs/decisions/`.
 
@@ -23,7 +23,7 @@ This document contains rules that remain true across releases. Actual changes be
 - Spectrum FFT is shown in the detailed analysis view only.
 - Dock mini FFT remains removed; `#bottomPreviewSpectrum` and the former `renderMini` path must not return without a new measured performance decision.
 - Loudness-matched A/B behavior remains the intended comparison model.
-- Completed download Blobs and playback URLs remain available; completed mastered PCM uses `release-after-encode` by default, with at most one selected-track bounded re-encode buffer retained in normal browsers.
+- Completed download Blobs and playback URLs remain available; completed mastered PCM uses `release-after-encode` by default. Mobile and low-memory devices retain encoded output only, while desktop may retain at most one bounded selected-track re-encode buffer.
 - Bulk import analysis remains sequential and general UI rendering remains scheduler/throttle controlled for large batches.
 - Wake Lock distinguishes user intent from temporary automatic protection.
 - All managed Web Audio contexts must be created and released through `FoxBearAudioContextManager`; diagnostics must remain visible through Runtime Health/Performance Diagnostics.
@@ -39,11 +39,11 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.36`
-- Build ID: `interaction-lifecycle-hardening`
-- Asset version: `1.5.36-interaction-lifecycle-hardening`
-- Service worker cache: `foxbear-shell-v1.5.36-interaction-lifecycle-hardening`
-- Static QA target: `224/224 PASS`
+- Product version: `1.5.37`
+- Build ID: `memory-import-waveform-hardening`
+- Asset version: `1.5.37-memory-import-waveform-hardening`
+- Service worker cache: `foxbear-shell-v1.5.37-memory-import-waveform-hardening`
+- Static QA target: `225/225 PASS`
 - Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
 - Local browser QA remains environment-dependent; Chrome/Safari/Edge and Kakao Android/iPhone real-device exception-path verification is required for this release.
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
@@ -60,7 +60,7 @@ This document contains rules that remain true across releases. Actual changes be
 - The external-browser landing must accept same-origin targets only and must not imply that Kakao WebView Blob memory transfers into Chrome/Safari.
 - The preferred Kakao workflow is external browser first, then local import/master/encode/download without server upload.
 - Mastering completion must preserve a currently playing original Dock player and must not mount a second player outside an explicit user-gesture crossfade.
-- Normal browsers may retain one bounded selected-track PCM for MP3/WAV re-encoding; restricted in-app browsers expose only the completed file.
+- Desktop browsers may retain one bounded selected-track PCM for MP3/WAV re-encoding; mobile, low-memory, and restricted in-app browsers expose only the completed file.
 - The download dialog and save-assist panel remain compact; diagnostics and historical guidance helpers may exist without being mounted by default.
 - Active and pending import analysis must be cancellable; removed tracks must never receive stale decode, worker, cache, or recommendation results.
 - Waiting service workers must defer activation while analysis, mastering, decoding, rendering, or playback is active and require a stable idle window.

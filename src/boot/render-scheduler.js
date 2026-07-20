@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.36-interaction-lifecycle-hardening';
+    const SERVICE_VERSION = '1.5.37-memory-import-waveform-hardening';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

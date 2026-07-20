@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.36-interaction-lifecycle-hardening',
+                version: '1.5.37-memory-import-waveform-hardening',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -350,7 +350,8 @@
                     const snapshot = getSnapshot();
                     if (snapshot.active || snapshot.pending) {
                         emitStatus('next-track');
-                        schedule(yieldMs);
+                        const taskYieldMs = normalizeInteger(track?.importQueueYieldMs, yieldMs, yieldMs, 5000);
+                        schedule(taskYieldMs);
                     } else {
                         lastStatus = 'idle';
                         emitStatus('complete');
@@ -377,9 +378,45 @@
         });
     }
 
+    function createImportMemoryPolicy(options = {}) {
+        const maxFiles = normalizeInteger(options.maxFiles, 35, 1, 1000);
+        const maxFileSize = Math.max(1, Number(options.maxFileSize) || 220 * 1024 * 1024);
+        const lowMemoryMaxFiles = normalizeInteger(options.lowMemoryMaxFiles, 10, 1, maxFiles);
+        const lowMemoryMaxFileSize = Math.max(32 * 1024 * 1024, Math.min(maxFileSize, Number(options.lowMemoryMaxFileSize) || 128 * 1024 * 1024));
+        const lowMemoryBatchBytes = Math.max(lowMemoryMaxFileSize, Number(options.lowMemoryBatchBytes) || 400 * 1024 * 1024);
+        const normalYieldMs = normalizeDelay(options.normalYieldMs, 90);
+        const lowMemoryYieldMs = Math.max(normalYieldMs, normalizeDelay(options.lowMemoryYieldMs, 200));
+        const userAgent = String(options.userAgent ?? global.navigator?.userAgent ?? '');
+        const deviceMemoryGb = Math.max(0, Number(options.deviceMemory ?? global.navigator?.deviceMemory ?? 0) || 0);
+        const coarsePointer = options.coarsePointer === true;
+        const mobile = coarsePointer || /Android|iPhone|iPad|iPod|Mobile|KAKAOTALK/i.test(userAgent);
+        const lowMemory = mobile || (deviceMemoryGb > 0 && deviceMemoryGb <= 4);
+        return Object.freeze({ lowMemory, mobile, deviceMemoryGb, maxFiles: lowMemory ? lowMemoryMaxFiles : maxFiles, maxFileSize: lowMemory ? lowMemoryMaxFileSize : maxFileSize, maxBatchBytes: lowMemory ? lowMemoryBatchBytes : Number.MAX_SAFE_INTEGER, queueYieldMs: lowMemory ? lowMemoryYieldMs : normalYieldMs, largeBatchThreshold: normalizeInteger(options.largeBatchThreshold, 12, 1, maxFiles), lowMemoryBatchBytes, label: lowMemory ? 'low-memory' : 'standard' });
+    }
+
+    function planImportFiles(fileList, currentTrackCount = 0, options = {}, validateFile = () => ({ ok: true })) {
+        const policy = createImportMemoryPolicy(options);
+        const incoming = Array.from(fileList || []).filter(Boolean);
+        const room = Math.max(0, policy.maxFiles - Math.max(0, Number(currentTrackCount) || 0));
+        const limited = incoming.slice(0, room);
+        const accepted = [], invalidEntries = [], memoryRejected = [];
+        let acceptedBytes = 0;
+        limited.forEach(file => {
+            const validation = validateFile(file, policy) || { ok: false, reason: '파일 검증에 실패했습니다.' };
+            if (!validation.ok) return invalidEntries.push({ file, validation });
+            const nextBytes = acceptedBytes + Math.max(0, Number(file.size || 0));
+            if (nextBytes > policy.maxBatchBytes) return memoryRejected.push(file);
+            acceptedBytes = nextBytes;
+            accepted.push({ file, validation });
+        });
+        return Object.freeze({ policy, incoming, accepted, invalidEntries, memoryRejected, acceptedBytes, skippedByLimit: Math.max(0, incoming.length - limited.length), skippedByMemory: memoryRejected.length, largeBatch: accepted.length >= policy.largeBatchThreshold || policy.lowMemory || acceptedBytes >= policy.lowMemoryBatchBytes });
+    }
+
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.36-interaction-lifecycle-hardening',
+        version: '1.5.37-memory-import-waveform-hardening',
         createImportAnalysisQueue,
-        createTrackAnalysisQueue
+        createTrackAnalysisQueue,
+        createImportMemoryPolicy,
+        planImportFiles
     });
 })(window);

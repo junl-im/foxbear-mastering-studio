@@ -14,12 +14,12 @@ const dockWaveformCss = fs.readFileSync('assets/css/dock-waveform.css', 'utf8');
 const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const manifest = fs.readFileSync('manifest.webmanifest', 'utf8');
 
-must(app.includes("const APP_VERSION = 'Pro v1.5.36'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.5.36"'), 'index build should be v1.5.36');
+must(app.includes("const APP_VERSION = 'Pro v1.5.37'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.5.37"'), 'index build should be v1.5.37');
 must(app.includes('function mapAudioPercentToWaveformVisualPercent'), 'visual playhead mapping helper missing');
 must(app.includes('function mapWaveformPointerToAudioPercent'), 'pointer-to-bar mapping helper missing');
 must(app.includes('bars.addEventListener(\'pointerdown\', onWaveformBarsPointerSeek)'), 'touch pointer seek handler missing');
-must(app.includes('bar.dataset.waveformPercent'), 'bar percent dataset missing');
+must(app.includes('bar.dataset.waveformPercent') || fs.readFileSync('src/audio/waveform-control-service.js','utf8').includes('bar.dataset.waveformPercent'), 'bar percent dataset missing');
 must(app.includes('element.dataset.waveformPlaybackPercent'), 'playback percent dataset missing');
 must(dockWaveformCss.includes('Stage9: Dock waveform dedicated CSS layer') && dockWaveformCss.includes('touch-action: none'), 'dedicated dock waveform CSS section missing');
 must(dockWaveformCss.includes('touch-action: none') || compareCss.includes('touch-action: none'), 'touch action override missing');

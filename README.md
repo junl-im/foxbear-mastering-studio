@@ -1,25 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.5.36
+# FoxBear AI Mastering Studio Pro v1.5.37
 
-## Current patch: v1.5.36 Interaction Lifecycle Hardening
+## Current patch: v1.5.37 Memory, Import, Waveform Hardening
 
-이번 패치는 다운로드·공유의 사용자 클릭 권한과 브라우저 복귀 생명주기를 보강합니다. 직접 저장은 비동기 Blob 검사보다 먼저 파일 선택기를 호출하고, 현재 완성 파일은 검증 결과를 캐시해 같은 클릭 안에서 공유 API를 시작할 수 있게 했습니다.
+이번 패치는 사용자 점검에서 제기된 Service Worker Blob 경로, 모바일 PCM 메모리, 대용량 임포트, 파형 렌더 비용, Firebase 부팅, 릴리스 버전 동기화를 보강합니다. 모바일/저메모리에서는 완료 PCM을 즉시 해제하고, 파일 선택 한도와 큐 휴지 시간을 기기 성능에 맞춰 낮춥니다.
 
-포맷 변환처럼 비동기 작업이 필요한 경우에는 공유 API를 억지로 자동 호출하지 않고, 변환 완료 후 저장 도움창의 명시적 공유 버튼을 다시 누르게 합니다. 저장 도움창 Blob URL 누수, 다운로드 버튼 중복 실행, 다른 작업의 전역 busy 해제, BFCache 복귀 후 나가기 보호 상태 고착도 함께 수정했습니다.
+카카오 다운로드는 기존 공유 우선·외부 브라우저 안내 흐름을 유지합니다. 일반 브라우저에서는 데스크톱 한 곡에 한해 포맷 재변환용 PCM을 제한적으로 유지하지만, 모바일·저메모리·인앱 환경은 인코딩된 결과만 남깁니다. 파형 진행률은 막대별 DOM 변경 대신 CSS 변수 한 번으로 갱신합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.36
-build: interaction-lifecycle-hardening
-asset generation: 1.5.36-interaction-lifecycle-hardening
-service worker cache: foxbear-shell-v1.5.36-interaction-lifecycle-hardening
+product: 1.5.37
+build: memory-import-waveform-hardening
+asset generation: 1.5.37-memory-import-waveform-hardening
+service worker cache: foxbear-shell-v1.5.37-memory-import-waveform-hardening
 ```
 
 Verification:
 
 ```text
-static QA result: 224/224 PASS target
-real browser requirement: Chrome/Safari direct-save/share, Kakao external-open, BFCache back/forward validation
+static QA result: 225/225 PASS
+real browser requirement: Chrome/Safari direct-save/share, Kakao external-open, low-memory import, and long-play waveform validation
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

@@ -1,6 +1,12 @@
-# Handoff - v1.5.36
+# Handoff - v1.5.37
 
-## v1.5.36 handoff focus
+## v1.5.37 handoff focus
+
+- In a mobile or <=4 GB-memory profile, complete mastering and confirm `masteredBufferCount` returns to zero while the encoded download remains available.
+- Import 11 files on a low-memory profile and confirm only 10 are accepted; also verify a selection above 400 MB is partially rejected with a visible warning.
+- Play a long track and confirm waveform progress updates through CSS variables without per-bar `is-played` class churn.
+- Confirm Firebase network modules start after the initial UI becomes interactive, not before `DOMContentLoaded`.
+- Run `npm run hooks:install`, alter release metadata inconsistently, and confirm the pre-commit hook rejects the commit.
 
 - In Chrome/Edge, select the already-generated format and confirm Share opens from the first click without a permission error.
 - Select a different MP3/WAV format and confirm conversion completes, then the save-assist Share button works on the second explicit click.
@@ -9,13 +15,14 @@
 - Start mastering on one track while completing a download action on another and confirm the download does not clear the mastering busy state.
 - Navigate away and restore with browser back/forward cache, then confirm the exit guard and back confirmation still operate normally.
 
-## Current patch: v1.5.36 Interaction lifecycle hardening
+## Current patch: v1.5.37 Memory, Import, Waveform Hardening
 
 ```text
-product: 1.5.36
-build: interaction-lifecycle-hardening
-asset generation: 1.5.36-interaction-lifecycle-hardening
-service worker cache: foxbear-shell-v1.5.36-interaction-lifecycle-hardening
+product: 1.5.37
+build: memory-import-waveform-hardening
+asset generation: 1.5.37-memory-import-waveform-hardening
+service worker cache: foxbear-shell-v1.5.37-memory-import-waveform-hardening
+static QA: 225/225 PASS
 ```
 
 Verification:

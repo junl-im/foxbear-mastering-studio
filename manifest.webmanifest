@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.36 (interaction-lifecycle-hardening).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.37 (memory-import-waveform-hardening).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.36"
+  "version": "1.5.37"
 }

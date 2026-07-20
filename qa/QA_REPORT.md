@@ -1,21 +1,20 @@
-# FoxBear QA Report - v1.5.36
+# FoxBear QA Report - v1.5.37
 
-Current release target: metadata, handoff, SRI, and 224/224 static checks. The new tests execute file-picker ordering and BFCache restoration in isolated runtimes, while cumulative download, Wake Lock, player, codec, worker, service-worker, and security checks remain enabled.
+Current release target: metadata, handoff, SRI, and 225/225 static checks. The new tests execute file-picker ordering and BFCache restoration in isolated runtimes, while cumulative download, Wake Lock, player, codec, worker, service-worker, and security checks remain enabled.
 
-## v1.5.36 coverage
+## v1.5.37 coverage
 
-- Proves `showSaveFilePicker()` is called before asynchronous Blob inspection so transient user activation remains valid.
-- Requires verified same-format output to enter Web Share without an avoidable async preparation boundary.
-- Requires converted-format and restricted-browser sharing to use a fresh explicit save-assist click.
-- Verifies repeated save-assist panels revoke old Blob URLs and bound the replacement URL lifetime.
-- Prevents download completion from clearing an unrelated global mastering busy state and rejects duplicate action entry.
-- Awaits ZIP/report download rejection paths instead of leaving unhandled promises.
-- Simulates BFCache pagehide/pageshow and verifies navigation protection is rebuilt with `pageHiding` cleared.
-- Retains Wake Lock state synchronization and all previous runtime exception checks.
+- Requires the Service Worker fetch path to return before URL parsing or cache routing for `blob:`, `data:`, and other non-HTTP(S) schemes.
+- Executes the import policy planner with low-memory device inputs and verifies the 10-file, 128 MB/file, 400 MB/selection, concurrency-1, 200 ms cooldown contract.
+- Requires mobile and <=4 GB profiles to release completed `masteredBuffer` PCM while keeping encoded download output.
+- Verifies waveform playback updates use a CSS progress variable and do not repeat `querySelectorAll()` or per-bar class mutation during progress ticks.
+- Requires Firebase remote modules to load dynamically from an idle callback/timeout fallback rather than eager static module imports.
+- Requires package metadata validation in CI and through the installable pre-commit hook.
+- Retains all prior Kakao share-first/external-browser download, codec, player, worker, lifecycle, security, and packaging regression checks.
 
 ```text
-224/224 PASS target
-Browser QA: Chrome/Safari direct save/share, Kakao Android/iPhone external browser, and BFCache restoration remain release-candidate device checks
+225/225 PASS
+Browser QA: attempted; Chromium binary download was unavailable in this workspace. Chrome/Safari and Kakao Android/iPhone remain release-candidate device checks.
 ```
 
 # FoxBear QA Report - v1.5.35

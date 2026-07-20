@@ -2,9 +2,10 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.36-interaction-lifecycle-hardening';
+    const SERVICE_VERSION = '1.5.37-memory-import-waveform-hardening';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
+    const barElementsCache = typeof WeakMap === 'function' ? new WeakMap() : null;
 
     function getCore() {
         return global.FoxBearCoreUtils || {};
@@ -64,7 +65,11 @@
 
     function getBarElements(element) {
         if (!element || typeof element.querySelectorAll !== 'function') return [];
-        return Array.from(element.querySelectorAll('i'));
+        const cached = barElementsCache?.get(element);
+        if (cached) return cached;
+        const bars = Array.from(element.querySelectorAll('i'));
+        try { barElementsCache?.set(element, bars); } catch (error) {}
+        return bars;
     }
 
     function getTimelineModel(element) {
@@ -100,15 +105,19 @@
         return clamp((x - model.rootRect.left) / Math.max(1, model.rootRect.width) * 100, 0, 100);
     }
 
+    function clearLegacyBarProgress(element) {
+        if (!element || element.dataset.waveformCssProgressReady === 'true') return;
+        element.dataset.waveformCssProgressReady = 'true';
+        getBarElements(element).forEach(bar => bar.classList.remove('is-played', 'is-current'));
+    }
+
     function updateBarProgress(element, percent) {
-        if (!element || typeof element.querySelectorAll !== 'function' || !Number.isFinite(Number(percent))) return;
+        if (!element || !Number.isFinite(Number(percent))) return;
         const pct = clamp(Number(percent), 0, 100);
-        element.querySelectorAll('i').forEach(bar => {
-            const barPct = Number(bar.dataset.waveformPercent || 0);
-            const played = Number.isFinite(barPct) && barPct <= pct;
-            bar.classList.toggle('is-played', played);
-            bar.classList.toggle('is-current', Number.isFinite(barPct) && Math.abs(barPct - pct) <= 1.2);
-        });
+        clearLegacyBarProgress(element);
+        // A single CSS custom property replaces per-frame class mutations on
+        // every waveform bar. The existing gradient/playhead CSS consumes it.
+        element.style.setProperty('--waveform-progress-pct', `${audioPercentToVisualPercent(element, pct)}%`);
     }
 
     function setPlayhead(element, percent, playing = false) {
@@ -119,7 +128,7 @@
             element.style.removeProperty('--waveform-progress-pct');
             element.removeAttribute('aria-valuenow');
             delete element.dataset.waveformPlaybackPercent;
-            element.querySelectorAll?.('i.is-played, i.is-current').forEach(bar => bar.classList.remove('is-played', 'is-current'));
+            clearLegacyBarProgress(element);
             return;
         }
         const pct = clamp(Number(percent), 0, 100);
@@ -183,6 +192,8 @@
         if (!element) return element;
         element.dataset.waveformService = SERVICE_VERSION;
         element.dataset.waveformControlRole = role;
+        try { barElementsCache?.delete(element); } catch (error) {}
+        clearLegacyBarProgress(element);
         return element;
     }
 
