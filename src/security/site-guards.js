@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.5.34 - site and UI guard helpers
+// FoxBear AI Mastering Studio Pro v1.5.36 - site and UI guard helpers
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.34-kakao-landing-recovery';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.36-interaction-lifecycle-hardening';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
@@ -120,6 +120,7 @@
         global.addEventListener('beforeunload', handleBeforeUnloadGuard);
         global.addEventListener('popstate', handlePopStateGuard);
         global.addEventListener('pagehide', handlePageHideGuard);
+        global.addEventListener('pageshow', handlePageShowGuard);
         return true;
     }
 
@@ -152,6 +153,21 @@
     function handlePageHideGuard() {
         navigationExitGuardState.pageHiding = true;
         clearExitFallbackTimers();
+    }
+
+    function handlePageShowGuard(event) {
+        navigationExitGuardState.pageHiding = false;
+        clearExitFallbackTimers();
+        if (!event?.persisted || !navigationExitGuardState.installed) return;
+        // BFCache restores the same JavaScript heap. Reset one-way leave flags and
+        // reinstall listeners that may have been removed during a confirmed exit.
+        navigationExitGuardState.allowLeave = false;
+        navigationExitGuardState.confirmOpen = false;
+        navigationExitGuardState.fallbackRendered = false;
+        navigationExitGuardState.pushed = false;
+        global.addEventListener('beforeunload', handleBeforeUnloadGuard);
+        global.addEventListener('popstate', handlePopStateGuard);
+        tryPushExitGuardState();
     }
 
     function handlePopStateGuard() {
@@ -312,6 +328,7 @@
             allowLeave: navigationExitGuardState.allowLeave,
             confirmOpen: navigationExitGuardState.confirmOpen,
             pageHiding: navigationExitGuardState.pageHiding,
+            bfcacheReady: true,
             leaveAttempts: navigationExitGuardState.leaveAttempts,
             lastLeaveReason: navigationExitGuardState.lastLeaveReason,
             lastLeaveMethod: navigationExitGuardState.lastLeaveMethod,

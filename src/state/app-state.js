@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.34 - extracted runtime state module
+// FoxBear AI Mastering Studio Pro v1.5.36 - extracted runtime state module
 'use strict';
 
 const state = {
@@ -50,6 +50,7 @@ const state = {
     cacheReady: false,
     autoRemasterTimers: new Map(),
     selectPopup: null,
+    selectPopupKeyBound: false,
     expandedDetailIds: new Set(),
     collapsedDetailIds: new Set(),
     popupScrollY: 0,
@@ -57,12 +58,22 @@ const state = {
     activeDownloadUrls: new Set(),
     realtimePreview: null,
     previewRenderTimer: null,
+    bottomPreviewLayoutObserverInstalled: false,
+    bottomPreviewLayoutRaf: 0,
+    bottomPreviewResizeObserver: null,
     bottomPreviewMode: 'original',
     bottomPreviewTrackId: null,
     masterPreviewRenderingTrackId: null,
     bottomPreviewAutoplayTrackId: null,
     previewTranslationMode: 'studio',
     bottomPreviewTransport: null,
+    dockController: null,
+    dockRemoteDelegationInstalled: false,
+    featureDialogClosingUntil: 0,
+    featureTooltipTimer: null,
+    managedModalControllerInstalled: false,
+    mobileNative: null,
+    modalController: null,
     adminTapLastAt: 0,
     adminTapCount: 0,
     adminStatsRemoteError: '',

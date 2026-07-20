@@ -1,30 +1,21 @@
-# Handoff - v1.5.34
+# Handoff - v1.5.36
 
-## v1.5.34 handoff focus
+## v1.5.36 handoff focus
 
-- Open the deployed link from KakaoTalk on Android and iPhone and confirm the lightweight page remains visible.
-- Confirm no automatic app-scheme navigation occurs before a user click.
-- Confirm Android `기본 브라우저에서 시작` opens an external-browser chooser/default browser.
-- Confirm iPhone failure leaves the landing visible with the top-right `다른 브라우저로 열기` instruction.
+- In Chrome/Edge, select the already-generated format and confirm Share opens from the first click without a permission error.
+- Select a different MP3/WAV format and confirm conversion completes, then the save-assist Share button works on the second explicit click.
+- Use Direct Save and confirm the file picker opens before any asynchronous validation delay.
+- Open and replace the save-assist panel repeatedly, close it, and confirm no stale Blob URL keeps the exit warning active.
+- Start mastering on one track while completing a download action on another and confirm the download does not clear the mastering busy state.
+- Navigate away and restore with browser back/forward cache, then confirm the exit guard and back confirmation still operate normally.
 
-## Maintainer workflow
-
-Apply the cumulative overwrite ZIP at the repository root with GitHub Desktop, review the Kakao guard/landing changes, commit, push, and verify GitHub Pages plus the release gate.
-
-## Current patch: v1.5.34 Kakao landing recovery
-
-Changes:
-
-- Removes timer-driven `kakaotalk://` navigation.
-- Runs all custom scheme/intent navigation only from an explicit click.
-- Preserves ordinary fallback links when JavaScript or custom schemes are blocked.
-- Keeps same-origin target validation and in-app bypass loop prevention.
+## Current patch: v1.5.36 Interaction lifecycle hardening
 
 ```text
-product: 1.5.34
-build: kakao-landing-recovery
-asset generation: 1.5.34-kakao-landing-recovery
-service worker cache: foxbear-shell-v1.5.34-kakao-landing-recovery
+product: 1.5.36
+build: interaction-lifecycle-hardening
+asset generation: 1.5.36-interaction-lifecycle-hardening
+service worker cache: foxbear-shell-v1.5.36-interaction-lifecycle-hardening
 ```
 
 Verification:
@@ -34,6 +25,7 @@ npm ci
 npm run version:check
 npm run handoff:check
 npm run check
+npm run qa:browser
 npm run package:all
 npm run package:verify:release
 npm run package:verify:overwrite

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.34 - simplified download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.5.36 - simplified download dialog view builder
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -7,6 +7,7 @@
             getDownloadEnvironmentInfo,
             getDownloadFormatOptions,
             prepareTrackDownloadBlob,
+            getImmediateTrackDownloadBlob,
             isRestrictedDownloadBrowser,
             supportsWebShareFiles,
             supportsWebShareDownloadFiles,
@@ -53,7 +54,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.34',
+                version: '1.5.36',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -154,7 +155,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.5.34 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.5.36 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -439,7 +440,8 @@
             track.downloadAttention = false;
             foxBearHaptic('download');
             clearNativeBadgeIfDone();
-            state.busy = false;
+            // Download UI has its own busy state. Never clear the global mastering
+            // flag here because another track may have started work meanwhile.
             renderAll({ keepDetailAudio: true });
         };
 
@@ -449,29 +451,14 @@
 
         const runDownloadFlow = async () => {
             const exported = await prepareSelected(selectedFormat === track.outFormat ? '현재 완성 파일을 준비합니다.' : '선택한 포맷으로 변환 중입니다.');
-            // compatibility anchor: isRestrictedDownloadBrowser() && supportsWebShareFiles
-            const restrictedShareFirstCandidate = isRestrictedDownloadBrowser() && typeof supportsWebShareFiles === 'function' && supportsWebShareFiles(exported.blob, exported.fileName);
             if (isRestrictedDownloadBrowser()) {
-                if (restrictedShareFirstCandidate) {
-                    warning.textContent = '카카오/인앱 브라우저에서는 기기 공유/저장창을 먼저 엽니다.';
-                    try {
-                        // compatibility anchor: await shareDownloadFile(exported.blob, exported.fileName)
-            await shareDownloadFile(exported.blob, exported.fileName, deps);
-                        renderReceipt('share', exported, '공유/저장창을 열었습니다.');
-                        closeDownloadOptionsDialog(backdrop);
-                        markDone();
-                        return;
-                    } catch (shareError) {
-                        console.warn('restricted browser share-first failed:', shareError);
-                        openAssistForExport(exported);
-                        renderReceipt('assist', exported, '공유 실패 후 저장 도움으로 전환했습니다.');
-                        warning.textContent = '공유/저장이 취소되었거나 막혔습니다. 저장 도움창의 파일 열기 또는 외부 브라우저 안내를 사용하세요.';
-                    }
-                } else {
-                    openAssistForExport(exported);
-                    renderReceipt('assist', exported, '파일 공유 제한으로 저장 도움을 열었습니다.');
-                    warning.textContent = '이 카카오/인앱 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 사용하세요.';
-                }
+                // compatibility anchor: isRestrictedDownloadBrowser() && supportsWebShareFiles
+                // Encoding/validation has already crossed an async boundary, so a
+                // Web Share call here no longer owns the original user gesture.
+                // Open the assist panel and let its explicit button call share.
+                openAssistForExport(exported);
+                renderReceipt('assist', exported, '저장 도움을 열었습니다. 공유/저장 버튼을 한 번 더 눌러주세요.');
+                warning.textContent = '파일 준비가 끝났습니다. 저장 도움창의 공유/저장 또는 파일 열기를 눌러주세요.';
                 markDone();
                 return;
             }
@@ -482,16 +469,30 @@
         };
 
         const runShareFlow = async () => {
-            const exported = await prepareSelected(selectedFormat === track.outFormat ? '공유할 파일을 준비합니다.' : '공유용 파일로 변환 중입니다.');
-            if (!supportsWebShareDownloadFiles() || !supportsWebShareFiles(exported.blob, exported.fileName)) {
-                openAssistForExport(exported);
-                renderReceipt('assist', exported, '파일 공유 제한으로 저장 도움을 열었습니다.');
-                warning.textContent = '이 브라우저는 파일 공유가 제한됩니다. 저장 도움창을 열었습니다.';
+            const immediate = typeof getImmediateTrackDownloadBlob === 'function'
+                ? getImmediateTrackDownloadBlob(track, selectedFormat)
+                : null;
+            if (immediate && supportsWebShareDownloadFiles() && supportsWebShareFiles(immediate.blob, immediate.fileName)) {
+                setBusy(true);
+                warning.classList.add('show');
+                warning.textContent = '기기 공유/저장창을 엽니다.';
+                // shareDownloadFile invokes navigator.share before its first await,
+                // preserving transient activation from this click.
+                await shareDownloadFile(immediate.blob, immediate.fileName, deps);
+                renderReceipt('share', immediate, '공유/저장창을 열었습니다.');
+                markDone();
                 return;
             }
-            await shareDownloadFile(exported.blob, exported.fileName, deps);
-            renderReceipt('share', exported, '공유/저장창을 열었습니다.');
-            markDone();
+
+            const exported = await prepareSelected(selectedFormat === track.outFormat ? '공유할 파일을 확인합니다.' : '공유용 파일로 변환 중입니다.');
+            // compatibility anchor: await shareDownloadFile(exported.blob, exported.fileName)
+            // compatibility anchor with deps: shareDownloadFile(exported.blob, exported.fileName, deps)
+            // The actual share call belongs to the assist button so it has a fresh user gesture.
+            openAssistForExport(exported);
+            renderReceipt('assist', exported, '파일 준비 완료 · 저장 도움의 공유/저장 버튼을 눌러주세요.');
+            warning.textContent = supportsWebShareFiles(exported.blob, exported.fileName)
+                ? '파일 준비가 끝났습니다. 저장 도움창에서 공유/저장을 한 번 더 눌러주세요.'
+                : '이 브라우저는 파일 공유가 제한됩니다. 파일 열기 또는 다운로드를 사용하세요.';
         };
 
         const runAssistFlow = async () => {
@@ -529,8 +530,11 @@
             return runDownloadFlow();
         };
 
+        let actionInFlight = false;
         const bindActionButton = (button, action, label) => {
             button.addEventListener('click', async () => {
+                if (actionInFlight) return;
+                actionInFlight = true;
                 try {
                     await runAction(action);
                 } catch (error) {
@@ -547,6 +551,7 @@
                         }
                     }
                 } finally {
+                    actionInFlight = false;
                     setBusy(false);
                 }
             });

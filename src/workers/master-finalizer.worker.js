@@ -4,15 +4,20 @@
 self.onmessage = event => {
     try {
         const payload = event.data || {};
-        const sampleRate = Math.max(3000, Math.min(384000, Number(payload.sampleRate || 44100)));
-        const channels = Math.max(1, Math.min(2, Number(payload.channels || 1)));
-        const requestedLength = Math.max(1, Number(payload.length || 1));
-        const targetLufs = Number(payload.targetLufs ?? -14);
-        const ceilingDb = Number(payload.ceilingDb ?? -1.0);
-        const qualityMode = String(payload.qualityMode || 'balanced');
+        const sampleRate = normalizeFiniteInteger(payload.sampleRate ?? 44100, 3000, 384000, '샘플레이트');
+        const channels = normalizeFiniteInteger(payload.channels ?? 1, 1, 2, '채널 수');
+        const requestedLength = normalizeFiniteInteger(payload.length ?? 1, 1, 0x7fffffff, '샘플 길이');
+        const targetLufs = normalizeFiniteNumber(payload.targetLufs ?? -14, -36, 0, '목표 LUFS');
+        const ceilingDb = normalizeFiniteNumber(payload.ceilingDb ?? -1.0, -12, 0, '출력 ceiling');
+        const requestedQualityMode = String(payload.qualityMode || 'balanced');
+        const qualityMode = ['fast', 'balanced', 'max'].includes(requestedQualityMode) ? requestedQualityMode : 'balanced';
         const truePeak = payload.truePeak !== false;
         const analysis = normalizeAnalysis(payload.analysis || {});
-        const channelBuffers = (payload.channelBuffers || []).slice(0, channels).map(buf => new Float32Array(buf));
+        const rawBuffers = Array.isArray(payload.channelBuffers) ? payload.channelBuffers.slice(0, channels) : [];
+        const channelBuffers = rawBuffers.map((buf, index) => {
+            if (!buf || typeof buf.byteLength !== 'number' || buf.byteLength < 4) throw new Error(`파이널라이저 ${index + 1}번 채널 데이터가 잘못되었습니다.`);
+            return new Float32Array(buf);
+        });
         if (channelBuffers.length < channels) throw new Error('마스터 파이널라이저 채널 입력이 부족합니다.');
         const length = Math.max(1, Math.min(requestedLength, ...channelBuffers.map(buf => buf.length)));
 
@@ -91,6 +96,16 @@ self.onmessage = event => {
         self.postMessage({ ok: false, error: error.message || String(error) });
     }
 };
+
+function normalizeFiniteNumber(value, min, max, label) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) throw new Error(`${label} 값이 유효하지 않습니다.`);
+    return Math.min(max, Math.max(min, number));
+}
+
+function normalizeFiniteInteger(value, min, max, label) {
+    return Math.trunc(normalizeFiniteNumber(value, min, max, label));
+}
 
 
 function sanitizeBuffers(buffers, length) {

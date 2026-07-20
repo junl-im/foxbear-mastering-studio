@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.5.34', 'package version should be 1.5.34');
-assert(index.includes('data-build="1.5.34"'), 'index data-build should be 1.5.34');
-assert(index.includes('1.5.34-kakao-landing-recovery'), 'index assets should use v1.5.34 cache key');
-assert(sw.includes('foxbear-shell-v1.5.34-kakao-landing-recovery'), 'service worker cache should use v1.5.34 key');
+assert(pkg.version === '1.5.36', 'package version should be 1.5.36');
+assert(index.includes('data-build="1.5.36"'), 'index data-build should be 1.5.36');
+assert(index.includes('1.5.36-interaction-lifecycle-hardening'), 'index assets should use v1.5.36 cache key');
+assert(sw.includes('foxbear-shell-v1.5.36-interaction-lifecycle-hardening'), 'service worker cache should use v1.5.36 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');

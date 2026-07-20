@@ -36,9 +36,7 @@ function resolveWorkerImportUrl(path) {
 
 self.onmessage = async event => {
     try {
-        const payload = event.data || {};
-        const { sampleRate, channels, length, bitrate, channelBuffers } = payload;
-        if (!sampleRate || !channels || !length || !channelBuffers) throw new Error('잘못된 MP3 인코딩 요청입니다.');
+        const payload = normalizeEncodePayload(event.data || {});
 
         try {
             const arrayBuffer = await encodeWithLameJs(payload);
@@ -54,6 +52,30 @@ self.onmessage = async event => {
         self.postMessage({ ok: false, error: error.message || String(error) });
     }
 };
+
+function normalizeEncodePayload(payload) {
+    const sampleRate = normalizeInteger(payload.sampleRate, 8000, 384000, '샘플레이트');
+    const channels = normalizeInteger(payload.channels, 1, 2, '채널 수');
+    const requestedLength = normalizeInteger(payload.length, 1, 0x7fffffff, '샘플 길이');
+    const bitrate = normalizeInteger(payload.bitrate || 320000, 32000, 512000, '비트레이트');
+    const buffers = Array.isArray(payload.channelBuffers) ? payload.channelBuffers.slice(0, channels) : [];
+    if (buffers.length < channels) throw new Error('MP3 인코딩 채널 입력이 부족합니다.');
+    const views = buffers.map((buffer, index) => {
+        if (!buffer || typeof buffer.byteLength !== 'number' || buffer.byteLength < 4) throw new Error(`MP3 ${index + 1}번 채널 데이터가 잘못되었습니다.`);
+        return new Float32Array(buffer);
+    });
+    const length = Math.min(requestedLength, ...views.map(view => view.length));
+    if (!Number.isFinite(length) || length < 1) throw new Error('MP3 인코딩할 샘플이 없습니다.');
+    return { sampleRate, channels, length, bitrate, channelBuffers: buffers };
+}
+
+function normalizeInteger(value, min, max, label) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) throw new Error(`${label} 값이 유효하지 않습니다.`);
+    const integer = Math.trunc(number);
+    if (integer < min || integer > max) throw new Error(`${label} 값이 허용 범위를 벗어났습니다.`);
+    return integer;
+}
 
 async function ensureLameJs() {
     if (self.lamejs && self.lamejs.Mp3Encoder) return self.lamejs;

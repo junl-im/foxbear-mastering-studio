@@ -1,3 +1,41 @@
+# FoxBear QA Report - v1.5.36
+
+Current release target: metadata, handoff, SRI, and 224/224 static checks. The new tests execute file-picker ordering and BFCache restoration in isolated runtimes, while cumulative download, Wake Lock, player, codec, worker, service-worker, and security checks remain enabled.
+
+## v1.5.36 coverage
+
+- Proves `showSaveFilePicker()` is called before asynchronous Blob inspection so transient user activation remains valid.
+- Requires verified same-format output to enter Web Share without an avoidable async preparation boundary.
+- Requires converted-format and restricted-browser sharing to use a fresh explicit save-assist click.
+- Verifies repeated save-assist panels revoke old Blob URLs and bound the replacement URL lifetime.
+- Prevents download completion from clearing an unrelated global mastering busy state and rejects duplicate action entry.
+- Awaits ZIP/report download rejection paths instead of leaving unhandled promises.
+- Simulates BFCache pagehide/pageshow and verifies navigation protection is rebuilt with `pageHiding` cleared.
+- Retains Wake Lock state synchronization and all previous runtime exception checks.
+
+```text
+224/224 PASS target
+Browser QA: Chrome/Safari direct save/share, Kakao Android/iPhone external browser, and BFCache restoration remain release-candidate device checks
+```
+
+# FoxBear QA Report - v1.5.35
+
+Current release result: metadata, handoff, SRI, and 222/222 static checks passed. The new test executes cancellation races, batch exception isolation, queue normalization, and invalid worker payload rejection rather than checking strings only. Playwright was invoked, but the Chromium executable is not installed in this workspace, so browser cases stopped before application launch.
+
+## v1.5.35 coverage
+
+- Detects undefined spectrum timing helpers and requires closed capture-stream graphs to be recreated.
+- Reproduces a synchronous metadata-probe abort that previously could access a timer before initialization.
+- Proves one batch track exception does not stop later tracks and setup exceptions always clear the busy flag.
+- Verifies numeric track IDs cancel correctly and invalid concurrency falls back to one worker.
+- Rejects non-finite MP3/finalizer values, negative WAV channels, and oversized RIFF output requests.
+- Requires atomic mastered URL replacement, explicit state defaults, IndexedDB abort/blocked handling, and partial file-write abort cleanup.
+
+```text
+222/222 PASS
+Browser QA: attempted; blocked before launch by missing Playwright Chromium executable. Actual Chrome/Safari/Edge plus KakaoTalk Android/iPhone remains a release-candidate device check
+```
+
 # FoxBear QA Report - v1.5.34
 
 Current release result: metadata, handoff, SRI, and 221 static checks passed after restoring the locked npm dependencies. KakaoTalk Android/iPhone real-device link opening remains the final manual validation item.

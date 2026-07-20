@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.34",
+  "version": "1.5.36",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with truthful browser codec detection, AIFF PCM fallback decoding, and validated local downloads.",
+  "description": "FoxBear AI Mastering Studio Pro with user-gesture-safe download/share, bounded Blob URL cleanup, action re-entry guards, and BFCache navigation recovery.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.34-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.34-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.36-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.36-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite"
   },
   "qaChecks": [
@@ -243,15 +243,18 @@
     "node qa/v1533_download_blob_runtime_smoke.js",
     "node qa/v1533_aiff_decode_runtime_smoke.js",
     "node qa/v1533_codec_download_hardening_smoke.js",
-    "node qa/v1534_kakao_landing_recovery_smoke.js"
+    "node qa/v1534_kakao_landing_recovery_smoke.js",
+    "node qa/v1535_runtime_exception_hardening_smoke.js",
+    "node qa/v1536_download_activation_lifecycle_smoke.js",
+    "node qa/v1536_bfcache_exit_guard_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "kakao-landing-recovery",
-    "assetVersion": "1.5.34-kakao-landing-recovery",
-    "cacheName": "foxbear-shell-v1.5.34-kakao-landing-recovery",
-    "bootRevision": "boot-sri-v1534",
-    "updateSafetyRevision": "update-safety-v1534",
-    "serviceWorkerRevision": "sw-v1534"
+    "buildId": "interaction-lifecycle-hardening",
+    "assetVersion": "1.5.36-interaction-lifecycle-hardening",
+    "cacheName": "foxbear-shell-v1.5.36-interaction-lifecycle-hardening",
+    "bootRevision": "boot-sri-v1536",
+    "updateSafetyRevision": "update-safety-v1536",
+    "serviceWorkerRevision": "sw-v1536"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

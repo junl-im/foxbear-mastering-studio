@@ -25,12 +25,24 @@
         return new Promise((resolve, reject) => {
             if (!('indexedDB' in global)) return resolve(null);
             const req = indexedDB.open(opts.dbName, 1);
+            let settled = false;
+            const finish = (callback, value) => {
+                if (settled) {
+                    if (callback === resolve && value && typeof value.close === 'function') {
+                        try { value.close(); } catch (error) {}
+                    }
+                    return;
+                }
+                settled = true;
+                callback(value);
+            };
             req.onupgradeneeded = () => {
                 const db = req.result;
                 if (!db.objectStoreNames.contains(opts.storeName)) db.createObjectStore(opts.storeName);
             };
-            req.onsuccess = () => resolve(req.result);
-            req.onerror = () => reject(req.error || new Error('IndexedDB open failed'));
+            req.onsuccess = () => finish(resolve, req.result);
+            req.onerror = () => finish(reject, req.error || new Error('IndexedDB open failed'));
+            req.onblocked = () => finish(reject, new Error('IndexedDB open blocked by another tab'));
         });
     }
 
@@ -47,6 +59,7 @@
                 req.onerror = () => resolve(null);
                 tx.oncomplete = () => db.close();
                 tx.onerror = () => { try { db.close(); } catch (error) {} resolve(null); };
+                tx.onabort = tx.onerror;
             });
         } catch (error) {
             console.warn('Analysis cache read failed:', error);
@@ -65,6 +78,7 @@
                 tx.objectStore(opts.storeName).put(analysis, key);
                 tx.oncomplete = () => { db.close(); resolve(); };
                 tx.onerror = () => { db.close(); resolve(); };
+                tx.onabort = tx.onerror;
             });
             return true;
         } catch (error) {
@@ -83,6 +97,7 @@
                 tx.objectStore(opts.storeName).clear();
                 tx.oncomplete = () => { db.close(); resolve(); };
                 tx.onerror = () => { db.close(); resolve(); };
+                tx.onabort = tx.onerror;
             });
             return true;
         } catch (error) {

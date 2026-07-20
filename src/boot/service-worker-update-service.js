@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.34
+// FoxBear service worker update coordinator v1.5.36
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.34-kakao-landing-recovery';
+  const VERSION = '1.5.36-interaction-lifecycle-hardening';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const state = {

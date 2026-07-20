@@ -1,25 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.5.34
+# FoxBear AI Mastering Studio Pro v1.5.36
 
-## Current patch: v1.5.34 Kakao Landing Recovery
+## Current patch: v1.5.36 Interaction Lifecycle Hardening
 
-카카오톡에서 링크를 열 때 안내 페이지가 뜨자마자 외부 브라우저 스킴을 자동 실행하던 동작을 제거했습니다. 일부 카카오 WebView에서는 이 자동 호출이 차단되면서 현재 문서까지 빈 화면이나 열기 실패 화면으로 바뀔 수 있었습니다.
+이번 패치는 다운로드·공유의 사용자 클릭 권한과 브라우저 복귀 생명주기를 보강합니다. 직접 저장은 비동기 Blob 검사보다 먼저 파일 선택기를 호출하고, 현재 완성 파일은 검증 결과를 캐시해 같은 클릭 안에서 공유 API를 시작할 수 있게 했습니다.
 
-이제 카카오 진입은 같은 사이트의 일반 HTML 안내 페이지까지만 자동 이동합니다. 안내 페이지를 먼저 안정적으로 표시한 뒤 사용자가 `기본 브라우저에서 시작`을 직접 눌렀을 때만 Android Intent 또는 iPhone용 카카오 외부 열기를 시도합니다. 스크립트가 실패해도 일반 링크, 주소 복사, `카카오톡에서 계속 사용` 경로가 남습니다.
+포맷 변환처럼 비동기 작업이 필요한 경우에는 공유 API를 억지로 자동 호출하지 않고, 변환 완료 후 저장 도움창의 명시적 공유 버튼을 다시 누르게 합니다. 저장 도움창 Blob URL 누수, 다운로드 버튼 중복 실행, 다른 작업의 전역 busy 해제, BFCache 복귀 후 나가기 보호 상태 고착도 함께 수정했습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.34
-build: kakao-landing-recovery
-asset generation: 1.5.34-kakao-landing-recovery
-service worker cache: foxbear-shell-v1.5.34-kakao-landing-recovery
+product: 1.5.36
+build: interaction-lifecycle-hardening
+asset generation: 1.5.36-interaction-lifecycle-hardening
+service worker cache: foxbear-shell-v1.5.36-interaction-lifecycle-hardening
 ```
 
 Verification:
 
 ```text
-static QA target: 221/221 PASS
-real-device requirement: KakaoTalk Android/iPhone link-open verification
+static QA result: 224/224 PASS target
+real browser requirement: Chrome/Safari direct-save/share, Kakao external-open, BFCache back/forward validation
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

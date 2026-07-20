@@ -1,3 +1,26 @@
+# v1.5.36 - Interaction Lifecycle Hardening
+
+- Preserved transient user activation for direct file saving by invoking `showSaveFilePicker()` before asynchronous Blob inspection.
+- Added verified-Blob caching so current mastered files can enter Web Share and anchor download paths without an avoidable async boundary.
+- Changed converted-format and restricted-browser sharing to open a second explicit save/share action instead of calling Web Share after the original click permission expired.
+- Added download-dialog re-entry protection and stopped download completion from clearing an unrelated global mastering busy state.
+- Bounded save-assist Blob URL lifetime, revoked replaced assist URLs immediately, and prevented stale URLs from keeping navigation warnings and memory alive.
+- Prevented Kakao iOS external-browser custom schemes from replacing the current page, while Android continues through an explicit intent action.
+- Awaited ZIP/report download failures so rejected Blob validation no longer becomes an unhandled promise rejection.
+- Rebuilt navigation-exit state after BFCache restoration so `pageHiding` and one-way leave flags cannot remain stuck after browser back/forward recovery.
+- Added v1.5.36 regression coverage for download activation order, same-format immediate sharing, URL lifecycle cleanup, action deduplication, and BFCache exit-guard restoration.
+
+# v1.5.35 - Runtime Exception Hardening
+
+- Fixed an undefined `now()` call in the spectrum visualizer timeout/hidden-tab frame path and made closed capture-stream audio graphs disposable and reconnectable.
+- Closed decode cancellation races around metadata probing so aborts cannot become codec failures or trigger a temporal-dead-zone exception.
+- Initialized previously implicit UI/controller state fields to stable boolean, numeric, and nullable defaults.
+- Isolated mastering batch failures per track and guaranteed busy-state/final-render cleanup even when setup, callbacks, or one track throws.
+- Made mastered Blob URL replacement atomic so a failed new output cannot revoke the last working master first.
+- Finite-normalized import queue concurrency/delay controls and normalized numeric/string track IDs across queue, run, and cancellation paths.
+- Added MP3/WAV/finalizer worker payload bounds, finite-number checks, channel validation, and RIFF size protection.
+- Added partial File System Access write aborts, IndexedDB blocked/aborted transaction handling, and v1.5.35 runtime exception regression coverage.
+
 # v1.5.34 - Kakao Landing Recovery
 
 - Removed the timer-driven `kakaotalk://` auto-launch that could replace the landing with a blank or blocked page before users saw any controls.

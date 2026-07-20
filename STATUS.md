@@ -1,4 +1,10 @@
-# Current Status and Invariants
+# FoxBear Status - v1.5.36
+
+## Current status
+
+Interaction lifecycle hardening is implemented for transient user activation, direct file picker ordering, same-format immediate sharing, converted-format second-click sharing, download action deduplication, bounded Blob URL cleanup, global busy-state isolation, awaited ZIP/report downloads, and BFCache navigation-exit restoration.
+
+Static release gate target: `224/224 PASS`. Actual Chromium execution remains dependent on an installed Playwright browser binary; Chrome/Safari share and direct-save behavior plus Kakao Android/iPhone external-open paths require real-device validation.
 
 This document contains rules that remain true across releases. Actual changes belong in `CHANGELOG.md`; historical implementation details belong in `docs/history/`; architectural decisions belong in `docs/decisions/`.
 
@@ -33,16 +39,21 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.34`
-- Build ID: `kakao-landing-recovery`
-- Asset version: `1.5.34-kakao-landing-recovery`
-- Service worker cache: `foxbear-shell-v1.5.34-kakao-landing-recovery`
-- Static QA target: `221/221 PASS`
+- Product version: `1.5.36`
+- Build ID: `interaction-lifecycle-hardening`
+- Asset version: `1.5.36-interaction-lifecycle-hardening`
+- Service worker cache: `foxbear-shell-v1.5.36-interaction-lifecycle-hardening`
+- Static QA target: `224/224 PASS`
 - Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
-- Local browser QA remains environment-dependent; Kakao Android/iPhone real-device link-open verification is required for this release.
+- Local browser QA remains environment-dependent; Chrome/Safari/Edge and Kakao Android/iPhone real-device exception-path verification is required for this release.
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
 - Import UI must advertise only stable or browser-detected codecs; CAF/WMA/AMR/3GP must remain excluded unless a real decoder is added.
 - PCM AIFF/AIFC fallback decoding and download Blob signature validation are release invariants.
+- Runtime state fields must be explicitly initialized; decode cancellation must remain cancellation, and invalid queue/worker numeric input must not stall or corrupt processing.
+- Mastered Blob URL replacement must create and commit the next URL before revoking the previous playable URL.
+- Direct-save and Web Share entry points must preserve transient user activation; converted formats must require a fresh explicit action after asynchronous encoding.
+- Save-assist Blob URLs must be revoked on replacement, close, or bounded expiry and must not keep the navigation guard active indefinitely.
+- BFCache restoration must reset `pageHiding` and reinstall navigation exit protection.
 
 - KakaoTalk entry must route to the lightweight external-browser landing before import/mastering unless the user explicitly chooses the in-app bypass.
 - The Kakao landing must never auto-launch a custom scheme or Android intent from a timer; it must remain visible until the user clicks.

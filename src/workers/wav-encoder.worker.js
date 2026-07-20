@@ -3,14 +3,39 @@
 
 self.onmessage = event => {
     try {
-        const { sampleRate, channels, length, channelBuffers, format } = event.data || {};
-        if (!sampleRate || !channels || !length || !channelBuffers) throw new Error('잘못된 WAV 인코딩 요청입니다.');
-        const arrayBuffer = encodeWav({ sampleRate, channels, length, channelBuffers, format: format || 'wav24' });
+        const payload = normalizeEncodePayload(event.data || {});
+        const arrayBuffer = encodeWav(payload);
         self.postMessage({ ok: true, arrayBuffer }, [arrayBuffer]);
     } catch (error) {
         self.postMessage({ ok: false, error: error.message || String(error) });
     }
 };
+
+function normalizeEncodePayload(payload) {
+    const sampleRate = normalizeInteger(payload.sampleRate, 8000, 384000, '샘플레이트');
+    const channels = normalizeInteger(payload.channels, 1, 32, '채널 수');
+    const requestedLength = normalizeInteger(payload.length, 1, 0x7fffffff, '샘플 길이');
+    const format = ['wav16', 'wav24', 'wav32float'].includes(String(payload.format || '')) ? String(payload.format) : 'wav24';
+    const buffers = Array.isArray(payload.channelBuffers) ? payload.channelBuffers.slice(0, channels) : [];
+    if (buffers.length < channels) throw new Error('WAV 인코딩 채널 입력이 부족합니다.');
+    const views = buffers.map((buffer, index) => {
+        if (!buffer || typeof buffer.byteLength !== 'number' || buffer.byteLength < 4) throw new Error(`WAV ${index + 1}번 채널 데이터가 잘못되었습니다.`);
+        return new Float32Array(buffer);
+    });
+    const length = Math.min(requestedLength, ...views.map(view => view.length));
+    const bytesPerSample = format === 'wav32float' ? 4 : (format === 'wav16' ? 2 : 3);
+    const dataSize = length * channels * bytesPerSample;
+    if (!Number.isSafeInteger(dataSize) || dataSize < 1 || dataSize > 0xffffffff - 44) throw new Error('WAV 파일 크기가 RIFF 한도를 벗어났습니다.');
+    return { sampleRate, channels, length, channelBuffers: buffers, format };
+}
+
+function normalizeInteger(value, min, max, label) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) throw new Error(`${label} 값이 유효하지 않습니다.`);
+    const integer = Math.trunc(number);
+    if (integer < min || integer > max) throw new Error(`${label} 값이 허용 범위를 벗어났습니다.`);
+    return integer;
+}
 
 function encodeWav({ sampleRate, channels, length, channelBuffers, format }) {
     const float32 = format === 'wav32float';

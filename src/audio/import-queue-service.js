@@ -2,13 +2,24 @@
 'use strict';
 
 (function attachFoxBearImportQueueService(global) {
+    function normalizeInteger(value, fallback, min, max) {
+        const number = Number(value);
+        const safe = Number.isFinite(number) ? Math.trunc(number) : fallback;
+        return Math.max(min, Math.min(max, safe));
+    }
+
+    function normalizeDelay(value, fallback = 90) {
+        const number = Number(value);
+        return Math.max(0, Number.isFinite(number) ? number : fallback);
+    }
+
     function createImportAnalysisQueue(options = {}) {
         const queue = [];
         const queuedIds = new Set();
         const activeIds = new Set();
         const activeNames = new Map();
-        const concurrency = Math.max(1, Math.min(4, Number(options.concurrency || 1)));
-        const yieldMs = Math.max(0, Number(options.yieldMs || 90));
+        const concurrency = normalizeInteger(options.concurrency, 1, 1, 4);
+        const yieldMs = normalizeDelay(options.yieldMs, 90);
         const setTimer = options.setTimeout || global.setTimeout.bind(global);
         const clearTimer = options.clearTimeout || global.clearTimeout.bind(global);
         let timer = 0;
@@ -115,9 +126,9 @@
         const queue = [];
         const queuedIds = new Set();
         const activeTasks = new Map();
-        const concurrency = Math.max(1, Math.min(4, Number(options.concurrency || 1)));
-        const largeBatchThreshold = Math.max(1, Number(options.largeBatchThreshold || 12));
-        const yieldMs = Math.max(0, Number(options.yieldMs || 90));
+        const concurrency = normalizeInteger(options.concurrency, 1, 1, 4);
+        const largeBatchThreshold = normalizeInteger(options.largeBatchThreshold, 12, 1, 100000);
+        const yieldMs = normalizeDelay(options.yieldMs, 90);
         const setTimer = options.setTimeout || global.setTimeout.bind(global);
         const clearTimer = options.clearTimeout || global.clearTimeout.bind(global);
         let timer = null;
@@ -190,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.34-kakao-landing-recovery',
+                version: '1.5.36-interaction-lifecycle-hardening',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -222,8 +233,9 @@
         }
 
         function queueTrack(track) {
-            if (!track || queuedIds.has(track.id) || activeTasks.has(String(track.id)) || track.analysisPromise) return false;
-            queuedIds.add(track.id);
+            const id = String(track?.id || '');
+            if (!track || !id || queuedIds.has(id) || activeTasks.has(id) || track.analysisPromise) return false;
+            queuedIds.add(id);
             queue.push(track);
             if (!track.status || track.status === 'queued') {
                 track.status = 'queued';
@@ -302,7 +314,7 @@
                 const track = queue.shift();
                 if (!track) continue;
                 const id = String(track.id);
-                queuedIds.delete(track.id);
+                queuedIds.delete(id);
                 if (typeof options.isTrackStillImported === 'function' && !options.isTrackStillImported(track)) continue;
                 const task = createTask(track);
                 activeTasks.set(id, task);
@@ -366,7 +378,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.4.28-app-slimdown',
+        version: '1.5.36-interaction-lifecycle-hardening',
         createImportAnalysisQueue,
         createTrackAnalysisQueue
     });

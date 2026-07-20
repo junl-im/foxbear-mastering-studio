@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.34 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.36 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -18,7 +18,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.34';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.36';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -61,7 +61,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.34-kakao-landing-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1534'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.36-interaction-lifecycle-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1536'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -2991,7 +2991,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.34-kakao-landing-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.34-kakao-landing-recovery&h=sw-v1534')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.36-interaction-lifecycle-hardening') · navigator.serviceWorker.register('./sw.js?v=1.5.36-interaction-lifecycle-hardening&h=sw-v1536')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3797,7 +3797,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.34-kakao-landing-recovery', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.36-interaction-lifecycle-hardening', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4110,7 +4110,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.34-kakao-landing-recovery',
+        version: '1.5.36-interaction-lifecycle-hardening',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4150,7 +4150,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.34-kakao-landing-recovery',
+    version: '1.5.36-interaction-lifecycle-hardening',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4175,12 +4175,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.34-kakao-landing-recovery', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.36-interaction-lifecycle-hardening', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.34-kakao-landing-recovery', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.36-interaction-lifecycle-hardening', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4195,12 +4195,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.34-kakao-landing-recovery',
+    version: 'v1.5.36-interaction-lifecycle-hardening',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.34-kakao-landing-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.36-interaction-lifecycle-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -4383,7 +4383,6 @@ async function decodeAudio(file, task = null) {
     if (task && typeof task.throwIfCancelled === 'function') task.throwIfCancelled();
     return await service.decodeAudioFile(file, { latencyHint: 'playback', metadataTimeoutMs: 4500, signal: task?.signal || null });
 }
-
 function getAnalysisCacheKey(track) {
     const service = getAnalysisCacheService();
     if (service && typeof service.getCacheKey === 'function') return service.getCacheKey(track, getAnalysisCacheOptions());
@@ -4464,7 +4463,6 @@ async function analyzeBufferAsync(buffer, task = null) {
         return analyzeBuffer(buffer);
     }
 }
-
 function analyzeBuffer(buffer) {
     const channels = Math.max(1, Math.min(buffer.numberOfChannels || 1, 32));
     const totalSamples = Math.max(0, buffer.length || 0);
@@ -5328,25 +5326,26 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.4.28-app-slimdown-fallback',
+            version: '1.5.36-interaction-lifecycle-hardening-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
-                beginBulkMasteringHudBatch(tracks, batchOptions);
-                state.busy = true;
-                if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
-                renderAll(batchOptions.initialRenderOptions || {});
-                let completed = 0;
+                let completed = 0, failed = 0;
                 try {
+                    beginBulkMasteringHudBatch(tracks, batchOptions);
+                    state.busy = true;
+                    if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
+                    renderAll(batchOptions.initialRenderOptions || {});
                     for (const track of tracks) {
-                        preparePrimaryActionTrack(track);
-                        if (await masterTrack(track, true, batchOptions.masterOptions || {})) completed += 1;
+                        try {
+                            preparePrimaryActionTrack(track);
+                            (await masterTrack(track, true, batchOptions.masterOptions || {})) ? completed += 1 : failed += 1;
+                        } catch (error) { failed += 1; console.error('Batch mastering track error:', error); }
                     }
-                    const result = Object.freeze({ total: tracks.length, completed, failed: tracks.length - completed, ok: completed > 0 });
+                    const result = Object.freeze({ total: tracks.length, completed, failed, ok: completed > 0 });
                     afterMasteringBatchMemorySweep(result);
                     return result;
-                } finally {
-                    state.busy = false;
-                    renderAll(batchOptions.finalRenderOptions || {});
+                } finally { state.busy = false;
+                    try { renderAll(batchOptions.finalRenderOptions || {}); } catch (error) { console.error('Batch final render error:', error); }
                 }
             }
         });
@@ -5616,16 +5615,20 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         track.masterReport.qualityGate = track.qualityGate;
         markPerformanceStage(track, '인코딩');
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
+        await getDownloadService().assertDownloadBlob(encoded.blob);
         const dockAudioBeforeComplete = state.selectedId === track.id ? getBottomPreviewAudio() : null;
         const preserveOriginalDockPlayback = Boolean(dockAudioBeforeComplete && state.bottomPreviewMode === 'original' && !dockAudioBeforeComplete.paused && !dockAudioBeforeComplete.ended);
-        if (track.masteredUrl) URL.revokeObjectURL(track.masteredUrl);
+        finishPerformanceProfile(track, finalBuffer, encoded.blob);
+        const nextOutName = buildMasteredFileName(track, encoded);
+        const nextMasteredUrl = URL.createObjectURL(encoded.blob);
+        const previousMasteredUrl = track.masteredUrl || '';
         track.outBlob = encoded.blob;
         track.outFormat = encoded.format;
-        track.outName = buildMasteredFileName(track, encoded);
-        track.masteredUrl = URL.createObjectURL(encoded.blob);
+        track.outName = nextOutName;
+        track.masteredUrl = nextMasteredUrl;
         track.masteredBuffer = finalBuffer;
         track.masteredDurationSec = finalBuffer.duration || 0;
-        finishPerformanceProfile(track, finalBuffer, encoded.blob);
+        if (previousMasteredUrl && previousMasteredUrl !== nextMasteredUrl) URL.revokeObjectURL(previousMasteredUrl);
         track.status = 'done';
         applyCompletedMasteringMemoryPolicy(calledFromBatch ? 'batch-master-complete' : 'single-master-complete', getSingleTrackDownloadReencodePolicy(track, calledFromBatch));
         track.downloadAttention = true;
@@ -8827,7 +8830,7 @@ async function downloadZip() {
         zipBlob = await zip.generateAsync({ type: 'blob', compression: 'STORE', streamFiles: true, platform: 'DOS' }, meta => progressView?.update?.({ percent: meta?.percent || 0, currentFile: meta?.currentFile || '' }));
         const zipValidation = exportGuard?.validateZipBlob ? exportGuard.validateZipBlob(zipBlob, zipPlan || { completedCount: completed.length, outputBytes: completed.reduce((sum, track) => sum + Number(track.outBlob?.size || 0), 0), compression: 'STORE' }) : { ok: Boolean(zipBlob), size: zipBlob?.size || 0 };
         if (!zipValidation.ok) { progressView?.fail?.('ZIP 검증 실패 · 곡별 다운로드를 사용해 주세요.'); showToast('ZIP 검증 실패 · 곡별 다운로드를 사용해 주세요.'); return; }
-        progressView?.complete?.(zipValidation); downloadBlob(zipBlob, `foxbear_mastered_${timestampForFile()}.zip`); showToast('마스터 파일 ZIP 다운로드를 시작했습니다.'); renderAll({ keepDetailAudio: true });
+        progressView?.complete?.(zipValidation); await downloadBlob(zipBlob, `foxbear_mastered_${timestampForFile()}.zip`); showToast('마스터 파일 ZIP 다운로드를 시작했습니다.'); renderAll({ keepDetailAudio: true });
     } catch (error) {
         const message = getErrorMessage(error) || 'ZIP 생성 중 오류가 발생했습니다. 곡별 다운로드를 사용해 주세요.'; progressView?.fail?.(message);
         showToast(/memory|allocation|arraybuffer|too large|out of memory/i.test(message) ? 'ZIP 메모리 한계에 도달했습니다. 곡별 다운로드를 사용해 주세요.' : 'ZIP 생성 실패 · 곡별 다운로드를 사용해 주세요.');
@@ -8872,6 +8875,7 @@ function showDownloadOptionsDialog(track) {
         getDownloadEnvironmentInfo,
         getDownloadFormatOptions,
         prepareTrackDownloadBlob,
+        getImmediateTrackDownloadBlob: (trackValue, formatValue) => getDownloadService().getImmediateTrackDownloadBlob(trackValue, formatValue, getDownloadServiceDeps()),
         isRestrictedDownloadBrowser,
         supportsWebShareFiles,
         supportsWebShareDownloadFiles,
@@ -8967,11 +8971,10 @@ function focusCompletedTrackDownload(track) {
     setTimeout(() => run(false), 420);
     setTimeout(() => run(false), 980);
 }
-function downloadTrackReport(track) {
-    if (!track) return;
-    const report = createExportReport(track);
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    downloadBlob(blob, buildExportReportFileName(track));
+async function downloadTrackReport(track) {
+    if (!track) return false;
+    try { const report = createExportReport(track); const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }); await downloadBlob(blob, buildExportReportFileName(track)); return true; }
+    catch (error) { console.warn('Report download failed:', error); showToast(getErrorMessage(error, '리포트 파일을 저장하지 못했습니다.')); return false; }
 }
 function buildExportReportFileName(track) {
     return `${safeBaseName(track?.name || 'track')}_foxbear_report_${timestampForFile()}.json`;
@@ -12731,7 +12734,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.34',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.36',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

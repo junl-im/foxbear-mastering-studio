@@ -3,7 +3,7 @@
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.5.34-kakao-landing-recovery';
+    const VISUALIZER_VERSION = '1.5.36-interaction-lifecycle-hardening';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -33,6 +33,12 @@
         visibilityBound: false,
         lastError: ''
     };
+
+    function now() {
+        return global.performance && typeof global.performance.now === 'function'
+            ? global.performance.now()
+            : Date.now();
+    }
 
     function clamp(value, min = 0, max = 1) {
         const number = Number(value);
@@ -283,10 +289,27 @@
         const context = state.context;
         const manager = global.FoxBearAudioContextManager;
         if (!context || !state.ownsContext) return;
+        state.live = false;
+        if (state.raf) {
+            cancelFrame(state.raf);
+            state.raf = 0;
+        }
+        state.analyser = null;
+        state.data = null;
+        state.lastFrameAt = 0;
         if (manager && typeof manager.close === 'function') manager.close(context, reason);
         else if (context.state !== 'closed' && typeof context.close === 'function') context.close().catch(() => {});
         state.context = null;
         state.ownsContext = false;
+    }
+
+    function disposeSourceRecord(audio, record) {
+        if (!record) return;
+        try { record.source?.disconnect?.(); } catch (error) {}
+        try { record.analyser?.disconnect?.(); } catch (error) {}
+        try { record.silentSink?.disconnect?.(); } catch (error) {}
+        try { record.stream?.getTracks?.().forEach(track => track.stop?.()); } catch (error) {}
+        if (audio) sourceNodes.delete(audio);
     }
 
     function createAnalyser(context) {
@@ -321,7 +344,8 @@
         const context = ensureContext();
         let record = sourceNodes.get(audio);
         if (record?.context?.state === 'closed') {
-            throw new Error('기존 WebAudio 컨텍스트가 종료되어 FFT 연결을 재시도할 수 없습니다.');
+            disposeSourceRecord(audio, record);
+            record = null;
         }
         if (!record) {
             // Never take ownership of the audible media element with
