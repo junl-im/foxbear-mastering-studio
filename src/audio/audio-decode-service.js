@@ -1,9 +1,11 @@
-// FoxBear audio decode service - v1.5.32
+// FoxBear audio decode service - v1.5.33
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.32-kakao-external-browser-local-flow';
+    const SERVICE_VERSION = '1.5.33-codec-truth-download-hardening';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
+    const MIN_DECODE_TIMEOUT_MS = 20000;
+    const MAX_DECODE_TIMEOUT_MS = 120000;
     const MAX_DECODE_EVENTS = 24;
 
     const state = {
@@ -83,12 +85,133 @@
         return match ? match[0] : '';
     }
 
+    function readAscii(view, offset, length) {
+        let text = '';
+        for (let index = 0; index < length; index += 1) text += String.fromCharCode(view.getUint8(offset + index));
+        return text;
+    }
+
+    function detectAudioContainer(arrayBuffer, fileOrName = '') {
+        const ext = getFileExtension(fileOrName);
+        if (!arrayBuffer || arrayBuffer.byteLength < 12) return { id: ext ? ext.slice(1) : 'unknown', extension: ext, signature: '' };
+        const view = new DataView(arrayBuffer, 0, Math.min(arrayBuffer.byteLength, 64));
+        const first4 = readAscii(view, 0, 4);
+        const at8 = readAscii(view, 8, 4);
+        if (first4 === 'RIFF' && at8 === 'WAVE') return { id: 'wav', extension: ext, signature: 'RIFF/WAVE' };
+        if (first4 === 'FORM' && (at8 === 'AIFF' || at8 === 'AIFC')) return { id: 'aiff', extension: ext, signature: `FORM/${at8}` };
+        if (first4 === 'fLaC') return { id: 'flac', extension: ext, signature: 'fLaC' };
+        if (first4 === 'OggS') return { id: 'ogg', extension: ext, signature: 'OggS' };
+        if (view.getUint32(0, false) === 0x1A45DFA3) return { id: 'webm', extension: ext, signature: 'EBML' };
+        if (first4 === 'ID3' || (view.getUint8(0) === 0xff && (view.getUint8(1) & 0xe0) === 0xe0)) return { id: 'mp3', extension: ext, signature: 'MPEG audio' };
+        if (view.getUint8(0) === 0xff && (view.getUint8(1) & 0xf6) === 0xf0) return { id: 'aac', extension: ext, signature: 'AAC ADTS' };
+        if (readAscii(view, 4, 4) === 'ftyp') return { id: 'mp4', extension: ext, signature: 'ISO BMFF' };
+        return { id: ext ? ext.slice(1) : 'unknown', extension: ext, signature: '' };
+    }
+
+    function readExtended80(view, offset) {
+        const sign = (view.getUint16(offset, false) & 0x8000) ? -1 : 1;
+        const exponent = view.getUint16(offset, false) & 0x7fff;
+        const hi = view.getUint32(offset + 2, false);
+        const lo = view.getUint32(offset + 6, false);
+        if (exponent === 0 && hi === 0 && lo === 0) return 0;
+        if (exponent === 0x7fff) return Number.NaN;
+        const mantissa = hi * Math.pow(2, -31) + lo * Math.pow(2, -63);
+        return sign * mantissa * Math.pow(2, exponent - 16383);
+    }
+
+    function decodeAiffPcm(audioContext, arrayBuffer) {
+        if (!arrayBuffer || arrayBuffer.byteLength < 24) throw new Error('AIFF 파일이 너무 짧습니다.');
+        const view = new DataView(arrayBuffer);
+        if (readAscii(view, 0, 4) !== 'FORM') throw new Error('AIFF FORM 헤더가 없습니다.');
+        const formType = readAscii(view, 8, 4);
+        if (formType !== 'AIFF' && formType !== 'AIFC') throw new Error('AIFF/AIFC 파일이 아닙니다.');
+        let comm = null;
+        let sound = null;
+        let cursor = 12;
+        while (cursor + 8 <= view.byteLength) {
+            const id = readAscii(view, cursor, 4);
+            const size = view.getUint32(cursor + 4, false);
+            const payload = cursor + 8;
+            if (payload + size > view.byteLength) break;
+            if (id === 'COMM' && size >= 18) {
+                comm = {
+                    channels: view.getUint16(payload, false),
+                    frames: view.getUint32(payload + 2, false),
+                    bits: view.getUint16(payload + 6, false),
+                    sampleRate: readExtended80(view, payload + 8),
+                    compression: formType === 'AIFC' && size >= 22 ? readAscii(view, payload + 18, 4) : 'NONE'
+                };
+            } else if (id === 'SSND' && size >= 8) {
+                const offset = view.getUint32(payload, false);
+                sound = { start: payload + 8 + offset, bytes: Math.max(0, size - 8 - offset) };
+            }
+            cursor = payload + size + (size % 2);
+        }
+        if (!comm || !sound) throw new Error('AIFF COMM 또는 SSND 청크가 없습니다.');
+        if (!Number.isFinite(comm.sampleRate) || comm.sampleRate < 8000 || comm.sampleRate > 384000) throw new Error('AIFF 샘플레이트를 읽지 못했습니다.');
+        if (comm.channels < 1 || comm.channels > 32) throw new Error('지원하지 않는 AIFF 채널 수입니다.');
+        if (![8, 16, 24, 32].includes(comm.bits)) throw new Error(`지원하지 않는 AIFF 비트 깊이입니다: ${comm.bits}-bit`);
+        const compression = comm.compression || 'NONE';
+        const littleEndian = compression === 'sowt';
+        const float32 = compression === 'fl32' || compression === 'FL32';
+        if (!['NONE', 'twos', 'sowt', 'fl32', 'FL32'].includes(compression)) throw new Error(`지원하지 않는 AIFC 압축 방식입니다: ${compression}`);
+        if (float32 && comm.bits !== 32) throw new Error('AIFC float 형식의 비트 깊이가 올바르지 않습니다.');
+        const bytesPerSample = comm.bits / 8;
+        const availableFrames = Math.floor(sound.bytes / Math.max(1, comm.channels * bytesPerSample));
+        const frameCount = Math.min(comm.frames || availableFrames, availableFrames);
+        if (!frameCount) throw new Error('AIFF PCM 데이터가 비어 있습니다.');
+        const output = audioContext.createBuffer(comm.channels, frameCount, Math.round(comm.sampleRate));
+        let position = sound.start;
+        const scale = Math.pow(2, comm.bits - 1);
+        for (let frame = 0; frame < frameCount; frame += 1) {
+            for (let channel = 0; channel < comm.channels; channel += 1) {
+                let sample = 0;
+                if (float32) sample = view.getFloat32(position, littleEndian);
+                else if (comm.bits === 8) sample = view.getInt8(position) / 128;
+                else if (comm.bits === 16) sample = view.getInt16(position, littleEndian) / scale;
+                else if (comm.bits === 24) {
+                    const b0 = view.getUint8(position + (littleEndian ? 2 : 0));
+                    const b1 = view.getUint8(position + 1);
+                    const b2 = view.getUint8(position + (littleEndian ? 0 : 2));
+                    let value = (b0 << 16) | (b1 << 8) | b2;
+                    if (value & 0x800000) value |= 0xff000000;
+                    sample = value / scale;
+                } else sample = view.getInt32(position, littleEndian) / scale;
+                output.getChannelData(channel)[frame] = Math.max(-1, Math.min(1, Number.isFinite(sample) ? sample : 0));
+                position += bytesPerSample;
+            }
+        }
+        return output;
+    }
+
+    function getDecodeTimeoutMs(file, options = {}) {
+        const requested = Number(options.decodeTimeoutMs || 0);
+        if (requested > 0) return Math.max(MIN_DECODE_TIMEOUT_MS, Math.min(MAX_DECODE_TIMEOUT_MS, requested));
+        const sizeMb = Number(file?.size || 0) / 1048576;
+        return Math.max(MIN_DECODE_TIMEOUT_MS, Math.min(MAX_DECODE_TIMEOUT_MS, 20000 + sizeMb * 650));
+    }
+
+    function withTimeout(promise, timeoutMs, onTimeout) {
+        let timer = 0;
+        return new Promise((resolve, reject) => {
+            timer = global.setTimeout(() => {
+                try { onTimeout?.(); } catch (error) {}
+                const timeoutError = new Error(`오디오 디코딩 시간이 ${Math.round(timeoutMs / 1000)}초를 초과했습니다.`);
+                timeoutError.code = 'AUDIO_DECODE_TIMEOUT';
+                reject(timeoutError);
+            }, timeoutMs);
+            Promise.resolve(promise).then(
+                value => { global.clearTimeout(timer); resolve(value); },
+                error => { global.clearTimeout(timer); reject(error); }
+            );
+        });
+    }
+
     function getAudioImportDecodeHint(fileOrName = '') {
         const ext = getFileExtension(fileOrName);
-        if (['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'].includes(ext)) return ' 영상 컨테이너는 AAC/ALAC 등 브라우저가 디코딩 가능한 오디오 트랙이 있을 때만 분석됩니다.';
-        if (['.amr', '.wma'].includes(ext)) return ' 이 형식은 모바일/브라우저에 따라 디코딩이 제한될 수 있어 WAV/MP3/M4A 변환을 권장합니다.';
-        if (['.aif', '.aiff', '.aifc', '.caf'].includes(ext)) return ' AIFF/CAF는 Safari 계열에서 더 잘 열릴 수 있으며, 브라우저별 지원 차이가 있습니다.';
-        if (['.opus', '.oga', '.ogg'].includes(ext)) return ' OGG/Opus는 일부 Safari 환경에서 제한될 수 있습니다.';
+        if (['.mp4', '.m4v', '.mov'].includes(ext)) return ' MP4/MOV는 브라우저가 파일 내부 오디오 코덱을 지원할 때만 분석됩니다.';
+        if (['.aif', '.aiff', '.aifc'].includes(ext)) return ' PCM AIFF/AIFC는 브라우저 디코더 실패 시 앱 내부 파서로 다시 시도합니다.';
+        if (['.opus', '.oga', '.ogg', '.webm', '.weba', '.flac', '.m4a', '.aac'].includes(ext)) return ' 이 형식은 현재 브라우저 코덱 지원 여부에 따라 달라집니다.';
         return '';
     }
 
@@ -96,9 +219,9 @@
         const ext = getFileExtension(fileOrName);
         const base = getAudioImportDecodeHint(fileOrName);
         const common = ' 가능하면 WAV, MP3, M4A(AAC)로 변환하거나 다른 브라우저에서 다시 시도해주세요.';
-        if (['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'].includes(ext)) return `${base} 영상 파일이면 오디오 트랙이 없거나 브라우저가 해당 오디오 코덱을 열지 못할 수 있습니다.${common}`;
-        if (['.flac'].includes(ext)) return `${base} 일부 모바일/인앱 브라우저는 FLAC 디코딩을 제한합니다.${common}`;
-        if (['.aif', '.aiff', '.aifc', '.caf', '.amr', '.wma', '.opus', '.oga', '.ogg'].includes(ext)) return `${base}${common}`;
+        if (['.mp4', '.m4v', '.mov'].includes(ext)) return `${base} 오디오 트랙이 없거나 내부 AAC/ALAC 코덱을 브라우저가 열지 못할 수 있습니다.${common}`;
+        if (['.aif', '.aiff', '.aifc'].includes(ext)) return `${base} 압축 AIFC는 지원하지 않으며 PCM(NONE/twos/sowt) 또는 32-bit float만 지원합니다.${common}`;
+        if (['.flac', '.opus', '.oga', '.ogg', '.webm', '.weba', '.m4a', '.aac'].includes(ext)) return `${base}${common}`;
         return `${base}${common}`;
     }
 
@@ -210,11 +333,12 @@
         });
     }
 
-    function createDecodeError(file, error, mediaCheck) {
+    function createDecodeError(file, error, mediaCheck, detectedContainer = null) {
         const mediaText = mediaCheck?.ok
             ? ' 브라우저 미디어 플레이어는 열 수 있지만 Web Audio 분석 디코더가 거부했습니다.'
             : ' 브라우저 미디어 플레이어에서도 바로 열리지 않았습니다.';
-        const message = '오디오 디코딩에 실패했습니다.' + mediaText + getAudioCodecFailureHint(file);
+        const detectedText = detectedContainer?.signature ? ` 파일 헤더는 ${detectedContainer.signature} 형식으로 감지되었습니다.` : '';
+        const message = '오디오 디코딩에 실패했습니다.' + mediaText + detectedText + getAudioCodecFailureHint(file);
         const next = new Error(message);
         next.cause = error;
         return next;
@@ -233,6 +357,7 @@
         const signal = options.signal || null;
         let arrayBuffer = null;
         let audioContext = null;
+        let detectedContainer = null;
         try {
             throwIfAborted(signal);
             try { arrayBuffer = await awaitWithAbort(file.arrayBuffer(), signal); }
@@ -241,8 +366,22 @@
 
             throwIfAborted(signal);
             audioContext = createManagedDecodeContext(options.latencyHint || 'playback');
-            await awaitWithAbort(ensureAudioContextRunning(audioContext), signal, () => closeManagedDecodeContext(audioContext));
-            const decoded = await awaitWithAbort(decodeAudioDataCompat(audioContext, arrayBuffer), signal, () => closeManagedDecodeContext(audioContext));
+            const container = detectAudioContainer(arrayBuffer, file);
+            detectedContainer = container;
+            const timeoutMs = getDecodeTimeoutMs(file, options);
+            let decoded = null;
+            try {
+                // v1.5.29 compatibility anchor: decodeAudioDataCompat(audioContext, arrayBuffer), signal
+                decoded = await awaitWithAbort(withTimeout(
+                    decodeAudioDataCompat(audioContext, arrayBuffer),
+                    timeoutMs,
+                    () => closeManagedDecodeContext(audioContext)
+                ), signal, () => closeManagedDecodeContext(audioContext));
+            } catch (nativeError) {
+                if (container.id !== 'aiff') throw nativeError;
+                pushEvent('decode-aiff-fallback', { fileName: state.lastFileName, signature: container.signature });
+                decoded = decodeAiffPcm(audioContext, arrayBuffer);
+            }
             throwIfAborted(signal);
             const summary = getDecodedBufferSummary(decoded) || {};
             state.completedCount += 1;
@@ -254,7 +393,8 @@
                 fileName: state.lastFileName,
                 durationSec: state.lastDurationSec,
                 decodedPcmMB: state.lastDecodedPcmMB,
-                elapsedMs: round(nowMs() - startedMs, 1)
+                elapsedMs: round(nowMs() - startedMs, 1),
+                container: detectAudioContainer(arrayBuffer, file).id
             });
             return decoded;
         } catch (error) {
@@ -265,7 +405,7 @@
             let finalError = error;
             if (!String(error?.message || '').includes('선택한 파일을 읽지 못했습니다') && !String(error?.message || '').includes('비어 있거나')) {
                 const mediaCheck = await verifyMediaElementCanLoad(file, options.metadataTimeoutMs, signal).catch(() => null);
-                finalError = createDecodeError(file, error, mediaCheck);
+                finalError = createDecodeError(file, error, mediaCheck, detectedContainer);
                 pushEvent('decode-media-check', { fileName: state.lastFileName, mediaOk: Boolean(mediaCheck?.ok), reason: mediaCheck?.reason || '' });
             }
             state.failedCount += 1;
@@ -284,6 +424,8 @@
         version: SERVICE_VERSION,
         decodeAudioFile,
         decodeAudioDataCompat,
+        decodeAiffPcm,
+        detectAudioContainer,
         verifyMediaElementCanLoad,
         getAudioCodecFailureHint,
         getAudioImportDecodeHint,

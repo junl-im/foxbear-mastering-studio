@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.32",
+  "version": "1.5.33",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with browser-based mastering, resilient PWA export, and release-gated QA.",
+  "description": "FoxBear AI Mastering Studio Pro with truthful browser codec detection, AIFF PCM fallback decoding, and validated local downloads.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.32-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.32-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.33-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.33-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite"
   },
   "qaChecks": [
@@ -38,6 +38,7 @@
     "node --check src/audio/playback-transition-service.js",
     "node --check src/audio/audio-context-manager.js",
     "node --check src/audio/preview-translation-service.js",
+    "node --check src/audio/audio-import-capability-service.js",
     "node --check src/audio/audio-decode-service.js",
     "node --check src/audio/import-queue-service.js",
     "node --check src/audio/analysis-cache-service.js",
@@ -238,15 +239,18 @@
     "node --check qa/browser/analysis-cancel-replacement-playback-playwright.spec.js",
     "node qa/v1530_inapp_playback_compatibility_smoke.js",
     "node qa/v1531_player_download_stability_smoke.js",
-    "node qa/v1532_kakao_external_browser_local_flow_smoke.js"
+    "node qa/v1532_kakao_external_browser_local_flow_smoke.js",
+    "node qa/v1533_download_blob_runtime_smoke.js",
+    "node qa/v1533_aiff_decode_runtime_smoke.js",
+    "node qa/v1533_codec_download_hardening_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "kakao-external-browser-local-flow",
-    "assetVersion": "1.5.32-kakao-external-browser-local-flow",
-    "cacheName": "foxbear-shell-v1.5.32-kakao-external-browser-local-flow",
-    "bootRevision": "boot-sri-v1532",
-    "updateSafetyRevision": "update-safety-v1532",
-    "serviceWorkerRevision": "sw-v1532"
+    "buildId": "codec-truth-download-hardening",
+    "assetVersion": "1.5.33-codec-truth-download-hardening",
+    "cacheName": "foxbear-shell-v1.5.33-codec-truth-download-hardening",
+    "bootRevision": "boot-sri-v1533",
+    "updateSafetyRevision": "update-safety-v1533",
+    "serviceWorkerRevision": "sw-v1533"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

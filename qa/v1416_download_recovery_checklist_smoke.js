@@ -14,17 +14,17 @@ const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 
-must(pkg.version === '1.5.32', 'package version should be 1.5.32');
+must(pkg.version === '1.5.33', 'package version should be 1.5.33');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-must(html.includes('data-build="1.5.32"'), 'index build marker should be 1.5.32');
-must(html.includes('1.5.32-kakao-external-browser-local-flow'), 'index should use v1.5.32 asset key');
-must(sw.includes('foxbear-shell-v1.5.32-kakao-external-browser-local-flow'), 'service worker cache should use v1.5.32 key');
+must(html.includes('data-build="1.5.33"'), 'index build marker should be 1.5.33');
+must(html.includes('1.5.33-codec-truth-download-hardening'), 'index should use v1.5.33 asset key');
+must(sw.includes('foxbear-shell-v1.5.33-codec-truth-download-hardening'), 'service worker cache should use v1.5.33 key');
 
 must(service.includes('getDownloadRecoveryChecklist'), 'download service should expose recovery checklist helper');
 must(service.includes('copyDownloadRecoveryChecklist'), 'download service should expose checklist copy helper');
 must(service.includes('serializeDownloadRecoveryChecklist'), 'download service should serialize checklist text');
 must(service.includes('recovery-checklist-copy'), 'download service should record checklist copy event');
-must(service.includes("version: '1.5.32'"), 'download helpers should report v1.5.32');
+must(service.includes("version: '1.5.33'"), 'download helpers should report v1.5.33');
 must(runtime.includes('FoxBearDownloadService.getDownloadRecoveryChecklist'), 'runtime health should require checklist helper');
 must(runtime.includes('FoxBearDownloadService.copyDownloadRecoveryChecklist'), 'runtime health should require checklist copy helper');
 
@@ -32,13 +32,13 @@ must(dialog.includes('download-options-checklist'), 'dialog should render recove
 must(dialog.includes('renderChecklist(action, exported)'), 'receipt rendering should refresh checklist');
 must(dialog.includes('체크리스트 복사'), 'dialog should include checklist copy action');
 must(dialog.includes('copyDownloadRecoveryChecklist'), 'dialog should call checklist copy helper');
-must(css.includes('Download recovery checklist'), 'CSS should include v1.5.32 checklist comment');
+must(css.includes('Download recovery checklist'), 'CSS should include v1.5.33 checklist comment');
 must(css.includes('.download-assist-checklist'), 'CSS should style assist checklist');
 must(css.includes('.download-options-checklist'), 'CSS should style dialog checklist');
 
-must(pkg.qaChecks.includes('node qa/v1416_download_recovery_checklist_smoke.js'), 'package qaChecks should include v1.5.32 smoke');
-must(fs.existsSync(path.join(root, 'qa/BROWSER_BACK_QA_MATRIX_1.4.26.md')), 'v1.5.32 browser matrix should exist');
-must(qaReport.includes('v1.5.32'), 'QA report should mention v1.5.32');
-must(changelog.includes('v1.5.32'), 'changelog should mention v1.5.32');
-must(handoff.includes('v1.5.32'), 'handoff should mention v1.5.32');
+must(pkg.qaChecks.includes('node qa/v1416_download_recovery_checklist_smoke.js'), 'package qaChecks should include v1.5.33 smoke');
+must(fs.existsSync(path.join(root, 'qa/BROWSER_BACK_QA_MATRIX_1.4.26.md')), 'v1.5.33 browser matrix should exist');
+must(qaReport.includes('v1.5.33'), 'QA report should mention v1.5.33');
+must(changelog.includes('v1.5.33'), 'changelog should mention v1.5.33');
+must(handoff.includes('v1.5.33'), 'handoff should mention v1.5.33');
 console.log('PASS v1.4.26 download recovery checklist smoke');

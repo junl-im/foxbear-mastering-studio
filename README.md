@@ -1,25 +1,31 @@
-# FoxBear AI Mastering Studio Pro v1.5.32
+# FoxBear AI Mastering Studio Pro v1.5.33
 
-## Current patch: v1.5.32 Kakao External Browser Local Flow
+## v1.5.33 codec policy
 
-카카오톡 링크로 들어오면 전체 스튜디오를 바로 실행하지 않고, 먼저 아주 가벼운 외부 브라우저 안내 페이지로 이동합니다. 안내 페이지는 기본 브라우저 자동 전환을 한 번 시도하고, 실패하면 `기본 브라우저에서 시작`, Android 브라우저 선택, 주소 복사 버튼을 제공합니다. 사용자가 명시적으로 선택한 경우에만 카카오톡 안에서 계속 진행할 수 있습니다.
+FoxBear now distinguishes app-supported formats from browser-conditional formats. WAV, MP3, and uncompressed PCM AIFF/AIFC are stable inputs. M4A/AAC, FLAC, OGG/Opus, WebM audio, and MP4/MOV audio tracks appear only when the current browser reports playback capability; final acceptance is still determined by actual Web Audio decoding. CAF, WMA, AMR, and 3GP-family inputs are no longer advertised because this build does not bundle decoders for them.
 
-가장 중요한 원칙은 **파일을 선택하기 전에 외부 브라우저로 이동하는 것**입니다. Chrome, Samsung Internet, Safari에서 원곡을 선택하면 디코딩, 분석, 마스터링, MP3/WAV 인코딩과 다운로드가 모두 해당 브라우저의 로컬 메모리에서 처리되므로 서버 업로드가 필요하지 않습니다. 카카오톡 안에서 이미 만든 Blob 결과는 별도 브라우저 메모리로 전달되지 않으므로, 그 시점에는 먼저 공유/저장하거나 외부 브라우저에서 원곡을 다시 선택해야 합니다.
+Downloads are validated before saving. WAV and MP3 headers, minimum file size, filename extension, and MIME type are checked before anchor download, file sharing, or File System Access saving.
+
+## Current patch: v1.5.33 Codec Truth and Download Hardening
+
+파일 선택창과 실제 디코더 계약을 일치시켰습니다. WAV, MP3, PCM AIFF/AIFC는 안정 입력으로 유지하고, M4A/AAC, FLAC, OGG/Opus, WebM, MP4/MOV는 현재 브라우저가 재생 가능성을 보고한 경우에만 선택 목록에 표시합니다. 전용 디코더가 없는 CAF, WMA, AMR, 3GP 계열은 선택 전에 명확히 차단합니다.
+
+브라우저의 AIFF 디코딩이 실패할 때 사용할 PCM AIFF/AIFC 파서를 추가했고, 디코딩은 재생용 AudioContext 활성화를 기다리지 않습니다. 다운로드 전에는 WAV/MP3/ZIP/JSON Blob의 크기와 헤더를 검증하며, 일반 다운로드가 빈 새 탭을 만들지 않도록 정리했습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.32
-build: kakao-external-browser-local-flow
-asset generation: 1.5.32-kakao-external-browser-local-flow
-service worker cache: foxbear-shell-v1.5.32-kakao-external-browser-local-flow
+product: 1.5.33
+build: codec-truth-download-hardening
+asset generation: 1.5.33-codec-truth-download-hardening
+service worker cache: foxbear-shell-v1.5.33-codec-truth-download-hardening
 ```
 
 Verification:
 
 ```text
-static QA target: 216/216 PASS
-real-browser QA: run npm run qa:browser in CI or an unrestricted local environment
+static QA target: 220/220 PASS
+real-browser QA: attempted locally; Playwright Chromium executable is absent, so run in CI or an unrestricted local environment
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

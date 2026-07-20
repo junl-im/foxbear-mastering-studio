@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.32-kakao-external-browser-local-flow';
+    const SERVICE_VERSION = '1.5.33-codec-truth-download-hardening';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;

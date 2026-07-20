@@ -1,25 +1,32 @@
-# Handoff - v1.5.32
+# Handoff - v1.5.33
+
+## v1.5.33 handoff focus
+
+- Verify WAV, MP3, and PCM AIFF import on desktop and mobile browsers.
+- Verify conditional formats are hidden when `HTMLMediaElement.canPlayType()` returns an empty string.
+- Verify CAF/WMA/AMR/3GP are rejected before queue registration with a conversion recommendation.
+- Verify generated WAV/MP3 files pass header validation and normal browser downloads do not open an extra blank tab.
 
 ## Maintainer workflow
 
 The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
 
-## Current patch: v1.5.32 Kakao external-browser local flow
+## Current patch: v1.5.33 Codec truth and download hardening
 
 Changes:
 
-- Runs a synchronous KakaoTalk entry guard before the normal application boot.
-- Routes Kakao entry to `external-browser.html`, which attempts the Kakao external-browser scheme and provides Android intent, URL-copy, and explicit in-app fallback actions.
-- Validates the target as same-origin to avoid turning the landing page into an open redirect.
-- Keeps the privacy-first local workflow: the user opens the full browser first, then imports, masters, encodes, and downloads locally without uploading the source audio.
-- Does not claim that an existing Kakao WebView Blob can move across browser sandboxes; completed in-app output must be shared/saved first or recreated from the original file in the external browser.
-- Adds the landing files to the service-worker shell and cumulative overwrite package.
+- Filters the picker with runtime `canPlayType()` signals while retaining actual decode as the final acceptance check.
+- Treats WAV, MP3, and PCM AIFF/AIFC as stable inputs; removes unsupported CAF/WMA/AMR/3GP advertising.
+- Adds an app-level AIFF/AIFC PCM fallback parser and bounded native decode timeouts.
+- Validates generated WAV/MP3/ZIP/JSON Blob headers before save, share, or download.
+- Keeps normal downloads in the current page, restores MP3 256 kbps, and exposes File System Access saving only in secure contexts.
+- Adds runtime synthetic AIFF decode and invalid-download rejection tests.
 
 ```text
-product: 1.5.32
-build: kakao-external-browser-local-flow
-asset generation: 1.5.32-kakao-external-browser-local-flow
-service worker cache: foxbear-shell-v1.5.32-kakao-external-browser-local-flow
+product: 1.5.33
+build: codec-truth-download-hardening
+asset generation: 1.5.33-codec-truth-download-hardening
+service worker cache: foxbear-shell-v1.5.33-codec-truth-download-hardening
 ```
 
 Verification:

@@ -12,8 +12,8 @@ const html = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('assets/css/studio.css', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
 
-must(app.includes("const APP_VERSION = 'Pro v1.5.32'"), 'app version must be v1.4.0');
-must(html.includes('data-build="1.5.32"'), 'index data-build must be v1.5.32');
+must(app.includes("const APP_VERSION = 'Pro v1.5.33'"), 'app version must be v1.4.0');
+must(html.includes('data-build="1.5.33"'), 'index data-build must be v1.5.33');
 must(html.includes('id="importStatus"'), 'visible import status is missing');
 must(/<label id="fileDrop"[\s\S]*?<input type="file" id="fileInput"[\s\S]*?<\/label>/.test(html), 'file input must be nested inside file tile');
 must(/<label id="folderDrop"[\s\S]*?<input type="file" id="folderInput"[\s\S]*?<\/label>/.test(html), 'folder input must be nested inside folder tile');
@@ -21,8 +21,8 @@ must(css.includes('native-picker-input-overlay') && css.includes('pointer-events
 must(app.includes('safeInit') && app.includes('bindEmergencyUploadOnly'), 'boot fallback upload binding missing');
 must(app.includes('armPickerReturnWatch'), 'picker return diagnostic missing');
 must(app.includes('카카오톡/인앱 브라우저'), 'Kakao/in-app diagnostic copy missing');
-must(app.includes("return { ok: true, label: '미확인 입력' }"), 'unknown type decode trial missing');
+must(app.includes('capabilityService?.getFileCapability') && app.includes('오디오 파일 형식을 확인할 수 없습니다'), 'truthful unknown type validation missing');
 must(sw.includes("['script', 'style', 'worker'].includes(request.destination)"), 'service worker should network-first scripts/styles');
-must(html.includes('src/app.js?v=1.5.32-kakao-external-browser-local-flow'), 'app cache bust key missing');
-must(sw.includes('foxbear-shell-v1.5.32-kakao-external-browser-local-flow'), 'SW cache key missing');
+must(html.includes('src/app.js?v=1.5.33-codec-truth-download-hardening'), 'app cache bust key missing');
+must(sw.includes('foxbear-shell-v1.5.33-codec-truth-download-hardening'), 'SW cache key missing');
 console.log('PASS kakao upload rootfix smoke');

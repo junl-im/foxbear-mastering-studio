@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.32 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.33 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -17,7 +17,8 @@ const {
 const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.32';
+const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.33';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -33,7 +34,7 @@ const {
     EXPERIMENTAL_AUDIO_EXTENSIONS = [],
     AUDIO_EXTENSIONS = [],
     VIDEO_AUDIO_EXTENSIONS = [],
-    AUDIO_IMPORT_ACCEPT = 'audio/*',
+    AUDIO_IMPORT_ACCEPT = '.wav,.wave,.mp3,.mpeg,.mpga,.aif,.aiff,.aifc,audio/wav,audio/x-wav,audio/mpeg,audio/aiff,audio/x-aiff',
     DEFAULT_TRANSFORM = { pitchSemitones: 0, speedRatio: 1, snapSemitone: true, beatPreset: 'original' },
     DEFAULT_INSTRUMENT_LAYER = { mode: 'off', amount: 'light' },
     ACTION_SELECT_IDS = [],
@@ -60,7 +61,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.32-kakao-external-browser-local-flow'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1532'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.33-codec-truth-download-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1533'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -291,7 +292,7 @@ function safeInit() {
         const ready = init();
         if (ready !== false) {
             window.FoxBearRuntimeHealth?.markAppReady?.();
-            updateImportStatus('앱 준비 완료 · 파일열기에서 음원을 선택하면 바로 분석을 시작합니다.', 'ready');
+            updateImportStatus(getAudioImportCapabilityService()?.getStatusText?.() || '앱 준비 완료 · WAV/MP3/PCM AIFF 파일을 선택하면 바로 분석을 시작합니다.', 'ready');
         }
     } catch (error) {
         console.error('FoxBear critical init failed:', error);
@@ -460,6 +461,7 @@ function bindUploadInputEventsOnce() {
 function init() {
     if (runSiteAccessGuard()) return false;
     runInitStep('화면 요소 연결', cacheElements, { critical: true });
+    runInitStep('브라우저 코덱 확인', syncAudioImportCapabilities);
     runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true });
     runInitStep('설정 저장값 복원', restorePersistedSettings);
     runInitStep('화면유지 컨트롤러 노출', exposeFoxBearWakeLockController);
@@ -1700,7 +1702,7 @@ const ACTION_HELP_TEXTS = {
     snapshotAiBtn: '분석 결과의 AI 추천값으로 즉시 복원합니다.',
     snapshotOriginalBtn: 'AI 프리셋 없이 원본 기준 커스텀 상태로 전환합니다.',
     snapshotClearBtn: '선택 트랙의 스냅샷 기록을 삭제합니다.',
-    fileDrop: '파일 하나 또는 여러 개를 불러옵니다. WAV, MP3, M4A/AAC, FLAC, OGG/Opus, AIFF, CAF, MP4/MOV 등 다양한 코덱을 브라우저 지원 범위에서 시도합니다.',
+    fileDrop: '파일 하나 또는 여러 개를 불러옵니다. WAV, MP3, PCM AIFF는 안정 입력이며, M4A/AAC·FLAC·OGG/Opus 등은 현재 브라우저가 지원한다고 확인한 경우에만 선택 목록에 표시합니다.',
     folderDrop: '폴더 안의 여러 음악 파일을 한 번에 불러옵니다.',
     aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
     masterSelectedBtn: '선택한 트랙만 현재 설정으로 마스터링합니다.',
@@ -2989,7 +2991,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.32-kakao-external-browser-local-flow') · navigator.serviceWorker.register('./sw.js?v=1.5.32-kakao-external-browser-local-flow&h=sw-v1532')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.33-codec-truth-download-hardening') · navigator.serviceWorker.register('./sw.js?v=1.5.33-codec-truth-download-hardening&h=sw-v1533')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3729,16 +3731,16 @@ function toggleFeature(key) {
     showToast(`${FEATURE_DEFINITIONS[key].label}: ${state.featureFlags[key] ? '켜짐' : '꺼짐'} · ${FEATURE_DEFINITIONS[key].short}`);
 }
 const FOXBEAR_UPLOAD_ACCEPT = AUDIO_IMPORT_ACCEPT;
-const FOXBEAR_FILE_PICKER_TYPES = [{
-    description: 'FoxBear 지원/시도 오디오 파일',
-    accept: {
-        'audio/*': CORE_AUDIO_EXTENSIONS.filter(ext => !['.mp4', '.m4v', '.mov'].includes(ext)),
-        'video/mp4': ['.mp4', '.m4v'],
-        'video/quicktime': ['.mov'],
-        'video/3gpp': ['.3gp', '.3gpp', '.3g2'],
-        'application/ogg': ['.ogg', '.oga', '.opus']
-    }
-}];
+function getAudioImportCapabilityService() { return window.FoxBearAudioImportCapabilityService || FoxBearAudioImportCapabilityService || null; }
+function getFoxBearFilePickerTypes() {
+    const service = getAudioImportCapabilityService();
+    return service?.getPickerTypes?.() || [{ description: 'FoxBear 안정 오디오 파일', accept: { 'audio/wav': ['.wav', '.wave'], 'audio/mpeg': ['.mp3', '.mpeg', '.mpga'], 'audio/aiff': ['.aif', '.aiff', '.aifc'] } }];
+}
+function syncAudioImportCapabilities() {
+    const service = getAudioImportCapabilityService();
+    if (service?.applyToInputs) return service.applyToInputs({ fileInput: el.fileInput, folderInput: el.folderInput, referenceInput: el.referenceInput, statusElement: el.importStatus });
+    [el.fileInput, el.folderInput, el.referenceInput].filter(Boolean).forEach(input => input.setAttribute('accept', FOXBEAR_UPLOAD_ACCEPT)); return null;
+}
 function supportsSystemDirectoryPicker() {
     return typeof window.showDirectoryPicker === 'function';
 }
@@ -3795,7 +3797,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.32-kakao-external-browser-local-flow', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.33-codec-truth-download-hardening', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -3850,7 +3852,7 @@ async function openSystemFilePicker() {
         const handles = await window.showOpenFilePicker({
             multiple: true,
             excludeAcceptAllOption: false,
-            types: FOXBEAR_FILE_PICKER_TYPES
+            types: getFoxBearFilePickerTypes()
         });
         const files = await Promise.all((handles || []).map(handle => handle.getFile()));
         if (files.length) await handleFiles(files);
@@ -3866,6 +3868,8 @@ async function openSystemFilePicker() {
 function isLikelyAudioFileHandle(name = '', kind = '') {
     const lower = String(name || '').toLowerCase();
     if (kind && kind !== 'file') return false;
+    const service = getAudioImportCapabilityService();
+    if (service && typeof service.getFileCapability === 'function') return service.getFileCapability(name).ok;
     return AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext)) || VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
 }
 function attachRelativePathToFile(file, relativePath) {
@@ -3886,20 +3890,21 @@ function getFileExtension(fileOrName = '') {
     return match ? match[0] : '';
 }
 function getAudioImportSupportLabel(fileOrName = '') {
+    const service = getAudioImportCapabilityService();
+    if (service && typeof service.getFileCapability === 'function') return service.getFileCapability(fileOrName).label;
     const ext = getFileExtension(fileOrName);
     if (!ext) return '확장자 없음';
     if (CORE_AUDIO_EXTENSIONS.includes(ext)) return '권장 입력';
     if (CONTAINER_AUDIO_EXTENSIONS.includes(ext)) return '컨테이너 입력';
-    if (EXPERIMENTAL_AUDIO_EXTENSIONS.includes(ext)) return '실험적 입력';
+    if (EXPERIMENTAL_AUDIO_EXTENSIONS.includes(ext)) return '브라우저 조건부';
     return '미확인 입력';
 }
 function getAudioImportDecodeHint(fileOrName = '') {
-    const ext = getFileExtension(fileOrName);
-    if (['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'].includes(ext)) return ' 영상 컨테이너는 AAC/ALAC 등 브라우저가 디코딩 가능한 오디오 트랙이 있을 때만 분석됩니다.';
-    if (['.amr', '.wma'].includes(ext)) return ' 이 형식은 모바일/브라우저에 따라 디코딩이 제한될 수 있어 WAV/MP3/M4A 변환을 권장합니다.';
-    if (['.aif', '.aiff', '.aifc', '.caf'].includes(ext)) return ' AIFF/CAF는 Safari 계열에서 더 잘 열릴 수 있으며, 브라우저별 지원 차이가 있습니다.';
-    if (['.opus', '.oga', '.ogg'].includes(ext)) return ' OGG/Opus는 일부 Safari 환경에서 제한될 수 있습니다.';
-    return '';
+    const capability = getAudioImportCapabilityService()?.getFileCapability?.(fileOrName);
+    if (capability && !capability.ok) return ` ${capability.reason}`;
+    const service = window.FoxBearAudioDecodeService;
+    if (service && typeof service.getAudioImportDecodeHint === 'function') return service.getAudioImportDecodeHint(fileOrName);
+    return capability?.reason ? ` ${capability.reason}` : '';
 }
 async function collectFilesFromDirectoryHandle(directoryHandle, prefix = '', out = []) {
     if (!directoryHandle || typeof directoryHandle.entries !== 'function') return out;
@@ -4105,7 +4110,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.32-kakao-external-browser-local-flow',
+        version: '1.5.33-codec-truth-download-hardening',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4145,7 +4150,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.32-kakao-external-browser-local-flow',
+    version: '1.5.33-codec-truth-download-hardening',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4170,12 +4175,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.32-kakao-external-browser-local-flow', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.33-codec-truth-download-hardening', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.32-kakao-external-browser-local-flow', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.33-codec-truth-download-hardening', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4190,12 +4195,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.32-kakao-external-browser-local-flow',
+    version: 'v1.5.33-codec-truth-download-hardening',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.32-kakao-external-browser-local-flow', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.33-codec-truth-download-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -4276,32 +4281,24 @@ async function handleFiles(fileList) {
         const recommendationText = singleUploadDialogCandidate ? '추천값 선택 팝업을 준비합니다.' : '각 곡 AI 추천값은 자동 적용됩니다.';
         showToastSafe(`${added}개 트랙 등록 완료. ${queueText} ${recommendationText}${skippedByLimit ? ` · ${skippedByLimit}개는 최대 개수 제한으로 제외` : ''}`);
     } else if (invalid) {
-        showToastSafe('선택한 파일을 오디오로 인식하지 못했습니다. WAV/MP3/M4A/AAC/FLAC 파일로 다시 시도해주세요.');
+        showToastSafe('선택한 파일을 열 수 없습니다. WAV, MP3 또는 PCM AIFF 파일로 다시 시도해주세요.');
     }
     return { added, invalid, limited: skippedByLimit };
 }
 function validateAudioFile(file) {
-    const lower = String(file?.name || '').toLowerCase();
     const type = String(file?.type || '').toLowerCase();
-    const hasAudioType = Boolean(type && (type.startsWith('audio/') || type === 'application/ogg' || type === 'application/octet-stream'));
-    const hasVideoAudioType = Boolean(type && (type === 'video/mp4' || type === 'video/quicktime' || type === 'video/3gpp' || type.startsWith('video/')));
-    const hasAudioExt = AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
-    const hasVideoAudioExt = VIDEO_AUDIO_EXTENSIONS.some(ext => lower.endsWith(ext));
-    if (file.size <= 0) return { ok: false, reason: '빈 파일입니다.' };
-    if (!hasAudioType && !hasAudioExt && !(hasVideoAudioType && hasVideoAudioExt)) {
-        const missingNameOrType = !lower.includes('.') || !type || type === 'application/octet-stream';
-        if (missingNameOrType) {
-            console.info('Unknown file type selected; trying browser decoder:', file.name || '(no name)', file.type || '(no type)');
-            return { ok: true, label: '미확인 입력' };
-        }
-        return { ok: false, reason: '지원 입력 형식이 아닙니다. WAV/MP3/M4A/AAC/FLAC/OGG/OPUS/WEBM/AIFF/CAF/MP4/MOV/3GP 계열을 시도할 수 있습니다.' };
-    }
+    if (Number(file?.size || 0) <= 0) return { ok: false, reason: '빈 파일입니다.' };
     if (file.size > MAX_FILE_SIZE) return { ok: false, reason: `파일이 너무 큽니다. 최대 ${formatBytes(MAX_FILE_SIZE)}까지 권장합니다.` };
-    const label = getAudioImportSupportLabel(file);
-    if (label === '실험적 입력') {
-        console.info('Experimental audio import selected:', file.name, getAudioImportDecodeHint(file));
-    }
-    return { ok: true, label };
+    const capabilityService = getAudioImportCapabilityService();
+    const capability = capabilityService?.getFileCapability?.(file) || null;
+    if (capability && !capability.ok) return { ok: false, reason: `${capability.reason} WAV, MP3 또는 PCM AIFF로 변환해 주세요.`, label: capability.label };
+    const hasKnownExtension = Boolean(getFileExtension(file));
+    const hasAudioMime = Boolean(type && (type.startsWith('audio/') || type === 'application/ogg' || type === 'application/octet-stream'));
+    const hasVideoMime = Boolean(type && (type === 'video/mp4' || type === 'video/quicktime'));
+    if (!hasKnownExtension && !hasAudioMime && !hasVideoMime) return { ok: false, reason: '오디오 파일 형식을 확인할 수 없습니다. WAV, MP3 또는 PCM AIFF 파일을 선택해 주세요.' };
+    const label = capability?.label || getAudioImportSupportLabel(file);
+    if (capability?.tier === 'conditional' || capability?.tier === 'container') console.info('Conditional browser codec import selected:', file.name, capability.reason || getAudioImportDecodeHint(file));
+    return { ok: true, label, capability };
 }
 function createTrack(file) {
     const lifecycle = getTrackLifecycleService();
@@ -12734,7 +12731,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.32',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.33',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

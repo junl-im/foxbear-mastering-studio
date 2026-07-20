@@ -33,13 +33,17 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.32`
-- Build ID: `kakao-external-browser-local-flow`
-- Asset version: `1.5.32-kakao-external-browser-local-flow`
-- Service worker cache: `foxbear-shell-v1.5.32-kakao-external-browser-local-flow`
-- Static QA target: `216/216 PASS`
+- Product version: `1.5.33`
+- Build ID: `codec-truth-download-hardening`
+- Asset version: `1.5.33-codec-truth-download-hardening`
+- Service worker cache: `foxbear-shell-v1.5.33-codec-truth-download-hardening`
+- Static QA target: `220/220 PASS`
 - Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
+- Local browser QA was attempted for v1.5.33 but could not launch because the Playwright Chromium executable is absent in this workspace.
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
+- Import UI must advertise only stable or browser-detected codecs; CAF/WMA/AMR/3GP must remain excluded unless a real decoder is added.
+- PCM AIFF/AIFC fallback decoding and download Blob signature validation are release invariants.
+
 - KakaoTalk entry must route to the lightweight external-browser landing before import/mastering unless the user explicitly chooses the in-app bypass.
 - The external-browser landing must accept same-origin targets only and must not imply that Kakao WebView Blob memory transfers into Chrome/Safari.
 - The preferred Kakao workflow is external browser first, then local import/master/encode/download without server upload.

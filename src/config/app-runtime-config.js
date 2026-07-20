@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.32 - runtime constants
+// FoxBear AI Mastering Studio Pro v1.5.33 - runtime constants
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const ASSET_VERSION = '1.5.32-kakao-external-browser-local-flow';
+    const ASSET_VERSION = '1.5.33-codec-truth-download-hardening';
     if (BUILD_INFO.assetVersion && BUILD_INFO.assetVersion !== ASSET_VERSION) console.warn('[FoxBear] asset metadata mismatch', { runtime: ASSET_VERSION, build: BUILD_INFO.assetVersion });
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
@@ -12,13 +12,13 @@
     const MASTER_FINALIZER_WORKER_URL = assetUrl('src/workers/master-finalizer.worker.js');
     const PITCH_WSOLA_WORKER_URL = assetUrl('src/workers/pitch-wsola.worker.js');
     const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
-    const CORE_AUDIO_EXTENSIONS = ['.wav', '.wave', '.mp3', '.mpeg', '.mpga', '.flac', '.ogg', '.oga', '.opus', '.m4a', '.aac', '.webm', '.weba', '.aif', '.aiff', '.aifc', '.caf'];
-    const CONTAINER_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov', '.3gp', '.3gpp', '.3g2'];
-    const EXPERIMENTAL_AUDIO_EXTENSIONS = ['.amr', '.wma'];
+    const CORE_AUDIO_EXTENSIONS = ['.wav', '.wave', '.mp3', '.mpeg', '.mpga', '.aif', '.aiff', '.aifc'];
+    const CONTAINER_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov'];
+    const EXPERIMENTAL_AUDIO_EXTENSIONS = ['.m4a', '.aac', '.flac', '.ogg', '.oga', '.opus', '.webm', '.weba'];
     const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
 
     global.FoxBearRuntimeConfig = Object.freeze({
-        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.32',
+        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.33',
         ASSET_VERSION,
         WAV_ENCODER_WORKER_URL,
         MP3_ENCODER_WORKER_URL,
@@ -44,7 +44,7 @@
         EXPERIMENTAL_AUDIO_EXTENSIONS: Object.freeze(EXPERIMENTAL_AUDIO_EXTENSIONS),
         AUDIO_EXTENSIONS: Object.freeze(AUDIO_EXTENSIONS),
         VIDEO_AUDIO_EXTENSIONS: Object.freeze(CONTAINER_AUDIO_EXTENSIONS),
-        AUDIO_IMPORT_ACCEPT: Object.freeze([...AUDIO_EXTENSIONS, 'audio/*', 'video/mp4', 'video/quicktime', 'video/3gpp', 'application/ogg']).join(','),
+        AUDIO_IMPORT_ACCEPT: Object.freeze([...AUDIO_EXTENSIONS, 'audio/wav', 'audio/mpeg', 'audio/aiff', 'audio/mp4', 'audio/aac', 'audio/flac', 'audio/ogg', 'audio/webm', 'video/mp4', 'video/quicktime']).join(','),
         DEFAULT_TRANSFORM: Object.freeze({ pitchSemitones: 0, speedRatio: 1, snapSemitone: true, beatPreset: 'original' }),
         DEFAULT_INSTRUMENT_LAYER: Object.freeze({ mode: 'off', amount: 'light' }),
         ACTION_SELECT_IDS: Object.freeze(['genreSelect', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'beatChangeSelect', 'instrumentLayerSelect', 'instrumentAmountSelect']),

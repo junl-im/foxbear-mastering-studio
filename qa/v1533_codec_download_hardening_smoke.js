@@ -1,0 +1,37 @@
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '..');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const must = (condition, message) => { if (!condition) throw new Error(message); };
+
+const index = read('index.html');
+const config = read('src/config/app-runtime-config.js');
+const capability = read('src/audio/audio-import-capability-service.js');
+const decode = read('src/audio/audio-decode-service.js');
+const download = read('src/download/download-service.js');
+const dialog = read('src/ui/download-dialog-view.js');
+const sw = read('sw.js');
+
+must(index.includes('audio-import-capability-service.js'), 'capability service is not loaded');
+must(index.includes('브라우저 확인 코덱만 표시'), 'truthful codec label missing');
+must(!read('src/app.js').includes("AUDIO_IMPORT_ACCEPT = 'audio/*'"), 'app fallback still advertises every audio MIME');
+must(!index.includes('.amr,.wma'), 'unsupported AMR/WMA still exposed by file input');
+must(!index.includes('.caf'), 'unsupported CAF still exposed by file input');
+must(capability.includes("'.caf': 'CAF 전용 디코더"), 'CAF explicit unsupported reason missing');
+must(capability.includes('canPlayType'), 'runtime browser codec probing missing');
+must(capability.includes('getPickerTypes'), 'dynamic picker types missing');
+must(config.includes("const CORE_AUDIO_EXTENSIONS = ['.wav', '.wave', '.mp3'"), 'stable core extension list missing');
+must(!config.includes("EXPERIMENTAL_AUDIO_EXTENSIONS = ['.amr', '.wma']"), 'unsupported experimental extensions still configured');
+must(decode.includes('decodeAiffPcm'), 'AIFF PCM fallback decoder missing');
+must(decode.includes("pushEvent('decode-aiff-fallback'"), 'AIFF fallback diagnostic missing');
+must(decode.includes('withTimeout('), 'decode timeout guard missing');
+must(!decode.includes('await awaitWithAbort(ensureAudioContextRunning(audioContext)'), 'decode still waits for AudioContext resume');
+must(download.includes('inspectDownloadBlob'), 'download blob inspection missing');
+must(download.includes('INVALID_DOWNLOAD_BLOB'), 'invalid download blob guard missing');
+must(download.includes("{ format: 'mp3_256'"), 'MP3 256 format option missing');
+must(download.includes("const supportsFileSystemSave = () => Boolean(global.isSecureContext"), 'secure-context save picker guard missing');
+must(!download.includes("a.target = '_blank';\n        a.className = 'hidden-download-link'"), 'normal anchor download still opens a blank tab');
+must(dialog.includes('await downloadBlob(exported.blob, exported.fileName, deps);'), 'download dialog does not await validated download');
+must(sw.includes('audio-import-capability-service.js'), 'service worker does not cache capability service');
+console.log('PASS v1.5.33 codec truth + download hardening smoke');

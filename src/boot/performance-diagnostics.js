@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.32-kakao-external-browser-local-flow';
+    const DIAGNOSTICS_VERSION = '1.5.33-codec-truth-download-hardening';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

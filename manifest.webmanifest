@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.32 (kakao-external-browser-local-flow).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.33 (codec-truth-download-hardening).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -122,40 +122,39 @@
         {
           "name": "audio",
           "accept": [
-            "audio/*",
+            "audio/wav",
+            "audio/mpeg",
+            "audio/aiff",
+            "audio/mp4",
+            "audio/aac",
+            "audio/flac",
+            "audio/ogg",
+            "audio/webm",
             "video/mp4",
             "video/quicktime",
-            "video/3gpp",
-            "application/ogg",
             ".wav",
             ".wave",
             ".mp3",
             ".mpeg",
             ".mpga",
+            ".aif",
+            ".aiff",
+            ".aifc",
+            ".m4a",
+            ".aac",
             ".flac",
             ".ogg",
             ".oga",
             ".opus",
-            ".m4a",
-            ".aac",
-            ".aif",
-            ".aiff",
-            ".aifc",
-            ".caf",
             ".webm",
             ".weba",
             ".mp4",
             ".m4v",
-            ".mov",
-            ".3gp",
-            ".3gpp",
-            ".3g2",
-            ".amr",
-            ".wma"
+            ".mov"
           ]
         }
       ]
     }
   },
-  "version": "1.5.32"
+  "version": "1.5.33"
 }

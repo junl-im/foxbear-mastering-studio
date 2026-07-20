@@ -1,3 +1,14 @@
+# v1.5.33 - Codec Truth and Download Hardening
+
+- Replaced the broad static input claim with runtime codec probing based on the current browser, exposing only formats that are stable or reported as playable.
+- Removed CAF, WMA, AMR, and 3GP-family formats from the advertised picker because no bundled decoder exists for them.
+- Added an application-level PCM AIFF/AIFC fallback decoder for NONE/twos/sowt and 32-bit float files when native Web Audio decoding fails.
+- Removed the unnecessary AudioContext resume wait from offline file decoding and added bounded decode timeouts plus container-signature diagnostics.
+- Added WAV/MP3/ZIP/JSON Blob signature validation before download or direct save, restored MP3 256 kbps in the format picker, and prevented normal downloads from opening a blank tab.
+- Restricted File System Access saving to secure contexts and made the download dialog await validated download startup.
+- Added v1.5.33 codec/download regression coverage and service-worker caching for the capability service.
+- Passed 220/220 static checks, including runtime AIFF sample decoding and invalid WAV/MP3 Blob rejection; local Playwright launch remains blocked only by the missing Chromium executable.
+
 # v1.5.32 - Kakao External Browser Local Flow
 
 - Added a synchronous KakaoTalk entry guard before the main application boot so restricted in-app sessions are moved to a lightweight external-browser landing before any audio file is selected or mastered.

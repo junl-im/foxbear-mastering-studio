@@ -190,7 +190,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.32-kakao-external-browser-local-flow',
+                version: '1.5.33-codec-truth-download-hardening',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,

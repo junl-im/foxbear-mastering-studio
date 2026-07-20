@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.32",
-  "buildId": "kakao-external-browser-local-flow",
+  "productVersion": "1.5.33",
+  "buildId": "codec-truth-download-hardening",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

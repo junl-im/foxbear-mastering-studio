@@ -1,3 +1,21 @@
+# FoxBear QA Report - v1.5.33
+
+Current release result: metadata/handoff/SRI checks and 220/220 static checks passed. Playwright was invoked, but this workspace has no Chromium executable, so real browser and device codec matrices remain required for final release validation.
+
+## v1.5.33 coverage
+
+- Requires dynamic `canPlayType()`-based picker filtering instead of a broad `audio/*` claim.
+- Rejects CAF, WMA, AMR, and 3GP-family inputs before queue registration.
+- Exercises the bundled PCM AIFF/AIFC fallback parser with synthetic 44.1 kHz samples.
+- Ensures file decoding does not wait for AudioContext playback resume and has a bounded timeout.
+- Validates WAV/MP3 output headers before download, direct save, or share preparation.
+- Requires normal anchor downloads to stay in the current page and File System Access saving to require a secure context.
+
+```text
+220/220 PASS target
+Browser QA: attempted here; blocked before launch because the Playwright Chromium executable is not installed. Run in GitHub Actions or an unrestricted local environment; codec-device matrix remains a manual release-candidate check
+```
+
 # FoxBear QA Report - v1.5.32
 
 Current release gate target: metadata/handoff checks and 216 static checks. Real KakaoTalk device validation remains a release-candidate manual check because the Kakao WebView and OS browser handoff cannot be emulated faithfully by static Node tests.
