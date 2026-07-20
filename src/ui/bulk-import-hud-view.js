@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.37 compatibility QA anchor: const VIEW_VERSION = '1.5.37-memory-import-waveform-hardening'
+    // v1.5.38 compatibility QA anchor: const VIEW_VERSION = '1.5.38-preflight-worker-multitab-hardening'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

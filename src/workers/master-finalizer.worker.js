@@ -4,6 +4,7 @@
 self.onmessage = event => {
     try {
         const payload = event.data || {};
+        const jobId = String(payload.__foxbearJobId || '');
         const sampleRate = normalizeFiniteInteger(payload.sampleRate ?? 44100, 3000, 384000, '샘플레이트');
         const channels = normalizeFiniteInteger(payload.channels ?? 1, 1, 2, '채널 수');
         const requestedLength = normalizeFiniteInteger(payload.length ?? 1, 1, 0x7fffffff, '샘플 길이');
@@ -57,6 +58,7 @@ self.onmessage = event => {
         const transfers = data.map(arr => arr.buffer);
         self.postMessage({
             ok: true,
+            __foxbearJobId: jobId,
             sampleRate,
             channels,
             length,
@@ -93,7 +95,7 @@ self.onmessage = event => {
             }
         }, transfers);
     } catch (error) {
-        self.postMessage({ ok: false, error: error.message || String(error) });
+        self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: String(event.data?.__foxbearJobId || '') });
     }
 };
 

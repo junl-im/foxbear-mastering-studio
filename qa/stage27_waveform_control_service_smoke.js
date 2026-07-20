@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.37-memory-import-waveform-hardening';
+const version = '1.5.38-preflight-worker-multitab-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

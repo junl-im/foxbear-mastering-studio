@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.37
+// FoxBear audio decode service - v1.5.38
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.37-memory-import-waveform-hardening';
+    const SERVICE_VERSION = '1.5.38-preflight-worker-multitab-hardening';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;
@@ -110,6 +110,141 @@
         if (view.getUint8(0) === 0xff && (view.getUint8(1) & 0xf6) === 0xf0) return { id: 'aac', extension: ext, signature: 'AAC ADTS' };
         if (readAscii(view, 4, 4) === 'ftyp') return { id: 'mp4', extension: ext, signature: 'ISO BMFF' };
         return { id: ext ? ext.slice(1) : 'unknown', extension: ext, signature: '' };
+    }
+
+    function parseWavHeaderMetadata(arrayBuffer, fileSize = 0) {
+        if (!arrayBuffer || arrayBuffer.byteLength < 44) return null;
+        const view = new DataView(arrayBuffer);
+        if (readAscii(view, 0, 4) !== 'RIFF' || readAscii(view, 8, 4) !== 'WAVE') return null;
+        let cursor = 12;
+        let channels = 0;
+        let sampleRate = 0;
+        let byteRate = 0;
+        let dataBytes = 0;
+        while (cursor + 8 <= view.byteLength) {
+            const id = readAscii(view, cursor, 4);
+            const size = view.getUint32(cursor + 4, true);
+            const payload = cursor + 8;
+            if (id === 'fmt ' && size >= 16 && payload + 16 <= view.byteLength) {
+                channels = view.getUint16(payload + 2, true);
+                sampleRate = view.getUint32(payload + 4, true);
+                byteRate = view.getUint32(payload + 8, true);
+            } else if (id === 'data') {
+                dataBytes = size;
+                break;
+            }
+            const next = payload + size + (size % 2);
+            if (next <= cursor || next > view.byteLength) break;
+            cursor = next;
+        }
+        if (!Number.isFinite(channels) || channels < 1 || channels > 32) return null;
+        if (!Number.isFinite(sampleRate) || sampleRate < 3000 || sampleRate > 384000) return null;
+        const safeByteRate = Number.isFinite(byteRate) && byteRate > 0 ? byteRate : 0;
+        const inferredDataBytes = dataBytes || Math.max(0, Number(fileSize || 0) - 44);
+        const durationSec = safeByteRate > 0 ? inferredDataBytes / safeByteRate : 0;
+        return { durationSec, sampleRate, channels, source: 'wav-header' };
+    }
+
+    function parseAiffHeaderMetadata(arrayBuffer) {
+        if (!arrayBuffer || arrayBuffer.byteLength < 30) return null;
+        const view = new DataView(arrayBuffer);
+        if (readAscii(view, 0, 4) !== 'FORM') return null;
+        const formType = readAscii(view, 8, 4);
+        if (formType !== 'AIFF' && formType !== 'AIFC') return null;
+        let cursor = 12;
+        while (cursor + 8 <= view.byteLength) {
+            const id = readAscii(view, cursor, 4);
+            const size = view.getUint32(cursor + 4, false);
+            const payload = cursor + 8;
+            if (id === 'COMM' && size >= 18 && payload + 18 <= view.byteLength) {
+                const channels = view.getUint16(payload, false);
+                const frames = view.getUint32(payload + 2, false);
+                const sampleRate = readExtended80(view, payload + 8);
+                if (channels >= 1 && channels <= 32 && Number.isFinite(sampleRate) && sampleRate >= 3000 && sampleRate <= 384000) {
+                    return { durationSec: frames / sampleRate, sampleRate, channels, source: 'aiff-header' };
+                }
+                return null;
+            }
+            const next = payload + size + (size % 2);
+            if (next <= cursor || next > view.byteLength) break;
+            cursor = next;
+        }
+        return null;
+    }
+
+    async function readAudioHeader(file, maxBytes = 1024 * 1024, signal = null) {
+        throwIfAborted(signal);
+        if (!file || typeof file.slice !== 'function') return null;
+        const size = Math.max(0, Number(file.size || 0));
+        const length = Math.max(64, Math.min(size || maxBytes, Math.max(64, Number(maxBytes || 0))));
+        const blob = file.slice(0, length);
+        return await awaitWithAbort(blob.arrayBuffer(), signal);
+    }
+
+    function estimatePcmMemory(durationSec, sampleRate, channels, fileBytes, options = {}) {
+        const duration = Math.max(0, Number(durationSec || 0));
+        const rate = Math.max(3000, Math.min(384000, Number(sampleRate || 48000)));
+        const channelCount = Math.max(1, Math.min(32, Number(channels || 2)));
+        if (!Number.isFinite(duration) || duration <= 0) return { known: false, decodedPcmBytes: 0, estimatedPeakBytes: Math.max(0, Number(fileBytes || 0)) };
+        const decodedPcmBytes = Math.ceil(duration * rate * channelCount * 4);
+        const multiplier = Math.max(1.5, Math.min(4, Number(options.peakMultiplier || 2.6)));
+        const estimatedPeakBytes = Math.ceil(Math.max(0, Number(fileBytes || 0)) + decodedPcmBytes * multiplier);
+        return { known: true, decodedPcmBytes, estimatedPeakBytes };
+    }
+
+    async function probeAudioFileMemory(file, options = {}) {
+        const signal = options.signal || null;
+        throwIfAborted(signal);
+        const fileBytes = Math.max(0, Number(file?.size || 0));
+        let header = null;
+        let container = { id: getFileExtension(file).slice(1) || 'unknown', extension: getFileExtension(file), signature: '' };
+        let metadata = null;
+        try {
+            header = await readAudioHeader(file, options.headerBytes || 1024 * 1024, signal);
+            if (header) {
+                container = detectAudioContainer(header, file);
+                if (container.id === 'wav') metadata = parseWavHeaderMetadata(header, fileBytes);
+                else if (container.id === 'aiff') metadata = parseAiffHeaderMetadata(header);
+            }
+        } catch (error) {
+            if (signal?.aborted) throw makeAbortError(signal);
+        }
+        if (!metadata || !Number.isFinite(Number(metadata.durationSec)) || Number(metadata.durationSec) <= 0) {
+            const media = await verifyMediaElementCanLoad(file, options.metadataTimeoutMs || 1800, signal).catch(error => {
+                if (signal?.aborted) throw makeAbortError(signal);
+                return null;
+            });
+            if (media?.ok && Number.isFinite(Number(media.duration)) && Number(media.duration) > 0) {
+                metadata = {
+                    durationSec: Number(media.duration),
+                    sampleRate: Number(options.defaultSampleRate || 48000),
+                    channels: Number(options.defaultChannels || 2),
+                    source: 'media-metadata-estimate'
+                };
+            }
+        }
+        const durationSec = Math.max(0, Number(metadata?.durationSec || 0));
+        const sampleRate = Math.max(3000, Math.min(384000, Number(metadata?.sampleRate || options.defaultSampleRate || 48000)));
+        const channels = Math.max(1, Math.min(32, Number(metadata?.channels || options.defaultChannels || 2)));
+        const memory = estimatePcmMemory(durationSec, sampleRate, channels, fileBytes, {
+            peakMultiplier: options.peakMultiplier || (container.id === 'wav' || container.id === 'aiff' ? 2.2 : 2.6)
+        });
+        return Object.freeze({
+            version: SERVICE_VERSION,
+            fileName: file?.name || '',
+            fileBytes,
+            container: container.id,
+            signature: container.signature || '',
+            metadataSource: metadata?.source || 'unknown',
+            known: memory.known,
+            durationSec: round(durationSec, 3),
+            sampleRate,
+            channels,
+            decodedPcmBytes: memory.decodedPcmBytes,
+            decodedPcmMB: round(memory.decodedPcmBytes / 1048576, 2),
+            estimatedPeakBytes: memory.estimatedPeakBytes,
+            estimatedPeakMB: round(memory.estimatedPeakBytes / 1048576, 2)
+        });
     }
 
     function readExtended80(view, offset) {
@@ -436,6 +571,10 @@
     global.FoxBearAudioDecodeService = Object.freeze({
         version: SERVICE_VERSION,
         decodeAudioFile,
+        probeAudioFileMemory,
+        estimatePcmMemory,
+        parseWavHeaderMetadata,
+        parseAiffHeaderMetadata,
         decodeAudioDataCompat,
         decodeAiffPcm,
         detectAudioContainer,

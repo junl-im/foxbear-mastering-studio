@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.37-memory-import-waveform-hardening';
+  const VIEW_VERSION = '1.5.38-preflight-worker-multitab-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

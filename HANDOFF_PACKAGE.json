@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.37",
-  "buildId": "memory-import-waveform-hardening",
+  "productVersion": "1.5.38",
+  "buildId": "preflight-worker-multitab-hardening",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

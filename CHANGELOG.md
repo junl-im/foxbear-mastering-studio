@@ -1,12 +1,11 @@
-# v1.5.37 - Memory, Import, Waveform Hardening
+# v1.5.38 - Preflight, Worker, and Multi-Tab Hardening
 
-- Added an explicit Service Worker bypass for `blob:`/`data:` and every non-HTTP(S) request before cache routing.
-- Disabled completed PCM retention on mobile and low-memory devices while preserving one-track desktop re-encoding when it fits the desktop budget.
-- Added a low-memory import policy: 10-track cap, 128 MB per file, 400 MB per selection, concurrency 1, and a 200 ms inter-track cooldown.
-- Replaced per-frame waveform bar class mutations with CSS-variable progress and cached bar lookup, then rAF-throttled Dock playhead synchronization.
-- Moved Firebase SDK loading behind dynamic imports scheduled with `requestIdleCallback`/timeout fallback so it no longer delays `DOMContentLoaded`.
-- Added `.githooks/pre-commit` and `npm run hooks:install` so release metadata drift is rejected before commit as well as in CI.
-- Added v1.5.37 regression coverage for the six user-reported risk areas.
+- Added pre-decode PCM and peak-memory estimation from WAV/AIFF headers or lightweight media metadata, blocking files that would exceed device-specific memory budgets before track creation.
+- Added a shared worker-job controller with unique job IDs, AbortSignal cancellation, bounded deadlines, worker termination, message-error handling, and stale-result isolation.
+- Connected mastering finalizer and MP3/WAV encoders to cancellable job tokens and aborts in-flight work when a track is removed or superseded.
+- Added cross-tab activity heartbeats through BroadcastChannel and localStorage so a waiting service worker activates only after every active FoxBear tab is idle.
+- Included playback and Wake Lock-related active work in the update-safety decision so a runtime swap cannot interrupt protected audio sessions.
+- Fixed the duplicated queued-state branch in the import queue and retained compressed-file, decoded-PCM, and estimated-peak rejection reasons separately.
 
 # v1.5.36 - Interaction Lifecycle Hardening
 

@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.37 - runtime constants
+// FoxBear AI Mastering Studio Pro v1.5.38 - runtime constants
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const ASSET_VERSION = '1.5.37-memory-import-waveform-hardening';
+    const ASSET_VERSION = '1.5.38-preflight-worker-multitab-hardening';
     if (BUILD_INFO.assetVersion && BUILD_INFO.assetVersion !== ASSET_VERSION) console.warn('[FoxBear] asset metadata mismatch', { runtime: ASSET_VERSION, build: BUILD_INFO.assetVersion });
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
@@ -18,7 +18,7 @@
     const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
 
     global.FoxBearRuntimeConfig = Object.freeze({
-        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.37',
+        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.38',
         ASSET_VERSION,
         WAV_ENCODER_WORKER_URL,
         MP3_ENCODER_WORKER_URL,
@@ -39,6 +39,12 @@
         LOW_MEMORY_MAX_FILE_SIZE: 128 * 1024 * 1024,
         LOW_MEMORY_IMPORT_BATCH_BYTES: 400 * 1024 * 1024,
         LOW_MEMORY_IMPORT_YIELD_MS: 200,
+        LOW_MEMORY_MAX_DECODED_PCM_BYTES: 192 * 1024 * 1024,
+        LOW_MEMORY_MAX_DECODE_PEAK_BYTES: 448 * 1024 * 1024,
+        STANDARD_MAX_DECODED_PCM_BYTES: 768 * 1024 * 1024,
+        STANDARD_MAX_DECODE_PEAK_BYTES: 1792 * 1024 * 1024,
+        IMPORT_METADATA_PROBE_TIMEOUT_MS: 1800,
+        IMPORT_METADATA_PROBE_CONCURRENCY: 3,
         IMPORT_ANALYSIS_CONCURRENCY: 1,
         LARGE_IMPORT_BATCH_THRESHOLD: 12,
         IMPORT_QUEUE_YIELD_MS: 90,

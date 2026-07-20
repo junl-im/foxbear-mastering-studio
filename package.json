@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.37",
+  "version": "1.5.38",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with user-gesture-safe download/share, bounded Blob URL cleanup, action re-entry guards, and BFCache navigation recovery.",
+  "description": "FoxBear AI Mastering Studio Pro with decoded-memory import preflight, cancellable worker jobs, and cross-tab safe service-worker activation.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.37-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.37-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.38-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.38-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "prepare": "bash tools/install-git-hooks.sh"
@@ -33,6 +33,7 @@
     "node --check src/state/app-state.js",
     "node --check src/settings/settings-service.js",
     "node --check src/utils/core-utils.js",
+    "node --check src/utils/worker-job-service.js",
     "node --check src/recommendation/recommendation-engine.js",
     "node --check src/audio/mastering-inspector.js",
     "node --check src/audio/highlight-compare-inspector.js",
@@ -42,6 +43,7 @@
     "node --check src/audio/preview-translation-service.js",
     "node --check src/audio/audio-import-capability-service.js",
     "node --check src/audio/audio-decode-service.js",
+    "node --check src/audio/import-preflight-service.js",
     "node --check src/audio/import-queue-service.js",
     "node --check src/audio/analysis-cache-service.js",
     "node --check src/audio/memory-guard-service.js",
@@ -249,15 +251,16 @@
     "node qa/v1535_runtime_exception_hardening_smoke.js",
     "node qa/v1536_download_activation_lifecycle_smoke.js",
     "node qa/v1536_bfcache_exit_guard_smoke.js",
-    "node qa/v1537_user_audit_hardening_smoke.js"
+    "node qa/v1537_user_audit_hardening_smoke.js",
+    "node qa/v1538_preflight_worker_multitab_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "memory-import-waveform-hardening",
-    "assetVersion": "1.5.37-memory-import-waveform-hardening",
-    "cacheName": "foxbear-shell-v1.5.37-memory-import-waveform-hardening",
-    "bootRevision": "boot-sri-v1537",
-    "updateSafetyRevision": "update-safety-v1537",
-    "serviceWorkerRevision": "sw-v1537"
+    "buildId": "preflight-worker-multitab-hardening",
+    "assetVersion": "1.5.38-preflight-worker-multitab-hardening",
+    "cacheName": "foxbear-shell-v1.5.38-preflight-worker-multitab-hardening",
+    "bootRevision": "boot-sri-v1538",
+    "updateSafetyRevision": "update-safety-v1538",
+    "serviceWorkerRevision": "sw-v1538"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

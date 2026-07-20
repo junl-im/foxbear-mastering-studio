@@ -3,11 +3,13 @@
 
 self.onmessage = event => {
     try {
-        const payload = normalizeEncodePayload(event.data || {});
+        const rawPayload = event.data || {};
+        const jobId = String(rawPayload.__foxbearJobId || '');
+        const payload = normalizeEncodePayload(rawPayload);
         const arrayBuffer = encodeWav(payload);
-        self.postMessage({ ok: true, arrayBuffer }, [arrayBuffer]);
+        self.postMessage({ ok: true, arrayBuffer, __foxbearJobId: jobId }, [arrayBuffer]);
     } catch (error) {
-        self.postMessage({ ok: false, error: error.message || String(error) });
+        self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: String(event.data?.__foxbearJobId || '') });
     }
 };
 

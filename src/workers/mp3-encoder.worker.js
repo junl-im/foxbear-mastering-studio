@@ -36,20 +36,22 @@ function resolveWorkerImportUrl(path) {
 
 self.onmessage = async event => {
     try {
-        const payload = normalizeEncodePayload(event.data || {});
+        const rawPayload = event.data || {};
+        const jobId = String(rawPayload.__foxbearJobId || '');
+        const payload = normalizeEncodePayload(rawPayload);
 
         try {
             const arrayBuffer = await encodeWithLameJs(payload);
-            self.postMessage({ ok: true, arrayBuffer, encoder: 'lamejs' }, [arrayBuffer]);
+            self.postMessage({ ok: true, arrayBuffer, encoder: 'lamejs', __foxbearJobId: jobId }, [arrayBuffer]);
             return;
         } catch (lameError) {
             console.warn('lamejs MP3 encoder fallback:', lameError);
         }
 
         const arrayBuffer = await encodeWithWebCodecs(payload);
-        self.postMessage({ ok: true, arrayBuffer, encoder: 'webcodecs' }, [arrayBuffer]);
+        self.postMessage({ ok: true, arrayBuffer, encoder: 'webcodecs', __foxbearJobId: jobId }, [arrayBuffer]);
     } catch (error) {
-        self.postMessage({ ok: false, error: error.message || String(error) });
+        self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: String(event.data?.__foxbearJobId || '') });
     }
 };
 

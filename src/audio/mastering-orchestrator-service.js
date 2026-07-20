@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.37-memory-import-waveform-hardening',
+            version: '1.5.38-preflight-worker-multitab-hardening',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.37-memory-import-waveform-hardening',
+        version: '1.5.38-preflight-worker-multitab-hardening',
         createMasteringBatchRunner
     });
 })(window);
