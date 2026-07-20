@@ -37,6 +37,14 @@
 
     const getToast = deps => (typeof deps?.showToast === 'function' ? deps.showToast : noop);
     const getTimestamp = deps => (typeof deps?.timestampForFile === 'function' ? deps.timestampForFile() : new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14));
+    const makeDownloadAbortError = reason => {
+        const error = new Error(String(reason || 'download-cancelled'));
+        error.name = 'AbortError';
+        error.code = 'FOXBEAR_WORKER_JOB_CANCELLED';
+        return error;
+    };
+    const throwIfDownloadAborted = signal => { if (signal?.aborted) throw makeDownloadAbortError(signal.reason); };
+    const emitDownloadProgress = (options, progress) => { try { options?.onProgress?.(progress); } catch (error) { console.warn('Download progress callback failed:', error); } };
 
     const readAscii = (bytes, offset, length) => {
         let text = '';
@@ -145,7 +153,8 @@
         return { blob: track.outBlob, fileName, format: outputFormat, reused: true, inspection };
     };
 
-    const prepareTrackDownloadBlob = async (track, format, deps = {}) => {
+    const prepareTrackDownloadBlob = async (track, format, deps = {}, options = {}) => {
+        throwIfDownloadAborted(options.signal);
         if (!track || !track.outBlob) throw new Error('완성된 마스터링 파일이 없습니다.');
         const requestedFormat = format || track.outFormat || 'wav24';
         if (requestedFormat === track.outFormat) {
@@ -154,7 +163,10 @@
                 format: outputFormat,
                 extension: /mp3/.test(outputFormat) ? 'mp3' : 'wav'
             });
+            emitDownloadProgress(options, { percent: 20, stage: '파일 검증', detail: '완성 파일의 헤더와 크기를 확인합니다.' });
             await assertDownloadBlob(track.outBlob);
+            throwIfDownloadAborted(options.signal);
+            emitDownloadProgress(options, { percent: 100, stage: '파일 준비 완료', detail: '저장 또는 공유를 시작할 수 있습니다.' });
             return { blob: track.outBlob, fileName, format: outputFormat, reused: true };
         }
         if (!track.masteredBuffer) {
@@ -165,9 +177,16 @@
             throw error;
         }
         if (typeof deps.encodeMasterOutputAsync !== 'function') throw new Error('선택한 포맷을 인코딩할 수 없습니다.');
-        const encoded = await deps.encodeMasterOutputAsync(track.masteredBuffer, requestedFormat);
+        const encoded = await deps.encodeMasterOutputAsync(track.masteredBuffer, requestedFormat, {
+            signal: options.signal || null,
+            jobId: options.jobId || '',
+            onProgress: typeof options.onProgress === 'function' ? options.onProgress : null
+        });
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('선택한 포맷 파일을 만들지 못했습니다.');
+        emitDownloadProgress(options, { percent: 99, stage: '파일 검증', detail: '생성된 오디오 헤더와 파일 크기를 확인합니다.' });
         await assertDownloadBlob(encoded.blob);
+        throwIfDownloadAborted(options.signal);
+        emitDownloadProgress(options, { percent: 100, stage: '파일 준비 완료', detail: '선택한 포맷의 파일 생성이 완료됐습니다.' });
         const fileName = getFallbackMasteredFileName(track, deps, encoded);
         return { blob: encoded.blob, fileName, format: encoded.format || requestedFormat, reused: false };
     };
@@ -290,7 +309,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.5.38',
+                version: '1.5.41',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -310,7 +329,7 @@
             };
         }
         return {
-            version: '1.5.38',
+            version: '1.5.41',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -374,7 +393,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.5.38',
+            version: '1.5.41',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -412,7 +431,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.5.38',
+            version: '1.5.41',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -440,7 +459,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.5.38',
+            version: '1.5.41',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -471,7 +490,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.5.38',
+            version: '1.5.41',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -496,7 +515,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.5.38',
+            version: '1.5.41',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -565,7 +584,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.5.38',
+            version: '1.5.41',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -779,7 +798,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.5.38 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.5.41 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         if (url) addActiveUrl(url, deps);

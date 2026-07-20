@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.38 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.41 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -18,7 +18,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.38';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.41';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -61,7 +61,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.38-preflight-worker-multitab-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1538'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.41-export-eta-download-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1541'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -128,7 +128,7 @@ function getWorkerJobService() { return window.FoxBearWorkerJobService || null; 
 async function runFoxBearWorkerJob(path, payload, transfer, options = {}) {
     const service = getWorkerJobService();
     if (!service?.run) throw new Error('워커 작업 관리 서비스를 불러오지 못했습니다.');
-    return (await service.run({ createWorker: () => createFoxBearWorker(path), payload, transfer, timeoutMs: options.timeoutMs, signal: options.signal || null, jobId: options.jobId || '', label: options.label || '오디오 워커' })).data;
+    return (await service.run({ createWorker: () => createFoxBearWorker(path), payload, transfer, timeoutMs: options.timeoutMs, signal: options.signal || null, jobId: options.jobId || '', label: options.label || '오디오 워커', onProgress: typeof options.onProgress === 'function' ? options.onProgress : null })).data;
 }
 function isWorkerJobAbortError(error) { return Boolean(getWorkerJobService()?.isAbortError?.(error) || error?.name === 'AbortError' || error?.code === 'FOXBEAR_WORKER_JOB_CANCELLED'); }
 function getAnalysisCacheOptions() {
@@ -2997,7 +2997,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.38-preflight-worker-multitab-hardening') · navigator.serviceWorker.register('./sw.js?v=1.5.38-preflight-worker-multitab-hardening&h=sw-v1538')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.41-export-eta-download-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.41-export-eta-download-recovery&h=sw-v1541')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3803,7 +3803,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.38-preflight-worker-multitab-hardening', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.41-export-eta-download-recovery', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4117,7 +4117,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.38-preflight-worker-multitab-hardening',
+        version: '1.5.41-export-eta-download-recovery',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4157,7 +4157,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.38-preflight-worker-multitab-hardening',
+    version: '1.5.41-export-eta-download-recovery',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4184,12 +4184,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.38-preflight-worker-multitab-hardening', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.41-export-eta-download-recovery', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.38-preflight-worker-multitab-hardening', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.41-export-eta-download-recovery', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4204,12 +4204,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.38-preflight-worker-multitab-hardening',
+    version: 'v1.5.41-export-eta-download-recovery',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.38-preflight-worker-multitab-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.41-export-eta-download-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5321,7 +5321,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.38-preflight-worker-multitab-hardening-fallback',
+            version: '1.5.41-export-eta-download-recovery-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -5595,7 +5595,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
             analysis: track.analysis || {},
             dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied),
             signal: masteringAbortController?.signal || null,
-            jobId: `${masteringJobId}:finalizer`
+            jobId: `${masteringJobId}:finalizer`, onProgress: progress => { if (masteringAbortController?.signal?.aborted || track.masteringJobId !== masteringJobId) return; const workerPercent = clamp(Number(progress?.percent || 0), 0, 100); track.progress = Math.max(Number(track.progress || 0), 90 + workerPercent * 0.04); track.report = `${progress?.stage || '파이널라이저'} ${Math.round(workerPercent)}%${progress?.detail ? ` · ${progress.detail}` : ''}`; scheduleRenderAll('master-finalizer-worker-progress', { keepDetailAudio: true, delayMs: 80 }); }
         });
         assertMasteringJobActive('finalizer');
         finalBuffer = finalization.buffer;
@@ -5619,7 +5619,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         if (albumProfile && track.analysis) track.albumApplied = createAlbumAppliedInfo(track.analysis, albumProfile);
         const encoded = await encodeMasterOutputAsync(finalBuffer, requestedOutputFormat, {
             signal: masteringAbortController?.signal || null,
-            jobId: `${masteringJobId}:encode`
+            jobId: `${masteringJobId}:encode`, onProgress: progress => { if (masteringAbortController?.signal?.aborted || track.masteringJobId !== masteringJobId) return; const workerPercent = clamp(Number(progress?.percent || 0), 0, 100); track.progress = Math.max(Number(track.progress || 0), 95 + workerPercent * 0.04); track.report = `${progress?.stage || getOutputFormatLabel(requestedOutputFormat)} ${Math.round(workerPercent)}%${progress?.detail ? ` · ${progress.detail}` : ''}`; scheduleRenderAll('master-encoder-worker-progress', { keepDetailAudio: true, delayMs: 80 }); }
         });
         assertMasteringJobActive('encode');
         track.exportFallbackInfo = encoded.fallbackFrom ? { from: encoded.fallbackFrom, to: encoded.format, reason: encoded.fallbackReason || '' } : null;
@@ -8644,10 +8644,11 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
             channelBuffers
         };
         const result = await runFoxBearWorkerJob(MASTER_FINALIZER_WORKER_URL, payload, channelBuffers, {
-            timeoutMs: 90000,
+            timeoutMs: Math.min(600000, Math.max(90000, Number(buffer.duration || 0) * 450)),
             signal: options.signal || null,
             jobId: options.jobId || '',
-            label: '마스터 파이널라이저'
+            label: '마스터 파이널라이저',
+            onProgress: options.onProgress
         });
         if (!result?.ok) throw new Error(result?.error || '마스터 파이널라이저 실패');
         const output = makeAudioBuffer(result.channels, result.length, result.sampleRate);
@@ -8676,7 +8677,7 @@ async function encodeMasterOutputAsync(buffer, requestedFormat = 'wav24', option
             const blob = await encodeMp3Async(buffer, bitrate, options);
             return { blob, format, extension: 'mp3', mime: 'audio/mpeg' };
         } catch (error) {
-            if (isWorkerJobAbortError(error)) throw error;
+            if (isWorkerJobAbortError(error) || error?.code === 'FOXBEAR_WORKER_JOB_TIMEOUT') throw error;
             console.warn('MP3 encoder fallback:', error);
             const reason = getErrorMessage(error, 'MP3 인코더 실패');
             showToast('MP3 인코더가 실패해 24-bit WAV로 자동 저장합니다.');
@@ -8700,15 +8701,16 @@ async function encodeMp3Async(buffer, bitrate, options = {}) {
         channelBuffers
     };
     const result = await runFoxBearWorkerJob(MP3_ENCODER_WORKER_URL, payload, channelBuffers, {
-        timeoutMs: 180000,
+        timeoutMs: Math.min(600000, Math.max(180000, Number(buffer.duration || 0) * 300)),
         signal: options.signal || null,
         jobId: options.jobId || '',
-        label: 'MP3 인코딩'
+        label: 'MP3 인코딩',
+        onProgress: options.onProgress
     });
     if (!result?.ok || !result.arrayBuffer) throw new Error(result?.error || 'MP3 인코딩 실패');
     return new Blob([result.arrayBuffer], { type: 'audio/mpeg' });
 }
-async function encodeWavAsync(buffer, format = 'wav24', options = {}) {
+async function encodeWavAsync(buffer, format = 'wav24', options = {}) { let workerFailure = null;
     if (window.Worker) {
         try {
             const channels = Math.min(2, buffer.numberOfChannels);
@@ -8722,19 +8724,21 @@ async function encodeWavAsync(buffer, format = 'wav24', options = {}) {
                 format
             };
             const result = await runFoxBearWorkerJob(WAV_ENCODER_WORKER_URL, payload, channelBuffers, {
-                timeoutMs: 45000,
+                timeoutMs: Math.min(600000, Math.max(45000, Number(buffer.duration || 0) * 120)),
                 signal: options.signal || null,
                 jobId: options.jobId || '',
-                label: 'WAV 인코딩'
+                label: 'WAV 인코딩',
+                onProgress: options.onProgress
             });
             if (!result?.ok || !result.arrayBuffer) throw new Error(result?.error || 'WAV 워커 인코딩 실패');
             return new Blob([result.arrayBuffer], { type: 'audio/wav' });
         } catch (error) {
-            if (isWorkerJobAbortError(error)) throw error;
-            console.warn('Worker WAV encoder fallback:', error);
+            if (isWorkerJobAbortError(error) || error?.code === 'FOXBEAR_WORKER_JOB_TIMEOUT') throw error;
+            console.warn('Worker WAV encoder fallback:', error); workerFailure = error;
         }
     }
-    return encodeWav(buffer, format);
+    if (options.signal?.aborted) throw getWorkerJobService()?.makeAbortError?.(options.signal.reason || 'wav-fallback-cancelled') || new DOMException('WAV 인코딩이 취소되었습니다.', 'AbortError'); if (workerFailure && buffer.length * Math.min(2, buffer.numberOfChannels) > 12 * 1024 * 1024) { workerFailure.code ||= 'FOXBEAR_WAV_FALLBACK_TOO_LARGE'; throw workerFailure; } options.onProgress?.({ percent: 5, stage: 'WAV 호환 인코딩', detail: '브라우저 기본 경로로 WAV를 생성합니다.' }); const fallbackBlob = encodeWav(buffer, format);
+    options.onProgress?.({ percent: 98, stage: 'WAV 호환 인코딩', detail: 'WAV 파일 생성을 완료했습니다.' }); return fallbackBlob;
 }
 function encodeWav(buffer, format = 'wav24') {
     const channels = Math.min(2, buffer.numberOfChannels);
@@ -8855,6 +8859,7 @@ function downloadTrack(track) {
 function closeDownloadOptionsDialog(backdrop) {
     const panel = backdrop || document.querySelector('.download-options-backdrop');
     if (!panel) return;
+    try { panel.__foxbearCleanup?.(); } catch (error) {}
     panel.remove();
     document.body.classList.remove('download-options-open');
 }
@@ -8913,9 +8918,7 @@ function getDownloadServiceDeps() {
 function getDownloadFormatOptions(track = null) {
     return getDownloadService().getDownloadFormatOptions(track);
 }
-async function prepareTrackDownloadBlob(track, format) {
-    return getDownloadService().prepareTrackDownloadBlob(track, format, getDownloadServiceDeps());
-}
+async function prepareTrackDownloadBlob(track, format, options = {}) { return getDownloadService().prepareTrackDownloadBlob(track, format, getDownloadServiceDeps(), options); }
 function scrollDownloadTargetIntoFocus(target, card) {
     const element = target || card;
     if (!element) return;
@@ -12731,7 +12734,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.38',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.41',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

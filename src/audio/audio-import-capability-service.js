@@ -1,8 +1,8 @@
-// FoxBear audio import capability service - v1.5.38
+// FoxBear audio import capability service - v1.5.41
 (function attachFoxBearAudioImportCapabilityService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.38-preflight-worker-multitab-hardening';
+    const SERVICE_VERSION = '1.5.41-export-eta-download-recovery';
     const FORMAT_DEFINITIONS = Object.freeze([
         Object.freeze({ id: 'wav', label: 'WAV', extensions: ['.wav', '.wave'], mimes: ['audio/wav', 'audio/x-wav'], tier: 'core' }),
         Object.freeze({ id: 'mp3', label: 'MP3', extensions: ['.mp3', '.mpeg', '.mpga'], mimes: ['audio/mpeg'], tier: 'core' }),

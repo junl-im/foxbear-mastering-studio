@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.38 - simplified download dialog view builder
+// FoxBear AI Mastering Studio Pro v1.5.41 - progress ETA, stall recovery, and safe dialog lifecycle
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -41,6 +41,8 @@
         }
         if (!track || !track.outBlob || !document.body) return;
         const previous = document.querySelector('.download-options-backdrop');
+        try { previous?.__foxbearAbortController?.abort?.('download-dialog-replaced'); } catch (error) {}
+        try { previous?.__foxbearCleanup?.(); } catch (error) {}
         if (previous) previous.remove();
         document.body.classList.remove('download-options-open');
 
@@ -54,7 +56,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.38',
+                version: '1.5.41',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -155,7 +157,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.5.38 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.5.41 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -175,6 +177,102 @@
 
         const selectedSummary = document.createElement('div');
         selectedSummary.className = 'download-options-selected-summary';
+
+        const progressCard = document.createElement('div');
+        progressCard.className = 'download-options-worker-progress';
+        progressCard.hidden = true;
+        progressCard.setAttribute('aria-live', 'polite');
+        const progressHead = document.createElement('div');
+        progressHead.className = 'download-options-worker-progress-head';
+        const progressStage = document.createElement('strong');
+        progressStage.textContent = '파일 준비';
+        const progressPercent = document.createElement('span');
+        progressPercent.textContent = '0%';
+        progressHead.append(progressStage, progressPercent);
+        const progressTrack = document.createElement('div');
+        progressTrack.className = 'download-options-worker-progress-track';
+        const progressBar = document.createElement('div');
+        progressBar.className = 'download-options-worker-progress-bar';
+        progressBar.style.width = '0%';
+        progressTrack.appendChild(progressBar);
+        const progressDetail = document.createElement('small');
+        progressDetail.textContent = '선택한 포맷을 준비합니다.';
+        const progressTiming = document.createElement('small');
+        progressTiming.className = 'download-options-worker-progress-timing';
+        progressTiming.textContent = '경과 0초 · 예상 시간 계산 중';
+        const cancelAction = document.createElement('button');
+        cancelAction.type = 'button';
+        cancelAction.className = 'btn-secondary download-options-worker-cancel';
+        cancelAction.textContent = '변환 취소';
+        cancelAction.disabled = true;
+        progressCard.append(progressHead, progressTrack, progressDetail, progressTiming, cancelAction);
+
+        const formatDuration = valueMs => {
+            const totalSeconds = Math.max(0, Math.round((Number(valueMs) || 0) / 1000));
+            if (totalSeconds < 60) return `${totalSeconds}초`;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}분 ${seconds}초`;
+        };
+        let progressStartedAt = 0;
+        let progressLastAt = 0;
+        let progressLastPercent = 0;
+        let progressTimer = 0;
+        let actionInFlight = false;
+        const updateProgressTiming = () => {
+            if (!progressStartedAt || !actionInFlight) return;
+            const now = Date.now();
+            const elapsedMs = Math.max(0, now - progressStartedAt);
+            const idleMs = Math.max(0, now - progressLastAt);
+            const percent = Math.max(0, Math.min(100, Number(progressLastPercent) || 0));
+            let suffix = '예상 시간 계산 중';
+            if (percent >= 3 && percent < 100) {
+                const remainingMs = Math.max(0, elapsedMs * (100 - percent) / percent);
+                suffix = `약 ${formatDuration(remainingMs)} 남음`;
+            } else if (percent >= 100) {
+                suffix = '완료';
+            }
+            if (idleMs >= 12000 && percent < 100) {
+                suffix = document.hidden
+                    ? '백그라운드 제한으로 느려질 수 있음'
+                    : `응답 대기 ${formatDuration(idleMs)}`;
+                progressCard.classList.add('is-stalled');
+            } else {
+                progressCard.classList.remove('is-stalled');
+            }
+            progressTiming.textContent = `경과 ${formatDuration(elapsedMs)} · ${suffix}`;
+        };
+        const stopProgressClock = () => {
+            if (progressTimer) clearInterval(progressTimer);
+            progressTimer = 0;
+            progressCard.classList.remove('is-stalled');
+        };
+        const startProgressClock = () => {
+            stopProgressClock();
+            progressStartedAt = Date.now();
+            progressLastAt = progressStartedAt;
+            progressLastPercent = 0;
+            progressTiming.textContent = '경과 0초 · 예상 시간 계산 중';
+            progressTimer = setInterval(updateProgressTiming, 1000);
+        };
+        const updateWorkerProgress = progress => {
+            const percent = Math.max(0, Math.min(100, Number(progress?.percent) || 0));
+            progressCard.hidden = false;
+            progressStage.textContent = progress?.stage || '파일 변환';
+            progressPercent.textContent = `${Math.round(percent)}%`;
+            progressBar.style.width = `${percent}%`;
+            progressDetail.textContent = progress?.detail || '오디오 파일을 생성하고 있습니다.';
+            progressLastAt = Date.now();
+            progressLastPercent = Math.max(progressLastPercent, percent);
+            updateProgressTiming();
+        };
+        const resetWorkerProgress = (message = '선택한 포맷을 준비합니다.') => {
+            progressStage.textContent = '파일 준비';
+            progressPercent.textContent = '0%';
+            progressBar.style.width = '0%';
+            progressDetail.textContent = message;
+            startProgressClock();
+        };
 
         const updateSelectedSummary = () => {
             const selected = options.find(option => option.format === selectedFormat) || defaultOption;
@@ -422,18 +520,27 @@
         };
         renderReceipt(primaryAction, null, '', { initial: true });
 
-        const allButtons = () => [download, share, externalPrimary, close, ...Array.from(list.querySelectorAll('button'))].filter(Boolean);
+        let currentActionController = null;
+        const allButtons = () => Array.from(panel.querySelectorAll('button')).filter(button => button !== cancelAction);
         const setBusy = busy => {
             allButtons().forEach(button => { button.disabled = Boolean(busy) || button.dataset.permanentDisabled === 'true'; });
+            cancelAction.disabled = !busy;
+            progressCard.hidden = !busy;
             panel.classList.toggle('working', Boolean(busy));
+            if (!busy) stopProgressClock();
         };
 
         const prepareSelected = async statusText => {
             setBusy(true);
+            resetWorkerProgress(statusText);
             warning.classList.add('show');
             warning.textContent = statusText;
             renderReceipt(primaryAction, null, statusText);
-            return prepareTrackDownloadBlob(track, selectedFormat);
+            return prepareTrackDownloadBlob(track, selectedFormat, {
+                signal: currentActionController?.signal || null,
+                jobId: `download:${track.id || 'track'}:${selectedFormat}:${Date.now().toString(36)}`,
+                onProgress: updateWorkerProgress
+            });
         };
 
         const markDone = () => {
@@ -462,10 +569,10 @@
                 markDone();
                 return;
             }
-            renderReceipt('download', exported, '다운로드를 시작했습니다.');
-            closeDownloadOptionsDialog(backdrop);
+            renderReceipt('download', exported, '다운로드를 시작합니다.');
             await downloadBlob(exported.blob, exported.fileName, deps);
             markDone();
+            closeDownloadOptionsDialog(backdrop);
         };
 
         const runShareFlow = async () => {
@@ -530,41 +637,77 @@
             return runDownloadFlow();
         };
 
-        let actionInFlight = false;
+        const isCancelledError = error => Boolean(error && (error.name === 'AbortError' || error.code === 'FOXBEAR_WORKER_JOB_CANCELLED'));
+        const isTimeoutError = error => Boolean(error && error.code === 'FOXBEAR_WORKER_JOB_TIMEOUT');
+        cancelAction.addEventListener('click', () => {
+            if (!actionInFlight || !currentActionController) return;
+            cancelAction.disabled = true;
+            progressStage.textContent = '취소 중';
+            progressDetail.textContent = '현재 워커를 안전하게 종료하고 있습니다.';
+            progressTiming.textContent = `경과 ${formatDuration(Date.now() - progressStartedAt)} · 취소 처리 중`;
+            try { currentActionController.abort('download-user-cancelled'); } catch (error) {}
+        });
         const bindActionButton = (button, action, label) => {
             button.addEventListener('click', async () => {
                 if (actionInFlight) return;
                 actionInFlight = true;
+                currentActionController = typeof AbortController === 'function' ? new AbortController() : null;
+                backdrop.__foxbearAbortController = currentActionController;
                 try {
                     await runAction(action);
                 } catch (error) {
                     console.warn(`${label || action} flow failed:`, error);
                     warning.classList.add('show');
-                    warning.textContent = getErrorMessage(error, `${label || actionLabel(action)} 작업에 실패했습니다.`);
-                    renderReceipt(action, null, warning.textContent);
-                    if (action === 'share') {
-                        try {
-                            const fallback = await prepareTrackDownloadBlob(track, selectedFormat);
-                            openAssistForExport(fallback);
-                        } catch (fallbackError) {
-                            console.warn('share fallback assist failed:', fallbackError);
+                    if (isCancelledError(error)) {
+                        warning.textContent = '파일 변환을 취소했습니다. 다시 포맷을 선택할 수 있습니다.';
+                        renderReceipt(action, null, warning.textContent);
+                    } else if (isTimeoutError(error)) {
+                        warning.textContent = '변환 제한시간을 초과했습니다. 더 가벼운 포맷을 선택하거나 다시 마스터링해 주세요.';
+                        renderReceipt(action, null, warning.textContent);
+                    } else {
+                        warning.textContent = getErrorMessage(error, `${label || actionLabel(action)} 작업에 실패했습니다.`);
+                        renderReceipt(action, null, warning.textContent);
+                        if (action === 'share') {
+                            const immediateFallback = typeof getImmediateTrackDownloadBlob === 'function'
+                                ? getImmediateTrackDownloadBlob(track, selectedFormat)
+                                : null;
+                            if (immediateFallback) openAssistForExport(immediateFallback);
                         }
                     }
                 } finally {
                     actionInFlight = false;
+                    currentActionController = null;
+                    backdrop.__foxbearAbortController = null;
                     setBusy(false);
                 }
             });
+        };
+
+        const handleProgressRestore = () => {
+            if (!actionInFlight) return;
+            progressLastAt = Date.now();
+            updateProgressTiming();
+        };
+        document.addEventListener('visibilitychange', handleProgressRestore, { passive: true });
+        global.addEventListener('pageshow', handleProgressRestore, { passive: true });
+        backdrop.__foxbearCleanup = () => {
+            stopProgressClock();
+            document.removeEventListener('visibilitychange', handleProgressRestore);
+            global.removeEventListener('pageshow', handleProgressRestore);
         };
 
         bindActionButton(download, primaryAction, download.textContent);
         bindActionButton(share, secondaryAction, share.textContent);
         bindActionButton(help, tertiaryAction, help.textContent);
 
-        close.addEventListener('click', () => closeDownloadOptionsDialog(backdrop));
-        backdrop.addEventListener('click', event => { if (event.target === backdrop) closeDownloadOptionsDialog(backdrop); });
+        close.addEventListener('click', () => {
+            if (actionInFlight) return;
+            closeDownloadOptionsDialog(backdrop);
+        });
+        backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
-        panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions);
+        // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
+        panel.append(close, title, name, warning, listLabel, list, selectedSummary, progressCard, actions);
         backdrop.appendChild(panel);
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');

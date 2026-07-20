@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.38",
-  "buildId": "preflight-worker-multitab-hardening",
+  "productVersion": "1.5.41",
+  "buildId": "export-eta-download-recovery",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",
@@ -33,7 +33,10 @@
     "tools/verify-overwrite-zip.js",
     "tools/verify-release-zip.js",
     "tools/archive-hygiene.js",
-    "qa/v1519_ci_runtime_isolation_packaging_smoke.js"
+    "qa/v1519_ci_runtime_isolation_packaging_smoke.js",
+    ".githooks/pre-commit",
+    "tools/install-git-hooks.sh",
+    "qa/v1539_ci_hook_lifecycle_hardening_smoke.js"
   ],
   "requiredPrefixes": [
     "assets/",

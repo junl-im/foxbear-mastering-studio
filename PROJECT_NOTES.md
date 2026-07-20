@@ -1,3 +1,22 @@
+# Current Project Notes - v1.5.41
+
+## v1.5.41 focus
+
+- ETA is advisory and must never be treated as an exact completion guarantee.
+- A failed browser download start must leave the dialog visible and actionable.
+- One export action owns all dialog controls; only explicit cancellation stays enabled.
+- Progress timers and page lifecycle listeners must not survive dialog replacement or close.
+
+# Current Project Notes - v1.5.40
+
+## v1.5.40 focus
+
+- Worker progress is advisory UI telemetry, not a terminal response.
+- MP3/WAV conversion cancellation must terminate the active worker and re-enable the same dialog for retry.
+- Timeout and user cancellation have distinct error codes and user guidance.
+- Finalizer/encoder progress may update only the track owning the current mastering job ID.
+- Same-format output remains a validation-only path and must not spawn an unnecessary encoder.
+
 # Current Project Notes - v1.5.32
 
 ## v1.5.32 focus

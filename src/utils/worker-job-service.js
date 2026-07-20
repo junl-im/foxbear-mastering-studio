@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.38 - cancellable jobs, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.41 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.38-preflight-worker-multitab-hardening';
+    const VERSION = '1.5.41-export-eta-download-recovery';
     let sequence = 0;
 
     function createJobId(label = 'worker') {
@@ -42,6 +42,7 @@
         return new Promise((resolve, reject) => {
             let settled = false;
             let timer = 0;
+            let lastProgressPercent = 0;
             const startedAt = Date.now();
             const finish = (callback, value) => {
                 if (settled) return;
@@ -64,6 +65,20 @@
                 const data = event?.data;
                 const responseJobId = data?.__foxbearJobId;
                 if (responseJobId && String(responseJobId) !== jobId) return;
+                if (data?.type === 'progress' || data?.__foxbearProgress === true) {
+                    const rawPercent = Number(data.percent);
+                    const normalizedPercent = Math.max(0, Math.min(100, Number.isFinite(rawPercent) ? rawPercent : 0));
+                    lastProgressPercent = Math.max(lastProgressPercent, normalizedPercent);
+                    const progress = Object.freeze({
+                        jobId,
+                        percent: lastProgressPercent,
+                        stage: String(data.stage || options.label || '워커 작업'),
+                        detail: String(data.detail || ''),
+                        elapsedMs: Math.max(0, Date.now() - startedAt)
+                    });
+                    try { options.onProgress?.(progress); } catch (error) { console.warn('FoxBear worker progress callback failed:', error); }
+                    return;
+                }
                 finish(resolve, Object.freeze({ jobId, startedAt, completedAt: Date.now(), data }));
             };
             worker.onerror = error => {

@@ -101,6 +101,16 @@ try {
 }
 
 const scripts = pkg.scripts || {};
+const installLifecycleNames = ['preinstall', 'install', 'postinstall', 'prepare', 'prepublish', 'prepublishOnly'];
+for (const name of installLifecycleNames) {
+  const value = String(scripts[name] || '');
+  if (/install-git-hooks|hooks:install|core\.hooksPath/.test(value)) {
+    fail(`npm lifecycle ${name} must not install optional Git hooks`, failures);
+  }
+}
+if (Object.prototype.hasOwnProperty.call(scripts, 'prepare')) {
+  fail('package.json prepare must be absent; npm ci must not depend on repository-local Git hook files', failures);
+}
 if (!String(scripts['check:release'] || '').includes('handoff:check')) fail('check:release must run handoff:check', failures);
 if (!scripts['handoff:check']) fail('package.json is missing handoff:check', failures);
 
@@ -112,6 +122,7 @@ if (!/Fetch origin/i.test(desktopGuide) || !/Push origin/i.test(desktopGuide)) f
 
 for (const workflow of ['.github/workflows/pages.yml', '.github/workflows/pages-branch-fallback.yml']) {
   const text = fs.readFileSync(path.join(root, workflow), 'utf8');
+  if (!text.includes('npm ci --ignore-scripts')) fail(`${workflow} must install dependencies without npm lifecycle scripts`, failures);
   if (!text.includes('npm run check:release')) fail(`${workflow} does not run the release gate`, failures);
   if (!text.includes('browser-qa-${{ github.run_id }}-${{ github.run_attempt }}')) fail(`${workflow} does not preserve browser failure artifacts`, failures);
 }

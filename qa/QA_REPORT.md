@@ -1,19 +1,53 @@
-# FoxBear QA Report - v1.5.38
+# QA Report - v1.5.41 Export ETA and Download Recovery
 
-Current release target: metadata, handoff, SRI, and 228/228 static checks. New coverage executes decoded-memory preflight, stale worker response isolation, worker cancellation/deadlines, and cross-tab service-worker activation blocking.
+- Static and regression result: `231/231 PASS` (executed in four deterministic chunks to avoid the tool runtime ceiling).
+- Download dialog closes only after `downloadBlob()` resolves successfully.
+- Elapsed time and advisory ETA are shown during worker conversion.
+- Twelve seconds without progress enters a visible stalled/background state.
+- All dialog buttons except cancel are disabled while an export owns the dialog.
+- Replacement and app-close paths remove timers and lifecycle listeners.
 
-## v1.5.38 coverage
+## v1.5.41 coverage
 
-- Parses WAV/AIFF metadata without loading the full source and estimates decoded PCM plus peak working memory before track creation.
-- Rejects low-memory imports whose decoded PCM or estimated working set exceeds the configured device budget.
-- Requires unique worker job IDs, AbortSignal cancellation, timeout termination, and stale-message rejection for finalizer and MP3/WAV encoding.
-- Verifies a busy peer tab blocks `SKIP_WAITING` until every active tab reports an idle state.
-- Retains all previous codec, playback, download, Wake Lock, BFCache, memory-release, service-worker, and security regression checks.
+- ETA and elapsed-time rendering
+- stalled/background progress guidance
+- complete action locking
+- download failure visibility and retry readiness
+- dialog timer/listener cleanup
+
+# QA Report - v1.5.40 Export Worker Progress and Cancellation
+
+- Static and regression target: `230/230 PASS`.
+- Worker progress messages are job-scoped and cannot settle terminal promises.
+- MP3/WAV conversion cancellation terminates the worker and restores actionable download controls.
+- Timeout errors remain visible and are not hidden by fallback encoding.
+- Finalizer and encoder phase telemetry is connected to the active track job only.
+
+## v1.5.40 coverage
+
+- progress delivery and monotonic percent normalization
+- explicit download-dialog cancellation and retry readiness
+- timeout-specific recovery messaging
+- stale worker response isolation
+- finalizer/encoder track progress wiring
 
 ```text
-228/228 PASS target
-Browser QA: Chromium/Safari real-device import memory, worker cancellation, and multi-tab update checks remain release-candidate validation
+230/230 PASS target
 ```
+
+# QA Report - v1.5.39 CI Hook Lifecycle Hardening
+
+- Static and regression target: `229/229 PASS`.
+- Clean checkout simulation: `.git` present, `.githooks/pre-commit` absent, `npm ci --offline` passed.
+- Reverse guard simulation: reintroducing a hook-installing `prepare` script was rejected by handoff verification.
+- GitHub Pages workflows install with `npm ci --ignore-scripts`.
+
+## v1.5.39 coverage
+
+- npm install lifecycle isolation
+- fail-soft optional local Git hook installation
+- cumulative overwrite inclusion of `.githooks`
+- archive and handoff rejection of hook-installing lifecycle scripts
 
 # FoxBear QA Report - v1.5.36
 

@@ -1,10 +1,10 @@
-# FoxBear Status - v1.5.38
+# FoxBear Status - v1.5.41
 
 ## Current status
 
-Decoded-memory import preflight, cancellable/stale-safe finalizer and MP3/WAV worker jobs, and cross-tab service-worker activation protection are implemented. WAV/AIFF metadata is parsed from a bounded header slice; compressed formats use lightweight media metadata without creating the full decode buffer.
+Export progress now includes elapsed time, advisory ETA, stalled/background guidance, and complete dialog action ownership. Download-start failures remain visible because the dialog closes only after initiation succeeds.
 
-Static release gate target: `228/228 PASS`. Actual Chromium/Safari execution remains dependent on installed browser binaries and real-device memory behavior.
+The release gate must verify timer/listener cleanup, complete button locking, stalled-progress messaging, and download-close ordering in addition to the existing worker cancellation and timeout contracts.
 
 ## Release invariants
 
@@ -37,31 +37,16 @@ Static release gate target: `228/228 PASS`. Actual Chromium/Safari execution rem
 
 ## Current release
 
-- Product version: `1.5.38`
-- Build ID: `preflight-worker-multitab-hardening`
-- Asset version: `1.5.38-preflight-worker-multitab-hardening`
-- Service worker cache: `foxbear-shell-v1.5.38-preflight-worker-multitab-hardening`
-- Static QA target: `228/228 PASS`
-- Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
-- Visible release labels remain repaired by `FoxBearReleasePresentation`.
-- Import admission must consider compressed size, decoded PCM size, and estimated peak working memory before track creation.
-- Finalizer and MP3/WAV worker results must be accepted only for the active job ID; abort and timeout paths must terminate the worker.
-- A waiting service worker must not activate while any same-origin FoxBear tab reports analysis, mastering, decode, render, or playback activity.
-- Wake Lock state and cross-tab activity must remain diagnostic rather than silently forcing a reload.
+- Product version: `1.5.41`
+- Build ID: `export-eta-download-recovery`
+- Asset version: `1.5.41-export-eta-download-recovery`
+- Service worker cache: `foxbear-shell-v1.5.41-export-eta-download-recovery`
+- Static QA result: `231/231 PASS` (four deterministic chunks)
+- Browser QA target: long export ETA, background restore, stalled progress, download failure visibility, and retry
+- Worker progress events must carry the active job ID and must never be treated as terminal responses.
+- Download-dialog replacement and track removal must abort their active conversion worker.
+- Timeout failures must remain visible and must not silently change the requested output format.
 
-- KakaoTalk entry must route to the lightweight external-browser landing before import/mastering unless the user explicitly chooses the in-app bypass.
-- The Kakao landing must never auto-launch a custom scheme or Android intent from a timer; it must remain visible until the user clicks.
-- The external-browser landing must accept same-origin targets only and must not imply that Kakao WebView Blob memory transfers into Chrome/Safari.
-- The preferred Kakao workflow is external browser first, then local import/master/encode/download without server upload.
-- Mastering completion must preserve a currently playing original Dock player and must not mount a second player outside an explicit user-gesture crossfade.
-- Normal browsers may retain one bounded selected-track PCM for MP3/WAV re-encoding; restricted in-app browsers expose only the completed file.
-- The download dialog and save-assist panel remain compact; diagnostics and historical guidance helpers may exist without being mounted by default.
-- Active and pending import analysis must be cancellable; removed tracks must never receive stale decode, worker, cache, or recommendation results.
-- Waiting service workers must defer activation while analysis, mastering, decoding, rendering, or playback is active and require a stable idle window.
-- Network-first script, style, worker, and navigation requests must recover from current or retained legacy caches on offline failures and HTTP non-success responses.
-- Header command metadata and designer signature remain one-line, borderless, engraved, and independent from Settings width.
-- Detached playback audio elements and their listeners must be pruned; queue teardown must return playback and managed AudioContext diagnostics to zero.
-- Local JavaScript/CSS SRI coverage must be complete, correctly shaped, and hash-valid.
 
 ## v1.5.25 deterministic preview stability invariant
 

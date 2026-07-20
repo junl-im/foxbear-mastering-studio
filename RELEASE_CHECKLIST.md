@@ -1,3 +1,23 @@
+## v1.5.41 export ETA and download recovery checks
+
+- [ ] Long MP3/WAV conversion shows elapsed time and a stable advisory ETA.
+- [ ] Twelve seconds without progress shows response-wait or background-throttling guidance.
+- [ ] Failed `downloadBlob()` keeps the dialog open with retry controls.
+- [ ] All dialog buttons except `변환 취소` are disabled during an active export.
+- [ ] Dialog replacement/close clears progress timers and lifecycle listeners.
+- [ ] `node qa/v1541_export_eta_download_recovery_smoke.js` passes.
+
+## v1.5.40 export worker progress checks
+
+- [ ] Long MP3 conversion updates stage, percent, and sample detail.
+- [ ] Long WAV conversion updates stage and percent without blocking the main UI.
+- [ ] `변환 취소` terminates the worker and re-enables format/action controls.
+- [ ] Retry after cancellation completes normally.
+- [ ] Timeout displays timeout-specific guidance and does not silently fall back to another format.
+- [ ] Replacing the download dialog aborts the previous conversion.
+- [ ] Master finalizer and encoder phases update only the active track job.
+- [ ] `node qa/v1540_export_worker_progress_smoke.js` passes.
+
 ## v1.5.27 device glyph and SRI hardening checks
 
 - [ ] The cyan desktop and pink phone glyphs remain visible after application boot on desktop and mobile.

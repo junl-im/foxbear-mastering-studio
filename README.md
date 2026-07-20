@@ -1,10 +1,28 @@
-# FoxBear AI Mastering Studio Pro v1.5.38
+# FoxBear AI Mastering Studio Pro v1.5.41
 
-## Current patch: v1.5.38 Preflight, Worker, and Multi-Tab Hardening
+## CI and local Git hooks
 
-파일을 트랙으로 등록하기 전에 WAV/AIFF 헤더 또는 가벼운 미디어 메타데이터에서 재생 길이·채널·샘플레이트를 확인하고, 디코딩 PCM과 작업 중 피크 메모리를 계산합니다. 현재 기기 한도를 넘는 파일은 전체 `arrayBuffer()`를 만들기 전에 제외됩니다.
+`npm ci` never installs Git hooks. GitHub Actions uses `npm ci --ignore-scripts`, and the optional local pre-commit hook is enabled only when a developer explicitly runs `npm run hooks:install`.
 
-마스터 파이널라이저와 MP3/WAV 인코더는 공통 작업 ID, 제한시간, 취소 신호를 사용합니다. 다른 탭에서 분석·마스터링·재생 중일 때는 새 서비스워커 활성화도 보류해 작업 도중 런타임 교체 가능성을 줄였습니다.
+## Current patch: v1.5.41 Export ETA and Download Recovery
+
+다운로드 팝업에 경과시간, 예상 잔여시간, 장시간 응답 대기 안내를 추가했습니다. 브라우저 다운로드 시작이 실패하면 팝업을 먼저 닫지 않고 오류와 재시도 버튼을 그대로 유지합니다. 작업 중에는 취소 버튼만 남기고 포맷·공유·추가 옵션을 모두 잠가 중복 실행을 방지합니다.
+
+Release metadata:
+
+```text
+product: 1.5.41
+build: export-eta-download-recovery
+asset generation: 1.5.41-export-eta-download-recovery
+service worker cache: foxbear-shell-v1.5.41-export-eta-download-recovery
+```
+
+Verification:
+
+```text
+static QA target: full package qaChecks PASS
+manual browser target: long export ETA, background return, stalled progress, failed download retry
+```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening
 

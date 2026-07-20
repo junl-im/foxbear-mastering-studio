@@ -1,10 +1,12 @@
-// FoxBear Pro finalizer worker v1.5.0 - short-term LUFS telemetry, dynamic de-esser, mobile guard, multiband dynamics, 4x FIR true-peak
+// FoxBear Pro finalizer worker v1.5.0 - quality-gate compatible finalizer core
+// v1.5.41 adds job-scoped progress telemetry for loudness, dynamics, limiter, and true-peak stages.
 'use strict';
 
 self.onmessage = event => {
     try {
         const payload = event.data || {};
         const jobId = String(payload.__foxbearJobId || '');
+        postProgress(jobId, 2, '파이널라이저 준비', '채널과 처리 설정을 검증합니다.');
         const sampleRate = normalizeFiniteInteger(payload.sampleRate ?? 44100, 3000, 384000, '샘플레이트');
         const channels = normalizeFiniteInteger(payload.channels ?? 1, 1, 2, '채널 수');
         const requestedLength = normalizeFiniteInteger(payload.length ?? 1, 1, 0x7fffffff, '샘플 길이');
@@ -25,25 +27,32 @@ self.onmessage = event => {
         const oversample = truePeak ? 4 : 1;
         const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
         const data = channelBuffers.map(src => new Float32Array(src.slice(0, length)));
+        postProgress(jobId, 8, '입력 정리', '샘플 복사와 비정상 값 정리를 시작합니다.');
         sanitizeBuffers(data, length);
         removeDcOffset(data, length);
+        postProgress(jobId, 18, '공진 보호', '모바일 공진과 치찰음 위험을 줄입니다.');
         const mobileInfo = applyMobileSpeakerResonanceGuard(data, length, sampleRate, qualityMode, analysis);
         const deEsserInfo = applyDynamicDeEsser(data, length, sampleRate, qualityMode, analysis);
+        postProgress(jobId, 32, '다이나믹 정리', '멀티밴드와 다이내믹 디에서를 적용합니다.');
         const multibandInfo = applyGentleMultibandDynamics(data, length, sampleRate, qualityMode, analysis);
 
+        postProgress(jobId, 48, '라우드니스 분석', 'K-weighted LUFS와 피크를 측정합니다.');
         const loudnessBefore = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
         const peakBefore = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
         const targetGainDb = clamp(targetLufs - loudnessBefore, -8, maxGainDb);
         const gain = Math.pow(10, targetGainDb / 20);
         applyGain(data, length, gain);
+        postProgress(jobId, 62, '목표 레벨 적용', '목표 LUFS에 맞춰 게인을 조정했습니다.');
 
         const ceiling = Math.pow(10, ceilingDb / 20);
         const preLimiterPeak = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
+        postProgress(jobId, 72, '리미터 처리', '룩어헤드 리미터와 출력 ceiling을 적용합니다.');
         const limiterInfo = applyLookaheadLimiter(data, length, ceiling, sampleRate, qualityMode);
         applySoftCeiling(data, length, ceiling);
         removeDcOffset(data, length);
         sanitizeBuffers(data, length);
 
+        postProgress(jobId, 84, '최종 안전 검사', 'True Peak와 잔여 클리핑을 다시 확인합니다.');
         let peakAfter = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
         let finalSafetyGain = 1;
         if (peakAfter > ceiling * 1.001) {
@@ -51,10 +60,12 @@ self.onmessage = event => {
             applyGain(data, length, finalSafetyGain);
             peakAfter = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
         }
+        postProgress(jobId, 92, '최종 측정', '완성 LUFS와 단기 라우드니스를 계산합니다.');
         const loudnessAfter = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
         const shortTermLufs = measureShortTermLufsStatsBuffers(data, sampleRate, length, channels);
         const finalPeak = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
 
+        postProgress(jobId, 99, '파이널라이저 완료', '완성 버퍼를 메인 화면으로 전달합니다.');
         const transfers = data.map(arr => arr.buffer);
         self.postMessage({
             ok: true,
@@ -98,6 +109,20 @@ self.onmessage = event => {
         self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: String(event.data?.__foxbearJobId || '') });
     }
 };
+
+
+function postProgress(jobId, percent, stage, detail = '') {
+    try {
+        self.postMessage({
+            type: 'progress',
+            __foxbearProgress: true,
+            __foxbearJobId: String(jobId || ''),
+            percent: Math.max(0, Math.min(100, Number(percent) || 0)),
+            stage: String(stage || '마스터 파이널라이저'),
+            detail: String(detail || '')
+        });
+    } catch (error) {}
+}
 
 function normalizeFiniteNumber(value, min, max, label) {
     const number = Number(value);

@@ -1,4 +1,4 @@
-// FoxBear WAV encoder worker - 16/24-bit PCM and 32-bit float WAV
+// FoxBear WAV encoder worker v1.5.41 - progress-aware 16/24-bit PCM and 32-bit float WAV
 'use strict';
 
 self.onmessage = event => {
@@ -6,7 +6,8 @@ self.onmessage = event => {
         const rawPayload = event.data || {};
         const jobId = String(rawPayload.__foxbearJobId || '');
         const payload = normalizeEncodePayload(rawPayload);
-        const arrayBuffer = encodeWav(payload);
+        postProgress(jobId, 2, 'WAV 준비', '헤더와 출력 버퍼를 준비합니다.');
+        const arrayBuffer = encodeWav(payload, jobId);
         self.postMessage({ ok: true, arrayBuffer, __foxbearJobId: jobId }, [arrayBuffer]);
     } catch (error) {
         self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: String(event.data?.__foxbearJobId || '') });
@@ -39,7 +40,7 @@ function normalizeInteger(value, min, max, label) {
     return integer;
 }
 
-function encodeWav({ sampleRate, channels, length, channelBuffers, format }) {
+function encodeWav({ sampleRate, channels, length, channelBuffers, format }, jobId) {
     const float32 = format === 'wav32float';
     const pcm16 = format === 'wav16';
     const bytesPerSample = float32 ? 4 : (pcm16 ? 2 : 3);
@@ -66,6 +67,8 @@ function encodeWav({ sampleRate, channels, length, channelBuffers, format }) {
 
     const channelData = channelBuffers.map(buf => new Float32Array(buf));
     let offset = 44;
+    let lastPercent = 2;
+    const progressStride = Math.max(2048, Math.floor(length / 50));
     for (let i = 0; i < length; i += 1) {
         for (let ch = 0; ch < channels; ch += 1) {
             if (float32) {
@@ -83,8 +86,30 @@ function encodeWav({ sampleRate, channels, length, channelBuffers, format }) {
                 offset += 3;
             }
         }
+        if (i === length - 1 || i % progressStride === 0) {
+            const percent = 4 + Math.floor(((i + 1) / Math.max(1, length)) * 94);
+            if (percent >= lastPercent + 2 || i === length - 1) {
+                lastPercent = percent;
+                postProgress(jobId, percent, 'WAV 인코딩', `${Math.min(length, i + 1).toLocaleString()} / ${length.toLocaleString()} samples`);
+            }
+        }
     }
+    postProgress(jobId, 99, 'WAV 마무리', 'RIFF 파일 검증을 준비합니다.');
     return arrayBuffer;
+}
+
+
+function postProgress(jobId, percent, stage, detail = '') {
+    try {
+        self.postMessage({
+            type: 'progress',
+            __foxbearProgress: true,
+            __foxbearJobId: String(jobId || ''),
+            percent: Math.max(0, Math.min(100, Number(percent) || 0)),
+            stage: String(stage || 'WAV 인코딩'),
+            detail: String(detail || '')
+        });
+    } catch (error) {}
 }
 
 function writeInt24(view, offset, sample) {

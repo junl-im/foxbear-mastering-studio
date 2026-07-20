@@ -817,3 +817,74 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
         grid-template-columns: 1fr;
     }
 }
+
+/* v1.5.41: cancellable worker progress with ETA and stalled-task recovery. */
+.download-options-worker-progress {
+    display: grid;
+    gap: 7px;
+    padding: 10px;
+    border: 1px solid rgba(121, 214, 255, .2);
+    border-radius: 12px;
+    background: rgba(7, 20, 31, .72);
+}
+.download-options-worker-progress[hidden] {
+    display: none;
+}
+.download-options-worker-progress-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: .68rem;
+}
+.download-options-worker-progress-head span {
+    color: rgba(173, 232, 255, .9);
+    font-variant-numeric: tabular-nums;
+}
+.download-options-worker-progress-track {
+    position: relative;
+    height: 7px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .09);
+}
+.download-options-worker-progress-bar {
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(68, 190, 255, .92), rgba(132, 255, 215, .92));
+    transition: width 120ms linear;
+}
+.download-options-worker-progress small {
+    color: rgba(224, 238, 247, .68);
+    font-size: .56rem;
+    line-height: 1.35;
+}
+.download-options-worker-progress-timing {
+    color: rgba(156, 207, 229, .72) !important;
+    font-variant-numeric: tabular-nums;
+}
+.download-options-worker-progress.is-stalled {
+    border-color: rgba(255, 197, 92, .55);
+    background: rgba(45, 31, 8, .48);
+}
+.download-options-worker-progress.is-stalled .download-options-worker-progress-timing {
+    color: rgba(255, 221, 151, .94) !important;
+}
+.download-options-worker-cancel {
+    justify-self: end;
+    min-height: 32px;
+    padding: 6px 11px;
+    font-size: .62rem;
+}
+.download-options-panel.working .download-options-worker-progress {
+    border-color: rgba(121, 214, 255, .36);
+}
+@media (max-width: 640px) {
+    .download-options-worker-progress {
+        padding: 9px;
+    }
+    .download-options-worker-cancel {
+        width: 100%;
+    }
+}

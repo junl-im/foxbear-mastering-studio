@@ -1,11 +1,35 @@
-# Handoff - v1.5.38
+# Handoff - v1.5.41
 
-## v1.5.38 handoff focus
+## v1.5.41 handoff focus
 
-- On a low-memory mobile profile, import a long 48 kHz stereo file and confirm the app rejects it before track creation with decoded-PCM and estimated-peak figures.
-- Import ordinary WAV/MP3 files and confirm the metadata preflight does not read the entire source before queue registration.
-- Remove a track during finalization or encoding and confirm the worker terminates without a late result restoring the deleted track.
-- Open two tabs, keep playback or mastering active in one tab, publish a new service worker, and confirm activation waits until both tabs are idle.
+- Start a long MP3/WAV conversion and confirm elapsed time plus advisory remaining time update.
+- Background the browser and return; confirm the dialog remains usable and explains background throttling instead of appearing frozen.
+- Simulate or force a failed download start and confirm the dialog remains visible with the error and retry actions.
+- While conversion is active, confirm format, share, help, and advanced-option buttons are disabled while `변환 취소` remains enabled.
+- Replace or close the dialog and confirm progress timers and page lifecycle listeners are removed.
+
+```text
+product: 1.5.41
+build: export-eta-download-recovery
+asset generation: 1.5.41-export-eta-download-recovery
+service worker cache: foxbear-shell-v1.5.41-export-eta-download-recovery
+```
+
+## CI install rule
+
+- GitHub Actions must use `npm ci --ignore-scripts`.
+- `package.json` must not define `prepare` for Git hook installation.
+- Local hooks are optional and installed manually with `npm run hooks:install`.
+- The overwrite archive must include `.githooks/pre-commit`, but its absence must still never break `npm ci`.
+
+## v1.5.36 handoff focus
+
+- In Chrome/Edge, select the already-generated format and confirm Share opens from the first click without a permission error.
+- Select a different MP3/WAV format and confirm conversion completes, then the save-assist Share button works on the second explicit click.
+- Use Direct Save and confirm the file picker opens before any asynchronous validation delay.
+- Open and replace the save-assist panel repeatedly, close it, and confirm no stale Blob URL keeps the exit warning active.
+- Start mastering on one track while completing a download action on another and confirm the download does not clear the mastering busy state.
+- Navigate away and restore with browser back/forward cache, then confirm the exit guard and back confirmation still operate normally.
 
 ## Current patch: v1.5.36 Interaction lifecycle hardening
 

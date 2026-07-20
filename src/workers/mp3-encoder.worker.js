@@ -1,4 +1,4 @@
-// FoxBear MP3 encoder worker
+// FoxBear MP3 encoder worker v1.5.41 with progress reporting
 // Primary path: bundled lamejs encoder for broad browser support.
 // Fallback path: WebCodecs MP3 AudioEncoder when available.
 'use strict';
@@ -39,16 +39,17 @@ self.onmessage = async event => {
         const rawPayload = event.data || {};
         const jobId = String(rawPayload.__foxbearJobId || '');
         const payload = normalizeEncodePayload(rawPayload);
+        postProgress(jobId, 2, 'MP3 준비', '인코더와 채널 데이터를 준비합니다.');
 
         try {
-            const arrayBuffer = await encodeWithLameJs(payload);
+            const arrayBuffer = await encodeWithLameJs(payload, jobId);
             self.postMessage({ ok: true, arrayBuffer, encoder: 'lamejs', __foxbearJobId: jobId }, [arrayBuffer]);
             return;
         } catch (lameError) {
             console.warn('lamejs MP3 encoder fallback:', lameError);
         }
 
-        const arrayBuffer = await encodeWithWebCodecs(payload);
+        const arrayBuffer = await encodeWithWebCodecs(payload, jobId);
         self.postMessage({ ok: true, arrayBuffer, encoder: 'webcodecs', __foxbearJobId: jobId }, [arrayBuffer]);
     } catch (error) {
         self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: String(event.data?.__foxbearJobId || '') });
@@ -95,17 +96,19 @@ async function ensureLameJs() {
     return lameLoadPromise;
 }
 
-async function encodeWithLameJs(payload) {
+async function encodeWithLameJs(payload, jobId) {
     const lamejs = await ensureLameJs();
     const sampleRate = Number(payload.sampleRate);
     const channels = Math.min(2, Number(payload.channels || 1));
     const length = Number(payload.length);
     const kbps = Math.round(Number(payload.bitrate || 320000) / 1000);
     const data = payload.channelBuffers.map(buf => new Float32Array(buf));
+    postProgress(jobId, 6, 'MP3 인코더 로드', 'LAME 인코더를 초기화했습니다.');
     const encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
     const frameSize = 1152;
     const chunks = [];
 
+    let lastPercent = 6;
     for (let offset = 0; offset < length; offset += frameSize) {
         const frameCount = Math.min(frameSize, length - offset);
         const left = floatFrameToInt16(data[0], offset, frameCount);
@@ -117,14 +120,20 @@ async function encodeWithLameJs(payload) {
             encoded = encoder.encodeBuffer(left);
         }
         if (encoded && encoded.length) chunks.push(encoded);
+        const percent = 8 + Math.floor(((offset + frameCount) / Math.max(1, length)) * 86);
+        if (percent >= lastPercent + 2 || offset + frameCount >= length) {
+            lastPercent = percent;
+            postProgress(jobId, percent, 'MP3 인코딩', `${Math.min(length, offset + frameCount).toLocaleString()} / ${length.toLocaleString()} samples`);
+        }
     }
 
+    postProgress(jobId, 96, 'MP3 마무리', '인코더 버퍼를 비우고 파일을 결합합니다.');
     const flushed = encoder.flush();
     if (flushed && flushed.length) chunks.push(flushed);
     return joinUint8Chunks(chunks, 'MP3 인코더가 빈 출력을 반환했습니다.');
 }
 
-async function encodeWithWebCodecs(payload) {
+async function encodeWithWebCodecs(payload, jobId) {
     const { sampleRate, channels, length, bitrate, channelBuffers } = payload;
     if (typeof AudioEncoder === 'undefined' || typeof AudioData === 'undefined') {
         throw new Error('이 브라우저는 MP3 인코더를 제공하지 않습니다.');
@@ -145,8 +154,10 @@ async function encodeWithWebCodecs(payload) {
         error: err => { encoderError = err; }
     });
     encoder.configure(config);
+    postProgress(jobId, 8, 'MP3 WebCodecs', '브라우저 오디오 인코더를 시작했습니다.');
     const data = channelBuffers.map(buf => new Float32Array(buf));
     const frameSize = 1152 * 8;
+    let lastPercent = 8;
     for (let offset = 0; offset < length; offset += frameSize) {
         const frameCount = Math.min(frameSize, length - offset);
         const planar = new Float32Array(frameCount * channels);
@@ -165,7 +176,13 @@ async function encodeWithWebCodecs(payload) {
         });
         encoder.encode(audioData);
         audioData.close();
+        const percent = 10 + Math.floor(((offset + frameCount) / Math.max(1, length)) * 84);
+        if (percent >= lastPercent + 2 || offset + frameCount >= length) {
+            lastPercent = percent;
+            postProgress(jobId, percent, 'MP3 WebCodecs', `${Math.min(length, offset + frameCount).toLocaleString()} / ${length.toLocaleString()} samples`);
+        }
     }
+    postProgress(jobId, 96, 'MP3 마무리', '인코더 출력을 결합합니다.');
     await encoder.flush();
     encoder.close();
     if (encoderError) throw encoderError;
@@ -191,6 +208,20 @@ function joinUint8Chunks(chunks, emptyMessage) {
         ptr += chunk.length;
     });
     return result.buffer;
+}
+
+
+function postProgress(jobId, percent, stage, detail = '') {
+    try {
+        self.postMessage({
+            type: 'progress',
+            __foxbearProgress: true,
+            __foxbearJobId: String(jobId || ''),
+            percent: Math.max(0, Math.min(100, Number(percent) || 0)),
+            stage: String(stage || 'MP3 인코딩'),
+            detail: String(detail || '')
+        });
+    } catch (error) {}
 }
 
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.38-preflight-worker-multitab-hardening';
+const version = '1.5.41-export-eta-download-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

@@ -27,7 +27,7 @@ jobs:
           cache: npm
 
       - name: Install pinned dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install Chromium for browser QA
         run: npx --no-install playwright install --with-deps chromium

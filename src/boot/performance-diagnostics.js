@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.38-preflight-worker-multitab-hardening';
+    const DIAGNOSTICS_VERSION = '1.5.41-export-eta-download-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

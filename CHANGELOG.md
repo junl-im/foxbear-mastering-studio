@@ -1,11 +1,30 @@
-# v1.5.38 - Preflight, Worker, and Multi-Tab Hardening
+# v1.5.41 - Export ETA and Download Recovery
 
-- Added pre-decode PCM and peak-memory estimation from WAV/AIFF headers or lightweight media metadata, blocking files that would exceed device-specific memory budgets before track creation.
-- Added a shared worker-job controller with unique job IDs, AbortSignal cancellation, bounded deadlines, worker termination, message-error handling, and stale-result isolation.
-- Connected mastering finalizer and MP3/WAV encoders to cancellable job tokens and aborts in-flight work when a track is removed or superseded.
-- Added cross-tab activity heartbeats through BroadcastChannel and localStorage so a waiting service worker activates only after every active FoxBear tab is idle.
-- Included playback and Wake Lock-related active work in the update-safety decision so a runtime swap cannot interrupt protected audio sessions.
-- Fixed the duplicated queued-state branch in the import queue and retained compressed-file, decoded-PCM, and estimated-peak rejection reasons separately.
+- Kept the download dialog mounted until the browser download path succeeds so failures remain visible and retryable.
+- Added elapsed time and advisory remaining-time estimates to MP3/WAV conversion progress.
+- Added stalled-worker and background-throttling guidance after a bounded progress silence window.
+- Locked every dialog action except explicit cancellation while one export operation is active.
+- Added timer/listener cleanup for dialog replacement, normal close, and application-driven close paths.
+- Added v1.5.41 regression coverage for ETA, stalled-state recovery, lifecycle cleanup, button locking, and download-close ordering.
+
+# v1.5.40 - Export Worker Progress and Cancellation
+
+- Added job-ID-scoped progress messages for MP3, WAV, and master-finalizer workers without allowing progress events to settle worker promises.
+- Added a compact download-dialog progress panel with stage, percent, detail, and an explicit conversion cancel button.
+- Propagated AbortSignal and progress callbacks through alternate-format re-encoding, terminating workers and ignoring late responses after cancellation.
+- Surfaced worker timeout errors instead of silently masking them with fallback encoding, with distinct timeout and user-cancel recovery guidance.
+- Connected finalizer and encoder phase telemetry to the active track mastering UI during the final processing stages.
+- Added v1.5.40 runtime regression coverage for progress delivery, cancellation, timeout contracts, stale-result isolation, and UI wiring.
+- Retained Wake Lock state synchronization and the compact `getDownloadDialogCompactHint` recovery contract while adding the new progress panel.
+
+# v1.5.39 - CI Hook Lifecycle Hardening
+
+- Removed Git hook installation from the npm `prepare` lifecycle so `npm ci` cannot fail when `.githooks/pre-commit` is absent from a checkout or overwrite patch.
+- Made `tools/install-git-hooks.sh` an explicit, optional, fail-soft local developer command with CI, Git worktree, file existence, permission, and config guards.
+- Changed both GitHub Pages workflows to `npm ci --ignore-scripts` as defense in depth against future install-lifecycle side effects.
+- Added `.githooks` to cumulative overwrite packages and required the hook plus installer in the handoff archive contract.
+- Added archive and handoff verification that rejects npm lifecycle scripts which attempt to install optional Git hooks.
+- Added a clean temporary Git-repository regression test covering missing-hook, CI-skip, and successful manual installation paths.
 
 # v1.5.36 - Interaction Lifecycle Hardening
 

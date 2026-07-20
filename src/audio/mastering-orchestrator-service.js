@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.38-preflight-worker-multitab-hardening',
+            version: '1.5.41-export-eta-download-recovery',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.38-preflight-worker-multitab-hardening',
+        version: '1.5.41-export-eta-download-recovery',
         createMasteringBatchRunner
     });
 })(window);
