@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.42",
+  "version": "1.5.43",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with cancellable ZIP worker export, duplicate-export locking, safe archive filenames, and update-safe export activity.",
+  "description": "FoxBear AI Mastering Studio Pro with verified runtime entry loading, canonical SRI attributes, low-copy ZIP worker inputs, and archive parity checks.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.42-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.42-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.43-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.43-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh"
   },
@@ -256,15 +256,17 @@
     "node qa/v1539_ci_hook_lifecycle_hardening_smoke.js",
     "node qa/v1540_export_worker_progress_smoke.js",
     "node qa/v1541_export_eta_download_recovery_smoke.js",
-    "node qa/v1542_zip_worker_cancellation_smoke.js"
+    "node qa/v1542_zip_worker_cancellation_smoke.js",
+    "node --check qa/v1543_export_pipeline_integrity_smoke.js",
+    "node qa/v1543_export_pipeline_integrity_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "zip-worker-cancellation",
-    "assetVersion": "1.5.42-zip-worker-cancellation",
-    "cacheName": "foxbear-shell-v1.5.42-zip-worker-cancellation",
-    "bootRevision": "boot-sri-v1542",
-    "updateSafetyRevision": "update-safety-v1542",
-    "serviceWorkerRevision": "sw-v1542"
+    "buildId": "export-pipeline-integrity",
+    "assetVersion": "1.5.43-export-pipeline-integrity",
+    "cacheName": "foxbear-shell-v1.5.43-export-pipeline-integrity",
+    "bootRevision": "boot-sri-v1543",
+    "updateSafetyRevision": "update-safety-v1543",
+    "serviceWorkerRevision": "sw-v1543"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

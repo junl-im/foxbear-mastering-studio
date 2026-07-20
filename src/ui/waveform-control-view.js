@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.42-zip-worker-cancellation';
+  const VIEW_VERSION = '1.5.43-export-pipeline-integrity';
   const DEFAULT_BINS = 96;
 
   function getService() {

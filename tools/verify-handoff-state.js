@@ -65,6 +65,33 @@ for (const prefix of manifest.requiredPrefixes || []) {
   if (!exists(relativeDir) || listFiles(relativeDir).length === 0) fail(`required handoff tree is missing or empty: ${prefix}`, failures);
 }
 
+const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const serviceWorkerSource = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+const localAssetTags = Array.from(indexHtml.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"[^>]*>/gi));
+for (const match of localAssetTags) {
+  const tag = match[0];
+  const assetUrl = match[1];
+  if (/^(?:[a-z]+:|\/\/|#|data:|blob:)/i.test(assetUrl)) continue;
+  const assetPath = assetUrl.split(/[?#]/, 1)[0];
+  if (!/\.(?:js|css)$/i.test(assetPath)) continue;
+  if (!exists(assetPath)) fail(`index.html references a missing local asset: ${assetPath}`, failures);
+  const integrityCount = (tag.match(/\sintegrity="[^"]*"/gi) || []).length;
+  if (integrityCount !== 1) fail(`index.html asset must have exactly one integrity attribute: ${assetPath} (${integrityCount})`, failures);
+}
+for (const asset of manifest.requiredRuntimeAssets || []) {
+  if (!exists(asset)) {
+    fail(`required runtime asset is missing: ${asset}`, failures);
+    continue;
+  }
+  if (/\.worker\.js$/i.test(asset)) {
+    if (!serviceWorkerSource.includes(asset)) fail(`runtime worker is not listed in sw.js: ${asset}`, failures);
+  } else {
+    const escaped = asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const references = indexHtml.match(new RegExp(`(?:src|href)="(?:\.\/)?${escaped}(?:[?#][^"]*)?"`, 'g')) || [];
+    if (references.length !== 1) fail(`runtime entry asset must be loaded exactly once by index.html: ${asset} (${references.length})`, failures);
+  }
+}
+
 if (archiveMode) {
   for (const prefix of manifest.forbiddenArchivePrefixes || []) {
     const relativeDir = String(prefix).replace(/\/$/, '');

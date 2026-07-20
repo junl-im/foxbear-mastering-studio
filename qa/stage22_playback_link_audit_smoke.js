@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.42-zip-worker-cancellation';
+const version = '1.5.43-export-pipeline-integrity';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

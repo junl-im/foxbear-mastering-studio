@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.42",
-  "buildId": "zip-worker-cancellation",
+  "productVersion": "1.5.43",
+  "buildId": "export-pipeline-integrity",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",
@@ -60,5 +60,12 @@
     "check.log",
     "qa/static-audit.txt"
   ],
-  "deletePaths": []
+  "deletePaths": [],
+  "requiredRuntimeAssets": [
+    "src/download/download-service.js",
+    "src/download/export-guard-service.js",
+    "src/download/export-progress-view.js",
+    "src/download/zip-export-service.js",
+    "src/workers/zip-encoder.worker.js"
+  ]
 }

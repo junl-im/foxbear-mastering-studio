@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / 'index.html'
 TAG_RE = re.compile(r'<(?:script|link)\b[^>]*(?:src|href)="[^"]+"[^>]*>', re.IGNORECASE)
 ASSET_RE = re.compile(r'(?:src|href)="([^"]+)"', re.IGNORECASE)
-INTEGRITY_RE = re.compile(r'integrity="(sha384-[^"]+)"', re.IGNORECASE)
+INTEGRITY_ATTR_RE = re.compile(r'integrity="([^"]*)"', re.IGNORECASE)
 MISPLACED_SELF_CLOSE_RE = re.compile(r'\s+/\s+(?=integrity=)', re.IGNORECASE)
 
 
@@ -45,9 +45,12 @@ def validate_html(html: str, root: Path = ROOT) -> list[str]:
         seen_assets.add(asset)
         if MISPLACED_SELF_CLOSE_RE.search(tag):
             failures.append(f'{asset}: malformed self-closing slash before integrity')
-        integrity_matches = INTEGRITY_RE.findall(tag)
+        integrity_matches = INTEGRITY_ATTR_RE.findall(tag)
         if len(integrity_matches) != 1:
             failures.append(f'{asset}: expected exactly one SHA-384 integrity attribute, found {len(integrity_matches)}')
+            continue
+        if not integrity_matches[0].startswith('sha384-'):
+            failures.append(f'{asset}: integrity attribute must contain one SHA-384 value')
             continue
         path = root / asset
         if not path.is_file():

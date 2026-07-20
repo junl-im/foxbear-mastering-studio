@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.42
+// FoxBear audio decode service - v1.5.43
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.42-zip-worker-cancellation';
+    const SERVICE_VERSION = '1.5.43-export-pipeline-integrity';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

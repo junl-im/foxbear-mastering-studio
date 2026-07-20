@@ -1,8 +1,8 @@
-# FoxBear Status - v1.5.42
+# FoxBear Status - v1.5.43
 
 ## Current status
 
-Static and regression QA is `233/233 PASS`. ZIP generation now runs in a dedicated cancellable Worker with one-job ownership, bounded timeout, stale-result isolation, archive-name hardening, and cross-tab update protection. The progress panel cannot be hidden while active and completion is shown only after download initiation succeeds.
+Static and regression QA is `235/235 PASS` across three deterministic execution segments. Runtime-entry parity, duplicate-SRI repair, and low-copy ZIP input checks are active. ZIP export is loaded explicitly by the boot graph, missing modules fail visibly, and archive verification rejects source/package mismatches.
 
 
 ## Release invariants
@@ -21,11 +21,11 @@ Static and regression QA is `233/233 PASS`. ZIP generation now runs in a dedicat
 
 ## Current release
 
-- Product version: `1.5.42`
-- Build ID: `zip-worker-cancellation`
-- Asset version: `1.5.42-zip-worker-cancellation`
-- Service worker cache: `foxbear-shell-v1.5.42-zip-worker-cancellation`
-- Browser QA target: long ZIP cancellation/retry, duplicate clicks, offline Worker launch, and extraction-name safety
+- Product version: `1.5.43`
+- Build ID: `export-pipeline-integrity`
+- Asset version: `1.5.43-export-pipeline-integrity`
+- Service worker cache: `foxbear-shell-v1.5.43-export-pipeline-integrity`
+- Browser QA target: ZIP boot availability, SRI tag integrity, large ZIP memory behavior, and archive/source parity
 
 ## v1.5.25 deterministic preview stability invariant
 

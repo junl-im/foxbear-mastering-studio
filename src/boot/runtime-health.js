@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.42-zip-worker-cancellation';
+    const FALLBACK_VERSION = '1.5.43-export-pipeline-integrity';
     if (global.FoxBearBuildInfo?.assetVersion && global.FoxBearBuildInfo.assetVersion !== FALLBACK_VERSION) console.warn('[FoxBear] runtime health metadata mismatch', { fallback: FALLBACK_VERSION, build: global.FoxBearBuildInfo.assetVersion });
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
@@ -44,6 +44,9 @@
         'FoxBearDownloadService.copyDownloadRecoveryChecklist',
         'FoxBearDownloadService.getDownloadDiagnostics',
         'FoxBearDownloadService.copyDownloadDiagnostics',
+        'FoxBearExportGuardService.prepareZipExportPlan',
+        'FoxBearExportProgressView.begin',
+        'FoxBearZipExportService.start',
         'FoxBearDownloadDialogView.showDownloadOptionsDialog',
         'FoxBearBulkImportGuard.getSnapshot',
         'FoxBearBulkImportHud.getSnapshot',

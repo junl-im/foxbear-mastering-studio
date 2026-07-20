@@ -1,3 +1,13 @@
+# v1.5.43 - Export Pipeline Integrity and Low-Copy ZIP Input
+
+- Restored `zip-export-service.js` as an actual `index.html` runtime entry after discovering it was cached and tested but absent from the source boot graph.
+- Added visible ZIP-module recovery and Runtime Health requirements so a missing export module cannot fail silently.
+- Canonicalized local asset tags to exactly one SHA-384 `integrity` attribute, repairing empty, stale, and duplicated attributes.
+- Added archive/runtime parity checks for required entry assets and exact single loading from `index.html`.
+- Changed capable browser ZIP workers to pass Blob inputs directly to JSZip instead of eagerly copying every completed file into an ArrayBuffer.
+- Preserved a bounded compatibility conversion path for environments without worker Blob support.
+- Added v1.5.43 runtime regression coverage for SRI repair, boot-graph parity, module recovery, and low-copy ZIP input.
+
 # v1.5.42 - ZIP Worker Cancellation and Archive Safety
 
 - Moved STORE-only ZIP creation off the main thread into a dedicated cancellable Worker.

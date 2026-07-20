@@ -1,27 +1,27 @@
-# FoxBear AI Mastering Studio Pro v1.5.42
+# FoxBear AI Mastering Studio Pro v1.5.43
 
 ## CI and local Git hooks
 
 `npm ci` never installs Git hooks. GitHub Actions uses `npm ci --ignore-scripts`, and the optional local pre-commit hook is enabled only when a developer explicitly runs `npm run hooks:install`.
 
-## Current patch: v1.5.42 ZIP Worker Cancellation and Archive Safety
+## Current patch: v1.5.43 Export Pipeline Integrity
 
-ZIP 생성을 전용 Worker로 옮겨 메인 화면 멈춤을 줄이고, 진행 패널에서 즉시 취소할 수 있게 했습니다. 중복 ZIP 실행, ZIP 중 큐 초기화·재마스터링, 서비스워커 교체를 차단합니다. 압축 내부 파일명은 Windows 예약어와 대소문자 충돌까지 안전하게 정리합니다.
+ZIP 내보내기 서비스가 실제 HTML 부팅 그래프에서 누락되는 배포 차단급 회귀를 복구했습니다. 로컬 JS/CSS 태그는 정확히 하나의 SHA-384 속성만 갖도록 정규화하고, 배포 ZIP 검증은 필수 런타임 파일이 `index.html`에서 정확히 한 번 로드되는지 확인합니다. ZIP Worker는 지원 브라우저에서 완성 파일을 다시 전체 `ArrayBuffer`로 복제하지 않고 Blob을 직접 JSZip에 전달합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.42
-build: zip-worker-cancellation
-asset generation: 1.5.42-zip-worker-cancellation
-service worker cache: foxbear-shell-v1.5.42-zip-worker-cancellation
+product: 1.5.43
+build: export-pipeline-integrity
+asset generation: 1.5.43-export-pipeline-integrity
+service worker cache: foxbear-shell-v1.5.43-export-pipeline-integrity
 ```
 
 Verification:
 
 ```text
-static QA target: full package qaChecks PASS
-manual browser target: long ZIP cancel/retry, background return, duplicate click, offline worker launch
+static QA target: runtime entry parity, duplicate SRI repair, low-copy ZIP input
+manual browser target: ZIP button availability, large ZIP memory behavior, cache recovery
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

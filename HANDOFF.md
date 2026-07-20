@@ -1,19 +1,18 @@
-# Handoff - v1.5.42
+# Handoff - v1.5.43
 
-## v1.5.42 handoff focus
+## v1.5.43 handoff focus
 
-- Start a large ZIP and confirm the UI remains responsive while Worker progress updates.
-- Press `ZIP 생성 취소`; confirm no download starts and retry succeeds.
-- Double-click ZIP and confirm only one job starts.
-- Confirm mastering and queue reset remain blocked while ZIP is active.
-- Use names that differ only by case or use `CON.wav`; confirm extracted files remain unique and safe.
-- Install the PWA, go offline after cache warming, and confirm the versioned ZIP Worker launches.
+- Confirm the ZIP button opens the export progress panel and starts one Worker job.
+- Remove the ZIP service script locally and confirm Runtime Health reports the missing module instead of a silent click.
+- Run SRI update twice and confirm every local asset tag still has exactly one integrity attribute.
+- Create the overwrite ZIP, extract it, and confirm required runtime entry assets are loaded exactly once.
+- Create a large ZIP and compare peak memory against v1.5.42; capable browser workers should avoid eager full-file copies.
 
 ```text
-product: 1.5.42
-build: zip-worker-cancellation
-asset generation: 1.5.42-zip-worker-cancellation
-service worker cache: foxbear-shell-v1.5.42-zip-worker-cancellation
+product: 1.5.43
+build: export-pipeline-integrity
+asset generation: 1.5.43-export-pipeline-integrity
+service worker cache: foxbear-shell-v1.5.43-export-pipeline-integrity
 ```
 
 ## CI install rule

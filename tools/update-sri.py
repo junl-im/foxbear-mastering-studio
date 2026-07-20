@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / 'index.html'
 TAG_RE = re.compile(r'<(?:script|link)\b[^>]*(?:src|href)="[^"]+"[^>]*>')
 ASSET_RE = re.compile(r'(?:src|href)="([^"]+)"')
-INTEGRITY_RE = re.compile(r'integrity="sha384-[^"]+"')
+INTEGRITY_ATTR_RE = re.compile(r'\s+integrity="[^"]*"', re.IGNORECASE)
+# Backward-compatible alias used by historical regression tests.
+INTEGRITY_RE = INTEGRITY_ATTR_RE
 MISPLACED_SELF_CLOSE_RE = re.compile(r'\s+/\s+(?=integrity=)')
 
 
@@ -45,8 +47,9 @@ def update_tag(match: re.Match[str]) -> str:
     if not asset_path.is_file():
         return finish_tag(tag, self_closing)
     integrity = f'integrity="{sri_for(asset_path)}"'
-    if INTEGRITY_RE.search(tag):
-        return finish_tag(INTEGRITY_RE.sub(integrity, tag), self_closing)
+    # Remove every existing integrity attribute first. This repairs empty, stale,
+    # or duplicated attributes and guarantees exactly one canonical SHA-384 value.
+    tag = INTEGRITY_ATTR_RE.sub('', tag)
     base = tag.rstrip()[:-2].rstrip() if self_closing and tag.rstrip().endswith('/>') else tag.rstrip()[:-1].rstrip()
     return finish_tag(f'{base} {integrity}>', self_closing)
 

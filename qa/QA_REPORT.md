@@ -1,3 +1,22 @@
+# QA Report - v1.5.43 Export Pipeline Integrity
+
+- Static and regression result: `235/235 PASS` (the registered list was executed in three deterministic segments to avoid the runner ceiling).
+- `zip-export-service.js` is required to exist and load exactly once from `index.html`.
+- Runtime Health reports missing ZIP guard/progress/service globals instead of allowing silent button failure.
+- The SRI updater removes empty, stale, and duplicated integrity attributes before writing one canonical SHA-384 value.
+- Archive verification checks required runtime entry assets against the extracted package, not only the source folder.
+- Capable browser ZIP workers pass Blob inputs directly to JSZip and avoid eager full-file ArrayBuffer copies.
+- Existing Wake Lock, download recovery, codec, player, Kakao, service-worker, and CI lifecycle guards remain enabled.
+- Playwright browser execution was attempted, but Chromium was unavailable before application launch; the static server responded normally.
+
+## v1.5.43 coverage
+
+- source/index/runtime entry parity
+- duplicate SRI runtime repair
+- ZIP module-unavailable recovery
+- low-copy Blob worker path and compatibility fallback
+- extracted archive runtime-asset verification
+
 # QA Report - v1.5.42 ZIP Worker Cancellation and Archive Safety
 
 - Static and regression result: `233/233 PASS` (the full registered list was completed in deterministic continuation segments after the runner time ceiling).

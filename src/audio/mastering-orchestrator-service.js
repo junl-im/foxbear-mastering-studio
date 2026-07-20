@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.42-zip-worker-cancellation',
+            version: '1.5.43-export-pipeline-integrity',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.42-zip-worker-cancellation',
+        version: '1.5.43-export-pipeline-integrity',
         createMasteringBatchRunner
     });
 })(window);

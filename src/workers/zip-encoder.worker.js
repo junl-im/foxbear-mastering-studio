@@ -1,4 +1,4 @@
-// FoxBear ZIP encoder worker v1.5.42 - cancellable STORE packaging off the main thread
+// FoxBear ZIP encoder worker v1.5.43 - low-copy cancellable STORE packaging off the main thread
 'use strict';
 
 importScripts('../../vendor/jszip/jszip.min.js?v=3.10.1');
@@ -39,10 +39,15 @@ async function normalizeFiles(input, jobId) {
         if (!(blob instanceof Blob) || !Number.isFinite(blob.size) || blob.size <= 0) throw new Error(`${index + 1}번째 ZIP 파일 데이터가 올바르지 않습니다.`);
         totalBytes += blob.size;
         if (!Number.isSafeInteger(totalBytes) || totalBytes > MAX_TOTAL_BYTES) throw new Error('ZIP 입력 파일 합계가 브라우저 안전 한도를 넘었습니다.');
-        const data = await blob.arrayBuffer();
-        if (!data || data.byteLength !== blob.size) throw new Error(`${index + 1}번째 ZIP 파일을 읽지 못했습니다.`);
-        files.push(Object.freeze({ fileName: makeUniqueName(entry?.fileName || `mastered_${index + 1}.wav`, usedNames), blob: data }));
-        postProgress(jobId, 1 + ((index + 1) / input.length) * 10, 'ZIP 입력 읽기', `${index + 1} / ${input.length}`);
+        // Keep the Blob itself instead of eagerly copying every file into an
+        // ArrayBuffer. JSZip can consume Blob inputs directly, so this avoids a
+        // second full-size copy of every mastered file before generation starts.
+        const probe = await blob.slice(0, Math.min(16, blob.size)).arrayBuffer();
+        if (!probe || probe.byteLength <= 0) throw new Error(`${index + 1}번째 ZIP 파일을 읽지 못했습니다.`);
+        const blobSupported = self.JSZip?.support?.blob !== false && typeof self.FileReaderSync === 'function';
+        const payload = blobSupported ? blob : new Uint8Array(await blob.arrayBuffer());
+        files.push(Object.freeze({ fileName: makeUniqueName(entry?.fileName || `mastered_${index + 1}.wav`, usedNames), blob: payload }));
+        postProgress(jobId, 1 + ((index + 1) / input.length) * 10, blobSupported ? 'ZIP 입력 확인' : 'ZIP 호환 입력 변환', `${index + 1} / ${input.length}`);
     }
     return files;
 }

@@ -1,8 +1,8 @@
-// FoxBear export progress view v1.5.42 - cancellable ZIP worker progress and recovery
+// FoxBear export progress view v1.5.43 - cancellable ZIP worker progress and recovery
 'use strict';
 
 (function attachFoxBearExportProgressView(global) {
-    const VERSION = 'v1.5.42-zip-worker-cancellation';
+    const VERSION = 'v1.5.43-export-pipeline-integrity';
     const LEGACY_VERSION = 'v1.5.6-export-progress-recovery';
     let snapshot = Object.freeze({ version: VERSION, visible: false, state: 'idle', percent: 0, completedCount: 0, outputBytes: 0, message: '', cancellable: false });
     let refs = null;
