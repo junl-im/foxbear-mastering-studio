@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+echo "[FoxBear] checking release metadata before commit..."
+npm run version:check
