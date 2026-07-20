@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.41 (export-eta-download-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.42 (zip-worker-cancellation).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.41"
+  "version": "1.5.42"
 }

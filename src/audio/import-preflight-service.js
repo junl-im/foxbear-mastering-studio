@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.5.41 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.5.42 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.5.41-export-eta-download-recovery';
+    const VERSION = '1.5.42-zip-worker-cancellation';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

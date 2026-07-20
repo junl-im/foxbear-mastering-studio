@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.41-export-eta-download-recovery',
+            version: '1.5.42-zip-worker-cancellation',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.41-export-eta-download-recovery',
+        version: '1.5.42-zip-worker-cancellation',
         createMasteringBatchRunner
     });
 })(window);

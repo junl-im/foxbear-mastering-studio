@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.5.41 - ZIP working-set limits and STORE-only audio packaging
+// FoxBear export guard service v1.5.42 - ZIP working-set limits and STORE-only audio packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.5.41-export-eta-download-recovery';
+    const VERSION = 'v1.5.42-zip-worker-cancellation';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;
@@ -42,26 +42,34 @@
         return diagnostics.map(event => ({ ...event, detail: JSON.parse(JSON.stringify(event.detail || {})) }));
     }
 
+    const WINDOWS_RESERVED_NAME = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i;
+
     function sanitizeName(name) {
-        return String(name || 'mastered.wav').replace(/[\\/:*?"<>|\u0000-\u001f]+/g, '_').replace(/\s+/g, ' ').trim() || 'mastered.wav';
+        let safeName = String(name || 'mastered.wav');
+        try { safeName = safeName.normalize('NFC'); } catch (error) {}
+        safeName = safeName.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]+/g, '_').replace(/\s+/g, ' ').trim().replace(/[. ]+$/g, '');
+        if (!safeName) safeName = 'mastered.wav';
+        if (WINDOWS_RESERVED_NAME.test(safeName)) safeName = `_${safeName}`;
+        const dot = safeName.lastIndexOf('.');
+        const ext = dot > 0 ? safeName.slice(dot, dot + 17) : '';
+        const base = dot > 0 ? safeName.slice(0, dot) : safeName;
+        return `${base.slice(0, Math.max(1, 180 - ext.length))}${ext}` || 'mastered.wav';
     }
 
     function makeUniqueName(fileName, usedNames) {
         const safeName = sanitizeName(fileName);
-        if (!usedNames.has(safeName)) {
-            usedNames.add(safeName);
-            return safeName;
-        }
         const dot = safeName.lastIndexOf('.');
         const base = dot > 0 ? safeName.slice(0, dot) : safeName;
         const ext = dot > 0 ? safeName.slice(dot) : '';
         let index = 2;
-        let candidate = `${base}_${index}${ext}`;
-        while (usedNames.has(candidate)) {
+        let candidate = safeName;
+        let key = candidate.toLocaleLowerCase('en-US');
+        while (usedNames.has(key)) {
+            candidate = `${base.slice(0, Math.max(1, 170 - String(index).length - ext.length))}_${index}${ext}`;
+            key = candidate.toLocaleLowerCase('en-US');
             index += 1;
-            candidate = `${base}_${index}${ext}`;
         }
-        usedNames.add(candidate);
+        usedNames.add(key);
         return candidate;
     }
 

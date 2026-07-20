@@ -1,27 +1,27 @@
-# FoxBear AI Mastering Studio Pro v1.5.41
+# FoxBear AI Mastering Studio Pro v1.5.42
 
 ## CI and local Git hooks
 
 `npm ci` never installs Git hooks. GitHub Actions uses `npm ci --ignore-scripts`, and the optional local pre-commit hook is enabled only when a developer explicitly runs `npm run hooks:install`.
 
-## Current patch: v1.5.41 Export ETA and Download Recovery
+## Current patch: v1.5.42 ZIP Worker Cancellation and Archive Safety
 
-다운로드 팝업에 경과시간, 예상 잔여시간, 장시간 응답 대기 안내를 추가했습니다. 브라우저 다운로드 시작이 실패하면 팝업을 먼저 닫지 않고 오류와 재시도 버튼을 그대로 유지합니다. 작업 중에는 취소 버튼만 남기고 포맷·공유·추가 옵션을 모두 잠가 중복 실행을 방지합니다.
+ZIP 생성을 전용 Worker로 옮겨 메인 화면 멈춤을 줄이고, 진행 패널에서 즉시 취소할 수 있게 했습니다. 중복 ZIP 실행, ZIP 중 큐 초기화·재마스터링, 서비스워커 교체를 차단합니다. 압축 내부 파일명은 Windows 예약어와 대소문자 충돌까지 안전하게 정리합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.41
-build: export-eta-download-recovery
-asset generation: 1.5.41-export-eta-download-recovery
-service worker cache: foxbear-shell-v1.5.41-export-eta-download-recovery
+product: 1.5.42
+build: zip-worker-cancellation
+asset generation: 1.5.42-zip-worker-cancellation
+service worker cache: foxbear-shell-v1.5.42-zip-worker-cancellation
 ```
 
 Verification:
 
 ```text
 static QA target: full package qaChecks PASS
-manual browser target: long export ETA, background return, stalled progress, failed download retry
+manual browser target: long ZIP cancel/retry, background return, duplicate click, offline worker launch
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

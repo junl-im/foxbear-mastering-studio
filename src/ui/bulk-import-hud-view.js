@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.41 compatibility QA anchor: const VIEW_VERSION = '1.5.41-export-eta-download-recovery'
+    // v1.5.42 compatibility QA anchor: const VIEW_VERSION = '1.5.42-zip-worker-cancellation'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

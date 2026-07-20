@@ -1,52 +1,31 @@
-# FoxBear Status - v1.5.41
+# FoxBear Status - v1.5.42
 
 ## Current status
 
-Export progress now includes elapsed time, advisory ETA, stalled/background guidance, and complete dialog action ownership. Download-start failures remain visible because the dialog closes only after initiation succeeds.
+Static and regression QA is `233/233 PASS`. ZIP generation now runs in a dedicated cancellable Worker with one-job ownership, bounded timeout, stale-result isolation, archive-name hardening, and cross-tab update protection. The progress panel cannot be hidden while active and completion is shown only after download initiation succeeds.
 
-The release gate must verify timer/listener cleanup, complete button locking, stalled-progress messaging, and download-close ordering in addition to the existing worker cancellation and timeout contracts.
 
 ## Release invariants
 
 - `package.json` is the release metadata source of truth.
 - Product version, manifest version, visible UI version, service worker generation, and package filename must pass `npm run version:check`.
-- Visible release labels must be runtime-bound to generated `FoxBearBuildInfo`; stale static HTML labels are repaired by `FoxBearReleasePresentation`.
+- Visible release labels are runtime-repaired and diagnosed by `FoxBearReleasePresentation`.
 - A release candidate must pass `npm run check:release`; static QA alone is not a release gate.
-- A cumulative overwrite package is not releasable until `tools/verify-overwrite-zip.js` confirms required root configuration, workflows, runtime trees, and exclusions.
-- Browser QA readiness must wait for `FoxBearRuntimeHealth.appReady`; creation of the health object is not boot completion.
-- The opt-in 35-track deep browser path remains a separate release-candidate/manual check because it is intentionally expensive.
-
-## Audio and UI invariants
-
-- Spectrum FFT is shown in the detailed analysis view only.
-- Dock mini FFT remains removed; `#bottomPreviewSpectrum` and the former `renderMini` path must not return without a new measured performance decision.
-- Loudness-matched A/B behavior remains the intended comparison model.
-- Completed download Blobs and playback URLs remain available; completed mastered PCM uses `release-after-encode` by default, with at most one selected-track bounded re-encode buffer retained in normal browsers.
-- Bulk import analysis remains sequential and general UI rendering remains scheduler/throttle controlled for large batches.
-- Wake Lock distinguishes user intent from temporary automatic protection.
-- All managed Web Audio contexts must be created and released through `FoxBearAudioContextManager`; diagnostics must remain visible through Runtime Health/Performance Diagnostics.
-- The Settings trigger remains in the upper-right brand action row; its panel stays a body-level viewport portal and must not return to a Dock-obscuring floating position.
-
-## Security and resilience invariants
-
-- Optional Firebase/Firestore network outages are Runtime Health warnings; they must not be promoted to fatal application errors. Browser QA must isolate these optional remotes from the core runtime contract.
-
-- CSP, Trusted Types, SRI verification, Runtime Health, Update Safety, and service worker cache recovery remain enabled.
-- Original audio is processed locally and is not uploaded to Firebase Storage by the mastering flow.
-- ZIP export must pre-release completed PCM, package audio with `STORE`, enforce a working-set safety limit, validate generated Blob integrity, and provide a per-track fallback.
+- A cumulative overwrite package must pass archive verification and a clean-install reverse check.
+- Dock mini FFT remains removed; detailed analysis owns spectrum visualization.
+- Completed mastered PCM follows `release-after-encode`; downloads and playback retain encoded Blobs and URLs.
+- ZIP export must pre-release completed PCM, package audio with `STORE`, enforce working-set limits, run outside the main thread, expose cancellation, reject duplicate jobs, and validate the resulting Blob.
+- ZIP activity blocks service-worker activation, queue clearing, mastering, and automatic remastering until completion or cancellation.
+- Archive names must be path-safe, case-insensitively unique, and protected from Windows reserved device names.
+- CSP, Trusted Types, SRI, Runtime Health, Update Safety, and service-worker cache recovery remain enabled.
 
 ## Current release
 
-- Product version: `1.5.41`
-- Build ID: `export-eta-download-recovery`
-- Asset version: `1.5.41-export-eta-download-recovery`
-- Service worker cache: `foxbear-shell-v1.5.41-export-eta-download-recovery`
-- Static QA result: `231/231 PASS` (four deterministic chunks)
-- Browser QA target: long export ETA, background restore, stalled progress, download failure visibility, and retry
-- Worker progress events must carry the active job ID and must never be treated as terminal responses.
-- Download-dialog replacement and track removal must abort their active conversion worker.
-- Timeout failures must remain visible and must not silently change the requested output format.
-
+- Product version: `1.5.42`
+- Build ID: `zip-worker-cancellation`
+- Asset version: `1.5.42-zip-worker-cancellation`
+- Service worker cache: `foxbear-shell-v1.5.42-zip-worker-cancellation`
+- Browser QA target: long ZIP cancellation/retry, duplicate clicks, offline Worker launch, and extraction-name safety
 
 ## v1.5.25 deterministic preview stability invariant
 

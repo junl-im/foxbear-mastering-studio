@@ -1,3 +1,13 @@
+# v1.5.42 - ZIP Worker Cancellation and Archive Safety
+
+- Moved STORE-only ZIP creation off the main thread into a dedicated cancellable Worker.
+- Added one-job locking, explicit ZIP cancellation, bounded timeouts, stale-result rejection, and page-exit cleanup.
+- Prevented mastering, automatic remastering, and queue clearing while ZIP owns its output snapshot.
+- Added ZIP activity to cross-tab service-worker update protection.
+- Hardened archive filenames for case-insensitive collisions, path characters, trailing dots/spaces, Windows device names, Unicode, and length.
+- Cached exact versioned Worker URLs for reliable offline execution.
+- Added v1.5.42 runtime regression coverage for PK output, progress, safe names, UI cancellation, and update coordination.
+
 # v1.5.41 - Export ETA and Download Recovery
 
 - Kept the download dialog mounted until the browser download path succeeds so failures remain visible and retryable.

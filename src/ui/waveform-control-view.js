@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.41-export-eta-download-recovery';
+  const VIEW_VERSION = '1.5.42-zip-worker-cancellation';
   const DEFAULT_BINS = 96;
 
   function getService() {

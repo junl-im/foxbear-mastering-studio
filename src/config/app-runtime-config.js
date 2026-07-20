@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.41 - runtime constants
+// FoxBear AI Mastering Studio Pro v1.5.42 - runtime constants
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const ASSET_VERSION = '1.5.41-export-eta-download-recovery';
+    const ASSET_VERSION = '1.5.42-zip-worker-cancellation';
     if (BUILD_INFO.assetVersion && BUILD_INFO.assetVersion !== ASSET_VERSION) console.warn('[FoxBear] asset metadata mismatch', { runtime: ASSET_VERSION, build: BUILD_INFO.assetVersion });
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
@@ -11,6 +11,7 @@
     const ANALYSIS_WORKER_URL = assetUrl('src/workers/analysis.worker.js');
     const MASTER_FINALIZER_WORKER_URL = assetUrl('src/workers/master-finalizer.worker.js');
     const PITCH_WSOLA_WORKER_URL = assetUrl('src/workers/pitch-wsola.worker.js');
+    const ZIP_ENCODER_WORKER_URL = assetUrl('src/workers/zip-encoder.worker.js');
     const OPTIONAL_WASM_PITCH_ADAPTER_URL = './engines/pitch-engine-adapter.js';
     const CORE_AUDIO_EXTENSIONS = ['.wav', '.wave', '.mp3', '.mpeg', '.mpga', '.aif', '.aiff', '.aifc'];
     const CONTAINER_AUDIO_EXTENSIONS = ['.mp4', '.m4v', '.mov'];
@@ -18,20 +19,22 @@
     const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
 
     global.FoxBearRuntimeConfig = Object.freeze({
-        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.41',
+        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.42',
         ASSET_VERSION,
         WAV_ENCODER_WORKER_URL,
         MP3_ENCODER_WORKER_URL,
         ANALYSIS_WORKER_URL,
         MASTER_FINALIZER_WORKER_URL,
         PITCH_WSOLA_WORKER_URL,
+        ZIP_ENCODER_WORKER_URL,
         OPTIONAL_WASM_PITCH_ADAPTER_URL,
         TRUSTED_SCRIPT_PATHS: Object.freeze([
             WAV_ENCODER_WORKER_URL,
             MP3_ENCODER_WORKER_URL,
             ANALYSIS_WORKER_URL,
             MASTER_FINALIZER_WORKER_URL,
-            PITCH_WSOLA_WORKER_URL
+            PITCH_WSOLA_WORKER_URL,
+            ZIP_ENCODER_WORKER_URL
         ]),
         MAX_FILES: 35,
         MAX_FILE_SIZE: 220 * 1024 * 1024,

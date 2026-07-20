@@ -79,3 +79,9 @@
   .export-progress-head { align-items: flex-start; }
   .export-progress-foot { flex-wrap: wrap; }
 }
+
+/* v1.5.42 cancellable ZIP worker */
+.export-progress-actions { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.export-progress-close:disabled { opacity: 0.45; cursor: not-allowed; }
+.export-progress-panel.is-cancelled { border-color: rgba(255, 204, 112, 0.48); }
+.export-progress-panel.is-active .export-progress-meter span { will-change: width; }

@@ -1,18 +1,19 @@
-# Handoff - v1.5.41
+# Handoff - v1.5.42
 
-## v1.5.41 handoff focus
+## v1.5.42 handoff focus
 
-- Start a long MP3/WAV conversion and confirm elapsed time plus advisory remaining time update.
-- Background the browser and return; confirm the dialog remains usable and explains background throttling instead of appearing frozen.
-- Simulate or force a failed download start and confirm the dialog remains visible with the error and retry actions.
-- While conversion is active, confirm format, share, help, and advanced-option buttons are disabled while `변환 취소` remains enabled.
-- Replace or close the dialog and confirm progress timers and page lifecycle listeners are removed.
+- Start a large ZIP and confirm the UI remains responsive while Worker progress updates.
+- Press `ZIP 생성 취소`; confirm no download starts and retry succeeds.
+- Double-click ZIP and confirm only one job starts.
+- Confirm mastering and queue reset remain blocked while ZIP is active.
+- Use names that differ only by case or use `CON.wav`; confirm extracted files remain unique and safe.
+- Install the PWA, go offline after cache warming, and confirm the versioned ZIP Worker launches.
 
 ```text
-product: 1.5.41
-build: export-eta-download-recovery
-asset generation: 1.5.41-export-eta-download-recovery
-service worker cache: foxbear-shell-v1.5.41-export-eta-download-recovery
+product: 1.5.42
+build: zip-worker-cancellation
+asset generation: 1.5.42-zip-worker-cancellation
+service worker cache: foxbear-shell-v1.5.42-zip-worker-cancellation
 ```
 
 ## CI install rule

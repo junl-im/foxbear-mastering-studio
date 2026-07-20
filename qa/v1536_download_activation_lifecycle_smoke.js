@@ -9,6 +9,7 @@ const root = path.resolve(__dirname, '..');
 const serviceSource = fs.readFileSync(path.join(root, 'src/download/download-service.js'), 'utf8');
 const dialogSource = fs.readFileSync(path.join(root, 'src/ui/download-dialog-view.js'), 'utf8');
 const appSource = fs.readFileSync(path.join(root, 'src/app.js'), 'utf8');
+const zipServiceSource = fs.readFileSync(path.join(root, 'src/download/zip-export-service.js'), 'utf8');
 
 assert(serviceSource.includes('const verifiedBlobInspections = typeof WeakMap'), 'verified Blob cache missing');
 assert(serviceSource.includes('const pickerPromise = global.showSaveFilePicker({'), 'file picker is not invoked immediately');
@@ -21,7 +22,7 @@ assert(dialogSource.includes('The actual share call belongs to the assist button
 assert(!dialogSource.includes('clearNativeBadgeIfDone();\n            state.busy = false;'), 'download completion still clears global mastering busy state');
 assert(dialogSource.includes('let actionInFlight = false'), 'download action re-entry guard missing');
 assert(appSource.includes('await getDownloadService().assertDownloadBlob(encoded.blob);'), 'master output is not prevalidated/cached');
-assert(appSource.includes('await downloadBlob(zipBlob'), 'ZIP download rejection is still unhandled');
+assert(zipServiceSource.includes('await options.downloadBlob?.(zipBlob') && zipServiceSource.includes('} catch (error) {'), 'delegated ZIP download rejection is still unhandled');
 assert(appSource.includes("console.warn('Report download failed:'"), 'report download rejection guard missing');
 
 const order = [];

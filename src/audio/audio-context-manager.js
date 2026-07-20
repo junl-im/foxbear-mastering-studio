@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.41-export-eta-download-recovery';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.42-zip-worker-cancellation';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

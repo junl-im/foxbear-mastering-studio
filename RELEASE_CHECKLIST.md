@@ -1,3 +1,14 @@
+## v1.5.42 ZIP worker cancellation checks
+
+- [ ] Large ZIP generation keeps the main UI responsive.
+- [ ] `ZIP 생성 취소` terminates the active Worker and starts no download.
+- [ ] Retry after cancellation completes normally.
+- [ ] Repeated ZIP clicks create only one job.
+- [ ] Queue clearing and mastering remain blocked while ZIP is active.
+- [ ] Case-only duplicate and Windows-reserved filenames extract safely.
+- [ ] Versioned ZIP Worker launches after PWA cache warm and offline transition.
+- [ ] `node qa/v1542_zip_worker_cancellation_smoke.js` passes.
+
 ## v1.5.41 export ETA and download recovery checks
 
 - [ ] Long MP3/WAV conversion shows elapsed time and a stable advisory ETA.

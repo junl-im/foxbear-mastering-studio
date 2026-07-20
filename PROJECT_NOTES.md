@@ -1,3 +1,12 @@
+# Current Project Notes - v1.5.42
+
+## v1.5.42 focus
+
+- ZIP creation is a single owned Worker job; cancellation terminates the Worker rather than throwing from a JSZip callback.
+- A ZIP snapshot must not race queue clearing, mastering, automatic remastering, or service-worker activation.
+- Archive filenames must remain safe after extraction on case-insensitive Windows/macOS file systems.
+- Exact versioned Worker URLs must be available offline, not only unversioned source paths.
+
 # Current Project Notes - v1.5.41
 
 ## v1.5.41 focus

@@ -1,3 +1,21 @@
+# QA Report - v1.5.42 ZIP Worker Cancellation and Archive Safety
+
+- Static and regression result: `233/233 PASS` (the full registered list was completed in deterministic continuation segments after the runner time ceiling).
+- ZIP generation executes in a dedicated Worker and produces a PK-signed Blob.
+- AbortSignal cancellation terminates the Worker and prevents download initiation.
+- Duplicate ZIP requests, queue clearing, mastering, and service-worker activation are blocked while export is active.
+- Archive names are safe and unique on case-insensitive extraction targets.
+- Exact versioned Worker URLs are cached for offline execution.
+
+## v1.5.42 coverage
+
+- Worker runtime ZIP generation and progress
+- explicit ZIP cancel UI and lifecycle
+- duplicate job and destructive-action locking
+- timeout and stale-result isolation
+- Windows/case-insensitive archive-name hardening
+- versioned Worker cache presence
+
 # QA Report - v1.5.41 Export ETA and Download Recovery
 
 - Static and regression result: `231/231 PASS` (executed in four deterministic chunks to avoid the tool runtime ceiling).

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.41",
-  "buildId": "export-eta-download-recovery",
+  "productVersion": "1.5.42",
+  "buildId": "zip-worker-cancellation",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",
