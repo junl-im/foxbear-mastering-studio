@@ -33,18 +33,19 @@ This document contains rules that remain true across releases. Actual changes be
 
 ## Current release
 
-- Product version: `1.5.33`
-- Build ID: `codec-truth-download-hardening`
-- Asset version: `1.5.33-codec-truth-download-hardening`
-- Service worker cache: `foxbear-shell-v1.5.33-codec-truth-download-hardening`
-- Static QA target: `220/220 PASS`
+- Product version: `1.5.34`
+- Build ID: `kakao-landing-recovery`
+- Asset version: `1.5.34-kakao-landing-recovery`
+- Service worker cache: `foxbear-shell-v1.5.34-kakao-landing-recovery`
+- Static QA target: `221/221 PASS`
 - Browser QA target: `14/14 PASS` on actual Chromium plus the GitHub Actions gate
-- Local browser QA was attempted for v1.5.33 but could not launch because the Playwright Chromium executable is absent in this workspace.
+- Local browser QA remains environment-dependent; Kakao Android/iPhone real-device link-open verification is required for this release.
 - Visible release labels remain repaired by `FoxBearReleasePresentation`.
 - Import UI must advertise only stable or browser-detected codecs; CAF/WMA/AMR/3GP must remain excluded unless a real decoder is added.
 - PCM AIFF/AIFC fallback decoding and download Blob signature validation are release invariants.
 
 - KakaoTalk entry must route to the lightweight external-browser landing before import/mastering unless the user explicitly chooses the in-app bypass.
+- The Kakao landing must never auto-launch a custom scheme or Android intent from a timer; it must remain visible until the user clicks.
 - The external-browser landing must accept same-origin targets only and must not imply that Kakao WebView Blob memory transfers into Chrome/Safari.
 - The preferred Kakao workflow is external browser first, then local import/master/encode/download without server upload.
 - Mastering completion must preserve a currently playing original Dock player and must not mount a second player outside an explicit user-gesture crossfade.

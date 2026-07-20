@@ -1,31 +1,25 @@
-# FoxBear AI Mastering Studio Pro v1.5.33
+# FoxBear AI Mastering Studio Pro v1.5.34
 
-## v1.5.33 codec policy
+## Current patch: v1.5.34 Kakao Landing Recovery
 
-FoxBear now distinguishes app-supported formats from browser-conditional formats. WAV, MP3, and uncompressed PCM AIFF/AIFC are stable inputs. M4A/AAC, FLAC, OGG/Opus, WebM audio, and MP4/MOV audio tracks appear only when the current browser reports playback capability; final acceptance is still determined by actual Web Audio decoding. CAF, WMA, AMR, and 3GP-family inputs are no longer advertised because this build does not bundle decoders for them.
+카카오톡에서 링크를 열 때 안내 페이지가 뜨자마자 외부 브라우저 스킴을 자동 실행하던 동작을 제거했습니다. 일부 카카오 WebView에서는 이 자동 호출이 차단되면서 현재 문서까지 빈 화면이나 열기 실패 화면으로 바뀔 수 있었습니다.
 
-Downloads are validated before saving. WAV and MP3 headers, minimum file size, filename extension, and MIME type are checked before anchor download, file sharing, or File System Access saving.
-
-## Current patch: v1.5.33 Codec Truth and Download Hardening
-
-파일 선택창과 실제 디코더 계약을 일치시켰습니다. WAV, MP3, PCM AIFF/AIFC는 안정 입력으로 유지하고, M4A/AAC, FLAC, OGG/Opus, WebM, MP4/MOV는 현재 브라우저가 재생 가능성을 보고한 경우에만 선택 목록에 표시합니다. 전용 디코더가 없는 CAF, WMA, AMR, 3GP 계열은 선택 전에 명확히 차단합니다.
-
-브라우저의 AIFF 디코딩이 실패할 때 사용할 PCM AIFF/AIFC 파서를 추가했고, 디코딩은 재생용 AudioContext 활성화를 기다리지 않습니다. 다운로드 전에는 WAV/MP3/ZIP/JSON Blob의 크기와 헤더를 검증하며, 일반 다운로드가 빈 새 탭을 만들지 않도록 정리했습니다.
+이제 카카오 진입은 같은 사이트의 일반 HTML 안내 페이지까지만 자동 이동합니다. 안내 페이지를 먼저 안정적으로 표시한 뒤 사용자가 `기본 브라우저에서 시작`을 직접 눌렀을 때만 Android Intent 또는 iPhone용 카카오 외부 열기를 시도합니다. 스크립트가 실패해도 일반 링크, 주소 복사, `카카오톡에서 계속 사용` 경로가 남습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.33
-build: codec-truth-download-hardening
-asset generation: 1.5.33-codec-truth-download-hardening
-service worker cache: foxbear-shell-v1.5.33-codec-truth-download-hardening
+product: 1.5.34
+build: kakao-landing-recovery
+asset generation: 1.5.34-kakao-landing-recovery
+service worker cache: foxbear-shell-v1.5.34-kakao-landing-recovery
 ```
 
 Verification:
 
 ```text
-static QA target: 220/220 PASS
-real-browser QA: attempted locally; Playwright Chromium executable is absent, so run in CI or an unrestricted local environment
+static QA target: 221/221 PASS
+real-device requirement: KakaoTalk Android/iPhone link-open verification
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

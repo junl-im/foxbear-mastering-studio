@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.33 (codec-truth-download-hardening).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.34 (kakao-landing-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.33"
+  "version": "1.5.34"
 }

@@ -114,3 +114,13 @@ h1 {
   width: 1px;
   height: 1px;
 }
+
+.external-browser-menu-help {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.055);
+  color: #d5deea;
+  font-size: 13px;
+  line-height: 1.55;
+}

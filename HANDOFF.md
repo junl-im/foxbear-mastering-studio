@@ -1,32 +1,30 @@
-# Handoff - v1.5.33
+# Handoff - v1.5.34
 
-## v1.5.33 handoff focus
+## v1.5.34 handoff focus
 
-- Verify WAV, MP3, and PCM AIFF import on desktop and mobile browsers.
-- Verify conditional formats are hidden when `HTMLMediaElement.canPlayType()` returns an empty string.
-- Verify CAF/WMA/AMR/3GP are rejected before queue registration with a conversion recommendation.
-- Verify generated WAV/MP3 files pass header validation and normal browser downloads do not open an extra blank tab.
+- Open the deployed link from KakaoTalk on Android and iPhone and confirm the lightweight page remains visible.
+- Confirm no automatic app-scheme navigation occurs before a user click.
+- Confirm Android `기본 브라우저에서 시작` opens an external-browser chooser/default browser.
+- Confirm iPhone failure leaves the landing visible with the top-right `다른 브라우저로 열기` instruction.
 
 ## Maintainer workflow
 
-The project owner applies patches and commits with **GitHub Desktop**. Extract the cumulative overwrite ZIP into a temporary folder, copy its contents into the repository root, review the changed root files, commit, push, and inspect the GitHub Actions release gate.
+Apply the cumulative overwrite ZIP at the repository root with GitHub Desktop, review the Kakao guard/landing changes, commit, push, and verify GitHub Pages plus the release gate.
 
-## Current patch: v1.5.33 Codec truth and download hardening
+## Current patch: v1.5.34 Kakao landing recovery
 
 Changes:
 
-- Filters the picker with runtime `canPlayType()` signals while retaining actual decode as the final acceptance check.
-- Treats WAV, MP3, and PCM AIFF/AIFC as stable inputs; removes unsupported CAF/WMA/AMR/3GP advertising.
-- Adds an app-level AIFF/AIFC PCM fallback parser and bounded native decode timeouts.
-- Validates generated WAV/MP3/ZIP/JSON Blob headers before save, share, or download.
-- Keeps normal downloads in the current page, restores MP3 256 kbps, and exposes File System Access saving only in secure contexts.
-- Adds runtime synthetic AIFF decode and invalid-download rejection tests.
+- Removes timer-driven `kakaotalk://` navigation.
+- Runs all custom scheme/intent navigation only from an explicit click.
+- Preserves ordinary fallback links when JavaScript or custom schemes are blocked.
+- Keeps same-origin target validation and in-app bypass loop prevention.
 
 ```text
-product: 1.5.33
-build: codec-truth-download-hardening
-asset generation: 1.5.33-codec-truth-download-hardening
-service worker cache: foxbear-shell-v1.5.33-codec-truth-download-hardening
+product: 1.5.34
+build: kakao-landing-recovery
+asset generation: 1.5.34-kakao-landing-recovery
+service worker cache: foxbear-shell-v1.5.34-kakao-landing-recovery
 ```
 
 Verification:
@@ -36,7 +34,6 @@ npm ci
 npm run version:check
 npm run handoff:check
 npm run check
-npm run qa:browser
 npm run package:all
 npm run package:verify:release
 npm run package:verify:overwrite

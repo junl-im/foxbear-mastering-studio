@@ -1,3 +1,12 @@
+# v1.5.34 - Kakao Landing Recovery
+
+- Removed the timer-driven `kakaotalk://` auto-launch that could replace the landing with a blank or blocked page before users saw any controls.
+- Kept Kakao entry navigation limited to a normal same-origin HTML page; external schemes and Android intents now run only from an explicit user click.
+- Made the landing progressively usable even when JavaScript fails by keeping ordinary direct links for the target page and in-app bypass.
+- Added an always-visible Kakao menu fallback telling users to choose `다른 브라우저로 열기` from the top-right menu.
+- Avoided optional chaining in the earliest Kakao boot guard for older Android WebView compatibility.
+- Added v1.5.34 simulated Kakao Android/iOS regression coverage that verifies the landing remains visible and no automatic scheme timer is scheduled.
+
 # v1.5.33 - Codec Truth and Download Hardening
 
 - Replaced the broad static input claim with runtime codec probing based on the current browser, exposing only formats that are stable or reported as playable.

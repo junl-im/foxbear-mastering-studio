@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.33-codec-truth-download-hardening';
+  const VIEW_VERSION = '1.5.34-kakao-landing-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

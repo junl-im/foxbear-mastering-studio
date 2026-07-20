@@ -1,3 +1,20 @@
+# FoxBear QA Report - v1.5.34
+
+Current release result: metadata, handoff, SRI, and 221 static checks passed after restoring the locked npm dependencies. KakaoTalk Android/iPhone real-device link opening remains the final manual validation item.
+
+## v1.5.34 coverage
+
+- Confirms the Kakao entry guard only redirects to a normal same-origin HTML landing.
+- Rejects timer-driven automatic custom-scheme or Android-intent navigation.
+- Simulates Android and iPhone Kakao user agents and verifies external launch begins only after an explicit click.
+- Requires the landing to remain visible with direct-link, address-copy, in-app bypass, and top-right menu guidance fallbacks.
+- Keeps earlier codec, download, Wake Lock, player, service-worker, and security regressions in the cumulative suite.
+
+```text
+221/221 PASS target
+Real device QA: open the production link from KakaoTalk on Android and iPhone; verify the landing remains visible before any user action
+```
+
 # FoxBear QA Report - v1.5.33
 
 Current release result: metadata/handoff/SRI checks and 220/220 static checks passed. Playwright was invoked, but this workspace has no Chromium executable, so real browser and device codec matrices remain required for final release validation.

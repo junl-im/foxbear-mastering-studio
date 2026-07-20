@@ -1,12 +1,13 @@
-// FoxBear KakaoTalk entry guard: move users to a full browser before local audio work begins.
+// FoxBear KakaoTalk entry guard: show a lightweight, always-renderable landing before local audio work begins.
 'use strict';
 
 (function guardKakaoEntry(global) {
-  const ua = String(global.navigator?.userAgent || '');
-  const isKakao = /KAKAOTALK|KakaoTalk/i.test(ua);
+  var navigatorRef = global.navigator || {};
+  var ua = String(navigatorRef.userAgent || '');
+  var isKakao = /KAKAOTALK|KakaoTalk/i.test(ua);
   if (!isKakao) return;
 
-  let current;
+  var current;
   try {
     current = new URL(global.location.href);
   } catch (error) {
@@ -18,15 +19,28 @@
     return;
   }
 
-  const target = new URL(current.href);
+  var target = new URL(current.href);
   target.searchParams.delete('foxbearInApp');
   target.searchParams.set('foxbearExternal', '1');
   target.hash = '';
 
-  const gate = new URL('./external-browser.html', current.href);
+  var gate = new URL('./external-browser.html', current.href);
   gate.searchParams.set('target', target.href);
   gate.searchParams.set('source', 'kakao');
 
-  global.FoxBearKakaoEntry = Object.freeze({ restricted: true, bypassed: false, target: target.href, gate: gate.href });
-  global.location.replace(gate.href);
+  global.FoxBearKakaoEntry = Object.freeze({
+    restricted: true,
+    bypassed: false,
+    target: target.href,
+    gate: gate.href
+  });
+
+  // Only navigate to an ordinary same-origin HTTPS/HTTP page here. Never launch a
+  // custom scheme during document boot: Kakao WebView can replace the page with a
+  // blank/error screen when such a scheme is blocked.
+  try {
+    global.location.replace(gate.href);
+  } catch (error) {
+    try { global.location.href = gate.href; } catch (fallbackError) {}
+  }
 })(typeof window !== 'undefined' ? window : globalThis);

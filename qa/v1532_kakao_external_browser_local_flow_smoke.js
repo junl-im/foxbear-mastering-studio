@@ -39,16 +39,16 @@ assert(index.indexOf('src/boot/kakao-entry-guard.js') < index.indexOf('src/confi
 const kakao = runGuard('https://example.com/app/index.html?mode=master', 'Mozilla/5.0 Android KAKAOTALK');
 assert(kakao.replaced.includes('/app/external-browser.html?'), 'Kakao entry should be redirected to lightweight external-browser landing');
 assert(decodeURIComponent(kakao.replaced).includes('foxbearExternal=1'), 'external target marker must be preserved');
-assert.strictEqual(kakao.entry?.bypassed, false, 'normal Kakao entry must not bypass the gate');
+assert.strictEqual(kakao.entry && kakao.entry.bypassed, false, 'normal Kakao entry must not bypass the gate');
 
 const bypass = runGuard('https://example.com/app/index.html?foxbearInApp=1', 'Mozilla/5.0 iPhone KakaoTalk');
 assert.strictEqual(bypass.replaced, '', 'explicit in-app continue must not redirect again');
-assert.strictEqual(bypass.entry?.bypassed, true, 'bypass state must be exposed');
+assert.strictEqual(bypass.entry && bypass.entry.bypassed, true, 'bypass state must be exposed');
 
 const normal = runGuard('https://example.com/app/index.html', 'Mozilla/5.0 Chrome Safari');
 assert.strictEqual(normal.replaced, '', 'normal browsers must not be redirected');
 
-['openExternalBrowser', 'openAndroidBrowser', 'copyExternalUrl', 'continueInKakao'].forEach(id => {
+['openExternalBrowser', 'openKakaoExternalScheme', 'copyExternalUrl', 'openTargetDirect', 'continueInKakao'].forEach(id => {
   assert(gateHtml.includes(`id="${id}"`), `external-browser landing is missing ${id}`);
 });
 function expectedSri(relativePath) {
@@ -60,7 +60,7 @@ assert(gateHtml.includes(`integrity="${expectedSri('src/boot/kakao-external-brow
 assert(landingSource.includes('kakaotalk://web/openExternal?url='), 'landing must include Kakao external-browser scheme');
 assert(landingSource.includes('intent://'), 'landing must include Android intent fallback');
 assert(landingSource.includes('parsed.origin !== global.location.origin'), 'landing target must reject cross-origin open redirects');
-assert(landingSource.includes("addEventListener('click', launchWithKakaoScheme)"), 'external launch must be available from a user click');
+assert(landingSource.includes("addEventListener('click', launchExternalBrowser)"), 'external launch must be available from a user click');
 assert(sw.includes("'./external-browser.html'"), 'service worker must cache the lightweight landing');
 assert(sw.includes("'./src/boot/kakao-entry-guard.js'"), 'service worker must cache the entry guard');
 assert(overwriteTool.includes('copy_path "external-browser.html"'), 'overwrite package must include the landing page');

@@ -2,20 +2,22 @@
 'use strict';
 
 (function initKakaoExternalBrowserLanding(global) {
-  const doc = global.document;
+  var doc = global.document;
   if (!doc) return;
 
-  const ua = String(global.navigator?.userAgent || '');
-  const isKakao = /KAKAOTALK|KakaoTalk/i.test(ua);
-  const isAndroid = /Android/i.test(ua);
-  const params = new URL(global.location.href).searchParams;
-  const fallbackTarget = new URL('./index.html?foxbearExternal=1', global.location.href);
+  var navigatorRef = global.navigator || {};
+  var ua = String(navigatorRef.userAgent || '');
+  var isKakao = /KAKAOTALK|KakaoTalk/i.test(ua);
+  var isAndroid = /Android/i.test(ua);
+  var isIOS = /iPhone|iPad|iPod/i.test(ua);
+  var params = new URL(global.location.href).searchParams;
+  var fallbackTarget = new URL('./index.html?foxbearExternal=1', global.location.href);
 
   function resolveTarget() {
-    const raw = params.get('target');
+    var raw = params.get('target');
     if (!raw) return fallbackTarget;
     try {
-      const parsed = new URL(raw, global.location.href);
+      var parsed = new URL(raw, global.location.href);
       if (parsed.origin !== global.location.origin) return fallbackTarget;
       if (!/^https?:$/.test(parsed.protocol)) return fallbackTarget;
       parsed.searchParams.delete('foxbearInApp');
@@ -27,52 +29,67 @@
     }
   }
 
-  const target = resolveTarget();
-  const status = doc.getElementById('externalBrowserStatus');
-  const primary = doc.getElementById('openExternalBrowser');
-  const androidFallback = doc.getElementById('openAndroidBrowser');
-  const copy = doc.getElementById('copyExternalUrl');
-  const continueInApp = doc.getElementById('continueInKakao');
+  var target = resolveTarget();
+  var status = doc.getElementById('externalBrowserStatus');
+  var primary = doc.getElementById('openExternalBrowser');
+  var kakaoScheme = doc.getElementById('openKakaoExternalScheme');
+  var copy = doc.getElementById('copyExternalUrl');
+  var direct = doc.getElementById('openTargetDirect');
+  var continueInApp = doc.getElementById('continueInKakao');
 
   function setStatus(message) {
     if (status) status.textContent = message;
   }
 
   function buildKakaoExternalUrl(url) {
-    return `kakaotalk://web/openExternal?url=${encodeURIComponent(url)}`;
+    return 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
   }
 
   function buildAndroidIntentUrl(url) {
-    const parsed = new URL(url);
-    const scheme = parsed.protocol.replace(':', '') || 'https';
-    const path = `${parsed.host}${parsed.pathname}${parsed.search}${parsed.hash}`;
-    const fallback = encodeURIComponent(parsed.href);
-    return `intent://${path}#Intent;scheme=${scheme};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url=${fallback};end`;
+    var parsed = new URL(url);
+    var scheme = parsed.protocol.replace(':', '') || 'https';
+    var path = parsed.host + parsed.pathname + parsed.search + parsed.hash;
+    var fallback = encodeURIComponent(parsed.href);
+    return 'intent://' + path + '#Intent;scheme=' + scheme + ';action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url=' + fallback + ';end';
   }
 
-  function launchWithKakaoScheme() {
-    setStatus('기본 브라우저를 여는 중입니다. 전환되지 않으면 아래 Android 대체 버튼이나 주소 복사를 사용하세요.');
-    global.location.href = buildKakaoExternalUrl(target.href);
+  function launchKakaoSchemeWithoutReplacingLanding() {
+    setStatus('카카오톡 외부 브라우저 호출을 시도했습니다. 반응이 없으면 오른쪽 위 메뉴의 “다른 브라우저로 열기”를 사용하세요.');
+    try {
+      global.open(buildKakaoExternalUrl(target.href), '_blank');
+    } catch (error) {}
   }
 
-  function launchAndroidIntent() {
-    setStatus('Android 기본 브라우저 선택 화면을 여는 중입니다.');
-    global.location.href = buildAndroidIntentUrl(target.href);
+  function launchExternalBrowser(event) {
+    if (event && typeof event.preventDefault === 'function') event.preventDefault();
+    if (isAndroid) {
+      setStatus('Android 기본 브라우저 선택 화면을 여는 중입니다. 열리지 않으면 카카오톡 오른쪽 위 메뉴를 사용하세요.');
+      global.location.href = buildAndroidIntentUrl(target.href);
+      return;
+    }
+    if (isIOS) {
+      launchKakaoSchemeWithoutReplacingLanding();
+      return;
+    }
+    setStatus('새 브라우저에서 FoxBear를 여는 중입니다.');
+    var opened = global.open(target.href, '_blank', 'noopener,noreferrer');
+    if (!opened) global.location.href = target.href;
   }
 
   async function copyTarget() {
     try {
-      await global.navigator.clipboard.writeText(target.href);
+      if (!navigatorRef.clipboard || typeof navigatorRef.clipboard.writeText !== 'function') throw new Error('clipboard unavailable');
+      await navigatorRef.clipboard.writeText(target.href);
       setStatus('주소를 복사했습니다. 카카오톡 오른쪽 위 메뉴에서 다른 브라우저로 열거나 Chrome/Safari 주소창에 붙여넣으세요.');
     } catch (error) {
-      const field = doc.createElement('textarea');
+      var field = doc.createElement('textarea');
       field.value = target.href;
       field.setAttribute('readonly', '');
       field.className = 'external-browser-copy-field';
       doc.body.appendChild(field);
       field.select();
       try { doc.execCommand('copy'); } catch (copyError) {}
-      field.remove();
+      if (field.parentNode) field.parentNode.removeChild(field);
       setStatus('주소를 복사했습니다. 기본 브라우저 주소창에 붙여넣으세요.');
     }
   }
@@ -82,47 +99,33 @@
     return;
   }
 
-  primary?.addEventListener('click', launchWithKakaoScheme);
-  if (androidFallback) {
-    androidFallback.hidden = !isAndroid;
-    androidFallback.addEventListener('click', launchAndroidIntent);
+  if (primary) primary.addEventListener('click', launchExternalBrowser);
+  if (kakaoScheme) {
+    kakaoScheme.hidden = !isIOS;
+    kakaoScheme.addEventListener('click', launchKakaoSchemeWithoutReplacingLanding);
   }
-  copy?.addEventListener('click', copyTarget);
+  if (copy) copy.addEventListener('click', copyTarget);
+  if (direct) direct.href = target.href;
 
   if (continueInApp) {
-    const bypass = new URL(target.href);
+    var bypass = new URL(target.href);
     bypass.searchParams.set('foxbearInApp', '1');
     continueInApp.href = bypass.href;
   }
 
-  doc.addEventListener('visibilitychange', () => {
-    if (doc.visibilityState === 'hidden') setStatus('기본 브라우저로 전환했습니다.');
-  });
-
-  try {
-    const attemptKey = `foxbear-kakao-external-attempt:${target.pathname}`;
-    const lastAttempt = Number(global.sessionStorage.getItem(attemptKey) || 0);
-    const now = Date.now();
-    if (!lastAttempt || now - lastAttempt > 15000) {
-      global.sessionStorage.setItem(attemptKey, String(now));
-      global.setTimeout(launchWithKakaoScheme, 180);
-      global.setTimeout(() => {
-        if (doc.visibilityState === 'visible') setStatus('자동 전환이 막혔습니다. “기본 브라우저에서 시작”을 눌러주세요.');
-      }, 1400);
-    } else {
-      setStatus('“기본 브라우저에서 시작”을 눌러주세요.');
-    }
-  } catch (error) {
-    setStatus('“기본 브라우저에서 시작”을 눌러주세요.');
-  }
+  // The landing must remain visible until the user acts. Do not auto-launch a
+  // custom scheme or intent from a timer; blocked scheme navigation is the main
+  // cause of Kakao-only blank/error pages.
+  setStatus('페이지가 정상적으로 열렸습니다. 아래 버튼을 눌러 기본 브라우저로 이동하세요.');
 
   global.FoxBearExternalBrowserLanding = Object.freeze({
     target: target.href,
-    isKakao,
-    isAndroid,
-    buildKakaoExternalUrl,
-    buildAndroidIntentUrl,
-    launchWithKakaoScheme,
-    launchAndroidIntent
+    isKakao: isKakao,
+    isAndroid: isAndroid,
+    isIOS: isIOS,
+    buildKakaoExternalUrl: buildKakaoExternalUrl,
+    buildAndroidIntentUrl: buildAndroidIntentUrl,
+    launchExternalBrowser: launchExternalBrowser,
+    launchKakaoSchemeWithoutReplacingLanding: launchKakaoSchemeWithoutReplacingLanding
   });
 })(typeof window !== 'undefined' ? window : globalThis);

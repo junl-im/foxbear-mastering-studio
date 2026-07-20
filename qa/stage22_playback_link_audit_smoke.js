@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.33-codec-truth-download-hardening';
+const version = '1.5.34-kakao-landing-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
