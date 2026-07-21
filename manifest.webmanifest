@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.61 (worker-mail-delivery-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.62 (incident-delivery-watchdog-package-gate).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.61"
+  "version": "1.5.62"
 }

@@ -65,6 +65,7 @@
     background: rgba(141, 245, 232, .09);
 }
 .incident-status-failed,
+.incident-status-dead-letter,
 .incident-status-suppressed-rate-limit {
     border-color: rgba(255, 135, 124, .3);
     color: #ffc6c0;

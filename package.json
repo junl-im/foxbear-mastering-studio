@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.61",
+  "version": "1.5.62",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with Kakao in-app entry recovery, adaptive memory governance, session handoff, incident operations, and DSP quality protection.",
+  "description": "FoxBear AI Mastering Studio Pro with incident delivery watchdog, lease fencing, dead-letter recovery, package gates, and DSP quality protection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.61-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.61-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.62-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.62-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only firestore:rules,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:sendDailyIncidentSummary"
+    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:sendDailyIncidentSummary"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -295,15 +295,17 @@
     "node qa/v1560_kakao_adaptive_memory_governor_smoke.js",
     "node qa/v1560_kakao_inapp_entry_recovery_hotfix_smoke.js",
     "node --check qa/v1561_worker_mail_delivery_recovery_smoke.js",
-    "node qa/v1561_worker_mail_delivery_recovery_smoke.js"
+    "node qa/v1561_worker_mail_delivery_recovery_smoke.js",
+    "node --check qa/v1562_incident_delivery_watchdog_package_gate_smoke.js",
+    "node qa/v1562_incident_delivery_watchdog_package_gate_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "worker-mail-delivery-recovery",
-    "assetVersion": "1.5.61-worker-mail-delivery-recovery",
-    "cacheName": "foxbear-shell-v1.5.61-worker-mail-delivery-recovery",
-    "bootRevision": "boot-sri-v1561",
-    "updateSafetyRevision": "update-safety-v1561",
-    "serviceWorkerRevision": "sw-v1561"
+    "buildId": "incident-delivery-watchdog-package-gate",
+    "assetVersion": "1.5.62-incident-delivery-watchdog-package-gate",
+    "cacheName": "foxbear-shell-v1.5.62-incident-delivery-watchdog-package-gate",
+    "bootRevision": "boot-sri-v1562",
+    "updateSafetyRevision": "update-safety-v1562",
+    "serviceWorkerRevision": "sw-v1562"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

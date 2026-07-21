@@ -1,10 +1,23 @@
-# Handoff - v1.5.61
+# Handoff - v1.5.62
+## 필수 결과 보고 형식
 
-## v1.5.61 인수인계
+앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
 
-- 마스터링 전에 `window.FoxBearWorkerJobService`가 존재하는지 확인하고, 단일 트랙 마스터링과 MP3/WAV 인코딩을 각각 실행합니다.
-- 프로그램 정보의 `테스트 메일`은 매번 고유 보고서를 생성하므로 `emailed`, `failed`, `pending`, 상태 조회 실패를 구분해 확인할 수 있습니다.
-- Functions 배포 시 `sendIncidentEmail`, `retryFailedIncidentEmails`, `retryIncidentEmailRequest`, `sendDailyIncidentSummary`와 Firestore Rules를 함께 배포해야 합니다.
+1. `진행된 내용`
+2. `배포 파일 2종`
+3. `다음 예상 내용`
+
+배포 파일은 항상 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP 두 종류를 함께 제공합니다. 확인하지 못한 실제 배포·메일 수신·브라우저 검증은 `진행된 내용`에 사실대로 제한 사항을 적습니다.
+
+
+## v1.5.62 인수인계
+
+- 신규 신고는 `delivery.status=pending`으로 생성되어 상태별 스케줄러가 직접 회수합니다.
+- `leaseId`가 다른 만료 작업의 늦은 완료는 `stale-completion`으로 무시하며, SMTP Message-ID는 보고서별로 고정됩니다.
+- 3회 실패한 보고서는 `dead-letter`가 되고 관리자 화면의 `강제 재전송`으로 시도 횟수를 새로 시작합니다.
+- Functions 배포에는 `firestore:indexes`가 포함되어야 합니다. 인덱스가 준비되기 전에는 상태별 쿼리가 제한된 fallback으로 동작합니다.
+- 두 ZIP 생성 스크립트는 `version:check`와 `handoff:check`에 해당하는 직접 검사를 먼저 수행합니다.
+- 로컬 Playwright는 Chromium 실행 파일 부재로 실행되지 않았으므로 GitHub Actions 또는 Chromium 설치 환경에서 브라우저 QA를 완료해야 합니다.
 
 
 ## v1.5.60 인수인계

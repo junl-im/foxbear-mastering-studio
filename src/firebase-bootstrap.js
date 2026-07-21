@@ -334,6 +334,7 @@ async function logIncident(payload = {}) {
         await setDoc(reportRef, {
             ...incident,
             uid: user.uid,
+            delivery: { status: 'pending', attemptCount: 0 },
             createdAt: serverTimestamp()
         });
     } catch (error) {
@@ -352,11 +353,15 @@ async function getIncidentDelivery(reportId) {
     const snapshot = await getDoc(doc(bridgeState.db, 'incidentReports', safeId));
     if (!snapshot.exists()) return { exists: false, status: 'missing' };
     const data = snapshot.data() || {};
+    const delivery = data.delivery || {};
     return {
         exists: true,
-        status: limitText(data.delivery?.status || 'pending', 40),
-        reason: limitText(data.delivery?.reason || '', 100),
-        message: limitText(data.delivery?.message || '', 300)
+        status: limitText(delivery.status || 'pending', 40),
+        reason: limitText(delivery.reason || '', 100),
+        message: limitText(delivery.message || '', 300),
+        attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
+        terminal: delivery.terminal === true,
+        messageId: limitText(delivery.messageId || '', 240)
     };
 }
 
@@ -422,6 +427,9 @@ function normalizeFirestoreIncident(snapshot) {
     const nextRetryAt = delivery.nextRetryAt && typeof delivery.nextRetryAt.toDate === 'function'
         ? delivery.nextRetryAt.toDate().toISOString()
         : '';
+    const leaseUntil = delivery.leaseUntil && typeof delivery.leaseUntil.toDate === 'function'
+        ? delivery.leaseUntil.toDate().toISOString()
+        : '';
     return {
         id: limitText(snapshot.id || '', 180),
         at: limitText(createdAt, 40),
@@ -436,9 +444,13 @@ function normalizeFirestoreIncident(snapshot) {
         platform: limitText(item.platform || '', 40),
         deliveryStatus: limitText(delivery.status || 'pending', 40),
         deliveryReason: limitText(delivery.reason || '', 100),
+        deliveryMessage: limitText(delivery.message || '', 300),
+        messageId: limitText(delivery.messageId || '', 240),
         attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
+        manualResetCount: safeIncidentNumber(delivery.manualResetCount, 0, 20),
         terminal: delivery.terminal === true,
-        nextRetryAt: limitText(nextRetryAt, 40)
+        nextRetryAt: limitText(nextRetryAt, 40),
+        leaseUntil: limitText(leaseUntil, 40)
     };
 }
 
@@ -457,11 +469,12 @@ async function getAdminIncidents(options = {}) {
         result.total += 1;
         if (item.at.slice(0, 10) === todayKey) result.today += 1;
         if (item.deliveryStatus === 'failed') result.failed += 1;
+        if (item.deliveryStatus === 'dead-letter') result.deadLetter += 1;
         if (['pending', 'sending', 'retrying', 'reserved'].includes(item.deliveryStatus)) result.pending += 1;
         if (item.deliveryStatus === 'emailed') result.emailed += 1;
         if (item.severity === 'fatal') result.fatal += 1;
         return result;
-    }, { total: 0, today: 0, failed: 0, pending: 0, emailed: 0, fatal: 0 });
+    }, { total: 0, today: 0, failed: 0, deadLetter: 0, pending: 0, emailed: 0, fatal: 0 });
     return {
         uid: profile.uid,
         incidents,
@@ -474,7 +487,7 @@ async function getAdminIncidents(options = {}) {
     };
 }
 
-async function requestIncidentRetry(reportId) {
+async function requestIncidentRetry(reportId, options = {}) {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
     const profile = await getAdminProfile();
     if (!profile.active) throw new Error('활성 관리자만 메일 재전송을 요청할 수 있습니다.');
@@ -484,6 +497,7 @@ async function requestIncidentRetry(reportId) {
         uid: profile.uid,
         reportId: safeReportId,
         source: 'foxbear-admin-dashboard',
+        forceTerminal: options.forceTerminal === true,
         createdAt: serverTimestamp()
     });
     return { requestId: requestRef.id, reportId: safeReportId, status: 'requested' };

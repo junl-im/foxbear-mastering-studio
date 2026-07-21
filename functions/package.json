@@ -1,8 +1,8 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.5.61",
+  "version": "1.5.62",
   "private": true,
-  "description": "Server-side incident delivery, retry scheduling, manual resend, and daily summaries for FoxBear Mastering Studio.",
+  "description": "Server-side incident delivery watchdog, fenced retries, dead-letter recovery, manual resend, and daily summaries for FoxBear Mastering Studio.",
   "main": "index.js",
   "engines": {
     "node": "22"

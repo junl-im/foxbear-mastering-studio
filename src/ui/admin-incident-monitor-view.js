@@ -39,6 +39,7 @@
                 const appCheck = data?.appCheck || bridge.appCheck || {};
                 makeSummaryCard('오늘 오류', `${safeNumber(summary.today, 0)}건`, 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('메일 실패', `${safeNumber(summary.failed, 0)}건`, summary.failed ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('최종 실패', `${safeNumber(summary.deadLetter, 0)}건`, summary.deadLetter ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('처리 대기', `${safeNumber(summary.pending, 0)}건`, summary.pending ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('App Check', appCheck.ready ? '보호 중' : appCheck.configured ? '확인 필요' : '키 미설정', appCheck.ready ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 if (el.adminIncidentsNotice) {
@@ -47,7 +48,7 @@
                         : appCheck.configured
                             ? `App Check 확인 필요: ${appCheck.error || '토큰 상태 미확인'}`
                             : 'App Check 사이트 키를 설정한 뒤 콘솔에서 점진적으로 강제 적용하세요.';
-                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도합니다. ${protection}`;
+                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 최종 실패는 관리자 강제 재전송이 가능합니다. ${protection}`;
                 }
                 const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
                 if (!incidents.length) {
@@ -83,7 +84,7 @@
             const message = document.createElement('strong');
             message.textContent = limitText(item.message || item.reason || '-', 220);
             const detail = document.createElement('small');
-            detail.textContent = [item.code, item.fingerprint, item.appVersion]
+            detail.textContent = [item.code, item.fingerprint, item.appVersion, item.deliveryReason, item.deliveryMessage]
                 .filter(Boolean)
                 .map(value => limitText(value, 80))
                 .join(' · ');
@@ -101,18 +102,24 @@
                 retryTime.textContent = `다음 자동 재시도 ${formatTime(item.nextRetryAt)}`;
                 statusCell.appendChild(retryTime);
             }
+            if (item.leaseUntil && ['sending', 'retrying'].includes(status)) {
+                const leaseTime = document.createElement('small');
+                leaseTime.textContent = `작업 임대 ${formatTime(item.leaseUntil)}까지`;
+                statusCell.appendChild(leaseTime);
+            }
             row.appendChild(statusCell);
 
             const actionCell = document.createElement('td');
-            if (status === 'failed' && !item.terminal) {
+            if (status === 'failed' || status === 'dead-letter') {
+                const forceTerminal = status === 'dead-letter' || item.terminal === true;
                 const retryButton = document.createElement('button');
                 retryButton.type = 'button';
                 retryButton.className = 'btn-secondary admin-incident-retry';
-                retryButton.textContent = '지금 재전송';
-                retryButton.addEventListener('click', () => requestRetry(item.id, retryButton));
+                retryButton.textContent = forceTerminal ? '강제 재전송' : '지금 재전송';
+                retryButton.addEventListener('click', () => requestRetry(item.id, retryButton, forceTerminal));
                 actionCell.appendChild(retryButton);
             } else {
-                actionCell.textContent = item.terminal ? '재시도 종료' : '-';
+                actionCell.textContent = '-';
             }
             row.appendChild(actionCell);
             return row;
@@ -121,14 +128,14 @@
         function formatStatus(status, attemptCount = 0, terminal = false) {
             const labels = {
                 pending: '대기', sending: '발송 중', retrying: '재시도 중', emailed: '발송 완료',
-                failed: terminal ? '최종 실패' : '발송 실패', reserved: '예약됨',
+                failed: terminal ? '최종 실패' : '발송 실패', 'dead-letter': '최종 실패', reserved: '예약됨',
                 'suppressed-duplicate': '중복 억제', 'suppressed-rate-limit': '일일 제한'
             };
             const label = labels[status] || status || '대기';
             return attemptCount ? `${label} · ${attemptCount}회` : label;
         }
 
-        async function requestRetry(reportId, button) {
+        async function requestRetry(reportId, button, forceTerminal = false) {
             const bridge = getBridge();
             if (!bridge || typeof bridge.requestIncidentRetry !== 'function') {
                 showToast('메일 재전송 API가 준비되지 않았습니다.');
@@ -140,9 +147,9 @@
                 button.textContent = '요청 중…';
             }
             try {
-                const request = await bridge.requestIncidentRetry(reportId);
+                const request = await bridge.requestIncidentRetry(reportId, { forceTerminal });
                 if (button) button.textContent = '재전송 요청됨';
-                showToast('메일 재전송을 요청했습니다.');
+                showToast(forceTerminal ? '최종 실패 메일의 강제 재전송을 요청했습니다.' : '메일 재전송을 요청했습니다.');
                 if (request?.requestId && typeof bridge.getIncidentRetryRequest === 'function') {
                     for (let index = 0; index < 8; index += 1) {
                         await new Promise(resolve => setTimeout(resolve, 1400));

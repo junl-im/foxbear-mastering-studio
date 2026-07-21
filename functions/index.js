@@ -6,6 +6,7 @@ const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { FieldValue, Timestamp, getFirestore } = require('firebase-admin/firestore');
 const nodemailer = require('nodemailer');
+const { randomUUID } = require('node:crypto');
 
 initializeApp();
 
@@ -23,6 +24,9 @@ const MAX_DELIVERY_ATTEMPTS = 3;
 const RETRY_DELAYS_MS = Object.freeze([10 * 60 * 1000, 30 * 60 * 1000, 2 * 60 * 60 * 1000]);
 const REPORT_TTL_DAYS = 30;
 const STATE_TTL_DAYS = 45;
+const INCIDENT_QUERY_BATCH = 24;
+const LEGACY_SCAN_BATCH = 80;
+const PENDING_GRACE_MS = 2 * 60 * 1000;
 
 function cleanText(value, maxLength = 500) {
   return String(value ?? '')
@@ -69,6 +73,14 @@ function normalizedGmailAppPassword() {
     throw error;
   }
   return password;
+}
+
+function createDeliveryLeaseId() {
+  return randomUUID();
+}
+
+function incidentMessageId(reportId) {
+  return `<foxbear-${safeKey(reportId, 'incident')}@foxbear-music.firebaseapp.com>`;
 }
 
 function createTransport() {
@@ -176,7 +188,43 @@ function isIncidentDeliveryDue(data = {}, now = Date.now()) {
     return !leaseUntil || leaseUntil <= now;
   }
   const createdAt = timestampMillis(data.createdAt || data.clientAt);
-  return !createdAt || createdAt <= now - 2 * 60 * 1000;
+  return !createdAt || createdAt <= now - PENDING_GRACE_MS;
+}
+
+function incidentDueAt(data = {}) {
+  const delivery = data.delivery || {};
+  const status = cleanText(delivery.status || 'pending', 40);
+  if (status === 'failed') return timestampMillis(delivery.nextRetryAt) || 0;
+  if (status === 'sending' || status === 'retrying') return timestampMillis(delivery.leaseUntil) || 0;
+  return timestampMillis(data.createdAt || data.clientAt) || 0;
+}
+
+async function queryIncidentStatus(status, orderField) {
+  const reports = db.collection('incidentReports');
+  try {
+    return await reports.where('delivery.status', '==', status).orderBy(orderField, 'asc').limit(INCIDENT_QUERY_BATCH).get();
+  } catch (error) {
+    console.warn('FoxBear incident queue index fallback', { status, orderField, error: cleanText(error?.message || error, 220) });
+    return reports.where('delivery.status', '==', status).limit(INCIDENT_QUERY_BATCH).get();
+  }
+}
+
+async function collectDueIncidentReports(now = Date.now()) {
+  const reports = db.collection('incidentReports');
+  const [pending, failed, sending, retrying, legacy] = await Promise.all([
+    queryIncidentStatus('pending', 'createdAt'),
+    queryIncidentStatus('failed', 'delivery.nextRetryAt'),
+    queryIncidentStatus('sending', 'delivery.leaseUntil'),
+    queryIncidentStatus('retrying', 'delivery.leaseUntil'),
+    reports.orderBy('createdAt', 'desc').limit(LEGACY_SCAN_BATCH).get()
+  ]);
+  const candidates = new Map();
+  for (const snapshot of [pending, failed, sending, retrying, legacy]) {
+    for (const docSnapshot of snapshot.docs) candidates.set(docSnapshot.id, docSnapshot);
+  }
+  return Array.from(candidates.values())
+    .filter(docSnapshot => isIncidentDeliveryDue(docSnapshot.data() || {}, now))
+    .sort((left, right) => incidentDueAt(left.data() || {}) - incidentDueAt(right.data() || {}));
 }
 
 async function reserveDelivery(reportRef, options = {}) {
@@ -187,9 +235,13 @@ async function reserveDelivery(reportRef, options = {}) {
     if (!reportSnapshot.exists) return { allowed: false, reason: 'missing' };
     const data = reportSnapshot.data() || {};
     const delivery = data.delivery || {};
-    const attemptCount = Math.max(0, Number(delivery.attemptCount || 0));
+    const storedAttemptCount = Math.max(0, Number(delivery.attemptCount || 0));
+    const forceTerminal = options.manual === true && options.forceTerminal === true;
     if (delivery.status === 'emailed') return { allowed: false, reason: 'already-emailed' };
-    if (attemptCount >= MAX_DELIVERY_ATTEMPTS) return { allowed: false, reason: 'attempt-limit' };
+    if ((storedAttemptCount >= MAX_DELIVERY_ATTEMPTS || delivery.terminal === true || delivery.status === 'dead-letter') && !forceTerminal) {
+      return { allowed: false, reason: 'attempt-limit' };
+    }
+    const attemptCount = forceTerminal ? 0 : storedAttemptCount;
     const leaseUntil = timestampMillis(delivery.leaseUntil);
     if (['sending', 'retrying'].includes(delivery.status) && leaseUntil > now) return { allowed: false, reason: 'delivery-locked' };
     const nextRetryAt = timestampMillis(delivery.nextRetryAt);
@@ -206,15 +258,16 @@ async function reserveDelivery(reportRef, options = {}) {
     const reservedAt = timestampMillis(fingerprintState.reservedAt);
     const reservationId = cleanText(fingerprintState.reservationId || '', 180);
     const manualTest = data.category === 'manual-test' && data.automatic === false;
+    const manualDelivery = options.manual === true;
     const ownsExistingReservation = Boolean(reservedAt && reservationId === reportId);
-    if (!manualTest && lastSentAt && now - lastSentAt < DUPLICATE_WINDOW_MS) {
+    if (!manualTest && !manualDelivery && lastSentAt && now - lastSentAt < DUPLICATE_WINDOW_MS) {
       transaction.update(reportRef, {
         delivery: { ...delivery, status: 'suppressed-duplicate', reason: 'fingerprint-cooldown', checkedAt: FieldValue.serverTimestamp() },
         expiresAt: Timestamp.fromMillis(now + REPORT_TTL_DAYS * 86400000)
       });
       return { allowed: false, reason: 'duplicate' };
     }
-    if (!manualTest && reservedAt && now - reservedAt < RESERVATION_WINDOW_MS && reservationId && reservationId !== reportId) {
+    if (!manualDelivery && reservedAt && now - reservedAt < RESERVATION_WINDOW_MS && reservationId && reservationId !== reportId) {
       return { allowed: false, reason: 'fingerprint-locked' };
     }
     const sentCount = Math.max(0, Number(dailyState.sentCount || 0));
@@ -226,6 +279,11 @@ async function reserveDelivery(reportRef, options = {}) {
           ...delivery,
           status: rateStatus,
           reason: 'daily-email-limit',
+          message: '',
+          attemptCount,
+          terminal: false,
+          leaseId: '',
+          leaseUntil: null,
           nextRetryAt: options.retry ? Timestamp.fromMillis(now + 2 * 60 * 60 * 1000) : null,
           checkedAt: FieldValue.serverTimestamp()
         },
@@ -233,6 +291,7 @@ async function reserveDelivery(reportRef, options = {}) {
       });
       return { allowed: false, reason: 'daily-limit' };
     }
+    const leaseId = createDeliveryLeaseId();
     transaction.set(fingerprintRef, {
       reservationId: reportId,
       reservedAt: FieldValue.serverTimestamp(),
@@ -250,13 +309,18 @@ async function reserveDelivery(reportRef, options = {}) {
         ...delivery,
         status: options.retry ? 'retrying' : 'sending',
         reason: '',
+        message: '',
         attemptCount,
+        terminal: false,
+        leaseId,
         leaseUntil: Timestamp.fromMillis(now + DELIVERY_LEASE_MS),
+        lastAttemptAt: FieldValue.serverTimestamp(),
+        manualResetCount: Math.max(0, Number(delivery.manualResetCount || 0)) + (forceTerminal ? 1 : 0),
         checkedAt: FieldValue.serverTimestamp()
       },
       expiresAt: Timestamp.fromMillis(now + REPORT_TTL_DAYS * 86400000)
     });
-    return { allowed: true, data, delivery, attemptCount, fingerprintRef, dailyRef };
+    return { allowed: true, data, delivery, attemptCount, leaseId, fingerprintRef, dailyRef };
   });
 }
 
@@ -264,10 +328,16 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
   const now = Date.now();
   const attemptCount = reservation.attemptCount + 1;
   return db.runTransaction(async transaction => {
-    const [dailySnapshot, fingerprintSnapshot] = await Promise.all([
+    const [reportSnapshot, dailySnapshot, fingerprintSnapshot] = await Promise.all([
+      transaction.get(reportRef),
       transaction.get(reservation.dailyRef),
       transaction.get(reservation.fingerprintRef)
     ]);
+    if (!reportSnapshot.exists) return { status: 'missing', attemptCount };
+    const currentDelivery = reportSnapshot.data()?.delivery || {};
+    if (cleanText(currentDelivery.leaseId || '', 80) !== reservation.leaseId) {
+      return { status: 'stale-completion', attemptCount };
+    }
     const dailyState = dailySnapshot.data() || {};
     const fingerprintState = fingerprintSnapshot.data() || {};
     const reservedCount = Math.max(0, Number(dailyState.reservedCount || 0));
@@ -284,8 +354,12 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
     if (outcome.ok) {
       transaction.update(reportRef, {
         delivery: {
-          status: 'emailed', reason: '', attemptCount,
+          status: 'emailed', reason: '', message: '', attemptCount, terminal: false,
           messageId: cleanText(outcome.messageId || '', 240),
+          smtpResponse: cleanText(outcome.response || '', 300),
+          acceptedCount: Math.max(0, Number(outcome.acceptedCount || 0)),
+          rejectedCount: Math.max(0, Number(outcome.rejectedCount || 0)),
+          manualResetCount: Math.max(0, Number(currentDelivery.manualResetCount || 0)),
           checkedAt: FieldValue.serverTimestamp()
         },
         expiresAt: Timestamp.fromMillis(now + REPORT_TTL_DAYS * 86400000)
@@ -301,12 +375,13 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
     const terminal = attemptCount >= MAX_DELIVERY_ATTEMPTS;
     transaction.update(reportRef, {
       delivery: {
-        status: 'failed',
+        status: terminal ? 'dead-letter' : 'failed',
         reason: cleanText(outcome.error?.code || outcome.error?.name || 'smtp-error', 80),
         message: cleanText(outcome.error?.message || outcome.error, 500),
         attemptCount,
         terminal,
         nextRetryAt: terminal ? null : Timestamp.fromMillis(now + retryDelayMs(attemptCount)),
+        manualResetCount: Math.max(0, Number(currentDelivery.manualResetCount || 0)),
         checkedAt: FieldValue.serverTimestamp()
       },
       expiresAt: Timestamp.fromMillis(now + REPORT_TTL_DAYS * 86400000)
@@ -318,7 +393,7 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
         expiresAt: Timestamp.fromMillis(now + STATE_TTL_DAYS * 86400000)
       }, { merge: true });
     }
-    return { status: 'failed', attemptCount, terminal };
+    return { status: terminal ? 'dead-letter' : 'failed', attemptCount, terminal };
   });
 }
 
@@ -336,15 +411,23 @@ async function processIncidentReport(reportRef, options = {}) {
     const info = await createTransport().sendMail({
       from: `FoxBear Incident Monitor <${ALERT_SENDER}>`,
       to: ALERT_RECIPIENT,
+      messageId: incidentMessageId(reportRef.id),
+      headers: { 'X-FoxBear-Report-ID': reportRef.id },
       subject: mail.subject,
       text: mail.text,
       html: mail.html
     });
-    const result = await finalizeDelivery(reportRef, reservation, { ok: true, messageId: info.messageId });
-    return { ok: true, ...result };
+    const result = await finalizeDelivery(reportRef, reservation, {
+      ok: true,
+      messageId: info.messageId,
+      response: info.response,
+      acceptedCount: Array.isArray(info.accepted) ? info.accepted.length : 0,
+      rejectedCount: Array.isArray(info.rejected) ? info.rejected.length : 0
+    });
+    return { ok: result.status === 'emailed', ...result };
   } catch (error) {
     const result = await finalizeDelivery(reportRef, reservation, { ok: false, error });
-    console.error('FoxBear incident email failed', { reportId: reportRef.id, attemptCount: result.attemptCount, error: cleanText(error?.message || error, 300) });
+    console.error('FoxBear incident email failed', { reportId: reportRef.id, attemptCount: result.attemptCount, status: result.status, error: cleanText(error?.message || error, 300) });
     return { ok: false, ...result };
   }
 }
@@ -363,14 +446,7 @@ exports.retryFailedIncidentEmails = onSchedule({
   secrets: [GMAIL_APP_PASSWORD], retryCount: 0, maxInstances: 1,
   timeoutSeconds: 300, memory: '256MiB'
 }, async () => {
-  const now = Date.now();
-  const snapshot = await db.collection('incidentReports')
-    .orderBy('createdAt', 'desc')
-    .limit(80)
-    .get();
-  const due = snapshot.docs
-    .filter(docSnapshot => isIncidentDeliveryDue(docSnapshot.data() || {}, now))
-    .slice(0, 8);
+  const due = (await collectDueIncidentReports(Date.now())).slice(0, 8);
   for (const docSnapshot of due) {
     await processIncidentReport(docSnapshot.ref, { retry: true });
   }
@@ -387,15 +463,16 @@ exports.retryIncidentEmailRequest = onDocumentCreated({
   const requestRef = snapshot.ref;
   const uid = cleanText(request.uid || '', 128);
   const reportId = cleanText(request.reportId || '', 180);
+  const forceTerminal = request.forceTerminal === true;
   const adminSnapshot = uid ? await db.collection('siteAdmins').doc(uid).get() : null;
   if (!adminSnapshot?.exists || adminSnapshot.data()?.active !== true) {
     await requestRef.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
     return;
   }
   const reportRef = db.collection('incidentReports').doc(reportId);
-  const result = await processIncidentReport(reportRef, { retry: true, manual: true });
+  const result = await processIncidentReport(reportRef, { retry: true, manual: true, forceTerminal });
   await requestRef.set({
-    status: result.ok ? 'emailed' : result.skipped ? 'skipped' : 'failed',
+    status: result.ok ? 'emailed' : result.status === 'dead-letter' ? 'dead-letter' : result.skipped ? 'skipped' : 'failed',
     reason: cleanText(result.reason || result.status || '', 100),
     checkedAt: FieldValue.serverTimestamp(),
     expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
@@ -455,6 +532,6 @@ exports.sendDailyIncidentSummary = onSchedule({
 });
 
 exports.__test = Object.freeze({
-  cleanText, escapeHtml, safeKey, buildMail, buildDailySummaryMail,
-  utcDateKey, kstDayRange, retryDelayMs, isIncidentDeliveryDue, normalizedGmailAppPassword
+  cleanText, escapeHtml, safeKey, buildMail, buildDailySummaryMail, incidentMessageId,
+  utcDateKey, kstDayRange, retryDelayMs, isIncidentDeliveryDue, incidentDueAt, normalizedGmailAppPassword
 });

@@ -18,10 +18,10 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const mobileNative = read('src/ui/mobile-native-view.js');
 
-assert.strictEqual(pkg.version, '1.5.61');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.61-worker-mail-delivery-recovery');
-assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.61-worker-mail-delivery-recovery'));
-assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.61-worker-mail-delivery-recovery'));
+assert.strictEqual(pkg.version, '1.5.62');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.62-incident-delivery-watchdog-package-gate');
+assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.62-incident-delivery-watchdog-package-gate'));
+assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.62-incident-delivery-watchdog-package-gate'));
 assert(index.indexOf('assets/css/components/modal-close-system.css') > index.indexOf('assets/css/header-command-bar.css'), 'modal close ownership stylesheet must load last');
 
 for (const id of ['programInfoClose', 'featureDialogClose', 'previewDialogClose', 'adminStatsClose']) {

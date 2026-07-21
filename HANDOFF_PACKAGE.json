@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.61",
-  "buildId": "worker-mail-delivery-recovery",
+  "productVersion": "1.5.62",
+  "buildId": "incident-delivery-watchdog-package-gate",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -43,7 +43,11 @@
     "functions/index.js",
     "functions/package.json",
     "functions/package-lock.json",
-    "src/boot/incident-reporter.js"
+    "src/boot/incident-reporter.js",
+    "firestore.rules",
+    "firestore.indexes.json",
+    "qa/v1562_incident_delivery_watchdog_package_gate_smoke.js",
+    "docs/V1.5.62_INCIDENT_DELIVERY_WATCHDOG_PACKAGE_GATE.md"
   ],
   "requiredPrefixes": [
     "assets/",

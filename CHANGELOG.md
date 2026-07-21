@@ -1,11 +1,13 @@
-# v1.5.61 - Worker and Incident Mail Delivery Recovery
+# v1.5.62 - 2026-07-22
 
-- Restored the missing `worker-job-service.js` boot script before `app.js`, fixing mastering failures that reported the worker job management service could not be loaded.
-- Added a release regression guard so the worker service URL, load order, SRI, and service-worker precache cannot silently diverge again.
-- Made test-email submissions unique and extended delivery-status polling with actionable Firebase and Function failure details.
-- Hardened Gmail secret normalization and SMTP connection timeouts.
-- Expanded scheduled recovery to retry pending, failed, and lease-expired incident reports, while reclaiming stale reservations without leaking the daily reservation counter.
-- Fixed release packaging so installed nested `node_modules` symlinks are excluded from source-symlink validation instead of blocking a valid ZIP build.
+## Incident delivery watchdog and package gate
+
+- Initializes every new incident with an explicit pending delivery state so scheduled recovery can query it without relying on a creation trigger.
+- Adds status-specific queue scans, expiring lease IDs, stale-completion fencing, and deterministic SMTP Message-IDs to reduce lost or duplicate incident mail.
+- Moves exhausted deliveries into a visible dead-letter state and lets an authenticated administrator force a new retry cycle.
+- Adds Firestore indexes for pending, retry, and expired-lease queues, and exposes failure reasons and lease timing in the operations monitor.
+- Blocks both release ZIP entrypoints when release metadata or handoff state is inconsistent.
+- Records the required three-section result report format in the handoff documents and protects it with QA.
 
 # v1.5.60 - 2026-07-22
 

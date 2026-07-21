@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.5.61 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.5.62 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -154,7 +154,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.5.61-worker-mail-delivery-recovery',
+            version: '1.5.62-incident-delivery-watchdog-package-gate',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -225,13 +225,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.61-worker-mail-delivery-recovery',
+            version: '1.5.62-incident-delivery-watchdog-package-gate',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.61-worker-mail-delivery-recovery',
+        version: '1.5.62-incident-delivery-watchdog-package-gate',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner

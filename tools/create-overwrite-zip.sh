@@ -7,6 +7,8 @@ set -euo pipefail
 # needing to install every previous stage in sequence.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+node "${ROOT_DIR}/tools/sync-release-metadata.js" --check
+node "${ROOT_DIR}/tools/verify-handoff-state.js"
 # Default follows package.json so later patch packages do not keep stale names.
 VERSION="${1:-$(node -e "const p=require('"$ROOT_DIR/package.json"'); process.stdout.write('v' + (p.version || 'dev'))")}"
 OUT_DIR="$ROOT_DIR/dist"

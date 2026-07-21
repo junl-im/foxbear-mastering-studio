@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.61-worker-mail-delivery-recovery';
+const version = '1.5.62-incident-delivery-watchdog-package-gate';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

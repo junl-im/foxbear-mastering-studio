@@ -2,6 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+node "${ROOT_DIR}/tools/sync-release-metadata.js" --check
+node "${ROOT_DIR}/tools/verify-handoff-state.js"
 VERSION="$(node -e "const p=require('${ROOT_DIR}/package.json'); console.log(p.version || 'dev')")"
 OUTPUT_DIR="${ROOT_DIR}/dist"
 OUTPUT_FILE="${OUTPUT_DIR}/foxbear-mastering-studio-v${VERSION}-release.zip"

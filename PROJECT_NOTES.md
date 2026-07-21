@@ -1,3 +1,13 @@
+# Current Project Notes - v1.5.62
+
+## v1.5.62 focus
+
+- Incident email processing is an explicit queue with pending, sending, retrying, emailed, failed, and dead-letter states.
+- A transaction may finalize only the lease ID it reserved; stale completions are observable but cannot mutate current delivery state.
+- The same report reuses one SMTP Message-ID across retries to reduce ambiguous duplicate delivery.
+- Terminal retries require an active administrator request with `forceTerminal=true`.
+- Packaging entrypoints must reject stale release metadata and incomplete handoff files before writing a ZIP.
+
 # Current Project Notes - v1.5.46
 
 ## v1.5.46 focus

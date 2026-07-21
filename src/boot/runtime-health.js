@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.61-worker-mail-delivery-recovery';
+    const FALLBACK_VERSION = '1.5.62-incident-delivery-watchdog-package-gate';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

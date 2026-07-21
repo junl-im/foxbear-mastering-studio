@@ -79,11 +79,11 @@ async function main() {
   assert((app.includes('getZipExportService()?.start') || app.includes('zipService.start({')) && app.includes('workerUrl: ZIP_ENCODER_WORKER_URL'), 'downloadZip is not delegated to the ZIP service');
   assert(zipService.includes('state.controller') && zipService.includes("cancel('pagehide')") && zipService.includes('getSnapshot().active'), 'duplicate ZIP or pagehide cancellation guard missing');
   assert(app.includes("showToast('ZIP 내보내기를 먼저 취소하거나 완료해 주세요.')"), 'queue clearing is not blocked during ZIP export');
-  assert(index.includes('id="exportProgressCancel"') && index.includes('src/download/zip-export-service.js?v=1.5.61-worker-mail-delivery-recovery'), 'ZIP cancel UI/service asset missing');
+  assert(index.includes('id="exportProgressCancel"') && index.includes('src/download/zip-export-service.js?v=1.5.62-incident-delivery-watchdog-package-gate'), 'ZIP cancel UI/service asset missing');
   assert(progress.includes("foxbear:zip-export-cancel") && progress.includes("state: 'cancelled'"), 'ZIP cancel view contract missing');
   assert(update.includes('FoxBearZipExport') && update.includes('exporting:'), 'service-worker update activity does not include ZIP export');
-  assert(sw.includes("'./src/workers/zip-encoder.worker.js'") && sw.includes("'./src/workers/zip-encoder.worker.js?v=1.5.61-worker-mail-delivery-recovery'"), 'versioned ZIP worker is not cached by the service worker');
-  assert(pkg.qaChecks.includes('node --check src/download/zip-export-service.js') && pkg.qaChecks.includes('node qa/v1542_zip_worker_cancellation_smoke.js'), 'v1.5.61 QA is not registered');
+  assert(sw.includes("'./src/workers/zip-encoder.worker.js'") && sw.includes("'./src/workers/zip-encoder.worker.js?v=1.5.62-incident-delivery-watchdog-package-gate'"), 'versioned ZIP worker is not cached by the service worker');
+  assert(pkg.qaChecks.includes('node --check src/download/zip-export-service.js') && pkg.qaChecks.includes('node qa/v1542_zip_worker_cancellation_smoke.js'), 'v1.5.62 QA is not registered');
 
   runArchiveNameRuntime();
   await runZipWorkerRuntime();

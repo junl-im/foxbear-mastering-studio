@@ -91,14 +91,15 @@ service cloud.firestore {
           'bootFailed',
           'bootStalled',
           'automatic',
-          'context'
+          'context',
+          'delivery'
         ])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.createdAt == request.time
         && request.resource.data.schemaVersion == 1
         && request.resource.data.severity in ['warning', 'error', 'fatal']
         && request.resource.data.category in [
-          'runtime', 'resource', 'boot', 'mastering', 'quality-recovery', 'export',
+          'runtime', 'resource', 'boot', 'mastering', 'mastering-memory', 'quality-recovery', 'export',
           'update-safety', 'release-mismatch', 'firebase', 'manual-test', 'unknown'
         ]
         && validShortString(request.resource.data.clientAt, 40)
@@ -136,7 +137,11 @@ service cloud.firestore {
         && request.resource.data.runtimeErrorCount <= 99
         && request.resource.data.runtimeWarningCount is number
         && request.resource.data.runtimeWarningCount >= 0
-        && request.resource.data.runtimeWarningCount <= 99;
+        && request.resource.data.runtimeWarningCount <= 99
+        && request.resource.data.delivery is map
+        && request.resource.data.delivery.keys().hasOnly(['status', 'attemptCount'])
+        && request.resource.data.delivery.status == 'pending'
+        && request.resource.data.delivery.attemptCount == 0;
     }
 
     match /incidentReports/{reportId} {
@@ -152,13 +157,16 @@ service cloud.firestore {
           'uid',
           'reportId',
           'source',
+          'forceTerminal',
           'createdAt'
         ])
+        && request.resource.data.keys().hasAll(['uid', 'reportId', 'source', 'createdAt'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.createdAt == request.time
         && validShortString(request.resource.data.reportId, 180)
         && request.resource.data.reportId.size() > 0
-        && request.resource.data.source == 'foxbear-admin-dashboard';
+        && request.resource.data.source == 'foxbear-admin-dashboard'
+        && (!('forceTerminal' in request.resource.data) || request.resource.data.forceTerminal is bool);
     }
 
     match /incidentRetryRequests/{requestId} {

@@ -1,11 +1,11 @@
-# FoxBear Status - v1.5.61
+# FoxBear Status - v1.5.62
 
-## v1.5.61 current focus
+## v1.5.62 current focus
 
-- The worker job service is an explicit boot dependency loaded before `app.js` and covered by SRI/order regression checks.
-- Manual incident-mail tests always create a fresh report and show actionable delivery-state failures.
-- Scheduled mail recovery scans pending, failed, and expired-lease reports instead of only retrying documents already marked failed.
-
+- Incident documents enter an explicit pending queue and are recovered through status-specific Firestore indexes.
+- Delivery leases are fenced by unique IDs; late completions cannot overwrite a newer retry.
+- Exhausted SMTP attempts become dead letters that administrators can deliberately restart.
+- Release and overwrite archives refuse to build when version or handoff metadata drifts.
 
 ## v1.5.60 current focus
 
@@ -55,10 +55,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.61`
-- Build ID: `worker-mail-delivery-recovery`
-- Asset version: `1.5.61-worker-mail-delivery-recovery`
-- Service worker cache: `foxbear-shell-v1.5.61-worker-mail-delivery-recovery`
+- Product version: `1.5.62`
+- Build ID: `incident-delivery-watchdog-package-gate`
+- Asset version: `1.5.62-incident-delivery-watchdog-package-gate`
+- Service worker cache: `foxbear-shell-v1.5.62-incident-delivery-watchdog-package-gate`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -90,7 +90,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.61`
-- Build ID: `worker-mail-delivery-recovery`
-- Asset version: `1.5.61-worker-mail-delivery-recovery`
-- Service worker cache: `foxbear-shell-v1.5.61-worker-mail-delivery-recovery`
+- Product version: `1.5.62`
+- Build ID: `incident-delivery-watchdog-package-gate`
+- Asset version: `1.5.62-incident-delivery-watchdog-package-gate`
+- Service worker cache: `foxbear-shell-v1.5.62-incident-delivery-watchdog-package-gate`

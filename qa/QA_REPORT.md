@@ -1,17 +1,21 @@
-# QA Report - v1.5.61 Worker and Incident Mail Delivery Recovery
+# QA Report - v1.5.62 Incident Delivery Watchdog and Package Gate
 
-- Restored `src/utils/worker-job-service.js` as an explicit boot dependency before `app.js`.
-- Added Runtime Health, SRI, service-worker precache, and handoff guards for the worker job service.
-- Added unique manual email tests, Firebase readiness/status diagnostics, SMTP secret validation, and recovery scanning for pending, failed, and expired-lease reports.
-- Static regression target: all 268 configured checks PASS.
+- New incident reports begin in an explicit pending delivery queue.
+- Status-specific Firestore indexes cover pending work, due retries, and expired delivery leases.
+- Lease fencing rejects stale completions, and deterministic SMTP Message-IDs reduce ambiguous duplicate delivery.
+- Exhausted reports enter a dead-letter state with authenticated administrator recovery.
+- Release and overwrite ZIP entrypoints reject version or handoff drift before packaging.
+- Static and regression target: all 270 configured checks PASS in bounded continuation segments.
 
-## v1.5.61 coverage
+## v1.5.62 coverage
 
-- mastering worker service boot and load order
-- worker cancellation/progress compatibility
-- unique end-to-end incident test submissions
-- stalled and missed Cloud Function recovery
-- Gmail app-password normalization and actionable failure state
+- pending queue initialization and Firestore rule parity
+- pending, failed, sending, and retrying watchdog queries
+- lease ID ownership and stale completion fencing
+- dead-letter display and administrator forced retry
+- deterministic report Message-ID and delivery diagnostics
+- required three-section handoff reporting format
+- release/overwrite package preflight gates
 
 # QA Report - v1.5.60 Kakao In-App Entry and Adaptive Memory Governor
 

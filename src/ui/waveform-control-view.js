@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.61-worker-mail-delivery-recovery';
+  const VIEW_VERSION = '1.5.62-incident-delivery-watchdog-package-gate';
   const DEFAULT_BINS = 96;
 
   function getService() {
