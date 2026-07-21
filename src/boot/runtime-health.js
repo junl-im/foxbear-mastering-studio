@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.57-modal-close-consistency';
+    const FALLBACK_VERSION = '1.5.58-kakao-mastering-runtime-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -46,6 +46,8 @@
         'FoxBearAudioContextManager.getDiagnostics',
         'FoxBearAudioDecodeService.decodeAudioFile',
         'FoxBearAudioDecodeService.getDiagnostics',
+        'FoxBearInAppMasteringSafetyService.createPlan',
+        'FoxBearInAppMasteringSafetyService.shouldPreserveFirstRender',
         'FoxBearMasteringInputGuard.assertMasterable',
         'FoxBearWaveformControlService.setPlayhead',
         'FoxBearWaveformControlView.createBars',

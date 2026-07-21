@@ -1,3 +1,12 @@
+# v1.5.58 - Kakao mastering runtime recovery
+
+- Removed full compressed-file clones from the Web Audio decode compatibility path.
+- Added Kakao/in-app PCM peak-memory estimation and automatic Fast/lightweight finalizer protection.
+- Preserves the valid first render instead of launching a second full render for non-critical quality failures on memory-risk Kakao sessions.
+- Releases source and intermediate PCM references earlier during mastering.
+- Separates playable-file Web Audio rejection from source-file corruption and fixes misleading user error copy.
+- Clarifies Kakao route recovery after a WebView renderer restart.
+
 # v1.5.57 - Modal Close Consistency
 
 - Unified all modal top-right close controls under one shared geometry, icon, hover, focus, and mobile touch-target system.

@@ -8,11 +8,13 @@
 <style>body{margin:0;background:#07111c;color:#eef6ff;font-family:system-ui,sans-serif;display:grid;min-height:100vh;place-items:center}main{max-width:32rem;padding:2rem;text-align:center}a{color:#7bdff2}</style>
 </head>
 <body>
-<main><h1>FoxBear 경로를 복구하고 있습니다</h1><p id="status">오래된 캐시와 잘못된 주소를 정리하는 중입니다.</p><a id="rootLink" href="/">작업 화면 열기</a></main>
+<main><h1>FoxBear 작업 화면을 복구하고 있습니다</h1><p id="status">오래된 캐시와 잘못된 주소를 정리하는 중입니다.</p><a id="rootLink" href="/">작업 화면 열기</a></main>
 <script>
 (async function(){
   var status=document.getElementById('status');
   var link=document.getElementById('rootLink');
+  var isKakao=/KAKAOTALK|KakaoTalk/i.test(String(navigator.userAgent||''));
+  if(isKakao) status.textContent='카카오 브라우저가 작업 중 페이지를 다시 불러왔습니다. 음원 오류가 아니라 WebView 메모리 또는 경로 복구일 수 있습니다.';
   function candidates(){
     var parts=location.pathname.split('/').filter(Boolean), out=[];
     for(var i=parts.length;i>=0;i--) out.push('/'+parts.slice(0,i).join('/')+(i?'/':''));
@@ -58,7 +60,7 @@
   target.searchParams.set('foxbearReload',String(Date.now()));
   link.href=target.href;
   await clearOldRuntime();
-  status.textContent='복구가 완료되어 작업 화면으로 이동합니다.';
+  status.textContent=isKakao?'복구가 완료되었습니다. 안정적인 처리를 위해 기본 브라우저 안내 화면으로 이동합니다.':'복구가 완료되어 작업 화면으로 이동합니다.';
   if(location.href!==target.href) location.replace(target.href);
 })();
 </script>

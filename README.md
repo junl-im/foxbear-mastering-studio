@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.5.57
+# FoxBear AI Mastering Studio Pro v1.5.58
 
 ## Current patch: v1.5.57 Modal Close Consistency
 

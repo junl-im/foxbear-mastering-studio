@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.57",
-  "buildId": "modal-close-consistency",
+  "productVersion": "1.5.58",
+  "buildId": "kakao-mastering-runtime-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

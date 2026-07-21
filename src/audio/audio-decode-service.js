@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.57
+// FoxBear audio decode service - v1.5.58
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.57-modal-close-consistency';
+    const SERVICE_VERSION = '1.5.58-kakao-mastering-runtime-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;
@@ -20,6 +20,8 @@
         lastDurationSec: 0,
         lastDecodedPcmMB: 0,
         totalDecodedPcmMB: 0,
+        lastDecodeMode: '',
+        lastMediaPlayable: false,
         events: []
     };
 
@@ -395,15 +397,27 @@
     }
 
     function decodeAudioDataCompat(audioContext, arrayBuffer) {
-        const primaryBuffer = arrayBuffer.slice ? arrayBuffer.slice(0) : arrayBuffer;
-        try {
-            const result = audioContext.decodeAudioData(primaryBuffer);
-            if (result && typeof result.then === 'function') return result;
-        } catch (error) {}
+        // Use a single decodeAudioData invocation with both callbacks and the
+        // optional returned Promise. The previous compatibility path cloned the
+        // entire compressed file up to twice, which can restart memory-limited
+        // Kakao/Android WebViews during a second mastering decode.
         return new Promise((resolve, reject) => {
-            const fallbackBuffer = arrayBuffer.slice ? arrayBuffer.slice(0) : arrayBuffer;
-            try { audioContext.decodeAudioData(fallbackBuffer, resolve, reject); }
-            catch (error) { reject(error); }
+            let settled = false;
+            const finish = (callback, value) => {
+                if (settled) return;
+                settled = true;
+                callback(value);
+            };
+            const onSuccess = value => finish(resolve, value);
+            const onFailure = error => finish(reject, error);
+            try {
+                const result = audioContext.decodeAudioData(arrayBuffer, onSuccess, onFailure);
+                state.lastDecodeMode = result && typeof result.then === 'function' ? 'single-call-promise-callback' : 'single-call-callback';
+                if (result && typeof result.then === 'function') result.then(onSuccess, onFailure);
+            } catch (error) {
+                state.lastDecodeMode = 'single-call-threw';
+                onFailure(error);
+            }
         });
     }
 
@@ -473,17 +487,24 @@
             lastDurationSec: state.lastDurationSec,
             lastDecodedPcmMB: state.lastDecodedPcmMB,
             totalDecodedPcmMB: round(state.totalDecodedPcmMB, 2),
+            lastDecodeMode: state.lastDecodeMode,
+            lastMediaPlayable: state.lastMediaPlayable,
             events: state.events.slice()
         });
     }
 
     function createDecodeError(file, error, mediaCheck, detectedContainer = null) {
-        const mediaText = mediaCheck?.ok
-            ? ' 브라우저 미디어 플레이어는 열 수 있지만 Web Audio 분석 디코더가 거부했습니다.'
+        const mediaPlayable = Boolean(mediaCheck?.ok);
+        const mediaText = mediaPlayable
+            ? ' 파일 재생은 가능하지만 이 브라우저의 Web Audio 분석 디코더가 PCM 변환을 거부했습니다. 파일 손상으로 단정할 수 없습니다.'
             : ' 브라우저 미디어 플레이어에서도 바로 열리지 않았습니다.';
         const detectedText = detectedContainer?.signature ? ` 파일 헤더는 ${detectedContainer.signature} 형식으로 감지되었습니다.` : '';
         const message = '오디오 디코딩에 실패했습니다.' + mediaText + detectedText + getAudioCodecFailureHint(file);
         const next = new Error(message);
+        next.name = 'AudioDecodeError';
+        next.code = mediaPlayable ? 'FOXBEAR_WEB_AUDIO_DECODE_REJECTED' : 'FOXBEAR_AUDIO_DECODE_FAILED';
+        next.mediaPlayable = mediaPlayable;
+        next.container = detectedContainer?.id || '';
         next.cause = error;
         return next;
     }
@@ -496,6 +517,8 @@
         state.lastFileName = file?.name || '';
         state.lastFileSize = Number(file?.size || 0);
         state.lastError = '';
+        state.lastDecodeMode = '';
+        state.lastMediaPlayable = false;
         pushEvent('decode-start', { fileName: state.lastFileName, sizeBytes: state.lastFileSize });
 
         const signal = options.signal || null;
@@ -538,7 +561,8 @@
                 durationSec: state.lastDurationSec,
                 decodedPcmMB: state.lastDecodedPcmMB,
                 elapsedMs: round(nowMs() - startedMs, 1),
-                container: detectAudioContainer(arrayBuffer, file).id
+                container: detectAudioContainer(arrayBuffer, file).id,
+                decodeMode: state.lastDecodeMode
             });
             return decoded;
         } catch (error) {
@@ -554,6 +578,7 @@
                     throw makeAbortError(signal);
                 }
                 finalError = createDecodeError(file, error, mediaCheck, detectedContainer);
+                state.lastMediaPlayable = Boolean(mediaCheck?.ok);
                 pushEvent('decode-media-check', { fileName: state.lastFileName, mediaOk: Boolean(mediaCheck?.ok), reason: mediaCheck?.reason || '' });
             }
             state.failedCount += 1;

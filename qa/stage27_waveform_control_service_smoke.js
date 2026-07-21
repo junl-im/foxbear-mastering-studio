@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.57-modal-close-consistency';
+const version = '1.5.58-kakao-mastering-runtime-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

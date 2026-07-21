@@ -1,4 +1,4 @@
-# FoxBear Status - v1.5.57
+# FoxBear Status - v1.5.58
 
 ## v1.5.57 current focus
 
@@ -36,10 +36,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.57`
-- Build ID: `modal-close-consistency`
-- Asset version: `1.5.57-modal-close-consistency`
-- Service worker cache: `foxbear-shell-v1.5.57-modal-close-consistency`
+- Product version: `1.5.58`
+- Build ID: `kakao-mastering-runtime-recovery`
+- Asset version: `1.5.58-kakao-mastering-runtime-recovery`
+- Service worker cache: `foxbear-shell-v1.5.58-kakao-mastering-runtime-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -71,7 +71,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.57`
-- Build ID: `modal-close-consistency`
-- Asset version: `1.5.57-modal-close-consistency`
-- Service worker cache: `foxbear-shell-v1.5.57-modal-close-consistency`
+- Product version: `1.5.58`
+- Build ID: `kakao-mastering-runtime-recovery`
+- Asset version: `1.5.58-kakao-mastering-runtime-recovery`
+- Service worker cache: `foxbear-shell-v1.5.58-kakao-mastering-runtime-recovery`

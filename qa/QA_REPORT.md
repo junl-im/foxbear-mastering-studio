@@ -1,3 +1,19 @@
+# QA Report - v1.5.58 Kakao Mastering Runtime Recovery
+
+- Removed duplicate compressed-file buffers from Web Audio decoding.
+- Added Kakao/in-app peak-memory planning, early PCM release, and lightweight finalizer protection.
+- Preserves the valid first render for non-critical quality failures instead of starting a second memory-heavy render.
+- Distinguishes a playable file rejected by Web Audio from an actually unreadable or invalid source.
+- Static and regression target: `261/261 PASS` in bounded continuation segments.
+
+## v1.5.58 coverage
+
+- Kakao WebView decode memory pressure
+- truthful source-file error classification
+- non-critical quality retry deferral
+- critical invalid/clipping output protection
+- route recovery explanation after WebView restart
+
 # QA Report - v1.5.57 Modal Close Consistency
 
 - Unified the visual and interaction contract for program, feature, preview, admin, download, AI recommendation, save-assist, mobile-settings, and enhanced-select close controls.

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.57",
+  "version": "1.5.58",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with unified modal close controls, consistent popup dismissal, incident operations, quality recovery, and DSP diagnostics.",
+  "description": "FoxBear AI Mastering Studio Pro with Kakao in-app mastering memory recovery, truthful decode diagnostics, unified modal controls, incident operations, and DSP quality protection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.57-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.57-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.58-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.58-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -46,6 +46,7 @@
     "node --check src/audio/preview-translation-service.js",
     "node --check src/audio/audio-import-capability-service.js",
     "node --check src/audio/audio-decode-service.js",
+    "node --check src/audio/inapp-mastering-safety-service.js",
     "node --check src/audio/import-preflight-service.js",
     "node --check src/audio/import-queue-service.js",
     "node --check src/audio/analysis-cache-service.js",
@@ -286,15 +287,16 @@
     "node --check functions/index.js",
     "node qa/v1555_incident_mail_reporting_smoke.js",
     "node qa/v1556_incident_operations_app_check_smoke.js",
-    "node qa/v1557_modal_close_consistency_smoke.js"
+    "node qa/v1557_modal_close_consistency_smoke.js",
+    "node qa/v1558_kakao_mastering_runtime_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "modal-close-consistency",
-    "assetVersion": "1.5.57-modal-close-consistency",
-    "cacheName": "foxbear-shell-v1.5.57-modal-close-consistency",
-    "bootRevision": "boot-sri-v1557",
-    "updateSafetyRevision": "update-safety-v1557",
-    "serviceWorkerRevision": "sw-v1557"
+    "buildId": "kakao-mastering-runtime-recovery",
+    "assetVersion": "1.5.58-kakao-mastering-runtime-recovery",
+    "cacheName": "foxbear-shell-v1.5.58-kakao-mastering-runtime-recovery",
+    "bootRevision": "boot-sri-v1558",
+    "updateSafetyRevision": "update-safety-v1558",
+    "serviceWorkerRevision": "sw-v1558"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

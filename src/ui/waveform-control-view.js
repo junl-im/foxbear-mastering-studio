@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.57-modal-close-consistency';
+  const VIEW_VERSION = '1.5.58-kakao-mastering-runtime-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {
