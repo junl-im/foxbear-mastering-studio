@@ -1,4 +1,10 @@
-# FoxBear Status - v1.5.59
+# FoxBear Status - v1.5.60
+
+## v1.5.60 current focus
+
+- KakaoTalk opens the studio in-app by default instead of forcing the external-browser landing.
+- 404 recovery targets the concrete `index.html` entry and carries a legacy bypass marker to break cached redirect loops.
+- Preflight and observed memory pressure govern processing quality, True Peak cost, waveform density, and PCM release timing.
 
 ## v1.5.59 current focus
 
@@ -42,10 +48,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.59`
-- Build ID: `kakao-session-handoff-memory-diagnostics`
-- Asset version: `1.5.59-kakao-session-handoff-memory-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.59-kakao-session-handoff-memory-diagnostics`
+- Product version: `1.5.60`
+- Build ID: `kakao-inapp-entry-memory-governor`
+- Asset version: `1.5.60-kakao-inapp-entry-memory-governor`
+- Service worker cache: `foxbear-shell-v1.5.60-kakao-inapp-entry-memory-governor`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -77,7 +83,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.59`
-- Build ID: `kakao-session-handoff-memory-diagnostics`
-- Asset version: `1.5.59-kakao-session-handoff-memory-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.59-kakao-session-handoff-memory-diagnostics`
+- Product version: `1.5.60`
+- Build ID: `kakao-inapp-entry-memory-governor`
+- Asset version: `1.5.60-kakao-inapp-entry-memory-governor`
+- Service worker cache: `foxbear-shell-v1.5.60-kakao-inapp-entry-memory-governor`

@@ -1,4 +1,10 @@
-# Handoff - v1.5.59
+# Handoff - v1.5.60
+
+## v1.5.60 인수인계
+
+- 카카오 UA 자체는 더 이상 부팅 차단 사유가 아닙니다. `foxbearGuide=1`일 때만 외부 브라우저 안내 화면으로 이동합니다.
+- `404.html`은 카카오에서 `index.html?foxbearInApp=1`로 복구하므로 이전 세대 entry guard가 남아 있어도 루프를 피합니다.
+- v1.5.60 메모리 governor는 디코딩 전 예상치와 런타임 관측치를 모두 사용하며, 치명적 품질 실패 계약은 우회하지 않습니다.
 
 ## v1.5.59 handoff focus
 

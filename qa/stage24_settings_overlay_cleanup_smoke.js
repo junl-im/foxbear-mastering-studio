@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.59-kakao-session-handoff-memory-diagnostics';
+const version = '1.5.60-kakao-inapp-entry-memory-governor';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

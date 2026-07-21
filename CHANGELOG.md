@@ -1,3 +1,13 @@
+# v1.5.60 - 2026-07-22
+
+## Kakao in-app entry recovery and adaptive memory governor
+
+- KakaoTalk no longer forces every launch into the external-browser landing page.
+- Route recovery now targets `index.html` directly and carries the in-app bypass marker to avoid recovery loops with cached entry guards.
+- The external-browser guide remains available only through an explicit recovery action.
+- Pre-decode and runtime memory pressure can automatically select Fast processing, lightweight peak analysis, compact waveform work, and earlier PCM release.
+- Added deterministic guards for direct Kakao entry, 404 recovery, and adaptive mastering memory decisions.
+
 # v1.5.59 - Kakao Session Handoff & Memory Diagnostics
 
 - 카카오 인앱 브라우저에서 외부 브라우저로 이동할 때 출력·DSP·피치/BPM·악기 레이어 설정을 만료 토큰으로 복원합니다.

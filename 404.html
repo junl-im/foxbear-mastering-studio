@@ -55,13 +55,20 @@
     }catch(error){}
   }
   var base=await findRoot();
-  var target=new URL(base,location.origin);
+  var target=new URL(base+'index.html',location.origin);
   target.searchParams.set('foxbearRouteRecovery','1');
+  if(isKakao){
+    target.searchParams.set('foxbearInApp','1');
+    target.searchParams.delete('foxbearExternal');
+    target.searchParams.delete('foxbearGuide');
+  }
   target.searchParams.set('foxbearReload',String(Date.now()));
   link.href=target.href;
   await clearOldRuntime();
-  status.textContent=isKakao?'복구가 완료되었습니다. 안정적인 처리를 위해 기본 브라우저 안내 화면으로 이동합니다.':'복구가 완료되어 작업 화면으로 이동합니다.';
-  if(location.href!==target.href) location.replace(target.href);
+  status.textContent=isKakao?'복구가 완료되었습니다. 카카오톡 안의 FoxBear 작업 화면으로 이동합니다.':'복구가 완료되어 작업 화면으로 이동합니다.';
+  if(location.href!==target.href){
+    try{location.replace(target.href);}catch(error){location.href=target.href;}
+  }
 })();
 </script>
 </body>

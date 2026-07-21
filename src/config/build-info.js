@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.5.59',
-    appVersion: 'Pro v1.5.59',
-    buildId: 'kakao-session-handoff-memory-diagnostics',
-    assetVersion: '1.5.59-kakao-session-handoff-memory-diagnostics',
-    cacheName: 'foxbear-shell-v1.5.59-kakao-session-handoff-memory-diagnostics',
-    bootRevision: 'boot-sri-v1559',
-    updateSafetyRevision: 'update-safety-v1559',
-    serviceWorkerRevision: 'sw-v1559'
+    productVersion: '1.5.60',
+    appVersion: 'Pro v1.5.60',
+    buildId: 'kakao-inapp-entry-memory-governor',
+    assetVersion: '1.5.60-kakao-inapp-entry-memory-governor',
+    cacheName: 'foxbear-shell-v1.5.60-kakao-inapp-entry-memory-governor',
+    bootRevision: 'boot-sri-v1560',
+    updateSafetyRevision: 'update-safety-v1560',
+    serviceWorkerRevision: 'sw-v1560'
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

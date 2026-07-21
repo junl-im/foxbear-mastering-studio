@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
+    const SERVICE_VERSION = '1.5.60-kakao-inapp-entry-memory-governor';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.59",
+  "version": "1.5.60",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with Kakao external-browser session handoff, stage-by-stage mastering memory diagnostics, runtime recovery, incident operations, and DSP quality protection.",
+  "description": "FoxBear AI Mastering Studio Pro with Kakao in-app entry recovery, adaptive memory governance, session handoff, incident operations, and DSP quality protection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.59-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.59-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.60-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.60-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -291,15 +291,17 @@
     "node qa/v1556_incident_operations_app_check_smoke.js",
     "node qa/v1557_modal_close_consistency_smoke.js",
     "node qa/v1558_kakao_mastering_runtime_recovery_smoke.js",
-    "node qa/v1559_kakao_session_handoff_memory_diagnostics_smoke.js"
+    "node qa/v1559_kakao_session_handoff_memory_diagnostics_smoke.js",
+    "node qa/v1560_kakao_adaptive_memory_governor_smoke.js",
+    "node qa/v1560_kakao_inapp_entry_recovery_hotfix_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "kakao-session-handoff-memory-diagnostics",
-    "assetVersion": "1.5.59-kakao-session-handoff-memory-diagnostics",
-    "cacheName": "foxbear-shell-v1.5.59-kakao-session-handoff-memory-diagnostics",
-    "bootRevision": "boot-sri-v1559",
-    "updateSafetyRevision": "update-safety-v1559",
-    "serviceWorkerRevision": "sw-v1559"
+    "buildId": "kakao-inapp-entry-memory-governor",
+    "assetVersion": "1.5.60-kakao-inapp-entry-memory-governor",
+    "cacheName": "foxbear-shell-v1.5.60-kakao-inapp-entry-memory-governor",
+    "bootRevision": "boot-sri-v1560",
+    "updateSafetyRevision": "update-safety-v1560",
+    "serviceWorkerRevision": "sw-v1560"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

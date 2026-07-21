@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
+    const FALLBACK_VERSION = '1.5.60-kakao-inapp-entry-memory-governor';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

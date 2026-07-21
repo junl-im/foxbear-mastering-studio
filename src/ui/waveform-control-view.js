@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
+  const VIEW_VERSION = '1.5.60-kakao-inapp-entry-memory-governor';
   const DEFAULT_BINS = 96;
 
   function getService() {

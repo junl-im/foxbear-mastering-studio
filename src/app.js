@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.59 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.60 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -21,7 +21,7 @@ const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetySer
 const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.59';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.60';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.59-kakao-session-handoff-memory-diagnostics'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1559'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.60-kakao-inapp-entry-memory-governor'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1560'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -2115,7 +2115,6 @@ function setAdminMonitorView(view, refresh = false) {
     if (el.adminIncidentsPanel) el.adminIncidentsPanel.hidden = !incidentsActive;
     if (refresh) renderAdminStatsDialog(true);
 }
-
 async function renderAdminStatsDialog(forceRemote) {
     if (state.adminMonitorView === 'incidents') return renderAdminIncidentsDialog(forceRemote);
     if (!el.adminStatsSummary || !el.adminStatsRows) return;
@@ -2190,7 +2189,6 @@ async function renderAdminIncidentsDialog(forceRemote) {
     }
     return controller.render(forceRemote);
 }
-
 function makeAdminSummaryCard(label, value, mode) {
     const card = document.createElement('div');
     card.className = `admin-stat-card admin-stat-${mode || 'local'}`;
@@ -3081,7 +3079,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.59-kakao-session-handoff-memory-diagnostics') · navigator.serviceWorker.register('./sw.js?v=1.5.59-kakao-session-handoff-memory-diagnostics&h=sw-v1559')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.60-kakao-inapp-entry-memory-governor') · navigator.serviceWorker.register('./sw.js?v=1.5.60-kakao-inapp-entry-memory-governor&h=sw-v1560')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3898,7 +3896,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.59-kakao-session-handoff-memory-diagnostics', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.60-kakao-inapp-entry-memory-governor', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4212,7 +4210,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.59-kakao-session-handoff-memory-diagnostics',
+        version: '1.5.60-kakao-inapp-entry-memory-governor',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4252,10 +4250,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.59-kakao-session-handoff-memory-diagnostics',
+    version: '1.5.60-kakao-inapp-entry-memory-governor',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.59-kakao-session-handoff-memory-diagnostics', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.60-kakao-inapp-entry-memory-governor', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4280,12 +4278,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.59-kakao-session-handoff-memory-diagnostics', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.60-kakao-inapp-entry-memory-governor', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.59-kakao-session-handoff-memory-diagnostics', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.60-kakao-inapp-entry-memory-governor', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4300,12 +4298,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.59-kakao-session-handoff-memory-diagnostics',
+    version: 'v1.5.60-kakao-inapp-entry-memory-governor',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.59-kakao-session-handoff-memory-diagnostics', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.60-kakao-inapp-entry-memory-governor', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5013,9 +5011,10 @@ function getSmartPerformanceGuardDecision(track, buffer, requestedOutputFormat) 
         qualityMode = inAppSafety.qualityMode;
         reasons.push(...(inAppSafety.reasons || ['인앱 브라우저 메모리 보호']));
     }
-    const requestedTruePeak = state.featureFlags.truePeakGuard !== false;
-    const truePeak = requestedTruePeak && !inAppSafety?.disableTruePeak;
-    if (requestedTruePeak && !truePeak) reasons.push('인앱 브라우저 메모리 보호로 True Peak 경량화');
+    const memoryGovernor = track?.memoryGovernorInfo || null;
+    if (memoryGovernor?.qualityMode && qualityRanks[memoryGovernor.qualityMode] < qualityRanks[qualityMode]) { qualityMode = memoryGovernor.qualityMode; reasons.push(`메모리 압력 ${memoryGovernor.level} · ${memoryGovernor.reasons?.join(', ') || '자동 품질 조절'}`); }
+    const requestedTruePeak = state.featureFlags.truePeakGuard !== false, truePeak = requestedTruePeak && !inAppSafety?.disableTruePeak && memoryGovernor?.truePeak !== false;
+    if (requestedTruePeak && !truePeak) reasons.push(memoryGovernor?.truePeak === false ? '실측 메모리 압력으로 True Peak 경량화' : '인앱 브라우저 메모리 보호로 True Peak 경량화');
     if (!reasons.length) reasons.push(guardEnabled ? '원래 품질 유지' : '성능 가드 OFF');
     return {
         enabled: guardEnabled,
@@ -5030,6 +5029,7 @@ function getSmartPerformanceGuardDecision(track, buffer, requestedOutputFormat) 
         cores: device.cores,
         changed: qualityMode !== sourceMode || truePeak !== requestedTruePeak,
         inAppSafety,
+        memoryGovernor,
         reasons
     };
 }
@@ -5426,7 +5426,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.59-kakao-session-handoff-memory-diagnostics-fallback',
+            version: '1.5.60-kakao-inapp-entry-memory-governor-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -5687,8 +5687,7 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
         track.masterReport = retryReport;
         track.qualityGate = retryGate;
         track.comparison = createComparisonInfo(track, retryFinalization.info);
-        track.waveformOverview = createWaveformOverview(context.preparedBuffer, retryFinalBuffer);
-        if (state.autoHighlightAB) track.abHighlightStartSec = estimateABHighlightStartFromPair(context.preparedBuffer, retryFinalBuffer, track.analysis);
+        track.waveformOverview = createWaveformOverview(context.preparedBuffer, retryFinalBuffer, track.memoryGovernorInfo?.compactWaveform ? Math.max(36, Math.round(WAVEFORM_OVERVIEW_BINS / 2)) : WAVEFORM_OVERVIEW_BINS); if (state.autoHighlightAB && !track.memoryGovernorInfo?.compactWaveform) track.abHighlightStartSec = estimateABHighlightStartFromPair(context.preparedBuffer, retryFinalBuffer, track.analysis); else if (track.memoryGovernorInfo?.compactWaveform && Number.isFinite(Number(track.analysis?.abHighlightStartSec))) track.abHighlightStartSec = Number(track.analysis.abHighlightStartSec);
         track.safetyInfo = computeEngineSafetyInfo(track, retryFinalBuffer, retryFinalization.info);
         track.truePeakInfo = { mode: 'truePeak', targetDbTP: plan.ceilingDb, peakBefore: retryFinalization.info.peakBefore, peakAfter: retryFinalization.info.peakAfter, gain: Math.pow(10, (retryFinalization.info.gainDb || 0) / 20) };
         track.exportFallbackInfo = retryEncoded.fallbackFrom ? { from: retryEncoded.fallbackFrom, to: retryEncoded.format, reason: retryEncoded.fallbackReason || '' } : null;
@@ -5784,9 +5783,10 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
     track.masterReport = null;
     track.inputGuardInfo = null;
     track.inAppSafetyInfo = null;
+    track.memoryGovernorInfo = null; track.memoryWarningKey = '';
     track.remasterCount = Number(track.remasterCount || 0) + 1;
     track.performanceInfo = beginPerformanceProfile();
-    track.report = '온디맨드 디코더 구동 중...';
+    track.inAppSafetyInfo = FoxBearInAppMasteringSafetyService?.createPlan?.(null, { durationSec: Number(track.analysis?.duration || 0), sampleRate: Number(track.analysis?.sampleRate || 48000), channels: Number(track.analysis?.channels || 2), qualityMode: state.qualityMode || 'balanced', outputFormat: state.outputFormat || 'wav24', transformed: !isDefaultTransform(track.transform || DEFAULT_TRANSFORM), instrumentLayer: shouldUseInstrumentLayer(track.instrument), qualityRecoveryEnabled: true }) || null; const preflightGovernor = FoxBearMasteringMemoryDiagnostics?.createGovernorDecision?.(track, null, { stage: '사전 진단', sourceQualityMode: state.qualityMode || 'balanced', requestedTruePeak: state.featureFlags.truePeakGuard !== false, outputFormat: state.outputFormat || 'wav24' }) || null; maybeAnnounceMemoryGovernor(track, preflightGovernor, track.inAppSafetyInfo?.warning, 'preflight'); track.report = track.inAppSafetyInfo?.warning?.message || '온디맨드 디코더 구동 중...';
     syncWakeLockForCurrentActivity();
     await setMasteringProgress(track, 5, track.report);
     let currentSourceBuffer = null;
@@ -5807,6 +5807,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
             ? FoxBearMasteringInputGuard.assertMasterable(currentSourceBuffer, track.analysis || {})
             : null;
         markPerformanceStage(track, '디코딩', { decoded: currentSourceBuffer });
+        maybeAnnounceMemoryGovernor(track, track.memoryGovernorInfo, track.inAppSafetyInfo?.warning, 'decode');
         const decodeReadyMessage = track.inAppSafetyInfo?.highRisk
             ? `디코딩 완료 · ${track.inAppSafetyInfo.label} 안전 경로 적용 (${track.inAppSafetyInfo.projectedPeakMb}MB 예상)`
             : (track.inputGuardInfo?.warnings?.[0] || '디코딩 완료 · 분석/렌더 준비 중');
@@ -5887,10 +5888,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         finalBuffer = finalization.buffer;
         sanitizeAudioBuffer(finalBuffer, 'finalizer');
         masteredBuffer = null;
-        track.waveformOverview = createWaveformOverview(preparedBuffer, finalBuffer);
-        if (state.autoHighlightAB) {
-            track.abHighlightStartSec = estimateABHighlightStartFromPair(preparedBuffer, finalBuffer, track.analysis);
-        }
+        track.waveformOverview = createWaveformOverview(preparedBuffer, finalBuffer, track.memoryGovernorInfo?.compactWaveform ? Math.max(36, Math.round(WAVEFORM_OVERVIEW_BINS / 2)) : WAVEFORM_OVERVIEW_BINS); if (state.autoHighlightAB && !track.memoryGovernorInfo?.compactWaveform) track.abHighlightStartSec = estimateABHighlightStartFromPair(preparedBuffer, finalBuffer, track.analysis); else if (track.memoryGovernorInfo?.compactWaveform && Number.isFinite(Number(track.analysis?.abHighlightStartSec))) track.abHighlightStartSec = Number(track.analysis.abHighlightStartSec);
         track.safetyInfo = computeEngineSafetyInfo(track, finalBuffer, finalization.info);
         markPerformanceStage(track, '파이널라이저', { prepared: preparedBuffer, final: finalBuffer });
         await setMasteringProgress(track, 95, `${getOutputFormatLabel(requestedOutputFormat)} 파일 인코딩 및 품질 리포트 준비 중`);
@@ -5914,6 +5912,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         track.qualityGate = applyQualityRecoveryE2EOverride(track, createQualityGateReport(track, track.masterReport, finalization.info, encoded));
         track.masterReport.qualityGate = track.qualityGate;
         markPerformanceStage(track, '인코딩', { prepared: preparedBuffer, final: finalBuffer, output: encoded.blob });
+        const preserveFirstRenderForMemory = FoxBearInAppMasteringSafetyService?.shouldPreserveFirstRender?.(track.inAppSafetyInfo, track.qualityGate) === true, canReleasePreparedBeforeRecovery = Boolean(track.memoryGovernorInfo?.releaseAggressively) && (track.qualityGate?.status !== 'fail' || preserveFirstRenderForMemory); if (canReleasePreparedBeforeRecovery) { preparedBuffer = null; track.memoryGovernorReleaseInfo = Object.freeze({ stage: 'post-encode', reason: 'adaptive-memory-governor', at: new Date().toISOString() }); markPerformanceStage(track, 'PCM 조기 해제', { final: finalBuffer, output: encoded.blob }); }
         const recoveryResult = await runQualityGateRecoveryAttempt(track, { preparedBuffer, albumProfile, requestedOutputFormat, signal: masteringAbortController?.signal || null, masteringJobId, assertMasteringJobActive });
         if (recoveryResult) {
             masteredBuffer = recoveryResult.masteredBuffer;
@@ -8720,7 +8719,6 @@ function createUserFriendlyMasteringError(error) {
     return FoxBearInAppMasteringSafetyService?.createUserFriendlyMasteringError?.(error)
         || { message: getErrorMessage(error, '마스터링 실패'), report: `마스터링 실패: ${getErrorMessage(error, '마스터링 실패')}` };
 }
-
 function reportOperationalIncident(category, error, context = '', options = {}) {
     try {
         const reporter = window.FoxBearIncidentReporter;
@@ -8738,7 +8736,6 @@ function reportOperationalIncident(category, error, context = '', options = {}) 
         console.warn('Operational incident report skipped:', reportError);
     }
 }
-
 function measureApproxGatedLoudness(buffer) {
     return measureKWeightedGatedLoudness(buffer);
 }
@@ -9901,7 +9898,9 @@ function clearSnapshotsForSelected() {
     showToast('선택 트랙의 되돌리기 기록을 지웠습니다.');
 }
 function beginPerformanceProfile() { return FoxBearMasteringMemoryDiagnostics?.createPerformanceInfo?.() || { running: true, startedAt: new Date().toISOString(), startMs: Date.now(), lastMs: Date.now(), stages: [], memoryStages: [], totalMs: 0, realtimeRatio: 0, outputSize: 0 }; }
-function markPerformanceStage(track, label, buffers = {}) { return FoxBearMasteringMemoryDiagnostics?.markStage?.(track, label, buffers) || null; }
+function getMemoryGovernorLevelRank(level) { return ({ normal: 0, elevated: 1, high: 2, critical: 3 })[String(level || 'normal')] || 0; }
+function maybeAnnounceMemoryGovernor(track, decision, warning = null, source = '') { if (!track || !decision) return false; const level = String(decision.level || 'normal'), key = `${level}:${decision.qualityMode}:${decision.truePeak}`; if (getMemoryGovernorLevelRank(level) < 1 || (track.memoryWarningKey === key && !decision.escalated)) return false; track.memoryWarningKey = key; const ratio = Number(decision.observedRatio || track.inAppSafetyInfo?.pressureRatio || 0).toFixed(2), action = decision.qualityMode !== decision.sourceQualityMode || decision.truePeak === false ? `${getQualityModeLabel(decision.qualityMode)}·${decision.truePeak === false ? '경량 피크' : 'True Peak'} 자동 적용` : '단계별 메모리 감시', message = warning?.message || `${track.inAppSafetyInfo?.label || '현재 브라우저'} 메모리 압력 ${ratio} · ${action}`; if (level === 'high' || level === 'critical' || source === 'preflight') showToast(message); if (source === 'runtime-stage' && decision.escalated && (Number(decision.heapRatio || 0) >= 0.9 || Number(decision.knownBufferRatio || 0) >= 0.95)) reportOperationalIncident('mastering-memory', new Error('Observed mastering memory pressure escalation'), `source=${source}; stage=${decision.stage || ''}; ratio=${ratio}; heap=${decision.heapRatio || 0}; buffers=${decision.knownBufferRatio || 0}; quality=${decision.qualityMode}; truePeak=${decision.truePeak}`, { reason: 'mastering-memory-observed-escalation', severity: 'warning' }); return true; }
+function markPerformanceStage(track, label, buffers = {}) { const sample = FoxBearMasteringMemoryDiagnostics?.markStage?.(track, label, buffers) || null, decision = FoxBearMasteringMemoryDiagnostics?.createGovernorDecision?.(track, sample, { stage: label, sourceQualityMode: state.qualityMode || 'balanced', requestedTruePeak: state.featureFlags.truePeakGuard !== false, outputFormat: state.outputFormat || 'wav24' }) || null; maybeAnnounceMemoryGovernor(track, decision, null, 'runtime-stage'); return sample; }
 function finishPerformanceProfile(track, buffer, blob) {
     if (!track || !track.performanceInfo) return;
     const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -9940,11 +9939,12 @@ function getMasteringPerformanceSnapshot() {
         finalizerProcessingMs: Number(track.performanceInfo.finalizerProcessingMs || 0),
         stages: (track.performanceInfo.stages || []).map(stage => ({ label: stage.label, ms: Number(stage.ms || 0) })),
         memory: FoxBearMasteringMemoryDiagnostics?.summarize?.(track.performanceInfo) || null,
-        inAppSafety: track.inAppSafetyInfo || null
+        inAppSafety: track.inAppSafetyInfo || null,
+        memoryGovernor: track.memoryGovernorInfo || null
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.59-kakao-session-handoff-memory-diagnostics', selected, recent });
+    return Object.freeze({ version: '1.5.60-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13033,7 +13033,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.59',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.60',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

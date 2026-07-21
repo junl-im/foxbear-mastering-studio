@@ -1,4 +1,4 @@
-// FoxBear KakaoTalk entry guard: show a lightweight, always-renderable landing before local audio work begins.
+// FoxBear KakaoTalk entry guard: allow the studio to boot in-app by default.
 'use strict';
 
 (function guardKakaoEntry(global) {
@@ -14,30 +14,31 @@
     return;
   }
 
-  if (current.searchParams.get('foxbearInApp') === '1') {
-    global.FoxBearKakaoEntry = Object.freeze({ restricted: true, bypassed: true });
-    return;
-  }
-
+  var explicitGuide = current.searchParams.get('foxbearGuide') === '1';
   var target = new URL(current.href);
+  target.searchParams.delete('foxbearGuide');
   target.searchParams.delete('foxbearInApp');
   target.searchParams.set('foxbearExternal', '1');
   target.hash = '';
 
   var gate = new URL('./external-browser.html', current.href);
   gate.searchParams.set('target', target.href);
-  gate.searchParams.set('source', 'kakao');
+  gate.searchParams.set('source', 'kakao-explicit-guide');
 
   global.FoxBearKakaoEntry = Object.freeze({
     restricted: true,
-    bypassed: false,
+    bypassed: !explicitGuide,
+    mode: explicitGuide ? 'external-guide' : 'in-app',
+    externalAttempted: current.searchParams.get('foxbearExternal') === '1',
     target: target.href,
     gate: gate.href
   });
 
-  // Only navigate to an ordinary same-origin HTTPS/HTTP page here. Never launch a
-  // custom scheme during document boot: Kakao WebView can replace the page with a
-  // blank/error screen when such a scheme is blocked.
+  // Kakao WebView can run FoxBear's playback and mastering safety path. Do not
+  // block every entry only because of the user agent. The external-browser page
+  // remains available from the runtime recovery action or an explicit guide URL.
+  if (!explicitGuide) return;
+
   try {
     global.location.replace(gate.href);
   } catch (error) {

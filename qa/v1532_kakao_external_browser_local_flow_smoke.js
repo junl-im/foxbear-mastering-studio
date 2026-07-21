@@ -37,9 +37,14 @@ assert(index.includes('src/boot/kakao-entry-guard.js'), 'index must load Kakao e
 assert(index.indexOf('src/boot/kakao-entry-guard.js') < index.indexOf('src/config/build-info.js'), 'Kakao guard must run before the main application boot');
 
 const kakao = runGuard('https://example.com/app/index.html?mode=master', 'Mozilla/5.0 Android KAKAOTALK');
-assert(kakao.replaced.includes('/app/external-browser.html?'), 'Kakao entry should be redirected to lightweight external-browser landing');
-assert(decodeURIComponent(kakao.replaced).includes('foxbearExternal=1'), 'external target marker must be preserved');
-assert.strictEqual(kakao.entry && kakao.entry.bypassed, false, 'normal Kakao entry must not bypass the gate');
+assert.strictEqual(kakao.replaced, '', 'normal Kakao entry must boot the studio instead of forcing the external-browser landing');
+assert.strictEqual(kakao.entry && kakao.entry.bypassed, true, 'normal Kakao entry must expose the in-app bypass state');
+assert.strictEqual(kakao.entry && kakao.entry.mode, 'in-app', 'normal Kakao entry must expose in-app mode');
+
+const explicitGuide = runGuard('https://example.com/app/index.html?mode=master&foxbearGuide=1', 'Mozilla/5.0 Android KAKAOTALK');
+assert(explicitGuide.replaced.includes('/app/external-browser.html?'), 'explicit Kakao guide request should open the lightweight landing');
+assert(decodeURIComponent(explicitGuide.replaced).includes('foxbearExternal=1'), 'external target marker must be preserved');
+assert.strictEqual(explicitGuide.entry && explicitGuide.entry.bypassed, false, 'explicit guide request must not expose the in-app bypass state');
 
 const bypass = runGuard('https://example.com/app/index.html?foxbearInApp=1', 'Mozilla/5.0 iPhone KakaoTalk');
 assert.strictEqual(bypass.replaced, '', 'explicit in-app continue must not redirect again');

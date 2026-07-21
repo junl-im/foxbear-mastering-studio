@@ -1,4 +1,10 @@
-# FoxBear AI Mastering Studio Pro v1.5.59
+# FoxBear AI Mastering Studio Pro v1.5.60
+
+## v1.5.60 핵심 변경
+
+- 카카오톡 링크 진입 시 외부 브라우저 안내로 강제 이동하지 않고 FoxBear 작업 화면을 우선 엽니다.
+- 잘못된 경로 복구는 프로젝트 루트의 `index.html`로 직접 이동해 404 반복을 방지합니다.
+- 카카오 메모리 압력이 높으면 디코딩 전과 처리 단계별로 Fast·경량 피크·압축 파형 경로를 자동 적용합니다.
 
 ## Current patch: v1.5.57 Modal Close Consistency
 

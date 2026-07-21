@@ -1,8 +1,8 @@
-// FoxBear in-app mastering safety service v1.5.59 - Kakao WebView memory and recovery guard.
+// FoxBear in-app mastering safety service v1.5.60 - Kakao adaptive memory governor and recovery guard.
 'use strict';
 
 (function attachFoxBearInAppMasteringSafetyService(global) {
-    const VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
+    const VERSION = '1.5.60-kakao-adaptive-memory-governor';
     const MB = 1024 * 1024;
 
     function finite(value, fallback = 0) {
@@ -32,11 +32,54 @@
         });
     }
 
-    function estimatePcmBytes(buffer) {
-        if (!buffer) return 0;
-        return Math.max(1, finite(buffer.numberOfChannels, 1))
-            * Math.max(0, finite(buffer.length, 0))
-            * 4;
+    function estimatePcmBytes(buffer, options = {}) {
+        if (buffer) {
+            return Math.max(1, finite(buffer.numberOfChannels, 1))
+                * Math.max(0, finite(buffer.length, 0))
+                * 4;
+        }
+        const durationSec = Math.max(0, finite(options.durationSec, 0));
+        const sampleRate = Math.max(8000, Math.min(384000, finite(options.sampleRate, 48000)));
+        const channels = Math.max(1, Math.min(8, finite(options.channels, 2)));
+        return durationSec * sampleRate * channels * 4;
+    }
+
+    function classifyPressureLevel(ratio, environment, durationSec = 0) {
+        const value = Math.max(0, finite(ratio, 0));
+        if (value >= 1 || (environment?.kakao && durationSec >= 12 * 60)) return 'critical';
+        if (value >= 0.82 || (environment?.kakao && durationSec >= 8 * 60)) return 'high';
+        if (value >= 0.65 || (environment?.kakao && durationSec >= 5 * 60)) return 'elevated';
+        return 'normal';
+    }
+
+    function pressureRank(level) {
+        return ({ normal: 0, elevated: 1, high: 2, critical: 3 })[String(level || 'normal')] || 0;
+    }
+
+    function getPreflightWarning(level, environment, projectedPeakMb, memoryBudgetMb) {
+        const ratioText = memoryBudgetMb > 0 ? `${Math.round(projectedPeakMb)}MB / ${Math.round(memoryBudgetMb)}MB` : `${Math.round(projectedPeakMb)}MB 예상`;
+        if (level === 'critical') {
+            return Object.freeze({
+                severity: 'critical',
+                title: '메모리 한도 초과 위험',
+                message: `${environment.label}에서 예상 처리 메모리가 ${ratioText}입니다. Fast·경량 True Peak 경로를 자동 적용하며, 중단되면 외부 브라우저 복구를 사용하세요.`
+            });
+        }
+        if (level === 'high') {
+            return Object.freeze({
+                severity: 'warning',
+                title: '높은 메모리 사용 예상',
+                message: `${environment.label}에서 예상 처리 메모리가 ${ratioText}입니다. 렌더 단계에 따라 품질 비용을 자동 조절합니다.`
+            });
+        }
+        if (level === 'elevated') {
+            return Object.freeze({
+                severity: 'notice',
+                title: '메모리 보호 준비',
+                message: `${environment.label}에서 장시간 처리가 예상되어 메모리 상태를 단계별로 감시합니다.`
+            });
+        }
+        return null;
     }
 
     function getMemoryBudgetMb(environment) {
@@ -53,7 +96,7 @@
 
     function createPlan(buffer, options = {}) {
         const environment = getEnvironment();
-        const pcmMb = estimatePcmBytes(buffer) / MB;
+        const pcmMb = estimatePcmBytes(buffer, options) / MB;
         const durationSec = Math.max(0, finite(buffer?.duration, options.durationSec));
         const sourceMode = String(options.qualityMode || 'balanced');
         const outputFormat = String(options.outputFormat || 'wav24');
@@ -68,14 +111,15 @@
         const projectedPeakMb = pcmMb * (baseCopies + transformCopies + layerCopies + recoveryCopies) + encoderOverheadMb;
         const memoryBudgetMb = getMemoryBudgetMb(environment);
         const pressureRatio = memoryBudgetMb > 0 ? projectedPeakMb / memoryBudgetMb : 0;
-        const longKakaoTrack = environment.kakao && durationSec >= 5 * 60;
-        const highRisk = environment.restricted && (pressureRatio >= 0.72 || longKakaoTrack);
-        const criticalRisk = environment.restricted && (pressureRatio >= 1 || (environment.kakao && durationSec >= 12 * 60));
+        const pressureLevel = classifyPressureLevel(pressureRatio, environment, durationSec);
+        const highRisk = environment.restricted && pressureRank(pressureLevel) >= pressureRank('elevated');
+        const criticalRisk = environment.restricted && pressureLevel === 'critical';
         let qualityMode = sourceMode;
-        if (criticalRisk) qualityMode = 'fast';
+        if (criticalRisk || (environment.kakao && pressureLevel === 'high')) qualityMode = 'fast';
         else if (highRisk && sourceMode === 'max') qualityMode = 'balanced';
-        const disableTruePeak = criticalRisk || (environment.kakao && pressureRatio >= 0.86);
+        const disableTruePeak = criticalRisk || (environment.kakao && pressureRank(pressureLevel) >= pressureRank('high'));
         const preserveFirstRenderOnNonCriticalFailure = environment.kakao && (highRisk || durationSec >= 4 * 60);
+        const warning = getPreflightWarning(pressureLevel, environment, projectedPeakMb, memoryBudgetMb);
         const reasons = [];
         if (environment.kakao) reasons.push('카카오 WebView 메모리 보호');
         if (qualityMode !== sourceMode) reasons.push(`${sourceMode} → ${qualityMode}`);
@@ -90,6 +134,10 @@
             projectedPeakMb: round(projectedPeakMb, 1),
             memoryBudgetMb: round(memoryBudgetMb, 1),
             pressureRatio: round(pressureRatio, 2),
+            pressureLevel,
+            warning,
+            adaptiveGovernorEnabled: environment.restricted || environment.mobile,
+            recommendedOutputFormat: criticalRisk && outputFormat.startsWith('mp3') ? 'wav24' : outputFormat,
             highRisk,
             criticalRisk,
             sourceQualityMode: sourceMode,
@@ -169,6 +217,8 @@
         version: VERSION,
         getEnvironment,
         estimatePcmBytes,
+        classifyPressureLevel,
+        pressureRank,
         createPlan,
         isCriticalGateFailure,
         shouldPreserveFirstRender,

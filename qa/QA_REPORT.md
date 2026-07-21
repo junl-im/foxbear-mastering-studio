@@ -1,3 +1,19 @@
+# QA Report - v1.5.60 Kakao In-App Entry and Adaptive Memory Governor
+
+- KakaoTalk opens the FoxBear studio in-app by default instead of forcing the external-browser landing.
+- 404 recovery targets `index.html` directly and carries the legacy in-app bypass marker to prevent cached redirect loops.
+- Preflight and observed memory pressure can select Fast processing, lightweight peak work, compact waveform analysis, and early PCM release.
+- Existing download recovery, Wake Lock, service worker, quality gate, and export contracts remain required.
+- Static and regression target: all 266 configured checks PASS in bounded continuation segments.
+
+## v1.5.60 coverage
+
+- direct Kakao entry without forced redirect
+- explicit external-browser guide remains available
+- 404-to-index recovery without route loops
+- pre-decode and runtime memory governor decisions
+- legacy app-size and SRI preservation
+
 # QA Report - v1.5.59 Kakao Session Handoff and Memory Diagnostics
 
 - Added privacy-safe, expiring work-setting handoff for external-browser recovery.

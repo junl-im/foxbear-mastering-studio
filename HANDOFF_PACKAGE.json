@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.59",
-  "buildId": "kakao-session-handoff-memory-diagnostics",
+  "productVersion": "1.5.60",
+  "buildId": "kakao-inapp-entry-memory-governor",
   "requiredFiles": [
     "404.html",
     ".gitignore",
