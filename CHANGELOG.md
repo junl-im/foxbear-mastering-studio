@@ -1,3 +1,12 @@
+# v1.5.47 - Engine Edge-Case Quality Gate
+
+- Rejected silent, corrupt, and sub-0.10-second decoded inputs before mastering can report a false success.
+- Added matching finalizer-side input signal checks as defense in depth.
+- Normalized nested mobile-speaker and frequency analysis fields against NaN and Infinity.
+- Hardened recommendation features when cached analysis values are missing or non-finite.
+- Added cancellation checkpoints after decode, emergency analysis, pitch/speed preparation, and master rendering.
+- Added deterministic mono, 96/192kHz, clipped-transient, malformed-analysis, silence, and short-input engine QA.
+
 # v1.5.46 - Engine, Recommendation, and API Audit
 
 - Hardened recommendation mapping against incomplete or non-finite analysis values.

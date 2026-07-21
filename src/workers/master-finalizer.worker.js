@@ -1,5 +1,5 @@
 // FoxBear Pro finalizer worker v1.5.0 - quality-gate compatible finalizer core
-// v1.5.46 adds job-scoped progress telemetry for loudness, dynamics, limiter, and true-peak stages.
+// v1.5.47 adds job-scoped progress telemetry for loudness, dynamics, limiter, and true-peak stages.
 'use strict';
 
 self.onmessage = event => {
@@ -28,6 +28,13 @@ self.onmessage = event => {
         const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
         const data = channelBuffers.map(src => new Float32Array(src.slice(0, length)));
         postProgress(jobId, 8, '입력 정리', '샘플 복사와 비정상 값 정리를 시작합니다.');
+        const inputHealth = inspectInputSignal(data, length, sampleRate);
+        if (!inputHealth.ok) {
+            const inputError = new Error(inputHealth.message);
+            inputError.name = 'MasteringInputError';
+            inputError.code = inputHealth.code;
+            throw inputError;
+        }
         sanitizeBuffers(data, length);
         removeDcOffset(data, length);
         postProgress(jobId, 18, '공진 보호', '모바일 공진과 치찰음 위험을 줄입니다.');
@@ -102,11 +109,18 @@ self.onmessage = event => {
                 dynamicDeEsserRisk: deEsserInfo.risk,
                 dynamicDeEsserReductionDb: deEsserInfo.reductionDb,
                 dynamicDeEsserBands: deEsserInfo.bands,
-                loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates'
+                loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
+                inputHealth
             }
         }, transfers);
     } catch (error) {
-        self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: String(event.data?.__foxbearJobId || '') });
+        self.postMessage({
+            ok: false,
+            error: error.message || String(error),
+            code: String(error.code || ''),
+            errorName: String(error.name || 'Error'),
+            __foxbearJobId: String(event.data?.__foxbearJobId || '')
+        });
     }
 };
 
@@ -387,26 +401,71 @@ function applyGain(buffers, length, gain) {
 
 
 function normalizeAnalysis(analysis) {
-    const bands = analysis && analysis.spectrumBands ? analysis.spectrumBands : {};
+    const source = analysis && typeof analysis === 'object' ? analysis : {};
+    const bands = source.spectrumBands && typeof source.spectrumBands === 'object' ? source.spectrumBands : {};
+    const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+    const unit = (value, fallback) => clamp(finite(value, fallback), 0, 1);
+    const detailSource = source.mobileSpeakerDetail && typeof source.mobileSpeakerDetail === 'object' ? source.mobileSpeakerDetail : {};
     return {
-        bassRatio: clamp01(Number(analysis.bassRatio ?? bands.low ?? 0.25)),
-        lowMidRatio: clamp01(Number(analysis.lowMidRatio ?? bands.lowMid ?? 0.22)),
-        midRatio: clamp01(Number(analysis.midRatio ?? bands.mid ?? 0.25)),
-        highRatio: clamp01(Number(analysis.highRatio ?? bands.high ?? 0.22)),
-        presenceRatio: clamp01(Number(analysis.presenceRatio ?? bands.presence ?? 0.16)),
-        airRatio: clamp01(Number(analysis.airRatio ?? bands.air ?? 0.10)),
-        brightness: clamp01(Number(analysis.brightness ?? 0.45)),
-        metallicHint: clamp01(Number(analysis.metallicHint ?? 0.35)),
-        transientDensity: clamp01(Number(analysis.transientDensity ?? 0.35)),
-        spatialExcessRisk: clamp01(Number(analysis.spatialExcessRisk ?? 0)),
-        lowMonoScore: clamp(Number(analysis.lowMonoScore ?? 100), 0, 100),
-        mobileSpeakerRisk: clamp01(Number(analysis.mobileSpeakerRisk ?? 0)),
-        mobileSpeakerDetail: analysis.mobileSpeakerDetail || null,
-        harshPeakHz: Number(analysis.harshPeakHz || analysis.targetDynamicFreq || 6200),
-        targetDynamicFreq: Number(analysis.targetDynamicFreq || analysis.harshPeakHz || 6200),
-        vocalMetallicRisk: clamp01(Number(analysis.vocalMetallicRisk ?? 0)),
-        dynamicDeEsserRisk: clamp01(Number(analysis.dynamicDeEsserRisk ?? 0))
+        bassRatio: unit(source.bassRatio ?? bands.low, 0.25),
+        lowMidRatio: unit(source.lowMidRatio ?? bands.lowMid, 0.22),
+        midRatio: unit(source.midRatio ?? bands.mid, 0.25),
+        highRatio: unit(source.highRatio ?? bands.high, 0.22),
+        presenceRatio: unit(source.presenceRatio ?? bands.presence, 0.16),
+        airRatio: unit(source.airRatio ?? bands.air, 0.10),
+        brightness: unit(source.brightness, 0.45),
+        metallicHint: unit(source.metallicHint, 0.35),
+        transientDensity: unit(source.transientDensity, 0.35),
+        spatialExcessRisk: unit(source.spatialExcessRisk, 0),
+        lowMonoScore: clamp(finite(source.lowMonoScore, 100), 0, 100),
+        mobileSpeakerRisk: unit(source.mobileSpeakerRisk, 0),
+        mobileSpeakerDetail: {
+            boom: unit(detailSource.boom, 0),
+            box: unit(detailSource.box, 0),
+            honk: unit(detailSource.honk, 0),
+            harsh: unit(detailSource.harsh, 0),
+            density: unit(detailSource.density, 0)
+        },
+        harshPeakHz: clamp(finite(source.harshPeakHz ?? source.targetDynamicFreq, 6200), 1800, 16000),
+        targetDynamicFreq: clamp(finite(source.targetDynamicFreq ?? source.harshPeakHz, 6200), 1800, 16000),
+        vocalMetallicRisk: unit(source.vocalMetallicRisk, 0),
+        dynamicDeEsserRisk: unit(source.dynamicDeEsserRisk, 0)
     };
+}
+
+function inspectInputSignal(buffers, length, sampleRate) {
+    const durationSec = length / Math.max(1, sampleRate);
+    if (durationSec < 0.10) {
+        return { ok: false, code: 'MASTERING_INPUT_TOO_SHORT', message: '오디오가 0.10초보다 짧아 안정적으로 마스터링할 수 없습니다.', durationSec, peak: 0, rms: 0, invalidSamples: 0, sampledSamples: 0, invalidRatio: 0 };
+    }
+    let peak = 0;
+    let sumSquares = 0;
+    let sampledSamples = 0;
+    let invalidSamples = 0;
+    for (const data of buffers) {
+        for (let i = 0; i < length; i += 1) {
+            const value = Number(data[i]);
+            sampledSamples += 1;
+            if (!Number.isFinite(value)) {
+                invalidSamples += 1;
+                continue;
+            }
+            const absolute = Math.abs(value);
+            if (absolute > peak) peak = absolute;
+            sumSquares += value * value;
+        }
+    }
+    const finiteSamples = Math.max(0, sampledSamples - invalidSamples);
+    const invalidRatio = sampledSamples ? invalidSamples / sampledSamples : 1;
+    const rms = finiteSamples ? Math.sqrt(sumSquares / finiteSamples) : 0;
+    const metrics = { durationSec, peak, rms, invalidSamples, sampledSamples, invalidRatio };
+    if (!finiteSamples || invalidRatio > 0.01) {
+        return { ok: false, code: 'MASTERING_INPUT_CORRUPT', message: '오디오 샘플에 비정상 값이 너무 많아 안전하게 마스터링할 수 없습니다.', ...metrics };
+    }
+    if (peak < 0.0005 || rms < 0.00008) {
+        return { ok: false, code: 'MASTERING_INPUT_SILENT', message: '무음 또는 신호가 너무 작은 파일은 마스터링할 수 없습니다.', ...metrics };
+    }
+    return { ok: true, code: 'MASTERING_INPUT_OK', message: '입력 신호 정상', ...metrics, nearSilent: peak < 0.002 || rms < 0.0002 };
 }
 
 

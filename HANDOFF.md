@@ -1,20 +1,18 @@
-# Handoff - v1.5.46
+# Handoff - v1.5.47
 
-## v1.5.46 handoff focus
+## v1.5.47 handoff focus
 
-- Load tracks with complete and intentionally incomplete analysis metadata; recommendation sliders must remain finite.
-- Compare recommended, requested, and effective DSP settings in the master report.
-- Confirm a True Peak ceiling violation warns even when sample peak remains below the ceiling.
-- Confirm adaptive target LUFS appears in mastered filenames and export reports.
-- Confirm Firebase modules load from the pinned 12.16.0 CDN path.
+- Confirm silent and sub-0.10-second files are rejected with an actionable message instead of producing a completed master.
+- Run mono, 96kHz, and 192kHz inputs through the finalizer and confirm finite output, target loudness, and True Peak ceiling.
+- Cancel during decode, pitch/speed preparation, and master rendering and confirm no late result is applied.
+- Confirm malformed cached analysis values cannot produce NaN recommendation or DSP parameters.
 
 ```text
-product: 1.5.46
-build: engine-recommendation-api-audit
-asset generation: 1.5.46-engine-recommendation-api-audit
-service worker cache: foxbear-shell-v1.5.46-engine-recommendation-api-audit
+product: 1.5.47
+build: engine-edgecase-quality-gate
+asset generation: 1.5.47-engine-edgecase-quality-gate
+service worker cache: foxbear-shell-v1.5.47-engine-edgecase-quality-gate
 ```
-
 
 ## v1.5.45 handoff focus
 

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.46",
+  "version": "1.5.47",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with finite-safe recommendation mapping, true-peak quality-gate auditing, rendered-target report integrity, and Firebase 12.16.0.",
+  "description": "FoxBear AI Mastering Studio Pro with silent/short-input rejection, finite-safe DSP analysis normalization, cancellation checkpoints, and 96/192kHz engine edge-case QA.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.46-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.46-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.47-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.47-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh"
   },
@@ -47,6 +47,7 @@
     "node --check src/audio/analysis-cache-service.js",
     "node --check src/audio/memory-guard-service.js",
     "node --check src/audio/reference-profile-service.js",
+    "node --check src/audio/mastering-input-guard-service.js",
     "node --check src/audio/quality-gate-service.js",
     "node --check src/audio/mastering-orchestrator-service.js",
     "node --check src/state/track-lifecycle-service.js",
@@ -262,15 +263,16 @@
     "node --check src/download/export-queue-service.js",
     "node qa/v1544_export_queue_gesture_safety_smoke.js",
     "node qa/v1545_export_queue_recovery_smoke.js",
-    "node qa/v1546_engine_recommendation_api_audit_smoke.js"
+    "node qa/v1546_engine_recommendation_api_audit_smoke.js",
+    "node qa/v1547_engine_edgecase_quality_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "engine-recommendation-api-audit",
-    "assetVersion": "1.5.46-engine-recommendation-api-audit",
-    "cacheName": "foxbear-shell-v1.5.46-engine-recommendation-api-audit",
-    "bootRevision": "boot-sri-v1546",
-    "updateSafetyRevision": "update-safety-v1546",
-    "serviceWorkerRevision": "sw-v1546"
+    "buildId": "engine-edgecase-quality-gate",
+    "assetVersion": "1.5.47-engine-edgecase-quality-gate",
+    "cacheName": "foxbear-shell-v1.5.47-engine-edgecase-quality-gate",
+    "bootRevision": "boot-sri-v1547",
+    "updateSafetyRevision": "update-safety-v1547",
+    "serviceWorkerRevision": "sw-v1547"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

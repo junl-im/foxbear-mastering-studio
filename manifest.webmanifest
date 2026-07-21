@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.46 (engine-recommendation-api-audit).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.47 (engine-edgecase-quality-gate).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.46"
+  "version": "1.5.47"
 }

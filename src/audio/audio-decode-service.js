@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.46
+// FoxBear audio decode service - v1.5.47
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.46-engine-recommendation-api-audit';
+    const SERVICE_VERSION = '1.5.47-engine-edgecase-quality-gate';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

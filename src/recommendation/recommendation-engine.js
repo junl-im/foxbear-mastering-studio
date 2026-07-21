@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.46 - recommendation engine service
+// FoxBear AI Mastering Studio Pro v1.5.47 - recommendation engine service
 'use strict';
 
 (function attachFoxBearRecommendationEngine(global) {
@@ -14,9 +14,12 @@
         const estimateMobileSpeakerRisk = typeof deps.estimateMobileSpeakerRisk === 'function' ? deps.estimateMobileSpeakerRisk : (() => ({ risk: 0 }));
         const GENRE_PRESETS = deps.GENRE_PRESETS || {};
         const PRESET_LABELS = deps.PRESET_LABELS || {};
+        const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+        const unit = (value, fallback = 0) => clamp(finite(value, fallback), 0, 1);
 
         function recommendPreset(fileName, analysis) {
-            const name = fileName.toLowerCase();
+            const name = String(fileName || '').toLowerCase();
+            analysis = analysis && typeof analysis === 'object' ? analysis : {};
             const scores = {};
             Object.keys(GENRE_PRESETS).forEach(key => { if (key !== 'custom') scores[key] = 0; });
         
@@ -250,27 +253,32 @@
         }
         
         function extractGenreFeatures(analysis) {
-            const bright = clamp01(analysis.brightness || 0);
-            const wide = clamp01(analysis.stereoWidth || 0);
-            const crest = Number.isFinite(analysis.crest) ? analysis.crest : 3;
-            const punch = clamp01((crest - 2.4) / 7.5);
+            const source = analysis && typeof analysis === 'object' ? analysis : {};
+            const bright = unit(source.brightness, 0);
+            const wide = unit(source.stereoWidth, 0);
+            const crest = finite(source.crest, 3);
+            const punch = unit((crest - 2.4) / 7.5, 0);
             const soft = 1 - punch;
             const dark = 1 - bright;
-            const metallic = clamp01(analysis.metallicHint || 0);
-            const loud = clamp01((analysis.loudnessHint + 32) / 22);
-            const bands = analysis.spectrumBands || {};
-            const sub = clamp01(bands.sub ?? analysis.subRatio ?? 0.05);
-            const bass = clamp01(analysis.bassRatio ?? 0.25);
-            const lowMid = clamp01(analysis.lowMidRatio ?? 0.25);
-            const mid = clamp01(analysis.midRatio ?? 0.25);
-            const high = clamp01(analysis.highRatio ?? 0.25);
-            const presence = clamp01(bands.presence ?? analysis.presenceRatio ?? high * 0.45);
-            const air = clamp01(bands.air ?? analysis.airRatio ?? high * 0.20);
-            const transient = clamp01(analysis.transientDensity ?? 0);
-            const centroidNorm = Number(analysis.spectralCentroidHz) > 0 ? normalizeLogFrequency(Number(analysis.spectralCentroidHz), 380, 5600) : bright;
-            const rolloffNorm = Number(analysis.spectralRolloffHz) > 0 ? normalizeLogFrequency(Number(analysis.spectralRolloffHz), 1800, 15000) : bright;
-            const spatialRisk = clamp01(analysis.spatialExcessRisk || 0);
-            const mobileRisk = clamp01(analysis.mobileSpeakerRisk ?? estimateMobileSpeakerRisk(analysis).risk);
+            const metallic = unit(source.metallicHint, 0);
+            const loudnessHint = finite(source.loudnessHint ?? source.loudnessIntegrated, -18);
+            const loud = unit((loudnessHint + 32) / 22, 0.64);
+            const bands = source.spectrumBands && typeof source.spectrumBands === 'object' ? source.spectrumBands : {};
+            const sub = unit(bands.sub ?? source.subRatio, 0.05);
+            const bass = unit(source.bassRatio, 0.25);
+            const lowMid = unit(source.lowMidRatio, 0.25);
+            const mid = unit(source.midRatio, 0.25);
+            const high = unit(source.highRatio, 0.25);
+            const presence = unit(bands.presence ?? source.presenceRatio, high * 0.45);
+            const air = unit(bands.air ?? source.airRatio, high * 0.20);
+            const transient = unit(source.transientDensity, 0);
+            const centroidHz = finite(source.spectralCentroidHz, 0);
+            const rolloffHz = finite(source.spectralRolloffHz, 0);
+            const centroidNorm = centroidHz > 0 ? unit(normalizeLogFrequency(centroidHz, 380, 5600), bright) : bright;
+            const rolloffNorm = rolloffHz > 0 ? unit(normalizeLogFrequency(rolloffHz, 1800, 15000), bright) : bright;
+            const spatialRisk = unit(source.spatialExcessRisk, 0);
+            const estimatedMobileRisk = estimateMobileSpeakerRisk(source)?.risk;
+            const mobileRisk = unit(source.mobileSpeakerRisk ?? estimatedMobileRisk, 0);
             return { bright, wide, punch, soft, dark, metallic, loud, crest, bass, lowMid, mid, high, transient, sub, presence, air, centroidNorm, rolloffNorm, spatialRisk, mobileRisk };
         }
         

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.46-engine-recommendation-api-audit';
+  const VIEW_VERSION = '1.5.47-engine-edgecase-quality-gate';
   const DEFAULT_BINS = 96;
 
   function getService() {

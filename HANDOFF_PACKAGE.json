@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.46",
-  "buildId": "engine-recommendation-api-audit",
+  "productVersion": "1.5.47",
+  "buildId": "engine-edgecase-quality-gate",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",
@@ -62,6 +62,7 @@
   ],
   "deletePaths": [],
   "requiredRuntimeAssets": [
+    "src/audio/mastering-input-guard-service.js",
     "src/download/download-service.js",
     "src/download/export-guard-service.js",
     "src/download/export-progress-view.js",

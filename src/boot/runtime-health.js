@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.46-engine-recommendation-api-audit';
+    const FALLBACK_VERSION = '1.5.47-engine-edgecase-quality-gate';
     if (global.FoxBearBuildInfo?.assetVersion && global.FoxBearBuildInfo.assetVersion !== FALLBACK_VERSION) console.warn('[FoxBear] runtime health metadata mismatch', { fallback: FALLBACK_VERSION, build: global.FoxBearBuildInfo.assetVersion });
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
@@ -23,6 +23,7 @@
         'FoxBearAudioContextManager.getDiagnostics',
         'FoxBearAudioDecodeService.decodeAudioFile',
         'FoxBearAudioDecodeService.getDiagnostics',
+        'FoxBearMasteringInputGuard.assertMasterable',
         'FoxBearWaveformControlService.setPlayhead',
         'FoxBearWaveformControlView.createBars',
         'FoxBearSpectrumVisualizer.renderPanel',

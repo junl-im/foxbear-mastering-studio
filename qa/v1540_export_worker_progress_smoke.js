@@ -119,7 +119,7 @@ function runWorkerRuntime(source, payload, options = {}) {
   await assert.rejects(abortPromise, error => error?.name === 'AbortError' && error?.code === 'FOXBEAR_WORKER_JOB_CANCELLED');
   assert.strictEqual(abortWorker.terminated, true, 'aborted worker was not terminated');
 
-  const samples = new Float32Array(4096);
+  const samples = new Float32Array(8192);
   for (let index = 0; index < samples.length; index += 1) samples[index] = Math.sin(index / 17) * 0.2;
   const wavMessages = await runWorkerRuntime(wavWorker, { __foxbearJobId: 'wav-runtime', sampleRate: 44100, channels: 1, length: samples.length, format: 'wav16', channelBuffers: [samples.slice().buffer] }, { filename: 'wav-encoder.worker.js' });
   assert(wavMessages.some(message => message.type === 'progress'), 'WAV worker did not emit runtime progress');

@@ -108,7 +108,7 @@ async function main() {
   assert(sriVerifier.includes('INTEGRITY_ATTR_RE.findall(tag)'), 'SRI verifier does not inspect all integrity attributes');
   assert(handoffVerifier.includes('requiredRuntimeAssets') && handoffVerifier.includes('must be loaded exactly once by index.html'), 'archive verifier does not enforce runtime entry loading');
   assert(Array.isArray(handoff.requiredRuntimeAssets) && handoff.requiredRuntimeAssets.includes('src/download/zip-export-service.js'), 'handoff manifest does not declare ZIP service as a required runtime asset');
-  assert(pkg.qaChecks.includes('node qa/v1543_export_pipeline_integrity_smoke.js'), 'v1.5.46 QA is not registered');
+  assert(pkg.qaChecks.includes('node qa/v1543_export_pipeline_integrity_smoke.js'), 'v1.5.47 QA is not registered');
 
   runSriRepairRuntime();
   await runLowCopyWorkerRuntime();

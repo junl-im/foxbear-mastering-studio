@@ -1,16 +1,15 @@
-# FoxBear Status - v1.5.46
+# FoxBear Status - v1.5.47
 
-## v1.5.46 current focus
+## v1.5.47 current focus
 
-- Recommendation values remain finite under incomplete analysis caches.
-- Recommended, requested, and effective DSP settings are auditable per render.
-- True Peak is the primary peak ceiling signal when finalizer telemetry exists.
-- Render-time LUFS and ceiling values drive filenames and export reports.
-- Firebase CDN modules are pinned to 12.16.0.
+- Silent, corrupt, and unusably short input cannot report a successful master.
+- Finalizer and recommendation inputs remain finite under malformed analysis caches.
+- Mono, 96kHz, and 192kHz rendering preserve target loudness and True Peak limits.
+- Mastering cancellation is checked after every expensive asynchronous stage.
 
 ## Current status
 
-Engine bench, golden-audio, shared-DSP, recommendation explainability, strength-profile, quality-gate, and v1.5.46 audit coverage are active. Static and regression QA is `239/239 PASS` after completing the registered list in deterministic continuation segments.
+Engine edge-case quality coverage is active. Static and regression QA is `241/241 PASS`, including deterministic input-guard, high-sample-rate, malformed-analysis, clipping-stress, recommendation, and cancellation checks.
 
 ## Release invariants
 
@@ -28,11 +27,11 @@ Engine bench, golden-audio, shared-DSP, recommendation explainability, strength-
 
 ## Current release
 
-- Product version: `1.5.45`
-- Build ID: `export-queue-recovery`
-- Asset version: `1.5.46-engine-recommendation-api-audit`
-- Service worker cache: `foxbear-shell-v1.5.46-engine-recommendation-api-audit`
-- Browser QA target: one-file-per-gesture delivery, picker dismissal retry, restricted-browser share, background return, and export ownership
+- Product version: `1.5.47`
+- Build ID: `engine-edgecase-quality-gate`
+- Asset version: `1.5.47-engine-edgecase-quality-gate`
+- Service worker cache: `foxbear-shell-v1.5.47-engine-edgecase-quality-gate`
+- Browser QA target: silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
 
@@ -65,5 +64,5 @@ Engine bench, golden-audio, shared-DSP, recommendation explainability, strength-
 
 - Product version: `1.5.46`
 - Build ID: `engine-recommendation-api-audit`
-- Asset version: `1.5.46-engine-recommendation-api-audit`
-- Service worker cache: `foxbear-shell-v1.5.46-engine-recommendation-api-audit`
+- Asset version: `1.5.47-engine-edgecase-quality-gate`
+- Service worker cache: `foxbear-shell-v1.5.47-engine-edgecase-quality-gate`

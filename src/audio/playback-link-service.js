@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.46 - playback link service
+// FoxBear AI Mastering Studio Pro v1.5.47 - playback link service
 // Stage25: keeps playback orchestration automatic while removing intrusive visible status chips.
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.5.46-engine-recommendation-api-audit';
+    const SERVICE_VERSION = '1.5.47-engine-edgecase-quality-gate';
     const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';

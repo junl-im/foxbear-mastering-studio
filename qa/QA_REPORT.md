@@ -1,3 +1,20 @@
+# QA Report - v1.5.47 Engine Edge-Case Quality Gate
+
+- Added deterministic checks for silent, corrupt, and sub-0.10-second input rejection.
+- Added mono, 96kHz, 192kHz, clipped-transient, and malformed-analysis finalizer coverage.
+- Verifies recommendation features and nested DSP analysis remain finite.
+- Verifies cancellation checkpoints after decode, analysis, pitch/speed, render, finalizer, and encode.
+- Static and regression result: `241/241 PASS`.
+
+## v1.5.47 coverage
+
+- mastering input signal gate
+- finalizer defense-in-depth signal validation
+- high-sample-rate and mono quality boundaries
+- malformed recommendation/finalizer analysis normalization
+- clipping stress quality-gate classification
+- asynchronous mastering cancellation checkpoints
+
 # QA Report - v1.5.46 Engine, Recommendation, and API Audit
 
 - Engine bench and golden-audio pack remain required release gates.

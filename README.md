@@ -1,16 +1,16 @@
-# FoxBear AI Mastering Studio Pro v1.5.46
+# FoxBear AI Mastering Studio Pro v1.5.47
 
-## Current patch: v1.5.46 Engine, Recommendation, and API Audit
+## Current patch: v1.5.47 Engine Edge-Case Quality Gate
 
-추천값 입력을 유한수로 정규화하고, 추천 프리셋·요청값·실제 적용 DSP 값을 마스터 보고서에 분리 기록합니다. 품질 게이트는 최종 True Peak를 우선 판정하며, 파일명과 내보내기 보고서는 실제 렌더 타깃을 사용합니다. Firebase CDN SDK는 12.16.0으로 갱신했습니다.
+무음·손상·0.10초 미만 입력은 DSP 전에 차단하고, 파이널라이저와 추천 엔진의 중첩 분석값을 유한수로 정규화합니다. 96/192kHz·모노·클리핑·취소 경합을 자동 회귀검사합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.46
-build: engine-recommendation-api-audit
-asset generation: 1.5.46-engine-recommendation-api-audit
-service worker cache: foxbear-shell-v1.5.46-engine-recommendation-api-audit
+product: 1.5.47
+build: engine-edgecase-quality-gate
+asset generation: 1.5.47-engine-edgecase-quality-gate
+service worker cache: foxbear-shell-v1.5.47-engine-edgecase-quality-gate
 ```
 
 ## CI and local Git hooks
