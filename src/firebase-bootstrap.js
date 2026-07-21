@@ -19,6 +19,9 @@ let fetchAndActivate;
 let getRemoteConfig;
 let getValue;
 let isRemoteConfigSupported;
+let initializeAppCheck;
+let ReCaptchaEnterpriseProvider;
+let getToken;
 let firebaseModulesPromise = null;
 
 const FIREBASE_SDK_VERSION = '12.16.0';
@@ -31,6 +34,12 @@ const FIREBASE_CONFIG = Object.freeze({
     messagingSenderId: '52981410353',
     appId: '1:52981410353:web:c9c700a8e55672a999c310'
 });
+const APP_CHECK_SITE_KEY = String(
+    window.FOXBEAR_APP_CHECK_SITE_KEY
+    || document.querySelector('meta[name="foxbear-app-check-site-key"]')?.content
+    || ''
+).trim();
+
 
 const MAX_TEXT_LENGTHS = Object.freeze({
     referrer: 160,
@@ -66,6 +75,10 @@ const REMOTE_CONFIG_DEFAULTS = Object.freeze({
 
 const bridgeState = {
     app: null,
+    appCheck: null,
+    appCheckConfigured: Boolean(APP_CHECK_SITE_KEY),
+    appCheckReady: false,
+    appCheckError: '',
     auth: null,
     db: null,
     remoteConfig: null,
@@ -84,12 +97,14 @@ async function loadFirebaseModules() {
         import(`${FIREBASE_MODULE_BASE}/firebase-app.js`),
         import(`${FIREBASE_MODULE_BASE}/firebase-auth.js`),
         import(`${FIREBASE_MODULE_BASE}/firebase-firestore.js`),
-        import(`${FIREBASE_MODULE_BASE}/firebase-remote-config.js`)
-    ]).then(([appModule, authModule, firestoreModule, remoteConfigModule]) => {
+        import(`${FIREBASE_MODULE_BASE}/firebase-remote-config.js`),
+        import(`${FIREBASE_MODULE_BASE}/firebase-app-check.js`)
+    ]).then(([appModule, authModule, firestoreModule, remoteConfigModule, appCheckModule]) => {
         ({ initializeApp } = appModule);
         ({ getAuth, onAuthStateChanged, signInAnonymously } = authModule);
         ({ addDoc, collection, doc, getCountFromServer, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, setDoc, where } = firestoreModule);
         ({ fetchAndActivate, getRemoteConfig, getValue, isSupported: isRemoteConfigSupported } = remoteConfigModule);
+        ({ initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } = appCheckModule);
         return true;
     });
     return firebaseModulesPromise;
@@ -111,13 +126,22 @@ function makePublicBridge(extra = {}) {
         error: bridgeState.error,
         storageEnabled: false,
         storageReason: bridgeState.storageReason,
+        appCheck: Object.freeze({
+            configured: bridgeState.appCheckConfigured,
+            ready: bridgeState.appCheckReady,
+            error: bridgeState.appCheckError
+        }),
         remoteConfig: { ...bridgeState.remoteConfigValues },
         signInGuest,
         logVisit,
         logIncident,
         getIncidentDelivery,
         getAdminStats,
+        getAdminIncidents,
+        requestIncidentRetry,
+        getIncidentRetryRequest,
         getAdminProfile,
+        refreshAppCheckToken,
         getUid: () => bridgeState.user?.uid || '',
         getStatus: () => makePublicBridge(),
         ...extra
@@ -170,6 +194,53 @@ function normalizeFirestoreVisit(snapshot) {
         dateKey: limitText(item.dateKey || '', 10),
         appVersion: limitText(item.appVersion || '', MAX_TEXT_LENGTHS.appVersion)
     };
+}
+
+
+async function initializeFoxBearAppCheck() {
+    if (!APP_CHECK_SITE_KEY) {
+        bridgeState.appCheckConfigured = false;
+        bridgeState.appCheckReady = false;
+        bridgeState.appCheckError = 'reCAPTCHA Enterprise 사이트 키가 설정되지 않았습니다.';
+        return false;
+    }
+    try {
+        bridgeState.appCheck = initializeAppCheck(bridgeState.app, {
+            provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
+            isTokenAutoRefreshEnabled: true
+        });
+        bridgeState.appCheckConfigured = true;
+        bridgeState.appCheckReady = true;
+        bridgeState.appCheckError = '';
+        return true;
+    } catch (error) {
+        bridgeState.appCheckReady = false;
+        bridgeState.appCheckError = limitText(error?.message || error, 300);
+        console.warn('Firebase App Check initialization skipped:', error);
+        return false;
+    }
+}
+
+async function refreshAppCheckToken(forceRefresh = false) {
+    if (!bridgeState.appCheck) {
+        return { configured: bridgeState.appCheckConfigured, ready: false, error: bridgeState.appCheckError || 'App Check가 초기화되지 않았습니다.' };
+    }
+    try {
+        const result = await getToken(bridgeState.appCheck, Boolean(forceRefresh));
+        bridgeState.appCheckReady = Boolean(result?.token);
+        bridgeState.appCheckError = '';
+        exposeBridge();
+        return {
+            configured: true,
+            ready: bridgeState.appCheckReady,
+            expireTimeMillis: Math.max(0, Number(result?.expireTimeMillis || 0))
+        };
+    } catch (error) {
+        bridgeState.appCheckReady = false;
+        bridgeState.appCheckError = limitText(error?.message || error, 300);
+        exposeBridge();
+        return { configured: true, ready: false, error: bridgeState.appCheckError };
+    }
 }
 
 async function signInGuest() {
@@ -341,6 +412,98 @@ async function getAdminStats(options = {}) {
     };
 }
 
+
+function normalizeFirestoreIncident(snapshot) {
+    const item = snapshot.data() || {};
+    const createdAt = item.createdAt && typeof item.createdAt.toDate === 'function'
+        ? item.createdAt.toDate().toISOString()
+        : item.clientAt || '';
+    const delivery = item.delivery || {};
+    const nextRetryAt = delivery.nextRetryAt && typeof delivery.nextRetryAt.toDate === 'function'
+        ? delivery.nextRetryAt.toDate().toISOString()
+        : '';
+    return {
+        id: limitText(snapshot.id || '', 180),
+        at: limitText(createdAt, 40),
+        severity: limitText(item.severity || 'error', 16),
+        category: limitText(item.category || 'unknown', 40),
+        reason: limitText(item.reason || '', 100),
+        message: limitText(item.message || '', 500),
+        code: limitText(item.code || '', 80),
+        fingerprint: limitText(item.fingerprint || '', 64),
+        appVersion: limitText(item.appVersion || '', 24),
+        browser: limitText(item.browser || '', 40),
+        platform: limitText(item.platform || '', 40),
+        deliveryStatus: limitText(delivery.status || 'pending', 40),
+        deliveryReason: limitText(delivery.reason || '', 100),
+        attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
+        terminal: delivery.terminal === true,
+        nextRetryAt: limitText(nextRetryAt, 40)
+    };
+}
+
+async function getAdminIncidents(options = {}) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error(`현재 Firebase UID(${profile.uid || '확인 중'})는 활성 관리자 문서가 아닙니다.`);
+    const eventsLimit = Math.min(Math.max(Number(options.limit || 100), 1), 150);
+    const reportsRef = collection(bridgeState.db, 'incidentReports');
+    const recentQuery = query(reportsRef, orderBy('createdAt', 'desc'), limit(eventsLimit));
+    const snapshot = await getDocs(recentQuery);
+    const incidents = [];
+    snapshot.forEach(item => incidents.push(normalizeFirestoreIncident(item)));
+    const todayKey = getDateKey();
+    const summary = incidents.reduce((result, item) => {
+        result.total += 1;
+        if (item.at.slice(0, 10) === todayKey) result.today += 1;
+        if (item.deliveryStatus === 'failed') result.failed += 1;
+        if (['pending', 'sending', 'retrying', 'reserved'].includes(item.deliveryStatus)) result.pending += 1;
+        if (item.deliveryStatus === 'emailed') result.emailed += 1;
+        if (item.severity === 'fatal') result.fatal += 1;
+        return result;
+    }, { total: 0, today: 0, failed: 0, pending: 0, emailed: 0, fatal: 0 });
+    return {
+        uid: profile.uid,
+        incidents,
+        summary,
+        appCheck: {
+            configured: bridgeState.appCheckConfigured,
+            ready: bridgeState.appCheckReady,
+            error: bridgeState.appCheckError
+        }
+    };
+}
+
+async function requestIncidentRetry(reportId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 메일 재전송을 요청할 수 있습니다.');
+    const safeReportId = limitText(reportId, 180);
+    if (!safeReportId) throw new Error('재전송할 보고서 ID가 없습니다.');
+    const requestRef = await addDoc(collection(bridgeState.db, 'incidentRetryRequests'), {
+        uid: profile.uid,
+        reportId: safeReportId,
+        source: 'foxbear-admin-dashboard',
+        createdAt: serverTimestamp()
+    });
+    return { requestId: requestRef.id, reportId: safeReportId, status: 'requested' };
+}
+
+async function getIncidentRetryRequest(requestId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 재전송 상태를 조회할 수 있습니다.');
+    const safeId = limitText(requestId, 180);
+    const snapshot = await getDoc(doc(bridgeState.db, 'incidentRetryRequests', safeId));
+    if (!snapshot.exists()) return { exists: false, status: 'missing' };
+    const data = snapshot.data() || {};
+    return {
+        exists: true,
+        status: limitText(data.status || 'pending', 40),
+        reason: limitText(data.reason || '', 100)
+    };
+}
+
 async function loadRemoteConfig() {
     try {
         if (!(await isRemoteConfigSupported())) return;
@@ -371,6 +534,7 @@ async function bootFirebase() {
     try {
         await loadFirebaseModules();
         bridgeState.app = initializeApp(FIREBASE_CONFIG);
+        await initializeFoxBearAppCheck();
         bridgeState.auth = getAuth(bridgeState.app);
         bridgeState.db = getFirestore(bridgeState.app);
         exposeBridge();

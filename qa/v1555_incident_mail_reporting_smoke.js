@@ -18,12 +18,12 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert.strictEqual(pkg.version, '1.5.55');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.55-automatic-incident-mail-reporting');
-assert(index.includes('src/boot/incident-reporter.js?v=1.5.55-automatic-incident-mail-reporting'));
+assert.strictEqual(pkg.version, '1.5.56');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.56-incident-operations-app-check');
+assert(index.includes('src/boot/incident-reporter.js?v=1.5.56-incident-operations-app-check'));
 assert(index.indexOf('src/boot/runtime-health.js') < index.indexOf('src/boot/incident-reporter.js'));
 assert(index.indexOf('src/boot/incident-reporter.js') < index.indexOf('src/app.js'));
-assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.55-automatic-incident-mail-reporting'));
+assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.56-incident-operations-app-check'));
 assert(!index.includes('</body>\n    <script'), 'scripts must not be placed after </body>');
 assert(index.includes('id="incidentReportingToggle"'));
 assert(index.includes('id="incidentReportingTest"'));

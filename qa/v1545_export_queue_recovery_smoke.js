@@ -144,7 +144,7 @@ function sourceCheck() {
   assert(service.includes("publishActivity?.(Boolean(snapshot.active"), 'service-worker activity release is not state-derived');
   assert(view.includes('foxbear:export-queue-pause-toggle') && view.includes('formatDuration'), 'progress view pause/ETA wiring missing');
   assert(css.includes('.export-progress-panel.is-queue.is-paused'), 'paused queue styling missing');
-  assert(pkg.qaChecks.includes('node qa/v1545_export_queue_recovery_smoke.js'), 'v1.5.55 regression test is not registered');
+  assert(pkg.qaChecks.includes('node qa/v1545_export_queue_recovery_smoke.js'), 'v1.5.56 regression test is not registered');
 }
 
 (async () => {

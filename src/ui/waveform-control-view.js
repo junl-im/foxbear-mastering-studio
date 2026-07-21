@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.55-automatic-incident-mail-reporting';
+  const VIEW_VERSION = '1.5.56-incident-operations-app-check';
   const DEFAULT_BINS = 96;
 
   function getService() {

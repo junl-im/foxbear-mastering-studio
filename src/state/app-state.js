@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.55 - extracted runtime state module
+// FoxBear AI Mastering Studio Pro v1.5.56 - extracted runtime state module
 'use strict';
 
 const state = {
@@ -77,6 +77,8 @@ const state = {
     adminTapLastAt: 0,
     adminTapCount: 0,
     adminStatsRemoteError: '',
+    adminIncidentsRemoteError: '',
+    adminMonitorView: 'visits',
     adminAccessChecking: false,
     firebaseAdminChecked: false,
     firebaseIsAdmin: false,

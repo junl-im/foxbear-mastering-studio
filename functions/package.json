@@ -1,10 +1,12 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.5.55",
+  "version": "1.5.56",
   "private": true,
-  "description": "Server-side incident email delivery for FoxBear Mastering Studio.",
+  "description": "Server-side incident delivery, retry scheduling, manual resend, and daily summaries for FoxBear Mastering Studio.",
   "main": "index.js",
-  "engines": { "node": "22" },
+  "engines": {
+    "node": "22"
+  },
   "scripts": {
     "check": "node --check index.js",
     "audit:prod": "npm audit --omit=dev"

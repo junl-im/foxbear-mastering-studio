@@ -1,3 +1,11 @@
+# QA Report - v1.5.56 Incident Operations and App Check Readiness
+
+- Added Firebase App Check initialization readiness, administrator incident monitoring, manual retry requests, automatic failed-mail retry, and daily KST summary scheduling.
+- Corrected SMTP accounting so reservations and successful deliveries are counted separately.
+- Split administrator incident monitor styles into a dedicated component to preserve the existing stylesheet size budget.
+- Static and deterministic regression target: `258/258 PASS`.
+- Live App Check enforcement and production mail delivery remain deployment-time checks because the site key, Firebase deployment credentials, and Gmail secret are not present in the source package.
+
 # QA Report - v1.5.55 Automatic Incident Mail Reporting
 
 - Version, handoff, SRI, Firebase rules, Functions source, privacy redaction, client/server duplicate limits, nested node_modules exclusion, and incident UI smoke checks are included in the 256-check static suite.

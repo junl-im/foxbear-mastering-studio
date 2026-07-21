@@ -1,4 +1,14 @@
-# Handoff - v1.5.55
+# Handoff - v1.5.56
+
+## v1.5.56 handoff focus
+
+- Set the reCAPTCHA Enterprise site key in the `foxbear-app-check-site-key` meta tag, deploy, and confirm the administrator error screen reports `App Check 보호 중` before enabling enforcement.
+- Deploy `sendIncidentEmail`, `retryFailedIncidentEmails`, `retryIncidentEmailRequest`, and `sendDailyIncidentSummary` with the existing Gmail Secret Manager secret.
+- Confirm SMTP failures decrement the reservation count, remain `failed`, and retry at 10 minutes, 30 minutes, and 2 hours with a maximum of three attempts.
+- Confirm the administrator error-management tab can request an immediate resend only for active `siteAdmins` users.
+- Confirm the daily summary arrives at 09:00 Asia/Seoul and does not include audio, filenames, PCM, full local paths, or credentials.
+- Enable App Check enforcement only after legitimate Firestore/Auth traffic appears as verified in Firebase metrics.
+
 
 ## v1.5.55 handoff focus
 

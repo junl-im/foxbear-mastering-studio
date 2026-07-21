@@ -1,16 +1,15 @@
-# FoxBear Status - v1.5.55
+# FoxBear Status - v1.5.56
 
-## v1.5.55 current focus
+## v1.5.56 current focus
 
-- Automatic incident collection covers critical boot, resource, runtime, mastering, quality-recovery, export, update-safety, and release-generation failures.
-- Audio, filenames, PCM data, full local paths, email addresses, long tokens, and URL query secrets are excluded or redacted.
-- Firestore ingestion is create-only; owners can read only their own delivery status and administrators can list reports.
-- The Cloud Function sends to `mcwoogi@gmail.com` using a Secret Manager-bound Gmail app password, with duplicate and daily rate limits.
-- Deployment still requires the real Firebase secret, Functions deployment, and a live test email.
+- Administrator incident operations now expose recent reports, delivery state, retry timing, and immediate resend requests.
+- Failed SMTP reservations are released and retried up to three times at bounded delays.
+- A scheduled 09:00 Asia/Seoul digest summarizes the previous KST day.
+- Firebase App Check client support and CSP are ready, but a real reCAPTCHA Enterprise site key and console enforcement are still deployment steps.
 
 ## Current status
 
-Automatic incident reporting is implemented in source. Static/package verification is required before release; real email delivery remains pending until the Firebase secret and Cloud Function are deployed.
+Incident operations, retry scheduling, daily summaries, and App Check readiness are implemented in source. Live verification still requires Firebase deployment, the existing Gmail app-password secret, a reCAPTCHA Enterprise site key, and post-deploy App Check metrics review.
 
 ## Release invariants
 
@@ -28,10 +27,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.55`
-- Build ID: `automatic-incident-mail-reporting`
-- Asset version: `1.5.55-automatic-incident-mail-reporting`
-- Service worker cache: `foxbear-shell-v1.5.55-automatic-incident-mail-reporting`
+- Product version: `1.5.56`
+- Build ID: `incident-operations-app-check`
+- Asset version: `1.5.56-incident-operations-app-check`
+- Service worker cache: `foxbear-shell-v1.5.56-incident-operations-app-check`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -63,7 +62,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.55`
-- Build ID: `automatic-incident-mail-reporting`
-- Asset version: `1.5.55-automatic-incident-mail-reporting`
-- Service worker cache: `foxbear-shell-v1.5.55-automatic-incident-mail-reporting`
+- Product version: `1.5.56`
+- Build ID: `incident-operations-app-check`
+- Asset version: `1.5.56-incident-operations-app-check`
+- Service worker cache: `foxbear-shell-v1.5.56-incident-operations-app-check`

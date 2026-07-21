@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.55",
+  "version": "1.5.56",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with automatic privacy-reduced incident reporting, server-side email delivery, quality recovery, and DSP diagnostics.",
+  "description": "FoxBear AI Mastering Studio Pro with App Check readiness, administrator incident operations, automatic email retry, daily incident summaries, quality recovery, and DSP diagnostics.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.55-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.55-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.56-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.56-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only firestore:rules,functions:sendIncidentEmail"
+    "deploy:incident": "firebase deploy --only firestore:rules,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:sendDailyIncidentSummary"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -69,6 +69,7 @@
     "node --check src/ui/waveform-compare-view.js",
     "node --check src/ui/detail-panels-view.js",
     "node --check src/ui/detail-view.js",
+    "node --check src/ui/admin-incident-monitor-view.js",
     "node --check src/security/site-guards.js",
     "node --check src/boot/runtime-health.js",
     "node --check src/boot/performance-diagnostics.js",
@@ -283,15 +284,16 @@
     "node qa/v1554_quality_recovery_profiles_browser_qa_smoke.js",
     "node --check src/boot/incident-reporter.js",
     "node --check functions/index.js",
-    "node qa/v1555_incident_mail_reporting_smoke.js"
+    "node qa/v1555_incident_mail_reporting_smoke.js",
+    "node qa/v1556_incident_operations_app_check_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "automatic-incident-mail-reporting",
-    "assetVersion": "1.5.55-automatic-incident-mail-reporting",
-    "cacheName": "foxbear-shell-v1.5.55-automatic-incident-mail-reporting",
-    "bootRevision": "boot-sri-v1555",
-    "updateSafetyRevision": "update-safety-v1555",
-    "serviceWorkerRevision": "sw-v1555"
+    "buildId": "incident-operations-app-check",
+    "assetVersion": "1.5.56-incident-operations-app-check",
+    "cacheName": "foxbear-shell-v1.5.56-incident-operations-app-check",
+    "bootRevision": "boot-sri-v1556",
+    "updateSafetyRevision": "update-safety-v1556",
+    "serviceWorkerRevision": "sw-v1556"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

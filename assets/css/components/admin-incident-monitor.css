@@ -1,0 +1,91 @@
+/* v1.5.56 administrator incident operations monitor */
+.admin-monitor-tabs {
+    display: flex;
+    gap: 7px;
+    margin: 10px 0 12px;
+    padding: 4px;
+    border: 1px solid rgba(141, 245, 232, .13);
+    border-radius: 14px;
+    background: rgba(5, 14, 28, .42);
+}
+.admin-monitor-tab {
+    flex: 1 1 0;
+    min-height: 34px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(224, 238, 255, .68);
+    font-size: .62rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+.admin-monitor-tab.active {
+    color: #07151c;
+    border-color: rgba(255, 255, 255, .28);
+    background: linear-gradient(135deg, #8df5e8, #ffe381);
+}
+.admin-stat-warning {
+    border-color: rgba(255, 180, 105, .3) !important;
+    background: rgba(255, 180, 105, .08) !important;
+}
+.admin-incidents-table { min-width: 980px; }
+.admin-incidents-table td { vertical-align: top; }
+.admin-incidents-table td strong {
+    display: block;
+    max-width: 340px;
+    color: rgba(241, 248, 255, .92);
+    font-size: .58rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.admin-incidents-table td small {
+    display: block;
+    margin-top: 4px;
+    color: rgba(202, 218, 236, .56);
+    font-size: .48rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+.incident-delivery-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 3px 7px;
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 999px;
+    color: rgba(231, 241, 252, .82);
+    background: rgba(255, 255, 255, .055);
+    font-size: .48rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.incident-status-emailed {
+    border-color: rgba(141, 245, 232, .28);
+    color: #bffff7;
+    background: rgba(141, 245, 232, .09);
+}
+.incident-status-failed,
+.incident-status-suppressed-rate-limit {
+    border-color: rgba(255, 135, 124, .3);
+    color: #ffc6c0;
+    background: rgba(255, 110, 96, .09);
+}
+.incident-status-sending,
+.incident-status-retrying,
+.incident-status-pending,
+.incident-status-reserved {
+    border-color: rgba(255, 227, 129, .28);
+    color: #ffefb2;
+    background: rgba(255, 227, 129, .08);
+}
+.admin-incident-retry {
+    min-height: 28px !important;
+    padding: 5px 8px !important;
+    font-size: .5rem !important;
+    white-space: nowrap;
+}
+@media (max-width: 720px) {
+    .admin-monitor-tabs { margin-top: 7px; }
+    .admin-monitor-tab { min-height: 30px; font-size: .54rem; }
+    .admin-incidents-table { min-width: 820px; }
+}

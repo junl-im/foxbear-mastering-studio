@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.55-automatic-incident-mail-reporting';
+const version = '1.5.56-incident-operations-app-check';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

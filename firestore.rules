@@ -146,6 +146,27 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    function validIncidentRetryRequest() {
+      return isAdmin()
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'reportId',
+          'source',
+          'createdAt'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && validShortString(request.resource.data.reportId, 180)
+        && request.resource.data.reportId.size() > 0
+        && request.resource.data.source == 'foxbear-admin-dashboard';
+    }
+
+    match /incidentRetryRequests/{requestId} {
+      allow create: if validIncidentRetryRequest();
+      allow get, list: if isAdmin();
+      allow update, delete: if false;
+    }
+
     match /incidentMailState/{document=**} {
       allow read, write: if false;
     }

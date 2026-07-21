@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.5.55
+# FoxBear AI Mastering Studio Pro v1.5.56
 
-## Current patch: v1.5.55 Automatic Incident Mail Reporting
+## Current patch: v1.5.56 Incident Operations and App Check Readiness
 
-치명적 부팅·리소스·마스터링·내보내기 문제를 개인정보를 줄인 진단 이벤트로 저장하고, Firebase Cloud Function이 Secret Manager의 Gmail 앱 비밀번호를 사용해 `mcwoogi@gmail.com`으로 알림을 보냅니다. 오디오, 파일명, PCM, 전체 로컬 경로는 신고하지 않습니다. 클라이언트/서버 중복 억제와 일일 상한, 오프라인 큐, 사용자 끄기 및 테스트 기능을 포함합니다.
+관리자 모니터링에 오류 관리 화면을 추가하고, 메일 실패를 최대 3회 자동 재시도하며, 매일 오전 9시(KST) 전날 오류 요약을 `mcwoogi@gmail.com`으로 전송합니다. reCAPTCHA Enterprise 사이트 키를 설정하면 Firebase App Check 토큰을 자동 갱신하며, 실제 강제 적용은 정상 요청 지표를 확인한 뒤 Firebase Console에서 활성화합니다.
 
 
 ## Current patch: v1.5.52 CI Parallel Release Gate

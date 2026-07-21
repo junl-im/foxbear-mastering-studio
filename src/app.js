@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.55 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.56 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -17,7 +17,7 @@ const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
 const FoxBearMasteringInputGuard = window.FoxBearMasteringInputGuard || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.55';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.56';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -61,7 +61,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.55-automatic-incident-mail-reporting'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1555'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.56-incident-operations-app-check'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1556'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -511,7 +511,7 @@ function cacheElements() {
         'adaptiveLufsToggle',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
         'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
-        'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice',
+        'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice', 'adminVisitsTab', 'adminIncidentsTab', 'adminVisitsPanel', 'adminIncidentsPanel', 'adminIncidentsSummary', 'adminIncidentsRows', 'adminIncidentsNotice',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'bulkImportHud', 'bulkImportHudTitle', 'bulkImportHudText', 'bulkImportHudPercent', 'bulkImportHudBar', 'bulkImportHudList', 'bulkImportHudToggle', 'bulkImportHudClose', 'bulkImportHudMasterAll', 'bulkImportHudRestore',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'individualExportBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -1826,6 +1826,8 @@ function bindAdminStatsEvents() {
     if (el.adminStatsClose) el.adminStatsClose.addEventListener('click', closeAdminStatsDialog);
     if (el.adminStatsCloseBottom) el.adminStatsCloseBottom.addEventListener('click', closeAdminStatsDialog);
     if (el.adminStatsRefresh) el.adminStatsRefresh.addEventListener('click', () => renderAdminStatsDialog(true));
+    if (el.adminVisitsTab) el.adminVisitsTab.addEventListener('click', () => setAdminMonitorView('visits', true));
+    if (el.adminIncidentsTab) el.adminIncidentsTab.addEventListener('click', () => setAdminMonitorView('incidents', true));
 }
 function handleAdminStatsTriggerTap() {
     if (!state.firebaseIsAdmin) {
@@ -1840,7 +1842,7 @@ function renderAdminStatsTriggerContent(showAdmin) {
     if (showAdmin) {
         const label = document.createElement('span');
         label.className = 'brand-command-device-text';
-        label.textContent = '관리자 통계';
+        label.textContent = '관리자 모니터링';
         el.adminStatsTrigger.appendChild(label);
         return;
     }
@@ -1864,19 +1866,20 @@ function updateAdminStatsTriggerVisibility() {
     el.adminStatsTrigger.setAttribute('aria-hidden', 'false');
     el.adminStatsTrigger.setAttribute('tabindex', visible ? '0' : '-1');
     el.adminStatsTrigger.setAttribute('role', visible ? 'button' : 'presentation');
-    el.adminStatsTrigger.setAttribute('aria-label', visible ? '관리자 통계 열기' : '모바일 · PC 호환 안내');
+    el.adminStatsTrigger.setAttribute('aria-label', visible ? '관리자 모니터링 열기' : '모바일 · PC 호환 안내');
     renderAdminStatsTriggerContent(visible);
 }
 function openAdminStatsDialog() {
     if (!el.adminStatsDialog) return;
     if (!state.firebaseIsAdmin) {
-        showToast('관리자 UID로 등록된 사용자만 통계를 열 수 있습니다.');
+        showToast('관리자 UID로 등록된 사용자만 모니터링을 열 수 있습니다.');
         refreshFirebaseAdminAccess();
         return;
     }
     el.adminStatsDialog.classList.add('show');
     el.adminStatsDialog.setAttribute('aria-hidden', 'false');
     document.body.classList.add('admin-dialog-open');
+    setAdminMonitorView(state.adminMonitorView || 'visits', false);
     renderAdminStatsDialog(false);
     const panel = el.adminStatsDialog.querySelector('.admin-dialog-panel');
     setTimeout(() => panel?.focus({ preventScroll: true }), 30);
@@ -2076,7 +2079,25 @@ function normalizeReferrer(referrer) {
         return referrer.slice(0, 80);
     }
 }
+function setAdminMonitorView(view, refresh = false) {
+    const next = view === 'incidents' ? 'incidents' : 'visits';
+    state.adminMonitorView = next;
+    const incidentsActive = next === 'incidents';
+    if (el.adminVisitsTab) {
+        el.adminVisitsTab.classList.toggle('active', !incidentsActive);
+        el.adminVisitsTab.setAttribute('aria-selected', incidentsActive ? 'false' : 'true');
+    }
+    if (el.adminIncidentsTab) {
+        el.adminIncidentsTab.classList.toggle('active', incidentsActive);
+        el.adminIncidentsTab.setAttribute('aria-selected', incidentsActive ? 'true' : 'false');
+    }
+    if (el.adminVisitsPanel) el.adminVisitsPanel.hidden = incidentsActive;
+    if (el.adminIncidentsPanel) el.adminIncidentsPanel.hidden = !incidentsActive;
+    if (refresh) renderAdminStatsDialog(true);
+}
+
 async function renderAdminStatsDialog(forceRemote) {
+    if (state.adminMonitorView === 'incidents') return renderAdminIncidentsDialog(forceRemote);
     if (!el.adminStatsSummary || !el.adminStatsRows) return;
     if (!state.firebaseIsAdmin) {
         el.adminStatsSummary.textContent = '';
@@ -2124,6 +2145,32 @@ async function renderAdminStatsDialog(forceRemote) {
         el.adminStatsRows.appendChild(row);
     });
 }
+let adminIncidentMonitorViewController = null;
+function getAdminIncidentMonitorViewController() {
+    if (adminIncidentMonitorViewController) return adminIncidentMonitorViewController;
+    const factory = window.FoxBearAdminIncidentMonitorView;
+    if (!factory || typeof factory.create !== 'function') return null;
+    adminIncidentMonitorViewController = factory.create({
+        state, el,
+        getBridge: () => window.FoxBearFirebase,
+        makeSummaryCard: makeAdminSummaryCard,
+        safeNumber: safeAdminNumber,
+        formatTime: formatAdminEventTime,
+        limitText: limitAdminText,
+        getFirebaseStatusNotice,
+        showToast
+    });
+    return adminIncidentMonitorViewController;
+}
+async function renderAdminIncidentsDialog(forceRemote) {
+    const controller = getAdminIncidentMonitorViewController();
+    if (!controller) {
+        if (el.adminIncidentsNotice) el.adminIncidentsNotice.textContent = '오류 관리 화면 모듈이 아직 로드되지 않았습니다.';
+        return;
+    }
+    return controller.render(forceRemote);
+}
+
 function makeAdminSummaryCard(label, value, mode) {
     const card = document.createElement('div');
     card.className = `admin-stat-card admin-stat-${mode || 'local'}`;
@@ -3005,7 +3052,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.55-automatic-incident-mail-reporting') · navigator.serviceWorker.register('./sw.js?v=1.5.55-automatic-incident-mail-reporting&h=sw-v1555')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.56-incident-operations-app-check') · navigator.serviceWorker.register('./sw.js?v=1.5.56-incident-operations-app-check&h=sw-v1556')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3812,7 +3859,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.55-automatic-incident-mail-reporting', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.56-incident-operations-app-check', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4126,7 +4173,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.55-automatic-incident-mail-reporting',
+        version: '1.5.56-incident-operations-app-check',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4166,10 +4213,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.55-automatic-incident-mail-reporting',
+    version: '1.5.56-incident-operations-app-check',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.55-automatic-incident-mail-reporting', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.56-incident-operations-app-check', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4194,12 +4241,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.55-automatic-incident-mail-reporting', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.56-incident-operations-app-check', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.55-automatic-incident-mail-reporting', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.56-incident-operations-app-check', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4214,12 +4261,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.55-automatic-incident-mail-reporting',
+    version: 'v1.5.56-incident-operations-app-check',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.55-automatic-incident-mail-reporting', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.56-incident-operations-app-check', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5328,7 +5375,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.55-automatic-incident-mail-reporting-fallback',
+            version: '1.5.56-incident-operations-app-check-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -9844,7 +9891,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.55-automatic-incident-mail-reporting', selected, recent });
+    return Object.freeze({ version: '1.5.56-incident-operations-app-check', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -12930,7 +12977,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.55',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.56',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

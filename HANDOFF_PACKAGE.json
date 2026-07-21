@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.55",
-  "buildId": "automatic-incident-mail-reporting",
+  "productVersion": "1.5.56",
+  "buildId": "incident-operations-app-check",
   "requiredFiles": [
     "404.html",
     ".gitignore",

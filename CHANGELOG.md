@@ -1,3 +1,14 @@
+# v1.5.56 - Incident Operations and App Check Readiness
+
+- Added a protected administrator error-management tab with recent incident, email-delivery, retry, and terminal-failure status.
+- Added manual administrator resend requests through a create-only Firestore command collection and server-side admin verification.
+- Added automatic failed-email retries at 10-minute, 30-minute, and 2-hour delays, capped at three delivery attempts.
+- Fixed daily email accounting so SMTP reservations are no longer counted as successful sends and failed reservations are released.
+- Added a 09:00 Asia/Seoul daily incident summary email with severity, category, delivery status, and repeated-fingerprint aggregation.
+- Added optional Firebase App Check initialization through a reCAPTCHA Enterprise site key, token auto-refresh, status diagnostics, and required CSP endpoints.
+- Kept App Check enforcement disabled until a real site key is configured and legitimate-request metrics are reviewed.
+- Split the administrator incident JavaScript and CSS into dedicated modules to preserve the established app and stylesheet size budgets.
+
 # v1.5.55 - Automatic Incident Mail Reporting
 
 - Added privacy-reduced client incident collection for boot, resource, runtime, mastering, quality-recovery, export, update-safety, and release-generation failures.
