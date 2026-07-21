@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.50-pwa-current-cache-test-recovery';
+    const SERVICE_VERSION = '1.5.51-ci-runtime-contract-hardening';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

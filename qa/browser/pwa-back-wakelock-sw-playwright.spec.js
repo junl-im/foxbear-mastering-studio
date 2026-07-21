@@ -92,12 +92,12 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
         }, recoveryProbe.url);
       } finally {
         await context.setOffline(false);
+        await page.evaluate(async ({ cacheName, url }) => {
+          const cache = await caches.open(cacheName);
+          await cache.delete(url);
+        }, recoveryProbe);
       }
       expect(recoveredText).toBe('200:foxbear-offline-recovery-ok');
-      await page.evaluate(async ({ cacheName, url }) => {
-        const cache = await caches.open(cacheName);
-        await cache.delete(url);
-      }, recoveryProbe);
     }
 
     const updated = await page.evaluate(async () => {

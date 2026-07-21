@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.50",
-  "buildId": "pwa-current-cache-test-recovery",
+  "productVersion": "1.5.51",
+  "buildId": "ci-runtime-contract-hardening",
   "requiredFiles": [
     "404.html",
     ".gitignore",

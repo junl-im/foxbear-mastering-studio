@@ -1,16 +1,16 @@
-# FoxBear AI Mastering Studio Pro v1.5.50
+# FoxBear AI Mastering Studio Pro v1.5.51
 
-## Current patch: v1.5.50 CI Current-Cache Offline Recovery
+## Current patch: v1.5.51 CI Runtime Contract Hardening
 
-브라우저 자동화의 오프라인 복구 검사가 폐기된 구버전 캐시를 다시 사용하던 오류를 수정합니다. 활성 서비스워커가 보고한 현재 캐시만 검사하고, 임시 probe 정리 시 앱 전체 캐시가 삭제되지 않도록 보호합니다.
+부팅 필수 모듈, 자산 버전, 서비스워커 캐시 세대가 서로 어긋난 상태로 배포되지 않도록 패키징 전 계약 검사를 강화합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.50
-build: pwa-current-cache-test-recovery
-asset generation: 1.5.50-pwa-current-cache-test-recovery
-service worker cache: foxbear-shell-v1.5.50-pwa-current-cache-test-recovery
+product: 1.5.49
+build: stale-shell-generation-recovery
+asset generation: 1.5.49-stale-shell-generation-recovery
+service worker cache: foxbear-shell-v1.5.49-stale-shell-generation-recovery
 ```
 
 ## CI and local Git hooks

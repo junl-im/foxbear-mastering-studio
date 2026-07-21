@@ -1,19 +1,11 @@
-# Handoff - v1.5.50
+# Handoff - v1.5.51
 
-## v1.5.50 handoff focus
+## v1.5.51 handoff focus
 
-- Run the PWA browser suite and confirm the offline probe uses the cache name returned by the active service worker warm response.
-- Confirm deleting the temporary probe never deletes the active shell cache.
-- Confirm a probe stored only in a legacy cache is not served offline.
-- Confirm the service worker update check still runs after the offline probe cleanup.
-
-```text
-product: 1.5.50
-build: pwa-current-cache-test-recovery
-asset generation: 1.5.50-pwa-current-cache-test-recovery
-service worker cache: foxbear-shell-v1.5.50-pwa-current-cache-test-recovery
-```
-
+- Confirm `runtime-health.js` and `service-worker-recovery-service.js` load exactly once with the current asset generation.
+- Confirm `index.html`, runtime config, service worker precache, and release metadata all use v1.5.51.
+- Confirm stale v1.5.49 or v1.5.50 local asset generations fail release validation.
+- Run the full static suite and the PWA Playwright test in GitHub Actions.
 ## v1.5.45 handoff focus
 
 - Start `곡별 순차 저장`, pause it, and confirm the current file cannot be delivered until `저장 계속` is pressed.

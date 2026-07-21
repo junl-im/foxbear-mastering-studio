@@ -1,17 +1,10 @@
-# v1.5.50 CI Current-Cache Offline Recovery
-
-- Verifies the Playwright offline probe uses `warmed.cacheName` from the active worker.
-- Verifies legacy cache names are not parsed or selected by the browser test.
-- Verifies probe cleanup deletes only the temporary URL and preserves the active shell cache.
-- Verifies current-generation cache recovery succeeds while legacy-only recovery fails closed.
-
-# QA Report - v1.5.49 Asset Generation Route Recovery
+# QA Report - v1.5.51 CI Runtime Contract Hardening
 
 - Prevents partial legacy HTML generations from mixing with current SRI-protected assets.
 - Verifies canonical project-root recovery, one-shot service-worker bypass consumption, GitHub Pages 404 recovery, and exact runtime/cache graph parity.
 - Static and regression target: `245/245 PASS`. Historical anchor: `183/183 PASS`.
 
-## v1.5.49 coverage
+## v1.5.51 coverage
 
 - stale generation asset isolation
 - atomic full runtime generation installation
@@ -543,3 +536,8 @@ v1.4.26 final QA carry-forward remains documented for legacy smoke compatibility
 - Verifies the generated SRI hashes match the actual bytes for the three boot-critical scripts.
 - Verifies the service worker shell cache name was bumped to `foxbear-shell-v1.5.4-boot-sri-recovery`.
 - Verifies Runtime Health cache recovery clears broader app/workbox/precache caches and unregisters service workers before reload.
+
+
+## Final regression status
+
+- v1.5.51 registered QA checks: 247/247 PASS

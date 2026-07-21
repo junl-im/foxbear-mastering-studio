@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.50-pwa-current-cache-test-recovery';
+    const FALLBACK_VERSION = '1.5.51-ci-runtime-contract-hardening';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.50-pwa-current-cache-test-recovery';
+    const SERVICE_VERSION = '1.5.51-ci-runtime-contract-hardening';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

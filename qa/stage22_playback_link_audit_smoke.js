@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.50-pwa-current-cache-test-recovery';
+const version = '1.5.51-ci-runtime-contract-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

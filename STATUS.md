@@ -1,15 +1,15 @@
-# FoxBear Status - v1.5.50
+# FoxBear Status - v1.5.51
 
-## Current focus
+## v1.5.47 current focus
 
-- Browser offline recovery probes use only the active current-generation cache.
-- Legacy shell caches remain purge-only and can never satisfy runtime recovery.
-- E2E probe cleanup removes one temporary entry and preserves the active shell cache.
-- Service-worker update checks continue after offline recovery validation.
+- Silent, corrupt, and unusably short input cannot report a successful master.
+- Finalizer and recommendation inputs remain finite under malformed analysis caches.
+- Mono, 96kHz, and 192kHz rendering preserve target loudness and True Peak limits.
+- Mastering cancellation is checked after every expensive asynchronous stage.
 
 ## Current status
 
-CI offline recovery coverage is corrected and protected by a dedicated current-cache regression test.
+Engine edge-case quality coverage is active. Static and regression QA is `241/241 PASS`, including deterministic input-guard, high-sample-rate, malformed-analysis, clipping-stress, recommendation, and cancellation checks.
 
 ## Release invariants
 
@@ -27,10 +27,10 @@ CI offline recovery coverage is corrected and protected by a dedicated current-c
 
 ## Current release
 
-- Product version: `1.5.50`
-- Build ID: `pwa-current-cache-test-recovery`
-- Asset version: `1.5.50-pwa-current-cache-test-recovery`
-- Service worker cache: `foxbear-shell-v1.5.50-pwa-current-cache-test-recovery`
+- Product version: `1.5.51`
+- Build ID: `ci-runtime-contract-hardening`
+- Asset version: `1.5.51-ci-runtime-contract-hardening`
+- Service worker cache: `foxbear-shell-v1.5.51-ci-runtime-contract-hardening`
 - Browser QA target: silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -62,7 +62,7 @@ CI offline recovery coverage is corrected and protected by a dedicated current-c
 
 ## Release metadata
 
-- Product version: `1.5.50`
-- Build ID: `pwa-current-cache-test-recovery`
-- Asset version: `1.5.50-pwa-current-cache-test-recovery`
-- Service worker cache: `foxbear-shell-v1.5.50-pwa-current-cache-test-recovery`
+- Product version: `1.5.51`
+- Build ID: `ci-runtime-contract-hardening`
+- Asset version: `1.5.51-ci-runtime-contract-hardening`
+- Service worker cache: `foxbear-shell-v1.5.51-ci-runtime-contract-hardening`

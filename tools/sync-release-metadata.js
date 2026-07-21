@@ -219,6 +219,24 @@ function validate() {
   expect(index.includes(`data-build="${meta.productVersion}"`), 'index data-build is not synchronized');
   expect(index.includes(`src/config/build-info.js?v=${meta.assetVersion}`), 'build-info script is not loaded with current asset version');
   expect(index.includes(`src/boot/release-presentation-service.js?v=${meta.assetVersion}`), 'release presentation service is not loaded with current asset version');
+  const countInIndex = value => index.split(value).length - 1;
+  const runtimeHealthUrl = `src/boot/runtime-health.js?v=${meta.assetVersion}&h=${meta.bootRevision}`;
+  const recoveryServiceUrl = `src/boot/service-worker-recovery-service.js?v=${meta.assetVersion}`;
+  expect(countInIndex(runtimeHealthUrl) === 1, 'runtime health must be loaded exactly once with the current asset generation');
+  expect(countInIndex(recoveryServiceUrl) === 1, 'service worker recovery must be loaded exactly once with the current asset generation');
+  expect(index.indexOf(runtimeHealthUrl) < index.indexOf('src/security/site-guards.js'), 'runtime health must load before guarded runtime modules');
+  expect(index.indexOf(runtimeHealthUrl) < index.indexOf('src/app.js'), 'runtime health must load before app.js');
+  expect(sw.includes(`./${runtimeHealthUrl}`), 'service worker does not precache current runtime health');
+  expect(sw.includes(`./${recoveryServiceUrl}`), 'service worker does not precache current recovery service');
+  const localRuntimeAssetTags = [...index.matchAll(/<(?:script|link)\b[^>]+(?:src|href)="((?:src|assets|manifest\.webmanifest)[^"]+)"[^>]*>/g)]
+    .map(match => match[1]);
+  for (const assetPath of localRuntimeAssetTags) {
+    expect(assetPath.includes(`?v=${meta.assetVersion}`), `local runtime asset is missing the current cache-busting query: ${assetPath}`);
+  }
+  const staleLocalGenerations = [...index.matchAll(/\?v=(\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*)/g)]
+    .map(match => match[1])
+    .filter(version => version !== meta.assetVersion);
+  expect(staleLocalGenerations.length === 0, `index contains stale local asset generations: ${[...new Set(staleLocalGenerations)].join(', ')}`);
   expect(index.includes('data-release-label="version-button"') && index.includes('data-release-label="program-eyebrow"'), 'visible release labels are not centrally bound');
   expect(index.includes(`src/app.js?v=${meta.assetVersion}&h=${meta.bootRevision}`), 'app boot URL is not synchronized');
   expect(index.includes(`src/boot/update-safety-service.js?v=${meta.assetVersion}&h=${meta.updateSafetyRevision}`), 'update safety URL is not synchronized');

@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.50-pwa-current-cache-test-recovery';
+    const SERVICE_VERSION = '1.5.51-ci-runtime-contract-hardening';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;

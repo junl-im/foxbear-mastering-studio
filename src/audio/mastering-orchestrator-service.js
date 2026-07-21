@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.50-pwa-current-cache-test-recovery',
+            version: '1.5.51-ci-runtime-contract-hardening',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.50-pwa-current-cache-test-recovery',
+        version: '1.5.51-ci-runtime-contract-hardening',
         createMasteringBatchRunner
     });
 })(window);

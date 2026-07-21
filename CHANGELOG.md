@@ -1,8 +1,10 @@
-# v1.5.50 - PWA Current Cache Test Recovery
+# v1.5.51 - CI Runtime Contract Hardening
 
-- Fixed Playwright offline recovery test to use the active current-generation service worker cache instead of a legacy cache that v1.5.49 intentionally purges.
-- Added regression coverage preventing browser QA from reintroducing legacy-cache recovery assumptions.
-- Restored the required service-worker recovery runtime entry in index.html.
+- Restored the runtime-health and service-worker recovery modules in the real boot graph with the current asset generation.
+- Added release validation for missing or duplicate critical boot modules, stale local asset generations, and service-worker precache mismatches.
+- Added a dedicated regression test that locks the HTML, runtime config, service worker, and release metadata to one generation.
+- Corrected the three CI failures caused by stale v1.5.49 HTML references in the v1.5.50 package.
+- Preserved the existing Wake Lock runtime and diagnostics contract while hardening the boot graph.
 
 # v1.5.49 - Stale Shell Generation Recovery
 
