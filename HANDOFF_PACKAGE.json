@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.43",
-  "buildId": "export-pipeline-integrity",
+  "productVersion": "1.5.45",
+  "buildId": "export-queue-recovery",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",
@@ -66,6 +66,7 @@
     "src/download/export-guard-service.js",
     "src/download/export-progress-view.js",
     "src/download/zip-export-service.js",
+    "src/download/export-queue-service.js",
     "src/workers/zip-encoder.worker.js"
   ]
 }

@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.5.43 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.5.45 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.5.43-export-pipeline-integrity';
+    const VERSION = 'v1.5.45-export-queue-recovery';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {
@@ -49,6 +49,12 @@
 
     async function start(options = {}) {
         const progressView = options.progressView || global.FoxBearExportProgressView;
+        const queueSnapshot = global.FoxBearExportQueueService?.getSnapshot?.();
+        if (queueSnapshot?.active || queueSnapshot?.preparing || queueSnapshot?.delivering) {
+            progressView?.show?.();
+            options.showToast?.('곡별 순차 저장을 먼저 취소하거나 완료해 주세요.');
+            return Object.freeze({ ok: false, conflictingExport: true });
+        }
         if (getSnapshot().active) {
             progressView?.show?.();
             options.showToast?.('ZIP 내보내기가 이미 진행 중입니다. 진행 패널에서 상태를 확인하세요.');

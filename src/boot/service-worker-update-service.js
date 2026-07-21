@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.43 - stable-idle and cross-tab activity guard
+// FoxBear service worker update coordinator v1.5.45 - stable-idle and cross-tab activity guard
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.43-export-pipeline-integrity';
+  const VERSION = '1.5.45-export-queue-recovery';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;
@@ -38,6 +38,7 @@
     const decode = safeCall(() => global.FoxBearAudioDecodeService?.getDiagnostics?.(), {}) || {};
     const render = safeCall(() => global.FoxBearRenderScheduler?.getSnapshot?.(), {}) || {};
     const zipExport = safeCall(() => global.FoxBearZipExport?.getSnapshot?.(), {}) || {};
+    const exportQueue = safeCall(() => global.FoxBearExportQueueService?.getSnapshot?.(), {}) || {};
     const audios = Array.from(global.document?.querySelectorAll?.('audio') || []);
     const playing = audios.filter(audio => audio && !audio.paused && !audio.ended).length;
     const active = {
@@ -45,7 +46,7 @@
       mastering: Number(mastering.active || 0) + (mastering.busy ? 1 : 0),
       decoding: Number(decode.activeDecodes || 0),
       rendering: render.pending || render.inRender ? 1 : 0,
-      exporting: zipExport.active ? 1 : 0,
+      exporting: (zipExport.active || exportQueue.active || exportQueue.preparing || exportQueue.delivering) ? 1 : 0,
       playback: playing
     };
     const reasons = Object.entries(active).filter(([, value]) => Number(value) > 0).map(([key]) => key);

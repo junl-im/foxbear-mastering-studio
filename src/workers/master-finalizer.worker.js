@@ -1,5 +1,5 @@
 // FoxBear Pro finalizer worker v1.5.0 - quality-gate compatible finalizer core
-// v1.5.43 adds job-scoped progress telemetry for loudness, dynamics, limiter, and true-peak stages.
+// v1.5.45 adds job-scoped progress telemetry for loudness, dynamics, limiter, and true-peak stages.
 'use strict';
 
 self.onmessage = event => {

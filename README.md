@@ -1,27 +1,41 @@
-# FoxBear AI Mastering Studio Pro v1.5.43
+# FoxBear AI Mastering Studio Pro v1.5.45
+
+## Current patch: v1.5.45 Export Queue Recovery
+
+곡별 순차 저장에 일시정지·계속, 백그라운드 복귀 복구, 저장 실패 원인별 안내, 직접 저장 예상시간을 추가했습니다. 저장공간·권한·브라우저 미지원·파일 쓰기·네트워크 오류를 구분하며, 큐 종료 뒤 서비스워커 업데이트 보류 상태가 남지 않도록 수정했습니다.
+
+Release metadata:
+
+```text
+product: 1.5.45
+build: export-queue-recovery
+asset generation: 1.5.45-export-queue-recovery
+service worker cache: foxbear-shell-v1.5.45-export-queue-recovery
+```
+
 
 ## CI and local Git hooks
 
 `npm ci` never installs Git hooks. GitHub Actions uses `npm ci --ignore-scripts`, and the optional local pre-commit hook is enabled only when a developer explicitly runs `npm run hooks:install`.
 
-## Current patch: v1.5.43 Export Pipeline Integrity
+## Current patch: v1.5.44 Gesture-Safe Individual Export Queue
 
-ZIP 내보내기 서비스가 실제 HTML 부팅 그래프에서 누락되는 배포 차단급 회귀를 복구했습니다. 로컬 JS/CSS 태그는 정확히 하나의 SHA-384 속성만 갖도록 정규화하고, 배포 ZIP 검증은 필수 런타임 파일이 `index.html`에서 정확히 한 번 로드되는지 확인합니다. ZIP Worker는 지원 브라우저에서 완성 파일을 다시 전체 `ArrayBuffer`로 복제하지 않고 Blob을 직접 JSZip에 전달합니다.
+여러 파일을 자동으로 연속 다운로드하지 않고, 파일을 미리 검증한 뒤 사용자가 `다음 파일 저장`을 한 번씩 눌러 저장합니다. 일반 Chromium은 직접 저장창, 일반 브라우저는 다운로드, 카카오 등 제한 브라우저는 지원되는 경우 파일 공유창을 사용합니다. 실패 파일은 다시 시도하거나 건너뛸 수 있으며, 큐 작업 중에는 마스터링·ZIP·서비스워커 교체가 차단됩니다.
 
 Release metadata:
 
 ```text
-product: 1.5.43
-build: export-pipeline-integrity
-asset generation: 1.5.43-export-pipeline-integrity
-service worker cache: foxbear-shell-v1.5.43-export-pipeline-integrity
+product: 1.5.44
+build: export-queue-gesture-safety
+asset generation: 1.5.44-export-queue-gesture-safety
+service worker cache: foxbear-shell-v1.5.44-export-queue-gesture-safety
 ```
 
 Verification:
 
 ```text
-static QA target: runtime entry parity, duplicate SRI repair, low-copy ZIP input
-manual browser target: ZIP button availability, large ZIP memory behavior, cache recovery
+static QA target: export queue order, retry/skip/cancel, runtime entry parity
+manual browser target: repeated save prompts, multi-download blocking, Web Share, background return
 ```
 
 ## Previous patch: v1.5.27 Device Glyph and SRI Hardening

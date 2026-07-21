@@ -1,8 +1,15 @@
-# FoxBear Status - v1.5.43
+# FoxBear Status - v1.5.45
+
+## v1.5.45 current focus
+
+- Export queue pause/resume and background recovery preserve the current file without automatic delivery.
+- Delivery failures expose targeted recovery hints and remain retryable where safe.
+- Picker-mode file and remaining-time estimates are advisory only.
+- Service-worker export activity returns to idle after completion or cancellation.
 
 ## Current status
 
-Static and regression QA is `235/235 PASS` across three deterministic execution segments. Runtime-entry parity, duplicate-SRI repair, and low-copy ZIP input checks are active. ZIP export is loaded explicitly by the boot graph, missing modules fail visibly, and archive verification rejects source/package mismatches.
+Static and regression QA is `238/238 PASS`, including v1.5.45 queue recovery coverage. Targets now include the gesture-safe individual export queue. Completed output Blobs are validated before delivery, and each file requires a fresh user click so picker/share/download permissions are not consumed by an automatic batch. Retry, skip, cancel, mastering-control freeze, export ownership, and service-worker update protection are active.
 
 
 ## Release invariants
@@ -15,17 +22,17 @@ Static and regression QA is `235/235 PASS` across three deterministic execution 
 - Dock mini FFT remains removed; detailed analysis owns spectrum visualization.
 - Completed mastered PCM follows `release-after-encode`; downloads and playback retain encoded Blobs and URLs.
 - ZIP export must pre-release completed PCM, package audio with `STORE`, enforce working-set limits, run outside the main thread, expose cancellation, reject duplicate jobs, and validate the resulting Blob.
-- ZIP activity blocks service-worker activation, queue clearing, mastering, and automatic remastering until completion or cancellation.
+- ZIP and individual export queue activity block service-worker activation, queue clearing, mastering, and automatic remastering until completion or cancellation.
 - Archive names must be path-safe, case-insensitively unique, and protected from Windows reserved device names.
 - CSP, Trusted Types, SRI, Runtime Health, Update Safety, and service-worker cache recovery remain enabled.
 
 ## Current release
 
-- Product version: `1.5.43`
-- Build ID: `export-pipeline-integrity`
-- Asset version: `1.5.43-export-pipeline-integrity`
-- Service worker cache: `foxbear-shell-v1.5.43-export-pipeline-integrity`
-- Browser QA target: ZIP boot availability, SRI tag integrity, large ZIP memory behavior, and archive/source parity
+- Product version: `1.5.45`
+- Build ID: `export-queue-recovery`
+- Asset version: `1.5.45-export-queue-recovery`
+- Service worker cache: `foxbear-shell-v1.5.45-export-queue-recovery`
+- Browser QA target: one-file-per-gesture delivery, picker dismissal retry, restricted-browser share, background return, and export ownership
 
 ## v1.5.25 deterministic preview stability invariant
 

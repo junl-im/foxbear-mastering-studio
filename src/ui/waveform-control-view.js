@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.43-export-pipeline-integrity';
+  const VIEW_VERSION = '1.5.45-export-queue-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

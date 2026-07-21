@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.43-export-pipeline-integrity',
+            version: '1.5.45-export-queue-recovery',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.43-export-pipeline-integrity',
+        version: '1.5.45-export-queue-recovery',
         createMasteringBatchRunner
     });
 })(window);

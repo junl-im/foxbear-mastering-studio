@@ -1,3 +1,12 @@
+# Current Project Notes - v1.5.45
+
+## v1.5.45 focus
+
+- Queue pause is stateful but never auto-saves; every file still requires a fresh user gesture.
+- Background return restores the current item and UI state without advancing the queue.
+- Delivery errors are classified into actionable recovery groups instead of one generic failure.
+- Service-worker activity publication must reflect the actual active queue state and return to false on teardown.
+
 # Current Project Notes - v1.5.42
 
 ## v1.5.42 focus

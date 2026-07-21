@@ -1,3 +1,21 @@
+# v1.5.45 - Export Queue Recovery and Diagnostics
+
+- Added pause/resume controls for the gesture-safe individual export queue.
+- Restores the current file after background/BFCache return without auto-triggering a save action.
+- Classifies storage, permission, unsupported-browser, filesystem, and network delivery failures with targeted retry guidance.
+- Added advisory per-file and remaining direct-save time estimates for picker-based saves.
+- Fixed export activity publication so service-worker activation is released after queue completion or cancellation.
+- Added v1.5.45 regression coverage for pause, recovery, error diagnosis, ETA, and activity teardown.
+
+# v1.5.44 - Gesture-Safe Individual Export Queue
+
+- Added a one-file-at-a-time export queue so browsers receive a fresh user gesture for every download, file picker, or Web Share request.
+- Pre-validates completed output Blobs before the queue becomes actionable, preserving transient activation on each `Next file` click.
+- Added retry, skip, cancel, duplicate-start protection, queue-state restoration after BFCache, and late-result isolation.
+- Freezes mastering controls and blocks mastering, automatic remastering, queue clearing, ZIP creation, and service-worker activation while an individual export queue owns the output snapshot.
+- Added a cautious `navigator.storage.estimate()` advisory for origin cache pressure while explicitly distinguishing it from unavailable Downloads-folder free-space information.
+- Added runtime-entry, archive, service-worker cache, and v1.5.44 queue regression coverage.
+
 # v1.5.43 - Export Pipeline Integrity and Low-Copy ZIP Input
 
 - Restored `zip-export-service.js` as an actual `index.html` runtime entry after discovering it was cached and tested but absent from the source boot graph.

@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.43 (export-pipeline-integrity).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.45 (export-queue-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.43"
+  "version": "1.5.45"
 }

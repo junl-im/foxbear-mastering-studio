@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.43",
+  "version": "1.5.45",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with verified runtime entry loading, canonical SRI attributes, low-copy ZIP worker inputs, and archive parity checks.",
+  "description": "FoxBear AI Mastering Studio Pro with gesture-safe individual export queues, one-file-at-a-time delivery, retry/skip controls, and export activity protection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.43-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.43-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.45-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.45-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh"
   },
@@ -258,15 +258,18 @@
     "node qa/v1541_export_eta_download_recovery_smoke.js",
     "node qa/v1542_zip_worker_cancellation_smoke.js",
     "node --check qa/v1543_export_pipeline_integrity_smoke.js",
-    "node qa/v1543_export_pipeline_integrity_smoke.js"
+    "node qa/v1543_export_pipeline_integrity_smoke.js",
+    "node --check src/download/export-queue-service.js",
+    "node qa/v1544_export_queue_gesture_safety_smoke.js",
+    "node qa/v1545_export_queue_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "export-pipeline-integrity",
-    "assetVersion": "1.5.43-export-pipeline-integrity",
-    "cacheName": "foxbear-shell-v1.5.43-export-pipeline-integrity",
-    "bootRevision": "boot-sri-v1543",
-    "updateSafetyRevision": "update-safety-v1543",
-    "serviceWorkerRevision": "sw-v1543"
+    "buildId": "export-queue-recovery",
+    "assetVersion": "1.5.45-export-queue-recovery",
+    "cacheName": "foxbear-shell-v1.5.45-export-queue-recovery",
+    "bootRevision": "boot-sri-v1545",
+    "updateSafetyRevision": "update-safety-v1545",
+    "serviceWorkerRevision": "sw-v1545"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

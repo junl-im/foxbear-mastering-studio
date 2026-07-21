@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.43-export-pipeline-integrity';
+const version = '1.5.45-export-queue-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

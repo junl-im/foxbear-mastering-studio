@@ -1,4 +1,34 @@
-# Handoff - v1.5.43
+# Handoff - v1.5.45
+
+## v1.5.45 handoff focus
+
+- Start `곡별 순차 저장`, pause it, and confirm the current file cannot be delivered until `저장 계속` is pressed.
+- Move the app to the background and return; confirm the current file remains selected and no automatic save prompt opens.
+- Simulate storage and permission failures and confirm targeted recovery guidance remains visible.
+- Complete or cancel the queue and confirm pending service-worker activation is no longer blocked.
+
+```text
+product: 1.5.45
+build: export-queue-recovery
+asset generation: 1.5.45-export-queue-recovery
+service worker cache: foxbear-shell-v1.5.45-export-queue-recovery
+```
+
+
+## v1.5.44 handoff focus
+
+- Complete two or more tracks and confirm `곡별 순차 저장` prepares the list without starting automatic downloads.
+- Confirm each `다음 파일 저장` click delivers exactly one file and advances only after success.
+- Dismiss a file picker and confirm the same file remains retryable; then test skip and queue cancel.
+- In Kakao or another restricted browser, confirm the queue uses file sharing only when `navigator.canShare({files})` accepts every queued file.
+- Keep the queue active and confirm mastering, ZIP creation, queue clearing, and service-worker activation remain blocked.
+
+```text
+product: 1.5.44
+build: export-queue-gesture-safety
+asset generation: 1.5.44-export-queue-gesture-safety
+service worker cache: foxbear-shell-v1.5.44-export-queue-gesture-safety
+```
 
 ## v1.5.43 handoff focus
 

@@ -1,3 +1,34 @@
+# QA Report - v1.5.45 Export Queue Recovery
+
+- Static and regression result: `238/238 PASS` (completed by continuing the registered list after the runner time ceiling).
+- Added deterministic coverage for pause/resume, background recovery, storage failure diagnosis, picker ETA, retry, and service-worker activity teardown.
+- Confirms the queue remains gesture-safe and never auto-delivers after foreground restoration.
+
+## v1.5.45 coverage
+
+- queue pause and resume
+- background/BFCache current-item recovery
+- storage, permission, unsupported, filesystem, and network error guidance
+- advisory picker save ETA
+- activity release after completion and cancellation
+
+# QA Report - v1.5.44 Gesture-Safe Individual Export Queue
+
+- Static and regression result: `237/237 PASS` (completed in deterministic continuation segments after the runner time ceiling).
+- Added deterministic runtime coverage for ordered delivery, one-file advancement, picker dismissal retry, skip, cancellation, and duplicate ownership.
+- Verifies the queue service is loaded exactly once, precached, required by Runtime Health, included in handoff archives, and freezes output-mutating controls while active.
+- Confirms service-worker activation observes queue preparing/delivering states.
+- Confirms the UI exposes next-file, skip, and cancel controls without automatic batch downloads.
+
+## v1.5.44 coverage
+
+- prevalidated output Blob queue
+- fresh user gesture per file
+- direct-save/download/share delivery modes
+- retry, skip, cancel, BFCache refresh
+- export conflict and update activation guards
+- origin-cache advisory without claiming device Downloads free space
+
 # QA Report - v1.5.43 Export Pipeline Integrity
 
 - Static and regression result: `235/235 PASS` (the registered list was executed in three deterministic segments to avoid the runner ceiling).
