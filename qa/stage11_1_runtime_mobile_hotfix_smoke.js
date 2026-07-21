@@ -38,7 +38,7 @@ assert(app.includes('const panelGap = mobile ? 4 : 18'), 'mobile panel gap shoul
 
 assert(mobileView.includes('const status = null'), 'mobile quick panel should remove the legacy status chip beside the quick toggle');
 assert(mobileView.includes('legacyStatus') && mobileView.includes('removeChild(legacyStatus)'), 'existing legacy status chip should be removed when found');
-assert(mobileView.includes("className: 'mobile-native-close download-options-close'"), 'settings panel close button should match other popup close styling');
+assert(mobileView.includes("className: 'mobile-native-close download-options-close foxbear-modal-close'"), 'settings panel close button should match the unified popup close styling');
 assert(mobileView.includes("panelTitle.textContent = '설정'") && mobileView.includes("['install', '📲', '바로가기 추가'"), 'mobile panel should be converted to settings with app-add action');
 
 assert(mobileCss.includes('Stage11.1: Dock-attached quick panel cleanup'), 'mobile-native.css should include Stage11.1 quick panel cleanup layer');
@@ -47,7 +47,7 @@ assert(mobileCss.includes('Stage16: Quick panel is now a compact Settings panel'
 assert(dockCss.includes('Stage11.1: pin mobile floating notices'), 'dock.css should include Stage11.1 floating notice anchor layer');
 assert(dockCss.includes('var(--bottom-preview-floating-bottom') && dockCss.includes('var(--bottom-preview-hud-bottom'), 'toast/HUD should use measured floating Dock offsets');
 
-assert(/stage(?:11\.1|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.5.56-incident-operations-app-check'), 'service worker cache should be bumped to stage11.1 or later');
+assert(/stage(?:11\.1|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.5.57-modal-close-consistency'), 'service worker cache should be bumped to stage11.1 or later');
 assert(pkg.qaChecks.includes('node qa/stage11_1_runtime_mobile_hotfix_smoke.js'), 'package QA should include stage11.1 smoke');
 assert(changelog.includes('Stage11.1') && handoff.includes('Stage11.1') && notes.includes('Stage11.1'), 'handoff docs should mention Stage11.1');
 

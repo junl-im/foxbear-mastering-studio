@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.56 - header-mounted settings view builder
+// FoxBear AI Mastering Studio Pro v1.5.57 - header-mounted settings view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -98,7 +98,7 @@
         const panelTitle = doc.createElement('strong');
         panelTitle.textContent = '설정';
         const closeButton = createButton({
-            className: 'mobile-native-close download-options-close',
+            className: 'mobile-native-close download-options-close foxbear-modal-close',
             text: '×',
             nativeAction: 'close',
             ariaLabel: '설정 닫기'

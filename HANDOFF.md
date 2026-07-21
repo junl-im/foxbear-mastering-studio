@@ -1,24 +1,12 @@
-# Handoff - v1.5.56
+# Handoff - v1.5.57
 
-## v1.5.56 handoff focus
+## v1.5.57 handoff focus
 
-- Set the reCAPTCHA Enterprise site key in the `foxbear-app-check-site-key` meta tag, deploy, and confirm the administrator error screen reports `App Check 보호 중` before enabling enforcement.
-- Deploy `sendIncidentEmail`, `retryFailedIncidentEmails`, `retryIncidentEmailRequest`, and `sendDailyIncidentSummary` with the existing Gmail Secret Manager secret.
-- Confirm SMTP failures decrement the reservation count, remain `failed`, and retry at 10 minutes, 30 minutes, and 2 hours with a maximum of three attempts.
-- Confirm the administrator error-management tab can request an immediate resend only for active `siteAdmins` users.
-- Confirm the daily summary arrives at 09:00 Asia/Seoul and does not include audio, filenames, PCM, full local paths, or credentials.
-- Enable App Check enforcement only after legitimate Firestore/Auth traffic appears as verified in Firebase metrics.
-
-
-## v1.5.55 handoff focus
-
-- Deploy Firestore rules and `sendIncidentEmail` Cloud Function together.
-- Create the `FOXBEAR_GMAIL_APP_PASSWORD` secret with Firebase CLI; never store or paste the password into source files.
-- Confirm the Program Info `테스트 메일` control reaches `delivery.status = emailed` and arrives at `mcwoogi@gmail.com`.
-- Confirm audio, filename, PCM, query credentials, email addresses, tokens, and full local paths are absent from incident documents and emails.
-- Enable Firestore TTL on the `expiresAt` field for `incidentReports` and `incidentMailState`.
-- Treat App Check enforcement as the next abuse-hardening step before opening the service broadly.
-
+- Open program info, feature, preview, admin, download, AI recommendation, save assist, and enhanced select dialogs.
+- Confirm every top-right close control has the same circular geometry, inset, icon weight, hover state, and keyboard focus ring.
+- Confirm feature and preview controls no longer drift with header layout.
+- Confirm AI, download, and save-assist dialogs close with Escape and restore focus to the previous control.
+- Confirm active download conversion keeps its close control disabled until cancellation or completion.
 
 ## v1.5.52 handoff focus
 

@@ -1,24 +1,10 @@
-# v1.5.56 - Incident Operations and App Check Readiness
+# v1.5.57 - Modal Close Consistency
 
-- Added a protected administrator error-management tab with recent incident, email-delivery, retry, and terminal-failure status.
-- Added manual administrator resend requests through a create-only Firestore command collection and server-side admin verification.
-- Added automatic failed-email retries at 10-minute, 30-minute, and 2-hour delays, capped at three delivery attempts.
-- Fixed daily email accounting so SMTP reservations are no longer counted as successful sends and failed reservations are released.
-- Added a 09:00 Asia/Seoul daily incident summary email with severity, category, delivery status, and repeated-fingerprint aggregation.
-- Added optional Firebase App Check initialization through a reCAPTCHA Enterprise site key, token auto-refresh, status diagnostics, and required CSP endpoints.
-- Kept App Check enforcement disabled until a real site key is configured and legitimate-request metrics are reviewed.
-- Split the administrator incident JavaScript and CSS into dedicated modules to preserve the established app and stylesheet size budgets.
-
-# v1.5.55 - Automatic Incident Mail Reporting
-
-- Added privacy-reduced client incident collection for boot, resource, runtime, mastering, quality-recovery, export, update-safety, and release-generation failures.
-- Added an offline local queue, 15-minute client duplicate suppression, per-session/day limits, sensitive-text redaction, and a user-visible enable/test control.
-- Added Firestore `incidentReports` create-only ingestion with owner delivery-status reads and administrator-only listing.
-- Added a second-generation Firestore trigger that emails `mcwoogi@gmail.com` through a Secret Manager-backed Gmail app password.
-- Added server-side HTML escaping, 30-minute fingerprint suppression, a 40-email daily cap, delivery states, and retention timestamps.
-- Added ZIP/export queue incident instrumentation without sending audio, filenames, PCM, or local paths.
-- Fixed the split release generation where the v1.5.54 runtime still referenced v1.5.53 HTML assets, and moved an invalid script tag back inside the document boot graph.
-- Added release/package guards for the Functions source while excluding nested `node_modules` and secret files.
+- Unified all modal top-right close controls under one shared geometry, icon, hover, focus, and mobile touch-target system.
+- Repositioned feature and preview close controls into the same fixed top-right lane used by program, admin, download, and AI dialogs.
+- Added a close control to enhanced select popups.
+- Added Escape dismissal and focus restoration to AI recommendation, download options, and download assist dialogs.
+- Added regression coverage for shared styling, runtime-generated dialogs, service-worker caching, and dismissal behavior.
 
 # v1.5.52 - CI Parallel Release Gate
 

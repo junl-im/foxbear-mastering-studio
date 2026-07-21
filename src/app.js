@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.56 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.57 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -17,7 +17,7 @@ const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
 const FoxBearMasteringInputGuard = window.FoxBearMasteringInputGuard || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.56';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.57';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -61,7 +61,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.56-incident-operations-app-check'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1556'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.57-modal-close-consistency'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1557'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -1479,18 +1479,20 @@ function maybeShowSingleTrackAiRecommendationDialog(track) {
 function showAiRecommendationDialog(track) {
     if (!track || !track.analysis || !document.body) return;
     const previous = document.querySelector('.ai-recommend-dialog-backdrop');
-    if (previous) previous.remove();
+    if (previous) closeAiRecommendationDialog(previous, { restoreFocus: false });
+    const returnFocus = document.activeElement && document.activeElement.nodeType === 1 ? document.activeElement : null;
     const backdrop = document.createElement('div');
     backdrop.className = 'ai-recommend-dialog-backdrop show';
     backdrop.setAttribute('role', 'dialog');
     backdrop.setAttribute('aria-modal', 'true');
     backdrop.setAttribute('aria-label', 'AI 추천 프리셋');
+    backdrop.__foxbearReturnFocus = returnFocus;
     const panel = document.createElement('section');
     panel.className = 'ai-recommend-dialog-panel';
     panel.tabIndex = -1;
     const close = document.createElement('button');
     close.type = 'button';
-    close.className = 'ai-recommend-dialog-close';
+    close.className = 'ai-recommend-dialog-close foxbear-modal-close';
     close.setAttribute('aria-label', 'AI 추천 팝업 닫기');
     close.textContent = '×';
     const eyebrow = document.createElement('span');
@@ -1526,6 +1528,14 @@ function showAiRecommendationDialog(track) {
         });
         list.appendChild(row);
     });
+    const handleDialogKeydown = event => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        closeAiRecommendationDialog(backdrop);
+    };
+    backdrop.__foxbearCleanup = () => document.removeEventListener('keydown', handleDialogKeydown, true);
+    document.addEventListener('keydown', handleDialogKeydown, true);
     close.addEventListener('click', () => closeAiRecommendationDialog(backdrop));
     backdrop.addEventListener('click', event => { if (event.target === backdrop) closeAiRecommendationDialog(backdrop); });
     const explainBox = document.createElement('div');
@@ -1548,10 +1558,15 @@ function showAiRecommendationDialog(track) {
     document.body.classList.add('ai-recommend-dialog-open');
     requestAnimationFrame(() => panel.focus());
 }
-function closeAiRecommendationDialog(backdrop) {
+function closeAiRecommendationDialog(backdrop, options = {}) {
     const target = backdrop || document.querySelector('.ai-recommend-dialog-backdrop');
+    const returnFocus = target?.__foxbearReturnFocus || null;
+    try { target?.__foxbearCleanup?.(); } catch (error) {}
     if (target) target.remove();
     document.body.classList.remove('ai-recommend-dialog-open');
+    if (options.restoreFocus !== false && returnFocus && document.body.contains(returnFocus)) {
+        try { returnFocus.focus({ preventScroll: true }); } catch (error) {}
+    }
 }
 function buildSmartSuggestionItems(track) {
     const items = [];
@@ -3052,7 +3067,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.56-incident-operations-app-check') · navigator.serviceWorker.register('./sw.js?v=1.5.56-incident-operations-app-check&h=sw-v1556')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.57-modal-close-consistency') · navigator.serviceWorker.register('./sw.js?v=1.5.57-modal-close-consistency&h=sw-v1557')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3631,8 +3646,11 @@ function ensureSelectPopupScaffold() {
     state.selectPopup = { backdrop, panel, activeSelect: null, lastTrigger: null, keyBound: false };
     if (!state.selectPopupKeyBound) {
         document.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && state.selectPopup?.activeSelect) closeSelectPopup();
-        });
+            if (event.key !== 'Escape' || !state.selectPopup?.activeSelect) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            closeSelectPopup();
+        }, true);
         window.addEventListener('resize', () => {
             if (state.selectPopup?.activeSelect) positionPopupPanel();
         }, { passive: true });
@@ -3653,10 +3671,16 @@ function openSelectPopup(select, trigger) {
     popup.panel.classList.toggle('select-popup-compact', select.options.length <= 4);
     popup.panel.classList.toggle('select-popup-genre', select.id === 'genreSelect');
     const label = getSelectLabel(select);
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'select-popup-close foxbear-modal-close';
+    close.setAttribute('aria-label', `${label} 선택 창 닫기`);
+    close.textContent = '×';
+    close.addEventListener('click', closeSelectPopup);
     const title = document.createElement('div');
     title.className = 'select-popup-title';
     title.textContent = label;
-    popup.panel.appendChild(title);
+    popup.panel.append(close, title);
     const list = document.createElement('div');
     list.className = 'select-popup-list';
     list.setAttribute('role', 'listbox');
@@ -3859,7 +3883,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.56-incident-operations-app-check', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.57-modal-close-consistency', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4173,7 +4197,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.56-incident-operations-app-check',
+        version: '1.5.57-modal-close-consistency',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4213,10 +4237,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.56-incident-operations-app-check',
+    version: '1.5.57-modal-close-consistency',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.56-incident-operations-app-check', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.57-modal-close-consistency', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4241,12 +4265,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.56-incident-operations-app-check', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.57-modal-close-consistency', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.56-incident-operations-app-check', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.57-modal-close-consistency', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4261,12 +4285,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.56-incident-operations-app-check',
+    version: 'v1.5.57-modal-close-consistency',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.56-incident-operations-app-check', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.57-modal-close-consistency', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5375,7 +5399,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.56-incident-operations-app-check-fallback',
+            version: '1.5.57-modal-close-consistency-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -9070,9 +9094,13 @@ function downloadTrack(track) { if (!track || !track.outBlob) return;
 function closeDownloadOptionsDialog(backdrop) {
     const panel = backdrop || document.querySelector('.download-options-backdrop');
     if (!panel) return;
+    const returnFocus = panel.__foxbearReturnFocus || null;
     try { panel.__foxbearCleanup?.(); } catch (error) {}
     panel.remove();
     document.body.classList.remove('download-options-open');
+    if (returnFocus && document.body.contains(returnFocus)) {
+        try { returnFocus.focus({ preventScroll: true }); } catch (error) {}
+    }
 }
 function showDownloadOptionsDialog(track) {
     const dialogView = window.FoxBearDownloadDialogView;
@@ -9891,7 +9919,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.56-incident-operations-app-check', selected, recent });
+    return Object.freeze({ version: '1.5.57-modal-close-consistency', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -12977,7 +13005,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.56',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.57',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

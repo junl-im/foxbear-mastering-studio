@@ -1,16 +1,19 @@
-# QA Report - v1.5.56 Incident Operations and App Check Readiness
+# QA Report - v1.5.57 Modal Close Consistency
 
-- Added Firebase App Check initialization readiness, administrator incident monitoring, manual retry requests, automatic failed-mail retry, and daily KST summary scheduling.
-- Corrected SMTP accounting so reservations and successful deliveries are counted separately.
-- Split administrator incident monitor styles into a dedicated component to preserve the existing stylesheet size budget.
-- Static and deterministic regression target: `258/258 PASS`.
-- Live App Check enforcement and production mail delivery remain deployment-time checks because the site key, Firebase deployment credentials, and Gmail secret are not present in the source package.
+- Unified the visual and interaction contract for program, feature, preview, admin, download, AI recommendation, save-assist, mobile-settings, and enhanced-select close controls.
+- Verified the final rendered geometry at 38x38px with 12px top/right offsets on desktop and a 36px mobile touch target.
+- Added Escape priority handling so the top runtime popup closes without also dismissing a managed modal underneath it.
+- Added focus restoration for runtime-generated AI, download, and save-assist dialogs.
+- Static and regression target: `259/259 PASS` in bounded continuation segments.
 
-# QA Report - v1.5.55 Automatic Incident Mail Reporting
+## v1.5.57 coverage
 
-- Version, handoff, SRI, Firebase rules, Functions source, privacy redaction, client/server duplicate limits, nested node_modules exclusion, and incident UI smoke checks are included in the 256-check static suite.
-- Real SMTP delivery cannot be verified until `FOXBEAR_GMAIL_APP_PASSWORD` and `sendIncidentEmail` are deployed.
-- Functions dependency audit currently reports 7 moderate transitive findings and 0 high/critical findings; the affected Cloud Storage chain is not used by this mail Function.
+- shared close icon and panel inset ownership
+- legacy Dock/modal CSS override precedence
+- dynamic popup close creation
+- Escape dismissal ordering
+- focus restoration and busy-download close protection
+- service-worker cache and SRI parity
 
 # QA Report - v1.5.54 Risk-Specific Quality Recovery and Browser QA
 

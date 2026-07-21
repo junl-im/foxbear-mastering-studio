@@ -1,0 +1,137 @@
+/* FoxBear v1.5.57 unified modal close control.
+   This file loads after legacy modal layers and owns the final close-button geometry. */
+
+:root {
+    --foxbear-modal-close-size: 38px;
+    --foxbear-modal-close-offset: 12px;
+    --foxbear-modal-close-line: 14px;
+    --foxbear-modal-close-surface: rgba(255,255,255,.075);
+    --foxbear-modal-close-surface-hover: rgba(141,245,232,.16);
+    --foxbear-modal-close-border: rgba(255,255,255,.17);
+    --foxbear-modal-close-border-hover: rgba(141,245,232,.50);
+    --foxbear-modal-close-ink: rgba(246,252,255,.94);
+}
+
+.foxbear-modal-close {
+    position: absolute !important;
+    top: var(--foxbear-modal-close-offset) !important;
+    right: var(--foxbear-modal-close-offset) !important;
+    z-index: 40 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    width: var(--foxbear-modal-close-size) !important;
+    min-width: var(--foxbear-modal-close-size) !important;
+    height: var(--foxbear-modal-close-size) !important;
+    min-height: var(--foxbear-modal-close-size) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    border: 1px solid var(--foxbear-modal-close-border) !important;
+    border-radius: 999px !important;
+    color: var(--foxbear-modal-close-ink) !important;
+    background: var(--foxbear-modal-close-surface) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 22px rgba(0,0,0,.20) !important;
+    font-size: 0 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color .14s ease, border-color .14s ease, box-shadow .14s ease, transform .10s ease !important;
+}
+
+.foxbear-modal-close::before,
+.foxbear-modal-close::after {
+    content: '' !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    width: var(--foxbear-modal-close-line) !important;
+    height: 2px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: currentColor !important;
+    pointer-events: none !important;
+    transform-origin: center !important;
+}
+
+.foxbear-modal-close::before {
+    transform: translate(-50%, -50%) rotate(45deg) !important;
+}
+
+.foxbear-modal-close::after {
+    transform: translate(-50%, -50%) rotate(-45deg) !important;
+}
+
+.foxbear-modal-close:hover {
+    border-color: var(--foxbear-modal-close-border-hover) !important;
+    background: var(--foxbear-modal-close-surface-hover) !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.11), 0 10px 26px rgba(0,0,0,.24), 0 0 0 3px rgba(141,245,232,.055) !important;
+}
+
+.foxbear-modal-close:focus-visible {
+    outline: 2px solid rgba(141,245,232,.94) !important;
+    outline-offset: 3px !important;
+    border-color: rgba(141,245,232,.62) !important;
+    background: rgba(141,245,232,.17) !important;
+}
+
+.foxbear-modal-close:active {
+    transform: scale(.94) !important;
+}
+
+.foxbear-modal-close:disabled,
+.foxbear-modal-close[aria-disabled='true'] {
+    opacity: .42 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* Reserve one consistent header lane so titles never collide with the close control. */
+.program-info-panel,
+.feature-dialog-panel,
+.preview-dialog-panel,
+.admin-dialog-panel,
+.ai-recommend-dialog-panel,
+.download-options-panel,
+.download-assist,
+.select-popup-panel {
+    position: relative;
+}
+
+.program-info-panel > .program-info-eyebrow,
+.admin-dialog-panel > .admin-dialog-eyebrow,
+.ai-recommend-dialog-panel > .ai-recommend-eyebrow,
+.download-options-panel > .download-options-title,
+.download-assist > strong,
+.select-popup-panel > .select-popup-title {
+    margin-right: calc(var(--foxbear-modal-close-size) + 12px) !important;
+}
+
+.feature-dialog-head,
+.preview-dialog-head {
+    padding-right: calc(var(--foxbear-modal-close-size) + 10px) !important;
+}
+
+.select-popup-title {
+    min-height: var(--foxbear-modal-close-size);
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 640px) {
+    :root {
+        --foxbear-modal-close-size: 36px;
+        --foxbear-modal-close-offset: 10px;
+        --foxbear-modal-close-line: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .foxbear-modal-close {
+        transition: none !important;
+    }
+}

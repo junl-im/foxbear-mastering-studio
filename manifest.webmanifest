@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.56 (incident-operations-app-check).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.57 (modal-close-consistency).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.56"
+  "version": "1.5.57"
 }

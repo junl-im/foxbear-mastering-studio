@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.56-incident-operations-app-check';
+  const VIEW_VERSION = '1.5.57-modal-close-consistency';
   const DEFAULT_BINS = 96;
 
   function getService() {

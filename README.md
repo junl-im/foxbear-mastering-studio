@@ -1,11 +1,10 @@
-# FoxBear AI Mastering Studio Pro v1.5.56
+# FoxBear AI Mastering Studio Pro v1.5.57
 
-## Current patch: v1.5.56 Incident Operations and App Check Readiness
+## Current patch: v1.5.57 Modal Close Consistency
 
-관리자 모니터링에 오류 관리 화면을 추가하고, 메일 실패를 최대 3회 자동 재시도하며, 매일 오전 9시(KST) 전날 오류 요약을 `mcwoogi@gmail.com`으로 전송합니다. reCAPTCHA Enterprise 사이트 키를 설정하면 Firebase App Check 토큰을 자동 갱신하며, 실제 강제 적용은 정상 요청 지표를 확인한 뒤 Firebase Console에서 활성화합니다.
+프로그램 정보, 기능, 미리듣기, 관리자, 다운로드, AI 분석 완료, 저장 도움, 선택 팝업의 우측 상단 닫기 버튼을 동일한 크기·위치·아이콘·포커스 규칙으로 통합했습니다. 동적 팝업은 ESC 닫기와 기존 조작 위치로의 포커스 복귀도 지원합니다.
 
-
-## Current patch: v1.5.52 CI Parallel Release Gate
+## Previous patch: v1.5.52 CI Parallel Release Gate
 
 GitHub Actions 정적 QA와 Playwright 브라우저 QA를 병렬 job으로 실행하고, 새 push가 오면 이전 Pages 실행을 취소합니다. Playwright Chromium 다운로드 캐시와 npm 오프라인 우선 설치를 사용해 반복 빌드 대기시간을 줄입니다.
 

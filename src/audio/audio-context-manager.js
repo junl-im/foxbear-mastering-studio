@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.56-incident-operations-app-check';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.57-modal-close-consistency';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

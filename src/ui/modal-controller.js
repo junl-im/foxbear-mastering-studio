@@ -39,7 +39,7 @@
 
         register(name, config = {}) {
             if (!name || !config.dialog) return this;
-            this.modals.set(name, {
+            const normalized = {
                 name,
                 dialog: config.dialog,
                 openers: config.openers || [],
@@ -51,8 +51,27 @@
                 onClose: config.onClose || null,
                 returnFocus: config.returnFocus || null,
                 closeOnBackdrop: config.closeOnBackdrop !== false
-            });
+            };
+            this.modals.set(name, normalized);
+            this.decorateCloseButtons(normalized);
             return this;
+        }
+
+        decorateCloseButtons(cfg) {
+            if (!cfg) return;
+            const dialog = this.resolve(cfg.dialog);
+            const buttons = [];
+            for (const id of cfg.closers || []) {
+                const button = this.resolve(id);
+                if (button) buttons.push(button);
+            }
+            if (dialog && cfg.closeSelector) {
+                dialog.querySelectorAll(cfg.closeSelector).forEach(button => buttons.push(button));
+            }
+            buttons.forEach(button => {
+                button.classList.add('foxbear-modal-close');
+                button.dataset.foxbearModalClose = cfg.name;
+            });
         }
 
         resolve(ref) {
@@ -149,6 +168,10 @@
 
         handleKeydown(event) {
             if (event.key === 'Escape') {
+                const externalLayer = this.document?.querySelector?.(
+                    '.select-popup-backdrop.show, .download-options-backdrop, .ai-recommend-dialog-backdrop.show, #downloadAssist.show'
+                );
+                if (externalLayer) return;
                 if (this.active) this.close(this.active, event, { restoreFocus: false });
                 else this.closeAll(event);
                 return;

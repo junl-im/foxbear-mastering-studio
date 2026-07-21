@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.56 - progress ETA, stall recovery, and safe dialog lifecycle
+// FoxBear AI Mastering Studio Pro v1.5.57 - progress ETA, stall recovery, and safe dialog lifecycle
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -56,7 +56,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.56',
+                version: '1.5.57',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -73,6 +73,7 @@
         backdrop.setAttribute('role', 'dialog');
         backdrop.setAttribute('aria-modal', 'true');
         backdrop.setAttribute('aria-label', '다운로드 및 공유');
+        backdrop.__foxbearReturnFocus = document.activeElement && document.activeElement.nodeType === 1 ? document.activeElement : null;
 
         const panel = document.createElement('section');
         panel.className = `download-options-panel download-options-panel-v3 download-options-panel-v4 download-options-panel-v5 ${env.restricted ? 'restricted' : 'normal'}`;
@@ -80,7 +81,7 @@
         panel.tabIndex = -1;
         const close = document.createElement('button');
         close.type = 'button';
-        close.className = 'download-options-close';
+        close.className = 'download-options-close foxbear-modal-close';
         close.setAttribute('aria-label', '다운로드 창 닫기');
         close.textContent = '×';
 
@@ -157,7 +158,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.5.56 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.5.57 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -688,11 +689,19 @@
             progressLastAt = Date.now();
             updateProgressTiming();
         };
+        const handleDialogKeydown = event => {
+            if (event.key !== 'Escape' || actionInFlight) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            closeDownloadOptionsDialog(backdrop);
+        };
         document.addEventListener('visibilitychange', handleProgressRestore, { passive: true });
+        document.addEventListener('keydown', handleDialogKeydown, true);
         global.addEventListener('pageshow', handleProgressRestore, { passive: true });
         backdrop.__foxbearCleanup = () => {
             stopProgressClock();
             document.removeEventListener('visibilitychange', handleProgressRestore);
+            document.removeEventListener('keydown', handleDialogKeydown, true);
             global.removeEventListener('pageshow', handleProgressRestore);
         };
 

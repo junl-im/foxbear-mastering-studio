@@ -1,15 +1,24 @@
-# FoxBear Status - v1.5.56
+# FoxBear Status - v1.5.57
 
-## v1.5.56 current focus
+## v1.5.57 current focus
 
-- Administrator incident operations now expose recent reports, delivery state, retry timing, and immediate resend requests.
-- Failed SMTP reservations are released and retried up to three times at bounded delays.
-- A scheduled 09:00 Asia/Seoul digest summarizes the previous KST day.
-- Firebase App Check client support and CSP are ready, but a real reCAPTCHA Enterprise site key and console enforcement are still deployment steps.
+- All true modal dialogs use one shared top-right close-control component.
+- Runtime-created AI, download, save-assist, mobile settings, and select dialogs inherit the same close geometry.
+- Escape dismissal and focus restoration are required for runtime-created modal surfaces.
+- Legacy per-dialog CSS may remain for panel layout, but final close-button ownership belongs to `modal-close-system.css`.
+
+
+## v1.5.55 current focus
+
+- Automatic incident collection covers critical boot, resource, runtime, mastering, quality-recovery, export, update-safety, and release-generation failures.
+- Audio, filenames, PCM data, full local paths, email addresses, long tokens, and URL query secrets are excluded or redacted.
+- Firestore ingestion is create-only; owners can read only their own delivery status and administrators can list reports.
+- The Cloud Function sends to `mcwoogi@gmail.com` using a Secret Manager-bound Gmail app password, with duplicate and daily rate limits.
+- Deployment still requires the real Firebase secret, Functions deployment, and a live test email.
 
 ## Current status
 
-Incident operations, retry scheduling, daily summaries, and App Check readiness are implemented in source. Live verification still requires Firebase deployment, the existing Gmail app-password secret, a reCAPTCHA Enterprise site key, and post-deploy App Check metrics review.
+Automatic incident reporting is implemented in source. Static/package verification is required before release; real email delivery remains pending until the Firebase secret and Cloud Function are deployed.
 
 ## Release invariants
 
@@ -27,10 +36,10 @@ Incident operations, retry scheduling, daily summaries, and App Check readiness 
 
 ## Current release
 
-- Product version: `1.5.56`
-- Build ID: `incident-operations-app-check`
-- Asset version: `1.5.56-incident-operations-app-check`
-- Service worker cache: `foxbear-shell-v1.5.56-incident-operations-app-check`
+- Product version: `1.5.57`
+- Build ID: `modal-close-consistency`
+- Asset version: `1.5.57-modal-close-consistency`
+- Service worker cache: `foxbear-shell-v1.5.57-modal-close-consistency`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -62,7 +71,7 @@ Incident operations, retry scheduling, daily summaries, and App Check readiness 
 
 ## Release metadata
 
-- Product version: `1.5.56`
-- Build ID: `incident-operations-app-check`
-- Asset version: `1.5.56-incident-operations-app-check`
-- Service worker cache: `foxbear-shell-v1.5.56-incident-operations-app-check`
+- Product version: `1.5.57`
+- Build ID: `modal-close-consistency`
+- Asset version: `1.5.57-modal-close-consistency`
+- Service worker cache: `foxbear-shell-v1.5.57-modal-close-consistency`
