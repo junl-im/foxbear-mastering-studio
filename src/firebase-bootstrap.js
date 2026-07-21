@@ -268,7 +268,7 @@ async function logVisit(payload = {}) {
 
 const INCIDENT_SEVERITIES = new Set(['warning', 'error', 'fatal']);
 const INCIDENT_CATEGORIES = new Set([
-    'runtime', 'resource', 'boot', 'mastering', 'quality-recovery', 'export',
+    'runtime', 'resource', 'boot', 'mastering', 'mastering-memory', 'quality-recovery', 'export',
     'update-safety', 'release-mismatch', 'firebase', 'manual-test', 'unknown'
 ]);
 

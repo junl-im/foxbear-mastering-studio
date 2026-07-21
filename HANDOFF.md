@@ -1,4 +1,11 @@
-# Handoff - v1.5.60
+# Handoff - v1.5.61
+
+## v1.5.61 인수인계
+
+- 마스터링 전에 `window.FoxBearWorkerJobService`가 존재하는지 확인하고, 단일 트랙 마스터링과 MP3/WAV 인코딩을 각각 실행합니다.
+- 프로그램 정보의 `테스트 메일`은 매번 고유 보고서를 생성하므로 `emailed`, `failed`, `pending`, 상태 조회 실패를 구분해 확인할 수 있습니다.
+- Functions 배포 시 `sendIncidentEmail`, `retryFailedIncidentEmails`, `retryIncidentEmailRequest`, `sendDailyIncidentSummary`와 Firestore Rules를 함께 배포해야 합니다.
+
 
 ## v1.5.60 인수인계
 

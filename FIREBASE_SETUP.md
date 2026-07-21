@@ -40,7 +40,8 @@ firebase functions:secrets:set FOXBEAR_GMAIL_APP_PASSWORD
 npm install
 npm --prefix functions install
 npm run check:release
-firebase deploy --only firestore:rules,functions:sendIncidentEmail,hosting
+npm run deploy:incident
+firebase deploy --only hosting
 ```
 
 ## 5. 실제 발송 테스트
@@ -51,6 +52,7 @@ firebase deploy --only firestore:rules,functions:sendIncidentEmail,hosting
 4. `테스트 메일`을 누릅니다.
 5. 화면에 발송 완료가 표시되고 `mcwoogi@gmail.com`에 메일이 도착하는지 확인합니다.
 6. Firestore `incidentReports` 문서에서 `delivery.status`가 `emailed`인지 확인합니다.
+7. `pending`이 2분 이상 유지되면 `retryFailedIncidentEmails` 배포 여부와 Functions 로그를 확인합니다.
 
 ## 6. Firestore TTL
 

@@ -1,8 +1,8 @@
-// FoxBear memory guard service v1.5.60 - release-after-encode PCM retention policy and diagnostics
+// FoxBear memory guard service v1.5.61 - release-after-encode PCM retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const VERSION = 'v1.5.60-kakao-inapp-entry-memory-governor';
+    const VERSION = 'v1.5.61-worker-mail-delivery-recovery';
     const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 

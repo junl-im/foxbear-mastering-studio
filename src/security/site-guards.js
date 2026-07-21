@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.5.60 - site and UI guard helpers
+// FoxBear AI Mastering Studio Pro v1.5.61 - site and UI guard helpers
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.60-kakao-inapp-entry-memory-governor';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.5.61-worker-mail-delivery-recovery';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

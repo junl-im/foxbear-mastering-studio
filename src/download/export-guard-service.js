@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.5.60 - ZIP working-set limits and STORE-only audio packaging
+// FoxBear export guard service v1.5.61 - ZIP working-set limits and STORE-only audio packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.5.60-kakao-inapp-entry-memory-governor';
+    const VERSION = 'v1.5.61-worker-mail-delivery-recovery';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

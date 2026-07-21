@@ -61,10 +61,23 @@ function retryDelayMs(attemptCount) {
   return RETRY_DELAYS_MS[index];
 }
 
+function normalizedGmailAppPassword() {
+  const password = String(GMAIL_APP_PASSWORD.value() || '').replace(/\s+/g, '');
+  if (password.length < 16) {
+    const error = new Error('FOXBEAR_GMAIL_APP_PASSWORD is missing or invalid. Re-register the Gmail app password in Firebase Secret Manager.');
+    error.code = 'FOXBEAR_GMAIL_SECRET_INVALID';
+    throw error;
+  }
+  return password;
+}
+
 function createTransport() {
   return nodemailer.createTransport({
     service: 'gmail',
-    auth: { user: ALERT_SENDER, pass: GMAIL_APP_PASSWORD.value() }
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 30000,
+    auth: { user: ALERT_SENDER, pass: normalizedGmailAppPassword() }
   });
 }
 
@@ -148,6 +161,24 @@ function buildDailySummaryMail(reports, dateKey) {
   return { subject, text: lines.join('\n'), html };
 }
 
+function isIncidentDeliveryDue(data = {}, now = Date.now()) {
+  const delivery = data.delivery || {};
+  const status = cleanText(delivery.status || 'pending', 40);
+  const attemptCount = Math.max(0, Number(delivery.attemptCount || 0));
+  if (status === 'emailed' || status === 'suppressed-duplicate' || status === 'suppressed-rate-limit') return false;
+  if (attemptCount >= MAX_DELIVERY_ATTEMPTS || delivery.terminal === true) return false;
+  if (status === 'failed') {
+    const nextRetryAt = timestampMillis(delivery.nextRetryAt);
+    return !nextRetryAt || nextRetryAt <= now;
+  }
+  if (status === 'sending' || status === 'retrying') {
+    const leaseUntil = timestampMillis(delivery.leaseUntil);
+    return !leaseUntil || leaseUntil <= now;
+  }
+  const createdAt = timestampMillis(data.createdAt || data.clientAt);
+  return !createdAt || createdAt <= now - 2 * 60 * 1000;
+}
+
 async function reserveDelivery(reportRef, options = {}) {
   const now = Date.now();
   const reportId = reportRef.id;
@@ -174,14 +205,16 @@ async function reserveDelivery(reportRef, options = {}) {
     const lastSentAt = timestampMillis(fingerprintState.lastSentAt);
     const reservedAt = timestampMillis(fingerprintState.reservedAt);
     const reservationId = cleanText(fingerprintState.reservationId || '', 180);
-    if (lastSentAt && now - lastSentAt < DUPLICATE_WINDOW_MS) {
+    const manualTest = data.category === 'manual-test' && data.automatic === false;
+    const ownsExistingReservation = Boolean(reservedAt && reservationId === reportId);
+    if (!manualTest && lastSentAt && now - lastSentAt < DUPLICATE_WINDOW_MS) {
       transaction.update(reportRef, {
         delivery: { ...delivery, status: 'suppressed-duplicate', reason: 'fingerprint-cooldown', checkedAt: FieldValue.serverTimestamp() },
         expiresAt: Timestamp.fromMillis(now + REPORT_TTL_DAYS * 86400000)
       });
       return { allowed: false, reason: 'duplicate' };
     }
-    if (reservedAt && now - reservedAt < RESERVATION_WINDOW_MS && reservationId && reservationId !== reportId) {
+    if (!manualTest && reservedAt && now - reservedAt < RESERVATION_WINDOW_MS && reservationId && reservationId !== reportId) {
       return { allowed: false, reason: 'fingerprint-locked' };
     }
     const sentCount = Math.max(0, Number(dailyState.sentCount || 0));
@@ -208,7 +241,7 @@ async function reserveDelivery(reportRef, options = {}) {
     transaction.set(dailyRef, {
       dateKey: utcDateKey(),
       sentCount,
-      reservedCount: reservedCount + 1,
+      reservedCount: reservedCount + (ownsExistingReservation ? 0 : 1),
       lastReservedAt: FieldValue.serverTimestamp(),
       expiresAt: Timestamp.fromMillis(now + STATE_TTL_DAYS * 86400000)
     }, { merge: true });
@@ -290,7 +323,13 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
 }
 
 async function processIncidentReport(reportRef, options = {}) {
-  const reservation = await reserveDelivery(reportRef, options);
+  let reservation;
+  try {
+    reservation = await reserveDelivery(reportRef, options);
+  } catch (error) {
+    console.error('FoxBear incident reservation failed', { reportId: reportRef.id, error: cleanText(error?.message || error, 300) });
+    return { ok: false, status: 'pending', reason: cleanText(error?.code || error?.name || 'reservation-error', 80) };
+  }
   if (!reservation.allowed) return { ok: false, skipped: true, reason: reservation.reason };
   const mail = buildMail(reservation.data, reportRef.id);
   try {
@@ -326,14 +365,12 @@ exports.retryFailedIncidentEmails = onSchedule({
 }, async () => {
   const now = Date.now();
   const snapshot = await db.collection('incidentReports')
-    .where('delivery.status', '==', 'failed')
-    .limit(20)
+    .orderBy('createdAt', 'desc')
+    .limit(80)
     .get();
-  const due = snapshot.docs.filter(docSnapshot => {
-    const delivery = docSnapshot.data()?.delivery || {};
-    return !delivery.terminal && Number(delivery.attemptCount || 0) < MAX_DELIVERY_ATTEMPTS
-      && (!delivery.nextRetryAt || timestampMillis(delivery.nextRetryAt) <= now);
-  }).slice(0, 8);
+  const due = snapshot.docs
+    .filter(docSnapshot => isIncidentDeliveryDue(docSnapshot.data() || {}, now))
+    .slice(0, 8);
   for (const docSnapshot of due) {
     await processIncidentReport(docSnapshot.ref, { retry: true });
   }
@@ -419,5 +456,5 @@ exports.sendDailyIncidentSummary = onSchedule({
 
 exports.__test = Object.freeze({
   cleanText, escapeHtml, safeKey, buildMail, buildDailySummaryMail,
-  utcDateKey, kstDayRange, retryDelayMs
+  utcDateKey, kstDayRange, retryDelayMs, isIncidentDeliveryDue, normalizedGmailAppPassword
 });

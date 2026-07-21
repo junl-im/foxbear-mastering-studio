@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.60 - stable-idle and cross-tab activity guard
+// FoxBear service worker update coordinator v1.5.61 - stable-idle and cross-tab activity guard
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.60-kakao-inapp-entry-memory-governor';
+  const VERSION = '1.5.61-worker-mail-delivery-recovery';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.60-kakao-inapp-entry-memory-governor';
+  const VIEW_VERSION = '1.5.61-worker-mail-delivery-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -1,4 +1,11 @@
-# FoxBear Status - v1.5.60
+# FoxBear Status - v1.5.61
+
+## v1.5.61 current focus
+
+- The worker job service is an explicit boot dependency loaded before `app.js` and covered by SRI/order regression checks.
+- Manual incident-mail tests always create a fresh report and show actionable delivery-state failures.
+- Scheduled mail recovery scans pending, failed, and expired-lease reports instead of only retrying documents already marked failed.
+
 
 ## v1.5.60 current focus
 
@@ -48,10 +55,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.60`
-- Build ID: `kakao-inapp-entry-memory-governor`
-- Asset version: `1.5.60-kakao-inapp-entry-memory-governor`
-- Service worker cache: `foxbear-shell-v1.5.60-kakao-inapp-entry-memory-governor`
+- Product version: `1.5.61`
+- Build ID: `worker-mail-delivery-recovery`
+- Asset version: `1.5.61-worker-mail-delivery-recovery`
+- Service worker cache: `foxbear-shell-v1.5.61-worker-mail-delivery-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -83,7 +90,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.60`
-- Build ID: `kakao-inapp-entry-memory-governor`
-- Asset version: `1.5.60-kakao-inapp-entry-memory-governor`
-- Service worker cache: `foxbear-shell-v1.5.60-kakao-inapp-entry-memory-governor`
+- Product version: `1.5.61`
+- Build ID: `worker-mail-delivery-recovery`
+- Asset version: `1.5.61-worker-mail-delivery-recovery`
+- Service worker cache: `foxbear-shell-v1.5.61-worker-mail-delivery-recovery`

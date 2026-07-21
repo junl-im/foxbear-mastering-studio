@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.60",
-  "buildId": "kakao-inapp-entry-memory-governor",
+  "productVersion": "1.5.61",
+  "buildId": "worker-mail-delivery-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -72,6 +72,7 @@
   "deletePaths": [],
   "requiredRuntimeAssets": [
     "src/boot/service-worker-recovery-service.js",
+    "src/utils/worker-job-service.js",
     "src/audio/mastering-input-guard-service.js",
     "src/download/download-service.js",
     "src/download/export-guard-service.js",

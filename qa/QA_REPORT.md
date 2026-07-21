@@ -1,3 +1,18 @@
+# QA Report - v1.5.61 Worker and Incident Mail Delivery Recovery
+
+- Restored `src/utils/worker-job-service.js` as an explicit boot dependency before `app.js`.
+- Added Runtime Health, SRI, service-worker precache, and handoff guards for the worker job service.
+- Added unique manual email tests, Firebase readiness/status diagnostics, SMTP secret validation, and recovery scanning for pending, failed, and expired-lease reports.
+- Static regression target: all 268 configured checks PASS.
+
+## v1.5.61 coverage
+
+- mastering worker service boot and load order
+- worker cancellation/progress compatibility
+- unique end-to-end incident test submissions
+- stalled and missed Cloud Function recovery
+- Gmail app-password normalization and actionable failure state
+
 # QA Report - v1.5.60 Kakao In-App Entry and Adaptive Memory Governor
 
 - KakaoTalk opens the FoxBear studio in-app by default instead of forcing the external-browser landing.

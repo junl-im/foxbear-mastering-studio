@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.60-kakao-inapp-entry-memory-governor';
+    const FALLBACK_VERSION = '1.5.61-worker-mail-delivery-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -38,6 +38,7 @@
         'FoxBearSessionHandoff.attachToUrl',
         'FoxBearMasteringMemoryDiagnostics.capture',
         'FoxBearCoreUtils',
+        'FoxBearWorkerJobService.run',
         'FoxBearRecommendationEngine.createRecommendationEngine',
         'FoxBearMasteringInspector',
         'FoxBearHighlightCompareInspector.resolveCompareWindow',

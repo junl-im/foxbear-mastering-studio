@@ -1,3 +1,12 @@
+# v1.5.61 - Worker and Incident Mail Delivery Recovery
+
+- Restored the missing `worker-job-service.js` boot script before `app.js`, fixing mastering failures that reported the worker job management service could not be loaded.
+- Added a release regression guard so the worker service URL, load order, SRI, and service-worker precache cannot silently diverge again.
+- Made test-email submissions unique and extended delivery-status polling with actionable Firebase and Function failure details.
+- Hardened Gmail secret normalization and SMTP connection timeouts.
+- Expanded scheduled recovery to retry pending, failed, and lease-expired incident reports, while reclaiming stale reservations without leaking the daily reservation counter.
+- Fixed release packaging so installed nested `node_modules` symlinks are excluded from source-symlink validation instead of blocking a valid ZIP build.
+
 # v1.5.60 - 2026-07-22
 
 ## Kakao in-app entry recovery and adaptive memory governor

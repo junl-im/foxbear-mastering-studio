@@ -1,4 +1,11 @@
-# FoxBear AI Mastering Studio Pro v1.5.60
+# FoxBear AI Mastering Studio Pro v1.5.61
+
+## v1.5.61 핵심 변경
+
+- 누락된 워커 작업 관리 서비스를 부팅 순서에 복구해 마스터링 시작 즉시 실패하던 문제를 해결했습니다.
+- 테스트 메일을 매번 신규 보고서로 생성하고 Firebase/Cloud Function 상태 오류를 화면에 구체적으로 표시합니다.
+- 메일 재시도 작업이 실패 건뿐 아니라 대기·중단·임대 만료 건도 회수하도록 강화했습니다.
+
 
 ## v1.5.60 핵심 변경
 

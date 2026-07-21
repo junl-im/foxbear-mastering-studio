@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.60
+// FoxBear automatic incident reporter - v1.5.61
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.60-kakao-inapp-entry-memory-governor';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.61-worker-mail-delivery-recovery';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -12,10 +12,12 @@
     const MAX_AUTOMATIC_PER_SESSION = 5;
     const MAX_AUTOMATIC_PER_DAY = 12;
     const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
-    const SEND_TIMEOUT_MS = 9000;
+    const SEND_TIMEOUT_MS = 12000;
+    const FIREBASE_READY_TIMEOUT_MS = 15000;
+    const DELIVERY_STATUS_TIMEOUT_MS = 45000;
     const ALLOWED_SEVERITIES = new Set(['warning', 'error', 'fatal']);
     const ALLOWED_CATEGORIES = new Set([
-        'runtime', 'resource', 'boot', 'mastering', 'quality-recovery', 'export',
+        'runtime', 'resource', 'boot', 'mastering', 'mastering-memory', 'quality-recovery', 'export',
         'update-safety', 'release-mismatch', 'firebase', 'manual-test', 'unknown'
     ]);
 
@@ -204,15 +206,53 @@
     }
 
     function withTimeout(promise, timeoutMs = SEND_TIMEOUT_MS) {
-        return Promise.race([
-            promise,
-            new Promise((_, reject) => global.setTimeout(() => reject(Object.assign(new Error('Incident delivery timeout'), { code: 'FOXBEAR_INCIDENT_TIMEOUT' })), timeoutMs))
-        ]);
+        return new Promise((resolve, reject) => {
+            const timer = global.setTimeout(() => reject(Object.assign(new Error('Incident delivery timeout'), { code: 'FOXBEAR_INCIDENT_TIMEOUT' })), timeoutMs);
+            Promise.resolve(promise).then(
+                value => { global.clearTimeout(timer); resolve(value); },
+                error => { global.clearTimeout(timer); reject(error); }
+            );
+        });
+    }
+
+    function waitForFirebaseBridge(timeoutMs = FIREBASE_READY_TIMEOUT_MS) {
+        const current = global.FoxBearFirebase;
+        if (current?.ready === true && current?.logIncident && current?.getIncidentDelivery) return Promise.resolve(current);
+        return new Promise((resolve, reject) => {
+            let settled = false;
+            let timer = 0;
+            const cleanup = () => {
+                if (timer) global.clearTimeout(timer);
+                global.removeEventListener('foxbear:firebase-ready', onReady);
+                global.removeEventListener('foxbear:firebase-error', onError);
+            };
+            const finish = (callback, value) => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                callback(value);
+            };
+            const onReady = () => {
+                const bridge = global.FoxBearFirebase;
+                if (bridge?.ready === true && bridge?.logIncident && bridge?.getIncidentDelivery) finish(resolve, bridge);
+            };
+            const onError = event => {
+                const message = cleanText(event?.detail?.error || global.FoxBearFirebase?.error || 'Firebase initialization failed', 300);
+                const error = Object.assign(new Error(message), { code: 'FOXBEAR_INCIDENT_FIREBASE_ERROR' });
+                finish(reject, error);
+            };
+            global.addEventListener('foxbear:firebase-ready', onReady);
+            global.addEventListener('foxbear:firebase-error', onError);
+            timer = global.setTimeout(() => {
+                const message = cleanText(global.FoxBearFirebase?.error || 'Firebase incident bridge unavailable', 300);
+                finish(reject, Object.assign(new Error(message), { code: 'FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE' }));
+            }, Math.max(1000, Number(timeoutMs || FIREBASE_READY_TIMEOUT_MS)));
+            onReady();
+        });
     }
 
     async function deliver(payload) {
-        const bridge = global.FoxBearFirebase;
-        if (!bridge?.logIncident) throw Object.assign(new Error('Firebase incident bridge unavailable'), { code: 'FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE' });
+        const bridge = await waitForFirebaseBridge();
         return withTimeout(bridge.logIncident(payload));
     }
 
@@ -240,7 +280,7 @@
             state.failed += 1;
             state.lastError = cleanText(error?.message || error, 300);
             queueIncident(payload);
-            return Object.freeze({ ok: false, queued: true, fingerprint: payload.fingerprint, reason: state.lastError });
+            return Object.freeze({ ok: false, queued: true, fingerprint: payload.fingerprint, code: cleanText(error?.code || error?.name || 'FOXBEAR_INCIDENT_DELIVERY_FAILED', 80), reason: state.lastError });
         }
     }
 
@@ -305,25 +345,41 @@
         }, { automatic: true });
     }
 
-    async function waitForDelivery(reportId, timeoutMs = 20000) {
-        const bridge = global.FoxBearFirebase;
-        if (!reportId || !bridge?.getIncidentDelivery) return { status: 'submitted', reason: 'delivery-status-unavailable' };
+    async function waitForDelivery(reportId, timeoutMs = DELIVERY_STATUS_TIMEOUT_MS) {
+        if (!reportId) return { status: 'submitted', reason: 'delivery-status-unavailable' };
+        let bridge;
+        try {
+            bridge = await waitForFirebaseBridge();
+        } catch (error) {
+            return { status: 'status-check-failed', reason: cleanText(error?.message || error, 160), code: cleanText(error?.code || error?.name || '', 80) };
+        }
         const startedAt = Date.now();
+        let lastCheckError = null;
         while (Date.now() - startedAt < timeoutMs) {
-            const delivery = await bridge.getIncidentDelivery(reportId).catch(error => ({ status: 'unknown', reason: cleanText(error?.message || error, 120) }));
-            if (['emailed', 'failed', 'suppressed-duplicate', 'suppressed-rate-limit'].includes(delivery.status)) return delivery;
+            try {
+                const delivery = await bridge.getIncidentDelivery(reportId);
+                lastCheckError = null;
+                if (['emailed', 'failed', 'suppressed-duplicate', 'suppressed-rate-limit'].includes(delivery.status)) return delivery;
+            } catch (error) {
+                lastCheckError = error;
+            }
             await new Promise(resolve => global.setTimeout(resolve, 1800));
+        }
+        if (lastCheckError) {
+            return { status: 'status-check-failed', reason: cleanText(lastCheckError?.message || lastCheckError, 160), code: cleanText(lastCheckError?.code || lastCheckError?.name || '', 80) };
         }
         return { status: 'pending', reason: 'function-not-finished' };
     }
 
     async function test() {
+        const testId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
         const submission = await report({
             category: 'manual-test',
             severity: 'warning',
             reason: 'manual-test',
             message: 'FoxBear automatic incident email test',
-            context: 'This is a user-triggered delivery verification. No audio data or file name is included.'
+            fingerprint: `manual-test-${testId}`,
+            context: `This is a user-triggered delivery verification (${testId}). No audio data or file name is included.`
         }, { automatic: false, manual: true, force: true });
         const reportId = submission?.result?.reportId || '';
         if (!submission.ok || !reportId) return submission;
@@ -360,16 +416,21 @@
                 testButton.disabled = true;
                 renderControls('테스트 신고를 제출하고 메일 상태를 확인 중입니다…');
                 const result = await test();
-                const status = result?.delivery?.status || (result?.ok ? 'submitted' : result?.reason || 'failed');
+                const status = result?.delivery?.status || (result?.ok ? 'submitted' : result?.code || 'failed');
                 const messages = {
                     emailed: '테스트 메일 발송 완료: mcwoogi@gmail.com',
-                    pending: '신고는 저장됐지만 메일 함수 완료를 아직 확인하지 못했습니다.',
+                    pending: '신고는 저장됐지만 45초 안에 메일 함수 완료를 확인하지 못했습니다.',
                     submitted: '신고 저장 완료. 메일 함수 배포 상태를 확인하세요.',
+                    'status-check-failed': '신고 저장 후 메일 상태 조회에 실패했습니다.',
+                    FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE: 'Firebase 연결이 준비되지 않아 테스트 신고를 로컬 대기열에 저장했습니다.',
+                    FOXBEAR_INCIDENT_FIREBASE_ERROR: 'Firebase 초기화 오류로 테스트 신고를 로컬 대기열에 저장했습니다.',
                     'suppressed-duplicate': '동일 테스트가 중복 억제됐습니다.',
                     'suppressed-rate-limit': '서버 일일 메일 상한으로 억제됐습니다.',
                     failed: '메일 발송 함수가 실패했습니다. Firestore delivery 상태를 확인하세요.'
                 };
-                renderControls(messages[status] || `테스트 결과: ${status}`);
+                const detail = cleanText(result?.delivery?.message || result?.delivery?.reason || result?.reason || '', 140);
+                const baseMessage = messages[status] || `테스트 결과: ${status}`;
+                renderControls(detail && !['emailed', 'suppressed-duplicate'].includes(status) ? `${baseMessage} · ${detail}` : baseMessage);
                 testButton.disabled = !isEnabled();
             });
         }
@@ -422,6 +483,7 @@
         isEnabled,
         setEnabled,
         getStatus,
-        waitForDelivery
+        waitForDelivery,
+        waitForFirebaseBridge
     });
 })(window);

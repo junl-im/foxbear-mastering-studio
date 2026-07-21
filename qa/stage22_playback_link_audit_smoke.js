@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.60-kakao-inapp-entry-memory-governor';
+const version = '1.5.61-worker-mail-delivery-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

@@ -14,6 +14,7 @@ cd "${ROOT_DIR}"
 SYMLINKS="$(find . -type l \
   -not -path './.git/*' \
   -not -path './node_modules/*' \
+  -not -path '*/node_modules/*' \
   -not -path './dist/*' \
   -not -path './qa/browser-results/*' \
   -not -path './test-results/*' \
