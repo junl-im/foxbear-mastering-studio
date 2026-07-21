@@ -12,7 +12,7 @@ FoxBear 패치는 **GitHub Desktop을 기본 Git 클라이언트로 사용하는
 권장 브랜치 이름:
 
 ```text
-patch/v1.5.40
+patch/v1.5.46
 ```
 
 ## 누적 덮어쓰기 ZIP 적용

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.45-export-queue-recovery';
+  const VIEW_VERSION = '1.5.46-engine-recommendation-api-audit';
   const DEFAULT_BINS = 96;
 
   function getService() {

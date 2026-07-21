@@ -1,18 +1,17 @@
-# FoxBear AI Mastering Studio Pro v1.5.45
+# FoxBear AI Mastering Studio Pro v1.5.46
 
-## Current patch: v1.5.45 Export Queue Recovery
+## Current patch: v1.5.46 Engine, Recommendation, and API Audit
 
-곡별 순차 저장에 일시정지·계속, 백그라운드 복귀 복구, 저장 실패 원인별 안내, 직접 저장 예상시간을 추가했습니다. 저장공간·권한·브라우저 미지원·파일 쓰기·네트워크 오류를 구분하며, 큐 종료 뒤 서비스워커 업데이트 보류 상태가 남지 않도록 수정했습니다.
+추천값 입력을 유한수로 정규화하고, 추천 프리셋·요청값·실제 적용 DSP 값을 마스터 보고서에 분리 기록합니다. 품질 게이트는 최종 True Peak를 우선 판정하며, 파일명과 내보내기 보고서는 실제 렌더 타깃을 사용합니다. Firebase CDN SDK는 12.16.0으로 갱신했습니다.
 
 Release metadata:
 
 ```text
-product: 1.5.45
-build: export-queue-recovery
-asset generation: 1.5.45-export-queue-recovery
-service worker cache: foxbear-shell-v1.5.45-export-queue-recovery
+product: 1.5.46
+build: engine-recommendation-api-audit
+asset generation: 1.5.46-engine-recommendation-api-audit
+service worker cache: foxbear-shell-v1.5.46-engine-recommendation-api-audit
 ```
-
 
 ## CI and local Git hooks
 

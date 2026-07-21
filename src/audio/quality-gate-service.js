@@ -33,6 +33,11 @@
         return Math.min(max, Math.max(min, value));
     }
 
+    function ampToDb(value) {
+        const amplitude = Math.abs(toNumber(value, 0));
+        return 20 * Math.log10(Math.max(0.000001, amplitude));
+    }
+
     function absMax(values) {
         return values.reduce((max, value) => Math.max(max, Math.abs(toNumber(value, 0))), 0);
     }
@@ -94,9 +99,16 @@
             addItem(items, 'Short-term LUFS', 'warn', '구간별 라우드니스 통계 없음');
         }
 
-        const peakDb = toNumber(report?.after?.peakDb);
+        const reportedTruePeakDb = toNumber(report?.after?.truePeakDbTP);
+        const finalizerTruePeak = toNumber(finalizeInfo?.peakAfter);
+        const truePeakDb = Number.isFinite(reportedTruePeakDb)
+            ? reportedTruePeakDb
+            : (Number.isFinite(finalizerTruePeak) && finalizerTruePeak > 0 ? ampToDb(finalizerTruePeak) : NaN);
+        const samplePeakDb = toNumber(report?.after?.samplePeakDb ?? report?.after?.peakDb);
+        const peakDb = Number.isFinite(truePeakDb) ? truePeakDb : samplePeakDb;
+        const peakUnit = Number.isFinite(truePeakDb) ? 'dBTP' : 'dBFS';
         const ceiling = toNumber(report?.target?.ceilingDb ?? finalizeInfo?.ceilingDb ?? input.ceilingDb);
-        addItem(items, '피크 천장', Number.isFinite(peakDb) && peakDb <= ceiling + rules.peakMarginDb ? 'pass' : 'warn', Number.isFinite(peakDb) ? `최종 ${peakDb.toFixed(2)} dBFS · 천장 ${ceiling.toFixed(1)} dB` : '측정값 없음');
+        addItem(items, Number.isFinite(truePeakDb) ? 'True Peak 천장' : '피크 천장', Number.isFinite(peakDb) && peakDb <= ceiling + rules.peakMarginDb ? 'pass' : 'warn', Number.isFinite(peakDb) ? `최종 ${peakDb.toFixed(2)} ${peakUnit} · 천장 ${ceiling.toFixed(1)} dB` : '측정값 없음', { peakDb, peakUnit, samplePeakDb, truePeakDb });
 
         const invalid = toNumber(report?.after?.invalidSamples || 0, 0);
         addItem(items, 'Invalid sample scan', invalid === 0 ? 'pass' : 'fail', invalid === 0 ? 'NaN/Infinity 없음' : `${invalid}개 비정상 샘플 감지`);

@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.45 - stable-idle and cross-tab activity guard
+// FoxBear service worker update coordinator v1.5.46 - stable-idle and cross-tab activity guard
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.45-export-queue-recovery';
+  const VERSION = '1.5.46-engine-recommendation-api-audit';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

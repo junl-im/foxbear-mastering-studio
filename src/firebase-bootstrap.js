@@ -20,7 +20,7 @@ let getValue;
 let isRemoteConfigSupported;
 let firebaseModulesPromise = null;
 
-const FIREBASE_SDK_VERSION = '12.14.0';
+const FIREBASE_SDK_VERSION = '12.16.0';
 const FIREBASE_MODULE_BASE = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
 const FIREBASE_CONFIG = Object.freeze({
     apiKey: 'AIzaSyBvYuYlN6etTd3B6C_ZGvsaAktbWJU8yOs',

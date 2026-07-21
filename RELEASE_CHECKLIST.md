@@ -1,3 +1,13 @@
+## v1.5.46 engine, recommendation, and API audit checks
+
+- [ ] Incomplete analysis metadata never produces NaN recommendation settings.
+- [ ] Genre-lock recommendation applies exactly once.
+- [ ] Master report records recommended, requested, and effective DSP values.
+- [ ] True Peak ceiling warnings use finalizer telemetry when available.
+- [ ] Adaptive render target appears in filename and export report.
+- [ ] Firebase CDN module version is 12.16.0.
+- [ ] Engine bench, golden audio, quality gate, and v1.5.46 smoke pass.
+
 ## v1.5.42 ZIP worker cancellation checks
 
 - [ ] Large ZIP generation keeps the main UI responsive.

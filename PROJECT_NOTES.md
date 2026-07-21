@@ -1,3 +1,13 @@
+# Current Project Notes - v1.5.46
+
+## v1.5.46 focus
+
+- Recommendation mapping must tolerate missing, stale, and non-finite analysis metadata without producing NaN DSP settings.
+- Master reports distinguish recommended values, user-requested values, and safety-adjusted effective DSP values.
+- Quality gating uses finalizer True Peak telemetry when available and keeps sample peak as diagnostic fallback.
+- Filenames and export reports reflect the render-time target snapshot rather than mutable global controls.
+- Firebase CDN modules are pinned to 12.16.0.
+
 # Current Project Notes - v1.5.45
 
 ## v1.5.45 focus

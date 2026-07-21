@@ -1,3 +1,17 @@
+# QA Report - v1.5.46 Engine, Recommendation, and API Audit
+
+- Engine bench and golden-audio pack remain required release gates.
+- Added deterministic checks for finite-safe recommendations, duplicate-apply removal, render-time target reporting, Firebase 12.16.0, and True Peak-first quality gating.
+- Static and regression result: `239/239 PASS` (the final latest-release segment was completed separately after the long-run time ceiling).
+
+## v1.5.46 coverage
+
+- recommendation finite-value normalization
+- recommended/requested/effective DSP audit trail
+- True Peak ceiling warning with sample-peak fallback
+- adaptive target filename and export-report integrity
+- Firebase 12.16.0 pin and browser capability guards
+
 # QA Report - v1.5.45 Export Queue Recovery
 
 - Static and regression result: `238/238 PASS` (completed by continuing the registered list after the runner time ceiling).

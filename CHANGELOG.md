@@ -1,3 +1,12 @@
+# v1.5.46 - Engine, Recommendation, and API Audit
+
+- Hardened recommendation mapping against incomplete or non-finite analysis values.
+- Removed a duplicate recommendation assignment in the genre-lock path.
+- Changed quality-gate peak auditing to prefer finalizer True Peak telemetry over sample peak fallback.
+- Recorded recommended, requested, and effective DSP settings in each master report.
+- Bound mastered filenames and export reports to the target actually used by the render.
+- Updated Firebase CDN modules from 12.14.0 to 12.16.0 and added v1.5.46 regression coverage.
+
 # v1.5.45 - Export Queue Recovery and Diagnostics
 
 - Added pause/resume controls for the gesture-safe individual export queue.

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.45 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.46 - app slim-down orchestration bridge
 'use strict';
 const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
@@ -18,7 +18,7 @@ const FoxBearMasteringInspector = window.FoxBearMasteringInspector || {};
 const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.45';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.46';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -62,7 +62,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.45-export-queue-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1545'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.46-engine-recommendation-api-audit'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1546'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -3001,7 +3001,7 @@ async function registerFoxBearServiceWorker() {
     const mobile = ensureMobileNativeState();
     if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.45-export-queue-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.45-export-queue-recovery&h=sw-v1545')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.46-engine-recommendation-api-audit') · navigator.serviceWorker.register('./sw.js?v=1.5.46-engine-recommendation-api-audit&h=sw-v1546')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3808,7 +3808,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.45-export-queue-recovery', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.46-engine-recommendation-api-audit', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4122,7 +4122,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.45-export-queue-recovery',
+        version: '1.5.46-engine-recommendation-api-audit',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4162,7 +4162,7 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.45-export-queue-recovery',
+    version: '1.5.46-engine-recommendation-api-audit',
     getSnapshot: getMasteringQueueSnapshot
 });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
@@ -4189,12 +4189,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.45-export-queue-recovery', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.46-engine-recommendation-api-audit', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.45-export-queue-recovery', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.46-engine-recommendation-api-audit', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4209,12 +4209,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.45-export-queue-recovery',
+    version: 'v1.5.46-engine-recommendation-api-audit',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.45-export-queue-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.46-engine-recommendation-api-audit', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5026,16 +5026,13 @@ function buildCandidateExplainText(track, candidate) {
 function makeRecommendedSettings(preset, analysis) {
     const base = cloneSettings(GENRE_PRESETS[preset] || GENRE_PRESETS.custom);
     if (!analysis || analysis.silence) return base;
-    const bright = analysis.brightness;
-    const wide = analysis.stereoWidth;
-    const crestNorm = clamp01((analysis.crest - 2.2) / 8.5);
-    const spatialRisk = clamp01(Number(analysis.spatialExcessRisk || 0));
-    const widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 72;
+    const finiteOr = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback, bright = clamp01(finiteOr(analysis.brightness, 0.48)), wide = clamp01(finiteOr(analysis.stereoWidth, 0.38)), crest = finiteOr(analysis.crest, 5.0), metallicHint = clamp01(finiteOr(analysis.metallicHint, 0.42));
+    const crestNorm = clamp01((crest - 2.2) / 8.5), spatialRisk = clamp01(finiteOr(analysis.spatialExcessRisk, 0)), widthLimit = Number.isFinite(Number(analysis.widthRecommendationLimit)) ? Number(analysis.widthRecommendationLimit) : 72;
     base.clarity = clamp(Math.round(base.clarity + (0.48 - bright) * 10), 8, 82);
     base.warmth = clamp(Math.round(base.warmth + (bright - 0.52) * 7), 10, 86);
     base.width = clamp(Math.round(base.width + (0.38 - wide) * 10), 10, 72);
     base.dynamicPunch = clamp(Math.round(base.dynamicPunch + (0.48 - crestNorm) * 8), 10, 74);
-    base.metallicRemoval = clamp(Math.round(base.metallicRemoval + (analysis.metallicHint - 0.42) * 24), 18, 78);
+    base.metallicRemoval = clamp(Math.round(base.metallicRemoval + (metallicHint - 0.42) * 24), 18, 78);
     if (preset === 'lofi') base.analogGroove = clamp(Math.round(base.analogGroove + (1 - bright) * 6), 10, 42);
     if (preset === 'kballad' || preset === 'rnb') base.width = clamp(base.width + 4, 30, 74);
     if (preset === 'dance' || preset === 'house' || preset === 'edm') base.dynamicPunch = clamp(base.dynamicPunch + 4, 35, 78);
@@ -5045,9 +5042,9 @@ function makeRecommendedSettings(preset, analysis) {
     if (preset === 'spatial') base.stereoGroove = clamp(base.stereoGroove + 3, 8, 24);
     if (preset === 'tape') base.analogGroove = clamp(base.analogGroove + 4, 18, 36);
     if (preset === 'punch') base.dynamicPunch = clamp(base.dynamicPunch + 5, 45, 82);
-    if (analysis.metallicHint > 0.72) base.clarity = clamp(base.clarity - 4, 8, 78);
-    if (analysis.crest > 5.8) base.intensity = clamp(base.intensity + 5, 50, 200);
-    if (analysis.metallicHint > 0.7) base.intensity = clamp(base.intensity + 5, 50, 200);
+    if (metallicHint > 0.72) base.clarity = clamp(base.clarity - 4, 8, 78);
+    if (crest > 5.8) base.intensity = clamp(base.intensity + 5, 50, 200);
+    if (metallicHint > 0.7) base.intensity = clamp(base.intensity + 5, 50, 200);
     const mobileRisk = estimateMobileSpeakerRisk(analysis, base, getMasteringIntensity(base));
     if (mobileRisk.risk > 0.30) {
         base.warmth = clamp(Math.round(base.warmth - mobileRisk.box * 7 - mobileRisk.boom * 5), 10, 84);
@@ -5326,7 +5323,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.45-export-queue-recovery-fallback',
+            version: '1.5.46-engine-recommendation-api-audit-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -8389,12 +8386,15 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
     const afterLufs = Number.isFinite(finalizeInfo?.loudnessAfter) ? finalizeInfo.loudnessAfter : after?.approxLufs;
     const shortTermBefore = measureShortTermLufsStats(beforeBuffer);
     const shortTermAfter = finalizeInfo?.shortTermLufs || measureShortTermLufsStats(finalBuffer);
-    const spatialBudget = track?.analysis?.spatialBudgetApplied || null;
+    const spatialBudget = track?.analysis?.spatialBudgetApplied || null, appliedProfile = track?.analysis?.sharedDspProfileApplied || null;
+    const recommendationApplication = { recommendedPreset: track?.recommendedPreset || '', appliedPreset: track?.preset || 'custom', genreLocked: Boolean(track?.genreLocked), confidence: Number(track?.confidence || 0), recommendedSettings: track?.recommendedSettings ? cloneSettings(track.recommendedSettings) : null, requestedSettings: track?.settings ? cloneSettings(track.settings) : null, effectiveSettings: appliedProfile?.effectiveSettings ? cloneSettings(appliedProfile.effectiveSettings) : null, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength };
+    const truePeakAmplitude = Number(finalizeInfo?.peakAfter), truePeakDbTP = Number.isFinite(truePeakAmplitude) && truePeakAmplitude > 0 ? ampToDb(truePeakAmplitude) : NaN;
     return {
         before: { ...before, approxLufs: beforeLufs },
-        after: { ...after, approxLufs: afterLufs },
+        after: { ...after, approxLufs: afterLufs, samplePeakDb: after?.peakDb, truePeak: truePeakAmplitude, truePeakDbTP },
         loudness: { shortTermBefore, shortTermAfter, standard: 'approx short-term K-weighted LUFS, 3s window / 1s hop' },
         target: { lufs: Number(finalizeInfo?.targetLufs ?? state.targetLufs), baseLufs: Number(state.targetLufs), adaptiveLufs: Boolean(state.adaptiveTargetLufs), ceilingDb: Number(finalizeInfo?.ceilingDb ?? state.ceilingDb), qualityMode: finalizeInfo?.qualityMode || state.qualityMode, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength, referenceMatchStrength: getReferenceMatchStrengthAmount() },
+        recommendationApplication,
         finalizer: {
             mode: finalizeInfo?.mode || '',
             limiterMode: finalizeInfo?.limiterMode || '',
@@ -12305,7 +12305,7 @@ function renderABStudioPanel(track) {
     return getDetailPanelsView().renderABStudioPanel(track, getDetailPanelsViewDeps());
 }
 function buildMasteredFileName(track, encoded) {
-    const lufs = Number(state.targetLufs);
+    const lufs = Number(track?.finalizeInfo?.targetLufs ?? track?.masterReport?.target?.lufs ?? state.targetLufs);
     const lufsPart = Number.isFinite(lufs) ? `${Math.abs(Math.round(lufs))}LUFS` : 'target';
     const style = String(state.masterStyle || 'master').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
     const format = String(encoded?.format || state.outputFormat || 'wav24').replace(/[^a-z0-9]+/gi, '').toLowerCase();
@@ -12734,7 +12734,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.45',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.46',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -12762,7 +12762,7 @@ function createExportReport(track) {
         qualityGate: track.qualityGate,
         waveformOverview: track.waveformOverview,
         performanceInfo: track.performanceInfo,
-        outputTarget: { masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength, targetLufs: state.targetLufs, ceilingDb: state.ceilingDb, qualityMode: state.qualityMode },
+        outputTarget: { masterGoal: track.masterReport?.target?.masterGoal ?? state.masterGoal, masterStyle: track.masterReport?.target?.masterStyle ?? state.masterStyle, masterStrength: track.masterReport?.target?.masterStrength ?? state.masterStrength, targetLufs: track.finalizeInfo?.targetLufs ?? track.masterReport?.target?.lufs ?? state.targetLufs, baseTargetLufs: track.masterReport?.target?.baseLufs ?? state.targetLufs, ceilingDb: track.finalizeInfo?.ceilingDb ?? track.masterReport?.target?.ceilingDb ?? state.ceilingDb, qualityMode: track.finalizeInfo?.qualityMode ?? track.masterReport?.target?.qualityMode ?? state.qualityMode },
         albumProfile: state.albumProfile,
         analysis: track.analysis,
         createdAt: new Date().toISOString()

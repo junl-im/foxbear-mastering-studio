@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.45",
-  "buildId": "export-queue-recovery",
+  "productVersion": "1.5.46",
+  "buildId": "engine-recommendation-api-audit",
   "requiredFiles": [
     ".gitignore",
     ".github/workflows/pages.yml",

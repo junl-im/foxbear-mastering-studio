@@ -3,7 +3,7 @@
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.5.45-export-queue-recovery';
+    const VISUALIZER_VERSION = '1.5.46-engine-recommendation-api-audit';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],

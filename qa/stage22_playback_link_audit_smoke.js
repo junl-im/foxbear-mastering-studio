@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.45-export-queue-recovery';
+const version = '1.5.46-engine-recommendation-api-audit';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

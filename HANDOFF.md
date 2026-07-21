@@ -1,4 +1,20 @@
-# Handoff - v1.5.45
+# Handoff - v1.5.46
+
+## v1.5.46 handoff focus
+
+- Load tracks with complete and intentionally incomplete analysis metadata; recommendation sliders must remain finite.
+- Compare recommended, requested, and effective DSP settings in the master report.
+- Confirm a True Peak ceiling violation warns even when sample peak remains below the ceiling.
+- Confirm adaptive target LUFS appears in mastered filenames and export reports.
+- Confirm Firebase modules load from the pinned 12.16.0 CDN path.
+
+```text
+product: 1.5.46
+build: engine-recommendation-api-audit
+asset generation: 1.5.46-engine-recommendation-api-audit
+service worker cache: foxbear-shell-v1.5.46-engine-recommendation-api-audit
+```
+
 
 ## v1.5.45 handoff focus
 
