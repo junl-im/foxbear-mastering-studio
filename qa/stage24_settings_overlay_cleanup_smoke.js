@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.49-asset-generation-route-recovery';
+const version = '1.5.50-pwa-current-cache-test-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

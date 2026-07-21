@@ -1,4 +1,4 @@
-// FoxBear ZIP encoder worker v1.5.49 - low-copy cancellable STORE packaging off the main thread
+// FoxBear ZIP encoder worker v1.5.50 - low-copy cancellable STORE packaging off the main thread
 'use strict';
 
 importScripts('../../vendor/jszip/jszip.min.js?v=3.10.1');

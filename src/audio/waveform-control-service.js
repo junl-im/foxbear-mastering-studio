@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.49-asset-generation-route-recovery';
+    const SERVICE_VERSION = '1.5.50-pwa-current-cache-test-recovery';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
     const barElementsCache = typeof WeakMap === 'function' ? new WeakMap() : null;

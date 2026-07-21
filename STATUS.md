@@ -1,21 +1,15 @@
-# FoxBear Status - v1.5.49
+# FoxBear Status - v1.5.50
 
-## v1.5.49 current focus
+## Current focus
 
-- Asset generations remain atomic across HTML, scripts, styles, and workers.
-- Runtime recovery returns to the canonical application root rather than preserving a 404 route.
-- One-shot service-worker bypass is consumed and old registrations are removed before delayed re-registration.
-
-## v1.5.47 current focus
-
-- Silent, corrupt, and unusably short input cannot report a successful master.
-- Finalizer and recommendation inputs remain finite under malformed analysis caches.
-- Mono, 96kHz, and 192kHz rendering preserve target loudness and True Peak limits.
-- Mastering cancellation is checked after every expensive asynchronous stage.
+- Browser offline recovery probes use only the active current-generation cache.
+- Legacy shell caches remain purge-only and can never satisfy runtime recovery.
+- E2E probe cleanup removes one temporary entry and preserves the active shell cache.
+- Service-worker update checks continue after offline recovery validation.
 
 ## Current status
 
-Asset-generation recovery is active. Static and regression QA is `245/245 PASS`, including engine, recommendation, export, mobile, SRI, route recovery, and service-worker generation checks.
+CI offline recovery coverage is corrected and protected by a dedicated current-cache regression test.
 
 ## Release invariants
 
@@ -33,11 +27,11 @@ Asset-generation recovery is active. Static and regression QA is `245/245 PASS`,
 
 ## Current release
 
-- Product version: `1.5.49`
-- Build ID: `asset-generation-route-recovery`
-- Asset version: `1.5.49-asset-generation-route-recovery`
-- Service worker cache: `foxbear-shell-v1.5.49-asset-generation-route-recovery`
-- Browser QA target: stale-cache recovery, canonical route restoration, complete runtime loading, and existing engine/export flows
+- Product version: `1.5.50`
+- Build ID: `pwa-current-cache-test-recovery`
+- Asset version: `1.5.50-pwa-current-cache-test-recovery`
+- Service worker cache: `foxbear-shell-v1.5.50-pwa-current-cache-test-recovery`
+- Browser QA target: silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
 
@@ -68,7 +62,7 @@ Asset-generation recovery is active. Static and regression QA is `245/245 PASS`,
 
 ## Release metadata
 
-- Product version: `1.5.49`
-- Build ID: `asset-generation-route-recovery`
-- Asset version: `1.5.49-asset-generation-route-recovery`
-- Service worker cache: `foxbear-shell-v1.5.49-asset-generation-route-recovery`
+- Product version: `1.5.50`
+- Build ID: `pwa-current-cache-test-recovery`
+- Asset version: `1.5.50-pwa-current-cache-test-recovery`
+- Service worker cache: `foxbear-shell-v1.5.50-pwa-current-cache-test-recovery`

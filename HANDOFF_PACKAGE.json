@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.49",
-  "buildId": "asset-generation-route-recovery",
+  "productVersion": "1.5.50",
+  "buildId": "pwa-current-cache-test-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

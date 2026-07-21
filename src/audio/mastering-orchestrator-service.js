@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.49-asset-generation-route-recovery',
+            version: '1.5.50-pwa-current-cache-test-recovery',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.49-asset-generation-route-recovery',
+        version: '1.5.50-pwa-current-cache-test-recovery',
         createMasteringBatchRunner
     });
 })(window);

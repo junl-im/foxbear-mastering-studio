@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.49-asset-generation-route-recovery';
+    const DIAGNOSTICS_VERSION = '1.5.50-pwa-current-cache-test-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

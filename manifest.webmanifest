@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.49 (asset-generation-route-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.50 (pwa-current-cache-test-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.49"
+  "version": "1.5.50"
 }

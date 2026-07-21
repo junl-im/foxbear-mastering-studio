@@ -1,30 +1,17 @@
-# Handoff - v1.5.49
+# Handoff - v1.5.50
 
-## v1.5.49 handoff focus
+## v1.5.50 handoff focus
 
-- Open a deployment with a stale partial cache and confirm it recovers to the repository root.
-- Confirm stale generation scripts are never mixed with current bytes.
-- Confirm 404.html redirects GitHub project routes to the application root.
-
-```text
-product: 1.5.49
-build: asset-generation-route-recovery
-asset generation: 1.5.49-asset-generation-route-recovery
-service worker cache: foxbear-shell-v1.5.49-asset-generation-route-recovery
-```
-
-## v1.5.48 handoff focus
-
-- Confirm silent and sub-0.10-second files are rejected with an actionable message instead of producing a completed master.
-- Run mono, 96kHz, and 192kHz inputs through the finalizer and confirm finite output, target loudness, and True Peak ceiling.
-- Cancel during decode, pitch/speed preparation, and master rendering and confirm no late result is applied.
-- Confirm malformed cached analysis values cannot produce NaN recommendation or DSP parameters.
+- Run the PWA browser suite and confirm the offline probe uses the cache name returned by the active service worker warm response.
+- Confirm deleting the temporary probe never deletes the active shell cache.
+- Confirm a probe stored only in a legacy cache is not served offline.
+- Confirm the service worker update check still runs after the offline probe cleanup.
 
 ```text
-product: 1.5.47
-build: engine-edgecase-quality-gate
-asset generation: 1.5.47-engine-edgecase-quality-gate
-service worker cache: foxbear-shell-v1.5.47-engine-edgecase-quality-gate
+product: 1.5.50
+build: pwa-current-cache-test-recovery
+asset generation: 1.5.50-pwa-current-cache-test-recovery
+service worker cache: foxbear-shell-v1.5.50-pwa-current-cache-test-recovery
 ```
 
 ## v1.5.45 handoff focus

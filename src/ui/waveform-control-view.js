@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.49-asset-generation-route-recovery';
+  const VIEW_VERSION = '1.5.50-pwa-current-cache-test-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

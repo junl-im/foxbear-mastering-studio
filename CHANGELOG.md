@@ -1,8 +1,24 @@
-# v1.5.49 - Asset Generation Route Recovery
+# v1.5.50 - PWA Current Cache Test Recovery
 
-- Prevented partial legacy HTML caches from mixing with current SRI-protected JavaScript.
-- Made service-worker installation cache the complete runtime graph atomically.
-- Added canonical project-root recovery, a consumed one-shot service-worker bypass, and a GitHub Pages 404 recovery page.
+- Fixed Playwright offline recovery test to use the active current-generation service worker cache instead of a legacy cache that v1.5.49 intentionally purges.
+- Added regression coverage preventing browser QA from reintroducing legacy-cache recovery assumptions.
+- Restored the required service-worker recovery runtime entry in index.html.
+
+# v1.5.49 - Stale Shell Generation Recovery
+
+- Prevented service workers from serving legacy HTML and current JavaScript in the same page generation.
+- Purged all older FoxBear shell caches during activation instead of retaining partial recovery generations.
+- Validated navigation HTML against the current asset generation before serving or caching it.
+- Canonicalized runtime and Kakao recovery URLs from the boot script location to prevent repository-path 404 pages.
+- Added a deployment-path regression test for stale v1.5.30 shells, SRI blocks, and nested-route recovery.
+
+# v1.5.49 - Stale Shell Generation Recovery
+
+- Prevented old cached HTML from loading current assets with obsolete SRI hashes.
+- Redirected invalid nested navigation routes to the canonical app root instead of serving index.html at the wrong URL.
+- Added a 404 recovery flow that discovers the app root, purges FoxBear caches, unregisters stale service workers, and reloads once without service-worker interception.
+- Removed the Firebase catch-all rewrite that preserved invalid nested URLs.
+- Added atomic boot-asset generation checks and stale-generation isolation tests.
 
 # v1.5.48 - Engine Performance Quality Regression
 

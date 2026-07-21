@@ -1,3 +1,10 @@
+# v1.5.50 CI Current-Cache Offline Recovery
+
+- Verifies the Playwright offline probe uses `warmed.cacheName` from the active worker.
+- Verifies legacy cache names are not parsed or selected by the browser test.
+- Verifies probe cleanup deletes only the temporary URL and preserves the active shell cache.
+- Verifies current-generation cache recovery succeeds while legacy-only recovery fails closed.
+
 # QA Report - v1.5.49 Asset Generation Route Recovery
 
 - Prevents partial legacy HTML generations from mixing with current SRI-protected assets.

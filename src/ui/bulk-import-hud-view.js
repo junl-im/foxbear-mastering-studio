@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.49 compatibility QA anchor: const VIEW_VERSION = '1.5.49-asset-generation-route-recovery'
+    // v1.5.50 compatibility QA anchor: const VIEW_VERSION = '1.5.50-pwa-current-cache-test-recovery'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

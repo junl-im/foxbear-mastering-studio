@@ -1,29 +1,16 @@
-# FoxBear AI Mastering Studio Pro v1.5.49
+# FoxBear AI Mastering Studio Pro v1.5.50
 
-## Current patch: v1.5.49 Asset Generation Route Recovery
+## Current patch: v1.5.50 CI Current-Cache Offline Recovery
 
-구버전 부분 캐시와 최신 자산이 섞여 SRI 차단 및 404로 이어지는 경로를 차단합니다. 서비스워커는 전체 런타임 자산을 한 세대로 설치하고, 복구 시 프로젝트 루트로 이동합니다.
-
-Release metadata:
-
-```text
-product: 1.5.49
-build: asset-generation-route-recovery
-asset generation: 1.5.49-asset-generation-route-recovery
-service worker cache: foxbear-shell-v1.5.49-asset-generation-route-recovery
-```
-
-## Current patch: v1.5.47 Engine Edge-Case Quality Gate
-
-무음·손상·0.10초 미만 입력은 DSP 전에 차단하고, 파이널라이저와 추천 엔진의 중첩 분석값을 유한수로 정규화합니다. 96/192kHz·모노·클리핑·취소 경합을 자동 회귀검사합니다.
+브라우저 자동화의 오프라인 복구 검사가 폐기된 구버전 캐시를 다시 사용하던 오류를 수정합니다. 활성 서비스워커가 보고한 현재 캐시만 검사하고, 임시 probe 정리 시 앱 전체 캐시가 삭제되지 않도록 보호합니다.
 
 Release metadata:
 
 ```text
-product: 1.5.47
-build: engine-edgecase-quality-gate
-asset generation: 1.5.47-engine-edgecase-quality-gate
-service worker cache: foxbear-shell-v1.5.47-engine-edgecase-quality-gate
+product: 1.5.50
+build: pwa-current-cache-test-recovery
+asset generation: 1.5.50-pwa-current-cache-test-recovery
+service worker cache: foxbear-shell-v1.5.50-pwa-current-cache-test-recovery
 ```
 
 ## CI and local Git hooks

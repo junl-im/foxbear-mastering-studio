@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.49",
+  "version": "1.5.50",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with atomic asset-generation caching, canonical route recovery, one-shot service-worker bypass, and stale SRI generation protection.",
+  "description": "FoxBear AI Mastering Studio Pro with current-generation PWA offline recovery validation and stale-cache-safe browser QA.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "npm run version:check && npm run handoff:check && npm run check:static && npm run qa:browser",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.49-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.49-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.50-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.50-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh"
   },
@@ -268,15 +268,17 @@
     "node qa/v1546_engine_recommendation_api_audit_smoke.js",
     "node qa/v1547_engine_edgecase_quality_smoke.js",
     "node qa/v1548_engine_performance_quality_regression_smoke.js",
-    "node qa/v1549_asset_generation_route_recovery_smoke.js"
+    "node qa/v1549_asset_generation_route_recovery_smoke.js",
+    "node qa/v1550_current_cache_offline_recovery_smoke.js",
+    "node qa/v1550_pwa_current_cache_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "asset-generation-route-recovery",
-    "assetVersion": "1.5.49-asset-generation-route-recovery",
-    "cacheName": "foxbear-shell-v1.5.49-asset-generation-route-recovery",
-    "bootRevision": "boot-sri-v1549",
-    "updateSafetyRevision": "update-safety-v1549",
-    "serviceWorkerRevision": "sw-v1549"
+    "buildId": "pwa-current-cache-test-recovery",
+    "assetVersion": "1.5.50-pwa-current-cache-test-recovery",
+    "cacheName": "foxbear-shell-v1.5.50-pwa-current-cache-test-recovery",
+    "bootRevision": "boot-sri-v1550",
+    "updateSafetyRevision": "update-safety-v1550",
+    "serviceWorkerRevision": "sw-v1550"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

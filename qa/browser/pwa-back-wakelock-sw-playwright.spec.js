@@ -1,11 +1,4 @@
-const fs = require('fs');
-const path = require('path');
 const { test, expect } = require('@playwright/test');
-const SW_SOURCE = fs.readFileSync(path.resolve(__dirname, '../../sw.js'), 'utf8');
-const LEGACY_CACHE_BLOCK = SW_SOURCE.match(/const LEGACY_CACHE_NAMES = \[([\s\S]*?)\];/);
-const LEGACY_CACHE_NAMES = [...String(LEGACY_CACHE_BLOCK?.[1] || '').matchAll(/'([^']+)'/g)].map(match => match[1]);
-const E2E_RECOVERY_CACHE = LEGACY_CACHE_NAMES[LEGACY_CACHE_NAMES.length - 1];
-
 const { expectRuntimeHealthy, installWakeLockMock, navigateToApp, waitForServiceWorkerReady, warmServiceWorkerCache } = require('./helpers/foxbear-e2e-helpers');
 
 test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () => {
@@ -80,14 +73,16 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
       expect(repeated.cached).toBe(0);
       expect(repeated.alreadyCached).toBe(repeated.total);
 
-      expect(E2E_RECOVERY_CACHE).toContain('foxbear-shell-v');
+      const activeCacheName = String(warmed.cacheName || '');
+      expect(activeCacheName).toContain('foxbear-shell-v');
+      expect(repeated.cacheName).toBe(activeCacheName);
       await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 10000 });
       const recoveryProbe = await page.evaluate(async cacheName => {
         const url = `${location.origin}/__foxbear-recovery-probe__.txt?cache=${encodeURIComponent(cacheName)}`;
         const cache = await caches.open(cacheName);
         await cache.put(url, new Response('foxbear-offline-recovery-ok', { status: 200, headers: { 'content-type': 'text/plain' } }));
         return { cacheName, url };
-      }, E2E_RECOVERY_CACHE);
+      }, activeCacheName);
       await context.setOffline(true);
       let recoveredText = '';
       try {
@@ -99,7 +94,10 @@ test.describe('FoxBear PWA, back navigation, wake lock, and service worker', () 
         await context.setOffline(false);
       }
       expect(recoveredText).toBe('200:foxbear-offline-recovery-ok');
-      await page.evaluate(cacheName => caches.delete(cacheName), recoveryProbe.cacheName);
+      await page.evaluate(async ({ cacheName, url }) => {
+        const cache = await caches.open(cacheName);
+        await cache.delete(url);
+      }, recoveryProbe);
     }
 
     const updated = await page.evaluate(async () => {
