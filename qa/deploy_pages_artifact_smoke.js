@@ -18,7 +18,7 @@ const failures=[];
   'artifact_name: github-pages',
   'include-hidden-files: true',
   'bash tools/prepare-pages-site.sh',
-  'cancel-in-progress: false'
+  'cancel-in-progress: true'
 ].forEach(s=>{ if(!workflow.includes(s)) failures.push(`workflow missing ${s}`); });
 if(!fs.existsSync(path.join(root,'tools','prepare-pages-site.sh'))) failures.push('missing tools/prepare-pages-site.sh');
 const prepare = fs.existsSync(path.join(root,'tools','prepare-pages-site.sh'))

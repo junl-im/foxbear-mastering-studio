@@ -1,3 +1,11 @@
+# v1.5.52 - CI Parallel Release Gate
+
+- Split static QA and Playwright browser QA into parallel GitHub Actions jobs.
+- Cancel superseded Pages workflows on newer pushes to the same ref.
+- Added Playwright browser download caching and npm offline-preferred installs.
+- Preserved the single local `npm run check:release` command through a phase-aware release-gate runner.
+- Added CI topology regression checks for job dependencies, cache use, and deployment gating.
+
 # v1.5.51 - CI Runtime Contract Hardening
 
 - Restored the runtime-health and service-worker recovery modules in the real boot graph with the current asset generation.

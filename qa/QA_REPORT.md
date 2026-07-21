@@ -1,4 +1,13 @@
-# QA Report - v1.5.51 CI Runtime Contract Hardening
+# QA Report - v1.5.52 CI Parallel Release Gate
+
+## v1.5.52 coverage
+
+- Parallel static and browser release jobs
+- Superseded workflow cancellation
+- Playwright browser cache contract
+- Build/deploy dependency gating
+- Phase-aware local release command
+
 
 - Prevents partial legacy HTML generations from mixing with current SRI-protected assets.
 - Verifies canonical project-root recovery, one-shot service-worker bypass consumption, GitHub Pages 404 recovery, and exact runtime/cache graph parity.

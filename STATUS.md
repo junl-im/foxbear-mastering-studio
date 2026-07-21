@@ -1,4 +1,4 @@
-# FoxBear Status - v1.5.51
+# FoxBear Status - v1.5.52
 
 ## v1.5.47 current focus
 
@@ -27,10 +27,10 @@ Engine edge-case quality coverage is active. Static and regression QA is `241/24
 
 ## Current release
 
-- Product version: `1.5.51`
-- Build ID: `ci-runtime-contract-hardening`
-- Asset version: `1.5.51-ci-runtime-contract-hardening`
-- Service worker cache: `foxbear-shell-v1.5.51-ci-runtime-contract-hardening`
+- Product version: `1.5.52`
+- Build ID: `ci-parallel-release-gate`
+- Asset version: `1.5.52-ci-parallel-release-gate`
+- Service worker cache: `foxbear-shell-v1.5.52-ci-parallel-release-gate`
 - Browser QA target: silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -62,7 +62,7 @@ Engine edge-case quality coverage is active. Static and regression QA is `241/24
 
 ## Release metadata
 
-- Product version: `1.5.51`
-- Build ID: `ci-runtime-contract-hardening`
-- Asset version: `1.5.51-ci-runtime-contract-hardening`
-- Service worker cache: `foxbear-shell-v1.5.51-ci-runtime-contract-hardening`
+- Product version: `1.5.52`
+- Build ID: `ci-parallel-release-gate`
+- Asset version: `1.5.52-ci-parallel-release-gate`
+- Service worker cache: `foxbear-shell-v1.5.52-ci-parallel-release-gate`

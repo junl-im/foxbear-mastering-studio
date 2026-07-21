@@ -1,0 +1,24 @@
+'use strict';
+const fs = require('node:fs');
+const assert = require('node:assert/strict');
+const pkg = require('../package.json');
+const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
+const runner = fs.readFileSync('tools/run-release-gate.js', 'utf8');
+
+assert.equal(pkg.version, '1.5.52');
+assert.equal(pkg.scripts['check:release'], 'node tools/run-release-gate.js');
+assert.match(runner, /FOXBEAR_RELEASE_PHASE/);
+assert.match(runner, /static:/);
+assert.match(runner, /browser:/);
+assert.match(runner, /full:/);
+assert.match(workflow, /static-qa:/);
+assert.match(workflow, /browser-qa:/);
+assert.match(workflow, /needs: \[static-qa, browser-qa\]/);
+assert.match(workflow, /cancel-in-progress: true/);
+assert.match(workflow, /actions\/cache@v4/);
+assert.match(workflow, /PLAYWRIGHT_BROWSERS_PATH/);
+assert.match(workflow, /FOXBEAR_RELEASE_PHASE: static/);
+assert.match(workflow, /FOXBEAR_RELEASE_PHASE: browser/);
+assert.match(workflow, /npm run check:release/);
+assert.ok(!/static-qa:[\s\S]*qa:browser/.test(workflow), 'static job must not run browser QA');
+console.log('v1.5.52 CI parallelization smoke: PASS');

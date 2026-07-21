@@ -43,7 +43,13 @@ assert(overwriteVerifier.includes('verify-handoff-state.js'), 'overwrite verifie
 assert(releaseVerifier.includes('verify-handoff-state.js'), 'release verifier must delegate to the package contract preflight');
 assert(stateVerifier.includes('wrong folder') || stateVerifier.includes('wrong-folder') || stateVerifier.includes('wrong folder'), 'handoff state verifier should diagnose wrong-folder extraction');
 assert(pkg.scripts['handoff:check'], 'package scripts must expose handoff:check');
-assert(pkg.scripts['check:release'].includes('handoff:check'), 'release gate must run handoff:check');
+const releaseGateRunner = pkg.scripts['check:release'].includes('tools/run-release-gate.js')
+  ? fs.readFileSync('tools/run-release-gate.js', 'utf8')
+  : '';
+assert(
+  pkg.scripts['check:release'].includes('handoff:check') || releaseGateRunner.includes("'handoff:check'"),
+  'release gate must run handoff:check'
+);
 
 const probe = spawnSync(process.execPath, ['tools/verify-handoff-state.js'], { encoding: 'utf8' });
 assert.strictEqual(probe.status, 0, probe.stderr || probe.stdout);

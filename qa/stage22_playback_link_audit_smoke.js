@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.51-ci-runtime-contract-hardening';
+const version = '1.5.52-ci-parallel-release-gate';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

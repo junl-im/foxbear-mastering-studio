@@ -138,7 +138,13 @@ for (const name of installLifecycleNames) {
 if (Object.prototype.hasOwnProperty.call(scripts, 'prepare')) {
   fail('package.json prepare must be absent; npm ci must not depend on repository-local Git hook files', failures);
 }
-if (!String(scripts['check:release'] || '').includes('handoff:check')) fail('check:release must run handoff:check', failures);
+const releaseGateCommand = String(scripts['check:release'] || '');
+const releaseGateRunner = releaseGateCommand.includes('tools/run-release-gate.js') && exists('tools/run-release-gate.js')
+  ? fs.readFileSync(path.join(root, 'tools/run-release-gate.js'), 'utf8')
+  : '';
+if (!releaseGateCommand.includes('handoff:check') && !releaseGateRunner.includes("'handoff:check'")) {
+  fail('check:release must run handoff:check', failures);
+}
 if (!scripts['handoff:check']) fail('package.json is missing handoff:check', failures);
 
 const handoff = fs.readFileSync(path.join(root, 'HANDOFF.md'), 'utf8');

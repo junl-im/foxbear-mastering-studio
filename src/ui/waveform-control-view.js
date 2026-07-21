@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.51-ci-runtime-contract-hardening';
+  const VIEW_VERSION = '1.5.52-ci-parallel-release-gate';
   const DEFAULT_BINS = 96;
 
   function getService() {

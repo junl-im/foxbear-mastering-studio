@@ -12,7 +12,7 @@ const failures=[];
   'actions/deploy-pages@v4',
   'continue-on-error: true',
   'Retry GitHub Pages deployment once',
-  'cancel-in-progress: false',
+  'cancel-in-progress: true',
   'timeout-minutes: 20',
   'bash tools/prepare-pages-site.sh'
 ].forEach(s=>{ if(!pagesWorkflow.includes(s)) failures.push(`pages workflow missing ${s}`); });

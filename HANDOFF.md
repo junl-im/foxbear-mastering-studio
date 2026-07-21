@@ -1,4 +1,11 @@
-# Handoff - v1.5.51
+# Handoff - v1.5.52
+
+## v1.5.52 handoff focus
+
+- Confirm static and browser release gates run as parallel GitHub Actions jobs.
+- Confirm a newer push cancels the older Pages workflow for the same ref.
+- Confirm Playwright browser cache is restored and failed browser diagnostics are uploaded only on failure.
+- Confirm the build artifact waits for both QA jobs before deployment.
 
 ## v1.5.51 handoff focus
 

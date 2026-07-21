@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.51-ci-runtime-contract-hardening',
+            version: '1.5.52-ci-parallel-release-gate',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.51-ci-runtime-contract-hardening',
+        version: '1.5.52-ci-parallel-release-gate',
         createMasteringBatchRunner
     });
 })(window);

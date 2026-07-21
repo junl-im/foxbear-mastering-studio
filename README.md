@@ -1,4 +1,9 @@
-# FoxBear AI Mastering Studio Pro v1.5.51
+# FoxBear AI Mastering Studio Pro v1.5.52
+
+## Current patch: v1.5.52 CI Parallel Release Gate
+
+GitHub Actions 정적 QA와 Playwright 브라우저 QA를 병렬 job으로 실행하고, 새 push가 오면 이전 Pages 실행을 취소합니다. Playwright Chromium 다운로드 캐시와 npm 오프라인 우선 설치를 사용해 반복 빌드 대기시간을 줄입니다.
+
 
 ## Current patch: v1.5.51 CI Runtime Contract Hardening
 

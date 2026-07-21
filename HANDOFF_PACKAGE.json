@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.51",
-  "buildId": "ci-runtime-contract-hardening",
+  "productVersion": "1.5.52",
+  "buildId": "ci-parallel-release-gate",
   "requiredFiles": [
     "404.html",
     ".gitignore",

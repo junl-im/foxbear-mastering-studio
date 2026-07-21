@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.51 - header-mounted settings view builder
+// FoxBear AI Mastering Studio Pro v1.5.52 - header-mounted settings view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {

@@ -11,13 +11,17 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: "pages-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
 
 jobs:
-  build:
+  static-qa:
+    name: Static release gate
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -29,16 +33,44 @@ jobs:
           cache: npm
 
       - name: Install pinned dependencies
-        run: npm ci --ignore-scripts
+        run: npm ci --ignore-scripts --prefer-offline --no-audit
 
-      - name: Install Chromium for browser QA
-        run: npx --no-install playwright install --with-deps chromium
-
-      - name: Run release gate
+      - name: Run static release gate
+        env:
+          FOXBEAR_RELEASE_PHASE: static
         run: npm run check:release
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+  browser-qa:
+    name: Browser release gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install pinned dependencies
+        run: npm ci --ignore-scripts --prefer-offline --no-audit
+
+      - name: Restore Playwright browser cache
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Chromium and system dependencies
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Run browser release gate
+        env:
+          FOXBEAR_RELEASE_PHASE: browser
+        run: npm run check:release
 
       - name: Upload browser QA diagnostics on failure
         if: failure()
@@ -48,6 +80,19 @@ jobs:
           path: qa/browser-results
           if-no-files-found: ignore
           retention-days: 7
+          compression-level: 6
+
+  build:
+    name: Prepare Pages artifact
+    needs: [static-qa, browser-qa]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
       - name: Prepare static artifact
         shell: bash

@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.51-ci-runtime-contract-hardening';
+    const FALLBACK_VERSION = '1.5.52-ci-parallel-release-gate';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
