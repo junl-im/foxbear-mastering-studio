@@ -52,8 +52,102 @@ service cloud.firestore {
 
     match /siteVisits/{visitId} {
       allow create: if validVisitCreate();
-      allow get, list: if isAdmin();
+      allow get: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow list: if isAdmin();
       allow update, delete: if false;
+    }
+
+
+    function validIncidentCreate() {
+      return signedIn()
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'createdAt',
+          'schemaVersion',
+          'clientAt',
+          'appVersion',
+          'assetVersion',
+          'severity',
+          'category',
+          'reason',
+          'message',
+          'code',
+          'stack',
+          'fingerprint',
+          'source',
+          'pagePath',
+          'browser',
+          'platform',
+          'language',
+          'viewport',
+          'online',
+          'visibility',
+          'memoryGb',
+          'cpuCores',
+          'runtimeOk',
+          'resourceFailureCount',
+          'runtimeErrorCount',
+          'runtimeWarningCount',
+          'bootFailed',
+          'bootStalled',
+          'automatic',
+          'context'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.severity in ['warning', 'error', 'fatal']
+        && request.resource.data.category in [
+          'runtime', 'resource', 'boot', 'mastering', 'quality-recovery', 'export',
+          'update-safety', 'release-mismatch', 'firebase', 'manual-test', 'unknown'
+        ]
+        && validShortString(request.resource.data.clientAt, 40)
+        && validShortString(request.resource.data.appVersion, 24)
+        && validShortString(request.resource.data.assetVersion, 80)
+        && validShortString(request.resource.data.reason, 100)
+        && validShortString(request.resource.data.message, 500)
+        && validShortString(request.resource.data.code, 80)
+        && validShortString(request.resource.data.stack, 1400)
+        && validShortString(request.resource.data.fingerprint, 64)
+        && validShortString(request.resource.data.source, 80)
+        && validShortString(request.resource.data.pagePath, 160)
+        && validShortString(request.resource.data.browser, 40)
+        && validShortString(request.resource.data.platform, 40)
+        && validShortString(request.resource.data.language, 24)
+        && validShortString(request.resource.data.viewport, 32)
+        && validShortString(request.resource.data.visibility, 20)
+        && validShortString(request.resource.data.context, 700)
+        && request.resource.data.online is bool
+        && request.resource.data.runtimeOk is bool
+        && request.resource.data.bootFailed is bool
+        && request.resource.data.bootStalled is bool
+        && request.resource.data.automatic is bool
+        && request.resource.data.memoryGb is number
+        && request.resource.data.memoryGb >= 0
+        && request.resource.data.memoryGb <= 64
+        && request.resource.data.cpuCores is number
+        && request.resource.data.cpuCores >= 0
+        && request.resource.data.cpuCores <= 64
+        && request.resource.data.resourceFailureCount is number
+        && request.resource.data.resourceFailureCount >= 0
+        && request.resource.data.resourceFailureCount <= 99
+        && request.resource.data.runtimeErrorCount is number
+        && request.resource.data.runtimeErrorCount >= 0
+        && request.resource.data.runtimeErrorCount <= 99
+        && request.resource.data.runtimeWarningCount is number
+        && request.resource.data.runtimeWarningCount >= 0
+        && request.resource.data.runtimeWarningCount <= 99;
+    }
+
+    match /incidentReports/{reportId} {
+      allow create: if validIncidentCreate();
+      allow get: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow list: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /incidentMailState/{document=**} {
+      allow read, write: if false;
     }
 
     match /siteAdmins/{uid} {

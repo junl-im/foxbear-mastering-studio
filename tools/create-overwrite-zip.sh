@@ -63,6 +63,7 @@ copy_path "vendor"
 copy_path "docs"
 copy_path "qa"
 copy_path "tools"
+copy_path "functions"
 copy_path ".github/workflows"
 
 # Keep packages small and safe.
@@ -72,6 +73,7 @@ find "$WORK_DIR" -type f -name '*.tmp' -delete
 find "$WORK_DIR" -type f -name '*.trace' -delete
 find "$WORK_DIR" -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
 find "$WORK_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
+find "$WORK_DIR" -type d -name 'node_modules' -prune -exec rm -rf {} +
 find "$WORK_DIR/qa" -maxdepth 1 -type f \( -name 'static-audit*.txt' -o -name 'browser-check*.txt' -o -name 'static-check*.txt' \) -delete
 find "$WORK_DIR" -type f -name '.last-run.json' -delete
 find "$WORK_DIR" -type f -name '.foxbear-e2e-probe-*.txt' -delete

@@ -57,6 +57,7 @@ function canonicalizeRuntimeMetadata(text) {
     .replace(/(?:버전 정보|BUILD) v\d+\.\d+\.\d+/g, `BUILD v${meta.productVersion}`)
     .replace(/\bPro v\d+\.\d+\.\d+\b/g, meta.appVersion)
     .replace(/data-build="\d+\.\d+\.\d+"/g, `data-build="${meta.productVersion}"`)
+    .replace(/(data-release-label="version-button">)v\d+\.\d+\.\d+(<\/strong>)/g, `$1v${meta.productVersion}$2`)
     .replace(/\?v=\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*/g, `?v=${meta.assetVersion}`)
     .replace(/&h=boot-sri-v\d+/g, `&h=${meta.bootRevision}`)
     .replace(/&h=update-safety-v\d+/g, `&h=${meta.updateSafetyRevision}`);

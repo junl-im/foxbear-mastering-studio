@@ -29,6 +29,7 @@ zip -qr "${OUTPUT_FILE}" . \
   -x '.firebase/*' \
   -x '.firebaserc' \
   -x 'node_modules/*' \
+  -x '*/node_modules/*' \
   -x 'dist/*' \
   -x 'qa/browser-results/*' \
   -x 'qa/browser-results' \

@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.5.54 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.5.55 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.5.54-quality-recovery-profiles-browser-qa';
+    const VERSION = 'v1.5.55-automatic-incident-mail-reporting';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {
@@ -45,6 +45,13 @@
     function messageOf(options, error, fallback) {
         try { return options?.getErrorMessage?.(error, fallback) || error?.message || fallback; }
         catch (nested) { return error?.message || fallback; }
+    }
+
+    function reportExportIncident(error, context = '') {
+        global.FoxBearIncidentReporter?.report?.({
+            category: 'export', severity: 'error', reason: error?.code || 'zip-export-failed',
+            message: error?.message || 'ZIP export failed', error, context
+        }, { automatic: true }).catch?.(() => {});
     }
 
     async function start(options = {}) {
@@ -124,6 +131,7 @@
                 return Object.freeze({ ok: false, cancelled: true });
             }
             const message = messageOf(options, error, 'ZIP 생성 중 오류가 발생했습니다. 곡별 다운로드를 사용해 주세요.');
+            reportExportIncident(error, `files=${completed.length}; outputBytes=${Number(plan?.outputBytes || 0)}; message=${message}`);
             const timeout = error?.code === 'FOXBEAR_WORKER_JOB_TIMEOUT';
             progressView?.fail?.(timeout ? 'ZIP 생성 제한시간을 초과했습니다. 곡별 다운로드를 사용해 주세요.' : message);
             options.showToast?.(timeout ? 'ZIP 생성 시간이 너무 길어 중단했습니다. 곡별 다운로드를 사용해 주세요.' : (/memory|allocation|arraybuffer|too large|out of memory/i.test(message) ? 'ZIP 메모리 한계에 도달했습니다. 곡별 다운로드를 사용해 주세요.' : 'ZIP 생성 실패 · 곡별 다운로드를 사용해 주세요.'));

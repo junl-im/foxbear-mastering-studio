@@ -1,79 +1,76 @@
-# FoxBear Firebase 초기 설정 가이드
+# FoxBear Firebase 설정 가이드 - v1.5.55
 
-이 빌드는 Firebase Storage를 사용하지 않습니다. 오디오 파일은 계속 브라우저 안에서만 분석/마스터링되고, Firebase에는 방문 통계 이벤트만 저장됩니다.
+오디오 파일과 PCM은 브라우저 안에서만 처리됩니다. Firebase에는 방문 통계와 개인정보를 줄인 문제 진단만 저장됩니다.
 
 ## 1. Firebase Console에서 켤 항목
 
-1. 프로젝트: `foxbear-music`
-2. Authentication > Sign-in method > Anonymous 사용 설정
+1. 프로젝트 `foxbear-music`
+2. Authentication > Sign-in method > Anonymous 활성화
 3. Firestore Database 생성
-   - Standard / Native 모드
-   - Production mode 권장
-   - 위치는 운영 지역에 맞게 선택
-4. Hosting 사용 설정
-5. Remote Config는 선택 사항입니다.
+4. Hosting 활성화
+5. Cloud Functions 사용 가능 상태 확인
+6. Remote Config는 선택 사항
 
-## 2. 로컬 배포 준비
+## 2. 자동 문제 메일의 보안 구조
+
+브라우저는 Gmail에 직접 접속하지 않습니다. `incidentReports`에 제한된 진단 문서를 만들면 Cloud Function `sendIncidentEmail`이 Secret Manager의 비밀번호를 사용해 `mcwoogi@gmail.com`으로 전송합니다.
+
+저장하거나 전송하지 않는 항목:
+
+- 오디오/PCM/Blob
+- 업로드 파일명
+- 전체 로컬 경로
+- 이메일 주소, 긴 토큰, URL query의 인증값
+
+## 3. Gmail 앱 비밀번호 등록
+
+Google 계정에서 2단계 인증을 활성화하고 앱 비밀번호를 발급합니다. 앱 비밀번호가 제공되지 않는 계정 유형에서는 다른 SMTP 공급자로 변경해야 합니다.
+
+비밀번호를 코드나 채팅에 붙여 넣지 말고 로컬 Firebase CLI에서만 입력합니다.
 
 ```bash
-npm run check
 firebase login
 firebase use foxbear-music
-firebase deploy --only firestore,hosting
+firebase functions:secrets:set FOXBEAR_GMAIL_APP_PASSWORD
 ```
 
-Firestore 데이터베이스를 아직 만들지 않았다면 `firebase deploy --only firestore`가 실패할 수 있습니다. Console에서 Firestore Database를 먼저 생성하세요.
+## 4. 설치와 배포
 
-## 3. 관리자 UID 등록
-
-1. 배포된 사이트를 한 번 엽니다.
-2. 브라우저 개발자 도구 Console에서 다음 값을 확인합니다.
-
-```js
-window.FoxBearFirebase?.getUid?.()
+```bash
+npm install
+npm --prefix functions install
+npm run check:release
+firebase deploy --only firestore:rules,functions:sendIncidentEmail,hosting
 ```
 
-3. 출력된 Firebase 익명 Auth UID를 복사합니다.
-4. Firebase Console > Firestore Database > 데이터에서 다음 문서를 직접 만듭니다.
+## 5. 실제 발송 테스트
 
-컬렉션: `siteAdmins`
-문서 ID: 방금 복사한 UID
-필드:
+1. 배포 사이트를 엽니다.
+2. 버전 버튼을 눌러 프로그램 정보를 엽니다.
+3. `자동 신고 켜짐`을 확인합니다.
+4. `테스트 메일`을 누릅니다.
+5. 화면에 발송 완료가 표시되고 `mcwoogi@gmail.com`에 메일이 도착하는지 확인합니다.
+6. Firestore `incidentReports` 문서에서 `delivery.status`가 `emailed`인지 확인합니다.
 
-```json
-{
-  "active": true,
-  "role": "owner"
-}
-```
+## 6. Firestore TTL
 
-이후 사이트를 새로고침하면 관리자 UID로 등록된 브라우저에서만 상단 `관리자 통계` 배지가 표시되고 Firestore 원격 통계를 볼 수 있습니다. 관리자 문서는 클라이언트 코드에서 생성할 수 없고 Firebase Console에서만 수동 생성하도록 Rules가 잠겨 있습니다.
+Firestore TTL 정책에서 다음 두 컬렉션의 `expiresAt` 필드를 등록합니다.
 
-## 4. 저장되는 데이터
+- `incidentReports`: 약 30일 보존
+- `incidentMailState`: 약 2일 보존
 
-컬렉션 `siteVisits`에 다음 수준의 방문 이벤트만 저장됩니다.
+정책을 켜지 않으면 `expiresAt` 값은 기록되지만 문서는 자동 삭제되지 않습니다.
 
-- 익명 Auth UID
-- 접속 시각
-- 날짜 키
-- 페이지 경로
-- 유입 호스트
-- 언어, 화면 크기, User-Agent 일부
-- 앱 버전
-
-브라우저 클라이언트만으로는 실제 방문자 IP를 신뢰성 있게 수집할 수 없습니다. 실제 IP 집계가 필요하면 Cloud Functions나 별도 서버 API가 필요한데, 이 부분은 Blaze 요금제가 필요할 수 있습니다.
-
-## 5. Remote Config 선택값
-
-Remote Config를 켜면 다음 키를 추가로 사용할 수 있습니다.
+## 7. Remote Config 선택값
 
 | 키 | 타입 | 기본값 | 용도 |
 | --- | --- | --- | --- |
-| `foxbear_notice` | string | 빈 문자열 | 향후 사이트 공지 표시용 |
-| `foxbear_stats_enabled` | boolean | true | 통계 기능 스위치 |
-| `foxbear_storage_enabled` | boolean | false | 현재는 항상 false로 취급 |
-| `foxbear_youtube_url` | string | 채널 URL | 채널 링크 원격 변경용 |
+| `foxbear_notice` | string | 빈 문자열 | 사이트 공지 |
+| `foxbear_stats_enabled` | boolean | true | 통계 기능 |
+| `foxbear_storage_enabled` | boolean | false | 항상 false 취급 |
+| `foxbear_incident_reporting_enabled` | boolean | true | 자동 문제 신고 원격 중지 스위치 |
+| `foxbear_youtube_url` | string | 채널 URL | 채널 링크 |
 
-## 6. Storage 제외 이유
+## 8. 다음 보안 단계
 
-현재 Firebase Cloud Storage는 Spark 무료 요금제에서 사용할 수 없으므로 이 빌드에서는 Storage SDK를 불러오지 않습니다. `firebaseConfig.storageBucket` 값은 Firebase Console에서 제공되는 기본 설정값으로 남겨두지만, 코드에서 파일 업로드나 다운로드에 사용하지 않습니다.
+공개 사용자가 늘기 전에 Firebase App Check(reCAPTCHA Enterprise)를 구성하고 Firestore 요청에 강제 적용합니다. 현재도 클라이언트/서버 중복 억제, strict Rules, 일일 상한이 있지만 App Check가 없으면 자동화된 남용 가능성이 남습니다.

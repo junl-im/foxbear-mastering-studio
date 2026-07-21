@@ -25,11 +25,11 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.5.54', 'package version should be 1.5.54');
+assert(pkg.version === '1.5.55', 'package version should be 1.5.55');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-assert(index.includes('data-build="1.5.54"'), 'index build marker should be 1.5.54');
-assert(config.includes("ASSET_VERSION = '1.5.54-quality-recovery-profiles-browser-qa'"), 'runtime asset key should be v1.5.54');
-assert(sw.includes('foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa'), 'service worker cache should use v1.5.54 key');
+assert(index.includes('data-build="1.5.55"'), 'index build marker should be 1.5.55');
+assert(config.includes("ASSET_VERSION = '1.5.55-automatic-incident-mail-reporting'"), 'runtime asset key should be v1.5.55');
+assert(sw.includes('foxbear-shell-v1.5.55-automatic-incident-mail-reporting'), 'service worker cache should use v1.5.55 key');
 
 assert(app.includes('function scheduleRenderAll'), 'app should define render scheduler');
 assert(app.includes('window.FoxBearRenderScheduler'), 'render scheduler diagnostics should be exposed');
@@ -56,10 +56,10 @@ assert(runtime.includes('FoxBearPlaybackTransitionService.waitForMediaReady'), '
 assert(decode.includes('FoxBearAudioDecodeService'), 'audio decode service should exist');
 assert(decode.includes('decodeAudioFile'), 'audio decode service should expose decodeAudioFile');
 assert(app.includes('FoxBearAudioDecodeService'), 'app decode path should delegate to audio decode service');
-assert(index.includes('src/boot/render-scheduler.js?v=1.5.54-quality-recovery-profiles-browser-qa'), 'index should load render scheduler service');
-assert(index.includes('src/audio/audio-decode-service.js?v=1.5.54-quality-recovery-profiles-browser-qa'), 'index should load audio decode service');
-assert(sw.includes('./src/boot/render-scheduler.js?v=1.5.54-quality-recovery-profiles-browser-qa'), 'service worker should precache render scheduler');
-assert(sw.includes('./src/audio/audio-decode-service.js?v=1.5.54-quality-recovery-profiles-browser-qa'), 'service worker should precache audio decode service');
+assert(index.includes('src/boot/render-scheduler.js?v=1.5.55-automatic-incident-mail-reporting'), 'index should load render scheduler service');
+assert(index.includes('src/audio/audio-decode-service.js?v=1.5.55-automatic-incident-mail-reporting'), 'index should load audio decode service');
+assert(sw.includes('./src/boot/render-scheduler.js?v=1.5.55-automatic-incident-mail-reporting'), 'service worker should precache render scheduler');
+assert(sw.includes('./src/audio/audio-decode-service.js?v=1.5.55-automatic-incident-mail-reporting'), 'service worker should precache audio decode service');
 assert(runtime.includes('FoxBearAudioDecodeService.decodeAudioFile'), 'runtime health should require audio decode service');
 assert(pkg.qaChecks.includes('node --check src/boot/render-scheduler.js'), 'package QA should syntax-check render scheduler service');
 assert(pkg.qaChecks.includes('node --check src/audio/audio-decode-service.js'), 'package QA should syntax-check audio decode service');
@@ -69,8 +69,8 @@ assert(perf.includes('renderScheduler = safeCall'), 'performance diagnostics sho
 assert(perf.includes('bulk-import-active'), 'performance summary should warn while bulk import is active');
 assert(runtime.includes('FoxBearRenderScheduler.getSnapshot'), 'runtime health should require render scheduler');
 
-assert(matrix.includes('v1.4.26 Render Scheduler + Bulk Import UI Throttle'), 'matrix should document v1.5.54 scope');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.5.54 final QA');
-assert(changelog.includes('v1.5.54'), 'changelog should mention v1.5.54');
+assert(matrix.includes('v1.4.26 Render Scheduler + Bulk Import UI Throttle'), 'matrix should document v1.5.55 scope');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.5.55 final QA');
+assert(changelog.includes('v1.5.55'), 'changelog should mention v1.5.55');
 
 console.log('PASS v1.4.26 carry-forward: render scheduler, silent wake lock, cache, decode, crossfade smoke');

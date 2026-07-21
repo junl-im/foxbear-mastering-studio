@@ -1,4 +1,4 @@
-// FoxBear v1.5.54 bounded before/after mastering quality audit.
+// FoxBear v1.5.55 bounded before/after mastering quality audit.
 'use strict';
 
 (function attachFoxBearMasteringQualityAudit(global) {

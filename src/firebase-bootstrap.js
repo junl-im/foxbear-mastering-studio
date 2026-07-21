@@ -13,6 +13,7 @@ let limit;
 let orderBy;
 let query;
 let serverTimestamp;
+let setDoc;
 let where;
 let fetchAndActivate;
 let getRemoteConfig;
@@ -38,13 +39,28 @@ const MAX_TEXT_LENGTHS = Object.freeze({
     language: 24,
     userAgent: 220,
     screen: 32,
-    appVersion: 24
+    appVersion: 24,
+    assetVersion: 80,
+    severity: 16,
+    category: 40,
+    reason: 100,
+    message: 500,
+    code: 80,
+    stack: 1400,
+    fingerprint: 64,
+    source: 80,
+    browser: 40,
+    platform: 40,
+    visibility: 20,
+    viewport: 32,
+    context: 700
 });
 
 const REMOTE_CONFIG_DEFAULTS = Object.freeze({
     foxbear_notice: '',
     foxbear_stats_enabled: true,
     foxbear_storage_enabled: false,
+    foxbear_incident_reporting_enabled: true,
     foxbear_youtube_url: 'https://www.youtube.com/@FoxBearMusic'
 });
 
@@ -72,7 +88,7 @@ async function loadFirebaseModules() {
     ]).then(([appModule, authModule, firestoreModule, remoteConfigModule]) => {
         ({ initializeApp } = appModule);
         ({ getAuth, onAuthStateChanged, signInAnonymously } = authModule);
-        ({ addDoc, collection, doc, getCountFromServer, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, where } = firestoreModule);
+        ({ addDoc, collection, doc, getCountFromServer, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, setDoc, where } = firestoreModule);
         ({ fetchAndActivate, getRemoteConfig, getValue, isSupported: isRemoteConfigSupported } = remoteConfigModule);
         return true;
     });
@@ -98,6 +114,8 @@ function makePublicBridge(extra = {}) {
         remoteConfig: { ...bridgeState.remoteConfigValues },
         signInGuest,
         logVisit,
+        logIncident,
+        getIncidentDelivery,
         getAdminStats,
         getAdminProfile,
         getUid: () => bridgeState.user?.uid || '',
@@ -176,6 +194,101 @@ async function logVisit(payload = {}) {
     return true;
 }
 
+
+const INCIDENT_SEVERITIES = new Set(['warning', 'error', 'fatal']);
+const INCIDENT_CATEGORIES = new Set([
+    'runtime', 'resource', 'boot', 'mastering', 'quality-recovery', 'export',
+    'update-safety', 'release-mismatch', 'firebase', 'manual-test', 'unknown'
+]);
+
+function safeIncidentNumber(value, min, max) {
+    const number = Number(value || 0);
+    return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : min;
+}
+
+function normalizeIncidentPayload(payload = {}) {
+    const severity = INCIDENT_SEVERITIES.has(payload.severity) ? payload.severity : 'error';
+    const category = INCIDENT_CATEGORIES.has(payload.category) ? payload.category : 'unknown';
+    return {
+        schemaVersion: 1,
+        clientAt: limitText(payload.clientAt || new Date().toISOString(), 40),
+        appVersion: limitText(payload.appVersion || document.body?.dataset?.build || '', MAX_TEXT_LENGTHS.appVersion),
+        assetVersion: limitText(payload.assetVersion || '', MAX_TEXT_LENGTHS.assetVersion),
+        severity,
+        category,
+        reason: limitText(payload.reason || category, MAX_TEXT_LENGTHS.reason),
+        message: limitText(payload.message || 'Unknown incident', MAX_TEXT_LENGTHS.message),
+        code: limitText(payload.code || '', MAX_TEXT_LENGTHS.code),
+        stack: limitText(payload.stack || '', MAX_TEXT_LENGTHS.stack),
+        fingerprint: limitText(payload.fingerprint || 'unknown', MAX_TEXT_LENGTHS.fingerprint),
+        source: limitText(payload.source || 'foxbear-web-client', MAX_TEXT_LENGTHS.source),
+        pagePath: limitText(payload.pagePath || window.location.pathname || '/', MAX_TEXT_LENGTHS.path),
+        browser: limitText(payload.browser || '', MAX_TEXT_LENGTHS.browser),
+        platform: limitText(payload.platform || '', MAX_TEXT_LENGTHS.platform),
+        language: limitText(payload.language || navigator.language || '', MAX_TEXT_LENGTHS.language),
+        viewport: limitText(payload.viewport || '', MAX_TEXT_LENGTHS.viewport),
+        online: payload.online !== false,
+        visibility: limitText(payload.visibility || '', MAX_TEXT_LENGTHS.visibility),
+        memoryGb: safeIncidentNumber(payload.memoryGb, 0, 64),
+        cpuCores: safeIncidentNumber(payload.cpuCores, 0, 64),
+        runtimeOk: payload.runtimeOk !== false,
+        resourceFailureCount: safeIncidentNumber(payload.resourceFailureCount, 0, 99),
+        runtimeErrorCount: safeIncidentNumber(payload.runtimeErrorCount, 0, 99),
+        runtimeWarningCount: safeIncidentNumber(payload.runtimeWarningCount, 0, 99),
+        bootFailed: payload.bootFailed === true,
+        bootStalled: payload.bootStalled === true,
+        automatic: payload.automatic !== false,
+        context: limitText(payload.context || '', MAX_TEXT_LENGTHS.context)
+    };
+}
+
+function incidentDocumentId(uid, payload) {
+    const bucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString(36);
+    const fingerprint = String(payload.fingerprint || 'unknown').replace(/[^a-z0-9_-]/gi, '').slice(0, 64) || 'unknown';
+    return `${uid}_${bucket}_${fingerprint}`.slice(0, 180);
+}
+
+async function logIncident(payload = {}) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    if (bridgeState.remoteConfigValues.foxbear_incident_reporting_enabled === false && payload.category !== 'manual-test') {
+        throw new Error('자동 문제 신고가 원격 설정에서 비활성화되어 있습니다.');
+    }
+    const user = await signInGuest();
+    const incident = normalizeIncidentPayload(payload);
+    const reportId = incidentDocumentId(user.uid, incident);
+    const reportRef = doc(bridgeState.db, 'incidentReports', reportId);
+    const existing = await getDoc(reportRef);
+    if (existing.exists()) return { queued: true, deduplicated: true, reportId };
+    try {
+        await setDoc(reportRef, {
+            ...incident,
+            uid: user.uid,
+            createdAt: serverTimestamp()
+        });
+    } catch (error) {
+        const duplicate = await getDoc(reportRef).catch(() => null);
+        if (!duplicate?.exists?.()) throw error;
+        return { queued: true, deduplicated: true, reportId };
+    }
+    return { queued: true, deduplicated: false, reportId };
+}
+
+async function getIncidentDelivery(reportId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const user = await signInGuest();
+    const safeId = limitText(reportId, 180);
+    if (!safeId.startsWith(`${user.uid}_`)) throw new Error('본인의 문제 보고서만 조회할 수 있습니다.');
+    const snapshot = await getDoc(doc(bridgeState.db, 'incidentReports', safeId));
+    if (!snapshot.exists()) return { exists: false, status: 'missing' };
+    const data = snapshot.data() || {};
+    return {
+        exists: true,
+        status: limitText(data.delivery?.status || 'pending', 40),
+        reason: limitText(data.delivery?.reason || '', 100),
+        message: limitText(data.delivery?.message || '', 300)
+    };
+}
+
 async function getAdminProfile() {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
     const user = await signInGuest();
@@ -242,6 +355,7 @@ async function loadRemoteConfig() {
             foxbear_notice: getValue(bridgeState.remoteConfig, 'foxbear_notice').asString(),
             foxbear_stats_enabled: getValue(bridgeState.remoteConfig, 'foxbear_stats_enabled').asBoolean(),
             foxbear_storage_enabled: false,
+            foxbear_incident_reporting_enabled: getValue(bridgeState.remoteConfig, 'foxbear_incident_reporting_enabled').asBoolean(),
             foxbear_youtube_url: getValue(bridgeState.remoteConfig, 'foxbear_youtube_url').asString() || REMOTE_CONFIG_DEFAULTS.foxbear_youtube_url
         };
     } catch (error) {

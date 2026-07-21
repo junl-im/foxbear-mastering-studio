@@ -1,15 +1,16 @@
-# FoxBear Status - v1.5.54
+# FoxBear Status - v1.5.55
 
-## v1.5.54 current focus
+## v1.5.55 current focus
 
-- Quality-gate failures select deterministic risk-specific profiles for output integrity, loudness pressure, low-end pumping, stereo phase, high-frequency preservation, and mobile translation.
-- Multiple simultaneous failures combine safety modifiers while preserving a single highest-priority profile label.
-- Recovery diagnostics expose profile ID/label, audit codes, concrete setting adjustments, error state, output bytes, and whether the first render was preserved.
-- E2E-only injection can force a first-gate failure and a bounded recovery exception after render/finalizer/encode; production execution ignores the hook unless the explicit browser-QA flag is active.
+- Automatic incident collection covers critical boot, resource, runtime, mastering, quality-recovery, export, update-safety, and release-generation failures.
+- Audio, filenames, PCM data, full local paths, email addresses, long tokens, and URL query secrets are excluded or redacted.
+- Firestore ingestion is create-only; owners can read only their own delivery status and administrators can list reports.
+- The Cloud Function sends to `mcwoogi@gmail.com` using a Secret Manager-bound Gmail app password, with duplicate and daily rate limits.
+- Deployment still requires the real Firebase secret, Functions deployment, and a live test email.
 
 ## Current status
 
-Risk-specific engine recovery and deterministic browser QA are implemented. Static and deterministic regression verification is `253/253 PASS`; live browser execution remains a separate release gate.
+Automatic incident reporting is implemented in source. Static/package verification is required before release; real email delivery remains pending until the Firebase secret and Cloud Function are deployed.
 
 ## Release invariants
 
@@ -27,10 +28,10 @@ Risk-specific engine recovery and deterministic browser QA are implemented. Stat
 
 ## Current release
 
-- Product version: `1.5.54`
-- Build ID: `quality-recovery-profiles-browser-qa`
-- Asset version: `1.5.54-quality-recovery-profiles-browser-qa`
-- Service worker cache: `foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa`
+- Product version: `1.5.55`
+- Build ID: `automatic-incident-mail-reporting`
+- Asset version: `1.5.55-automatic-incident-mail-reporting`
+- Service worker cache: `foxbear-shell-v1.5.55-automatic-incident-mail-reporting`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -62,7 +63,7 @@ Risk-specific engine recovery and deterministic browser QA are implemented. Stat
 
 ## Release metadata
 
-- Product version: `1.5.54`
-- Build ID: `quality-recovery-profiles-browser-qa`
-- Asset version: `1.5.54-quality-recovery-profiles-browser-qa`
-- Service worker cache: `foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa`
+- Product version: `1.5.55`
+- Build ID: `automatic-incident-mail-reporting`
+- Asset version: `1.5.55-automatic-incident-mail-reporting`
+- Service worker cache: `foxbear-shell-v1.5.55-automatic-incident-mail-reporting`

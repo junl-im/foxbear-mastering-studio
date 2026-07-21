@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.54-quality-recovery-profiles-browser-qa';
+    const FALLBACK_VERSION = '1.5.55-automatic-incident-mail-reporting';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -157,12 +157,18 @@
         });
     }
 
+    function dispatchRuntimeIssue(type, detail = {}) {
+        try { global.dispatchEvent(new CustomEvent('foxbear:runtime-issue', { detail: { type, ...detail } })); }
+        catch (error) {}
+    }
+
     function recordResourceFailure(target, reason) {
         const failure = normalizeResourceFailure(target, reason);
         if (!failure) return;
         uniquePush(state.resourceFailures, failure, item => `${item.tag}:${item.path}:${item.version}:${item.reason}`, 16);
         const report = check({ silent: true });
         showRecoveryPanel(report, { reason: 'resource-failure' });
+        dispatchRuntimeIssue('resource', { failure, report });
         console.warn('[FoxBearRuntimeHealth] resource failed', failure, report);
     }
 
@@ -182,8 +188,10 @@
 
     function recordRuntimeError(error, reason) {
         const issue = normalizeRuntimeIssue(error, reason);
-        const target = isOptionalRemoteRuntimeIssue(issue) ? state.runtimeWarnings : state.runtimeErrors;
+        const optional = isOptionalRemoteRuntimeIssue(issue);
+        const target = optional ? state.runtimeWarnings : state.runtimeErrors;
         uniquePush(target, issue, item => `${item.reason}:${item.code}:${item.message}`, 12);
+        dispatchRuntimeIssue(optional ? 'warning' : (reason === 'boot-failed' ? 'boot' : 'runtime'), { issue, optional });
     }
 
     function findMissingGlobals() {
@@ -484,6 +492,7 @@
         const report = check({ silent: true });
         setImportStatus(`앱 초기화가 지연되고 있습니다: ${summarizeProblems(report)} · 캐시 초기화를 시도해 보세요.`, 'warn');
         showRecoveryPanel(report, { reason: 'boot-stall' });
+        dispatchRuntimeIssue('boot', { issue: { reason: 'boot-stalled', message: 'App boot stalled', code: 'FOXBEAR_BOOT_STALLED', stack: '', at: Date.now() }, report });
         console.warn('[FoxBearRuntimeHealth] app boot stalled', report);
     }
 

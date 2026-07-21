@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.54",
+  "version": "1.5.55",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with one-shot quality-gate recovery, per-track DSP diagnostics, and JSZip asset-generation hardening.",
+  "description": "FoxBear AI Mastering Studio Pro with automatic privacy-reduced incident reporting, server-side email delivery, quality recovery, and DSP diagnostics.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,10 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.54-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.54-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.55-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.55-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
-    "hooks:install": "bash tools/install-git-hooks.sh"
+    "hooks:install": "bash tools/install-git-hooks.sh",
+    "functions:check": "npm --prefix functions run check",
+    "functions:audit": "npm --prefix functions run audit:prod",
+    "functions:install": "npm --prefix functions install",
+    "deploy:incident": "firebase deploy --only firestore:rules,functions:sendIncidentEmail"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -276,15 +280,18 @@
     "node qa/v1552_ci_parallelization_smoke.js",
     "node qa/v1553_engine_recovery_performance_diagnostics_smoke.js",
     "node --check qa/browser/quality-recovery-profiles-playwright.spec.js",
-    "node qa/v1554_quality_recovery_profiles_browser_qa_smoke.js"
+    "node qa/v1554_quality_recovery_profiles_browser_qa_smoke.js",
+    "node --check src/boot/incident-reporter.js",
+    "node --check functions/index.js",
+    "node qa/v1555_incident_mail_reporting_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "quality-recovery-profiles-browser-qa",
-    "assetVersion": "1.5.54-quality-recovery-profiles-browser-qa",
-    "cacheName": "foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa",
-    "bootRevision": "boot-sri-v1554",
-    "updateSafetyRevision": "update-safety-v1554",
-    "serviceWorkerRevision": "sw-v1554"
+    "buildId": "automatic-incident-mail-reporting",
+    "assetVersion": "1.5.55-automatic-incident-mail-reporting",
+    "cacheName": "foxbear-shell-v1.5.55-automatic-incident-mail-reporting",
+    "bootRevision": "boot-sri-v1555",
+    "updateSafetyRevision": "update-safety-v1555",
+    "serviceWorkerRevision": "sw-v1555"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

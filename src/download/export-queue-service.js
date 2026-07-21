@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.5.54 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.5.55 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.5.54-quality-recovery-profiles-browser-qa';
+    const VERSION = 'v1.5.55-automatic-incident-mail-reporting';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;
@@ -29,6 +29,13 @@
 
     function clamp(value, min, max) {
         return Math.max(min, Math.min(max, Number(value) || 0));
+    }
+
+    function reportExportIncident(error, context = '') {
+        global.FoxBearIncidentReporter?.report?.({
+            category: 'export', severity: 'error', reason: error?.code || 'export-queue-failed',
+            message: error?.message || 'Export queue delivery failed', error, context
+        }, { automatic: true }).catch?.(() => {});
     }
 
     function cloneItem(item) {
@@ -418,6 +425,7 @@
                 notify('', options);
                 return Object.freeze({ ok: false, dismissed: true, diagnosis, snapshot: getSnapshot() });
             }
+            reportExportIncident(error, `mode=${state.mode}; kind=${diagnosis.kind}; code=${diagnosis.code}; attempts=${item.attempts}; size=${item.size}`);
             item.status = 'failed';
             item.error = diagnosis.title;
             item.errorCode = diagnosis.code;

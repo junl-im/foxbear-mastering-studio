@@ -1,21 +1,14 @@
-# Handoff - v1.5.54
+# Handoff - v1.5.55
 
-## v1.5.54 handoff focus
+## v1.5.55 handoff focus
 
-- Force a `PHASE_RISK` first-gate failure in browser QA and confirm one `phase-stabilization` rerender completes with a downloadable output.
-- Force a `HIGH_LOSS` failure plus an `after-render` recovery exception and confirm the first valid render remains downloadable with `preservedFirstRender: true`.
-- Confirm combined dynamic-collapse and low-pumping failures apply both loudness and low-end modifiers while retry count remains exactly one.
-- Confirm production sessions cannot activate the injection hook without `window.__FOXBEAR_E2E__ === true`.
-- Run static QA, both Playwright projects, release packaging, and archive verification before deployment.
+- Deploy Firestore rules and `sendIncidentEmail` Cloud Function together.
+- Create the `FOXBEAR_GMAIL_APP_PASSWORD` secret with Firebase CLI; never store or paste the password into source files.
+- Confirm the Program Info `테스트 메일` control reaches `delivery.status = emailed` and arrives at `mcwoogi@gmail.com`.
+- Confirm audio, filename, PCM, query credentials, email addresses, tokens, and full local paths are absent from incident documents and emails.
+- Enable Firestore TTL on the `expiresAt` field for `incidentReports` and `incidentMailState`.
+- Treat App Check enforcement as the next abuse-hardening step before opening the service broadly.
 
-```text
-product: 1.5.54
-build: quality-recovery-profiles-browser-qa
-asset generation: 1.5.54-quality-recovery-profiles-browser-qa
-service worker cache: foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa
-```
-
-# Handoff - v1.5.52
 
 ## v1.5.52 handoff focus
 

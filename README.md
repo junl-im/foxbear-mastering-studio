@@ -1,18 +1,9 @@
-# FoxBear AI Mastering Studio Pro v1.5.54
+# FoxBear AI Mastering Studio Pro v1.5.55
 
+## Current patch: v1.5.55 Automatic Incident Mail Reporting
 
-## Current patch: v1.5.54 Risk-Specific Quality Recovery and Browser QA
+치명적 부팅·리소스·마스터링·내보내기 문제를 개인정보를 줄인 진단 이벤트로 저장하고, Firebase Cloud Function이 Secret Manager의 Gmail 앱 비밀번호를 사용해 `mcwoogi@gmail.com`으로 알림을 보냅니다. 오디오, 파일명, PCM, 전체 로컬 경로는 신고하지 않습니다. 클라이언트/서버 중복 억제와 일일 상한, 오프라인 큐, 사용자 끄기 및 테스트 기능을 포함합니다.
 
-품질 게이트 실패 유형에 따라 출력 무결성, 라우드니스 압력, 저역 펌핑, 스테레오 위상, 고역 손실, 모바일 번역 복구 프로필을 선택합니다. 자동 재렌더는 한 번만 수행하며, 복구 도중 예외가 발생하면 최초 정상 렌더와 인코딩 결과를 유지합니다. 실제 AudioBuffer를 사용하는 Playwright 성공·예외 시나리오가 릴리스 게이트에 포함됩니다.
-
-Release metadata:
-
-```text
-product: 1.5.54
-build: quality-recovery-profiles-browser-qa
-asset generation: 1.5.54-quality-recovery-profiles-browser-qa
-service worker cache: foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa
-```
 
 ## Current patch: v1.5.52 CI Parallel Release Gate
 

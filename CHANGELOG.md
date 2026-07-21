@@ -1,11 +1,13 @@
-# v1.5.54 - Risk-Specific Quality Recovery and Browser QA
+# v1.5.55 - Automatic Incident Mail Reporting
 
-- Replaced the single generic safe-rerender preset with deterministic profiles for invalid output, loudness/dynamic collapse, low-end pumping, stereo phase, high-frequency loss, and mobile translation risk.
-- Combined multiple failed audit flags into one bounded retry plan with cumulative conservative DSP adjustments and an explicit primary profile.
-- Preserved quality-audit codes in gate risk flags and exposed recovery profile, risk codes, adjustment receipt, error, output size, and first-render preservation through diagnostics.
-- Added E2E-only first-gate and recovery-stage fault injection guarded by the explicit FoxBear browser-QA flag.
-- Added a real-browser scenario that validates successful phase recovery and first-render preservation after an injected post-render recovery exception.
-- Preserved the existing Wake Lock ON/OFF/AUTO diagnostics and silent automatic work-protection contract.
+- Added privacy-reduced client incident collection for boot, resource, runtime, mastering, quality-recovery, export, update-safety, and release-generation failures.
+- Added an offline local queue, 15-minute client duplicate suppression, per-session/day limits, sensitive-text redaction, and a user-visible enable/test control.
+- Added Firestore `incidentReports` create-only ingestion with owner delivery-status reads and administrator-only listing.
+- Added a second-generation Firestore trigger that emails `mcwoogi@gmail.com` through a Secret Manager-backed Gmail app password.
+- Added server-side HTML escaping, 30-minute fingerprint suppression, a 40-email daily cap, delivery states, and retention timestamps.
+- Added ZIP/export queue incident instrumentation without sending audio, filenames, PCM, or local paths.
+- Fixed the split release generation where the v1.5.54 runtime still referenced v1.5.53 HTML assets, and moved an invalid script tag back inside the document boot graph.
+- Added release/package guards for the Functions source while excluding nested `node_modules` and secret files.
 
 # v1.5.52 - CI Parallel Release Gate
 
