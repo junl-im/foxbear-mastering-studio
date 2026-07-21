@@ -1,7 +1,71 @@
-// FoxBear mastering orchestrator service v1.4.28 - batch flow extracted from app.js
+// FoxBear mastering orchestrator service v1.5.53 - batch flow and one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
+    function toFinite(value, fallback) {
+        const number = Number(value);
+        return Number.isFinite(number) ? number : fallback;
+    }
+
+    function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function normalizeSettings(settings = {}) {
+        return Object.freeze({
+            clarity: clamp(toFinite(settings.clarity, 50), 0, 100),
+            warmth: clamp(toFinite(settings.warmth, 55), 0, 100),
+            width: clamp(toFinite(settings.width, 35), 0, 100),
+            stereoGroove: clamp(toFinite(settings.stereoGroove, 8), 0, 100),
+            analogGroove: clamp(toFinite(settings.analogGroove, 6), 0, 100),
+            dynamicPunch: clamp(toFinite(settings.dynamicPunch, 35), 0, 100),
+            metallicRemoval: clamp(toFinite(settings.metallicRemoval, 42), 0, 100),
+            intensity: clamp(toFinite(settings.intensity, 100), 50, 200)
+        });
+    }
+
+    function createQualityRecoveryPlan(input = {}) {
+        const gate = input.gate || null;
+        if (!gate || gate.status !== 'fail' || input.alreadyAttempted) return null;
+        const failedFlags = (gate.riskFlags || gate.items || [])
+            .filter(item => item && item.status === 'fail')
+            .map(item => ({ label: String(item.label || '품질 실패'), detail: String(item.detail || '') }));
+        if (!failedFlags.length) return null;
+
+        const sourceSettings = normalizeSettings(input.settings || {});
+        const failedText = failedFlags.map(item => `${item.label} ${item.detail}`).join(' ');
+        const loudnessRisk = /Short-term|클리핑|리미터|과도한 리미팅|저역 펌핑|라우드니스/i.test(failedText);
+        const spectralRisk = /고역 손실|De-esser|Multiband|모바일 번역/i.test(failedText);
+        const targetLufs = toFinite(input.targetLufs, -14);
+        const ceilingDb = toFinite(input.ceilingDb, -1);
+        const safeSettings = Object.freeze({
+            clarity: Math.min(sourceSettings.clarity, spectralRisk ? 48 : 54),
+            warmth: clamp(sourceSettings.warmth, 38, 64),
+            width: Math.min(sourceSettings.width, 38),
+            stereoGroove: Math.min(sourceSettings.stereoGroove, 8),
+            analogGroove: Math.min(sourceSettings.analogGroove, 10),
+            dynamicPunch: Math.min(sourceSettings.dynamicPunch, loudnessRisk ? 28 : 34),
+            metallicRemoval: Math.min(sourceSettings.metallicRemoval, spectralRisk ? 46 : 52),
+            intensity: Math.min(sourceSettings.intensity, loudnessRisk ? 88 : 95)
+        });
+        const safeTargetLufs = loudnessRisk ? Math.min(targetLufs - 1.5, -12) : targetLufs;
+        const safeCeilingDb = Math.min(ceilingDb - 0.5, -1.5);
+        return Object.freeze({
+            version: '1.5.53-engine-recovery-performance-diagnostics',
+            attemptLimit: 1,
+            failedFlags: Object.freeze(failedFlags),
+            reason: failedFlags.map(item => item.label).join(', '),
+            requestedSettings: sourceSettings,
+            safeSettings,
+            targetLufs: safeTargetLufs,
+            ceilingDb: safeCeilingDb,
+            qualityMode: 'fast',
+            truePeak: true,
+            loudnessAdjusted: safeTargetLufs !== targetLufs,
+            ceilingAdjusted: safeCeilingDb !== ceilingDb
+        });
+    }
+
     function createMasteringBatchRunner(options = {}) {
         async function runBatch(tracks, batchOptions = {}) {
             const items = Array.isArray(tracks) ? tracks.filter(Boolean) : [];
@@ -52,13 +116,14 @@
         }
 
         return Object.freeze({
-            version: '1.5.52-ci-parallel-release-gate',
+            version: '1.5.53-engine-recovery-performance-diagnostics',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.52-ci-parallel-release-gate',
+        version: '1.5.53-engine-recovery-performance-diagnostics',
+        createQualityRecoveryPlan,
         createMasteringBatchRunner
     });
 })(window);

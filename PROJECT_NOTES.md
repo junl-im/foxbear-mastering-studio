@@ -1,3 +1,13 @@
+# Current Project Notes - v1.5.53
+
+## v1.5.53 focus
+
+- The service-worker `v=` query is exclusively the application asset generation; third-party library versions use a separate query key.
+- Quality recovery is one-shot, conservative, cancellation-aware, and must preserve the first valid output on recovery failure.
+- Recovery success recomputes quality, comparison, waveform, A/B highlight, safety, True Peak, and export fallback metadata.
+- Performance diagnostics are track-scoped and expose total DSP time, the slowest stage, real-time speed, finalizer time, and individual stage timings.
+- Release synchronization owns `foxbear-root.json`; stale root metadata is a release validation failure.
+
 # Current Project Notes - v1.5.46
 
 ## v1.5.46 focus

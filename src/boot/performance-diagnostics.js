@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.52-ci-parallel-release-gate';
+    const DIAGNOSTICS_VERSION = '1.5.53-engine-recovery-performance-diagnostics';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -167,6 +167,7 @@
         const audioContexts = safeCall(() => global.FoxBearAudioContextManager?.getDiagnostics?.(), null);
         const renderScheduler = safeCall(() => global.FoxBearRenderScheduler?.getSnapshot?.(), null);
         const masteringQueue = safeCall(() => global.FoxBearMasteringGuard?.getSnapshot?.(), null);
+        const masteringPerformance = safeCall(() => global.FoxBearMasteringDiagnostics?.getSnapshot?.(), null);
         const wakeLock = safeCall(() => global.FoxBearWakeLockController?.getSnapshot?.(), null);
         const memoryGuard = safeCall(() => global.FoxBearMemoryGuard?.getSnapshot?.(), null);
         const snapshot = Object.freeze({
@@ -195,6 +196,7 @@
             audioDecode,
             audioContexts,
             masteringQueue,
+            masteringPerformance,
             memoryGuard,
             wakeLock,
             renderScheduler,
@@ -309,6 +311,12 @@
             `long tasks: ${snapshot.longTasks.length}${snapshot.longTasks.length ? ' · max ' + Math.max(...snapshot.longTasks.map(item => item.durationMs || 0)) + 'ms' : ''}`,
             `warnings: ${(state.lastSummary?.warnings || []).join(', ') || 'none'}`
         ];
+        const selectedPerformance = snapshot.masteringPerformance?.selected;
+        if (selectedPerformance) {
+            const slowest = (selectedPerformance.stages || []).slice().sort((a, b) => Number(b.ms || 0) - Number(a.ms || 0))[0];
+            lines.push(`track DSP: ${selectedPerformance.name || selectedPerformance.id} · ${(Number(selectedPerformance.totalMs || 0) / 1000).toFixed(2)}s · ${Number(selectedPerformance.speedFactor || 0).toFixed(2)}x`);
+            lines.push(`slowest stage: ${slowest ? `${slowest.label} ${(Number(slowest.ms || 0) / 1000).toFixed(2)}s` : 'n/a'} · recovery ${selectedPerformance.recoveryStatus || 'none'}`);
+        }
         if (snapshot.audio.labels.length) lines.push(`playing: ${snapshot.audio.labels.join(', ')}`);
         return lines.join('\n');
     }

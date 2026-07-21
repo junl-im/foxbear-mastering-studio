@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.52 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.53 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.52-ci-parallel-release-gate';
+    const VERSION = '1.5.53-engine-recovery-performance-diagnostics';
     let sequence = 0;
 
     function createJobId(label = 'worker') {

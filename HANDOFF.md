@@ -1,11 +1,32 @@
-# Handoff - v1.5.52
+# Handoff - v1.5.53
 
-## v1.5.52 handoff focus
+## v1.5.53 handoff focus
 
-- Confirm static and browser release gates run as parallel GitHub Actions jobs.
-- Confirm a newer push cancels the older Pages workflow for the same ref.
-- Confirm Playwright browser cache is restored and failed browser diagnostics are uploaded only on failure.
-- Confirm the build artifact waits for both QA jobs before deployment.
+- With an existing older service worker active, reload and confirm JSZip has no `load-error-or-sri-block` resource failure.
+- Force a quality-gate FAIL and confirm exactly one safe rerender occurs; a second retry must never start.
+- Make the safe rerender throw and confirm the first valid encoded output remains downloadable and the track does not become a false fatal error.
+- Confirm the detail view shows total DSP time, slowest stage, real-time processing speed, finalizer time, and the per-stage timing list for the selected track.
+- Confirm `foxbear-root.json`, visible version labels, service-worker generation, SRI, and package filenames all resolve to v1.5.53.
+
+```text
+product: 1.5.53
+build: engine-recovery-performance-diagnostics
+asset generation: 1.5.53-engine-recovery-performance-diagnostics
+service worker cache: foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics
+```
+
+Verification:
+
+```bash
+npm ci --ignore-scripts
+npm run version:check
+npm run handoff:check
+npm run check:static
+npm run qa:browser
+npm run package:all
+npm run package:verify:release
+npm run package:verify:overwrite
+```
 
 ## v1.5.51 handoff focus
 

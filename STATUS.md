@@ -1,15 +1,16 @@
-# FoxBear Status - v1.5.52
+# FoxBear Status - v1.5.53
 
-## v1.5.47 current focus
+## v1.5.53 current focus
 
-- Silent, corrupt, and unusably short input cannot report a successful master.
-- Finalizer and recommendation inputs remain finite under malformed analysis caches.
-- Mono, 96kHz, and 192kHz rendering preserve target loudness and True Peak limits.
-- Mastering cancellation is checked after every expensive asynchronous stage.
+- Quality-gate FAIL triggers one bounded safe rerender and never a retry loop.
+- A recovery exception preserves the first valid render and records an explicit recovery error state.
+- Selected-track diagnostics expose total DSP time, slowest stage, real-time speed, finalizer time, and all stage timings.
+- JSZip uses the current app asset generation in `v=` while retaining `lib=3.10.1` as separate metadata.
+- Root marker metadata is generated and validated from `package.json`.
 
 ## Current status
 
-Engine edge-case quality coverage is active. Static and regression QA is `241/241 PASS`, including deterministic input-guard, high-sample-rate, malformed-analysis, clipping-stress, recommendation, and cancellation checks.
+Engine recovery and performance diagnostics are implemented. The registered static and regression target is `251/251 PASS`; browser execution remains a separate release gate.
 
 ## Release invariants
 
@@ -27,10 +28,10 @@ Engine edge-case quality coverage is active. Static and regression QA is `241/24
 
 ## Current release
 
-- Product version: `1.5.52`
-- Build ID: `ci-parallel-release-gate`
-- Asset version: `1.5.52-ci-parallel-release-gate`
-- Service worker cache: `foxbear-shell-v1.5.52-ci-parallel-release-gate`
+- Product version: `1.5.53`
+- Build ID: `engine-recovery-performance-diagnostics`
+- Asset version: `1.5.53-engine-recovery-performance-diagnostics`
+- Service worker cache: `foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics`
 - Browser QA target: silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -62,7 +63,7 @@ Engine edge-case quality coverage is active. Static and regression QA is `241/24
 
 ## Release metadata
 
-- Product version: `1.5.52`
-- Build ID: `ci-parallel-release-gate`
-- Asset version: `1.5.52-ci-parallel-release-gate`
-- Service worker cache: `foxbear-shell-v1.5.52-ci-parallel-release-gate`
+- Product version: `1.5.53`
+- Build ID: `engine-recovery-performance-diagnostics`
+- Asset version: `1.5.53-engine-recovery-performance-diagnostics`
+- Service worker cache: `foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics`

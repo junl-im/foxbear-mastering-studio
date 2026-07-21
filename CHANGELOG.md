@@ -1,3 +1,13 @@
+# v1.5.53 - Engine Recovery & Performance Diagnostics
+
+- Fixed JSZip boot failures caused by the service worker interpreting library version `v=3.10.1` as a stale app asset generation.
+- Added a one-shot safe rerender after quality-gate failure with conservative DSP, loudness, ceiling, True Peak, and bounded quality settings.
+- Preserved the first valid render when the safe recovery path throws or cannot produce a valid encoded output.
+- Added selected-track DSP diagnostics: total processing time, slowest stage, real-time speed, finalizer time, and per-stage timing bars.
+- Added runtime diagnostics exposure and required-global checks for mastering performance telemetry.
+- Synchronized and validated `foxbear-root.json` and the JSZip app-generation URL in release metadata tooling.
+- Added v1.5.53 regression coverage for retry limits, safe settings, stale-generation routing, diagnostics UI, and metadata contracts.
+
 # v1.5.52 - CI Parallel Release Gate
 
 - Split static QA and Playwright browser QA into parallel GitHub Actions jobs.

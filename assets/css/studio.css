@@ -9737,3 +9737,57 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
         width: 100%;
     }
 }
+
+/* v1.5.53 one-shot engine recovery and per-track DSP performance diagnostics */
+.engine-recovery-note {
+    margin: 8px 0;
+    padding: 8px 10px;
+    border: 1px solid rgba(125, 211, 252, .24);
+    border-radius: 12px;
+    background: rgba(14, 116, 144, .10);
+    color: rgba(224, 242, 254, .92);
+    font-size: .66rem;
+    line-height: 1.45;
+}
+.engine-recovery-note.recovery-recovered { border-color: rgba(74, 222, 128, .30); background: rgba(22, 101, 52, .12); }
+.engine-recovery-note.recovery-failed-after-retry,
+.engine-recovery-note.recovery-error { border-color: rgba(251, 113, 133, .30); background: rgba(159, 18, 57, .12); }
+.performance-stage-list {
+    display: grid;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    background: rgba(0,0,0,.12);
+}
+.performance-stage-row {
+    display: grid;
+    grid-template-columns: minmax(72px, .8fr) minmax(90px, 1.6fr) minmax(54px, auto);
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    font-size: .62rem;
+}
+.performance-stage-row span,
+.performance-stage-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.performance-stage-row span { color: var(--muted); }
+.performance-stage-row b { text-align: right; font-size: .62rem; }
+.performance-stage-row i {
+    display: block;
+    height: 6px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255,255,255,.08);
+}
+.performance-stage-row em {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: .62;
+}
+@media (max-width: 640px) {
+    .performance-stage-row { grid-template-columns: minmax(60px, .9fr) minmax(70px, 1.4fr) minmax(48px, auto); gap: 5px; font-size: .54rem; }
+    .performance-stage-row b { font-size: .54rem; }
+}

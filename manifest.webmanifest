@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.52 (ci-parallel-release-gate).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.53 (engine-recovery-performance-diagnostics).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.52"
+  "version": "1.5.53"
 }

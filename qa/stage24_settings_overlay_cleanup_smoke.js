@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.52-ci-parallel-release-gate';
+const version = '1.5.53-engine-recovery-performance-diagnostics';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

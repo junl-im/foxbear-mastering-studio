@@ -152,6 +152,8 @@ function sync() {
   handoffPackage.buildId = meta.buildId;
   write('HANDOFF_PACKAGE.json', `${JSON.stringify(handoffPackage, null, 2)}\n`);
 
+  const rootMarker = { foxbearAppRoot: true, productVersion: meta.productVersion, assetVersion: meta.assetVersion };
+  write('foxbear-root.json', `${JSON.stringify(rootMarker, null, 2)}\n`);
   write('STATUS.md', synchronizeStatusMetadata(read('STATUS.md')));
 
   let index = read('index.html');
@@ -196,6 +198,7 @@ function validate() {
   const pkgLock = fs.existsSync(path.join(ROOT, 'package-lock.json')) ? JSON.parse(read('package-lock.json')) : null;
   const manifest = JSON.parse(read('manifest.webmanifest'));
   const handoffPackage = JSON.parse(read('HANDOFF_PACKAGE.json'));
+  const rootMarker = JSON.parse(read('foxbear-root.json'));
   const buildInfo = read('src/config/build-info.js');
   const index = read('index.html');
   const sw = read('sw.js');
@@ -214,6 +217,7 @@ function validate() {
   expect(handoffPackage.productVersion === meta.productVersion, 'HANDOFF_PACKAGE.json version is not synchronized');
   expect(handoffPackage.buildId === meta.buildId, 'HANDOFF_PACKAGE.json buildId is not synchronized');
   expect(handoffPackage.targetClient === 'GitHub Desktop', 'HANDOFF_PACKAGE.json target client is not GitHub Desktop');
+  expect(rootMarker.foxbearAppRoot === true && rootMarker.productVersion === meta.productVersion && rootMarker.assetVersion === meta.assetVersion, 'foxbear-root.json is not synchronized');
   expect(manifest.description.includes(`v${meta.productVersion}`) && manifest.description.includes(meta.buildId), 'manifest.webmanifest description is not synchronized');
   expect(index.includes(`<title>FoxBear Mastering PRO v${meta.productVersion}</title>`), 'index title is not synchronized');
   expect(index.includes(`data-build="${meta.productVersion}"`), 'index data-build is not synchronized');
@@ -243,6 +247,10 @@ function validate() {
   expect(sw.includes(`const CACHE_NAME = '${meta.cacheName}'`), 'service worker cache name is not synchronized');
   expect(sw.includes(`./src/config/build-info.js?v=${meta.assetVersion}`), 'service worker does not precache build-info');
   expect(sw.includes(`./src/boot/release-presentation-service.js?v=${meta.assetVersion}`), 'service worker does not precache release presentation service');
+  const jsZipUrl = `vendor/jszip/jszip.min.js?v=${meta.assetVersion}&lib=3.10.1`;
+  expect(index.includes(jsZipUrl), 'JSZip boot URL must use the current asset generation');
+  expect(sw.includes(`./${jsZipUrl}`), 'service worker must precache JSZip with the current asset generation');
+  expect(read('src/workers/zip-encoder.worker.js').includes(`../../${jsZipUrl}`), 'ZIP worker JSZip URL must use the current asset generation');
   expect(!legacyCacheList.includes(`'${meta.cacheName}'`), 'current cache name must not appear in legacy cache list');
   expect(app.includes(`serviceWorkerRevision || '${meta.serviceWorkerRevision}'`) && app.includes('navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL))'), 'service worker registration revision is not synchronized');
   expect(updateSafety.includes(`BUILD_INFO.bootRevision || '${meta.bootRevision}'`), 'Update Safety expected boot revision fallback is not synchronized');

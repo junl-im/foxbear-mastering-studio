@@ -22,6 +22,18 @@
         head.append(title, score);
         const summary = document.createElement('p');
         summary.textContent = gate.summary;
+        const recovery = track.engineRecoveryInfo?.attempted ? document.createElement('div') : null;
+        if (recovery) {
+            const status = track.engineRecoveryInfo.status || 'running';
+            recovery.className = `engine-recovery-note recovery-${status}`;
+            recovery.textContent = status === 'recovered'
+                ? `자동 복구 완료 · 안전 설정으로 1회 재렌더 · 최종 ${gate.label}`
+                : status === 'failed-after-retry'
+                    ? '자동 복구 1회 수행 · 최종 품질 게이트도 실패하여 추가 자동 재시도는 중단됨'
+                    : status === 'error'
+                        ? `자동 복구 오류 · 최초 렌더 유지 · ${track.engineRecoveryInfo.error || '세부 오류 없음'}`
+                        : `자동 복구 진행 중 · ${track.engineRecoveryInfo.reason || '안전 설정 적용'}`;
+        }
         const list = document.createElement('div');
         list.className = 'quality-gate-list';
         (gate.items || []).forEach(item => {
@@ -36,7 +48,9 @@
             row.append(status, label, detail);
             list.appendChild(row);
         });
-        panel.append(head, summary, list);
+        panel.append(head, summary);
+        if (recovery) panel.appendChild(recovery);
+        panel.appendChild(list);
         el.trackDetail.appendChild(panel);
     }
 
@@ -263,9 +277,12 @@
             const perf = document.createElement('div');
             perf.className = 'performance-meter-row';
             const heavy = getHeaviestPerformanceStage(track.performanceInfo);
+            const speedFactor = Number(track.performanceInfo.speedFactor || 0);
             const chips = [
-                ['처리 시간', formatPerformanceInfo(track.performanceInfo)],
-                ['무거운 단계', heavy ? `${heavy.label} · ${formatDurationMs(heavy.ms)}` : '측정 전']
+                ['곡 전체 DSP', formatDurationMs(track.performanceInfo.totalMs)],
+                ['가장 느린 단계', heavy ? `${heavy.label} · ${formatDurationMs(heavy.ms)}` : '측정 전'],
+                ['실시간 처리 배속', speedFactor > 0 ? `${speedFactor.toFixed(2)}x` : '계산 전'],
+                ['파이널라이저', track.performanceInfo.finalizerProcessingMs ? formatDurationMs(track.performanceInfo.finalizerProcessingMs) : '측정 전']
             ];
             chips.forEach(([label, value]) => {
                 const chip = document.createElement('div');
@@ -278,6 +295,27 @@
                 perf.appendChild(chip);
             });
             panel.appendChild(perf);
+            const stages = (track.performanceInfo.stages || []).filter(stage => Number(stage.ms || 0) >= 0);
+            if (stages.length) {
+                const stageList = document.createElement('div');
+                stageList.className = 'performance-stage-list';
+                const maxStageMs = Math.max(1, ...stages.map(stage => Number(stage.ms || 0)));
+                stages.forEach(stage => {
+                    const row = document.createElement('div');
+                    row.className = 'performance-stage-row';
+                    const label = document.createElement('span');
+                    label.textContent = stage.label;
+                    const rail = document.createElement('i');
+                    const fill = document.createElement('em');
+                    fill.style.width = `${Math.max(2, Math.min(100, Number(stage.ms || 0) / maxStageMs * 100))}%`;
+                    rail.appendChild(fill);
+                    const value = document.createElement('b');
+                    value.textContent = formatDurationMs(stage.ms);
+                    row.append(label, rail, value);
+                    stageList.appendChild(row);
+                });
+                panel.appendChild(stageList);
+            }
         }
         const bars = document.createElement('div');
         bars.className = 'lufs-bars';

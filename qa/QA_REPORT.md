@@ -1,3 +1,15 @@
+# QA Report - v1.5.53 Engine Recovery & Performance Diagnostics
+
+## v1.5.53 coverage
+
+- One-shot quality-gate recovery planning and conservative DSP/loudness settings
+- Retry-loop prevention and first-render preservation on recovery exceptions
+- Current-generation JSZip routing through service worker, index, and ZIP worker
+- Selected-track total DSP, slowest stage, real-time speed, finalizer, and stage-list diagnostics
+- Runtime required-global and release root-marker synchronization contracts
+- Static and regression result: `251/251 PASS`, executed in bounded segments due the sandbox child-process ceiling.
+- Live Playwright was attempted, but the sandbox did not contain `chromium_headless_shell-1228`; all scenarios stopped before application launch, so browser QA remains a deployment-environment gate.
+
 # QA Report - v1.5.52 CI Parallel Release Gate
 
 ## v1.5.52 coverage

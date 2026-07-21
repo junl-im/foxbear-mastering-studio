@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.52-ci-parallel-release-gate';
+    const FALLBACK_VERSION = '1.5.53-engine-recovery-performance-diagnostics';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -76,6 +76,7 @@
         'FoxBearBulkImportGuard.getSnapshot',
         'FoxBearBulkImportHud.getSnapshot',
         'FoxBearMasteringGuard.getSnapshot',
+        'FoxBearMasteringDiagnostics.getSnapshot',
         'FoxBearRenderScheduler.getSnapshot',
         'FoxBearWaveformCompareView.renderWaveformCompareDialog',
         'FoxBearDetailPanelsView.renderQualityGatePanel',

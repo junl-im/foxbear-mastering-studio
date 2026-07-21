@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.52-ci-parallel-release-gate';
+  const VIEW_VERSION = '1.5.53-engine-recovery-performance-diagnostics';
   const DEFAULT_BINS = 96;
 
   function getService() {
