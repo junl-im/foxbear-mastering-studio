@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.53 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.54 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -17,7 +17,7 @@ const FoxBearPlaybackLinkService = window.FoxBearPlaybackLinkService || {};
 const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
 const FoxBearMasteringInputGuard = window.FoxBearMasteringInputGuard || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.53';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.54';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -61,7 +61,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.53-engine-recovery-performance-diagnostics'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1553'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.54-quality-recovery-profiles-browser-qa'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1554'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -3005,7 +3005,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.53-engine-recovery-performance-diagnostics') · navigator.serviceWorker.register('./sw.js?v=1.5.53-engine-recovery-performance-diagnostics&h=sw-v1553')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.54-quality-recovery-profiles-browser-qa') · navigator.serviceWorker.register('./sw.js?v=1.5.54-quality-recovery-profiles-browser-qa&h=sw-v1554')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3812,7 +3812,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.53-engine-recovery-performance-diagnostics', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.54-quality-recovery-profiles-browser-qa', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4126,7 +4126,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.53-engine-recovery-performance-diagnostics',
+        version: '1.5.54-quality-recovery-profiles-browser-qa',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4166,10 +4166,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.53-engine-recovery-performance-diagnostics',
+    version: '1.5.54-quality-recovery-profiles-browser-qa',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.53-engine-recovery-performance-diagnostics', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.54-quality-recovery-profiles-browser-qa', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4194,12 +4194,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.53-engine-recovery-performance-diagnostics', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.54-quality-recovery-profiles-browser-qa', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.53-engine-recovery-performance-diagnostics', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.54-quality-recovery-profiles-browser-qa', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4214,12 +4214,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.53-engine-recovery-performance-diagnostics',
+    version: 'v1.5.54-quality-recovery-profiles-browser-qa',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.53-engine-recovery-performance-diagnostics', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.54-quality-recovery-profiles-browser-qa', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5328,7 +5328,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.53-engine-recovery-performance-diagnostics-fallback',
+            version: '1.5.54-quality-recovery-profiles-browser-qa-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -5461,6 +5461,48 @@ async function waitForTrackAnalysisIfNeeded(track, purpose = '마스터링') {
     if (track.error) return false;
     return Boolean(track.analysis);
 }
+function getQualityRecoveryE2EControl() {
+    if (window.__FOXBEAR_E2E__ !== true) return null;
+    const value = window.__FOXBEAR_E2E_QUALITY_RECOVERY__;
+    return value && typeof value === 'object' ? value : null;
+}
+function getQualityRecoveryRiskLabel(code) {
+    const labels = {
+        DYNAMIC_COLLAPSE: '과도한 리미팅',
+        HIGH_LOSS: '고역 손실',
+        LOW_PUMPING: '저역 펌핑',
+        PHASE_RISK: '스테레오 위상',
+        INVALID_OUTPUT: '출력 샘플 무결성'
+    };
+    return labels[String(code || '').toUpperCase()] || '품질 회귀';
+}
+function applyQualityRecoveryE2EOverride(track, gate) {
+    const control = getQualityRecoveryE2EControl();
+    if (!control?.forceFirstGateFail || track?.engineRecoveryInfo?.attempted) return gate;
+    const code = String(control.riskCode || 'PHASE_RISK').toUpperCase();
+    const label = String(control.riskLabel || getQualityRecoveryRiskLabel(code));
+    const detail = String(control.riskDetail || `E2E injected ${code}`);
+    const item = Object.freeze({ label, status: 'fail', detail, meta: Object.freeze({ code, e2eInjected: true }) });
+    const riskFlag = Object.freeze({ label, status: 'fail', detail, code, e2eInjected: true });
+    return Object.freeze({
+        ...(gate || {}),
+        status: 'fail',
+        label: 'FAIL',
+        score: Math.min(Number(gate?.score || 100), 48),
+        summary: `${Number(gate?.items?.filter?.(entry => entry.status === 'pass')?.length || 0)} 통과 · E2E 강제 실패 1건`,
+        items: Object.freeze([...(gate?.items || []), item]),
+        riskFlags: Object.freeze([...(gate?.riskFlags || []), riskFlag]),
+        e2eInjected: true
+    });
+}
+function maybeThrowQualityRecoveryE2E(stage) {
+    const control = getQualityRecoveryE2EControl();
+    if (control?.throwAt && String(control.throwAt) === String(stage)) {
+        const error = new Error(`E2E injected quality recovery error at ${stage}`);
+        error.code = 'FOXBEAR_E2E_QUALITY_RECOVERY';
+        throw error;
+    }
+}
 async function runQualityGateRecoveryAttempt(track, context = {}) {
     const service = getMasteringOrchestratorService();
     const plan = service?.createQualityRecoveryPlan?.({ gate: track?.qualityGate, settings: track?.settings, targetLufs: track?.finalizeInfo?.targetLufs ?? resolveTargetLufsForTrack(track), ceilingDb: track?.finalizeInfo?.ceilingDb ?? state.ceilingDb, alreadyAttempted: Boolean(track?.engineRecoveryInfo?.attempted) });
@@ -5480,8 +5522,22 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
     };
     const firstGate = originalTrackState.qualityGate;
     const startedAt = new Date().toISOString();
-    track.engineRecoveryInfo = { attempted: true, status: 'running', attemptCount: 1, reason: plan.reason, requestedSettings: originalTrackState.settings, safeSettings: cloneSettings(plan.safeSettings), firstGate, startedAt };
-    track.report = `품질 게이트 실패 · 안전 설정으로 1회 자동 재렌더 중 (${plan.reason})`;
+    track.engineRecoveryInfo = {
+        attempted: true,
+        status: 'running',
+        attemptCount: 1,
+        reason: plan.reason,
+        profileId: plan.profileId,
+        profileLabel: plan.profileLabel,
+        profileIds: [...(plan.profileIds || [])],
+        riskCodes: [...(plan.riskCodes || [])],
+        adjustments: [...(plan.adjustments || [])],
+        requestedSettings: originalTrackState.settings,
+        safeSettings: cloneSettings(plan.safeSettings),
+        firstGate,
+        startedAt
+    };
+    track.report = `품질 게이트 실패 · ${plan.profileLabel || '안전 설정'}으로 1회 자동 재렌더 중 (${plan.reason})`;
     track.progress = Math.max(99, Number(track.progress || 0));
     scheduleRenderAll('quality-gate-auto-recovery', { keepDetailAudio: true, immediate: true });
     await yieldToBrowser();
@@ -5490,6 +5546,7 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
         const retryMasteredBuffer = await renderMasterBuffer(context.preparedBuffer, track.settings, track.preset, track.analysis, context.albumProfile);
         context.assertMasteringJobActive('quality-recovery-master-render');
         sanitizeAudioBuffer(retryMasteredBuffer, 'quality-recovery-master-chain');
+        maybeThrowQualityRecoveryE2E('after-render');
         markPerformanceStage(track, '안전 재렌더');
         const baseGuard = getSmartPerformanceGuardDecision(track, retryMasteredBuffer, context.requestedOutputFormat);
         const retryGuard = { ...baseGuard, sourceQualityMode: baseGuard.qualityMode, qualityMode: plan.qualityMode, truePeak: plan.truePeak, changed: true, recovery: true, reasons: [...(baseGuard.reasons || []), '품질 게이트 1회 자동 복구'] };
@@ -5497,10 +5554,12 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
         context.assertMasteringJobActive('quality-recovery-finalizer');
         const retryFinalBuffer = retryFinalization.buffer;
         sanitizeAudioBuffer(retryFinalBuffer, 'quality-recovery-finalizer');
+        maybeThrowQualityRecoveryE2E('after-finalizer');
         markPerformanceStage(track, '안전 파이널라이저');
         track.performanceGuardInfo = retryGuard;
         const retryEncoded = await encodeMasterOutputAsync(retryFinalBuffer, context.requestedOutputFormat, { signal: context.signal || null, jobId: `${context.masteringJobId}:quality-recovery-encode` });
         context.assertMasteringJobActive('quality-recovery-encode');
+        maybeThrowQualityRecoveryE2E('after-encode');
         if (!retryEncoded.blob || retryEncoded.blob.size <= 44) throw new Error('안전 재렌더 결과가 비어 있습니다.');
         const retryReport = createMasterReport(track, context.preparedBuffer, retryFinalBuffer, retryFinalization.info, retryEncoded);
         const retryGate = createQualityGateReport(track, retryReport, retryFinalization.info, retryEncoded);
@@ -5515,10 +5574,26 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
         track.safetyInfo = computeEngineSafetyInfo(track, retryFinalBuffer, retryFinalization.info);
         track.truePeakInfo = { mode: 'truePeak', targetDbTP: plan.ceilingDb, peakBefore: retryFinalization.info.peakBefore, peakAfter: retryFinalization.info.peakAfter, gain: Math.pow(10, (retryFinalization.info.gainDb || 0) / 20) };
         track.exportFallbackInfo = retryEncoded.fallbackFrom ? { from: retryEncoded.fallbackFrom, to: retryEncoded.format, reason: retryEncoded.fallbackReason || '' } : null;
-        track.engineRecoveryInfo = { ...track.engineRecoveryInfo, status: retryGate.status === 'fail' ? 'failed-after-retry' : 'recovered', finalGate: retryGate, completedAt: new Date().toISOString(), targetLufs: plan.targetLufs, ceilingDb: plan.ceilingDb, qualityMode: plan.qualityMode };
+        track.engineRecoveryInfo = {
+            ...track.engineRecoveryInfo,
+            status: retryGate.status === 'fail' ? 'failed-after-retry' : 'recovered',
+            finalGate: retryGate,
+            completedAt: new Date().toISOString(),
+            targetLufs: plan.targetLufs,
+            ceilingDb: plan.ceilingDb,
+            qualityMode: plan.qualityMode,
+            preservedFirstRender: false
+        };
         return { masteredBuffer: retryMasteredBuffer, finalBuffer: retryFinalBuffer, finalization: retryFinalization, encoded: retryEncoded };
     } catch (error) {
-        const recoveryFailure = { ...track.engineRecoveryInfo, status: 'error', error: getErrorMessage(error, '안전 재렌더 실패'), completedAt: new Date().toISOString() };
+        const recoveryFailure = {
+            ...track.engineRecoveryInfo,
+            status: 'error',
+            error: getErrorMessage(error, '안전 재렌더 실패'),
+            errorCode: String(error?.code || ''),
+            completedAt: new Date().toISOString(),
+            preservedFirstRender: true
+        };
         Object.assign(track, originalTrackState);
         track.engineRecoveryInfo = recoveryFailure;
         console.warn('Quality gate auto recovery failed; keeping first render:', error);
@@ -5704,7 +5779,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         assertMasteringJobActive('encode');
         track.exportFallbackInfo = encoded.fallbackFrom ? { from: encoded.fallbackFrom, to: encoded.format, reason: encoded.fallbackReason || '' } : null;
         track.masterReport = createMasterReport(track, preparedBuffer, finalBuffer, finalization.info, encoded);
-        track.qualityGate = createQualityGateReport(track, track.masterReport, finalization.info, encoded);
+        track.qualityGate = applyQualityRecoveryE2EOverride(track, createQualityGateReport(track, track.masterReport, finalization.info, encoded));
         track.masterReport.qualityGate = track.qualityGate;
         markPerformanceStage(track, '인코딩');
         const recoveryResult = await runQualityGateRecoveryAttempt(track, { preparedBuffer, albumProfile, requestedOutputFormat, signal: masteringAbortController?.signal || null, masteringJobId, assertMasteringJobActive });
@@ -9726,10 +9801,28 @@ function finishPerformanceProfile(track, buffer, blob) {
     }
 }
 function getMasteringPerformanceSnapshot() {
-    const summarize = track => track && track.performanceInfo ? Object.freeze({ id: track.id, name: track.name, status: track.status, qualityGate: track.qualityGate?.status || '', recoveryStatus: track.engineRecoveryInfo?.status || '', totalMs: Number(track.performanceInfo.totalMs || 0), speedFactor: Number(track.performanceInfo.speedFactor || 0), realtimeRatio: Number(track.performanceInfo.realtimeRatio || 0), finalizerProcessingMs: Number(track.performanceInfo.finalizerProcessingMs || 0), stages: (track.performanceInfo.stages || []).map(stage => ({ label: stage.label, ms: Number(stage.ms || 0) })) }) : null;
+    const summarize = track => track && track.performanceInfo ? Object.freeze({
+        id: track.id,
+        name: track.name,
+        status: track.status,
+        qualityGate: track.qualityGate?.status || '',
+        recoveryStatus: track.engineRecoveryInfo?.status || '',
+        recoveryProfileId: track.engineRecoveryInfo?.profileId || '',
+        recoveryProfileLabel: track.engineRecoveryInfo?.profileLabel || '',
+        recoveryRiskCodes: [...(track.engineRecoveryInfo?.riskCodes || [])],
+        recoveryError: track.engineRecoveryInfo?.error || '',
+        preservedFirstRender: Boolean(track.engineRecoveryInfo?.preservedFirstRender),
+        outputBytes: Number(track.outBlob?.size || 0),
+        outputFormat: String(track.outFormat || ''),
+        totalMs: Number(track.performanceInfo.totalMs || 0),
+        speedFactor: Number(track.performanceInfo.speedFactor || 0),
+        realtimeRatio: Number(track.performanceInfo.realtimeRatio || 0),
+        finalizerProcessingMs: Number(track.performanceInfo.finalizerProcessingMs || 0),
+        stages: (track.performanceInfo.stages || []).map(stage => ({ label: stage.label, ms: Number(stage.ms || 0) }))
+    }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.53-engine-recovery-performance-diagnostics', selected, recent });
+    return Object.freeze({ version: '1.5.54-quality-recovery-profiles-browser-qa', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -12815,7 +12908,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.53',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.54',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

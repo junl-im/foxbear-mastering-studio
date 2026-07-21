@@ -1,12 +1,11 @@
-# Current Project Notes - v1.5.53
+# Current Project Notes - v1.5.54
 
-## v1.5.53 focus
+## v1.5.54 focus
 
-- The service-worker `v=` query is exclusively the application asset generation; third-party library versions use a separate query key.
-- Quality recovery is one-shot, conservative, cancellation-aware, and must preserve the first valid output on recovery failure.
-- Recovery success recomputes quality, comparison, waveform, A/B highlight, safety, True Peak, and export fallback metadata.
-- Performance diagnostics are track-scoped and expose total DSP time, the slowest stage, real-time speed, finalizer time, and individual stage timings.
-- Release synchronization owns `foxbear-root.json`; stale root metadata is a release validation failure.
+- Recovery is selected from explicit quality-audit codes first and localized label matching only as a compatibility fallback.
+- Combined risks accumulate conservative DSP modifiers, but profile priority stays deterministic: integrity, loudness, low-end, phase, spectral, translation, balanced fallback.
+- Browser QA uses real decoded and rendered AudioBuffers; only the failure decision and exception point are injected.
+- Recovery exceptions never replace the first valid encoded Blob and must finish with an inspectable preservation receipt.
 
 # Current Project Notes - v1.5.46
 

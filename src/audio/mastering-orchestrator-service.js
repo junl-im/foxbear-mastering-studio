@@ -1,7 +1,17 @@
-// FoxBear mastering orchestrator service v1.5.53 - batch flow and one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.5.54 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
+    const RECOVERY_PROFILE_DEFS = Object.freeze({
+        integrity: Object.freeze({ id: 'integrity-reset', label: '출력 무결성 복구', priority: 100 }),
+        loudness: Object.freeze({ id: 'loudness-relief', label: '라우드니스 압력 완화', priority: 90 }),
+        lowEnd: Object.freeze({ id: 'low-end-control', label: '저역 펌핑 제어', priority: 80 }),
+        phase: Object.freeze({ id: 'phase-stabilization', label: '스테레오 위상 안정화', priority: 70 }),
+        spectral: Object.freeze({ id: 'spectral-preservation', label: '고역 보존 복구', priority: 60 }),
+        translation: Object.freeze({ id: 'translation-balance', label: '모바일 번역 균형', priority: 50 }),
+        balanced: Object.freeze({ id: 'balanced-safety', label: '균형 안전 복구', priority: 10 })
+    });
+
     function toFinite(value, fallback) {
         const number = Number(value);
         return Number.isFinite(number) ? number : fallback;
@@ -24,39 +34,138 @@
         });
     }
 
+    function normalizeRiskFlag(item = {}) {
+        const label = String(item.label || '품질 실패');
+        const detail = String(item.detail || '');
+        const code = String(item.code || item.meta?.code || '').trim().toUpperCase();
+        return Object.freeze({ label, detail, code, status: String(item.status || 'fail') });
+    }
+
+    function classifyRiskFlag(flag) {
+        const code = String(flag.code || '').toUpperCase();
+        const text = `${flag.label} ${flag.detail}`;
+        const categories = [];
+        if (code === 'INVALID_OUTPUT' || /Invalid sample|NaN|Infinity|출력 샘플 무결성|비정상 샘플/i.test(text)) categories.push('integrity');
+        if (code === 'DYNAMIC_COLLAPSE' || /Short-term|클리핑|리미터|과도한 리미팅|라우드니스|피크 천장|True Peak/i.test(text)) categories.push('loudness');
+        if (code === 'LOW_PUMPING' || /저역 펌핑|리미터 지속 동작|bass pumping|low[- ]end pumping/i.test(text)) categories.push('lowEnd');
+        if (code === 'PHASE_RISK' || /스테레오 위상|phase risk|상관도|mono compatibility/i.test(text)) categories.push('phase');
+        if (code === 'HIGH_LOSS' || /고역 손실|De-esser|Multiband|과보정|high[- ]frequency loss/i.test(text)) categories.push('spectral');
+        if (/모바일 번역|폰 스피커|mobile speaker|translation/i.test(text)) categories.push('translation');
+        return categories;
+    }
+
+    function collectRecoveryProfiles(failedFlags) {
+        const categorySet = new Set();
+        failedFlags.forEach(flag => classifyRiskFlag(flag).forEach(category => categorySet.add(category)));
+        if (!categorySet.size) categorySet.add('balanced');
+        return [...categorySet]
+            .map(category => Object.freeze({ category, ...RECOVERY_PROFILE_DEFS[category] }))
+            .sort((a, b) => b.priority - a.priority);
+    }
+
+    function applyBalancedSafety(settings) {
+        settings.clarity = Math.min(settings.clarity, 54);
+        settings.warmth = clamp(settings.warmth, 38, 64);
+        settings.width = Math.min(settings.width, 38);
+        settings.stereoGroove = Math.min(settings.stereoGroove, 8);
+        settings.analogGroove = Math.min(settings.analogGroove, 10);
+        settings.dynamicPunch = Math.min(settings.dynamicPunch, 34);
+        settings.metallicRemoval = Math.min(settings.metallicRemoval, 52);
+        settings.intensity = Math.min(settings.intensity, 95);
+    }
+
+    function applyRecoveryProfile(settings, category) {
+        applyBalancedSafety(settings);
+        if (category === 'integrity') {
+            settings.clarity = Math.min(settings.clarity, 44);
+            settings.warmth = clamp(settings.warmth, 40, 58);
+            settings.width = Math.min(settings.width, 24);
+            settings.stereoGroove = Math.min(settings.stereoGroove, 3);
+            settings.analogGroove = Math.min(settings.analogGroove, 5);
+            settings.dynamicPunch = Math.min(settings.dynamicPunch, 20);
+            settings.metallicRemoval = Math.min(settings.metallicRemoval, 36);
+            settings.intensity = Math.min(settings.intensity, 80);
+        } else if (category === 'loudness') {
+            settings.width = Math.min(settings.width, 34);
+            settings.analogGroove = Math.min(settings.analogGroove, 8);
+            settings.dynamicPunch = Math.min(settings.dynamicPunch, 24);
+            settings.intensity = Math.min(settings.intensity, 84);
+        } else if (category === 'lowEnd') {
+            settings.warmth = Math.min(settings.warmth, 50);
+            settings.analogGroove = Math.min(settings.analogGroove, 4);
+            settings.dynamicPunch = Math.min(settings.dynamicPunch, 18);
+            settings.intensity = Math.min(settings.intensity, 82);
+        } else if (category === 'phase') {
+            settings.width = Math.min(settings.width, 20);
+            settings.stereoGroove = Math.min(settings.stereoGroove, 2);
+            settings.analogGroove = Math.min(settings.analogGroove, 8);
+            settings.intensity = Math.min(settings.intensity, 90);
+        } else if (category === 'spectral') {
+            settings.clarity = Math.min(settings.clarity, 48);
+            settings.warmth = clamp(settings.warmth, 40, 60);
+            settings.metallicRemoval = Math.min(settings.metallicRemoval, 32);
+            settings.intensity = Math.min(settings.intensity, 90);
+        } else if (category === 'translation') {
+            settings.warmth = Math.min(settings.warmth, 52);
+            settings.width = Math.min(settings.width, 28);
+            settings.analogGroove = Math.min(settings.analogGroove, 6);
+            settings.dynamicPunch = Math.min(settings.dynamicPunch, 28);
+        }
+    }
+
+    function createAdjustmentSummary(requested, safe) {
+        return Object.freeze(Object.keys(requested)
+            .filter(key => Number(requested[key]) !== Number(safe[key]))
+            .map(key => Object.freeze({ key, from: Number(requested[key]), to: Number(safe[key]) })));
+    }
+
     function createQualityRecoveryPlan(input = {}) {
         const gate = input.gate || null;
         if (!gate || gate.status !== 'fail' || input.alreadyAttempted) return null;
         const failedFlags = (gate.riskFlags || gate.items || [])
             .filter(item => item && item.status === 'fail')
-            .map(item => ({ label: String(item.label || '품질 실패'), detail: String(item.detail || '') }));
+            .map(normalizeRiskFlag);
         if (!failedFlags.length) return null;
 
         const sourceSettings = normalizeSettings(input.settings || {});
-        const failedText = failedFlags.map(item => `${item.label} ${item.detail}`).join(' ');
-        const loudnessRisk = /Short-term|클리핑|리미터|과도한 리미팅|저역 펌핑|라우드니스/i.test(failedText);
-        const spectralRisk = /고역 손실|De-esser|Multiband|모바일 번역/i.test(failedText);
+        const profiles = collectRecoveryProfiles(failedFlags);
+        const safeSettingsMutable = { ...sourceSettings };
+        profiles.forEach(profile => applyRecoveryProfile(safeSettingsMutable, profile.category));
+        const safeSettings = Object.freeze(safeSettingsMutable);
+        const categories = new Set(profiles.map(profile => profile.category));
         const targetLufs = toFinite(input.targetLufs, -14);
         const ceilingDb = toFinite(input.ceilingDb, -1);
-        const safeSettings = Object.freeze({
-            clarity: Math.min(sourceSettings.clarity, spectralRisk ? 48 : 54),
-            warmth: clamp(sourceSettings.warmth, 38, 64),
-            width: Math.min(sourceSettings.width, 38),
-            stereoGroove: Math.min(sourceSettings.stereoGroove, 8),
-            analogGroove: Math.min(sourceSettings.analogGroove, 10),
-            dynamicPunch: Math.min(sourceSettings.dynamicPunch, loudnessRisk ? 28 : 34),
-            metallicRemoval: Math.min(sourceSettings.metallicRemoval, spectralRisk ? 46 : 52),
-            intensity: Math.min(sourceSettings.intensity, loudnessRisk ? 88 : 95)
-        });
-        const safeTargetLufs = loudnessRisk ? Math.min(targetLufs - 1.5, -12) : targetLufs;
-        const safeCeilingDb = Math.min(ceilingDb - 0.5, -1.5);
+        let safeTargetLufs = targetLufs;
+        let safeCeilingDb = Math.min(ceilingDb - 0.5, -1.5);
+        if (categories.has('integrity')) {
+            safeTargetLufs = Math.min(targetLufs - 2.5, -14);
+            safeCeilingDb = Math.min(ceilingDb - 1, -2);
+        } else if (categories.has('loudness')) {
+            safeTargetLufs = Math.min(targetLufs - 2, -12);
+            safeCeilingDb = Math.min(ceilingDb - 0.8, -1.8);
+        } else if (categories.has('lowEnd')) {
+            safeTargetLufs = Math.min(targetLufs - 1.8, -12);
+            safeCeilingDb = Math.min(ceilingDb - 0.8, -1.8);
+        } else if (categories.has('phase') || categories.has('translation')) {
+            safeCeilingDb = Math.min(ceilingDb - 0.5, -1.5);
+        }
+        const primaryProfile = profiles[0];
+        const riskCodes = Object.freeze([...new Set(failedFlags.map(flag => flag.code).filter(Boolean))]);
+        const profileIds = Object.freeze(profiles.map(profile => profile.id));
+        const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.5.53-engine-recovery-performance-diagnostics',
+            version: '1.5.54-quality-recovery-profiles-browser-qa',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
-            reason: failedFlags.map(item => item.label).join(', '),
+            riskCodes,
+            profileId: primaryProfile.id,
+            profileLabel: primaryProfile.label,
+            profileIds,
+            profileLabels,
+            reason: `${primaryProfile.label} · ${failedFlags.map(item => item.label).join(', ')}`,
             requestedSettings: sourceSettings,
             safeSettings,
+            adjustments: createAdjustmentSummary(sourceSettings, safeSettings),
             targetLufs: safeTargetLufs,
             ceilingDb: safeCeilingDb,
             qualityMode: 'fast',
@@ -116,13 +225,14 @@
         }
 
         return Object.freeze({
-            version: '1.5.53-engine-recovery-performance-diagnostics',
+            version: '1.5.54-quality-recovery-profiles-browser-qa',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.53-engine-recovery-performance-diagnostics',
+        version: '1.5.54-quality-recovery-profiles-browser-qa',
+        recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner
     });

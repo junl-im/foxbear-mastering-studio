@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.53-engine-recovery-performance-diagnostics';
+    const SERVICE_VERSION = '1.5.54-quality-recovery-profiles-browser-qa';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

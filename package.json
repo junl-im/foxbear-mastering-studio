@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.53",
+  "version": "1.5.54",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with one-shot quality-gate recovery, per-track DSP diagnostics, and JSZip asset-generation hardening.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.53-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.53-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.54-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.54-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh"
   },
@@ -274,15 +274,17 @@
     "node qa/v1551_ci_runtime_contract_hardening_smoke.js",
     "node --check tools/run-release-gate.js",
     "node qa/v1552_ci_parallelization_smoke.js",
-    "node qa/v1553_engine_recovery_performance_diagnostics_smoke.js"
+    "node qa/v1553_engine_recovery_performance_diagnostics_smoke.js",
+    "node --check qa/browser/quality-recovery-profiles-playwright.spec.js",
+    "node qa/v1554_quality_recovery_profiles_browser_qa_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "engine-recovery-performance-diagnostics",
-    "assetVersion": "1.5.53-engine-recovery-performance-diagnostics",
-    "cacheName": "foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics",
-    "bootRevision": "boot-sri-v1553",
-    "updateSafetyRevision": "update-safety-v1553",
-    "serviceWorkerRevision": "sw-v1553"
+    "buildId": "quality-recovery-profiles-browser-qa",
+    "assetVersion": "1.5.54-quality-recovery-profiles-browser-qa",
+    "cacheName": "foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa",
+    "bootRevision": "boot-sri-v1554",
+    "updateSafetyRevision": "update-safety-v1554",
+    "serviceWorkerRevision": "sw-v1554"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

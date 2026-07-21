@@ -1,16 +1,15 @@
-# FoxBear Status - v1.5.53
+# FoxBear Status - v1.5.54
 
-## v1.5.53 current focus
+## v1.5.54 current focus
 
-- Quality-gate FAIL triggers one bounded safe rerender and never a retry loop.
-- A recovery exception preserves the first valid render and records an explicit recovery error state.
-- Selected-track diagnostics expose total DSP time, slowest stage, real-time speed, finalizer time, and all stage timings.
-- JSZip uses the current app asset generation in `v=` while retaining `lib=3.10.1` as separate metadata.
-- Root marker metadata is generated and validated from `package.json`.
+- Quality-gate failures select deterministic risk-specific profiles for output integrity, loudness pressure, low-end pumping, stereo phase, high-frequency preservation, and mobile translation.
+- Multiple simultaneous failures combine safety modifiers while preserving a single highest-priority profile label.
+- Recovery diagnostics expose profile ID/label, audit codes, concrete setting adjustments, error state, output bytes, and whether the first render was preserved.
+- E2E-only injection can force a first-gate failure and a bounded recovery exception after render/finalizer/encode; production execution ignores the hook unless the explicit browser-QA flag is active.
 
 ## Current status
 
-Engine recovery and performance diagnostics are implemented. The registered static and regression target is `251/251 PASS`; browser execution remains a separate release gate.
+Risk-specific engine recovery and deterministic browser QA are implemented. Static and deterministic regression verification is `253/253 PASS`; live browser execution remains a separate release gate.
 
 ## Release invariants
 
@@ -28,11 +27,11 @@ Engine recovery and performance diagnostics are implemented. The registered stat
 
 ## Current release
 
-- Product version: `1.5.53`
-- Build ID: `engine-recovery-performance-diagnostics`
-- Asset version: `1.5.53-engine-recovery-performance-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics`
-- Browser QA target: silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
+- Product version: `1.5.54`
+- Build ID: `quality-recovery-profiles-browser-qa`
+- Asset version: `1.5.54-quality-recovery-profiles-browser-qa`
+- Service worker cache: `foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa`
+- Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
 
@@ -63,7 +62,7 @@ Engine recovery and performance diagnostics are implemented. The registered stat
 
 ## Release metadata
 
-- Product version: `1.5.53`
-- Build ID: `engine-recovery-performance-diagnostics`
-- Asset version: `1.5.53-engine-recovery-performance-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics`
+- Product version: `1.5.54`
+- Build ID: `quality-recovery-profiles-browser-qa`
+- Asset version: `1.5.54-quality-recovery-profiles-browser-qa`
+- Service worker cache: `foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa`

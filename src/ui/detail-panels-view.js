@@ -25,14 +25,15 @@
         const recovery = track.engineRecoveryInfo?.attempted ? document.createElement('div') : null;
         if (recovery) {
             const status = track.engineRecoveryInfo.status || 'running';
+            const profile = track.engineRecoveryInfo.profileLabel || '균형 안전 복구';
             recovery.className = `engine-recovery-note recovery-${status}`;
             recovery.textContent = status === 'recovered'
-                ? `자동 복구 완료 · 안전 설정으로 1회 재렌더 · 최종 ${gate.label}`
+                ? `자동 복구 완료 · ${profile} · 1회 재렌더 · 최종 ${gate.label}`
                 : status === 'failed-after-retry'
-                    ? '자동 복구 1회 수행 · 최종 품질 게이트도 실패하여 추가 자동 재시도는 중단됨'
+                    ? `자동 복구 1회 수행 · ${profile} 적용 후에도 최종 품질 게이트 실패 · 추가 자동 재시도 중단`
                     : status === 'error'
-                        ? `자동 복구 오류 · 최초 렌더 유지 · ${track.engineRecoveryInfo.error || '세부 오류 없음'}`
-                        : `자동 복구 진행 중 · ${track.engineRecoveryInfo.reason || '안전 설정 적용'}`;
+                        ? `자동 복구 오류 · ${profile} · 최초 렌더 유지 · ${track.engineRecoveryInfo.error || '세부 오류 없음'}`
+                        : `자동 복구 진행 중 · ${profile} · ${track.engineRecoveryInfo.reason || '안전 설정 적용'}`;
         }
         const list = document.createElement('div');
         list.className = 'quality-gate-list';

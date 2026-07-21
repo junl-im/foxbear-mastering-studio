@@ -1,14 +1,18 @@
-# QA Report - v1.5.53 Engine Recovery & Performance Diagnostics
+# QA Report - v1.5.54 Risk-Specific Quality Recovery and Browser QA
 
-## v1.5.53 coverage
+- Added deterministic recovery-profile coverage for integrity, loudness, low-end pumping, stereo phase, high-frequency preservation, and combined risk modifiers.
+- Added real-browser contracts for one-shot recovery success and first-render preservation after an injected post-render exception.
+- Static and regression target: `253/253 PASS` when executed in bounded continuation segments.
+- Existing download receipt, recovery checklist, Wake Lock AUTO state, export, PWA, and memory guards remain required carry-forward checks.
+- Playwright collection found both desktop and mobile scenarios; live sandbox navigation was blocked by administrator policy before app code loaded.
 
-- One-shot quality-gate recovery planning and conservative DSP/loudness settings
-- Retry-loop prevention and first-render preservation on recovery exceptions
-- Current-generation JSZip routing through service worker, index, and ZIP worker
-- Selected-track total DSP, slowest stage, real-time speed, finalizer, and stage-list diagnostics
-- Runtime required-global and release root-marker synchronization contracts
-- Static and regression result: `251/251 PASS`, executed in bounded segments due the sandbox child-process ceiling.
-- Live Playwright was attempted, but the sandbox did not contain `chromium_headless_shell-1228`; all scenarios stopped before application launch, so browser QA remains a deployment-environment gate.
+## v1.5.54 coverage
+
+- risk-code preservation from quality audit to recovery planner
+- deterministic profile priority and cumulative modifiers
+- one-shot retry enforcement
+- recovery exception atomic rollback and encoded output preservation
+- desktop and mobile Chromium recovery scenario
 
 # QA Report - v1.5.52 CI Parallel Release Gate
 

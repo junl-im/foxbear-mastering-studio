@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.53-engine-recovery-performance-diagnostics';
+    const FALLBACK_VERSION = '1.5.54-quality-recovery-profiles-browser-qa';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

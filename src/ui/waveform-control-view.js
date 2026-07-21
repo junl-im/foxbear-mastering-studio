@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.53-engine-recovery-performance-diagnostics';
+  const VIEW_VERSION = '1.5.54-quality-recovery-profiles-browser-qa';
   const DEFAULT_BINS = 96;
 
   function getService() {

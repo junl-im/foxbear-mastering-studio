@@ -1,19 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.5.53
+# FoxBear AI Mastering Studio Pro v1.5.54
 
-## Current patch: v1.5.53 Engine Recovery & Performance Diagnostics
 
-품질 게이트가 실패하면 보수적인 DSP·라우드니스·True Peak 설정으로 정확히 한 번 자동 재렌더합니다. 재시도가 실패하거나 예외가 발생해도 첫 번째 유효 렌더를 보존합니다. 상세 화면과 성능 진단 패널에는 곡 전체 DSP 처리시간, 가장 느린 단계, 실시간 처리 배속, 파이널라이저 처리시간, 단계별 막대가 표시됩니다.
+## Current patch: v1.5.54 Risk-Specific Quality Recovery and Browser QA
 
-JSZip은 라이브러리 버전을 `lib=3.10.1`로 분리하고 `v=`에는 앱 자산 세대를 사용해 서비스워커의 stale-generation 차단에 오탐되지 않도록 수정했습니다.
+품질 게이트 실패 유형에 따라 출력 무결성, 라우드니스 압력, 저역 펌핑, 스테레오 위상, 고역 손실, 모바일 번역 복구 프로필을 선택합니다. 자동 재렌더는 한 번만 수행하며, 복구 도중 예외가 발생하면 최초 정상 렌더와 인코딩 결과를 유지합니다. 실제 AudioBuffer를 사용하는 Playwright 성공·예외 시나리오가 릴리스 게이트에 포함됩니다.
 
 Release metadata:
 
 ```text
-product: 1.5.53
-build: engine-recovery-performance-diagnostics
-asset generation: 1.5.53-engine-recovery-performance-diagnostics
-service worker cache: foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics
+product: 1.5.54
+build: quality-recovery-profiles-browser-qa
+asset generation: 1.5.54-quality-recovery-profiles-browser-qa
+service worker cache: foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa
 ```
+
+## Current patch: v1.5.52 CI Parallel Release Gate
+
+GitHub Actions 정적 QA와 Playwright 브라우저 QA를 병렬 job으로 실행하고, 새 push가 오면 이전 Pages 실행을 취소합니다. Playwright Chromium 다운로드 캐시와 npm 오프라인 우선 설치를 사용해 반복 빌드 대기시간을 줄입니다.
+
 
 ## Current patch: v1.5.51 CI Runtime Contract Hardening
 

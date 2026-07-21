@@ -1,4 +1,4 @@
-// FoxBear QualityGate v2.2 service v1.5.53 - dynamics, spectral preservation, phase, pumping, and True Peak checks
+// FoxBear QualityGate v2.2 service v1.5.54 - dynamics, spectral preservation, phase, pumping, and True Peak checks
 'use strict';
 
 (function attachFoxBearQualityGateService(global) {
@@ -75,7 +75,12 @@
     function makeRiskFlags(items) {
         return items
             .filter(item => item.status === 'warn' || item.status === 'fail')
-            .map(item => ({ label: item.label, status: item.status, detail: item.detail }));
+            .map(item => ({
+                label: item.label,
+                status: item.status,
+                detail: item.detail,
+                code: String(item.meta?.code || '')
+            }));
     }
 
     function createReport(input = {}) {
@@ -183,7 +188,7 @@
     }
 
     global.FoxBearQualityGateService = Object.freeze({
-        version: '1.5.53-engine-quality-regression', legacyVersion: '1.5.0-engine-quality-gate',
+        version: '1.5.54-engine-quality-regression', legacyVersion: '1.5.0-engine-quality-gate',
         rules: DEFAULT_RULES,
         createReport
     });

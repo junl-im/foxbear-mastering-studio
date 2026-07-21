@@ -1,12 +1,11 @@
-# v1.5.53 - Engine Recovery & Performance Diagnostics
+# v1.5.54 - Risk-Specific Quality Recovery and Browser QA
 
-- Fixed JSZip boot failures caused by the service worker interpreting library version `v=3.10.1` as a stale app asset generation.
-- Added a one-shot safe rerender after quality-gate failure with conservative DSP, loudness, ceiling, True Peak, and bounded quality settings.
-- Preserved the first valid render when the safe recovery path throws or cannot produce a valid encoded output.
-- Added selected-track DSP diagnostics: total processing time, slowest stage, real-time speed, finalizer time, and per-stage timing bars.
-- Added runtime diagnostics exposure and required-global checks for mastering performance telemetry.
-- Synchronized and validated `foxbear-root.json` and the JSZip app-generation URL in release metadata tooling.
-- Added v1.5.53 regression coverage for retry limits, safe settings, stale-generation routing, diagnostics UI, and metadata contracts.
+- Replaced the single generic safe-rerender preset with deterministic profiles for invalid output, loudness/dynamic collapse, low-end pumping, stereo phase, high-frequency loss, and mobile translation risk.
+- Combined multiple failed audit flags into one bounded retry plan with cumulative conservative DSP adjustments and an explicit primary profile.
+- Preserved quality-audit codes in gate risk flags and exposed recovery profile, risk codes, adjustment receipt, error, output size, and first-render preservation through diagnostics.
+- Added E2E-only first-gate and recovery-stage fault injection guarded by the explicit FoxBear browser-QA flag.
+- Added a real-browser scenario that validates successful phase recovery and first-render preservation after an injected post-render recovery exception.
+- Preserved the existing Wake Lock ON/OFF/AUTO diagnostics and silent automatic work-protection contract.
 
 # v1.5.52 - CI Parallel Release Gate
 

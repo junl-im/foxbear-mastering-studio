@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.53",
-  "buildId": "engine-recovery-performance-diagnostics",
+  "productVersion": "1.5.54",
+  "buildId": "quality-recovery-profiles-browser-qa",
   "requiredFiles": [
     "404.html",
     ".gitignore",

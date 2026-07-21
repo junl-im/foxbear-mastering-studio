@@ -1,32 +1,28 @@
-# Handoff - v1.5.53
+# Handoff - v1.5.54
 
-## v1.5.53 handoff focus
+## v1.5.54 handoff focus
 
-- With an existing older service worker active, reload and confirm JSZip has no `load-error-or-sri-block` resource failure.
-- Force a quality-gate FAIL and confirm exactly one safe rerender occurs; a second retry must never start.
-- Make the safe rerender throw and confirm the first valid encoded output remains downloadable and the track does not become a false fatal error.
-- Confirm the detail view shows total DSP time, slowest stage, real-time processing speed, finalizer time, and the per-stage timing list for the selected track.
-- Confirm `foxbear-root.json`, visible version labels, service-worker generation, SRI, and package filenames all resolve to v1.5.53.
+- Force a `PHASE_RISK` first-gate failure in browser QA and confirm one `phase-stabilization` rerender completes with a downloadable output.
+- Force a `HIGH_LOSS` failure plus an `after-render` recovery exception and confirm the first valid render remains downloadable with `preservedFirstRender: true`.
+- Confirm combined dynamic-collapse and low-pumping failures apply both loudness and low-end modifiers while retry count remains exactly one.
+- Confirm production sessions cannot activate the injection hook without `window.__FOXBEAR_E2E__ === true`.
+- Run static QA, both Playwright projects, release packaging, and archive verification before deployment.
 
 ```text
-product: 1.5.53
-build: engine-recovery-performance-diagnostics
-asset generation: 1.5.53-engine-recovery-performance-diagnostics
-service worker cache: foxbear-shell-v1.5.53-engine-recovery-performance-diagnostics
+product: 1.5.54
+build: quality-recovery-profiles-browser-qa
+asset generation: 1.5.54-quality-recovery-profiles-browser-qa
+service worker cache: foxbear-shell-v1.5.54-quality-recovery-profiles-browser-qa
 ```
 
-Verification:
+# Handoff - v1.5.52
 
-```bash
-npm ci --ignore-scripts
-npm run version:check
-npm run handoff:check
-npm run check:static
-npm run qa:browser
-npm run package:all
-npm run package:verify:release
-npm run package:verify:overwrite
-```
+## v1.5.52 handoff focus
+
+- Confirm static and browser release gates run as parallel GitHub Actions jobs.
+- Confirm a newer push cancels the older Pages workflow for the same ref.
+- Confirm Playwright browser cache is restored and failed browser diagnostics are uploaded only on failure.
+- Confirm the build artifact waits for both QA jobs before deployment.
 
 ## v1.5.51 handoff focus
 

@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.5.53 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.5.54 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.5.53-engine-recovery-performance-diagnostics';
+    const VERSION = 'v1.5.54-quality-recovery-profiles-browser-qa';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;

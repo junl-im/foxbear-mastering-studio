@@ -1,3 +1,14 @@
+## v1.5.54 risk-specific recovery checks
+
+- [ ] `PHASE_RISK` selects `phase-stabilization` and caps width/stereo groove.
+- [ ] `HIGH_LOSS` selects `spectral-preservation` and reduces metallic-removal pressure.
+- [ ] Dynamic collapse plus low-end pumping combines both safety modifiers and lowers target/ceiling headroom.
+- [ ] Invalid output selects `integrity-reset` with the strongest bounded settings.
+- [ ] A forced post-render recovery exception keeps the first encoded Blob downloadable and records `preservedFirstRender: true`.
+- [ ] Recovery never runs more than once for one mastering job.
+- [ ] `node qa/v1554_quality_recovery_profiles_browser_qa_smoke.js` passes.
+- [ ] Both Playwright projects pass `quality-recovery-profiles-playwright.spec.js`.
+
 ## v1.5.46 engine, recommendation, and API audit checks
 
 - [ ] Incomplete analysis metadata never produces NaN recommendation settings.
