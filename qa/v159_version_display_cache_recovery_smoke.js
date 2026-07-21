@@ -27,7 +27,7 @@ const qaReport = read('qa/QA_REPORT.md');
 
 assert(pkg.version === meta.productVersion, 'package version should match current release metadata');
 assert(pkg.qaChecks.includes('node --check src/boot/release-presentation-service.js'), 'release presentation syntax check missing');
-assert(pkg.qaChecks.includes('node qa/v159_version_display_cache_recovery_smoke.js'), 'v1.5.47 smoke missing from package QA');
+assert(pkg.qaChecks.includes('node qa/v159_version_display_cache_recovery_smoke.js'), 'v1.5.49 smoke missing from package QA');
 assert(manifest.version === meta.productVersion, 'manifest version mismatch');
 assert(manifest.description.includes(`v${meta.productVersion}`) && manifest.description.includes(meta.buildId), 'manifest description must follow release metadata');
 assert(index.includes('data-release-label="version-button"') && index.includes('data-release-label="program-eyebrow"'), 'visible version labels must be centrally bound');
@@ -35,7 +35,7 @@ assert(index.includes(`src/boot/release-presentation-service.js?v=${meta.assetVe
 assert(service.includes('FoxBearReleasePresentation') && service.includes('repaired stale release labels'), 'release presentation diagnostics missing');
 assert(safety.includes('const BUILD_INFO = global.FoxBearBuildInfo || {}') && safety.includes('BUILD_INFO.bootRevision'), 'Update Safety should derive release metadata from build info');
 assert(sw.includes("event.data.type === 'FOXBEAR_GET_RELEASE_INFO'"), 'service worker release info message missing');
-assert(sw.includes("fetch(request, { cache: 'no-store' })") && sw.includes('event.preloadResponse'), 'navigation must bypass stale HTTP cache before fallback');
+assert((sw.includes("fetch(request, { cache: 'no-store' })") || sw.includes("fetch(canonicalIndex, { cache: 'no-store'")) && sw.includes('event.preloadResponse'), 'navigation must bypass stale HTTP cache before fallback');
 const legacyList = sw.match(/const LEGACY_CACHE_NAMES = \[([^\]]*)\];/)?.[1] || '';
 assert(!legacyList.includes(`'${meta.cacheName}'`), 'current cache name must not remain in legacy list');
 assert(sync.includes('manifest.description =') && sync.includes("filter(name => name && name !== meta.cacheName)"), 'release sync should maintain description and sanitize legacy caches');
@@ -100,9 +100,9 @@ assert(document.title === `FoxBear Mastering PRO v${meta.productVersion}`, 'docu
 assert(body.dataset.build === meta.productVersion && body.dataset.assetVersion === meta.assetVersion, 'body release markers not repaired');
 assert(description.attrs.content.includes(`v${meta.productVersion}`) && description.attrs.content.includes(meta.buildId), 'runtime description not repaired');
 
-assert(status.includes('FoxBearReleasePresentation') && status.includes('1.5.47-engine-edgecase-quality-gate'), 'STATUS current release/invariant missing');
-assert(changelog.includes(`# v${historicalVersion} - Version Display and Cache Recovery`), 'CHANGELOG v1.5.47 history missing');
-assert(readme.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'README v1.5.47 history missing');
-assert(handoff.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'HANDOFF v1.5.47 history missing');
-assert(qaReport.includes('185/185 PASS') && qaReport.includes(`## v${historicalVersion} coverage`), 'QA report missing v1.5.47 result/coverage');
+assert(status.includes('FoxBearReleasePresentation') && status.includes('1.5.49-asset-generation-route-recovery'), 'STATUS current release/invariant missing');
+assert(changelog.includes(`# v${historicalVersion} - Version Display and Cache Recovery`), 'CHANGELOG v1.5.49 history missing');
+assert(readme.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'README v1.5.49 history missing');
+assert(handoff.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'HANDOFF v1.5.49 history missing');
+assert(qaReport.includes('185/185 PASS') && qaReport.includes(`## v${historicalVersion} coverage`), 'QA report missing v1.5.49 result/coverage');
 console.log('PASS v1.5.9 version display/cache recovery smoke');

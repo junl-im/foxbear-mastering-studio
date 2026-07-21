@@ -1,3 +1,15 @@
+# v1.5.49 - Asset Generation Route Recovery
+
+- Prevented partial legacy HTML caches from mixing with current SRI-protected JavaScript.
+- Made service-worker installation cache the complete runtime graph atomically.
+- Added canonical project-root recovery, a consumed one-shot service-worker bypass, and a GitHub Pages 404 recovery page.
+
+# v1.5.48 - Engine Performance Quality Regression
+
+- Added a bounded before/after audio audit for dynamic collapse, high-frequency loss, low-end pumping, stereo phase risk, and invalid output samples.
+- Limited each audit pass to at most 65,536 sampled frames so quality checks have predictable runtime cost.
+- Integrated audit flags into the mastering quality gate and release QA.
+
 # v1.5.47 - Engine Edge-Case Quality Gate
 
 - Rejected silent, corrupt, and sub-0.10-second decoded inputs before mastering can report a false success.
@@ -481,6 +493,12 @@
 - Automatic playback/import/mastering Wake Lock acquisition stays silent; only manual user toggles may show a toast.
 - Manual Wake Lock request failure now reverts the saved setting back to OFF instead of leaving a false ON state.
 - Added `FoxBearWakeLockController.getSnapshot()` and performance diagnostics integration.
+
+## v1.5.48 - Engine performance quality regression
+
+- Added bounded before/after audio quality audit for dynamic collapse, high-frequency loss, low-end pumping, stereo phase risk, and invalid output samples.
+- Quality audit scans at most 65,536 samples per buffer to keep runtime cost bounded.
+- Integrated audit flags into the mastering quality gate and release QA.
 
 ## v1.4.26 - Exit Guard Fallback Hotfix
 

@@ -52,13 +52,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.47-engine-edgecase-quality-gate',
+            version: '1.5.49-asset-generation-route-recovery',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.47-engine-edgecase-quality-gate',
+        version: '1.5.49-asset-generation-route-recovery',
         createMasteringBatchRunner
     });
 })(window);

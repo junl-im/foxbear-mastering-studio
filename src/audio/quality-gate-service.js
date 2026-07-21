@@ -1,4 +1,4 @@
-// FoxBear QualityGate v2.1 service v1.5.0 - short-term LUFS, limiter/de-esser overdose, and mobile translation checks
+// FoxBear QualityGate v2.2 service v1.5.49 - dynamics, spectral preservation, phase, pumping, and True Peak checks
 'use strict';
 
 (function attachFoxBearQualityGateService(global) {
@@ -21,7 +21,12 @@
         multibandWarnDb: 4.5,
         multibandFailDb: 7.5,
         mobileCutWarnDb: 2.4,
-        mobileCutFailDb: 4.2
+        mobileCutFailDb: 4.2,
+        pumpingBassRatio: 0.30,
+        pumpingLimiterWarnDb: 3.5,
+        pumpingLimiterFailDb: 6.0,
+        pumpingActiveWarnPct: 45,
+        pumpingActiveFailPct: 75
     });
 
     function toNumber(value, fallback = NaN) {
@@ -129,6 +134,16 @@
         const multibandReduction = Math.abs(toNumber(finalizeInfo?.multibandReductionDb ?? finalizer?.multibandReductionDb, 0));
         addItem(items, 'Multiband 과보정', statusByThreshold(multibandReduction, rules.multibandWarnDb, rules.multibandFailDb), `${formatDb(multibandReduction)} · ${finalizeInfo?.multibandMode || finalizer?.multibandMode || 'adaptive'}`, { multibandReductionDb: multibandReduction });
 
+        const limiterActivePct = Math.max(0, toNumber(finalizeInfo?.limiterActivePct ?? finalizer?.limiterActivePct, 0));
+        const bassRatio = Math.max(0, toNumber(track?.analysis?.bassRatio, 0));
+        if (limiterActivePct > 0) {
+            const sustainedFail = limiterReduction >= rules.pumpingLimiterFailDb && limiterActivePct >= rules.pumpingActiveFailPct;
+            const sustainedWarn = limiterReduction >= rules.pumpingLimiterWarnDb && limiterActivePct >= rules.pumpingActiveWarnPct;
+            const sustainedStatus = sustainedFail ? 'fail' : (sustainedWarn ? 'warn' : 'pass');
+            const bassHint = bassRatio >= rules.pumpingBassRatio ? ` · 저역 펌핑 주의 ${Math.round(bassRatio * 100)}%` : '';
+            addItem(items, '리미터 지속 동작', sustainedStatus, `활성 ${limiterActivePct.toFixed(1)}% · 최대 ${formatDb(limiterReduction)}${bassHint}`, { bassRatio, limiterActivePct, limiterReductionDb: limiterReduction });
+        }
+
         const duration = toNumber(report?.after?.durationSec || track?.masteredDurationSec || 0, 0);
         addItem(items, '재생 길이', duration >= rules.minUsefulDurationSec ? 'pass' : 'warn', `${duration.toFixed(2)}초`);
 
@@ -150,6 +165,12 @@
             addItem(items, '모바일 번역 보정량', cutStatus, `최대 ${formatDb(mobileCutDb)} · 저역 ${formatSigned(cuts.lowShelfDb || 0, 1)} / 박스 ${formatSigned(cuts.mudDb || 0, 1)} / 폰공진 ${formatSigned(cuts.phoneDb || 0, 1)}`, { mobileCutDb, cuts });
         }
 
+        const audit = report?.qualityAudit;
+        if (audit?.flags?.length) {
+            const labels = { DYNAMIC_COLLAPSE: '과도한 리미팅', HIGH_LOSS: '고역 손실', LOW_PUMPING: '저역 펌핑', PHASE_RISK: '스테레오 위상', INVALID_OUTPUT: '출력 샘플 무결성' };
+            audit.flags.forEach(flag => addItem(items, labels[flag.code] || flag.code, flag.severity === 'fail' ? 'fail' : 'warn', flag.detail, { code: flag.code }));
+        } else if (audit) addItem(items, '전후 품질 회귀', 'pass', `최대 ${audit.boundedSamples || 0} 샘플 경량 검사 통과`);
+
         const fail = items.filter(item => item.status === 'fail').length;
         const warn = items.filter(item => item.status === 'warn').length;
         const pass = items.filter(item => item.status === 'pass').length;
@@ -158,11 +179,11 @@
         const label = status === 'pass' ? 'PASS' : (status === 'warn' ? 'CHECK' : 'FAIL');
         const summary = `${pass} 통과 · ${warn} 주의 · ${fail} 실패`;
         const riskFlags = makeRiskFlags(items);
-        return Object.freeze({ status, label, score, summary, items, riskFlags, createdAt: new Date().toISOString(), version: 'QualityGate v2.1' });
+        return Object.freeze({ status, label, score, summary, items, riskFlags, createdAt: new Date().toISOString(), version: 'QualityGate v2.2' });
     }
 
     global.FoxBearQualityGateService = Object.freeze({
-        version: '1.5.0-engine-quality-gate',
+        version: '1.5.49-engine-quality-regression', legacyVersion: '1.5.0-engine-quality-gate',
         rules: DEFAULT_RULES,
         createReport
     });

@@ -8,7 +8,7 @@ cd "${ROOT_DIR}"
 rm -rf "${SITE_DIR}"
 mkdir -p "${SITE_DIR}"
 
-required_files=(index.html manifest.webmanifest sw.js)
+required_files=(index.html 404.html foxbear-root.json manifest.webmanifest sw.js)
 for file in "${required_files[@]}"; do
   test -f "${file}" || { echo "Missing required deploy file: ${file}" >&2; exit 1; }
   cp "${file}" "${SITE_DIR}/${file}"
@@ -30,6 +30,8 @@ done
 touch "${SITE_DIR}/.nojekyll"
 
 test -f "${SITE_DIR}/index.html"
+test -f "${SITE_DIR}/404.html"
+test -f "${SITE_DIR}/foxbear-root.json"
 test -f "${SITE_DIR}/manifest.webmanifest"
 test -f "${SITE_DIR}/sw.js"
 test -d "${SITE_DIR}/assets"

@@ -1,4 +1,10 @@
-# FoxBear Status - v1.5.47
+# FoxBear Status - v1.5.49
+
+## v1.5.49 current focus
+
+- Asset generations remain atomic across HTML, scripts, styles, and workers.
+- Runtime recovery returns to the canonical application root rather than preserving a 404 route.
+- One-shot service-worker bypass is consumed and old registrations are removed before delayed re-registration.
 
 ## v1.5.47 current focus
 
@@ -9,7 +15,7 @@
 
 ## Current status
 
-Engine edge-case quality coverage is active. Static and regression QA is `241/241 PASS`, including deterministic input-guard, high-sample-rate, malformed-analysis, clipping-stress, recommendation, and cancellation checks.
+Asset-generation recovery is active. Static and regression QA is `245/245 PASS`, including engine, recommendation, export, mobile, SRI, route recovery, and service-worker generation checks.
 
 ## Release invariants
 
@@ -27,11 +33,11 @@ Engine edge-case quality coverage is active. Static and regression QA is `241/24
 
 ## Current release
 
-- Product version: `1.5.47`
-- Build ID: `engine-edgecase-quality-gate`
-- Asset version: `1.5.47-engine-edgecase-quality-gate`
-- Service worker cache: `foxbear-shell-v1.5.47-engine-edgecase-quality-gate`
-- Browser QA target: silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
+- Product version: `1.5.49`
+- Build ID: `asset-generation-route-recovery`
+- Asset version: `1.5.49-asset-generation-route-recovery`
+- Service worker cache: `foxbear-shell-v1.5.49-asset-generation-route-recovery`
+- Browser QA target: stale-cache recovery, canonical route restoration, complete runtime loading, and existing engine/export flows
 
 ## v1.5.25 deterministic preview stability invariant
 
@@ -62,7 +68,7 @@ Engine edge-case quality coverage is active. Static and regression QA is `241/24
 
 ## Release metadata
 
-- Product version: `1.5.46`
-- Build ID: `engine-recommendation-api-audit`
-- Asset version: `1.5.47-engine-edgecase-quality-gate`
-- Service worker cache: `foxbear-shell-v1.5.47-engine-edgecase-quality-gate`
+- Product version: `1.5.49`
+- Build ID: `asset-generation-route-recovery`
+- Asset version: `1.5.49-asset-generation-route-recovery`
+- Service worker cache: `foxbear-shell-v1.5.49-asset-generation-route-recovery`

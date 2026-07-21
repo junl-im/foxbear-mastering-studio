@@ -33,9 +33,11 @@ for (const activity of ['analysis', 'mastering', 'decoding', 'rendering', 'playb
 }
 const installBody = sw.match(/self\.addEventListener\('install'[\s\S]*?\n\}\);/)?.[0] || '';
 assert(installBody && !installBody.includes('skipWaiting'), 'install must not force activation while a tab may be busy');
-assert(sw.includes('matchCurrentOrRecovery'), 'network-first requests must share current/legacy cache recovery');
-assert(sw.includes('return await matchCurrentOrRecovery(cache, request) || fresh'), 'HTTP non-success assets must fall back to cache');
-assert(sw.includes("return await matchCurrentOrRecovery(cache, request, './index.html') || fresh"), 'HTTP non-success navigation must fall back to the shell');
+assert(sw.includes('matchCurrentOrRecovery'), 'network-first requests must use current-generation cache recovery');
+assert(sw.includes('return await matchCurrentOrRecovery(cache, request) || fresh'), 'HTTP non-success assets must fall back to the current cache');
+assert(sw.includes('Response.redirect(getCanonicalAppRootUrl().toString(), 302)'), 'invalid navigation must redirect to the canonical shell root');
+assert(sw.includes('currentCachedMatch(cache, canonicalIndex)'), 'canonical navigation must fall back to the current shell');
+assert(sw.includes('isStaleAssetGeneration(url)') && !sw.includes('matchFoxBearRecoveryCache') && sw.includes('return Response.error()'), 'stale script generations must be rejected instead of mixed or revived');
 
 async function exerciseQueueCancellation() {
   const context = {

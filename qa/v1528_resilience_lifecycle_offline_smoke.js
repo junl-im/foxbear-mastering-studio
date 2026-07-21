@@ -28,7 +28,7 @@ assert(runtimeSpec.includes('width: 320') && runtimeSpec.includes('studioDisplay
 assert(app.includes('function releaseTrackResourcesSafely') && app.includes('clearBottomPreviewPlayer();') && app.includes('state.bottomPreviewTransport = null'), 'queue/preview resource cleanup is incomplete');
 assert(previewSpec.includes('stressModes') && previewSpec.includes('PlaybackLinkService?.getDiagnostics') && previewSpec.includes('AudioContextManager?.getDiagnostics'), 'long-switch and lifecycle browser contract missing');
 assert(read('src/audio/preview-translation-service.js').includes('global.FoxBearAudioContextManager || global.FoxBearAudioContexts') && read('src/audio/preview-translation-service.js').includes('pruneDisconnected') && read('src/audio/preview-translation-service.js').includes('activeControllers.delete(controller)'), 'preview translation AudioContext lifecycle cleanup missing');
-assert(swSource.includes('RECOVERY_CACHE_LIMIT = 2') && swSource.includes('matchFoxBearRecoveryCache') && swSource.includes('getAvailableRecoveryCacheNames'), 'service-worker recovery cache support missing');
+assert(swSource.includes('purgeLegacyShellCaches') && swSource.includes('currentCachedMatch') && !swSource.includes('matchFoxBearRecoveryCache'), 'service-worker current-generation offline recovery and stale-shell purge missing');
 assert(pwaSpec.includes('foxbear-offline-recovery-ok') && pwaSpec.includes('context.setOffline(true)'), 'real-browser offline recovery probe missing');
 assert(archiveHygiene.includes("'__pycache__'") && archiveHygiene.includes('pyc|pyo') && releaseScript.includes("'*.pyc'") && overwriteScript.includes("-name '__pycache__'"), 'Python bytecode archive hygiene missing');
 
@@ -150,13 +150,9 @@ handlers.activate({ waitUntil(promise) { activation = promise; } });
 (async () => {
   await activation;
   assert(cacheMap.has(meta.cacheName), 'current cache was deleted during activation');
-  assert(cacheMap.has(newest) && cacheMap.has(secondNewest), 'two newest recovery caches were not retained');
-  assert(!cacheMap.has(older) && deletedCaches.includes(older), 'older recovery cache was not pruned');
+  assert(!cacheMap.has(newest) && !cacheMap.has(secondNewest) && !cacheMap.has(older), 'legacy shell caches must be removed to prevent mixed generations');
+  assert(deletedCaches.includes(newest) && deletedCaches.includes(secondNewest) && deletedCaches.includes(older), 'legacy cache purge was incomplete');
   assert(cacheMap.has('unrelated-cache'), 'unrelated cache must not be deleted');
-  const exact = await swContext.matchFoxBearRecoveryCache('/recovery.js');
-  assert.strictEqual(exact?.body, 'newest-recovery', 'exact recovery asset lookup failed');
-  const fallback = await swContext.matchFoxBearRecoveryCache('/missing-navigation', './index.html');
-  assert.strictEqual(fallback?.body, 'older-index', 'recovery navigation fallback failed');
 
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-probe-cleanup-'));
   try {

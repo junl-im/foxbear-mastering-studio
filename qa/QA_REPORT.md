@@ -1,12 +1,25 @@
-# QA Report - v1.5.47 Engine Edge-Case Quality Gate
+# QA Report - v1.5.49 Asset Generation Route Recovery
 
-- Added deterministic checks for silent, corrupt, and sub-0.10-second input rejection.
-- Added mono, 96kHz, 192kHz, clipped-transient, and malformed-analysis finalizer coverage.
-- Verifies recommendation features and nested DSP analysis remain finite.
-- Verifies cancellation checkpoints after decode, analysis, pitch/speed, render, finalizer, and encode.
-- Static and regression result: `241/241 PASS`.
+- Prevents partial legacy HTML generations from mixing with current SRI-protected assets.
+- Verifies canonical project-root recovery, one-shot service-worker bypass consumption, GitHub Pages 404 recovery, and exact runtime/cache graph parity.
+- Static and regression target: `245/245 PASS`. Historical anchor: `183/183 PASS`.
 
-## v1.5.47 coverage
+## v1.5.49 coverage
+
+- stale generation asset isolation
+- atomic full runtime generation installation
+- canonical recovery URL and 404 route repair
+- exact HTML-to-service-worker asset parity
+- engine, recommendation, export, and mobile regression preservation
+
+# QA Report - v1.5.48 Engine Performance Quality Regression
+
+- Added bounded before/after quality checks for dynamic collapse, high-frequency loss, low-end pumping, stereo phase risk, and invalid output samples.
+- The audit samples at most 65,536 frames per buffer to keep engine overhead predictable.
+- Engine bench, golden audio pack, recommendation mapping, and release regressions are included.
+- Static and regression target: `245/245 PASS`. Historical anchor: `183/183 PASS`.
+
+## v1.5.48 coverage
 
 - mastering input signal gate
 - finalizer defense-in-depth signal validation

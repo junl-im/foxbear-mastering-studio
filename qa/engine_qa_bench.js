@@ -18,6 +18,7 @@ function loadClassicWorker(relativePath) {
     console,
     Float32Array,
     Float64Array,
+    Int32Array,
     Int16Array,
     Uint8Array,
     ArrayBuffer,
@@ -195,6 +196,12 @@ for (const name of cases) {
   assertFiniteNumber(`${name} dynamicDeEsserRisk`, info.dynamicDeEsserRisk || 0, 0, 1);
   assertFiniteNumber(`${name} dynamicDeEsserReductionDb`, info.dynamicDeEsserReductionDb || 0, -12, 1);
   assertFiniteNumber(`${name} sample peak`, samplePeak(output), 0, ceiling * 1.012);
+  assertFiniteNumber(`${name} limiterActivePct`, info.limiterActivePct || 0, 0, 100);
+  assertFiniteNumber(`${name} limiterMeanReductionDb`, info.limiterMeanReductionDb || 0, -24, 0.01);
+  if (!info.qualityFingerprint?.before || !info.qualityFingerprint?.after || !info.qualityFingerprint?.delta) throw new Error(`${name} quality fingerprint missing`);
+  assertFiniteNumber(`${name} highActivityDelta`, info.qualityFingerprint.delta.highActivityDb, -24, 24);
+  assertFiniteNumber(`${name} stereoCorrelation`, info.qualityFingerprint.after.stereoCorrelation, -1, 1);
+  if (!info.performance || !Number.isFinite(Number(info.performance.processingMs)) || !Number.isFinite(Number(info.performance.realtimeFactor))) throw new Error(`${name} finalizer performance telemetry missing`);
   if (info.oversample !== 4) throw new Error(`${name} expected 4x true peak oversampling`);
   if (!String(info.loudnessStandard || '').includes('K-weighting')) throw new Error(`${name} missing K-weighting report`);
   if (name === 'mobileBoom' && !(info.mobileSpeakerRisk > 0.25 || (info.mobileSpeakerCuts || []).length > 0)) {
@@ -215,7 +222,9 @@ for (const name of cases) {
     multibandDb: Number(info.multibandReductionDb).toFixed(2),
     deEssDb: Number(info.dynamicDeEsserReductionDb || 0).toFixed(2),
     deEssRisk: Number(info.dynamicDeEsserRisk || 0).toFixed(2),
-    mobileRisk: Number(info.mobileSpeakerRisk || 0).toFixed(2)
+    mobileRisk: Number(info.mobileSpeakerRisk || 0).toFixed(2),
+    limiterPct: Number(info.limiterActivePct || 0).toFixed(1),
+    speed: Number(info.performance?.realtimeFactor || 0).toFixed(2)
   });
 }
 console.table(rows);

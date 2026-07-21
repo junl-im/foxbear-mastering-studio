@@ -47,7 +47,7 @@ assert(helper.includes('readyTimeout: timeout'), 'service worker readiness still
 assert(helper.includes('did not reach the active ready state'), 'service worker readiness failure lacks an explicit active-state diagnosis');
 
 const sw = read('sw.js');
-assert(sw.includes('const INSTALL_ASSETS = [') && sw.includes('const WARM_ASSETS = CORE_ASSETS.filter'), 'service worker install and warm asset phases are not split');
+assert(sw.includes('const INSTALL_ASSETS = [') && sw.includes('...CORE_ASSETS') && sw.includes('const WARM_ASSETS = CORE_ASSETS.filter'), 'service worker atomic install and optional refresh phases are incomplete');
 assert(sw.includes('cache.addAll(INSTALL_ASSETS)') && !sw.includes('cache.addAll(CORE_ASSETS)'), 'service worker activation is still blocked by the full asset pack');
 assert(sw.includes("event.data.type === 'FOXBEAR_WARM_CACHE'") && sw.includes('warmFoxBearCoreCache()'), 'service worker warm-cache message contract is missing');
 

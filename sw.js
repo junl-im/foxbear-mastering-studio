@@ -1,18 +1,21 @@
-// FoxBear AI Mastering Studio Pro v1.5.47 service worker · engine-edgecase-quality-gate
+// FoxBear AI Mastering Studio Pro v1.5.49 service worker · asset-generation-route-recovery
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.5.47-engine-edgecase-quality-gate';
-const RECOVERY_CACHE_LIMIT = 2;
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.27-device-glyph-sri-hardening', 'foxbear-shell-v1.5.28-resilience-lifecycle-offline-recovery', 'foxbear-shell-v1.5.29-analysis-update-lifecycle', 'foxbear-shell-v1.5.30-inapp-playback-recovery', 'foxbear-shell-v1.5.31-player-download-stability', 'foxbear-shell-v1.5.32-kakao-external-browser-local-flow', 'foxbear-shell-v1.5.33-codec-truth-download-hardening', 'foxbear-shell-v1.5.34-kakao-landing-recovery', 'foxbear-shell-v1.5.35-runtime-exception-hardening', 'foxbear-shell-v1.5.36-interaction-lifecycle-hardening', 'foxbear-shell-v1.5.37-memory-import-waveform-hardening', 'foxbear-shell-v1.5.38-preflight-worker-multitab-hardening', 'foxbear-shell-v1.5.39-ci-hook-lifecycle-hardening', 'foxbear-shell-v1.5.40-export-worker-progress', 'foxbear-shell-v1.5.41-export-eta-download-recovery', 'foxbear-shell-v1.5.42-zip-worker-cancellation', 'foxbear-shell-v1.5.43-export-pipeline-integrity', 'foxbear-shell-v1.5.44-export-queue-gesture-safety', 'foxbear-shell-v1.5.45-export-queue-recovery', 'foxbear-shell-v1.5.46-engine-recommendation-api-audit'];
+const CACHE_NAME = 'foxbear-shell-v1.5.49-asset-generation-route-recovery';
+const CURRENT_ASSET_VERSION = '1.5.49-asset-generation-route-recovery';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.5.29-analysis-update-lifecycle', 'foxbear-shell-v1.5.30-inapp-playback-recovery', 'foxbear-shell-v1.5.31-player-download-stability', 'foxbear-shell-v1.5.32-kakao-external-browser-local-flow', 'foxbear-shell-v1.5.33-codec-truth-download-hardening', 'foxbear-shell-v1.5.34-kakao-landing-recovery', 'foxbear-shell-v1.5.35-runtime-exception-hardening', 'foxbear-shell-v1.5.36-interaction-lifecycle-hardening', 'foxbear-shell-v1.5.37-memory-import-waveform-hardening', 'foxbear-shell-v1.5.38-preflight-worker-multitab-hardening', 'foxbear-shell-v1.5.39-ci-hook-lifecycle-hardening', 'foxbear-shell-v1.5.40-export-worker-progress', 'foxbear-shell-v1.5.41-export-eta-download-recovery', 'foxbear-shell-v1.5.42-zip-worker-cancellation', 'foxbear-shell-v1.5.43-export-pipeline-integrity', 'foxbear-shell-v1.5.44-export-queue-gesture-safety', 'foxbear-shell-v1.5.45-export-queue-recovery', 'foxbear-shell-v1.5.46-engine-recommendation-api-audit', 'foxbear-shell-v1.5.47-engine-edgecase-quality-gate', 'foxbear-shell-v1.5.48-engine-performance-quality-regression'];
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
 const CORE_ASSETS = [
   './',
   './index.html',
+  './404.html',
+  './foxbear-root.json',
   './external-browser.html',
   './assets/css/external-browser.css',
   './src/boot/kakao-entry-guard.js',
+  './src/boot/kakao-entry-guard.js?v=1.5.49-asset-generation-route-recovery',
   './src/boot/kakao-external-browser.js',
   './manifest.webmanifest',
   './sw.js',
@@ -22,12 +25,12 @@ const CORE_ASSETS = [
   './src/workers/master-finalizer.worker.js',
   './src/workers/pitch-wsola.worker.js',
   './src/workers/zip-encoder.worker.js',
-  './src/workers/wav-encoder.worker.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/workers/mp3-encoder.worker.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/workers/analysis.worker.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/workers/master-finalizer.worker.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/workers/pitch-wsola.worker.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/workers/zip-encoder.worker.js?v=1.5.47-engine-edgecase-quality-gate',
+  './src/workers/wav-encoder.worker.js?v=1.5.49-asset-generation-route-recovery',
+  './src/workers/mp3-encoder.worker.js?v=1.5.49-asset-generation-route-recovery',
+  './src/workers/analysis.worker.js?v=1.5.49-asset-generation-route-recovery',
+  './src/workers/master-finalizer.worker.js?v=1.5.49-asset-generation-route-recovery',
+  './src/workers/pitch-wsola.worker.js?v=1.5.49-asset-generation-route-recovery',
+  './src/workers/zip-encoder.worker.js?v=1.5.49-asset-generation-route-recovery',
   './src/engines/pitch-engine-adapter.js',
   './assets/icons/foxbear-icon-48.png',
   './assets/icons/foxbear-icon-72.png',
@@ -39,117 +42,98 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/icons/foxbear-icon-32.png?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/icons/foxbear-icon-192.png?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/icons/foxbear-icon-512.png?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/icons/apple-touch-icon.png?v=1.5.47-engine-edgecase-quality-gate',
-  './manifest.webmanifest?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/boot/performance-diagnostics.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/boot/runtime-health.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/theme.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/layout.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/components/base-components.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/components/forms.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/components/cards.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/components/preview-system.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/components/playback-link.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/studio.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/dock.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/dock-waveform.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/waveform-compare.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/spectrum-visualizer.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/export.css?v=1.5.47-engine-edgecase-quality-gate&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/bulk-import-hud.css?v=1.5.47-engine-edgecase-quality-gate&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/dock-ui-repair.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/components/floating-overlays.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/header-command-bar.css?v=1.5.47-engine-edgecase-quality-gate',
+  './assets/icons/foxbear-icon-16.png?v=1.5.49-asset-generation-route-recovery',
+  './assets/icons/foxbear-icon-32.png?v=1.5.49-asset-generation-route-recovery',
+  './assets/icons/foxbear-icon-192.png?v=1.5.49-asset-generation-route-recovery',
+  './assets/icons/foxbear-icon-512.png?v=1.5.49-asset-generation-route-recovery',
+  './assets/icons/apple-touch-icon.png?v=1.5.49-asset-generation-route-recovery',
+  './manifest.webmanifest?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/boot/performance-diagnostics.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/boot/runtime-health.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/theme.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/layout.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/components/base-components.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/components/forms.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/components/cards.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/components/preview-system.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/components/playback-link.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/studio.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/dock.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/dock-waveform.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/waveform-compare.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/spectrum-visualizer.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/export.css?v=1.5.49-asset-generation-route-recovery&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/bulk-import-hud.css?v=1.5.49-asset-generation-route-recovery&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/dock-ui-repair.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/components/floating-overlays.css?v=1.5.49-asset-generation-route-recovery',
+  './assets/css/header-command-bar.css?v=1.5.49-asset-generation-route-recovery',
   './vendor/jszip/jszip.min.js?v=3.10.1',
-  './src/config/build-info.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/boot/release-presentation-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/firebase-bootstrap.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/config/mastering-presets.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/config/genre-presets.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/config/reference-targets.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/config/app-runtime-config.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/state/app-state.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/settings/settings-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/utils/core-utils.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/utils/worker-job-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/recommendation/recommendation-engine.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/mastering-inspector.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/highlight-compare-inspector.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/playback-link-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/playback-transition-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/audio-context-manager.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/preview-translation-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/audio-import-capability-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/audio-decode-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/import-preflight-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/import-queue-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/analysis-cache-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/memory-guard-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/reference-profile-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/mastering-input-guard-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/quality-gate-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/mastering-orchestrator-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/state/track-lifecycle-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/waveform-control-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/waveform-control-view.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/spectrum-visualizer.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/modal-controller.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/dock-controller.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/mobile-native-view.js?v=1.5.47-engine-edgecase-quality-gate&h=bulk-hud-restore-v153',
-  './src/download/download-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/download/export-guard-service.js?v=1.5.47-engine-edgecase-quality-gate&h=export-v156',
-  './src/download/export-progress-view.js?v=1.5.47-engine-edgecase-quality-gate&h=export-progress-v156',
-  './src/download/zip-export-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/download/export-queue-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/download-dialog-view.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/bulk-import-hud-view.js?v=1.5.47-engine-edgecase-quality-gate&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/detail-panels-view.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/detail-view.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/security/site-guards.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/boot/runtime-health.js?v=1.5.47-engine-edgecase-quality-gate&h=boot-sri-v1547',
-  './src/boot/update-safety-service.js?v=1.5.47-engine-edgecase-quality-gate&h=update-safety-v1547',
-  './src/boot/service-worker-update-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/boot/performance-diagnostics.js?v=1.5.47-engine-edgecase-quality-gate&h=boot-sri-v1547',
-  './src/boot/render-scheduler.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/app.js?v=1.5.47-engine-edgecase-quality-gate&h=boot-sri-v1547',
-  './assets/icons/foxbear-music.png?v=1.5.47-engine-edgecase-quality-gate'
+  './src/config/build-info.js?v=1.5.49-asset-generation-route-recovery',
+  './src/boot/release-presentation-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/firebase-bootstrap.js?v=1.5.49-asset-generation-route-recovery',
+  './src/config/mastering-presets.js?v=1.5.49-asset-generation-route-recovery',
+  './src/config/genre-presets.js?v=1.5.49-asset-generation-route-recovery',
+  './src/config/reference-targets.js?v=1.5.49-asset-generation-route-recovery',
+  './src/config/app-runtime-config.js?v=1.5.49-asset-generation-route-recovery',
+  './src/state/app-state.js?v=1.5.49-asset-generation-route-recovery',
+  './src/settings/settings-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/utils/core-utils.js?v=1.5.49-asset-generation-route-recovery',
+  './src/utils/worker-job-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/recommendation/recommendation-engine.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/mastering-inspector.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/highlight-compare-inspector.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/playback-link-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/playback-transition-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/audio-context-manager.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/preview-translation-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/audio-import-capability-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/audio-decode-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/import-preflight-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/import-queue-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/analysis-cache-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/memory-guard-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/reference-profile-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/mastering-input-guard-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/mastering-quality-audit-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/quality-gate-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/mastering-orchestrator-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/state/track-lifecycle-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/audio/waveform-control-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/waveform-control-view.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/spectrum-visualizer.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/modal-controller.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/dock-controller.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/mobile-native-view.js?v=1.5.49-asset-generation-route-recovery&h=bulk-hud-restore-v153',
+  './src/download/download-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/download/export-guard-service.js?v=1.5.49-asset-generation-route-recovery&h=export-v156',
+  './src/download/export-progress-view.js?v=1.5.49-asset-generation-route-recovery&h=export-progress-v156',
+  './src/download/zip-export-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/download/export-queue-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/download-dialog-view.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/bulk-import-hud-view.js?v=1.5.49-asset-generation-route-recovery&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/detail-panels-view.js?v=1.5.49-asset-generation-route-recovery',
+  './src/ui/detail-view.js?v=1.5.49-asset-generation-route-recovery',
+  './src/security/site-guards.js?v=1.5.49-asset-generation-route-recovery',
+  './src/boot/runtime-health.js?v=1.5.49-asset-generation-route-recovery&h=boot-sri-v1549',
+  './src/boot/update-safety-service.js?v=1.5.49-asset-generation-route-recovery&h=update-safety-v1549',
+  './src/boot/service-worker-update-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/boot/service-worker-recovery-service.js?v=1.5.49-asset-generation-route-recovery',
+  './src/boot/performance-diagnostics.js?v=1.5.49-asset-generation-route-recovery&h=boot-sri-v1549',
+  './src/boot/render-scheduler.js?v=1.5.49-asset-generation-route-recovery',
+  './src/app.js?v=1.5.49-asset-generation-route-recovery&h=boot-sri-v1549',
+  './assets/icons/foxbear-music.png?v=1.5.49-asset-generation-route-recovery'
 ];
 
 const INSTALL_ASSETS = [
-  './',
-  './index.html',
-  './external-browser.html',
-  './assets/css/external-browser.css',
-  './src/boot/kakao-entry-guard.js',
-  './src/boot/kakao-external-browser.js',
-  './manifest.webmanifest?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/boot/runtime-health.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/theme.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/layout.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/components/base-components.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/studio.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/mobile-native.css?v=1.5.47-engine-edgecase-quality-gate',
-  './assets/css/header-command-bar.css?v=1.5.47-engine-edgecase-quality-gate',
-  './src/config/build-info.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/boot/runtime-health.js?v=1.5.47-engine-edgecase-quality-gate&h=boot-sri-v1547',
-  './src/boot/update-safety-service.js?v=1.5.47-engine-edgecase-quality-gate&h=update-safety-v1547',
-  './src/boot/service-worker-update-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/boot/release-presentation-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/config/app-runtime-config.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/state/app-state.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/utils/core-utils.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/utils/worker-job-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/audio/preview-translation-service.js?v=1.5.47-engine-edgecase-quality-gate',
-  './src/ui/mobile-native-view.js?v=1.5.47-engine-edgecase-quality-gate&h=bulk-hud-restore-v153',
-  './src/app.js?v=1.5.47-engine-edgecase-quality-gate&h=boot-sri-v1547',
-  './assets/icons/foxbear-music.png?v=1.5.47-engine-edgecase-quality-gate'
+  ...CORE_ASSETS.filter(asset =>
+    ['./', './index.html', './404.html', './foxbear-root.json', './manifest.webmanifest', './sw.js'].includes(asset)
+    || ((/\.(?:js|css)(?:[?#]|$)/.test(asset) || /manifest\.webmanifest\?/.test(asset))
+      && !/src\/workers\//.test(asset)
+      && !/kakao-external-browser\.js/.test(asset))
+  )
 ];
 const INSTALL_ASSET_SET = new Set(INSTALL_ASSETS);
 const WARM_ASSETS = CORE_ASSETS.filter(asset => !INSTALL_ASSET_SET.has(asset));
@@ -198,26 +182,32 @@ self.addEventListener('install', event => {
   })());
 });
 
-function getAvailableRecoveryCacheNames(names = []) {
-  const available = new Set(names);
-  return LEGACY_CACHE_NAMES.filter(name => available.has(name)).slice(-RECOVERY_CACHE_LIMIT).reverse();
+async function purgeLegacyShellCaches() {
+  const names = await caches.keys();
+  await Promise.all(names
+    .filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME)
+    .map(name => caches.delete(name)));
 }
 
-async function matchFoxBearRecoveryCache(request, fallbackRequest = null) {
-  const names = getAvailableRecoveryCacheNames(await caches.keys());
-  for (const name of names) {
-    const cache = await caches.open(name);
-    const cached = await cache.match(request) || (fallbackRequest ? await cache.match(fallbackRequest) : null);
-    if (cached) return cached;
+async function currentCachedMatch(cache, request, fallbackRequest = null) {
+  return await cache.match(request) || (fallbackRequest ? await cache.match(fallbackRequest) : null) || null;
+}
+
+async function isCurrentShellHtml(response) {
+  if (!response || !response.ok) return false;
+  const type = String(response.headers.get('content-type') || '');
+  if (!type.includes('text/html')) return false;
+  try {
+    const text = await response.clone().text();
+    return text.includes(CURRENT_ASSET_VERSION);
+  } catch (error) {
+    return false;
   }
-  return null;
 }
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    const names = await caches.keys();
-    const keep = new Set([CACHE_NAME, ...getAvailableRecoveryCacheNames(names)]);
-    await Promise.all(names.filter(name => name.startsWith('foxbear-shell-') && !keep.has(name)).map(name => caches.delete(name)));
+    await purgeLegacyShellCaches();
     if (self.registration?.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); } catch (error) {}
     }
@@ -287,14 +277,40 @@ async function purgeFoxBearCaches() {
 }
 
 async function matchCurrentOrRecovery(cache, request, fallbackRequest = null) {
-  const cached = await cache.match(request) || (fallbackRequest ? await cache.match(fallbackRequest) : null);
-  return cached || await matchFoxBearRecoveryCache(request, fallbackRequest);
+  return currentCachedMatch(cache, request, fallbackRequest);
+}
+
+function getCanonicalAppRootUrl() {
+  const root = new URL('./', self.registration.scope);
+  root.searchParams.set('foxbearRouteRecovery', 'sw');
+  return root;
+}
+
+function isCanonicalShellRequest(url) {
+  const root = new URL('./', self.registration.scope);
+  const index = new URL('index.html', root);
+  return url.pathname === root.pathname || url.pathname === index.pathname;
+}
+
+function requestedAssetVersion(url) {
+  return String(url.searchParams.get('v') || '');
+}
+
+function isStaleAssetGeneration(url) {
+  const requested = requestedAssetVersion(url);
+  return Boolean(requested && requested !== CURRENT_ASSET_VERSION);
 }
 
 async function networkFirstNoFallbackOnIntegrityAssets(request) {
   const url = new URL(request.url);
-  const hasPatchBust = url.searchParams.has('h') || url.searchParams.has('ui');
   const cache = await caches.open(CACHE_NAME);
+  if (isStaleAssetGeneration(url)) {
+    // Never mix a stale HTML generation with current bytes: SRI will block the
+    // response and can leave the app half-booted. Serve only an exact same-
+    // generation cached response; otherwise fail so Runtime Health can recover.
+    return Response.error();
+  }
+  const hasPatchBust = url.searchParams.has('h') || url.searchParams.has('ui');
   try {
     const fresh = await fetch(request, { cache: hasPatchBust ? 'no-store' : 'default' });
     if (fresh && fresh.ok) {
@@ -309,29 +325,44 @@ async function networkFirstNoFallbackOnIntegrityAssets(request) {
 
 async function networkFirstNavigation(request, preloadResponse) {
   const cache = await caches.open(CACHE_NAME);
+  const url = new URL(request.url);
+  const canonicalShell = isCanonicalShellRequest(url);
+  const canonicalIndex = new URL('index.html', self.registration.scope).href;
+
+  const acceptCurrentShell = async response => {
+    if (!(await isCurrentShellHtml(response))) return null;
+    await cache.put(canonicalIndex, response.clone()).catch(() => undefined);
+    return response;
+  };
+
   try {
-    const preload = await preloadResponse;
-    if (preload && preload.ok) {
-      cache.put(request, preload.clone()).catch(() => undefined);
-      cache.put('./index.html', preload.clone()).catch(() => undefined);
-      return preload;
+    if (canonicalShell) {
+      const preload = await preloadResponse;
+      const validPreload = await acceptCurrentShell(preload);
+      if (validPreload) return validPreload;
+
+      const fresh = await fetch(canonicalIndex, { cache: 'no-store', redirect: 'follow' });
+      const validFresh = await acceptCurrentShell(fresh);
+      if (validFresh) return validFresh;
+
+      return await currentCachedMatch(cache, canonicalIndex) || Response.error();
     }
-    const fresh = await fetch(request, { cache: 'no-store' });
-    if (fresh && fresh.ok) {
-      cache.put(request, fresh.clone()).catch(() => undefined);
-      cache.put('./index.html', fresh.clone()).catch(() => undefined);
-      return fresh;
-    }
-    return await matchCurrentOrRecovery(cache, request, './index.html') || fresh || Response.error();
+
+    // Broken nested routes must never become cached application shells. Redirect
+    // them to the canonical repository/app root so GitHub Pages does not loop on 404.
+    return Response.redirect(getCanonicalAppRootUrl().toString(), 302);
   } catch (error) {
-    return await matchCurrentOrRecovery(cache, request, './index.html') || Response.error();
+    if (!canonicalShell) return Response.redirect(getCanonicalAppRootUrl().toString(), 302);
+    return await currentCachedMatch(cache, canonicalIndex) || Response.error();
   }
 }
 
 async function staleWhileRevalidate(request) {
+  const url = new URL(request.url);
   const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request) || await matchFoxBearRecoveryCache(request);
-  const freshPromise = fetch(request).then(response => {
+  if (isStaleAssetGeneration(url)) return Response.error();
+  const cached = await matchCurrentOrRecovery(cache, request);
+  const freshPromise = fetch(request, { cache: 'reload' }).then(response => {
     if (response && response.ok) cache.put(request, response.clone()).catch(() => undefined);
     return response;
   }).catch(() => null);

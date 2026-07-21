@@ -1,8 +1,15 @@
-// FoxBear Pro finalizer worker v1.5.0 - quality-gate compatible finalizer core
-// v1.5.47 adds job-scoped progress telemetry for loudness, dynamics, limiter, and true-peak stages.
+// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.5.49 - limiter correctness, bounded quality fingerprints, and performance telemetry.
 'use strict';
 
 self.onmessage = event => {
+    const jobStartedAt = nowMs();
+    let stageStartedAt = jobStartedAt;
+    const stageTimings = {};
+    const markStage = label => {
+        const current = nowMs();
+        stageTimings[label] = Math.max(0, current - stageStartedAt);
+        stageStartedAt = current;
+    };
     try {
         const payload = event.data || {};
         const jobId = String(payload.__foxbearJobId || '');
@@ -26,7 +33,8 @@ self.onmessage = event => {
 
         const oversample = truePeak ? 4 : 1;
         const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
-        const data = channelBuffers.map(src => new Float32Array(src.slice(0, length)));
+        const data = channelBuffers.map(src => src.slice(0, length));
+        const qualityBefore = makeQualityFingerprint(data, length);
         postProgress(jobId, 8, '입력 정리', '샘플 복사와 비정상 값 정리를 시작합니다.');
         const inputHealth = inspectInputSignal(data, length, sampleRate);
         if (!inputHealth.ok) {
@@ -37,15 +45,18 @@ self.onmessage = event => {
         }
         sanitizeBuffers(data, length);
         removeDcOffset(data, length);
+        markStage('inputPreparation');
         postProgress(jobId, 18, '공진 보호', '모바일 공진과 치찰음 위험을 줄입니다.');
         const mobileInfo = applyMobileSpeakerResonanceGuard(data, length, sampleRate, qualityMode, analysis);
         const deEsserInfo = applyDynamicDeEsser(data, length, sampleRate, qualityMode, analysis);
         postProgress(jobId, 32, '다이나믹 정리', '멀티밴드와 다이내믹 디에서를 적용합니다.');
         const multibandInfo = applyGentleMultibandDynamics(data, length, sampleRate, qualityMode, analysis);
+        markStage('toneDynamics');
 
         postProgress(jobId, 48, '라우드니스 분석', 'K-weighted LUFS와 피크를 측정합니다.');
         const loudnessBefore = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
         const peakBefore = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
+        markStage('preMeasurement');
         const targetGainDb = clamp(targetLufs - loudnessBefore, -8, maxGainDb);
         const gain = Math.pow(10, targetGainDb / 20);
         applyGain(data, length, gain);
@@ -58,6 +69,7 @@ self.onmessage = event => {
         applySoftCeiling(data, length, ceiling);
         removeDcOffset(data, length);
         sanitizeBuffers(data, length);
+        markStage('gainLimiter');
 
         postProgress(jobId, 84, '최종 안전 검사', 'True Peak와 잔여 클리핑을 다시 확인합니다.');
         let peakAfter = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
@@ -71,6 +83,12 @@ self.onmessage = event => {
         const loudnessAfter = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
         const shortTermLufs = measureShortTermLufsStatsBuffers(data, sampleRate, length, channels);
         const finalPeak = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
+        markStage('finalMeasurement');
+        const qualityAfter = makeQualityFingerprint(data, length);
+        const qualityFingerprint = { before: qualityBefore, after: qualityAfter, delta: { highActivityDb: dbRatio(qualityAfter.highActivity, qualityBefore.highActivity), lowActivityDb: dbRatio(qualityAfter.lowActivity, qualityBefore.lowActivity), crestDb: qualityAfter.crestDb - qualityBefore.crestDb, stereoCorrelation: qualityAfter.stereoCorrelation - qualityBefore.stereoCorrelation } };
+        const processingMs = Math.max(0, nowMs() - jobStartedAt);
+        const audioDurationMs = length / Math.max(1, sampleRate) * 1000;
+        const realtimeFactor = processingMs > 0 ? audioDurationMs / processingMs : 0;
 
         postProgress(jobId, 99, '파이널라이저 완료', '완성 버퍼를 메인 화면으로 전달합니다.');
         const transfers = data.map(arr => arr.buffer);
@@ -93,6 +111,9 @@ self.onmessage = event => {
                 peakAfter: finalPeak,
                 gainDb: targetGainDb + 20 * Math.log10(Math.max(1e-9, finalSafetyGain)),
                 limiterReductionDb: limiterInfo.reductionDb,
+                limiterActivePct: limiterInfo.activePct,
+                limiterMeanReductionDb: limiterInfo.meanReductionDb,
+                limiterGainMovement: limiterInfo.gainMovement,
                 limiterMode: limiterInfo.mode,
                 lookaheadMs: limiterInfo.lookaheadMs,
                 lookaheadSamples: limiterInfo.lookaheadSamples,
@@ -110,6 +131,8 @@ self.onmessage = event => {
                 dynamicDeEsserReductionDb: deEsserInfo.reductionDb,
                 dynamicDeEsserBands: deEsserInfo.bands,
                 loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
+                performance: { processingMs, audioDurationMs, realtimeFactor, stageMs: stageTimings },
+                qualityFingerprint,
                 inputHealth
             }
         }, transfers);
@@ -148,6 +171,11 @@ function normalizeFiniteInteger(value, min, max, label) {
     return Math.trunc(normalizeFiniteNumber(value, min, max, label));
 }
 
+
+
+function nowMs() {
+    return Date.now();
+}
 
 function sanitizeBuffers(buffers, length) {
     const hardLimit = 8;
@@ -790,31 +818,35 @@ function applyLookaheadLimiter(buffers, length, ceiling, sampleRate, qualityMode
         peaks[i] = peak;
     }
 
-    const deque = [];
+    const deque = new Int32Array(length);
     let head = 0;
+    let tail = 0;
     let addedUntil = -1;
     let gain = 1;
     let minGain = 1;
     let activeSamples = 0;
+    let gainSum = 0;
+    let gainMovement = 0;
+    let previousGain = 1;
 
     for (let i = 0; i < length; i += 1) {
         const futureEnd = Math.min(length - 1, i + lookaheadSamples);
         while (addedUntil < futureEnd) {
             addedUntil += 1;
             const peak = peaks[addedUntil];
-            while (deque.length > head && peaks[deque[deque.length - 1]] <= peak) deque.pop();
-            deque.push(addedUntil);
+            while (tail > head && peaks[deque[tail - 1]] <= peak) tail -= 1;
+            deque[tail] = addedUntil;
+            tail += 1;
         }
-        while (head < deque.length && deque[head] < i) head += 1;
-        if (head > 1024 && head * 2 > deque.length) {
-            deque.splice(0, head);
-            head = 0;
-        }
-        const futurePeak = head < deque.length ? peaks[deque[head]] : peaks[i];
+        while (head < tail && deque[head] < i) head += 1;
+        const futurePeak = head < tail ? peaks[deque[head]] : peaks[i];
         const desired = futurePeak > safeCeiling ? safeCeiling / Math.max(1e-9, futurePeak) : 1;
-        if (desired < gain) gain = desired;
+        if (desired <= gain) gain = desired;
         else gain = Math.min(1, gain * release + (1 - release));
         if (gain < minGain) minGain = gain;
+        gainSum += gain;
+        gainMovement += Math.abs(gain - previousGain);
+        previousGain = gain;
         if (gain < 0.999999) {
             activeSamples += 1;
             for (const data of buffers) data[i] = (data[i] || 0) * gain;
@@ -825,7 +857,10 @@ function applyLookaheadLimiter(buffers, length, ceiling, sampleRate, qualityMode
         lookaheadMs,
         lookaheadSamples,
         activeSamples,
+        activePct: activeSamples / Math.max(1, length) * 100,
         minGain,
+        meanReductionDb: 20 * Math.log10(Math.max(1e-9, gainSum / Math.max(1, length))),
+        gainMovement: gainMovement / Math.max(1, length),
         reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0
     };
 }
@@ -844,6 +879,26 @@ function applySoftCeiling(buffers, length, ceiling) {
             }
         }
     }
+}
+
+function dbRatio(after, before) { return 20 * Math.log10(Math.max(1e-9, after) / Math.max(1e-9, before)); }
+function makeQualityFingerprint(data, length) {
+    const maxSamples = 65536;
+    const step = Math.max(1, Math.ceil(length / maxSamples));
+    let n = 0, sumSq = 0, peak = 0, diffSq = 0, lowSq = 0, lr = 0, ll = 0, rr = 0;
+    let prev = 0, low = 0;
+    const left = data[0], right = data[1] || left;
+    for (let i = 0; i < length; i += step) {
+        const l = Number.isFinite(left[i]) ? left[i] : 0;
+        const r = Number.isFinite(right[i]) ? right[i] : 0;
+        const x = (l + r) * 0.5;
+        low += 0.025 * (x - low);
+        const d = x - prev; prev = x;
+        sumSq += x * x; diffSq += d * d; lowSq += low * low; peak = Math.max(peak, Math.abs(l), Math.abs(r));
+        lr += l * r; ll += l * l; rr += r * r; n += 1;
+    }
+    const rms = Math.sqrt(sumSq / Math.max(1, n));
+    return { samples: n, peak, rms, crestDb: 20 * Math.log10(Math.max(1e-9, peak) / Math.max(1e-9, rms)), highActivity: Math.sqrt(diffSq / Math.max(1, n)) / Math.max(1e-9, rms), lowActivity: Math.sqrt(lowSq / Math.max(1, n)) / Math.max(1e-9, rms), stereoCorrelation: lr / Math.sqrt(Math.max(1e-12, ll * rr)) };
 }
 
 function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }

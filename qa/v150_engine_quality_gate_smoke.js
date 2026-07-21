@@ -22,17 +22,17 @@ const changelog = read('CHANGELOG.md');
 
 assert(pkg.qaChecks.includes('node --check src/audio/reference-profile-service.js'), 'reference profile syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v150_engine_quality_gate_smoke.js'), 'v1.5.0 smoke missing from package QA');
-assert(index.includes('src/audio/reference-profile-service.js?v=1.5.47-engine-edgecase-quality-gate'), 'reference profile service not loaded in index');
+assert(index.includes('src/audio/reference-profile-service.js?v=1.5.49-asset-generation-route-recovery'), 'reference profile service not loaded in index');
 assert(index.indexOf('src/audio/reference-profile-service.js') < index.indexOf('src/audio/quality-gate-service.js'), 'reference profile service should load before quality gate');
-assert(sw.includes('./src/audio/reference-profile-service.js?v=1.5.47-engine-edgecase-quality-gate'), 'reference profile service not precached');
+assert(sw.includes('./src/audio/reference-profile-service.js?v=1.5.49-asset-generation-route-recovery'), 'reference profile service not precached');
 
-assert(gate.includes('QualityGate v2.1'), 'QualityGate v2.1 label missing');
+assert(gate.includes('QualityGate v2.2'), 'QualityGate v2.2 label missing');
 assert(gate.includes('shortTermOverTargetWarnDb'), 'short-term LUFS rules missing');
 assert(gate.includes('Limiter 과보정'), 'limiter overdose check missing');
 assert(gate.includes('De-esser 과보정'), 'de-esser overdose check missing');
 assert(gate.includes('모바일 번역 보정량'), 'mobile translation amount check missing');
 assert(gate.includes('riskFlags'), 'risk flag summary missing');
-assert(gate.includes('1.5.0-engine-quality-gate'), 'quality gate service version missing');
+assert(gate.includes('1.5.49-engine-quality-regression'), 'quality gate service version missing');
 
 assert(app.includes('measureShortTermLufsStats'), 'short-term LUFS stats helper missing from app');
 assert(app.includes('shortTermBefore'), 'master report shortTermBefore missing');
@@ -49,7 +49,7 @@ assert(ref.includes('createLogBands') && ref.includes('makeProfileFromBands') &&
 assert(ref.includes('1.5.0-reference-profile-64-96'), 'reference profile service version missing');
 
 assert(readme.includes('Engine Quality Gate additions') || readme.includes('v1.5.0 Engine Quality Gate'), 'README missing engine quality gate carry-forward');
-assert(handoff.includes('v1.5.0 Engine Quality Gate') || handoff.includes('QualityGate v2.1'), 'HANDOFF missing engine quality gate carry-forward');
+assert(handoff.includes('v1.5.0 Engine Quality Gate') || handoff.includes('QualityGate v2.2'), 'HANDOFF missing engine quality gate carry-forward');
 assert(qaReport.includes('183/183 PASS') || qaReport.includes('182/182 PASS') || qaReport.includes('178/178 PASS'), 'QA report missing current PASS anchor');
 assert(changelog.startsWith('# v') && changelog.includes('# v1.5.0 - Engine Quality Gate'), 'CHANGELOG current heading or v1.5.0 history missing');
 

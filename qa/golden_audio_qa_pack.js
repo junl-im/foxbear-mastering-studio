@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..');
 
 function loadClassicWorker(relativePath) {
   const code = fs.readFileSync(path.join(root, relativePath), 'utf8');
-  const sandbox = { console, Float32Array, Float64Array, Int16Array, Uint8Array, ArrayBuffer, DataView, Math, Number, String, Boolean, Array, Object, Map, Set, JSON, Date, isFinite, parseFloat, parseInt, self: {} };
+  const sandbox = { console, Float32Array, Float64Array, Int32Array, Int16Array, Uint8Array, ArrayBuffer, DataView, Math, Number, String, Boolean, Array, Object, Map, Set, JSON, Date, isFinite, parseFloat, parseInt, self: {} };
   vm.createContext(sandbox);
   vm.runInContext(code, sandbox, { filename: relativePath });
   return payload => {

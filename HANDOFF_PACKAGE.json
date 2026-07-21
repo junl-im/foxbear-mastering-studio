@@ -2,9 +2,10 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.47",
-  "buildId": "engine-edgecase-quality-gate",
+  "productVersion": "1.5.49",
+  "buildId": "asset-generation-route-recovery",
   "requiredFiles": [
+    "404.html",
     ".gitignore",
     ".github/workflows/pages.yml",
     ".github/workflows/pages-branch-fallback.yml",
@@ -36,7 +37,9 @@
     "qa/v1519_ci_runtime_isolation_packaging_smoke.js",
     ".githooks/pre-commit",
     "tools/install-git-hooks.sh",
-    "qa/v1539_ci_hook_lifecycle_hardening_smoke.js"
+    "qa/v1539_ci_hook_lifecycle_hardening_smoke.js",
+    "foxbear-root.json",
+    "src/boot/service-worker-recovery-service.js"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -62,6 +65,7 @@
   ],
   "deletePaths": [],
   "requiredRuntimeAssets": [
+    "src/boot/service-worker-recovery-service.js",
     "src/audio/mastering-input-guard-service.js",
     "src/download/download-service.js",
     "src/download/export-guard-service.js",

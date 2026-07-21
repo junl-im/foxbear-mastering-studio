@@ -62,6 +62,41 @@ function canonicalizeRuntimeMetadata(text) {
     .replace(/&h=update-safety-v\d+/g, `&h=${meta.updateSafetyRevision}`);
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function replaceMarkdownSectionFields(text, heading, fields) {
+  const pattern = new RegExp(`(^|\\n)(## ${escapeRegExp(heading)}\\s*\\n)([\\s\\S]*?)(?=\\n## |$)`);
+  return String(text).replace(pattern, (match, prefix, title, body) => {
+    let nextBody = body;
+    for (const [label, value] of Object.entries(fields)) {
+      const fieldPattern = new RegExp(`(^|\\n)(- ${escapeRegExp(label)}:) .*?(?=\\n|$)`);
+      if (fieldPattern.test(nextBody)) nextBody = nextBody.replace(fieldPattern, `$1$2 ${value}`);
+      else nextBody = `${nextBody.replace(/\s*$/, '')}\n- ${label}: ${value}\n`;
+    }
+    return `${prefix}${title}${nextBody}`;
+  });
+}
+
+function synchronizeStatusMetadata(text) {
+  const fields = {
+    'Product version': `\`${meta.productVersion}\``,
+    'Build ID': `\`${meta.buildId}\``,
+    'Asset version': `\`${meta.assetVersion}\``,
+    'Service worker cache': `\`${meta.cacheName}\``
+  };
+  let status = String(text).replace(/^# FoxBear Status - v\d+\.\d+\.\d+$/m, `# FoxBear Status - v${meta.productVersion}`);
+  status = replaceMarkdownSectionFields(status, 'Current release', fields);
+  status = replaceMarkdownSectionFields(status, 'Release metadata', fields);
+  return status;
+}
+
+function markdownSection(text, heading) {
+  const pattern = new RegExp(`(?:^|\\n)## ${escapeRegExp(heading)}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`);
+  return String(text).match(pattern)?.[1] || '';
+}
+
 function sync() {
   const previous = detectPrevious();
   const pkg = JSON.parse(read('package.json'));
@@ -117,6 +152,8 @@ function sync() {
   handoffPackage.buildId = meta.buildId;
   write('HANDOFF_PACKAGE.json', `${JSON.stringify(handoffPackage, null, 2)}\n`);
 
+  write('STATUS.md', synchronizeStatusMetadata(read('STATUS.md')));
+
   let index = read('index.html');
   index = index.replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="FoxBear AI Mastering Studio Pro v${meta.productVersion} - ${meta.buildId}" />`);
   write('index.html', index);
@@ -167,6 +204,9 @@ function validate() {
   const changelog = read('CHANGELOG.md');
   const readme = read('README.md');
   const handoff = read('HANDOFF.md');
+  const status = read('STATUS.md');
+  const currentReleaseStatus = markdownSection(status, 'Current release');
+  const releaseMetadataStatus = markdownSection(status, 'Release metadata');
   const legacyCacheList = sw.match(/const LEGACY_CACHE_NAMES = \[([^\]]*)\];/)?.[1] || '';
 
   expect(buildInfo === renderBuildInfo(meta), 'src/config/build-info.js is not synchronized with package.json');
@@ -191,6 +231,13 @@ function validate() {
   expect(changelog.startsWith(`# v${meta.productVersion} -`), 'CHANGELOG latest entry does not match package version');
   expect(readme.startsWith(`# FoxBear AI Mastering Studio Pro v${meta.productVersion}`), 'README title does not match package version');
   expect(handoff.startsWith(`# Handoff - v${meta.productVersion}`), 'HANDOFF title does not match package version');
+  expect(status.startsWith(`# FoxBear Status - v${meta.productVersion}`), 'STATUS title does not match package version');
+  for (const [sectionName, section] of [['Current release', currentReleaseStatus], ['Release metadata', releaseMetadataStatus]]) {
+    expect(section.includes(`- Product version: \`${meta.productVersion}\``), `STATUS ${sectionName} product version is not synchronized`);
+    expect(section.includes(`- Build ID: \`${meta.buildId}\``), `STATUS ${sectionName} build ID is not synchronized`);
+    expect(section.includes(`- Asset version: \`${meta.assetVersion}\``), `STATUS ${sectionName} asset version is not synchronized`);
+    expect(section.includes(`- Service worker cache: \`${meta.cacheName}\``), `STATUS ${sectionName} cache name is not synchronized`);
+  }
   expect(pkgLock && pkgLock.version === meta.productVersion, 'package-lock.json is missing or version is not synchronized');
   expect(pkg.scripts?.['package:verify:overwrite'] === `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`, 'package:verify:overwrite script is not synchronized');
   expect(pkg.scripts?.['package:verify:release'] === `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`, 'package:verify:release script is not synchronized');

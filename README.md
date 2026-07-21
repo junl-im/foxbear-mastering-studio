@@ -1,4 +1,17 @@
-# FoxBear AI Mastering Studio Pro v1.5.47
+# FoxBear AI Mastering Studio Pro v1.5.49
+
+## Current patch: v1.5.49 Asset Generation Route Recovery
+
+구버전 부분 캐시와 최신 자산이 섞여 SRI 차단 및 404로 이어지는 경로를 차단합니다. 서비스워커는 전체 런타임 자산을 한 세대로 설치하고, 복구 시 프로젝트 루트로 이동합니다.
+
+Release metadata:
+
+```text
+product: 1.5.49
+build: asset-generation-route-recovery
+asset generation: 1.5.49-asset-generation-route-recovery
+service worker cache: foxbear-shell-v1.5.49-asset-generation-route-recovery
+```
 
 ## Current patch: v1.5.47 Engine Edge-Case Quality Gate
 

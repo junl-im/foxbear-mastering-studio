@@ -2,7 +2,29 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.47-engine-edgecase-quality-gate';
+    const FALLBACK_VERSION = '1.5.49-asset-generation-route-recovery';
+    const RUNTIME_SCRIPT_URL = (() => {
+        try {
+            const current = document.currentScript?.src || '';
+            if (current) return new URL(current, global.location.href);
+            const match = Array.from(document.scripts || []).find(script => /(?:^|\/)src\/boot\/runtime-health\.js(?:[?#]|$)/.test(script.src || script.getAttribute?.('src') || ''));
+            return match?.src ? new URL(match.src, global.location.href) : null;
+        } catch (error) {
+            return null;
+        }
+    })();
+    const APP_ROOT_URL = (() => {
+        try {
+            if (RUNTIME_SCRIPT_URL) return new URL('../../', RUNTIME_SCRIPT_URL);
+            const fallback = new URL(global.location.href);
+            fallback.search = '';
+            fallback.hash = '';
+            fallback.pathname = fallback.pathname.replace(/[^/]*$/, '');
+            return fallback;
+        } catch (error) {
+            return null;
+        }
+    })();
     if (global.FoxBearBuildInfo?.assetVersion && global.FoxBearBuildInfo.assetVersion !== FALLBACK_VERSION) console.warn('[FoxBear] runtime health metadata mismatch', { fallback: FALLBACK_VERSION, build: global.FoxBearBuildInfo.assetVersion });
     const BOOT_STALL_MS = 5200;
     const REQUIRED_GLOBALS = Object.freeze([
@@ -10,6 +32,7 @@
         'FoxBearReleasePresentation.getReport',
         'FoxBearUpdateSafety.getReport',
         'FoxBearUpdateSafety.getRecoveryPlan',
+        'FoxBearServiceWorkerRecoveryService.consumeOneShotBypass',
         'FoxBearPerformanceDiagnostics.collectSnapshot',
         'FoxBearPerformanceDiagnostics.getSummary',
         'FoxBearCoreUtils',
@@ -71,6 +94,8 @@
     ]);
     const LOCAL_ASSET_RE = /^(?:\.\/)?(?:src\/|assets\/|manifest\.webmanifest|sw\.js)/;
     const RESOURCE_TAGS = new Set(['SCRIPT', 'LINK', 'IMG', 'SOURCE']);
+    const AUTO_RECOVERY_KEY = 'foxbearAutoGenerationRecovery';
+    let generationProbePromise = null;
 
     const state = {
         version: getSelfAssetVersion(),
@@ -233,6 +258,35 @@
         return problems.join(', ') || '알 수 없는 로딩 문제';
     }
 
+    async function probeDeployedGeneration() {
+        if (generationProbePromise || !APP_ROOT_URL || !global.fetch) return generationProbePromise;
+        generationProbePromise = (async () => {
+            try {
+                const probe = new URL('index.html', APP_ROOT_URL);
+                probe.searchParams.set('foxbearGenerationProbe', String(Date.now()));
+                const response = await global.fetch(probe.href, { cache: 'no-store', redirect: 'follow' });
+                if (!response.ok) return '';
+                const html = await response.text();
+                return html.match(/src\/config\/build-info\.js\?v=([^"&]+)/)?.[1] || '';
+            } catch (error) {
+                return '';
+            }
+        })();
+        return generationProbePromise;
+    }
+
+    async function recoverStaleGeneration(report) {
+        if (!report.resourceFailures.length || state.appReady && report.resourceFailures.length < 3) return false;
+        const deployed = await probeDeployedGeneration();
+        if (!deployed || deployed === state.version) return false;
+        try {
+            if (sessionStorage.getItem(AUTO_RECOVERY_KEY) === deployed) return false;
+            sessionStorage.setItem(AUTO_RECOVERY_KEY, deployed);
+        } catch (error) {}
+        await clearCachesAndReload();
+        return true;
+    }
+
     function publishReport(report, options = {}) {
         state.lastReport = report;
         global.dispatchEvent(new CustomEvent('foxbear:runtime-health', { detail: report }));
@@ -240,6 +294,7 @@
             setImportStatus(`앱 로딩 점검 필요: ${summarizeProblems(report)} · 아래 복구 패널에서 캐시 초기화를 시도하세요.`, 'warn');
             showRecoveryPanel(report, { reason: 'health-check' });
             console.warn('[FoxBearRuntimeHealth] runtime issues detected', report);
+            recoverStaleGeneration(report).catch(error => console.warn('[FoxBearRuntimeHealth] generation recovery probe failed', error));
         }
         return report;
     }
@@ -358,10 +413,17 @@
         state.panelVisible = false;
     }
 
-    function hardRefresh() {
-        const url = new URL(global.location.href);
+    function getCanonicalRecoveryUrl() {
+        const url = new URL(APP_ROOT_URL || global.location.href);
+        url.search = '';
+        url.hash = '';
         url.searchParams.set('foxbearReload', String(Date.now()));
-        global.location.replace(url.toString());
+        url.searchParams.set('foxbearRecovery', 'asset-generation');
+        return url;
+    }
+
+    function hardRefresh() {
+        global.location.replace(getCanonicalRecoveryUrl().toString());
     }
 
     async function clearCachesAndReload() {

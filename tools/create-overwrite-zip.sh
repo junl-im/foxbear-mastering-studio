@@ -26,6 +26,8 @@ copy_path() {
 
 # Runtime entry files and deployment config.
 copy_path "index.html"
+copy_path "404.html"
+copy_path "foxbear-root.json"
 copy_path "external-browser.html"
 copy_path "sw.js"
 copy_path "manifest.webmanifest"

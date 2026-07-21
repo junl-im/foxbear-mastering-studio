@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INDEX = ROOT / 'index.html'
+HTML_FILES = (ROOT / 'index.html', ROOT / 'external-browser.html')
 TAG_RE = re.compile(r'<(?:script|link)\b[^>]*(?:src|href)="[^"]+"[^>]*>')
 ASSET_RE = re.compile(r'(?:src|href)="([^"]+)"')
 INTEGRITY_ATTR_RE = re.compile(r'\s+integrity="[^"]*"', re.IGNORECASE)
@@ -55,11 +55,17 @@ def update_tag(match: re.Match[str]) -> str:
 
 
 def main() -> int:
-    original = INDEX.read_text(encoding='utf-8')
-    updated = TAG_RE.sub(update_tag, original)
-    if updated != original:
-        INDEX.write_text(updated, encoding='utf-8')
-        print('Updated SRI hashes and normalized local asset tags in index.html')
+    changed = []
+    for html_file in HTML_FILES:
+        if not html_file.is_file():
+            continue
+        original = html_file.read_text(encoding='utf-8')
+        updated = TAG_RE.sub(update_tag, original)
+        if updated != original:
+            html_file.write_text(updated, encoding='utf-8')
+            changed.append(html_file.name)
+    if changed:
+        print('Updated SRI hashes and normalized local asset tags in ' + ', '.join(changed))
     else:
         print('SRI hashes already up to date')
     return 0

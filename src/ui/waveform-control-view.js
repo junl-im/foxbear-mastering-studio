@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.47-engine-edgecase-quality-gate';
+  const VIEW_VERSION = '1.5.49-asset-generation-route-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

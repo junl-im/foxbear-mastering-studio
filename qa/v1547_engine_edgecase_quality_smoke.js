@@ -11,7 +11,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 function loadWorker(relativePath) {
   const sandbox = {
-    console, Float32Array, Float64Array, Int16Array, Uint8Array, ArrayBuffer, DataView,
+    console, Float32Array, Float64Array, Int32Array, Int16Array, Uint8Array, ArrayBuffer, DataView,
     Math, Number, String, Boolean, Array, Object, Map, Set, JSON, Date,
     isFinite, parseFloat, parseInt, self: {}
   };
@@ -168,6 +168,13 @@ for (const checkpoint of ['decode', 'emergency-analysis', 'pitch-speed', 'master
 
 const pkg = JSON.parse(read('package.json'));
 assert(pkg.qaChecks.includes('node --check src/audio/mastering-input-guard-service.js'), 'input guard syntax check is not registered');
-assert(pkg.qaChecks.includes('node qa/v1547_engine_edgecase_quality_smoke.js'), 'v1.5.47 QA is not registered');
+assert(pkg.qaChecks.includes('node qa/v1547_engine_edgecase_quality_smoke.js'), 'v1.5.49 QA is not registered');
+const status = read('STATUS.md');
+const currentVersionLine = `- Product version: \`${pkg.version}\``;
+assert(status.startsWith(`# FoxBear Status - v${pkg.version}`), 'STATUS title is stale');
+assert.strictEqual(status.split(currentVersionLine).length - 1, 2, 'STATUS current metadata sections are not synchronized');
+const metadataTool = read('tools/sync-release-metadata.js');
+assert(metadataTool.includes("markdownSection(status, 'Release metadata')"), 'version checker does not inspect the STATUS release metadata section');
+assert(metadataTool.includes('releaseMetadataStatus') && metadataTool.includes('product version is not synchronized'), 'stale STATUS metadata is not release-blocking');
 
 console.log(`PASS v1.5.47 engine edge-case quality: ${highRateCases.map(item => `${item.sampleRate}Hz`).join('/')} · ${recommendation.preset} · ${gate.status}`);
