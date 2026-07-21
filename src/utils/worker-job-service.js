@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.58 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.59 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.58-kakao-mastering-runtime-recovery';
+    const VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
     let sequence = 0;
 
     function createJobId(label = 'worker') {

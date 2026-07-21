@@ -17,11 +17,11 @@ function assert(condition, message) {
   }
 }
 
-assert(pkg.version === '1.5.58', 'package version should be 1.5.58');
+assert(pkg.version === '1.5.59', 'package version should be 1.5.59');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-assert(html.includes('data-build="1.5.58"'), 'index build should be 1.5.58');
-assert(config.includes("ASSET_VERSION = '1.5.58-kakao-mastering-runtime-recovery'"), 'asset key should be v1.5.58 bulk import guard');
-assert(sw.includes("foxbear-shell-v1.5.58-kakao-mastering-runtime-recovery"), 'service worker cache should be v1.5.58 bulk import guard');
+assert(html.includes('data-build="1.5.59"'), 'index build should be 1.5.59');
+assert(config.includes("ASSET_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics'"), 'asset key should be v1.5.59 bulk import guard');
+assert(sw.includes("foxbear-shell-v1.5.59-kakao-session-handoff-memory-diagnostics"), 'service worker cache should be v1.5.59 bulk import guard');
 
 assert(config.includes('IMPORT_ANALYSIS_CONCURRENCY: 1'), 'runtime config should force single analysis worker for bulk imports');
 assert(config.includes('LARGE_IMPORT_BATCH_THRESHOLD: 12'), 'runtime config should define large import threshold');

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.58",
+  "version": "1.5.59",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with Kakao in-app mastering memory recovery, truthful decode diagnostics, unified modal controls, incident operations, and DSP quality protection.",
+  "description": "FoxBear AI Mastering Studio Pro with Kakao external-browser session handoff, stage-by-stage mastering memory diagnostics, runtime recovery, incident operations, and DSP quality protection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.58-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.58-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.59-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.59-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -51,6 +51,7 @@
     "node --check src/audio/import-queue-service.js",
     "node --check src/audio/analysis-cache-service.js",
     "node --check src/audio/memory-guard-service.js",
+    "node --check src/audio/mastering-memory-diagnostics-service.js",
     "node --check src/audio/reference-profile-service.js",
     "node --check src/audio/mastering-input-guard-service.js",
     "node --check src/audio/mastering-quality-audit-service.js",
@@ -218,6 +219,7 @@
     "node --check src/download/zip-export-service.js",
     "node qa/v156_export_progress_recovery_smoke.js",
     "node --check src/config/build-info.js",
+    "node --check src/boot/session-handoff-service.js",
     "node --check tools/release-metadata.js",
     "node --check tools/sync-release-metadata.js",
     "node qa/v157_release_foundation_smoke.js",
@@ -288,15 +290,16 @@
     "node qa/v1555_incident_mail_reporting_smoke.js",
     "node qa/v1556_incident_operations_app_check_smoke.js",
     "node qa/v1557_modal_close_consistency_smoke.js",
-    "node qa/v1558_kakao_mastering_runtime_recovery_smoke.js"
+    "node qa/v1558_kakao_mastering_runtime_recovery_smoke.js",
+    "node qa/v1559_kakao_session_handoff_memory_diagnostics_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "kakao-mastering-runtime-recovery",
-    "assetVersion": "1.5.58-kakao-mastering-runtime-recovery",
-    "cacheName": "foxbear-shell-v1.5.58-kakao-mastering-runtime-recovery",
-    "bootRevision": "boot-sri-v1558",
-    "updateSafetyRevision": "update-safety-v1558",
-    "serviceWorkerRevision": "sw-v1558"
+    "buildId": "kakao-session-handoff-memory-diagnostics",
+    "assetVersion": "1.5.59-kakao-session-handoff-memory-diagnostics",
+    "cacheName": "foxbear-shell-v1.5.59-kakao-session-handoff-memory-diagnostics",
+    "bootRevision": "boot-sri-v1559",
+    "updateSafetyRevision": "update-safety-v1559",
+    "serviceWorkerRevision": "sw-v1559"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

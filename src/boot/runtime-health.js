@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.58-kakao-mastering-runtime-recovery';
+    const FALLBACK_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -35,6 +35,8 @@
         'FoxBearServiceWorkerRecoveryService.consumeOneShotBypass',
         'FoxBearPerformanceDiagnostics.collectSnapshot',
         'FoxBearPerformanceDiagnostics.getSummary',
+        'FoxBearSessionHandoff.attachToUrl',
+        'FoxBearMasteringMemoryDiagnostics.capture',
         'FoxBearCoreUtils',
         'FoxBearRecommendationEngine.createRecommendationEngine',
         'FoxBearMasteringInspector',

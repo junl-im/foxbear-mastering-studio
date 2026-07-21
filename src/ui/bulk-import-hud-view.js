@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.58 compatibility QA anchor: const VIEW_VERSION = '1.5.58-kakao-mastering-runtime-recovery'
+    // v1.5.59 compatibility QA anchor: const VIEW_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

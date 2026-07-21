@@ -1,3 +1,18 @@
+# QA Report - v1.5.59 Kakao Session Handoff and Memory Diagnostics
+
+- Added privacy-safe, expiring work-setting handoff for external-browser recovery.
+- Added per-stage mastering memory diagnostics with known PCM/blob peaks and available Chromium heap data.
+- Restores global DSP/output settings first, then reapplies the selected-track profile after AI analysis without transferring audio or filenames.
+- Static and regression target: all configured checks PASS in bounded continuation segments.
+
+## v1.5.59 coverage
+
+- one-time 20-minute handoff token and address-bar cleanup
+- fallback URL copy retains recovery state
+- sane defaults for missing pitch, speed, output, and loudness values
+- per-stage memory peak, pressure ratio, and environment diagnostics
+- app slim-down and existing Kakao runtime recovery preservation
+
 # QA Report - v1.5.58 Kakao Mastering Runtime Recovery
 
 - Removed duplicate compressed-file buffers from Web Audio decoding.

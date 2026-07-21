@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.5.58 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.5.59 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.5.58-kakao-mastering-runtime-recovery';
+    const VERSION = 'v1.5.59-kakao-session-handoff-memory-diagnostics';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {

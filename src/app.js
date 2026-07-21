@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.58 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.59 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -18,7 +18,10 @@ const FoxBearRuntimeConfig = window.FoxBearRuntimeConfig || {};
 const FoxBearAudioImportCapabilityService = window.FoxBearAudioImportCapabilityService || null;
 const FoxBearMasteringInputGuard = window.FoxBearMasteringInputGuard || null;
 const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetyService || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.58';
+const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
+let externalBrowserHandoffBridge = null;
+const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.59';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -62,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.58-kakao-mastering-runtime-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1558'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.59-kakao-session-handoff-memory-diagnostics'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1559'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -474,6 +477,7 @@ function init() {
     runInitStep('브라우저 코덱 확인', syncAudioImportCapabilities);
     runInitStep('파일 불러오기', bindUploadInputEventsOnce, { critical: true });
     runInitStep('설정 저장값 복원', restorePersistedSettings);
+    runInitStep('외부 브라우저 작업 복구', initExternalBrowserHandoff);
     runInitStep('화면유지 컨트롤러 노출', exposeFoxBearWakeLockController);
     runInitStep('Dock 리모컨 보호 이벤트', installDockRemoteDelegation);
     runInitStep('플레이어 연동 상태 감시', installPlaybackLinkStatusBridge);
@@ -517,7 +521,7 @@ function cacheElements() {
         'bulkImportHud', 'bulkImportHudTitle', 'bulkImportHudText', 'bulkImportHudPercent', 'bulkImportHudBar', 'bulkImportHudList', 'bulkImportHudToggle', 'bulkImportHudClose', 'bulkImportHudMasterAll', 'bulkImportHudRestore',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'individualExportBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'genreLockBtn', 'clearCacheBtn',
+        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'performanceDiagnosticsOpen', 'performanceDiagnosticsStatus', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'genreLockBtn', 'clearCacheBtn',
         'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotRedoBtn', 'snapshotAiBtn', 'snapshotOriginalBtn', 'snapshotClearBtn', 'snapshotStatus', 'snapshotHistory', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
@@ -2341,6 +2345,15 @@ function restorePersistedSettings() {
     }
     return restored;
 }
+function initExternalBrowserHandoff() {
+    if (!FoxBearSessionHandoff?.createAppBridge) return null;
+    externalBrowserHandoffBridge = FoxBearSessionHandoff.createAppBridge({ state, getSelectedTrack, cloneSettings, cloneTransform, cloneInstrumentLayer, defaults: { transform: DEFAULT_TRANSFORM, instrument: DEFAULT_INSTRUMENT_LAYER }, syncControls: syncOutputControlValues, notify: showToast });
+    return externalBrowserHandoffBridge.init();
+}
+function openPerformanceDiagnosticsPanel() {
+    closeProgramInfoDialog();
+    window.FoxBearPerformanceDiagnostics?.setPanelVisible?.(true);
+}
 function persistRuntimeSettings() {
     const service = getSettingsService();
     if (!service) return null;
@@ -3068,7 +3081,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.58-kakao-mastering-runtime-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.58-kakao-mastering-runtime-recovery&h=sw-v1558')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.59-kakao-session-handoff-memory-diagnostics') · navigator.serviceWorker.register('./sw.js?v=1.5.59-kakao-session-handoff-memory-diagnostics&h=sw-v1559')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3387,6 +3400,7 @@ function bindEvents() {
     installManagedModalController();
     if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
     if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
+    if (el.performanceDiagnosticsOpen) el.performanceDiagnosticsOpen.addEventListener('click', openPerformanceDiagnosticsPanel);
     if (el.programInfoDialog) {
         el.programInfoDialog.addEventListener('click', event => {
             if (event.target === el.programInfoDialog) closeProgramInfoDialog();
@@ -3884,7 +3898,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.58-kakao-mastering-runtime-recovery', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.59-kakao-session-handoff-memory-diagnostics', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4198,7 +4212,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.58-kakao-mastering-runtime-recovery',
+        version: '1.5.59-kakao-session-handoff-memory-diagnostics',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4238,10 +4252,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.58-kakao-mastering-runtime-recovery',
+    version: '1.5.59-kakao-session-handoff-memory-diagnostics',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.58-kakao-mastering-runtime-recovery', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.59-kakao-session-handoff-memory-diagnostics', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4266,12 +4280,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.58-kakao-mastering-runtime-recovery', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.59-kakao-session-handoff-memory-diagnostics', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.58-kakao-mastering-runtime-recovery', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.59-kakao-session-handoff-memory-diagnostics', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4286,12 +4300,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.58-kakao-mastering-runtime-recovery',
+    version: 'v1.5.59-kakao-session-handoff-memory-diagnostics',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.58-kakao-mastering-runtime-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.59-kakao-session-handoff-memory-diagnostics', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -4333,9 +4347,11 @@ async function handleFiles(fileList) {
     memoryRejected.forEach(file => { const reason = `현재 기기 안전 한도(${formatBytes(importPolicy.maxBatchBytes)})를 넘어 제외했습니다.`; showToastSafe(`${file.name || '선택 파일'}: ${reason}`); updateImportStatus(`${file.name || '선택 파일'}: ${reason}`, 'warn'); });
     decodedMemoryRejected.forEach(({ file, reason }) => { showToastSafe(`${file.name || '선택 파일'}: ${reason}`); updateImportStatus(`${file.name || '선택 파일'}: ${reason}`, 'warn'); });
     const singleUploadDialogCandidate = accepted.length === 1, addedTracks = [];
+    const pendingExternalTrackProfile = accepted.length ? externalBrowserHandoffBridge?.hasPendingTrackProfile?.() : false;
     for (const { file, validation, memoryProbe = null } of accepted) {
         const track = createTrack(file);
         Object.assign(track, { importLabel: validation.label, importMemoryEstimate: memoryProbe, importedAt: new Date().toISOString(), importQueueYieldMs: importPolicy.queueYieldMs, importMemoryPolicy: importPolicy.label, autoAiRecommendDialog: singleUploadDialogCandidate, bulkRecommendationMode: singleUploadDialogCandidate ? 'single-dialog' : 'auto-apply', report: largeBatch ? `대량 업로드 안전 대기열 등록 중 (${addedTracks.length + 1}/${accepted.length}) · AI 추천값 자동 적용 예정` : (singleUploadDialogCandidate ? '분석 후 추천값 선택 팝업 준비 중' : '분석 대기열 등록 중 · AI 추천값 자동 적용 예정') });
+        if (pendingExternalTrackProfile && addedTracks.length === 0) externalBrowserHandoffBridge?.applyPendingTrackProfile?.(track);
         state.tracks.push(track);
         if (state.selectedIds && typeof state.selectedIds.add === 'function') state.selectedIds.add(track.id);
         if (!state.selectedId || singleUploadDialogCandidate) { state.selectedId = track.id; state.bottomPreviewTrackId = track.id; applyTrackToControls(track); }
@@ -4443,6 +4459,7 @@ async function analyzeTrack(track, task = null) {
     track.genreExplanation = recommendation.explanation || null;
     track.settings = cloneSettings(settings);
     track.recommendedSettings = cloneSettings(settings);
+    externalBrowserHandoffBridge?.reapplyTrackProfileAfterAnalysis?.(track);
     track.status = 'ready';
     track.progress = 100;
     track.report = buildReport(track);
@@ -5409,7 +5426,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.58-kakao-mastering-runtime-recovery-fallback',
+            version: '1.5.59-kakao-session-handoff-memory-diagnostics-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -5648,7 +5665,7 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
         context.assertMasteringJobActive('quality-recovery-master-render');
         sanitizeAudioBuffer(retryMasteredBuffer, 'quality-recovery-master-chain');
         maybeThrowQualityRecoveryE2E('after-render');
-        markPerformanceStage(track, '안전 재렌더');
+        markPerformanceStage(track, '안전 재렌더', { prepared: context.preparedBuffer, mastered: retryMasteredBuffer });
         const baseGuard = getSmartPerformanceGuardDecision(track, retryMasteredBuffer, context.requestedOutputFormat);
         const retryGuard = { ...baseGuard, sourceQualityMode: baseGuard.qualityMode, qualityMode: plan.qualityMode, truePeak: plan.truePeak, changed: true, recovery: true, reasons: [...(baseGuard.reasons || []), '품질 게이트 1회 자동 복구'] };
         const retryFinalization = await finalizeMasterBufferAsync(retryMasteredBuffer, { targetLufs: plan.targetLufs, ceilingDb: plan.ceilingDb, qualityMode: plan.qualityMode, masterGoal: state.masterGoal, truePeak: plan.truePeak, analysis: track.analysis || {}, dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied), signal: context.signal || null, jobId: `${context.masteringJobId}:quality-recovery-finalizer` });
@@ -5656,7 +5673,7 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
         const retryFinalBuffer = retryFinalization.buffer;
         sanitizeAudioBuffer(retryFinalBuffer, 'quality-recovery-finalizer');
         maybeThrowQualityRecoveryE2E('after-finalizer');
-        markPerformanceStage(track, '안전 파이널라이저');
+        markPerformanceStage(track, '안전 파이널라이저', { prepared: context.preparedBuffer, final: retryFinalBuffer });
         track.performanceGuardInfo = retryGuard;
         const retryEncoded = await encodeMasterOutputAsync(retryFinalBuffer, context.requestedOutputFormat, { signal: context.signal || null, jobId: `${context.masteringJobId}:quality-recovery-encode` });
         context.assertMasteringJobActive('quality-recovery-encode');
@@ -5665,7 +5682,7 @@ async function runQualityGateRecoveryAttempt(track, context = {}) {
         const retryReport = createMasterReport(track, context.preparedBuffer, retryFinalBuffer, retryFinalization.info, retryEncoded);
         const retryGate = createQualityGateReport(track, retryReport, retryFinalization.info, retryEncoded);
         retryReport.qualityGate = retryGate;
-        markPerformanceStage(track, '안전 인코딩');
+        markPerformanceStage(track, '안전 인코딩', { prepared: context.preparedBuffer, final: retryFinalBuffer, output: retryEncoded.blob });
         track.finalizeInfo = retryFinalization.info;
         track.masterReport = retryReport;
         track.qualityGate = retryGate;
@@ -5789,7 +5806,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         track.inputGuardInfo = FoxBearMasteringInputGuard?.assertMasterable
             ? FoxBearMasteringInputGuard.assertMasterable(currentSourceBuffer, track.analysis || {})
             : null;
-        markPerformanceStage(track, '디코딩');
+        markPerformanceStage(track, '디코딩', { decoded: currentSourceBuffer });
         const decodeReadyMessage = track.inAppSafetyInfo?.highRisk
             ? `디코딩 완료 · ${track.inAppSafetyInfo.label} 안전 경로 적용 (${track.inAppSafetyInfo.projectedPeakMb}MB 예상)`
             : (track.inputGuardInfo?.warnings?.[0] || '디코딩 완료 · 분석/렌더 준비 중');
@@ -5812,32 +5829,32 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
                 track.recommendedSettings = cloneSettings(track.settings);
             }
             assertMasteringJobActive('emergency-analysis');
-            markPerformanceStage(track, '긴급 분석');
+            markPerformanceStage(track, '긴급 분석', { decoded: currentSourceBuffer });
         }
         if (state.featureFlags.trimSilence) {
             await setMasteringProgress(track, 25, '앞뒤 무음 구간 감지 및 여유 구간 보존 중');
             const trimResult = autoTrimSilenceBuffer(currentSourceBuffer);
             currentSourceBuffer = trimResult.buffer;
             track.trimInfo = trimResult.info;
-            markPerformanceStage(track, '무음 정리');
+            markPerformanceStage(track, '무음 정리', { decoded: currentSourceBuffer });
         }
         await setMasteringProgress(track, 30, 'DC offset 제거 및 비정상 샘플 안전 점검 중');
         track.dcInfo = removeDcOffsetAudioBuffer(currentSourceBuffer);
         sanitizeAudioBuffer(currentSourceBuffer, 'pre-pitch-cleanup');
-        markPerformanceStage(track, 'DC 정리');
+        markPerformanceStage(track, 'DC 정리', { decoded: currentSourceBuffer });
         await yieldToBrowser();
         await setMasteringProgress(track, 40, '피치/BPM 워커 변환 및 오버랩 위상 정렬 중');
         preparedBuffer = await preparePitchSpeedBuffer(currentSourceBuffer, track.transform);
         assertMasteringJobActive('pitch-speed');
         currentSourceBuffer = null;
-        markPerformanceStage(track, '피치/BPM');
+        markPerformanceStage(track, '피치/BPM', { prepared: preparedBuffer });
         await yieldToBrowser();
         if (shouldUseInstrumentLayer(track.instrument)) {
             await setMasteringProgress(track, 55, '박자 감지 및 리듬 악기 레이어 자연 믹싱 중');
             const layered = mixInstrumentLayerBuffer(preparedBuffer, track.instrument, track.analysis);
             preparedBuffer = layered.buffer;
             track.instrumentInfo = layered.info;
-            markPerformanceStage(track, '리듬 레이어');
+            markPerformanceStage(track, '리듬 레이어', { prepared: preparedBuffer });
             await yieldToBrowser();
         }
         await setMasteringProgress(track, 65, '공진 감쇄, 톤 체인, 다이나믹 체인 렌더링 중');
@@ -5845,7 +5862,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
         assertMasteringJobActive('master-render');
         sanitizeAudioBuffer(masteredBuffer, 'master-chain');
-        markPerformanceStage(track, '마스터 체인');
+        markPerformanceStage(track, '마스터 체인', { prepared: preparedBuffer, mastered: masteredBuffer });
         await yieldToBrowser();
         await setMasteringProgress(track, 80, '마스터 체인 완료 · 파이널라이저 준비 중');
         const requestedOutputFormat = state.outputFormat || 'wav24';
@@ -5875,7 +5892,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
             track.abHighlightStartSec = estimateABHighlightStartFromPair(preparedBuffer, finalBuffer, track.analysis);
         }
         track.safetyInfo = computeEngineSafetyInfo(track, finalBuffer, finalization.info);
-        markPerformanceStage(track, '파이널라이저');
+        markPerformanceStage(track, '파이널라이저', { prepared: preparedBuffer, final: finalBuffer });
         await setMasteringProgress(track, 95, `${getOutputFormatLabel(requestedOutputFormat)} 파일 인코딩 및 품질 리포트 준비 중`);
         track.finalizeInfo = finalization.info;
         track.comparison = createComparisonInfo(track, finalization.info);
@@ -5896,7 +5913,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         track.masterReport = createMasterReport(track, preparedBuffer, finalBuffer, finalization.info, encoded);
         track.qualityGate = applyQualityRecoveryE2EOverride(track, createQualityGateReport(track, track.masterReport, finalization.info, encoded));
         track.masterReport.qualityGate = track.qualityGate;
-        markPerformanceStage(track, '인코딩');
+        markPerformanceStage(track, '인코딩', { prepared: preparedBuffer, final: finalBuffer, output: encoded.blob });
         const recoveryResult = await runQualityGateRecoveryAttempt(track, { preparedBuffer, albumProfile, requestedOutputFormat, signal: masteringAbortController?.signal || null, masteringJobId, assertMasteringJobActive });
         if (recoveryResult) {
             masteredBuffer = recoveryResult.masteredBuffer;
@@ -9883,28 +9900,8 @@ function clearSnapshotsForSelected() {
     renderAll({ keepDetailAudio: true });
     showToast('선택 트랙의 되돌리기 기록을 지웠습니다.');
 }
-function beginPerformanceProfile() {
-    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-    return {
-        running: true,
-        startedAt: new Date().toISOString(),
-        startMs: now,
-        lastMs: now,
-        stages: [],
-        totalMs: 0,
-        realtimeRatio: 0,
-        outputSize: 0
-    };
-}
-function markPerformanceStage(track, label) {
-    if (!track || !track.performanceInfo) return;
-    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
-    const elapsed = Math.max(0, now - Number(track.performanceInfo.lastMs || now));
-    const existing = track.performanceInfo.stages.find(stage => stage.label === label);
-    if (existing) existing.ms += elapsed;
-    else track.performanceInfo.stages.push({ label, ms: elapsed });
-    track.performanceInfo.lastMs = now;
-}
+function beginPerformanceProfile() { return FoxBearMasteringMemoryDiagnostics?.createPerformanceInfo?.() || { running: true, startedAt: new Date().toISOString(), startMs: Date.now(), lastMs: Date.now(), stages: [], memoryStages: [], totalMs: 0, realtimeRatio: 0, outputSize: 0 }; }
+function markPerformanceStage(track, label, buffers = {}) { return FoxBearMasteringMemoryDiagnostics?.markStage?.(track, label, buffers) || null; }
 function finishPerformanceProfile(track, buffer, blob) {
     if (!track || !track.performanceInfo) return;
     const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
@@ -9941,11 +9938,13 @@ function getMasteringPerformanceSnapshot() {
         speedFactor: Number(track.performanceInfo.speedFactor || 0),
         realtimeRatio: Number(track.performanceInfo.realtimeRatio || 0),
         finalizerProcessingMs: Number(track.performanceInfo.finalizerProcessingMs || 0),
-        stages: (track.performanceInfo.stages || []).map(stage => ({ label: stage.label, ms: Number(stage.ms || 0) }))
+        stages: (track.performanceInfo.stages || []).map(stage => ({ label: stage.label, ms: Number(stage.ms || 0) })),
+        memory: FoxBearMasteringMemoryDiagnostics?.summarize?.(track.performanceInfo) || null,
+        inAppSafety: track.inAppSafetyInfo || null
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.58-kakao-mastering-runtime-recovery', selected, recent });
+    return Object.freeze({ version: '1.5.59-kakao-session-handoff-memory-diagnostics', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -10199,6 +10198,9 @@ function renderTrackList() {
             makeMiniButton('마스터링', 'btn-primary', () => masterTrack(track), ['analyzing', 'processing'].includes(track.status) || state.busy || Boolean(track.error)),
             makeMiniButton('삭제', 'btn-danger', () => removeTrack(track.id), state.busy)
         );
+        if (track.error && getDownloadEnvironmentInfo().restricted) {
+            actions.append(makeMiniButton('외부 브라우저 복구', 'btn-primary', () => openCurrentPageInExternalBrowser(), state.busy));
+        }
         let exportReadyPanel = null;
         if (track.outBlob) {
             exportReadyPanel = createTrackExportReadyPanel(track);
@@ -13031,7 +13033,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.58',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.59',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

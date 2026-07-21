@@ -1,3 +1,10 @@
+# v1.5.59 - Kakao Session Handoff & Memory Diagnostics
+
+- 카카오 인앱 브라우저에서 외부 브라우저로 이동할 때 출력·DSP·피치/BPM·악기 레이어 설정을 만료 토큰으로 복원합니다.
+- 오디오, 파일명, 로컬 경로는 전달하지 않으며 사용자는 외부 브라우저에서 원곡만 다시 선택합니다.
+- 마스터링 단계별 동시 PCM 버퍼, 브라우저 heap, 카카오 예상 피크·예산·압력 비율을 진단 화면에 표시합니다.
+- 오류 트랙 카드에 외부 브라우저 복구 버튼을 추가했습니다.
+
 # v1.5.58 - Kakao mastering runtime recovery
 
 - Removed full compressed-file clones from the Web Audio decode compatibility path.

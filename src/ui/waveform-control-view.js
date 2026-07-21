@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.58-kakao-mastering-runtime-recovery';
+  const VIEW_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
   const DEFAULT_BINS = 96;
 
   function getService() {

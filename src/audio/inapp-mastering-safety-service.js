@@ -1,8 +1,8 @@
-// FoxBear in-app mastering safety service v1.5.58 - Kakao WebView memory and recovery guard.
+// FoxBear in-app mastering safety service v1.5.59 - Kakao WebView memory and recovery guard.
 'use strict';
 
 (function attachFoxBearInAppMasteringSafetyService(global) {
-    const VERSION = '1.5.58-kakao-mastering-runtime-recovery';
+    const VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
     const MB = 1024 * 1024;
 
     function finite(value, fallback = 0) {

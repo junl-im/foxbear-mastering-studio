@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.58
+// FoxBear audio decode service - v1.5.59
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.58-kakao-mastering-runtime-recovery';
+    const SERVICE_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

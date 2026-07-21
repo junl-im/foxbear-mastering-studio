@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.5.58 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.5.59 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -154,7 +154,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.5.58-kakao-mastering-runtime-recovery',
+            version: '1.5.59-kakao-session-handoff-memory-diagnostics',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -225,13 +225,13 @@
         }
 
         return Object.freeze({
-            version: '1.5.58-kakao-mastering-runtime-recovery',
+            version: '1.5.59-kakao-session-handoff-memory-diagnostics',
             runBatch
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.58-kakao-mastering-runtime-recovery',
+        version: '1.5.59-kakao-session-handoff-memory-diagnostics',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner

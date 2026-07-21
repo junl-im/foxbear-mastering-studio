@@ -20,7 +20,7 @@ const runtimeHealthUrl = `src/boot/runtime-health.js?v=${assetVersion}&h=${relea
 const recoveryUrl = `src/boot/service-worker-recovery-service.js?v=${assetVersion}`;
 const count = (text, value) => text.split(value).length - 1;
 
-assert.strictEqual(pkg.version, '1.5.58', 'package version must be v1.5.58');
+assert.strictEqual(pkg.version, '1.5.59', 'package version must be v1.5.59');
 assert.strictEqual(count(index, runtimeHealthUrl), 1, 'runtime health must load exactly once');
 assert.strictEqual(count(index, recoveryUrl), 1, 'service worker recovery must load exactly once');
 assert(index.indexOf(runtimeHealthUrl) < index.indexOf('src/security/site-guards.js'), 'runtime health must load before site guards');

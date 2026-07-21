@@ -309,7 +309,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.5.58',
+                version: '1.5.59',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -329,7 +329,7 @@
             };
         }
         return {
-            version: '1.5.58',
+            version: '1.5.59',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -393,7 +393,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.5.58',
+            version: '1.5.59',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -431,7 +431,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.5.58',
+            version: '1.5.59',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -459,7 +459,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.5.58',
+            version: '1.5.59',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -490,7 +490,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.5.58',
+            version: '1.5.59',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -515,7 +515,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.5.58',
+            version: '1.5.59',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -584,7 +584,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.5.58',
+            version: '1.5.59',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -677,8 +677,8 @@
         getToast(deps)(`${safeName} 직접 저장을 완료했습니다.`);
     };
 
-    const copyCurrentPageUrl = (deps = {}) => {
-        const text = location.href.split('#')[0];
+    const copyCurrentPageUrl = (deps = {}, explicitUrl = '') => {
+        const text = String(explicitUrl || location.href.split('#')[0]);
         recordDownloadEvent('page-url-copy', { url: text });
         copyTextToClipboard(text, deps, '페이지 주소를 복사했습니다. 카카오톡 메뉴에서 외부 브라우저로 열어주세요.')
             .catch(() => getToast(deps)(text));
@@ -695,10 +695,12 @@
     };
 
     const openCurrentPageInExternalBrowser = (deps = {}) => {
-        const pageUrl = new URL(location.href.split('#')[0]);
+        let pageUrl = new URL(location.href.split('#')[0]);
         pageUrl.searchParams.delete('foxbearInApp');
         pageUrl.searchParams.set('foxbearExternal', '1');
-        recordDownloadEvent('external-browser-open', { pageUrl: pageUrl.href, kakao: isKakaoInAppBrowser() });
+        const handoffUrl = global.FoxBearSessionHandoff?.attachToUrl?.(pageUrl.href, { reason: 'kakao-runtime-recovery' });
+        if (handoffUrl) pageUrl = new URL(handoffUrl);
+        recordDownloadEvent('external-browser-open', { path: pageUrl.pathname, hasHandoff: pageUrl.searchParams.has('foxbearHandoff'), kakao: isKakaoInAppBrowser() });
         const ua = navigator.userAgent || '';
         const showToast = getToast(deps);
         try {
@@ -707,13 +709,13 @@
                 // the scheme is blocked, top-level navigation can become blank.
                 global.open(buildKakaoExternalBrowserUrl(pageUrl.href), '_blank');
                 setTimeout(() => {
-                    if (document.visibilityState === 'visible') copyCurrentPageUrl(deps);
+                    if (document.visibilityState === 'visible') copyCurrentPageUrl(deps, pageUrl.href);
                 }, 1000);
                 return;
             }
             if (/Android/i.test(ua)) {
                 global.location.href = buildExternalBrowserIntentUrl(pageUrl.href);
-                setTimeout(() => copyCurrentPageUrl(deps), 900);
+                setTimeout(() => copyCurrentPageUrl(deps, pageUrl.href), 900);
                 return;
             }
         } catch (error) {
@@ -798,7 +800,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.5.58 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.5.59 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         if (url) addActiveUrl(url, deps);

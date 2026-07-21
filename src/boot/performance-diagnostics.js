@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.58-kakao-mastering-runtime-recovery';
+    const DIAGNOSTICS_VERSION = '1.5.59-kakao-session-handoff-memory-diagnostics';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -170,6 +170,7 @@
         const masteringPerformance = safeCall(() => global.FoxBearMasteringDiagnostics?.getSnapshot?.(), null);
         const wakeLock = safeCall(() => global.FoxBearWakeLockController?.getSnapshot?.(), null);
         const memoryGuard = safeCall(() => global.FoxBearMemoryGuard?.getSnapshot?.(), null);
+        const sessionHandoff = safeCall(() => global.FoxBearSessionHandoff?.getSnapshot?.(), null);
         const snapshot = Object.freeze({
             version: DIAGNOSTICS_VERSION,
             reason,
@@ -198,6 +199,7 @@
             masteringQueue,
             masteringPerformance,
             memoryGuard,
+            sessionHandoff,
             wakeLock,
             renderScheduler,
             playback: playback ? {
@@ -316,6 +318,17 @@
             const slowest = (selectedPerformance.stages || []).slice().sort((a, b) => Number(b.ms || 0) - Number(a.ms || 0))[0];
             lines.push(`track DSP: ${selectedPerformance.name || selectedPerformance.id} · ${(Number(selectedPerformance.totalMs || 0) / 1000).toFixed(2)}s · ${Number(selectedPerformance.speedFactor || 0).toFixed(2)}x`);
             lines.push(`slowest stage: ${slowest ? `${slowest.label} ${(Number(slowest.ms || 0) / 1000).toFixed(2)}s` : 'n/a'} · recovery ${selectedPerformance.recoveryStatus || 'none'}`);
+            const memoryProfile = selectedPerformance.memory;
+            if (memoryProfile) {
+                lines.push(`track memory: known peak ${Number(memoryProfile.peakKnownBufferMB || 0).toFixed(1)}MB @ ${memoryProfile.peakStage || 'n/a'} · heap peak ${Number(memoryProfile.peakHeapUsedMB || 0).toFixed(1)}MB`);
+                lines.push(`Kakao projection: ${Number(memoryProfile.projectedPeakMB || selectedPerformance.inAppSafety?.projectedPeakMb || 0).toFixed(1)}MB / budget ${Number(memoryProfile.memoryBudgetMB || selectedPerformance.inAppSafety?.memoryBudgetMb || 0).toFixed(1)}MB · pressure ${Number(memoryProfile.pressureRatio || selectedPerformance.inAppSafety?.pressureRatio || 0).toFixed(2)}`);
+                (memoryProfile.samples || []).slice(-10).forEach(sample => {
+                    lines.push(`  memory stage ${sample.label}: buffers ${Number(sample.knownBufferMB || 0).toFixed(1)}MB${sample.heapUsedMB ? ` · heap ${Number(sample.heapUsedMB).toFixed(1)}MB` : ''}`);
+                });
+            }
+        }
+        if (snapshot.sessionHandoff?.hasPayload || snapshot.sessionHandoff?.hasPendingTrackProfile) {
+            lines.push(`external handoff: restored · pending track ${snapshot.sessionHandoff.hasPendingTrackProfile ? 'yes' : 'no'}`);
         }
         if (snapshot.audio.labels.length) lines.push(`playing: ${snapshot.audio.labels.join(', ')}`);
         return lines.join('\n');
