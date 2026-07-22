@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.66-incident-operations-action-guard-deploy-verification';
+const version = '1.5.67-incident-admin-audit-webhook-failover-index-health';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

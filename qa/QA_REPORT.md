@@ -1,3 +1,9 @@
+# FoxBear QA Report - v1.5.67
+
+- v1.5.67 static and regression checks are tracked by the release gate.
+- Administrator audit logs, webhook retry/failover, Firestore index probes, paged operations history, and scheduled deployment health verification are included.
+- Full browser execution still requires an installed Chromium runtime; static Playwright contracts are verified separately.
+
 # FoxBear QA Report - v1.5.66
 
 - v1.5.66 static and regression checks are tracked by the release gate.

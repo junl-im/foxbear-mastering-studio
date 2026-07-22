@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.66-incident-operations-action-guard-deploy-verification';
+    const DIAGNOSTICS_VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

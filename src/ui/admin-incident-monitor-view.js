@@ -11,6 +11,10 @@
         const limitText = options.limitText;
         const getFirebaseStatusNotice = options.getFirebaseStatusNotice;
         const showToast = options.showToast;
+        state.adminIncidentHistoryItems = Array.isArray(state.adminIncidentHistoryItems) ? state.adminIncidentHistoryItems : [];
+        state.adminIncidentHistoryNextCursor = Number(state.adminIncidentHistoryNextCursor || 0);
+        state.adminIncidentHistoryHasMore = state.adminIncidentHistoryHasMore === true;
+        state.adminIncidentHistoryFilter = state.adminIncidentHistoryFilter || 'all';
         bindBatchRecoveryActions();
 
         async function render(forceRemote) {
@@ -45,6 +49,7 @@
                 const recovery = data?.recovery || {};
                 const deployment = data?.deployment || {};
                 const history = Array.isArray(data?.history) ? data.history : [];
+                const auditLog = Array.isArray(data?.auditLog) ? data.auditLog : [];
                 const trend = summarizeHistory(history);
                 const appCheck = data?.appCheck || bridge.appCheck || {};
                 const operationalStatus = operations.stale ? 'stale' : (operations.status || 'unknown');
@@ -87,9 +92,18 @@
                     const versionText = deployment.productVersion ? `Functions v${deployment.productVersion}` : 'Functions 버전 미확인';
                     const checkedText = deployment.checkedAt ? ` · ${formatTime(deployment.checkedAt)}` : '';
                     const mismatch = expected && deployment.productVersion && expected !== deployment.productVersion ? ` · 화면 v${expected}와 불일치` : '';
-                    el.adminIncidentDeploymentStatus.textContent = `${versionText}${checkedText}${mismatch}`;
+                    const indexStatus = deployment.capabilities?.indexes?.status;
+                    const indexText = indexStatus && indexStatus !== 'ok' ? ` · 인덱스 ${indexStatus}` : indexStatus === 'ok' ? ' · 인덱스 정상' : '';
+                    el.adminIncidentDeploymentStatus.textContent = `${versionText}${checkedText}${mismatch}${indexText}`;
                 }
-                renderHistory(history);
+                state.adminIncidentHistoryItems = history;
+                state.adminIncidentHistoryNextCursor = safeNumber(data?.historyNextCursor, 0);
+                state.adminIncidentHistoryHasMore = data?.historyHasMore === true;
+                state.adminIncidentHistoryFilter = 'all';
+                if (el.adminIncidentHistoryFilter) el.adminIncidentHistoryFilter.value = 'all';
+                renderHistory(state.adminIncidentHistoryItems);
+                renderAuditLog(auditLog);
+                updateHistoryControls();
                 maybeAutoVerifyDeployment(deployment);
                 const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
                 if (!incidents.length) {
@@ -179,7 +193,9 @@
         function formatWebhookStatus(webhook = {}) {
             const labels = { ready: '준비됨', disabled: '미설정', error: '오류', unknown: '미확인' };
             const base = labels[webhook.status] || webhook.status || '미확인';
-            return webhook.provider ? `${base} · ${webhook.provider}` : base;
+            const provider = webhook.provider ? ` · ${webhook.provider}` : '';
+            const failover = webhook.failoverReady ? ' · 이중화' : '';
+            return `${base}${provider}${failover}`;
         }
 
         function formatRecovery(recovery = {}) {
@@ -216,7 +232,7 @@
                 el.adminIncidentHistoryRows.appendChild(row);
                 return;
             }
-            history.slice(0, 48).forEach(item => {
+            history.slice(0, 240).forEach(item => {
                 const row = document.createElement('tr');
                 const timeCell = document.createElement('td');
                 timeCell.textContent = formatTime(item.checkedAt);
@@ -239,6 +255,62 @@
                 row.append(timeCell, statusCell, queueCell, channelCell, actionCell);
                 el.adminIncidentHistoryRows.appendChild(row);
             });
+        }
+
+
+        function renderAuditLog(items = []) {
+            if (!el.adminIncidentAuditRows) return;
+            el.adminIncidentAuditRows.textContent = '';
+            if (!items.length) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 5;
+                cell.textContent = '아직 기록된 관리자 작업이 없습니다.';
+                row.appendChild(cell);
+                el.adminIncidentAuditRows.appendChild(row);
+                return;
+            }
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                [formatTime(item.at), item.uid ? `${item.uid.slice(0, 8)}…` : '-', item.action || 'unknown', item.status || 'recorded', [item.targetType, item.targetId, item.reason].filter(Boolean).join(' · ') || '-'].forEach(value => {
+                    const cell = document.createElement('td');
+                    cell.textContent = limitText(value, 220);
+                    row.appendChild(cell);
+                });
+                el.adminIncidentAuditRows.appendChild(row);
+            });
+        }
+
+        function updateHistoryControls() {
+            if (el.adminIncidentHistoryMore) el.adminIncidentHistoryMore.disabled = !state.adminIncidentHistoryHasMore;
+            if (el.adminIncidentHistoryStatus) {
+                el.adminIncidentHistoryStatus.textContent = `${state.adminIncidentHistoryItems.length}건 표시${state.adminIncidentHistoryHasMore ? ' · 추가 이력 있음' : ''}`;
+            }
+        }
+
+        async function loadHistoryPage(reset = false) {
+            const bridge = getBridge();
+            if (!bridge || typeof bridge.getIncidentOperationsHistory !== 'function') return;
+            const filter = el.adminIncidentHistoryFilter?.value || 'all';
+            if (reset) {
+                state.adminIncidentHistoryItems = [];
+                state.adminIncidentHistoryNextCursor = 0;
+                state.adminIncidentHistoryHasMore = false;
+            }
+            if (el.adminIncidentHistoryMore) el.adminIncidentHistoryMore.disabled = true;
+            if (el.adminIncidentHistoryStatus) el.adminIncidentHistoryStatus.textContent = '운영 이력을 불러오는 중입니다…';
+            try {
+                const page = await bridge.getIncidentOperationsHistory({ limit: 24, filter, before: reset ? 0 : state.adminIncidentHistoryNextCursor });
+                state.adminIncidentHistoryFilter = filter;
+                state.adminIncidentHistoryItems = reset ? (page.items || []) : state.adminIncidentHistoryItems.concat(page.items || []);
+                state.adminIncidentHistoryNextCursor = safeNumber(page.nextCursor, 0);
+                state.adminIncidentHistoryHasMore = page.hasMore === true;
+                renderHistory(state.adminIncidentHistoryItems);
+            } catch (error) {
+                showToast(`운영 이력 조회 실패: ${error?.message || error}`);
+            } finally {
+                updateHistoryControls();
+            }
         }
 
         function summarizeHistory(history = []) {
@@ -265,6 +337,14 @@
             if (el.adminIncidentTestWebhook && !el.adminIncidentTestWebhook.dataset.bound) {
                 el.adminIncidentTestWebhook.dataset.bound = '1';
                 el.adminIncidentTestWebhook.addEventListener('click', () => requestAlertChannelTest(el.adminIncidentTestWebhook));
+            }
+            if (el.adminIncidentHistoryFilter && !el.adminIncidentHistoryFilter.dataset.bound) {
+                el.adminIncidentHistoryFilter.dataset.bound = '1';
+                el.adminIncidentHistoryFilter.addEventListener('change', () => loadHistoryPage(true));
+            }
+            if (el.adminIncidentHistoryMore && !el.adminIncidentHistoryMore.dataset.bound) {
+                el.adminIncidentHistoryMore.dataset.bound = '1';
+                el.adminIncidentHistoryMore.addEventListener('click', () => loadHistoryPage(false));
             }
             if (el.adminIncidentVerifyDeployment && !el.adminIncidentVerifyDeployment.dataset.bound) {
                 el.adminIncidentVerifyDeployment.dataset.bound = '1';

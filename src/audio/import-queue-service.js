@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.66-incident-operations-action-guard-deploy-verification',
+                version: '1.5.67-incident-admin-audit-webhook-failover-index-health',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.66-incident-operations-action-guard-deploy-verification',
+        version: '1.5.67-incident-admin-audit-webhook-failover-index-health',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.66-incident-operations-action-guard-deploy-verification';
+    const SERVICE_VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;

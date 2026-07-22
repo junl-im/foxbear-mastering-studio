@@ -223,6 +223,11 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /incidentAdminAuditLog/{auditId} {
+      allow get, list: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
     match /incidentAdminActionState/{document=**} {
       allow read, write: if false;
     }

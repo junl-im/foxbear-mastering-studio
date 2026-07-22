@@ -55,6 +55,34 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "incidentOperationsHistory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "checkedAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "incidentOperationsHistory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "reasonCodes",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "checkedAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": []

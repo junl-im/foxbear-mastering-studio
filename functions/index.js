@@ -48,8 +48,12 @@ const OPERATIONS_HISTORY_BUCKET_MS = 30 * 60 * 1000;
 const OPERATIONS_HISTORY_TTL_DAYS = 30;
 const OPERATIONS_WEBHOOK_TIMEOUT_MS = 10000;
 const OPERATIONS_WEBHOOK_ENV_NAME = 'FOXBEAR_INCIDENT_ALERT_WEBHOOK_URL';
-const PRODUCT_VERSION = '1.5.66';
-const OPERATIONS_SCHEMA_VERSION = 3;
+const OPERATIONS_WEBHOOK_FALLBACK_ENV_NAME = 'FOXBEAR_INCIDENT_ALERT_WEBHOOK_FALLBACK_URL';
+const OPERATIONS_WEBHOOK_RETRY_DELAYS_MS = Object.freeze([0, 800, 2400]);
+const ADMIN_AUDIT_COLLECTION = 'incidentAdminAuditLog';
+const ADMIN_AUDIT_TTL_DAYS = 90;
+const PRODUCT_VERSION = '1.5.67';
+const OPERATIONS_SCHEMA_VERSION = 4;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
 const ADMIN_ACTION_STATE_TTL_DAYS = 7;
 const ADMIN_RETRY_COOLDOWN_MS = 10 * 1000;
@@ -94,9 +98,41 @@ function recommendedActionForIssue(code) {
     'summary-delivery-degraded': '일일 요약 상태 문서의 잠금과 SMTP 오류를 확인한 뒤 요약 함수를 재실행하세요.',
     'quota-reservation-leak': '예약 임대 만료 후 자동 회수를 기다리거나 incidentMailState의 예약 카운터를 점검하세요.',
     'deployment-version-mismatch': 'Hosting과 Functions를 같은 릴리스 버전으로 다시 배포하세요.',
-    'deployment-check-stale': '관리자 화면에서 배포 상태 검증을 실행하세요.'
+    'deployment-check-stale': '관리자 화면에서 배포 상태 검증을 실행하세요.',
+    'firestore-index-missing': 'firestore.indexes.json을 배포하고 Firebase Console에서 모든 인덱스가 Enabled 상태인지 확인하세요.',
+    'webhook-primary-failed': '기본 웹훅 주소와 공급자 상태를 확인하고 보조 웹훅 장애 전환 결과를 점검하세요.',
+    'webhook-fallback-failed': '보조 웹훅 주소와 허용 호스트를 확인하고 두 채널 중 하나 이상을 정상화하세요.'
   };
   return actions[cleanText(code, 80)] || '관리자 운영 상태와 최근 오류 기록을 확인한 뒤 관련 배포 항목을 재검증하세요.';
+}
+
+
+async function writeAdminAuditEvent(entry = {}) {
+  const now = Date.now();
+  const payload = {
+    schemaVersion: 1,
+    productVersion: PRODUCT_VERSION,
+    uid: cleanText(entry.uid || '', 128),
+    action: cleanText(entry.action || 'unknown', 80),
+    requestId: cleanText(entry.requestId || '', 180),
+    status: cleanText(entry.status || 'recorded', 40),
+    reason: cleanText(entry.reason || '', 100),
+    targetType: cleanText(entry.targetType || '', 60),
+    targetId: cleanText(entry.targetId || '', 180),
+    result: {
+      attempted: Math.max(0, Number(entry.result?.attempted || 0)),
+      succeeded: Math.max(0, Number(entry.result?.succeeded || entry.result?.emailed || 0)),
+      failed: Math.max(0, Number(entry.result?.failed || 0)),
+      skipped: Math.max(0, Number(entry.result?.skipped || 0))
+    },
+    createdAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + ADMIN_AUDIT_TTL_DAYS * 86400000)
+  };
+  try {
+    await db.collection(ADMIN_AUDIT_COLLECTION).add(payload);
+  } catch (error) {
+    console.error('FoxBear administrator audit write failed', { action: payload.action, status: payload.status, error: cleanText(error?.message || error, 240) });
+  }
 }
 
 function adminActionStateId(uid, action) {
@@ -142,15 +178,17 @@ async function claimAdminAction(uid, action, options = {}) {
     }, { merge: true });
     return { allowed: true };
   });
-  return { ...result, stateRef, requestId, uid: safeUid, action: safeAction };
+  const claim = { ...result, stateRef, requestId, uid: safeUid, action: safeAction, targetType: cleanText(options.targetType || '', 60), targetId: cleanText(options.targetId || '', 180) };
+  await writeAdminAuditEvent({ ...claim, status: result.allowed ? 'started' : 'rejected', reason: result.reason || '' });
+  return claim;
 }
 
 async function finishAdminAction(claim, status, details = {}) {
   if (!claim?.stateRef || !claim?.requestId) return;
-  await db.runTransaction(async transaction => {
+  const ownsLease = await db.runTransaction(async transaction => {
     const snapshot = await transaction.get(claim.stateRef);
     const current = snapshot.data() || {};
-    if (cleanText(current.requestId || '', 180) !== claim.requestId) return;
+    if (cleanText(current.requestId || '', 180) !== claim.requestId) return false;
     transaction.set(claim.stateRef, {
       status: cleanText(status || 'completed', 40),
       reason: cleanText(details.reason || '', 100),
@@ -159,6 +197,18 @@ async function finishAdminAction(claim, status, details = {}) {
       lastCompletedAt: FieldValue.serverTimestamp(),
       checkedAt: FieldValue.serverTimestamp()
     }, { merge: true });
+    return true;
+  });
+  if (!ownsLease) return;
+  await writeAdminAuditEvent({
+    uid: claim.uid,
+    action: claim.action,
+    requestId: claim.requestId,
+    status: cleanText(status || 'completed', 40),
+    reason: details.reason || '',
+    targetType: claim.targetType || '',
+    targetId: claim.targetId || '',
+    result: details.result || {}
   });
 }
 
@@ -223,9 +273,9 @@ function operationAlertMessageId(kind, signature, now = Date.now()) {
   return `<foxbear-operations-${safeKey(kind, 'alert')}-${safeKey(signature, 'state')}-${bucket}@foxbear-music.firebaseapp.com>`;
 }
 
-function inspectOperationsWebhookConfig(rawValue = process.env[OPERATIONS_WEBHOOK_ENV_NAME]) {
+function inspectOperationsWebhookConfig(rawValue = process.env[OPERATIONS_WEBHOOK_ENV_NAME], channel = 'primary') {
   const raw = String(rawValue || '').trim();
-  if (!raw) return { status: 'disabled', provider: '', reason: 'not-configured', url: '' };
+  if (!raw) return { status: 'disabled', provider: '', reason: 'not-configured', url: '', channel };
   try {
     const parsed = new URL(raw);
     const hostname = parsed.hostname.toLowerCase();
@@ -238,17 +288,37 @@ function inspectOperationsWebhookConfig(rawValue = process.env[OPERATIONS_WEBHOO
     else if (hostname.includes('discord')) provider = 'discord';
     else if (hostname.includes('googleapis.com')) provider = 'google-chat';
     else if (hostname.includes('office.com')) provider = 'microsoft-teams';
-    return { status: 'ready', provider, reason: '', url: parsed.toString() };
+    return { status: 'ready', provider, reason: '', url: parsed.toString(), channel };
   } catch (error) {
-    return { status: 'error', provider: '', reason: cleanText(error?.message || error, 100), url: '' };
+    return { status: 'error', provider: '', reason: cleanText(error?.message || error, 100), url: '', channel };
   }
+}
+
+function inspectOperationsWebhookChannels() {
+  const primary = inspectOperationsWebhookConfig(process.env[OPERATIONS_WEBHOOK_ENV_NAME], 'primary');
+  const fallback = inspectOperationsWebhookConfig(process.env[OPERATIONS_WEBHOOK_FALLBACK_ENV_NAME], 'fallback');
+  const ready = [primary, fallback].filter(item => item.status === 'ready');
+  const invalid = [primary, fallback].filter(item => item.status === 'error');
+  return {
+    status: ready.length ? 'ready' : invalid.length ? 'error' : 'disabled',
+    provider: ready[0]?.provider || '',
+    reason: ready.length ? '' : invalid[0]?.reason || 'not-configured',
+    failoverReady: ready.length > 1,
+    primary,
+    fallback
+  };
 }
 
 function publicWebhookConfig(config = {}) {
   return {
     status: cleanText(config.status || 'disabled', 20),
     provider: cleanText(config.provider || '', 40),
-    reason: cleanText(config.reason || '', 100)
+    reason: cleanText(config.reason || '', 100),
+    failoverReady: config.failoverReady === true,
+    primaryStatus: cleanText(config.primary?.status || config.status || 'disabled', 20),
+    primaryProvider: cleanText(config.primary?.provider || config.provider || '', 40),
+    fallbackStatus: cleanText(config.fallback?.status || 'disabled', 20),
+    fallbackProvider: cleanText(config.fallback?.provider || '', 40)
   };
 }
 
@@ -273,30 +343,66 @@ function buildOperationsWebhookPayload(health = {}, previous = {}, kind = 'alert
   return provider === 'discord' ? { content: text } : { text };
 }
 
-async function sendOperationsWebhook(health = {}, previous = {}, kind = 'alert') {
-  const config = inspectOperationsWebhookConfig();
-  if (config.status !== 'ready') return { status: config.status, provider: config.provider, reason: config.reason };
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), OPERATIONS_WEBHOOK_TIMEOUT_MS);
-  try {
-    const response = await fetch(config.url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'user-agent': `FoxBear-Incident-Monitor/${PRODUCT_VERSION}` },
-      body: JSON.stringify(buildOperationsWebhookPayload(health, previous, kind, config.provider)),
-      signal: controller.signal,
-      redirect: 'error'
-    });
-    if (!response.ok) {
+function webhookRetryDelay(response, attemptIndex) {
+  const header = response?.headers?.get?.('retry-after');
+  const seconds = Number(header);
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.min(5000, seconds * 1000);
+  return OPERATIONS_WEBHOOK_RETRY_DELAYS_MS[Math.min(attemptIndex, OPERATIONS_WEBHOOK_RETRY_DELAYS_MS.length - 1)] || 0;
+}
+
+function isWebhookRetryableStatus(status) {
+  return status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
+async function wait(ms) {
+  if (ms > 0) await new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function deliverOperationsWebhook(config, health, previous, kind) {
+  if (config.status !== 'ready') return { status: config.status, provider: config.provider, channel: config.channel, reason: config.reason, attempts: 0 };
+  let last = { status: 'failed', provider: config.provider, channel: config.channel, reason: 'webhook-request-failed', attempts: 0 };
+  for (let index = 0; index < OPERATIONS_WEBHOOK_RETRY_DELAYS_MS.length; index += 1) {
+    if (index > 0) await wait(OPERATIONS_WEBHOOK_RETRY_DELAYS_MS[index]);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), OPERATIONS_WEBHOOK_TIMEOUT_MS);
+    try {
+      const response = await fetch(config.url, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'user-agent': `FoxBear-Incident-Monitor/${PRODUCT_VERSION}` },
+        body: JSON.stringify(buildOperationsWebhookPayload(health, previous, kind, config.provider)),
+        signal: controller.signal,
+        redirect: 'error'
+      });
+      if (response.ok) return { status: 'delivered', provider: config.provider, channel: config.channel, reason: '', statusCode: response.status, attempts: index + 1 };
       const body = cleanText(await response.text().catch(() => ''), 240);
-      return { status: 'failed', provider: config.provider, reason: `http-${response.status}`, response: body, statusCode: response.status };
+      last = { status: 'failed', provider: config.provider, channel: config.channel, reason: `http-${response.status}`, response: body, statusCode: response.status, attempts: index + 1 };
+      if (!isWebhookRetryableStatus(response.status)) break;
+      await wait(webhookRetryDelay(response, index));
+    } catch (error) {
+      last = { status: 'failed', provider: config.provider, channel: config.channel, reason: error?.name === 'AbortError' ? 'webhook-timeout' : 'webhook-request-failed', message: cleanText(error?.message || error, 240), attempts: index + 1 };
+    } finally {
+      clearTimeout(timer);
     }
-    return { status: 'delivered', provider: config.provider, reason: '', statusCode: response.status };
-  } catch (error) {
-    const reason = error?.name === 'AbortError' ? 'webhook-timeout' : 'webhook-request-failed';
-    return { status: 'failed', provider: config.provider, reason, message: cleanText(error?.message || error, 240) };
-  } finally {
-    clearTimeout(timer);
   }
+  return last;
+}
+
+async function sendOperationsWebhook(health = {}, previous = {}, kind = 'alert') {
+  const channels = inspectOperationsWebhookChannels();
+  const primary = await deliverOperationsWebhook(channels.primary, health, previous, kind);
+  if (primary.status === 'delivered') return { ...primary, primary, fallback: { status: 'skipped', reason: 'primary-delivered', channel: 'fallback', attempts: 0 } };
+  const fallback = await deliverOperationsWebhook(channels.fallback, health, previous, kind);
+  if (fallback.status === 'delivered') return { ...fallback, failover: true, primary, fallback };
+  const attempted = [primary, fallback].some(item => item.status === 'failed');
+  return {
+    status: attempted ? 'failed' : channels.status,
+    provider: fallback.provider || primary.provider || channels.provider,
+    channel: '',
+    reason: attempted ? 'all-webhooks-failed' : channels.reason,
+    attempts: Math.max(0, Number(primary.attempts || 0)) + Math.max(0, Number(fallback.attempts || 0)),
+    primary,
+    fallback
+  };
 }
 
 function operationsHistoryId(now = Date.now()) {
@@ -328,6 +434,8 @@ async function recordOperationsTelemetry(health = {}, alert = {}, now = Date.now
     alertStatus: cleanText(alert.status || 'skipped', 20),
     smtpAlertStatus: cleanText(channels.smtp?.status || '', 20),
     webhookAlertStatus: cleanText(channels.webhook?.status || '', 20),
+    webhookAlertChannel: cleanText(channels.webhook?.channel || '', 20),
+    webhookAlertAttempts: Math.max(0, Number(channels.webhook?.attempts || 0)),
     reasonCodes: Array.isArray(health.reasons) ? health.reasons.map(item => cleanText(item?.code || '', 80)).filter(Boolean).slice(0, 12) : [],
     recommendedActions: Array.isArray(health.reasons) ? health.reasons.map(item => recommendedActionForIssue(item?.code)).slice(0, 6) : [],
     checkedAt: Timestamp.fromMillis(now),
@@ -345,7 +453,7 @@ async function recordOperationsTelemetry(health = {}, alert = {}, now = Date.now
     reasonCodes: Array.isArray(health.reasons) ? health.reasons.map(item => cleanText(item?.code || '', 80)).filter(Boolean).slice(0, 12) : [],
     channels: {
       smtp: { status: cleanText(channels.smtp?.status || '', 20), reason: cleanText(channels.smtp?.reason || '', 100) },
-      webhook: { status: cleanText(channels.webhook?.status || '', 20), provider: cleanText(channels.webhook?.provider || '', 40), reason: cleanText(channels.webhook?.reason || '', 100) }
+      webhook: { status: cleanText(channels.webhook?.status || '', 20), provider: cleanText(channels.webhook?.provider || '', 40), channel: cleanText(channels.webhook?.channel || '', 20), reason: cleanText(channels.webhook?.reason || '', 100), attempts: Math.max(0, Number(channels.webhook?.attempts || 0)) }
     },
     createdAt: Timestamp.fromMillis(now),
     expiresAt: Timestamp.fromMillis(now + OPERATIONS_HISTORY_TTL_DAYS * 86400000)
@@ -701,6 +809,8 @@ function evaluateOperationsHealth(snapshot = {}) {
   }
   if (snapshot.channels?.webhook?.status === 'error') {
     reasons.push({ code: 'webhook-config-invalid', severity: 'warning', message: `보조 웹훅 설정 오류: ${snapshot.channels.webhook.reason || '허용되지 않은 주소'}` });
+  } else if (snapshot.channels?.webhook?.primaryStatus === 'error' && snapshot.channels?.webhook?.fallbackStatus === 'ready') {
+    reasons.push({ code: 'webhook-primary-failed', severity: 'warning', message: '기본 웹훅 설정이 실패해 보조 웹훅만 사용 가능한 상태입니다.' });
   }
   if (Number(queue.stale || 0) > 0) {
     reasons.push({
@@ -793,7 +903,7 @@ async function collectOperationsHealth(previous = {}, now = Date.now()) {
     },
     summaries,
     smtp,
-    channels: { webhook: publicWebhookConfig(inspectOperationsWebhookConfig()) },
+    channels: { webhook: publicWebhookConfig(inspectOperationsWebhookChannels()) },
     lastIncidentSentAt
   });
 }
@@ -918,7 +1028,10 @@ async function finalizeOperationsAudit(reservation, health, alert, now = Date.no
           status: cleanText(alertChannels.webhook?.status || previousAlertChannels.webhook?.status || '', 20),
           provider: cleanText(alertChannels.webhook?.provider || previousAlertChannels.webhook?.provider || '', 40),
           reason: cleanText(alertChannels.webhook?.reason || previousAlertChannels.webhook?.reason || '', 100),
-          statusCode: Math.max(0, Number(alertChannels.webhook?.statusCode || previousAlertChannels.webhook?.statusCode || 0))
+          statusCode: Math.max(0, Number(alertChannels.webhook?.statusCode || previousAlertChannels.webhook?.statusCode || 0)),
+          channel: cleanText(alertChannels.webhook?.channel || previousAlertChannels.webhook?.channel || '', 20),
+          attempts: Math.max(0, Number(alertChannels.webhook?.attempts || previousAlertChannels.webhook?.attempts || 0)),
+          failover: alertChannels.webhook?.failover === true
         }
       },
       lastDispatchedAt: alert?.dispatchedAt ? Timestamp.fromMillis(alert.dispatchedAt) : previousAlert.lastDispatchedAt || null,
@@ -1338,9 +1451,10 @@ exports.retryIncidentEmailRequest = onDocumentCreated({
   const admin = await getActiveAdmin(uid);
   if (!admin.active) {
     await requestRef.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    await writeAdminAuditEvent({ uid, action: 'admin-request', requestId: snapshot.id, status: 'rejected', reason: 'admin-required' });
     return;
   }
-  const claim = await claimAdminAction(uid, 'incident-retry', { cooldownMs: ADMIN_RETRY_COOLDOWN_MS, leaseMs: 2 * 60 * 1000, requestId: snapshot.id });
+  const claim = await claimAdminAction(uid, 'incident-retry', { cooldownMs: ADMIN_RETRY_COOLDOWN_MS, leaseMs: 2 * 60 * 1000, requestId: snapshot.id, targetType: 'incident-report', targetId: reportId });
   if (!claim.allowed) {
     await requestRef.set({ status: 'rejected', reason: claim.reason, retryAfterSeconds: claim.retryAfterSeconds || 0, checkedAt: FieldValue.serverTimestamp() }, { merge: true });
     return;
@@ -1376,9 +1490,10 @@ exports.retryIncidentBatchRequest = onDocumentCreated({
   const admin = await getActiveAdmin(uid);
   if (!admin.active) {
     await requestRef.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    await writeAdminAuditEvent({ uid, action: 'admin-request', requestId: snapshot.id, status: 'rejected', reason: 'admin-required' });
     return;
   }
-  const claim = await claimAdminAction(uid, `batch-${mode}`, { cooldownMs: ADMIN_BATCH_COOLDOWN_MS, leaseMs: 6 * 60 * 1000, requestId: snapshot.id });
+  const claim = await claimAdminAction(uid, `batch-${mode}`, { cooldownMs: ADMIN_BATCH_COOLDOWN_MS, leaseMs: 6 * 60 * 1000, requestId: snapshot.id, targetType: 'incident-batch', targetId: mode });
   if (!claim.allowed) {
     await requestRef.set({ status: 'rejected', reason: claim.reason, retryAfterSeconds: claim.retryAfterSeconds || 0, checkedAt: FieldValue.serverTimestamp() }, { merge: true });
     return;
@@ -1393,7 +1508,7 @@ exports.retryIncidentBatchRequest = onDocumentCreated({
       checkedAt: FieldValue.serverTimestamp(),
       expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
     }, { merge: true });
-    await finishAdminAction(claim, 'completed');
+    await finishAdminAction(claim, 'completed', { result: { attempted: result.attempted, succeeded: result.emailed, failed: result.failed + result.deadLetter, skipped: result.skipped } });
   } catch (error) {
     await requestRef.set({
       status: 'failed',
@@ -1411,7 +1526,7 @@ exports.retryIncidentBatchRequest = onDocumentCreated({
 exports.testIncidentAlertChannelRequest = onDocumentCreated({
   document: 'incidentAlertTestRequests/{requestId}', region: REGION,
   secrets: [GMAIL_APP_PASSWORD], retry: false, maxInstances: 1,
-  timeoutSeconds: 60, memory: '256MiB'
+  timeoutSeconds: 120, memory: '256MiB'
 }, async event => {
   const snapshot = event.data;
   if (!snapshot) return;
@@ -1421,16 +1536,17 @@ exports.testIncidentAlertChannelRequest = onDocumentCreated({
   const admin = await getActiveAdmin(uid);
   if (!admin.active) {
     await requestRef.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    await writeAdminAuditEvent({ uid, action: 'admin-request', requestId: snapshot.id, status: 'rejected', reason: 'admin-required' });
     return;
   }
-  const claim = await claimAdminAction(uid, 'alert-channel-test', { cooldownMs: ADMIN_ALERT_TEST_COOLDOWN_MS, leaseMs: 90 * 1000, requestId: snapshot.id });
+  const claim = await claimAdminAction(uid, 'alert-channel-test', { cooldownMs: ADMIN_ALERT_TEST_COOLDOWN_MS, leaseMs: 90 * 1000, requestId: snapshot.id, targetType: 'operations-channel', targetId: 'webhook' });
   if (!claim.allowed) {
     await requestRef.set({ status: 'rejected', reason: claim.reason, retryAfterSeconds: claim.retryAfterSeconds || 0, checkedAt: FieldValue.serverTimestamp() }, { merge: true });
     return;
   }
   await requestRef.set({ status: 'running', startedAt: FieldValue.serverTimestamp() }, { merge: true });
   try {
-    const config = inspectOperationsWebhookConfig();
+    const config = inspectOperationsWebhookChannels();
     const health = {
       status: 'warning',
       signature: 'manual-alert-channel-test',
@@ -1457,10 +1573,61 @@ exports.testIncidentAlertChannelRequest = onDocumentCreated({
   }
 });
 
+
+async function probeFirestoreIndexes() {
+  const probes = [
+    {
+      name: 'incident-failed-retry',
+      run: () => db.collection('incidentReports').where('delivery.status', '==', 'failed').orderBy('delivery.nextRetryAt', 'asc').limit(1).get()
+    },
+    {
+      name: 'incident-dead-letter-history',
+      run: () => db.collection('incidentReports').where('delivery.status', '==', 'dead-letter').orderBy('delivery.checkedAt', 'desc').limit(1).get()
+    },
+    {
+      name: 'operations-status-history',
+      run: () => db.collection(OPERATIONS_HISTORY_COLLECTION).where('status', '==', 'warning').orderBy('checkedAt', 'desc').limit(1).get()
+    },
+    {
+      name: 'operations-reason-history',
+      run: () => db.collection(OPERATIONS_HISTORY_COLLECTION).where('reasonCodes', 'array-contains', 'dead-letter-present').orderBy('checkedAt', 'desc').limit(1).get()
+    }
+  ];
+  const results = [];
+  for (const probe of probes) {
+    try {
+      await probe.run();
+      results.push({ name: probe.name, status: 'ok', reason: '' });
+    } catch (error) {
+      const message = cleanText(error?.message || error, 300);
+      const missing = /index|FAILED_PRECONDITION|requires an index/i.test(`${error?.code || ''} ${message}`);
+      results.push({ name: probe.name, status: missing ? 'missing' : 'error', reason: cleanText(error?.code || error?.name || 'query-failed', 100), message });
+    }
+  }
+  return {
+    status: results.every(item => item.status === 'ok') ? 'ok' : results.some(item => item.status === 'missing') ? 'missing' : 'error',
+    probes: results
+  };
+}
+
+async function inspectPostDeployHealth(now = Date.now()) {
+  const snapshot = await db.collection('incidentOperations').doc(OPERATIONS_HEALTH_DOC_ID).get();
+  const data = snapshot.data() || {};
+  const checkedAt = timestampMillis(data.checkedAt);
+  return {
+    operationsStateExists: snapshot.exists,
+    operationsStatus: cleanText(data.status || 'unknown', 20),
+    checkedAt: checkedAt ? Timestamp.fromMillis(checkedAt) : null,
+    stale: !checkedAt || now - checkedAt > 30 * 60 * 1000
+  };
+}
+
 async function verifyIncidentDeployment(now = Date.now(), expectedVersion = '') {
   const expected = cleanText(expectedVersion || '', 24);
-  const webhook = publicWebhookConfig(inspectOperationsWebhookConfig());
+  const webhook = publicWebhookConfig(inspectOperationsWebhookChannels());
   const smtp = await inspectSmtpHealth({}, true, now);
+  const indexes = await probeFirestoreIndexes();
+  const postDeployHealth = await inspectPostDeployHealth(now);
   const checks = {
     productVersion: PRODUCT_VERSION,
     expectedVersion: expected,
@@ -1470,13 +1637,20 @@ async function verifyIncidentDeployment(now = Date.now(), expectedVersion = '') 
     batchRecovery: true,
     alertChannelTest: true,
     actionRateLimit: true,
-    historyDetail: true
+    historyDetail: true,
+    adminAuditLog: true,
+    historyPagination: true,
+    webhookFailover: webhook.failoverReady === true,
+    indexes,
+    postDeployHealth
   };
   const reasonCodes = [];
   if (expected && expected !== PRODUCT_VERSION) reasonCodes.push('deployment-version-mismatch');
   if (smtp.status !== 'ok') reasonCodes.push(smtp.reason || 'smtp-check-failed');
   if (webhook.status === 'error') reasonCodes.push('webhook-config-invalid');
-  const status = smtp.status !== 'ok' ? 'critical' : reasonCodes.length ? 'warning' : 'healthy';
+  if (indexes.status !== 'ok') reasonCodes.push('firestore-index-missing');
+  if (postDeployHealth.stale) reasonCodes.push('deployment-check-stale');
+  const status = smtp.status !== 'ok' || indexes.status === 'error' ? 'critical' : reasonCodes.length ? 'warning' : 'healthy';
   const result = {
     schemaVersion: 1,
     productVersion: PRODUCT_VERSION,
@@ -1505,9 +1679,10 @@ exports.verifyIncidentDeploymentRequest = onDocumentCreated({
   const admin = await getActiveAdmin(uid);
   if (!admin.active) {
     await requestRef.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    await writeAdminAuditEvent({ uid, action: 'admin-request', requestId: snapshot.id, status: 'rejected', reason: 'admin-required' });
     return;
   }
-  const claim = await claimAdminAction(uid, 'deployment-verification', { cooldownMs: ADMIN_DEPLOY_VERIFY_COOLDOWN_MS, leaseMs: 2 * 60 * 1000, requestId: snapshot.id });
+  const claim = await claimAdminAction(uid, 'deployment-verification', { cooldownMs: ADMIN_DEPLOY_VERIFY_COOLDOWN_MS, leaseMs: 2 * 60 * 1000, requestId: snapshot.id, targetType: 'deployment', targetId: cleanText(request.expectedVersion || '', 24) });
   if (!claim.allowed) {
     await requestRef.set({ status: 'rejected', reason: claim.reason, retryAfterSeconds: claim.retryAfterSeconds || 0, checkedAt: FieldValue.serverTimestamp() }, { merge: true });
     return;
@@ -1651,6 +1826,15 @@ exports.auditIncidentMailOperations = onSchedule({
   await auditIncidentMailOperations();
 });
 
+
+exports.verifyIncidentPostDeployHealth = onSchedule({
+  schedule: 'every 6 hours', timeZone: TIME_ZONE, region: REGION,
+  secrets: [GMAIL_APP_PASSWORD], retryCount: 0, maxInstances: 1,
+  timeoutSeconds: 180, memory: '256MiB'
+}, async () => {
+  await verifyIncidentDeployment(Date.now(), PRODUCT_VERSION);
+});
+
 exports.__test = Object.freeze({
   cleanText, escapeHtml, safeKey, buildMail, buildDailySummaryMail, incidentMessageId, summaryMessageId,
   kstDayRange, kstDateKey, nextKstDayRetryAt, retryDelayMs,
@@ -1658,5 +1842,6 @@ exports.__test = Object.freeze({
   normalizedGmailAppPassword, assertSmtpAccepted, classifySmtpError,
   operationAlertMessageId, buildOperationsAlertMail, evaluateOperationsHealth,
   shouldSendOperationsAlert, inspectOperationsWebhookConfig, publicWebhookConfig,
-  buildOperationsWebhookPayload, operationsHistoryId, recommendedActionForIssue, adminActionStateId
+  buildOperationsWebhookPayload, operationsHistoryId, recommendedActionForIssue, adminActionStateId,
+  inspectOperationsWebhookChannels, isWebhookRetryableStatus, webhookRetryDelay
 });

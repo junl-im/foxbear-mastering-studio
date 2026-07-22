@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.66-incident-operations-action-guard-deploy-verification';
+    const SERVICE_VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

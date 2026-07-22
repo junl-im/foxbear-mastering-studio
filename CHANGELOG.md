@@ -1,3 +1,11 @@
+# v1.5.67 - Incident Admin Audit, Webhook Failover, Index and Health Verification
+
+- Added privacy-minimized administrator action audit logs with 90-day TTL.
+- Added bounded transient webhook retries and optional secondary-channel failover.
+- Added real Firestore composite-index probes to deployment verification.
+- Added operations history status/reason filters and cursor pagination.
+- Added a scheduled six-hour post-deployment comprehensive health check.
+
 # v1.5.66 - Incident Operations Action Guard and Deployment Verification
 
 - Added transaction-backed administrator action leases and cooldowns for retry, batch recovery, alert testing, and deployment verification.

@@ -1,4 +1,11 @@
-# FoxBear Status - v1.5.66
+# FoxBear Status - v1.5.67
+
+## v1.5.67 current focus
+
+- Administrator operations write privacy-minimized start, rejection, completion, and failure audit events.
+- Operations webhooks retry transient failures and can fail over to an independently configured secondary approved HTTPS endpoint.
+- Deployment verification executes real Firestore composite-index probes and checks recent operations-audit freshness.
+- Operations history supports status/reason filters and cursor-based pagination; a six-hour scheduled post-deployment health check keeps deployment state current.
 
 ## v1.5.66 current focus
 
@@ -84,10 +91,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.66`
-- Build ID: `incident-operations-action-guard-deploy-verification`
-- Asset version: `1.5.66-incident-operations-action-guard-deploy-verification`
-- Service worker cache: `foxbear-shell-v1.5.66-incident-operations-action-guard-deploy-verification`
+- Product version: `1.5.67`
+- Build ID: `incident-admin-audit-webhook-failover-index-health`
+- Asset version: `1.5.67-incident-admin-audit-webhook-failover-index-health`
+- Service worker cache: `foxbear-shell-v1.5.67-incident-admin-audit-webhook-failover-index-health`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -119,7 +126,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.66`
-- Build ID: `incident-operations-action-guard-deploy-verification`
-- Asset version: `1.5.66-incident-operations-action-guard-deploy-verification`
-- Service worker cache: `foxbear-shell-v1.5.66-incident-operations-action-guard-deploy-verification`
+- Product version: `1.5.67`
+- Build ID: `incident-admin-audit-webhook-failover-index-health`
+- Asset version: `1.5.67-incident-admin-audit-webhook-failover-index-health`
+- Service worker cache: `foxbear-shell-v1.5.67-incident-admin-audit-webhook-failover-index-health`

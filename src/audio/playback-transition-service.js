@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.66-incident-operations-action-guard-deploy-verification';
+    const SERVICE_VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

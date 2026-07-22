@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.66-incident-operations-action-guard-deploy-verification';
+  const VIEW_VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -22,15 +22,15 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.66_INCIDENT_OPERATIONS_ACTION_GUARD_DEPLOY_VERIFICATION.md');
 
-assert.strictEqual(pkg.version, '1.5.66');
-assert.strictEqual(meta.assetVersion, '1.5.66-incident-operations-action-guard-deploy-verification');
+assert.strictEqual(pkg.version, '1.5.67');
+assert.strictEqual(meta.assetVersion, '1.5.67-incident-admin-audit-webhook-failover-index-health');
 for (const name of ['testIncidentAlertChannelRequest', 'verifyIncidentDeploymentRequest']) {
   assert(pkg.scripts['deploy:incident'].includes(`functions:${name}`), `deploy script missing ${name}`);
 }
 
 for (const token of [
-  "const PRODUCT_VERSION = '1.5.66'",
-  'const OPERATIONS_SCHEMA_VERSION = 3',
+  "const PRODUCT_VERSION = '1.5.67'",
+  'const OPERATIONS_SCHEMA_VERSION = 4',
   "const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState'",
   'recommendedActionForIssue',
   'claimAdminAction',
@@ -46,7 +46,7 @@ for (const token of [
   "document: 'incidentDeploymentVerificationRequests/{requestId}'",
   'recommendedActions: reasonCodes.map(recommendedActionForIssue)',
   'productVersion: PRODUCT_VERSION'
-]) assert(functionsSource.includes(token), `v1.5.66 function contract missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.5.67 function contract missing ${token}`);
 
 for (const token of [
   'normalizeIncidentDeployment',
@@ -57,14 +57,14 @@ for (const token of [
   "getDoc(doc(bridgeState.db, 'incidentOperations', 'deployment'))",
   'recommendedActions',
   'setDoc'
-]) assert(firebaseSource.includes(token), `v1.5.66 Firebase bridge contract missing ${token}`);
+]) assert(firebaseSource.includes(token), `v1.5.67 Firebase bridge contract missing ${token}`);
 
 for (const id of [
   'adminIncidentTestWebhook', 'adminIncidentVerifyDeployment', 'adminIncidentDeploymentStatus',
   'adminIncidentHistoryDetails', 'adminIncidentHistoryRows'
 ]) {
-  assert(indexSource.includes(`id="${id}"`), `v1.5.66 HTML missing ${id}`);
-  assert(appSource.includes(`'${id}'`), `v1.5.66 app element cache missing ${id}`);
+  assert(indexSource.includes(`id="${id}"`), `v1.5.67 HTML missing ${id}`);
+  assert(appSource.includes(`'${id}'`), `v1.5.67 app element cache missing ${id}`);
 }
 
 for (const token of [
@@ -75,7 +75,7 @@ for (const token of [
   'renderHistory',
   'collectRecommendations',
   'formatDeploymentStatus'
-]) assert(monitorSource.includes(token), `v1.5.66 monitor contract missing ${token}`);
+]) assert(monitorSource.includes(token), `v1.5.67 monitor contract missing ${token}`);
 
 assert(cssSource.includes('.admin-incident-history-details'));
 assert(cssSource.includes('.admin-incident-action-recommendation'));
@@ -85,7 +85,7 @@ for (const token of [
   'validIncidentDeploymentVerificationRequest',
   'match /incidentDeploymentVerificationRequests/{requestId}',
   'match /incidentAdminActionState/{document=**}'
-]) assert(rules.includes(token), `v1.5.66 Firestore rule missing ${token}`);
+]) assert(rules.includes(token), `v1.5.67 Firestore rule missing ${token}`);
 assert(handoff.includes('## v1.5.66 인수인계'));
 assert(handoff.includes('진행된 내용`, `배포 파일 2종`, `다음 예상 내용'));
 assert(status.includes('## v1.5.66 current focus'));

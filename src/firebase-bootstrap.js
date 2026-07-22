@@ -138,6 +138,8 @@ function makePublicBridge(extra = {}) {
         getIncidentDelivery,
         getAdminStats,
         getAdminIncidents,
+        getIncidentOperationsHistory,
+        getIncidentAdminAuditLog,
         requestIncidentRetry,
         getIncidentRetryRequest,
         requestIncidentBatchRecovery,
@@ -509,7 +511,12 @@ function normalizeIncidentOperations(snapshot) {
             webhook: {
                 status: limitText(data.channels?.webhook?.status || 'disabled', 20),
                 provider: limitText(data.channels?.webhook?.provider || '', 40),
-                reason: limitText(data.channels?.webhook?.reason || '', 100)
+                reason: limitText(data.channels?.webhook?.reason || '', 100),
+                failoverReady: data.channels?.webhook?.failoverReady === true,
+                primaryStatus: limitText(data.channels?.webhook?.primaryStatus || 'disabled', 20),
+                primaryProvider: limitText(data.channels?.webhook?.primaryProvider || '', 40),
+                fallbackStatus: limitText(data.channels?.webhook?.fallbackStatus || 'disabled', 20),
+                fallbackProvider: limitText(data.channels?.webhook?.fallbackProvider || '', 40)
             }
         },
         alert: {
@@ -585,7 +592,19 @@ function normalizeIncidentDeployment(snapshot) {
             batchRecovery: data.checks?.batchRecovery === true,
             alertChannelTest: data.checks?.alertChannelTest === true,
             actionRateLimit: data.checks?.actionRateLimit === true,
-            historyDetail: data.checks?.historyDetail === true
+            historyDetail: data.checks?.historyDetail === true,
+            adminAuditLog: data.checks?.adminAuditLog === true,
+            historyPagination: data.checks?.historyPagination === true,
+            webhookFailover: data.checks?.webhookFailover === true,
+            indexes: {
+                status: limitText(data.checks?.indexes?.status || 'unknown', 20),
+                probes: Array.isArray(data.checks?.indexes?.probes) ? data.checks.indexes.probes.slice(0, 12).map(item => ({ name: limitText(item?.name || '', 80), status: limitText(item?.status || 'unknown', 20), reason: limitText(item?.reason || '', 100) })) : []
+            },
+            postDeployHealth: {
+                operationsStateExists: data.checks?.postDeployHealth?.operationsStateExists === true,
+                operationsStatus: limitText(data.checks?.postDeployHealth?.operationsStatus || 'unknown', 20),
+                stale: data.checks?.postDeployHealth?.stale === true
+            }
         }
     };
 }
@@ -626,6 +645,62 @@ function normalizeFirestoreIncident(snapshot) {
     };
 }
 
+
+function normalizeAdminAuditLog(snapshot) {
+    const data = snapshot.data() || {};
+    return {
+        id: limitText(snapshot.id || '', 180),
+        at: timestampIso(data.createdAt),
+        uid: limitText(data.uid || '', 128),
+        action: limitText(data.action || 'unknown', 80),
+        status: limitText(data.status || 'recorded', 40),
+        reason: limitText(data.reason || '', 100),
+        requestId: limitText(data.requestId || '', 180),
+        targetType: limitText(data.targetType || '', 60),
+        targetId: limitText(data.targetId || '', 180)
+    };
+}
+
+function parseHistoryFilter(filter = 'all') {
+    const safe = limitText(filter || 'all', 120);
+    if (safe.startsWith('status:')) return { type: 'status', value: limitText(safe.slice(7), 20) };
+    if (safe.startsWith('reason:')) return { type: 'reason', value: limitText(safe.slice(7), 80) };
+    return { type: 'all', value: '' };
+}
+
+async function getIncidentOperationsHistory(options = {}) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 운영 이력을 조회할 수 있습니다.');
+    const pageSize = Math.min(Math.max(Number(options.limit || 24), 1), 48);
+    const filter = parseHistoryFilter(options.filter);
+    const before = Number(options.before || 0);
+    const constraints = [];
+    if (filter.type === 'status' && filter.value) constraints.push(where('status', '==', filter.value));
+    if (filter.type === 'reason' && filter.value) constraints.push(where('reasonCodes', 'array-contains', filter.value));
+    if (before > 0) constraints.push(where('checkedAt', '<', new Date(before)));
+    constraints.push(orderBy('checkedAt', 'desc'), limit(pageSize + 1));
+    const snapshot = await getDocs(query(collection(bridgeState.db, 'incidentOperationsHistory'), ...constraints));
+    const docs = snapshot.docs.slice(0, pageSize);
+    const items = docs.map(normalizeOperationsHistory);
+    const last = docs[docs.length - 1];
+    return {
+        items,
+        hasMore: snapshot.docs.length > pageSize,
+        nextCursor: last ? Number(last.data()?.checkedAt?.toMillis?.() || 0) : 0,
+        filter: filter.type === 'all' ? 'all' : `${filter.type}:${filter.value}`
+    };
+}
+
+async function getIncidentAdminAuditLog(options = {}) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 관리자 감사 로그를 조회할 수 있습니다.');
+    const pageSize = Math.min(Math.max(Number(options.limit || 24), 1), 50);
+    const snapshot = await getDocs(query(collection(bridgeState.db, 'incidentAdminAuditLog'), orderBy('createdAt', 'desc'), limit(pageSize)));
+    return snapshot.docs.map(normalizeAdminAuditLog);
+}
+
 async function getAdminIncidents(options = {}) {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
     const profile = await getAdminProfile();
@@ -635,14 +710,14 @@ async function getAdminIncidents(options = {}) {
     const recentQuery = query(reportsRef, orderBy('createdAt', 'desc'), limit(eventsLimit));
     const kstRange = getKstDayRange(new Date());
     const todayQuery = query(reportsRef, where('createdAt', '>=', kstRange.start), where('createdAt', '<', kstRange.end));
-    const historyQuery = query(collection(bridgeState.db, 'incidentOperationsHistory'), orderBy('checkedAt', 'desc'), limit(48));
-    const [snapshot, todayCountSnapshot, operationsSnapshot, recoverySnapshot, deploymentSnapshot, historySnapshot] = await Promise.all([
+    const [snapshot, todayCountSnapshot, operationsSnapshot, recoverySnapshot, deploymentSnapshot, historyPage, auditLog] = await Promise.all([
         getDocs(recentQuery),
         getCountFromServer(todayQuery),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'mail')),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'recovery')),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'deployment')).catch(() => ({ exists: () => false })),
-        getDocs(historyQuery).catch(() => ({ docs: [] }))
+        getIncidentOperationsHistory({ limit: 24, filter: 'all' }).catch(() => ({ items: [], hasMore: false, nextCursor: 0 })),
+        getIncidentAdminAuditLog({ limit: 24 }).catch(() => [])
     ]);
     const incidents = [];
     snapshot.forEach(item => incidents.push(normalizeFirestoreIncident(item)));
@@ -663,7 +738,10 @@ async function getAdminIncidents(options = {}) {
         operations: normalizeIncidentOperations(operationsSnapshot),
         recovery: normalizeIncidentRecovery(recoverySnapshot),
         deployment: normalizeIncidentDeployment(deploymentSnapshot),
-        history: historySnapshot.docs.map(normalizeOperationsHistory),
+        history: historyPage.items || [],
+        historyHasMore: historyPage.hasMore === true,
+        historyNextCursor: safeIncidentNumber(historyPage.nextCursor, 0, Number.MAX_SAFE_INTEGER),
+        auditLog,
         dateKey: kstRange.dateKey,
         appCheck: {
             configured: bridgeState.appCheckConfigured,

@@ -1,4 +1,4 @@
-# Handoff - v1.5.66
+# Handoff - v1.5.67
 ## 필수 결과 보고 형식
 
 앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
@@ -10,6 +10,16 @@
 3. `다음 예상 내용`
 
 배포 파일은 항상 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP 두 종류를 함께 제공합니다. 확인하지 못한 실제 배포·메일 수신·브라우저 검증은 `진행된 내용`에 사실대로 제한 사항을 적습니다.
+
+
+## v1.5.67 인수인계
+
+- `incidentAdminAuditLog`는 관리자 작업의 시작·거부·완료·실패를 90일 TTL로 기록합니다. 웹훅 URL, Gmail Secret, 신고 원문은 기록하지 않습니다.
+- 기본 웹훅은 일시 오류에 제한 재시도하며 실패하면 선택형 `FOXBEAR_INCIDENT_ALERT_WEBHOOK_FALLBACK_URL`로 전환합니다. 두 URL 모두 허용된 HTTPS 공급자 호스트만 사용할 수 있습니다.
+- 관리자 운영 이력은 전체/위험/주의/정상 및 주요 원인 필터와 커서 기반 더 보기를 지원합니다.
+- 배포 검증은 incidentReports 재시도·최종 실패 인덱스와 incidentOperationsHistory 상태·원인 인덱스를 실제 쿼리로 검사합니다.
+- `verifyIncidentPostDeployHealth`를 포함해 Firestore Rules, Indexes, Functions, Hosting을 같은 버전으로 배포해야 합니다.
+- 실제 웹훅 장애 전환, SMTP 수신, 인덱스 Enabled 상태는 Firebase 실배포 후 확인해야 합니다.
 
 
 ## v1.5.66 인수인계

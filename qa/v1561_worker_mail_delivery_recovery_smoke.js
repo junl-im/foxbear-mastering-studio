@@ -52,6 +52,6 @@ for (const token of [
   "data.category === 'manual-test' && data.automatic === false"
 ]) assert(functions.includes(token), `server mail recovery missing ${token}`);
 
-assert(!functions.includes(".where('delivery.status', '==', 'failed')"), 'retry scheduler still ignores pending or stalled reports');
+assert(functions.includes(": (await collectDueIncidentReports(startedAt)).slice(0, maxItems)"), 'retry scheduler no longer uses the due-report collector');
 assert(reporter.includes("'mastering-memory'") && firebase.includes("'mastering-memory'"), 'mastering memory incidents are degraded to unknown');
 console.log(`PASS v${meta.productVersion} worker boot and incident mail delivery recovery smoke`);

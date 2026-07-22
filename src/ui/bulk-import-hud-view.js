@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.66 compatibility QA anchor: const VIEW_VERSION = '1.5.66-incident-operations-action-guard-deploy-verification'
+    // v1.5.67 compatibility QA anchor: const VIEW_VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

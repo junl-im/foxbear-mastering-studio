@@ -1,4 +1,4 @@
-# FoxBear Firebase 설정 가이드 - v1.5.55
+# FoxBear Firebase 설정 가이드 - v1.5.67
 
 오디오 파일과 PCM은 브라우저 안에서만 처리됩니다. Firebase에는 방문 통계와 개인정보를 줄인 문제 진단만 저장됩니다.
 
@@ -85,3 +85,17 @@ Firestore TTL 정책에서 다음 두 컬렉션의 `expiresAt` 필드를 등록�
 - 배포 검증 결과의 Functions 버전이 화면 버전과 같은지
 - SMTP/Secret 상태가 정상인지
 - 운영 이력 상세표에 원인 코드와 권장 조치가 표시되는지
+
+
+## v1.5.67 감사 로그·웹훅 장애 전환·인덱스 검증
+
+선택적으로 기본/보조 웹훅을 Functions 환경 변수에 설정합니다. 두 값 모두 허용된 HTTPS 공급자 주소만 사용합니다.
+
+```bash
+cp functions/.env.example functions/.env
+# functions/.env에서 아래 두 값을 설정합니다.
+# FOXBEAR_INCIDENT_ALERT_WEBHOOK_URL=https://...
+# FOXBEAR_INCIDENT_ALERT_WEBHOOK_FALLBACK_URL=https://...
+```
+
+로컬 `.env`는 저장소에 커밋하지 않습니다. 운영 배포에서는 현재 Firebase Functions 런타임의 환경 변수 또는 Secret 관리 방식에 맞춰 같은 키를 주입하며, URL을 Firestore 문서에 직접 저장하지 않습니다. 배포 후 관리자 화면의 배포 검증에서 네 복합 인덱스 프로브가 모두 `ok`인지 확인합니다. `incidentAdminAuditLog`, `incidentOperationsHistory`, `incidentOperationsAlerts`에는 `expiresAt` TTL 정책을 설정합니다.
