@@ -133,11 +133,17 @@ function sync() {
   for (const file of qaTargets) {
     let text = fs.readFileSync(file, 'utf8');
     const protectedLabels = [];
-    text = text.replace(/^.*console\.(?:log|error)\([^\n]*$/gm, line => {
+    const protect = value => {
       const token = `__FOXBEAR_QA_LABEL_${protectedLabels.length}__`;
-      protectedLabels.push(line);
+      protectedLabels.push(value);
       return token;
-    });
+    };
+    text = text.replace(/^.*console\.(?:log|error)\([^\n]*$/gm, protect);
+    // Historical regression guards must keep the document and handoff section
+    // that introduced the behavior. Only current release metadata assertions
+    // should move forward with package.json.
+    text = text.replace(/docs\/V\d+\.\d+\.\d+_[A-Z0-9_]+\.md/g, protect);
+    text = text.replace(/## v\d+\.\d+\.\d+ (?:인수인계|current focus)/g, protect);
     text = applyMetadataReplacements(text);
     text = text.replace(/__FOXBEAR_QA_LABEL_(\d+)__/g, (_, index) => protectedLabels[Number(index)] || '');
     fs.writeFileSync(file, text);

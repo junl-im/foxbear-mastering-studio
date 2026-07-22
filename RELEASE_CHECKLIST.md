@@ -1,3 +1,23 @@
+# v1.5.64 추가 릴리스 확인
+
+## v1.5.64 incident operations health
+
+- [ ] `auditIncidentMailOperations`가 Firebase Scheduler에 배포되었다.
+- [ ] `incidentOperations/mail` 문서가 15분 이내 갱신된다.
+- [ ] 관리자 오류 화면에 메일 운영, 장기 미발송, SMTP/Secret, 오늘 발송 카드가 표시된다.
+- [ ] 정상 Secret에서 SMTP 상태가 `ok`로 기록된다.
+- [ ] 잘못된 Secret 테스트 환경에서 `secret-invalid` 또는 `smtp-auth-failed`가 기록된다.
+- [ ] 주의/위험 전환 경보와 정상 복구 메일이 중복 폭주 없이 도착한다.
+- [ ] 오늘 오류 수가 KST 자정 전후에 정확하다.
+- [ ] Firestore 규칙과 `delivery.checkedAt` 복합 인덱스가 배포 완료 상태다.
+
+
+- [ ] KST 00:00 경계에서 `dailyKst_YYYY-MM-DD` 키가 전환되는지 확인
+- [ ] 일일 한도 초과 신고가 `failed / daily-email-limit`와 다음 재시도 시간을 갖는지 확인
+- [ ] 성공·실패·중복·한도 연기 후 `reservationActive=false`인지 확인
+- [ ] 500건 초과 요약이 페이지 처리되고 5,000건 초과 시 제한 문구가 표시되는지 확인
+- [ ] SMTP accepted 배열이 비어 있으면 성공으로 기록되지 않는지 확인
+
 ## v1.5.46 engine, recommendation, and API audit checks
 
 - [ ] Incomplete analysis metadata never produces NaN recommendation settings.

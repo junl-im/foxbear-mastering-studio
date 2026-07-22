@@ -21,8 +21,8 @@ const handoff = read('HANDOFF.md');
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert.strictEqual(pkg.version, '1.5.62');
-assert.strictEqual(meta.assetVersion, '1.5.62-incident-delivery-watchdog-package-gate');
+assert.strictEqual(pkg.version, '1.5.64');
+assert.strictEqual(meta.assetVersion, '1.5.64-incident-operations-health-self-diagnostics');
 assert(handoff.includes('## 필수 결과 보고 형식'));
 for (const heading of ['진행된 내용', '배포 파일 2종', '다음 예상 내용']) assert(handoff.includes(heading));
 
@@ -57,7 +57,7 @@ for (const token of [
   'request.resource.data.forceTerminal is bool'
 ]) assert(rules.includes(token), `Firestore rules missing ${token}`);
 
-assert.strictEqual(indexes.indexes.length, 3, 'incident watchdog must ship three queue indexes');
+assert(indexes.indexes.length >= 3, 'incident watchdog must retain at least the three queue indexes');
 const indexedFields = indexes.indexes.map(index => index.fields.map(field => field.fieldPath).join('|'));
 for (const field of ['delivery.status|createdAt', 'delivery.status|delivery.nextRetryAt', 'delivery.status|delivery.leaseUntil']) {
   assert(indexedFields.includes(field), `missing Firestore queue index ${field}`);

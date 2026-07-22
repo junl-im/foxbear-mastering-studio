@@ -47,7 +47,8 @@ for (const token of [
   'isIncidentDeliveryDue',
   ".orderBy('createdAt', 'desc')",
   "status === 'sending' || status === 'retrying'",
-  'ownsExistingReservation ? 0 : 1',
+  'reservationActive: true',
+  'releasePreviousDailyReservation',
   "data.category === 'manual-test' && data.automatic === false"
 ]) assert(functions.includes(token), `server mail recovery missing ${token}`);
 

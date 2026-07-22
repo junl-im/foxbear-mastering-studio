@@ -1,8 +1,8 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.5.62",
+  "version": "1.5.64",
   "private": true,
-  "description": "Server-side incident delivery watchdog, fenced retries, dead-letter recovery, manual resend, and daily summaries for FoxBear Mastering Studio.",
+  "description": "Server-side incident delivery with scheduled SMTP/Secret health checks, stale queue and dead-letter alerts, KST quotas, fenced leases, and summary recovery for FoxBear Mastering Studio.",
   "main": "index.js",
   "engines": {
     "node": "22"

@@ -18,8 +18,8 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css');
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
-assert.strictEqual(pkg.version, '1.5.62');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.62-incident-delivery-watchdog-package-gate');
+assert.strictEqual(pkg.version, '1.5.64');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.64-incident-operations-health-self-diagnostics');
 assert(index.includes('name="foxbear-app-check-site-key"'));
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));
@@ -59,7 +59,7 @@ for (const token of [
   'MAX_DELIVERY_ATTEMPTS = 3',
   'RETRY_DELAYS_MS',
   "schedule: 'every 15 minutes'",
-  "schedule: '0 9 * * *'",
+  "schedule: '0 9,12,15,18,21 * * *'",
   "document: 'incidentRetryRequests/{requestId}'",
   'buildDailySummaryMail',
   'reservedCount',

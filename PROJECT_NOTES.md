@@ -1,3 +1,18 @@
+# v1.5.64 운영 메모
+
+- `incidentOperations/mail` is server-owned operational telemetry; clients may read it only when the current UID is an active administrator.
+- SMTP health is evidence-based. Do not claim a known app-password expiry date because Google does not expose one.
+- An SMTP outage cannot alert through the same SMTP channel; preserve the Firestore/admin-dashboard critical state and send recovery after authentication returns.
+- Long-undelivered thresholds, alert transition cooldown, and audit lease fencing are release invariants.
+- Administrator incident-day counts use KST server ranges, not ISO UTC string prefixes.
+
+# v1.5.63 운영 메모
+
+- Incident quota day key is KST, not UTC.
+- Quota deferral must remain retryable; never restore permanent `suppressed-rate-limit` behavior.
+- Daily reservation ownership lives in the report delivery map and must be cleared on every terminal branch.
+- Summary retries cover the latest three completed KST dates and use deterministic Message-IDs.
+
 # Current Project Notes - v1.5.62
 
 ## v1.5.62 focus

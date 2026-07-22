@@ -1,4 +1,18 @@
-# FoxBear Status - v1.5.62
+# FoxBear Status - v1.5.64
+
+## v1.5.64 current focus
+
+- A 15-minute operations audit records SMTP/Secret readiness, stale delivery queues, dead letters, summary failures, and KST quota reservations in `incidentOperations/mail`.
+- Operational alert and recovery emails are transition-aware and use a 12-hour persistent-issue cooldown; SMTP failure remains visible in the administrator dashboard even when self-emailing is impossible.
+- The administrator incident dashboard uses exact KST-day counts and displays operations health, long-undelivered reports, SMTP/Secret status, and daily quota use.
+- Operations audits use fenced leases and preserve explicit limitations: Gmail app-password expiry dates are not exposed, so readiness is determined by secret validation and live SMTP authentication.
+
+## v1.5.63 current focus
+
+- Incident mail quotas use KST date buckets and quota-limited reports automatically resume after the next KST midnight.
+- Delivery reservations are explicitly owned by each report and are returned after success, failure, duplicate suppression, quota deferral, or missing-report cleanup.
+- Daily summaries paginate beyond 500 reports, expose truncation, use deterministic Message-IDs, and backfill missing summaries for three days.
+- SMTP success requires at least one accepted recipient and the Gmail app password must normalize to exactly 16 characters.
 
 ## v1.5.62 current focus
 
@@ -55,10 +69,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.62`
-- Build ID: `incident-delivery-watchdog-package-gate`
-- Asset version: `1.5.62-incident-delivery-watchdog-package-gate`
-- Service worker cache: `foxbear-shell-v1.5.62-incident-delivery-watchdog-package-gate`
+- Product version: `1.5.64`
+- Build ID: `incident-operations-health-self-diagnostics`
+- Asset version: `1.5.64-incident-operations-health-self-diagnostics`
+- Service worker cache: `foxbear-shell-v1.5.64-incident-operations-health-self-diagnostics`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -90,7 +104,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.62`
-- Build ID: `incident-delivery-watchdog-package-gate`
-- Asset version: `1.5.62-incident-delivery-watchdog-package-gate`
-- Service worker cache: `foxbear-shell-v1.5.62-incident-delivery-watchdog-package-gate`
+- Product version: `1.5.64`
+- Build ID: `incident-operations-health-self-diagnostics`
+- Asset version: `1.5.64-incident-operations-health-self-diagnostics`
+- Service worker cache: `foxbear-shell-v1.5.64-incident-operations-health-self-diagnostics`

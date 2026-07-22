@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.62-incident-delivery-watchdog-package-gate';
+    const FALLBACK_VERSION = '1.5.64-incident-operations-health-self-diagnostics';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

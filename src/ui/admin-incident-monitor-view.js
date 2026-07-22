@@ -36,11 +36,18 @@
                 const data = await bridge.getAdminIncidents({ limit: 120 });
                 state.adminIncidentsRemoteError = '';
                 const summary = data?.summary || {};
+                const operations = data?.operations || {};
+                const queue = operations.queue || {};
+                const smtp = operations.smtp || {};
+                const quota = operations.quota || {};
                 const appCheck = data?.appCheck || bridge.appCheck || {};
-                makeSummaryCard('오늘 오류', `${safeNumber(summary.today, 0)}건`, 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
-                makeSummaryCard('메일 실패', `${safeNumber(summary.failed, 0)}건`, summary.failed ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
-                makeSummaryCard('최종 실패', `${safeNumber(summary.deadLetter, 0)}건`, summary.deadLetter ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
-                makeSummaryCard('처리 대기', `${safeNumber(summary.pending, 0)}건`, summary.pending ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                const operationalStatus = operations.stale ? 'stale' : (operations.status || 'unknown');
+                makeSummaryCard('오늘 오류(KST)', `${safeNumber(summary.today, 0)}건`, 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('메일 운영', formatOperationsStatus(operationalStatus), ['healthy'].includes(operationalStatus) ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('장기 미발송', `${safeNumber(queue.stale, 0)}건`, queue.stale ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('최종 실패', `${safeNumber(queue.deadLetter ?? summary.deadLetter, 0)}건`, (queue.deadLetter ?? summary.deadLetter) ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('SMTP/Secret', formatSmtpStatus(smtp.status), smtp.status === 'ok' ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('오늘 발송', `${safeNumber(quota.sent, 0)}/${safeNumber(quota.limit, 40)}`, quota.reservationLeak ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('App Check', appCheck.ready ? '보호 중' : appCheck.configured ? '확인 필요' : '키 미설정', appCheck.ready ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 if (el.adminIncidentsNotice) {
                     const protection = appCheck.ready
@@ -48,7 +55,12 @@
                         : appCheck.configured
                             ? `App Check 확인 필요: ${appCheck.error || '토큰 상태 미확인'}`
                             : 'App Check 사이트 키를 설정한 뒤 콘솔에서 점진적으로 강제 적용하세요.';
-                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 최종 실패는 관리자 강제 재전송이 가능합니다. ${protection}`;
+                    const checked = operations.checkedAt ? ` 마지막 자동 점검 ${formatTime(operations.checkedAt)}.` : ' 자동 점검 결과가 아직 없습니다.';
+                    const issues = Array.isArray(operations.reasons) && operations.reasons.length
+                        ? ` 감지: ${operations.reasons.map(item => item.message || item.code).filter(Boolean).slice(0, 3).join(' / ')}`
+                        : '';
+                    const smtpDetail = smtp.status === 'error' ? ` SMTP 오류: ${smtp.message || smtp.reason || '인증/연결 실패'}.` : '';
+                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 운영 점검은 15분마다 실행됩니다.${checked}${issues}${smtpDetail} ${protection}`;
                 }
                 const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
                 if (!incidents.length) {
@@ -125,6 +137,16 @@
             return row;
         }
 
+        function formatOperationsStatus(status) {
+            const labels = { healthy: '정상', warning: '주의', critical: '위험', stale: '점검 지연', unknown: '점검 대기' };
+            return labels[status] || status || '점검 대기';
+        }
+
+        function formatSmtpStatus(status) {
+            const labels = { ok: '정상', error: '오류', unknown: '미확인' };
+            return labels[status] || status || '미확인';
+        }
+
         function formatStatus(status, attemptCount = 0, terminal = false) {
             const labels = {
                 pending: '대기', sending: '발송 중', retrying: '재시도 중', emailed: '발송 완료',
@@ -169,7 +191,7 @@
             }
         }
 
-        return Object.freeze({ render, formatStatus });
+        return Object.freeze({ render, formatStatus, formatOperationsStatus, formatSmtpStatus });
     }
 
     global.FoxBearAdminIncidentMonitorView = Object.freeze({ create });

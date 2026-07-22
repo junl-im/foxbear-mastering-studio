@@ -1,3 +1,23 @@
+# v1.5.64 - Incident Operations Health Self-Diagnostics
+
+- Added a 15-minute incident-mail operations audit with fenced execution leases.
+- Added live SMTP/Secret authentication checks with healthy/degraded refresh intervals.
+- Added stale queue, dead-letter, summary failure, and quota reservation-leak classification.
+- Added transition-aware operations alert and recovery emails with persistent-issue cooldown.
+- Added administrator-readable `incidentOperations/mail` telemetry and dashboard cards.
+- Corrected administrator “today” incident counts to use an exact KST server-side date range.
+- Added Firestore rule/index coverage and release QA for the new operations path.
+
+# v1.5.63 - 2026-07-22
+
+## Incident mail quota and summary recovery
+
+- Changes incident mail quotas from UTC documents to KST date buckets.
+- Defers quota-limited reports to the next KST day instead of permanently suppressing them, including recovery of legacy suppressed reports.
+- Tracks and releases per-report daily reservations across crashes, retries, duplicate suppression, and date rollover.
+- Paginates daily summary aggregation, marks truncated summaries, and retries missing summaries for the previous three days.
+- Requires an accepted SMTP recipient and validates the Gmail app password as exactly 16 characters.
+
 # v1.5.62 - 2026-07-22
 
 ## Incident delivery watchdog and package gate

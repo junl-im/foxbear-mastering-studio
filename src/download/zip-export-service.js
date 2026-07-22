@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.5.62 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.5.64 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.5.62-incident-delivery-watchdog-package-gate';
+    const VERSION = 'v1.5.64-incident-operations-health-self-diagnostics';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {

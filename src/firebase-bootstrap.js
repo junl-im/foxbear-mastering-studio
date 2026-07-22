@@ -161,6 +161,22 @@ function getDateKey(date = new Date()) {
     return `${year}-${month}-${day}`;
 }
 
+function getKstDayRange(date = new Date()) {
+    const source = date instanceof Date ? date : new Date(date);
+    const kst = new Date(source.getTime() + (9 * 60 * 60 * 1000));
+    const startAsUtc = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate(), 0, 0, 0, 0);
+    const start = new Date(startAsUtc - (9 * 60 * 60 * 1000));
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    return { dateKey: new Date(startAsUtc).toISOString().slice(0, 10), start, end };
+}
+
+function timestampIso(value) {
+    if (!value) return '';
+    if (typeof value.toDate === 'function') return value.toDate().toISOString();
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
 function normalizeVisitPayload(payload = {}) {
     const pageValue = payload.page || `${window.location.pathname || '/'}${window.location.search || ''}`;
     const pathValue = payload.path || window.location.pathname || '/';
@@ -418,6 +434,77 @@ async function getAdminStats(options = {}) {
 }
 
 
+function normalizeIncidentOperations(snapshot) {
+    if (!snapshot?.exists?.()) {
+        return {
+            exists: false,
+            status: 'unknown',
+            signature: '',
+            checkedAt: '',
+            stale: true,
+            reasons: [],
+            queue: {},
+            quota: {},
+            summaries: {},
+            smtp: { status: 'unknown', reason: 'health-document-missing', message: '운영 상태 점검 문서가 아직 생성되지 않았습니다.' },
+            alert: {}
+        };
+    }
+    const data = snapshot.data() || {};
+    const checkedAt = timestampIso(data.checkedAt);
+    const checkedAtMs = checkedAt ? Date.parse(checkedAt) : 0;
+    return {
+        exists: true,
+        status: limitText(data.status || 'unknown', 20),
+        signature: limitText(data.signature || '', 100),
+        checkedAt,
+        stale: !checkedAtMs || Date.now() - checkedAtMs > 35 * 60 * 1000,
+        reasons: Array.isArray(data.reasons) ? data.reasons.slice(0, 12).map(item => ({
+            code: limitText(item?.code || '', 80),
+            severity: limitText(item?.severity || 'warning', 20),
+            message: limitText(item?.message || '', 300)
+        })) : [],
+        queue: {
+            pending: safeIncidentNumber(data.queue?.pending, 0, 100000),
+            failed: safeIncidentNumber(data.queue?.failed, 0, 100000),
+            sending: safeIncidentNumber(data.queue?.sending, 0, 100000),
+            retrying: safeIncidentNumber(data.queue?.retrying, 0, 100000),
+            deadLetter: safeIncidentNumber(data.queue?.deadLetter, 0, 100000),
+            emailed: safeIncidentNumber(data.queue?.emailed, 0, 100000),
+            stale: safeIncidentNumber(data.queue?.stale, 0, 100000),
+            rateLimitedLegacy: safeIncidentNumber(data.queue?.rateLimitedLegacy, 0, 100000),
+            oldestStaleAt: timestampIso(data.queue?.oldestStaleAt)
+        },
+        quota: {
+            dateKey: limitText(data.quota?.dateKey || '', 10),
+            sent: safeIncidentNumber(data.quota?.sent, 0, 100000),
+            reserved: safeIncidentNumber(data.quota?.reserved, 0, 100000),
+            limit: safeIncidentNumber(data.quota?.limit, 0, 100000),
+            reservationLeak: safeIncidentNumber(data.quota?.reservationLeak, 0, 100000)
+        },
+        summaries: {
+            failed: safeIncidentNumber(data.summaries?.failed, 0, 100),
+            locked: safeIncidentNumber(data.summaries?.locked, 0, 100),
+            lastEmailedAt: timestampIso(data.summaries?.lastEmailedAt)
+        },
+        smtp: {
+            status: limitText(data.smtp?.status || 'unknown', 20),
+            reason: limitText(data.smtp?.reason || '', 80),
+            code: limitText(data.smtp?.code || '', 80),
+            message: limitText(data.smtp?.message || '', 300),
+            checkedAt: timestampIso(data.smtp?.checkedAt),
+            cached: data.smtp?.cached === true
+        },
+        alert: {
+            status: limitText(data.alert?.status || '', 40),
+            kind: limitText(data.alert?.kind || '', 20),
+            reason: limitText(data.alert?.reason || '', 100),
+            lastSentAt: timestampIso(data.alert?.lastSentAt)
+        },
+        lastIncidentSentAt: timestampIso(data.lastIncidentSentAt)
+    };
+}
+
 function normalizeFirestoreIncident(snapshot) {
     const item = snapshot.data() || {};
     const createdAt = item.createdAt && typeof item.createdAt.toDate === 'function'
@@ -461,13 +548,17 @@ async function getAdminIncidents(options = {}) {
     const eventsLimit = Math.min(Math.max(Number(options.limit || 100), 1), 150);
     const reportsRef = collection(bridgeState.db, 'incidentReports');
     const recentQuery = query(reportsRef, orderBy('createdAt', 'desc'), limit(eventsLimit));
-    const snapshot = await getDocs(recentQuery);
+    const kstRange = getKstDayRange(new Date());
+    const todayQuery = query(reportsRef, where('createdAt', '>=', kstRange.start), where('createdAt', '<', kstRange.end));
+    const [snapshot, todayCountSnapshot, operationsSnapshot] = await Promise.all([
+        getDocs(recentQuery),
+        getCountFromServer(todayQuery),
+        getDoc(doc(bridgeState.db, 'incidentOperations', 'mail'))
+    ]);
     const incidents = [];
     snapshot.forEach(item => incidents.push(normalizeFirestoreIncident(item)));
-    const todayKey = getDateKey();
     const summary = incidents.reduce((result, item) => {
         result.total += 1;
-        if (item.at.slice(0, 10) === todayKey) result.today += 1;
         if (item.deliveryStatus === 'failed') result.failed += 1;
         if (item.deliveryStatus === 'dead-letter') result.deadLetter += 1;
         if (['pending', 'sending', 'retrying', 'reserved'].includes(item.deliveryStatus)) result.pending += 1;
@@ -475,10 +566,13 @@ async function getAdminIncidents(options = {}) {
         if (item.severity === 'fatal') result.fatal += 1;
         return result;
     }, { total: 0, today: 0, failed: 0, deadLetter: 0, pending: 0, emailed: 0, fatal: 0 });
+    summary.today = safeIncidentNumber(todayCountSnapshot.data()?.count, 0, 1000000);
     return {
         uid: profile.uid,
         incidents,
         summary,
+        operations: normalizeIncidentOperations(operationsSnapshot),
+        dateKey: kstRange.dateKey,
         appCheck: {
             configured: bridgeState.appCheckConfigured,
             ready: bridgeState.appCheckReady,

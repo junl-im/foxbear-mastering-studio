@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.62 compatibility QA anchor: const VIEW_VERSION = '1.5.62-incident-delivery-watchdog-package-gate'
+    // v1.5.64 compatibility QA anchor: const VIEW_VERSION = '1.5.64-incident-operations-health-self-diagnostics'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

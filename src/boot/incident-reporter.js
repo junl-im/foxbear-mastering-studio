@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.62
+// FoxBear automatic incident reporter - v1.5.64
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.62-incident-delivery-watchdog-package-gate';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.64-incident-operations-health-self-diagnostics';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -425,7 +425,7 @@
                     FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE: 'Firebase 연결이 준비되지 않아 테스트 신고를 로컬 대기열에 저장했습니다.',
                     FOXBEAR_INCIDENT_FIREBASE_ERROR: 'Firebase 초기화 오류로 테스트 신고를 로컬 대기열에 저장했습니다.',
                     'suppressed-duplicate': '동일 테스트가 중복 억제됐습니다.',
-                    'suppressed-rate-limit': '서버 일일 메일 상한으로 억제됐습니다.',
+                    'suppressed-rate-limit': '이전 버전의 일일 한도 상태입니다. 서버가 다음 KST 발송 구간에 자동 복구합니다.',
                     failed: '메일 발송 함수가 실패했습니다. 자동 재시도 상태를 확인하세요.',
                     'dead-letter': '메일 발송이 최대 재시도 횟수를 초과했습니다. 관리자 화면에서 강제 재전송하세요.'
                 };

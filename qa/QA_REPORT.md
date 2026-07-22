@@ -1,3 +1,39 @@
+# QA Report - v1.5.64 Incident Operations Health Self-Diagnostics
+
+- Added a 15-minute server audit for SMTP/Secret readiness, long-undelivered reports, dead-letter accumulation, summary failures, and KST quota reservation leaks.
+- Added transition-aware operations alert and recovery email behavior with a 12-hour persistent-issue cooldown.
+- Added administrator-readable `incidentOperations/mail` telemetry and exact KST-day incident counting.
+- Preserved fenced audit completion, previous mail queue recovery, SRI, service-worker, and package gates.
+- Static and regression target: all 273 configured checks PASS in bounded continuation segments.
+
+## v1.5.64 coverage
+
+- Gmail app-password format and live SMTP authentication classification
+- healthy/warning/critical operations state evaluation
+- long-undelivered and dead-letter thresholds
+- daily summary lock/failure and quota reservation leak visibility
+- operations alert transition, cooldown, and recovery behavior
+- administrator Firestore rule, KST count, and self-diagnostics UI coverage
+- release metadata, historical QA document stability, handoff, SRI, and package integrity
+
+# QA Report - v1.5.63 Incident Mail Quota and Summary Recovery
+
+- Incident mail quotas now use KST date buckets instead of UTC dates.
+- Quota-limited reports remain retryable and legacy `suppressed-rate-limit` reports are recovered by the watchdog.
+- Per-report reservation ownership returns daily capacity after success, failure, duplicate suppression, quota deferral, and missing-report cleanup.
+- Daily summaries paginate in 500-report pages, mark 5,000-report truncation, use deterministic Message-IDs, and backfill the previous three KST dates.
+- SMTP success requires at least one accepted recipient and the Gmail app password must normalize to exactly 16 characters.
+- Static and regression target: all 272 configured checks PASS in bounded continuation segments.
+
+## v1.5.63 coverage
+
+- KST date boundary and next-day retry calculation
+- legacy rate-limit migration and retry scheduling
+- daily reservation ownership and leak prevention
+- summary pagination, truncation disclosure, lease fencing, and backfill schedule
+- SMTP accepted-recipient validation and strict Secret format
+- release metadata, handoff, SRI, and package integrity
+
 # QA Report - v1.5.62 Incident Delivery Watchdog and Package Gate
 
 - New incident reports begin in an explicit pending delivery queue.

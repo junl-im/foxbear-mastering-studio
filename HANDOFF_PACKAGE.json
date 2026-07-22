@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.62",
-  "buildId": "incident-delivery-watchdog-package-gate",
+  "productVersion": "1.5.64",
+  "buildId": "incident-operations-health-self-diagnostics",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -47,7 +47,11 @@
     "firestore.rules",
     "firestore.indexes.json",
     "qa/v1562_incident_delivery_watchdog_package_gate_smoke.js",
-    "docs/V1.5.62_INCIDENT_DELIVERY_WATCHDOG_PACKAGE_GATE.md"
+    "docs/V1.5.62_INCIDENT_DELIVERY_WATCHDOG_PACKAGE_GATE.md",
+    "qa/v1563_incident_mail_quota_summary_recovery_smoke.js",
+    "docs/V1.5.63_INCIDENT_MAIL_QUOTA_SUMMARY_RECOVERY.md",
+    "qa/v1564_incident_operations_health_self_diagnostics_smoke.js",
+    "docs/V1.5.64_INCIDENT_OPERATIONS_HEALTH_SELF_DIAGNOSTICS.md"
   ],
   "requiredPrefixes": [
     "assets/",
