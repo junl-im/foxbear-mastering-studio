@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.73-bulk-control-eta-result-filter-ui';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.74-bulk-pause-skip-reorder-mobile-download';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

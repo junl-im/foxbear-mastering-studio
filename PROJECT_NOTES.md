@@ -1,3 +1,8 @@
+
+## v1.5.74
+
+Batch pause/resume, current-track skip, pending queue reorder, completion summary, and mobile MP3/WAV two-stage download sheet.
+
 ## v1.5.73 focus
 
 - Batch cancellation is signal-driven and must not discard already completed outputs.

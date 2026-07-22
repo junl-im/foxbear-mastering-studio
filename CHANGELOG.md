@@ -1,3 +1,11 @@
+# v1.5.74 - Batch Pause, Skip, Queue Reorder, and Mobile Download Sheet
+
+- Added between-track pause/resume without interrupting the active track.
+- Added safe current-track skip and reorder controls for tracks that have not started.
+- Added completion summaries with completed, failed, skipped, cancelled, elapsed, and average duration metrics.
+- Rebuilt the mobile download dialog as a near-full-height bottom sheet with MP3/WAV family selection and quality-specific choices.
+- Added a sticky mobile save/share action area so the final action remains visible on short screens.
+
 # v1.5.73 - Cancellable Multi-Mastering, Failed Retry, ETA, and Result Filters
 
 - Added safe cancellation for the active multi-track mastering job and preserves remaining tracks as cancelled results.

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.73-bulk-control-eta-result-filter-ui';
+const version = '1.5.74-bulk-pause-skip-reorder-mobile-download';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

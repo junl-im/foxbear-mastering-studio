@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.73",
+  "version": "1.5.74",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with cancellable multi-track mastering, failed-track retry, per-track ETA, result filters, and desktop/mobile visual layout regression contracts.",
+  "description": "FoxBear AI Mastering Studio Pro with between-track pause/resume, current-track skip, reorderable multi-track queues, batch completion summaries, and a mobile full-height MP3/WAV two-stage download picker.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.73-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.73-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.74-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.74-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -309,15 +309,17 @@
     "node qa/v1570_mail_test_alert_troubleshooter_statistics_export_smoke.js",
     "node qa/v1571_admin_operations_ui_mail_period_trends_smoke.js",
     "node qa/v1572_bulk_workflow_admin_audit_mobile_ui_smoke.js",
-    "node qa/v1573_bulk_mastering_control_eta_visual_smoke.js"
+    "node qa/v1573_bulk_mastering_control_eta_visual_smoke.js",
+    "node qa/v1574_bulk_pause_mobile_download_smoke.js",
+    "node --check qa/browser/v1574-mobile-download-batch-controls-visual.spec.js"
   ],
   "foxbearRelease": {
-    "buildId": "bulk-control-eta-result-filter-ui",
-    "assetVersion": "1.5.73-bulk-control-eta-result-filter-ui",
-    "cacheName": "foxbear-shell-v1.5.73-bulk-control-eta-result-filter-ui",
-    "bootRevision": "boot-sri-v1573",
-    "updateSafetyRevision": "update-safety-v1573",
-    "serviceWorkerRevision": "sw-v1573"
+    "buildId": "bulk-pause-skip-reorder-mobile-download",
+    "assetVersion": "1.5.74-bulk-pause-skip-reorder-mobile-download",
+    "cacheName": "foxbear-shell-v1.5.74-bulk-pause-skip-reorder-mobile-download",
+    "bootRevision": "boot-sri-v1574",
+    "updateSafetyRevision": "update-safety-v1574",
+    "serviceWorkerRevision": "sw-v1574"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

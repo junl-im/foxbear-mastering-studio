@@ -429,3 +429,81 @@ body.bottom-preview-active .bulk-import-hud {
 @media (prefers-reduced-motion: reduce) {
     #masterAllBtn.bulk-analysis-next-step { animation: none; }
 }
+
+/* v1.5.74: between-track pause, current-track skip, queue ordering and completion summary. */
+.bulk-import-hud-pause {
+    border-color: rgba(255,224,108,.34);
+    color: #fff2bd;
+    background: rgba(255,194,60,.10);
+}
+.bulk-import-hud-pause[aria-pressed="true"] {
+    border-color: rgba(127,255,212,.46);
+    color: #d8fff3;
+    background: rgba(54,211,153,.14);
+}
+.bulk-import-hud-skip {
+    border-color: rgba(120,215,255,.32);
+    color: #d9f6ff;
+    background: rgba(52,152,219,.11);
+}
+.bulk-import-hud[data-paused="true"] .bulk-import-hud-card {
+    border-color: rgba(255,224,108,.42);
+    box-shadow: 0 24px 80px rgba(0,0,0,.54), inset 3px 0 0 rgba(255,224,108,.72);
+}
+.bulk-import-hud-summary {
+    display: grid;
+    gap: 3px;
+    padding: 9px 11px;
+    border: 1px solid rgba(127,255,212,.22);
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(54,211,153,.10), rgba(120,215,255,.06));
+}
+.bulk-import-hud-summary[hidden] { display: none !important; }
+.bulk-import-hud-summary strong { color: #e7fff8; font-size: .68rem; }
+.bulk-import-hud-summary span { color: rgba(223,252,255,.72); font-size: .56rem; line-height: 1.35; }
+.bulk-import-row {
+    grid-template-columns: 34px minmax(0,1fr) auto minmax(70px,120px) auto 44px;
+}
+.bulk-import-row-order-actions {
+    display: inline-flex;
+    gap: 3px;
+    min-width: 0;
+}
+.bulk-import-row-order-actions:empty { display: none; }
+.bulk-import-row-order-btn {
+    width: 25px;
+    height: 25px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 8px;
+    background: rgba(255,255,255,.06);
+    color: rgba(235,248,255,.88);
+    font-size: .66rem;
+    line-height: 1;
+}
+.bulk-import-row-order-btn:disabled { opacity: .32; cursor: not-allowed; }
+.bulk-import-row.is-skipped .bulk-import-row-state {
+    color: #d8f2ff;
+    border-color: rgba(120,215,255,.34);
+    background: rgba(120,215,255,.08);
+}
+.bulk-import-row.is-skipped .bulk-import-row-meter i {
+    background: linear-gradient(90deg, rgba(120,215,255,.72), rgba(184,156,255,.64));
+}
+@media (max-width: 680px) {
+    .bulk-import-hud[data-phase="mastering"] .bulk-import-hud-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .bulk-import-row {
+        grid-template-columns: 28px minmax(0,1fr) auto 38px;
+    }
+    .bulk-import-row-meter { grid-column: 2 / 4; }
+    .bulk-import-row-order-actions {
+        grid-column: 2 / 3;
+        justify-self: start;
+    }
+    .bulk-import-row-percent { grid-column: 4; grid-row: 1; }
+    .bulk-import-hud-summary { padding: 8px 9px; }
+}

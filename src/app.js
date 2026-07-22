@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.73 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.74 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -21,7 +21,7 @@ const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetySer
 const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.73';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.74';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.73-bulk-control-eta-result-filter-ui'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1573'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.74-bulk-pause-skip-reorder-mobile-download'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1574'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -3076,7 +3076,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.73-bulk-control-eta-result-filter-ui') · navigator.serviceWorker.register('./sw.js?v=1.5.73-bulk-control-eta-result-filter-ui&h=sw-v1573')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.74-bulk-pause-skip-reorder-mobile-download') · navigator.serviceWorker.register('./sw.js?v=1.5.74-bulk-pause-skip-reorder-mobile-download&h=sw-v1574')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3864,6 +3864,10 @@ function getBulkImportHudDeps() {
         showToast: showToastSafe,
         onMasterAll: () => masterAllTracks(),
         onCancelBatch: reason => cancelActiveMasteringBatch(reason),
+        onPauseBatch: reason => pauseActiveMasteringBatch(reason),
+        onResumeBatch: reason => resumeActiveMasteringBatch(reason),
+        onSkipCurrent: reason => skipCurrentMasteringTrack(reason),
+        onMoveTrack: (trackId, direction) => movePendingMasteringTrack(trackId, direction),
         onRetryFailed: () => retryFailedBulkMasteringTracks(),
         scheduleRender: reason => scheduleRenderAll(reason, { keepDetailAudio: true, immediate: true }),
         minTracks: SAFE_BULK_IMPORT_HUD_MIN_TRACKS,
@@ -3897,7 +3901,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.73-bulk-control-eta-result-filter-ui', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.74-bulk-pause-skip-reorder-mobile-download', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4211,7 +4215,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.73-bulk-control-eta-result-filter-ui',
+        version: '1.5.74-bulk-pause-skip-reorder-mobile-download',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4251,10 +4255,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.73-bulk-control-eta-result-filter-ui',
+    version: '1.5.74-bulk-pause-skip-reorder-mobile-download',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.73-bulk-control-eta-result-filter-ui', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.74-bulk-pause-skip-reorder-mobile-download', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4279,12 +4283,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.73-bulk-control-eta-result-filter-ui', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.74-bulk-pause-skip-reorder-mobile-download', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.73-bulk-control-eta-result-filter-ui', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.74-bulk-pause-skip-reorder-mobile-download', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4299,12 +4303,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.73-bulk-control-eta-result-filter-ui',
+    version: 'v1.5.74-bulk-pause-skip-reorder-mobile-download',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.73-bulk-control-eta-result-filter-ui', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.74-bulk-pause-skip-reorder-mobile-download', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5415,11 +5419,13 @@ function preparePrimaryActionTrack(track) {
 function notifyBulkMasteringTrackStart(track, meta = {}) { return getBulkImportHudView()?.markMasteringTrackStart?.(track, meta) || false; }
 function notifyBulkMasteringTrackResult(track, meta = {}) { return getBulkImportHudView()?.markMasteringTrackResult?.(track, meta) || false; }
 function notifyBulkMasteringBatchCancelled(meta = {}) { return getBulkImportHudView()?.markMasteringBatchCancelled?.(meta) || false; }
-function cancelActiveMasteringBatch(reason = 'user-request') {
-    const accepted = Boolean(getMasteringBatchRunner()?.cancelActiveBatch?.(reason));
-    if (accepted) updateBulkImportHud();
-    return accepted;
-}
+function notifyBulkMasteringPauseChanged(meta = {}) { return getBulkImportHudView()?.markMasteringPauseChanged?.(meta) || false; }
+function notifyBulkMasteringSkipRequested(meta = {}) { return getBulkImportHudView()?.markMasteringSkipRequested?.(meta) || false; }
+function notifyBulkMasteringQueueChanged(meta = {}) { return getBulkImportHudView()?.markMasteringQueueChanged?.(meta) || false; }
+function runMasteringBatchControl(method, args = []) { const accepted = Boolean(getMasteringBatchRunner()?.[method]?.(...args)); if (accepted) updateBulkImportHud(); return accepted; }
+function cancelActiveMasteringBatch(reason = 'user-request') { return runMasteringBatchControl('cancelActiveBatch', [reason]); }
+function pauseActiveMasteringBatch(reason = 'user-request') { return runMasteringBatchControl('pauseActiveBatch', [reason]); } function resumeActiveMasteringBatch(reason = 'user-request') { return runMasteringBatchControl('resumeActiveBatch', [reason]); } function skipCurrentMasteringTrack(reason = 'user-skip') { return runMasteringBatchControl('skipCurrentTrack', [reason]); }
+function movePendingMasteringTrack(trackId, direction) { return runMasteringBatchControl('movePendingTrack', [trackId, direction]); }
 async function retryFailedBulkMasteringTracks() {
     const failedTracks = getBulkImportHudView()?.getFailedTracks?.() || state.tracks.filter(track => track && (track.bulkMasteringResult === 'error' || track.status === 'error'));
     if (!failedTracks.length) { showToast('다시 실행할 실패 곡이 없습니다.'); return false; }
@@ -5447,13 +5453,18 @@ function getMasteringBatchRunner() {
             onTrackComplete: (track, meta) => notifyBulkMasteringTrackResult(track, meta),
             onBatchCancelled: meta => notifyBulkMasteringBatchCancelled(meta),
             onCancelRequested: () => updateBulkImportHud(),
+            onPauseChanged: meta => notifyBulkMasteringPauseChanged(meta),
+            onSkipRequested: meta => notifyBulkMasteringSkipRequested(meta),
+            onQueueChanged: meta => notifyBulkMasteringQueueChanged(meta),
             render: options => renderAll(options || {}),
             prepareTrack: track => preparePrimaryActionTrack(track),
             masterTrack
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.73-bulk-batch-control-eta-results-fallback',
+            version: '1.5.74-bulk-pause-skip-reorder-summary-fallback',
+            cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
+            skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -5474,9 +5485,7 @@ function getMasteringBatchRunner() {
                 } finally { state.busy = false;
                     try { renderAll(batchOptions.finalRenderOptions || {}); } catch (error) { console.error('Batch final render error:', error); }
                 }
-            },
-            cancelActiveBatch() { return false; },
-            getActiveBatchSnapshot() { return null; }
+            }
         });
     }
     return masteringBatchRunner;
@@ -5989,13 +5998,12 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         showToast(`${track.name} 마스터링 성공`);
     } catch (error) {
         if (isWorkerJobAbortError(error)) {
-            console.info('Mastering cancelled:', track.name, error?.message || error);
-            if (state.tracks.includes(track)) {
-                track.status = track.analysis ? 'ready' : 'queued';
-                track.error = null;
-                track.report = '마스터링 작업이 취소되었습니다.';
-                if (!calledFromBatch) showToast(`${track.name}: 마스터링이 취소되었습니다.`);
-            }
+            const abortReason = String(masteringAbortController?.signal?.reason || externalMasteringSignal?.reason || error?.message || '');
+            const skippedByBatch = calledFromBatch && /skip/i.test(abortReason);
+            console.info(skippedByBatch ? 'Mastering skipped:' : 'Mastering cancelled:', track.name, abortReason || error);
+            if (state.tracks.includes(track)) { track.status = track.analysis ? 'ready' : 'queued'; track.error = null;
+                track.report = skippedByBatch ? '현재 곡을 건너뛰고 다음 곡으로 이동했습니다.' : '마스터링 작업이 취소되었습니다.';
+                if (!calledFromBatch) showToast(`${track.name}: 마스터링이 취소되었습니다.`); }
         } else {
             console.error('Mastering error:', error);
             reportOperationalIncident('mastering', error, `stage=${track.report || ''}; status=${track.status || ''}; format=${state.outputFormat || ''}; quality=${state.qualityMode || ''}; inApp=${track.inAppSafetyInfo?.label || ''}; projectedPeakMb=${track.inAppSafetyInfo?.projectedPeakMb || 0}; pressure=${track.inAppSafetyInfo?.pressureRatio || 0}`, { reason: 'mastering-failed' });
@@ -9986,7 +9994,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.73-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.5.74-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13075,7 +13083,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.73',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.74',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

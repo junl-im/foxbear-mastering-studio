@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.73",
-  "buildId": "bulk-control-eta-result-filter-ui",
+  "productVersion": "1.5.74",
+  "buildId": "bulk-pause-skip-reorder-mobile-download",
   "requiredFiles": [
     "404.html",
     ".gitignore",

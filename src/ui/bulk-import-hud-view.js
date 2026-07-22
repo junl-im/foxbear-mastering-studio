@@ -2,8 +2,9 @@
 (function initBulkImportHudView(global) {
     'use strict';
 
-    const VIEW_VERSION = '1.5.73-bulk-control-eta-result-filter';
-    // v1.5.73 compatibility QA anchor: const VIEW_VERSION = '1.5.73-bulk-control-eta-result-filter-ui'
+    const VIEW_VERSION = '1.5.74-bulk-pause-skip-reorder-summary';
+    // v1.5.74 compatibility QA anchor: const VIEW_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download'
+    // compatibility anchor: const VIEW_VERSION = '1.5.74-bulk-control-eta-result-filter'
     // Legacy copy contract retained for regression discovery: 대량 마스터링 HUD
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
@@ -19,7 +20,9 @@
         autoAdvancedBatchId: '',
         lastAutoScrolledTrackId: '',
         resultFilter: 'all',
-        cancelRequested: false
+        cancelRequested: false,
+        paused: false,
+        skipRequested: false
     };
 
     function configure(nextDeps = {}) {
@@ -60,6 +63,8 @@
         const toggle = getEl('bulkImportHudToggle');
         const close = getEl('bulkImportHudClose');
         const masterAll = getEl('bulkImportHudMasterAll');
+        const pauseBatch = getEl('bulkImportHudPause');
+        const skipCurrent = getEl('bulkImportHudSkip');
         const cancelBatch = getEl('bulkImportHudCancel');
         const retryFailed = getEl('bulkImportHudRetryFailed');
         const resultFilter = getEl('bulkImportHudFilter');
@@ -72,6 +77,8 @@
         if (masterAll) {
             masterAll.addEventListener('click', runMasterAllFromHud);
         }
+        if (pauseBatch) pauseBatch.addEventListener('click', toggleMasteringPause);
+        if (skipCurrent) skipCurrent.addEventListener('click', skipCurrentMasteringTrack);
         if (cancelBatch) {
             cancelBatch.addEventListener('click', cancelMasteringBatch);
         }
@@ -117,6 +124,8 @@
         hudState.lastAutoScrolledTrackId = '';
         hudState.resultFilter = 'all';
         hudState.cancelRequested = false;
+        hudState.paused = false;
+        hudState.skipRequested = false;
         items.forEach((track, index) => {
             track.bulkImportBatchId = batchId;
             track.bulkImportOrder = index + 1;
@@ -141,6 +150,8 @@
         hudState.lastAutoScrolledTrackId = '';
         hudState.resultFilter = 'all';
         hudState.cancelRequested = false;
+        hudState.paused = false;
+        hudState.skipRequested = false;
         items.forEach((track, index) => {
             track.bulkMasteringBatchId = batchId;
             track.bulkMasteringOrder = index + 1;
@@ -152,6 +163,7 @@
             track.bulkMasteringTrackCompletedAt = 0;
             track.bulkMasteringDurationMs = 0;
             track.bulkMasteringCancelReason = '';
+            track.bulkMasteringSkipReason = '';
             track.bulkMasteringResult = 'queued';
             track.bulkMasteringSource = String(options.source || 'batch');
         });
@@ -189,9 +201,35 @@
         return false;
     }
 
+    // v1.5.74 compatibility: ['all', 'active', 'completed', 'failed', 'cancelled', 'pending']
     function normalizeResultFilter(value) {
         const filter = String(value || 'all');
-        return ['all', 'active', 'completed', 'failed', 'cancelled', 'pending'].includes(filter) ? filter : 'all';
+        return ['all', 'active', 'completed', 'failed', 'skipped', 'cancelled', 'pending'].includes(filter) ? filter : 'all';
+    }
+
+    function toggleMasteringPause() {
+        if (!isMasteringPhase()) return false;
+        const accepted = hudState.paused
+            ? (typeof deps.onResumeBatch === 'function' && deps.onResumeBatch('user-resume') !== false)
+            : (typeof deps.onPauseBatch === 'function' && deps.onPauseBatch('user-pause-between-tracks') !== false);
+        if (accepted) update();
+        return Boolean(accepted);
+    }
+
+    function skipCurrentMasteringTrack() {
+        if (!isMasteringPhase() || hudState.skipRequested) return false;
+        const summary = getSummary();
+        if (!summary.currentTrackId) return false;
+        const accepted = typeof deps.onSkipCurrent === 'function' ? deps.onSkipCurrent('user-skip-current') !== false : false;
+        if (accepted) { hudState.skipRequested = true; update(); }
+        return Boolean(accepted);
+    }
+
+    function movePendingTrack(trackId, direction) {
+        if (!isMasteringPhase() || typeof deps.onMoveTrack !== 'function') return false;
+        const accepted = deps.onMoveTrack(trackId, direction) !== false;
+        if (accepted) update();
+        return Boolean(accepted);
     }
 
     function cancelMasteringBatch() {
@@ -229,14 +267,16 @@
 
     function markMasteringTrackResult(track, meta = {}) {
         if (!track || !track.bulkMasteringBatchId) return false;
-        const outcome = ['completed', 'failed', 'cancelled'].includes(meta.outcome) ? meta.outcome : (meta.ok ? 'completed' : 'failed');
+        const outcome = ['completed', 'failed', 'skipped', 'cancelled'].includes(meta.outcome) ? meta.outcome : (meta.ok ? 'completed' : 'failed');
         const completedAt = Number(meta.completedAt || Date.now());
         const startedAt = Number(meta.startedAt || track.bulkMasteringTrackStartedAt || completedAt);
-        track.bulkMasteringResult = outcome === 'completed' ? 'done' : (outcome === 'failed' ? 'error' : 'cancelled');
+        track.bulkMasteringResult = outcome === 'completed' ? 'done' : (outcome === 'failed' ? 'error' : (outcome === 'skipped' ? 'skipped' : 'cancelled'));
         track.bulkMasteringTrackStartedAt = startedAt;
         track.bulkMasteringTrackCompletedAt = completedAt;
         track.bulkMasteringDurationMs = Math.max(0, completedAt - startedAt);
         track.bulkMasteringCancelReason = outcome === 'cancelled' ? String(meta.reason || meta.signal?.reason || 'user-request') : '';
+        track.bulkMasteringSkipReason = outcome === 'skipped' ? String(meta.reason || 'user-skip-current') : '';
+        hudState.skipRequested = false;
         update();
         return true;
     }
@@ -246,7 +286,7 @@
         const batchId = hudState.batchId;
         getStateTracks().forEach(track => {
             if (!track || track.bulkMasteringBatchId !== batchId) return;
-            if (['done', 'error'].includes(track.bulkMasteringResult)) return;
+            if (['done', 'error', 'skipped'].includes(track.bulkMasteringResult)) return;
             track.bulkMasteringResult = 'cancelled';
             track.bulkMasteringCancelReason = reason;
             if (!track.bulkMasteringTrackCompletedAt) track.bulkMasteringTrackCompletedAt = Date.now();
@@ -255,6 +295,25 @@
             }
         });
         hudState.cancelRequested = false;
+        update();
+        return true;
+    }
+
+    function markMasteringPauseChanged(meta = {}) {
+        hudState.paused = Boolean(meta.paused);
+        update();
+        return true;
+    }
+
+    function markMasteringSkipRequested(meta = {}) {
+        hudState.skipRequested = Boolean(meta.requested);
+        update();
+        return true;
+    }
+
+    function markMasteringQueueChanged(meta = {}) {
+        const items = Array.isArray(meta.items) ? meta.items : [];
+        items.forEach((track, index) => { if (track) track.bulkMasteringOrder = index + 1; });
         update();
         return true;
     }
@@ -308,13 +367,14 @@
         track.bulkMasteringTrackCompletedAt = 0;
         track.bulkMasteringDurationMs = 0;
         track.bulkMasteringCancelReason = '';
+        track.bulkMasteringSkipReason = '';
         return track;
     }
 
     function getMasteringResult(track) {
         if (!track) return '';
         const result = String(track.bulkMasteringResult || '');
-        if (['queued', 'running', 'done', 'error', 'cancelled'].includes(result)) return result;
+        if (['queued', 'running', 'done', 'error', 'skipped', 'cancelled'].includes(result)) return result;
         if (track.status === 'processing') return 'running';
         if (track.status === 'done' || track.outBlob || track.masteredUrl) return 'done';
         if (track.status === 'error') return 'error';
@@ -325,7 +385,7 @@
         if (!track) return 0;
         if (isMasteringPhase()) {
             const result = getMasteringResult(track);
-            if (['done', 'error', 'cancelled'].includes(result)) return 100;
+            if (['done', 'error', 'skipped', 'cancelled'].includes(result)) return 100;
             if (result === 'running' || track.status === 'processing') return clampValue(Number(track.progress || 0), 0, 99);
             return 0;
         }
@@ -342,6 +402,7 @@
             if (result === 'running') return '마스터링 중';
             if (result === 'done') return '완성';
             if (result === 'error') return '오류';
+            if (result === 'skipped') return '건너뜀';
             if (result === 'cancelled') return '취소';
         }
         if (track.status === 'queued') return '대기';
@@ -362,6 +423,10 @@
 
     function isTrackErrorForSummary(track) {
         return Boolean(track && (isMasteringPhase() ? getMasteringResult(track) === 'error' : track.status === 'error'));
+    }
+
+    function isTrackSkippedForSummary(track) {
+        return Boolean(track && isMasteringPhase() && getMasteringResult(track) === 'skipped');
     }
 
     function isTrackCancelledForSummary(track) {
@@ -417,6 +482,7 @@
         const total = Math.max(Number(hudState.total || 0), tracks.length);
         const done = tracks.filter(isTrackDoneForSummary).length;
         const errors = tracks.filter(isTrackErrorForSummary).length;
+        const skipped = tracks.filter(isTrackSkippedForSummary).length;
         const cancelled = tracks.filter(isTrackCancelledForSummary).length;
         const active = tracks.filter(isTrackActiveForSummary).length;
         const pending = tracks.filter(isTrackPendingForSummary).length;
@@ -426,7 +492,7 @@
         const currentTrackIndex = currentTrack ? Math.max(0, tracks.indexOf(currentTrack)) : -1;
         const currentTrackOrder = currentTrack ? getTrackOrder(currentTrack, currentTrackIndex) : 0;
         const currentTrackProgress = currentTrack ? Math.round(getTrackProgress(currentTrack)) : 0;
-        const complete = total > 0 && tracks.length > 0 && done + errors + cancelled >= total && !active && !pending;
+        const complete = total > 0 && tracks.length > 0 && done + errors + skipped + cancelled >= total && !active && !pending;
         const averageDurationMs = isMasteringPhase() ? getAverageMasteringDurationMs(tracks, currentTrack) : 0;
         let currentRemainingMs = 0;
         if (currentTrack && currentTrack.bulkMasteringTrackStartedAt) {
@@ -449,6 +515,7 @@
             count: tracks.length,
             done,
             errors,
+            skipped,
             cancelled,
             active,
             pending,
@@ -464,6 +531,8 @@
             etaLabel: remainingMs ? `예상 남은 시간 ${formatDuration(remainingMs)}` : '',
             resultFilter: normalizeResultFilter(hudState.resultFilter),
             cancelRequested: Boolean(hudState.cancelRequested),
+            paused: Boolean(hudState.paused),
+            skipRequested: Boolean(hudState.skipRequested),
             expanded: Boolean(hudState.expanded),
             dismissed: Boolean(hudState.dismissedBatchId && hudState.dismissedBatchId === hudState.batchId),
             restorable: Boolean(hudState.dismissedBatchId && hudState.dismissedBatchId === hudState.batchId && total >= getMinTracks() && (!complete || !hudState.completedAt || Date.now() - hudState.completedAt <= getHoldMs())),
@@ -484,6 +553,7 @@
             count: summary.count,
             done: summary.done,
             errors: summary.errors,
+            skipped: summary.skipped,
             cancelled: summary.cancelled,
             active: summary.active,
             pending: summary.pending,
@@ -498,6 +568,8 @@
             etaLabel: summary.etaLabel,
             resultFilter: summary.resultFilter,
             cancelRequested: summary.cancelRequested,
+            paused: summary.paused,
+            skipRequested: summary.skipRequested,
             expanded: summary.expanded,
             dismissed: summary.dismissed,
             restorable: summary.restorable,
@@ -586,6 +658,8 @@
         hud.dataset.currentTrackId = summary.currentTrackId || '';
         hud.dataset.resultFilter = summary.resultFilter || 'all';
         hud.dataset.cancelRequested = summary.cancelRequested ? 'true' : 'false';
+        hud.dataset.paused = summary.paused ? 'true' : 'false';
+        hud.dataset.skipRequested = summary.skipRequested ? 'true' : 'false';
         hud.classList.toggle('has-current-track', Boolean(summary.currentTrackId));
         if (!visible) {
             syncStack();
@@ -598,12 +672,15 @@
         const list = getEl('bulkImportHudList');
         const toggle = getEl('bulkImportHudToggle');
         const masterAll = getEl('bulkImportHudMasterAll');
+        const pauseBatch = getEl('bulkImportHudPause');
+        const skipCurrent = getEl('bulkImportHudSkip');
         const cancelBatch = getEl('bulkImportHudCancel');
         const retryFailed = getEl('bulkImportHudRetryFailed');
         const resultFilter = getEl('bulkImportHudFilter');
+        const summaryCard = getEl('bulkImportHudSummary');
         const face = hud.querySelector?.('.bulk-import-hud-face');
         const mastering = summary.phase === 'mastering';
-        if (face) face.textContent = mastering ? (summary.cancelRequested ? '⏹️' : '🎛️') : '📦';
+        if (face) face.textContent = mastering ? (summary.cancelRequested ? '⏹️' : (summary.paused ? '⏸️' : '🎛️')) : '📦';
         if (title) {
             if (mastering && summary.complete && summary.cancelled) title.textContent = '여러 곡 마스터링 중단';
             else title.textContent = summary.complete
@@ -613,10 +690,10 @@
         if (text) {
             if (mastering && summary.currentTrack) {
                 const eta = summary.currentRemainingMs ? ` · 현재 곡 약 ${formatDuration(summary.currentRemainingMs)} 남음` : '';
-                text.textContent = `현재 ${summary.currentTrackOrder}/${summary.total} · ${summary.currentTrack.name || '트랙'} · ${summary.currentTrackProgress}%${eta} · 완료 ${summary.done} · 대기 ${summary.pending} · 오류 ${summary.errors} · 취소 ${summary.cancelled}`;
+                text.textContent = `현재 ${summary.currentTrackOrder}/${summary.total} · ${summary.currentTrack.name || '트랙'} · ${summary.currentTrackProgress}%${eta} · 완료 ${summary.done} · 대기 ${summary.pending} · 오류 ${summary.errors} · 건너뜀 ${summary.skipped} · 취소 ${summary.cancelled}${summary.paused ? ' · 다음 곡 전 일시정지' : ''}`;
             } else {
                 text.textContent = mastering
-                    ? `${summary.done}/${summary.total} 완성 · 대기 ${summary.pending} · 오류 ${summary.errors} · 취소 ${summary.cancelled}${summary.etaLabel ? ` · ${summary.etaLabel}` : ''}`
+                    ? `${summary.done}/${summary.total} 완성 · 대기 ${summary.pending} · 오류 ${summary.errors} · 건너뜀 ${summary.skipped} · 취소 ${summary.cancelled}${summary.etaLabel ? ` · ${summary.etaLabel}` : ''}${summary.paused ? ' · 일시정지됨' : ''}`
                     : `${summary.done}/${summary.total} 완료 · 분석 ${summary.active} · 대기 ${summary.pending} · 오류 ${summary.errors}`;
             }
         }
@@ -628,7 +705,8 @@
             toggle.setAttribute('aria-expanded', 'true');
         }
         updateMasterAllButton(masterAll, summary);
-        updateMasteringActionControls({ cancelBatch, retryFailed, resultFilter }, summary);
+        updateMasteringActionControls({ pauseBatch, skipCurrent, cancelBatch, retryFailed, resultFilter }, summary);
+        renderBatchSummary(summaryCard, summary);
         if (list) renderList(list, summary);
         syncStack();
         return getSnapshot();
@@ -659,6 +737,17 @@
     function updateMasteringActionControls(controls, summary) {
         const mastering = summary?.phase === 'mastering';
         const busy = mastering && !summary.complete && (summary.active > 0 || summary.pending > 0);
+        if (controls.pauseBatch) {
+            controls.pauseBatch.hidden = !mastering || !busy;
+            controls.pauseBatch.disabled = !busy || summary.cancelRequested;
+            controls.pauseBatch.textContent = summary.paused ? '계속 진행' : '다음 곡 전 일시정지';
+            controls.pauseBatch.setAttribute('aria-pressed', String(summary.paused));
+        }
+        if (controls.skipCurrent) {
+            controls.skipCurrent.hidden = !mastering || !summary.currentTrackId || summary.complete;
+            controls.skipCurrent.disabled = !summary.currentTrackId || summary.skipRequested || summary.cancelRequested;
+            controls.skipCurrent.textContent = summary.skipRequested ? '건너뛰는 중' : '현재 곡 건너뛰기';
+        }
         if (controls.cancelBatch) {
             controls.cancelBatch.hidden = !mastering || !busy;
             controls.cancelBatch.disabled = !busy || summary.cancelRequested;
@@ -679,12 +768,27 @@
         }
     }
 
+    function renderBatchSummary(container, summary) {
+        if (!container) return;
+        const show = Boolean(summary?.phase === 'mastering' && summary.complete);
+        container.hidden = !show;
+        container.replaceChildren();
+        if (!show) return;
+        const title = global.document.createElement('strong');
+        title.textContent = summary.cancelled ? '배치 중단 요약' : '배치 완료 요약';
+        const detail = global.document.createElement('span');
+        const elapsedMs = Math.max(0, Number(summary.completedAt || Date.now()) - Number(summary.startedAt || Date.now()));
+        detail.textContent = `완료 ${summary.done} · 실패 ${summary.errors} · 건너뜀 ${summary.skipped} · 취소 ${summary.cancelled}${elapsedMs ? ` · 총 ${formatDuration(elapsedMs)}` : ''}${summary.averageDurationMs ? ` · 곡당 평균 ${formatDuration(summary.averageDurationMs)}` : ''}`;
+        container.append(title, detail);
+    }
+
     function trackMatchesFilter(track, filter) {
         if (!isMasteringPhase() || filter === 'all') return true;
         const result = getMasteringResult(track);
         if (filter === 'active') return result === 'running';
         if (filter === 'completed') return result === 'done';
         if (filter === 'failed') return result === 'error';
+        if (filter === 'skipped') return result === 'skipped';
         if (filter === 'cancelled') return result === 'cancelled';
         if (filter === 'pending') return result === 'queued';
         return true;
@@ -696,6 +800,7 @@
         const duration = Number(track.bulkMasteringDurationMs || 0);
         if (result === 'done' && duration) return `소요 ${formatDuration(duration)}`;
         if (result === 'error' && duration) return `실패까지 ${formatDuration(duration)}`;
+        if (result === 'skipped') return '건너뜀';
         if (result === 'cancelled') return '작업 취소됨';
         if (result === 'running' && summary.currentRemainingMs) return `남은 약 ${formatDuration(summary.currentRemainingMs)}`;
         if (result === 'queued' && summary.averageDurationMs) {
@@ -712,9 +817,8 @@
         list.textContent = '';
         const allTracks = summary.tracks.slice(0, Math.max(summary.total, summary.tracks.length));
         const filter = normalizeResultFilter(summary.resultFilter);
-        const tracks = allTracks
-            .map((track, originalIndex) => ({ track, originalIndex }))
-            .filter(item => trackMatchesFilter(item.track, filter));
+        const queuedTrackIds = allTracks.filter(track => getMasteringResult(track) === 'queued').map(track => track.id);
+        const tracks = allTracks.map((track, originalIndex) => ({ track, originalIndex })).filter(item => trackMatchesFilter(item.track, filter));
         let currentRow = null;
         if (!tracks.length) {
             const empty = global.document.createElement('div');
@@ -745,7 +849,7 @@
             const timing = getTrackTimingLabel(track, summary, originalIndex);
             const reportText = result === 'cancelled'
                 ? '다중 작업 취소로 실행하지 않았습니다.'
-                : (track.error || track.report || getStatusLabel(track));
+                : (result === 'skipped' ? '관리자가 현재 곡을 건너뛰었습니다.' : (track.error || track.report || getStatusLabel(track)));
             report.textContent = timing ? `${reportText} · ${timing}` : reportText;
             main.append(name, report);
             const stateBadge = global.document.createElement('span');
@@ -758,10 +862,30 @@
             const fill = global.document.createElement('i');
             fill.style.width = `${trackPercent}%`;
             meter.appendChild(fill);
+            const orderActions = global.document.createElement('span');
+            orderActions.className = 'bulk-import-row-order-actions';
+            if (summary.phase === 'mastering' && result === 'queued') {
+                const up = global.document.createElement('button');
+                up.type = 'button';
+                up.className = 'bulk-import-row-order-btn';
+                up.textContent = '↑';
+                up.setAttribute('aria-label', `${track.name || `트랙 ${originalIndex + 1}`} 순서를 위로 이동`);
+                const queuedIndex = queuedTrackIds.indexOf(track.id);
+                up.disabled = queuedIndex <= 0;
+                up.addEventListener('click', () => movePendingTrack(track.id, -1));
+                const down = global.document.createElement('button');
+                down.type = 'button';
+                down.className = 'bulk-import-row-order-btn';
+                down.textContent = '↓';
+                down.setAttribute('aria-label', `${track.name || `트랙 ${originalIndex + 1}`} 순서를 아래로 이동`);
+                down.disabled = queuedIndex < 0 || queuedIndex >= queuedTrackIds.length - 1;
+                down.addEventListener('click', () => movePendingTrack(track.id, 1));
+                orderActions.append(up, down);
+            }
             const pct = global.document.createElement('span');
             pct.className = 'bulk-import-row-percent';
             pct.textContent = `${trackPercent}%`;
-            row.append(number, main, stateBadge, meter, pct);
+            row.append(number, main, stateBadge, meter, orderActions, pct);
             list.appendChild(row);
             if (isCurrent) currentRow = row;
         });
@@ -795,7 +919,13 @@
         markMasteringTrackStart,
         markMasteringTrackResult,
         markMasteringBatchCancelled,
+        markMasteringPauseChanged,
+        markMasteringSkipRequested,
+        markMasteringQueueChanged,
         detachTrackFromMasteringBatch,
+        pause: toggleMasteringPause,
+        skipCurrent: skipCurrentMasteringTrack,
+        movePendingTrack,
         cancel: cancelMasteringBatch,
         retryFailed: retryFailedMasteringTracks,
         restore: restoreHud,

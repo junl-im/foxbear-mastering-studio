@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.5.73 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.5.74 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -154,7 +154,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.5.73-bulk-control-eta-result-filter-ui',
+            version: '1.5.74-bulk-pause-skip-reorder-mobile-download',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -179,7 +179,22 @@
         let activeBatch = null;
 
         function isAbortError(error) {
-            return Boolean(error && (error.name === 'AbortError' || /abort|cancel/i.test(String(error.code || ''))));
+            return Boolean(error && (error.name === 'AbortError' || /abort|cancel|skip/i.test(String(error.code || ''))));
+        }
+
+        function releasePauseWaiters(batch = activeBatch) {
+            if (!batch || !Array.isArray(batch.pauseWaiters)) return;
+            const waiters = batch.pauseWaiters.splice(0);
+            waiters.forEach(resolve => { try { resolve(); } catch (error) {} });
+        }
+
+        function notifyControlChange(type, detail = {}) {
+            const callback = type === 'pause' ? options.onPauseChanged
+                : type === 'skip' ? options.onSkipRequested
+                    : type === 'queue' ? options.onQueueChanged
+                        : null;
+            if (typeof callback !== 'function') return;
+            try { callback(Object.assign({ snapshot: getActiveBatchSnapshot() }, detail)); } catch (error) {}
         }
 
         function getActiveBatchSnapshot() {
@@ -191,6 +206,11 @@
                 currentTrackId: activeBatch.currentTrackId || '',
                 startedAt: activeBatch.startedAt,
                 cancelRequested: Boolean(activeBatch.controller?.signal?.aborted),
+                paused: Boolean(activeBatch.paused),
+                pauseReason: activeBatch.pauseReason || '',
+                skipRequested: Boolean(activeBatch.skipRequested),
+                skipReason: activeBatch.skipReason || '',
+                orderedTrackIds: Object.freeze(activeBatch.items.map(track => track?.id || '')),
                 settled: Boolean(activeBatch.settled)
             });
         }
@@ -198,15 +218,67 @@
         function cancelActiveBatch(reason = 'user-request') {
             if (!activeBatch || activeBatch.settled || activeBatch.controller?.signal?.aborted) return false;
             try { activeBatch.controller?.abort?.(reason); } catch (error) { return false; }
+            try { activeBatch.trackController?.abort?.(reason); } catch (error) {}
+            activeBatch.paused = false;
+            releasePauseWaiters(activeBatch);
             if (typeof options.onCancelRequested === 'function') {
                 try { options.onCancelRequested({ reason, snapshot: getActiveBatchSnapshot() }); } catch (error) {}
             }
             return true;
         }
 
+        function pauseActiveBatch(reason = 'user-request') {
+            if (!activeBatch || activeBatch.settled || activeBatch.controller?.signal?.aborted || activeBatch.paused) return false;
+            activeBatch.paused = true;
+            activeBatch.pauseReason = String(reason || 'user-request');
+            notifyControlChange('pause', { paused: true, reason: activeBatch.pauseReason });
+            return true;
+        }
+
+        function resumeActiveBatch(reason = 'user-request') {
+            if (!activeBatch || activeBatch.settled || !activeBatch.paused) return false;
+            activeBatch.paused = false;
+            activeBatch.pauseReason = '';
+            releasePauseWaiters(activeBatch);
+            notifyControlChange('pause', { paused: false, reason: String(reason || 'user-request') });
+            return true;
+        }
+
+        function skipCurrentTrack(reason = 'user-skip') {
+            if (!activeBatch || activeBatch.settled || activeBatch.controller?.signal?.aborted || !activeBatch.currentTrackId || !activeBatch.trackController) return false;
+            if (activeBatch.skipRequested || activeBatch.trackController.signal?.aborted) return false;
+            activeBatch.skipRequested = true;
+            activeBatch.skipReason = String(reason || 'user-skip');
+            notifyControlChange('skip', { requested: true, reason: activeBatch.skipReason, trackId: activeBatch.currentTrackId });
+            try { activeBatch.trackController.abort(activeBatch.skipReason); } catch (error) { return false; }
+            return true;
+        }
+
+        function movePendingTrack(trackId, direction = 0) {
+            if (!activeBatch || activeBatch.settled || activeBatch.controller?.signal?.aborted) return false;
+            const id = String(trackId || '');
+            const delta = Number(direction) < 0 ? -1 : Number(direction) > 0 ? 1 : 0;
+            if (!id || !delta) return false;
+            const from = activeBatch.items.findIndex(track => String(track?.id || '') === id);
+            const firstPending = Math.max(0, Number(activeBatch.currentIndex || -1) + 1);
+            if (from < firstPending) return false;
+            const to = from + delta;
+            if (to < firstPending || to >= activeBatch.items.length) return false;
+            const [track] = activeBatch.items.splice(from, 1);
+            activeBatch.items.splice(to, 0, track);
+            notifyControlChange('queue', { items: activeBatch.items.slice(), trackId: id, from, to });
+            return true;
+        }
+
+        async function waitWhilePaused(batch) {
+            while (batch && batch.paused && !batch.controller?.signal?.aborted) {
+                await new Promise(resolve => batch.pauseWaiters.push(resolve));
+            }
+        }
+
         async function runBatch(tracks, batchOptions = {}) {
             const items = Array.isArray(tracks) ? tracks.filter(Boolean) : [];
-            if (!items.length) return Object.freeze({ total: 0, completed: 0, failed: 0, cancelled: 0, ok: false, stopped: false });
+            if (!items.length) return Object.freeze({ total: 0, completed: 0, failed: 0, skipped: 0, cancelled: 0, ok: false, stopped: false });
             if (activeBatch && !activeBatch.settled) {
                 const error = new Error('이미 다른 다중 마스터링 작업이 진행 중입니다.');
                 error.code = 'BATCH_ALREADY_RUNNING';
@@ -223,6 +295,7 @@
 
             let completed = 0;
             let failed = 0;
+            let skipped = 0;
             let cancelled = 0;
             let processed = 0;
             let result = null;
@@ -238,6 +311,12 @@
                     currentTrackId: '',
                     startedAt,
                     controller,
+                    trackController: null,
+                    paused: false,
+                    pauseReason: '',
+                    pauseWaiters: [],
+                    skipRequested: false,
+                    skipReason: '',
                     settled: false
                 };
                 if (typeof options.setBusy === 'function') options.setBusy(true);
@@ -245,17 +324,25 @@
                 if (typeof options.render === 'function') options.render(batchOptions.initialRenderOptions || {});
 
                 for (let index = 0; index < items.length; index += 1) {
+                    await waitWhilePaused(activeBatch);
                     if (controller?.signal?.aborted) break;
                     const track = items[index];
                     activeBatch.currentIndex = index;
                     activeBatch.currentTrackId = track?.id || '';
+                    activeBatch.skipRequested = false;
+                    activeBatch.skipReason = '';
+                    const trackController = typeof AbortController === 'function' ? new AbortController() : null;
+                    activeBatch.trackController = trackController;
+                    const forwardBatchAbort = () => { try { trackController?.abort?.(controller?.signal?.reason || 'batch-cancelled'); } catch (error) {} };
+                    if (controller?.signal?.aborted) forwardBatchAbort();
+                    else controller?.signal?.addEventListener?.('abort', forwardBatchAbort, { once: true });
                     const trackStartedAt = Date.now();
                     let outcome = 'failed';
                     let trackError = null;
                     let ok = false;
 
                     if (typeof options.onTrackStart === 'function') {
-                        try { await options.onTrackStart(track, { index, total: items.length, startedAt: trackStartedAt, batchOptions, signal: controller?.signal || null }); }
+                        try { await options.onTrackStart(track, { index, total: items.length, startedAt: trackStartedAt, batchOptions, signal: trackController?.signal || controller?.signal || null }); }
                         catch (error) {}
                     }
 
@@ -269,20 +356,28 @@
                                 awaitAnalysis: true,
                                 notifyBlocked: true,
                                 source: batchOptions.source || 'batch',
-                                signal: controller?.signal || null
+                                signal: trackController?.signal || controller?.signal || null
                             }, batchOptions.masterOptions || {}));
-                            outcome = ok ? 'completed' : (controller?.signal?.aborted ? 'cancelled' : 'failed');
+                            if (controller?.signal?.aborted) outcome = 'cancelled';
+                            else if (activeBatch.skipRequested || trackController?.signal?.aborted) outcome = 'skipped';
+                            else outcome = ok ? 'completed' : 'failed';
                         }
                     } catch (error) {
                         trackError = error;
-                        outcome = controller?.signal?.aborted || isAbortError(error) ? 'cancelled' : 'failed';
+                        if (controller?.signal?.aborted) outcome = 'cancelled';
+                        else if (activeBatch.skipRequested || (trackController?.signal?.aborted && isAbortError(error))) outcome = 'skipped';
+                        else outcome = isAbortError(error) ? 'cancelled' : 'failed';
                         if (outcome === 'failed' && typeof options.onTrackError === 'function') {
                             try { await options.onTrackError(error, track, batchOptions); } catch (callbackError) {}
                         }
+                    } finally {
+                        controller?.signal?.removeEventListener?.('abort', forwardBatchAbort);
+                        activeBatch.trackController = null;
                     }
 
                     processed += 1;
                     if (outcome === 'completed') completed += 1;
+                    else if (outcome === 'skipped') skipped += 1;
                     else if (outcome === 'cancelled') cancelled += 1;
                     else failed += 1;
 
@@ -294,13 +389,17 @@
                                 outcome,
                                 ok,
                                 error: trackError,
+                                reason: outcome === 'skipped' ? activeBatch.skipReason : '',
                                 startedAt: trackStartedAt,
                                 completedAt: Date.now(),
                                 batchOptions,
-                                signal: controller?.signal || null
+                                signal: trackController?.signal || controller?.signal || null
                             });
                         } catch (error) {}
                     }
+                    activeBatch.skipRequested = false;
+                    activeBatch.skipReason = '';
+                    notifyControlChange('skip', { requested: false, trackId: track?.id || '' });
                     if (controller?.signal?.aborted) break;
                 }
 
@@ -315,6 +414,7 @@
                                 processed,
                                 completed,
                                 failed,
+                                skipped,
                                 cancelled,
                                 reason: controller.signal.reason || 'user-request',
                                 batchOptions
@@ -327,11 +427,13 @@
                     total: items.length,
                     completed,
                     failed,
+                    skipped,
                     cancelled,
                     ok: completed > 0,
-                    stopped: Boolean(controller?.signal?.aborted)
+                    stopped: Boolean(controller?.signal?.aborted),
+                    elapsedMs: Math.max(0, Date.now() - startedAt)
                 });
-                if (typeof options.afterBatch === 'function') await options.afterBatch({ items, completed, failed, cancelled, batchOptions, result });
+                if (typeof options.afterBatch === 'function') await options.afterBatch({ items, completed, failed, skipped, cancelled, batchOptions, result });
                 return result;
             } catch (error) {
                 if (controller?.signal?.aborted || isAbortError(error)) {
@@ -341,28 +443,33 @@
                         total: items.length,
                         completed,
                         failed,
+                        skipped,
                         cancelled,
                         ok: completed > 0,
-                        stopped: true
+                        stopped: true,
+                        elapsedMs: Math.max(0, Date.now() - startedAt)
                     });
                     if (typeof options.onBatchCancelled === 'function') {
-                        try { await options.onBatchCancelled({ items, remaining, processed, completed, failed, cancelled, reason: controller?.signal?.reason || 'cancelled', batchOptions }); }
+                        try { await options.onBatchCancelled({ items, remaining, processed, completed, failed, skipped, cancelled, reason: controller?.signal?.reason || 'cancelled', batchOptions }); }
                         catch (callbackError) {}
                     }
                     if (typeof options.afterBatch === 'function') {
-                        try { await options.afterBatch({ items, completed, failed, cancelled, batchOptions, result }); } catch (callbackError) {}
+                        try { await options.afterBatch({ items, completed, failed, skipped, cancelled, batchOptions, result }); } catch (callbackError) {}
                     }
                     return result;
                 }
                 if (typeof options.onBatchError === 'function') {
-                    try { await options.onBatchError(error, { items, completed, failed, cancelled, batchOptions }); } catch (callbackError) {}
+                    try { await options.onBatchError(error, { items, completed, failed, skipped, cancelled, batchOptions }); } catch (callbackError) {}
                 }
                 throw error;
             } finally {
                 externalSignal?.removeEventListener?.('abort', forwardAbort);
                 if (activeBatch) {
                     activeBatch.currentTrackId = '';
+                    activeBatch.trackController = null;
+                    activeBatch.paused = false;
                     activeBatch.settled = true;
+                    releasePauseWaiters(activeBatch);
                 }
                 if (typeof options.setBusy === 'function') {
                     try { options.setBusy(false); } catch (error) {}
@@ -375,15 +482,19 @@
         }
 
         return Object.freeze({
-            version: '1.5.73-bulk-batch-control-eta-results',
+            version: '1.5.74-bulk-pause-skip-reorder-summary',
             runBatch,
             cancelActiveBatch,
+            pauseActiveBatch,
+            resumeActiveBatch,
+            skipCurrentTrack,
+            movePendingTrack,
             getActiveBatchSnapshot
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.73-bulk-control-eta-result-filter-ui',
+        version: '1.5.74-bulk-pause-skip-reorder-mobile-download',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner

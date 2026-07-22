@@ -88,6 +88,7 @@
             bulkMasteringTrackCompletedAt: 0,
             bulkMasteringDurationMs: 0,
             bulkMasteringCancelReason: '',
+            bulkMasteringSkipReason: '',
             bulkMasteringAttempt: 0,
             memoryPolicyReleasedAt: 0,
             memoryPolicyTouchedAt: 0,

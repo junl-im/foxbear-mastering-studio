@@ -1,6 +1,14 @@
-# FoxBear Status - v1.5.73
+# FoxBear Status - v1.5.74
 
-## v1.5.73 current focus
+## v1.5.74 current focus
+
+- Multi-track mastering supports between-track pause/resume, current-track skip, and pending-queue reordering.
+- Batch completion summaries retain completed, failed, skipped, and cancelled outcomes with elapsed-time metrics.
+- Mobile download uses a near-full-height bottom sheet, MP3/WAV family tabs, quality choices, and sticky primary actions.
+- Configured static/regression checks include v1.5.74 orchestration and mobile layout contracts; real-device and real-Chromium visual verification remain deployment tasks.
+
+
+## v1.5.73 previous focus
 
 - Multi-track mastering can be cancelled through a shared batch signal that reaches the active track worker and stops all not-yet-started tracks.
 - Failed tracks can be retried as a new batch without reprocessing completed outputs.
@@ -124,10 +132,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.73`
-- Build ID: `bulk-control-eta-result-filter-ui`
-- Asset version: `1.5.73-bulk-control-eta-result-filter-ui`
-- Service worker cache: `foxbear-shell-v1.5.73-bulk-control-eta-result-filter-ui`
+- Product version: `1.5.74`
+- Build ID: `bulk-pause-skip-reorder-mobile-download`
+- Asset version: `1.5.74-bulk-pause-skip-reorder-mobile-download`
+- Service worker cache: `foxbear-shell-v1.5.74-bulk-pause-skip-reorder-mobile-download`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -159,10 +167,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.73`
-- Build ID: `bulk-control-eta-result-filter-ui`
-- Asset version: `1.5.73-bulk-control-eta-result-filter-ui`
-- Service worker cache: `foxbear-shell-v1.5.73-bulk-control-eta-result-filter-ui`
+- Product version: `1.5.74`
+- Build ID: `bulk-pause-skip-reorder-mobile-download`
+- Asset version: `1.5.74-bulk-pause-skip-reorder-mobile-download`
+- Service worker cache: `foxbear-shell-v1.5.74-bulk-pause-skip-reorder-mobile-download`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

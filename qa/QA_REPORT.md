@@ -1,3 +1,9 @@
+# FoxBear QA Report - v1.5.74
+
+- v1.5.74 adds between-track pause/resume, safe current-track skip, pending queue reordering, and a preserved batch completion summary.
+- Mobile downloads use a near-full-height bottom sheet with MP3/WAV family selection, family-specific quality choices, and sticky save/share actions.
+- Configured static/regression checks: 284/284 PASS in bounded verification; real Chromium rendering and real audio timing remain deployment-environment verification tasks.
+
 # FoxBear QA Report - v1.5.73
 
 - v1.5.73 adds safe multi-track cancellation, failed-track-only retry, per-track and batch ETA, result filters, and desktop/mobile visual layout contracts.

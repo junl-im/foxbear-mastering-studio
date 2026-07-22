@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.73-bulk-control-eta-result-filter-ui',
+                version: '1.5.74-bulk-pause-skip-reorder-mobile-download',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.73-bulk-control-eta-result-filter-ui',
+        version: '1.5.74-bulk-pause-skip-reorder-mobile-download',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

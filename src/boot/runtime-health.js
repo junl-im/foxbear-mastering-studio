@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.73-bulk-control-eta-result-filter-ui';
+    const FALLBACK_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

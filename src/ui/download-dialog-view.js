@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.73 - progress ETA, stall recovery, and safe dialog lifecycle
+// FoxBear AI Mastering Studio Pro v1.5.74 - progress ETA, stall recovery, and safe dialog lifecycle
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -56,7 +56,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.73',
+                version: '1.5.74',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -76,7 +76,7 @@
         backdrop.__foxbearReturnFocus = document.activeElement && document.activeElement.nodeType === 1 ? document.activeElement : null;
 
         const panel = document.createElement('section');
-        panel.className = `download-options-panel download-options-panel-v3 download-options-panel-v4 download-options-panel-v5 ${env.restricted ? 'restricted' : 'normal'}`;
+        panel.className = `download-options-panel download-options-panel-v3 download-options-panel-v4 download-options-panel-v5 download-options-panel-v1574 ${env.restricted ? 'restricted' : 'normal'}`;
         panel.dataset.downloadDisplayMode = displayProfile.mode || (env.restricted ? 'restricted-declutter' : 'standard-declutter');
         panel.tabIndex = -1;
         const close = document.createElement('button');
@@ -158,7 +158,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.5.73 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.5.74 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -167,14 +167,29 @@
 
         const listLabel = document.createElement('span');
         listLabel.className = 'download-options-section-label';
-        listLabel.textContent = '확장자 / 품질 선택';
+        listLabel.textContent = '파일 형식 선택';
 
+        const formatPicker = document.createElement('div');
+        formatPicker.className = 'download-format-picker';
+        const familyTabs = document.createElement('div');
+        familyTabs.className = 'download-format-families';
+        familyTabs.setAttribute('role', 'tablist');
+        familyTabs.setAttribute('aria-label', '다운로드 파일 형식');
+        const qualityLabel = document.createElement('span');
+        qualityLabel.className = 'download-format-quality-label';
         const list = document.createElement('div');
         list.className = 'download-options-list selectable';
+        list.setAttribute('role', 'tabpanel');
+        formatPicker.append(familyTabs, qualityLabel, list);
         const options = getDownloadFormatOptions(track);
         const visibleOptions = env.restricted ? options.filter(option => option.available !== false) : options;
         const defaultOption = visibleOptions.find(option => option.format === track.outFormat) || visibleOptions[0] || options[0];
         let selectedFormat = defaultOption.format;
+        let activeFormatFamily = String(selectedFormat || '').startsWith('mp3') ? 'mp3' : 'wav';
+        const formatFamilies = Object.freeze([
+            Object.freeze({ id: 'mp3', label: 'MP3', detail: '공유 · 모바일 호환', icon: '🎧' }),
+            Object.freeze({ id: 'wav', label: 'WAV', detail: '보관 · 편집 품질', icon: '🎚️' })
+        ]);
 
         const selectedSummary = document.createElement('div');
         selectedSummary.className = 'download-options-selected-summary';
@@ -288,6 +303,13 @@
                 return;
             }
             selectedFormat = format;
+            activeFormatFamily = String(format || '').startsWith('mp3') ? 'mp3' : 'wav';
+            panel.dataset.formatFamily = activeFormatFamily;
+            Array.from(familyTabs.querySelectorAll('.download-format-family')).forEach(button => {
+                const active = button.dataset.family === activeFormatFamily;
+                button.classList.toggle('current', active);
+                button.setAttribute('aria-selected', String(active));
+            });
             Array.from(list.querySelectorAll('.download-format-option')).forEach(button => {
                 const active = button.dataset.format === selectedFormat;
                 button.classList.toggle('current', active);
@@ -300,27 +322,87 @@
             renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail} 준비됨` : '형식 선택됨');
         };
 
-        visibleOptions.forEach(option => {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.className = `download-format-option ${option.format === selectedFormat ? 'current' : ''}`;
-            button.dataset.format = option.format;
-            button.setAttribute('aria-pressed', String(option.format === selectedFormat));
-            if (option.available === false) {
-                button.disabled = true;
-                button.dataset.permanentDisabled = 'true';
-                button.classList.add('unavailable');
-                button.setAttribute('aria-disabled', 'true');
-                button.title = option.unavailableReason || '다른 포맷은 재마스터링이 필요합니다.';
+        const getFamilyOptions = family => visibleOptions.filter(option => family === 'mp3'
+            ? String(option.format || '').startsWith('mp3')
+            : String(option.format || '').startsWith('wav'));
+
+        const renderFormatFamilies = () => {
+            familyTabs.replaceChildren();
+            formatFamilies.forEach(family => {
+                const familyOptions = getFamilyOptions(family.id);
+                if (!familyOptions.length) return;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `download-format-family ${family.id === activeFormatFamily ? 'current' : ''}`;
+                button.dataset.family = family.id;
+                button.setAttribute('role', 'tab');
+                button.setAttribute('aria-selected', String(family.id === activeFormatFamily));
+                const icon = document.createElement('span');
+                icon.className = 'download-format-family-icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.textContent = family.icon;
+                const copy = document.createElement('span');
+                copy.className = 'download-format-family-copy';
+                const label = document.createElement('strong');
+                label.textContent = family.label;
+                const detail = document.createElement('small');
+                detail.textContent = family.detail;
+                copy.append(label, detail);
+                button.append(icon, copy);
+                button.addEventListener('click', () => {
+                    activeFormatFamily = family.id;
+                    panel.dataset.formatFamily = activeFormatFamily;
+                    renderFormatFamilies();
+                    renderFormatOptions();
+                    warning.classList.add('show');
+                    warning.textContent = family.id === 'mp3'
+                        ? 'MP3 비트레이트를 선택하세요.'
+                        : 'WAV 비트 깊이를 선택하세요.';
+                });
+                familyTabs.appendChild(button);
+            });
+        };
+
+        const renderFormatOptions = () => {
+            list.replaceChildren();
+            const family = formatFamilies.find(item => item.id === activeFormatFamily) || formatFamilies[0];
+            qualityLabel.textContent = activeFormatFamily === 'mp3' ? 'MP3 품질 선택' : 'WAV 품질 선택';
+            list.setAttribute('aria-label', qualityLabel.textContent);
+            getFamilyOptions(activeFormatFamily).forEach(option => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `download-format-option ${option.format === selectedFormat ? 'current' : ''}`;
+                button.dataset.format = option.format;
+                button.setAttribute('aria-pressed', String(option.format === selectedFormat));
+                if (option.available === false) {
+                    button.disabled = true;
+                    button.dataset.permanentDisabled = 'true';
+                    button.classList.add('unavailable');
+                    button.setAttribute('aria-disabled', 'true');
+                    button.title = option.unavailableReason || '다른 포맷은 재마스터링이 필요합니다.';
+                }
+                const main = document.createElement('span');
+                main.textContent = activeFormatFamily === 'mp3'
+                    ? option.detail.replace(/\s*kbps/i, '')
+                    : option.detail.replace(/\s*PCM/i, '').replace('32-bit Float', '32-bit Float');
+                const unit = document.createElement('b');
+                unit.textContent = option.available === false
+                    ? `${activeFormatFamily === 'mp3' ? 'kbps' : option.label} · 재마스터링 필요`
+                    : (activeFormatFamily === 'mp3' ? 'kbps' : option.label);
+                button.append(main, unit);
+                button.addEventListener('click', () => setSelected(option.format));
+                list.appendChild(button);
+            });
+            if (!list.children.length) {
+                const empty = document.createElement('p');
+                empty.className = 'download-format-empty';
+                empty.textContent = `${family.label} 형식을 사용할 수 없습니다.`;
+                list.appendChild(empty);
             }
-            const main = document.createElement('span');
-            main.textContent = option.label;
-            const sub = document.createElement('b');
-            sub.textContent = option.available === false ? `${option.detail} · 재마스터링 필요` : option.detail;
-            button.append(main, sub);
-            button.addEventListener('click', () => setSelected(option.format));
-            list.appendChild(button);
-        });
+        };
+        panel.dataset.formatFamily = activeFormatFamily;
+        renderFormatFamilies();
+        renderFormatOptions();
         updateSelectedSummary();
 
         const actionLabel = action => {
@@ -716,7 +798,8 @@
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        panel.append(close, title, name, warning, listLabel, list, selectedSummary, progressCard, actions);
+        // v1.5.74 mobile hierarchy: MP3/WAV family first, then quality options.
+        panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, actions);
         backdrop.appendChild(panel);
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');

@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.5.73 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.5.74 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.5.73-bulk-control-eta-result-filter-ui';
+    const VERSION = 'v1.5.74-bulk-pause-skip-reorder-mobile-download';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;

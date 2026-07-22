@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.73 - stable-idle and cross-tab activity guard
+// FoxBear service worker update coordinator v1.5.74 - stable-idle and cross-tab activity guard
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.73-bulk-control-eta-result-filter-ui';
+  const VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

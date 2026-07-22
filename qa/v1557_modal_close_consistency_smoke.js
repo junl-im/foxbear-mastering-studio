@@ -18,10 +18,10 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const mobileNative = read('src/ui/mobile-native-view.js');
 
-assert.strictEqual(pkg.version, '1.5.73');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.73-bulk-control-eta-result-filter-ui');
-assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.73-bulk-control-eta-result-filter-ui'));
-assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.73-bulk-control-eta-result-filter-ui'));
+assert.strictEqual(pkg.version, '1.5.74');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.74-bulk-pause-skip-reorder-mobile-download');
+assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.74-bulk-pause-skip-reorder-mobile-download'));
+assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.74-bulk-pause-skip-reorder-mobile-download'));
 assert(index.indexOf('assets/css/components/modal-close-system.css') > index.indexOf('assets/css/header-command-bar.css'), 'modal close ownership stylesheet must load last');
 
 for (const id of ['programInfoClose', 'featureDialogClose', 'previewDialogClose', 'adminStatsClose']) {

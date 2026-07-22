@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.73 - runtime constants
+// FoxBear AI Mastering Studio Pro v1.5.74 - runtime constants
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const ASSET_VERSION = '1.5.73-bulk-control-eta-result-filter-ui';
+    const ASSET_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download';
     if (BUILD_INFO.assetVersion && BUILD_INFO.assetVersion !== ASSET_VERSION) console.warn('[FoxBear] asset metadata mismatch', { runtime: ASSET_VERSION, build: BUILD_INFO.assetVersion });
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
@@ -19,7 +19,7 @@
     const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
 
     global.FoxBearRuntimeConfig = Object.freeze({
-        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.73',
+        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.5.74',
         ASSET_VERSION,
         WAV_ENCODER_WORKER_URL,
         MP3_ENCODER_WORKER_URL,
