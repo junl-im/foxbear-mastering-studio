@@ -119,3 +119,27 @@
     .admin-incident-recovery-actions button { flex: 1 1 150px; }
     .admin-incident-recovery-actions span { flex-basis: 100%; }
 }
+
+/* v1.5.66 guarded operations actions, deployment verification, and detailed history */
+.admin-incident-history-details {
+    margin: 0 0 12px;
+    border: 1px solid rgba(141, 245, 232, .12);
+    border-radius: 14px;
+    background: rgba(5, 14, 28, .3);
+    overflow: hidden;
+}
+.admin-incident-history-details > summary {
+    padding: 9px 11px;
+    color: rgba(225, 239, 252, .82);
+    font-size: .56rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+.admin-incident-history-wrap { margin: 0; border: 0; border-top: 1px solid rgba(141, 245, 232, .1); border-radius: 0; }
+.admin-incident-history-table { min-width: 860px; }
+.admin-incident-history-table td { vertical-align: top; }
+.admin-incident-history-table small { display: block; margin-top: 3px; color: rgba(202, 218, 236, .58); font-size: .48rem; line-height: 1.4; }
+.admin-incident-action-recommendation { color: #ffefb2 !important; }
+@media (max-width: 720px) {
+    .admin-incident-history-table { min-width: 760px; }
+}

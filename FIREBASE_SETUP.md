@@ -32,10 +32,6 @@ Google 계정에서 2단계 인증을 활성화하고 앱 비밀번호를 발급
 firebase login
 firebase use foxbear-music
 firebase functions:secrets:set FOXBEAR_GMAIL_APP_PASSWORD
-
-# 선택 사항: Gmail 장애와 독립된 보조 경보 웹훅
-# 실제 URL은 저장소에 커밋하지 말고 Functions 환경에만 설정합니다.
-# functions/.env 예: FOXBEAR_INCIDENT_ALERT_WEBHOOK_URL=https://...
 ```
 
 ## 4. 설치와 배포
@@ -79,11 +75,13 @@ Firestore TTL 정책에서 다음 두 컬렉션의 `expiresAt` 필드를 등록�
 
 공개 사용자가 늘기 전에 Firebase App Check(reCAPTCHA Enterprise)를 구성하고 Firestore 요청에 강제 적용합니다. 현재도 클라이언트/서버 중복 억제, strict Rules, 일일 상한이 있지만 App Check가 없으면 자동화된 남용 가능성이 남습니다.
 
-## v1.5.65 메일 운영 배포
+## v1.5.66 운영 작업 및 배포 검증
 
-```bash
-npm run deploy:incident
-firebase deploy --only hosting
-```
+배포 명령에는 `testIncidentAlertChannelRequest`와 `verifyIncidentDeploymentRequest`가 포함되어야 합니다. 관리자 오류 관리 화면에서 보조 경보 테스트와 배포 상태 검증을 실행할 수 있습니다. 테스트와 검증에는 서버 쿨다운이 적용됩니다.
 
-`deploy:incident`에는 관리자 일괄 복구 함수와 운영 자가진단 함수가 포함됩니다.
+배포 후 관리자 화면에서 다음을 확인합니다.
+
+- 보조 경보 테스트가 설정된 웹훅에 실제 메시지 1건을 전달하는지
+- 배포 검증 결과의 Functions 버전이 화면 버전과 같은지
+- SMTP/Secret 상태가 정상인지
+- 운영 이력 상세표에 원인 코드와 권장 조치가 표시되는지

@@ -43,6 +43,7 @@
                 const quota = operations.quota || {};
                 const webhook = operations.channels?.webhook || {};
                 const recovery = data?.recovery || {};
+                const deployment = data?.deployment || {};
                 const history = Array.isArray(data?.history) ? data.history : [];
                 const trend = summarizeHistory(history);
                 const appCheck = data?.appCheck || bridge.appCheck || {};
@@ -56,6 +57,7 @@
                 makeSummaryCard('보조 경보', formatWebhookStatus(webhook), webhook.status === 'error' ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('자동 복구', formatRecovery(recovery), recovery.failed || recovery.deadLetter ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('24시간 추세', `${trend.critical}위험 · ${trend.warning}주의`, trend.critical || trend.warning ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('배포 검증', formatDeploymentStatus(deployment), deployment.status === 'healthy' && !deployment.stale ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('App Check', appCheck.ready ? '보호 중' : appCheck.configured ? '확인 필요' : '키 미설정', appCheck.ready ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 if (el.adminIncidentsNotice) {
                     const protection = appCheck.ready
@@ -71,13 +73,24 @@
                     const webhookDetail = webhook.status === 'ready'
                         ? ` 보조 웹훅(${webhook.provider || 'HTTPS'})이 준비되었습니다.`
                         : webhook.status === 'error' ? ` 보조 웹훅 오류: ${webhook.reason || '설정 확인 필요'}.` : ' 보조 웹훅은 선택 사항이며 현재 미설정입니다.';
-                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 운영 점검은 15분마다 실행됩니다.${checked}${issues}${smtpDetail}${webhookDetail} ${protection}`;
+                    const recommendations = collectRecommendations(operations, deployment, history);
+                    const recommendationText = recommendations.length ? ` 권장 조치: ${recommendations.slice(0, 2).join(' / ')}` : '';
+                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 운영 점검은 15분마다 실행됩니다.${checked}${issues}${smtpDetail}${webhookDetail}${recommendationText} ${protection}`;
                 }
                 if (el.adminIncidentRecoveryStatus) {
                     el.adminIncidentRecoveryStatus.textContent = recovery.exists
                         ? `최근 ${formatTime(recovery.checkedAt)} · 시도 ${safeNumber(recovery.attempted, 0)} · 성공 ${safeNumber(recovery.emailed, 0)} · 실패 ${safeNumber(recovery.failed, 0) + safeNumber(recovery.deadLetter, 0)}`
                         : '아직 기록된 자동 복구 실행이 없습니다.';
                 }
+                if (el.adminIncidentDeploymentStatus) {
+                    const expected = global.FoxBearBuildInfo?.productVersion || '';
+                    const versionText = deployment.productVersion ? `Functions v${deployment.productVersion}` : 'Functions 버전 미확인';
+                    const checkedText = deployment.checkedAt ? ` · ${formatTime(deployment.checkedAt)}` : '';
+                    const mismatch = expected && deployment.productVersion && expected !== deployment.productVersion ? ` · 화면 v${expected}와 불일치` : '';
+                    el.adminIncidentDeploymentStatus.textContent = `${versionText}${checkedText}${mismatch}`;
+                }
+                renderHistory(history);
+                maybeAutoVerifyDeployment(deployment);
                 const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
                 if (!incidents.length) {
                     appendEmptyRow('아직 수집된 오류 보고가 없습니다.');
@@ -174,6 +187,60 @@
             return `${safeNumber(recovery.emailed, 0)}성공 / ${safeNumber(recovery.failed, 0) + safeNumber(recovery.deadLetter, 0)}실패`;
         }
 
+        function formatDeploymentStatus(deployment = {}) {
+            if (!deployment.exists) return '검증 필요';
+            if (deployment.stale) return '검증 만료';
+            const expected = global.FoxBearBuildInfo?.productVersion || '';
+            if (expected && deployment.productVersion && expected !== deployment.productVersion) return '버전 불일치';
+            const labels = { healthy: '정상', warning: '주의', critical: '위험', unknown: '미확인' };
+            return labels[deployment.status] || deployment.status || '미확인';
+        }
+
+        function collectRecommendations(operations = {}, deployment = {}, history = []) {
+            const values = [];
+            (operations.reasons || []).forEach(item => { if (item.recommendedAction) values.push(item.recommendedAction); });
+            (deployment.recommendedActions || []).forEach(item => values.push(item));
+            if (!values.length && history[0]?.recommendedActions) history[0].recommendedActions.forEach(item => values.push(item));
+            return [...new Set(values.filter(Boolean))];
+        }
+
+        function renderHistory(history = []) {
+            if (!el.adminIncidentHistoryRows) return;
+            el.adminIncidentHistoryRows.textContent = '';
+            if (!history.length) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 5;
+                cell.textContent = '아직 운영 이력이 없습니다.';
+                row.appendChild(cell);
+                el.adminIncidentHistoryRows.appendChild(row);
+                return;
+            }
+            history.slice(0, 48).forEach(item => {
+                const row = document.createElement('tr');
+                const timeCell = document.createElement('td');
+                timeCell.textContent = formatTime(item.checkedAt);
+                const statusCell = document.createElement('td');
+                statusCell.textContent = formatOperationsStatus(item.status);
+                const queueCell = document.createElement('td');
+                queueCell.textContent = `미발송 ${safeNumber(item.stale, 0)} · 최종 실패 ${safeNumber(item.deadLetter, 0)}`;
+                const queueDetail = document.createElement('small');
+                queueDetail.textContent = `대기 ${safeNumber(item.pending, 0)} · 실패 ${safeNumber(item.failed, 0)}`;
+                queueCell.appendChild(queueDetail);
+                const channelCell = document.createElement('td');
+                channelCell.textContent = `SMTP ${item.smtpStatus || 'unknown'} · Webhook ${item.webhookStatus || 'disabled'}`;
+                const channelDetail = document.createElement('small');
+                channelDetail.textContent = item.alertStatus ? `경보 ${item.alertStatus}` : '경보 없음';
+                channelCell.appendChild(channelDetail);
+                const actionCell = document.createElement('td');
+                const action = item.recommendedActions?.[0] || (item.reasonCodes?.length ? `원인 코드: ${item.reasonCodes.join(', ')}` : '추가 조치 없음');
+                actionCell.textContent = action;
+                if (item.recommendedActions?.length) actionCell.className = 'admin-incident-action-recommendation';
+                row.append(timeCell, statusCell, queueCell, channelCell, actionCell);
+                el.adminIncidentHistoryRows.appendChild(row);
+            });
+        }
+
         function summarizeHistory(history = []) {
             const threshold = Date.now() - 24 * 60 * 60 * 1000;
             return history.reduce((result, item) => {
@@ -194,6 +261,14 @@
             if (el.adminIncidentRecoverDead && !el.adminIncidentRecoverDead.dataset.bound) {
                 el.adminIncidentRecoverDead.dataset.bound = '1';
                 el.adminIncidentRecoverDead.addEventListener('click', () => requestBatchRecovery('dead-letter', el.adminIncidentRecoverDead));
+            }
+            if (el.adminIncidentTestWebhook && !el.adminIncidentTestWebhook.dataset.bound) {
+                el.adminIncidentTestWebhook.dataset.bound = '1';
+                el.adminIncidentTestWebhook.addEventListener('click', () => requestAlertChannelTest(el.adminIncidentTestWebhook));
+            }
+            if (el.adminIncidentVerifyDeployment && !el.adminIncidentVerifyDeployment.dataset.bound) {
+                el.adminIncidentVerifyDeployment.dataset.bound = '1';
+                el.adminIncidentVerifyDeployment.addEventListener('click', () => requestDeploymentVerification(el.adminIncidentVerifyDeployment, false));
             }
         }
 
@@ -217,7 +292,9 @@
                         const result = status.result || {};
                         showToast(status.status === 'completed'
                             ? `일괄 복구 완료: 성공 ${safeNumber(result.emailed, 0)} · 실패 ${safeNumber(result.failed, 0) + safeNumber(result.deadLetter, 0)} · 건너뜀 ${safeNumber(result.skipped, 0)}`
-                            : `일괄 복구 실패: ${status.reason || status.status}`);
+                            : status.status === 'rejected' && status.retryAfterSeconds
+                                ? `일괄 복구 요청 제한: ${status.retryAfterSeconds}초 후 다시 시도하세요.`
+                                : `일괄 복구 실패: ${status.reason || status.status}`);
                         settled = true;
                         break;
                     }
@@ -228,6 +305,74 @@
                 await render(true);
             } catch (error) {
                 showToast(`일괄 복구 요청 실패: ${error?.message || error}`);
+            } finally {
+                if (button) { button.disabled = false; button.textContent = original; }
+            }
+        }
+
+
+        async function requestAlertChannelTest(button) {
+            const bridge = getBridge();
+            if (!bridge || typeof bridge.requestIncidentAlertChannelTest !== 'function') {
+                showToast('보조 경보 테스트 API가 준비되지 않았습니다.');
+                return;
+            }
+            const original = button?.textContent || '보조 경보 테스트';
+            if (button) { button.disabled = true; button.textContent = '테스트 중…'; }
+            try {
+                const request = await bridge.requestIncidentAlertChannelTest();
+                for (let index = 0; index < 30; index += 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    const status = await bridge.getIncidentAlertChannelTestRequest(request.requestId).catch(() => null);
+                    if (!status || ['pending', 'running', 'missing'].includes(status.status)) continue;
+                    if (status.status === 'completed') showToast(`보조 경보 테스트 성공: ${status.provider || 'HTTPS'} 채널이 응답했습니다.`);
+                    else if (status.status === 'rejected' && status.retryAfterSeconds) showToast(`테스트 요청 제한: ${status.retryAfterSeconds}초 후 다시 시도하세요.`);
+                    else showToast(`보조 경보 테스트 실패: ${status.reason || status.status}`);
+                    break;
+                }
+                await render(true);
+            } catch (error) {
+                showToast(`보조 경보 테스트 요청 실패: ${error?.message || error}`);
+            } finally {
+                if (button) { button.disabled = false; button.textContent = original; }
+            }
+        }
+
+        function maybeAutoVerifyDeployment(deployment = {}) {
+            const expected = global.FoxBearBuildInfo?.productVersion || '';
+            const mismatch = expected && deployment.productVersion && expected !== deployment.productVersion;
+            if (state.adminIncidentDeploymentVerificationRequested || (deployment.exists && !deployment.stale && !mismatch)) return;
+            state.adminIncidentDeploymentVerificationRequested = true;
+            requestDeploymentVerification(null, true).catch(() => {});
+        }
+
+        async function requestDeploymentVerification(button, silent = false) {
+            const bridge = getBridge();
+            if (!bridge || typeof bridge.requestIncidentDeploymentVerification !== 'function') {
+                if (!silent) showToast('배포 검증 API가 준비되지 않았습니다.');
+                return;
+            }
+            const original = button?.textContent || '배포 상태 검증';
+            if (button) { button.disabled = true; button.textContent = '검증 중…'; }
+            try {
+                const request = await bridge.requestIncidentDeploymentVerification();
+                let completed = false;
+                for (let index = 0; index < 40; index += 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    const status = await bridge.getIncidentDeploymentVerificationRequest(request.requestId).catch(() => null);
+                    if (!status || ['pending', 'running', 'missing'].includes(status.status)) continue;
+                    completed = true;
+                    if (!silent) {
+                        if (status.status === 'completed') showToast(`배포 검증 완료: Functions v${status.result?.productVersion || '미확인'} · ${status.result?.status || 'unknown'}`);
+                        else if (status.status === 'rejected' && status.retryAfterSeconds) showToast(`배포 검증 제한: ${status.retryAfterSeconds}초 후 다시 시도하세요.`);
+                        else showToast(`배포 검증 실패: ${status.reason || status.status}`);
+                    }
+                    break;
+                }
+                if (!completed && !silent) showToast('배포 검증이 서버에서 계속 진행 중입니다. 잠시 후 새로고침하세요.');
+                await render(true);
+            } catch (error) {
+                if (!silent) showToast(`배포 검증 요청 실패: ${error?.message || error}`);
             } finally {
                 if (button) { button.disabled = false; button.textContent = original; }
             }
@@ -263,7 +408,7 @@
                         await new Promise(resolve => setTimeout(resolve, 1400));
                         const status = await bridge.getIncidentRetryRequest(request.requestId).catch(() => null);
                         if (!status || ['pending', 'missing'].includes(status.status)) continue;
-                        showToast(status.status === 'emailed' ? '오류 메일 재전송을 완료했습니다.' : `재전송 결과: ${status.status}`);
+                        showToast(status.status === 'emailed' ? '오류 메일 재전송을 완료했습니다.' : status.status === 'rejected' && status.retryAfterSeconds ? `재전송 요청 제한: ${status.retryAfterSeconds}초 후 다시 시도하세요.` : `재전송 결과: ${status.status}`);
                         break;
                     }
                 }
@@ -277,7 +422,7 @@
             }
         }
 
-        return Object.freeze({ render, formatStatus, formatOperationsStatus, formatSmtpStatus, formatWebhookStatus, summarizeHistory });
+        return Object.freeze({ render, formatStatus, formatOperationsStatus, formatSmtpStatus, formatWebhookStatus, formatDeploymentStatus, summarizeHistory, collectRecommendations });
     }
 
     global.FoxBearAdminIncidentMonitorView = Object.freeze({ create });

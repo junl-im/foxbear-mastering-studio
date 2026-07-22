@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.65-incident-recovery-control-alert-history';
+const version = '1.5.66-incident-operations-action-guard-deploy-verification';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

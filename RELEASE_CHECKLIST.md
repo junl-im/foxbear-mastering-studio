@@ -2,10 +2,6 @@
 
 ## v1.5.64 incident operations health
 
-- [ ] `retryIncidentBatchRequest`가 Firebase Functions에 배포되었다.
-- [ ] 관리자 일괄 복구 요청의 성공·실패 결과가 `incidentOperations/recovery`에 기록된다.
-- [ ] 보조 웹훅 사용 시 URL이 저장소가 아닌 Functions 환경에만 설정되어 있다.
-- [ ] `incidentOperationsHistory` 조회 권한과 24시간 추세 표시를 확인했다.
 - [ ] `auditIncidentMailOperations`가 Firebase Scheduler에 배포되었다.
 - [ ] `incidentOperations/mail` 문서가 15분 이내 갱신된다.
 - [ ] 관리자 오류 화면에 메일 운영, 장기 미발송, SMTP/Secret, 오늘 발송 카드가 표시된다.
@@ -227,3 +223,11 @@ The overwrite command also runs this verification internally through `tools/veri
 - [ ] Dock play button is visible, enabled, unobstructed, and has no blocking modal before click.
 - [ ] Failure output includes modal count and topmost hit-test element.
 
+
+## v1.5.66 확인
+
+- [ ] 관리자 재전송·일괄 복구 중복 요청이 서버에서 거절되는지 확인
+- [ ] 보조 경보 테스트 성공·실패·쿨다운 상태 확인
+- [ ] 배포 검증에서 Hosting/Functions 버전 일치 확인
+- [ ] 최근 운영 이력의 원인 코드와 권장 조치 확인
+- [ ] 실제 브라우저 QA에서 Firebase 모의 `setDoc` 경로 확인

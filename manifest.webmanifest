@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.65 (incident-recovery-control-alert-history).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.66 (incident-operations-action-guard-deploy-verification).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.65"
+  "version": "1.5.66"
 }

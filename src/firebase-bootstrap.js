@@ -142,6 +142,10 @@ function makePublicBridge(extra = {}) {
         getIncidentRetryRequest,
         requestIncidentBatchRecovery,
         getIncidentBatchRecoveryRequest,
+        requestIncidentAlertChannelTest,
+        getIncidentAlertChannelTestRequest,
+        requestIncidentDeploymentVerification,
+        getIncidentDeploymentVerificationRequest,
         getAdminProfile,
         refreshAppCheckToken,
         getUid: () => bridgeState.user?.uid || '',
@@ -458,6 +462,8 @@ function normalizeIncidentOperations(snapshot) {
     const checkedAtMs = checkedAt ? Date.parse(checkedAt) : 0;
     return {
         exists: true,
+        productVersion: limitText(data.productVersion || '', 24),
+        schemaVersion: safeIncidentNumber(data.schemaVersion, 0, 20),
         status: limitText(data.status || 'unknown', 20),
         signature: limitText(data.signature || '', 100),
         checkedAt,
@@ -465,7 +471,8 @@ function normalizeIncidentOperations(snapshot) {
         reasons: Array.isArray(data.reasons) ? data.reasons.slice(0, 12).map(item => ({
             code: limitText(item?.code || '', 80),
             severity: limitText(item?.severity || 'warning', 20),
-            message: limitText(item?.message || '', 300)
+            message: limitText(item?.message || '', 300),
+            recommendedAction: limitText(item?.recommendedAction || '', 500)
         })) : [],
         queue: {
             pending: safeIncidentNumber(data.queue?.pending, 0, 100000),
@@ -541,6 +548,7 @@ function normalizeOperationsHistory(snapshot) {
     const data = snapshot.data() || {};
     return {
         id: limitText(snapshot.id || '', 40),
+        productVersion: limitText(data.productVersion || '', 24),
         status: limitText(data.status || 'unknown', 20),
         checkedAt: timestampIso(data.checkedAt),
         stale: safeIncidentNumber(data.queue?.stale, 0, 100000),
@@ -549,7 +557,36 @@ function normalizeOperationsHistory(snapshot) {
         failed: safeIncidentNumber(data.queue?.failed, 0, 100000),
         smtpStatus: limitText(data.smtpStatus || 'unknown', 20),
         webhookStatus: limitText(data.webhookStatus || 'disabled', 20),
-        alertStatus: limitText(data.alertStatus || '', 20)
+        alertStatus: limitText(data.alertStatus || '', 20),
+        reasonCodes: Array.isArray(data.reasonCodes) ? data.reasonCodes.slice(0, 12).map(value => limitText(value, 80)) : [],
+        recommendedActions: Array.isArray(data.recommendedActions) ? data.recommendedActions.slice(0, 6).map(value => limitText(value, 500)) : []
+    };
+}
+
+function normalizeIncidentDeployment(snapshot) {
+    if (!snapshot?.exists?.()) return { exists: false, status: 'missing', productVersion: '', checkedAt: '', stale: true, recommendedActions: [] };
+    const data = snapshot.data() || {};
+    const checkedAt = timestampIso(data.checkedAt);
+    const checkedAtMs = checkedAt ? Date.parse(checkedAt) : 0;
+    return {
+        exists: true,
+        status: limitText(data.status || 'unknown', 20),
+        productVersion: limitText(data.productVersion || '', 24),
+        operationsSchemaVersion: safeIncidentNumber(data.operationsSchemaVersion, 0, 20),
+        checkedAt,
+        stale: !checkedAtMs || Date.now() - checkedAtMs > 24 * 60 * 60 * 1000,
+        reasonCodes: Array.isArray(data.reasonCodes) ? data.reasonCodes.slice(0, 12).map(value => limitText(value, 80)) : [],
+        recommendedActions: Array.isArray(data.recommendedActions) ? data.recommendedActions.slice(0, 6).map(value => limitText(value, 500)) : [],
+        smtpStatus: limitText(data.checks?.smtp?.status || 'unknown', 20),
+        smtpReason: limitText(data.checks?.smtp?.reason || '', 100),
+        webhookStatus: limitText(data.checks?.webhook?.status || 'disabled', 20),
+        webhookProvider: limitText(data.checks?.webhook?.provider || '', 40),
+        capabilities: {
+            batchRecovery: data.checks?.batchRecovery === true,
+            alertChannelTest: data.checks?.alertChannelTest === true,
+            actionRateLimit: data.checks?.actionRateLimit === true,
+            historyDetail: data.checks?.historyDetail === true
+        }
     };
 }
 
@@ -599,11 +636,12 @@ async function getAdminIncidents(options = {}) {
     const kstRange = getKstDayRange(new Date());
     const todayQuery = query(reportsRef, where('createdAt', '>=', kstRange.start), where('createdAt', '<', kstRange.end));
     const historyQuery = query(collection(bridgeState.db, 'incidentOperationsHistory'), orderBy('checkedAt', 'desc'), limit(48));
-    const [snapshot, todayCountSnapshot, operationsSnapshot, recoverySnapshot, historySnapshot] = await Promise.all([
+    const [snapshot, todayCountSnapshot, operationsSnapshot, recoverySnapshot, deploymentSnapshot, historySnapshot] = await Promise.all([
         getDocs(recentQuery),
         getCountFromServer(todayQuery),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'mail')),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'recovery')),
+        getDoc(doc(bridgeState.db, 'incidentOperations', 'deployment')).catch(() => ({ exists: () => false })),
         getDocs(historyQuery).catch(() => ({ docs: [] }))
     ]);
     const incidents = [];
@@ -624,6 +662,7 @@ async function getAdminIncidents(options = {}) {
         summary,
         operations: normalizeIncidentOperations(operationsSnapshot),
         recovery: normalizeIncidentRecovery(recoverySnapshot),
+        deployment: normalizeIncidentDeployment(deploymentSnapshot),
         history: historySnapshot.docs.map(normalizeOperationsHistory),
         dateKey: kstRange.dateKey,
         appCheck: {
@@ -661,7 +700,8 @@ async function getIncidentRetryRequest(requestId) {
     return {
         exists: true,
         status: limitText(data.status || 'pending', 40),
-        reason: limitText(data.reason || '', 100)
+        reason: limitText(data.reason || '', 100),
+        retryAfterSeconds: safeIncidentNumber(data.retryAfterSeconds, 0, 86400)
     };
 }
 
@@ -692,6 +732,7 @@ async function getIncidentBatchRecoveryRequest(requestId) {
         exists: true,
         status: limitText(data.status || 'pending', 40),
         reason: limitText(data.reason || '', 100),
+        retryAfterSeconds: safeIncidentNumber(data.retryAfterSeconds, 0, 86400),
         result: {
             requested: safeIncidentNumber(result.requested, 0, 1000),
             attempted: safeIncidentNumber(result.attempted, 0, 1000),
@@ -700,6 +741,73 @@ async function getIncidentBatchRecoveryRequest(requestId) {
             deadLetter: safeIncidentNumber(result.deadLetter, 0, 1000),
             skipped: safeIncidentNumber(result.skipped, 0, 1000)
         }
+    };
+}
+
+
+async function requestIncidentAlertChannelTest() {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 보조 경보 채널을 테스트할 수 있습니다.');
+    const requestRef = await addDoc(collection(bridgeState.db, 'incidentAlertTestRequests'), {
+        uid: profile.uid,
+        source: 'foxbear-admin-dashboard',
+        createdAt: serverTimestamp()
+    });
+    return { requestId: requestRef.id, status: 'requested' };
+}
+
+async function getIncidentAlertChannelTestRequest(requestId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 보조 경보 테스트 상태를 조회할 수 있습니다.');
+    const safeId = limitText(requestId, 180);
+    const snapshot = await getDoc(doc(bridgeState.db, 'incidentAlertTestRequests', safeId));
+    if (!snapshot.exists()) return { exists: false, status: 'missing' };
+    const data = snapshot.data() || {};
+    return {
+        exists: true,
+        status: limitText(data.status || 'pending', 40),
+        reason: limitText(data.reason || '', 100),
+        provider: limitText(data.provider || '', 40),
+        statusCode: safeIncidentNumber(data.statusCode, 0, 999),
+        retryAfterSeconds: safeIncidentNumber(data.retryAfterSeconds, 0, 86400)
+    };
+}
+
+async function requestIncidentDeploymentVerification() {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 배포 상태를 검증할 수 있습니다.');
+    const requestRef = await addDoc(collection(bridgeState.db, 'incidentDeploymentVerificationRequests'), {
+        uid: profile.uid,
+        source: 'foxbear-admin-dashboard',
+        expectedVersion: limitText(window.FoxBearBuildInfo?.productVersion || '', 24),
+        createdAt: serverTimestamp()
+    });
+    return { requestId: requestRef.id, status: 'requested' };
+}
+
+async function getIncidentDeploymentVerificationRequest(requestId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 배포 검증 상태를 조회할 수 있습니다.');
+    const safeId = limitText(requestId, 180);
+    const snapshot = await getDoc(doc(bridgeState.db, 'incidentDeploymentVerificationRequests', safeId));
+    if (!snapshot.exists()) return { exists: false, status: 'missing' };
+    const data = snapshot.data() || {};
+    return {
+        exists: true,
+        status: limitText(data.status || 'pending', 40),
+        reason: limitText(data.reason || '', 100),
+        retryAfterSeconds: safeIncidentNumber(data.retryAfterSeconds, 0, 86400),
+        result: data.result ? {
+            status: limitText(data.result.status || 'unknown', 20),
+            productVersion: limitText(data.result.productVersion || '', 24),
+            operationsSchemaVersion: safeIncidentNumber(data.result.operationsSchemaVersion, 0, 20),
+            reasonCodes: Array.isArray(data.result.reasonCodes) ? data.result.reasonCodes.slice(0, 12).map(value => limitText(value, 80)) : [],
+            recommendedActions: Array.isArray(data.result.recommendedActions) ? data.result.recommendedActions.slice(0, 6).map(value => limitText(value, 500)) : []
+        } : null
     };
 }
 

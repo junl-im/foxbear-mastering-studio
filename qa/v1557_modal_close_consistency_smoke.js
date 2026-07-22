@@ -18,10 +18,10 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const mobileNative = read('src/ui/mobile-native-view.js');
 
-assert.strictEqual(pkg.version, '1.5.65');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.65-incident-recovery-control-alert-history');
-assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.65-incident-recovery-control-alert-history'));
-assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.65-incident-recovery-control-alert-history'));
+assert.strictEqual(pkg.version, '1.5.66');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.66-incident-operations-action-guard-deploy-verification');
+assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.66-incident-operations-action-guard-deploy-verification'));
+assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.66-incident-operations-action-guard-deploy-verification'));
 assert(index.indexOf('assets/css/components/modal-close-system.css') > index.indexOf('assets/css/header-command-bar.css'), 'modal close ownership stylesheet must load last');
 
 for (const id of ['programInfoClose', 'featureDialogClose', 'previewDialogClose', 'adminStatsClose']) {

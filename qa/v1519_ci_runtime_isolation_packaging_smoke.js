@@ -41,7 +41,7 @@ assert(helpers.includes('probeToken'), 'server ownership probe must verify respo
 const requiredFirebaseExports = {
   'firebase-app.js': ['initializeApp'],
   'firebase-auth.js': ['getAuth', 'onAuthStateChanged', 'signInAnonymously'],
-  'firebase-firestore.js': ['addDoc', 'collection', 'doc', 'getCountFromServer', 'getDoc', 'getDocs', 'getFirestore', 'limit', 'orderBy', 'query', 'serverTimestamp', 'where'],
+  'firebase-firestore.js': ['addDoc', 'collection', 'doc', 'getCountFromServer', 'getDoc', 'getDocs', 'getFirestore', 'limit', 'orderBy', 'query', 'serverTimestamp', 'setDoc', 'where'],
   'firebase-remote-config.js': ['fetchAndActivate', 'getRemoteConfig', 'getValue', 'isSupported']
 };
 const moduleTemp = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-v1519-firebase-modules-'));

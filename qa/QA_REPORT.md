@@ -1,10 +1,7 @@
-# FoxBear QA Report - v1.5.65
+# FoxBear QA Report - v1.5.66
 
-## v1.5.65 incident recovery control and alert history
-
-- 관리자 일괄 복구, 자동 복구 실행 통계, 30일 운영 이력, 선택적 HTTPS 웹훅 경보 정적 회귀를 추가했습니다.
-- SMTP 장애 시 웹훅이 준비된 경우 독립 경보를 허용하고, 웹훅 미설정 상태에서는 기존 SMTP 차단 계약을 유지합니다.
-- 실제 Gmail·웹훅 수신과 Playwright 브라우저 실행은 배포/브라우저 환경에서 별도 확인합니다.
+- v1.5.66 static and regression checks are tracked by the release gate.
+- Administrator action guards, alert testing, deployment verification, and operations history contracts are included.
 
 # QA Report - v1.5.64 Incident Operations Health Self-Diagnostics
 

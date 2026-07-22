@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.65",
-  "buildId": "incident-recovery-control-alert-history",
+  "productVersion": "1.5.66",
+  "buildId": "incident-operations-action-guard-deploy-verification",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -53,7 +53,9 @@
     "qa/v1564_incident_operations_health_self_diagnostics_smoke.js",
     "docs/V1.5.64_INCIDENT_OPERATIONS_HEALTH_SELF_DIAGNOSTICS.md",
     "qa/v1565_incident_recovery_control_alert_history_smoke.js",
-    "docs/V1.5.65_INCIDENT_RECOVERY_CONTROL_ALERT_HISTORY.md"
+    "docs/V1.5.65_INCIDENT_RECOVERY_CONTROL_ALERT_HISTORY.md",
+    "qa/v1566_incident_operations_action_guard_deploy_verification_smoke.js",
+    "docs/V1.5.66_INCIDENT_OPERATIONS_ACTION_GUARD_DEPLOY_VERIFICATION.md"
   ],
   "requiredPrefixes": [
     "assets/",

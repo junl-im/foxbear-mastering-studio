@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.65-incident-recovery-control-alert-history';
+    const SERVICE_VERSION = '1.5.66-incident-operations-action-guard-deploy-verification';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

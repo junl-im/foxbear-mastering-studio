@@ -191,6 +191,42 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+
+    function validIncidentAlertTestRequest() {
+      return isAdmin()
+        && request.resource.data.keys().hasOnly(['uid', 'source', 'createdAt'])
+        && request.resource.data.keys().hasAll(['uid', 'source', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.source == 'foxbear-admin-dashboard';
+    }
+
+    match /incidentAlertTestRequests/{requestId} {
+      allow create: if validIncidentAlertTestRequest();
+      allow get, list: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    function validIncidentDeploymentVerificationRequest() {
+      return isAdmin()
+        && request.resource.data.keys().hasOnly(['uid', 'source', 'expectedVersion', 'createdAt'])
+        && request.resource.data.keys().hasAll(['uid', 'source', 'expectedVersion', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.source == 'foxbear-admin-dashboard'
+        && validShortString(request.resource.data.expectedVersion, 24);
+    }
+
+    match /incidentDeploymentVerificationRequests/{requestId} {
+      allow create: if validIncidentDeploymentVerificationRequest();
+      allow get, list: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /incidentAdminActionState/{document=**} {
+      allow read, write: if false;
+    }
+
     match /incidentMailState/{document=**} {
       allow read, write: if false;
     }

@@ -1,6 +1,6 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.5.65",
+  "version": "1.5.66",
   "private": true,
   "description": "Server-side incident delivery with batch recovery telemetry, independent operations webhooks, 30-day health history, SMTP diagnostics, KST quotas, and fenced leases for FoxBear Mastering Studio.",
   "main": "index.js",

@@ -1,4 +1,11 @@
-# FoxBear Status - v1.5.65
+# FoxBear Status - v1.5.66
+
+## v1.5.66 current focus
+
+- Administrator retry, batch recovery, alert test, and deployment verification actions use server-side leases and cooldowns.
+- The administrator monitor can test the approved HTTPS webhook without exposing its URL.
+- Operations history stores issue codes and recommended remediation actions for detailed review.
+- Missing, stale, or version-mismatched Functions deployments trigger a guarded verification request from the administrator screen.
 
 ## v1.5.65 current focus
 
@@ -77,10 +84,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.65`
-- Build ID: `incident-recovery-control-alert-history`
-- Asset version: `1.5.65-incident-recovery-control-alert-history`
-- Service worker cache: `foxbear-shell-v1.5.65-incident-recovery-control-alert-history`
+- Product version: `1.5.66`
+- Build ID: `incident-operations-action-guard-deploy-verification`
+- Asset version: `1.5.66-incident-operations-action-guard-deploy-verification`
+- Service worker cache: `foxbear-shell-v1.5.66-incident-operations-action-guard-deploy-verification`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -112,7 +119,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.65`
-- Build ID: `incident-recovery-control-alert-history`
-- Asset version: `1.5.65-incident-recovery-control-alert-history`
-- Service worker cache: `foxbear-shell-v1.5.65-incident-recovery-control-alert-history`
+- Product version: `1.5.66`
+- Build ID: `incident-operations-action-guard-deploy-verification`
+- Asset version: `1.5.66-incident-operations-action-guard-deploy-verification`
+- Service worker cache: `foxbear-shell-v1.5.66-incident-operations-action-guard-deploy-verification`

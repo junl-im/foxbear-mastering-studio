@@ -29,6 +29,7 @@ const FIREBASE_E2E_MODULES = Object.freeze({
     export function limit(value) { return { type: 'limit', value }; }
     export function serverTimestamp() { return { __foxbearServerTimestamp: true }; }
     export async function addDoc() { return { id: 'foxbear-e2e-doc' }; }
+    export async function setDoc() { return undefined; }
     export async function getDoc() { return { exists: () => false, data: () => ({}) }; }
     export async function getDocs() { return { forEach() {} }; }
     export async function getCountFromServer() { return { data: () => ({ count: 0 }) }; }
