@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.5.67 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.5.68 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health';
+    const VERSION = '1.5.68-mail-delivery-verification-sender-subject-rules';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

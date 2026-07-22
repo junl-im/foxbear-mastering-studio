@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.5.67",
-  "assetVersion": "1.5.67-incident-admin-audit-webhook-failover-index-health"
+  "productVersion": "1.5.68",
+  "assetVersion": "1.5.68-mail-delivery-verification-sender-subject-rules"
 }

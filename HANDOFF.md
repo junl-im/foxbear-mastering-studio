@@ -1,4 +1,4 @@
-# Handoff - v1.5.67
+# Handoff - v1.5.68
 ## 필수 결과 보고 형식
 
 앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
@@ -644,3 +644,12 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 - `runtimeErrors`에는 실제 앱 예외만 남아야 합니다.
 - 브라우저 QA가 실패하면 Actions 로그의 `[FoxBear E2E Runtime Health]` JSON을 먼저 확인합니다.
 - GitHub Desktop에서 누적 ZIP 적용 후 `package.json`, `package-lock.json`, `src/boot/runtime-health.js`, `qa/browser/` 변경이 모두 표시되는지 확인합니다.
+## v1.5.68 인수인계
+
+- 결과 보고 형식은 계속 `진행된 내용`, `배포 파일 2종`, `다음 예상 내용` 세 구역만 사용한다.
+- 모든 SMTP 메일의 표시 발신자명은 `AI마스터링 스튜디오`로 고정한다.
+- 메일 제목은 테스트·오류 신고·운영 경고·긴급 장애·복구·일일 요약 규칙을 구분해 사용한다.
+- 설정의 `실제 메일 테스트`는 운영 SMTP 경로를 그대로 사용하며 성공 화면에 제목, SMTP 접수 시각, Message-ID를 표시한다.
+- `emailed`는 SMTP 수신자 승인 상태이며 실제 받은편지함 배치는 Gmail 검색과 스팸함 확인으로 최종 검증한다.
+- 배포 후 Gmail 검색어는 `subject:"[AI마스터링 스튜디오][메일 테스트]"`를 사용한다.
+

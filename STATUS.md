@@ -1,4 +1,4 @@
-# FoxBear Status - v1.5.67
+# FoxBear Status - v1.5.68
 
 ## v1.5.67 current focus
 
@@ -91,10 +91,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.67`
-- Build ID: `incident-admin-audit-webhook-failover-index-health`
-- Asset version: `1.5.67-incident-admin-audit-webhook-failover-index-health`
-- Service worker cache: `foxbear-shell-v1.5.67-incident-admin-audit-webhook-failover-index-health`
+- Product version: `1.5.68`
+- Build ID: `mail-delivery-verification-sender-subject-rules`
+- Asset version: `1.5.68-mail-delivery-verification-sender-subject-rules`
+- Service worker cache: `foxbear-shell-v1.5.68-mail-delivery-verification-sender-subject-rules`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -126,7 +126,14 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.67`
-- Build ID: `incident-admin-audit-webhook-failover-index-health`
-- Asset version: `1.5.67-incident-admin-audit-webhook-failover-index-health`
-- Service worker cache: `foxbear-shell-v1.5.67-incident-admin-audit-webhook-failover-index-health`
+- Product version: `1.5.68`
+- Build ID: `mail-delivery-verification-sender-subject-rules`
+- Asset version: `1.5.68-mail-delivery-verification-sender-subject-rules`
+- Service worker cache: `foxbear-shell-v1.5.68-mail-delivery-verification-sender-subject-rules`
+## v1.5.68 current focus
+
+- 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시
+- 발신자명 `AI마스터링 스튜디오` 통일
+- 메일 종류별 검색 가능한 제목 규칙
+- 배포 후 Gmail 받은편지함·스팸함 대조 절차
+

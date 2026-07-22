@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.67-incident-admin-audit-webhook-failover-index-health';
+const version = '1.5.68-mail-delivery-verification-sender-subject-rules';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

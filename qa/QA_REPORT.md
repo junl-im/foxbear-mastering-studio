@@ -1,3 +1,10 @@
+# QA Report - v1.5.68 Mail Delivery Verification
+
+- Verified all SMTP messages use the display sender `AI마스터링 스튜디오`.
+- Verified test, incident, operations, recovery, and daily-summary subject rules.
+- Verified the production-path test returns SMTP acceptance time, subject, recipient, accepted/rejected counts, response, and Message-ID.
+- Verified the mailbox search contract and deployment handoff instructions.
+
 # FoxBear QA Report - v1.5.67
 
 - v1.5.67 static and regression checks are tracked by the release gate.

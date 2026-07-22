@@ -1,8 +1,8 @@
-// FoxBear export progress view v1.5.67 - queue pause, recovery, failure guidance and ETA
+// FoxBear export progress view v1.5.68 - queue pause, recovery, failure guidance and ETA
 'use strict';
 
 (function attachFoxBearExportProgressView(global) {
-    const VERSION = 'v1.5.67-incident-admin-audit-webhook-failover-index-health';
+    const VERSION = 'v1.5.68-mail-delivery-verification-sender-subject-rules';
     const LEGACY_VERSION = 'v1.5.6-export-progress-recovery';
     let snapshot = Object.freeze({ version: VERSION, visible: false, mode: 'zip', state: 'idle', percent: 0, completedCount: 0, outputBytes: 0, message: '', cancellable: false });
     let refs = null;

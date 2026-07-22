@@ -14,6 +14,8 @@ const db = getFirestore();
 const GMAIL_APP_PASSWORD = defineSecret('FOXBEAR_GMAIL_APP_PASSWORD');
 const ALERT_RECIPIENT = 'mcwoogi@gmail.com';
 const ALERT_SENDER = 'mcwoogi@gmail.com';
+const MAIL_FROM_NAME = 'AI마스터링 스튜디오';
+const MAIL_SUBJECT_PREFIX = '[AI마스터링 스튜디오]';
 const REGION = 'asia-northeast3';
 const TIME_ZONE = 'Asia/Seoul';
 const DUPLICATE_WINDOW_MS = 30 * 60 * 1000;
@@ -52,7 +54,7 @@ const OPERATIONS_WEBHOOK_FALLBACK_ENV_NAME = 'FOXBEAR_INCIDENT_ALERT_WEBHOOK_FAL
 const OPERATIONS_WEBHOOK_RETRY_DELAYS_MS = Object.freeze([0, 800, 2400]);
 const ADMIN_AUDIT_COLLECTION = 'incidentAdminAuditLog';
 const ADMIN_AUDIT_TTL_DAYS = 90;
-const PRODUCT_VERSION = '1.5.67';
+const PRODUCT_VERSION = '1.5.68';
 const OPERATIONS_SCHEMA_VERSION = 4;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
 const ADMIN_ACTION_STATE_TTL_DAYS = 7;
@@ -84,6 +86,45 @@ function escapeHtml(value) {
 
 function safeKey(value, fallback = 'unknown') {
   return cleanText(value, 100).replace(/[^a-z0-9_-]/gi, '_').slice(0, 100) || fallback;
+}
+
+function mailFromHeader() {
+  return `${MAIL_FROM_NAME} <${ALERT_SENDER}>`;
+}
+
+function kstTimestampLabel(value = Date.now()) {
+  const input = value instanceof Date ? value.getTime() : Number(value);
+  const source = Number.isFinite(input) ? input : Date.now();
+  const date = new Date(source + (9 * 60 * 60 * 1000));
+  const pad = number => String(number).padStart(2, '0');
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())} KST`;
+}
+
+function incidentSeverityLabel(value) {
+  const severity = cleanText(value || 'error', 20).toLowerCase();
+  return severity === 'fatal' ? '긴급' : severity === 'warning' ? '경고' : '오류';
+}
+
+function incidentCategoryLabel(value) {
+  const category = cleanText(value || 'unknown', 40).toLowerCase();
+  const labels = {
+    'manual-test': '메일 테스트', runtime: '실행 오류', resource: '리소스 오류', boot: '부팅 오류',
+    mastering: '마스터링 오류', 'mastering-memory': '마스터링 메모리', 'quality-recovery': '품질 복구',
+    export: '내보내기 오류', 'update-safety': '업데이트 안전', 'release-mismatch': '배포 버전',
+    firebase: 'Firebase', unknown: '기타 오류'
+  };
+  return labels[category] || category;
+}
+
+function buildIncidentSubject(data = {}, reportId = '') {
+  const category = cleanText(data.category || 'unknown', 40).toLowerCase();
+  if (category === 'manual-test') {
+    const testId = cleanText(data.fingerprint || reportId || 'test', 80).replace(/^manual-test-/, '').slice(-18) || 'test';
+    return `${MAIL_SUBJECT_PREFIX}[메일 테스트] 실제 발송 확인 · ${testId}`.slice(0, 180);
+  }
+  const version = cleanText(data.appVersion || 'unknown', 24);
+  const shortId = safeKey(reportId || data.fingerprint || 'incident').slice(-10);
+  return `${MAIL_SUBJECT_PREFIX}[오류 신고] ${incidentSeverityLabel(data.severity)} · ${incidentCategoryLabel(category)} · v${version} · ${shortId}`.slice(0, 180);
 }
 
 function recommendedActionForIssue(code) {
@@ -471,8 +512,10 @@ function buildOperationsAlertMail(health = {}, previous = {}, kind = 'alert') {
     ? health.reasons.map(item => cleanText(item?.message || item?.code || item, 240)).filter(Boolean)
     : [];
   const subject = isRecovery
-    ? '[FoxBear 운영 복구] 문제 보고 메일 시스템 정상화'
-    : `[FoxBear 운영 ${status === 'critical' ? '긴급' : '주의'}] 문제 보고 메일 상태 점검`;
+    ? `${MAIL_SUBJECT_PREFIX}[복구 완료] 메일 시스템 정상화`
+    : status === 'critical'
+      ? `${MAIL_SUBJECT_PREFIX}[긴급 장애] 메일 시스템 확인 필요`
+      : `${MAIL_SUBJECT_PREFIX}[운영 경고] 메일 시스템 점검 필요`;
   const lines = [
     isRecovery ? 'FoxBear 문제 보고 메일 시스템이 정상 상태로 복구되었습니다.' : 'FoxBear 문제 보고 메일 시스템에서 운영 이상을 감지했습니다.',
     '',
@@ -520,28 +563,35 @@ function buildMail(data, reportId) {
   const severity = cleanText(data.severity || 'error', 20).toUpperCase();
   const fingerprint = cleanText(data.fingerprint || 'unknown', 64);
   const appVersion = cleanText(data.appVersion || 'unknown', 24);
-  const subject = `[FoxBear ${severity}] ${category} · v${appVersion} · ${fingerprint}`.slice(0, 180);
-  const receivedAt = new Date().toISOString();
+  const isManualTest = category === 'manual-test';
+  const subject = buildIncidentSubject(data, reportId);
+  const receivedAt = kstTimestampLabel(Date.now());
+  const heading = isManualTest ? 'AI마스터링 스튜디오 실제 메일 발송 테스트' : 'AI마스터링 스튜디오 자동 문제 보고';
   const rows = [
-    ['분류', category], ['심각도', severity], ['이유', data.reason], ['메시지', data.message],
+    ['메일 유형', isManualTest ? '실제 발송 테스트' : '자동 문제 보고'],
+    ['발신자', MAIL_FROM_NAME], ['수신자', ALERT_RECIPIENT], ['제목', subject],
+    ['분류', incidentCategoryLabel(category)], ['심각도', incidentSeverityLabel(data.severity)], ['이유', data.reason], ['메시지', data.message],
     ['코드', data.code], ['앱 버전', appVersion], ['자산 버전', data.assetVersion],
     ['브라우저', data.browser], ['플랫폼', data.platform], ['화면', data.viewport],
     ['온라인', data.online === false ? '아니오' : '예'],
     ['부팅 실패/정지', `${Boolean(data.bootFailed)} / ${Boolean(data.bootStalled)}`],
     ['리소스/오류/경고', `${Number(data.resourceFailureCount || 0)} / ${Number(data.runtimeErrorCount || 0)} / ${Number(data.runtimeWarningCount || 0)}`],
     ['페이지', data.pagePath], ['지문', fingerprint], ['보고서 ID', reportId],
-    ['클라이언트 시각', data.clientAt], ['서버 수신 시각', receivedAt]
+    ['클라이언트 시각', data.clientAt], ['서버 발송 시각', receivedAt]
   ];
+  const intro = isManualTest
+    ? '이 메일은 오류가 없어도 실제 Gmail SMTP 발송 경로를 확인하기 위해 사용자가 직접 실행한 테스트입니다.'
+    : 'AI마스터링 스튜디오에서 자동 수집한 문제 보고입니다.';
   const text = [
-    'FoxBear 자동 문제 보고', '',
+    heading, '', intro, '',
     ...rows.map(([label, value]) => `${label}: ${cleanText(value, 1200) || '-'}`),
     '', `상황: ${cleanText(data.context, 2000) || '-'}`, '',
     `스택:\n${String(data.stack || '').slice(0, 4000) || '-'}`, '',
-    '개인 오디오, 파일명, 원본 PCM은 이 보고서에 포함되지 않습니다.'
+    '개인 오디오, 파일명, 원본 PCM은 이 메일에 포함되지 않습니다.'
   ].join('\n');
   const htmlRows = rows.map(([label, value]) => `<tr><th style="text-align:left;padding:6px 10px;border:1px solid #ddd">${escapeHtml(label)}</th><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(value || '-')}</td></tr>`).join('');
-  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#191919"><h2>FoxBear 자동 문제 보고</h2><table style="border-collapse:collapse">${htmlRows}</table><h3>상황</h3><pre style="white-space:pre-wrap;background:#f6f6f6;padding:12px">${escapeHtml(data.context || '-')}</pre><h3>스택</h3><pre style="white-space:pre-wrap;background:#f6f6f6;padding:12px">${escapeHtml(String(data.stack || '').slice(0, 4000) || '-')}</pre><p style="color:#666">개인 오디오, 파일명, 원본 PCM은 이 보고서에 포함되지 않습니다.</p></body></html>`;
-  return { subject, text, html };
+  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#191919"><h2>${escapeHtml(heading)}</h2><p>${escapeHtml(intro)}</p><table style="border-collapse:collapse">${htmlRows}</table><h3>상황</h3><pre style="white-space:pre-wrap;background:#f6f6f6;padding:12px">${escapeHtml(data.context || '-')}</pre><h3>스택</h3><pre style="white-space:pre-wrap;background:#f6f6f6;padding:12px">${escapeHtml(String(data.stack || '').slice(0, 4000) || '-')}</pre><p style="color:#666">개인 오디오, 파일명, 원본 PCM은 이 메일에 포함되지 않습니다.</p></body></html>`;
+  return { subject, text, html, type: isManualTest ? 'manual-test' : 'incident' };
 }
 
 function kstDayRange(now = new Date(), offsetDays = -1) {
@@ -587,9 +637,9 @@ function buildDailySummaryMail(reports, dateKey, options = {}) {
   }
   const topCategories = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
   const topFingerprints = Array.from(fingerprints.entries()).sort((a, b) => b[1].count - a[1].count).slice(0, 8);
-  const subject = `[FoxBear 일일 오류 요약] ${dateKey} · ${items.length}${truncated ? '+' : ''}건`;
+  const subject = `${MAIL_SUBJECT_PREFIX}[일일 요약] ${dateKey} · 오류 ${items.length}${truncated ? '+' : ''}건`;
   const lines = [
-    `FoxBear 일일 오류 요약 (${dateKey}, KST)`, '',
+    `AI마스터링 스튜디오 일일 오류 요약 (${dateKey}, KST)`, '',
     `전체: ${items.length}${truncated ? '건 이상' : '건'}`,
     ...(truncated ? [`집계 제한: 최신 ${DAILY_SUMMARY_MAX_REPORTS}건까지만 상세 집계됨`] : []),
     `Fatal: ${severityCounts.fatal} / Error: ${severityCounts.error} / Warning: ${severityCounts.warning}`,
@@ -602,7 +652,7 @@ function buildDailySummaryMail(reports, dateKey, options = {}) {
   ];
   const categoryRows = topCategories.map(([key, value]) => `<tr><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(key)}</td><td style="padding:6px 10px;border:1px solid #ddd">${value}</td></tr>`).join('') || '<tr><td colspan="2">없음</td></tr>';
   const fingerprintRows = topFingerprints.map(([key, value]) => `<tr><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(key)}</td><td style="padding:6px 10px;border:1px solid #ddd">${value.count}</td><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(value.category)}</td><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(value.message || '-')}</td></tr>`).join('') || '<tr><td colspan="4">없음</td></tr>';
-  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#191919"><h2>FoxBear 일일 오류 요약</h2><p><strong>${escapeHtml(dateKey)} KST</strong> · 전체 ${items.length}${truncated ? '건 이상' : '건'}</p>${truncated ? `<p style="color:#b45309">최신 ${DAILY_SUMMARY_MAX_REPORTS}건까지만 상세 집계했습니다.</p>` : ''}<p>Fatal ${severityCounts.fatal} / Error ${severityCounts.error} / Warning ${severityCounts.warning}</p><h3>분류별</h3><table style="border-collapse:collapse"><tr><th>분류</th><th>건수</th></tr>${categoryRows}</table><h3>반복 오류 지문</h3><table style="border-collapse:collapse"><tr><th>지문</th><th>건수</th><th>분류</th><th>메시지</th></tr>${fingerprintRows}</table><p style="color:#666">개인 오디오, 파일명, 원본 PCM은 집계 대상에 포함되지 않습니다.</p></body></html>`;
+  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#191919"><h2>AI마스터링 스튜디오 일일 오류 요약</h2><p><strong>${escapeHtml(dateKey)} KST</strong> · 전체 ${items.length}${truncated ? '건 이상' : '건'}</p>${truncated ? `<p style="color:#b45309">최신 ${DAILY_SUMMARY_MAX_REPORTS}건까지만 상세 집계했습니다.</p>` : ''}<p>Fatal ${severityCounts.fatal} / Error ${severityCounts.error} / Warning ${severityCounts.warning}</p><h3>분류별</h3><table style="border-collapse:collapse"><tr><th>분류</th><th>건수</th></tr>${categoryRows}</table><h3>반복 오류 지문</h3><table style="border-collapse:collapse"><tr><th>지문</th><th>건수</th><th>분류</th><th>메시지</th></tr>${fingerprintRows}</table><p style="color:#666">개인 오디오, 파일명, 원본 PCM은 집계 대상에 포함되지 않습니다.</p></body></html>`;
   return { subject, text: lines.join('\n'), html };
 }
 
@@ -928,10 +978,10 @@ async function sendOperationsAlert(health, previous, decision, now = Date.now())
   if (health.smtp?.status === 'ok') {
     try {
       const info = await createTransport().sendMail({
-        from: `FoxBear Incident Monitor <${ALERT_SENDER}>`,
+        from: mailFromHeader(),
         to: ALERT_RECIPIENT,
         messageId: operationAlertMessageId(decision.kind, health.signature, now),
-        headers: { 'X-FoxBear-Operations-Status': health.status, 'X-FoxBear-Operations-Signature': health.signature },
+        headers: { 'X-FoxBear-Operations-Status': health.status, 'X-FoxBear-Operations-Signature': health.signature, 'X-AI-Mastering-Mail-Type': 'operations' },
         subject: mail.subject,
         text: mail.text,
         html: mail.html
@@ -1285,6 +1335,11 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
           smtpResponse: cleanText(outcome.response || '', 300),
           acceptedCount: Math.max(0, Number(outcome.acceptedCount || 0)),
           rejectedCount: Math.max(0, Number(outcome.rejectedCount || 0)),
+          subject: cleanText(outcome.subject || '', 180),
+          senderName: cleanText(outcome.senderName || MAIL_FROM_NAME, 80),
+          recipient: cleanText(outcome.recipient || ALERT_RECIPIENT, 180),
+          mailType: cleanText(outcome.mailType || 'incident', 40),
+          smtpAcceptedAt: Timestamp.fromMillis(now),
           manualResetCount: Math.max(0, Number(currentDelivery.manualResetCount || 0)),
           leaseId: '', leaseUntil: null, nextRetryAt: null,
           reservationActive: false, reservationDayKey: '',
@@ -1341,10 +1396,14 @@ async function processIncidentReport(reportRef, options = {}) {
   const mail = buildMail(reservation.data, reportRef.id);
   try {
     const info = await createTransport().sendMail({
-      from: `FoxBear Incident Monitor <${ALERT_SENDER}>`,
+      from: mailFromHeader(),
       to: ALERT_RECIPIENT,
       messageId: incidentMessageId(reportRef.id),
-      headers: { 'X-FoxBear-Report-ID': reportRef.id },
+      headers: {
+        'X-FoxBear-Report-ID': reportRef.id,
+        'X-AI-Mastering-Mail-Type': mail.type,
+        ...(mail.type === 'manual-test' ? { 'X-AI-Mastering-Test-ID': cleanText(reservation.data.fingerprint || reportRef.id, 100) } : {})
+      },
       subject: mail.subject,
       text: mail.text,
       html: mail.html
@@ -1355,7 +1414,11 @@ async function processIncidentReport(reportRef, options = {}) {
       messageId: info.messageId,
       response: info.response,
       acceptedCount,
-      rejectedCount: Array.isArray(info.rejected) ? info.rejected.length : 0
+      rejectedCount: Array.isArray(info.rejected) ? info.rejected.length : 0,
+      subject: mail.subject,
+      senderName: MAIL_FROM_NAME,
+      recipient: ALERT_RECIPIENT,
+      mailType: mail.type
     });
     return { ok: result.status === 'emailed', ...result };
   } catch (error) {
@@ -1773,10 +1836,10 @@ async function sendDailySummaryForRange(range) {
     const { reports, truncated } = await loadDailyIncidentReports(range);
     const mail = buildDailySummaryMail(reports, range.dateKey, { truncated });
     const info = await createTransport().sendMail({
-      from: `FoxBear Incident Monitor <${ALERT_SENDER}>`,
+      from: mailFromHeader(),
       to: ALERT_RECIPIENT,
       messageId: summaryMessageId(range.dateKey),
-      headers: { 'X-FoxBear-Summary-Date': range.dateKey },
+      headers: { 'X-FoxBear-Summary-Date': range.dateKey, 'X-AI-Mastering-Mail-Type': 'daily-summary' },
       subject: mail.subject,
       text: mail.text,
       html: mail.html
@@ -1836,7 +1899,8 @@ exports.verifyIncidentPostDeployHealth = onSchedule({
 });
 
 exports.__test = Object.freeze({
-  cleanText, escapeHtml, safeKey, buildMail, buildDailySummaryMail, incidentMessageId, summaryMessageId,
+  cleanText, escapeHtml, safeKey, mailFromHeader, kstTimestampLabel, incidentSeverityLabel, incidentCategoryLabel,
+  buildIncidentSubject, buildMail, buildDailySummaryMail, incidentMessageId, summaryMessageId,
   kstDayRange, kstDateKey, nextKstDayRetryAt, retryDelayMs,
   isIncidentDeliveryDue, incidentDueAt, isLongUndelivered,
   normalizedGmailAppPassword, assertSmtpAccepted, classifySmtpError,

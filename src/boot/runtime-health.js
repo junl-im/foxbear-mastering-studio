@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.67-incident-admin-audit-webhook-failover-index-health';
+    const FALLBACK_VERSION = '1.5.68-mail-delivery-verification-sender-subject-rules';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

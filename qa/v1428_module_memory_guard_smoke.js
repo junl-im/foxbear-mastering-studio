@@ -26,7 +26,7 @@ const modules = [
   'src/state/track-lifecycle-service.js'
 ];
 modules.forEach(path => assert(fs.existsSync(path), `${path} missing`));
-modules.forEach(path => assert(index.includes(`${path}?v=1.5.67-incident-admin-audit-webhook-failover-index-health`), `${path} not loaded in index`));
+modules.forEach(path => assert(index.includes(`${path}?v=1.5.68-mail-delivery-verification-sender-subject-rules`), `${path} not loaded in index`));
 modules.forEach(path => assert(pkg.qaChecks.includes(`node --check ${path}`), `${path} syntax check missing`));
 
 assert(index.indexOf('src/audio/import-queue-service.js') < index.indexOf('src/app.js'), 'import queue service must load before app.js');

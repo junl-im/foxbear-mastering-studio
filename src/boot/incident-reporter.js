@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.67
+// FoxBear automatic incident reporter - v1.5.68
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.67-incident-admin-audit-webhook-failover-index-health';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.68-mail-delivery-verification-sender-subject-rules';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -377,9 +377,9 @@
             category: 'manual-test',
             severity: 'warning',
             reason: 'manual-test',
-            message: 'FoxBear automatic incident email test',
+            message: 'AI마스터링 스튜디오 실제 메일 발송 테스트',
             fingerprint: `manual-test-${testId}`,
-            context: `This is a user-triggered delivery verification (${testId}). No audio data or file name is included.`
+            context: `사용자가 직접 실행한 실제 Gmail SMTP 발송 검증입니다. 테스트 ID=${testId}. 오디오 데이터와 파일명은 포함되지 않습니다.`
         }, { automatic: false, manual: true, force: true });
         const reportId = submission?.result?.reportId || '';
         if (!submission.ok || !reportId) return submission;
@@ -414,11 +414,11 @@
             testButton.dataset.bound = 'true';
             testButton.addEventListener('click', async () => {
                 testButton.disabled = true;
-                renderControls('테스트 신고를 제출하고 메일 상태를 확인 중입니다…');
+                renderControls('실제 테스트 메일을 발송하고 Gmail SMTP 접수 상태를 확인 중입니다…');
                 const result = await test();
                 const status = result?.delivery?.status || (result?.ok ? 'submitted' : result?.code || 'failed');
                 const messages = {
-                    emailed: '테스트 메일 발송 완료: mcwoogi@gmail.com',
+                    emailed: 'Gmail SMTP 접수 완료: 받은편지함과 스팸함을 확인하세요.',
                     pending: '신고는 저장됐지만 45초 안에 메일 함수 완료를 확인하지 못했습니다.',
                     submitted: '신고 저장 완료. 메일 함수 배포 상태를 확인하세요.',
                     'status-check-failed': '신고 저장 후 메일 상태 조회에 실패했습니다.',
@@ -431,7 +431,15 @@
                 };
                 const detail = cleanText(result?.delivery?.message || result?.delivery?.reason || result?.reason || '', 140);
                 const baseMessage = messages[status] || `테스트 결과: ${status}`;
-                renderControls(detail && !['emailed', 'suppressed-duplicate'].includes(status) ? `${baseMessage} · ${detail}` : baseMessage);
+                if (status === 'emailed') {
+                    const subject = cleanText(result?.delivery?.subject || '', 120);
+                    const sender = cleanText(result?.delivery?.senderName || 'AI마스터링 스튜디오', 60);
+                    const acceptedAt = cleanText(result?.delivery?.smtpAcceptedAt || result?.delivery?.checkedAt || '', 40);
+                    const receipt = [sender, subject, acceptedAt ? `접수 ${acceptedAt}` : '', result?.delivery?.messageId ? `ID ${cleanText(result.delivery.messageId, 80)}` : ''].filter(Boolean).join(' · ');
+                    renderControls(`${baseMessage}${receipt ? ` · ${receipt}` : ''}`);
+                } else {
+                    renderControls(detail && status !== 'suppressed-duplicate' ? `${baseMessage} · ${detail}` : baseMessage);
+                }
                 testButton.disabled = !isEnabled();
             });
         }

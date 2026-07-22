@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.67",
-  "buildId": "incident-admin-audit-webhook-failover-index-health",
+  "productVersion": "1.5.68",
+  "buildId": "mail-delivery-verification-sender-subject-rules",
   "requiredFiles": [
     "404.html",
     ".gitignore",

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.67",
+  "version": "1.5.68",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with administrator audit logs, webhook retry/failover, index probes, paged operations history, and post-deployment health checks.",
+  "description": "FoxBear AI Mastering Studio Pro with production mail delivery verification, standardized Korean sender identity and subject rules, SMTP acceptance receipts, and inbox-searchable test identifiers.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.67-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.67-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.68-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.68-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -303,15 +303,16 @@
     "node qa/v1564_incident_operations_health_self_diagnostics_smoke.js",
     "node qa/v1565_incident_recovery_control_alert_history_smoke.js",
     "node qa/v1566_incident_operations_action_guard_deploy_verification_smoke.js",
-    "node qa/v1567_incident_admin_audit_webhook_failover_index_health_smoke.js"
+    "node qa/v1567_incident_admin_audit_webhook_failover_index_health_smoke.js",
+    "node qa/v1568_mail_delivery_verification_sender_subject_rules_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-admin-audit-webhook-failover-index-health",
-    "assetVersion": "1.5.67-incident-admin-audit-webhook-failover-index-health",
-    "cacheName": "foxbear-shell-v1.5.67-incident-admin-audit-webhook-failover-index-health",
-    "bootRevision": "boot-sri-v1567",
-    "updateSafetyRevision": "update-safety-v1567",
-    "serviceWorkerRevision": "sw-v1567"
+    "buildId": "mail-delivery-verification-sender-subject-rules",
+    "assetVersion": "1.5.68-mail-delivery-verification-sender-subject-rules",
+    "cacheName": "foxbear-shell-v1.5.68-mail-delivery-verification-sender-subject-rules",
+    "bootRevision": "boot-sri-v1568",
+    "updateSafetyRevision": "update-safety-v1568",
+    "serviceWorkerRevision": "sw-v1568"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

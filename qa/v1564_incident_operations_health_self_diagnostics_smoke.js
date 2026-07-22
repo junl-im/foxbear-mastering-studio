@@ -20,8 +20,8 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.64_INCIDENT_OPERATIONS_HEALTH_SELF_DIAGNOSTICS.md');
 
-assert.strictEqual(pkg.version, '1.5.67');
-assert.strictEqual(meta.assetVersion, '1.5.67-incident-admin-audit-webhook-failover-index-health');
+assert.strictEqual(pkg.version, '1.5.68');
+assert.strictEqual(meta.assetVersion, '1.5.68-mail-delivery-verification-sender-subject-rules');
 assert(pkg.scripts['deploy:incident'].includes('functions:auditIncidentMailOperations'));
 
 for (const token of [
@@ -46,7 +46,7 @@ for (const token of [
   "code: 'quota-reservation-leak'",
   "reason: 'smtp-unavailable'",
   "kind: 'recovery'"
-]) assert(functionsSource.includes(token), `v1.5.67 operations health missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.5.68 operations health missing ${token}`);
 
 for (const token of [
   "getDoc(doc(bridgeState.db, 'incidentOperations', 'mail'))",
@@ -54,7 +54,7 @@ for (const token of [
   'getKstDayRange',
   "where('createdAt', '>=', kstRange.start)",
   'operations: normalizeIncidentOperations(operationsSnapshot)'
-]) assert(firebaseSource.includes(token), `v1.5.67 admin bridge missing ${token}`);
+]) assert(firebaseSource.includes(token), `v1.5.68 admin bridge missing ${token}`);
 
 for (const token of [
   "makeSummaryCard('메일 운영'",
@@ -62,7 +62,7 @@ for (const token of [
   "makeSummaryCard('SMTP/Secret'",
   'formatOperationsStatus',
   '운영 점검은 15분마다 실행됩니다'
-]) assert(monitorSource.includes(token), `v1.5.67 monitor UI missing ${token}`);
+]) assert(monitorSource.includes(token), `v1.5.68 monitor UI missing ${token}`);
 
 assert(rules.includes('match /incidentOperations/{documentId}'));
 assert(rules.includes('allow get: if isAdmin();'));
@@ -162,7 +162,8 @@ assert.strictEqual(blocked.send, false);
 assert.strictEqual(blocked.reason, 'smtp-unavailable');
 
 const mail = test.buildOperationsAlertMail(warning, healthy, 'alert');
-assert(mail.subject.includes('FoxBear 운영'));
+assert(mail.subject.includes('[AI마스터링 스튜디오]'));
+assert(/\[(운영 경고|긴급 장애|복구 완료)\]/.test(mail.subject));
 assert(mail.text.includes('장기 미발송'));
 assert(mail.html.includes('Firebase 관리자 화면'));
 assert.strictEqual(

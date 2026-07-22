@@ -385,7 +385,16 @@ async function getIncidentDelivery(reportId) {
         message: limitText(delivery.message || '', 300),
         attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
         terminal: delivery.terminal === true,
-        messageId: limitText(delivery.messageId || '', 240)
+        messageId: limitText(delivery.messageId || '', 240),
+        subject: limitText(delivery.subject || '', 180),
+        senderName: limitText(delivery.senderName || '', 80),
+        recipient: limitText(delivery.recipient || '', 180),
+        mailType: limitText(delivery.mailType || '', 40),
+        acceptedCount: safeIncidentNumber(delivery.acceptedCount, 0, 20),
+        rejectedCount: safeIncidentNumber(delivery.rejectedCount, 0, 20),
+        smtpResponse: limitText(delivery.smtpResponse || '', 300),
+        smtpAcceptedAt: timestampIso(delivery.smtpAcceptedAt),
+        checkedAt: timestampIso(delivery.checkedAt)
     };
 }
 

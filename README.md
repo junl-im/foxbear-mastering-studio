@@ -1,4 +1,11 @@
-# FoxBear AI Mastering Studio Pro v1.5.67
+# FoxBear AI Mastering Studio Pro v1.5.68
+
+## v1.5.68 핵심 변경
+
+- 실제 오류가 없어도 설정에서 운영 SMTP 경로와 Gmail 수신을 검증할 수 있습니다.
+- 모든 메일의 표시 발신자명을 `AI마스터링 스튜디오`로 통일했습니다.
+- 테스트·오류·운영 경고·복구·일일 요약 제목을 검색 가능한 규칙으로 통일했습니다.
+- 테스트 성공 화면에 제목, SMTP 접수 시각, Message-ID를 표시합니다.
 
 ## v1.5.67 핵심 변경
 

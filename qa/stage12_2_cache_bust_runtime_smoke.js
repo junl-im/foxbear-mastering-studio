@@ -15,11 +15,11 @@ const index = read('index.html');
 const sw = read('sw.js');
 const cfg = read('src/config/app-runtime-config.js');
 const pkg = JSON.parse(read('package.json'));
-const version = '1.5.67-incident-admin-audit-webhook-failover-index-health';
+const version = '1.5.68-mail-delivery-verification-sender-subject-rules';
 
 assert(index.includes(`?v=${version}`), 'index.html should use the stage12.2 cache-busting asset version');
 assert(sw.includes(`?v=${version}`), 'service worker precache should use the stage12.2 asset version');
-assert(sw.includes('foxbear-shell-v1.5.67-incident-admin-audit-webhook-failover-index-health'), 'service worker cache name should be stage12.2 cachefix');
+assert(sw.includes('foxbear-shell-v1.5.68-mail-delivery-verification-sender-subject-rules'), 'service worker cache name should be stage12.2 cachefix');
 assert(!index.includes('?v=1.4.0-dock-modal-state-machine'), 'index.html should not keep the stale immutable asset query');
 assert(!sw.includes('?v=1.4.0-dock-modal-state-machine'), 'sw.js should not keep the stale immutable asset query');
 

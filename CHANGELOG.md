@@ -1,3 +1,10 @@
+# v1.5.68 - Mail Delivery Verification, Sender Identity, and Subject Rules
+
+- Standardized all SMTP display sender names as `AI마스터링 스튜디오`.
+- Added searchable Korean subject rules for tests, incidents, operations alerts, recovery notices, and daily summaries.
+- Upgraded the settings test into a production-path mail delivery verification with SMTP acceptance receipt details.
+- Added subject, recipient, sender name, accepted count, SMTP response, acceptance time, and Message-ID to the client-visible delivery receipt.
+
 # v1.5.67 - Incident Admin Audit, Webhook Failover, Index and Health Verification
 
 - Added privacy-minimized administrator action audit logs with 90-day TTL.

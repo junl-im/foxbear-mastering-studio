@@ -19,9 +19,9 @@ const health = read('src/boot/runtime-health.js');
 const compare = read('src/ui/waveform-compare-view.js');
 const app = read('src/app.js');
 const pkg = JSON.parse(read('package.json'));
-const assetVersion = '1.5.67-incident-admin-audit-webhook-failover-index-health';
+const assetVersion = '1.5.68-mail-delivery-verification-sender-subject-rules';
 
-assert(pkg.version === '1.5.67', 'Stage17 should keep official app version at 1.4.0');
+assert(pkg.version === '1.5.68', 'Stage17 should keep official app version at 1.4.0');
 assert(pkg.description.includes('FoxBear'), 'package description should identify latest Stage17+ line');
 assert(config.includes(`const ASSET_VERSION = '${assetVersion}'`), 'runtime config should use Stage17 asset version');
 assert(health.includes(`const FALLBACK_VERSION = '${assetVersion}'`), 'runtime health fallback should use Stage17 asset version');
