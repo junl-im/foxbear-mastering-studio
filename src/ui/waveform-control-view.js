@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template';
+  const VIEW_VERSION = '1.5.73-bulk-control-eta-result-filter-ui';
   const DEFAULT_BINS = 96;
 
   function getService() {

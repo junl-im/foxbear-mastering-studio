@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.5.69 - ZIP working-set limits and STORE-only audio packaging
+// FoxBear export guard service v1.5.73 - ZIP working-set limits and STORE-only audio packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.5.69-mail-receipt-confirmation-history-branded-template';
+    const VERSION = 'v1.5.73-bulk-control-eta-result-filter-ui';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

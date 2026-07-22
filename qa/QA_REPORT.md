@@ -1,3 +1,33 @@
+# FoxBear QA Report - v1.5.73
+
+- v1.5.73 adds safe multi-track cancellation, failed-track-only retry, per-track and batch ETA, result filters, and desktop/mobile visual layout contracts.
+- Cancellation propagates to the active mastering signal, completed outputs remain intact, and not-yet-started tracks settle as cancelled.
+- Configured static/regression checks: 282/282 PASS in bounded continuation segments.
+- Historical compatibility anchors retained: 183/183 PASS, 182/182 PASS, 178/178 PASS, and 148/148 PASS.
+- Playwright-dependent contracts were verified with a temporary static module only; actual Chromium rendering, Firebase deployment, and Gmail delivery remain production verification tasks.
+
+# FoxBear QA Report - v1.5.72
+
+- v1.5.72 changes multi-track analysis completion into a guided next step: the list closes and focus moves to the main `전체 마스터링` action.
+- Multi-track mastering suppresses the single-track HUD and keeps current-track progress, completed results, and failures inside the track list.
+- Administrator operations add compact mode, non-destructive cleanup of old unconfirmed mail tests, searchable/paged audit history, CSV export, and mobile card details.
+- Configured static/regression checks: 281/281 PASS in bounded continuation segments. Actual Chromium rendering, Firebase deployment, and Gmail delivery remain production verification tasks.
+
+# FoxBear QA Report - v1.5.71
+
+- v1.5.71 reorganizes the administrator incident monitor around a prioritized health hero, grouped operations actions, responsive status cards, and clearer tables.
+- Mail-test statistics, recent delivery trends, filtered history, and CSV export now share a 7-day, 30-day, 90-day, or all-history period.
+- Operations telemetry includes the next verification due time, verification age, and schedule state.
+- Configured static/regression checks: 280/280 PASS in bounded continuation segments.
+- Actual Chromium rendering, Firebase deployment, and Gmail inbox/spam placement remain production verification tasks.
+
+# FoxBear QA Report - v1.5.70
+
+- v1.5.70 adds automatic mail-test verification alerts, 30-minute receipt-overdue tracking, cause-specific troubleshooting, delivery statistics, searchable history, and CSV export.
+- Static regression coverage includes operations-health reasons, administrator UI controls, sanitized CSV generation, version metadata, SRI, service worker, and packaging gates.
+- Configured static/regression checks: 279/279 PASS in bounded continuation segments.
+- Actual Chromium execution, Firebase scheduled execution, and Gmail inbox/spam placement remain production verification tasks.
+
 # FoxBear QA Report - v1.5.69
 
 - v1.5.69 adds SMTP test-history retention, administrator inbox/spam receipt confirmation, seven-day verification freshness warnings, and one branded HTML mail template.

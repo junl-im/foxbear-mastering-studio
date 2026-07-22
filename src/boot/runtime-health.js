@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template';
+    const FALLBACK_VERSION = '1.5.73-bulk-control-eta-result-filter-ui';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

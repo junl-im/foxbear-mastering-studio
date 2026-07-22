@@ -1,3 +1,22 @@
+## v1.5.73 current focus
+
+- 누적 덮어쓰기 후 여러 곡 마스터링을 시작해 취소, 실패 곡 재시도, ETA, 결과 필터를 확인합니다.
+- 취소 후 완료 파일이 유지되는지, 대기 곡이 취소 상태로 남는지 확인합니다.
+- 데스크톱과 모바일 폭에서 대량 작업 버튼과 현재 곡 행이 가려지지 않아야 합니다.
+
+## v1.5.70 GitHub Desktop handoff
+
+- Commit the v1.5.70 mail verification alert, troubleshooting, statistics, search, and CSV export changes together.
+- Deploy Firestore, Functions, and Hosting from the same commit.
+- Complete the production Gmail placement check after deployment.
+
+
+## v1.5.72 current focus
+
+- Verify that multi-file analysis completion hides the analysis HUD and navigates to `전체 마스터링`.
+- Verify that multi-track mastering suppresses the single processing HUD and keeps the active track visible in the batch list.
+- Deploy `cleanupIncidentMailTestsRequest` with Firestore rules/indexes and verify preserved `관리자 정리` records.
+- Verify compact admin mode, audit search/pagination/CSV, and mobile card layouts.
 
 ## v1.5.69 적용 확인
 

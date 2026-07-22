@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.69",
-  "buildId": "mail-receipt-confirmation-history-branded-template",
+  "productVersion": "1.5.73",
+  "buildId": "bulk-control-eta-result-filter-ui",
   "requiredFiles": [
     "404.html",
     ".gitignore",

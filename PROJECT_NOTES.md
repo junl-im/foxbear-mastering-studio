@@ -1,3 +1,16 @@
+## v1.5.73 focus
+
+- Batch cancellation is signal-driven and must not discard already completed outputs.
+- Failed-only retry starts a fresh batch identity and clears only failed-track error state.
+- ETA is advisory, uses observed durations, and should remain blank until a defensible estimate exists.
+- Result filtering is presentation-only and must never mutate track lifecycle state.
+
+## v1.5.70 focus
+
+- Mail health is not complete at SMTP acceptance; explicit inbox/spam confirmation is required.
+- Only unconfirmed tests newer than the latest confirmed receipt contribute to current overdue health.
+- Search and CSV export operate on sanitized metadata only and never include Gmail Secret values or message bodies.
+
 # v1.5.64 운영 메모
 
 - `incidentOperations/mail` is server-owned operational telemetry; clients may read it only when the current UID is an active administrator.

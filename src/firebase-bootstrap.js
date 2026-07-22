@@ -140,6 +140,7 @@ function makePublicBridge(extra = {}) {
         getAdminIncidents,
         getIncidentOperationsHistory,
         getIncidentAdminAuditLog,
+        getIncidentMailTestHistory,
         requestIncidentRetry,
         getIncidentRetryRequest,
         requestIncidentBatchRecovery,
@@ -150,6 +151,8 @@ function makePublicBridge(extra = {}) {
         getIncidentDeploymentVerificationRequest,
         requestIncidentMailReceiptConfirmation,
         getIncidentMailReceiptConfirmationRequest,
+        requestIncidentMailTestCleanup,
+        getIncidentMailTestCleanupRequest,
         getAdminProfile,
         refreshAppCheckToken,
         getUid: () => bridgeState.user?.uid || '',
@@ -467,6 +470,7 @@ function normalizeIncidentOperations(snapshot) {
             summaries: {},
             smtp: { status: 'unknown', reason: 'health-document-missing', message: '운영 상태 점검 문서가 아직 생성되지 않았습니다.' },
             channels: { webhook: { status: 'unknown', provider: '', reason: '' } },
+            mailVerification: { status: 'unknown', neverTested: true, verificationStale: true, overdueReceiptCount: 0 },
             alert: {}
         };
     }
@@ -509,6 +513,24 @@ function normalizeIncidentOperations(snapshot) {
             failed: safeIncidentNumber(data.summaries?.failed, 0, 100),
             locked: safeIncidentNumber(data.summaries?.locked, 0, 100),
             lastEmailedAt: timestampIso(data.summaries?.lastEmailedAt)
+        },
+        mailVerification: {
+            status: limitText(data.mailVerification?.status || 'unknown', 40),
+            neverTested: data.mailVerification?.neverTested === true,
+            verificationStale: data.mailVerification?.verificationStale === true,
+            confirmedLatest: data.mailVerification?.confirmedLatest === true,
+            latestReceiptOverdue: data.mailVerification?.latestReceiptOverdue === true,
+            lastTestStatus: limitText(data.mailVerification?.lastTestStatus || '', 40),
+            lastTestReason: limitText(data.mailVerification?.lastTestReason || '', 100),
+            overdueReceiptCount: safeIncidentNumber(data.mailVerification?.overdueReceiptCount, 0, 1000),
+            oldestOverdueReceiptAt: timestampIso(data.mailVerification?.oldestOverdueReceiptAt),
+            sampleCapped: data.mailVerification?.sampleCapped === true,
+            lastTestAt: timestampIso(data.mailVerification?.lastTestAt),
+            lastSmtpAcceptedAt: timestampIso(data.mailVerification?.lastSmtpAcceptedAt),
+            lastConfirmedAt: timestampIso(data.mailVerification?.lastConfirmedAt),
+            nextVerificationDueAt: timestampIso(data.mailVerification?.nextVerificationDueAt),
+            verificationAgeDays: safeIncidentNumber(data.mailVerification?.verificationAgeDays, 0, 3650),
+            scheduleStatus: limitText(data.mailVerification?.scheduleStatus || 'not-scheduled', 30)
         },
         smtp: {
             status: limitText(data.smtp?.status || 'unknown', 20),
@@ -572,7 +594,10 @@ function normalizeMailVerification(snapshot) {
         lastConfirmedAt,
         lastConfirmedSubject: limitText(data.lastConfirmedSubject || '', 180),
         lastConfirmedMessageId: limitText(data.lastConfirmedMessageId || '', 240),
-        warningAfter: timestampIso(data.warningAfter)
+        warningAfter: timestampIso(data.warningAfter),
+        nextVerificationDueAt: timestampIso(data.nextVerificationDueAt || data.warningAfter),
+        verificationAgeDays: safeIncidentNumber(data.verificationAgeDays, 0, 3650),
+        scheduleStatus: limitText(data.scheduleStatus || (referenceMs && Date.now() > referenceMs + 7 * 24 * 60 * 60 * 1000 ? 'overdue' : referenceMs ? 'scheduled' : 'not-scheduled'), 30)
     };
 }
 
@@ -592,8 +617,16 @@ function normalizeMailTestHistory(snapshot) {
         smtpAcceptedAt: timestampIso(data.smtpAcceptedAt),
         checkedAt: timestampIso(data.checkedAt),
         receiptConfirmed: data.receiptConfirmed === true,
+        receiptPending: data.receiptPending === true,
+        receiptOverdue: data.receiptOverdue === true || (data.receiptConfirmed !== true && data.status === 'emailed' && Number(data.receiptDueAt?.toMillis?.() || 0) > 0 && Date.now() > Number(data.receiptDueAt.toMillis())),
+        confirmationStatus: limitText(data.confirmationStatus || (data.receiptConfirmed ? 'confirmed' : data.status === 'emailed' ? 'pending' : 'not-applicable'), 30),
+        receiptDueAt: timestampIso(data.receiptDueAt),
         receiptLocation: limitText(data.receiptLocation || '', 20),
-        receiptConfirmedAt: timestampIso(data.receiptConfirmedAt)
+        receiptConfirmedAt: timestampIso(data.receiptConfirmedAt),
+        receiptDismissed: data.receiptDismissed === true || data.confirmationStatus === 'dismissed',
+        receiptResolvedAt: timestampIso(data.receiptResolvedAt),
+        receiptResolutionReason: limitText(data.receiptResolutionReason || '', 80),
+        message: limitText(data.message || '', 300)
     };
 }
 
@@ -629,6 +662,9 @@ function normalizeOperationsHistory(snapshot) {
         smtpStatus: limitText(data.smtpStatus || 'unknown', 20),
         webhookStatus: limitText(data.webhookStatus || 'disabled', 20),
         alertStatus: limitText(data.alertStatus || '', 20),
+        mailVerificationStatus: limitText(data.mailVerificationStatus || 'unknown', 40),
+        mailVerificationStale: data.mailVerificationStale === true,
+        overdueReceiptCount: safeIncidentNumber(data.overdueReceiptCount, 0, 1000),
         reasonCodes: Array.isArray(data.reasonCodes) ? data.reasonCodes.slice(0, 12).map(value => limitText(value, 80)) : [],
         recommendedActions: Array.isArray(data.recommendedActions) ? data.recommendedActions.slice(0, 6).map(value => limitText(value, 500)) : []
     };
@@ -659,6 +695,13 @@ function normalizeIncidentDeployment(snapshot) {
             historyDetail: data.checks?.historyDetail === true,
             adminAuditLog: data.checks?.adminAuditLog === true,
             historyPagination: data.checks?.historyPagination === true,
+            mailTestVerificationAlerts: data.checks?.mailTestVerificationAlerts === true,
+            mailReceiptOverdueTracking: data.checks?.mailReceiptOverdueTracking === true,
+            mailTestStatistics: data.checks?.mailTestStatistics === true,
+            mailTestHistorySearchExport: data.checks?.mailTestHistorySearchExport === true,
+            mailTestPeriodTrends: data.checks?.mailTestPeriodTrends === true,
+            mailVerificationSchedule: data.checks?.mailVerificationSchedule === true,
+            adminOperationsUiHierarchy: data.checks?.adminOperationsUiHierarchy === true,
             webhookFailover: data.checks?.webhookFailover === true,
             indexes: {
                 status: limitText(data.checks?.indexes?.status || 'unknown', 20),
@@ -721,7 +764,13 @@ function normalizeAdminAuditLog(snapshot) {
         reason: limitText(data.reason || '', 100),
         requestId: limitText(data.requestId || '', 180),
         targetType: limitText(data.targetType || '', 60),
-        targetId: limitText(data.targetId || '', 180)
+        targetId: limitText(data.targetId || '', 180),
+        result: {
+            attempted: safeIncidentNumber(data.result?.attempted, 0, 100000),
+            succeeded: safeIncidentNumber(data.result?.succeeded, 0, 100000),
+            failed: safeIncidentNumber(data.result?.failed, 0, 100000),
+            skipped: safeIncidentNumber(data.result?.skipped, 0, 100000)
+        }
     };
 }
 
@@ -761,8 +810,49 @@ async function getIncidentAdminAuditLog(options = {}) {
     const profile = await getAdminProfile();
     if (!profile.active) throw new Error('활성 관리자만 관리자 감사 로그를 조회할 수 있습니다.');
     const pageSize = Math.min(Math.max(Number(options.limit || 24), 1), 50);
-    const snapshot = await getDocs(query(collection(bridgeState.db, 'incidentAdminAuditLog'), orderBy('createdAt', 'desc'), limit(pageSize)));
-    return snapshot.docs.map(normalizeAdminAuditLog);
+    const before = Number(options.before || 0);
+    const constraints = [];
+    if (before > 0) constraints.push(where('createdAt', '<', new Date(before)));
+    constraints.push(orderBy('createdAt', 'desc'), limit(pageSize + 1));
+    const snapshot = await getDocs(query(collection(bridgeState.db, 'incidentAdminAuditLog'), ...constraints));
+    const docs = snapshot.docs.slice(0, pageSize);
+    const last = docs[docs.length - 1];
+    return {
+        items: docs.map(normalizeAdminAuditLog),
+        hasMore: snapshot.docs.length > pageSize,
+        nextCursor: last ? Number(last.data()?.createdAt?.toMillis?.() || 0) : 0
+    };
+}
+
+function summarizeMailTestHistory(items = []) {
+    const stats = items.reduce((result, item) => {
+        result.total += 1;
+        if (item.status === 'emailed') result.smtpAccepted += 1;
+        else if (['failed', 'dead-letter'].includes(item.status)) result.failed += 1;
+        else result.other += 1;
+        if (item.receiptConfirmed) {
+            result.receiptConfirmed += 1;
+            if (item.receiptLocation === 'spam') result.spam += 1;
+            else result.inbox += 1;
+        } else if (item.status === 'emailed') {
+            result.receiptPending += 1;
+            if (item.receiptOverdue) result.receiptOverdue += 1;
+        }
+        return result;
+    }, { total: 0, smtpAccepted: 0, failed: 0, other: 0, receiptConfirmed: 0, receiptPending: 0, receiptOverdue: 0, inbox: 0, spam: 0 });
+    stats.smtpSuccessRate = stats.total ? Math.round((stats.smtpAccepted / stats.total) * 1000) / 10 : 0;
+    stats.receiptConfirmationRate = stats.smtpAccepted ? Math.round((stats.receiptConfirmed / stats.smtpAccepted) * 1000) / 10 : 0;
+    return stats;
+}
+
+async function getIncidentMailTestHistory(options = {}) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 실제 메일 테스트 이력을 조회할 수 있습니다.');
+    const pageSize = Math.min(Math.max(Number(options.limit || 100), 1), 200);
+    const snapshot = await getDocs(query(collection(bridgeState.db, 'incidentMailTestHistory'), orderBy('checkedAt', 'desc'), limit(pageSize)));
+    const items = snapshot.docs.map(normalizeMailTestHistory);
+    return { items, stats: summarizeMailTestHistory(items), checkedAt: new Date().toISOString() };
 }
 
 async function getAdminIncidents(options = {}) {
@@ -781,9 +871,9 @@ async function getAdminIncidents(options = {}) {
         getDoc(doc(bridgeState.db, 'incidentOperations', 'recovery')),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'deployment')).catch(() => ({ exists: () => false })),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'mailVerification')).catch(() => ({ exists: () => false })),
-        getDocs(query(collection(bridgeState.db, 'incidentMailTestHistory'), orderBy('checkedAt', 'desc'), limit(12))).catch(() => ({ docs: [] })),
+        getIncidentMailTestHistory({ limit: 200 }).catch(() => ({ items: [], stats: summarizeMailTestHistory([]) })),
         getIncidentOperationsHistory({ limit: 24, filter: 'all' }).catch(() => ({ items: [], hasMore: false, nextCursor: 0 })),
-        getIncidentAdminAuditLog({ limit: 24 }).catch(() => [])
+        getIncidentAdminAuditLog({ limit: 24 }).catch(() => ({ items: [], hasMore: false, nextCursor: 0 }))
     ]);
     const incidents = [];
     snapshot.forEach(item => incidents.push(normalizeFirestoreIncident(item)));
@@ -805,11 +895,14 @@ async function getAdminIncidents(options = {}) {
         recovery: normalizeIncidentRecovery(recoverySnapshot),
         deployment: normalizeIncidentDeployment(deploymentSnapshot),
         mailVerification: normalizeMailVerification(verificationSnapshot),
-        mailTestHistory: Array.from(testHistorySnapshot.docs || []).map(normalizeMailTestHistory),
+        mailTestHistory: Array.isArray(testHistorySnapshot.items) ? testHistorySnapshot.items : [],
+        mailTestStats: testHistorySnapshot.stats || summarizeMailTestHistory([]),
         history: historyPage.items || [],
         historyHasMore: historyPage.hasMore === true,
         historyNextCursor: safeIncidentNumber(historyPage.nextCursor, 0, Number.MAX_SAFE_INTEGER),
-        auditLog,
+        auditLog: auditLog.items || [],
+        auditLogHasMore: auditLog.hasMore === true,
+        auditLogNextCursor: safeIncidentNumber(auditLog.nextCursor, 0, Number.MAX_SAFE_INTEGER),
         dateKey: kstRange.dateKey,
         appCheck: {
             configured: bridgeState.appCheckConfigured,
@@ -990,6 +1083,41 @@ async function getIncidentMailReceiptConfirmationRequest(requestId) {
             reportId: limitText(data.result.reportId || '', 180),
             location: limitText(data.result.location || '', 20),
             status: limitText(data.result.status || '', 40)
+        } : null
+    };
+}
+
+async function requestIncidentMailTestCleanup() {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 미확인 테스트 이력을 정리할 수 있습니다.');
+    const requestRef = await addDoc(collection(bridgeState.db, 'incidentMailTestCleanupRequests'), {
+        uid: profile.uid,
+        mode: 'unconfirmed-24h',
+        source: 'foxbear-admin-dashboard',
+        createdAt: serverTimestamp()
+    });
+    return { requestId: requestRef.id, status: 'requested' };
+}
+
+async function getIncidentMailTestCleanupRequest(requestId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 미확인 테스트 정리 상태를 조회할 수 있습니다.');
+    const safeId = limitText(requestId, 180);
+    const snapshot = await getDoc(doc(bridgeState.db, 'incidentMailTestCleanupRequests', safeId));
+    if (!snapshot.exists()) return { exists: false, status: 'missing' };
+    const data = snapshot.data() || {};
+    return {
+        exists: true,
+        status: limitText(data.status || 'pending', 40),
+        reason: limitText(data.reason || '', 100),
+        retryAfterSeconds: safeIncidentNumber(data.retryAfterSeconds, 0, 86400),
+        result: data.result ? {
+            requested: safeIncidentNumber(data.result.requested, 0, 1000),
+            cleaned: safeIncidentNumber(data.result.cleaned, 0, 1000),
+            skipped: safeIncidentNumber(data.result.skipped, 0, 1000),
+            capped: data.result.capped === true
         } : null
     };
 }

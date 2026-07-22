@@ -1,3 +1,26 @@
+# v1.5.73 - Cancellable Multi-Mastering, Failed Retry, ETA, and Result Filters
+
+- Added safe cancellation for the active multi-track mastering job and preserves remaining tracks as cancelled results.
+- Added failed-track-only retry without reprocessing successful tracks.
+- Added current-track remaining time, per-track completion estimates, and overall batch ETA based on observed durations.
+- Added live result filters for current, completed, failed, cancelled, and pending tracks.
+- Added desktop/mobile browser layout screenshot and bounding-box regression contracts for the batch HUD.
+
+# v1.5.72 - Bulk Workflow, Admin Audit, and Mobile Detail UI
+
+- Auto-hides the multi-file analysis popup and navigates to the full-mastering action after all analyses settle.
+- Replaces the single-track processing HUD with a current-track batch list during multi-track mastering.
+- Highlights and auto-follows the active mastering row while preserving completed and failed results.
+- Adds a persistent compact administrator view, preserved cleanup of old unconfirmed mail tests, and searchable/exportable paginated audit logs.
+- Adds labeled mobile card views for mail-test and administrator-audit details.
+
+# v1.5.70 - Mail Test Verification Alerts, Troubleshooter, Statistics, and Export
+
+- Added automatic operations warnings for never-run, stale, failed, and receipt-overdue real mail tests.
+- Added 30-minute SMTP-to-Gmail receipt confirmation tracking without carrying forward pre-confirmation historical misses.
+- Added administrator mail-test statistics, cause-specific troubleshooting guidance, local search/status filters, and UTF-8 CSV export.
+- Added deployment capability flags and regression coverage for the new verification workflow.
+
 # v1.5.69 - Mail Receipt Confirmation, Test History, and Branded Templates
 
 - Added administrator inbox/spam receipt confirmation for SMTP-accepted manual tests.

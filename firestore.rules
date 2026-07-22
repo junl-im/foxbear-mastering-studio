@@ -241,6 +241,22 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    function validIncidentMailTestCleanupRequest() {
+      return isAdmin()
+        && request.resource.data.keys().hasOnly(['uid', 'mode', 'source', 'createdAt'])
+        && request.resource.data.keys().hasAll(['uid', 'mode', 'source', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.mode == 'unconfirmed-24h'
+        && request.resource.data.source == 'foxbear-admin-dashboard';
+    }
+
+    match /incidentMailTestCleanupRequests/{requestId} {
+      allow create: if validIncidentMailTestCleanupRequest();
+      allow get, list: if isAdmin();
+      allow update, delete: if false;
+    }
+
     match /incidentMailTestHistory/{testId} {
       allow get, list: if isAdmin();
       allow create, update, delete: if false;

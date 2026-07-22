@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.5.69 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.5.73 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -154,7 +154,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.5.69-mail-receipt-confirmation-history-branded-template',
+            version: '1.5.73-bulk-control-eta-result-filter-ui',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -176,62 +176,214 @@
     }
 
     function createMasteringBatchRunner(options = {}) {
+        let activeBatch = null;
+
+        function isAbortError(error) {
+            return Boolean(error && (error.name === 'AbortError' || /abort|cancel/i.test(String(error.code || ''))));
+        }
+
+        function getActiveBatchSnapshot() {
+            if (!activeBatch) return null;
+            return Object.freeze({
+                id: activeBatch.id,
+                total: activeBatch.items.length,
+                currentIndex: activeBatch.currentIndex,
+                currentTrackId: activeBatch.currentTrackId || '',
+                startedAt: activeBatch.startedAt,
+                cancelRequested: Boolean(activeBatch.controller?.signal?.aborted),
+                settled: Boolean(activeBatch.settled)
+            });
+        }
+
+        function cancelActiveBatch(reason = 'user-request') {
+            if (!activeBatch || activeBatch.settled || activeBatch.controller?.signal?.aborted) return false;
+            try { activeBatch.controller?.abort?.(reason); } catch (error) { return false; }
+            if (typeof options.onCancelRequested === 'function') {
+                try { options.onCancelRequested({ reason, snapshot: getActiveBatchSnapshot() }); } catch (error) {}
+            }
+            return true;
+        }
+
         async function runBatch(tracks, batchOptions = {}) {
             const items = Array.isArray(tracks) ? tracks.filter(Boolean) : [];
-            if (!items.length) return Object.freeze({ total: 0, completed: 0, failed: 0, ok: false });
+            if (!items.length) return Object.freeze({ total: 0, completed: 0, failed: 0, cancelled: 0, ok: false, stopped: false });
+            if (activeBatch && !activeBatch.settled) {
+                const error = new Error('이미 다른 다중 마스터링 작업이 진행 중입니다.');
+                error.code = 'BATCH_ALREADY_RUNNING';
+                throw error;
+            }
+
+            const controller = typeof AbortController === 'function' ? new AbortController() : null;
+            const externalSignal = batchOptions.signal || null;
+            const forwardAbort = () => {
+                try { controller?.abort?.(externalSignal?.reason || 'external-cancel'); } catch (error) {}
+            };
+            if (externalSignal?.aborted) forwardAbort();
+            else externalSignal?.addEventListener?.('abort', forwardAbort, { once: true });
+
             let completed = 0;
             let failed = 0;
+            let cancelled = 0;
+            let processed = 0;
             let result = null;
+            const startedAt = Date.now();
+            let hudSnapshot = null;
+
             try {
-                if (typeof options.beginHudBatch === 'function') options.beginHudBatch(items, batchOptions);
+                if (typeof options.beginHudBatch === 'function') hudSnapshot = options.beginHudBatch(items, batchOptions) || null;
+                activeBatch = {
+                    id: String(hudSnapshot?.batchId || batchOptions.batchId || `mastering-batch-${startedAt}`),
+                    items,
+                    currentIndex: -1,
+                    currentTrackId: '',
+                    startedAt,
+                    controller,
+                    settled: false
+                };
                 if (typeof options.setBusy === 'function') options.setBusy(true);
                 if (typeof options.beforeBatch === 'function') await options.beforeBatch(items, batchOptions);
                 if (typeof options.render === 'function') options.render(batchOptions.initialRenderOptions || {});
 
-                for (const track of items) {
+                for (let index = 0; index < items.length; index += 1) {
+                    if (controller?.signal?.aborted) break;
+                    const track = items[index];
+                    activeBatch.currentIndex = index;
+                    activeBatch.currentTrackId = track?.id || '';
+                    const trackStartedAt = Date.now();
+                    let outcome = 'failed';
+                    let trackError = null;
+                    let ok = false;
+
+                    if (typeof options.onTrackStart === 'function') {
+                        try { await options.onTrackStart(track, { index, total: items.length, startedAt: trackStartedAt, batchOptions, signal: controller?.signal || null }); }
+                        catch (error) {}
+                    }
+
                     try {
                         if (typeof options.prepareTrack === 'function') await options.prepareTrack(track, batchOptions);
-                        if (typeof options.masterTrack !== 'function') throw new Error('masterTrack callback missing');
-                        const ok = await options.masterTrack(track, true, Object.assign({
-                            awaitAnalysis: true,
-                            notifyBlocked: true,
-                            source: batchOptions.source || 'batch'
-                        }, batchOptions.masterOptions || {}));
-                        if (ok) completed += 1;
-                        else failed += 1;
+                        if (controller?.signal?.aborted) {
+                            outcome = 'cancelled';
+                        } else {
+                            if (typeof options.masterTrack !== 'function') throw new Error('masterTrack callback missing');
+                            ok = await options.masterTrack(track, true, Object.assign({
+                                awaitAnalysis: true,
+                                notifyBlocked: true,
+                                source: batchOptions.source || 'batch',
+                                signal: controller?.signal || null
+                            }, batchOptions.masterOptions || {}));
+                            outcome = ok ? 'completed' : (controller?.signal?.aborted ? 'cancelled' : 'failed');
+                        }
                     } catch (error) {
-                        failed += 1;
-                        if (typeof options.onTrackError === 'function') {
+                        trackError = error;
+                        outcome = controller?.signal?.aborted || isAbortError(error) ? 'cancelled' : 'failed';
+                        if (outcome === 'failed' && typeof options.onTrackError === 'function') {
                             try { await options.onTrackError(error, track, batchOptions); } catch (callbackError) {}
                         }
                     }
+
+                    processed += 1;
+                    if (outcome === 'completed') completed += 1;
+                    else if (outcome === 'cancelled') cancelled += 1;
+                    else failed += 1;
+
+                    if (typeof options.onTrackComplete === 'function') {
+                        try {
+                            await options.onTrackComplete(track, {
+                                index,
+                                total: items.length,
+                                outcome,
+                                ok,
+                                error: trackError,
+                                startedAt: trackStartedAt,
+                                completedAt: Date.now(),
+                                batchOptions,
+                                signal: controller?.signal || null
+                            });
+                        } catch (error) {}
+                    }
+                    if (controller?.signal?.aborted) break;
                 }
-                result = Object.freeze({ total: items.length, completed, failed, ok: completed > 0 });
-                if (typeof options.afterBatch === 'function') await options.afterBatch({ items, completed, failed, batchOptions, result });
+
+                if (controller?.signal?.aborted) {
+                    const remaining = items.slice(processed);
+                    cancelled += remaining.length;
+                    if (typeof options.onBatchCancelled === 'function') {
+                        try {
+                            await options.onBatchCancelled({
+                                items,
+                                remaining,
+                                processed,
+                                completed,
+                                failed,
+                                cancelled,
+                                reason: controller.signal.reason || 'user-request',
+                                batchOptions
+                            });
+                        } catch (error) {}
+                    }
+                }
+
+                result = Object.freeze({
+                    total: items.length,
+                    completed,
+                    failed,
+                    cancelled,
+                    ok: completed > 0,
+                    stopped: Boolean(controller?.signal?.aborted)
+                });
+                if (typeof options.afterBatch === 'function') await options.afterBatch({ items, completed, failed, cancelled, batchOptions, result });
                 return result;
             } catch (error) {
+                if (controller?.signal?.aborted || isAbortError(error)) {
+                    const remaining = items.slice(processed);
+                    cancelled += remaining.length;
+                    result = Object.freeze({
+                        total: items.length,
+                        completed,
+                        failed,
+                        cancelled,
+                        ok: completed > 0,
+                        stopped: true
+                    });
+                    if (typeof options.onBatchCancelled === 'function') {
+                        try { await options.onBatchCancelled({ items, remaining, processed, completed, failed, cancelled, reason: controller?.signal?.reason || 'cancelled', batchOptions }); }
+                        catch (callbackError) {}
+                    }
+                    if (typeof options.afterBatch === 'function') {
+                        try { await options.afterBatch({ items, completed, failed, cancelled, batchOptions, result }); } catch (callbackError) {}
+                    }
+                    return result;
+                }
                 if (typeof options.onBatchError === 'function') {
-                    try { await options.onBatchError(error, { items, completed, failed, batchOptions }); } catch (callbackError) {}
+                    try { await options.onBatchError(error, { items, completed, failed, cancelled, batchOptions }); } catch (callbackError) {}
                 }
                 throw error;
             } finally {
+                externalSignal?.removeEventListener?.('abort', forwardAbort);
+                if (activeBatch) {
+                    activeBatch.currentTrackId = '';
+                    activeBatch.settled = true;
+                }
                 if (typeof options.setBusy === 'function') {
                     try { options.setBusy(false); } catch (error) {}
                 }
                 if (typeof options.render === 'function') {
                     try { options.render(batchOptions.finalRenderOptions || {}); } catch (error) {}
                 }
+                activeBatch = null;
             }
         }
 
         return Object.freeze({
-            version: '1.5.69-mail-receipt-confirmation-history-branded-template',
-            runBatch
+            version: '1.5.73-bulk-batch-control-eta-results',
+            runBatch,
+            cancelActiveBatch,
+            getActiveBatchSnapshot
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.5.69-mail-receipt-confirmation-history-branded-template',
+        version: '1.5.73-bulk-control-eta-result-filter-ui',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner

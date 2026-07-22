@@ -1,4 +1,23 @@
-# FoxBear Status - v1.5.69
+# FoxBear Status - v1.5.73
+
+## v1.5.73 current focus
+
+- Multi-track mastering can be cancelled through a shared batch signal that reaches the active track worker and stops all not-yet-started tracks.
+- Failed tracks can be retried as a new batch without reprocessing completed outputs.
+- The batch list shows observed-duration ETA for the current track, pending tracks, and the whole batch.
+- Result filters separate active, completed, failed, cancelled, and pending tracks while retaining all audit-visible outcomes.
+- Desktop and 375px mobile browser contracts capture the batch HUD and reject viewport overflow or hidden controls.
+- Configured static/regression checks: 282/282 PASS in bounded continuation segments; real Chromium execution remains a deployment verification task.
+
+
+## v1.5.70 current focus
+
+- The 15-minute operations audit treats never-run, stale, failed, and overdue-receipt mail tests as explicit health reasons.
+- SMTP-accepted tests become overdue when no inbox/spam confirmation is recorded within 30 minutes after the latest confirmed test.
+- The administrator monitor summarizes SMTP and receipt-confirmation rates and provides reason-specific troubleshooting steps.
+- Recent mail-test history supports local search, status filters, and UTF-8 CSV export without exposing Gmail credentials or message bodies.
+- Configured static and regression checks: 279/279 PASS in bounded continuation segments; production Firebase deployment and real Gmail placement verification remain deployment tasks.
+
 
 ## v1.5.69 current focus
 
@@ -79,6 +98,12 @@
 - The Cloud Function sends to `mcwoogi@gmail.com` using a Secret Manager-bound Gmail app password, with duplicate and daily rate limits.
 - Deployment still requires the real Firebase secret, Functions deployment, and a live test email.
 
+## v1.5.72 current focus
+
+- Multi-file analysis completion closes the analysis HUD and moves focus to the full-mastering action.
+- Multi-track mastering owns progress presentation through the batch list; the single processing HUD is reserved for single-track work.
+- Administrator compact view, preserved unconfirmed-test cleanup, audit search/export/pagination, and mobile detail cards are release requirements.
+
 ## Current status
 
 Automatic incident reporting is implemented in source. Static/package verification is required before release; real email delivery remains pending until the Firebase secret and Cloud Function are deployed.
@@ -99,10 +124,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.69`
-- Build ID: `mail-receipt-confirmation-history-branded-template`
-- Asset version: `1.5.69-mail-receipt-confirmation-history-branded-template`
-- Service worker cache: `foxbear-shell-v1.5.69-mail-receipt-confirmation-history-branded-template`
+- Product version: `1.5.73`
+- Build ID: `bulk-control-eta-result-filter-ui`
+- Asset version: `1.5.73-bulk-control-eta-result-filter-ui`
+- Service worker cache: `foxbear-shell-v1.5.73-bulk-control-eta-result-filter-ui`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -134,10 +159,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.69`
-- Build ID: `mail-receipt-confirmation-history-branded-template`
-- Asset version: `1.5.69-mail-receipt-confirmation-history-branded-template`
-- Service worker cache: `foxbear-shell-v1.5.69-mail-receipt-confirmation-history-branded-template`
+- Product version: `1.5.73`
+- Build ID: `bulk-control-eta-result-filter-ui`
+- Asset version: `1.5.73-bulk-control-eta-result-filter-ui`
+- Service worker cache: `foxbear-shell-v1.5.73-bulk-control-eta-result-filter-ui`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

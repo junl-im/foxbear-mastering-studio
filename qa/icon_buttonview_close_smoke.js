@@ -4,11 +4,11 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const html=read('index.html'); const app=read('src/app.js'); const dockCss=read('assets/css/dock.css'); const sw=read('sw.js'); const manifest=JSON.parse(read('manifest.webmanifest')); const pkg=JSON.parse(read('package.json'));
-must(pkg.version==='1.5.69','package version');
-must(html.includes('data-build="1.5.69"'),'build');
-must(app.includes("const APP_VERSION = 'Pro v1.5.69'"),'app version');
-must(html.includes('assets/icons/foxbear-icon-512.png?v=1.5.69-mail-receipt-confirmation-history-branded-template'),'512 icon cache key');
-must(html.includes('assets/icons/apple-touch-icon.png?v=1.5.69-mail-receipt-confirmation-history-branded-template'),'apple icon cache key');
+must(pkg.version==='1.5.73','package version');
+must(html.includes('data-build="1.5.73"'),'build');
+must(app.includes("const APP_VERSION = 'Pro v1.5.73'"),'app version');
+must(html.includes('assets/icons/foxbear-icon-512.png?v=1.5.73-bulk-control-eta-result-filter-ui'),'512 icon cache key');
+must(html.includes('assets/icons/apple-touch-icon.png?v=1.5.73-bulk-control-eta-result-filter-ui'),'apple icon cache key');
 must(html.includes('data-feature-dialog-close="true"'),'feature close hook');
 must(app.includes('function closeFeatureDialogFromEvent'),'close helper');
 must(app.includes('function installManagedModalController'),'state machine install');

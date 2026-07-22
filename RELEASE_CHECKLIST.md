@@ -1,3 +1,20 @@
+## v1.5.73 다중 마스터링 제어 확인
+
+- [ ] 현재 곡 처리 중 `다중 작업 취소`가 워커와 인코더를 중단하고 busy 상태를 해제한다.
+- [ ] 이미 완료된 출력은 취소 뒤에도 다운로드 가능하다.
+- [ ] 시작 전 곡은 `취소`로 표시되고 자동 재실행되지 않는다.
+- [ ] `실패 곡 다시 실행`이 성공·취소 곡을 제외한다.
+- [ ] 현재 곡·대기 곡·전체 ETA가 진행에 따라 갱신된다.
+- [ ] 결과 필터가 상태만 가리고 트랙 데이터를 변경하지 않는다.
+- [ ] 1280px 및 375px 브라우저 계약에서 HUD가 화면 밖으로 넘치지 않는다.
+
+## v1.5.70 mail verification release checks
+
+- [ ] Deploy Functions and Hosting from the same v1.5.70 package.
+- [ ] Run a real mail test and record inbox or spam placement.
+- [ ] Confirm the 30-minute overdue counter, troubleshooting wizard, search, filters, and CSV export.
+- [ ] Confirm no `node_modules`, temporary Playwright stubs, or previous ZIPs are packaged.
+
 # v1.5.69 추가 릴리스 확인
 
 - [ ] `confirmIncidentMailReceiptRequest`를 포함해 Functions를 배포했다.
@@ -248,3 +265,11 @@ The overwrite command also runs this verification internally through `tools/veri
 - [ ] 배포 검증에서 Hosting/Functions 버전 일치 확인
 - [ ] 최근 운영 이력의 원인 코드와 권장 조치 확인
 - [ ] 실제 브라우저 QA에서 Firebase 모의 `setDoc` 경로 확인
+
+## v1.5.72 확인
+
+- [ ] 여러 곡 분석 완료 후 분석 HUD 자동 숨김 및 전체 마스터링 포커스 이동
+- [ ] 여러 곡 마스터링에서 단일 HUD 미표시, 현재 곡 목록 강조 및 자동 추적
+- [ ] 관리자 간소화 보기, 미확인 테스트 보존형 정리, 감사 로그 검색·CSV
+- [ ] 720px 이하 메일 테스트·감사 로그 카드형 상세 화면
+- [ ] `cleanupIncidentMailTestsRequest` 포함 Functions·Rules·Indexes 동시 배포

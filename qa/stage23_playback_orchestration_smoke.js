@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.69-mail-receipt-confirmation-history-branded-template';
+const version = '1.5.73-bulk-control-eta-result-filter-ui';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

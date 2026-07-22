@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.69-mail-receipt-confirmation-history-branded-template';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.73-bulk-control-eta-result-filter-ui';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

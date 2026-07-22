@@ -19,13 +19,13 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.5.69', 'package version should be 1.5.69');
+assert(pkg.version === '1.5.73', 'package version should be 1.5.73');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-assert(pkg.qaChecks.includes('node qa/v1424_bulk_import_hud_smoke.js'), 'package QA should include v1.5.69 HUD smoke');
+assert(pkg.qaChecks.includes('node qa/v1424_bulk_import_hud_smoke.js'), 'package QA should include v1.5.73 HUD smoke');
 assert(index.includes('id="bulkImportHud"'), 'index should include bulk import HUD root');
 assert(index.includes('id="bulkImportHudList"'), 'index should include scrollable bulk import HUD list');
 assert(index.includes('aria-label="대량 업로드 곡별 분석 진행 상황"'), 'HUD list should have an accessible label');
-assert(index.includes('data-build="1.5.69"'), 'index build marker should be v1.5.69');
+assert(index.includes('data-build="1.5.73"'), 'index build marker should be v1.5.73');
 
 assert(app.includes('SAFE_BULK_IMPORT_HUD_MIN_TRACKS'), 'app should normalize HUD min track threshold');
 assert(app.includes('function beginBulkImportHudBatch'), 'app should call HUD module for multi import');
@@ -34,7 +34,7 @@ assert(app.includes('function getBulkImportHudSnapshot'), 'app should expose HUD
 assert(app.includes('beginBulkImportHudBatch(addedTracks, { largeBatch, skippedByLimit:'), 'handleFiles should create HUD batch before analysis starts');
 assert(app.includes('if (!totalWorking)') && app.includes('updateBulkImportHud();') && app.includes('return snapshot;'), 'queue status should update HUD on completion');
 assert(app.includes('updateBulkImportHud();\n    updateMobileNativeUi();'), 'renderAll should refresh HUD');
-assert(bulkHud.includes("const VIEW_VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template'"), 'HUD module should carry v1.5.69 version');
+assert(bulkHud.includes("const VIEW_VERSION = '1.5.73-bulk-control-eta-result-filter-ui'"), 'HUD module should carry v1.5.73 version');
 assert(bulkHud.includes('const hudState'), 'HUD module should keep HUD batch state');
 assert(bulkHud.includes('function beginBatch'), 'HUD module should start a batch');
 assert(bulkHud.includes('function update()'), 'HUD module should render/update the HUD');
@@ -43,9 +43,9 @@ assert(bulkHud.includes('global.FoxBearBulkImportHudView'), 'HUD module should e
 assert(bulkHud.includes('global.FoxBearBulkImportHud'), 'HUD module should expose diagnostics global');
 assert(bulkHud.includes('track.bulkImportBatchId = batchId'), 'tracks should be assigned to a HUD batch');
 assert(bulkHud.includes('track.bulkImportOrder = index + 1'), 'tracks should keep visible row order');
-assert(index.includes('src/ui/bulk-import-hud-view.js?v=1.5.69-mail-receipt-confirmation-history-branded-template'), 'index should load bulk import HUD module');
+assert(index.includes('src/ui/bulk-import-hud-view.js?v=1.5.73-bulk-control-eta-result-filter-ui'), 'index should load bulk import HUD module');
 
-assert(index.includes('assets/css/bulk-import-hud.css?v=1.5.69-mail-receipt-confirmation-history-branded-template'), 'index should load bulk import HUD CSS');
+assert(index.includes('assets/css/bulk-import-hud.css?v=1.5.73-bulk-control-eta-result-filter-ui'), 'index should load bulk import HUD CSS');
 assert(css.includes('.bulk-import-hud'), 'CSS should style bulk import HUD');
 assert(css.includes('.bulk-import-hud-list'), 'CSS should style bulk import list');
 assert(css.includes('overflow: auto'), 'bulk import list should be scrollable');
@@ -62,7 +62,7 @@ assert(perf.includes('bulkImportHud:'), 'performance summary should expose HUD s
 assert(matrix.includes('Bulk Import HUD'), 'matrix should document Bulk Import HUD');
 assert(matrix.includes('35곡'), 'matrix should include 35-track scenario');
 assert(matrix.includes('스크롤'), 'matrix should cover scrollable list behavior');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should be updated for v1.5.69');
-assert(changelog.includes('v1.5.69'), 'changelog should mention v1.5.69');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should be updated for v1.5.73');
+assert(changelog.includes('v1.5.73'), 'changelog should mention v1.5.73');
 
 console.log('PASS v1.4.26 bulk import HUD smoke');

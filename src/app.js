@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.69 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.73 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -21,7 +21,7 @@ const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetySer
 const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.69';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.73';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.69-mail-receipt-confirmation-history-branded-template'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1569'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.73-bulk-control-eta-result-filter-ui'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1573'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -516,7 +516,7 @@ function cacheElements() {
         'adaptiveLufsToggle',
         'previewOpenBtn', 'previewDialog', 'previewDialogClose', 'previewDialogBody', 'previewDialogCaption',
         'bottomPreviewDock', 'bottomPreviewTitle', 'bottomPreviewMobileTitle', 'bottomPreviewGenre', 'bottomPreviewPlayBtn', 'bottomPreviewTranslationModes', 'bottomPreviewWaveformBtn', 'bottomPreviewMasterPreviewBtn', 'bottomPreviewMasterBtn', 'bottomPreviewOriginalBtn', 'bottomPreviewMasteredBtn', 'bottomPreviewPlayer', 'mobileNativeStatus', 'mobileNativeQuickToggle', 'mobileNativePanel',
-        'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice', 'adminVisitsTab', 'adminIncidentsTab', 'adminVisitsPanel', 'adminIncidentsPanel', 'adminIncidentsSummary', 'adminIncidentsRows', 'adminIncidentsNotice', 'adminIncidentRecoveryActions', 'adminIncidentRecoverDue', 'adminIncidentRecoverDead', 'adminIncidentTestWebhook', 'adminIncidentVerifyDeployment', 'adminIncidentConfirmInbox', 'adminIncidentConfirmSpam', 'adminIncidentRecoveryStatus', 'adminIncidentDeploymentStatus', 'adminIncidentMailVerificationStatus', 'adminIncidentMailTestDetails', 'adminIncidentMailTestRows', 'adminIncidentHistoryDetails', 'adminIncidentHistoryFilter', 'adminIncidentHistoryMore', 'adminIncidentHistoryStatus', 'adminIncidentHistoryRows', 'adminIncidentAuditDetails', 'adminIncidentAuditRows',
+        'adminStatsTrigger', 'adminStatsDialog', 'adminStatsClose', 'adminStatsCloseBottom', 'adminStatsRefresh', 'adminStatsSummary', 'adminStatsRows', 'adminStatsNotice', 'adminVisitsTab', 'adminIncidentsTab', 'adminVisitsPanel', 'adminIncidentsPanel', 'adminIncidentsSummary', 'adminIncidentsRows', 'adminIncidentsNotice', 'adminIncidentHealthHero', 'adminIncidentHealthBadge', 'adminIncidentDataFreshness', 'adminIncidentDensityToggle', 'adminIncidentHealthTitle', 'adminIncidentHealthSummary', 'adminIncidentVerificationSchedule', 'adminIncidentPrimaryAction', 'adminIncidentRecoveryActions', 'adminIncidentRecoverDue', 'adminIncidentRecoverDead', 'adminIncidentTestWebhook', 'adminIncidentVerifyDeployment', 'adminIncidentConfirmInbox', 'adminIncidentConfirmSpam', 'adminIncidentCleanupUnconfirmed', 'adminIncidentRecoveryStatus', 'adminIncidentDeploymentStatus', 'adminIncidentMailVerificationStatus', 'adminIncidentMailTroubleshooter', 'adminIncidentMailTroubleshooterStatus', 'adminIncidentMailTroubleshooterSteps', 'adminIncidentMailTestDetails', 'adminIncidentMailTestStats', 'adminIncidentMailTestTrend', 'adminIncidentMailTestTrendStatus', 'adminIncidentMailTestPeriod', 'adminIncidentMailTestSearch', 'adminIncidentMailTestFilter', 'adminIncidentMailTestExport', 'adminIncidentMailTestCount', 'adminIncidentMailTestRows', 'adminIncidentHistoryDetails', 'adminIncidentHistoryFilter', 'adminIncidentHistoryMore', 'adminIncidentHistoryStatus', 'adminIncidentHistoryRows', 'adminIncidentAuditDetails', 'adminIncidentAuditSearch', 'adminIncidentAuditFilter', 'adminIncidentAuditMore', 'adminIncidentAuditExport', 'adminIncidentAuditStatus', 'adminIncidentAuditRows',
         'processingHud', 'processingHudTitle', 'processingHudText', 'processingHudPercent', 'processingHudBar',
         'bulkImportHud', 'bulkImportHudTitle', 'bulkImportHudText', 'bulkImportHudPercent', 'bulkImportHudBar', 'bulkImportHudList', 'bulkImportHudToggle', 'bulkImportHudClose', 'bulkImportHudMasterAll', 'bulkImportHudRestore',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'individualExportBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
@@ -1671,17 +1671,14 @@ function formatMonoScore(analysis) {
     return `${Math.round(score)}점`;
 }
 function updateProcessingHud() {
-    scheduleBottomPreviewLayoutSync();
-    if (!el.processingHud) return;
-    const running = state.tracks.find(track => track.status === 'processing') || null;
-    if (!running) {
-        el.processingHud.classList.remove('show');
-        el.processingHud.setAttribute('aria-hidden', 'true');
-        if (el.processingHudBar) el.processingHudBar.style.width = '0%';
-        syncFloatingOverlayStack();
-        return;
+    scheduleBottomPreviewLayoutSync(); if (!el.processingHud) return;
+    const running = state.tracks.find(track => track.status === 'processing') || null; const bulkMasteringActive = Boolean(getBulkImportHudView()?.isActiveMasteringTrack?.(running));
+    if (!running || bulkMasteringActive) {
+        el.processingHud.classList.remove('show'); el.processingHud.setAttribute('aria-hidden', 'true');
+        el.processingHud.dataset.suppressedByBulk = bulkMasteringActive ? 'true' : 'false'; if (el.processingHudBar) el.processingHudBar.style.width = '0%';
+        syncFloatingOverlayStack(); return;
     }
-    const progress = clamp(Number(running.progress || 0), 0, 100);
+    el.processingHud.dataset.suppressedByBulk = 'false'; const progress = clamp(Number(running.progress || 0), 0, 100);
     const visibleProgress = running.status === 'done' ? 100 : Math.max(5, quantizeProgressStep(progress));
     el.processingHud.classList.add('show');
     el.processingHud.setAttribute('aria-hidden', 'false');
@@ -3079,7 +3076,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.69-mail-receipt-confirmation-history-branded-template') · navigator.serviceWorker.register('./sw.js?v=1.5.69-mail-receipt-confirmation-history-branded-template&h=sw-v1569')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.73-bulk-control-eta-result-filter-ui') · navigator.serviceWorker.register('./sw.js?v=1.5.73-bulk-control-eta-result-filter-ui&h=sw-v1573')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3864,7 +3861,11 @@ function getBulkImportHudDeps() {
         clamp,
         statusLabel,
         syncFloatingOverlayStack,
-        showToast: showToastSafe, onMasterAll: () => masterAllTracks(),
+        showToast: showToastSafe,
+        onMasterAll: () => masterAllTracks(),
+        onCancelBatch: reason => cancelActiveMasteringBatch(reason),
+        onRetryFailed: () => retryFailedBulkMasteringTracks(),
+        scheduleRender: reason => scheduleRenderAll(reason, { keepDetailAudio: true, immediate: true }),
         minTracks: SAFE_BULK_IMPORT_HUD_MIN_TRACKS,
         doneHoldMs: SAFE_BULK_IMPORT_HUD_DONE_HOLD_MS,
         getLargeBatchThreshold: () => SAFE_LARGE_IMPORT_BATCH_THRESHOLD
@@ -3896,7 +3897,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.69-mail-receipt-confirmation-history-branded-template', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.73-bulk-control-eta-result-filter-ui', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4210,7 +4211,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.69-mail-receipt-confirmation-history-branded-template',
+        version: '1.5.73-bulk-control-eta-result-filter-ui',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4250,10 +4251,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.69-mail-receipt-confirmation-history-branded-template',
+    version: '1.5.73-bulk-control-eta-result-filter-ui',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.69-mail-receipt-confirmation-history-branded-template', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.73-bulk-control-eta-result-filter-ui', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4278,12 +4279,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.69-mail-receipt-confirmation-history-branded-template', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.73-bulk-control-eta-result-filter-ui', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.69-mail-receipt-confirmation-history-branded-template', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.73-bulk-control-eta-result-filter-ui', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4298,12 +4299,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.69-mail-receipt-confirmation-history-branded-template',
+    version: 'v1.5.73-bulk-control-eta-result-filter-ui',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.69-mail-receipt-confirmation-history-branded-template', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.73-bulk-control-eta-result-filter-ui', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5411,6 +5412,28 @@ function preparePrimaryActionTrack(track) {
     applyTrackToControls(target);
     return target;
 }
+function notifyBulkMasteringTrackStart(track, meta = {}) { return getBulkImportHudView()?.markMasteringTrackStart?.(track, meta) || false; }
+function notifyBulkMasteringTrackResult(track, meta = {}) { return getBulkImportHudView()?.markMasteringTrackResult?.(track, meta) || false; }
+function notifyBulkMasteringBatchCancelled(meta = {}) { return getBulkImportHudView()?.markMasteringBatchCancelled?.(meta) || false; }
+function cancelActiveMasteringBatch(reason = 'user-request') {
+    const accepted = Boolean(getMasteringBatchRunner()?.cancelActiveBatch?.(reason));
+    if (accepted) updateBulkImportHud();
+    return accepted;
+}
+async function retryFailedBulkMasteringTracks() {
+    const failedTracks = getBulkImportHudView()?.getFailedTracks?.() || state.tracks.filter(track => track && (track.bulkMasteringResult === 'error' || track.status === 'error'));
+    if (!failedTracks.length) { showToast('다시 실행할 실패 곡이 없습니다.'); return false; }
+    clearStaleBusyFlagIfIdle('retry-failed-bulk-mastering');
+    if (state.busy && hasActiveBlockingWork()) { showToast('현재 작업이 끝난 뒤 실패 곡을 다시 실행해주세요.'); return false; }
+    failedTracks.forEach(track => Object.assign(track, { error: null, status: track.analysis ? 'ready' : 'queued', progress: 0, report: '실패 곡 재시도 대기', bulkMasteringResult: 'queued', bulkMasteringCancelReason: '' }));
+    const result = await getMasteringBatchRunner().runBatch(failedTracks, {
+        source: 'retry-failed', largeBatch: failedTracks.length >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD, inheritImportBatch: false,
+        initialRenderOptions: { keepDetailAudio: true }, finalRenderOptions: { keepDetailAudio: true }, masterOptions: { source: 'retry-failed' }
+    });
+    if (result.completed) showToast(result.failed ? `실패 곡 재시도 완료 · 성공 ${result.completed} / 재실패 ${result.failed}` : `${result.completed}곡 재시도 마스터링 완료`);
+    else showToast(result.cancelled ? `실패 곡 재시도가 중단되었습니다. · 취소 ${result.cancelled}` : '실패 곡 재시도를 완료하지 못했습니다.');
+    return result.completed > 0;
+}
 function getMasteringBatchRunner() {
     if (masteringBatchRunner) return masteringBatchRunner;
     const service = getMasteringOrchestratorService();
@@ -5419,14 +5442,18 @@ function getMasteringBatchRunner() {
             beginHudBatch: beginBulkMasteringHudBatch,
             setBusy: value => { state.busy = Boolean(value); },
             beforeBatch: () => { if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile(); },
-            afterBatch: afterMasteringBatchMemorySweep,
+            afterBatch: payload => afterMasteringBatchMemorySweep(payload?.result || payload || {}),
+            onTrackStart: (track, meta) => notifyBulkMasteringTrackStart(track, meta),
+            onTrackComplete: (track, meta) => notifyBulkMasteringTrackResult(track, meta),
+            onBatchCancelled: meta => notifyBulkMasteringBatchCancelled(meta),
+            onCancelRequested: () => updateBulkImportHud(),
             render: options => renderAll(options || {}),
             prepareTrack: track => preparePrimaryActionTrack(track),
             masterTrack
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.69-mail-receipt-confirmation-history-branded-template-fallback',
+            version: '1.5.73-bulk-batch-control-eta-results-fallback',
             async runBatch(items, batchOptions = {}) {
                 const tracks = Array.isArray(items) ? items.filter(Boolean) : [];
                 let completed = 0, failed = 0;
@@ -5447,7 +5474,9 @@ function getMasteringBatchRunner() {
                 } finally { state.busy = false;
                     try { renderAll(batchOptions.finalRenderOptions || {}); } catch (error) { console.error('Batch final render error:', error); }
                 }
-            }
+            },
+            cancelActiveBatch() { return false; },
+            getActiveBatchSnapshot() { return null; }
         });
     }
     return masteringBatchRunner;
@@ -5495,7 +5524,11 @@ async function masterAllTracks() {
     setNativeBadge(getCompletedUndownloadedCount());
     if (result.completed) {
         foxBearHaptic('complete');
-        showToast(result.failed ? `전체 마스터링 완료 · 성공 ${result.completed} / 실패 ${result.failed}` : '전체 마스터링이 성공적으로 완료되었습니다.');
+        showToast(result.stopped
+            ? `전체 마스터링 중단 · 완료 ${result.completed} / 실패 ${result.failed} / 취소 ${result.cancelled || 0}`
+            : (result.failed ? `전체 마스터링 완료 · 성공 ${result.completed} / 실패 ${result.failed}` : '전체 마스터링이 성공적으로 완료되었습니다.'));
+    } else if (result.cancelled) {
+        showToast(`전체 마스터링이 중단되었습니다. · 취소 ${result.cancelled}`);
     }
     return result.completed > 0;
 }
@@ -5750,12 +5783,19 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
     }
     pauseAllPreviewAudio();
     if (!calledFromBatch) {
+        getBulkImportHudView()?.detachTrackFromMasteringBatch?.(track);
         state.busy = true;
         if (state.featureFlags.albumMatch) state.albumProfile = computeAlbumProfile();
     }
     markMasteringQueueStart(track, calledFromBatch ? 'batch' : 'single');
     try { track.masteringAbortController?.abort?.('mastering-superseded'); } catch (error) {}
     const masteringAbortController = typeof AbortController === 'function' ? new AbortController() : null;
+    const externalMasteringSignal = options.signal || null;
+    const abortFromBatchSignal = () => {
+        try { masteringAbortController?.abort?.(externalMasteringSignal?.reason || 'batch-cancelled'); } catch (error) {}
+    };
+    if (externalMasteringSignal?.aborted) abortFromBatchSignal();
+    else externalMasteringSignal?.addEventListener?.('abort', abortFromBatchSignal, { once: true });
     const masteringJobId = getWorkerJobService()?.createJobId?.(`master:${track.id}`) || `master:${track.id}:${Date.now()}`;
     track.masteringAbortController = masteringAbortController;
     track.masteringJobId = masteringJobId;
@@ -5794,6 +5834,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
     let masteredBuffer = null;
     let finalBuffer = null;
     try {
+        assertMasteringJobActive('start');
         currentSourceBuffer = await decodeAudio(track.file);
         assertMasteringJobActive('decode');
         track.inAppSafetyInfo = FoxBearInAppMasteringSafetyService?.createPlan?.(currentSourceBuffer, {
@@ -5953,7 +5994,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
                 track.status = track.analysis ? 'ready' : 'queued';
                 track.error = null;
                 track.report = '마스터링 작업이 취소되었습니다.';
-                showToast(`${track.name}: 마스터링이 취소되었습니다.`);
+                if (!calledFromBatch) showToast(`${track.name}: 마스터링이 취소되었습니다.`);
             }
         } else {
             console.error('Mastering error:', error);
@@ -5970,6 +6011,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         preparedBuffer = null;
         masteredBuffer = null;
         finalBuffer = null;
+        externalMasteringSignal?.removeEventListener?.('abort', abortFromBatchSignal);
         if (track.masteringJobId === masteringJobId) {
             track.masteringAbortController = null;
             track.masteringJobId = '';
@@ -9944,7 +9986,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.69-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.5.73-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13033,7 +13075,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.69',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.73',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

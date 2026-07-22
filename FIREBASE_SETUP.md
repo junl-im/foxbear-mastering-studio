@@ -1,3 +1,9 @@
+## v1.5.70 mail verification deployment
+
+- Deploy `auditIncidentMailOperations` because mail-test freshness and receipt-overdue alerts are evaluated in the 15-minute scheduled audit.
+- No new Secret is required; `FOXBEAR_GMAIL_APP_PASSWORD` remains the required 16-character Google app password.
+- After deployment, run the real mail test and explicitly confirm inbox or spam placement in the administrator monitor.
+
 # FoxBear Firebase 설정 가이드 - v1.5.69
 
 오디오 파일과 PCM은 브라우저 안에서만 처리됩니다. Firebase에는 방문 통계와 개인정보를 줄인 문제 진단만 저장됩니다.
@@ -104,3 +110,9 @@ cp functions/.env.example functions/.env
 ## v1.5.69 실제 메일 실수신 확인
 
 Functions 배포 목록에 `confirmIncidentMailReceiptRequest`를 포함하고 Firestore Rules를 함께 배포합니다. 실제 메일 테스트 후 Gmail 도착 위치를 확인한 관리자만 받은편지함 또는 스팸함 확인 요청을 생성할 수 있습니다. `incidentMailTestHistory`와 `incidentOperations/mailVerification`은 서버가 기록하며 클라이언트 수정은 허용하지 않습니다.
+
+## v1.5.72 추가 배포
+
+- `functions:cleanupIncidentMailTestsRequest`를 Firestore Rules·Indexes와 함께 배포합니다.
+- `incidentMailTestCleanupRequests`는 관리자만 생성·조회하고 서버만 결과를 기록합니다.
+- 정리 작업은 24시간 이상 지난 미확인 SMTP 접수 기록을 삭제하지 않고 `dismissed` 상태로 보존합니다.

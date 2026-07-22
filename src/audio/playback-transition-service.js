@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template';
+    const SERVICE_VERSION = '1.5.73-bulk-control-eta-result-filter-ui';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

@@ -1,4 +1,27 @@
-# FoxBear AI Mastering Studio Pro v1.5.69
+# FoxBear AI Mastering Studio Pro v1.5.73
+
+## v1.5.73 다중 마스터링 제어 및 예상 시간
+
+- 진행 중 다중 마스터링을 안전하게 취소할 수 있습니다.
+- 성공한 곡은 유지하고 실패 곡만 다시 실행할 수 있습니다.
+- 현재 곡 남은 시간, 곡별 완료 예상 시간, 전체 예상 남은 시간을 목록에서 확인합니다.
+- 전체·현재 진행·완료·실패·취소·대기 결과 필터를 제공합니다.
+- 데스크톱과 모바일 대량 HUD의 화면 넘침·버튼 가림을 브라우저 회귀 계약으로 검사합니다.
+
+
+## v1.5.72 다중 곡 작업 흐름 및 관리자 UI
+
+- 여러 곡 분석 완료 후 목록 팝업을 자동으로 숨기고 전체 마스터링 버튼으로 이동합니다.
+- 여러 곡 마스터링은 단일 HUD 대신 곡 목록에서 현재 진행률과 완료·오류 결과를 표시합니다.
+- 관리자 간소화 보기, 미확인 테스트 보존형 정리, 감사 로그 검색·CSV, 모바일 카드 상세 화면을 제공합니다.
+
+
+## v1.5.70 mail verification operations
+
+- Automatic warnings for untested, stale, failed, and 30-minute receipt-unconfirmed mail tests.
+- Administrator statistics, troubleshooting guidance, searchable test history, and CSV export.
+- Real Gmail inbox or spam placement still requires explicit administrator confirmation after deployment.
+
 
 ## v1.5.69 핵심 변경
 

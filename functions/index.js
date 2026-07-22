@@ -56,17 +56,23 @@ const ADMIN_AUDIT_COLLECTION = 'incidentAdminAuditLog';
 const ADMIN_AUDIT_TTL_DAYS = 90;
 const MAIL_TEST_HISTORY_COLLECTION = 'incidentMailTestHistory';
 const MAIL_RECEIPT_CONFIRMATION_COLLECTION = 'incidentMailReceiptConfirmationRequests';
+const MAIL_TEST_CLEANUP_COLLECTION = 'incidentMailTestCleanupRequests';
 const MAIL_VERIFICATION_DOC_ID = 'mailVerification';
 const MAIL_TEST_HISTORY_TTL_DAYS = 90;
 const MAIL_TEST_WARNING_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
-const PRODUCT_VERSION = '1.5.69';
-const OPERATIONS_SCHEMA_VERSION = 4;
+const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
+const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
+const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
+const MAIL_TEST_CLEANUP_LIMIT = 50;
+const PRODUCT_VERSION = '1.5.73';
+const OPERATIONS_SCHEMA_VERSION = 6;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
 const ADMIN_ACTION_STATE_TTL_DAYS = 7;
 const ADMIN_RETRY_COOLDOWN_MS = 10 * 1000;
 const ADMIN_BATCH_COOLDOWN_MS = 2 * 60 * 1000;
 const ADMIN_ALERT_TEST_COOLDOWN_MS = 5 * 60 * 1000;
 const ADMIN_DEPLOY_VERIFY_COOLDOWN_MS = 10 * 60 * 1000;
+const ADMIN_MAIL_TEST_CLEANUP_COOLDOWN_MS = 10 * 60 * 1000;
 const OPERATIONS_WEBHOOK_ALLOWED_HOSTS = Object.freeze([
   'hooks.slack.com', 'discord.com', 'discordapp.com', 'chat.googleapis.com',
   'outlook.office.com', 'webhook.office.com'
@@ -163,7 +169,11 @@ function recommendedActionForIssue(code) {
     'deployment-check-stale': '관리자 화면에서 배포 상태 검증을 실행하세요.',
     'firestore-index-missing': 'firestore.indexes.json을 배포하고 Firebase Console에서 모든 인덱스가 Enabled 상태인지 확인하세요.',
     'webhook-primary-failed': '기본 웹훅 주소와 공급자 상태를 확인하고 보조 웹훅 장애 전환 결과를 점검하세요.',
-    'webhook-fallback-failed': '보조 웹훅 주소와 허용 호스트를 확인하고 두 채널 중 하나 이상을 정상화하세요.'
+    'webhook-fallback-failed': '보조 웹훅 주소와 허용 호스트를 확인하고 두 채널 중 하나 이상을 정상화하세요.',
+    'mail-test-never-run': '관리자 설정에서 실제 메일 테스트를 실행하고 Gmail 받은편지함 또는 스팸함 도착을 확인하세요.',
+    'mail-test-verification-stale': '마지막 실수신 확인이 7일 이상 지났습니다. 실제 메일 테스트를 다시 실행해 수신 위치를 기록하세요.',
+    'mail-receipt-unconfirmed': 'SMTP 접수 후 30분이 지난 테스트가 있습니다. Gmail 전체메일·스팸함에서 제목과 Message-ID를 검색하세요.',
+    'mail-test-failed': '최근 실제 메일 테스트 실패 사유를 점검 마법사에서 확인하고 Secret·SMTP·일일 한도를 순서대로 검증하세요.'
   };
   return actions[cleanText(code, 80)] || '관리자 운영 상태와 최근 오류 기록을 확인한 뒤 관련 배포 항목을 재검증하세요.';
 }
@@ -491,6 +501,9 @@ async function recordOperationsTelemetry(health = {}, alert = {}, now = Date.now
       sent: Math.max(0, Number(health.quota?.sent || 0)),
       reserved: Math.max(0, Number(health.quota?.reserved || 0))
     },
+    mailVerificationStatus: cleanText(health.mailVerification?.status || 'unknown', 40),
+    mailVerificationStale: health.mailVerification?.verificationStale === true,
+    overdueReceiptCount: Math.max(0, Number(health.mailVerification?.overdueReceiptCount || 0)),
     smtpStatus: cleanText(health.smtp?.status || 'unknown', 20),
     webhookStatus: cleanText(health.channels?.webhook?.status || 'disabled', 20),
     alertStatus: cleanText(alert.status || 'skipped', 20),
@@ -861,6 +874,58 @@ function previousSmtpState(previous = {}) {
   };
 }
 
+async function inspectMailTestVerification(now = Date.now()) {
+  const verificationRef = db.collection('incidentOperations').doc(MAIL_VERIFICATION_DOC_ID);
+  const [verificationSnapshot, emailedSnapshot] = await Promise.all([
+    verificationRef.get(),
+    db.collection(MAIL_TEST_HISTORY_COLLECTION).where('status', '==', 'emailed').orderBy('checkedAt', 'desc').limit(MAIL_TEST_HISTORY_SCAN_LIMIT).get()
+  ]);
+  const data = verificationSnapshot.data() || {};
+  const lastTestAt = timestampMillis(data.lastTestAt);
+  const lastSmtpAcceptedAt = timestampMillis(data.lastSmtpAcceptedAt);
+  const lastConfirmedAt = timestampMillis(data.lastConfirmedAt);
+  const lastTestReportId = cleanText(data.lastTestReportId || '', 180);
+  const lastConfirmedReportId = cleanText(data.lastConfirmedReportId || '', 180);
+  const confirmedLatest = Boolean(lastTestReportId && lastConfirmedReportId && lastTestReportId === lastConfirmedReportId && lastConfirmedAt);
+  const overdue = [];
+  emailedSnapshot.docs.forEach(snapshot => {
+    const item = snapshot.data() || {};
+    if (item.receiptConfirmed === true) return;
+    const acceptedAt = timestampMillis(item.smtpAcceptedAt || item.checkedAt);
+    if (!acceptedAt || now - acceptedAt < MAIL_RECEIPT_OVERDUE_MS) return;
+    if (lastConfirmedAt && acceptedAt <= lastConfirmedAt) return;
+    overdue.push({ reportId: cleanText(item.reportId || snapshot.id, 180), acceptedAt });
+  });
+  overdue.sort((a, b) => a.acceptedAt - b.acceptedAt);
+  const neverTested = !lastTestAt;
+  const freshnessReferenceAt = lastConfirmedAt || lastTestAt;
+  const nextVerificationDueAt = freshnessReferenceAt ? freshnessReferenceAt + MAIL_TEST_WARNING_AFTER_MS : 0;
+  const verificationAgeDays = freshnessReferenceAt ? Math.max(0, Math.floor((now - freshnessReferenceAt) / 86400000)) : 0;
+  const verificationStale = Boolean(nextVerificationDueAt && now > nextVerificationDueAt);
+  const latestReceiptOverdue = Boolean(lastTestReportId && lastTestReportId !== lastConfirmedReportId && lastSmtpAcceptedAt && now - lastSmtpAcceptedAt >= MAIL_RECEIPT_OVERDUE_MS);
+  const scheduleStatus = neverTested ? 'not-scheduled' : verificationStale ? 'overdue' : nextVerificationDueAt - now <= 24 * 60 * 60 * 1000 ? 'due-soon' : 'scheduled';
+  return {
+    status: confirmedLatest && !verificationStale ? 'confirmed' : neverTested ? 'never-tested' : latestReceiptOverdue ? 'receipt-overdue' : cleanText(data.lastTestStatus || data.status || 'unverified', 40),
+    neverTested,
+    verificationStale,
+    confirmedLatest,
+    latestReceiptOverdue,
+    lastTestStatus: cleanText(data.lastTestStatus || '', 40),
+    lastTestReason: cleanText(data.lastTestReason || '', 100),
+    lastTestReportId,
+    lastConfirmedReportId,
+    lastTestAt,
+    lastSmtpAcceptedAt,
+    lastConfirmedAt,
+    nextVerificationDueAt,
+    verificationAgeDays,
+    scheduleStatus,
+    overdueReceiptCount: overdue.length,
+    oldestOverdueReceiptAt: overdue[0]?.acceptedAt || 0,
+    sampleCapped: emailedSnapshot.size >= MAIL_TEST_HISTORY_SCAN_LIMIT
+  };
+}
+
 async function inspectSmtpHealth(previous = {}, degraded = false, now = Date.now()) {
   const cached = previousSmtpState(previous);
   const interval = cached.status === 'ok' && !degraded
@@ -923,6 +988,19 @@ function evaluateOperationsHealth(snapshot = {}) {
   if (Number(quota.reservationLeak || 0) > 0) {
     reasons.push({ code: 'quota-reservation-leak', severity: 'warning', message: `일일 발송 예약 ${Number(quota.reservationLeak || 0)}건이 임대 시간을 넘겼습니다.` });
   }
+  const verification = snapshot.mailVerification || {};
+  if (verification.neverTested) {
+    reasons.push({ code: 'mail-test-never-run', severity: 'warning', message: '실제 메일 테스트가 아직 한 번도 실행되지 않았습니다.' });
+  } else if (verification.lastTestStatus && verification.lastTestStatus !== 'emailed') {
+    reasons.push({ code: 'mail-test-failed', severity: 'warning', message: `최근 실제 메일 테스트가 실패했습니다: ${verification.lastTestReason || verification.lastTestStatus}` });
+  }
+  if (!verification.neverTested && verification.lastTestStatus === 'emailed' && verification.verificationStale && !verification.latestReceiptOverdue) {
+    reasons.push({ code: 'mail-test-verification-stale', severity: 'warning', message: '실제 메일 수신 확인이 7일 이상 지났거나 최신 테스트와 일치하지 않습니다.' });
+  }
+  if (Number(verification.overdueReceiptCount || 0) > 0 || verification.latestReceiptOverdue) {
+    const count = Math.max(Number(verification.overdueReceiptCount || 0), verification.latestReceiptOverdue ? 1 : 0);
+    reasons.push({ code: 'mail-receipt-unconfirmed', severity: count >= 3 ? 'critical' : 'warning', message: `SMTP 접수 후 30분 이상 수신 확인되지 않은 테스트가 ${count}건 있습니다.` });
+  }
   const enrichedReasons = reasons.map(item => ({ ...item, recommendedAction: recommendedActionForIssue(item.code) }));
   const status = enrichedReasons.some(item => item.severity === 'critical')
     ? 'critical'
@@ -933,7 +1011,7 @@ function evaluateOperationsHealth(snapshot = {}) {
 
 async function collectOperationsHealth(previous = {}, now = Date.now()) {
   const statuses = ['pending', 'failed', 'sending', 'retrying', 'dead-letter', 'emailed', 'suppressed-rate-limit'];
-  const [counts, staleCounts, summaries, lastIncidentSentAt, legacyDueReports] = await Promise.all([
+  const [counts, staleCounts, summaries, lastIncidentSentAt, legacyDueReports, mailVerification] = await Promise.all([
     Promise.all(statuses.map(countIncidentStatus)),
     Promise.all([
       countIncidentStatusBefore('pending', 'createdAt', now - STALE_PENDING_MS),
@@ -943,7 +1021,8 @@ async function collectOperationsHealth(previous = {}, now = Date.now()) {
     ]),
     loadSummaryOperations(new Date(now)),
     loadLatestEmailedAt(),
-    collectDueIncidentReports(now)
+    collectDueIncidentReports(now),
+    inspectMailTestVerification(now)
   ]);
   const countByStatus = Object.fromEntries(statuses.map((status, index) => [status, counts[index]]));
   const legacyMissingCount = legacyDueReports.filter(snapshot => {
@@ -965,7 +1044,7 @@ async function collectOperationsHealth(previous = {}, now = Date.now()) {
   const reserved = Math.max(0, Number(daily.reservedCount || 0));
   const lastReservedAt = timestampMillis(daily.lastReservedAt);
   const reservationLeak = reserved > 0 && (!lastReservedAt || lastReservedAt <= now - (DELIVERY_LEASE_MS + STALE_OVERDUE_MS)) ? reserved : 0;
-  const degradedQueue = staleCount > 0 || countByStatus['dead-letter'] > 0 || summaries.failed > 0 || summaries.locked > 0 || reservationLeak > 0;
+  const degradedQueue = staleCount > 0 || countByStatus['dead-letter'] > 0 || summaries.failed > 0 || summaries.locked > 0 || reservationLeak > 0 || mailVerification.verificationStale || mailVerification.overdueReceiptCount > 0;
   const smtp = await inspectSmtpHealth(previous, degradedQueue, now);
   return evaluateOperationsHealth({
     checkedAt: now,
@@ -989,6 +1068,7 @@ async function collectOperationsHealth(previous = {}, now = Date.now()) {
       reservationLeak
     },
     summaries,
+    mailVerification,
     smtp,
     channels: { webhook: publicWebhookConfig(inspectOperationsWebhookChannels()) },
     lastIncidentSentAt
@@ -1059,6 +1139,7 @@ async function finalizeOperationsAudit(reservation, health, alert, now = Date.no
     const summaries = health.summaries || {};
     const queue = health.queue || {};
     const quota = health.quota || {};
+    const mailVerification = health.mailVerification || {};
     const patch = {
       schemaVersion: OPERATIONS_SCHEMA_VERSION,
       productVersion: PRODUCT_VERSION,
@@ -1078,6 +1159,24 @@ async function finalizeOperationsAudit(reservation, health, alert, now = Date.no
           ...item,
           checkedAt: item.checkedAt ? Timestamp.fromMillis(item.checkedAt) : null
         })) : []
+      },
+      mailVerification: {
+        status: cleanText(mailVerification.status || 'unknown', 40),
+        neverTested: mailVerification.neverTested === true,
+        verificationStale: mailVerification.verificationStale === true,
+        confirmedLatest: mailVerification.confirmedLatest === true,
+        latestReceiptOverdue: mailVerification.latestReceiptOverdue === true,
+        lastTestStatus: cleanText(mailVerification.lastTestStatus || '', 40),
+        lastTestReason: cleanText(mailVerification.lastTestReason || '', 100),
+        overdueReceiptCount: Math.max(0, Number(mailVerification.overdueReceiptCount || 0)),
+        oldestOverdueReceiptAt: mailVerification.oldestOverdueReceiptAt ? Timestamp.fromMillis(mailVerification.oldestOverdueReceiptAt) : null,
+        sampleCapped: mailVerification.sampleCapped === true,
+        lastTestAt: mailVerification.lastTestAt ? Timestamp.fromMillis(mailVerification.lastTestAt) : null,
+        lastSmtpAcceptedAt: mailVerification.lastSmtpAcceptedAt ? Timestamp.fromMillis(mailVerification.lastSmtpAcceptedAt) : null,
+        lastConfirmedAt: mailVerification.lastConfirmedAt ? Timestamp.fromMillis(mailVerification.lastConfirmedAt) : null,
+        nextVerificationDueAt: mailVerification.nextVerificationDueAt ? Timestamp.fromMillis(mailVerification.nextVerificationDueAt) : null,
+        verificationAgeDays: Math.max(0, Number(mailVerification.verificationAgeDays || 0)),
+        scheduleStatus: cleanText(mailVerification.scheduleStatus || 'not-scheduled', 30)
       },
       smtp: {
         status: smtp.status || 'unknown',
@@ -1494,6 +1593,10 @@ async function recordMailTestResult(reportId, data = {}, result = {}, mail = {},
     acceptedCount: Math.max(0, Number(outcome.acceptedCount || 0)),
     rejectedCount: Math.max(0, Number(outcome.rejectedCount || 0)),
     smtpAcceptedAt: status === 'emailed' ? Timestamp.fromMillis(now) : null,
+    receiptPending: status === 'emailed',
+    receiptOverdue: false,
+    receiptDueAt: status === 'emailed' ? Timestamp.fromMillis(now + MAIL_RECEIPT_OVERDUE_MS) : null,
+    confirmationStatus: status === 'emailed' ? 'pending' : 'not-applicable',
     checkedAt: Timestamp.fromMillis(now),
     expiresAt: Timestamp.fromMillis(now + MAIL_TEST_HISTORY_TTL_DAYS * 86400000)
   };
@@ -1509,11 +1612,50 @@ async function recordMailTestResult(reportId, data = {}, result = {}, mail = {},
     lastTestMessageId: payload.messageId,
     lastTestAt: Timestamp.fromMillis(now),
     warningAfter: Timestamp.fromMillis(now + MAIL_TEST_WARNING_AFTER_MS),
+    nextVerificationDueAt: Timestamp.fromMillis(now + MAIL_TEST_WARNING_AFTER_MS),
+    verificationAgeDays: 0,
+    scheduleStatus: 'scheduled',
     checkedAt: Timestamp.fromMillis(now),
     expiresAt: Timestamp.fromMillis(now + OPERATIONS_STATE_TTL_DAYS * 86400000)
   };
   if (status === 'emailed') verificationPatch.lastSmtpAcceptedAt = Timestamp.fromMillis(now);
   await db.collection('incidentOperations').doc(MAIL_VERIFICATION_DOC_ID).set(verificationPatch, { merge: true });
+}
+
+async function cleanupUnconfirmedMailTests(uid, now = Date.now()) {
+  const cutoff = Timestamp.fromMillis(now - MAIL_TEST_CLEANUP_AFTER_MS);
+  const snapshot = await db.collection(MAIL_TEST_HISTORY_COLLECTION)
+    .where('status', '==', 'emailed')
+    .where('checkedAt', '<', cutoff)
+    .orderBy('checkedAt', 'desc')
+    .limit(MAIL_TEST_CLEANUP_LIMIT)
+    .get();
+  const candidates = snapshot.docs.filter(item => {
+    const data = item.data() || {};
+    return data.receiptConfirmed !== true
+      && data.confirmationStatus !== 'dismissed'
+      && data.receiptDismissed !== true;
+  });
+  if (!candidates.length) return { requested: snapshot.size, cleaned: 0, skipped: snapshot.size, capped: snapshot.size >= MAIL_TEST_CLEANUP_LIMIT };
+  const batch = db.batch();
+  candidates.forEach(item => batch.set(item.ref, {
+    receiptPending: false,
+    receiptOverdue: false,
+    receiptDismissed: true,
+    confirmationStatus: 'dismissed',
+    receiptResolvedBy: cleanText(uid, 128),
+    receiptResolvedAt: Timestamp.fromMillis(now),
+    receiptResolutionReason: 'admin-bulk-cleanup',
+    checkedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + MAIL_TEST_HISTORY_TTL_DAYS * 86400000)
+  }, { merge: true }));
+  await batch.commit();
+  return {
+    requested: snapshot.size,
+    cleaned: candidates.length,
+    skipped: Math.max(0, snapshot.size - candidates.length),
+    capped: snapshot.size >= MAIL_TEST_CLEANUP_LIMIT
+  };
 }
 
 async function confirmMailReceipt(reportId, uid, location = 'inbox') {
@@ -1529,6 +1671,9 @@ async function confirmMailReceipt(reportId, uid, location = 'inbox') {
   const now = Date.now();
   const confirmation = {
     receiptConfirmed: true,
+    receiptPending: false,
+    receiptOverdue: false,
+    confirmationStatus: 'confirmed',
     receiptLocation: safeLocation,
     receiptConfirmedBy: cleanText(uid, 128),
     receiptConfirmedAt: Timestamp.fromMillis(now),
@@ -1547,6 +1692,9 @@ async function confirmMailReceipt(reportId, uid, location = 'inbox') {
     lastConfirmedSubject: cleanText(delivery.subject || '', 180),
     lastConfirmedMessageId: cleanText(delivery.messageId || '', 240),
     warningAfter: Timestamp.fromMillis(now + MAIL_TEST_WARNING_AFTER_MS),
+    nextVerificationDueAt: Timestamp.fromMillis(now + MAIL_TEST_WARNING_AFTER_MS),
+    verificationAgeDays: 0,
+    scheduleStatus: 'scheduled',
     checkedAt: Timestamp.fromMillis(now),
     expiresAt: Timestamp.fromMillis(now + OPERATIONS_STATE_TTL_DAYS * 86400000)
   }, { merge: true });
@@ -1779,6 +1927,10 @@ async function probeFirestoreIndexes() {
     {
       name: 'operations-reason-history',
       run: () => db.collection(OPERATIONS_HISTORY_COLLECTION).where('reasonCodes', 'array-contains', 'dead-letter-present').orderBy('checkedAt', 'desc').limit(1).get()
+    },
+    {
+      name: 'mail-test-receipt-history',
+      run: () => db.collection(MAIL_TEST_HISTORY_COLLECTION).where('status', '==', 'emailed').orderBy('checkedAt', 'desc').limit(1).get()
     }
   ];
   const results = [];
@@ -1832,6 +1984,13 @@ async function verifyIncidentDeployment(now = Date.now(), expectedVersion = '') 
     mailReceiptConfirmation: true,
     mailTestHistory: true,
     brandedMailTemplate: true,
+    mailTestVerificationAlerts: true,
+    mailReceiptOverdueTracking: true,
+    mailTestStatistics: true,
+    mailTestHistorySearchExport: true,
+    mailTestPeriodTrends: true,
+    mailVerificationSchedule: true,
+    adminOperationsUiHierarchy: true,
     indexes,
     postDeployHealth
   };
@@ -1880,6 +2039,47 @@ exports.confirmIncidentMailReceiptRequest = onDocumentCreated({
     expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
   }, { merge: true });
   await writeAdminAuditEvent({ uid, action: 'mail-receipt-confirmation', requestId: snapshot.id, status: result.ok ? 'completed' : 'rejected', reason: result.reason || '', targetType: 'incident-report', targetId: request.reportId, result: { attempted: 1, succeeded: result.ok ? 1 : 0, failed: result.ok ? 0 : 1 } });
+});
+
+exports.cleanupIncidentMailTestsRequest = onDocumentCreated({
+  document: `${MAIL_TEST_CLEANUP_COLLECTION}/{requestId}`, region: REGION,
+  retry: false, maxInstances: 1, timeoutSeconds: 120, memory: '256MiB'
+}, async event => {
+  const snapshot = event.data;
+  if (!snapshot) return;
+  const request = snapshot.data() || {};
+  const uid = cleanText(request.uid || '', 128);
+  const admin = await getActiveAdmin(uid);
+  if (!admin.active) {
+    await snapshot.ref.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    await writeAdminAuditEvent({ uid, action: 'mail-test-cleanup', requestId: snapshot.id, status: 'rejected', reason: 'admin-required' });
+    return;
+  }
+  const claim = await claimAdminAction(uid, 'mail-test-cleanup', {
+    cooldownMs: ADMIN_MAIL_TEST_CLEANUP_COOLDOWN_MS,
+    leaseMs: 2 * 60 * 1000,
+    requestId: snapshot.id,
+    targetType: 'mail-test-history',
+    targetId: 'unconfirmed-24h'
+  });
+  if (!claim.allowed) {
+    await snapshot.ref.set({ status: 'rejected', reason: claim.reason, retryAfterSeconds: claim.retryAfterSeconds || 0, checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    return;
+  }
+  await snapshot.ref.set({ status: 'running', startedAt: FieldValue.serverTimestamp() }, { merge: true });
+  try {
+    const result = await cleanupUnconfirmedMailTests(uid);
+    await snapshot.ref.set({
+      status: 'completed', reason: '', result,
+      checkedAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
+    }, { merge: true });
+    await finishAdminAction(claim, 'completed', { result: { attempted: result.requested, succeeded: result.cleaned, skipped: result.skipped } });
+  } catch (error) {
+    await snapshot.ref.set({ status: 'failed', reason: cleanText(error?.code || error?.name || 'mail-test-cleanup-failed', 100), message: cleanText(error?.message || error, 300), checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    await finishAdminAction(claim, 'failed', { reason: error?.code || error?.name, message: error?.message || error });
+    throw error;
+  }
 });
 
 exports.verifyIncidentDeploymentRequest = onDocumentCreated({
@@ -2060,5 +2260,6 @@ exports.__test = Object.freeze({
   operationAlertMessageId, buildOperationsAlertMail, evaluateOperationsHealth,
   shouldSendOperationsAlert, inspectOperationsWebhookConfig, publicWebhookConfig,
   buildOperationsWebhookPayload, operationsHistoryId, recommendedActionForIssue, adminActionStateId,
-  inspectOperationsWebhookChannels, isWebhookRetryableStatus, webhookRetryDelay, confirmMailReceipt
+  inspectOperationsWebhookChannels, isWebhookRetryableStatus, webhookRetryDelay, confirmMailReceipt,
+  inspectMailTestVerification, cleanupUnconfirmedMailTests
 });

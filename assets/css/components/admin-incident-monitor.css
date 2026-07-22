@@ -188,3 +188,377 @@
 @media (max-width: 720px) {
     .admin-mail-test-history-table { min-width: 760px; }
 }
+
+/* v1.5.70 mail verification alerts, statistics, troubleshooting, search, and export */
+.admin-mail-troubleshooter {
+    display: grid;
+    grid-template-columns: minmax(180px, .8fr) minmax(280px, 2fr);
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 11px 13px;
+    border: 1px solid rgba(255, 207, 125, .2);
+    border-radius: 14px;
+    background: rgba(60, 38, 8, .18);
+}
+.admin-mail-troubleshooter strong { display: block; color: #fff0c4; font-size: .62rem; }
+.admin-mail-troubleshooter span { display: block; margin-top: 5px; color: rgba(226, 236, 247, .7); font-size: .51rem; line-height: 1.5; }
+.admin-mail-troubleshooter ol { margin: 0; padding-left: 20px; color: rgba(231, 241, 252, .82); font-size: .52rem; line-height: 1.65; }
+.admin-mail-troubleshooter.is-ok { border-color: rgba(141, 245, 232, .22); background: rgba(6, 61, 55, .18); }
+.admin-mail-test-stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(100px, 1fr));
+    gap: 7px;
+    padding: 9px 10px;
+    border-top: 1px solid rgba(141, 245, 232, .1);
+}
+.admin-mail-test-stat {
+    padding: 8px 9px;
+    border: 1px solid rgba(141, 245, 232, .11);
+    border-radius: 10px;
+    background: rgba(3, 13, 24, .5);
+}
+.admin-mail-test-stat strong { display: block; color: rgba(234, 244, 253, .9); font-size: .66rem; }
+.admin-mail-test-stat span { display: block; margin-top: 3px; color: rgba(202, 218, 236, .6); font-size: .47rem; }
+.admin-mail-test-controls input {
+    min-height: 32px;
+    min-width: 220px;
+    padding: 5px 9px;
+    border: 1px solid rgba(141, 245, 232, .18);
+    border-radius: 9px;
+    color: rgba(231, 241, 252, .9);
+    background: rgba(5, 14, 28, .9);
+    font: inherit;
+    font-size: .52rem;
+}
+.admin-mail-test-overdue { color: #ffcf7d !important; font-weight: 800; }
+@media (max-width: 720px) {
+    .admin-mail-troubleshooter { grid-template-columns: 1fr; }
+    .admin-mail-test-stats { grid-template-columns: repeat(2, minmax(110px, 1fr)); }
+    .admin-mail-test-controls input { min-width: 0; flex: 1 1 100%; }
+}
+
+/* v1.5.71 operations dashboard hierarchy, period trends, and responsive polish */
+.admin-incident-health-hero {
+    position: relative;
+    margin: 0 0 12px;
+    padding: 16px 17px;
+    border: 1px solid rgba(141, 245, 232, .2);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at top right, rgba(141, 245, 232, .13), transparent 38%),
+        linear-gradient(145deg, rgba(7, 22, 38, .96), rgba(4, 13, 25, .9));
+    box-shadow: 0 16px 42px rgba(0, 0, 0, .2);
+    overflow: hidden;
+}
+.admin-incident-health-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 4px;
+    background: #8df5e8;
+}
+.admin-incident-health-hero.is-warning::after { background: #ffcf7d; }
+.admin-incident-health-hero.is-critical::after { background: #ff8175; }
+.admin-incident-health-hero.is-stale::after { background: #a9b9cd; }
+.admin-incident-health-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+.admin-health-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 25px;
+    padding: 4px 9px;
+    border: 1px solid rgba(141, 245, 232, .28);
+    border-radius: 999px;
+    color: #bffff7;
+    background: rgba(141, 245, 232, .09);
+    font-size: .5rem;
+    font-weight: 900;
+    letter-spacing: .04em;
+}
+.admin-health-badge.is-warning { border-color: rgba(255, 207, 125, .34); color: #ffe8ad; background: rgba(255, 207, 125, .1); }
+.admin-health-badge.is-critical { border-color: rgba(255, 129, 117, .38); color: #ffd0cb; background: rgba(255, 103, 91, .12); }
+.admin-health-badge.is-stale,
+.admin-health-badge.is-unknown { border-color: rgba(183, 202, 224, .24); color: rgba(225, 237, 249, .78); background: rgba(183, 202, 224, .08); }
+.admin-health-freshness { color: rgba(202, 218, 236, .62); font-size: .49rem; }
+.admin-incident-health-hero h3 { margin: 0; color: rgba(244, 249, 255, .96); font-size: .88rem; line-height: 1.35; }
+.admin-incident-health-hero p { margin: 7px 0 0; color: rgba(213, 228, 243, .72); font-size: .55rem; line-height: 1.55; }
+.admin-incident-health-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 12px;
+}
+.admin-incident-health-meta span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 29px;
+    padding: 6px 9px;
+    border: 1px solid rgba(141, 245, 232, .11);
+    border-radius: 10px;
+    color: rgba(225, 238, 250, .76);
+    background: rgba(1, 10, 19, .36);
+    font-size: .5rem;
+    line-height: 1.35;
+}
+.admin-incident-summary-grid {
+    grid-template-columns: repeat(5, minmax(110px, 1fr));
+    gap: 8px;
+}
+.admin-incident-summary-grid .admin-stat-card {
+    min-height: 72px;
+    padding: 10px 11px;
+    border-radius: 13px;
+}
+.admin-incident-summary-grid .admin-stat-card span { font-size: .49rem; }
+.admin-incident-summary-grid .admin-stat-card strong { margin-top: 5px; font-size: .7rem; line-height: 1.25; }
+.admin-incident-summary-grid .admin-summary-secondary { opacity: .83; }
+.admin-incident-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 9px;
+    margin: 0 0 12px;
+}
+.admin-incident-action-group {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 9px;
+    padding: 12px;
+    border: 1px solid rgba(141, 245, 232, .13);
+    border-radius: 15px;
+    background: rgba(5, 14, 28, .42);
+}
+.admin-incident-action-group.is-recovery { border-color: rgba(255, 207, 125, .18); }
+.admin-incident-action-group.is-receipt { border-color: rgba(141, 245, 232, .2); }
+.admin-action-group-heading strong { display: block; color: rgba(239, 247, 255, .92); font-size: .61rem; }
+.admin-action-group-heading span { display: block; margin-top: 3px; color: rgba(202, 218, 236, .56); font-size: .47rem; line-height: 1.35; }
+.admin-action-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.admin-action-buttons button { min-height: 35px; padding: 6px 8px; font-size: .51rem; line-height: 1.25; }
+.admin-action-status {
+    display: block;
+    min-height: 34px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(141, 245, 232, .09);
+    color: rgba(215, 231, 247, .64);
+    font-size: .49rem;
+    line-height: 1.45;
+}
+.admin-mail-test-overview { border-top: 1px solid rgba(141, 245, 232, .1); }
+.admin-mail-test-trend {
+    padding: 10px 12px 12px;
+    border-top: 1px solid rgba(141, 245, 232, .08);
+    background: rgba(2, 10, 20, .2);
+}
+.admin-mail-test-trend-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+.admin-mail-test-trend-heading strong { color: rgba(235, 245, 253, .9); font-size: .57rem; }
+.admin-mail-test-trend-heading span { color: rgba(202, 218, 236, .58); font-size: .47rem; }
+.admin-mail-test-trend-bars {
+    display: grid;
+    grid-template-columns: repeat(14, minmax(8px, 1fr));
+    align-items: end;
+    gap: 5px;
+    min-height: 68px;
+    padding: 8px 7px 3px;
+    border: 1px solid rgba(141, 245, 232, .08);
+    border-radius: 11px;
+    background: rgba(2, 10, 19, .42);
+}
+.admin-mail-trend-bar {
+    position: relative;
+    min-height: 14px;
+    height: var(--trend-height, 30%);
+    border-radius: 5px 5px 2px 2px;
+    background: rgba(255, 129, 117, .65);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+}
+.admin-mail-trend-bar.is-smtp { background: rgba(255, 207, 125, .72); }
+.admin-mail-trend-bar.is-confirmed { background: rgba(141, 245, 232, .78); }
+.admin-mail-trend-bar.is-spam { background: rgba(174, 152, 255, .76); }
+.admin-mail-trend-bar::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 5px);
+    z-index: 3;
+    width: max-content;
+    max-width: 160px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    color: #ecf5ff;
+    background: rgba(2, 9, 17, .95);
+    font-size: .43rem;
+    line-height: 1.35;
+    transform: translateX(-50%);
+    opacity: 0;
+    pointer-events: none;
+}
+.admin-mail-trend-bar:hover::after,
+.admin-mail-trend-bar:focus-visible::after { opacity: 1; }
+.admin-mail-test-controls { position: sticky; top: 0; z-index: 2; background: rgba(5, 14, 28, .96); backdrop-filter: blur(12px); }
+.admin-mail-test-controls label { color: rgba(210, 226, 241, .65); font-size: .48rem; font-weight: 800; }
+.admin-incident-history-details > summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.admin-incident-history-details > summary::-webkit-details-marker { display: none; }
+.admin-incident-history-details > summary::after { content: '＋'; color: rgba(141, 245, 232, .68); font-size: .74rem; }
+.admin-incident-history-details[open] > summary::after { content: '－'; }
+.admin-stats-table thead th { position: sticky; top: 0; z-index: 1; background: rgba(7, 18, 31, .98); }
+.admin-stats-table tbody tr:nth-child(even) { background: rgba(255, 255, 255, .018); }
+.admin-stats-table tbody tr:hover { background: rgba(141, 245, 232, .045); }
+.admin-mail-status-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, .13);
+    font-size: .47rem;
+    font-weight: 850;
+}
+.admin-mail-status-chip.is-ok { color: #bffff7; border-color: rgba(141, 245, 232, .25); background: rgba(141, 245, 232, .08); }
+.admin-mail-status-chip.is-pending { color: #ffefb2; border-color: rgba(255, 227, 129, .25); background: rgba(255, 227, 129, .08); }
+.admin-mail-status-chip.is-error { color: #ffc6c0; border-color: rgba(255, 135, 124, .28); background: rgba(255, 110, 96, .08); }
+.admin-mail-status-chip.is-spam { color: #ded4ff; border-color: rgba(174, 152, 255, .28); background: rgba(174, 152, 255, .09); }
+@media (max-width: 1040px) {
+    .admin-incident-summary-grid { grid-template-columns: repeat(3, minmax(105px, 1fr)); }
+    .admin-incident-action-grid { grid-template-columns: 1fr 1fr; }
+    .admin-incident-action-group.is-receipt { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+    .admin-incident-health-hero { padding: 13px 13px 14px; border-radius: 15px; }
+    .admin-incident-health-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
+    .admin-incident-health-meta { flex-direction: column; }
+    .admin-incident-health-meta span { width: 100%; }
+    .admin-incident-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .admin-incident-summary-grid .admin-stat-card { min-height: 64px; padding: 9px; }
+    .admin-incident-action-grid { grid-template-columns: 1fr; gap: 7px; }
+    .admin-incident-action-group.is-receipt { grid-column: auto; }
+    .admin-action-buttons { grid-template-columns: 1fr; }
+    .admin-mail-test-trend-bars { gap: 3px; min-height: 58px; }
+    .admin-mail-test-trend-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
+    .admin-mail-test-controls { position: static; }
+}
+
+/* v1.5.72 compact operations view, audit controls, and mobile detail cards */
+.admin-health-heading-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+.admin-density-toggle {
+    min-height: 28px;
+    padding: 4px 9px;
+    border: 1px solid rgba(141,245,232,.22);
+    border-radius: 999px;
+    color: rgba(229,245,252,.86);
+    background: rgba(5,20,30,.58);
+    font-size: .48rem;
+    font-weight: 850;
+}
+.admin-density-toggle[aria-pressed="true"] {
+    color: #07151c;
+    background: linear-gradient(135deg, #8df5e8, #ffe381);
+}
+.admin-audit-controls input {
+    min-height: 32px;
+    min-width: 230px;
+    padding: 5px 9px;
+    border: 1px solid rgba(141,245,232,.18);
+    border-radius: 9px;
+    color: rgba(231,241,252,.9);
+    background: rgba(5,14,28,.9);
+    font: inherit;
+    font-size: .52rem;
+}
+.admin-mail-status-chip.is-muted {
+    color: rgba(210,222,234,.7);
+    border-color: rgba(180,194,210,.2);
+    background: rgba(145,160,178,.08);
+}
+.admin-audit-row.is-failed td,
+.admin-audit-row.is-rejected td { color: #ffc6c0; }
+.admin-audit-row.is-completed td { color: rgba(210,255,241,.88); }
+.admin-action-wide { grid-column: 1 / -1; }
+.admin-incident-compact .admin-summary-secondary,
+.admin-incident-compact .admin-mail-troubleshooter,
+.admin-incident-compact .admin-incident-history-details,
+.admin-incident-compact .admin-incidents-table-wrap {
+    display: none !important;
+}
+.admin-incident-compact .admin-incident-summary-grid {
+    margin-bottom: 8px;
+}
+.admin-incident-compact .admin-incident-action-grid {
+    margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+    .admin-health-heading-actions { width: 100%; justify-content: space-between; }
+    .admin-audit-controls input { min-width: 0; flex: 1 1 100%; }
+    #adminIncidentAuditDetails .admin-stats-table-wrap,
+    #adminIncidentMailTestDetails .admin-stats-table-wrap {
+        overflow: visible;
+    }
+    #adminIncidentAuditDetails .admin-incident-history-table,
+    #adminIncidentMailTestDetails .admin-mail-test-history-table {
+        min-width: 0;
+        width: 100%;
+    }
+    #adminIncidentAuditDetails thead,
+    #adminIncidentMailTestDetails thead { display: none; }
+    #adminIncidentAuditRows,
+    #adminIncidentMailTestRows {
+        display: grid;
+        gap: 8px;
+        padding: 8px;
+    }
+    #adminIncidentAuditRows tr,
+    #adminIncidentMailTestRows tr {
+        display: grid;
+        gap: 6px;
+        padding: 10px;
+        border: 1px solid rgba(141,245,232,.13);
+        border-radius: 12px;
+        background: rgba(3,13,24,.52);
+    }
+    #adminIncidentAuditRows td,
+    #adminIncidentMailTestRows td {
+        display: grid;
+        grid-template-columns: minmax(72px, .38fr) minmax(0, 1fr);
+        gap: 8px;
+        padding: 0;
+        border: 0;
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+    #adminIncidentAuditRows td::before,
+    #adminIncidentMailTestRows td::before {
+        content: attr(data-label);
+        color: rgba(181,203,221,.62);
+        font-size: .47rem;
+        font-weight: 850;
+    }
+    #adminIncidentAuditRows td[colspan],
+    #adminIncidentMailTestRows td[colspan] {
+        display: block;
+    }
+    #adminIncidentAuditRows td[colspan]::before,
+    #adminIncidentMailTestRows td[colspan]::before { content: none; }
+}

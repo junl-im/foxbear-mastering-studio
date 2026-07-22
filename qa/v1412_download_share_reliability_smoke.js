@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.5.69', 'package version should be 1.5.69');
-assert(index.includes('data-build="1.5.69"'), 'index data-build should be 1.5.69');
-assert(index.includes('1.5.69-mail-receipt-confirmation-history-branded-template'), 'index assets should use v1.5.69 cache key');
-assert(sw.includes('foxbear-shell-v1.5.69-mail-receipt-confirmation-history-branded-template'), 'service worker cache should use v1.5.69 key');
+assert(pkg.version === '1.5.73', 'package version should be 1.5.73');
+assert(index.includes('data-build="1.5.73"'), 'index data-build should be 1.5.73');
+assert(index.includes('1.5.73-bulk-control-eta-result-filter-ui'), 'index assets should use v1.5.73 cache key');
+assert(sw.includes('foxbear-shell-v1.5.73-bulk-control-eta-result-filter-ui'), 'service worker cache should use v1.5.73 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');

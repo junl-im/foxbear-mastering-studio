@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.69",
+  "version": "1.5.73",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with recorded SMTP test results, administrator inbox/spam receipt confirmation, seven-day verification warnings, mail-test history, and unified branded email templates.",
+  "description": "FoxBear AI Mastering Studio Pro with cancellable multi-track mastering, failed-track retry, per-track ETA, result filters, and desktop/mobile visual layout regression contracts.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.69-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.69-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.73-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.73-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest"
+    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -305,15 +305,19 @@
     "node qa/v1566_incident_operations_action_guard_deploy_verification_smoke.js",
     "node qa/v1567_incident_admin_audit_webhook_failover_index_health_smoke.js",
     "node qa/v1568_mail_delivery_verification_sender_subject_rules_smoke.js",
-    "node qa/v1569_mail_receipt_confirmation_history_branded_template_smoke.js"
+    "node qa/v1569_mail_receipt_confirmation_history_branded_template_smoke.js",
+    "node qa/v1570_mail_test_alert_troubleshooter_statistics_export_smoke.js",
+    "node qa/v1571_admin_operations_ui_mail_period_trends_smoke.js",
+    "node qa/v1572_bulk_workflow_admin_audit_mobile_ui_smoke.js",
+    "node qa/v1573_bulk_mastering_control_eta_visual_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "mail-receipt-confirmation-history-branded-template",
-    "assetVersion": "1.5.69-mail-receipt-confirmation-history-branded-template",
-    "cacheName": "foxbear-shell-v1.5.69-mail-receipt-confirmation-history-branded-template",
-    "bootRevision": "boot-sri-v1569",
-    "updateSafetyRevision": "update-safety-v1569",
-    "serviceWorkerRevision": "sw-v1569"
+    "buildId": "bulk-control-eta-result-filter-ui",
+    "assetVersion": "1.5.73-bulk-control-eta-result-filter-ui",
+    "cacheName": "foxbear-shell-v1.5.73-bulk-control-eta-result-filter-ui",
+    "bootRevision": "boot-sri-v1573",
+    "updateSafetyRevision": "update-safety-v1573",
+    "serviceWorkerRevision": "sw-v1573"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"
