@@ -54,7 +54,12 @@ const OPERATIONS_WEBHOOK_FALLBACK_ENV_NAME = 'FOXBEAR_INCIDENT_ALERT_WEBHOOK_FAL
 const OPERATIONS_WEBHOOK_RETRY_DELAYS_MS = Object.freeze([0, 800, 2400]);
 const ADMIN_AUDIT_COLLECTION = 'incidentAdminAuditLog';
 const ADMIN_AUDIT_TTL_DAYS = 90;
-const PRODUCT_VERSION = '1.5.68';
+const MAIL_TEST_HISTORY_COLLECTION = 'incidentMailTestHistory';
+const MAIL_RECEIPT_CONFIRMATION_COLLECTION = 'incidentMailReceiptConfirmationRequests';
+const MAIL_VERIFICATION_DOC_ID = 'mailVerification';
+const MAIL_TEST_HISTORY_TTL_DAYS = 90;
+const MAIL_TEST_WARNING_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
+const PRODUCT_VERSION = '1.5.69';
 const OPERATIONS_SCHEMA_VERSION = 4;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
 const ADMIN_ACTION_STATE_TTL_DAYS = 7;
@@ -86,6 +91,22 @@ function escapeHtml(value) {
 
 function safeKey(value, fallback = 'unknown') {
   return cleanText(value, 100).replace(/[^a-z0-9_-]/gi, '_').slice(0, 100) || fallback;
+}
+
+function emailTable(rows = []) {
+  const body = rows.map(([label, value]) => `<tr><th style="width:34%;text-align:left;padding:10px 12px;border-bottom:1px solid #e8edf3;color:#52606d;font-size:13px;font-weight:700;vertical-align:top">${escapeHtml(label)}</th><td style="padding:10px 12px;border-bottom:1px solid #e8edf3;color:#17212b;font-size:14px;line-height:1.55;word-break:break-word">${escapeHtml(value ?? '-')}</td></tr>`).join('');
+  return `<table role="presentation" style="width:100%;border-collapse:collapse;background:#ffffff;border:1px solid #dfe7ef;border-radius:12px;overflow:hidden">${body}</table>`;
+}
+
+function buildBrandedEmailHtml(options = {}) {
+  const title = escapeHtml(options.title || 'AI마스터링 스튜디오 알림');
+  const eyebrow = escapeHtml(options.eyebrow || 'AI MASTERING STUDIO');
+  const summary = escapeHtml(options.summary || '운영 상태를 확인하세요.');
+  const badge = escapeHtml(options.badge || '알림');
+  const accent = cleanText(options.accent || '#147d73', 20);
+  const content = String(options.content || '');
+  const footer = escapeHtml(options.footer || '개인 오디오, 파일명, 원본 PCM은 메일에 포함되지 않습니다.');
+  return `<!doctype html><html lang="ko"><body style="margin:0;background:#f3f6f9;font-family:Arial,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;color:#17212b"><div style="display:none;max-height:0;overflow:hidden;opacity:0">${summary}</div><table role="presentation" style="width:100%;border-collapse:collapse;background:#f3f6f9"><tr><td align="center" style="padding:28px 12px"><table role="presentation" style="width:100%;max-width:680px;border-collapse:collapse;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 28px rgba(20,35,50,.10)"><tr><td style="padding:24px 28px;background:#102a2d;color:#ffffff;border-top:5px solid ${accent}"><div style="font-size:11px;letter-spacing:.16em;color:#9de3d9;font-weight:700">${eyebrow}</div><div style="margin-top:8px;font-size:24px;line-height:1.35;font-weight:800">${title}</div><div style="margin-top:12px;display:inline-block;padding:5px 10px;border-radius:999px;background:${accent};font-size:12px;font-weight:700">${badge}</div></td></tr><tr><td style="padding:26px 28px"><p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#354250">${summary}</p>${content}</td></tr><tr><td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #e7edf3;color:#6b7785;font-size:12px;line-height:1.6">${footer}<br>발신자: AI마스터링 스튜디오</td></tr></table></td></tr></table></body></html>`;
 }
 
 function mailFromHeader() {
@@ -542,9 +563,14 @@ function buildOperationsAlertMail(health = {}, previous = {}, kind = 'alert') {
     ['일일 발송/예약', `${Math.max(0, Number(quota.sent || 0))} / ${Math.max(0, Number(quota.reserved || 0))}`],
     ['요약 실패', `${Math.max(0, Number(summaries.failed || 0))}건`]
   ];
-  const htmlRows = rows.map(([label, value]) => `<tr><th style="text-align:left;padding:6px 10px;border:1px solid #ddd">${escapeHtml(label)}</th><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(value)}</td></tr>`).join('');
-  const issueList = issueMessages.length ? issueMessages.map(item => `<li>${escapeHtml(item)}</li>`).join('') : '<li>없음</li>';
-  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#191919"><h2>${escapeHtml(subject)}</h2><table style="border-collapse:collapse">${htmlRows}</table><h3>감지 항목</h3><ul>${issueList}</ul><p>Firebase 관리자 화면의 오류 탭에서 최신 상태를 확인하세요.</p></body></html>`;
+  const issueList = issueMessages.length ? issueMessages.map(item => `<li style="margin:0 0 7px">${escapeHtml(item)}</li>`).join('') : '<li>없음</li>';
+  const html = buildBrandedEmailHtml({
+    title: isRecovery ? '메일 시스템 복구 완료' : status === 'critical' ? '메일 시스템 긴급 장애' : '메일 시스템 운영 경고',
+    summary: isRecovery ? '문제 보고 메일 시스템이 정상 상태로 돌아왔습니다.' : '운영 이상이 감지되었습니다. 아래 상태와 권장 조치를 확인하세요.',
+    badge: isRecovery ? '복구 완료' : status === 'critical' ? '긴급 장애' : '운영 경고',
+    accent: isRecovery ? '#147d73' : status === 'critical' ? '#b42318' : '#b7791f',
+    content: `${emailTable(rows)}<h3 style="margin:24px 0 10px;font-size:16px">감지 항목</h3><ul style="margin:0;padding-left:20px;color:#354250;line-height:1.6">${issueList}</ul><p style="margin:20px 0 0;color:#52606d;font-size:13px">Firebase 관리자 화면의 오류 탭에서 최신 상태를 확인하세요.</p>`
+  });
   return { subject, text: lines.join('\n'), html };
 }
 
@@ -589,8 +615,13 @@ function buildMail(data, reportId) {
     `스택:\n${String(data.stack || '').slice(0, 4000) || '-'}`, '',
     '개인 오디오, 파일명, 원본 PCM은 이 메일에 포함되지 않습니다.'
   ].join('\n');
-  const htmlRows = rows.map(([label, value]) => `<tr><th style="text-align:left;padding:6px 10px;border:1px solid #ddd">${escapeHtml(label)}</th><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(value || '-')}</td></tr>`).join('');
-  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#191919"><h2>${escapeHtml(heading)}</h2><p>${escapeHtml(intro)}</p><table style="border-collapse:collapse">${htmlRows}</table><h3>상황</h3><pre style="white-space:pre-wrap;background:#f6f6f6;padding:12px">${escapeHtml(data.context || '-')}</pre><h3>스택</h3><pre style="white-space:pre-wrap;background:#f6f6f6;padding:12px">${escapeHtml(String(data.stack || '').slice(0, 4000) || '-')}</pre><p style="color:#666">개인 오디오, 파일명, 원본 PCM은 이 메일에 포함되지 않습니다.</p></body></html>`;
+  const html = buildBrandedEmailHtml({
+    title: heading,
+    summary: intro,
+    badge: isManualTest ? '실제 발송 테스트' : `${incidentSeverityLabel(data.severity)} · ${incidentCategoryLabel(category)}`,
+    accent: isManualTest ? '#147d73' : data.severity === 'fatal' ? '#b42318' : '#2563a6',
+    content: `${emailTable(rows)}<h3 style="margin:24px 0 10px;font-size:16px">상황</h3><pre style="white-space:pre-wrap;word-break:break-word;background:#f6f8fa;border:1px solid #e2e8f0;border-radius:10px;padding:14px;font-size:12px;line-height:1.6">${escapeHtml(data.context || '-')}</pre><h3 style="margin:24px 0 10px;font-size:16px">스택</h3><pre style="white-space:pre-wrap;word-break:break-word;background:#f6f8fa;border:1px solid #e2e8f0;border-radius:10px;padding:14px;font-size:12px;line-height:1.6">${escapeHtml(String(data.stack || '').slice(0, 4000) || '-')}</pre>`
+  });
   return { subject, text, html, type: isManualTest ? 'manual-test' : 'incident' };
 }
 
@@ -650,9 +681,15 @@ function buildDailySummaryMail(reports, dateKey, options = {}) {
     ...(topFingerprints.length ? topFingerprints.map(([key, value]) => `- ${key} (${value.count}건) ${value.category}: ${value.message || '-'}`) : ['- 없음']),
     '', '개인 오디오, 파일명, 원본 PCM은 집계 대상에 포함되지 않습니다.'
   ];
-  const categoryRows = topCategories.map(([key, value]) => `<tr><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(key)}</td><td style="padding:6px 10px;border:1px solid #ddd">${value}</td></tr>`).join('') || '<tr><td colspan="2">없음</td></tr>';
-  const fingerprintRows = topFingerprints.map(([key, value]) => `<tr><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(key)}</td><td style="padding:6px 10px;border:1px solid #ddd">${value.count}</td><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(value.category)}</td><td style="padding:6px 10px;border:1px solid #ddd">${escapeHtml(value.message || '-')}</td></tr>`).join('') || '<tr><td colspan="4">없음</td></tr>';
-  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#191919"><h2>AI마스터링 스튜디오 일일 오류 요약</h2><p><strong>${escapeHtml(dateKey)} KST</strong> · 전체 ${items.length}${truncated ? '건 이상' : '건'}</p>${truncated ? `<p style="color:#b45309">최신 ${DAILY_SUMMARY_MAX_REPORTS}건까지만 상세 집계했습니다.</p>` : ''}<p>Fatal ${severityCounts.fatal} / Error ${severityCounts.error} / Warning ${severityCounts.warning}</p><h3>분류별</h3><table style="border-collapse:collapse"><tr><th>분류</th><th>건수</th></tr>${categoryRows}</table><h3>반복 오류 지문</h3><table style="border-collapse:collapse"><tr><th>지문</th><th>건수</th><th>분류</th><th>메시지</th></tr>${fingerprintRows}</table><p style="color:#666">개인 오디오, 파일명, 원본 PCM은 집계 대상에 포함되지 않습니다.</p></body></html>`;
+  const categoryRows = topCategories.map(([key, value]) => [key, `${value}건`]);
+  const fingerprintList = topFingerprints.length ? topFingerprints.map(([key, value]) => `<li style="margin:0 0 8px"><strong>${escapeHtml(key)}</strong> · ${value.count}건 · ${escapeHtml(value.category)}<br><span style="color:#6b7785">${escapeHtml(value.message || '-')}</span></li>`).join('') : '<li>없음</li>';
+  const html = buildBrandedEmailHtml({
+    title: '일일 오류 요약',
+    summary: `${dateKey} KST 기준 오류 ${items.length}${truncated ? '건 이상' : '건'}을 집계했습니다.`,
+    badge: `${severityCounts.fatal} 긴급 · ${severityCounts.error} 오류 · ${severityCounts.warning} 경고`,
+    accent: severityCounts.fatal ? '#b42318' : '#2563a6',
+    content: `${truncated ? `<p style="padding:10px 12px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:13px">최신 ${DAILY_SUMMARY_MAX_REPORTS}건까지만 상세 집계했습니다.</p>` : ''}${emailTable(categoryRows.length ? categoryRows : [['분류', '없음']])}<h3 style="margin:24px 0 10px;font-size:16px">반복 오류 지문</h3><ul style="margin:0;padding-left:20px;line-height:1.55">${fingerprintList}</ul>`
+  });
   return { subject, text: lines.join('\n'), html };
 }
 
@@ -1243,7 +1280,7 @@ async function reserveDelivery(reportRef, options = {}) {
         },
         expiresAt: Timestamp.fromMillis(now + REPORT_TTL_DAYS * 86400000)
       });
-      return { allowed: false, reason: 'daily-limit' };
+      return { allowed: false, reason: 'daily-limit', data };
     }
 
     if (previousReservationActive && !reuseExistingDailyReservation) releasePreviousDailyReservation();
@@ -1392,7 +1429,13 @@ async function processIncidentReport(reportRef, options = {}) {
     console.error('FoxBear incident reservation failed', { reportId: reportRef.id, error: cleanText(error?.message || error, 300) });
     return { ok: false, status: 'pending', reason: cleanText(error?.code || error?.name || 'reservation-error', 80) };
   }
-  if (!reservation.allowed) return { ok: false, skipped: true, reason: reservation.reason };
+  if (!reservation.allowed) {
+    if (reservation.data?.category === 'manual-test') {
+      const skippedMail = buildMail(reservation.data, reportRef.id);
+      await recordMailTestResult(reportRef.id, reservation.data, { status: reservation.reason === 'daily-limit' ? 'failed' : 'skipped', reason: reservation.reason }, skippedMail, {}).catch(() => {});
+    }
+    return { ok: false, skipped: true, reason: reservation.reason };
+  }
   const mail = buildMail(reservation.data, reportRef.id);
   try {
     const info = await createTransport().sendMail({
@@ -1409,7 +1452,7 @@ async function processIncidentReport(reportRef, options = {}) {
       html: mail.html
     });
     const acceptedCount = assertSmtpAccepted(info);
-    const result = await finalizeDelivery(reportRef, reservation, {
+    const outcome = {
       ok: true,
       messageId: info.messageId,
       response: info.response,
@@ -1419,13 +1462,95 @@ async function processIncidentReport(reportRef, options = {}) {
       senderName: MAIL_FROM_NAME,
       recipient: ALERT_RECIPIENT,
       mailType: mail.type
-    });
+    };
+    const result = await finalizeDelivery(reportRef, reservation, outcome);
+    await recordMailTestResult(reportRef.id, reservation.data, result, mail, outcome).catch(error => console.error('FoxBear mail test history write failed', cleanText(error?.message || error, 240)));
     return { ok: result.status === 'emailed', ...result };
   } catch (error) {
-    const result = await finalizeDelivery(reportRef, reservation, { ok: false, error });
+    const outcome = { ok: false, error };
+    const result = await finalizeDelivery(reportRef, reservation, outcome);
+    await recordMailTestResult(reportRef.id, reservation.data, result, mail, outcome).catch(historyError => console.error('FoxBear mail test failure history write failed', cleanText(historyError?.message || historyError, 240)));
     console.error('FoxBear incident email failed', { reportId: reportRef.id, attemptCount: result.attemptCount, status: result.status, error: cleanText(error?.message || error, 300) });
     return { ok: false, ...result };
   }
+}
+
+async function recordMailTestResult(reportId, data = {}, result = {}, mail = {}, outcome = {}) {
+  if (cleanText(data.category || '', 40) !== 'manual-test') return;
+  const now = Date.now();
+  const status = cleanText(result.status || (outcome.ok ? 'emailed' : 'failed'), 40);
+  const payload = {
+    schemaVersion: 1,
+    productVersion: PRODUCT_VERSION,
+    reportId: cleanText(reportId, 180),
+    testId: cleanText(data.fingerprint || reportId, 100),
+    status,
+    reason: cleanText(result.reason || outcome.error?.code || outcome.error?.name || '', 100),
+    message: cleanText(outcome.error?.message || '', 300),
+    subject: cleanText(mail.subject || '', 180),
+    senderName: MAIL_FROM_NAME,
+    recipient: ALERT_RECIPIENT,
+    messageId: cleanText(outcome.messageId || '', 240),
+    acceptedCount: Math.max(0, Number(outcome.acceptedCount || 0)),
+    rejectedCount: Math.max(0, Number(outcome.rejectedCount || 0)),
+    smtpAcceptedAt: status === 'emailed' ? Timestamp.fromMillis(now) : null,
+    checkedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + MAIL_TEST_HISTORY_TTL_DAYS * 86400000)
+  };
+  await db.collection(MAIL_TEST_HISTORY_COLLECTION).doc(safeKey(reportId, `test_${now}`)).set(payload, { merge: true });
+  const verificationPatch = {
+    schemaVersion: 1,
+    productVersion: PRODUCT_VERSION,
+    status: status === 'emailed' ? 'smtp-accepted' : status,
+    lastTestReportId: payload.reportId,
+    lastTestStatus: status,
+    lastTestReason: payload.reason,
+    lastTestSubject: payload.subject,
+    lastTestMessageId: payload.messageId,
+    lastTestAt: Timestamp.fromMillis(now),
+    warningAfter: Timestamp.fromMillis(now + MAIL_TEST_WARNING_AFTER_MS),
+    checkedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + OPERATIONS_STATE_TTL_DAYS * 86400000)
+  };
+  if (status === 'emailed') verificationPatch.lastSmtpAcceptedAt = Timestamp.fromMillis(now);
+  await db.collection('incidentOperations').doc(MAIL_VERIFICATION_DOC_ID).set(verificationPatch, { merge: true });
+}
+
+async function confirmMailReceipt(reportId, uid, location = 'inbox') {
+  const safeReportId = cleanText(reportId, 180);
+  const safeLocation = location === 'spam' ? 'spam' : 'inbox';
+  const reportRef = db.collection('incidentReports').doc(safeReportId);
+  const reportSnapshot = await reportRef.get();
+  if (!reportSnapshot.exists) return { ok: false, reason: 'report-not-found' };
+  const report = reportSnapshot.data() || {};
+  const delivery = report.delivery || {};
+  if (report.category !== 'manual-test') return { ok: false, reason: 'not-manual-test' };
+  if (delivery.status !== 'emailed') return { ok: false, reason: 'smtp-not-accepted' };
+  const now = Date.now();
+  const confirmation = {
+    receiptConfirmed: true,
+    receiptLocation: safeLocation,
+    receiptConfirmedBy: cleanText(uid, 128),
+    receiptConfirmedAt: Timestamp.fromMillis(now),
+    checkedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + MAIL_TEST_HISTORY_TTL_DAYS * 86400000)
+  };
+  await db.collection(MAIL_TEST_HISTORY_COLLECTION).doc(safeKey(safeReportId)).set(confirmation, { merge: true });
+  await db.collection('incidentOperations').doc(MAIL_VERIFICATION_DOC_ID).set({
+    schemaVersion: 1,
+    productVersion: PRODUCT_VERSION,
+    status: 'confirmed',
+    lastConfirmedReportId: safeReportId,
+    lastConfirmedLocation: safeLocation,
+    lastConfirmedBy: cleanText(uid, 128),
+    lastConfirmedAt: Timestamp.fromMillis(now),
+    lastConfirmedSubject: cleanText(delivery.subject || '', 180),
+    lastConfirmedMessageId: cleanText(delivery.messageId || '', 240),
+    warningAfter: Timestamp.fromMillis(now + MAIL_TEST_WARNING_AFTER_MS),
+    checkedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + OPERATIONS_STATE_TTL_DAYS * 86400000)
+  }, { merge: true });
+  return { ok: true, status: 'confirmed', location: safeLocation, reportId: safeReportId };
 }
 
 async function collectDeadLetterReports(limitCount = INCIDENT_BATCH_RECOVERY_LIMIT) {
@@ -1704,6 +1829,9 @@ async function verifyIncidentDeployment(now = Date.now(), expectedVersion = '') 
     adminAuditLog: true,
     historyPagination: true,
     webhookFailover: webhook.failoverReady === true,
+    mailReceiptConfirmation: true,
+    mailTestHistory: true,
+    brandedMailTemplate: true,
     indexes,
     postDeployHealth
   };
@@ -1728,6 +1856,31 @@ async function verifyIncidentDeployment(now = Date.now(), expectedVersion = '') 
   await db.collection('incidentOperations').doc('deployment').set(result, { merge: true });
   return result;
 }
+
+exports.confirmIncidentMailReceiptRequest = onDocumentCreated({
+  document: `${MAIL_RECEIPT_CONFIRMATION_COLLECTION}/{requestId}`, region: REGION,
+  retry: false, maxInstances: 1, timeoutSeconds: 60, memory: '256MiB'
+}, async event => {
+  const snapshot = event.data;
+  if (!snapshot) return;
+  const request = snapshot.data() || {};
+  const uid = cleanText(request.uid || '', 128);
+  const admin = await getActiveAdmin(uid);
+  if (!admin.active) {
+    await snapshot.ref.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    await writeAdminAuditEvent({ uid, action: 'mail-receipt-confirmation', requestId: snapshot.id, status: 'rejected', reason: 'admin-required' });
+    return;
+  }
+  const result = await confirmMailReceipt(request.reportId, uid, request.location);
+  await snapshot.ref.set({
+    status: result.ok ? 'completed' : 'rejected',
+    reason: cleanText(result.reason || '', 100),
+    result,
+    checkedAt: FieldValue.serverTimestamp(),
+    expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
+  }, { merge: true });
+  await writeAdminAuditEvent({ uid, action: 'mail-receipt-confirmation', requestId: snapshot.id, status: result.ok ? 'completed' : 'rejected', reason: result.reason || '', targetType: 'incident-report', targetId: request.reportId, result: { attempted: 1, succeeded: result.ok ? 1 : 0, failed: result.ok ? 0 : 1 } });
+});
 
 exports.verifyIncidentDeploymentRequest = onDocumentCreated({
   document: 'incidentDeploymentVerificationRequests/{requestId}', region: REGION,
@@ -1900,12 +2053,12 @@ exports.verifyIncidentPostDeployHealth = onSchedule({
 
 exports.__test = Object.freeze({
   cleanText, escapeHtml, safeKey, mailFromHeader, kstTimestampLabel, incidentSeverityLabel, incidentCategoryLabel,
-  buildIncidentSubject, buildMail, buildDailySummaryMail, incidentMessageId, summaryMessageId,
+  buildIncidentSubject, buildMail, buildDailySummaryMail, buildBrandedEmailHtml, emailTable, incidentMessageId, summaryMessageId,
   kstDayRange, kstDateKey, nextKstDayRetryAt, retryDelayMs,
   isIncidentDeliveryDue, incidentDueAt, isLongUndelivered,
   normalizedGmailAppPassword, assertSmtpAccepted, classifySmtpError,
   operationAlertMessageId, buildOperationsAlertMail, evaluateOperationsHealth,
   shouldSendOperationsAlert, inspectOperationsWebhookConfig, publicWebhookConfig,
   buildOperationsWebhookPayload, operationsHistoryId, recommendedActionForIssue, adminActionStateId,
-  inspectOperationsWebhookChannels, isWebhookRetryableStatus, webhookRetryDelay
+  inspectOperationsWebhookChannels, isWebhookRetryableStatus, webhookRetryDelay, confirmMailReceipt
 });

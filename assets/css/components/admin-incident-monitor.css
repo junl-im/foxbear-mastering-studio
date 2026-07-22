@@ -179,3 +179,12 @@
     .admin-incident-history-controls span { flex-basis: 100%; }
     #admin-incident-audit-details .admin-incident-history-table { min-width: 780px; }
 }
+
+/* v1.5.69 mail receipt verification and test history */
+.admin-mail-test-history-table { min-width: 900px; }
+.admin-mail-test-history-table td { max-width: 360px; word-break: break-word; }
+.admin-mail-verification-ok { color: #9de3d9 !important; }
+.admin-mail-verification-warning { color: #ffcf7d !important; }
+@media (max-width: 720px) {
+    .admin-mail-test-history-table { min-width: 760px; }
+}

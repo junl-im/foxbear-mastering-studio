@@ -1,3 +1,11 @@
+# v1.5.69 추가 릴리스 확인
+
+- [ ] `confirmIncidentMailReceiptRequest`를 포함해 Functions를 배포했다.
+- [ ] `incidentMailReceiptConfirmationRequests`와 `incidentMailTestHistory` 규칙을 배포했다.
+- [ ] 실제 메일 테스트 후 관리자 화면에서 받은편지함 또는 스팸함 수신 확인을 기록했다.
+- [ ] 마지막 SMTP 접수·실수신 확인 시각과 7일 경고를 확인했다.
+- [ ] 테스트·오류·운영·요약 메일 HTML 디자인과 텍스트 대체 본문을 확인했다.
+
 # v1.5.67 추가 릴리스 확인
 
 - [ ] 관리자 작업 시작·거부·완료·실패가 `incidentAdminAuditLog`에 기록되고 Secret/웹훅 URL은 저장되지 않는다.

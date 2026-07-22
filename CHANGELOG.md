@@ -1,9 +1,10 @@
-# v1.5.68 - Mail Delivery Verification, Sender Identity, and Subject Rules
+# v1.5.69 - Mail Receipt Confirmation, Test History, and Branded Templates
 
-- Standardized all SMTP display sender names as `AI마스터링 스튜디오`.
-- Added searchable Korean subject rules for tests, incidents, operations alerts, recovery notices, and daily summaries.
-- Upgraded the settings test into a production-path mail delivery verification with SMTP acceptance receipt details.
-- Added subject, recipient, sender name, accepted count, SMTP response, acceptance time, and Message-ID to the client-visible delivery receipt.
+- Added administrator inbox/spam receipt confirmation for SMTP-accepted manual tests.
+- Added 90-day mail-test history and latest verification state with seven-day freshness warnings.
+- Added administrator test-history UI and last successful SMTP/receipt timestamps.
+- Unified test, incident, operations, recovery, and daily-summary HTML email design.
+- Added Firestore rules, Functions trigger, deployment capability checks, and regression QA.
 
 # v1.5.67 - Incident Admin Audit, Webhook Failover, Index and Health Verification
 

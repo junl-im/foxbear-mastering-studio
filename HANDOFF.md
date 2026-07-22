@@ -1,4 +1,4 @@
-# Handoff - v1.5.68
+# Handoff - v1.5.69
 ## 필수 결과 보고 형식
 
 앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
@@ -10,6 +10,25 @@
 3. `다음 예상 내용`
 
 배포 파일은 항상 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP 두 종류를 함께 제공합니다. 확인하지 못한 실제 배포·메일 수신·브라우저 검증은 `진행된 내용`에 사실대로 제한 사항을 적습니다.
+
+
+## v1.5.69 인수인계
+
+- 실제 메일 테스트는 SMTP 접수 결과를 `incidentMailTestHistory`에 90일 보존하고 최신 상태를 `incidentOperations/mailVerification`에 기록합니다.
+- Gmail에서 메일을 찾은 뒤 관리자 화면의 `받은편지함 수신 확인` 또는 `스팸함 수신 확인`으로 실수신 위치를 기록합니다.
+- 실수신 확인이 없거나 마지막 확인 후 7일이 지나면 관리자 화면이 재검증 경고를 표시합니다.
+- `confirmIncidentMailReceiptRequest`와 새 Firestore Rules를 Functions·Hosting과 같은 릴리스로 배포해야 합니다.
+- 메일 HTML은 공통 브랜드 템플릿을 사용하지만 텍스트 본문도 함께 유지해 클라이언트 호환성을 보장합니다.
+- 실제 받은편지함 수신은 배포 후 Gmail에서 직접 확인해야 하며 SMTP `emailed`만으로 최종 수신 완료로 간주하지 않습니다.
+
+
+## v1.5.68 인수인계
+
+- 모든 SMTP 메일의 표시 발신자명은 `AI마스터링 스튜디오`이며 실제 발송 계정은 Secret과 연결된 Gmail 계정입니다.
+- 테스트 메일 제목은 `[AI마스터링 스튜디오][메일 테스트] 실제 발송 확인 · {테스트 ID}` 규칙을 사용합니다.
+- 설정의 `실제 메일 테스트`는 오류가 없어도 Firestore→Functions→Gmail SMTP 운영 경로를 실행합니다.
+- 화면의 `Gmail SMTP 접수 완료`는 수신자 승인 결과이며 받은편지함·스팸함 도착 위치는 Gmail에서 별도 확인해야 합니다.
+- 실제 수신 검증 시 제목, SMTP 접수 시각, Message-ID를 기록하고 Gmail에서 `subject:"[AI마스터링 스튜디오][메일 테스트]"`로 검색합니다.
 
 
 ## v1.5.67 인수인계
@@ -644,12 +663,3 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 - `runtimeErrors`에는 실제 앱 예외만 남아야 합니다.
 - 브라우저 QA가 실패하면 Actions 로그의 `[FoxBear E2E Runtime Health]` JSON을 먼저 확인합니다.
 - GitHub Desktop에서 누적 ZIP 적용 후 `package.json`, `package-lock.json`, `src/boot/runtime-health.js`, `qa/browser/` 변경이 모두 표시되는지 확인합니다.
-## v1.5.68 인수인계
-
-- 결과 보고 형식은 계속 `진행된 내용`, `배포 파일 2종`, `다음 예상 내용` 세 구역만 사용한다.
-- 모든 SMTP 메일의 표시 발신자명은 `AI마스터링 스튜디오`로 고정한다.
-- 메일 제목은 테스트·오류 신고·운영 경고·긴급 장애·복구·일일 요약 규칙을 구분해 사용한다.
-- 설정의 `실제 메일 테스트`는 운영 SMTP 경로를 그대로 사용하며 성공 화면에 제목, SMTP 접수 시각, Message-ID를 표시한다.
-- `emailed`는 SMTP 수신자 승인 상태이며 실제 받은편지함 배치는 Gmail 검색과 스팸함 확인으로 최종 검증한다.
-- 배포 후 Gmail 검색어는 `subject:"[AI마스터링 스튜디오][메일 테스트]"`를 사용한다.
-

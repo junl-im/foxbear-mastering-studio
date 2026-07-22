@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.5.3-bulk-hud-visibility-masterall';
-    // v1.5.68 compatibility QA anchor: const VIEW_VERSION = '1.5.68-mail-delivery-verification-sender-subject-rules'
+    // v1.5.69 compatibility QA anchor: const VIEW_VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template'
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;

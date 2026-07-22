@@ -18,12 +18,12 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert.strictEqual(pkg.version, '1.5.68');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.68-mail-delivery-verification-sender-subject-rules');
-assert(index.includes('src/boot/incident-reporter.js?v=1.5.68-mail-delivery-verification-sender-subject-rules'));
+assert.strictEqual(pkg.version, '1.5.69');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.69-mail-receipt-confirmation-history-branded-template');
+assert(index.includes('src/boot/incident-reporter.js?v=1.5.69-mail-receipt-confirmation-history-branded-template'));
 assert(index.indexOf('src/boot/runtime-health.js') < index.indexOf('src/boot/incident-reporter.js'));
 assert(index.indexOf('src/boot/incident-reporter.js') < index.indexOf('src/app.js'));
-assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.68-mail-delivery-verification-sender-subject-rules'));
+assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.69-mail-receipt-confirmation-history-branded-template'));
 assert(!index.includes('</body>\n    <script'), 'scripts must not be placed after </body>');
 assert(index.includes('id="incidentReportingToggle"'));
 assert(index.includes('id="incidentReportingTest"'));

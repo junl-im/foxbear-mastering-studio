@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.68-mail-delivery-verification-sender-subject-rules',
+                version: '1.5.69-mail-receipt-confirmation-history-branded-template',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.68-mail-delivery-verification-sender-subject-rules',
+        version: '1.5.69-mail-receipt-confirmation-history-branded-template',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

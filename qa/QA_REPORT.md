@@ -1,9 +1,10 @@
-# QA Report - v1.5.68 Mail Delivery Verification
+# FoxBear QA Report - v1.5.69
 
-- Verified all SMTP messages use the display sender `AI마스터링 스튜디오`.
-- Verified test, incident, operations, recovery, and daily-summary subject rules.
-- Verified the production-path test returns SMTP acceptance time, subject, recipient, accepted/rejected counts, response, and Message-ID.
-- Verified the mailbox search contract and deployment handoff instructions.
+- v1.5.69 adds SMTP test-history retention, administrator inbox/spam receipt confirmation, seven-day verification freshness warnings, and one branded HTML mail template.
+- Static regression coverage includes Firestore rules, Functions trigger contracts, administrator UI state, sender/subject rules, mail body fallback text, SRI, service-worker metadata, and packaging gates.
+- Wake Lock, mastering, export, download, and browser contract protections remain active.
+- Configured static/regression checks: 278/278 PASS in bounded continuation segments.
+- Actual Chromium execution and real Gmail inbox placement still require the deployment environment.
 
 # FoxBear QA Report - v1.5.67
 

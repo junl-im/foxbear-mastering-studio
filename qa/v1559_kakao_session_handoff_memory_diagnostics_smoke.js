@@ -30,7 +30,7 @@ function createSandbox(url = 'https://example.test/index.html?foxbearExternal=1'
     history: { state: null, replaceState: (...args) => historyCalls.push(args) },
     btoa: value => Buffer.from(value, 'binary').toString('base64'),
     atob: value => Buffer.from(value, 'base64').toString('binary'),
-    FoxBearBuildInfo: { assetVersion: '1.5.68-mail-delivery-verification-sender-subject-rules' }
+    FoxBearBuildInfo: { assetVersion: '1.5.69-mail-receipt-confirmation-history-branded-template' }
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;

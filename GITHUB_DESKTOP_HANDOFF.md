@@ -1,3 +1,11 @@
+
+## v1.5.69 적용 확인
+
+- `functions/index.js`의 `confirmIncidentMailReceiptRequest`와 공통 메일 템플릿 변경을 포함합니다.
+- `firestore.rules`의 `incidentMailReceiptConfirmationRequests`, `incidentMailTestHistory` 규칙을 함께 배포합니다.
+- 관리자 화면에서 실제 메일 테스트 이력과 받은편지함·스팸함 수신 확인 버튼을 확인합니다.
+- 최종 보고 형식은 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용` 세 구역을 유지합니다.
+
 # GitHub Desktop Patch Handoff
 
 FoxBear 패치는 **GitHub Desktop을 기본 Git 클라이언트로 사용하는 흐름**을 기준으로 전달합니다. 명령줄 Git 사용을 전제로 하지 않습니다.

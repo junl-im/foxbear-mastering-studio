@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.68 (mail-delivery-verification-sender-subject-rules).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.69 (mail-receipt-confirmation-history-branded-template).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.68"
+  "version": "1.5.69"
 }

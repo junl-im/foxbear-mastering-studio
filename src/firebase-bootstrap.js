@@ -148,6 +148,8 @@ function makePublicBridge(extra = {}) {
         getIncidentAlertChannelTestRequest,
         requestIncidentDeploymentVerification,
         getIncidentDeploymentVerificationRequest,
+        requestIncidentMailReceiptConfirmation,
+        getIncidentMailReceiptConfirmationRequest,
         getAdminProfile,
         refreshAppCheckToken,
         getUid: () => bridgeState.user?.uid || '',
@@ -542,6 +544,59 @@ function normalizeIncidentOperations(snapshot) {
     };
 }
 
+function normalizeMailVerification(snapshot) {
+    if (!snapshot?.exists?.()) return { exists: false, status: 'missing', stale: true, lastTestReportId: '', lastConfirmedReportId: '' };
+    const data = snapshot.data() || {};
+    const lastConfirmedAt = timestampIso(data.lastConfirmedAt);
+    const lastSmtpAcceptedAt = timestampIso(data.lastSmtpAcceptedAt);
+    const lastTestReportId = limitText(data.lastTestReportId || '', 180);
+    const lastConfirmedReportId = limitText(data.lastConfirmedReportId || '', 180);
+    const confirmedLatest = Boolean(lastTestReportId && lastConfirmedReportId && lastTestReportId === lastConfirmedReportId);
+    const referenceAt = confirmedLatest ? lastConfirmedAt : (lastSmtpAcceptedAt || timestampIso(data.lastTestAt));
+    const referenceMs = referenceAt ? Date.parse(referenceAt) : 0;
+    return {
+        exists: true,
+        productVersion: limitText(data.productVersion || '', 24),
+        status: limitText(confirmedLatest ? 'confirmed' : (data.status || data.lastTestStatus || 'unknown'), 40),
+        confirmedLatest,
+        stale: !confirmedLatest || !referenceMs || Date.now() - referenceMs > 7 * 24 * 60 * 60 * 1000,
+        lastTestReportId,
+        lastTestStatus: limitText(data.lastTestStatus || '', 40),
+        lastTestReason: limitText(data.lastTestReason || '', 100),
+        lastTestSubject: limitText(data.lastTestSubject || '', 180),
+        lastTestMessageId: limitText(data.lastTestMessageId || '', 240),
+        lastTestAt: timestampIso(data.lastTestAt),
+        lastSmtpAcceptedAt,
+        lastConfirmedReportId,
+        lastConfirmedLocation: limitText(data.lastConfirmedLocation || '', 20),
+        lastConfirmedAt,
+        lastConfirmedSubject: limitText(data.lastConfirmedSubject || '', 180),
+        lastConfirmedMessageId: limitText(data.lastConfirmedMessageId || '', 240),
+        warningAfter: timestampIso(data.warningAfter)
+    };
+}
+
+function normalizeMailTestHistory(snapshot) {
+    const data = snapshot.data() || {};
+    return {
+        id: limitText(snapshot.id || '', 180),
+        reportId: limitText(data.reportId || '', 180),
+        testId: limitText(data.testId || '', 100),
+        productVersion: limitText(data.productVersion || '', 24),
+        status: limitText(data.status || 'unknown', 40),
+        reason: limitText(data.reason || '', 100),
+        subject: limitText(data.subject || '', 180),
+        messageId: limitText(data.messageId || '', 240),
+        acceptedCount: safeIncidentNumber(data.acceptedCount, 0, 20),
+        rejectedCount: safeIncidentNumber(data.rejectedCount, 0, 20),
+        smtpAcceptedAt: timestampIso(data.smtpAcceptedAt),
+        checkedAt: timestampIso(data.checkedAt),
+        receiptConfirmed: data.receiptConfirmed === true,
+        receiptLocation: limitText(data.receiptLocation || '', 20),
+        receiptConfirmedAt: timestampIso(data.receiptConfirmedAt)
+    };
+}
+
 function normalizeIncidentRecovery(snapshot) {
     if (!snapshot?.exists?.()) return { exists: false, status: 'missing', checkedAt: '' };
     const data = snapshot.data() || {};
@@ -719,12 +774,14 @@ async function getAdminIncidents(options = {}) {
     const recentQuery = query(reportsRef, orderBy('createdAt', 'desc'), limit(eventsLimit));
     const kstRange = getKstDayRange(new Date());
     const todayQuery = query(reportsRef, where('createdAt', '>=', kstRange.start), where('createdAt', '<', kstRange.end));
-    const [snapshot, todayCountSnapshot, operationsSnapshot, recoverySnapshot, deploymentSnapshot, historyPage, auditLog] = await Promise.all([
+    const [snapshot, todayCountSnapshot, operationsSnapshot, recoverySnapshot, deploymentSnapshot, verificationSnapshot, testHistorySnapshot, historyPage, auditLog] = await Promise.all([
         getDocs(recentQuery),
         getCountFromServer(todayQuery),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'mail')),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'recovery')),
         getDoc(doc(bridgeState.db, 'incidentOperations', 'deployment')).catch(() => ({ exists: () => false })),
+        getDoc(doc(bridgeState.db, 'incidentOperations', 'mailVerification')).catch(() => ({ exists: () => false })),
+        getDocs(query(collection(bridgeState.db, 'incidentMailTestHistory'), orderBy('checkedAt', 'desc'), limit(12))).catch(() => ({ docs: [] })),
         getIncidentOperationsHistory({ limit: 24, filter: 'all' }).catch(() => ({ items: [], hasMore: false, nextCursor: 0 })),
         getIncidentAdminAuditLog({ limit: 24 }).catch(() => [])
     ]);
@@ -747,6 +804,8 @@ async function getAdminIncidents(options = {}) {
         operations: normalizeIncidentOperations(operationsSnapshot),
         recovery: normalizeIncidentRecovery(recoverySnapshot),
         deployment: normalizeIncidentDeployment(deploymentSnapshot),
+        mailVerification: normalizeMailVerification(verificationSnapshot),
+        mailTestHistory: Array.from(testHistorySnapshot.docs || []).map(normalizeMailTestHistory),
         history: historyPage.items || [],
         historyHasMore: historyPage.hasMore === true,
         historyNextCursor: safeIncidentNumber(historyPage.nextCursor, 0, Number.MAX_SAFE_INTEGER),
@@ -894,6 +953,43 @@ async function getIncidentDeploymentVerificationRequest(requestId) {
             operationsSchemaVersion: safeIncidentNumber(data.result.operationsSchemaVersion, 0, 20),
             reasonCodes: Array.isArray(data.result.reasonCodes) ? data.result.reasonCodes.slice(0, 12).map(value => limitText(value, 80)) : [],
             recommendedActions: Array.isArray(data.result.recommendedActions) ? data.result.recommendedActions.slice(0, 6).map(value => limitText(value, 500)) : []
+        } : null
+    };
+}
+
+async function requestIncidentMailReceiptConfirmation(reportId, location = 'inbox') {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 테스트 메일 수신을 확인할 수 있습니다.');
+    const safeReportId = limitText(reportId, 180);
+    if (!safeReportId) throw new Error('확인할 테스트 보고서 ID가 없습니다.');
+    const safeLocation = location === 'spam' ? 'spam' : 'inbox';
+    const requestRef = await addDoc(collection(bridgeState.db, 'incidentMailReceiptConfirmationRequests'), {
+        uid: profile.uid,
+        reportId: safeReportId,
+        location: safeLocation,
+        source: 'foxbear-admin-dashboard',
+        createdAt: serverTimestamp()
+    });
+    return { requestId: requestRef.id, reportId: safeReportId, location: safeLocation, status: 'requested' };
+}
+
+async function getIncidentMailReceiptConfirmationRequest(requestId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 수신 확인 상태를 조회할 수 있습니다.');
+    const safeId = limitText(requestId, 180);
+    const snapshot = await getDoc(doc(bridgeState.db, 'incidentMailReceiptConfirmationRequests', safeId));
+    if (!snapshot.exists()) return { exists: false, status: 'missing' };
+    const data = snapshot.data() || {};
+    return {
+        exists: true,
+        status: limitText(data.status || 'pending', 40),
+        reason: limitText(data.reason || '', 100),
+        result: data.result ? {
+            reportId: limitText(data.result.reportId || '', 180),
+            location: limitText(data.result.location || '', 20),
+            status: limitText(data.result.status || '', 40)
         } : null
     };
 }

@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.68
+// FoxBear automatic incident reporter - v1.5.69
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.68-mail-delivery-verification-sender-subject-rules';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.69-mail-receipt-confirmation-history-branded-template';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;

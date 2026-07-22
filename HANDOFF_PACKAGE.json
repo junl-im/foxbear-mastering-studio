@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.68",
-  "buildId": "mail-delivery-verification-sender-subject-rules",
+  "productVersion": "1.5.69",
+  "buildId": "mail-receipt-confirmation-history-branded-template",
   "requiredFiles": [
     "404.html",
     ".gitignore",

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.68 - extracted configuration module
+// FoxBear AI Mastering Studio Pro v1.5.69 - extracted configuration module
 'use strict';
 
 const BEAT_CHANGE_PRESETS = {

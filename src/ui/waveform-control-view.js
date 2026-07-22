@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.68-mail-delivery-verification-sender-subject-rules';
+  const VIEW_VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template';
   const DEFAULT_BINS = 96;
 
   function getService() {

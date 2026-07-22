@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.5.68 - stable-idle and cross-tab activity guard
+// FoxBear service worker update coordinator v1.5.69 - stable-idle and cross-tab activity guard
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.5.68-mail-delivery-verification-sender-subject-rules';
+  const VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

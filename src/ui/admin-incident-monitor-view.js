@@ -48,6 +48,8 @@
                 const webhook = operations.channels?.webhook || {};
                 const recovery = data?.recovery || {};
                 const deployment = data?.deployment || {};
+                const mailVerification = data?.mailVerification || {};
+                const mailTestHistory = Array.isArray(data?.mailTestHistory) ? data.mailTestHistory : [];
                 const history = Array.isArray(data?.history) ? data.history : [];
                 const auditLog = Array.isArray(data?.auditLog) ? data.auditLog : [];
                 const trend = summarizeHistory(history);
@@ -63,6 +65,7 @@
                 makeSummaryCard('자동 복구', formatRecovery(recovery), recovery.failed || recovery.deadLetter ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('24시간 추세', `${trend.critical}위험 · ${trend.warning}주의`, trend.critical || trend.warning ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('배포 검증', formatDeploymentStatus(deployment), deployment.status === 'healthy' && !deployment.stale ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('메일 실수신', formatMailVerification(mailVerification), mailVerification.confirmedLatest && !mailVerification.stale ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('App Check', appCheck.ready ? '보호 중' : appCheck.configured ? '확인 필요' : '키 미설정', appCheck.ready ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 if (el.adminIncidentsNotice) {
                     const protection = appCheck.ready
@@ -80,7 +83,10 @@
                         : webhook.status === 'error' ? ` 보조 웹훅 오류: ${webhook.reason || '설정 확인 필요'}.` : ' 보조 웹훅은 선택 사항이며 현재 미설정입니다.';
                     const recommendations = collectRecommendations(operations, deployment, history);
                     const recommendationText = recommendations.length ? ` 권장 조치: ${recommendations.slice(0, 2).join(' / ')}` : '';
-                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 운영 점검은 15분마다 실행됩니다.${checked}${issues}${smtpDetail}${webhookDetail}${recommendationText} ${protection}`;
+                    const verificationWarning = mailVerification.confirmedLatest
+                        ? mailVerification.stale ? ' 실제 메일 수신 확인이 7일 이상 지나 새 테스트가 필요합니다.' : ` 최근 실제 수신 확인 ${formatTime(mailVerification.lastConfirmedAt)}.`
+                        : mailVerification.lastSmtpAcceptedAt ? ' SMTP 접수는 확인됐지만 받은편지함/스팸함 실수신 확인이 아직 없습니다.' : ' 실제 메일 테스트 기록이 없습니다.';
+                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 운영 점검은 15분마다 실행됩니다.${checked}${issues}${smtpDetail}${webhookDetail}${verificationWarning}${recommendationText} ${protection}`;
                 }
                 if (el.adminIncidentRecoveryStatus) {
                     el.adminIncidentRecoveryStatus.textContent = recovery.exists
@@ -96,12 +102,26 @@
                     const indexText = indexStatus && indexStatus !== 'ok' ? ` · 인덱스 ${indexStatus}` : indexStatus === 'ok' ? ' · 인덱스 정상' : '';
                     el.adminIncidentDeploymentStatus.textContent = `${versionText}${checkedText}${mismatch}${indexText}`;
                 }
+                state.adminIncidentLatestMailTestReportId = mailVerification.lastTestStatus === 'emailed' ? mailVerification.lastTestReportId : '';
+                if (el.adminIncidentMailVerificationStatus) {
+                    const confirmed = mailVerification.confirmedLatest
+                        ? `실수신 확인 ${formatTime(mailVerification.lastConfirmedAt)} · ${mailVerification.lastConfirmedLocation === 'spam' ? '스팸함' : '받은편지함'}`
+                        : mailVerification.lastSmtpAcceptedAt
+                            ? `SMTP 접수 ${formatTime(mailVerification.lastSmtpAcceptedAt)} · 실수신 확인 필요`
+                            : '실제 메일 테스트 기록이 없습니다.';
+                    el.adminIncidentMailVerificationStatus.textContent = confirmed;
+                    el.adminIncidentMailVerificationStatus.classList.toggle('admin-mail-verification-ok', Boolean(mailVerification.confirmedLatest && !mailVerification.stale));
+                    el.adminIncidentMailVerificationStatus.classList.toggle('admin-mail-verification-warning', !mailVerification.confirmedLatest || mailVerification.stale);
+                }
+                if (el.adminIncidentConfirmInbox) el.adminIncidentConfirmInbox.disabled = !state.adminIncidentLatestMailTestReportId;
+                if (el.adminIncidentConfirmSpam) el.adminIncidentConfirmSpam.disabled = !state.adminIncidentLatestMailTestReportId;
                 state.adminIncidentHistoryItems = history;
                 state.adminIncidentHistoryNextCursor = safeNumber(data?.historyNextCursor, 0);
                 state.adminIncidentHistoryHasMore = data?.historyHasMore === true;
                 state.adminIncidentHistoryFilter = 'all';
                 if (el.adminIncidentHistoryFilter) el.adminIncidentHistoryFilter.value = 'all';
                 renderHistory(state.adminIncidentHistoryItems);
+                renderMailTestHistory(mailTestHistory);
                 renderAuditLog(auditLog);
                 updateHistoryControls();
                 maybeAutoVerifyDeployment(deployment);
@@ -218,6 +238,43 @@
             (deployment.recommendedActions || []).forEach(item => values.push(item));
             if (!values.length && history[0]?.recommendedActions) history[0].recommendedActions.forEach(item => values.push(item));
             return [...new Set(values.filter(Boolean))];
+        }
+
+        function formatMailVerification(verification = {}) {
+            if (verification.confirmedLatest && !verification.stale) return '수신 확인';
+            if (verification.confirmedLatest && verification.stale) return '재검증 필요';
+            if (verification.lastSmtpAcceptedAt) return 'SMTP만 확인';
+            return '미검증';
+        }
+
+        function renderMailTestHistory(items = []) {
+            if (!el.adminIncidentMailTestRows) return;
+            el.adminIncidentMailTestRows.textContent = '';
+            if (!items.length) {
+                const row = document.createElement('tr');
+                const cell = document.createElement('td');
+                cell.colSpan = 4;
+                cell.textContent = '아직 실제 메일 테스트 이력이 없습니다.';
+                row.appendChild(cell);
+                el.adminIncidentMailTestRows.appendChild(row);
+                return;
+            }
+            items.slice(0, 24).forEach(item => {
+                const row = document.createElement('tr');
+                const timeCell = document.createElement('td');
+                timeCell.textContent = formatTime(item.smtpAcceptedAt || item.checkedAt);
+                const smtpCell = document.createElement('td');
+                smtpCell.textContent = item.status === 'emailed' ? `접수 완료 · 승인 ${safeNumber(item.acceptedCount, 0)}` : `${item.status || 'unknown'}${item.reason ? ` · ${item.reason}` : ''}`;
+                const receiptCell = document.createElement('td');
+                receiptCell.textContent = item.receiptConfirmed ? `${item.receiptLocation === 'spam' ? '스팸함' : '받은편지함'} · ${formatTime(item.receiptConfirmedAt)}` : '미확인';
+                const detailCell = document.createElement('td');
+                detailCell.textContent = limitText(item.subject || '-', 180);
+                const detail = document.createElement('small');
+                detail.textContent = limitText(item.messageId || item.reportId || '', 240);
+                detailCell.appendChild(detail);
+                row.append(timeCell, smtpCell, receiptCell, detailCell);
+                el.adminIncidentMailTestRows.appendChild(row);
+            });
         }
 
         function renderHistory(history = []) {
@@ -349,6 +406,49 @@
             if (el.adminIncidentVerifyDeployment && !el.adminIncidentVerifyDeployment.dataset.bound) {
                 el.adminIncidentVerifyDeployment.dataset.bound = '1';
                 el.adminIncidentVerifyDeployment.addEventListener('click', () => requestDeploymentVerification(el.adminIncidentVerifyDeployment, false));
+            }
+            if (el.adminIncidentConfirmInbox && !el.adminIncidentConfirmInbox.dataset.bound) {
+                el.adminIncidentConfirmInbox.dataset.bound = '1';
+                el.adminIncidentConfirmInbox.addEventListener('click', () => requestMailReceiptConfirmation('inbox', el.adminIncidentConfirmInbox));
+            }
+            if (el.adminIncidentConfirmSpam && !el.adminIncidentConfirmSpam.dataset.bound) {
+                el.adminIncidentConfirmSpam.dataset.bound = '1';
+                el.adminIncidentConfirmSpam.addEventListener('click', () => requestMailReceiptConfirmation('spam', el.adminIncidentConfirmSpam));
+            }
+        }
+
+        async function requestMailReceiptConfirmation(location, button) {
+            const bridge = getBridge();
+            const reportId = state.adminIncidentLatestMailTestReportId || '';
+            if (!reportId) {
+                showToast('먼저 설정 화면에서 실제 메일 테스트를 실행하고 SMTP 접수를 확인하세요.');
+                return;
+            }
+            if (!bridge || typeof bridge.requestIncidentMailReceiptConfirmation !== 'function') {
+                showToast('메일 수신 확인 API가 준비되지 않았습니다.');
+                return;
+            }
+            const original = button?.textContent || '메일 수신 확인';
+            if (button) { button.disabled = true; button.textContent = '기록 중…'; }
+            try {
+                const request = await bridge.requestIncidentMailReceiptConfirmation(reportId, location);
+                let settled = false;
+                for (let index = 0; index < 20; index += 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1200));
+                    const status = await bridge.getIncidentMailReceiptConfirmationRequest(request.requestId).catch(() => null);
+                    if (!status || ['pending', 'running', 'missing'].includes(status.status)) continue;
+                    settled = true;
+                    showToast(status.status === 'completed'
+                        ? `${location === 'spam' ? '스팸함' : '받은편지함'} 실수신 확인을 기록했습니다.`
+                        : `메일 수신 확인 기록 실패: ${status.reason || status.status}`);
+                    break;
+                }
+                if (!settled) showToast('수신 확인 기록이 서버에서 처리 중입니다. 잠시 후 새로고침하세요.');
+                await render(true);
+            } catch (error) {
+                showToast(`메일 수신 확인 실패: ${error?.message || error}`);
+            } finally {
+                if (button) { button.disabled = false; button.textContent = original; }
             }
         }
 

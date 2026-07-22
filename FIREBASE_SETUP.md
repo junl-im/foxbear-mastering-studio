@@ -1,4 +1,4 @@
-# FoxBear Firebase 설정 가이드 - v1.5.67
+# FoxBear Firebase 설정 가이드 - v1.5.69
 
 오디오 파일과 PCM은 브라우저 안에서만 처리됩니다. Firebase에는 방문 통계와 개인정보를 줄인 문제 진단만 저장됩니다.
 
@@ -99,3 +99,8 @@ cp functions/.env.example functions/.env
 ```
 
 로컬 `.env`는 저장소에 커밋하지 않습니다. 운영 배포에서는 현재 Firebase Functions 런타임의 환경 변수 또는 Secret 관리 방식에 맞춰 같은 키를 주입하며, URL을 Firestore 문서에 직접 저장하지 않습니다. 배포 후 관리자 화면의 배포 검증에서 네 복합 인덱스 프로브가 모두 `ok`인지 확인합니다. `incidentAdminAuditLog`, `incidentOperationsHistory`, `incidentOperationsAlerts`에는 `expiresAt` TTL 정책을 설정합니다.
+
+
+## v1.5.69 실제 메일 실수신 확인
+
+Functions 배포 목록에 `confirmIncidentMailReceiptRequest`를 포함하고 Firestore Rules를 함께 배포합니다. 실제 메일 테스트 후 Gmail 도착 위치를 확인한 관리자만 받은편지함 또는 스팸함 확인 요청을 생성할 수 있습니다. `incidentMailTestHistory`와 `incidentOperations/mailVerification`은 서버가 기록하며 클라이언트 수정은 허용하지 않습니다.

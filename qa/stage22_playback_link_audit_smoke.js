@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.68-mail-delivery-verification-sender-subject-rules';
+const version = '1.5.69-mail-receipt-confirmation-history-branded-template';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

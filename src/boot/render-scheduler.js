@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.68-mail-delivery-verification-sender-subject-rules';
+    const SERVICE_VERSION = '1.5.69-mail-receipt-confirmation-history-branded-template';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 
