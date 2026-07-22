@@ -1,8 +1,8 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.5.64",
+  "version": "1.5.65",
   "private": true,
-  "description": "Server-side incident delivery with scheduled SMTP/Secret health checks, stale queue and dead-letter alerts, KST quotas, fenced leases, and summary recovery for FoxBear Mastering Studio.",
+  "description": "Server-side incident delivery with batch recovery telemetry, independent operations webhooks, 30-day health history, SMTP diagnostics, KST quotas, and fenced leases for FoxBear Mastering Studio.",
   "main": "index.js",
   "engines": {
     "node": "22"

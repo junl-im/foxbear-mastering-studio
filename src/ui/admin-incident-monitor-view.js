@@ -11,6 +11,7 @@
         const limitText = options.limitText;
         const getFirebaseStatusNotice = options.getFirebaseStatusNotice;
         const showToast = options.showToast;
+        bindBatchRecoveryActions();
 
         async function render(forceRemote) {
             if (!el.adminIncidentsSummary || !el.adminIncidentsRows) return;
@@ -40,6 +41,10 @@
                 const queue = operations.queue || {};
                 const smtp = operations.smtp || {};
                 const quota = operations.quota || {};
+                const webhook = operations.channels?.webhook || {};
+                const recovery = data?.recovery || {};
+                const history = Array.isArray(data?.history) ? data.history : [];
+                const trend = summarizeHistory(history);
                 const appCheck = data?.appCheck || bridge.appCheck || {};
                 const operationalStatus = operations.stale ? 'stale' : (operations.status || 'unknown');
                 makeSummaryCard('오늘 오류(KST)', `${safeNumber(summary.today, 0)}건`, 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
@@ -48,6 +53,9 @@
                 makeSummaryCard('최종 실패', `${safeNumber(queue.deadLetter ?? summary.deadLetter, 0)}건`, (queue.deadLetter ?? summary.deadLetter) ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('SMTP/Secret', formatSmtpStatus(smtp.status), smtp.status === 'ok' ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('오늘 발송', `${safeNumber(quota.sent, 0)}/${safeNumber(quota.limit, 40)}`, quota.reservationLeak ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('보조 경보', formatWebhookStatus(webhook), webhook.status === 'error' ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('자동 복구', formatRecovery(recovery), recovery.failed || recovery.deadLetter ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
+                makeSummaryCard('24시간 추세', `${trend.critical}위험 · ${trend.warning}주의`, trend.critical || trend.warning ? 'warning' : 'firebase').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 makeSummaryCard('App Check', appCheck.ready ? '보호 중' : appCheck.configured ? '확인 필요' : '키 미설정', appCheck.ready ? 'firebase' : 'warning').forEach(node => el.adminIncidentsSummary.appendChild(node));
                 if (el.adminIncidentsNotice) {
                     const protection = appCheck.ready
@@ -60,7 +68,15 @@
                         ? ` 감지: ${operations.reasons.map(item => item.message || item.code).filter(Boolean).slice(0, 3).join(' / ')}`
                         : '';
                     const smtpDetail = smtp.status === 'error' ? ` SMTP 오류: ${smtp.message || smtp.reason || '인증/연결 실패'}.` : '';
-                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 운영 점검은 15분마다 실행됩니다.${checked}${issues}${smtpDetail} ${protection}`;
+                    const webhookDetail = webhook.status === 'ready'
+                        ? ` 보조 웹훅(${webhook.provider || 'HTTPS'})이 준비되었습니다.`
+                        : webhook.status === 'error' ? ` 보조 웹훅 오류: ${webhook.reason || '설정 확인 필요'}.` : ' 보조 웹훅은 선택 사항이며 현재 미설정입니다.';
+                    el.adminIncidentsNotice.textContent = `메일 실패는 10분·30분·2시간 간격으로 최대 3회 자동 재시도하며, 운영 점검은 15분마다 실행됩니다.${checked}${issues}${smtpDetail}${webhookDetail} ${protection}`;
+                }
+                if (el.adminIncidentRecoveryStatus) {
+                    el.adminIncidentRecoveryStatus.textContent = recovery.exists
+                        ? `최근 ${formatTime(recovery.checkedAt)} · 시도 ${safeNumber(recovery.attempted, 0)} · 성공 ${safeNumber(recovery.emailed, 0)} · 실패 ${safeNumber(recovery.failed, 0) + safeNumber(recovery.deadLetter, 0)}`
+                        : '아직 기록된 자동 복구 실행이 없습니다.';
                 }
                 const incidents = Array.isArray(data?.incidents) ? data.incidents : [];
                 if (!incidents.length) {
@@ -147,6 +163,76 @@
             return labels[status] || status || '미확인';
         }
 
+        function formatWebhookStatus(webhook = {}) {
+            const labels = { ready: '준비됨', disabled: '미설정', error: '오류', unknown: '미확인' };
+            const base = labels[webhook.status] || webhook.status || '미확인';
+            return webhook.provider ? `${base} · ${webhook.provider}` : base;
+        }
+
+        function formatRecovery(recovery = {}) {
+            if (!recovery.exists) return '기록 대기';
+            return `${safeNumber(recovery.emailed, 0)}성공 / ${safeNumber(recovery.failed, 0) + safeNumber(recovery.deadLetter, 0)}실패`;
+        }
+
+        function summarizeHistory(history = []) {
+            const threshold = Date.now() - 24 * 60 * 60 * 1000;
+            return history.reduce((result, item) => {
+                const at = Date.parse(item.checkedAt || '');
+                if (!at || at < threshold) return result;
+                if (item.status === 'critical') result.critical += 1;
+                else if (item.status === 'warning') result.warning += 1;
+                else if (item.status === 'healthy') result.healthy += 1;
+                return result;
+            }, { healthy: 0, warning: 0, critical: 0 });
+        }
+
+        function bindBatchRecoveryActions() {
+            if (el.adminIncidentRecoverDue && !el.adminIncidentRecoverDue.dataset.bound) {
+                el.adminIncidentRecoverDue.dataset.bound = '1';
+                el.adminIncidentRecoverDue.addEventListener('click', () => requestBatchRecovery('recoverable', el.adminIncidentRecoverDue));
+            }
+            if (el.adminIncidentRecoverDead && !el.adminIncidentRecoverDead.dataset.bound) {
+                el.adminIncidentRecoverDead.dataset.bound = '1';
+                el.adminIncidentRecoverDead.addEventListener('click', () => requestBatchRecovery('dead-letter', el.adminIncidentRecoverDead));
+            }
+        }
+
+        async function requestBatchRecovery(mode, button) {
+            const bridge = getBridge();
+            if (!bridge || typeof bridge.requestIncidentBatchRecovery !== 'function') {
+                showToast('일괄 복구 API가 준비되지 않았습니다.');
+                return;
+            }
+            const original = button?.textContent || '일괄 복구';
+            if (button) { button.disabled = true; button.textContent = '요청 중…'; }
+            try {
+                const request = await bridge.requestIncidentBatchRecovery(mode);
+                showToast(mode === 'dead-letter' ? '최종 실패 메일 일괄 재전송을 요청했습니다.' : '미발송 메일 일괄 복구를 요청했습니다.');
+                if (request?.requestId && typeof bridge.getIncidentBatchRecoveryRequest === 'function') {
+                    let settled = false;
+                    for (let index = 0; index < 45; index += 1) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        const status = await bridge.getIncidentBatchRecoveryRequest(request.requestId).catch(() => null);
+                        if (!status || ['pending', 'running', 'missing'].includes(status.status)) continue;
+                        const result = status.result || {};
+                        showToast(status.status === 'completed'
+                            ? `일괄 복구 완료: 성공 ${safeNumber(result.emailed, 0)} · 실패 ${safeNumber(result.failed, 0) + safeNumber(result.deadLetter, 0)} · 건너뜀 ${safeNumber(result.skipped, 0)}`
+                            : `일괄 복구 실패: ${status.reason || status.status}`);
+                        settled = true;
+                        break;
+                    }
+                    if (!settled) {
+                        showToast('일괄 복구가 서버에서 계속 진행 중입니다. 운영 상태에서 결과를 다시 확인하세요.');
+                    }
+                }
+                await render(true);
+            } catch (error) {
+                showToast(`일괄 복구 요청 실패: ${error?.message || error}`);
+            } finally {
+                if (button) { button.disabled = false; button.textContent = original; }
+            }
+        }
+
         function formatStatus(status, attemptCount = 0, terminal = false) {
             const labels = {
                 pending: '대기', sending: '발송 중', retrying: '재시도 중', emailed: '발송 완료',
@@ -191,7 +277,7 @@
             }
         }
 
-        return Object.freeze({ render, formatStatus, formatOperationsStatus, formatSmtpStatus });
+        return Object.freeze({ render, formatStatus, formatOperationsStatus, formatSmtpStatus, formatWebhookStatus, summarizeHistory });
     }
 
     global.FoxBearAdminIncidentMonitorView = Object.freeze({ create });

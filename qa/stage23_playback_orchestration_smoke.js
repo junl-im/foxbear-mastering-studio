@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.64-incident-operations-health-self-diagnostics';
+const version = '1.5.65-incident-recovery-control-alert-history';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

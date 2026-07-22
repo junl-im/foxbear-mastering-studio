@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.64-incident-operations-health-self-diagnostics';
+  const VIEW_VERSION = '1.5.65-incident-recovery-control-alert-history';
   const DEFAULT_BINS = 96;
 
   function getService() {

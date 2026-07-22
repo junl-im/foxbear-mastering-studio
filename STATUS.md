@@ -1,4 +1,12 @@
-# FoxBear Status - v1.5.64
+# FoxBear Status - v1.5.65
+
+## v1.5.65 current focus
+
+- Optional approved-host HTTPS webhooks provide an operations alert path independent from Gmail SMTP.
+- Administrator batch recovery processes up to eight recoverable or dead-letter reports while preserving leases, KST quotas, and duplicate protection.
+- Scheduled and manual recovery runs are summarized in `incidentOperations/recovery`.
+- Thirty-minute aggregate health samples are retained in `incidentOperationsHistory` for 30 days; alert channel outcomes are retained in `incidentOperationsAlerts`.
+- Administrator history reads degrade safely when new Firestore rules have not yet reached production.
 
 ## v1.5.64 current focus
 
@@ -69,10 +77,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.64`
-- Build ID: `incident-operations-health-self-diagnostics`
-- Asset version: `1.5.64-incident-operations-health-self-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.64-incident-operations-health-self-diagnostics`
+- Product version: `1.5.65`
+- Build ID: `incident-recovery-control-alert-history`
+- Asset version: `1.5.65-incident-recovery-control-alert-history`
+- Service worker cache: `foxbear-shell-v1.5.65-incident-recovery-control-alert-history`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -104,7 +112,7 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.64`
-- Build ID: `incident-operations-health-self-diagnostics`
-- Asset version: `1.5.64-incident-operations-health-self-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.64-incident-operations-health-self-diagnostics`
+- Product version: `1.5.65`
+- Build ID: `incident-recovery-control-alert-history`
+- Asset version: `1.5.65-incident-recovery-control-alert-history`
+- Service worker cache: `foxbear-shell-v1.5.65-incident-recovery-control-alert-history`

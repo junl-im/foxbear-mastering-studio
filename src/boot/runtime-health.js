@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.64-incident-operations-health-self-diagnostics';
+    const FALLBACK_VERSION = '1.5.65-incident-recovery-control-alert-history';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

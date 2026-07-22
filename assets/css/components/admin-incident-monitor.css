@@ -90,3 +90,32 @@
     .admin-monitor-tab { min-height: 30px; font-size: .54rem; }
     .admin-incidents-table { min-width: 820px; }
 }
+
+/* v1.5.65 batch recovery controls and operations history */
+.admin-incident-recovery-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 12px;
+    padding: 9px;
+    border: 1px solid rgba(141, 245, 232, .14);
+    border-radius: 14px;
+    background: rgba(5, 14, 28, .38);
+}
+.admin-incident-recovery-actions button {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: .54rem;
+}
+.admin-incident-recovery-actions span {
+    flex: 1 1 240px;
+    color: rgba(215, 231, 247, .66);
+    font-size: .52rem;
+    line-height: 1.4;
+}
+@media (max-width: 720px) {
+    .admin-incident-recovery-actions { gap: 6px; padding: 7px; }
+    .admin-incident-recovery-actions button { flex: 1 1 150px; }
+    .admin-incident-recovery-actions span { flex-basis: 100%; }
+}

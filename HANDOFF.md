@@ -1,4 +1,4 @@
-# Handoff - v1.5.64
+# Handoff - v1.5.65
 ## 필수 결과 보고 형식
 
 앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
@@ -8,6 +8,17 @@
 3. `다음 예상 내용`
 
 배포 파일은 항상 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP 두 종류를 함께 제공합니다. 확인하지 못한 실제 배포·메일 수신·브라우저 검증은 `진행된 내용`에 사실대로 제한 사항을 적습니다.
+
+
+## v1.5.65 인수인계
+
+- 결과 보고는 계속 `진행된 내용`, `배포 파일 2종`, `다음 예상 내용` 세 구역만 사용합니다.
+- 선택적 보조 경보는 `FOXBEAR_INCIDENT_ALERT_WEBHOOK_URL` 환경 변수로 설정합니다. HTTPS와 승인된 Slack·Discord·Google Chat·Microsoft Teams 호스트만 허용합니다.
+- 웹훅 URL은 Firestore에 저장하지 않으며 경보 내용은 집계 상태만 포함합니다.
+- 관리자 `미발송 일괄 복구`와 `최종 실패 일괄 재전송`은 요청 한 번에 최대 8건을 처리합니다.
+- 자동·수동 복구 결과는 `incidentOperations/recovery`, 30분 운영 이력은 `incidentOperationsHistory`, 채널별 경보 결과는 `incidentOperationsAlerts`에 기록됩니다.
+- 배포에는 `functions:retryIncidentBatchRequest`와 새 Firestore 규칙이 포함되어야 합니다. 규칙보다 Hosting이 먼저 배포돼도 이력 조회는 빈 목록으로 폴백합니다.
+- 실제 Gmail/웹훅 수신과 Scheduler 실행은 Firebase 배포 환경에서 확인해야 합니다.
 
 
 ## v1.5.64 인수인계

@@ -1,3 +1,12 @@
+# v1.5.65 - Incident Recovery Control and Alert History
+
+- Added optional approved-host HTTPS webhook alerts that continue when Gmail SMTP is unavailable.
+- Added administrator batch recovery requests for recoverable and dead-letter incident mail.
+- Added scheduled/manual recovery execution telemetry in `incidentOperations/recovery`.
+- Added 30-day aggregate operations history and per-alert channel outcome records.
+- Added administrator cards and controls for webhook readiness, recovery results, and 24-hour health trends.
+- Added staged-deployment fallback when history collection rules are not yet active.
+
 # v1.5.64 - Incident Operations Health Self-Diagnostics
 
 - Added a 15-minute incident-mail operations audit with fenced execution leases.

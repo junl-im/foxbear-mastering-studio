@@ -140,6 +140,8 @@ function makePublicBridge(extra = {}) {
         getAdminIncidents,
         requestIncidentRetry,
         getIncidentRetryRequest,
+        requestIncidentBatchRecovery,
+        getIncidentBatchRecoveryRequest,
         getAdminProfile,
         refreshAppCheckToken,
         getUid: () => bridgeState.user?.uid || '',
@@ -447,6 +449,7 @@ function normalizeIncidentOperations(snapshot) {
             quota: {},
             summaries: {},
             smtp: { status: 'unknown', reason: 'health-document-missing', message: '운영 상태 점검 문서가 아직 생성되지 않았습니다.' },
+            channels: { webhook: { status: 'unknown', provider: '', reason: '' } },
             alert: {}
         };
     }
@@ -495,13 +498,58 @@ function normalizeIncidentOperations(snapshot) {
             checkedAt: timestampIso(data.smtp?.checkedAt),
             cached: data.smtp?.cached === true
         },
+        channels: {
+            webhook: {
+                status: limitText(data.channels?.webhook?.status || 'disabled', 20),
+                provider: limitText(data.channels?.webhook?.provider || '', 40),
+                reason: limitText(data.channels?.webhook?.reason || '', 100)
+            }
+        },
         alert: {
             status: limitText(data.alert?.status || '', 40),
             kind: limitText(data.alert?.kind || '', 20),
             reason: limitText(data.alert?.reason || '', 100),
-            lastSentAt: timestampIso(data.alert?.lastSentAt)
+            lastDispatchedAt: timestampIso(data.alert?.lastDispatchedAt),
+            lastSentAt: timestampIso(data.alert?.lastSentAt),
+            smtpStatus: limitText(data.alert?.channels?.smtp?.status || '', 20),
+            webhookStatus: limitText(data.alert?.channels?.webhook?.status || '', 20),
+            webhookProvider: limitText(data.alert?.channels?.webhook?.provider || '', 40)
         },
         lastIncidentSentAt: timestampIso(data.lastIncidentSentAt)
+    };
+}
+
+function normalizeIncidentRecovery(snapshot) {
+    if (!snapshot?.exists?.()) return { exists: false, status: 'missing', checkedAt: '' };
+    const data = snapshot.data() || {};
+    return {
+        exists: true,
+        source: limitText(data.source || '', 40),
+        mode: limitText(data.mode || '', 40),
+        requested: safeIncidentNumber(data.requested, 0, 1000),
+        attempted: safeIncidentNumber(data.attempted, 0, 1000),
+        emailed: safeIncidentNumber(data.emailed, 0, 1000),
+        failed: safeIncidentNumber(data.failed, 0, 1000),
+        deadLetter: safeIncidentNumber(data.deadLetter, 0, 1000),
+        skipped: safeIncidentNumber(data.skipped, 0, 1000),
+        durationMs: safeIncidentNumber(data.durationMs, 0, 3600000),
+        checkedAt: timestampIso(data.checkedAt)
+    };
+}
+
+function normalizeOperationsHistory(snapshot) {
+    const data = snapshot.data() || {};
+    return {
+        id: limitText(snapshot.id || '', 40),
+        status: limitText(data.status || 'unknown', 20),
+        checkedAt: timestampIso(data.checkedAt),
+        stale: safeIncidentNumber(data.queue?.stale, 0, 100000),
+        deadLetter: safeIncidentNumber(data.queue?.deadLetter, 0, 100000),
+        pending: safeIncidentNumber(data.queue?.pending, 0, 100000),
+        failed: safeIncidentNumber(data.queue?.failed, 0, 100000),
+        smtpStatus: limitText(data.smtpStatus || 'unknown', 20),
+        webhookStatus: limitText(data.webhookStatus || 'disabled', 20),
+        alertStatus: limitText(data.alertStatus || '', 20)
     };
 }
 
@@ -550,10 +598,13 @@ async function getAdminIncidents(options = {}) {
     const recentQuery = query(reportsRef, orderBy('createdAt', 'desc'), limit(eventsLimit));
     const kstRange = getKstDayRange(new Date());
     const todayQuery = query(reportsRef, where('createdAt', '>=', kstRange.start), where('createdAt', '<', kstRange.end));
-    const [snapshot, todayCountSnapshot, operationsSnapshot] = await Promise.all([
+    const historyQuery = query(collection(bridgeState.db, 'incidentOperationsHistory'), orderBy('checkedAt', 'desc'), limit(48));
+    const [snapshot, todayCountSnapshot, operationsSnapshot, recoverySnapshot, historySnapshot] = await Promise.all([
         getDocs(recentQuery),
         getCountFromServer(todayQuery),
-        getDoc(doc(bridgeState.db, 'incidentOperations', 'mail'))
+        getDoc(doc(bridgeState.db, 'incidentOperations', 'mail')),
+        getDoc(doc(bridgeState.db, 'incidentOperations', 'recovery')),
+        getDocs(historyQuery).catch(() => ({ docs: [] }))
     ]);
     const incidents = [];
     snapshot.forEach(item => incidents.push(normalizeFirestoreIncident(item)));
@@ -572,6 +623,8 @@ async function getAdminIncidents(options = {}) {
         incidents,
         summary,
         operations: normalizeIncidentOperations(operationsSnapshot),
+        recovery: normalizeIncidentRecovery(recoverySnapshot),
+        history: historySnapshot.docs.map(normalizeOperationsHistory),
         dateKey: kstRange.dateKey,
         appCheck: {
             configured: bridgeState.appCheckConfigured,
@@ -609,6 +662,44 @@ async function getIncidentRetryRequest(requestId) {
         exists: true,
         status: limitText(data.status || 'pending', 40),
         reason: limitText(data.reason || '', 100)
+    };
+}
+
+async function requestIncidentBatchRecovery(mode = 'recoverable') {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 일괄 복구를 요청할 수 있습니다.');
+    const safeMode = mode === 'dead-letter' ? 'dead-letter' : 'recoverable';
+    const requestRef = await addDoc(collection(bridgeState.db, 'incidentBatchRecoveryRequests'), {
+        uid: profile.uid,
+        mode: safeMode,
+        source: 'foxbear-admin-dashboard',
+        createdAt: serverTimestamp()
+    });
+    return { requestId: requestRef.id, mode: safeMode, status: 'requested' };
+}
+
+async function getIncidentBatchRecoveryRequest(requestId) {
+    if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
+    const profile = await getAdminProfile();
+    if (!profile.active) throw new Error('활성 관리자만 일괄 복구 상태를 조회할 수 있습니다.');
+    const safeId = limitText(requestId, 180);
+    const snapshot = await getDoc(doc(bridgeState.db, 'incidentBatchRecoveryRequests', safeId));
+    if (!snapshot.exists()) return { exists: false, status: 'missing' };
+    const data = snapshot.data() || {};
+    const result = data.result || {};
+    return {
+        exists: true,
+        status: limitText(data.status || 'pending', 40),
+        reason: limitText(data.reason || '', 100),
+        result: {
+            requested: safeIncidentNumber(result.requested, 0, 1000),
+            attempted: safeIncidentNumber(result.attempted, 0, 1000),
+            emailed: safeIncidentNumber(result.emailed, 0, 1000),
+            failed: safeIncidentNumber(result.failed, 0, 1000),
+            deadLetter: safeIncidentNumber(result.deadLetter, 0, 1000),
+            skipped: safeIncidentNumber(result.skipped, 0, 1000)
+        }
     };
 }
 

@@ -18,12 +18,12 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert.strictEqual(pkg.version, '1.5.64');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.64-incident-operations-health-self-diagnostics');
-assert(index.includes('src/boot/incident-reporter.js?v=1.5.64-incident-operations-health-self-diagnostics'));
+assert.strictEqual(pkg.version, '1.5.65');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.65-incident-recovery-control-alert-history');
+assert(index.includes('src/boot/incident-reporter.js?v=1.5.65-incident-recovery-control-alert-history'));
 assert(index.indexOf('src/boot/runtime-health.js') < index.indexOf('src/boot/incident-reporter.js'));
 assert(index.indexOf('src/boot/incident-reporter.js') < index.indexOf('src/app.js'));
-assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.64-incident-operations-health-self-diagnostics'));
+assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.65-incident-recovery-control-alert-history'));
 assert(!index.includes('</body>\n    <script'), 'scripts must not be placed after </body>');
 assert(index.includes('id="incidentReportingToggle"'));
 assert(index.includes('id="incidentReportingTest"'));

@@ -41,6 +41,17 @@ const STALE_PENDING_MS = 10 * 60 * 1000;
 const STALE_OVERDUE_MS = 5 * 60 * 1000;
 const DEAD_LETTER_CRITICAL_COUNT = 5;
 const STALE_CRITICAL_COUNT = 3;
+const INCIDENT_BATCH_RECOVERY_LIMIT = 8;
+const OPERATIONS_HISTORY_COLLECTION = 'incidentOperationsHistory';
+const OPERATIONS_ALERT_COLLECTION = 'incidentOperationsAlerts';
+const OPERATIONS_HISTORY_BUCKET_MS = 30 * 60 * 1000;
+const OPERATIONS_HISTORY_TTL_DAYS = 30;
+const OPERATIONS_WEBHOOK_TIMEOUT_MS = 10000;
+const OPERATIONS_WEBHOOK_ENV_NAME = 'FOXBEAR_INCIDENT_ALERT_WEBHOOK_URL';
+const OPERATIONS_WEBHOOK_ALLOWED_HOSTS = Object.freeze([
+  'hooks.slack.com', 'discord.com', 'discordapp.com', 'chat.googleapis.com',
+  'outlook.office.com', 'webhook.office.com'
+]);
 
 function cleanText(value, maxLength = 500) {
   return String(value ?? '')
@@ -122,6 +133,131 @@ function classifySmtpError(error) {
 function operationAlertMessageId(kind, signature, now = Date.now()) {
   const bucket = Math.floor((now + (9 * 60 * 60 * 1000)) / (6 * 60 * 60 * 1000));
   return `<foxbear-operations-${safeKey(kind, 'alert')}-${safeKey(signature, 'state')}-${bucket}@foxbear-music.firebaseapp.com>`;
+}
+
+function inspectOperationsWebhookConfig(rawValue = process.env[OPERATIONS_WEBHOOK_ENV_NAME]) {
+  const raw = String(rawValue || '').trim();
+  if (!raw) return { status: 'disabled', provider: '', reason: 'not-configured', url: '' };
+  try {
+    const parsed = new URL(raw);
+    const hostname = parsed.hostname.toLowerCase();
+    if (parsed.protocol !== 'https:') throw new Error('webhook-must-use-https');
+    if (parsed.username || parsed.password) throw new Error('webhook-credentials-not-allowed');
+    const allowed = OPERATIONS_WEBHOOK_ALLOWED_HOSTS.some(host => hostname === host || hostname.endsWith(`.${host}`));
+    if (!allowed) throw new Error('webhook-host-not-allowed');
+    let provider = 'generic';
+    if (hostname.includes('slack.com')) provider = 'slack';
+    else if (hostname.includes('discord')) provider = 'discord';
+    else if (hostname.includes('googleapis.com')) provider = 'google-chat';
+    else if (hostname.includes('office.com')) provider = 'microsoft-teams';
+    return { status: 'ready', provider, reason: '', url: parsed.toString() };
+  } catch (error) {
+    return { status: 'error', provider: '', reason: cleanText(error?.message || error, 100), url: '' };
+  }
+}
+
+function publicWebhookConfig(config = {}) {
+  return {
+    status: cleanText(config.status || 'disabled', 20),
+    provider: cleanText(config.provider || '', 40),
+    reason: cleanText(config.reason || '', 100)
+  };
+}
+
+function buildOperationsWebhookPayload(health = {}, previous = {}, kind = 'alert', provider = 'generic') {
+  const queue = health.queue || {};
+  const smtp = health.smtp || {};
+  const quota = health.quota || {};
+  const isRecovery = kind === 'recovery';
+  const heading = isRecovery ? 'FoxBear 문제 보고 메일 시스템 복구' : `FoxBear 문제 보고 메일 운영 ${health.status === 'critical' ? '긴급' : '주의'}`;
+  const issueText = Array.isArray(health.reasons) && health.reasons.length
+    ? health.reasons.map(item => `- ${cleanText(item?.message || item?.code || item, 180)}`).join('\n')
+    : '- 없음';
+  const text = [
+    `**${heading}**`,
+    `상태: ${cleanText(health.status || 'unknown', 20)} (이전 ${cleanText(previous.status || 'unknown', 20)})`,
+    `SMTP: ${cleanText(smtp.status || 'unknown', 20)}${smtp.reason ? ` / ${cleanText(smtp.reason, 80)}` : ''}`,
+    `장기 미발송 ${Math.max(0, Number(queue.stale || 0))}건 · 최종 실패 ${Math.max(0, Number(queue.deadLetter || 0))}건`,
+    `KST 발송 ${Math.max(0, Number(quota.sent || 0))}/${Math.max(0, Number(quota.limit || DAILY_EMAIL_LIMIT))} · 예약 ${Math.max(0, Number(quota.reserved || 0))}`,
+    issueText
+  ].join('\n').slice(0, 1900);
+  return provider === 'discord' ? { content: text } : { text };
+}
+
+async function sendOperationsWebhook(health = {}, previous = {}, kind = 'alert') {
+  const config = inspectOperationsWebhookConfig();
+  if (config.status !== 'ready') return { status: config.status, provider: config.provider, reason: config.reason };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), OPERATIONS_WEBHOOK_TIMEOUT_MS);
+  try {
+    const response = await fetch(config.url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'user-agent': 'FoxBear-Incident-Monitor/1.5.65' },
+      body: JSON.stringify(buildOperationsWebhookPayload(health, previous, kind, config.provider)),
+      signal: controller.signal,
+      redirect: 'error'
+    });
+    if (!response.ok) {
+      const body = cleanText(await response.text().catch(() => ''), 240);
+      return { status: 'failed', provider: config.provider, reason: `http-${response.status}`, response: body, statusCode: response.status };
+    }
+    return { status: 'delivered', provider: config.provider, reason: '', statusCode: response.status };
+  } catch (error) {
+    const reason = error?.name === 'AbortError' ? 'webhook-timeout' : 'webhook-request-failed';
+    return { status: 'failed', provider: config.provider, reason, message: cleanText(error?.message || error, 240) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function operationsHistoryId(now = Date.now()) {
+  const bucket = Math.floor(now / OPERATIONS_HISTORY_BUCKET_MS) * OPERATIONS_HISTORY_BUCKET_MS;
+  return new Date(bucket).toISOString().slice(0, 16).replace(/[-:T]/g, '');
+}
+
+async function recordOperationsTelemetry(health = {}, alert = {}, now = Date.now()) {
+  const historyRef = db.collection(OPERATIONS_HISTORY_COLLECTION).doc(operationsHistoryId(now));
+  const channels = alert.channels || {};
+  const history = {
+    schemaVersion: 1,
+    status: cleanText(health.status || 'unknown', 20),
+    signature: cleanText(health.signature || '', 100),
+    queue: {
+      stale: Math.max(0, Number(health.queue?.stale || 0)),
+      deadLetter: Math.max(0, Number(health.queue?.deadLetter || 0)),
+      pending: Math.max(0, Number(health.queue?.pending || 0)),
+      failed: Math.max(0, Number(health.queue?.failed || 0))
+    },
+    quota: {
+      dateKey: cleanText(health.quota?.dateKey || '', 10),
+      sent: Math.max(0, Number(health.quota?.sent || 0)),
+      reserved: Math.max(0, Number(health.quota?.reserved || 0))
+    },
+    smtpStatus: cleanText(health.smtp?.status || 'unknown', 20),
+    webhookStatus: cleanText(health.channels?.webhook?.status || 'disabled', 20),
+    alertStatus: cleanText(alert.status || 'skipped', 20),
+    smtpAlertStatus: cleanText(channels.smtp?.status || '', 20),
+    webhookAlertStatus: cleanText(channels.webhook?.status || '', 20),
+    checkedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + OPERATIONS_HISTORY_TTL_DAYS * 86400000)
+  };
+  await historyRef.set(history, { merge: true });
+  if (!alert.kind || alert.status === 'skipped') return;
+  const alertId = `${operationsHistoryId(now)}_${safeKey(alert.kind, 'alert')}_${safeKey(health.signature, 'state')}`;
+  await db.collection(OPERATIONS_ALERT_COLLECTION).doc(alertId).set({
+    schemaVersion: 1,
+    kind: cleanText(alert.kind || 'alert', 20),
+    status: cleanText(alert.status || 'recorded', 20),
+    operationsStatus: cleanText(health.status || 'unknown', 20),
+    signature: cleanText(health.signature || '', 100),
+    reasonCodes: Array.isArray(health.reasons) ? health.reasons.map(item => cleanText(item?.code || '', 80)).filter(Boolean).slice(0, 12) : [],
+    channels: {
+      smtp: { status: cleanText(channels.smtp?.status || '', 20), reason: cleanText(channels.smtp?.reason || '', 100) },
+      webhook: { status: cleanText(channels.webhook?.status || '', 20), provider: cleanText(channels.webhook?.provider || '', 40), reason: cleanText(channels.webhook?.reason || '', 100) }
+    },
+    createdAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + OPERATIONS_HISTORY_TTL_DAYS * 86400000)
+  }, { merge: true });
 }
 
 function buildOperationsAlertMail(health = {}, previous = {}, kind = 'alert') {
@@ -471,6 +607,9 @@ function evaluateOperationsHealth(snapshot = {}) {
   if (smtp.status !== 'ok') {
     reasons.push({ code: smtp.reason || 'smtp-unknown', severity: 'critical', message: `SMTP/Secret 점검 실패: ${smtp.message || smtp.reason || '상태 미확인'}` });
   }
+  if (snapshot.channels?.webhook?.status === 'error') {
+    reasons.push({ code: 'webhook-config-invalid', severity: 'warning', message: `보조 웹훅 설정 오류: ${snapshot.channels.webhook.reason || '허용되지 않은 주소'}` });
+  }
   if (Number(queue.stale || 0) > 0) {
     reasons.push({
       code: 'long-undelivered',
@@ -561,6 +700,7 @@ async function collectOperationsHealth(previous = {}, now = Date.now()) {
     },
     summaries,
     smtp,
+    channels: { webhook: publicWebhookConfig(inspectOperationsWebhookConfig()) },
     lastIncidentSentAt
   });
 }
@@ -568,36 +708,55 @@ async function collectOperationsHealth(previous = {}, now = Date.now()) {
 function shouldSendOperationsAlert(health = {}, previous = {}, now = Date.now()) {
   const previousStatus = cleanText(previous.status || 'unknown', 20);
   const previousSignature = cleanText(previous.signature || '', 100);
-  const lastAlertAt = timestampMillis(previous.alert?.lastSentAt);
+  const lastDispatchAt = timestampMillis(previous.alert?.lastDispatchedAt || previous.alert?.lastSentAt);
   if (health.status === 'healthy') {
     return ['warning', 'critical'].includes(previousStatus) ? { send: true, kind: 'recovery' } : { send: false, reason: 'healthy' };
   }
-  if (health.smtp?.status !== 'ok') return { send: false, reason: 'smtp-unavailable' };
+  if (health.smtp?.status !== 'ok' && health.channels?.webhook?.status !== 'ready') return { send: false, reason: 'smtp-unavailable' };
   if (health.signature !== previousSignature) return { send: true, kind: 'alert' };
-  if (!lastAlertAt || now - lastAlertAt >= OPERATIONS_ALERT_COOLDOWN_MS) return { send: true, kind: 'alert' };
+  if (!lastDispatchAt || now - lastDispatchAt >= OPERATIONS_ALERT_COOLDOWN_MS) return { send: true, kind: 'alert' };
   return { send: false, reason: 'cooldown' };
 }
 
 async function sendOperationsAlert(health, previous, decision, now = Date.now()) {
-  if (!decision.send) return { status: 'skipped', reason: decision.reason || 'not-required' };
+  if (!decision.send) return { status: 'skipped', reason: decision.reason || 'not-required', channels: {} };
   const mail = buildOperationsAlertMail(health, previous, decision.kind);
-  const info = await createTransport().sendMail({
-    from: `FoxBear Incident Monitor <${ALERT_SENDER}>`,
-    to: ALERT_RECIPIENT,
-    messageId: operationAlertMessageId(decision.kind, health.signature, now),
-    headers: { 'X-FoxBear-Operations-Status': health.status, 'X-FoxBear-Operations-Signature': health.signature },
-    subject: mail.subject,
-    text: mail.text,
-    html: mail.html
-  });
-  const acceptedCount = assertSmtpAccepted(info);
+  let smtp = { status: 'skipped', reason: 'smtp-unavailable' };
+  if (health.smtp?.status === 'ok') {
+    try {
+      const info = await createTransport().sendMail({
+        from: `FoxBear Incident Monitor <${ALERT_SENDER}>`,
+        to: ALERT_RECIPIENT,
+        messageId: operationAlertMessageId(decision.kind, health.signature, now),
+        headers: { 'X-FoxBear-Operations-Status': health.status, 'X-FoxBear-Operations-Signature': health.signature },
+        subject: mail.subject,
+        text: mail.text,
+        html: mail.html
+      });
+      smtp = {
+        status: 'emailed',
+        reason: '',
+        messageId: cleanText(info.messageId || '', 240),
+        acceptedCount: assertSmtpAccepted(info),
+        response: cleanText(info.response || '', 300)
+      };
+    } catch (error) {
+      smtp = { status: 'failed', ...classifySmtpError(error) };
+    }
+  }
+  const webhookHealth = smtp.status === 'failed'
+    ? evaluateOperationsHealth({ ...health, smtp: { ...smtp, status: 'error', checkedAt: now, cached: false } })
+    : health;
+  const webhook = await sendOperationsWebhook(webhookHealth, previous, decision.kind);
+  const delivered = smtp.status === 'emailed' || webhook.status === 'delivered';
+  const attempted = smtp.status === 'failed' || webhook.status === 'failed';
   return {
-    status: 'emailed',
+    status: delivered ? 'delivered' : attempted ? 'failed' : 'recorded',
     kind: decision.kind,
-    messageId: cleanText(info.messageId || '', 240),
-    acceptedCount,
-    response: cleanText(info.response || '', 300),
-    sentAt: now
+    reason: delivered ? '' : attempted ? 'all-external-channels-failed' : 'firestore-only',
+    channels: { smtp, webhook },
+    sentAt: delivered ? now : 0,
+    dispatchedAt: now
   };
 }
 
@@ -611,7 +770,7 @@ async function finalizeOperationsAudit(reservation, health, alert, now = Date.no
     const queue = health.queue || {};
     const quota = health.quota || {};
     const patch = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       status: health.status,
       signature: health.signature,
       reasons: health.reasons || [],
@@ -637,31 +796,41 @@ async function finalizeOperationsAudit(reservation, health, alert, now = Date.no
         checkedAt: smtp.checkedAt ? Timestamp.fromMillis(smtp.checkedAt) : null,
         cached: smtp.cached === true
       },
+      channels: {
+        webhook: publicWebhookConfig(health.channels?.webhook || {})
+      },
       lastIncidentSentAt: health.lastIncidentSentAt ? Timestamp.fromMillis(health.lastIncidentSentAt) : null,
       checkedAt: FieldValue.serverTimestamp(),
       auditLeaseId: '',
       auditLeaseUntil: null,
       expiresAt: Timestamp.fromMillis(now + OPERATIONS_STATE_TTL_DAYS * 86400000)
     };
-    if (alert?.status === 'emailed') {
-      patch.alert = {
-        status: 'emailed',
-        kind: alert.kind,
-        signature: health.signature,
-        messageId: alert.messageId,
-        acceptedCount: alert.acceptedCount,
-        response: alert.response,
-        lastSentAt: Timestamp.fromMillis(alert.sentAt || now),
-        reason: ''
-      };
-    } else {
-      patch.alert = {
-        ...(current.alert || {}),
-        status: alert?.status || 'skipped',
-        reason: cleanText(alert?.reason || '', 100),
-        lastCheckedAt: FieldValue.serverTimestamp()
-      };
-    }
+    const previousAlert = current.alert || {};
+    const previousAlertChannels = previousAlert.channels || {};
+    const alertChannels = alert?.channels || {};
+    patch.alert = {
+      status: cleanText(alert?.status || 'skipped', 20),
+      kind: cleanText(alert?.kind || previousAlert.kind || '', 20),
+      signature: alert?.kind ? health.signature : cleanText(previousAlert.signature || '', 100),
+      reason: cleanText(alert?.reason || '', 100),
+      channels: {
+        smtp: {
+          status: cleanText(alertChannels.smtp?.status || previousAlertChannels.smtp?.status || '', 20),
+          reason: cleanText(alertChannels.smtp?.reason || previousAlertChannels.smtp?.reason || '', 100),
+          messageId: cleanText(alertChannels.smtp?.messageId || previousAlertChannels.smtp?.messageId || '', 240),
+          acceptedCount: Math.max(0, Number(alertChannels.smtp?.acceptedCount || previousAlertChannels.smtp?.acceptedCount || 0))
+        },
+        webhook: {
+          status: cleanText(alertChannels.webhook?.status || previousAlertChannels.webhook?.status || '', 20),
+          provider: cleanText(alertChannels.webhook?.provider || previousAlertChannels.webhook?.provider || '', 40),
+          reason: cleanText(alertChannels.webhook?.reason || previousAlertChannels.webhook?.reason || '', 100),
+          statusCode: Math.max(0, Number(alertChannels.webhook?.statusCode || previousAlertChannels.webhook?.statusCode || 0))
+        }
+      },
+      lastDispatchedAt: alert?.dispatchedAt ? Timestamp.fromMillis(alert.dispatchedAt) : previousAlert.lastDispatchedAt || null,
+      lastSentAt: alert?.sentAt ? Timestamp.fromMillis(alert.sentAt) : previousAlert.lastSentAt || null,
+      lastCheckedAt: FieldValue.serverTimestamp()
+    };
     transaction.set(reservation.stateRef, patch, { merge: true });
     return { status: health.status };
   });
@@ -676,18 +845,18 @@ async function auditIncidentMailOperations() {
   try {
     health = await collectOperationsHealth(reservation.previous || {}, now);
     const decision = shouldSendOperationsAlert(health, reservation.previous || {}, now);
-    try {
-      alert = await sendOperationsAlert(health, reservation.previous || {}, decision, now);
-    } catch (error) {
-      const classified = classifySmtpError(error);
+    alert = await sendOperationsAlert(health, reservation.previous || {}, decision, now);
+    if (alert.channels?.smtp?.status === 'failed') {
       health = evaluateOperationsHealth({
         ...health,
-        smtp: { status: 'error', ...classified, checkedAt: now, cached: false }
+        smtp: { ...alert.channels.smtp, status: 'error', checkedAt: now, cached: false }
       });
-      alert = { status: 'failed', reason: classified.reason };
-      console.error('FoxBear operations alert delivery failed', { reason: classified.reason, error: classified.message });
+      console.error('FoxBear operations SMTP alert delivery failed', { reason: alert.channels.smtp.reason, error: alert.channels.smtp.message });
     }
     const result = await finalizeOperationsAudit(reservation, health, alert, now);
+    await recordOperationsTelemetry(health, alert, now).catch(error => {
+      console.error('FoxBear operations telemetry write failed', { error: cleanText(error?.message || error, 300) });
+    });
     return { ok: result.status === 'healthy', status: result.status, alertStatus: alert?.status || 'skipped' };
   } catch (error) {
     const classified = {
@@ -701,7 +870,9 @@ async function auditIncidentMailOperations() {
       smtp: { status: 'error', ...classified, checkedAt: now, cached: false },
       lastIncidentSentAt: 0
     });
-    await finalizeOperationsAudit(reservation, fallback, { status: 'failed', reason: 'audit-failed' }, now).catch(() => {});
+    const fallbackAlert = { status: 'failed', reason: 'audit-failed', channels: {}, dispatchedAt: now };
+    await finalizeOperationsAudit(reservation, fallback, fallbackAlert, now).catch(() => {});
+    await recordOperationsTelemetry(fallback, fallbackAlert, now).catch(() => {});
     console.error('FoxBear operations audit failed', { error: cleanText(error?.message || error, 300) });
     return { ok: false, status: 'critical', reason: classified.reason };
   }
@@ -987,6 +1158,60 @@ async function processIncidentReport(reportRef, options = {}) {
   }
 }
 
+async function collectDeadLetterReports(limitCount = INCIDENT_BATCH_RECOVERY_LIMIT) {
+  const reports = db.collection('incidentReports');
+  try {
+    const snapshot = await reports.where('delivery.status', '==', 'dead-letter').orderBy('delivery.checkedAt', 'asc').limit(limitCount).get();
+    return snapshot.docs;
+  } catch (error) {
+    console.warn('FoxBear dead-letter recovery index fallback', { error: cleanText(error?.message || error, 220) });
+    return (await reports.where('delivery.status', '==', 'dead-letter').limit(limitCount).get()).docs;
+  }
+}
+
+async function writeRecoveryRun(result = {}, now = Date.now()) {
+  await db.collection('incidentOperations').doc('recovery').set({
+    schemaVersion: 1,
+    source: cleanText(result.source || 'unknown', 40),
+    mode: cleanText(result.mode || 'recoverable', 40),
+    requested: Math.max(0, Number(result.requested || 0)),
+    attempted: Math.max(0, Number(result.attempted || 0)),
+    emailed: Math.max(0, Number(result.emailed || 0)),
+    failed: Math.max(0, Number(result.failed || 0)),
+    deadLetter: Math.max(0, Number(result.deadLetter || 0)),
+    skipped: Math.max(0, Number(result.skipped || 0)),
+    durationMs: Math.max(0, Number(result.durationMs || 0)),
+    checkedAt: Timestamp.fromMillis(now),
+    expiresAt: Timestamp.fromMillis(now + OPERATIONS_STATE_TTL_DAYS * 86400000)
+  }, { merge: true });
+}
+
+async function runIncidentRecoveryBatch(options = {}) {
+  const startedAt = Date.now();
+  const mode = options.mode === 'dead-letter' ? 'dead-letter' : 'recoverable';
+  const source = cleanText(options.source || 'scheduled', 40);
+  const maxItems = Math.min(Math.max(Number(options.limit || INCIDENT_BATCH_RECOVERY_LIMIT), 1), INCIDENT_BATCH_RECOVERY_LIMIT);
+  const documents = mode === 'dead-letter'
+    ? await collectDeadLetterReports(maxItems)
+    : (await collectDueIncidentReports(startedAt)).slice(0, maxItems);
+  const totals = { source, mode, requested: documents.length, attempted: 0, emailed: 0, failed: 0, deadLetter: 0, skipped: 0 };
+  for (const docSnapshot of documents) {
+    totals.attempted += 1;
+    const result = await processIncidentReport(docSnapshot.ref, {
+      retry: true,
+      manual: mode === 'dead-letter',
+      forceTerminal: mode === 'dead-letter'
+    });
+    if (result.ok || result.status === 'emailed') totals.emailed += 1;
+    else if (result.status === 'dead-letter') totals.deadLetter += 1;
+    else if (result.skipped) totals.skipped += 1;
+    else totals.failed += 1;
+  }
+  totals.durationMs = Date.now() - startedAt;
+  await writeRecoveryRun(totals, Date.now());
+  return totals;
+}
+
 exports.sendIncidentEmail = onDocumentCreated({
   document: 'incidentReports/{reportId}', region: REGION,
   secrets: [GMAIL_APP_PASSWORD], retry: false, maxInstances: 3,
@@ -1001,10 +1226,7 @@ exports.retryFailedIncidentEmails = onSchedule({
   secrets: [GMAIL_APP_PASSWORD], retryCount: 0, maxInstances: 1,
   timeoutSeconds: 300, memory: '256MiB'
 }, async () => {
-  const due = (await collectDueIncidentReports(Date.now())).slice(0, 8);
-  for (const docSnapshot of due) {
-    await processIncidentReport(docSnapshot.ref, { retry: true });
-  }
+  await runIncidentRecoveryBatch({ mode: 'recoverable', source: 'scheduled', limit: INCIDENT_BATCH_RECOVERY_LIMIT });
 });
 
 exports.retryIncidentEmailRequest = onDocumentCreated({
@@ -1032,6 +1254,44 @@ exports.retryIncidentEmailRequest = onDocumentCreated({
     checkedAt: FieldValue.serverTimestamp(),
     expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
   }, { merge: true });
+});
+
+exports.retryIncidentBatchRequest = onDocumentCreated({
+  document: 'incidentBatchRecoveryRequests/{requestId}', region: REGION,
+  secrets: [GMAIL_APP_PASSWORD], retry: false, maxInstances: 1,
+  timeoutSeconds: 300, memory: '256MiB'
+}, async event => {
+  const snapshot = event.data;
+  if (!snapshot) return;
+  const request = snapshot.data() || {};
+  const requestRef = snapshot.ref;
+  const uid = cleanText(request.uid || '', 128);
+  const mode = request.mode === 'dead-letter' ? 'dead-letter' : 'recoverable';
+  const adminSnapshot = uid ? await db.collection('siteAdmins').doc(uid).get() : null;
+  if (!adminSnapshot?.exists || adminSnapshot.data()?.active !== true) {
+    await requestRef.set({ status: 'rejected', reason: 'admin-required', checkedAt: FieldValue.serverTimestamp() }, { merge: true });
+    return;
+  }
+  await requestRef.set({ status: 'running', reason: '', startedAt: FieldValue.serverTimestamp() }, { merge: true });
+  try {
+    const result = await runIncidentRecoveryBatch({ mode, source: 'admin-batch', limit: INCIDENT_BATCH_RECOVERY_LIMIT });
+    await requestRef.set({
+      status: 'completed',
+      reason: '',
+      result,
+      checkedAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
+    }, { merge: true });
+  } catch (error) {
+    await requestRef.set({
+      status: 'failed',
+      reason: cleanText(error?.code || error?.name || 'batch-recovery-failed', 100),
+      message: cleanText(error?.message || error, 300),
+      checkedAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(Date.now() + STATE_TTL_DAYS * 86400000)
+    }, { merge: true });
+    throw error;
+  }
 });
 
 async function loadDailyIncidentReports(range, maxReports = DAILY_SUMMARY_MAX_REPORTS) {
@@ -1167,5 +1427,6 @@ exports.__test = Object.freeze({
   isIncidentDeliveryDue, incidentDueAt, isLongUndelivered,
   normalizedGmailAppPassword, assertSmtpAccepted, classifySmtpError,
   operationAlertMessageId, buildOperationsAlertMail, evaluateOperationsHealth,
-  shouldSendOperationsAlert
+  shouldSendOperationsAlert, inspectOperationsWebhookConfig, publicWebhookConfig,
+  buildOperationsWebhookPayload, operationsHistoryId
 });

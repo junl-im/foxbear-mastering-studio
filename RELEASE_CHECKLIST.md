@@ -2,6 +2,10 @@
 
 ## v1.5.64 incident operations health
 
+- [ ] `retryIncidentBatchRequest`가 Firebase Functions에 배포되었다.
+- [ ] 관리자 일괄 복구 요청의 성공·실패 결과가 `incidentOperations/recovery`에 기록된다.
+- [ ] 보조 웹훅 사용 시 URL이 저장소가 아닌 Functions 환경에만 설정되어 있다.
+- [ ] `incidentOperationsHistory` 조회 권한과 24시간 추세 표시를 확인했다.
 - [ ] `auditIncidentMailOperations`가 Firebase Scheduler에 배포되었다.
 - [ ] `incidentOperations/mail` 문서가 15분 이내 갱신된다.
 - [ ] 관리자 오류 화면에 메일 운영, 장기 미발송, SMTP/Secret, 오늘 발송 카드가 표시된다.

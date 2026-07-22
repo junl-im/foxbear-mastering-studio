@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.64",
+  "version": "1.5.65",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with scheduled incident-mail self-diagnostics, SMTP/Secret health checks, stale queue and dead-letter alerts, KST operations telemetry, and DSP quality protection.",
+  "description": "FoxBear AI Mastering Studio Pro with batch incident recovery controls, independent webhook operations alerts, 30-day health history, recovery run telemetry, and DSP quality protection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.64-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.64-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.65-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.65-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations"
+    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -300,15 +300,16 @@
     "node qa/v1562_incident_delivery_watchdog_package_gate_smoke.js",
     "node --check qa/v1563_incident_mail_quota_summary_recovery_smoke.js",
     "node qa/v1563_incident_mail_quota_summary_recovery_smoke.js",
-    "node qa/v1564_incident_operations_health_self_diagnostics_smoke.js"
+    "node qa/v1564_incident_operations_health_self_diagnostics_smoke.js",
+    "node qa/v1565_incident_recovery_control_alert_history_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-operations-health-self-diagnostics",
-    "assetVersion": "1.5.64-incident-operations-health-self-diagnostics",
-    "cacheName": "foxbear-shell-v1.5.64-incident-operations-health-self-diagnostics",
-    "bootRevision": "boot-sri-v1564",
-    "updateSafetyRevision": "update-safety-v1564",
-    "serviceWorkerRevision": "sw-v1564"
+    "buildId": "incident-recovery-control-alert-history",
+    "assetVersion": "1.5.65-incident-recovery-control-alert-history",
+    "cacheName": "foxbear-shell-v1.5.65-incident-recovery-control-alert-history",
+    "bootRevision": "boot-sri-v1565",
+    "updateSafetyRevision": "update-safety-v1565",
+    "serviceWorkerRevision": "sw-v1565"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

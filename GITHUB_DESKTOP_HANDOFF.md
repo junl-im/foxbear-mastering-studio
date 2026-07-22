@@ -6,6 +6,12 @@ FoxBear 패치는 **GitHub Desktop을 기본 Git 클라이언트로 사용하는
 
 작업 완료 보고는 `진행된 내용`, `배포 파일 2종`, `다음 예상 내용`의 세 구역만 사용합니다. 배포 파일은 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP을 항상 함께 전달합니다.
 
+## v1.5.65 적용 확인
+
+- `functions/index.js`, `firestore.rules`, `src/firebase-bootstrap.js`, `src/ui/admin-incident-monitor-view.js`, `index.html` 변경을 모두 확인합니다.
+- 보조 웹훅을 사용할 때만 Firebase Functions 환경에 `FOXBEAR_INCIDENT_ALERT_WEBHOOK_URL`을 설정합니다. 실제 URL은 저장소나 커밋에 넣지 않습니다.
+- 배포 후 관리자 오류 화면에서 일괄 복구 버튼, 최근 자동 복구 결과, 24시간 추세가 표시되는지 확인합니다.
+
 ## 적용 전
 
 1. GitHub Desktop에서 FoxBear 저장소를 선택합니다.
