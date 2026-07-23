@@ -51,7 +51,8 @@
         meta.textContent = getWaveformCompareSummaryText(track);
         head.append(name, meta);
         wrap.appendChild(head);
-        wrap.appendChild(createWaveformCompareTransportControls(track));
+        const transportControls = createWaveformCompareTransportControls(track);
+        wrap.appendChild(transportControls);
         addWaveformPeakJumpChips(track, wrap);
 
         const rows = createAlignedWaveformCompareRows(track);
@@ -70,7 +71,11 @@
             ? '원곡도 하이라이트 시작점과 길이에 맞춰 잘라 표시합니다. 파형을 누르면 두 소스가 같은 구간으로 이동합니다.'
             : '파형을 누르면 같은 비율 위치로 이동합니다. 위 재생 버튼으로 팝업 안에서 바로 재생/정지할 수 있습니다.';
         wrap.appendChild(hint);
+        wrap._foxbearDispose = () => {
+            transportControls?._foxbearDispose?.();
+        };
         target.appendChild(wrap);
+        return wrap;
     }
 
     function getWaveformCompareSummaryText(track) {
@@ -193,6 +198,13 @@
             }
             sync();
         }, 240);
+        let disposed = false;
+        controls._foxbearDispose = () => {
+            if (disposed) return false;
+            disposed = true;
+            clearIntervalRef(timer);
+            return true;
+        };
         sync();
 
         controls.append(toggle, mode, time);

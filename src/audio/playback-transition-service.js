@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download';
+    const SERVICE_VERSION = '1.5.79-preview-download-ownership-recovery';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;
@@ -22,6 +22,34 @@
 
     function now() {
         return global.performance && typeof global.performance.now === 'function' ? global.performance.now() : Date.now();
+    }
+
+    function beginPlaybackRequest(audio, type = 'transition') {
+        if (!audio) return 0;
+        const requestId = Number(audio._foxbearPlaybackRequestId || 0) + 1;
+        audio._foxbearPlaybackRequestId = requestId;
+        audio._foxbearPlaybackRequestType = String(type || 'transition');
+        return requestId;
+    }
+
+    function ownsPlaybackRequest(audio, requestId) {
+        return Boolean(audio && requestId > 0 && Number(audio._foxbearPlaybackRequestId || 0) === Number(requestId));
+    }
+
+    function isAudioConnected(audio) {
+        return typeof audio?.isConnected === 'boolean' ? audio.isConnected : true;
+    }
+
+    function cancelPlaybackRequest(audio, options = {}) {
+        if (!audio) return false;
+        const hadRequest = Boolean(audio._foxbearPlaybackRequestId || audio._foxbearFadeState || audio._foxbearFadeRaf);
+        audio._foxbearPlaybackRequestId = Number(audio._foxbearPlaybackRequestId || 0) + 1;
+        audio._foxbearPlaybackRequestType = String(options.reason || 'cancelled');
+        cancelFade(audio);
+        if (options.pause !== false) {
+            try { audio.pause?.(); } catch (error) {}
+        }
+        return hadRequest;
     }
 
     function waitForMediaReady(audio, timeoutMs = 900) {
@@ -86,9 +114,19 @@
     }
 
     function cancelFade(audio) {
-        const id = Number(audio?._foxbearFadeRaf || 0);
+        if (!audio) return false;
+        const fadeState = audio._foxbearFadeState || null;
+        const id = Number(fadeState?.raf || audio._foxbearFadeRaf || 0);
         if (id) caf(id);
-        if (audio) audio._foxbearFadeRaf = 0;
+        audio._foxbearFadeRaf = 0;
+        if (!fadeState) return Boolean(id);
+        fadeState.raf = 0;
+        if (audio._foxbearFadeState === fadeState) audio._foxbearFadeState = null;
+        if (!fadeState.settled) {
+            fadeState.settled = true;
+            fadeState.resolve(false);
+        }
+        return true;
     }
 
     function fadeVolume(audio, toVolume = 1, durationMs = DEFAULT_FADE_MS) {
@@ -102,33 +140,62 @@
             return Promise.resolve(true);
         }
         return new Promise(resolve => {
+            const fadeState = { raf: 0, resolve, settled: false };
+            const finish = completed => {
+                if (fadeState.settled) return;
+                fadeState.settled = true;
+                if (audio._foxbearFadeState === fadeState) audio._foxbearFadeState = null;
+                fadeState.raf = 0;
+                audio._foxbearFadeRaf = 0;
+                resolve(Boolean(completed));
+            };
             const start = now();
             const step = tick => {
+                if (audio._foxbearFadeState !== fadeState) {
+                    finish(false);
+                    return;
+                }
                 const t = clamp((tick - start) / duration, 0, 1);
                 const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
                 audio.volume = clamp(from + (to - from) * eased, 0, 1);
-                if (t < 1) audio._foxbearFadeRaf = raf(step);
-                else {
+                if (t < 1) {
+                    fadeState.raf = raf(step);
+                    audio._foxbearFadeRaf = fadeState.raf;
+                } else {
                     audio.volume = to;
-                    audio._foxbearFadeRaf = 0;
-                    resolve(true);
+                    finish(true);
                 }
             };
-            audio._foxbearFadeRaf = raf(step);
+            audio._foxbearFadeState = fadeState;
+            fadeState.raf = raf(step);
+            audio._foxbearFadeRaf = fadeState.raf;
         });
     }
 
     function playWithFadeIn(audio, options = {}) {
         if (!audio) return Promise.resolve(false);
+        const requestId = beginPlaybackRequest(audio, 'play');
+        cancelFade(audio);
         resumeAudioGraphForGesture(audio);
         const target = rememberTargetVolume(audio);
         const duration = Number(options.ms || DEFAULT_FADE_MS);
         if (options.fromZero !== false) audio.volume = FADE_MIN_VOLUME;
-        const playPromise = typeof audio.play === 'function' ? audio.play() : Promise.resolve();
+        let playPromise;
+        try { playPromise = typeof audio.play === 'function' ? audio.play() : Promise.resolve(); }
+        catch (error) { playPromise = Promise.reject(error); }
         return Promise.resolve(playPromise)
-            .then(() => fadeVolume(audio, target, duration))
-            .then(() => true)
+            .then(() => {
+                if (!ownsPlaybackRequest(audio, requestId)) return false;
+                if (!isAudioConnected(audio)) {
+                    try { audio.pause?.(); } catch (error) {}
+                    audio.volume = target;
+                    return false;
+                }
+                return fadeVolume(audio, target, duration);
+            })
+            .then(completed => Boolean(completed && ownsPlaybackRequest(audio, requestId) && isAudioConnected(audio)))
             .catch(error => {
+                if (!ownsPlaybackRequest(audio, requestId)) return false;
                 cancelFade(audio);
                 audio.volume = target;
                 throw error;
@@ -137,12 +204,16 @@
 
     function pauseWithFadeOut(audio, options = {}) {
         if (!audio) return Promise.resolve(false);
+        const requestId = beginPlaybackRequest(audio, 'pause');
         const target = rememberTargetVolume(audio);
         if (audio.paused || audio.ended) {
+            cancelFade(audio);
             audio.volume = target;
-            return Promise.resolve(true);
+            return Promise.resolve(ownsPlaybackRequest(audio, requestId));
         }
-        return fadeVolume(audio, FADE_MIN_VOLUME, Number(options.ms || DEFAULT_FADE_MS)).then(() => {
+        return fadeVolume(audio, FADE_MIN_VOLUME, Number(options.ms || DEFAULT_FADE_MS)).then(completed => {
+            if (!completed) return false;
+            if (!ownsPlaybackRequest(audio, requestId)) return false;
             try { audio.pause(); } catch (error) {}
             audio.volume = target;
             return true;
@@ -152,6 +223,12 @@
     function crossfadePair(oldAudio, nextAudio, options = {}) {
         const duration = Number(options.ms || DEFAULT_FADE_MS);
         if (oldAudio && nextAudio && oldAudio === nextAudio) return playWithFadeIn(nextAudio, { ms: duration, fromZero: false });
+        const oldRequestId = oldAudio ? beginPlaybackRequest(oldAudio, 'crossfade-out') : 0;
+        const nextRequestId = nextAudio ? beginPlaybackRequest(nextAudio, 'crossfade-in') : 0;
+        if (oldAudio) cancelFade(oldAudio);
+        if (nextAudio) cancelFade(nextAudio);
+        const ownsPair = () => (!oldAudio || ownsPlaybackRequest(oldAudio, oldRequestId))
+            && (!nextAudio || ownsPlaybackRequest(nextAudio, nextRequestId));
         const oldTarget = rememberTargetVolume(oldAudio);
         const nextTarget = rememberTargetVolume(nextAudio);
         if (nextAudio) nextAudio.volume = FADE_MIN_VOLUME;
@@ -163,15 +240,26 @@
             try { immediatePlay = nextAudio.play(); } catch (error) { immediatePlay = Promise.reject(error); }
         }
         const readyPromise = nextAudio ? waitForMediaReady(nextAudio, options.readyTimeoutMs || 900) : Promise.resolve(false);
-        const playPromise = immediatePlay || readyPromise.then(() => nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve());
+        const playPromise = immediatePlay || readyPromise.then(() => {
+            if (!ownsPair() || !isAudioConnected(nextAudio)) return false;
+            return nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve();
+        });
         return Promise.all([Promise.resolve(playPromise), readyPromise])
             .then(() => {
+                if (!ownsPair()) return false;
+                if (nextAudio && !isAudioConnected(nextAudio)) {
+                    try { nextAudio.pause?.(); } catch (error) {}
+                    nextAudio.volume = nextTarget;
+                    return false;
+                }
                 const fades = [];
                 if (oldAudio) fades.push(fadeVolume(oldAudio, FADE_MIN_VOLUME, duration));
                 if (nextAudio) fades.push(fadeVolume(nextAudio, nextTarget, duration));
                 return Promise.all(fades);
             })
-            .then(() => {
+            .then(results => {
+                if (results === false || !ownsPair()) return false;
+                if (results.some(completed => completed === false)) return false;
                 if (oldAudio) {
                     try { oldAudio.pause(); } catch (error) {}
                     oldAudio.volume = oldTarget;
@@ -181,6 +269,7 @@
                 return true;
             })
             .catch(error => {
+                if (!ownsPair()) return false;
                 cancelFade(nextAudio);
                 if (nextAudio) nextAudio.volume = nextTarget;
                 if (oldAudio) oldAudio.volume = oldTarget;
@@ -193,6 +282,9 @@
         DEFAULT_FADE_MS,
         FADE_MIN_VOLUME,
         rememberTargetVolume,
+        beginPlaybackRequest,
+        ownsPlaybackRequest,
+        cancelPlaybackRequest,
         cancelFade,
         fadeVolume,
         waitForMediaReady,

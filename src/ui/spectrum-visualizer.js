@@ -3,7 +3,7 @@
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download';
+    const VISUALIZER_VERSION = '1.5.79-preview-download-ownership-recovery';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -14,7 +14,8 @@
     const sourceNodes = new WeakMap();
     const externalAnalyserNodes = new WeakMap();
     const audioMetadata = new WeakMap();
-    const registeredAudio = new WeakSet();
+    const registeredAudio = new Set();
+    const audioBindings = new WeakMap();
     const state = {
         context: null,
         ownsContext: false,
@@ -30,7 +31,12 @@
         live: false,
         lastLiveValues: [],
         lastFrameAt: 0,
-        visibilityBound: false,
+        lifecycleBound: false,
+        lifecycleObserver: null,
+        activateTimer: 0,
+        prunedAudioCount: 0,
+        disposedAudioCount: 0,
+        disposing: false,
         lastError: ''
     };
 
@@ -303,8 +309,19 @@
         state.ownsContext = false;
     }
 
+    function clearActivationTimer() {
+        if (!state.activateTimer) return;
+        global.clearTimeout?.(state.activateTimer);
+        state.activateTimer = 0;
+    }
+
     function disposeSourceRecord(audio, record) {
         if (!record) return;
+        if (state.analyser === record.analyser) {
+            state.live = false;
+            state.analyser = null;
+            state.data = null;
+        }
         try { record.source?.disconnect?.(); } catch (error) {}
         try { record.analyser?.disconnect?.(); } catch (error) {}
         try { record.silentSink?.disconnect?.(); } catch (error) {}
@@ -426,27 +443,114 @@
         state.raf = scheduleFrame(tick);
     }
 
+    function unregisterAudio(audio, reason = 'unregister') {
+        if (!audio) return false;
+        const handlers = audioBindings.get(audio);
+        if (handlers) {
+            Object.entries(handlers).forEach(([type, handler]) => {
+                try { audio.removeEventListener?.(type, handler); } catch (error) {}
+            });
+        }
+        audioBindings.delete(audio);
+
+        const sourceRecord = sourceNodes.get(audio);
+        const externalRecord = externalAnalyserNodes.get(audio);
+        const activeAnalyser = state.analyser;
+        const wasActive = Boolean(activeAnalyser && (activeAnalyser === sourceRecord?.analyser || activeAnalyser === externalRecord?.analyser));
+        if (sourceRecord) disposeSourceRecord(audio, sourceRecord);
+        externalAnalyserNodes.delete(audio);
+        audioMetadata.delete(audio);
+        const removed = registeredAudio.delete(audio);
+        if (removed) state.disposedAudioCount += 1;
+
+        if (audio.dataset) {
+            delete audio.dataset.spectrumTrackId;
+            delete audio.dataset.spectrumMode;
+            delete audio.dataset.spectrumLabel;
+            delete audio.dataset.spectrumBound;
+        }
+
+        if (wasActive && !state.disposing) {
+            stopLoopToStatic();
+            state.analyser = null;
+            state.data = null;
+            const next = getLikelyActiveAudio();
+            if (next && next !== audio) activateAudio(next, { label: next.dataset?.spectrumLabel || '현재 재생' });
+            else if (!registeredAudio.size) releaseOwnedContext(`spectrum-${reason}`);
+        }
+        return removed;
+    }
+
+    function pruneDisconnectedAudio() {
+        const stale = Array.from(registeredAudio).filter(audio => !audio || audio.isConnected === false);
+        stale.forEach(audio => unregisterAudio(audio, 'dom-detached'));
+        state.prunedAudioCount += stale.length;
+        return stale.length;
+    }
+
+    function handleVisibilityChange() {
+        if (isDocumentHidden()) {
+            if (state.raf) {
+                cancelFrame(state.raf);
+                state.raf = 0;
+            }
+            return;
+        }
+        pruneDisconnectedAudio();
+        if (state.live && state.analyser && hasRenderableCanvas()) startLoop();
+        else activateCurrentAudio();
+    }
+
+    function handlePageShow(event) {
+        if (!event?.persisted) return;
+        pruneDisconnectedAudio();
+        activateCurrentAudio();
+    }
+
+    function handlePageHide(event) {
+        if (event?.persisted) {
+            if (state.raf) {
+                cancelFrame(state.raf);
+                state.raf = 0;
+            }
+            return;
+        }
+        dispose('pagehide');
+    }
+
     function bindVisibilityLifecycle() {
-        if (state.visibilityBound || !global.document || typeof global.document.addEventListener !== 'function') return;
-        state.visibilityBound = true;
-        global.document.addEventListener('visibilitychange', () => {
-            if (isDocumentHidden()) return;
-            if (state.live && state.analyser && hasRenderableCanvas()) startLoop();
-            else activateCurrentAudio();
-        });
+        if (state.lifecycleBound || !global.document || typeof global.document.addEventListener !== 'function') return;
+        state.lifecycleBound = true;
+        global.document.addEventListener('visibilitychange', handleVisibilityChange);
+        global.addEventListener?.('pageshow', handlePageShow);
+        global.addEventListener?.('pagehide', handlePageHide);
+        if (global.MutationObserver && global.document.documentElement) {
+            state.lifecycleObserver = new global.MutationObserver(() => pruneDisconnectedAudio());
+            state.lifecycleObserver.observe(global.document.documentElement, { childList: true, subtree: true });
+        }
     }
 
     function registerAudio(audio, meta = {}) {
         if (!audio) return null;
         updateAudioMeta(audio, meta);
         if (registeredAudio.has(audio)) return audio;
-        registeredAudio.add(audio);
-        audio.addEventListener('play', () => activateAudio(audio));
-        audio.addEventListener('pause', () => {
+        bindVisibilityLifecycle();
+        const handlers = {
+          play: () => activateAudio(audio),
+          pause: () => {
             const active = getLikelyActiveAudio();
             if (state.live && (!active || active === audio)) stopLoopToStatic();
-        });
-        audio.addEventListener('ended', stopLoopToStatic);
+          },
+          ended: stopLoopToStatic,
+          emptied: () => unregisterAudio(audio, 'emptied'),
+          error: () => {
+            if (audio.isConnected === false) unregisterAudio(audio, 'error-detached');
+          }
+        };
+        Object.entries(handlers).forEach(([type, handler]) => audio.addEventListener?.(type, handler));
+        audioBindings.set(audio, handlers);
+        registeredAudio.add(audio);
+        if (audio.dataset) audio.dataset.spectrumBound = 'true';
         return audio;
     }
 
@@ -459,11 +563,12 @@
     }
 
     function getLikelyActiveAudio() {
+        pruneDisconnectedAudio();
         if (typeof state.getActiveAudio === 'function') {
             const active = state.getActiveAudio();
             if (active) return active;
         }
-        return Array.from(document.querySelectorAll('audio')).find(audio => !audio.paused && !audio.ended) || null;
+        return Array.from(global.document?.querySelectorAll?.('audio') || []).find(audio => !audio.paused && !audio.ended) || null;
     }
 
     function activateCurrentAudio() {
@@ -526,12 +631,48 @@
         state.getActiveAudio = typeof options.getActiveAudio === 'function' ? options.getActiveAudio : null;
         bindVisibilityLifecycle();
         drawStatic(track);
-        setTimeout(activateCurrentAudio, 40);
+        clearActivationTimer();
+        state.activateTimer = global.setTimeout?.(() => {
+            state.activateTimer = 0;
+            if (state.canvas !== canvas || canvas.isConnected === false) return;
+            activateCurrentAudio();
+        }, 40) || 0;
         return panel;
+    }
+
+    function dispose(reason = 'dispose') {
+        if (state.disposing) return false;
+        state.disposing = true;
+        clearActivationTimer();
+        state.live = false;
+        if (state.raf) {
+            cancelFrame(state.raf);
+            state.raf = 0;
+        }
+        Array.from(registeredAudio).forEach(audio => unregisterAudio(audio, reason));
+        state.analyser = null;
+        state.data = null;
+        releaseOwnedContext(`spectrum-${reason}`);
+        try { state.lifecycleObserver?.disconnect?.(); } catch (error) {}
+        state.lifecycleObserver = null;
+        if (state.lifecycleBound) {
+            global.document?.removeEventListener?.('visibilitychange', handleVisibilityChange);
+            global.removeEventListener?.('pageshow', handlePageShow);
+            global.removeEventListener?.('pagehide', handlePageHide);
+        }
+        state.lifecycleBound = false;
+        state.canvas = null;
+        state.statusNode = null;
+        state.metaNode = null;
+        state.track = null;
+        state.getActiveAudio = null;
+        state.disposing = false;
+        return true;
     }
 
     function getDiagnostics() {
         pruneDisconnectedCanvases();
+        const prunedCount = pruneDisconnectedAudio();
         const active = getLikelyActiveAudio();
         return Object.freeze({
             version: VISUALIZER_VERSION,
@@ -541,7 +682,12 @@
             hasPanelCanvas: Boolean(state.canvas && state.canvas.isConnected !== false),
             activeLabel: active?.dataset?.spectrumLabel || '',
             lastError: state.lastError || '',
-            lastLiveValueCount: state.lastLiveValues.length
+            lastLiveValueCount: state.lastLiveValues.length,
+            registeredAudioCount: registeredAudio.size,
+            prunedCount,
+            totalPrunedAudioCount: state.prunedAudioCount,
+            disposedAudioCount: state.disposedAudioCount,
+            lifecycleBound: state.lifecycleBound
         });
     }
 
@@ -549,9 +695,12 @@
         version: VISUALIZER_VERSION,
         renderPanel,
         registerAudio,
+        unregisterAudio,
         registerExternalAnalyser,
+        pruneDisconnectedAudio,
         activateCurrentAudio,
         drawStatic,
+        dispose,
         getDiagnostics
     });
 })(window);

@@ -3,10 +3,14 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { spawnSync } = require('child_process');
 const { ROOT, getReleaseMetadata, renderBuildInfo } = require('./release-metadata');
 
 const CHECK_ONLY = process.argv.includes('--check');
+const DRY_RUN = process.argv.includes('--dry-run');
+const STAGED_SYNC = process.env.FOXBEAR_SYNC_STAGED === '1';
+const PYTHON_BIN = String(process.env.FOXBEAR_PYTHON_BIN || 'python3').trim() || 'python3';
 const meta = getReleaseMetadata();
 const buildInfoPath = path.join(ROOT, 'src/config/build-info.js');
 
@@ -16,6 +20,13 @@ function read(relativePath) {
 
 function write(relativePath, text) {
   fs.writeFileSync(path.join(ROOT, relativePath), text);
+}
+
+function synchronizeLockfileVersion(lockfile, version) {
+  const next = JSON.parse(JSON.stringify(lockfile || {}));
+  next.version = version;
+  if (next.packages?.['']) next.packages[''].version = version;
+  return next;
 }
 
 function detectPrevious() {
@@ -105,9 +116,21 @@ function sync() {
   pkg.scripts['package:verify:overwrite'] = `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`;
   pkg.scripts['package:verify:release'] = `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`;
   write('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
+
+  const rootLock = synchronizeLockfileVersion(JSON.parse(read('package-lock.json')), meta.productVersion);
+  write('package-lock.json', `${JSON.stringify(rootLock, null, 2)}\n`);
+
+  const functionsPackage = JSON.parse(read('functions/package.json'));
+  functionsPackage.version = meta.productVersion;
+  write('functions/package.json', `${JSON.stringify(functionsPackage, null, 2)}\n`);
+
+  const functionsLock = synchronizeLockfileVersion(JSON.parse(read('functions/package-lock.json')), meta.productVersion);
+  write('functions/package-lock.json', `${JSON.stringify(functionsLock, null, 2)}\n`);
+
   const runtimeTargets = [
     ...filesUnder('src', '.js'),
-    path.join(ROOT, 'index.html')
+    path.join(ROOT, 'index.html'),
+    path.join(ROOT, 'functions/index.js')
   ];
   const qaTargets = filesUnder('qa', '.js');
 
@@ -194,8 +217,138 @@ function sync() {
   write('sw.js', sw);
   fs.writeFileSync(buildInfoPath, renderBuildInfo(meta));
 
-  const sri = spawnSync('python3', ['tools/update-sri.py'], { cwd: ROOT, stdio: 'inherit' });
-  if (sri.status !== 0) process.exit(sri.status || 1);
+  const sri = spawnSync(PYTHON_BIN, ['tools/update-sri.py'], { cwd: ROOT, stdio: 'inherit' });
+  if (sri.error) throw sri.error;
+  if (sri.status !== 0) throw new Error(`SRI update failed with status ${sri.status || 1}`);
+}
+
+const EXCLUDED_SYNC_PATHS = [
+  '.git',
+  '.firebase',
+  'dist',
+  'node_modules',
+  'functions/node_modules',
+  'qa/browser-results',
+  'test-results',
+  'playwright-report',
+  'coverage'
+];
+
+function normalizeRelative(relativePath) {
+  return String(relativePath || '').split(path.sep).join('/').replace(/^\.\//, '');
+}
+
+function isExcludedSyncPath(relativePath) {
+  const normalized = normalizeRelative(relativePath);
+  if (normalized.split('/').includes('__pycache__') || /\.py[co]$/i.test(normalized)) return true;
+  return EXCLUDED_SYNC_PATHS.some(excluded => normalized === excluded || normalized.startsWith(`${excluded}/`));
+}
+
+function collectProjectFiles(rootDir) {
+  const files = [];
+  const walk = (absoluteDir, relativeDir = '') => {
+    for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
+      const relativePath = normalizeRelative(path.join(relativeDir, entry.name));
+      if (isExcludedSyncPath(relativePath)) continue;
+      const absolutePath = path.join(absoluteDir, entry.name);
+      if (entry.isSymbolicLink()) throw new Error(`Release metadata sync refuses symbolic links: ${relativePath}`);
+      if (entry.isDirectory()) walk(absolutePath, relativePath);
+      else if (entry.isFile()) files.push(relativePath);
+    }
+  };
+  walk(rootDir);
+  return files.sort();
+}
+
+function copyProjectToStage(sourceRoot, stageRoot) {
+  for (const relativePath of collectProjectFiles(sourceRoot)) {
+    const sourcePath = path.join(sourceRoot, relativePath);
+    const targetPath = path.join(stageRoot, relativePath);
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+    fs.copyFileSync(sourcePath, targetPath);
+    fs.chmodSync(targetPath, fs.statSync(sourcePath).mode);
+  }
+}
+
+function collectChangedFiles(sourceRoot, stageRoot) {
+  const sourceFiles = new Set(collectProjectFiles(sourceRoot));
+  const stageFiles = new Set(collectProjectFiles(stageRoot));
+  const paths = [...new Set([...sourceFiles, ...stageFiles])].sort();
+  return paths.filter(relativePath => {
+    const sourcePath = path.join(sourceRoot, relativePath);
+    const stagePath = path.join(stageRoot, relativePath);
+    if (!fs.existsSync(sourcePath) || !fs.existsSync(stagePath)) return true;
+    const sourceStat = fs.statSync(sourcePath);
+    const stageStat = fs.statSync(stagePath);
+    if (sourceStat.size !== stageStat.size) return true;
+    return !fs.readFileSync(sourcePath).equals(fs.readFileSync(stagePath));
+  });
+}
+
+function atomicReplace(targetPath, content, mode) {
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  const temporaryPath = `${targetPath}.foxbear-sync-${process.pid}-${Date.now()}.tmp`;
+  fs.writeFileSync(temporaryPath, content);
+  if (mode) fs.chmodSync(temporaryPath, mode);
+  try {
+    fs.renameSync(temporaryPath, targetPath);
+  } catch (error) {
+    if (!['EEXIST', 'EPERM'].includes(error?.code)) throw error;
+    fs.rmSync(targetPath, { force: true });
+    fs.renameSync(temporaryPath, targetPath);
+  } finally {
+    fs.rmSync(temporaryPath, { force: true });
+  }
+}
+
+function commitStagedFiles(stageRoot, changedFiles) {
+  const backups = new Map();
+  const committed = [];
+  try {
+    for (const relativePath of changedFiles) {
+      const targetPath = path.join(ROOT, relativePath);
+      const stagePath = path.join(stageRoot, relativePath);
+      backups.set(relativePath, fs.existsSync(targetPath)
+        ? { exists: true, content: fs.readFileSync(targetPath), mode: fs.statSync(targetPath).mode }
+        : { exists: false, content: null, mode: null });
+      if (!fs.existsSync(stagePath)) fs.rmSync(targetPath, { force: true });
+      else atomicReplace(targetPath, fs.readFileSync(stagePath), fs.statSync(stagePath).mode);
+      committed.push(relativePath);
+    }
+  } catch (error) {
+    for (const relativePath of committed.reverse()) {
+      const targetPath = path.join(ROOT, relativePath);
+      const backup = backups.get(relativePath);
+      if (!backup?.exists) fs.rmSync(targetPath, { force: true });
+      else atomicReplace(targetPath, backup.content, backup.mode);
+    }
+    throw error;
+  }
+}
+
+function runStagedSync({ dryRun = false } = {}) {
+  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-release-sync-'));
+  try {
+    copyProjectToStage(ROOT, temporaryRoot);
+    const stagedTool = path.join(temporaryRoot, 'tools/sync-release-metadata.js');
+    const result = spawnSync(process.execPath, [stagedTool], {
+      cwd: temporaryRoot,
+      stdio: 'inherit',
+      env: { ...process.env, FOXBEAR_SYNC_STAGED: '1' }
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(`staged release metadata sync failed with status ${result.status || 1}`);
+
+    const changedFiles = collectChangedFiles(ROOT, temporaryRoot);
+    const label = dryRun ? 'would change' : 'changed';
+    console.log(`Release metadata ${dryRun ? 'dry-run' : 'transaction'}: ${changedFiles.length} file(s) ${label}.`);
+    changedFiles.forEach(relativePath => console.log(`  - ${relativePath}`));
+    if (!dryRun && changedFiles.length) commitStagedFiles(temporaryRoot, changedFiles);
+    if (!dryRun) validate();
+    return changedFiles;
+  } finally {
+    fs.rmSync(temporaryRoot, { recursive: true, force: true });
+  }
 }
 
 function validate() {
@@ -203,6 +356,9 @@ function validate() {
   const expect = (condition, message) => { if (!condition) failures.push(message); };
   const pkg = JSON.parse(read('package.json'));
   const pkgLock = fs.existsSync(path.join(ROOT, 'package-lock.json')) ? JSON.parse(read('package-lock.json')) : null;
+  const functionsPkg = JSON.parse(read('functions/package.json'));
+  const functionsLock = JSON.parse(read('functions/package-lock.json'));
+  const functionsIndex = read('functions/index.js');
   const manifest = JSON.parse(read('manifest.webmanifest'));
   const handoffPackage = JSON.parse(read('HANDOFF_PACKAGE.json'));
   const rootMarker = JSON.parse(read('foxbear-root.json'));
@@ -212,6 +368,7 @@ function validate() {
   const app = read('src/app.js');
   const updateSafety = read('src/boot/update-safety-service.js');
   const changelog = read('CHANGELOG.md');
+  const qaReport = read('qa/QA_REPORT.md');
   const readme = read('README.md');
   const handoff = read('HANDOFF.md');
   const status = read('STATUS.md');
@@ -272,18 +429,44 @@ function validate() {
     expect(section.includes(`- Service worker cache: \`${meta.cacheName}\``), `STATUS ${sectionName} cache name is not synchronized`);
   }
   expect(pkgLock && pkgLock.version === meta.productVersion, 'package-lock.json is missing or version is not synchronized');
+  expect(functionsPkg.version === meta.productVersion, 'functions/package.json version is not synchronized');
+  expect(functionsLock.version === meta.productVersion && functionsLock.packages?.['']?.version === meta.productVersion, 'functions/package-lock.json version is not synchronized');
+  expect(functionsIndex.includes(`const PRODUCT_VERSION = '${meta.productVersion}';`), 'functions/index.js PRODUCT_VERSION is not synchronized');
+  expect(qaReport.startsWith(`# FoxBear QA Report - v${meta.productVersion}`), 'qa/QA_REPORT.md latest entry does not match package version');
   expect(pkg.scripts?.['package:verify:overwrite'] === `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`, 'package:verify:overwrite script is not synchronized');
   expect(pkg.scripts?.['package:verify:release'] === `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`, 'package:verify:release script is not synchronized');
 
   if (failures.length) {
-    failures.forEach(message => console.error(`FAIL ${message}`));
-    process.exit(1);
+    const error = new Error(failures.map(message => `FAIL ${message}`).join('\n'));
+    error.code = 'FOXBEAR_RELEASE_METADATA_INVALID';
+    throw error;
   }
   console.log(`PASS release metadata synchronized: v${meta.productVersion} / ${meta.assetVersion}`);
 }
 
-if (CHECK_ONLY) validate();
-else {
-  sync();
-  validate();
+function main() {
+  if (CHECK_ONLY) validate();
+  else if (STAGED_SYNC) {
+    sync();
+    validate();
+  } else runStagedSync({ dryRun: DRY_RUN });
 }
+
+if (require.main === module) {
+  try {
+    main();
+  } catch (error) {
+    console.error(error?.message || error);
+    process.exitCode = 1;
+  }
+}
+
+module.exports = {
+  collectChangedFiles,
+  collectProjectFiles,
+  commitStagedFiles,
+  isExcludedSyncPath,
+  runStagedSync,
+  synchronizeLockfileVersion,
+  validate
+};

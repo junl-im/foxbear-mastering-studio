@@ -1,3 +1,45 @@
+# v1.5.79 - Preview and Download Ownership Recovery
+
+- Adds per-audio playback request generations so late `play()` and readiness completions cannot mutate a newer preview state.
+- Invalidates and pauses pending preview playback before disposed audio is unregistered from spectrum and playback-link services.
+- Prevents detached audio from resuming after its UI has been removed.
+- Adds single-flight guards and accessible busy states to native share, direct-save, and download option actions.
+- Tracks download Blob URL ownership centrally and revokes all pending URLs on normal page exit while preserving BFCache navigation.
+- Adds VM regression coverage for playback ownership, duplicate native-action prevention, and URL lifecycle cleanup.
+
+# v1.5.78 - Playback Transition Race Recovery
+
+- Settles cancelled fade promises immediately instead of leaving callers and audio references pending indefinitely.
+- Prevents a superseded fade-out from pausing audio after a newer play request has already started.
+- Prevents stale crossfade completion handlers from pausing or resetting sources after a newer transition takes ownership.
+- Clears per-audio animation-frame and fade-controller references on completion and cancellation.
+- Adds VM-based regression coverage for fade replacement, rapid pause/play, and cancelled crossfade behavior.
+
+# v1.5.77 - Runtime Resource Lifecycle Recovery
+
+- Explicitly unregisters detached spectrum audio, event listeners, capture streams, analyser nodes, and owned AudioContext resources.
+- Disposes waveform comparison timers and preview/Dock audio registrations when their UI is removed.
+- Separates normal page exit cleanup from BFCache suspension and restores only mounted active audio.
+- Repositions mobile settings panels on visual viewport changes and supports older WebView scheduling fallbacks.
+
+# v1.5.76 - Atomic Release Sync and Dependency Health Diagnostics
+
+- Runs release metadata synchronization inside an isolated staging copy before touching the working tree.
+- Commits only validated changed files and restores already-written files when a commit error occurs.
+- Adds `npm run version:dry-run` to preview every metadata change without modifying the project.
+- Synchronizes the root and Functions lockfile versions from the release version source of truth.
+- Adds dependency and browser-runtime health diagnostics that remain useful before dependencies are installed.
+- Adds regression coverage proving a forced SRI bootstrap failure leaves release files unchanged.
+- Removes tracked Python bytecode caches and adds overwrite-handoff deletion instructions so generated files cannot linger between releases.
+
+# v1.5.75 - Dependency-Light Static QA and Playwright Bootstrap Hardening
+
+- Made Playwright browser helper modules import-safe before development dependencies are installed.
+- Moved Playwright CLI resolution from module load time to the actual browser QA entrypoint.
+- Added actionable recovery guidance for missing `@playwright/test` and Chromium installations.
+- Added a dependency-free fallback for Playwright configuration metadata probes while preserving real device descriptors when Playwright is installed.
+- Added regression coverage that reproduces the missing-dependency environment and verifies static QA remains usable.
+
 # v1.5.74 - Batch Pause, Skip, Queue Reorder, and Mobile Download Sheet
 
 - Added between-track pause/resume without interrupting the active track.

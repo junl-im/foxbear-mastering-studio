@@ -1,4 +1,4 @@
-# Handoff - v1.5.74
+# Handoff - v1.5.79
 ## 필수 결과 보고 형식
 
 앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
@@ -11,7 +11,32 @@
 
 배포 파일은 항상 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP 두 종류를 함께 제공합니다. 확인하지 못한 실제 배포·메일 수신·브라우저 검증은 `진행된 내용`에 사실대로 제한 사항을 적습니다.
 
+## v1.5.79 인수인계
 
+- 모든 미리듣기 오디오는 요청 세대 번호를 사용하며, UI 제거 시 `cancelPlaybackRequest`로 대기 중인 재생과 페이드를 무효화하고 일시정지합니다.
+- 분리된 오디오에서 늦게 완료된 `play()`는 성공으로 처리하지 않고 즉시 정지합니다.
+- 저장 도움의 공유/직접 저장 버튼은 단일 실행 잠금과 `aria-busy`를 사용해 연타 중복 호출을 막습니다.
+- `pagehide.persisted === false`에서는 등록된 다운로드 Blob URL을 모두 회수하고, BFCache 이동에서는 재사용을 위해 유지합니다.
+- 회귀 검사는 `node qa/v1579_preview_download_ownership_smoke.js`로 단독 실행할 수 있습니다.
+- 결과 보고는 계속 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용` 세 구역만 사용합니다.
+
+## v1.5.78 인수인계
+
+- 재생 페이드는 오디오별 컨트롤러를 보유하며 새 전환이 시작되면 이전 RAF를 취소하고 이전 Promise를 `false`로 즉시 종료합니다.
+- 취소된 `pauseWithFadeOut`은 후속 `pause()`를 실행하지 않아 새 재생 요청을 뒤늦게 중단하지 않습니다.
+- 취소된 `crossfadePair`는 오래된 완료 정리와 `onComplete`를 실행하지 않습니다.
+- 회귀 검사는 `node qa/v1578_playback_transition_race_recovery_smoke.js`로 단독 실행할 수 있습니다.
+- 결과 보고는 계속 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용` 세 구역만 사용합니다.
+
+## v1.5.76 인수인계
+
+- `npm run version:sync`는 원본을 직접 순차 수정하지 않고 임시 스테이징 복사본에서 동기화·SRI·검증을 완료한 뒤 변경 파일만 반영합니다.
+- `npm run version:dry-run`은 반영 예정 파일 목록을 출력하고 원본을 수정하지 않습니다.
+- 루트와 Functions lockfile 버전은 `package.json`의 제품 버전에 맞춰 함께 동기화됩니다.
+- `npm run dependencies:check`는 lockfile 계약 오류는 실패로, 미설치 Playwright·Chromium·Functions 패키지는 복구 명령이 필요한 경고로 구분합니다.
+- 스테이징 또는 SRI 실행 실패 시 원본 `package.json`, `index.html`, `sw.js` 등은 변경되지 않아야 합니다.
+- 실제 Chromium 화면 검증은 Playwright 및 Chromium 설치 환경에서 계속 수행합니다.
+- 덮어쓰기 적용 후 `HANDOFF_PACKAGE.json.deletePaths`에 따라 `qa/__pycache__`, `tools/__pycache__`가 남아 있으면 삭제합니다.
 
 ## v1.5.74 인수인계
 

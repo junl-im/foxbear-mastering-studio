@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.74 (bulk-pause-skip-reorder-mobile-download).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.79 (preview-download-ownership-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.74"
+  "version": "1.5.79"
 }

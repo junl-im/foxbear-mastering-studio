@@ -1,3 +1,30 @@
+# FoxBear QA Report - v1.5.79
+
+- Pending preview play completions are isolated by per-audio request ownership and cannot revive detached UI audio.
+- Disposal invalidates pending playback requests before spectrum and playback-link resources are released.
+- Download assist share/save actions are single-flight and expose synchronized `aria-busy` states.
+- Non-BFCache page exit revokes every tracked download Blob URL while persisted BFCache navigation preserves them.
+- VM regression coverage exercises delayed play, detached audio, rapid share taps, and Blob URL exit cleanup.
+- Configured static/regression checks: 289/289 PASS.
+- Real native share sheets, file pickers, Chromium audio timing, and mobile BFCache restoration remain installed-device verification tasks.
+
+# FoxBear QA Report - v1.5.78
+
+- Playback fade cancellation now settles the superseded promise and clears the retained RAF/controller state.
+- A cancelled fade-out cannot pause audio after a newer play request has taken ownership.
+- A cancelled crossfade cannot execute stale completion cleanup against the current sources.
+- VM regression coverage exercises fade replacement, rapid pause/play, and crossfade cancellation without a browser dependency.
+- Configured static/regression checks: 288/288 PASS.
+- Real Chromium audio timing remains an installed-environment verification task.
+
+# FoxBear QA Report - v1.5.76
+
+- Release metadata synchronization now runs in an isolated staging workspace and commits only after SRI and metadata validation pass.
+- Root and Functions lockfile versions are synchronized from `package.json`; dependency health distinguishes lock corruption from packages that are simply not installed yet.
+- Regression coverage forces the staged SRI interpreter to fail and verifies protected release files remain byte-for-byte unchanged.
+- Static QA includes the v1.5.75 dependency-light Playwright bootstrap guard and the new v1.5.76 release transaction diagnostics. Real Chromium rendering remains an installed-environment verification task.
+- Tracked Python bytecode caches were removed; `.gitignore`, archive hygiene, and handoff deletion metadata now prevent them from returning.
+
 # FoxBear QA Report - v1.5.74
 
 - v1.5.74 adds between-track pause/resume, safe current-track skip, pending queue reordering, and a preserved batch completion summary.

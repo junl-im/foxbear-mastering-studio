@@ -46,7 +46,7 @@ must(pwa.includes('registration.update') && (pwa.includes('waitForServiceWorkerR
 must(bulk.includes('createSyntheticWavFiles(35') && bulk.includes('#fileInput'), '35-track import spec missing synthetic upload');
 must(bulk.includes('FOXBEAR_E2E_DEEP') && bulk.includes('#masterAllBtn') && bulk.includes('#zipBtn'), 'deep master/export scenario missing');
 must(helper.includes('makeTinyWavBuffer') && helper.includes('startStaticServer') && helper.includes('expectRuntimeHealthy'), 'browser helper does not expose required utilities');
-must(runner.includes('waitForServer') && runner.includes("require.resolve('@playwright/test/cli')") && runner.includes('process.execPath'), 'browser runner should wait for static server then invoke the pinned local Playwright CLI');
+must(runner.includes('waitForServer') && runner.includes('resolvePlaywrightCli') && runner.includes("'@playwright/test/cli'") && runner.includes('process.execPath'), 'browser runner should wait for static server then invoke the pinned local Playwright CLI lazily');
 must(config.includes('Desktop Chrome') && config.includes('Pixel 5'), 'Playwright config should cover desktop and mobile viewport');
 must(readme.includes('v1.5.1') && readme.includes('npm run qa:browser'), 'README should document v1.5.1 browser QA');
 must(handoff.includes('v1.5.1') && handoff.includes('Playwright'), 'HANDOFF should document v1.5.1 browser QA');

@@ -2,9 +2,9 @@
 (function initBulkImportHudView(global) {
     'use strict';
 
-    const VIEW_VERSION = '1.5.74-bulk-pause-skip-reorder-summary';
-    // v1.5.74 compatibility QA anchor: const VIEW_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download'
-    // compatibility anchor: const VIEW_VERSION = '1.5.74-bulk-control-eta-result-filter'
+    const VIEW_VERSION = '1.5.79-bulk-pause-skip-reorder-summary';
+    // v1.5.79 compatibility QA anchor: const VIEW_VERSION = '1.5.79-preview-download-ownership-recovery'
+    // compatibility anchor: const VIEW_VERSION = '1.5.79-bulk-control-eta-result-filter'
     // Legacy copy contract retained for regression discovery: 대량 마스터링 HUD
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
@@ -201,7 +201,7 @@
         return false;
     }
 
-    // v1.5.74 compatibility: ['all', 'active', 'completed', 'failed', 'cancelled', 'pending']
+    // v1.5.79 compatibility: ['all', 'active', 'completed', 'failed', 'cancelled', 'pending']
     function normalizeResultFilter(value) {
         const filter = String(value || 'all');
         return ['all', 'active', 'completed', 'failed', 'skipped', 'cancelled', 'pending'].includes(filter) ? filter : 'all';

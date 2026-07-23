@@ -5,12 +5,29 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const { spawn } = require('child_process');
-const playwrightCli = require.resolve('@playwright/test/cli');
 const { APP_URL, DEFAULT_PORT, DEFAULT_BIND_HOST, startStaticServer } = require('./helpers/foxbear-e2e-helpers');
 
 const RESULTS_DIR = path.resolve(process.cwd(), 'qa/browser-results');
 const PLAYWRIGHT_JSON_PATH = path.join(RESULTS_DIR, 'results.json');
 const STATIC_SERVER_LOG_PATH = path.join(RESULTS_DIR, 'static-server.log');
+
+function resolvePlaywrightCli(resolveModule = require.resolve) {
+  try {
+    return resolveModule('@playwright/test/cli');
+  } catch (error) {
+    const missingPlaywright = error?.code === 'MODULE_NOT_FOUND'
+      && String(error?.message || '').includes('@playwright/test');
+    if (!missingPlaywright) throw error;
+
+    const actionable = new Error(
+      'Playwright browser QA dependency is unavailable. Run "npm ci" first, '
+      + 'then install Chromium with "npm run qa:browser:install" when the browser binary is missing.'
+    );
+    actionable.code = 'FOXBEAR_PLAYWRIGHT_DEPENDENCY_MISSING';
+    actionable.cause = error;
+    throw actionable;
+  }
+}
 
 function waitForServer(url, timeoutMs = 12000, options = {}) {
   const started = Date.now();
@@ -199,6 +216,15 @@ function persistAndPrintStaticServerDiagnostics(output) {
 }
 
 async function main() {
+  let playwrightCli = '';
+  try {
+    playwrightCli = resolvePlaywrightCli();
+  } catch (error) {
+    console.error(`FAIL browser E2E bootstrap: ${error && error.message ? error.message : error}`);
+    process.exitCode = 1;
+    return;
+  }
+
   const externalUrl = Boolean(process.env.FOXBEAR_E2E_URL);
   const server = externalUrl ? null : startStaticServer({ cwd: process.cwd(), port: DEFAULT_PORT, host: DEFAULT_BIND_HOST });
   let exitCode = 0;
@@ -256,6 +282,7 @@ module.exports = {
   mergeNoProxy,
   persistAndPrintStaticServerDiagnostics,
   printPlaywrightFailureSummary,
+  resolvePlaywrightCli,
   runChildProcess,
   summarizeStaticServerOutput,
   waitForServer

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.74 - header-mounted settings view builder
+// FoxBear AI Mastering Studio Pro v1.5.79 - header-mounted settings view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -21,6 +21,11 @@
         if (!toggle || !panel || panel.dataset.positioningBound === 'true') return;
         panel.dataset.positioningBound = 'true';
 
+        const schedule = callback => {
+            if (typeof globalObject.requestAnimationFrame === 'function') return globalObject.requestAnimationFrame(callback);
+            return globalObject.setTimeout?.(callback, 0) || 0;
+        };
+
         const positionPanel = () => {
             const rect = toggle.getBoundingClientRect();
             const viewportWidth = Math.max(320, Number(globalObject.innerWidth) || document.documentElement.clientWidth || 320);
@@ -35,10 +40,22 @@
             panel.style.setProperty('--mobile-native-panel-max-height', `${maxHeight}px`);
         };
 
-        toggle.addEventListener('click', () => globalObject.requestAnimationFrame(positionPanel), { passive: true });
+        const handleToggle = () => schedule(positionPanel);
+        toggle.addEventListener('click', handleToggle, { passive: true });
         globalObject.addEventListener('resize', positionPanel, { passive: true });
         globalObject.addEventListener('orientationchange', positionPanel, { passive: true });
         globalObject.addEventListener('scroll', positionPanel, { passive: true, capture: true });
+        globalObject.visualViewport?.addEventListener?.('resize', positionPanel, { passive: true });
+        globalObject.visualViewport?.addEventListener?.('scroll', positionPanel, { passive: true });
+        panel._foxbearDisposePositioning = () => {
+            toggle.removeEventListener('click', handleToggle);
+            globalObject.removeEventListener('resize', positionPanel);
+            globalObject.removeEventListener('orientationchange', positionPanel);
+            globalObject.removeEventListener('scroll', positionPanel, true);
+            globalObject.visualViewport?.removeEventListener?.('resize', positionPanel);
+            globalObject.visualViewport?.removeEventListener?.('scroll', positionPanel);
+            delete panel.dataset.positioningBound;
+        };
         positionPanel();
     }
 

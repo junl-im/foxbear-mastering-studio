@@ -16,3 +16,7 @@ qa/static-check*.txt
 *.tmp
 *.trace
 .foxbear-e2e-probe-*.txt
+# Python bytecode
+__pycache__/
+*.py[cod]
+

@@ -16,6 +16,7 @@
     const downloadDiagnosticEvents = [];
     const verifiedBlobInspections = typeof WeakMap === 'function' ? new WeakMap() : null;
     const downloadUrlTimers = new Map();
+    const downloadUrlContexts = new Map();
 
     const clonePlain = value => {
         try { return JSON.parse(JSON.stringify(value)); }
@@ -109,15 +110,18 @@
     };
     const addActiveUrl = (url, deps) => {
         const urls = deps?.state?.activeDownloadUrls;
+        if (url) downloadUrlContexts.set(url, deps || {});
         if (url && urls && typeof urls.add === 'function') urls.add(url);
     };
+    const resolveDownloadUrlDeps = (url, deps = {}) => deps?.state ? deps : (downloadUrlContexts.get(url) || deps || {});
     const hasActiveUrl = (url, deps) => {
-        const urls = deps?.state?.activeDownloadUrls;
+        const urls = resolveDownloadUrlDeps(url, deps)?.state?.activeDownloadUrls;
         return Boolean(urls && typeof urls.has === 'function' && urls.has(url));
     };
     const deleteActiveUrl = (url, deps) => {
-        const urls = deps?.state?.activeDownloadUrls;
+        const urls = resolveDownloadUrlDeps(url, deps)?.state?.activeDownloadUrls;
         if (urls && typeof urls.delete === 'function') urls.delete(url);
+        downloadUrlContexts.delete(url);
     };
 
     const getDownloadFormatOptions = (track = null) => DEFAULT_FORMAT_OPTIONS.map(option => {
@@ -309,7 +313,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.5.74',
+                version: '1.5.79',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -329,7 +333,7 @@
             };
         }
         return {
-            version: '1.5.74',
+            version: '1.5.79',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -393,7 +397,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.5.74',
+            version: '1.5.79',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -431,7 +435,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.5.74',
+            version: '1.5.79',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -459,7 +463,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.5.74',
+            version: '1.5.79',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -490,7 +494,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.5.74',
+            version: '1.5.79',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -515,7 +519,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.5.74',
+            version: '1.5.79',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -584,7 +588,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.5.74',
+            version: '1.5.79',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -751,19 +755,26 @@
     };
 
     const revokeDownloadUrl = (url, deps = {}) => {
-        if (!url) return;
+        if (!url) return false;
+        const resolvedDeps = resolveDownloadUrlDeps(url, deps);
         const timer = downloadUrlTimers.get(url);
         if (timer) {
             clearTimeout(timer);
             downloadUrlTimers.delete(url);
         }
-        if (hasActiveUrl(url, deps)) {
-            try { URL.revokeObjectURL(url); } catch (error) {}
-            deleteActiveUrl(url, deps);
-            return;
-        }
         try { URL.revokeObjectURL(url); } catch (error) {}
+        deleteActiveUrl(url, resolvedDeps);
+        return true;
     };
+
+    const revokeAllDownloadUrls = (reason = 'dispose') => {
+        const urls = new Set([...downloadUrlContexts.keys(), ...downloadUrlTimers.keys()]);
+        urls.forEach(url => revokeDownloadUrl(url, downloadUrlContexts.get(url) || {}));
+        if (urls.size) recordDownloadEvent('object-url-revoke-all', { reason: String(reason || 'dispose'), count: urls.size });
+        return urls.size;
+    };
+
+    const getActiveDownloadUrlCount = () => new Set([...downloadUrlContexts.keys(), ...downloadUrlTimers.keys()]).size;
 
     const scheduleDownloadUrlRevoke = (url, deps = {}, delayMs = 10 * 60 * 1000) => {
         if (!url) return 0;
@@ -777,6 +788,10 @@
         downloadUrlTimers.set(url, timer);
         return timer;
     };
+
+    global.addEventListener?.('pagehide', event => {
+        if (!event?.persisted) revokeAllDownloadUrls('pagehide');
+    });
 
     const appendGuideSteps = (container, env) => {
         const list = document.createElement('ol');
@@ -800,7 +815,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.5.74 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.5.79 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         if (url) addActiveUrl(url, deps);
@@ -878,34 +893,84 @@
         actions.className = 'download-assist-actions';
 
         const returnFocus = document.activeElement && document.activeElement.nodeType === 1 ? document.activeElement : null;
+        let panelClosed = false;
+        let panelRemoveTimer = 0;
+        let panelRevokeTimer = 0;
+        let panelShowFrame = 0;
+        let activeActionButton = null;
         const handlePanelKeydown = event => {
             if (event.key !== 'Escape') return;
             event.preventDefault();
             event.stopImmediatePropagation();
             closePanel();
         };
+        const releasePanelListeners = () => {
+            document.removeEventListener('keydown', handlePanelKeydown, true);
+            if (panelShowFrame && typeof global.cancelAnimationFrame === 'function') global.cancelAnimationFrame(panelShowFrame);
+            panelShowFrame = 0;
+        };
         const closePanel = () => {
-            try { panel.__foxbearCleanup?.(); } catch (error) {}
+            if (panelClosed) return false;
+            panelClosed = true;
+            releasePanelListeners();
             panel.classList.remove('show');
-            setTimeout(() => panel.remove(), 140);
-            if (url) setTimeout(() => revokeDownloadUrl(url, deps), 250);
+            panelRemoveTimer = setTimeout(() => panel.remove(), 140);
+            if (url) panelRevokeTimer = setTimeout(() => revokeDownloadUrl(url, deps), 250);
             if (returnFocus && document.body.contains(returnFocus)) {
                 try { returnFocus.focus({ preventScroll: true }); } catch (error) {}
             }
+            return true;
         };
-        panel.__foxbearCleanup = () => document.removeEventListener('keydown', handlePanelKeydown, true);
+        panel.__foxbearCleanup = () => {
+            panelClosed = true;
+            releasePanelListeners();
+            if (panelRemoveTimer) clearTimeout(panelRemoveTimer);
+            if (panelRevokeTimer) clearTimeout(panelRevokeTimer);
+            panelRemoveTimer = 0;
+            panelRevokeTimer = 0;
+        };
         document.addEventListener('keydown', handlePanelKeydown, true);
         closeTop.addEventListener('click', closePanel);
+
+        const bindAssistAsyncAction = (button, busyText, action, onError) => {
+            const idleText = button.textContent;
+            button.addEventListener('click', event => {
+                if (panelClosed || activeActionButton) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
+                activeActionButton = button;
+                panel.setAttribute('aria-busy', 'true');
+                Array.from(actions.querySelectorAll('button')).forEach(actionButton => { actionButton.disabled = true; });
+                button.setAttribute('aria-busy', 'true');
+                button.textContent = busyText;
+                let pending;
+                try { pending = action(); }
+                catch (error) { pending = Promise.reject(error); }
+                Promise.resolve(pending)
+                    .catch(error => onError?.(error))
+                    .finally(() => {
+                        button.removeAttribute('aria-busy');
+                        button.textContent = idleText;
+                        if (!panelClosed) {
+                            panel.removeAttribute('aria-busy');
+                            Array.from(actions.querySelectorAll('button')).forEach(actionButton => { actionButton.disabled = false; });
+                        }
+                        activeActionButton = null;
+                    });
+            });
+        };
 
         if (blob && supportsWebShareFiles(blob, fileName)) {
             const share = document.createElement('button');
             share.type = 'button';
             share.className = 'btn-primary';
             share.textContent = '공유/저장';
-            share.addEventListener('click', () => shareDownloadFile(blob, fileName, deps).catch(error => {
+            bindAssistAsyncAction(share, '공유창 여는 중…', () => shareDownloadFile(blob, fileName, deps), error => {
                 console.warn('share download failed:', error);
                 getToast(deps)('공유/저장이 취소되었거나 이 브라우저에서 막혔습니다.');
-            }));
+            });
             actions.appendChild(share);
         }
 
@@ -914,10 +979,10 @@
             save.type = 'button';
             save.className = 'btn-primary';
             save.textContent = '직접 저장';
-            save.addEventListener('click', () => saveBlobWithPicker(blob, fileName, deps).catch(error => {
+            bindAssistAsyncAction(save, '저장 위치 여는 중…', () => saveBlobWithPicker(blob, fileName, deps), error => {
                 console.warn('file picker save failed:', error);
                 getToast(deps)('직접 저장이 취소되었거나 이 브라우저에서 막혔습니다.');
-            }));
+            });
             actions.appendChild(save);
         }
 
@@ -977,7 +1042,7 @@
         panel.classList.add('download-assist-simple');
         panel.append(closeTop, title, message, file, actions);
         document.body.appendChild(panel);
-        requestAnimationFrame(() => panel.classList.add('show'));
+        panelShowFrame = requestAnimationFrame(() => { panelShowFrame = 0; if (!panelClosed) panel.classList.add('show'); });
     };
 
     const downloadBlob = async (blob, fileName, deps = {}) => {
@@ -1075,6 +1140,8 @@
         normalizeDownloadFileNameForBlob,
         sanitizeDownloadFileName,
         revokeDownloadUrl,
+        revokeAllDownloadUrls,
+        getActiveDownloadUrlCount,
         showDownloadAssist
     });
 })(window);

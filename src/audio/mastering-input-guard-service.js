@@ -1,4 +1,4 @@
-// FoxBear Mastering Input Guard v1.5.74 - rejects silent, corrupt, or unusably short decoded audio before DSP.
+// FoxBear Mastering Input Guard v1.5.79 - rejects silent, corrupt, or unusably short decoded audio before DSP.
 'use strict';
 
 (function attachFoxBearMasteringInputGuard(global) {
@@ -118,7 +118,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.5.74-bulk-pause-skip-reorder-mobile-download',
+        version: '1.5.79-preview-download-ownership-recovery',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

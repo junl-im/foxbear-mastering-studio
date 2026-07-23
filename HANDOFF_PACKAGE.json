@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.74",
-  "buildId": "bulk-pause-skip-reorder-mobile-download",
+  "productVersion": "1.5.79",
+  "buildId": "preview-download-ownership-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -55,7 +55,14 @@
     "qa/v1565_incident_recovery_control_alert_history_smoke.js",
     "docs/V1.5.65_INCIDENT_RECOVERY_CONTROL_ALERT_HISTORY.md",
     "qa/v1566_incident_operations_action_guard_deploy_verification_smoke.js",
-    "docs/V1.5.66_INCIDENT_OPERATIONS_ACTION_GUARD_DEPLOY_VERIFICATION.md"
+    "docs/V1.5.66_INCIDENT_OPERATIONS_ACTION_GUARD_DEPLOY_VERIFICATION.md",
+    "qa/v1575_dependency_light_static_qa_smoke.js",
+    "docs/V1.5.75_DEPENDENCY_LIGHT_STATIC_QA.md",
+    "tools/check-dependency-health.js",
+    "qa/v1576_release_sync_dependency_health_smoke.js",
+    "docs/V1.5.76_ATOMIC_RELEASE_SYNC_DEPENDENCY_HEALTH.md",
+    "qa/v1577_runtime_resource_lifecycle_smoke.js",
+    "docs/V1.5.77_RUNTIME_RESOURCE_LIFECYCLE_RECOVERY.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -81,7 +88,10 @@
     "check.log",
     "qa/static-audit.txt"
   ],
-  "deletePaths": [],
+  "deletePaths": [
+    "qa/__pycache__",
+    "tools/__pycache__"
+  ],
   "requiredRuntimeAssets": [
     "src/boot/service-worker-recovery-service.js",
     "src/utils/worker-job-service.js",

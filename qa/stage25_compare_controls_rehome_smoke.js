@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.74-bulk-pause-skip-reorder-mobile-download';
+const version = '1.5.79-preview-download-ownership-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

@@ -1,6 +1,42 @@
-# FoxBear Status - v1.5.74
+# FoxBear Status - v1.5.79
 
-## v1.5.74 current focus
+## v1.5.79 current focus
+
+- Pending preview playback is owned by a per-audio request generation and stale completions cannot revive detached audio.
+- Audio disposal invalidates pending play/fade work before unregistering spectrum and playback-link resources.
+- Download assist native actions are single-flight with synchronized disabled and `aria-busy` states.
+- Normal page exit revokes all tracked download Blob URLs; BFCache navigation preserves active URLs for restoration.
+- Configured static and regression checks: 289/289 PASS; real native share/file-picker behavior remains device verification.
+
+## v1.5.78 previous focus
+
+- Cancelled playback fades settle immediately and release their animation-frame/controller references.
+- A superseded fade-out cannot issue a stale pause after a newer play request.
+- Cancelled crossfades skip stale source cleanup and completion callbacks.
+- VM regression coverage verifies replacement fade settlement, rapid pause/play ownership, and stale crossfade isolation.
+
+## v1.5.77 previous focus
+
+- Detached spectrum audio registrations, captured streams, analyser nodes, popup timers, and preview/Dock bindings are explicitly released.
+- BFCache suspension is separated from normal page disposal and mounted audio is restored on return.
+- Mobile settings positioning follows visual viewport resize and scroll changes.
+
+## v1.5.76 previous focus
+
+- Release metadata synchronization is staged outside the working tree, validated with SRI, and committed only after the staged copy passes.
+- A dry-run reports exact file changes without writing to the repository.
+- Root and Functions lockfile versions are synchronized together, eliminating a manual release drift point.
+- Dependency health separates lockfile contract failures from expected missing-install warnings for Playwright, Chromium, and Firebase Functions packages.
+- A forced staged SRI failure is regression-tested to leave protected release files unchanged.
+
+## v1.5.75 previous focus
+
+- Static and packaging QA can import browser-runner helpers before Playwright development dependencies are installed.
+- The browser runner resolves the Playwright CLI only when browser QA actually starts and reports actionable installation commands when unavailable.
+- Playwright configuration metadata probes retain bounded CI workers and desktop/mobile project definitions through a dependency-free fallback.
+- Configured static/regression checks include a missing-dependency simulation; real Chromium execution remains a CI or installed-environment verification task.
+
+## v1.5.74 previous focus
 
 - Multi-track mastering supports between-track pause/resume, current-track skip, and pending-queue reordering.
 - Batch completion summaries retain completed, failed, skipped, and cancelled outcomes with elapsed-time metrics.
@@ -132,10 +168,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.74`
-- Build ID: `bulk-pause-skip-reorder-mobile-download`
-- Asset version: `1.5.74-bulk-pause-skip-reorder-mobile-download`
-- Service worker cache: `foxbear-shell-v1.5.74-bulk-pause-skip-reorder-mobile-download`
+- Product version: `1.5.79`
+- Build ID: `preview-download-ownership-recovery`
+- Asset version: `1.5.79-preview-download-ownership-recovery`
+- Service worker cache: `foxbear-shell-v1.5.79-preview-download-ownership-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -167,10 +203,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.74`
-- Build ID: `bulk-pause-skip-reorder-mobile-download`
-- Asset version: `1.5.74-bulk-pause-skip-reorder-mobile-download`
-- Service worker cache: `foxbear-shell-v1.5.74-bulk-pause-skip-reorder-mobile-download`
+- Product version: `1.5.79`
+- Build ID: `preview-download-ownership-recovery`
+- Asset version: `1.5.79-preview-download-ownership-recovery`
+- Service worker cache: `foxbear-shell-v1.5.79-preview-download-ownership-recovery`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

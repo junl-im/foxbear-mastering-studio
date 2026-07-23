@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.74 - progress ETA, stall recovery, and safe dialog lifecycle
+// FoxBear AI Mastering Studio Pro v1.5.79 - progress ETA, stall recovery, and safe dialog lifecycle
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -56,7 +56,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.5.74',
+                version: '1.5.79',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -158,7 +158,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.5.74 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.5.79 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -604,17 +604,25 @@
         renderReceipt(primaryAction, null, '', { initial: true });
 
         let currentActionController = null;
+        let currentActionButton = null;
         const allButtons = () => Array.from(panel.querySelectorAll('button')).filter(button => button !== cancelAction);
-        const setBusy = busy => {
-            allButtons().forEach(button => { button.disabled = Boolean(busy) || button.dataset.permanentDisabled === 'true'; });
-            cancelAction.disabled = !busy;
-            progressCard.hidden = !busy;
-            panel.classList.toggle('working', Boolean(busy));
-            if (!busy) stopProgressClock();
+        const setBusy = (busy, options = {}) => {
+            const active = Boolean(busy);
+            const showProgress = active && options.showProgress !== false;
+            allButtons().forEach(button => {
+                button.disabled = active || button.dataset.permanentDisabled === 'true';
+                if (active && button === currentActionButton) button.setAttribute('aria-busy', 'true');
+                else button.removeAttribute('aria-busy');
+            });
+            panel.setAttribute('aria-busy', String(active));
+            cancelAction.disabled = !showProgress;
+            progressCard.hidden = !showProgress;
+            panel.classList.toggle('working', showProgress);
+            if (!active) stopProgressClock();
         };
 
         const prepareSelected = async statusText => {
-            setBusy(true);
+            setBusy(true, { showProgress: true });
             resetWorkerProgress(statusText);
             warning.classList.add('show');
             warning.textContent = statusText;
@@ -734,8 +742,10 @@
             button.addEventListener('click', async () => {
                 if (actionInFlight) return;
                 actionInFlight = true;
+                currentActionButton = button;
                 currentActionController = typeof AbortController === 'function' ? new AbortController() : null;
                 backdrop.__foxbearAbortController = currentActionController;
+                setBusy(true, { showProgress: false });
                 try {
                     await runAction(action);
                 } catch (error) {
@@ -762,6 +772,7 @@
                     currentActionController = null;
                     backdrop.__foxbearAbortController = null;
                     setBusy(false);
+                    currentActionButton = null;
                 }
             });
         };
@@ -798,7 +809,7 @@
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        // v1.5.74 mobile hierarchy: MP3/WAV family first, then quality options.
+        // v1.5.79 mobile hierarchy: MP3/WAV family first, then quality options.
         panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, actions);
         backdrop.appendChild(panel);
         document.body.appendChild(backdrop);

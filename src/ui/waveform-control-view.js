@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download';
+  const VIEW_VERSION = '1.5.79-preview-download-ownership-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

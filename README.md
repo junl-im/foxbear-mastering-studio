@@ -1,4 +1,51 @@
-# FoxBear AI Mastering Studio Pro v1.5.74
+# FoxBear AI Mastering Studio Pro v1.5.79
+
+## v1.5.79 미리듣기 요청 소유권 및 다운로드 정리
+
+- 닫힌 미리듣기 UI의 지연된 `play()` 완료가 분리된 오디오를 다시 재생하지 못하도록 요청 세대를 격리합니다.
+- 새 재생·정지·크로스페이드가 시작되면 이전 비동기 완료 결과는 현재 오디오 상태를 변경하지 않습니다.
+- 저장 도움의 공유/직접 저장은 한 번에 하나만 실행되며 버튼과 패널에 `aria-busy` 상태를 제공합니다.
+- 일반 페이지 종료 시 대기 중인 다운로드 Blob URL과 타이머를 일괄 회수하고 BFCache 이동에서는 유지합니다.
+- VM 회귀 검사에서 지연 재생, 분리 오디오, 공유 버튼 연타, BFCache 및 페이지 종료 정리를 검증합니다.
+- 구성된 정적·회귀 검사는 289/289 통과했습니다. 실제 네이티브 공유창과 파일 선택기는 기기 환경에서 추가 확인합니다.
+
+## v1.5.78 재생 전환 레이스 복구
+
+- 빠르게 재생·정지를 반복해도 취소된 볼륨 페이드 Promise가 영구 대기 상태로 남지 않습니다.
+- 새 재생 요청이 들어온 뒤 이전 페이드아웃 완료 로직이 오디오를 뒤늦게 정지시키는 문제를 차단합니다.
+- 교차 재생이 새 전환으로 대체되면 오래된 완료 콜백은 이전 소스를 정지하거나 볼륨을 덮어쓰지 않습니다.
+- 오디오 요소에 연결된 RAF와 페이드 컨트롤러는 완료·취소 시 즉시 해제됩니다.
+- VM 회귀 검사에서 페이드 교체, 빠른 일시정지/재생, 취소된 크로스페이드를 검증합니다.
+
+## v1.5.77 런타임 자원 생명주기 복구
+
+- DOM에서 제거된 오디오의 FFT 이벤트·캡처 스트림·분석 노드·AudioContext를 명시적으로 정리합니다.
+- 비교 팝업 타이머와 미리듣기/Dock 오디오 등록을 UI 제거 시 즉시 해제합니다.
+- 일반 종료와 BFCache 이동을 분리하고 모바일 visual viewport 변화에 패널 위치를 다시 계산합니다.
+
+## v1.5.76 원자적 릴리스 동기화 및 의존성 진단
+
+- 버전 동기화는 임시 스테이징 복사본에서 SRI와 메타데이터 검증을 모두 통과한 뒤 원본에 반영합니다.
+- `npm run version:dry-run`으로 실제 파일을 바꾸지 않고 변경 예정 파일을 확인할 수 있습니다.
+- 루트와 Functions의 `package-lock.json` 버전을 함께 동기화합니다.
+- `npm run dependencies:check`는 Playwright, Chromium, Functions 패키지 설치 상태와 lockfile 불일치를 구분해 안내합니다.
+- 스테이징 중 Python/SRI 실행이 실패해도 원본 릴리스 파일이 부분 수정 상태로 남지 않습니다.
+- 추적 중이던 Python `__pycache__`를 제거하고 향후 바이트코드가 Git·패치에 다시 들어오지 않도록 차단합니다.
+
+## v1.5.75 의존성 설치 전 정적 QA 안정화
+
+- Playwright가 아직 설치되지 않아도 브라우저 보조 모듈과 릴리스 정적 검사를 불러올 수 있습니다.
+- 실제 브라우저 QA를 시작할 때만 Playwright CLI를 확인하며, 누락 시 `npm ci`와 Chromium 설치 명령을 안내합니다.
+- Playwright 설정 파일은 정적 메타데이터 검사에서는 안전한 대체 장치 정의를 사용하고, 실제 설치 환경에서는 공식 장치 프로필을 그대로 사용합니다.
+
+Release metadata:
+
+```text
+product: 1.5.78
+build: playback-transition-race-recovery
+asset generation: 1.5.78-playback-transition-race-recovery
+service worker cache: foxbear-shell-v1.5.78-playback-transition-race-recovery
+```
 
 ## v1.5.74 다중 작업 제어 및 모바일 다운로드
 
@@ -78,7 +125,7 @@
 - 잘못된 경로 복구는 프로젝트 루트의 `index.html`로 직접 이동해 404 반복을 방지합니다.
 - 카카오 메모리 압력이 높으면 디코딩 전과 처리 단계별로 Fast·경량 피크·압축 파형 경로를 자동 적용합니다.
 
-## Current patch: v1.5.57 Modal Close Consistency
+## Historical patch: v1.5.57 Modal Close Consistency
 
 프로그램 정보, 기능, 미리듣기, 관리자, 다운로드, AI 분석 완료, 저장 도움, 선택 팝업의 우측 상단 닫기 버튼을 동일한 크기·위치·아이콘·포커스 규칙으로 통합했습니다. 동적 팝업은 ESC 닫기와 기존 조작 위치로의 포커스 복귀도 지원합니다.
 
@@ -87,7 +134,7 @@
 GitHub Actions 정적 QA와 Playwright 브라우저 QA를 병렬 job으로 실행하고, 새 push가 오면 이전 Pages 실행을 취소합니다. Playwright Chromium 다운로드 캐시와 npm 오프라인 우선 설치를 사용해 반복 빌드 대기시간을 줄입니다.
 
 
-## Current patch: v1.5.51 CI Runtime Contract Hardening
+## Historical patch: v1.5.51 CI Runtime Contract Hardening
 
 부팅 필수 모듈, 자산 버전, 서비스워커 캐시 세대가 서로 어긋난 상태로 배포되지 않도록 패키징 전 계약 검사를 강화합니다.
 
@@ -104,7 +151,7 @@ service worker cache: foxbear-shell-v1.5.49-stale-shell-generation-recovery
 
 `npm ci` never installs Git hooks. GitHub Actions uses `npm ci --ignore-scripts`, and the optional local pre-commit hook is enabled only when a developer explicitly runs `npm run hooks:install`.
 
-## Current patch: v1.5.44 Gesture-Safe Individual Export Queue
+## Historical patch: v1.5.44 Gesture-Safe Individual Export Queue
 
 여러 파일을 자동으로 연속 다운로드하지 않고, 파일을 미리 검증한 뒤 사용자가 `다음 파일 저장`을 한 번씩 눌러 저장합니다. 일반 Chromium은 직접 저장창, 일반 브라우저는 다운로드, 카카오 등 제한 브라우저는 지원되는 경우 파일 공유창을 사용합니다. 실패 파일은 다시 시도하거나 건너뛸 수 있으며, 큐 작업 중에는 마스터링·ZIP·서비스워커 교체가 차단됩니다.
 

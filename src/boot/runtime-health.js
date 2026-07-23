@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.74-bulk-pause-skip-reorder-mobile-download';
+    const FALLBACK_VERSION = '1.5.79-preview-download-ownership-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -55,6 +55,8 @@
         'FoxBearWaveformControlService.setPlayhead',
         'FoxBearWaveformControlView.createBars',
         'FoxBearSpectrumVisualizer.renderPanel',
+        'FoxBearSpectrumVisualizer.unregisterAudio',
+        'FoxBearSpectrumVisualizer.pruneDisconnectedAudio',
         'FoxBearSpectrumVisualizer.getDiagnostics',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearDockController.FoxBearDockController',
