@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.80 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.81 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -21,7 +21,7 @@ const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetySer
 const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.80';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.81';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.80-mobile-return-media-focus-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1580'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.81-master-preview-cancellation-native-result-isolation'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1581'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -150,6 +150,9 @@ function getAnalysisCacheService() {
 }
 function getTrackLifecycleService() {
     return window.FoxBearTrackLifecycleService || null;
+}
+function getMasterPreviewJobService() {
+    return window.FoxBearMasterPreviewJobService || null;
 }
 function getMemoryGuardService() {
     return window.FoxBearMemoryGuardService || null;
@@ -3077,7 +3080,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.80-mobile-return-media-focus-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.80-mobile-return-media-focus-recovery&h=sw-v1580')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.81-master-preview-cancellation-native-result-isolation') · navigator.serviceWorker.register('./sw.js?v=1.5.81-master-preview-cancellation-native-result-isolation&h=sw-v1581')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3902,7 +3905,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.80-mobile-return-media-focus-recovery', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.81-master-preview-cancellation-native-result-isolation', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4216,7 +4219,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.80-mobile-return-media-focus-recovery',
+        version: '1.5.81-master-preview-cancellation-native-result-isolation',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4256,10 +4259,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.80-mobile-return-media-focus-recovery',
+    version: '1.5.81-master-preview-cancellation-native-result-isolation',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.80-mobile-return-media-focus-recovery', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.81-master-preview-cancellation-native-result-isolation', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4284,12 +4287,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.80-mobile-return-media-focus-recovery', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.81-master-preview-cancellation-native-result-isolation', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.80-mobile-return-media-focus-recovery', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.81-master-preview-cancellation-native-result-isolation', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4304,12 +4307,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.80-mobile-return-media-focus-recovery',
+    version: 'v1.5.81-master-preview-cancellation-native-result-isolation',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.80-mobile-return-media-focus-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.81-master-preview-cancellation-native-result-isolation', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5463,7 +5466,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.80-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.5.81-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -9458,8 +9461,9 @@ function invalidateAllMasteredOutput(report) {
 function releaseTrackResourcesSafely(track) {
     const lifecycle = getTrackLifecycleService();
     if (lifecycle?.releaseTrackResources) return lifecycle.releaseTrackResources(track, { revokeObjectURL: url => URL.revokeObjectURL(url) });
+    try { track?.masterPreviewAbortController?.abort?.('track-resources-released'); } catch (error) {}
     ['originalUrl', 'masteredUrl', 'masterPreviewUrl'].forEach(key => { if (track?.[key]) URL.revokeObjectURL(track[key]); if (track) track[key] = null; });
-    if (track) { track.masteredBuffer = null; track.masterPreviewBlob = null; track.masterPreviewInfo = null; track.outBlob = null; }
+    if (track) { track.masterPreviewAbortController = null; track.masterPreviewJobId = ''; track.masteredBuffer = null; track.masterPreviewBlob = null; track.masterPreviewInfo = null; track.outBlob = null; }
     return null;
 }
 function clearQueue() {
@@ -9467,12 +9471,18 @@ function clearQueue() {
     getImportAnalysisQueueController().cancelAll?.('queue-cleared');
     clearBottomPreviewPlayer();
     if (state.autoRemasterTimers) { state.autoRemasterTimers.forEach(timer => clearTimeout(timer)); state.autoRemasterTimers.clear(); }
-    state.tracks.forEach(releaseTrackResourcesSafely);
+    state.tracks.forEach(track => {
+        try { track?.masteringAbortController?.abort?.('queue-cleared'); } catch (error) {}
+        getMasterPreviewJobService()?.cancel?.(track, 'queue-cleared');
+        releaseTrackResourcesSafely(track);
+    });
     state.tracks = [];
     state.selectedId = null;
     state.selectedIds.clear();
     state.bottomPreviewMode = 'original';
     state.bottomPreviewTrackId = null;
+    state.masterPreviewRenderingTrackId = null;
+    state.masterPreviewRenderingJobId = '';
     state.bottomPreviewAutoplayTrackId = null;
     state.bottomPreviewTransport = null;
     if (state.expandedDetailIds) state.expandedDetailIds.clear();
@@ -9995,7 +10005,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.80-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.5.81-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -10975,104 +10985,78 @@ async function renderMasterPreviewForTrack(track, options = {}) {
     if (!track) return;
     if (!track.analysis || track.status === 'analyzing') {
         const ready = await waitForTrackAnalysisIfNeeded(track, String(options.source || '').startsWith('dock') ? '하이라이트 듣기' : '미리듣기');
-        if (!ready) {
-            showToast('분석을 완료하지 못해 하이라이트 듣기를 만들 수 없습니다.');
-            renderBottomPreviewDock({ keepPlaying: true });
-            return;
-        }
+        if (!ready) { showToast('분석을 완료하지 못해 하이라이트 듣기를 만들 수 없습니다.'); renderBottomPreviewDock({ keepPlaying: true }); return; }
     }
     if (track.masterPreviewUrl && track.masterPreviewInfo && track.masterPreviewStatus !== 'processing') {
-        state.selectedId = track.id;
-        state.bottomPreviewMode = 'masterPreview';
-        state.bottomPreviewTrackId = track.id;
-        state.bottomPreviewAutoplayTrackId = track.id;
-        renderAll({ keepDetailAudio: true, autoPlay: true });
-        requestAnimationFrame(playBottomPreviewAudio);
-        showToast('준비된 15초 하이라이트 듣기를 재생합니다.');
-        return;
+        state.selectedId = track.id; state.bottomPreviewMode = 'masterPreview'; state.bottomPreviewTrackId = track.id; state.bottomPreviewAutoplayTrackId = track.id;
+        renderAll({ keepDetailAudio: true, autoPlay: true }); requestAnimationFrame(playBottomPreviewAudio); showToast('준비된 15초 하이라이트 듣기를 재생합니다.'); return;
     }
     if (!canStartMasterPreview(track)) {
         const reason = track.status === 'analyzing' ? '분석이 끝난 뒤 하이라이트 듣기를 만들 수 있습니다.'
             : track.status === 'processing' ? '마스터링 작업이 끝난 뒤 하이라이트 듣기를 만들 수 있습니다.'
-            : track.error ? '오류가 있는 곡입니다. 다시 불러온 뒤 진행해주세요.'
-            : state.busy ? '현재 작업이 끝난 뒤 다시 눌러주세요.'
+            : track.error ? '오류가 있는 곡입니다. 다시 불러온 뒤 진행해주세요.' : state.busy ? '현재 작업이 끝난 뒤 다시 눌러주세요.'
             : '분석이 끝난 정상 트랙에서만 하이라이트 듣기를 만들 수 있습니다.';
-        showToast(reason);
-        renderBottomPreviewDock({ keepPlaying: true });
-        return;
+        showToast(reason); renderBottomPreviewDock({ keepPlaying: true }); return;
     }
+    const previewJobs = getMasterPreviewJobService();
+    if (!previewJobs?.create || !previewJobs?.assertActive) { showToast('하이라이트 작업 관리 서비스를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.'); return; }
     pauseAllPreviewAudio();
     const previousReport = track.report || '';
-    let completed = false;
-    state.busy = true;
-    state.masterPreviewRenderingTrackId = track.id;
-    track.masterPreviewStatus = 'processing';
-    track.report = '15초 하이라이트 듣기 생성 중';
-    renderAll({ keepDetailAudio: true });
+    const previewJob = previewJobs.create(track, { label: 'master-preview', supersedeReason: 'master-preview-restarted' });
+    const isTrackActive = candidate => state.tracks.some(item => item === candidate || item.id === candidate?.id);
+    const previewTask = { signal: previewJob.signal, throwIfCancelled(stage = 'master-preview') { return previewJobs.assertActive(track, previewJob, isTrackActive, stage); } };
+    let completed = false; let pendingUrl = '';
+    state.busy = true; state.masterPreviewRenderingTrackId = track.id; state.masterPreviewRenderingJobId = previewJob.id;
+    track.masterPreviewStatus = 'processing'; track.report = '15초 하이라이트 듣기 생성 중'; renderAll({ keepDetailAudio: true });
     try {
-        const sourceBuffer = await decodeAudio(track.file);
+        previewTask.throwIfCancelled('decode-start');
+        const sourceBuffer = await decodeAudio(track.file, previewTask);
+        previewTask.throwIfCancelled('decode-complete');
         const startSec = computeMasterPreviewSliceStartSec(track, sourceBuffer);
         let segmentBuffer = sliceAudioBuffer(sourceBuffer, startSec, MASTER_PREVIEW_DURATION_SEC);
         segmentBuffer = removeDcOffsetAudioBuffer(segmentBuffer).buffer || segmentBuffer;
-        sanitizeAudioBuffer(segmentBuffer, 'master-preview-source');
-        await yieldToBrowser();
+        sanitizeAudioBuffer(segmentBuffer, 'master-preview-source'); await yieldToBrowser(); previewTask.throwIfCancelled('source-slice');
         let preparedBuffer = await preparePitchSpeedBuffer(segmentBuffer, track.transform);
-        if (shouldUseInstrumentLayer(track.instrument)) {
-            const layered = mixInstrumentLayerBuffer(preparedBuffer, track.instrument, track.analysis);
-            preparedBuffer = layered.buffer;
-        }
-        sanitizeAudioBuffer(preparedBuffer, 'master-preview-prepared');
-        await yieldToBrowser();
+        previewTask.throwIfCancelled('pitch-speed');
+        if (shouldUseInstrumentLayer(track.instrument)) preparedBuffer = mixInstrumentLayerBuffer(preparedBuffer, track.instrument, track.analysis).buffer;
+        sanitizeAudioBuffer(preparedBuffer, 'master-preview-prepared'); await yieldToBrowser(); previewTask.throwIfCancelled('prepared-buffer');
         const albumProfile = getActiveAlbumProfile();
         const masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile);
-        sanitizeAudioBuffer(masteredBuffer, 'master-preview-chain');
-        await yieldToBrowser();
+        previewTask.throwIfCancelled('master-chain'); sanitizeAudioBuffer(masteredBuffer, 'master-preview-chain'); await yieldToBrowser(); previewTask.throwIfCancelled('finalizer-start');
         const finalization = await finalizeMasterBufferAsync(masteredBuffer, {
-            targetLufs: resolveTargetLufsForTrack(track),
-            ceilingDb: state.ceilingDb,
-            qualityMode: state.qualityMode === 'max' ? 'balanced' : state.qualityMode,
-            masterGoal: state.masterGoal,
-            truePeak: state.featureFlags.truePeakGuard,
-            analysis: track.analysis || {},
-            dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied)
+            targetLufs: resolveTargetLufsForTrack(track), ceilingDb: state.ceilingDb, qualityMode: state.qualityMode === 'max' ? 'balanced' : state.qualityMode,
+            masterGoal: state.masterGoal, truePeak: state.featureFlags.truePeakGuard, analysis: track.analysis || {},
+            dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied), signal: previewJob.signal, jobId: `${previewJob.id}:finalizer`
         });
+        previewTask.throwIfCancelled('finalizer-complete');
         const finalBuffer = finalization.buffer;
         sanitizeAudioBuffer(finalBuffer, 'master-preview-finalizer');
-        const blob = await encodeWavAsync(finalBuffer, 'wav16');
+        const blob = await encodeWavAsync(finalBuffer, 'wav16', { signal: previewJob.signal, jobId: `${previewJob.id}:wav` });
+        previewTask.throwIfCancelled('wav-complete');
         if (!blob || blob.size <= 44) throw new Error('하이라이트 듣기 파일이 비어 있습니다.');
+        pendingUrl = URL.createObjectURL(blob); previewTask.throwIfCancelled('commit');
         if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
-        track.masterPreviewBlob = blob;
-        track.masterPreviewUrl = URL.createObjectURL(blob);
+        track.masterPreviewBlob = blob; track.masterPreviewUrl = pendingUrl; pendingUrl = '';
         track.masterPreviewInfo = {
-            startSec,
-            durationSec: finalBuffer.duration || MASTER_PREVIEW_DURATION_SEC,
-            sourceDurationSec: segmentBuffer.duration || MASTER_PREVIEW_DURATION_SEC,
-            preset: track.preset,
-            settings: cloneSettings(track.settings),
-            createdAt: new Date().toISOString(),
-            finalizeInfo: finalization.info || {},
-            waveformOverview: sampleWaveformOverview(finalBuffer, DOCK_WAVEFORM_BINS),
-            sourceWaveformOverview: sampleWaveformOverview(segmentBuffer, DOCK_WAVEFORM_BINS),
+            startSec, durationSec: finalBuffer.duration || MASTER_PREVIEW_DURATION_SEC, sourceDurationSec: segmentBuffer.duration || MASTER_PREVIEW_DURATION_SEC,
+            preset: track.preset, settings: cloneSettings(track.settings), createdAt: new Date().toISOString(), finalizeInfo: finalization.info || {},
+            waveformOverview: sampleWaveformOverview(finalBuffer, DOCK_WAVEFORM_BINS), sourceWaveformOverview: sampleWaveformOverview(segmentBuffer, DOCK_WAVEFORM_BINS),
             dspProfile: getSharedDspSummaryForReport(track.analysis?.sharedDspProfileApplied)
         };
-        track.masterPreviewStatus = 'ready';
-        track.report = `하이라이트 듣기 준비됨 · ${formatTime(startSec)}부터 약 ${Math.round(track.masterPreviewInfo.durationSec)}초`;
-        state.selectedId = track.id;
-        state.bottomPreviewMode = 'masterPreview';
-        state.bottomPreviewTrackId = track.id;
-        state.bottomPreviewAutoplayTrackId = track.id;
-        completed = true;
-        showToast('15초 하이라이트 듣기를 생성했습니다. Dock에서 재생합니다.');
+        track.masterPreviewStatus = 'ready'; track.report = `하이라이트 듣기 준비됨 · ${formatTime(startSec)}부터 약 ${Math.round(track.masterPreviewInfo.durationSec)}초`;
+        state.selectedId = track.id; state.bottomPreviewMode = 'masterPreview'; state.bottomPreviewTrackId = track.id; state.bottomPreviewAutoplayTrackId = track.id;
+        completed = true; showToast('15초 하이라이트 듣기를 생성했습니다. Dock에서 재생합니다.');
     } catch (error) {
-        console.error('Master preview error:', error);
-        track.masterPreviewStatus = 'error';
-        track.report = previousReport || '하이라이트 듣기 생성 실패';
-        showToast(`하이라이트 듣기 실패: ${getErrorMessage(error, '알 수 없는 오류')}`);
+        if (pendingUrl) { try { URL.revokeObjectURL(pendingUrl); } catch (revokeError) {} pendingUrl = ''; }
+        const cancelled = previewJobs.isAbortError?.(error) || isWorkerJobAbortError(error);
+        const ownsJob = previewJobs.owns?.(track, previewJob) && isTrackActive(track);
+        if (cancelled) { console.info('Master preview cancelled:', error?.stage || error?.message || 'cancelled'); if (ownsJob) { track.masterPreviewStatus = 'idle'; track.report = previousReport || '하이라이트 듣기 취소됨'; } }
+        else if (ownsJob) { console.error('Master preview error:', error); track.masterPreviewStatus = 'error'; track.report = previousReport || '하이라이트 듣기 생성 실패'; showToast(`하이라이트 듣기 실패: ${getErrorMessage(error, '알 수 없는 오류')}`); }
     } finally {
-        state.busy = false;
-        state.masterPreviewRenderingTrackId = null;
-        renderAll({ keepDetailAudio: true, autoPlay: completed });
-        if (completed) requestAnimationFrame(playBottomPreviewAudio);
+        const ownsJob = Boolean(previewJobs.owns?.(track, previewJob));
+        const ownsGlobalState = state.masterPreviewRenderingJobId === previewJob.id;
+        if (ownsJob) previewJobs.finish?.(track, previewJob);
+        if (ownsGlobalState) { state.busy = false; state.masterPreviewRenderingTrackId = null; state.masterPreviewRenderingJobId = ''; renderAll({ keepDetailAudio: true, autoPlay: completed }); if (completed) requestAnimationFrame(playBottomPreviewAudio); }
     }
 }
 function computeMasterPreviewSliceStartSec(track, buffer) {
@@ -11096,8 +11080,9 @@ function sliceAudioBuffer(buffer, startSec, durationSec) {
     applyEdgeFade(output, 0.015);
     return output;
 }
-function clearMasterPreviewOutput(track) {
+function clearMasterPreviewOutput(track, reason = 'master-preview-invalidated') {
     if (!track) return;
+    getMasterPreviewJobService()?.cancel?.(track, reason);
     if (track.masterPreviewUrl) URL.revokeObjectURL(track.masterPreviewUrl);
     track.masterPreviewBlob = null;
     track.masterPreviewUrl = null;
@@ -13015,6 +13000,13 @@ function removeTrack(id) {
     getImportAnalysisQueueController().cancelTrack?.(id, 'track-removed');
     const removingTrack = state.tracks[index];
     try { removingTrack?.masteringAbortController?.abort?.('track-removed'); } catch (error) {}
+    const removingPreviewJobId = String(removingTrack?.masterPreviewJobId || '');
+    getMasterPreviewJobService()?.cancel?.(removingTrack, 'track-removed');
+    if (removingPreviewJobId && state.masterPreviewRenderingJobId === removingPreviewJobId) {
+        state.masterPreviewRenderingTrackId = null;
+        state.masterPreviewRenderingJobId = '';
+        state.busy = false;
+    }
     const previewOwned = state.bottomPreviewTrackId === id || state.bottomPreviewTransport?.trackId === id;
     if (previewOwned) clearBottomPreviewPlayer();
     const timer = state.autoRemasterTimers?.get(id);
@@ -13083,7 +13075,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.80',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.81',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

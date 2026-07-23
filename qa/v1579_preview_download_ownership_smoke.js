@@ -11,7 +11,7 @@ const dialogSource = fs.readFileSync('src/ui/download-dialog-view.js', 'utf8');
 const appSource = fs.readFileSync('src/app.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.5.80');
+assert.strictEqual(pkg.version, '1.5.81');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1579_preview_download_ownership_smoke.js'));
 assert(transitionSource.includes('cancelPlaybackRequest'));
@@ -234,6 +234,7 @@ function createDownloadHarness() {
   let nextFrameId = 1;
   let shareCalls = 0;
   let resolveShare = null;
+  let rejectShare = null;
 
   const navigator = {
     userAgent: 'Chrome',
@@ -242,8 +243,9 @@ function createDownloadHarness() {
     },
     share() {
       shareCalls += 1;
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         resolveShare = resolve;
+        rejectShare = reject;
       });
     },
     clipboard: {
@@ -340,6 +342,7 @@ function createDownloadHarness() {
     revoked,
     getShareCalls: () => shareCalls,
     finishShare: () => resolveShare?.(),
+    failShare: error => rejectShare?.(error),
     dispatch(type, event) {
       (globalListeners.get(type) || []).slice().forEach(handler => handler(event));
     }
@@ -412,6 +415,18 @@ function createDownloadHarness() {
   assert.strictEqual(download.service.getActiveDownloadUrlCount(), 0, 'page exit retained Blob URL registry entries');
   assert.deepStrictEqual(download.revoked, ['blob:test'], 'page exit did not revoke the active Blob URL exactly once');
   assert.strictEqual(state.activeDownloadUrls.size, 0, 'application active URL state was not cleared');
+
+  const lateToasts = [];
+  download.service.showDownloadAssist('blob:late', 'late.mp3', 'audio/mpeg', blob, { state, showToast(message) { lateToasts.push(message); } });
+  const latePanel = download.document.getElementById('downloadAssist');
+  const lateShare = latePanel.querySelectorAll('button').find(button => button.textContent === '공유/저장');
+  lateShare.click();
+  latePanel.__foxbearCleanup();
+  latePanel.remove();
+  download.failShare(new Error('native share closed after panel disposal'));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.strictEqual(lateToasts.length, 0, 'closed assist panel surfaced a stale native-share failure toast');
+  download.dispatch('pagehide', { persisted: false });
 
   console.log('PASS v1.5.79 preview request ownership, assist action locking, and Blob URL exit cleanup');
 })().catch(error => {

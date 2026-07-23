@@ -1,6 +1,6 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.5.80",
+  "version": "1.5.81",
   "private": true,
   "description": "Server-side incident delivery with v1.5.72 mail-test cleanup, administrator audit controls, webhook failover, SMTP health checks, and bulk workflow operations support.",
   "main": "index.js",

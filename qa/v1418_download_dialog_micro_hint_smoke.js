@@ -24,14 +24,14 @@ const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 const readme = read('README.md');
 
-assert(pkg.version === '1.5.80', 'package version should be 1.5.80');
-assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.5.80');
-assert(index.includes('data-build="1.5.80"'), 'index build marker should be 1.5.80');
-assert(index.includes('1.5.80-mobile-return-media-focus-recovery'), 'index should use micro hint asset key');
-assert(sw.includes('foxbear-shell-v1.5.80-mobile-return-media-focus-recovery'), 'service worker should use micro hint cache key');
+assert(pkg.version === '1.5.81', 'package version should be 1.5.81');
+assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.5.81');
+assert(index.includes('data-build="1.5.81"'), 'index build marker should be 1.5.81');
+assert(index.includes('1.5.81-master-preview-cancellation-native-result-isolation'), 'index should use micro hint asset key');
+assert(sw.includes('foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation'), 'service worker should use micro hint cache key');
 
 assert(service.includes('getDownloadDialogCompactHint'), 'download service should expose dialog micro hint helper');
-assert(service.includes("version: '1.5.80'"), 'download helpers should report v1.5.80');
+assert(service.includes("version: '1.5.81'"), 'download helpers should report v1.5.81');
 assert(service.includes("mode: restricted ? 'restricted-micro' : 'standard-micro'"), 'micro hint should distinguish restricted and standard modes');
 assert(service.includes('visibleStepLimit: restricted ? 2 : 1'), 'micro hint should cap first-screen steps');
 assert(service.includes('advancedLabel'), 'micro hint should route diagnostics/copy to additional options');
@@ -43,17 +43,17 @@ assert(dialog.includes('dataset.downloadHintMode'), 'dialog should tag hint mode
 assert(dialog.includes('visibleStepLimit'), 'dialog should apply visible step limit');
 const appendCount = (dialog.match(/steps\.appendChild\(item\)/g) || []).length;
 assert(appendCount === 1, 'dialog should append each flow step only once');
-assert(dialog.includes("panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)"), 'v1.5.80 should mount the compact first-screen dialog stack');
-assert(!dialog.includes('panel.append(close, title, name, envBox, flowCard'), 'verbose micro-hint cards must not be mounted by v1.5.80');
+assert(dialog.includes("panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)"), 'v1.5.81 should mount the compact first-screen dialog stack');
+assert(!dialog.includes('panel.append(close, title, name, envBox, flowCard'), 'verbose micro-hint cards must not be mounted by v1.5.81');
 
 assert(css.includes('Download dialog micro hint'), 'CSS should document micro hint styles');
 assert(css.includes('.download-options-compact-hint.restricted'), 'CSS should style restricted micro hint');
 assert(css.includes('.download-options-compact-hint small'), 'CSS should style advanced hint copy');
 
-assert(pkg.qaChecks.includes('node qa/v1418_download_dialog_micro_hint_smoke.js'), 'package QA should include v1.5.80 micro hint smoke');
-assert(matrix.includes('v1.4.26 Download dialog micro hint'), 'matrix should document v1.5.80 micro hint flow');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention final v1.5.80 pass count');
+assert(pkg.qaChecks.includes('node qa/v1418_download_dialog_micro_hint_smoke.js'), 'package QA should include v1.5.81 micro hint smoke');
+assert(matrix.includes('v1.4.26 Download dialog micro hint'), 'matrix should document v1.5.81 micro hint flow');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention final v1.5.81 pass count');
 assert(changelog.includes('getDownloadDialogCompactHint'), 'changelog should mention micro hint helper');
-assert(readme.includes('Download dialog micro hint'), 'README should mention v1.5.80 scope');
+assert(readme.includes('Download dialog micro hint'), 'README should mention v1.5.81 scope');
 
 console.log('PASS v1.4.26 download dialog micro hint smoke');

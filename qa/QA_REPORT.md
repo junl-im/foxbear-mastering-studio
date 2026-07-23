@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.5.81
+
+- Master-preview decoding, DSP preparation, finalization, WAV encoding, and Blob URL commit now share one cancellable job owner.
+- Settings invalidation, queue clearing, track removal, and resource release abort stale preview work before it can commit detached output.
+- Global busy/rendering state is cleared only by the owning job, and locally created stale URLs are revoked before escape.
+- Closed or replaced download-assist panels ignore late native share/file-picker rejection results.
+- Service-level and DOM-harness regression coverage verifies job supersession, detached tracks, resource release, and stale native-result suppression.
+- Configured static/regression checks: 292/292 PASS. Real worker termination, native sheets, and long-session heap reclamation remain installed-browser/device tasks.
+
 # FoxBear QA Report - v1.5.80
 
 - Managed Web Audio recovery now includes WebKit `interrupted` contexts and shares concurrent native resume requests.

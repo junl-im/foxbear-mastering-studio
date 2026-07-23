@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.80-mobile-return-media-focus-recovery';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.81-master-preview-cancellation-native-result-isolation';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

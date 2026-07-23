@@ -1,3 +1,12 @@
+# v1.5.81 - Master Preview Cancellation and Native Result Isolation
+
+- Adds cancellable ownership for the complete 15-second master-preview decode, DSP, finalizer, WAV encoding, and Blob URL commit pipeline.
+- Aborts preview jobs when settings change, tracks are removed, the queue is cleared, or track resources are released.
+- Prevents stale preview jobs from changing busy state, reports, Dock autoplay state, or newer preview output.
+- Revokes locally created preview URLs when ownership is lost before commit.
+- Suppresses native share/file-picker errors that arrive after the download-assist panel has closed or been replaced.
+- Adds service-level and DOM-harness regression coverage for job supersession, detached tracks, cleanup, and late native results.
+
 # v1.5.80 - Mobile Return, MediaSession, and Focus Recovery
 
 - Recovers managed Web Audio contexts from WebKit `interrupted` state and deduplicates concurrent resume requests.

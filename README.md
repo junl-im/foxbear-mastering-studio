@@ -1,4 +1,13 @@
-# FoxBear AI Mastering Studio Pro v1.5.80
+# FoxBear AI Mastering Studio Pro v1.5.81
+
+## v1.5.81 마스터 미리듣기 취소·네이티브 결과 격리
+
+- 15초 하이라이트 생성의 디코딩·DSP·파이널라이저·WAV 워커를 하나의 취소 신호와 작업 세대로 관리합니다.
+- 설정 변경·트랙 삭제·큐 초기화·자원 해제 시 진행 중인 미리듣기 작업을 즉시 무효화합니다.
+- 오래된 작업은 Blob URL, 리포트, Dock 자동재생, 전역 busy 상태를 새 작업 위에 덮어쓰지 못합니다.
+- 커밋 직전 소유권을 잃은 임시 Blob URL도 즉시 회수합니다.
+- 닫히거나 교체된 저장 도움창으로 늦게 돌아온 공유·파일 선택기 실패는 토스트와 UI 상태를 다시 변경하지 않습니다.
+- 구성된 정적·회귀 검사는 292/292 통과했습니다. 실제 네이티브 창과 장시간 메모리 회수는 설치 브라우저·기기에서 최종 확인합니다.
 
 ## v1.5.80 모바일 복귀·MediaSession·포커스 복구
 
@@ -50,9 +59,10 @@
 Release metadata:
 
 ```text
-product: 1.5.78
-build: playback-transition-race-recovery
-asset generation: 1.5.78-playback-transition-race-recovery
+product: 1.5.81
+build: master-preview-cancellation-native-result-isolation
+asset generation: 1.5.81-master-preview-cancellation-native-result-isolation
+service worker cache: foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation
 service worker cache: foxbear-shell-v1.5.78-playback-transition-race-recovery
 ```
 

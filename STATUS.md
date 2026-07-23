@@ -1,6 +1,14 @@
-# FoxBear Status - v1.5.80
+# FoxBear Status - v1.5.81
 
-## v1.5.80 current focus
+## v1.5.81 current focus
+
+- Master-preview decoding, DSP, finalization, WAV encoding, and URL commit share one cancellable job owner.
+- Settings invalidation, track removal, queue clearing, and lifecycle release abort stale preview work and prevent detached result commits.
+- Busy/rendering state is job-owned so an older completion cannot clear or overwrite newer state.
+- Closed or replaced download-assist panels ignore late native share and file-picker rejection results.
+- Configured static and regression checks: 292/292 PASS; real worker termination, native sheets, and long-session heap reclamation remain installed-browser/device verification.
+
+## v1.5.80 previous focus
 
 - Interrupted Web Audio contexts recover after mobile screen lock, calls, and app switching, with concurrent resume requests deduplicated.
 - Lifecycle-captured Dock transport retains position and play intent for up to 12 hours and duplicate foreground events are coalesced.
@@ -176,10 +184,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.80`
-- Build ID: `mobile-return-media-focus-recovery`
-- Asset version: `1.5.80-mobile-return-media-focus-recovery`
-- Service worker cache: `foxbear-shell-v1.5.80-mobile-return-media-focus-recovery`
+- Product version: `1.5.81`
+- Build ID: `master-preview-cancellation-native-result-isolation`
+- Asset version: `1.5.81-master-preview-cancellation-native-result-isolation`
+- Service worker cache: `foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -211,10 +219,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.80`
-- Build ID: `mobile-return-media-focus-recovery`
-- Asset version: `1.5.80-mobile-return-media-focus-recovery`
-- Service worker cache: `foxbear-shell-v1.5.80-mobile-return-media-focus-recovery`
+- Product version: `1.5.81`
+- Build ID: `master-preview-cancellation-native-result-isolation`
+- Asset version: `1.5.81-master-preview-cancellation-native-result-isolation`
+- Service worker cache: `foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

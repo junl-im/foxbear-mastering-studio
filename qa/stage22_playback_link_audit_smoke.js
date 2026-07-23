@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.80-mobile-return-media-focus-recovery';
+const version = '1.5.81-master-preview-cancellation-native-result-isolation';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

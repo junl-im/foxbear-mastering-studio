@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.80-mobile-return-media-focus-recovery';
+    const SERVICE_VERSION = '1.5.81-master-preview-cancellation-native-result-isolation';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

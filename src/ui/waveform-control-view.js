@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.80-mobile-return-media-focus-recovery';
+  const VIEW_VERSION = '1.5.81-master-preview-cancellation-native-result-isolation';
   const DEFAULT_BINS = 96;
 
   function getService() {

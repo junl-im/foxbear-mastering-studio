@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.80-mobile-return-media-focus-recovery',
+                version: '1.5.81-master-preview-cancellation-native-result-isolation',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.80-mobile-return-media-focus-recovery',
+        version: '1.5.81-master-preview-cancellation-native-result-isolation',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,
