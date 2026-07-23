@@ -10,7 +10,7 @@ const appSource = fs.readFileSync('src/app.js', 'utf8');
 const contextSource = fs.readFileSync('src/audio/audio-context-manager.js', 'utf8');
 const downloadSource = fs.readFileSync('src/download/download-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.5.82');
+assert.strictEqual(pkg.version, '1.5.84');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1580_mobile_return_media_focus_smoke.js'));
 assert(appSource.includes("reason: 'visibility-hidden', ttlMs: 12 * 60 * 60 * 1000"));
@@ -33,7 +33,7 @@ function sourceBetween(source, startMarker, endMarker) {
 async function testInterruptedContextResumeDeduplication() {
   const listeners = new Map();
   const fakeWindow = {
-    FoxBearBuildInfo: { assetVersion: '1.5.82-mastering-cancel-playback-resume-recovery' },
+    FoxBearBuildInfo: { assetVersion: '1.5.84-trusted-types-browser-gate-recovery' },
     addEventListener(type, handler) { listeners.set(type, handler); }
   };
   vm.runInNewContext(contextSource, {
@@ -101,6 +101,7 @@ function testMediaSessionStaleHandlerCleanup() {
     MediaMetadata: class MediaMetadata { constructor(data) { Object.assign(this, data); } },
     state: { bottomPreviewMode: 'original' },
     getSelectedTrack: () => selectedTrack,
+    getDockAudioTrackId: audio => String(audio?.dataset?.trackId || audio?.dataset?.spectrumTrackId || ''),
     getBottomPreviewAudio: () => currentAudio,
     getBottomPreviewGenreLabel: () => 'Pop',
     playBottomPreviewAudio: () => { playCalls += 1; },
@@ -148,6 +149,7 @@ function testLongLockTransportLease() {
     state: { bottomPreviewMode: 'original', previewTranslationMode: 'studio', bottomPreviewTransport: null },
     getSelectedTrack: () => track,
     getBottomPreviewAudio: () => audio,
+    getDockAudioTrackId: audioValue => String(audioValue?.dataset?.trackId || audioValue?.dataset?.spectrumTrackId || ''),
     getMasterPreviewStartSec: () => 0,
     getTrackHighlightStart: () => 0,
     clamp: (value, min, max) => Math.min(max, Math.max(min, Number(value) || 0)),

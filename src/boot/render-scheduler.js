@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.82-mastering-cancel-playback-resume-recovery';
+    const SERVICE_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

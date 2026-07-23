@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.82
+// FoxBear audio decode service - v1.5.84
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.82-mastering-cancel-playback-resume-recovery';
+    const SERVICE_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

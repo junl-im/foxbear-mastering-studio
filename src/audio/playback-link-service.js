@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.5.82 - playback link service
+// FoxBear AI Mastering Studio Pro v1.5.84 - playback link service
 // Stage25: keeps playback orchestration automatic while removing intrusive visible status chips.
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.5.82-mastering-cancel-playback-resume-recovery';
+    const SERVICE_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
     const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';
@@ -261,6 +261,8 @@
             delete audio.dataset.playbackRole;
             delete audio.dataset.playbackGroup;
             delete audio.dataset.playbackGroupPolicy;
+            delete audio.dataset.trackId;
+            delete audio.dataset.absoluteStartSec;
         }
         if (removed) dispatchOrchestration({ reason, active: null, paused: [], playing: buildPlayingList(), conflictCount: 0, removedId: meta.id || '' });
         return removed;

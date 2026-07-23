@@ -1,4 +1,22 @@
-# FoxBear AI Mastering Studio Pro v1.5.82
+# FoxBear AI Mastering Studio Pro v1.5.84
+
+## v1.5.84 Trusted Types 브라우저 게이트 복구
+
+- 대량 마스터링 시각 테스트가 `innerHTML` 문자열 주입 없이 DOM 요소를 직접 생성하도록 변경했습니다.
+- 모바일 다운로드 시트 시각 테스트도 `createElement`, `textContent`, `append` 기반으로 재구성해 Trusted Types 강제 정책과 호환됩니다.
+- `src`뿐 아니라 `qa/browser` 전체에서 위험한 HTML 주입 sink를 정적 검사해 같은 CI 실패가 다시 들어오지 못하게 했습니다.
+- v1.5.84 전용 회귀 검사가 두 문제 spec의 안전한 fixture 구성과 원자적 행 교체를 확인합니다.
+- 구성된 정적·회귀 검사 295/295를 통과했으며 실제 Chromium 게이트 재실행은 Playwright 설치 환경에서 최종 확인합니다.
+
+
+## v1.5.83 Worker·Dock 소유권 및 진단 강화
+
+- 트랙 전환 중 이전 Dock 오디오의 재생 위치가 새 트랙 transport lease로 저장되지 않도록 오디오 소유권을 검증합니다.
+- 교차 전환에서 비활성 이전 오디오의 `pause`·`timeupdate` 이벤트가 현재 MediaSession 메타데이터와 위치를 덮지 못합니다.
+- Worker 작업 서비스가 활성 작업 수, 단계, 진행률, 예상 남은 시간, 최근 완료·취소 이력을 진단으로 제공합니다.
+- 트랙 자원 해제는 미리듣기뿐 아니라 진행 중인 마스터링 Worker도 방어적으로 취소합니다.
+- 재생 연결 해제 시 오디오 요소의 트랙 ID와 절대 시작 위치 dataset을 제거해 재사용 시 오래된 소유권이 남지 않습니다.
+- 구성된 정적·회귀 검사는 294개이며 실제 MediaSession 잠금화면 표시는 설치 브라우저·기기에서 최종 확인합니다.
 
 ## v1.5.82 마스터링 취소 전파·복귀 재생 회복
 
@@ -68,11 +86,10 @@
 Release metadata:
 
 ```text
-product: 1.5.81
-build: master-preview-cancellation-native-result-isolation
-asset generation: 1.5.81-master-preview-cancellation-native-result-isolation
-service worker cache: foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation
-service worker cache: foxbear-shell-v1.5.78-playback-transition-race-recovery
+product: 1.5.83
+build: worker-dock-ownership-diagnostics
+asset generation: 1.5.83-worker-dock-ownership-diagnostics
+service worker cache: foxbear-shell-v1.5.83-worker-dock-ownership-diagnostics
 ```
 
 ## v1.5.74 다중 작업 제어 및 모바일 다운로드

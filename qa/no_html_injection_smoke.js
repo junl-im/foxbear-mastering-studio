@@ -4,7 +4,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..', 'src');
+const PROJECT_ROOT = path.resolve(__dirname, '..');
+const SCAN_ROOTS = [
+  path.join(PROJECT_ROOT, 'src'),
+  path.join(PROJECT_ROOT, 'qa/browser')
+];
 const FORBIDDEN = [
   /\.innerHTML\s*=/,
   /\.outerHTML\s*=/,
@@ -21,14 +25,16 @@ function walk(dir) {
 }
 
 const violations = [];
-for (const file of walk(ROOT)) {
-  const relative = path.relative(path.resolve(__dirname, '..'), file);
-  const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
-  lines.forEach((line, index) => {
-    if (FORBIDDEN.some(pattern => pattern.test(line))) {
-      violations.push(`${relative}:${index + 1}: ${line.trim()}`);
-    }
-  });
+for (const root of SCAN_ROOTS) {
+  for (const file of walk(root)) {
+    const relative = path.relative(PROJECT_ROOT, file);
+    const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+    lines.forEach((line, index) => {
+      if (FORBIDDEN.some(pattern => pattern.test(line))) {
+        violations.push(`${relative}:${index + 1}: ${line.trim()}`);
+      }
+    });
+  }
 }
 
 if (violations.length) {
@@ -37,4 +43,4 @@ if (violations.length) {
   process.exit(1);
 }
 
-console.log('PASS no unsafe HTML injection sinks in src');
+console.log('PASS no unsafe HTML injection sinks in src or browser QA');

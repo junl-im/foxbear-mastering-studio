@@ -75,6 +75,8 @@
             masterPreviewStatus: 'idle',
             masterPreviewAbortController: null,
             masterPreviewJobId: '',
+            masteringAbortController: null,
+            masteringJobId: '',
             analysisPromise: null,
             bulkImportBatchId: '',
             bulkImportOrder: 0,
@@ -113,6 +115,9 @@
         if (!track) return Object.freeze({ revoked: 0 });
         const revokeObjectURL = options.revokeObjectURL || (url => URL.revokeObjectURL(url));
         let revoked = 0;
+        try { track.masteringAbortController?.abort?.('track-resources-released'); } catch (error) {}
+        track.masteringAbortController = null;
+        track.masteringJobId = '';
         try { track.masterPreviewAbortController?.abort?.('track-resources-released'); } catch (error) {}
         track.masterPreviewAbortController = null;
         track.masterPreviewJobId = '';

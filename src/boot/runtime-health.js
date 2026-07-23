@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.82-mastering-cancel-playback-resume-recovery';
+    const FALLBACK_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

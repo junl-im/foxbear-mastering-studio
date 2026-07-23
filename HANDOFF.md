@@ -1,4 +1,4 @@
-# Handoff - v1.5.82
+# Handoff - v1.5.84
 ## 필수 결과 보고 형식
 
 앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
@@ -10,6 +10,25 @@
 3. `다음 예상 내용`
 
 배포 파일은 항상 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP 두 종류를 함께 제공합니다. 확인하지 못한 실제 배포·메일 수신·브라우저 검증은 `진행된 내용`에 사실대로 제한 사항을 적습니다.
+
+## v1.5.84 인수인계
+
+- Trusted Types가 강제되는 페이지의 Playwright fixture에서는 `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.write`를 사용하지 않습니다.
+- 대량 마스터링 행은 `document.createElement`와 `textContent`로 만들고 `list.replaceChildren(...rows)`로 한 번에 반영합니다.
+- 모바일 다운로드 시트는 family, option, action 영역을 각각 DOM 요소로 만든 뒤 `sheet.append(...)`로 구성합니다.
+- `qa/no_html_injection_smoke.js`는 애플리케이션 소스와 `qa/browser`를 함께 검사합니다.
+- 회귀 검사는 `node qa/v1584_trusted_types_browser_qa_smoke.js`로 단독 실행할 수 있습니다.
+- 실제 실패 확인은 Playwright와 Chromium이 설치된 환경에서 `npm run qa:browser`로 수행합니다.
+- 결과 보고는 계속 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용` 세 구역만 사용합니다.
+
+## v1.5.83 인수인계
+
+- Dock transport 저장 전 mounted audio의 `dataset.trackId`/`dataset.spectrumTrackId`가 대상 트랙과 일치하는지 확인합니다.
+- 교차 전환에서 `data-bottom-preview-active="false"`인 이전 오디오 이벤트는 현재 active Dock 오디오로 MediaSession 동기화를 위임합니다.
+- `FoxBearWorkerJobService.getDiagnostics()`는 활성 작업과 최근 완료·취소·실패 작업을 반환하며 모든 종료 경로에서 활성 레코드가 제거되어야 합니다.
+- `releaseTrackResources()`는 마스터링과 마스터 미리듣기 AbortController를 모두 취소하고 작업 ID를 비웁니다.
+- 회귀 검사는 `node qa/v1583_worker_dock_ownership_smoke.js`로 단독 실행할 수 있습니다.
+- 결과 보고는 계속 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용` 세 구역만 사용합니다.
 
 ## v1.5.82 인수인계
 

@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { expectRuntimeHealthy, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 
-test.describe('v1.5.82 bulk mastering controls visual layout', () => {
+test.describe('v1.5.84 bulk mastering controls visual layout', () => {
   async function stageBatchHud(page) {
     await page.evaluate(() => {
       const hud = document.querySelector('#bulkImportHud');
@@ -20,14 +20,49 @@ test.describe('v1.5.82 bulk mastering controls visual layout', () => {
       const filter = document.querySelector('#bulkImportHudFilter');
       filter.hidden = false;
       filter.closest('.bulk-import-hud-filter-wrap').hidden = false;
-      list.innerHTML = Array.from({ length: 6 }, (_, index) => `
-        <div class="bulk-import-row is-${index === 1 ? 'running is-current' : index === 0 ? 'done' : 'queued'}" role="listitem">
-          <span class="bulk-import-row-number">${String(index + 1).padStart(2, '0')}</span>
-          <span class="bulk-import-row-main"><strong>sample-${String(index + 1).padStart(2, '0')}.wav</strong><small>${index === 1 ? '마스터링 중 · 남은 약 1분 12초' : index === 0 ? '완료 · 소요 2분 03초' : `완료 예상 약 ${index + 2}분 후`}</small></span>
-          <span class="bulk-import-row-state">${index === 1 ? '현재 진행' : index === 0 ? '완성' : '마스터링 대기'}</span>
-          <span class="bulk-import-row-meter"><i style="width:${index === 0 ? 100 : index === 1 ? 48 : 0}%"></i></span>
-          <span class="bulk-import-row-percent">${index === 0 ? 100 : index === 1 ? 48 : 0}%</span>
-        </div>`).join('');
+
+      const rows = Array.from({ length: 6 }, (_, index) => {
+        const isCurrent = index === 1;
+        const isDone = index === 0;
+        const progress = isDone ? 100 : isCurrent ? 48 : 0;
+        const row = document.createElement('div');
+        row.className = `bulk-import-row is-${isCurrent ? 'running is-current' : isDone ? 'done' : 'queued'}`;
+        row.setAttribute('role', 'listitem');
+
+        const number = document.createElement('span');
+        number.className = 'bulk-import-row-number';
+        number.textContent = String(index + 1).padStart(2, '0');
+
+        const main = document.createElement('span');
+        main.className = 'bulk-import-row-main';
+        const name = document.createElement('strong');
+        name.textContent = `sample-${String(index + 1).padStart(2, '0')}.wav`;
+        const detail = document.createElement('small');
+        detail.textContent = isCurrent
+          ? '마스터링 중 · 남은 약 1분 12초'
+          : isDone
+            ? '완료 · 소요 2분 03초'
+            : `완료 예상 약 ${index + 2}분 후`;
+        main.append(name, detail);
+
+        const state = document.createElement('span');
+        state.className = 'bulk-import-row-state';
+        state.textContent = isCurrent ? '현재 진행' : isDone ? '완성' : '마스터링 대기';
+
+        const meter = document.createElement('span');
+        meter.className = 'bulk-import-row-meter';
+        const meterFill = document.createElement('i');
+        meterFill.style.width = `${progress}%`;
+        meter.appendChild(meterFill);
+
+        const percent = document.createElement('span');
+        percent.className = 'bulk-import-row-percent';
+        percent.textContent = `${progress}%`;
+
+        row.append(number, main, state, meter, percent);
+        return row;
+      });
+      list.replaceChildren(...rows);
     });
   }
 

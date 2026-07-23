@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.82-mastering-cancel-playback-resume-recovery';
+  const VIEW_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

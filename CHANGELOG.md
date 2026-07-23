@@ -1,3 +1,19 @@
+# v1.5.84 - Trusted Types Browser Gate Recovery
+
+- Rebuilds the bulk-mastering visual fixture with `createElement`, `textContent`, and `replaceChildren` instead of assigning HTML strings.
+- Rebuilds the mobile download-sheet fixture with structured DOM APIs so strict `require-trusted-types-for 'script'` enforcement cannot reject the test setup.
+- Expands the unsafe HTML sink audit to include Playwright browser specifications, preventing future visual tests from reintroducing `innerHTML`, `outerHTML`, `insertAdjacentHTML`, or `document.write`.
+- Adds a dedicated dependency-light regression guard for the two CI failures and their Trusted Types-safe fixture contracts.
+
+# v1.5.83 - Worker Lifecycle and Dock Ownership Diagnostics
+
+- Rejects Dock transport snapshots when the mounted audio belongs to a different track, preventing cross-track seek leakage during rapid selection changes.
+- Ignores inactive crossfade audio when synchronizing MediaSession metadata, playback state, and position.
+- Adds active/recent Worker job diagnostics with progress-derived remaining-time estimates and guaranteed cleanup on completion, timeout, error, and cancellation.
+- Aborts both mastering and master-preview jobs from the generic track resource lifecycle cleanup path.
+- Clears track ownership datasets when playback-linked audio is unregistered.
+- Adds VM regression coverage for Worker cleanup, cross-track transport fencing, stale MediaSession events, and lifecycle cancellation.
+
 # v1.5.82 - Mastering Cancellation and Foreground Playback Recovery
 
 - Propagates cancellation out of quality-gate automatic re-rendering instead of treating a user or batch abort as a recoverable render failure.

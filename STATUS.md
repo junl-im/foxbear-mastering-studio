@@ -1,6 +1,22 @@
-# FoxBear Status - v1.5.82
+# FoxBear Status - v1.5.84
 
-## v1.5.82 current focus
+## v1.5.84 current focus
+
+- Browser visual fixtures no longer assign HTML strings under the production Trusted Types enforcement policy.
+- Bulk mastering rows are created with DOM APIs and atomically installed with `replaceChildren`.
+- Mobile download-sheet controls are staged with structured elements and text-only assignments.
+- The unsafe HTML sink audit now covers both application source and Playwright browser specifications.
+- Configured static and regression checks: 295/295 PASS; real Chromium rerun remains the final CI confirmation.
+
+## v1.5.83 current focus
+
+- Dock transport snapshots are accepted only from audio owned by the target track, preventing cross-track position leakage during rapid selection changes.
+- Inactive crossfade audio cannot overwrite current MediaSession metadata, playback state, or position.
+- Worker jobs expose bounded active/recent lifecycle diagnostics and progress-based remaining-time estimates.
+- Generic track cleanup aborts both mastering and master-preview work and clears stale playback ownership datasets.
+- Configured static and regression checks: 294/294 PASS after final verification; real lock-screen MediaSession presentation remains installed-device verification.
+
+## v1.5.82 previous focus
 
 - Cancelling quality-gate automatic recovery exits the complete mastering job instead of falling back to a successful first-render commit.
 - First-render settings and report metadata are restored before a cancelled recovery leaves the track.
@@ -192,10 +208,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.82`
-- Build ID: `mastering-cancel-playback-resume-recovery`
-- Asset version: `1.5.82-mastering-cancel-playback-resume-recovery`
-- Service worker cache: `foxbear-shell-v1.5.82-mastering-cancel-playback-resume-recovery`
+- Product version: `1.5.84`
+- Build ID: `trusted-types-browser-gate-recovery`
+- Asset version: `1.5.84-trusted-types-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.5.84-trusted-types-browser-gate-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -227,10 +243,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.82`
-- Build ID: `mastering-cancel-playback-resume-recovery`
-- Asset version: `1.5.82-mastering-cancel-playback-resume-recovery`
-- Service worker cache: `foxbear-shell-v1.5.82-mastering-cancel-playback-resume-recovery`
+- Product version: `1.5.84`
+- Build ID: `trusted-types-browser-gate-recovery`
+- Asset version: `1.5.84-trusted-types-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.5.84-trusted-types-browser-gate-recovery`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

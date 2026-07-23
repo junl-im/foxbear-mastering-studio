@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.82",
-  "buildId": "mastering-cancel-playback-resume-recovery",
+  "productVersion": "1.5.84",
+  "buildId": "trusted-types-browser-gate-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

@@ -9,8 +9,8 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const appSource = fs.readFileSync('src/app.js', 'utf8');
 const playbackSource = fs.readFileSync('src/audio/playback-transition-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.5.82');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'mastering-cancel-playback-resume-recovery');
+assert.strictEqual(pkg.version, '1.5.84');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1582_mastering_cancel_playback_resume_smoke.js'));
 assert(appSource.includes("status: cancelled ? 'cancelled' : 'error'"));
 assert(appSource.includes("if (cancelled) throw"));

@@ -1,3 +1,21 @@
+# FoxBear QA Report - v1.5.84
+
+- Reproduced the release-gate failure as a Trusted Types violation in two visual fixture setup functions rather than a product layout failure.
+- Replaced all browser-test `innerHTML` assignments with explicit DOM construction and text-only values.
+- Expanded the unsafe HTML sink audit to scan `qa/browser` as well as `src`.
+- Added a v1.5.84 regression guard for both affected specifications and their required DOM construction contracts.
+- Configured static/regression checks: 295/295 PASS after final verification.
+- Real Chromium execution remains the final confirmation for the reported CI gate; local Playwright installation was blocked by an npm registry 503 response.
+
+# FoxBear QA Report - v1.5.83
+
+- Dock transport capture rejects audio owned by another track, preventing old-track time from becoming the new track's restore position.
+- Inactive crossfade events resolve the currently active Dock audio before MediaSession metadata and position are updated.
+- Worker diagnostics verify active-job registration, progress/ETA updates, cancellation termination, and zero active jobs after settlement.
+- Track lifecycle cleanup aborts both mastering and preview controllers and playback-link cleanup removes stale ownership datasets.
+- VM regression coverage exercises cross-track transport fencing, stale MediaSession suppression, Worker cleanup, and dual job cancellation.
+- Configured static/regression checks: 294/294 PASS after final verification. Real lock-screen MediaSession UI and browser Worker memory reclamation remain installed-device tasks.
+
 # FoxBear QA Report - v1.5.82
 
 - Quality-gate automatic recovery now distinguishes cancellation from a genuine recovery failure and propagates abort ownership to the parent mastering job.
