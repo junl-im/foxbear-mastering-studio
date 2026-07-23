@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.79",
+  "version": "1.5.80",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with preview playback request ownership, detached-audio recovery, single-flight save/share actions, Blob URL exit cleanup, and accessible download busy states.",
+  "description": "FoxBear AI Mastering Studio Pro with interrupted AudioContext recovery, long-lock Dock transport retention, stale MediaSession cleanup, and native save/share focus restoration.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.79-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.79-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.80-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.80-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -318,15 +318,16 @@
     "node qa/v1576_release_sync_dependency_health_smoke.js",
     "node qa/v1577_runtime_resource_lifecycle_smoke.js",
     "node qa/v1578_playback_transition_race_recovery_smoke.js",
-    "node qa/v1579_preview_download_ownership_smoke.js"
+    "node qa/v1579_preview_download_ownership_smoke.js",
+    "node qa/v1580_mobile_return_media_focus_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "preview-download-ownership-recovery",
-    "assetVersion": "1.5.79-preview-download-ownership-recovery",
-    "cacheName": "foxbear-shell-v1.5.79-preview-download-ownership-recovery",
-    "bootRevision": "boot-sri-v1579",
-    "updateSafetyRevision": "update-safety-v1579",
-    "serviceWorkerRevision": "sw-v1579"
+    "buildId": "mobile-return-media-focus-recovery",
+    "assetVersion": "1.5.80-mobile-return-media-focus-recovery",
+    "cacheName": "foxbear-shell-v1.5.80-mobile-return-media-focus-recovery",
+    "bootRevision": "boot-sri-v1580",
+    "updateSafetyRevision": "update-safety-v1580",
+    "serviceWorkerRevision": "sw-v1580"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

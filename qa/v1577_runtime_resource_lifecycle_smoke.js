@@ -12,7 +12,7 @@ const appSource = fs.readFileSync('src/app.js', 'utf8');
 const runtimeHealthSource = fs.readFileSync('src/boot/runtime-health.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.5.79');
+assert.strictEqual(pkg.version, '1.5.80');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(fs.existsSync('docs/V1.5.77_RUNTIME_RESOURCE_LIFECYCLE_RECOVERY.md'));
 assert(pkg.qaChecks.includes('node qa/v1577_runtime_resource_lifecycle_smoke.js'));

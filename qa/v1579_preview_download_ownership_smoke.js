@@ -11,8 +11,8 @@ const dialogSource = fs.readFileSync('src/ui/download-dialog-view.js', 'utf8');
 const appSource = fs.readFileSync('src/app.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.5.79');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'preview-download-ownership-recovery');
+assert.strictEqual(pkg.version, '1.5.80');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1579_preview_download_ownership_smoke.js'));
 assert(transitionSource.includes('cancelPlaybackRequest'));
 assert(transitionSource.includes('ownsPlaybackRequest'));
@@ -175,14 +175,19 @@ class FakeElement {
   }
   querySelectorAll(selector) {
     const results = [];
+    const tags = String(selector || '').split(',').map(value => value.trim().toUpperCase()).filter(Boolean);
     const visit = node => {
       node.children.forEach(child => {
-        if (selector === 'button' && child.tagName === 'BUTTON') results.push(child);
+        if (tags.includes(child.tagName)) results.push(child);
         visit(child);
       });
     };
     visit(this);
     return results;
+  }
+  contains(target) {
+    if (target === this) return true;
+    return this.children.some(child => child.contains(target));
   }
   focus() {
     this.ownerDocument.activeElement = this;

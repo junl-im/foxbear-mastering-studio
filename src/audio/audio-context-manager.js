@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.79-preview-download-ownership-recovery';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.5.80-mobile-return-media-focus-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();
@@ -75,6 +75,8 @@
             createdAt: now(),
             lastState: context.state || 'unknown',
             resumeCount: 0,
+            resumePromise: null,
+            lastResumeError: '',
             closeReason: ''
         };
         records.set(id, record);
@@ -116,15 +118,24 @@
     async function resume(context, reason = 'resume') {
         if (!context) return null;
         const record = getRecord(context);
-        if (context.state === 'suspended' && typeof context.resume === 'function') {
-            try {
-                await context.resume();
-                if (record) record.resumeCount += 1;
-                pushEvent('resume', record, { reason });
-            } catch (error) {
-                pushEvent('resume-error', record, { reason, message: error?.message || String(error || '') });
-            }
+        if (context.state === 'running' || context.state === 'closed' || typeof context.resume !== 'function') return context;
+        if (record?.resumePromise) {
+            pushEvent('resume-join', record, { reason });
+            await record.resumePromise;
+            return context;
         }
+        let pending;
+        pending = Promise.resolve().then(() => context.resume()).then(() => {
+            if (record) { record.resumeCount += 1; record.lastResumeError = ''; }
+            pushEvent('resume', record, { reason, recoveredState: context.state || '' });
+        }).catch(error => {
+            if (record) record.lastResumeError = error?.message || String(error || '');
+            pushEvent('resume-error', record, { reason, message: error?.message || String(error || '') });
+        }).finally(() => {
+            if (record?.resumePromise === pending) record.resumePromise = null;
+        });
+        if (record) record.resumePromise = pending;
+        await pending;
         return context;
     }
 
@@ -207,6 +218,8 @@
                 createdAt: record.createdAt,
                 ageMs: Math.max(0, now() - record.createdAt),
                 resumeCount: record.resumeCount,
+                resumePending: Boolean(record.resumePromise),
+                lastResumeError: record.lastResumeError,
                 closeReason: record.closeReason
             }))),
             events: Object.freeze(events.slice())

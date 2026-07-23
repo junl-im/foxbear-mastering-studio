@@ -1,6 +1,14 @@
-# FoxBear Status - v1.5.79
+# FoxBear Status - v1.5.80
 
-## v1.5.79 current focus
+## v1.5.80 current focus
+
+- Interrupted Web Audio contexts recover after mobile screen lock, calls, and app switching, with concurrent resume requests deduplicated.
+- Lifecycle-captured Dock transport retains position and play intent for up to 12 hours and duplicate foreground events are coalesced.
+- MediaSession state and handlers are cleared when the Dock source disappears and controls resolve the current audio dynamically.
+- Native share/direct-save completion restores focus and all assist controls remain locked during the active operation.
+- Configured static and regression checks: 290/290 PASS; real mobile interruption and native picker behavior remain device verification.
+
+## v1.5.79 previous focus
 
 - Pending preview playback is owned by a per-audio request generation and stale completions cannot revive detached audio.
 - Audio disposal invalidates pending play/fade work before unregistering spectrum and playback-link resources.
@@ -168,10 +176,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.79`
-- Build ID: `preview-download-ownership-recovery`
-- Asset version: `1.5.79-preview-download-ownership-recovery`
-- Service worker cache: `foxbear-shell-v1.5.79-preview-download-ownership-recovery`
+- Product version: `1.5.80`
+- Build ID: `mobile-return-media-focus-recovery`
+- Asset version: `1.5.80-mobile-return-media-focus-recovery`
+- Service worker cache: `foxbear-shell-v1.5.80-mobile-return-media-focus-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -203,10 +211,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.79`
-- Build ID: `preview-download-ownership-recovery`
-- Asset version: `1.5.79-preview-download-ownership-recovery`
-- Service worker cache: `foxbear-shell-v1.5.79-preview-download-ownership-recovery`
+- Product version: `1.5.80`
+- Build ID: `mobile-return-media-focus-recovery`
+- Asset version: `1.5.80-mobile-return-media-focus-recovery`
+- Service worker cache: `foxbear-shell-v1.5.80-mobile-return-media-focus-recovery`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

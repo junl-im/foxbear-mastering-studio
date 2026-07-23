@@ -1,3 +1,12 @@
+# v1.5.80 - Mobile Return, MediaSession, and Focus Recovery
+
+- Recovers managed Web Audio contexts from WebKit `interrupted` state and deduplicates concurrent resume requests.
+- Preserves Dock position and play intent for long screen-lock and app-switch intervals while keeping ordinary snapshots short-lived.
+- Coalesces duplicate foreground restore events and clears stale MediaSession metadata, position, and action handlers.
+- Resolves MediaSession pause/seek actions against the current Dock audio instead of a removed element.
+- Restores focus after native share/direct-save completion and locks every save-assist control during the operation.
+- Adds VM regression coverage for interrupted context recovery, long-lock transport leases, stale media handlers, and focus contracts.
+
 # v1.5.79 - Preview and Download Ownership Recovery
 
 - Adds per-audio playback request generations so late `play()` and readiness completions cannot mutate a newer preview state.

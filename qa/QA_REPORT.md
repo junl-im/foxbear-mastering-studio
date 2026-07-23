@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.5.80
+
+- Managed Web Audio recovery now includes WebKit `interrupted` contexts and shares concurrent native resume requests.
+- Long screen-lock transport snapshots retain Dock position and play intent for 12 hours while ordinary snapshots still expire quickly.
+- MediaSession cleanup removes stale metadata, position, and action handlers; pause and seek actions target the current Dock audio.
+- Native share/direct-save controls lock the full action surface and restore focus to the initiating button on return.
+- VM regression coverage exercises interrupted resume deduplication, long-lock expiry, stale handler cleanup, and focus-lock source contracts.
+- Configured static/regression checks: 290/290 PASS. Real screen lock, calls, share sheets, and file pickers remain installed-device verification tasks.
+
 # FoxBear QA Report - v1.5.79
 
 - Pending preview play completions are isolated by per-audio request ownership and cannot revive detached UI audio.

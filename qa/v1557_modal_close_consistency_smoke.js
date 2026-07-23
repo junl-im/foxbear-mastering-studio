@@ -18,10 +18,10 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const mobileNative = read('src/ui/mobile-native-view.js');
 
-assert.strictEqual(pkg.version, '1.5.79');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.79-preview-download-ownership-recovery');
-assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.79-preview-download-ownership-recovery'));
-assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.79-preview-download-ownership-recovery'));
+assert.strictEqual(pkg.version, '1.5.80');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.80-mobile-return-media-focus-recovery');
+assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.80-mobile-return-media-focus-recovery'));
+assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.80-mobile-return-media-focus-recovery'));
 assert(index.indexOf('assets/css/components/modal-close-system.css') > index.indexOf('assets/css/header-command-bar.css'), 'modal close ownership stylesheet must load last');
 
 for (const id of ['programInfoClose', 'featureDialogClose', 'previewDialogClose', 'adminStatsClose']) {
