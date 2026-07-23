@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.5.82
+
+- Quality-gate automatic recovery now distinguishes cancellation from a genuine recovery failure and propagates abort ownership to the parent mastering job.
+- Cancelled recovery restores the first-render settings and metadata, does not report an operational incident, and cannot commit the first encoded Blob as a completed result.
+- Foreground-return playback retries exactly once after a transient interruption only while the same request still owns a connected audio element.
+- Superseded pause, source replacement, and detached-player paths cannot trigger the retry.
+- VM regression coverage validates cancellation propagation, state rollback, bounded playback retry, and stale-request suppression.
+- Configured static/regression checks: 293/293 PASS after final verification. Real mobile screen-lock, call interruption, and Chromium audio timing remain installed-device tasks.
+
 # FoxBear QA Report - v1.5.81
 
 - Master-preview decoding, DSP preparation, finalization, WAV encoding, and Blob URL commit now share one cancellable job owner.

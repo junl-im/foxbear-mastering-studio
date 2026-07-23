@@ -1,3 +1,13 @@
+# v1.5.82 - Mastering Cancellation and Foreground Playback Recovery
+
+- Propagates cancellation out of quality-gate automatic re-rendering instead of treating a user or batch abort as a recoverable render failure.
+- Restores the first-render settings and report state before cancelled quality recovery exits.
+- Prevents cancelled recovery from committing the preserved first render as a successful completed master.
+- Retries a still-owned media `play()` once after a transient foreground-return `AbortError` and audio-graph resume.
+- Prevents superseded, detached, or explicitly cancelled playback requests from using the retry path.
+- Routes local waveform and A/B fallback playback through the same owned transition service.
+- Adds VM regression coverage for cancellation propagation, state restoration, single retry, and stale-request suppression.
+
 # v1.5.81 - Master Preview Cancellation and Native Result Isolation
 
 - Adds cancellable ownership for the complete 15-second master-preview decode, DSP, finalizer, WAV encoding, and Blob URL commit pipeline.

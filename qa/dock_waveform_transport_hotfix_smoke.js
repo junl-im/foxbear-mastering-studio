@@ -6,7 +6,7 @@ const css = fs.readFileSync('assets/css/studio.css', 'utf8') + '\n' + fs.readFil
 function must(condition, message) {
   if (!condition) throw new Error(message);
 }
-must(app.includes("const APP_VERSION = 'Pro v1.5.81'"), 'app version should be v1.4.0');
+must(app.includes("const APP_VERSION = 'Pro v1.5.82'"), 'app version should be v1.4.0');
 must(app.includes('track?.waveformOverview?.mastered'), 'Dock/detail master waveform does not read canonical mastered field');
 must(app.includes('getTrackMasterWaveformMarkers'), 'master waveform marker compatibility helper missing');
 must(!app.includes('cleanupRealtimePreview();\n    pauseAllPreviewAudio();\n    el.previewDialogBody.textContent = \'\';'), 'waveform popup still pauses all preview audio on open');

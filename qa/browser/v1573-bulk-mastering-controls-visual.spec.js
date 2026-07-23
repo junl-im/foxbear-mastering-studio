@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const { expectRuntimeHealthy, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 
-test.describe('v1.5.81 bulk mastering controls visual layout', () => {
+test.describe('v1.5.82 bulk mastering controls visual layout', () => {
   async function stageBatchHud(page) {
     await page.evaluate(() => {
       const hud = document.querySelector('#bulkImportHud');

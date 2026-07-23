@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.81
+// FoxBear automatic incident reporter - v1.5.82
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.81-master-preview-cancellation-native-result-isolation';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.82-mastering-cancel-playback-resume-recovery';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;

@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.81-master-preview-cancellation-native-result-isolation';
+    const SERVICE_VERSION = '1.5.82-mastering-cancel-playback-resume-recovery';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;
@@ -94,8 +94,27 @@
     }
 
     function resumeAudioGraphForGesture(audio) {
-        try { audio?._foxbearTranslationController?.resume?.(); } catch (error) {}
-        try { audio?._foxbearResumeAudioGraph?.(); } catch (error) {}
+        const pending = [];
+        try { const result = audio?._foxbearTranslationController?.resume?.(); if (result && typeof result.then === 'function') pending.push(result); } catch (error) {}
+        try { const result = audio?._foxbearResumeAudioGraph?.(); if (result && typeof result.then === 'function') pending.push(result); } catch (error) {}
+        return pending.length ? Promise.allSettled(pending) : Promise.resolve([]);
+    }
+
+    function isRecoverablePlaybackInterruption(error) {
+        const name = String(error?.name || '').toLowerCase();
+        const message = String(error?.message || error || '').toLowerCase();
+        return name === 'aborterror' || message.includes('interrupted') || message.includes('media was removed') || message.includes('not ready');
+    }
+
+    function retryInterruptedPlay(audio, requestId, initialPlay, resumePromise, options = {}) {
+        return Promise.resolve(initialPlay).catch(async error => {
+            if (!ownsPlaybackRequest(audio, requestId) || !isAudioConnected(audio) || options.retryInterrupted === false || !isRecoverablePlaybackInterruption(error)) throw error;
+            await Promise.resolve(resumePromise).catch(() => {});
+            if (!ownsPlaybackRequest(audio, requestId) || !isAudioConnected(audio)) return false;
+            await waitForMediaReady(audio, options.readyTimeoutMs || 900);
+            if (!ownsPlaybackRequest(audio, requestId) || !isAudioConnected(audio)) return false;
+            return typeof audio.play === 'function' ? audio.play() : false;
+        });
     }
 
     function playSynchronizedPair(context, audioElements, reason = 'synchronized-play') {
@@ -176,15 +195,16 @@
         if (!audio) return Promise.resolve(false);
         const requestId = beginPlaybackRequest(audio, 'play');
         cancelFade(audio);
-        resumeAudioGraphForGesture(audio);
+        const resumePromise = resumeAudioGraphForGesture(audio);
         const target = rememberTargetVolume(audio);
         const duration = Number(options.ms || DEFAULT_FADE_MS);
         if (options.fromZero !== false) audio.volume = FADE_MIN_VOLUME;
         let playPromise;
         try { playPromise = typeof audio.play === 'function' ? audio.play() : Promise.resolve(); }
         catch (error) { playPromise = Promise.reject(error); }
-        return Promise.resolve(playPromise)
-            .then(() => {
+        return retryInterruptedPlay(audio, requestId, playPromise, resumePromise, options)
+            .then(started => {
+                if (started === false) return false;
                 if (!ownsPlaybackRequest(audio, requestId)) return false;
                 if (!isAudioConnected(audio)) {
                     try { audio.pause?.(); } catch (error) {}
@@ -232,6 +252,7 @@
         const oldTarget = rememberTargetVolume(oldAudio);
         const nextTarget = rememberTargetVolume(nextAudio);
         if (nextAudio) nextAudio.volume = FADE_MIN_VOLUME;
+        const resumePromise = resumeAudioGraphForGesture(nextAudio);
         // A source switch initiated by a real tap must call play() in the same
         // activation task. Deferring it behind metadata readiness loses user
         // activation in KakaoTalk and several mobile WebViews.
@@ -244,7 +265,8 @@
             if (!ownsPair() || !isAudioConnected(nextAudio)) return false;
             return nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve();
         });
-        return Promise.all([Promise.resolve(playPromise), readyPromise])
+        const recoveredPlay = nextAudio ? retryInterruptedPlay(nextAudio, nextRequestId, playPromise, resumePromise, options) : playPromise;
+        return Promise.all([Promise.resolve(recoveredPlay), readyPromise])
             .then(() => {
                 if (!ownsPair()) return false;
                 if (nextAudio && !isAudioConnected(nextAudio)) {
@@ -291,6 +313,8 @@
         getInAppCompatibility,
         configureAudioElement,
         resumeAudioGraphForGesture,
+        isRecoverablePlaybackInterruption,
+        retryInterruptedPlay,
         playSynchronizedPair,
         playWithFadeIn,
         pauseWithFadeOut,

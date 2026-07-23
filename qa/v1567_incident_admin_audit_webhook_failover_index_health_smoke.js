@@ -22,26 +22,26 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.67_INCIDENT_ADMIN_AUDIT_WEBHOOK_FAILOVER_INDEX_HEALTH.md');
 
-assert.strictEqual(pkg.version, '1.5.81');
-assert.strictEqual(meta.assetVersion, '1.5.81-master-preview-cancellation-native-result-isolation');
+assert.strictEqual(pkg.version, '1.5.82');
+assert.strictEqual(meta.assetVersion, '1.5.82-mastering-cancel-playback-resume-recovery');
 assert(pkg.scripts['deploy:incident'].includes('functions:verifyIncidentPostDeployHealth'));
 for (const token of [
-  "const PRODUCT_VERSION = '1.5.81'", 'const OPERATIONS_SCHEMA_VERSION =',
+  "const PRODUCT_VERSION = '1.5.82'", 'const OPERATIONS_SCHEMA_VERSION =',
   "const ADMIN_AUDIT_COLLECTION = 'incidentAdminAuditLog'", 'writeAdminAuditEvent',
   'OPERATIONS_WEBHOOK_FALLBACK_ENV_NAME', 'OPERATIONS_WEBHOOK_RETRY_DELAYS_MS',
   'inspectOperationsWebhookChannels', 'deliverOperationsWebhook', 'failover: true',
   'probeFirestoreIndexes', 'inspectPostDeployHealth', 'exports.verifyIncidentPostDeployHealth'
-]) assert(functionsSource.includes(token), `v1.5.81 function contract missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.5.82 function contract missing ${token}`);
 
 for (const token of ['getIncidentOperationsHistory', 'getIncidentAdminAuditLog', 'parseHistoryFilter', 'historyNextCursor', 'auditLog']) {
-  assert(firebaseSource.includes(token), `v1.5.81 Firebase bridge contract missing ${token}`);
+  assert(firebaseSource.includes(token), `v1.5.82 Firebase bridge contract missing ${token}`);
 }
 for (const id of ['adminIncidentHistoryFilter', 'adminIncidentHistoryMore', 'adminIncidentHistoryStatus', 'adminIncidentAuditDetails', 'adminIncidentAuditRows']) {
-  assert(indexSource.includes(`id="${id}"`), `v1.5.81 HTML missing ${id}`);
-  assert(appSource.includes(`'${id}'`), `v1.5.81 app element cache missing ${id}`);
+  assert(indexSource.includes(`id="${id}"`), `v1.5.82 HTML missing ${id}`);
+  assert(appSource.includes(`'${id}'`), `v1.5.82 app element cache missing ${id}`);
 }
 for (const token of ['loadHistoryPage', 'renderAuditLog', 'updateHistoryControls', '이중화']) {
-  assert(monitorSource.includes(token), `v1.5.81 monitor contract missing ${token}`);
+  assert(monitorSource.includes(token), `v1.5.82 monitor contract missing ${token}`);
 }
 assert(rules.includes('match /incidentAdminAuditLog/{auditId}'));
 assert(indexes.includes('incidentOperationsHistory'));

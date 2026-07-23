@@ -1,7 +1,7 @@
 'use strict';
 const { test, expect } = require('@playwright/test');
 
-test.describe('v1.5.81 mobile download and batch controls visual contract', () => {
+test.describe('v1.5.82 mobile download and batch controls visual contract', () => {
   for (const viewport of [{ width: 375, height: 667 }, { width: 430, height: 932 }, { width: 1280, height: 900 }]) {
     test(`download sheet and batch controls fit ${viewport.width}x${viewport.height}`, async ({ page }) => {
       await page.setViewportSize(viewport);

@@ -1,6 +1,14 @@
-# FoxBear Status - v1.5.81
+# FoxBear Status - v1.5.82
 
-## v1.5.81 current focus
+## v1.5.82 current focus
+
+- Cancelling quality-gate automatic recovery exits the complete mastering job instead of falling back to a successful first-render commit.
+- First-render settings and report metadata are restored before a cancelled recovery leaves the track.
+- A transient foreground-return media interruption receives one owned retry after audio-graph resume.
+- Superseded or detached audio requests cannot retry or modify the current player.
+- Configured static and regression checks: 293/293 PASS after final verification; real mobile interruption and browser audio timing remain installed-device verification.
+
+## v1.5.81 previous focus
 
 - Master-preview decoding, DSP, finalization, WAV encoding, and URL commit share one cancellable job owner.
 - Settings invalidation, track removal, queue clearing, and lifecycle release abort stale preview work and prevent detached result commits.
@@ -184,10 +192,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.81`
-- Build ID: `master-preview-cancellation-native-result-isolation`
-- Asset version: `1.5.81-master-preview-cancellation-native-result-isolation`
-- Service worker cache: `foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation`
+- Product version: `1.5.82`
+- Build ID: `mastering-cancel-playback-resume-recovery`
+- Asset version: `1.5.82-mastering-cancel-playback-resume-recovery`
+- Service worker cache: `foxbear-shell-v1.5.82-mastering-cancel-playback-resume-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -219,10 +227,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.81`
-- Build ID: `master-preview-cancellation-native-result-isolation`
-- Asset version: `1.5.81-master-preview-cancellation-native-result-isolation`
-- Service worker cache: `foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation`
+- Product version: `1.5.82`
+- Build ID: `mastering-cancel-playback-resume-recovery`
+- Asset version: `1.5.82-mastering-cancel-playback-resume-recovery`
+- Service worker cache: `foxbear-shell-v1.5.82-mastering-cancel-playback-resume-recovery`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

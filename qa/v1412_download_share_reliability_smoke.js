@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.5.81', 'package version should be 1.5.81');
-assert(index.includes('data-build="1.5.81"'), 'index data-build should be 1.5.81');
-assert(index.includes('1.5.81-master-preview-cancellation-native-result-isolation'), 'index assets should use v1.5.81 cache key');
-assert(sw.includes('foxbear-shell-v1.5.81-master-preview-cancellation-native-result-isolation'), 'service worker cache should use v1.5.81 key');
+assert(pkg.version === '1.5.82', 'package version should be 1.5.82');
+assert(index.includes('data-build="1.5.82"'), 'index data-build should be 1.5.82');
+assert(index.includes('1.5.82-mastering-cancel-playback-resume-recovery'), 'index assets should use v1.5.82 cache key');
+assert(sw.includes('foxbear-shell-v1.5.82-mastering-cancel-playback-resume-recovery'), 'service worker cache should use v1.5.82 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');

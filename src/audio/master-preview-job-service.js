@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.5.81 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.5.82 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.5.81-master-preview-cancellation-native-result-isolation';
+    const VERSION = '1.5.82-mastering-cancel-playback-resume-recovery';
     let sequence = 0;
 
     function createFallbackAbortController() {
