@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.96 - shared core/audio utility module
+// FoxBear AI Mastering Studio Pro v1.5.97 - shared core/audio utility module
 (function registerFoxBearCoreUtils(global) {
     'use strict';
 

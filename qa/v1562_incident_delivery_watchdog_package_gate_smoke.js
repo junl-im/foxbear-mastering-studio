@@ -21,8 +21,8 @@ const handoff = read('HANDOFF.md');
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert.strictEqual(pkg.version, '1.5.96');
-assert.strictEqual(meta.assetVersion, '1.5.96-modal-focus-memory-diagnostics');
+assert.strictEqual(pkg.version, '1.5.97');
+assert.strictEqual(meta.assetVersion, '1.5.97-worker-recovery-diagnostics');
 assert(handoff.includes('## 필수 결과 보고 형식'));
 for (const heading of ['진행된 내용', '배포 파일 2종', '다음 예상 내용']) assert(handoff.includes(heading));
 

@@ -108,3 +108,60 @@ body.foxbear-modal-layer-open { overscroll-behavior: none; }
     .foxbear-perf-summary-grid { grid-template-columns: 1fr; }
     .foxbear-perf-panel-button { flex: 1 1 auto; }
 }
+
+/* v1.5.97 user guidance and stalled Worker recovery */
+.foxbear-perf-recovery-button:not(:disabled) {
+    border: 1px solid rgba(251,113,133,.42);
+    background: rgba(251,113,133,.12);
+    color: #ffe0e6;
+}
+.foxbear-perf-recovery-button:disabled {
+    opacity: .52;
+    cursor: default;
+}
+.foxbear-perf-recommendations {
+    display: grid;
+    gap: 8px;
+    margin: 0 16px 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(148,163,184,.17);
+    border-radius: 14px;
+    background: rgba(148,163,184,.045);
+}
+.foxbear-perf-recommendations > strong {
+    color: #e2e8f0;
+    font-size: 12px;
+}
+.foxbear-perf-recommendations ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding-left: 18px;
+    color: #aebdce;
+    font-size: 11px;
+    line-height: 1.5;
+}
+.foxbear-perf-recommendations[data-tone='warn'] {
+    border-color: rgba(251,191,36,.28);
+    background: rgba(251,191,36,.055);
+}
+.foxbear-perf-recommendations[data-tone='ok'] {
+    border-color: rgba(52,211,153,.22);
+}
+.foxbear-perf-action-status {
+    margin: 0 16px 14px;
+    padding: 9px 11px;
+    border-radius: 11px;
+    background: rgba(148,163,184,.08);
+    color: #cbd5e1;
+    font-size: 11px;
+    line-height: 1.45;
+}
+.foxbear-perf-action-status[data-tone='ok'] {
+    background: rgba(52,211,153,.10);
+    color: #bcf7df;
+}
+.foxbear-perf-action-status[data-tone='warn'] {
+    background: rgba(251,113,133,.10);
+    color: #ffd4dc;
+}

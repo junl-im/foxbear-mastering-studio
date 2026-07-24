@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.96 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.97 - cancellable jobs, recovery controls, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.96-modal-focus-memory-diagnostics';
+    const VERSION = '1.5.97-worker-recovery-diagnostics';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();
@@ -80,25 +80,52 @@
         while (recentJobs.length > MAX_RECENT_JOBS) recentJobs.shift();
     }
 
+    function getProgressAge(record, now = Date.now()) {
+        return Math.max(0, now - (record.lastProgressAt || record.startedAt));
+    }
+
     function getDiagnostics() {
         const now = Date.now();
         const jobs = Array.from(activeJobs.values()).map(record => {
             const ageMs = Math.max(0, now - record.startedAt);
-            const progressAgeMs = Math.max(0, now - (record.lastProgressAt || record.startedAt));
+            const progressAgeMs = getProgressAge(record, now);
             return Object.freeze({
-            runId: record.runId, jobId: record.jobId, label: record.label, status: 'running',
-            startedAt: record.startedAt, ageMs, percent: record.percent,
-            stage: record.stage, detail: record.detail, estimatedRemainingMs: record.estimatedRemainingMs,
-            lastProgressAt: record.lastProgressAt, progressAgeMs, stalled: progressAgeMs >= STALL_THRESHOLD_MS,
-            transferCount: record.transferCount, transferBytes: record.transferBytes
-        });
+                runId: record.runId, jobId: record.jobId, label: record.label, status: 'running',
+                startedAt: record.startedAt, ageMs, percent: record.percent,
+                stage: record.stage, detail: record.detail, estimatedRemainingMs: record.estimatedRemainingMs,
+                lastProgressAt: record.lastProgressAt, progressAgeMs, stalled: progressAgeMs >= STALL_THRESHOLD_MS,
+                canCancel: typeof record.cancel === 'function',
+                transferCount: record.transferCount, transferBytes: record.transferBytes
+            });
         });
         const activeTransferBytes = jobs.reduce((sum, item) => sum + Math.max(0, Number(item.transferBytes || 0)), 0);
         return Object.freeze({
-            version: VERSION, activeCount: jobs.length, activeTransferBytes,
+            version: VERSION, stallThresholdMs: STALL_THRESHOLD_MS,
+            activeCount: jobs.length, activeTransferBytes,
             peakActiveCount, peakActiveTransferBytes, stalledCount: jobs.filter(item => item.stalled).length,
             active: Object.freeze(jobs), recent: Object.freeze(recentJobs.slice())
         });
+    }
+
+    function cancelJob(identifier, reason = 'worker-job-manual-cancel') {
+        const target = String(identifier || '');
+        if (!target) return false;
+        const record = Array.from(activeJobs.values()).find(item => item.runId === target || item.jobId === target);
+        if (!record || typeof record.cancel !== 'function') return false;
+        return record.cancel(reason) !== false;
+    }
+
+    function cancelStalledJobs(options = {}) {
+        const now = Date.now();
+        const requestedMinimumAgeMs = Number(options.minimumAgeMs);
+        const minimumAgeMs = Math.max(STALL_THRESHOLD_MS, Number.isFinite(requestedMinimumAgeMs) ? requestedMinimumAgeMs : STALL_THRESHOLD_MS);
+        const reason = String(options.reason || 'performance-diagnostics-stalled-worker-recovery');
+        const stalled = Array.from(activeJobs.values()).filter(record => getProgressAge(record, now) >= minimumAgeMs && typeof record.cancel === 'function');
+        const cancelled = [];
+        stalled.forEach(record => {
+            if (record.cancel(reason) !== false) cancelled.push(Object.freeze({ runId: record.runId, jobId: record.jobId, label: record.label }));
+        });
+        return Object.freeze({ cancelledCount: cancelled.length, reason, jobs: Object.freeze(cancelled) });
     }
 
     function run(options = {}) {
@@ -115,7 +142,7 @@
         catch (error) { return Promise.reject(error); }
         if (!worker) return Promise.reject(new Error('워커를 생성하지 못했습니다.'));
         const transferList = normalizeTransferList(options.transfer);
-        const record = { runId, jobId, label, startedAt: Date.now(), lastProgressAt: 0, percent: 0, stage: label, detail: '', estimatedRemainingMs: 0, transferCount: transferList.length, transferBytes: getTransferBytes(transferList) };
+        const record = { runId, jobId, label, startedAt: Date.now(), lastProgressAt: 0, percent: 0, stage: label, detail: '', estimatedRemainingMs: 0, transferCount: transferList.length, transferBytes: getTransferBytes(transferList), cancel: null };
         activeJobs.set(runId, record);
         updatePeaks();
 
@@ -125,8 +152,9 @@
             let lastProgressPercent = 0;
             const startedAt = record.startedAt;
             const finish = (callback, value, status = callback === resolve ? 'completed' : 'failed') => {
-                if (settled) return;
+                if (settled) return false;
                 settled = true;
+                record.cancel = null;
                 if (timer) global.clearTimeout(timer);
                 try { signal?.removeEventListener?.('abort', abort); } catch (error) {}
                 try { worker.onmessage = null; worker.onerror = null; worker.onmessageerror = null; } catch (error) {}
@@ -140,8 +168,10 @@
                 };
                 rememberCompleted(record, status, failureDetail);
                 callback(value);
+                return true;
             };
             const abort = () => finish(reject, makeAbortError(signal?.reason), 'cancelled');
+            record.cancel = reason => finish(reject, makeAbortError(reason), 'cancelled');
             timer = global.setTimeout(() => {
                 const error = new Error(`${options.label || '워커'} 시간이 ${Math.round(timeoutMs / 1000)}초를 초과했습니다.`);
                 error.code = 'FOXBEAR_WORKER_JOB_TIMEOUT';
@@ -218,6 +248,8 @@
         makeAbortError,
         isAbortError,
         getDiagnostics,
+        cancelJob,
+        cancelStalledJobs,
         run
     });
 })(window);

@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.96-modal-focus-memory-diagnostics';
+    const FALLBACK_VERSION = '1.5.97-worker-recovery-diagnostics';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

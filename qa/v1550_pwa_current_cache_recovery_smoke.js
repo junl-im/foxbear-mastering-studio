@@ -6,7 +6,7 @@ const sw = fs.readFileSync('sw.js', 'utf8');
 const spec = fs.readFileSync('qa/browser/pwa-back-wakelock-sw-playwright.spec.js', 'utf8');
 const current = sw.match(/const CACHE_NAME = '([^']+)'/)?.[1] || '';
 
-assert(current.includes('foxbear-shell-v1.5.96'));
+assert(current.includes('foxbear-shell-v1.5.97'));
 assert(!spec.includes('LEGACY_CACHE_BLOCK'));
 assert(!spec.includes('E2E_RECOVERY_CACHE'));
 assert(spec.includes("const activeCacheName = String(warmed.cacheName || '')"));

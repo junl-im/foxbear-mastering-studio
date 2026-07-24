@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.5.97
+
+현재 릴리스는 메모리 성능진단에서 15초 이상 진행이 없는 Worker만 안전하게 취소할 수 있게 하고, 내부 경고 코드 대신 일반 사용자가 바로 따라 할 수 있는 권장 조치를 표시합니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1597_worker_recovery_guidance_stress_smoke.js`
+- 설정된 정적·회귀 검사: 318개.
+
 # FoxBear AI Mastering Studio Pro v1.5.96
 
 현재 릴리스는 모든 주요 팝업의 포커스 복귀·Tab 순환·외부 클릭·Escape·모바일 스크롤 잠금을 공통화하고, 메모리 성능진단을 핵심 상태 카드와 기술 상세 로그로 분리합니다.

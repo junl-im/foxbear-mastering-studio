@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.96",
+  "version": "1.5.97",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with shared modal focus/scroll lifecycle, opener restoration, and readable memory/Worker diagnostics.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.96-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.96-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.97-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.97-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -352,15 +352,16 @@
     "node qa/v1593_external_engine_worker_transfer_admin_export_smoke.js",
     "node qa/v1594_aiff_worker_reporting_contract_smoke.js",
     "node qa/v1595_popup_settings_mail_test_recovery_smoke.js",
-    "node qa/v1596_modal_focus_memory_diagnostics_smoke.js"
+    "node qa/v1596_modal_focus_memory_diagnostics_smoke.js",
+    "node qa/v1597_worker_recovery_guidance_stress_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "modal-focus-memory-diagnostics",
-    "assetVersion": "1.5.96-modal-focus-memory-diagnostics",
-    "cacheName": "foxbear-shell-v1.5.96-modal-focus-memory-diagnostics",
-    "bootRevision": "boot-sri-v1596",
-    "updateSafetyRevision": "update-safety-v1596",
-    "serviceWorkerRevision": "sw-v1596"
+    "buildId": "worker-recovery-diagnostics",
+    "assetVersion": "1.5.97-worker-recovery-diagnostics",
+    "cacheName": "foxbear-shell-v1.5.97-worker-recovery-diagnostics",
+    "bootRevision": "boot-sri-v1597",
+    "updateSafetyRevision": "update-safety-v1597",
+    "serviceWorkerRevision": "sw-v1597"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

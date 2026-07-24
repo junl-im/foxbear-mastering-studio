@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.96",
-  "buildId": "modal-focus-memory-diagnostics",
+  "productVersion": "1.5.97",
+  "buildId": "worker-recovery-diagnostics",
   "requiredFiles": [
     "404.html",
     ".gitignore",

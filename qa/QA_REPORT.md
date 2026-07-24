@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.5.97
+
+- Re-ran the v1.5.96 static and behavior baseline before modification.
+- Added targeted and stalled-only cancellation to the common Worker job service.
+- Added user-facing Korean recovery guidance, a guarded stalled-Worker cancellation action, and live action status to the diagnostics panel.
+- Added a VM behavior regression that completes 30 sequential Worker jobs, verifies bounded recent history, then cancels a synthetic stalled Worker.
+- Verified active Worker count, stalled count, and active transfer-byte accounting all return to zero after completion and recovery.
+- Configured static/regression target: 318 checks before installed-browser confirmation.
+
 # FoxBear QA Report - v1.5.96
 
 - Centralized opener memory, focus return, Tab cycling, Escape/backdrop dismissal, and layered page scroll locking in the shared modal controller.

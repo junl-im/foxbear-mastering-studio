@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.96-modal-focus-memory-diagnostics';
+const version = '1.5.97-worker-recovery-diagnostics';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

@@ -1,3 +1,12 @@
+# v1.5.97 - Stalled Worker Recovery and Actionable Performance Guidance
+
+- Adds targeted and stalled-only cancellation to the shared Worker job service without cancelling healthy active jobs.
+- Exposes the common 15-second stall threshold and per-job cancellation capability in diagnostics.
+- Adds a guarded `정체 Worker 취소` action to memory/performance diagnostics with confirmation and live recovery status.
+- Replaces internal warning codes in the primary diagnostic view with plain-language Korean recovery guidance.
+- Adds a 30-job sequential resource-release regression and verifies active Worker and transfer-byte accounting return to zero after completion and manual recovery.
+- Keeps recent Worker diagnostics bounded to 24 entries while preserving peak transfer memory telemetry.
+
 # v1.5.96 - Modal Focus Lifecycle and Readable Memory Diagnostics
 
 - Centralizes modal opener memory, focus return, Tab cycling, Escape/backdrop close, and page scroll locking.

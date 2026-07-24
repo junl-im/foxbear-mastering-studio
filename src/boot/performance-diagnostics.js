@@ -1,9 +1,9 @@
-// FoxBear lightweight performance diagnostics - v1.4.27
+// FoxBear performance diagnostics - v1.5.97
 // Hidden by default. Enable with ?perf=1, localStorage foxbear-perf-diagnostics=on, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.96-modal-focus-memory-diagnostics';
+    const DIAGNOSTICS_VERSION = '1.5.97-worker-recovery-diagnostics';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -21,6 +21,9 @@
         summaryGrid: null,
         summaryLead: null,
         detailSection: null,
+        recommendations: null,
+        actionStatus: null,
+        recoveryButton: null,
         returnFocus: null,
         timer: 0,
         longTasks: [],
@@ -111,6 +114,25 @@
     function safeCall(fn, fallback = null) {
         try { return typeof fn === 'function' ? fn() : fallback; }
         catch (error) { return fallback; }
+    }
+
+    const WARNING_GUIDANCE = Object.freeze({
+        'multiple-audio-playing': '여러 플레이어가 동시에 실행 중입니다. 재생 중인 항목을 하나만 남겨 주세요.',
+        'multiple-audible-audio': '두 개 이상의 소리가 겹칩니다. 원본·마스터 또는 미리듣기 중 하나를 정지해 주세요.',
+        'many-canvas-nodes': '시각화 화면이 많이 열려 있습니다. 사용하지 않는 상세 화면을 닫아 주세요.',
+        'runtime-health-check': '앱 초기화 상태를 확인해야 합니다. 페이지를 새로고침한 뒤 같은 작업을 다시 시도해 주세요.',
+        'audio-context-interrupted': '브라우저가 오디오를 일시 중단했습니다. 화면을 한 번 누른 뒤 재생을 다시 시작해 주세요.',
+        'mastered-buffer-retention': '완료된 오디오가 메모리에 많이 남아 있습니다. 저장이 끝난 트랙을 정리해 주세요.',
+        'worker-job-stalled': '백그라운드 오디오 작업이 15초 이상 멈췄습니다. 아래 복구 버튼으로 정체 작업을 취소한 뒤 다시 시도해 주세요.',
+        'worker-transfer-memory-high': 'Worker 전송 메모리가 높습니다. 대량 작업을 잠시 멈추고 완료된 트랙을 정리해 주세요.',
+        'heavy-long-task': '화면이 잠시 멈출 정도의 긴 작업이 감지됐습니다. 다른 앱을 닫거나 성능 모드를 낮춰 주세요.',
+        'watch-long-task': '화면 응답이 느려질 수 있습니다. 현재 작업이 끝날 때까지 추가 조작을 줄여 주세요.',
+        'audio-decode-last-error': '최근 오디오 디코딩이 실패했습니다. 파일 형식이나 손상 여부를 확인해 주세요.',
+        'wake-lock-last-error': '화면 꺼짐 방지를 사용할 수 없습니다. 브라우저 권한과 절전 설정을 확인해 주세요.'
+    });
+
+    function warningGuidance(code) {
+        return WARNING_GUIDANCE[code] || `점검 항목: ${String(code || 'unknown')}`;
     }
 
     function summarizeSnapshot(snapshot) {
@@ -309,7 +331,14 @@
             clearHistory();
             refreshPanel('clear-history');
         });
-        actions.append(refresh, copy, clear);
+        const recover = doc.createElement('button');
+        recover.type = 'button';
+        recover.className = 'foxbear-perf-panel-button foxbear-perf-recovery-button';
+        recover.textContent = '정체 Worker 취소';
+        recover.disabled = true;
+        recover.setAttribute('aria-disabled', 'true');
+        recover.addEventListener('click', () => cancelStalledWorkers());
+        actions.append(refresh, copy, clear, recover);
 
         const close = doc.createElement('button');
         close.type = 'button';
@@ -327,6 +356,20 @@
         summaryGrid.className = 'foxbear-perf-summary-grid';
         summaryGrid.setAttribute('aria-label', '성능 진단 핵심 상태');
 
+        const recommendations = doc.createElement('section');
+        recommendations.className = 'foxbear-perf-recommendations';
+        recommendations.setAttribute('aria-label', '권장 조치');
+        const recommendationTitle = doc.createElement('strong');
+        recommendationTitle.textContent = '권장 조치';
+        const recommendationList = doc.createElement('ul');
+        recommendations.append(recommendationTitle, recommendationList);
+
+        const actionStatus = doc.createElement('p');
+        actionStatus.className = 'foxbear-perf-action-status';
+        actionStatus.setAttribute('role', 'status');
+        actionStatus.setAttribute('aria-live', 'polite');
+        actionStatus.hidden = true;
+
         const details = doc.createElement('details');
         details.className = 'foxbear-perf-details';
         const detailsSummary = doc.createElement('summary');
@@ -336,7 +379,7 @@
         output.textContent = '아직 진단 스냅샷이 없습니다.';
         details.append(detailsSummary, output);
 
-        panel.append(header, summaryLead, summaryGrid, details);
+        panel.append(header, summaryLead, summaryGrid, recommendations, actionStatus, details);
         backdrop.appendChild(panel);
         backdrop.addEventListener('click', event => {
             if (event.target === backdrop) setPanelVisible(false);
@@ -360,6 +403,9 @@
         state.summaryGrid = summaryGrid;
         state.summaryLead = summaryLead;
         state.detailSection = details;
+        state.recommendations = recommendations;
+        state.actionStatus = actionStatus;
+        state.recoveryButton = recover;
         return panel;
     }
 
@@ -378,7 +424,7 @@
         const warningCount = summary.warnings.length;
         state.summaryLead.dataset.tone = warningCount ? 'warn' : 'ok';
         state.summaryLead.textContent = warningCount
-            ? `점검이 필요한 항목 ${warningCount}개가 있습니다. 상세 로그에서 원인을 확인하세요.`
+            ? `점검이 필요한 항목 ${warningCount}개가 있습니다. 아래 권장 조치를 순서대로 확인해 주세요.`
             : '현재 확인된 메모리·성능 이상이 없습니다.';
         const longTaskMax = snapshot.longTasks.length ? Math.max(...snapshot.longTasks.map(item => Number(item.durationMs || 0))) : 0;
         const worker = snapshot.workerJobs || {};
@@ -387,7 +433,7 @@
             {
                 label: '종합 상태',
                 value: warningCount ? '점검 필요' : '정상',
-                detail: warningCount ? summary.warnings.slice(0, 2).join(' · ') : '런타임 경고 없음',
+                detail: warningCount ? summary.warnings.slice(0, 2).map(warningGuidance).join(' · ') : '런타임 경고 없음',
                 tone: warningCount ? 'warn' : 'ok'
             },
             {
@@ -435,6 +481,59 @@
             return article;
         });
         state.summaryGrid.replaceChildren(...nodes);
+        if (state.recommendations) {
+            const list = state.recommendations.querySelector('ul');
+            const guidance = summary.warnings.slice(0, 4).map(code => {
+                const item = doc.createElement('li');
+                item.textContent = warningGuidance(code);
+                return item;
+            });
+            if (!guidance.length) {
+                const item = doc.createElement('li');
+                item.textContent = '추가 조치가 필요하지 않습니다. 작업 완료 후 저장된 파일만 확인해 주세요.';
+                guidance.push(item);
+            }
+            list?.replaceChildren(...guidance);
+            state.recommendations.dataset.tone = warningCount ? 'warn' : 'ok';
+        }
+        if (state.recoveryButton) {
+            const stalledCount = Number(worker.stalledCount || 0);
+            state.recoveryButton.disabled = stalledCount < 1;
+            state.recoveryButton.setAttribute('aria-disabled', stalledCount < 1 ? 'true' : 'false');
+            state.recoveryButton.textContent = stalledCount > 0 ? `정체 Worker ${stalledCount}개 취소` : '정체 Worker 없음';
+        }
+    }
+
+    function setActionStatus(message, tone = 'neutral') {
+        if (!state.actionStatus) return;
+        state.actionStatus.hidden = !message;
+        state.actionStatus.dataset.tone = tone;
+        state.actionStatus.textContent = String(message || '');
+    }
+
+    function cancelStalledWorkers() {
+        const service = global.FoxBearWorkerJobService;
+        const before = safeCall(() => service?.getDiagnostics?.(), null);
+        const stalledCount = Number(before?.stalledCount || 0);
+        if (!service?.cancelStalledJobs || stalledCount < 1) {
+            setActionStatus('현재 취소할 정체 Worker가 없습니다.', 'neutral');
+            refreshPanel('stalled-worker-none');
+            return Object.freeze({ cancelledCount: 0, jobs: Object.freeze([]) });
+        }
+        const approved = typeof global.confirm !== 'function' || global.confirm(`${stalledCount}개의 정체된 오디오 작업을 취소할까요? 진행 중 결과는 저장되지 않습니다.`);
+        if (!approved) {
+            setActionStatus('정체 Worker 취소를 중단했습니다.', 'neutral');
+            return Object.freeze({ cancelledCount: 0, jobs: Object.freeze([]) });
+        }
+        const result = service.cancelStalledJobs({ reason: 'performance-diagnostics-manual-recovery' });
+        setActionStatus(
+            result.cancelledCount > 0
+                ? `${result.cancelledCount}개의 정체 Worker를 취소했습니다. 해당 작업을 다시 시작해 주세요.`
+                : '정체 Worker 상태가 이미 해제되었습니다.',
+            result.cancelledCount > 0 ? 'ok' : 'neutral'
+        );
+        refreshPanel('stalled-worker-cancelled');
+        return result;
     }
 
     function formatPanel(snapshot) {
@@ -617,6 +716,7 @@
         getSummary,
         serializeSnapshot,
         copySnapshotToClipboard,
+        cancelStalledWorkers,
         clearHistory,
         getSnapshot: () => state.lastSnapshot || collectSnapshot('getSnapshot'),
         getSamples: () => state.samples.slice(),
