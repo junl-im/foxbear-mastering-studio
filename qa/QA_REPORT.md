@@ -1,3 +1,11 @@
+# FoxBear QA Report - v1.5.98
+
+- Added safe high-level Worker recovery for analysis, mastering, and master-preview jobs.
+- Added per-job health classification and targeted stalled-only cancellation.
+- Added duplicate-safe retry coordination and excluded export jobs from automatic retry.
+- Added 30-track Blob URL, abort-owner, AudioContext, and Worker transfer-accounting stress coverage.
+- Configured static/regression target: 321 checks.
+
 # FoxBear QA Report - v1.5.97
 
 - Re-ran the v1.5.96 static and behavior baseline before modification.

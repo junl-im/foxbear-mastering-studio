@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.5.97
+// FoxBear performance diagnostics - v1.5.98
 // Hidden by default. Enable with ?perf=1, localStorage foxbear-perf-diagnostics=on, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.97-worker-recovery-diagnostics';
+    const DIAGNOSTICS_VERSION = '1.5.98-worker-retry-health-levels';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -24,6 +24,10 @@
         recommendations: null,
         actionStatus: null,
         recoveryButton: null,
+        retryButton: null,
+        workerList: null,
+        lastRecoveryJobs: [],
+        retryInFlight: false,
         returnFocus: null,
         timer: 0,
         longTasks: [],
@@ -338,7 +342,14 @@
         recover.disabled = true;
         recover.setAttribute('aria-disabled', 'true');
         recover.addEventListener('click', () => cancelStalledWorkers());
-        actions.append(refresh, copy, clear, recover);
+        const retry = doc.createElement('button');
+        retry.type = 'button';
+        retry.className = 'foxbear-perf-panel-button foxbear-perf-retry-button';
+        retry.textContent = '취소 작업 재시도';
+        retry.disabled = true;
+        retry.setAttribute('aria-disabled', 'true');
+        retry.addEventListener('click', () => retryRecoveredWorkers());
+        actions.append(refresh, copy, clear, recover, retry);
 
         const close = doc.createElement('button');
         close.type = 'button';
@@ -364,6 +375,20 @@
         const recommendationList = doc.createElement('ul');
         recommendations.append(recommendationTitle, recommendationList);
 
+        const workerSection = doc.createElement('section');
+        workerSection.className = 'foxbear-perf-worker-section';
+        workerSection.setAttribute('aria-label', 'Worker 작업 상세');
+        const workerHeader = doc.createElement('div');
+        workerHeader.className = 'foxbear-perf-worker-header';
+        const workerTitle = doc.createElement('strong');
+        workerTitle.textContent = 'Worker 작업 상세';
+        const workerHint = doc.createElement('span');
+        workerHint.textContent = '진행률·정체 시간·전송 메모리';
+        workerHeader.append(workerTitle, workerHint);
+        const workerList = doc.createElement('div');
+        workerList.className = 'foxbear-perf-worker-list';
+        workerSection.append(workerHeader, workerList);
+
         const actionStatus = doc.createElement('p');
         actionStatus.className = 'foxbear-perf-action-status';
         actionStatus.setAttribute('role', 'status');
@@ -379,7 +404,7 @@
         output.textContent = '아직 진단 스냅샷이 없습니다.';
         details.append(detailsSummary, output);
 
-        panel.append(header, summaryLead, summaryGrid, recommendations, actionStatus, details);
+        panel.append(header, summaryLead, summaryGrid, recommendations, workerSection, actionStatus, details);
         backdrop.appendChild(panel);
         backdrop.addEventListener('click', event => {
             if (event.target === backdrop) setPanelVisible(false);
@@ -406,6 +431,8 @@
         state.recommendations = recommendations;
         state.actionStatus = actionStatus;
         state.recoveryButton = recover;
+        state.retryButton = retry;
+        state.workerList = workerList;
         return panel;
     }
 
@@ -417,24 +444,120 @@
         return `${Math.round(value)}B`;
     }
 
+    function formatAge(milliseconds) {
+        const value = Math.max(0, Number(milliseconds || 0));
+        if (value >= 60000) return `${round(value / 60000, 1)}분`;
+        if (value >= 1000) return `${round(value / 1000, 1)}초`;
+        return `${Math.round(value)}ms`;
+    }
+
+    function getOverallHealth(snapshot, summary) {
+        const worker = snapshot.workerJobs || {};
+        const memoryRatio = snapshot.memory?.limitMB ? Number(snapshot.memory.usedMB || 0) / Number(snapshot.memory.limitMB || 1) : 0;
+        const longTaskMax = summary?.longTaskMaxMs || 0;
+        if (worker.healthLevel === 'danger' || (snapshot.runtime && !snapshot.runtime.ok) || memoryRatio >= 0.85 || longTaskMax >= 500) return 'danger';
+        if (worker.healthLevel === 'watch' || (summary?.warnings?.length || 0) > 0 || memoryRatio >= 0.7 || longTaskMax >= 80) return 'watch';
+        return 'normal';
+    }
+
+    function getHealthLabel(level) {
+        if (level === 'danger') return '위험';
+        if (level === 'watch') return '주의';
+        return '정상';
+    }
+
+    function updateRetryButton() {
+        if (!state.retryButton) return;
+        const coordinator = global.FoxBearWorkerRecoveryCoordinator;
+        const retryable = state.lastRecoveryJobs.filter(job => safeCall(() => coordinator?.canRetry?.(job), false));
+        const disabled = state.retryInFlight || retryable.length < 1;
+        state.retryButton.disabled = disabled;
+        state.retryButton.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        state.retryButton.textContent = state.retryInFlight ? '재시도 시작 중' : (retryable.length ? `취소 작업 ${retryable.length}개 재시도` : '재시도 가능 작업 없음');
+    }
+
+    function getWorkerItemTone(item) {
+        if (item.status === 'failed' || item.status === 'timeout' || item.healthLevel === 'danger') return 'danger';
+        if (item.status === 'cancelled' || item.healthLevel === 'watch') return 'watch';
+        return 'normal';
+    }
+
+    function renderWorkerJobs(snapshot) {
+        if (!state.workerList) return;
+        const doc = global.document;
+        const worker = snapshot.workerJobs || {};
+        const active = Array.isArray(worker.active) ? worker.active : [];
+        const recent = Array.isArray(worker.recent) ? worker.recent.slice(-4).reverse() : [];
+        const items = active.length ? active : recent;
+        if (!items.length) {
+            const empty = doc.createElement('p');
+            empty.className = 'foxbear-perf-worker-empty';
+            empty.textContent = '현재 실행 중이거나 최근 기록된 Worker 작업이 없습니다.';
+            state.workerList.replaceChildren(empty);
+            updateRetryButton();
+            return;
+        }
+        const nodes = items.map(item => {
+            const article = doc.createElement('article');
+            const tone = getWorkerItemTone(item);
+            article.className = 'foxbear-perf-worker-item';
+            article.dataset.tone = tone;
+            const top = doc.createElement('div');
+            top.className = 'foxbear-perf-worker-item-top';
+            const title = doc.createElement('strong');
+            title.textContent = item.label || '오디오 Worker';
+            const badge = doc.createElement('span');
+            badge.className = 'foxbear-perf-health-badge';
+            badge.dataset.tone = tone;
+            badge.textContent = item.status === 'running' ? getHealthLabel(tone) : (item.status === 'completed' ? '완료' : item.status === 'cancelled' ? '취소됨' : item.status === 'timeout' ? '시간초과' : '실패');
+            top.append(title, badge);
+            const stage = doc.createElement('p');
+            stage.textContent = item.stage || item.detail || '작업 상태 확인 중';
+            const meta = doc.createElement('div');
+            meta.className = 'foxbear-perf-worker-meta';
+            const percent = doc.createElement('span');
+            percent.textContent = `진행 ${Math.round(Number(item.percent || 0))}%`;
+            const age = doc.createElement('span');
+            age.textContent = `${item.status === 'running' ? '무응답' : '마지막 진행'} ${formatAge(item.progressAgeMs || item.elapsedMs || 0)}`;
+            const transfer = doc.createElement('span');
+            transfer.textContent = `전송 ${formatBytes(item.transferBytes || 0)}`;
+            meta.append(percent, age, transfer);
+            article.append(top, stage, meta);
+            if (item.status === 'running' && item.stalled && item.canCancel) {
+                const cancel = doc.createElement('button');
+                cancel.type = 'button';
+                cancel.className = 'foxbear-perf-worker-cancel';
+                cancel.textContent = '이 작업 취소';
+                cancel.addEventListener('click', () => cancelSingleStalledWorker(item));
+                article.append(cancel);
+            }
+            return article;
+        });
+        state.workerList.replaceChildren(...nodes);
+        updateRetryButton();
+    }
+
     function renderSummaryCards(snapshot) {
         if (!state.summaryGrid || !state.summaryLead) return;
         const doc = global.document;
         const summary = state.lastSummary || summarizeSnapshot(snapshot);
         const warningCount = summary.warnings.length;
-        state.summaryLead.dataset.tone = warningCount ? 'warn' : 'ok';
-        state.summaryLead.textContent = warningCount
-            ? `점검이 필요한 항목 ${warningCount}개가 있습니다. 아래 권장 조치를 순서대로 확인해 주세요.`
-            : '현재 확인된 메모리·성능 이상이 없습니다.';
+        const healthLevel = getOverallHealth(snapshot, summary);
+        state.summaryLead.dataset.tone = healthLevel;
+        state.summaryLead.textContent = healthLevel === 'danger'
+            ? `위험 상태입니다. 즉시 정체 작업과 메모리 사용량을 확인해 주세요. 점검 항목 ${warningCount}개.`
+            : healthLevel === 'watch'
+                ? `주의가 필요한 항목 ${warningCount}개가 있습니다. 권장 조치를 순서대로 확인해 주세요.`
+                : '현재 확인된 메모리·성능 이상이 없습니다.';
         const longTaskMax = snapshot.longTasks.length ? Math.max(...snapshot.longTasks.map(item => Number(item.durationMs || 0))) : 0;
         const worker = snapshot.workerJobs || {};
         const memoryGuard = snapshot.memoryGuard || {};
         const cards = [
             {
                 label: '종합 상태',
-                value: warningCount ? '점검 필요' : '정상',
+                value: getHealthLabel(healthLevel),
                 detail: warningCount ? summary.warnings.slice(0, 2).map(warningGuidance).join(' · ') : '런타임 경고 없음',
-                tone: warningCount ? 'warn' : 'ok'
+                tone: healthLevel
             },
             {
                 label: '브라우저 메모리',
@@ -451,8 +574,8 @@
             {
                 label: 'Worker 작업',
                 value: `${worker.activeCount || 0}개`,
-                detail: `${worker.stalledCount || 0}개 정체 · 전송 ${formatBytes(worker.activeTransferBytes || 0)}`,
-                tone: (worker.stalledCount || 0) > 0 ? 'warn' : 'neutral'
+                detail: `${worker.stalledCount || 0}개 정체 · 주의 ${worker.watchCount || 0} · 전송 ${formatBytes(worker.activeTransferBytes || 0)}`,
+                tone: worker.healthLevel || ((worker.stalledCount || 0) > 0 ? 'danger' : 'neutral')
             },
             {
                 label: '긴 메인 작업',
@@ -502,6 +625,7 @@
             state.recoveryButton.setAttribute('aria-disabled', stalledCount < 1 ? 'true' : 'false');
             state.recoveryButton.textContent = stalledCount > 0 ? `정체 Worker ${stalledCount}개 취소` : '정체 Worker 없음';
         }
+        renderWorkerJobs(snapshot);
     }
 
     function setActionStatus(message, tone = 'neutral') {
@@ -509,6 +633,45 @@
         state.actionStatus.hidden = !message;
         state.actionStatus.dataset.tone = tone;
         state.actionStatus.textContent = String(message || '');
+    }
+
+    function cancelSingleStalledWorker(item) {
+        const service = global.FoxBearWorkerJobService;
+        if (!service?.cancelStalledJob) return Object.freeze({ cancelled: false, job: null });
+        const approved = typeof global.confirm !== 'function' || global.confirm(`${item.label || '오디오 작업'}을 취소할까요? 현재 진행 결과는 폐기됩니다.`);
+        if (!approved) return Object.freeze({ cancelled: false, job: null });
+        const result = service.cancelStalledJob(item.runId || item.jobId, { reason: 'performance-diagnostics-single-worker-recovery' });
+        if (result.cancelled && result.job) state.lastRecoveryJobs = [result.job];
+        setActionStatus(result.cancelled ? '정체 Worker를 취소했습니다. 아래 재시도 버튼으로 원본 트랙에서 다시 시작할 수 있습니다.' : '작업 상태가 이미 변경되어 취소하지 않았습니다.', result.cancelled ? 'ok' : 'neutral');
+        refreshPanel('single-stalled-worker-cancelled');
+        return result;
+    }
+
+    async function retryRecoveredWorkers() {
+        if (state.retryInFlight) return Object.freeze({ startedCount: 0, skippedCount: 0, failedCount: 0, results: Object.freeze([]) });
+        const coordinator = global.FoxBearWorkerRecoveryCoordinator;
+        const jobs = state.lastRecoveryJobs.filter(job => safeCall(() => coordinator?.canRetry?.(job), false));
+        if (!coordinator?.retryJobs || !jobs.length) {
+            setActionStatus('현재 안전하게 다시 시작할 수 있는 취소 작업이 없습니다.', 'neutral');
+            updateRetryButton();
+            return Object.freeze({ startedCount: 0, skippedCount: jobs.length, failedCount: 0, results: Object.freeze([]) });
+        }
+        const approved = typeof global.confirm !== 'function' || global.confirm(`${jobs.length}개의 작업을 원본 트랙에서 다시 시작할까요?`);
+        if (!approved) return Object.freeze({ startedCount: 0, skippedCount: jobs.length, failedCount: 0, results: Object.freeze([]) });
+        state.retryInFlight = true;
+        updateRetryButton();
+        setActionStatus('취소 작업을 안전하게 다시 구성하고 있습니다.', 'neutral');
+        const result = await coordinator.retryJobs(jobs, { source: 'performance-diagnostics' });
+        state.lastRecoveryJobs = result.results.filter(item => !item.ok).map(item => item.job).filter(Boolean);
+        state.retryInFlight = false;
+        setActionStatus(
+            result.startedCount > 0
+                ? `${result.startedCount}개 작업을 다시 시작했습니다.${result.failedCount ? ` ${result.failedCount}개는 시작하지 못했습니다.` : ''}`
+                : '재시도할 작업을 시작하지 못했습니다. 현재 작업 상태를 확인해 주세요.',
+            result.startedCount > 0 && result.failedCount < 1 ? 'ok' : 'warn'
+        );
+        refreshPanel('recovered-worker-retry');
+        return result;
     }
 
     function cancelStalledWorkers() {
@@ -526,9 +689,10 @@
             return Object.freeze({ cancelledCount: 0, jobs: Object.freeze([]) });
         }
         const result = service.cancelStalledJobs({ reason: 'performance-diagnostics-manual-recovery' });
+        if (result.cancelledCount > 0) state.lastRecoveryJobs = Array.from(result.jobs || []);
         setActionStatus(
             result.cancelledCount > 0
-                ? `${result.cancelledCount}개의 정체 Worker를 취소했습니다. 해당 작업을 다시 시작해 주세요.`
+                ? `${result.cancelledCount}개의 정체 Worker를 취소했습니다. 재시도 가능한 작업은 아래 버튼으로 다시 시작할 수 있습니다.`
                 : '정체 Worker 상태가 이미 해제되었습니다.',
             result.cancelledCount > 0 ? 'ok' : 'neutral'
         );
@@ -717,6 +881,8 @@
         serializeSnapshot,
         copySnapshotToClipboard,
         cancelStalledWorkers,
+        cancelSingleStalledWorker,
+        retryRecoveredWorkers,
         clearHistory,
         getSnapshot: () => state.lastSnapshot || collectSnapshot('getSnapshot'),
         getSamples: () => state.samples.slice(),

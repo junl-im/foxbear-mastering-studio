@@ -1,14 +1,17 @@
-// FoxBear worker job service v1.5.97 - cancellable jobs, recovery controls, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.98 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.97-worker-recovery-diagnostics';
+    const VERSION = '1.5.98-worker-retry-health-levels';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();
     const recentJobs = [];
     const MAX_RECENT_JOBS = 24;
     const STALL_THRESHOLD_MS = 15000;
+    const WATCH_THRESHOLD_MS = 8000;
+    const TRANSFER_WATCH_BYTES = 128 * 1024 * 1024;
+    const TRANSFER_DANGER_BYTES = 256 * 1024 * 1024;
     let peakActiveCount = 0;
     let peakActiveTransferBytes = 0;
 
@@ -84,25 +87,43 @@
         return Math.max(0, now - (record.lastProgressAt || record.startedAt));
     }
 
+    function classifyJobHealth(record, now = Date.now()) {
+        const progressAgeMs = getProgressAge(record, now);
+        if (progressAgeMs >= STALL_THRESHOLD_MS || Number(record.transferBytes || 0) >= TRANSFER_DANGER_BYTES) return 'danger';
+        if (progressAgeMs >= WATCH_THRESHOLD_MS || Number(record.transferBytes || 0) >= TRANSFER_WATCH_BYTES) return 'watch';
+        return 'normal';
+    }
+
+    function classifyOverallHealth(jobs, activeTransferBytes) {
+        if (jobs.some(item => item.healthLevel === 'danger') || activeTransferBytes >= TRANSFER_DANGER_BYTES) return 'danger';
+        if (jobs.some(item => item.healthLevel === 'watch') || activeTransferBytes >= TRANSFER_WATCH_BYTES || jobs.length >= 3) return 'watch';
+        return 'normal';
+    }
+
     function getDiagnostics() {
         const now = Date.now();
         const jobs = Array.from(activeJobs.values()).map(record => {
             const ageMs = Math.max(0, now - record.startedAt);
             const progressAgeMs = getProgressAge(record, now);
+            const healthLevel = classifyJobHealth(record, now);
             return Object.freeze({
                 runId: record.runId, jobId: record.jobId, label: record.label, status: 'running',
                 startedAt: record.startedAt, ageMs, percent: record.percent,
                 stage: record.stage, detail: record.detail, estimatedRemainingMs: record.estimatedRemainingMs,
                 lastProgressAt: record.lastProgressAt, progressAgeMs, stalled: progressAgeMs >= STALL_THRESHOLD_MS,
-                canCancel: typeof record.cancel === 'function',
+                healthLevel, canCancel: typeof record.cancel === 'function',
                 transferCount: record.transferCount, transferBytes: record.transferBytes
             });
         });
         const activeTransferBytes = jobs.reduce((sum, item) => sum + Math.max(0, Number(item.transferBytes || 0)), 0);
+        const healthLevel = classifyOverallHealth(jobs, activeTransferBytes);
         return Object.freeze({
-            version: VERSION, stallThresholdMs: STALL_THRESHOLD_MS,
-            activeCount: jobs.length, activeTransferBytes,
+            version: VERSION, stallThresholdMs: STALL_THRESHOLD_MS, watchThresholdMs: WATCH_THRESHOLD_MS,
+            transferWatchBytes: TRANSFER_WATCH_BYTES, transferDangerBytes: TRANSFER_DANGER_BYTES,
+            healthLevel, activeCount: jobs.length, activeTransferBytes,
             peakActiveCount, peakActiveTransferBytes, stalledCount: jobs.filter(item => item.stalled).length,
+            watchCount: jobs.filter(item => item.healthLevel === 'watch').length,
+            dangerCount: jobs.filter(item => item.healthLevel === 'danger').length,
             active: Object.freeze(jobs), recent: Object.freeze(recentJobs.slice())
         });
     }
@@ -115,6 +136,34 @@
         return record.cancel(reason) !== false;
     }
 
+    function makeRecoveryJobSnapshot(record, now = Date.now()) {
+        return Object.freeze({
+            runId: record.runId,
+            jobId: record.jobId,
+            label: record.label,
+            stage: record.stage,
+            percent: record.percent,
+            progressAgeMs: getProgressAge(record, now),
+            transferBytes: record.transferBytes,
+            healthLevel: classifyJobHealth(record, now)
+        });
+    }
+
+    function cancelStalledJob(identifier, options = {}) {
+        const target = String(identifier || '');
+        if (!target) return Object.freeze({ cancelled: false, reason: 'missing-identifier', job: null });
+        const now = Date.now();
+        const record = Array.from(activeJobs.values()).find(item => item.runId === target || item.jobId === target);
+        if (!record) return Object.freeze({ cancelled: false, reason: 'job-not-found', job: null });
+        const minimumAgeMs = Math.max(STALL_THRESHOLD_MS, Number(options.minimumAgeMs) || STALL_THRESHOLD_MS);
+        if (getProgressAge(record, now) < minimumAgeMs) return Object.freeze({ cancelled: false, reason: 'job-not-stalled', job: makeRecoveryJobSnapshot(record, now) });
+        if (typeof record.cancel !== 'function') return Object.freeze({ cancelled: false, reason: 'job-not-cancellable', job: makeRecoveryJobSnapshot(record, now) });
+        const reason = String(options.reason || 'performance-diagnostics-stalled-worker-recovery');
+        const job = makeRecoveryJobSnapshot(record, now);
+        const cancelled = record.cancel(reason) !== false;
+        return Object.freeze({ cancelled, reason, job });
+    }
+
     function cancelStalledJobs(options = {}) {
         const now = Date.now();
         const requestedMinimumAgeMs = Number(options.minimumAgeMs);
@@ -123,7 +172,8 @@
         const stalled = Array.from(activeJobs.values()).filter(record => getProgressAge(record, now) >= minimumAgeMs && typeof record.cancel === 'function');
         const cancelled = [];
         stalled.forEach(record => {
-            if (record.cancel(reason) !== false) cancelled.push(Object.freeze({ runId: record.runId, jobId: record.jobId, label: record.label }));
+            const job = makeRecoveryJobSnapshot(record, now);
+            if (record.cancel(reason) !== false) cancelled.push(job);
         });
         return Object.freeze({ cancelledCount: cancelled.length, reason, jobs: Object.freeze(cancelled) });
     }
@@ -249,6 +299,7 @@
         isAbortError,
         getDiagnostics,
         cancelJob,
+        cancelStalledJob,
         cancelStalledJobs,
         run
     });

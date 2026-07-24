@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.97-worker-recovery-diagnostics';
+const version = '1.5.98-worker-retry-health-levels';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

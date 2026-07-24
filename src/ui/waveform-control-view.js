@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.97-worker-recovery-diagnostics';
+  const VIEW_VERSION = '1.5.98-worker-retry-health-levels';
   const DEFAULT_BINS = 96;
 
   function getService() {

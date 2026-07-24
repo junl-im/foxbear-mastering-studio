@@ -18,13 +18,13 @@ const lifecycle = read('src/state/track-lifecycle-service.js');
 const orchestrator = read('src/audio/mastering-orchestrator-service.js');
 const browserSpec = read('qa/browser/v1573-bulk-mastering-controls-visual.spec.js');
 
-assert.strictEqual(pkg.version, '1.5.97', 'package version should be v1.5.97');
-assert(pkg.qaChecks.includes('node qa/v1573_bulk_mastering_control_eta_visual_smoke.js'), 'release QA should include v1.5.97 smoke');
+assert.strictEqual(pkg.version, '1.5.98', 'package version should be v1.5.98');
+assert(pkg.qaChecks.includes('node qa/v1573_bulk_mastering_control_eta_visual_smoke.js'), 'release QA should include v1.5.98 smoke');
 
 for (const id of ['bulkImportHudCancel', 'bulkImportHudRetryFailed', 'bulkImportHudFilter']) {
   assert(index.includes(`id="${id}"`), `bulk mastering control missing: ${id}`);
 }
-assert(hud.includes("const VIEW_VERSION = '1.5.97-bulk-control-eta-result-filter'"), 'HUD version contract missing');
+assert(hud.includes("const VIEW_VERSION = '1.5.98-bulk-control-eta-result-filter'"), 'HUD version contract missing');
 assert(hud.includes('markMasteringTrackStart') && hud.includes('markMasteringTrackResult') && hud.includes('markMasteringBatchCancelled'), 'HUD batch lifecycle hooks missing');
 assert(hud.includes('getAverageMasteringDurationMs') && hud.includes('currentRemainingMs') && hud.includes('완료 예상 약'), 'per-track and batch ETA calculation missing');
 assert(hud.includes('trackMatchesFilter') && hud.includes("['all', 'active', 'completed', 'failed', 'cancelled', 'pending']"), 'result filters missing');

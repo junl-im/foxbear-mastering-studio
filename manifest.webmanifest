@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.97 (worker-recovery-diagnostics).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.98 (worker-retry-health-levels).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.97"
+  "version": "1.5.98"
 }

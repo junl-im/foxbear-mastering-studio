@@ -1,3 +1,12 @@
+# v1.5.98 - Safe Worker Retry, Health Levels, and 30-Track Resource Stress
+
+- Adds a high-level recovery coordinator that rebuilds analysis, mastering, and 15-second preview work from retained track sources after a stalled Worker is cancelled.
+- Prevents unsafe low-level retry of detached transfer buffers and excludes ZIP/general export jobs from automatic retry.
+- Adds per-Worker detail cards for stage, progress, no-progress age, transfer memory, and targeted stalled-only cancellation.
+- Classifies runtime health as normal, watch, or danger using Worker stalls, transfer memory, runtime health, heap pressure, and long-task duration.
+- Adds retry controls for cancelled recoverable work and deduplicates repeated jobs by track and operation type.
+- Expands stress coverage to 30 track resource releases, 90 Blob URL revocations, 60 abort-owner releases, and 30 AudioContext closures.
+
 # v1.5.97 - Stalled Worker Recovery and Actionable Performance Guidance
 
 - Adds targeted and stalled-only cancellation to the shared Worker job service without cancelling healthy active jobs.

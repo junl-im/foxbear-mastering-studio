@@ -1,3 +1,17 @@
+# FoxBear Status - v1.5.98
+
+## v1.5.98 current focus
+
+- Safe recovery retries rebuild analysis, mastering, and master-preview tasks from retained track files instead of reusing detached Worker transfer buffers.
+- Worker diagnostics exposes per-job progress, stage, no-progress age, transfer memory, and normal/watch/danger health.
+- Stalled jobs can be cancelled individually or together, then deduplicated and retried by track and operation type.
+- ZIP/general export retries stay manual to prevent duplicate file-save actions.
+- Configured static/regression target: 321 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.5.97
 
 ## v1.5.97 current focus
@@ -335,10 +349,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.97`
-- Build ID: `worker-recovery-diagnostics`
-- Asset version: `1.5.97-worker-recovery-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.97-worker-recovery-diagnostics`
+- Product version: `1.5.98`
+- Build ID: `worker-retry-health-levels`
+- Asset version: `1.5.98-worker-retry-health-levels`
+- Service worker cache: `foxbear-shell-v1.5.98-worker-retry-health-levels`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -370,10 +384,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.97`
-- Build ID: `worker-recovery-diagnostics`
-- Asset version: `1.5.97-worker-recovery-diagnostics`
-- Service worker cache: `foxbear-shell-v1.5.97-worker-recovery-diagnostics`
+- Product version: `1.5.98`
+- Build ID: `worker-retry-health-levels`
+- Asset version: `1.5.98-worker-retry-health-levels`
+- Service worker cache: `foxbear-shell-v1.5.98-worker-retry-health-levels`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

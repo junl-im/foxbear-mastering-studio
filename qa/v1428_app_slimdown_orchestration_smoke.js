@@ -21,9 +21,9 @@ const qaReport = read('qa/QA_REPORT.md');
 assert(fs.existsSync(path.join(root, 'src/audio/mastering-orchestrator-service.js')), 'mastering orchestrator service missing');
 assert(pkg.qaChecks.includes('node --check src/audio/mastering-orchestrator-service.js'), 'mastering orchestrator syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v1428_app_slimdown_orchestration_smoke.js'), 'v1428 app slim-down smoke missing from package QA');
-assert(index.includes('src/audio/mastering-orchestrator-service.js?v=1.5.97-worker-recovery-diagnostics'), 'mastering orchestrator not loaded in index');
+assert(index.includes('src/audio/mastering-orchestrator-service.js?v=1.5.98-worker-retry-health-levels'), 'mastering orchestrator not loaded in index');
 assert(index.indexOf('src/audio/mastering-orchestrator-service.js') < index.indexOf('src/app.js'), 'mastering orchestrator must load before app.js');
-assert(sw.includes('./src/audio/mastering-orchestrator-service.js?v=1.5.97-worker-recovery-diagnostics'), 'mastering orchestrator not precached');
+assert(sw.includes('./src/audio/mastering-orchestrator-service.js?v=1.5.98-worker-retry-health-levels'), 'mastering orchestrator not precached');
 assert(importQueue.includes('createTrackAnalysisQueue'), 'track-specific import queue orchestration missing');
 assert(importQueue.includes('runTrack(track)'), 'import queue should own per-track analysis execution');
 assert(app.includes('getImportAnalysisQueueController().queueTracks'), 'app should delegate queueTracksForAnalysis to service controller');
@@ -31,7 +31,7 @@ assert(app.includes('getImportAnalysisQueueController().runPump'), 'app should d
 assert(orchestrator.includes('createMasteringBatchRunner'), 'mastering batch runner factory missing');
 assert(orchestrator.includes('runBatch'), 'mastering orchestrator should expose runBatch');
 assert(app.includes('getMasteringBatchRunner().runBatch(candidates'), 'masterSelected/masterAll should delegate to mastering batch runner');
-assert(app.split(/\r?\n/).length < 13300, 'app.js should remain under the v1.5.97 adaptive governor integration line budget');
+assert(app.split(/\r?\n/).length < 13300, 'app.js should remain under the v1.5.98 adaptive governor integration line budget');
 assert(changelog.includes('v1.4.28') && handoff.includes('v1.4.29') && /\b(\d+)\/\1 PASS\b/.test(qaReport), 'docs should carry forward v1.4.28 and report a self-consistent QA count');
 
 console.log('PASS v1.4.28 app slim-down orchestration smoke');
