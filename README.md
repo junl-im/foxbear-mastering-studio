@@ -1,3 +1,17 @@
+# FoxBear AI Mastering Studio Pro v1.5.94
+
+## v1.5.94 AIFF fallback safety and Worker failure diagnostics
+
+AIFF cancellation and decode timeout no longer enter synchronous fallback, oversized fallback workloads fail safely, Worker recent diagnostics retain failure details, and the release handoff permanently enforces the three-section result format.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- Run the full static/regression suite: `npm run check:static`
+- Run the new regression: `node qa/v1594_aiff_worker_reporting_contract_smoke.js`
+- Configured static/regression checks: 315.
+
 # FoxBear AI Mastering Studio Pro v1.5.93
 
 ## v1.5.93 External engine cancellation and operational export recovery

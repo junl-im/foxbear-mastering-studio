@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.5.94
+
+- Audited the v1.5.93 decode and Worker lifecycle paths plus release-report handoff persistence.
+- Found that AIFF native decode cancellation or timeout could fall through to the synchronous PCM parser.
+- Added cancellation, timeout, and channel-sample budget guards before AIFF fallback.
+- Added complete timeout/cancel/failure metadata to Worker recent diagnostics.
+- Added a permanent three-section reporting contract to HANDOFF, STATUS, and README.
+- Configured static/regression target: 315 checks before installed-browser confirmation.
+
 # FoxBear QA Report - v1.5.93
 
 - Re-ran the complete v1.5.92 static/regression baseline: 313/313 PASS before modification.

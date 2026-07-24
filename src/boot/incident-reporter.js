@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.93
+// FoxBear automatic incident reporter - v1.5.94
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.93-external-engine-transfer-admin-export-openai-readiness';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;

@@ -18,10 +18,10 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const mobileNative = read('src/ui/mobile-native-view.js');
 
-assert.strictEqual(pkg.version, '1.5.93');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.93-external-engine-transfer-admin-export-openai-readiness');
-assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.93-external-engine-transfer-admin-export-openai-readiness'));
-assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.93-external-engine-transfer-admin-export-openai-readiness'));
+assert.strictEqual(pkg.version, '1.5.94');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract');
+assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract'));
+assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract'));
 assert(index.indexOf('assets/css/components/modal-close-system.css') > index.indexOf('assets/css/header-command-bar.css'), 'modal close ownership stylesheet must load last');
 
 for (const id of ['programInfoClose', 'featureDialogClose', 'previewDialogClose', 'adminStatsClose']) {

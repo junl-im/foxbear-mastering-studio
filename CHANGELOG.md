@@ -1,3 +1,11 @@
+# v1.5.94 - AIFF Fallback Safety, Worker Failure Diagnostics, and Reporting Contract
+
+- Prevents cancellation and decode-timeout errors from entering the synchronous AIFF PCM fallback.
+- Rejects oversized AIFF fallback workloads with `FOXBEAR_AIFF_FALLBACK_TOO_LARGE` before large main-thread allocation and parsing.
+- Records timeout, cancellation, and failure error code/name/reason plus last-progress age in Worker recent diagnostics.
+- Promotes the user-required three-section release report format to a persistent HANDOFF, STATUS, README, and regression contract.
+- Adds behavior coverage for AIFF timeout/cancel/size guards, Worker failure diagnostics, and report headings.
+
 # v1.5.93 - External Engine Cancellation, Worker Transfer Diagnostics, and Admin Export Recovery
 
 - Forwards `AbortSignal` into optional external WASM pitch engines and rejects stale output after processing.

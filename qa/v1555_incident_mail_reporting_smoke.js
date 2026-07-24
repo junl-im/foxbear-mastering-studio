@@ -18,12 +18,12 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert.strictEqual(pkg.version, '1.5.93');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.93-external-engine-transfer-admin-export-openai-readiness');
-assert(index.includes('src/boot/incident-reporter.js?v=1.5.93-external-engine-transfer-admin-export-openai-readiness'));
+assert.strictEqual(pkg.version, '1.5.94');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract');
+assert(index.includes('src/boot/incident-reporter.js?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract'));
 assert(index.indexOf('src/boot/runtime-health.js') < index.indexOf('src/boot/incident-reporter.js'));
 assert(index.indexOf('src/boot/incident-reporter.js') < index.indexOf('src/app.js'));
-assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.93-external-engine-transfer-admin-export-openai-readiness'));
+assert(sw.includes('./src/boot/incident-reporter.js?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract'));
 assert(!index.includes('</body>\n    <script'), 'scripts must not be placed after </body>');
 assert(index.includes('id="incidentReportingToggle"'));
 assert(index.includes('id="incidentReportingTest"'));

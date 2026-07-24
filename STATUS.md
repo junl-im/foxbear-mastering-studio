@@ -1,3 +1,17 @@
+# FoxBear Status - v1.5.94
+
+## v1.5.94 current focus
+
+- Cancellation and decode timeout cannot enter the synchronous AIFF PCM fallback.
+- Oversized AIFF fallback workloads fail before allocating a large AudioBuffer or blocking the main thread.
+- Worker recent diagnostics preserve timeout/cancel/failure codes, reasons, and progress age.
+- Future patch reports use only the persistent three-section contract below.
+- Configured static/regression target: 315 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.5.93
 
 ## v1.5.93 current focus
@@ -280,10 +294,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.93`
-- Build ID: `external-engine-transfer-admin-export-openai-readiness`
-- Asset version: `1.5.93-external-engine-transfer-admin-export-openai-readiness`
-- Service worker cache: `foxbear-shell-v1.5.93-external-engine-transfer-admin-export-openai-readiness`
+- Product version: `1.5.94`
+- Build ID: `aiff-fallback-worker-diagnostics-reporting-contract`
+- Asset version: `1.5.94-aiff-fallback-worker-diagnostics-reporting-contract`
+- Service worker cache: `foxbear-shell-v1.5.94-aiff-fallback-worker-diagnostics-reporting-contract`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -315,10 +329,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.93`
-- Build ID: `external-engine-transfer-admin-export-openai-readiness`
-- Asset version: `1.5.93-external-engine-transfer-admin-export-openai-readiness`
-- Service worker cache: `foxbear-shell-v1.5.93-external-engine-transfer-admin-export-openai-readiness`
+- Product version: `1.5.94`
+- Build ID: `aiff-fallback-worker-diagnostics-reporting-contract`
+- Asset version: `1.5.94-aiff-fallback-worker-diagnostics-reporting-contract`
+- Service worker cache: `foxbear-shell-v1.5.94-aiff-fallback-worker-diagnostics-reporting-contract`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

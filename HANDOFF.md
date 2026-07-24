@@ -1,3 +1,23 @@
+# Handoff - v1.5.94
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 체크섬, 제한 사항, 검증 결과, OpenAI 관련 참고 내용이 필요하면 별도 구역을 만들지 않고 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.5.94 current focus
+
+- AIFF native decode cancellation and timeout must never enter the synchronous PCM fallback.
+- Large AIFF fallback workloads above the guarded channel-sample budget must fail with `FOXBEAR_AIFF_FALLBACK_TOO_LARGE` instead of blocking the UI thread.
+- Worker recent diagnostics preserve timeout, cancellation, and failure code/reason plus last-progress age.
+- Regression: `node qa/v1594_aiff_worker_reporting_contract_smoke.js`.
+- All future patch reports must use only the persistent three-section contract defined above.
+
 # Handoff - v1.5.93
 
 ## v1.5.93 current focus

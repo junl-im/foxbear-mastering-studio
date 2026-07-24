@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
+const version = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

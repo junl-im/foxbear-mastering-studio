@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.5.93 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.5.94 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
+    const VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
     let sequence = 0;
 
     function createFallbackAbortController() {

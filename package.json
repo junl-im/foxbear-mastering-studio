@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.93",
+  "version": "1.5.94",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with external pitch cancellation forwarding, Worker transfer/stall diagnostics, resilient admin CSV exports, and OpenAI API integration guidance.",
+  "description": "FoxBear AI Mastering Studio Pro with cancellation-safe AIFF fallback guards, complete Worker failure diagnostics, and a persistent three-section release reporting contract.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.93-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.93-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.94-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.94-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -349,15 +349,16 @@
     "node qa/v1590_browser_retry_integrity_metadata_scope_smoke.js",
     "node qa/v1591_cancellable_audio_pipeline_performance_smoke.js",
     "node qa/v1592_python_bytecode_ci_hygiene_smoke.js",
-    "node qa/v1593_external_engine_worker_transfer_admin_export_smoke.js"
+    "node qa/v1593_external_engine_worker_transfer_admin_export_smoke.js",
+    "node qa/v1594_aiff_worker_reporting_contract_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "external-engine-transfer-admin-export-openai-readiness",
-    "assetVersion": "1.5.93-external-engine-transfer-admin-export-openai-readiness",
-    "cacheName": "foxbear-shell-v1.5.93-external-engine-transfer-admin-export-openai-readiness",
-    "bootRevision": "boot-sri-v1593",
-    "updateSafetyRevision": "update-safety-v1593",
-    "serviceWorkerRevision": "sw-v1593"
+    "buildId": "aiff-fallback-worker-diagnostics-reporting-contract",
+    "assetVersion": "1.5.94-aiff-fallback-worker-diagnostics-reporting-contract",
+    "cacheName": "foxbear-shell-v1.5.94-aiff-fallback-worker-diagnostics-reporting-contract",
+    "bootRevision": "boot-sri-v1594",
+    "updateSafetyRevision": "update-safety-v1594",
+    "serviceWorkerRevision": "sw-v1594"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

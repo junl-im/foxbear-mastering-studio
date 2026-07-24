@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.93-external-engine-transfer-admin-export-openai-readiness',
+                version: '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.93-external-engine-transfer-admin-export-openai-readiness',
+        version: '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

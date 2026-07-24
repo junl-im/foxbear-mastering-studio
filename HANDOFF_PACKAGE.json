@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.93",
-  "buildId": "external-engine-transfer-admin-export-openai-readiness",
+  "productVersion": "1.5.94",
+  "buildId": "aiff-fallback-worker-diagnostics-reporting-contract",
   "requiredFiles": [
     "404.html",
     ".gitignore",

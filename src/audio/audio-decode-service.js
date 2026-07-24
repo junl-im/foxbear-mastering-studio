@@ -1,12 +1,13 @@
-// FoxBear audio decode service - v1.5.93
+// FoxBear audio decode service - v1.5.94
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
+    const SERVICE_VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;
     const MAX_DECODE_EVENTS = 24;
+    const MAX_AIFF_SYNC_FALLBACK_CHANNEL_SAMPLES = 16 * 1024 * 1024;
 
     const state = {
         activeDecodes: 0,
@@ -348,6 +349,26 @@
         });
     }
 
+    function assertAiffFallbackAllowed(arrayBuffer, nativeError, signal) {
+        throwIfAborted(signal);
+        if (nativeError?.name === 'AbortError' || nativeError?.code === 'FOXBEAR_ANALYSIS_CANCELLED') throw nativeError;
+        if (nativeError?.code === 'AUDIO_DECODE_TIMEOUT') throw nativeError;
+        const metadata = parseAiffHeaderMetadata(arrayBuffer);
+        const channelSamples = metadata
+            ? Math.max(0, Math.round(Number(metadata.durationSec || 0) * Number(metadata.sampleRate || 0) * Number(metadata.channels || 0)))
+            : 0;
+        if (channelSamples > MAX_AIFF_SYNC_FALLBACK_CHANNEL_SAMPLES) {
+            const error = new Error('긴 AIFF 파일은 브라우저 기본 디코더가 실패한 뒤 동기 PCM 파서로 안전하게 복구할 수 없습니다. WAV 또는 무압축 PCM AIFF로 변환하거나 최신 브라우저에서 다시 시도해주세요.');
+            error.name = 'AudioDecodeError';
+            error.code = 'FOXBEAR_AIFF_FALLBACK_TOO_LARGE';
+            error.channelSamples = channelSamples;
+            error.limitChannelSamples = MAX_AIFF_SYNC_FALLBACK_CHANNEL_SAMPLES;
+            error.cause = nativeError;
+            throw error;
+        }
+        return { metadata, channelSamples };
+    }
+
     function getAudioImportDecodeHint(fileOrName = '') {
         const ext = getFileExtension(fileOrName);
         if (['.mp4', '.m4v', '.mov'].includes(ext)) return ' MP4/MOV는 브라우저가 파일 내부 오디오 코덱을 지원할 때만 분석됩니다.';
@@ -546,7 +567,13 @@
                 ), signal, () => closeManagedDecodeContext(audioContext));
             } catch (nativeError) {
                 if (container.id !== 'aiff') throw nativeError;
-                pushEvent('decode-aiff-fallback', { fileName: state.lastFileName, signature: container.signature });
+                const fallback = assertAiffFallbackAllowed(arrayBuffer, nativeError, signal);
+                pushEvent('decode-aiff-fallback', {
+                    fileName: state.lastFileName,
+                    signature: container.signature,
+                    durationSec: round(fallback.metadata?.durationSec || 0, 3),
+                    channelSamples: fallback.channelSamples
+                });
                 decoded = decodeAiffPcm(audioContext, arrayBuffer);
             }
             throwIfAborted(signal);
@@ -600,6 +627,7 @@
         estimatePcmMemory,
         parseWavHeaderMetadata,
         parseAiffHeaderMetadata,
+        assertAiffFallbackAllowed,
         decodeAudioDataCompat,
         decodeAiffPcm,
         detectAudioContainer,

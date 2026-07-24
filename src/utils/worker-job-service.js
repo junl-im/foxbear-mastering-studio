@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.93 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.94 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
+    const VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();
@@ -68,10 +68,14 @@
 
     function rememberCompleted(record, status, detail = {}) {
         const completedAt = Date.now();
+        const lastProgressAt = Number(record.lastProgressAt || 0);
         recentJobs.push(Object.freeze({
             runId: record.runId, jobId: record.jobId, label: record.label, status,
             startedAt: record.startedAt, completedAt, elapsedMs: Math.max(0, completedAt - record.startedAt),
-            percent: record.percent, stage: record.stage, transferCount: record.transferCount, transferBytes: record.transferBytes, ...detail
+            percent: record.percent, stage: record.stage, detail: record.detail,
+            lastProgressAt, progressAgeMs: Math.max(0, completedAt - (lastProgressAt || record.startedAt)),
+            estimatedRemainingMs: record.estimatedRemainingMs,
+            transferCount: record.transferCount, transferBytes: record.transferBytes, ...detail
         }));
         while (recentJobs.length > MAX_RECENT_JOBS) recentJobs.shift();
     }
@@ -128,7 +132,13 @@
                 try { worker.onmessage = null; worker.onerror = null; worker.onmessageerror = null; } catch (error) {}
                 try { worker.terminate(); } catch (error) {}
                 activeJobs.delete(runId);
-                rememberCompleted(record, status, status === 'failed' ? { error: String(value?.message || value || '') } : {});
+                const failureDetail = status === 'completed' ? {} : {
+                    error: String(value?.message || value || ''),
+                    errorName: String(value?.name || ''),
+                    errorCode: String(value?.code || ''),
+                    reason: status === 'cancelled' ? String(signal?.reason?.message || signal?.reason || value?.message || 'worker-job-cancelled') : ''
+                };
+                rememberCompleted(record, status, failureDetail);
                 callback(value);
             };
             const abort = () => finish(reject, makeAbortError(signal?.reason), 'cancelled');

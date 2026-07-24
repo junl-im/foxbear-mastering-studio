@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
+    const SERVICE_VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
     const barElementsCache = typeof WeakMap === 'function' ? new WeakMap() : null;
