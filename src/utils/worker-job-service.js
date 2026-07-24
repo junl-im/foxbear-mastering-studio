@@ -1,13 +1,16 @@
-// FoxBear worker job service v1.5.92 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.93 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
+    const VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();
     const recentJobs = [];
     const MAX_RECENT_JOBS = 24;
+    const STALL_THRESHOLD_MS = 15000;
+    let peakActiveCount = 0;
+    let peakActiveTransferBytes = 0;
 
     function createJobId(label = 'worker') {
         sequence = (sequence + 1) % 0x7fffffff;
@@ -37,26 +40,59 @@
         return Math.max(0, Math.round((Math.max(0, Number(elapsedMs) || 0) * (100 - value)) / value));
     }
 
+    function normalizeTransferList(values) {
+        const unique = [];
+        const seen = new Set();
+        (Array.isArray(values) ? values : []).forEach(value => {
+            if (!value || seen.has(value)) return;
+            seen.add(value);
+            unique.push(value);
+        });
+        return unique;
+    }
+
+    function getTransferBytes(values) {
+        return (Array.isArray(values) ? values : []).reduce((sum, value) => {
+            if (typeof ArrayBuffer !== 'undefined' && value instanceof ArrayBuffer) return sum + Math.max(0, Number(value.byteLength || 0));
+            if (typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView?.(value)) return sum + Math.max(0, Number(value.byteLength || 0));
+            return sum;
+        }, 0);
+    }
+
+    function updatePeaks() {
+        peakActiveCount = Math.max(peakActiveCount, activeJobs.size);
+        const activeBytes = Array.from(activeJobs.values()).reduce((sum, item) => sum + Math.max(0, Number(item.transferBytes || 0)), 0);
+        peakActiveTransferBytes = Math.max(peakActiveTransferBytes, activeBytes);
+        return activeBytes;
+    }
+
     function rememberCompleted(record, status, detail = {}) {
         const completedAt = Date.now();
         recentJobs.push(Object.freeze({
             runId: record.runId, jobId: record.jobId, label: record.label, status,
             startedAt: record.startedAt, completedAt, elapsedMs: Math.max(0, completedAt - record.startedAt),
-            percent: record.percent, stage: record.stage, ...detail
+            percent: record.percent, stage: record.stage, transferCount: record.transferCount, transferBytes: record.transferBytes, ...detail
         }));
         while (recentJobs.length > MAX_RECENT_JOBS) recentJobs.shift();
     }
 
     function getDiagnostics() {
         const now = Date.now();
-        const jobs = Array.from(activeJobs.values()).map(record => Object.freeze({
+        const jobs = Array.from(activeJobs.values()).map(record => {
+            const ageMs = Math.max(0, now - record.startedAt);
+            const progressAgeMs = Math.max(0, now - (record.lastProgressAt || record.startedAt));
+            return Object.freeze({
             runId: record.runId, jobId: record.jobId, label: record.label, status: 'running',
-            startedAt: record.startedAt, ageMs: Math.max(0, now - record.startedAt), percent: record.percent,
+            startedAt: record.startedAt, ageMs, percent: record.percent,
             stage: record.stage, detail: record.detail, estimatedRemainingMs: record.estimatedRemainingMs,
-            lastProgressAt: record.lastProgressAt
-        }));
+            lastProgressAt: record.lastProgressAt, progressAgeMs, stalled: progressAgeMs >= STALL_THRESHOLD_MS,
+            transferCount: record.transferCount, transferBytes: record.transferBytes
+        });
+        });
+        const activeTransferBytes = jobs.reduce((sum, item) => sum + Math.max(0, Number(item.transferBytes || 0)), 0);
         return Object.freeze({
-            version: VERSION, activeCount: jobs.length,
+            version: VERSION, activeCount: jobs.length, activeTransferBytes,
+            peakActiveCount, peakActiveTransferBytes, stalledCount: jobs.filter(item => item.stalled).length,
             active: Object.freeze(jobs), recent: Object.freeze(recentJobs.slice())
         });
     }
@@ -74,8 +110,10 @@
         try { worker = createWorker(); }
         catch (error) { return Promise.reject(error); }
         if (!worker) return Promise.reject(new Error('워커를 생성하지 못했습니다.'));
-        const record = { runId, jobId, label, startedAt: Date.now(), lastProgressAt: 0, percent: 0, stage: label, detail: '', estimatedRemainingMs: 0 };
+        const transferList = normalizeTransferList(options.transfer);
+        const record = { runId, jobId, label, startedAt: Date.now(), lastProgressAt: 0, percent: 0, stage: label, detail: '', estimatedRemainingMs: 0, transferCount: transferList.length, transferBytes: getTransferBytes(transferList) };
         activeJobs.set(runId, record);
+        updatePeaks();
 
         return new Promise((resolve, reject) => {
             let settled = false;
@@ -157,7 +195,7 @@
             }
             try {
                 const payload = Object.assign({}, options.payload || {}, { __foxbearJobId: jobId });
-                worker.postMessage(payload, Array.isArray(options.transfer) ? options.transfer : []);
+                worker.postMessage(payload, transferList);
             } catch (error) {
                 finish(reject, error);
             }

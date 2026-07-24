@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.92",
+  "version": "1.5.93",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with CI-safe Python bytecode cleanup, inherited no-bytecode QA execution, and Node 24 GitHub Actions cache support.",
+  "description": "FoxBear AI Mastering Studio Pro with external pitch cancellation forwarding, Worker transfer/stall diagnostics, resilient admin CSV exports, and OpenAI API integration guidance.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.92-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.92-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.93-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.93-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -348,15 +348,16 @@
     "node qa/v1589_browser_health_first_selector_flaky_issues_smoke.js",
     "node qa/v1590_browser_retry_integrity_metadata_scope_smoke.js",
     "node qa/v1591_cancellable_audio_pipeline_performance_smoke.js",
-    "node qa/v1592_python_bytecode_ci_hygiene_smoke.js"
+    "node qa/v1592_python_bytecode_ci_hygiene_smoke.js",
+    "node qa/v1593_external_engine_worker_transfer_admin_export_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "python-bytecode-ci-hygiene-node24-cache",
-    "assetVersion": "1.5.92-python-bytecode-ci-hygiene-node24-cache",
-    "cacheName": "foxbear-shell-v1.5.92-python-bytecode-ci-hygiene-node24-cache",
-    "bootRevision": "boot-sri-v1592",
-    "updateSafetyRevision": "update-safety-v1592",
-    "serviceWorkerRevision": "sw-v1592"
+    "buildId": "external-engine-transfer-admin-export-openai-readiness",
+    "assetVersion": "1.5.93-external-engine-transfer-admin-export-openai-readiness",
+    "cacheName": "foxbear-shell-v1.5.93-external-engine-transfer-admin-export-openai-readiness",
+    "bootRevision": "boot-sri-v1593",
+    "updateSafetyRevision": "update-safety-v1593",
+    "serviceWorkerRevision": "sw-v1593"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

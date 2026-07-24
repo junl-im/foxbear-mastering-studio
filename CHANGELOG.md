@@ -1,3 +1,12 @@
+# v1.5.93 - External Engine Cancellation, Worker Transfer Diagnostics, and Admin Export Recovery
+
+- Forwards `AbortSignal` into optional external WASM pitch engines and rejects stale output after processing.
+- Adds deduplicated Worker transfer lists plus active/recent transfer-byte, peak concurrency, and stalled-job diagnostics.
+- Routes administrator mail-test and audit CSV files through the shared download lifecycle instead of revoking Blob URLs after one second.
+- Prevents repeated CSV clicks, exposes `aria-busy`, and restores disabled state from the current filtered result count.
+- Adds a server-side-first OpenAI API opportunity guide covering structured mastering advice, File Search, Batch evaluation, transcription, and Realtime voice.
+- Adds behavioral regression coverage for cancellation, transfer telemetry, stalled jobs, and CSV download ownership.
+
 # v1.5.92 - Python Bytecode CI Hygiene and Node 24 Cache Actions
 
 - Removes stale repository Python bytecode before static QA begins and after every configured check.

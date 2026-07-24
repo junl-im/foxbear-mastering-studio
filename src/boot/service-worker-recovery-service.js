@@ -1,4 +1,4 @@
-// FoxBear service-worker recovery lifecycle - v1.5.92
+// FoxBear service-worker recovery lifecycle - v1.5.93
 (function attachFoxBearServiceWorkerRecoveryService(global) {
   'use strict';
 

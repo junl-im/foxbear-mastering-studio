@@ -1,3 +1,15 @@
+# Handoff - v1.5.93
+
+## v1.5.93 current focus
+
+- Optional external pitch engines must receive and honor the current `AbortSignal`; cancelled output must never be committed.
+- Worker diagnostics preserve transfer count/bytes, peak active transfer bytes, and 15-second no-progress stall classification.
+- Administrator CSV exports must use the shared download service when available and must not revoke fallback Blob URLs before 60 seconds.
+- Repeated export clicks are single-flight and expose `aria-busy` without re-enabling an empty filtered export.
+- OpenAI API keys must remain server-side; the first recommended integration is a read-only structured mastering advisor using existing analysis JSON.
+- Regression: `node qa/v1593_external_engine_worker_transfer_admin_export_smoke.js`.
+- Report results as progress, release ZIP, overwrite ZIP, and next patch lineup.
+
 # Handoff - v1.5.92
 
 ## v1.5.92 current focus

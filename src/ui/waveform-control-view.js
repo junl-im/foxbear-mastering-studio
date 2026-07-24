@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
+  const VIEW_VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -1,3 +1,14 @@
+# FoxBear QA Report - v1.5.93
+
+- Re-ran the complete v1.5.92 static/regression baseline: 313/313 PASS before modification.
+- Found that the optional external pitch adapter discarded the cancellation signal before calling a WASM engine.
+- Added cancellation checks before import, after import, and after engine completion, and forwarded the signal into compatible engines.
+- Added Worker transfer-byte, transfer-count, peak concurrency, peak transfer memory, and no-progress stall diagnostics.
+- Replaced one-second administrator CSV Blob URL cleanup with the shared resilient download lifecycle and a 60-second fallback.
+- Added single-flight export locking and ARIA busy-state behavior.
+- Added an OpenAI API opportunity and privacy architecture guide.
+- Configured static/regression target: 314 checks before installed-browser confirmation.
+
 # FoxBear QA Report - v1.5.92
 
 - Reproduced the GitHub static gate failure by seeding stale Python bytecode before the historical v1.5.90 hygiene assertion.

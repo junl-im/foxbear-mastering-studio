@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.92 - recommendation engine service
+// FoxBear AI Mastering Studio Pro v1.5.93 - recommendation engine service
 'use strict';
 
 (function attachFoxBearRecommendationEngine(global) {

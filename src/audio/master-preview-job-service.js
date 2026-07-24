@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.5.92 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.5.93 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
+    const VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
     let sequence = 0;
 
     function createFallbackAbortController() {

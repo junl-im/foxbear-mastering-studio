@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.5.92 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.5.93 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
+    const VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

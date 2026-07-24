@@ -11,6 +11,8 @@
         const limitText = options.limitText;
         const getFirebaseStatusNotice = options.getFirebaseStatusNotice;
         const showToast = options.showToast;
+        const downloadBlob = typeof options.downloadBlob === 'function' ? options.downloadBlob : null;
+        const activeCsvExports = new WeakSet();
         state.adminIncidentHistoryItems = Array.isArray(state.adminIncidentHistoryItems) ? state.adminIncidentHistoryItems : [];
         state.adminIncidentHistoryNextCursor = Number(state.adminIncidentHistoryNextCursor || 0);
         state.adminIncidentHistoryHasMore = state.adminIncidentHistoryHasMore === true;
@@ -518,25 +520,59 @@
             return `"${String(value ?? '').replace(/"/g, '""')}"`;
         }
 
-        function exportMailTestHistory() {
+        async function saveCsvFile(csv, fileName, button) {
+            if (button && activeCsvExports.has(button)) return false;
+            if (button) {
+                activeCsvExports.add(button);
+                button.disabled = true;
+                button.setAttribute('aria-busy', 'true');
+            }
+            try {
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+                if (downloadBlob) await downloadBlob(blob, fileName);
+                else {
+                    const url = URL.createObjectURL(blob);
+                    const anchor = document.createElement('a');
+                    anchor.href = url;
+                    anchor.download = fileName;
+                    anchor.rel = 'noopener noreferrer';
+                    document.body.appendChild(anchor);
+                    anchor.click();
+                    anchor.remove();
+                    setTimeout(() => { try { URL.revokeObjectURL(url); } catch (error) {} }, 60000);
+                }
+                return true;
+            } finally {
+                if (button) {
+                    activeCsvExports.delete(button);
+                    button.removeAttribute('aria-busy');
+                    button.disabled = button === el.adminIncidentMailTestExport
+                        ? (state.adminMailTestFilteredItems || []).length === 0
+                        : button === el.adminIncidentAuditExport
+                            ? (state.adminIncidentAuditFilteredItems || []).length === 0
+                            : false;
+                }
+            }
+        }
+
+        async function exportMailTestHistory() {
             const items = state.adminMailTestFilteredItems || [];
             if (!items.length) {
                 showToast('내보낼 실제 메일 테스트 이력이 없습니다.');
-                return;
+                return false;
             }
             const rows = [['테스트 시간', '상태', '사유', 'SMTP 접수 시각', '실수신 위치', '실수신 확인 시각', '제목', 'Message-ID', '보고서 ID', '테스트 ID']];
             items.forEach(item => rows.push([item.checkedAt, item.status, item.reason, item.smtpAcceptedAt, item.receiptLocation, item.receiptConfirmedAt, item.subject, item.messageId, item.reportId, item.testId]));
             const csv = '\ufeff' + rows.map(row => row.map(csvCell).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = `ai-mastering-mail-tests-${state.adminMailTestPeriod || 'all'}-${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(anchor);
-            anchor.click();
-            anchor.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showToast(`${items.length}건의 메일 테스트 이력을 CSV로 저장했습니다.`);
+            try {
+                const saved = await saveCsvFile(csv, `ai-mastering-mail-tests-${state.adminMailTestPeriod || 'all'}-${new Date().toISOString().slice(0, 10)}.csv`, el.adminIncidentMailTestExport);
+                if (!saved) return false;
+                showToast(`${items.length}건의 메일 테스트 이력을 CSV로 저장했습니다.`);
+                return true;
+            } catch (error) {
+                showToast(`메일 테스트 CSV 저장 실패: ${error?.message || error}`);
+                return false;
+            }
         }
 
         function renderMailTestHistory(items = []) {
@@ -709,25 +745,24 @@
             }
         }
 
-        function exportAuditLog() {
+        async function exportAuditLog() {
             const items = state.adminIncidentAuditFilteredItems || [];
             if (!items.length) {
                 showToast('내보낼 관리자 감사 로그가 없습니다.');
-                return;
+                return false;
             }
             const rows = [['시간', '관리자 UID', '작업', '상태', '대상 유형', '대상 ID', '사유', '요청 ID', '시도', '성공', '실패', '건너뜀']];
             items.forEach(item => rows.push([item.at, item.uid, item.action, item.status, item.targetType, item.targetId, item.reason, item.requestId, item.result?.attempted || 0, item.result?.succeeded || 0, item.result?.failed || 0, item.result?.skipped || 0]));
             const csv = '\ufeff' + rows.map(row => row.map(csvCell).join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const anchor = document.createElement('a');
-            anchor.href = url;
-            anchor.download = `ai-mastering-admin-audit-${new Date().toISOString().slice(0, 10)}.csv`;
-            document.body.appendChild(anchor);
-            anchor.click();
-            anchor.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showToast(`${items.length}건의 관리자 감사 로그를 CSV로 저장했습니다.`);
+            try {
+                const saved = await saveCsvFile(csv, `ai-mastering-admin-audit-${new Date().toISOString().slice(0, 10)}.csv`, el.adminIncidentAuditExport);
+                if (!saved) return false;
+                showToast(`${items.length}건의 관리자 감사 로그를 CSV로 저장했습니다.`);
+                return true;
+            } catch (error) {
+                showToast(`관리자 감사 로그 CSV 저장 실패: ${error?.message || error}`);
+                return false;
+            }
         }
 
         function updateHistoryControls() {

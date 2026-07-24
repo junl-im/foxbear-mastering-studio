@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.5.92 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.5.93 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.5.92-python-bytecode-ci-hygiene-node24-cache';
+    const VERSION = 'v1.5.93-external-engine-transfer-admin-export-openai-readiness';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;

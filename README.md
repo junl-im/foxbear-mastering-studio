@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.5.93
+
+## v1.5.93 External engine cancellation and operational export recovery
+
+Optional WASM pitch engines now receive the active cancellation signal, Worker diagnostics expose transferred PCM memory and stalled jobs, and administrator CSV exports use the same resilient download lifecycle as mastered audio and reports.
+
+- Run the full static/regression suite: `npm run check:static`
+- Run the new regression: `node qa/v1593_external_engine_worker_transfer_admin_export_smoke.js`
+- Inspect transfer/stall telemetry from `FoxBearMasteringGuard.getSnapshot().workerJobs`
+- Review OpenAI integration priorities in `docs/OPENAI_API_OPPORTUNITIES_1.5.93.md`
+- Configured static/regression checks: 314.
+
 # FoxBear AI Mastering Studio Pro v1.5.92
 
 ## v1.5.92 CI-safe Python bytecode hygiene

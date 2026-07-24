@@ -1,4 +1,18 @@
-# FoxBear Status - v1.5.92
+# FoxBear Status - v1.5.93
+
+## v1.5.93 current focus
+
+- External WASM pitch processing receives cancellation ownership and stale results cannot enter the mastering chain.
+- Worker diagnostics report active and peak transferred PCM bytes, transfer counts, and 15-second no-progress stalls.
+- Administrator mail-test and audit CSV exports share the production download lifecycle with duplicate-action and ARIA guards.
+- OpenAI integration is documented as server-side, metadata-first, explicit-consent architecture.
+- Configured static/regression target: 314 checks before installed-browser confirmation.
+
+## v1.5.92 previous focus
+
+- Static QA cleans inherited Python bytecode and forces no-bytecode child execution.
+- GitHub cache actions use the Node 24-based v5 runtime.
+
 
 ## v1.5.91 current focus
 
@@ -266,10 +280,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.92`
-- Build ID: `python-bytecode-ci-hygiene-node24-cache`
-- Asset version: `1.5.92-python-bytecode-ci-hygiene-node24-cache`
-- Service worker cache: `foxbear-shell-v1.5.92-python-bytecode-ci-hygiene-node24-cache`
+- Product version: `1.5.93`
+- Build ID: `external-engine-transfer-admin-export-openai-readiness`
+- Asset version: `1.5.93-external-engine-transfer-admin-export-openai-readiness`
+- Service worker cache: `foxbear-shell-v1.5.93-external-engine-transfer-admin-export-openai-readiness`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -301,10 +315,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.92`
-- Build ID: `python-bytecode-ci-hygiene-node24-cache`
-- Asset version: `1.5.92-python-bytecode-ci-hygiene-node24-cache`
-- Service worker cache: `foxbear-shell-v1.5.92-python-bytecode-ci-hygiene-node24-cache`
+- Product version: `1.5.93`
+- Build ID: `external-engine-transfer-admin-export-openai-readiness`
+- Asset version: `1.5.93-external-engine-transfer-admin-export-openai-readiness`
+- Service worker cache: `foxbear-shell-v1.5.93-external-engine-transfer-admin-export-openai-readiness`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

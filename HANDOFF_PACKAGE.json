@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.92",
-  "buildId": "python-bytecode-ci-hygiene-node24-cache",
+  "productVersion": "1.5.93",
+  "buildId": "external-engine-transfer-admin-export-openai-readiness",
   "requiredFiles": [
     "404.html",
     ".gitignore",

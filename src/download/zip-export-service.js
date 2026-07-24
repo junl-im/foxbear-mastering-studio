@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.5.92 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.5.93 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.5.92-python-bytecode-ci-hygiene-node24-cache';
+    const VERSION = 'v1.5.93-external-engine-transfer-admin-export-openai-readiness';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {

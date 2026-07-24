@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
+    const FALLBACK_VERSION = '1.5.93-external-engine-transfer-admin-export-openai-readiness';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
