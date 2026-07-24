@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.84
+// FoxBear automatic incident reporter - v1.5.90
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.84-trusted-types-browser-gate-recovery';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.90-browser-retry-integrity-metadata-aware-scope';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;

@@ -1,4 +1,48 @@
-# Handoff - v1.5.84
+# Handoff - v1.5.90
+
+## v1.5.90 current focus
+
+- Browser failed-only retry is fail-closed: every primary failure must produce a real passing retry result.
+- Skipped, repeated, missing, malformed, or unavailable retry evidence blocks the Browser release gate.
+- Generated release metadata is separated from functional changes before Browser impact selection.
+- Metadata-only version/SRI/cache updates no longer force the complete Browser suite when a smaller mapped scope is sufficient.
+- Flaky-history entries expire after 45 days, while current skipped retry outcomes remain unresolved P1 candidates.
+- Static/regression target: 311 checks; installed Chromium remains the final end-to-end confirmation.
+
+# Handoff - v1.5.89
+
+## v1.5.89 current focus
+
+- `npm run qa:browser` now runs `runtime-health-playwright.spec.js` first and starts heavier specs only after the sentinel passes.
+- `npm run qa:browser:retry` continues to bypass the health-first split and uses Playwright `--last-failed` state directly.
+- Shared CSS changes may use selector tokens from the Git diff; any missing or unmapped selector evidence must fall back to the complete suite.
+- Impact mapping now covers Runtime Health details, PWA update/recovery, admin operations, quality reports, and comparison waveform code.
+- Flaky history writes `qa/browser-results/flaky-issue-report.md` with unresolved cases prioritized over recurring retry recoveries.
+- Regression command: `node qa/v1589_browser_health_first_selector_flaky_issues_smoke.js`.
+- Static/regression verification: 309/309 PASS before packaging.
+
+# Handoff - v1.5.88
+
+## v1.5.88 current focus
+
+- `node qa/browser/select-browser-scope.js` must remain dependency-light because GitHub Actions runs it before `npm ci` and Chromium installation.
+- `skip` is allowed only for documentation, backend-only, packaging-only, and dependency-light static QA changes.
+- Known production changes may select related specs; any core, unknown, truncated, or missing change set must fall back to the complete browser suite.
+- Selected primary specs travel through `FOXBEAR_BROWSER_SPECS`; Playwright `--last-failed` retry must ignore that list.
+- Retry recovery updates `qa/browser-history/flaky-history.json`, which is restored/saved through a branch-scoped Actions cache and excluded from packages.
+- Regression command: `node qa/v1588_browser_impact_flaky_history_smoke.js`.
+- Static/regression verification: 307/307 PASS before packaging.
+
+# Handoff - v1.5.87
+
+## v1.5.87 current focus
+
+- Browser primary/retry evidence is compared and stored under `qa/browser-results/retry-recovery-summary.*`.
+- GitHub Actions shows recovered flaky cases and repeated failures in the Job Summary.
+- Runtime Health header and PWA recovery source contracts run in the dependency-light browser preflight.
+- Static/regression target: 304 checks before packaging.
+
+# Handoff - v1.5.86
 ## 필수 결과 보고 형식
 
 앞으로 모든 작업 결과 보고는 아래 **세 구역만** 사용합니다. 사용자가 별도 형식을 요청하지 않는 한 추가 장문 보고, 별도 체크섬 구역, 반복 설명은 넣지 않습니다.
@@ -10,6 +54,26 @@
 3. `다음 예상 내용`
 
 배포 파일은 항상 전체 릴리스 ZIP과 누적 덮어쓰기 ZIP 두 종류를 함께 제공합니다. 확인하지 못한 실제 배포·메일 수신·브라우저 검증은 `진행된 내용`에 사실대로 제한 사항을 적습니다.
+
+## v1.5.86 인수인계
+
+- 브라우저 사전 검사는 `npm run qa:browser:preflight`로 실행하며 위험 sink와 production fixture 계약을 함께 검사합니다.
+- GitHub Actions에서는 이 사전 검사를 Chromium 설치 전에 실행해야 합니다.
+- 첫 Browser gate 실패 후 `npm run qa:browser:retry`를 실행하면 Playwright `--last-failed` 상태의 실패 케이스만 다시 실행합니다.
+- 재실행에는 `qa/browser-results/artifacts/.last-run.json`이 필요하며, 상태가 없을 때 전체 테스트로 자동 대체하지 않습니다.
+- 최초 결과는 `results-primary.json`, `static-server-primary.log`, `last-run-primary.json`으로 보존됩니다.
+- 회귀 검사는 `node qa/v1586_browser_retry_fixture_contract_smoke.js`로 단독 실행할 수 있습니다.
+- 결과 보고는 계속 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용` 세 구역만 사용합니다.
+
+## v1.5.85 인수인계
+
+- 브라우저 시각 fixture는 `qa/browser/helpers/visual-fixture-builders.js`의 공통 빌더를 사용합니다.
+- fixture 빌더는 Playwright `page.evaluate(builder, options)`로 직렬화되므로 모듈 외부 변수에 의존하지 않는 독립 함수여야 합니다.
+- `node qa/browser/spec-preflight.js`는 Playwright 설치 전에도 실행되며 HTML 문자열 sink와 문자열 기반 evaluate 호출을 차단합니다.
+- `qa/browser/run-browser-e2e.js`는 사전 검사를 Playwright CLI 확인보다 먼저 실행합니다.
+- Browser gate 실패 시 `FoxBear likely root causes` 구역에서 그룹 코드·실패 수·수정 지침을 먼저 확인합니다.
+- 회귀 검사는 `node qa/v1585_browser_fixture_preflight_diagnostics_smoke.js`로 단독 실행할 수 있습니다.
+- 결과 보고는 계속 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용` 세 구역만 사용합니다.
 
 ## v1.5.84 인수인계
 

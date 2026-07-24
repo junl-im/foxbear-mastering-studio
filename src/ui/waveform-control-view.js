@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
+  const VIEW_VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
   const DEFAULT_BINS = 96;
 
   function getService() {

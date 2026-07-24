@@ -1,4 +1,59 @@
-# FoxBear AI Mastering Studio Pro v1.5.84
+# FoxBear AI Mastering Studio Pro v1.5.90
+
+## v1.5.90 Browser retry integrity and metadata-aware impact selection
+
+Browser retry recovery now accepts only an actual passing result. A primary failure that is skipped, missing, or still failing during `--last-failed` retry blocks deployment. The changed-file selector also ignores generated release-metadata-only diffs while preserving conservative Browser QA for real runtime changes.
+
+- Verify a retry summary: `npm run qa:browser:retry:verify`
+- Preview impact selection: `npm run qa:browser:impact`
+- Run the new regression: `node qa/v1590_browser_retry_integrity_metadata_scope_smoke.js`
+- Configured static/regression checks: 311/311 PASS.
+
+# FoxBear AI Mastering Studio Pro v1.5.89
+
+## v1.5.89 Browser health-first gate and selector impact mapping
+
+Browser QA now runs a Runtime Health sentinel before expensive visual and workflow scenarios. Shared CSS changes can be narrowed by changed selector tokens, while missing or unmapped evidence safely runs the complete suite. Repeated flaky cases also produce an issue-ready Markdown report.
+
+- Run the Browser gate: `npm run qa:browser`
+- Preview impact selection: `FOXBEAR_CHANGED_FILES="src/boot/service-worker-update-service.js" npm run qa:browser:impact`
+- Run the new regression: `node qa/v1589_browser_health_first_selector_flaky_issues_smoke.js`
+- Configured static/regression checks: 309/309 PASS.
+
+# FoxBear AI Mastering Studio Pro v1.5.88
+
+## v1.5.88 Browser impact selection and flaky history
+
+Browser QA now decides its scope before installing dependencies or Chromium. Documentation/backend/static-only changes skip the browser job, mapped UI changes run only their related specs, and unknown or core changes safely run the full suite. Failed-only retry results also update a branch-scoped flaky-history cache so repeatedly recovered tests and unresolved cases remain visible across workflow runs.
+
+- Preview impact selection: `FOXBEAR_CHANGED_FILES="src/ui/download-dialog-view.js" npm run qa:browser:impact`
+- Run the new regression: `node qa/v1588_browser_impact_flaky_history_smoke.js`
+- Configured static/regression checks: 307/307 PASS.
+
+# FoxBear AI Mastering Studio Pro v1.5.87
+
+## v1.5.87 Browser Retry Recovery Reporting
+
+Browser QA now preserves a concise comparison between the primary failure and the failed-only retry. Recovered flaky cases, repeated failures, and missing retry results are written to durable artifacts and the GitHub Actions summary. Runtime Health header and PWA recovery contracts are also checked before Chromium starts.
+
+# FoxBear AI Mastering Studio Pro v1.5.86
+
+## v1.5.86 브라우저 실패 항목 재실행 및 fixture 계약 검사
+
+- GitHub Actions에서 Chromium과 시스템 패키지를 설치하기 전에 브라우저 fixture 사전 검사를 실행합니다.
+- 공통 시각 fixture가 실제 HUD 마크업, 다운로드 UI 생성 코드, CSS 선택자와 일치하는지 정적으로 확인합니다.
+- 첫 Browser gate가 실패하면 Playwright `--last-failed` 상태로 실패 케이스만 한 번 다시 실행합니다.
+- 재실행 전에 최초 JSON 결과, 정적 서버 로그, last-run 상태를 보존해 재시도로 첫 실패 증거가 사라지지 않습니다.
+- Playwright 임시 artifact와 영구 진단 결과 경로를 분리해 재실행 정리 과정의 데이터 손실을 차단합니다.
+- 구성된 정적·회귀 검사는 302개이며 실제 Chromium 결과는 GitHub Browser release gate에서 최종 확인합니다.
+
+## v1.5.85 브라우저 fixture 사전 검사 및 원인 그룹화
+
+- 대량 마스터링 HUD와 모바일 다운로드 시트의 시각 테스트 fixture를 공통 빌더로 통합했습니다.
+- 공통 빌더는 `createElement`, `textContent`, `replaceChildren`만 사용하고 진행률·선택 상태 ARIA도 함께 구성합니다.
+- 실제 Chromium을 시작하기 전에 브라우저 spec 전체를 검사해 위험한 HTML 문자열 sink와 문자열 기반 `evaluate`를 즉시 차단합니다.
+- 동일한 원인으로 여러 프로젝트·viewport가 실패하면 개별 실패만 나열하지 않고 하나의 원인 그룹, 실패 수, 수정 명령을 먼저 표시합니다.
+- 구성된 정적·회귀 검사는 299개이며 실제 Chromium 재실행은 설치된 Playwright 환경에서 최종 확인합니다.
 
 ## v1.5.84 Trusted Types 브라우저 게이트 복구
 
@@ -86,10 +141,10 @@
 Release metadata:
 
 ```text
-product: 1.5.83
-build: worker-dock-ownership-diagnostics
-asset generation: 1.5.83-worker-dock-ownership-diagnostics
-service worker cache: foxbear-shell-v1.5.83-worker-dock-ownership-diagnostics
+product: 1.5.85
+build: browser-fixture-preflight-root-cause-diagnostics
+asset generation: 1.5.85-browser-fixture-preflight-root-cause-diagnostics
+service worker cache: foxbear-shell-v1.5.85-browser-fixture-preflight-root-cause-diagnostics
 ```
 
 ## v1.5.74 다중 작업 제어 및 모바일 다운로드

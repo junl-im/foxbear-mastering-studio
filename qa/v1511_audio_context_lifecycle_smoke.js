@@ -86,7 +86,7 @@ class FakeAudioContext {
   assert(helper.includes('async function navigateToApp'), 'browser QA must centralize navigation');
   assert(helper.includes("waitUntil: 'domcontentloaded'"), 'browser QA must use DOM readiness instead of network idleness');
   assert(!browserFiles.includes('networkidle'), 'networkidle must not gate Firebase/PWA browser tests');
-  assert(workflow.includes('Upload browser QA diagnostics on failure'), 'CI must upload traces on failure');
+  assert(/Upload browser QA diagnostics/.test(workflow), 'CI must upload traces after a browser failure');
 
   const { navigateToApp } = require('./browser/helpers/foxbear-e2e-helpers');
   const navigationCalls = [];

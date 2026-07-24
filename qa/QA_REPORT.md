@@ -1,3 +1,60 @@
+# FoxBear QA Report - v1.5.90
+
+- Re-ran the complete v1.5.89 static/regression baseline: 309/309 PASS before modification.
+- Reproduced a retry-integrity gap where a skipped Playwright retry could be interpreted as recovered.
+- Added explicit pass/skipped/repeated/missing classification and a fail-closed CLI verifier.
+- Added workflow verification after failed-only retry reporting in both Pages deployment paths.
+- Added Git-based release-metadata-only diff detection and verified metadata-only package, index, and runtime version changes do not force full Browser QA.
+- Verified functional source changes remain browser-impacting after metadata normalization.
+- Added 45-day flaky-history expiry and skipped-outcome unresolved tracking.
+- Verified nested report directories are created and custom report runs do not leak default artifacts.
+- Configured static/regression checks: 311/311 target; real Chromium execution remains the final environment-specific confirmation.
+
+# FoxBear QA Report - v1.5.89
+
+- Added a Runtime Health sentinel phase before heavier Browser release gate specifications.
+- Verified sentinel failure prevents the heavy phase from starting, while a healthy sentinel continues with the selected or full remaining suite.
+- Expanded changed-file impact mapping for PWA recovery, Runtime Health details, admin operations, quality reports, and comparison waveform paths.
+- Added conservative shared-CSS selector extraction and full-suite fallback for missing or unmapped selectors.
+- Added issue-ready flaky history output with unresolved cases prioritized above recurring retry recoveries.
+- Expanded production fixture contracts for admin operations and quality-recovery diagnostics.
+- Configured static/regression checks: 309/309 PASS; real Chromium execution remains GitHub Actions confirmation.
+
+# FoxBear QA Report - v1.5.88
+
+- Added dependency-light Browser QA scope classification before package and Chromium installation.
+- Verified documentation/backend/static-only changes skip browser execution, known UI changes select related specs, and unknown/core changes run the complete suite.
+- Verified selected specs are passed as spawn arguments without affecting explicit targets or Playwright `--last-failed` retry.
+- Added cumulative flaky-history tracking with recurring-recovery thresholds and unresolved latest outcomes.
+- Added GitHub cache restore/save integration and release-package exclusion for transient history data.
+- Added workflow ordering, artifact, output, archive-hygiene, and history-accumulation regression coverage.
+- Configured static/regression checks: 307/307 PASS; actual Chromium scope execution remains GitHub Actions confirmation.
+
+# FoxBear QA Report - v1.5.87
+
+- Primary and failed-only retry Playwright reports are compared by stable spec, title, and project identity.
+- Recovered flaky cases, repeated failures, and missing retry results are exported as JSON, Markdown, and GitHub step summary evidence.
+- Reporting failures cannot replace the actual Playwright outcome.
+- Browser fixture contracts now cover Runtime Health release presentation and PWA wake-lock/service-worker recovery anchors.
+- Configured static/regression checks: 304/304 target before final verification.
+
+# FoxBear QA Report - v1.5.86
+
+- Browser source safety and production fixture contracts now run before Chromium installation in both GitHub deployment workflows.
+- Shared bulk-mastering and download-sheet fixtures are checked against current markup IDs, UI source tokens, and CSS selectors.
+- Failed primary browser runs preserve JSON, server, and last-run evidence before retrying only Playwright's last failed cases.
+- Playwright temporary artifacts are isolated under `qa/browser-results/artifacts` so retry cleanup cannot delete durable reports.
+- Dependency-light regression coverage validates full-target versus last-failed argument construction, stale contract detection, and evidence preservation.
+- Configured static/regression checks: 302/302 PASS after final verification; real Chromium execution remains GitHub CI confirmation.
+
+# FoxBear QA Report - v1.5.85
+
+- Centralized both Trusted Types-sensitive visual fixtures in reusable, serializable DOM builders.
+- Added a dependency-light browser preflight that runs before Playwright resolution and reports file, line, rule code, and fix guidance.
+- Added root-cause classification for Trusted Types, missing Chromium, navigation timeout, Runtime Health, and viewport overflow failures.
+- Verified ten duplicate Trusted Types failures collapse into one diagnostic group while preserving individual details.
+- Configured static/regression checks: 299/299 PASS after final verification; real Chromium execution remains installed-environment confirmation.
+
 # FoxBear QA Report - v1.5.84
 
 - Reproduced the release-gate failure as a Trusted Types violation in two visual fixture setup functions rather than a product layout failure.

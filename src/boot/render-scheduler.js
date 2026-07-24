@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
+    const SERVICE_VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

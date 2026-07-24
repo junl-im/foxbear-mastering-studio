@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
+    const SERVICE_VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

@@ -29,14 +29,68 @@ jobs:
       - name: Install pinned dependencies
         run: npm ci --ignore-scripts
 
+      - name: Select browser QA impact scope
+        id: browser_scope
+        run: node qa/browser/select-browser-scope.js
+
+      - name: Run browser fixture preflight
+        if: steps.browser_scope.outputs.run_browser == 'true'
+        run: npm run qa:browser:preflight
+
+      - name: Prepare browser flaky history cache
+        if: steps.browser_scope.outputs.run_browser == 'true'
+        run: mkdir -p qa/browser-history
+
+      - name: Restore browser flaky history
+        id: browser-flaky-cache
+        if: steps.browser_scope.outputs.run_browser == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: qa/browser-history
+          key: browser-flaky-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            browser-flaky-${{ runner.os }}-${{ github.ref_name }}-
+
       - name: Install Chromium for browser QA
+        if: steps.browser_scope.outputs.run_browser == 'true'
         run: npx --no-install playwright install --with-deps chromium
 
-      - name: Run release gate
+      - name: Run static release gate
+        env:
+          FOXBEAR_RELEASE_PHASE: static
         run: npm run check:release
 
-      - name: Upload browser QA diagnostics on failure
-        if: failure()
+      - name: Run primary browser release gate
+        id: browser_primary
+        if: steps.browser_scope.outputs.run_browser == 'true'
+        continue-on-error: true
+        env:
+          FOXBEAR_RELEASE_PHASE: browser
+          FOXBEAR_BROWSER_SPECS: ${{ steps.browser_scope.outputs.specs }}
+        run: npm run check:release
+
+      - name: Retry only failed browser cases once
+        id: browser_retry
+        if: steps.browser_scope.outputs.run_browser == 'true' && steps.browser_primary.outcome == 'failure'
+        run: npm run qa:browser:retry
+
+      - name: Summarize browser retry recovery
+        if: always() && steps.browser_scope.outputs.run_browser == 'true' && steps.browser_primary.outcome == 'failure'
+        run: npm run qa:browser:retry:report
+
+      - name: Verify failed browser cases truly passed
+        if: always() && steps.browser_scope.outputs.run_browser == 'true' && steps.browser_primary.outcome == 'failure'
+        run: npm run qa:browser:retry:verify
+
+      - name: Save updated browser flaky history
+        if: always() && steps.browser_scope.outputs.run_browser == 'true' && steps.browser_primary.outcome == 'failure'
+        uses: actions/cache/save@v4
+        with:
+          path: qa/browser-history
+          key: browser-flaky-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Upload browser QA diagnostics after a primary failure
+        if: always() && steps.browser_scope.outputs.run_browser == 'true' && steps.browser_primary.outcome == 'failure'
         uses: actions/upload-artifact@v6
         with:
           name: browser-qa-${{ github.run_id }}-${{ github.run_attempt }}

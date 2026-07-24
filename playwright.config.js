@@ -71,5 +71,5 @@ module.exports = defineConfig({
       use: { ...devices['Pixel 5'] }
     }
   ],
-  outputDir: 'qa/browser-results'
+  outputDir: 'qa/browser-results/artifacts'
 });

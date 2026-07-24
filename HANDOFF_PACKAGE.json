@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.84",
-  "buildId": "trusted-types-browser-gate-recovery",
+  "productVersion": "1.5.90",
+  "buildId": "browser-retry-integrity-metadata-aware-scope",
   "requiredFiles": [
     "404.html",
     ".gitignore",

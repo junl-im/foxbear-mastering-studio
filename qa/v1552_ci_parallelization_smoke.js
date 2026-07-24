@@ -5,7 +5,7 @@ const pkg = require('../package.json');
 const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const runner = fs.readFileSync('tools/run-release-gate.js', 'utf8');
 
-assert.equal(pkg.version, '1.5.84');
+assert.equal(pkg.version, '1.5.90');
 assert.equal(pkg.scripts['check:release'], 'node tools/run-release-gate.js');
 assert.match(runner, /FOXBEAR_RELEASE_PHASE/);
 assert.match(runner, /static:/);
@@ -20,5 +20,7 @@ assert.match(workflow, /PLAYWRIGHT_BROWSERS_PATH/);
 assert.match(workflow, /FOXBEAR_RELEASE_PHASE: static/);
 assert.match(workflow, /FOXBEAR_RELEASE_PHASE: browser/);
 assert.match(workflow, /npm run check:release/);
-assert.ok(!/static-qa:[\s\S]*qa:browser/.test(workflow), 'static job must not run browser QA');
+const staticJob = workflow.match(/  static-qa:[\s\S]*?(?=\n  browser-qa:)/)?.[0] || '';
+assert.ok(staticJob, 'static job block must be discoverable');
+assert.ok(!/qa:browser(?!:preflight)/.test(staticJob), 'static job must not run Playwright browser QA');
 console.log('v1.5.52 CI parallelization smoke: PASS');

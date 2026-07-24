@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.5.84",
-  "assetVersion": "1.5.84-trusted-types-browser-gate-recovery"
+  "productVersion": "1.5.90",
+  "assetVersion": "1.5.90-browser-retry-integrity-metadata-aware-scope"
 }

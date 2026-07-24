@@ -9,6 +9,7 @@ const FORBIDDEN_DIRS = new Set([
   'node_modules',
   'dist',
   'browser-results',
+  'browser-history',
   'test-results',
   'playwright-report',
   'coverage',

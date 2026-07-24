@@ -19,6 +19,7 @@ SYMLINKS="$(find . -type l \
   -not -path '*/node_modules/*' \
   -not -path './dist/*' \
   -not -path './qa/browser-results/*' \
+  -not -path './qa/browser-history/*' \
   -not -path './test-results/*' \
   -not -path './playwright-report/*' \
   -not -path './coverage/*' -print)"
@@ -36,6 +37,8 @@ zip -qr "${OUTPUT_FILE}" . \
   -x 'dist/*' \
   -x 'qa/browser-results/*' \
   -x 'qa/browser-results' \
+  -x 'qa/browser-history/*' \
+  -x 'qa/browser-history' \
   -x 'test-results/*' \
   -x 'test-results' \
   -x 'playwright-report/*' \

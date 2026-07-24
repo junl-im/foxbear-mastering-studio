@@ -34,10 +34,15 @@ assert(sync.includes("'foxbear-shell-v1.5.4-boot-sri-recovery'")
 assert(!spec.includes('expect(result.pauseCount).toBe(0)') && !spec.includes('expect(result.playCount).toBe(0)'),
   'flaky media event-count assertions must not return');
 assert(runner.includes('function hasExplicitTestTarget(args = [])')
-  && runner.includes("const defaultTarget = hasExplicitTestTarget(forwardedArgs) ? [] : ['qa/browser'];"),
-  'browser runner must not prepend the entire suite when a spec path is requested');
-const { hasExplicitTestTarget } = require('./browser/run-browser-e2e');
+  && runner.includes('function buildPlaywrightArgs(playwrightCli, forwardedArgs = [], options = {})'),
+  'browser runner must expose deterministic target construction');
+const { buildPlaywrightArgs, hasExplicitTestTarget } = require('./browser/run-browser-e2e');
 assert.strictEqual(hasExplicitTestTarget(['qa/browser/preview-translation-playback-playwright.spec.js']), true);
 assert.strictEqual(hasExplicitTestTarget(['--project=chromium-mobile-pwa']), false);
+assert.deepStrictEqual(
+  buildPlaywrightArgs('playwright-cli', ['qa/browser/preview-translation-playback-playwright.spec.js']),
+  ['playwright-cli', 'test', 'qa/browser/preview-translation-playback-playwright.spec.js'],
+  'explicit browser spec should not be preceded by the complete suite target'
+);
 
 console.log('PASS v1.5.25 deterministic preview routing stability');

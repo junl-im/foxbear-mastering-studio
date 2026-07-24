@@ -80,7 +80,7 @@ find "$WORK_DIR/qa" -maxdepth 1 -type f \( -name 'static-audit*.txt' -o -name 'b
 find "$WORK_DIR" -type f -name '.last-run.json' -delete
 find "$WORK_DIR" -type f -name '.foxbear-e2e-probe-*.txt' -delete
 find "$WORK_DIR" -name '*.zip' -delete
-rm -rf "$WORK_DIR/qa/browser-results" "$WORK_DIR/test-results" "$WORK_DIR/playwright-report" "$WORK_DIR/coverage"
+rm -rf "$WORK_DIR/qa/browser-results" "$WORK_DIR/qa/browser-history" "$WORK_DIR/test-results" "$WORK_DIR/playwright-report" "$WORK_DIR/coverage"
 
 SYMLINKS="$(find "$WORK_DIR" -type l -print)"
 if [ -n "$SYMLINKS" ]; then

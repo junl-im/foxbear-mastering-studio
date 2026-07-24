@@ -217,7 +217,7 @@ function sync() {
   write('sw.js', sw);
   fs.writeFileSync(buildInfoPath, renderBuildInfo(meta));
 
-  const sri = spawnSync(PYTHON_BIN, ['tools/update-sri.py'], { cwd: ROOT, stdio: 'inherit' });
+  const sri = spawnSync(PYTHON_BIN, ['-B', 'tools/update-sri.py'], { cwd: ROOT, stdio: 'inherit' });
   if (sri.error) throw sri.error;
   if (sri.status !== 0) throw new Error(`SRI update failed with status ${sri.status || 1}`);
 }

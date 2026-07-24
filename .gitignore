@@ -6,6 +6,7 @@ dist/
 # Release artifacts
 *.zip
 qa/browser-results/
+qa/browser-history/
 test-results/
 playwright-report/
 

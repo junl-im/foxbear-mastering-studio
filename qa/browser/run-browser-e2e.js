@@ -6,10 +6,13 @@ const http = require('http');
 const path = require('path');
 const { spawn } = require('child_process');
 const { APP_URL, DEFAULT_PORT, DEFAULT_BIND_HOST, startStaticServer } = require('./helpers/foxbear-e2e-helpers');
+const { runBrowserPreflight } = require('./run-browser-preflight');
 
 const RESULTS_DIR = path.resolve(process.cwd(), 'qa/browser-results');
 const PLAYWRIGHT_JSON_PATH = path.join(RESULTS_DIR, 'results.json');
 const STATIC_SERVER_LOG_PATH = path.join(RESULTS_DIR, 'static-server.log');
+const PLAYWRIGHT_OUTPUT_DIR = path.join(RESULTS_DIR, 'artifacts');
+const LAST_RUN_PATH = path.join(PLAYWRIGHT_OUTPUT_DIR, '.last-run.json');
 
 function resolvePlaywrightCli(resolveModule = require.resolve) {
   try {
@@ -113,11 +116,136 @@ function hasExplicitTestTarget(args = []) {
   });
 }
 
+
+function hasLastFailedFlag(args = []) {
+  return args.some(arg => String(arg || '') === '--last-failed');
+}
+
+function archivePreviousBrowserResults(options = {}) {
+  const resultsDir = path.resolve(options.resultsDir || RESULTS_DIR);
+  const lastRunPath = path.resolve(options.lastRunPath || LAST_RUN_PATH);
+  fs.mkdirSync(resultsDir, { recursive: true });
+  const copies = [
+    [path.join(resultsDir, 'results.json'), path.join(resultsDir, 'results-primary.json')],
+    [path.join(resultsDir, 'static-server.log'), path.join(resultsDir, 'static-server-primary.log')],
+    [lastRunPath, path.join(resultsDir, 'last-run-primary.json')]
+  ];
+  const archived = [];
+  for (const [source, target] of copies) {
+    if (!fs.existsSync(source)) continue;
+    fs.copyFileSync(source, target);
+    archived.push(path.basename(target));
+  }
+  return archived;
+}
+
+function parseSelectedBrowserSpecs(value = process.env.FOXBEAR_BROWSER_SPECS) {
+  return Array.from(new Set(String(value || '')
+    .split(/[\s,]+/)
+    .map(item => item.trim().replace(/\\/g, '/'))
+    .filter(item => /^qa\/browser\/[^\s]+\.spec\.js$/.test(item))))
+    .sort();
+}
+
+function buildPlaywrightArgs(playwrightCli, forwardedArgs = [], options = {}) {
+  const retryFailed = hasLastFailedFlag(forwardedArgs);
+  const explicitTarget = hasExplicitTestTarget(forwardedArgs);
+  const selectedSpecs = retryFailed || explicitTarget
+    ? []
+    : parseSelectedBrowserSpecs(options.selectedSpecs ?? process.env.FOXBEAR_BROWSER_SPECS);
+  const defaultTarget = explicitTarget || retryFailed
+    ? []
+    : selectedSpecs.length
+      ? selectedSpecs
+      : ['qa/browser'];
+  return [playwrightCli, 'test', ...defaultTarget, ...forwardedArgs];
+}
+
 function firstUsefulErrorText(result) {
   const errors = Array.isArray(result?.errors) ? result.errors : [];
   const first = errors.find(error => error && (error.message || error.stack));
   const raw = first?.message || first?.stack || result?.error?.message || result?.error?.stack || '';
   return String(raw).replace(/\x1B\[[0-9;]*m/g, '').split(/\r?\n/).filter(Boolean).slice(0, 4).join(' | ');
+}
+
+function normalizeFailureSignature(message) {
+  return String(message || '')
+    .replace(/\x1B\[[0-9;]*m/g, '')
+    .replace(/eval at evaluate \([^)]*\)/g, 'eval at evaluate')
+    .replace(/<anonymous>:\d+:\d+/g, '<anonymous>')
+    .replace(/\b\d+(?:\.\d+)?ms\b/g, '<duration>')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 600);
+}
+
+function classifyPlaywrightFailure(failure) {
+  const message = String(failure?.message || '');
+  const rules = [
+    {
+      code: 'TRUSTED_TYPES_FIXTURE',
+      pattern: /TrustedHTML|Trusted Types|require-trusted-types-for/i,
+      label: 'Trusted Types fixture violation',
+      action: 'Replace HTML-string sinks with createElement/textContent/replaceChildren, then run node qa/browser/spec-preflight.js.'
+    },
+    {
+      code: 'BROWSER_RUNTIME_MISSING',
+      pattern: /executable (?:doesn['’]t|does not) exist|browserType\.launch|chromium[^|]*(?:missing|not found)/i,
+      label: 'Chromium runtime unavailable',
+      action: 'Run npm ci and npm run qa:browser:install, or set FOXBEAR_CHROMIUM_PATH to a compatible Chromium executable.'
+    },
+    {
+      code: 'NAVIGATION_OR_TIMEOUT',
+      pattern: /Timeout|timed out|page\.goto|waiting for .* exceeded/i,
+      label: 'Navigation or readiness timeout',
+      action: 'Inspect the first failing request, Runtime Health output, and qa/browser-results/static-server.log before increasing timeouts.'
+    },
+    {
+      code: 'RUNTIME_HEALTH',
+      pattern: /FoxBear E2E Runtime Health|runtime health|runtimeErrors|critical runtime/i,
+      label: 'Application Runtime Health failure',
+      action: 'Fix the first critical runtime error; optional Firebase/network warnings should remain non-fatal.'
+    },
+    {
+      code: 'VISUAL_OVERFLOW',
+      pattern: /toBeLessThanOrEqual|boundingBox|viewport|overflow|outside/i,
+      label: 'Visual layout or viewport overflow',
+      action: 'Open the retained screenshot/trace and compare the failing element bounds with the requested viewport.'
+    }
+  ];
+  const match = rules.find(rule => rule.pattern.test(message));
+  const fallback = {
+    code: 'UNCLASSIFIED',
+    label: 'Unclassified browser assertion',
+    action: 'Inspect the first stack, screenshot, and trace for the earliest product-side failure.'
+  };
+  const classification = match || fallback;
+  return {
+    ...classification,
+    signature: classification.code === 'UNCLASSIFIED'
+      ? normalizeFailureSignature(message)
+      : classification.code
+  };
+}
+
+function groupPlaywrightFailures(failures = []) {
+  const groups = new Map();
+  for (const failure of failures) {
+    const classification = classifyPlaywrightFailure(failure);
+    const key = `${classification.code}:${classification.signature}`;
+    const group = groups.get(key) || {
+      code: classification.code,
+      label: classification.label,
+      action: classification.action,
+      signature: classification.signature,
+      count: 0,
+      examples: []
+    };
+    group.count += 1;
+    if (group.examples.length < 3) group.examples.push(failure.title);
+    groups.set(key, group);
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
 function collectPlaywrightFailures(report) {
@@ -153,7 +281,16 @@ function printPlaywrightFailureSummary(jsonPath = PLAYWRIGHT_JSON_PATH) {
       console.error('\nFoxBear browser failure summary: reporter recorded a non-zero run without a parsed failed test.');
       return [];
     }
-    console.error(`\nFoxBear browser failure summary (${failures.length}):`);
+    const groups = groupPlaywrightFailures(failures);
+    console.error(`\nFoxBear likely root causes (${groups.length} group${groups.length === 1 ? '' : 's'}):`);
+    groups.slice(0, 6).forEach(group => {
+      console.error(`  [${group.code}] ${group.count} failure(s) · ${group.label}`);
+      console.error(`     Fix: ${group.action}`);
+      group.examples.forEach(title => console.error(`     - ${title}`));
+    });
+    if (groups.length > 6) console.error(`  ... ${groups.length - 6} additional root-cause group(s) are stored in qa/browser-results/results.json`);
+
+    console.error(`\nFoxBear browser failure details (${failures.length}):`);
     failures.slice(0, 10).forEach((failure, index) => {
       console.error(`  ${index + 1}. ${failure.title}`);
       console.error(`     ${failure.message}`);
@@ -216,6 +353,25 @@ function persistAndPrintStaticServerDiagnostics(output) {
 }
 
 async function main() {
+  if (process.env.FOXBEAR_BROWSER_PREFLIGHT_DONE !== '1') {
+    try {
+      runBrowserPreflight();
+    } catch (error) {
+      console.error(`FAIL browser QA preflight: ${error && error.message ? error.message : error}`);
+      process.exitCode = 1;
+      return;
+    }
+  }
+
+  const forwardedArgs = process.argv.slice(2);
+  const retryFailed = hasLastFailedFlag(forwardedArgs);
+  if (retryFailed && !fs.existsSync(LAST_RUN_PATH)) {
+    console.error(`FAIL browser E2E retry: previous Playwright state is missing at ${path.relative(process.cwd(), LAST_RUN_PATH)}. Run npm run qa:browser first.`);
+    process.exitCode = 1;
+    return;
+  }
+  if (retryFailed) archivePreviousBrowserResults();
+
   let playwrightCli = '';
   try {
     playwrightCli = resolvePlaywrightCli();
@@ -235,16 +391,20 @@ async function main() {
       child: server?.child || null
     });
     ensureResultsDir();
-    const forwardedArgs = process.argv.slice(2);
-    const defaultTarget = hasExplicitTestTarget(forwardedArgs) ? [] : ['qa/browser'];
-    const args = [playwrightCli, 'test', ...defaultTarget, ...forwardedArgs];
+    const args = buildPlaywrightArgs(playwrightCli, forwardedArgs);
     const childEnv = {
       ...process.env,
       FOXBEAR_E2E_URL: APP_URL,
       NO_PROXY: mergeNoProxy(process.env.NO_PROXY),
       no_proxy: mergeNoProxy(process.env.no_proxy)
     };
-    console.log(`FoxBear browser QA target: ${APP_URL}`);
+    const selectedSpecs = retryFailed ? [] : parseSelectedBrowserSpecs();
+    const targetLabel = retryFailed
+      ? 'last failed cases only'
+      : selectedSpecs.length
+        ? `${selectedSpecs.length} impact-selected spec(s)`
+        : 'complete browser suite';
+    console.log(`FoxBear browser QA target: ${APP_URL} (${targetLabel})`);
 
     // Keep the parent event loop alive while Playwright runs. The local Python
     // server writes one access-log line per asset request; using spawnSync here
@@ -256,7 +416,10 @@ async function main() {
     exitCode = result.status;
     if (exitCode !== 0) {
       printPlaywrightFailureSummary();
+      if (fs.existsSync(LAST_RUN_PATH)) console.error('Retry only the failed browser cases: npm run qa:browser:retry');
       if (server) persistAndPrintStaticServerDiagnostics(server.getOutput());
+    } else if (retryFailed) {
+      console.log('PASS browser retry: all previously failed Playwright cases recovered');
     }
   } catch (error) {
     console.error(`FAIL browser E2E bootstrap: ${error && error.message ? error.message : error}`);
@@ -276,10 +439,17 @@ if (require.main === module) {
 }
 
 module.exports = {
+  archivePreviousBrowserResults,
+  buildPlaywrightArgs,
+  classifyPlaywrightFailure,
   collectPlaywrightFailures,
+  groupPlaywrightFailures,
   hasExplicitTestTarget,
+  hasLastFailedFlag,
   main,
   mergeNoProxy,
+  normalizeFailureSignature,
+  parseSelectedBrowserSpecs,
   persistAndPrintStaticServerDiagnostics,
   printPlaywrightFailureSummary,
   resolvePlaywrightCli,

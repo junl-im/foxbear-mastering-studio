@@ -1,3 +1,62 @@
+# v1.5.90 - Browser Retry Integrity, Metadata-Aware Scope, and Full Audit Hardening
+
+- Distinguishes a real retry pass from skipped, repeated, and missing Playwright results.
+- Adds a fail-closed retry integrity verifier so a skipped failed case cannot silently unblock deployment.
+- Adds the integrity verification step to both GitHub Pages deployment workflows after retry reporting.
+- Treats generated version, build, cache, revision, SRI, and lockfile-only changes as release metadata rather than browser-runtime changes.
+- Keeps real package, runtime, service-worker, and UI modifications on the conservative selected/full Browser QA path.
+- Expires flaky-history entries after 45 days so resolved historical noise does not remain a permanent warning.
+- Creates every custom JSON, Markdown, and issue-output parent directory and prevents custom report tests from leaking artifacts into the project tree.
+- Adds regression coverage for skipped retry rejection, CLI verification, metadata-only Git diff detection, stale-history expiry, nested output paths, and workflow ordering.
+
+# v1.5.89 - Browser Health-First Gate, Selector Impact, and Flaky Issue Report
+
+- Runs the Runtime Health browser specification as a sentinel before heavier visual, bulk, playback, and PWA scenarios.
+- Stops the remaining Browser gate immediately when the Runtime Health sentinel fails.
+- Keeps failed-only retry behavior bound to Playwright's stored last-failed state.
+- Expands impact mapping for Runtime Health detail panels, PWA update/recovery, admin operations, quality reports, and comparison waveform changes.
+- Adds conservative selector-level impact mapping for shared CSS files; unavailable or unmapped selector diffs safely promote to the full suite.
+- Produces an issue-ready flaky report sorted with unresolved cases ahead of recurring retry recoveries.
+- Expands dependency-light production contracts for admin operations and quality-recovery diagnostics.
+- Adds regression coverage for health-first phase control, selector impact mapping, issue report generation, and fixture contracts.
+
+# v1.5.88 - Browser Impact Selection and Flaky History
+
+- Adds a dependency-light changed-file selector before dependency and Chromium installation.
+- Skips Browser QA for documentation, backend-only, packaging-only, and dependency-light static-test changes.
+- Runs mapped browser specs for known download, bulk-mastering, playback, quality, import, and mobile-header changes.
+- Defaults core, unknown, truncated, or unavailable change sets to the complete browser suite.
+- Passes selected specs safely through `FOXBEAR_BROWSER_SPECS` while preserving explicit targets and `--last-failed` retry behavior.
+- Restores and saves a branch-scoped flaky-history cache across GitHub Actions runs.
+- Reports recurring retry recoveries and unresolved repeated/missing outcomes in JSON, Markdown, annotations, and the Job Summary.
+- Excludes cached flaky history from Git and every release package.
+- Adds dependency-light regression coverage for scope classification, Playwright argument construction, workflow ordering, history accumulation, and archive hygiene.
+
+# v1.5.87 - Browser Retry Recovery Reporting
+
+- Compares primary and failed-only Playwright reports to identify recovered flaky cases, repeated failures, and missing retry results.
+- Writes durable JSON and Markdown retry summaries and publishes the same evidence to the GitHub Actions Job Summary.
+- Emits GitHub warning/error annotations without masking the real Playwright step outcome.
+- Expands dependency-light fixture contracts to cover the Runtime Health release header and PWA wake-lock/service-worker recovery paths.
+- Adds regression coverage for report classification, artifact creation, workflow integration, and expanded production contracts.
+
+# v1.5.86 - Browser Failed-Only Retry & Fixture Contracts
+
+- Runs browser fixture preflight in GitHub Actions before Chromium and system dependency installation.
+- Adds production fixture contracts that validate shared visual builders against current markup, UI source tokens, and CSS selectors.
+- Adds `npm run qa:browser:retry` using Playwright `--last-failed` state instead of rerunning every browser specification.
+- Preserves the primary JSON report, static-server log, and last-run state before a failed-only retry.
+- Separates transient Playwright artifacts from durable browser diagnostics so retry cleanup cannot erase the first failure evidence.
+- Adds default and fallback workflow recovery plus dependency-light regression coverage for target selection and report preservation.
+
+# v1.5.85 - Browser Fixture Preflight & Root-Cause Diagnostics
+
+- Centralizes bulk-mastering and download-sheet visual fixtures in reusable, Trusted Types-safe Playwright builders.
+- Adds a dependency-light browser-spec preflight that rejects HTML-string sinks and string-based evaluate calls before Chromium startup.
+- Runs the browser preflight before Playwright dependency resolution, avoiding multi-minute CI runs for source-level fixture violations.
+- Groups duplicate Playwright failures by likely root cause and prints one actionable remediation with affected test examples.
+- Adds regression coverage that collapses ten duplicate Trusted Types failures into one diagnostic group and verifies unsafe fixture code is rejected.
+
 # v1.5.84 - Trusted Types Browser Gate Recovery
 
 - Rebuilds the bulk-mastering visual fixture with `createElement`, `textContent`, and `replaceChildren` instead of assigning HTML strings.

@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.84-trusted-types-browser-gate-recovery',
+                version: '1.5.90-browser-retry-integrity-metadata-aware-scope',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.84-trusted-types-browser-gate-recovery',
+        version: '1.5.90-browser-retry-integrity-metadata-aware-scope',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

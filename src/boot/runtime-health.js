@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.84-trusted-types-browser-gate-recovery';
+    const FALLBACK_VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

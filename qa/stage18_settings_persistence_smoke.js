@@ -13,7 +13,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.84-trusted-types-browser-gate-recovery';
+const version = '1.5.90-browser-retry-integrity-metadata-aware-scope';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -27,7 +27,7 @@ assert(index.includes(`src/settings/settings-service.js?v=${version}`), 'index s
 assert(index.indexOf('src/state/app-state.js') < index.indexOf('src/settings/settings-service.js'), 'settings service should load after app state');
 assert(index.indexOf('src/settings/settings-service.js') < index.indexOf('src/app.js'), 'settings service should load before app.js');
 assert(sw.includes(`./src/settings/settings-service.js?v=${version}`), 'service worker should precache settings-service.js');
-assert(sw.includes(`foxbear-shell-v1.5.84-trusted-types-browser-gate-recovery`), 'service worker cache should use Stage18 or later key');
+assert(sw.includes(`foxbear-shell-v1.5.90-browser-retry-integrity-metadata-aware-scope`), 'service worker cache should use Stage18 or later key');
 assert(service.includes("STORAGE_KEY = 'foxbear-settings-v1.4.0'"), 'settings service should use versioned localStorage key');
 assert(service.includes('applyToContext') && service.includes('saveFromContext') && service.includes('reset'), 'settings service should expose apply/save/reset APIs');
 [

@@ -1,6 +1,55 @@
-# FoxBear Status - v1.5.84
+# FoxBear Status - v1.5.90
 
-## v1.5.84 current focus
+## v1.5.90 current focus
+
+- Retry recovery distinguishes pass, skip, repeat failure, and missing results.
+- A new workflow verifier blocks deployment unless every primary browser failure genuinely passes on retry.
+- Browser impact selection recognizes generated release-metadata-only diffs across package, lock, HTML, service-worker, and runtime metadata files.
+- Real functional changes remain mapped to selected specs or promoted to the full suite.
+- Browser flaky history uses a 45-day retention window and explicit skipped-outcome tracking.
+- Nested custom report paths are created safely without leaking default artifacts into the repository.
+- Configured static/regression checks: 311/311 PASS before installed-browser confirmation.
+
+# FoxBear Status - v1.5.89
+
+## v1.5.89 current focus
+
+- Runtime Health runs as the first browser sentinel and blocks heavier specs when application boot health is not clean.
+- Browser impact mapping covers Runtime Health detail, PWA recovery, admin operations, quality reports, and comparison waveform paths.
+- Shared CSS files use conservative selector-level mapping when reliable diff tokens are available.
+- Unmapped selector changes and missing diff context continue to use the complete browser suite.
+- Flaky history generates an issue-ready report with unresolved cases sorted first.
+- Configured static/regression checks: 309/309 PASS.
+
+# FoxBear Status - v1.5.88
+
+
+## v1.5.88 current focus
+
+- Browser QA impact selection runs before dependency and Chromium installation.
+- Documentation/backend/static-only changes skip browser execution; mapped UI changes select related specs; unknown/core changes use the full suite.
+- Failed-only retry results update a branch-scoped cumulative flaky-history cache.
+- Recurring retry recoveries and unresolved repeated/missing outcomes appear in artifacts, annotations, and the GitHub Job Summary.
+- Cached history is ignored by Git and excluded from release packages.
+- Configured static/regression target: 307/307 before final verification.
+
+## v1.5.86 previous focus
+
+- Browser fixture safety and production selector contracts run before Chromium installation in both deployment workflows.
+- Shared visual fixtures are checked against current markup IDs, UI creation tokens, and CSS selectors without Playwright.
+- A failed primary browser run preserves its evidence and retries only Playwright's last failed cases once.
+- Durable JSON/server diagnostics are separated from Playwright's cleaned artifact directory.
+- Configured static and regression checks: 302/302 PASS; real Chromium execution remains GitHub CI confirmation.
+
+## v1.5.85 previous focus
+
+- Browser visual fixture setup is centralized in reusable Trusted Types-safe builders with consistent ARIA and deterministic cleanup.
+- A dependency-light browser-spec preflight rejects HTML parsing sinks and string-based evaluate calls before Playwright or Chromium startup.
+- Duplicate browser failures are grouped into likely root causes with failure counts, examples, and direct remediation guidance.
+- The reported ten-way Trusted Types failure pattern is covered by a synthetic JSON diagnostic regression.
+- Configured static and regression checks: 299/299 PASS; real Chromium rerun remains the final CI confirmation.
+
+## v1.5.84 previous focus
 
 - Browser visual fixtures no longer assign HTML strings under the production Trusted Types enforcement policy.
 - Bulk mastering rows are created with DOM APIs and atomically installed with `replaceChildren`.
@@ -208,10 +257,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.84`
-- Build ID: `trusted-types-browser-gate-recovery`
-- Asset version: `1.5.84-trusted-types-browser-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.5.84-trusted-types-browser-gate-recovery`
+- Product version: `1.5.90`
+- Build ID: `browser-retry-integrity-metadata-aware-scope`
+- Asset version: `1.5.90-browser-retry-integrity-metadata-aware-scope`
+- Service worker cache: `foxbear-shell-v1.5.90-browser-retry-integrity-metadata-aware-scope`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -243,10 +292,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.84`
-- Build ID: `trusted-types-browser-gate-recovery`
-- Asset version: `1.5.84-trusted-types-browser-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.5.84-trusted-types-browser-gate-recovery`
+- Product version: `1.5.90`
+- Build ID: `browser-retry-integrity-metadata-aware-scope`
+- Asset version: `1.5.90-browser-retry-integrity-metadata-aware-scope`
+- Service worker cache: `foxbear-shell-v1.5.90-browser-retry-integrity-metadata-aware-scope`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시
