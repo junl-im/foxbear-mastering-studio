@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.1 - header-mounted settings and support entry view builder
+// FoxBear AI Mastering Studio Pro v1.6.2 - header-mounted settings and support entry view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -93,6 +93,12 @@
             ariaExpanded: false,
             ariaControls: 'mobileNativePanel'
         });
+        const performanceHealthBadge = doc.createElement('span');
+        performanceHealthBadge.id = 'performanceHealthBadge';
+        performanceHealthBadge.className = 'performance-health-badge';
+        performanceHealthBadge.hidden = true;
+        performanceHealthBadge.setAttribute('aria-hidden', 'true');
+        toggle.appendChild(performanceHealthBadge);
 
         const bulkHudRestore = createButton({
             id: 'bulkImportHudRestore',

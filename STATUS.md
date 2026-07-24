@@ -1,3 +1,17 @@
+# FoxBear Status - v1.6.2
+
+## v1.6.2 current focus
+
+- Routine audio activity no longer creates false performance warnings.
+- Stale long-task, decode, and wake-lock errors automatically expire from the active health state.
+- Settings displays only a compact watch/danger badge; normal state has no persistent marker.
+- Sustained danger uses a non-blocking notice that disappears after stable recovery.
+- Configured static/regression target: 325 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.6.1
 
 ## v1.6.1 current focus
@@ -390,10 +404,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.6.1`
-- Build ID: `transient-performance-diagnostics`
-- Asset version: `1.6.1-transient-performance-diagnostics`
-- Service worker cache: `foxbear-shell-v1.6.1-transient-performance-diagnostics`
+- Product version: `1.6.2`
+- Build ID: `nonblocking-health-status-design-polish`
+- Asset version: `1.6.2-nonblocking-health-status-design-polish`
+- Service worker cache: `foxbear-shell-v1.6.2-nonblocking-health-status-design-polish`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -425,10 +439,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.1`
-- Build ID: `transient-performance-diagnostics`
-- Asset version: `1.6.1-transient-performance-diagnostics`
-- Service worker cache: `foxbear-shell-v1.6.1-transient-performance-diagnostics`
+- Product version: `1.6.2`
+- Build ID: `nonblocking-health-status-design-polish`
+- Asset version: `1.6.2-nonblocking-health-status-design-polish`
+- Service worker cache: `foxbear-shell-v1.6.2-nonblocking-health-status-design-polish`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

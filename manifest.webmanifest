@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.1 (transient-performance-diagnostics).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.2 (nonblocking-health-status-design-polish).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.1"
+  "version": "1.6.2"
 }

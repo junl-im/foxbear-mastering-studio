@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.6.2
+
+- Audited first-run diagnostics, routine activity classification, stale warning lifetime, and settings/popup visual noise.
+- Reclassified normal import, decode, mastering, wake-lock, and render activity as informational state.
+- Limited active long-task warnings to the last 60 seconds and decode/wake-lock errors to the last 120 seconds.
+- Added two-sample danger confirmation and two-sample recovery dismissal for the non-blocking health notice.
+- Verified normal health removes the settings badge and leaves the diagnostics panel in a compact state.
+- Configured static/regression target: 325 checks.
+
 # FoxBear QA Report - v1.6.1
 
 - Reproduced the persistent startup popup through the legacy `foxbear-perf-diagnostics=on` localStorage value.

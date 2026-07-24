@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.1
+// FoxBear performance diagnostics - v1.6.2
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.1-transient-performance-diagnostics';
+    const DIAGNOSTICS_VERSION = '1.6.2-nonblocking-health-status-design-polish';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -13,6 +13,13 @@
     const PANEL_HIDDEN_REFRESH_MS = 10000;
     const AUTO_CLOSE_STABLE_SAMPLES = 2;
     const AUTO_CLOSE_MIN_UPTIME_MS = 3500;
+    const RECENT_LONG_TASK_WINDOW_MS = 60000;
+    const RECENT_DECODE_ERROR_WINDOW_MS = 120000;
+    const RECENT_WAKE_LOCK_ERROR_WINDOW_MS = 120000;
+    const AMBIENT_REFRESH_MS = 8000;
+    const AMBIENT_HIDDEN_REFRESH_MS = 30000;
+    const AMBIENT_DANGER_CONFIRM_SAMPLES = 2;
+    const AMBIENT_RECOVERY_CONFIRM_SAMPLES = 2;
 
     const state = {
         enabled: false,
@@ -41,7 +48,16 @@
         openSource: 'closed',
         autoOpened: false,
         autoStableSamples: 0,
-        legacyAutoOpenMigrated: false
+        legacyAutoOpenMigrated: false,
+        workerSection: null,
+        ambientTimer: 0,
+        ambientHealth: 'normal',
+        ambientDangerSamples: 0,
+        ambientRecoverySamples: 0,
+        healthNotice: null,
+        healthNoticeMessage: null,
+        noticeDismissedKey: '',
+        noticeDismissedAt: 0
     };
 
     function now() {
@@ -138,47 +154,89 @@
         'multiple-audible-audio': '두 개 이상의 소리가 겹칩니다. 원본·마스터 또는 미리듣기 중 하나를 정지해 주세요.',
         'many-canvas-nodes': '시각화 화면이 많이 열려 있습니다. 사용하지 않는 상세 화면을 닫아 주세요.',
         'runtime-health-check': '앱 초기화 상태를 확인해야 합니다. 페이지를 새로고침한 뒤 같은 작업을 다시 시도해 주세요.',
+        'many-audio-contexts': '오디오 처리 세션이 많이 남아 있습니다. 재생과 미리듣기를 정리한 뒤 다시 확인해 주세요.',
         'audio-context-interrupted': '브라우저가 오디오를 일시 중단했습니다. 화면을 한 번 누른 뒤 재생을 다시 시작해 주세요.',
         'mastered-buffer-retention': '완료된 오디오가 메모리에 많이 남아 있습니다. 저장이 끝난 트랙을 정리해 주세요.',
         'worker-job-stalled': '백그라운드 오디오 작업이 15초 이상 멈췄습니다. 아래 복구 버튼으로 정체 작업을 취소한 뒤 다시 시도해 주세요.',
         'worker-transfer-memory-high': 'Worker 전송 메모리가 높습니다. 대량 작업을 잠시 멈추고 완료된 트랙을 정리해 주세요.',
-        'heavy-long-task': '화면이 잠시 멈출 정도의 긴 작업이 감지됐습니다. 다른 앱을 닫거나 성능 모드를 낮춰 주세요.',
-        'watch-long-task': '화면 응답이 느려질 수 있습니다. 현재 작업이 끝날 때까지 추가 조작을 줄여 주세요.',
+        'spectrum-live-without-panel': '닫힌 분석 화면의 시각화가 계속 실행 중입니다. 상세 화면을 다시 열었다 닫거나 페이지를 새로고침해 주세요.',
+        'heavy-long-task': '최근 1분 안에 화면이 오래 멈춘 구간이 감지됐습니다. 다른 앱을 닫거나 현재 작업량을 줄여 주세요.',
+        'watch-long-task': '최근 1분 안에 화면 응답이 느린 구간이 있었습니다. 현재 작업이 끝날 때까지 추가 조작을 줄여 주세요.',
         'audio-decode-last-error': '최근 오디오 디코딩이 실패했습니다. 파일 형식이나 손상 여부를 확인해 주세요.',
         'wake-lock-last-error': '화면 꺼짐 방지를 사용할 수 없습니다. 브라우저 권한과 절전 설정을 확인해 주세요.'
+    });
+
+    const ACTIVITY_GUIDANCE = Object.freeze({
+        'bulk-import-active': '파일 불러오는 중',
+        'bulk-import-hud-active': '여러 파일 처리 중',
+        'audio-decode-active': '오디오 분석 중',
+        'mastering-active': '마스터링 처리 중',
+        'wake-lock-auto-active': '작업 중 화면 켜짐 유지',
+        'render-queue-pending': '화면 업데이트 중'
     });
 
     function warningGuidance(code) {
         return WARNING_GUIDANCE[code] || `점검 항목: ${String(code || 'unknown')}`;
     }
 
+    function activityGuidance(code) {
+        return ACTIVITY_GUIDANCE[code] || String(code || '작업 진행 중');
+    }
+
+    function hasRecentDecodeFailure(audioDecode, nowAt = Date.now()) {
+        const events = Array.isArray(audioDecode?.events) ? audioDecode.events : [];
+        const latest = events.length ? events[events.length - 1] : null;
+        return Boolean(latest && latest.type === 'decode-failed' && nowAt - Number(latest.at || 0) <= RECENT_DECODE_ERROR_WINDOW_MS);
+    }
+
+    function hasRecentWakeLockFailure(wakeLock, nowAt = Date.now()) {
+        const at = Number(wakeLock?.lastRequestAt || 0);
+        return Boolean(wakeLock?.lastError && at > 0 && nowAt - at <= RECENT_WAKE_LOCK_ERROR_WINDOW_MS);
+    }
+
+    function hasRetainedPcmPressure(memoryGuard) {
+        const pressure = String(memoryGuard?.pressure || 'normal');
+        const count = Number(memoryGuard?.masteredBufferCount || 0);
+        const bytes = Number(memoryGuard?.masteredBufferBytes || 0);
+        const maxCount = Number(memoryGuard?.policy?.maxRetainedBuffers || 0);
+        const maxBytes = Number(memoryGuard?.policy?.maxMasteredBufferBytes || 0);
+        return pressure === 'high' || pressure === 'medium'
+            || (maxCount > 0 && count > maxCount)
+            || (maxBytes > 0 && bytes > maxBytes * 0.85);
+    }
+
     function summarizeSnapshot(snapshot) {
-        const longTaskMax = snapshot.longTasks.length ? Math.max(...snapshot.longTasks.map(item => Number(item.durationMs || 0))) : 0;
+        const nowAt = Number(snapshot.at || Date.now());
+        const recentLongTasks = snapshot.longTasks.filter(item => nowAt - Number(item.at || nowAt) <= RECENT_LONG_TASK_WINDOW_MS);
+        const longTaskMax = recentLongTasks.length ? Math.max(...recentLongTasks.map(item => Number(item.durationMs || 0))) : 0;
         const warnings = [];
+        const activities = [];
         if (snapshot.audio.playing > 1) warnings.push('multiple-audio-playing');
         if (snapshot.audio.audible > 1) warnings.push('multiple-audible-audio');
         if (snapshot.dom.canvases > 6) warnings.push('many-canvas-nodes');
         if (snapshot.runtime && !snapshot.runtime.ok) warnings.push('runtime-health-check');
-        if ((snapshot.importQueue?.active || 0) + (snapshot.importQueue?.pending || 0) > 0) warnings.push('bulk-import-active');
-        if (snapshot.bulkImportHud && snapshot.bulkImportHud.total >= 2 && !snapshot.bulkImportHud.complete) warnings.push('bulk-import-hud-active');
-        if ((snapshot.audioDecode?.activeDecodes || 0) > 0) warnings.push('audio-decode-active');
+        if ((snapshot.importQueue?.active || 0) + (snapshot.importQueue?.pending || 0) > 0) activities.push('bulk-import-active');
+        if (snapshot.bulkImportHud && snapshot.bulkImportHud.total >= 2 && !snapshot.bulkImportHud.complete) activities.push('bulk-import-hud-active');
+        if ((snapshot.audioDecode?.activeDecodes || 0) > 0) activities.push('audio-decode-active');
         if ((snapshot.audioContexts?.activeCount || 0) > 5) warnings.push('many-audio-contexts');
         if ((snapshot.audioContexts?.interruptedCount || 0) > 0) warnings.push('audio-context-interrupted');
-        if ((snapshot.audioDecode?.failedCount || 0) > 0 && snapshot.audioDecode?.lastError) warnings.push('audio-decode-last-error');
-        if ((snapshot.masteringQueue?.active || 0) > 0) warnings.push('mastering-active');
-        if ((snapshot.memoryGuard?.masteredBufferCount || 0) > 2) warnings.push('mastered-buffer-retention');
+        if (hasRecentDecodeFailure(snapshot.audioDecode, nowAt)) warnings.push('audio-decode-last-error');
+        if ((snapshot.masteringQueue?.active || 0) > 0) activities.push('mastering-active');
+        if (hasRetainedPcmPressure(snapshot.memoryGuard)) warnings.push('mastered-buffer-retention');
         if ((snapshot.workerJobs?.stalledCount || 0) > 0) warnings.push('worker-job-stalled');
         if ((snapshot.workerJobs?.activeTransferBytes || 0) > 128 * 1024 * 1024) warnings.push('worker-transfer-memory-high');
-        if (snapshot.wakeLock?.active && snapshot.wakeLock?.mode === 'auto') warnings.push('wake-lock-auto-active');
-        if (snapshot.wakeLock?.lastError) warnings.push('wake-lock-last-error');
-        if (snapshot.renderScheduler?.pending) warnings.push('render-queue-pending');
+        if (snapshot.wakeLock?.active && snapshot.wakeLock?.mode === 'auto') activities.push('wake-lock-auto-active');
+        if (hasRecentWakeLockFailure(snapshot.wakeLock, nowAt)) warnings.push('wake-lock-last-error');
+        if (snapshot.renderScheduler?.pending) activities.push('render-queue-pending');
         if (snapshot.spectrum?.live && snapshot.dom.spectrumPanels < 1) warnings.push('spectrum-live-without-panel');
         if (longTaskMax >= 200) warnings.push('heavy-long-task');
         else if (longTaskMax >= 80) warnings.push('watch-long-task');
         const summary = Object.freeze({
             ok: warnings.length === 0,
             warnings: Object.freeze(warnings),
+            activities: Object.freeze([...new Set(activities)]),
             longTaskMaxMs: round(longTaskMax, 1),
+            recentLongTaskCount: recentLongTasks.length,
             audioPlaying: snapshot.audio.playing,
             audibleAudio: snapshot.audio.audible,
             canvases: snapshot.dom.canvases,
@@ -453,6 +511,7 @@
         state.recoveryButton = recover;
         state.retryButton = retry;
         state.workerList = workerList;
+        state.workerSection = workerSection;
         return panel;
     }
 
@@ -492,6 +551,7 @@
         const retryable = state.lastRecoveryJobs.filter(job => safeCall(() => coordinator?.canRetry?.(job), false));
         const disabled = state.retryInFlight || retryable.length < 1;
         state.retryButton.disabled = disabled;
+        state.retryButton.hidden = !state.retryInFlight && retryable.length < 1;
         state.retryButton.setAttribute('aria-disabled', disabled ? 'true' : 'false');
         state.retryButton.textContent = state.retryInFlight ? '재시도 시작 중' : (retryable.length ? `취소 작업 ${retryable.length}개 재시도` : '재시도 가능 작업 없음');
     }
@@ -507,13 +567,12 @@
         const doc = global.document;
         const worker = snapshot.workerJobs || {};
         const active = Array.isArray(worker.active) ? worker.active : [];
-        const recent = Array.isArray(worker.recent) ? worker.recent.slice(-4).reverse() : [];
-        const items = active.length ? active : recent;
+        const recent = Array.isArray(worker.recent) ? worker.recent.slice(-6).reverse() : [];
+        const noteworthyRecent = recent.filter(item => item.status !== 'completed' || getWorkerItemTone(item) !== 'normal');
+        const items = active.length ? active : noteworthyRecent;
+        if (state.workerSection) state.workerSection.hidden = items.length < 1;
         if (!items.length) {
-            const empty = doc.createElement('p');
-            empty.className = 'foxbear-perf-worker-empty';
-            empty.textContent = '현재 실행 중이거나 최근 기록된 Worker 작업이 없습니다.';
-            state.workerList.replaceChildren(empty);
+            state.workerList.replaceChildren();
             updateRetryButton();
             return;
         }
@@ -564,12 +623,15 @@
         const warningCount = summary.warnings.length;
         const healthLevel = getOverallHealth(snapshot, summary);
         state.summaryLead.dataset.tone = healthLevel;
+        const activityText = summary.activities.slice(0, 2).map(activityGuidance).join(' · ');
         state.summaryLead.textContent = healthLevel === 'danger'
             ? `위험 상태입니다. 즉시 정체 작업과 메모리 사용량을 확인해 주세요. 점검 항목 ${warningCount}개.`
             : healthLevel === 'watch'
                 ? `주의가 필요한 항목 ${warningCount}개가 있습니다. 권장 조치를 순서대로 확인해 주세요.`
-                : '현재 확인된 메모리·성능 이상이 없습니다.';
-        const longTaskMax = snapshot.longTasks.length ? Math.max(...snapshot.longTasks.map(item => Number(item.durationMs || 0))) : 0;
+                : activityText
+                    ? `현재 ${activityText}입니다. 확인된 성능 이상은 없습니다.`
+                    : '현재 확인된 메모리·성능 이상이 없습니다.';
+        const longTaskMax = Number(summary.longTaskMaxMs || 0);
         const worker = snapshot.workerJobs || {};
         const memoryGuard = snapshot.memoryGuard || {};
         const cards = [
@@ -600,14 +662,14 @@
             {
                 label: '긴 메인 작업',
                 value: longTaskMax ? `${round(longTaskMax, 0)}ms` : '없음',
-                detail: `${snapshot.longTasks.length}개 기록`,
+                detail: `최근 1분 ${summary.recentLongTaskCount || 0}개`,
                 tone: longTaskMax >= 200 ? 'warn' : (longTaskMax >= 80 ? 'watch' : 'ok')
             },
             {
                 label: '완료 PCM 보유',
                 value: `${memoryGuard.masteredBufferCount || 0}개`,
                 detail: `${formatBytes(memoryGuard.masteredBufferBytes || 0)} · 저장 Blob ${formatBytes(memoryGuard.outBlobBytes || 0)}`,
-                tone: (memoryGuard.masteredBufferCount || 0) > 2 ? 'warn' : 'neutral'
+                tone: hasRetainedPcmPressure(memoryGuard) ? 'warn' : 'neutral'
             }
         ];
         const nodes = cards.map(card => {
@@ -637,11 +699,13 @@
                 guidance.push(item);
             }
             list?.replaceChildren(...guidance);
+            state.recommendations.hidden = warningCount < 1;
             state.recommendations.dataset.tone = warningCount ? 'warn' : 'ok';
         }
         if (state.recoveryButton) {
             const stalledCount = Number(worker.stalledCount || 0);
             state.recoveryButton.disabled = stalledCount < 1;
+            state.recoveryButton.hidden = stalledCount < 1;
             state.recoveryButton.setAttribute('aria-disabled', stalledCount < 1 ? 'true' : 'false');
             state.recoveryButton.textContent = stalledCount > 0 ? `정체 Worker ${stalledCount}개 취소` : '정체 Worker 없음';
         }
@@ -733,7 +797,8 @@
             `runtime: ${snapshot.runtime ? (snapshot.runtime.ok ? 'ok' : 'check') : 'n/a'} · errors ${snapshot.runtime?.runtimeErrors ?? 0} · warnings ${snapshot.runtime?.runtimeWarnings ?? 0}`,
             `nav guard: ${snapshot.navigationGuard?.installed ? 'on' : 'off'} · confirm ${snapshot.navigationGuard?.confirmOpen ? 'open' : 'idle'}`,
             `long tasks: ${snapshot.longTasks.length}${snapshot.longTasks.length ? ' · max ' + Math.max(...snapshot.longTasks.map(item => item.durationMs || 0)) + 'ms' : ''}`,
-            `warnings: ${(state.lastSummary?.warnings || []).join(', ') || 'none'}`
+            `warnings: ${(state.lastSummary?.warnings || []).join(', ') || 'none'}`,
+            `activities: ${(state.lastSummary?.activities || []).join(', ') || 'none'}`
         ];
         const selectedPerformance = snapshot.masteringPerformance?.selected;
         if (selectedPerformance) {
@@ -756,6 +821,162 @@
         }
         if (snapshot.audio.labels.length) lines.push(`playing: ${snapshot.audio.labels.join(', ')}`);
         return lines.join('\n');
+    }
+
+    function getHealthConditionKey(summary, level) {
+        return `${level}:${Array.from(summary?.warnings || []).sort().join('|')}`;
+    }
+
+    function ensureSettingsHealthBadge() {
+        const doc = global.document;
+        const toggle = doc?.getElementById?.('mobileNativeQuickToggle');
+        if (!toggle) return null;
+        let badge = doc.getElementById?.('performanceHealthBadge');
+        if (!badge) {
+            badge = doc.createElement('span');
+            badge.id = 'performanceHealthBadge';
+            badge.className = 'performance-health-badge';
+            badge.hidden = true;
+            badge.setAttribute('aria-hidden', 'true');
+            toggle.appendChild(badge);
+        }
+        return badge;
+    }
+
+    function updateSettingsHealthBadge(level) {
+        const badge = ensureSettingsHealthBadge();
+        const toggle = global.document?.getElementById?.('mobileNativeQuickToggle');
+        if (!badge || !toggle) return false;
+        const visible = level === 'watch' || level === 'danger';
+        badge.hidden = !visible;
+        badge.dataset.tone = visible ? level : 'normal';
+        badge.textContent = visible ? '!' : '';
+        const suffix = level === 'danger' ? ', 성능 위험 항목 있음' : level === 'watch' ? ', 성능 주의 항목 있음' : '';
+        toggle.setAttribute('aria-label', `앱 설정 열기${suffix}`);
+        toggle.title = level === 'danger' ? '설정 열기 · 성능 위험 항목 있음' : level === 'watch' ? '설정 열기 · 성능 주의 항목 있음' : '설정 열기';
+        return visible;
+    }
+
+    function ensureHealthNotice() {
+        if (state.healthNotice || !global.document?.body) return state.healthNotice;
+        const doc = global.document;
+        const notice = doc.createElement('aside');
+        notice.className = 'foxbear-health-notice';
+        notice.hidden = true;
+        notice.setAttribute('role', 'status');
+        notice.setAttribute('aria-live', 'polite');
+        const icon = doc.createElement('span');
+        icon.className = 'foxbear-health-notice-icon';
+        icon.textContent = '!';
+        icon.setAttribute('aria-hidden', 'true');
+        const copy = doc.createElement('div');
+        copy.className = 'foxbear-health-notice-copy';
+        const title = doc.createElement('strong');
+        title.textContent = '성능 점검이 필요합니다';
+        const message = doc.createElement('span');
+        message.textContent = '오디오 작업 상태를 확인해 주세요.';
+        copy.append(title, message);
+        const open = doc.createElement('button');
+        open.type = 'button';
+        open.className = 'foxbear-health-notice-open';
+        open.textContent = '진단 열기';
+        open.addEventListener('click', () => {
+            hideHealthNotice('open-diagnostics');
+            setPanelVisible(true, { source: 'health-notice', returnFocus: open });
+        });
+        const close = doc.createElement('button');
+        close.type = 'button';
+        close.className = 'foxbear-health-notice-close';
+        close.setAttribute('aria-label', '성능 경고 닫기');
+        close.textContent = '×';
+        close.addEventListener('click', () => {
+            const summary = state.lastSummary || { warnings: [] };
+            state.noticeDismissedKey = getHealthConditionKey(summary, state.ambientHealth);
+            state.noticeDismissedAt = Date.now();
+            hideHealthNotice('user-dismissed');
+        });
+        notice.append(icon, copy, open, close);
+        doc.body.appendChild(notice);
+        state.healthNotice = notice;
+        state.healthNoticeMessage = message;
+        return notice;
+    }
+
+    function hideHealthNotice(reason = 'hidden') {
+        if (!state.healthNotice) return false;
+        state.healthNotice.hidden = true;
+        state.healthNotice.dataset.reason = reason;
+        return true;
+    }
+
+    function showHealthNotice(summary) {
+        const notice = ensureHealthNotice();
+        if (!notice || state.panelVisible) return false;
+        const key = getHealthConditionKey(summary, 'danger');
+        if (state.noticeDismissedKey === key) return false;
+        const first = summary.warnings[0];
+        if (state.healthNoticeMessage) state.healthNoticeMessage.textContent = first ? warningGuidance(first) : '오디오 작업 상태를 확인해 주세요.';
+        notice.hidden = false;
+        notice.dataset.tone = 'danger';
+        notice.dataset.condition = key;
+        return true;
+    }
+
+    function applyAmbientHealth(snapshot, summary = null) {
+        const resolvedSummary = summary || state.lastSummary || summarizeSnapshot(snapshot);
+        const level = getOverallHealth(snapshot, resolvedSummary);
+        state.ambientHealth = level;
+        updateSettingsHealthBadge(level);
+        if (level === 'danger') {
+            state.ambientDangerSamples += 1;
+            state.ambientRecoverySamples = 0;
+            if (state.ambientDangerSamples >= AMBIENT_DANGER_CONFIRM_SAMPLES) showHealthNotice(resolvedSummary);
+        } else {
+            state.ambientDangerSamples = 0;
+            state.ambientRecoverySamples += 1;
+            if (state.ambientRecoverySamples >= AMBIENT_RECOVERY_CONFIRM_SAMPLES) {
+                hideHealthNotice('health-recovered');
+                state.noticeDismissedKey = '';
+                state.noticeDismissedAt = 0;
+            }
+        }
+        try {
+            global.dispatchEvent(new CustomEvent('foxbear:ambient-health-change', {
+                detail: { level, warnings: resolvedSummary.warnings.slice(), activities: resolvedSummary.activities.slice() }
+            }));
+        } catch (error) {}
+        return Object.freeze({ level, warnings: resolvedSummary.warnings, activities: resolvedSummary.activities });
+    }
+
+    function refreshAmbientHealth(reason = 'ambient-health') {
+        const snapshot = collectSnapshot(reason);
+        return applyAmbientHealth(snapshot, state.lastSummary);
+    }
+
+    function stopAmbientTimer() {
+        if (!state.ambientTimer) return;
+        global.clearTimeout(state.ambientTimer);
+        state.ambientTimer = 0;
+    }
+
+    function scheduleAmbientHealth() {
+        stopAmbientTimer();
+        const hidden = global.document?.visibilityState === 'hidden';
+        state.ambientTimer = global.setTimeout(() => {
+            state.ambientTimer = 0;
+            refreshAmbientHealth(hidden ? 'ambient-health-hidden' : 'ambient-health');
+            scheduleAmbientHealth();
+        }, hidden ? AMBIENT_HIDDEN_REFRESH_MS : AMBIENT_REFRESH_MS);
+    }
+
+    function startAmbientHealthMonitor() {
+        const start = () => {
+            refreshAmbientHealth('ambient-health-start');
+            scheduleAmbientHealth();
+        };
+        global.addEventListener?.('pagehide', stopAmbientTimer, { once: true });
+        if (global.document?.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', start, { once: true });
+        else start();
     }
 
     function maybeAutoCloseStablePanel(snapshot) {
@@ -846,6 +1067,11 @@
             state.autoOpened = options.auto === true;
             state.autoStableSamples = 0;
             state.openSource = String(options.source || (state.autoOpened ? 'automatic' : 'manual'));
+            if (!state.autoOpened && state.lastSummary) {
+                state.noticeDismissedKey = getHealthConditionKey(state.lastSummary, state.ambientHealth);
+                state.noticeDismissedAt = Date.now();
+            }
+            hideHealthNotice('panel-opened');
         }
         state.panelVisible = next;
         if (state.backdrop) {
@@ -895,6 +1121,7 @@
     function installVisibilityTimerSync() {
         global.document?.addEventListener?.('visibilitychange', () => {
             if (state.panelVisible) scheduleNextPanelRefresh();
+            scheduleAmbientHealth();
         });
     }
 
@@ -922,6 +1149,8 @@
         setPanelVisible,
         collectSnapshot,
         getSummary,
+        refreshAmbientHealth,
+        applyAmbientHealth,
         serializeSnapshot,
         copySnapshotToClipboard,
         cancelStalledWorkers,
@@ -937,13 +1166,18 @@
             openSource: state.openSource,
             autoOpened: state.autoOpened,
             autoStableSamples: state.autoStableSamples,
-            legacyAutoOpenMigrated: state.legacyAutoOpenMigrated
+            legacyAutoOpenMigrated: state.legacyAutoOpenMigrated,
+            ambientHealth: state.ambientHealth,
+            ambientDangerSamples: state.ambientDangerSamples,
+            ambientRecoverySamples: state.ambientRecoverySamples,
+            healthNoticeVisible: Boolean(state.healthNotice && !state.healthNotice.hidden)
         })
     });
 
     installKeyboardToggle();
     installVisibilityTimerSync();
     migrateLegacyAutoOpenPreference();
+    startAmbientHealthMonitor();
     const autoOpenRequest = readAutoOpenRequest();
     if (autoOpenRequest.open) {
         setEnabled(true, { persist: false, silent: true });

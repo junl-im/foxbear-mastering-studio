@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.1-transient-performance-diagnostics';
+  const VIEW_VERSION = '1.6.2-nonblocking-health-status-design-polish';
   const DEFAULT_BINS = 96;
 
   function getService() {

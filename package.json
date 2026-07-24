@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro with transient performance diagnostics, stable auto-dismiss, and no persisted startup popup.",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.1-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.1-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.2-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.2-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -359,15 +359,16 @@
     "node qa/v1598_worker_safe_retry_health_resource_stress_smoke.js",
     "node qa/v1599_import_copy_callable_mail_recovery_smoke.js",
     "node qa/v1600_incident_mail_pipeline_health_smoke.js",
-    "node qa/v1601_transient_performance_diagnostics_smoke.js"
+    "node qa/v1601_transient_performance_diagnostics_smoke.js",
+    "node qa/v1602_nonblocking_health_design_polish_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "transient-performance-diagnostics",
-    "assetVersion": "1.6.1-transient-performance-diagnostics",
-    "cacheName": "foxbear-shell-v1.6.1-transient-performance-diagnostics",
-    "bootRevision": "boot-sri-v1601",
-    "updateSafetyRevision": "update-safety-v1601",
-    "serviceWorkerRevision": "sw-v1601"
+    "buildId": "nonblocking-health-status-design-polish",
+    "assetVersion": "1.6.2-nonblocking-health-status-design-polish",
+    "cacheName": "foxbear-shell-v1.6.2-nonblocking-health-status-design-polish",
+    "bootRevision": "boot-sri-v1602",
+    "updateSafetyRevision": "update-safety-v1602",
+    "serviceWorkerRevision": "sw-v1602"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

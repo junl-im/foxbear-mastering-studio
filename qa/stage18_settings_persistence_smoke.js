@@ -13,7 +13,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.1-transient-performance-diagnostics';
+const version = '1.6.2-nonblocking-health-status-design-polish';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -27,7 +27,7 @@ assert(index.includes(`src/settings/settings-service.js?v=${version}`), 'index s
 assert(index.indexOf('src/state/app-state.js') < index.indexOf('src/settings/settings-service.js'), 'settings service should load after app state');
 assert(index.indexOf('src/settings/settings-service.js') < index.indexOf('src/app.js'), 'settings service should load before app.js');
 assert(sw.includes(`./src/settings/settings-service.js?v=${version}`), 'service worker should precache settings-service.js');
-assert(sw.includes(`foxbear-shell-v1.6.1-transient-performance-diagnostics`), 'service worker cache should use Stage18 or later key');
+assert(sw.includes(`foxbear-shell-v1.6.2-nonblocking-health-status-design-polish`), 'service worker cache should use Stage18 or later key');
 assert(service.includes("STORAGE_KEY = 'foxbear-settings-v1.4.0'"), 'settings service should use versioned localStorage key');
 assert(service.includes('applyToContext') && service.includes('saveFromContext') && service.includes('reset'), 'settings service should expose apply/save/reset APIs');
 [

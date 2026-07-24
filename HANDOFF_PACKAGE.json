@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.1",
-  "buildId": "transient-performance-diagnostics",
+  "productVersion": "1.6.2",
+  "buildId": "nonblocking-health-status-design-polish",
   "requiredFiles": [
     "404.html",
     ".gitignore",

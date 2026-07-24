@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.1-transient-performance-diagnostics';
+const version = '1.6.2-nonblocking-health-status-design-polish';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.6.1",
-  "assetVersion": "1.6.1-transient-performance-diagnostics"
+  "productVersion": "1.6.2",
+  "assetVersion": "1.6.2-nonblocking-health-status-design-polish"
 }

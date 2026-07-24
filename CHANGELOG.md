@@ -1,3 +1,12 @@
+# v1.6.2 - Non-Blocking Health Status and Design Polish
+
+- Separates routine import, decode, mastering, wake-lock, and render activity from actionable performance warnings.
+- Expires long-task, decode-failure, and wake-lock warnings after bounded recent windows.
+- Adds a compact settings health badge that stays hidden during normal operation.
+- Adds a non-blocking danger notice only after consecutive danger samples and removes it after stable recovery.
+- Hides empty recommendations, empty Worker detail sections, and unavailable recovery controls in the normal diagnostic view.
+- Adds behavioral regression coverage for transient warnings, badge state, notice confirmation, and recovery dismissal.
+
 # v1.6.1 - Transient Performance Diagnostics
 
 - Stops a legacy `foxbear-perf-diagnostics=on` preference from reopening memory diagnostics on every app launch.
