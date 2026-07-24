@@ -47,6 +47,8 @@ npm install
 npm --prefix functions install
 npm run check:release
 npm run deploy:incident
+# 위 명령은 Hosting CSP, Firestore 규칙/인덱스, 오류 신고 Functions를 함께 배포합니다.
+# 별도 Hosting 전용 배포가 필요한 경우에만 아래 명령을 사용합니다.
 firebase deploy --only hosting
 ```
 

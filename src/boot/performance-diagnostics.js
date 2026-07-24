@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.2
+// FoxBear performance diagnostics - v1.6.4
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.2-nonblocking-health-status-design-polish';
+    const DIAGNOSTICS_VERSION = '1.6.4-incident-callable-csp-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -18,8 +18,11 @@
     const RECENT_WAKE_LOCK_ERROR_WINDOW_MS = 120000;
     const AMBIENT_REFRESH_MS = 8000;
     const AMBIENT_HIDDEN_REFRESH_MS = 30000;
+    const AMBIENT_WATCH_CONFIRM_SAMPLES = 2;
     const AMBIENT_DANGER_CONFIRM_SAMPLES = 2;
     const AMBIENT_RECOVERY_CONFIRM_SAMPLES = 2;
+    const NOTICE_DISMISS_STORAGE_KEY = `${STORAGE_KEY}-notice-dismissal-v1`;
+    const NOTICE_DISMISS_TTL_MS = 30 * 60 * 1000;
 
     const state = {
         enabled: false,
@@ -52,12 +55,16 @@
         workerSection: null,
         ambientTimer: 0,
         ambientHealth: 'normal',
+        ambientMeasuredHealth: 'normal',
+        ambientWatchSamples: 0,
         ambientDangerSamples: 0,
         ambientRecoverySamples: 0,
         healthNotice: null,
         healthNoticeMessage: null,
         noticeDismissedKey: '',
-        noticeDismissedAt: 0
+        noticeDismissedAt: 0,
+        toastObserver: null,
+        toastResizeObserver: null
     };
 
     function now() {
@@ -72,6 +79,51 @@
     function writeStorage(value) {
         try { global.localStorage.setItem(STORAGE_KEY, value ? 'on' : 'off'); }
         catch (error) {}
+    }
+
+    function readNoticeDismissal() {
+        try {
+            const raw = global.localStorage?.getItem?.(NOTICE_DISMISS_STORAGE_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            const key = String(parsed?.key || '');
+            const at = Number(parsed?.at || 0);
+            if (!key || !at || Date.now() - at >= NOTICE_DISMISS_TTL_MS) {
+                global.localStorage?.removeItem?.(NOTICE_DISMISS_STORAGE_KEY);
+                return null;
+            }
+            return Object.freeze({ key, at });
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function persistNoticeDismissal(key) {
+        const normalized = String(key || '');
+        const at = Date.now();
+        state.noticeDismissedKey = normalized;
+        state.noticeDismissedAt = at;
+        try {
+            global.localStorage?.setItem?.(NOTICE_DISMISS_STORAGE_KEY, JSON.stringify({ key: normalized, at }));
+        } catch (error) {}
+        return Object.freeze({ key: normalized, at });
+    }
+
+    function restoreNoticeDismissal() {
+        const stored = readNoticeDismissal();
+        if (!stored) return false;
+        state.noticeDismissedKey = stored.key;
+        state.noticeDismissedAt = stored.at;
+        return true;
+    }
+
+    function isNoticeDismissed(key) {
+        const stored = readNoticeDismissal();
+        if (stored) {
+            state.noticeDismissedKey = stored.key;
+            state.noticeDismissedAt = stored.at;
+        }
+        return Boolean(stored && stored.key === String(key || ''));
     }
 
     function readAutoOpenRequest() {
@@ -827,6 +879,60 @@
         return `${level}:${Array.from(summary?.warnings || []).sort().join('|')}`;
     }
 
+    function getPrimaryHealthMessage(summary, level) {
+        const first = Array.from(summary?.warnings || [])[0];
+        if (first) return warningGuidance(first);
+        if (level === 'watch') return '일시적인 성능 주의 항목이 있습니다.';
+        if (level === 'danger') return '즉시 확인할 성능 위험 항목이 있습니다.';
+        return '현재 성능 상태가 정상입니다.';
+    }
+
+    function updateSettingsHealthSummary(level, summary) {
+        const doc = global.document;
+        const button = doc?.querySelector?.('[data-native-action="performance-diagnostics"]');
+        const stateNode = button?.querySelector?.('[data-setting-state]');
+        const summaryNode = doc?.getElementById?.('performanceHealthSummary');
+        const label = level === 'danger' ? '위험' : level === 'watch' ? '주의' : '정상';
+        const message = getPrimaryHealthMessage(summary, level);
+        if (button) {
+            button.dataset.healthTone = level;
+            button.title = level === 'normal' ? '메모리 성능진단 열기' : `${label}: ${message}`;
+            button.setAttribute('aria-label', level === 'normal' ? '메모리 성능진단 열기, 현재 정상' : `메모리 성능진단 열기, ${label}, ${message}`);
+        }
+        if (stateNode) stateNode.textContent = label;
+        if (summaryNode) {
+            summaryNode.hidden = level === 'normal';
+            summaryNode.dataset.tone = level;
+            summaryNode.textContent = level === 'normal' ? '' : `${label} · ${message}`;
+        }
+        return Object.freeze({ level, label, message });
+    }
+
+    function updateHealthNoticeStackOffset() {
+        const notice = state.healthNotice;
+        if (!notice) return 0;
+        const toast = global.document?.getElementById?.('toast');
+        const visible = Boolean(toast && toast.classList?.contains?.('show') && toast.querySelector?.('.foxbear-toast-item'));
+        const height = visible ? Math.max(0, Number(toast.getBoundingClientRect?.().height || toast.offsetHeight || 0)) : 0;
+        const offset = height > 0 ? Math.ceil(height + 10) : 0;
+        notice.style?.setProperty?.('--foxbear-health-toast-offset', `${offset}px`);
+        return offset;
+    }
+
+    function installToastStackObserver() {
+        if (state.toastObserver || !global.MutationObserver) return false;
+        const toast = global.document?.getElementById?.('toast');
+        if (!toast) return false;
+        state.toastObserver = new global.MutationObserver(() => updateHealthNoticeStackOffset());
+        state.toastObserver.observe(toast, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+        if (global.ResizeObserver) {
+            state.toastResizeObserver = new global.ResizeObserver(() => updateHealthNoticeStackOffset());
+            state.toastResizeObserver.observe(toast);
+        }
+        updateHealthNoticeStackOffset();
+        return true;
+    }
+
     function ensureSettingsHealthBadge() {
         const doc = global.document;
         const toggle = doc?.getElementById?.('mobileNativeQuickToggle');
@@ -891,14 +997,15 @@
         close.textContent = '×';
         close.addEventListener('click', () => {
             const summary = state.lastSummary || { warnings: [] };
-            state.noticeDismissedKey = getHealthConditionKey(summary, state.ambientHealth);
-            state.noticeDismissedAt = Date.now();
+            persistNoticeDismissal(getHealthConditionKey(summary, state.ambientHealth));
             hideHealthNotice('user-dismissed');
         });
         notice.append(icon, copy, open, close);
         doc.body.appendChild(notice);
         state.healthNotice = notice;
         state.healthNoticeMessage = message;
+        installToastStackObserver();
+        updateHealthNoticeStackOffset();
         return notice;
     }
 
@@ -913,9 +1020,10 @@
         const notice = ensureHealthNotice();
         if (!notice || state.panelVisible) return false;
         const key = getHealthConditionKey(summary, 'danger');
-        if (state.noticeDismissedKey === key) return false;
+        if (isNoticeDismissed(key)) return false;
         const first = summary.warnings[0];
         if (state.healthNoticeMessage) state.healthNoticeMessage.textContent = first ? warningGuidance(first) : '오디오 작업 상태를 확인해 주세요.';
+        updateHealthNoticeStackOffset();
         notice.hidden = false;
         notice.dataset.tone = 'danger';
         notice.dataset.condition = key;
@@ -924,28 +1032,36 @@
 
     function applyAmbientHealth(snapshot, summary = null) {
         const resolvedSummary = summary || state.lastSummary || summarizeSnapshot(snapshot);
-        const level = getOverallHealth(snapshot, resolvedSummary);
-        state.ambientHealth = level;
-        updateSettingsHealthBadge(level);
-        if (level === 'danger') {
+        const measuredLevel = getOverallHealth(snapshot, resolvedSummary);
+        state.ambientMeasuredHealth = measuredLevel;
+        if (measuredLevel === 'danger') {
             state.ambientDangerSamples += 1;
+            state.ambientWatchSamples = 0;
             state.ambientRecoverySamples = 0;
-            if (state.ambientDangerSamples >= AMBIENT_DANGER_CONFIRM_SAMPLES) showHealthNotice(resolvedSummary);
+            if (state.ambientDangerSamples >= AMBIENT_DANGER_CONFIRM_SAMPLES) state.ambientHealth = 'danger';
+        } else if (measuredLevel === 'watch') {
+            state.ambientWatchSamples += 1;
+            state.ambientDangerSamples = 0;
+            state.ambientRecoverySamples = 0;
+            if (state.ambientWatchSamples >= AMBIENT_WATCH_CONFIRM_SAMPLES) state.ambientHealth = 'watch';
         } else {
+            state.ambientWatchSamples = 0;
             state.ambientDangerSamples = 0;
             state.ambientRecoverySamples += 1;
-            if (state.ambientRecoverySamples >= AMBIENT_RECOVERY_CONFIRM_SAMPLES) {
-                hideHealthNotice('health-recovered');
-                state.noticeDismissedKey = '';
-                state.noticeDismissedAt = 0;
-            }
+            if (state.ambientRecoverySamples >= AMBIENT_RECOVERY_CONFIRM_SAMPLES) state.ambientHealth = 'normal';
         }
+        const level = state.ambientHealth;
+        updateSettingsHealthBadge(level);
+        updateSettingsHealthSummary(level, resolvedSummary);
+        if (level === 'danger') showHealthNotice(resolvedSummary);
+        else if (level === 'normal') hideHealthNotice('health-recovered');
+        else hideHealthNotice('health-watch');
         try {
             global.dispatchEvent(new CustomEvent('foxbear:ambient-health-change', {
-                detail: { level, warnings: resolvedSummary.warnings.slice(), activities: resolvedSummary.activities.slice() }
+                detail: { level, measuredLevel, warnings: resolvedSummary.warnings.slice(), activities: resolvedSummary.activities.slice() }
             }));
         } catch (error) {}
-        return Object.freeze({ level, warnings: resolvedSummary.warnings, activities: resolvedSummary.activities });
+        return Object.freeze({ level, measuredLevel, warnings: resolvedSummary.warnings, activities: resolvedSummary.activities });
     }
 
     function refreshAmbientHealth(reason = 'ambient-health') {
@@ -1068,8 +1184,7 @@
             state.autoStableSamples = 0;
             state.openSource = String(options.source || (state.autoOpened ? 'automatic' : 'manual'));
             if (!state.autoOpened && state.lastSummary) {
-                state.noticeDismissedKey = getHealthConditionKey(state.lastSummary, state.ambientHealth);
-                state.noticeDismissedAt = Date.now();
+                persistNoticeDismissal(getHealthConditionKey(state.lastSummary, state.ambientHealth));
             }
             hideHealthNotice('panel-opened');
         }
@@ -1151,6 +1266,7 @@
         getSummary,
         refreshAmbientHealth,
         applyAmbientHealth,
+        refreshSettingsHealthSummary: () => updateSettingsHealthSummary(state.ambientHealth, state.lastSummary || { warnings: [] }),
         serializeSnapshot,
         copySnapshotToClipboard,
         cancelStalledWorkers,
@@ -1168,15 +1284,20 @@
             autoStableSamples: state.autoStableSamples,
             legacyAutoOpenMigrated: state.legacyAutoOpenMigrated,
             ambientHealth: state.ambientHealth,
+            ambientMeasuredHealth: state.ambientMeasuredHealth,
+            ambientWatchSamples: state.ambientWatchSamples,
             ambientDangerSamples: state.ambientDangerSamples,
             ambientRecoverySamples: state.ambientRecoverySamples,
-            healthNoticeVisible: Boolean(state.healthNotice && !state.healthNotice.hidden)
+            healthNoticeVisible: Boolean(state.healthNotice && !state.healthNotice.hidden),
+            noticeDismissedKey: state.noticeDismissedKey,
+            noticeDismissedAt: state.noticeDismissedAt
         })
     });
 
     installKeyboardToggle();
     installVisibilityTimerSync();
     migrateLegacyAutoOpenPreference();
+    restoreNoticeDismissal();
     startAmbientHealthMonitor();
     const autoOpenRequest = readAutoOpenRequest();
     if (autoOpenRequest.open) {

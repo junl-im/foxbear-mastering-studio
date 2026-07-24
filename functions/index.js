@@ -65,8 +65,9 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.2';
-const INCIDENT_SERVICE_SCHEMA_VERSION = 1;
+const PRODUCT_VERSION = '1.6.4';
+const INCIDENT_SERVICE_SCHEMA_VERSION = 2;
+const INCIDENT_FUNCTIONS_ORIGIN = `https://${REGION}-foxbear-music.cloudfunctions.net`;
 const OPERATIONS_SCHEMA_VERSION = 6;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
 const ADMIN_ACTION_STATE_TTL_DAYS = 7;
@@ -167,6 +168,7 @@ function incidentServiceMetadata(request = {}) {
     productVersion: PRODUCT_VERSION,
     serviceSchemaVersion: INCIDENT_SERVICE_SCHEMA_VERSION,
     region: REGION,
+    functionsOrigin: INCIDENT_FUNCTIONS_ORIGIN,
     status: 'ready',
     transport: 'callable',
     mailTrigger: 'sendIncidentEmail',

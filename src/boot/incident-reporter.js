@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.2
+// FoxBear automatic incident reporter - v1.6.4
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.2-nonblocking-health-status-design-polish';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.2').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.4-incident-callable-csp-recovery';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.4').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -37,6 +37,8 @@
         testInFlight: false,
         serviceStatus: null,
         serviceError: '',
+        serviceErrorCode: '',
+        serviceEndpoint: '',
         serviceCheckInFlight: null
     };
 
@@ -96,7 +98,7 @@
         updatePipelineStage('mail', 'idle', '테스트 대기');
     }
 
-    function renderServiceDiagnostics(service = state.serviceStatus, errorMessage = state.serviceError) {
+    function renderServiceDiagnostics(service = state.serviceStatus, errorMessage = state.serviceError, errorCode = state.serviceErrorCode) {
         const server = document.getElementById('incidentServiceStatus');
         const appCheck = document.getElementById('incidentAppCheckStatus');
         const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
@@ -109,9 +111,11 @@
                         ? `서버 v${service.productVersion || '?'} · 웹보다 새 버전`
                         : `서버 v${service.productVersion || CLIENT_PRODUCT_VERSION} · 동기화됨`;
                 server.textContent = `${versionText} · ${service.region || 'region 확인 중'}`;
+                state.serviceEndpoint = cleanText(service.functionsOrigin || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 180);
                 server.dataset.tone = comparison === -1 ? 'warning' : 'ok';
             } else if (errorMessage) {
-                server.textContent = `서버 상태 확인 실패 · ${cleanText(errorMessage, 150)}`;
+                const codeText = cleanText(errorCode || '', 80);
+                server.textContent = `서버 상태 확인 실패${codeText ? ` (${codeText})` : ''} · ${cleanText(errorMessage, 150)}`;
                 server.dataset.tone = 'error';
             } else {
                 server.textContent = '서버 상태를 확인하지 않았습니다.';
@@ -330,6 +334,36 @@
         });
     }
 
+    function classifyMailTestFailure(rawStatus = '', failureCode = '', failureReason = '') {
+        const evidence = `${rawStatus} ${failureCode} ${failureReason}`;
+        if (/functions\/(?:not-found|unimplemented)|FOXBEAR_INCIDENT_SERVICE_STATUS_UNAVAILABLE/i.test(evidence)) return 'server-api-not-deployed';
+        if (/FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED|failed to fetch|networkerror|network request failed|load failed|content security policy|refused to connect|csp/i.test(evidence)) return 'server-network-blocked';
+        if (/FOXBEAR_INCIDENT_CALLABLE_UNAVAILABLE|functions\/unavailable/i.test(evidence)) return 'server-api-unavailable';
+        if (/functions\/internal/i.test(evidence)) return 'server-api-internal';
+        if (/permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/i.test(evidence)) return 'permission-denied';
+        if (/unauthenticated|FOXBEAR_INCIDENT_AUTH_NOT_READY/i.test(evidence)) return 'authentication-failed';
+        return rawStatus || failureCode || 'failed';
+    }
+
+    function renderRecoveryGuidance(status = '', code = '', detail = '') {
+        const guidance = document.getElementById('incidentReportingGuidance');
+        if (!guidance) return;
+        const endpoint = cleanText(state.serviceEndpoint || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 160);
+        const messages = {
+            'server-network-blocked': `서버 API 연결이 브라우저 보안정책 또는 네트워크에서 차단됐습니다. npm run deploy:incident로 Hosting CSP와 Functions를 함께 배포하세요.${endpoint ? ` endpoint: ${endpoint}` : ''}`,
+            'server-api-not-deployed': 'Callable Functions가 아직 배포되지 않았습니다. npm run deploy:incident를 실행한 뒤 다시 확인하세요.',
+            'server-api-unavailable': 'Firebase Functions 초기화가 완료되지 않았습니다. 네트워크 연결과 Firebase SDK 로드를 확인하세요.',
+            'server-api-internal': 'Callable Functions 내부 오류입니다. Firebase Functions 로그와 Secret 설정을 확인하세요.',
+            'permission-denied': '익명 인증 또는 Firestore 규칙이 현재 웹 빌드와 맞지 않습니다. npm run deploy:incident로 규칙과 Functions를 함께 갱신하세요.',
+            'authentication-failed': '익명 인증이 실패했습니다. Firebase Authentication의 익명 로그인을 활성화했는지 확인하세요.'
+        };
+        const codeText = cleanText(code || '', 80);
+        const detailText = cleanText(detail || '', 180);
+        guidance.textContent = messages[status] || '단계별 상태에서 실패 지점을 확인할 수 있습니다.';
+        if (codeText || detailText) guidance.textContent += ` 진단: ${[codeText, detailText].filter(Boolean).join(' · ')}`;
+        guidance.dataset.tone = messages[status] ? 'error' : 'neutral';
+    }
+
     async function refreshServiceStatus(options = {}) {
         if (state.serviceCheckInFlight && options.force !== true) return state.serviceCheckInFlight;
         let authComplete = false;
@@ -346,6 +380,8 @@
             const service = await bridge.getIncidentServiceStatus();
             state.serviceStatus = service;
             state.serviceError = '';
+            state.serviceErrorCode = '';
+            state.serviceEndpoint = cleanText(service?.functionsOrigin || bridge?.incidentFunctionsOrigin || '', 180);
             const comparison = compareVersions(service?.productVersion, CLIENT_PRODUCT_VERSION);
             updatePipelineStage('api', comparison === -1 ? 'warning' : 'ok', comparison === -1
                 ? `서버 v${service?.productVersion || '?'} · 업데이트 필요`
@@ -355,9 +391,12 @@
         })().catch(error => {
             state.serviceStatus = null;
             state.serviceError = cleanText(error?.message || error, 240);
+            state.serviceErrorCode = cleanText(error?.code || error?.name || '', 80);
+            state.serviceEndpoint = cleanText(error?.endpoint || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 180);
             if (authComplete) updatePipelineStage('api', 'error', '서버 상태 확인 실패');
             else updatePipelineStage('auth', 'error', '익명 인증 또는 Firebase 연결 실패');
-            renderServiceDiagnostics(null, state.serviceError);
+            renderServiceDiagnostics(null, state.serviceError, state.serviceErrorCode);
+            renderRecoveryGuidance(classifyMailTestFailure(state.serviceErrorCode, state.serviceErrorCode, state.serviceError), state.serviceErrorCode, state.serviceError);
             throw error;
         }).finally(() => {
             if (state.serviceCheckInFlight === task) state.serviceCheckInFlight = null;
@@ -563,9 +602,7 @@
                     const rawStatus = result?.delivery?.status || (result?.ok ? 'submitted' : result?.code || 'failed');
                     const failureCode = cleanText(result?.delivery?.code || result?.code || '', 80);
                     const failureReason = cleanText(result?.delivery?.message || result?.delivery?.reason || result?.reason || '', 180);
-                    const permissionFailure = /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/i.test(`${rawStatus} ${failureCode} ${failureReason}`);
-                    const callableMissing = /functions\/(?:not-found|unimplemented)|submitIncidentReport|getIncidentDeliveryStatus|CALLABLE_UNAVAILABLE/i.test(`${rawStatus} ${failureCode} ${failureReason}`);
-                    const status = callableMissing && permissionFailure ? 'server-api-not-deployed' : (permissionFailure ? 'permission-denied' : rawStatus);
+                    const status = classifyMailTestFailure(rawStatus, failureCode, failureReason);
                     const messages = {
                         emailed: 'Gmail SMTP 접수 완료: 받은편지함과 스팸함을 확인하세요.',
                         pending: '신고는 저장됐지만 45초 안에 메일 함수 완료를 확인하지 못했습니다.',
@@ -573,6 +610,10 @@
                         'status-check-failed': '신고는 저장됐지만 서버의 메일 상태를 확인하지 못했습니다.',
                         'permission-denied': '오류 신고 서버가 요청을 허용하지 않았습니다. 익명 인증과 최신 서버 기능 배포를 확인하세요. 신고는 로컬 대기열에 보관했습니다.',
                         'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다. npm run deploy:incident 실행 후 다시 테스트하세요.',
+                        'server-network-blocked': 'Firebase Callable 연결이 브라우저 CSP 또는 네트워크에서 차단됐습니다. Hosting과 Functions를 함께 배포하세요.',
+                        'server-api-unavailable': 'Firebase Functions 연결이 초기화되지 않았습니다. 네트워크와 SDK 로드를 확인하세요.',
+                        'server-api-internal': 'Firebase Callable 내부 오류가 발생했습니다. Functions 로그와 Secret 설정을 확인하세요.',
+                        'authentication-failed': 'Firebase 익명 인증에 실패했습니다. Authentication 설정을 확인하세요.',
                         FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE: 'Firebase 연결이 준비되지 않아 테스트 신고를 로컬 대기열에 저장했습니다.',
                         FOXBEAR_INCIDENT_FIREBASE_ERROR: 'Firebase 초기화 오류로 테스트 신고를 로컬 대기열에 저장했습니다.',
                         'suppressed-duplicate': '동일 테스트가 중복 억제됐습니다.',
@@ -591,6 +632,7 @@
                     } else {
                         finalMessage = detail && status !== 'suppressed-duplicate' ? `${baseMessage} · ${detail}` : baseMessage;
                     }
+                    renderRecoveryGuidance(status, failureCode, failureReason);
                     if (compareVersions(state.serviceStatus?.productVersion, CLIENT_PRODUCT_VERSION) === -1) {
                         finalMessage += ` · 서버 v${state.serviceStatus.productVersion}를 웹 v${CLIENT_PRODUCT_VERSION}에 맞게 배포하세요.`;
                     }
@@ -621,7 +663,9 @@
             lastFingerprint: state.lastFingerprint,
             lastDeliveredAt: state.lastDeliveredAt,
             serviceStatus: state.serviceStatus,
-            serviceError: state.serviceError
+            serviceError: state.serviceError,
+            serviceErrorCode: state.serviceErrorCode,
+            serviceEndpoint: state.serviceEndpoint
         });
     }
 
@@ -659,6 +703,8 @@
         waitForFirebaseBridge,
         refreshServiceStatus,
         compareVersions,
-        updatePipelineStage
+        updatePipelineStage,
+        classifyMailTestFailure,
+        renderRecoveryGuidance
     });
 })(window);

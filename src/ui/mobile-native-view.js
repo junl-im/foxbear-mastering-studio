@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.2 - header-mounted settings and support entry view builder
+// FoxBear AI Mastering Studio Pro v1.6.4 - header-mounted settings and health summary view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -167,7 +167,14 @@
             ['restore', '♻️', '재생복구', { actionOnly: true }]
         ].forEach(([action, icon, label, options]) => settingGrid.appendChild(createSettingButton(action, icon, label, options || {})));
 
-        panel.append(panelHead, settingGrid);
+        const performanceHealthSummary = doc.createElement('p');
+        performanceHealthSummary.id = 'performanceHealthSummary';
+        performanceHealthSummary.className = 'mobile-native-health-summary';
+        performanceHealthSummary.hidden = true;
+        performanceHealthSummary.setAttribute('role', 'status');
+        performanceHealthSummary.setAttribute('aria-live', 'polite');
+
+        panel.append(panelHead, settingGrid, performanceHealthSummary);
         layer.append(toggle);
         layer.dataset.placement = headerHost ? 'header' : 'floating-fallback';
         (headerHost || doc.body).appendChild(layer);

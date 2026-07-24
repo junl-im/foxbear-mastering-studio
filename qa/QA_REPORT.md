@@ -1,3 +1,22 @@
+# FoxBear QA Report - v1.6.4
+
+- Reproduced the actual mail-test failure path as a missing Firebase Callable origin in `connect-src`.
+- Verified the exact regional endpoint is present in both HTML meta CSP and Firebase Hosting CSP.
+- Verified the incident deployment command cannot publish Functions without the matching Hosting CSP and Firestore rules.
+- Added behavior coverage for not-found, CSP/network, internal, permission, and authentication failure classification.
+- Verified service metadata schema v2 reports the canonical callable origin.
+- Configured static/regression target: 327 checks.
+
+# FoxBear QA Report - v1.6.3
+
+- Audited repeated health notices, transient state flicker, Settings discoverability, and mobile overlay collisions.
+- Removed duplicate decode-activity accounting.
+- Added two-sample confirmation for watch and danger plus two-sample recovery.
+- Added Settings health level and concise reason rendering.
+- Added 30-minute acknowledgement persistence for identical danger conditions while preserving new-condition alerts.
+- Added toast-stack height coordination for the non-blocking health notice.
+- Configured static/regression target: 326 checks.
+
 # FoxBear QA Report - v1.6.2
 
 - Audited first-run diagnostics, routine activity classification, stale warning lifetime, and settings/popup visual noise.

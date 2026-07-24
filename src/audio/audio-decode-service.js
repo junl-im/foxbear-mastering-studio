@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.2
+// FoxBear audio decode service - v1.6.4
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.2-nonblocking-health-status-design-polish';
+    const SERVICE_VERSION = '1.6.4-incident-callable-csp-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

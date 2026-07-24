@@ -14,8 +14,8 @@ const mobileView = read('src/ui/mobile-native-view.js');
 const css = read('assets/css/boot/performance-diagnostics.css');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.2');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'nonblocking-health-status-design-polish');
+assert(/^\d+\.\d+\.\d+$/.test(pkg.version), 'product version must stay semantic');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must stay lowercase kebab-case');
 assert(perf.includes('const ACTIVITY_GUIDANCE = Object.freeze({'), 'normal activity must be separated from actionable warnings');
 assert(perf.includes("activities.push('mastering-active')"), 'mastering activity must stay informational');
 assert(perf.includes('const RECENT_LONG_TASK_WINDOW_MS = 60000'), 'old long tasks must expire from active health warnings');
@@ -29,7 +29,7 @@ assert(perf.includes('state.workerSection.hidden = items.length < 1'), 'normal d
 assert(mobileView.includes('id = \'performanceHealthBadge\''), 'settings trigger must include a compact health badge');
 assert(css.includes('.foxbear-health-notice[hidden]'), 'non-blocking notice must have a true hidden state');
 assert(css.includes(".performance-health-badge[data-tone='danger']"), 'settings badge must distinguish danger state');
-assert(handoff.startsWith('# Handoff - v1.6.2'), 'handoff must lead with current release');
+assert(handoff.startsWith(`# Handoff - v${pkg.version}`), 'handoff must lead with current release');
 
 class FakeNode {
   constructor(tag = 'div', id = '') {

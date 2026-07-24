@@ -1,3 +1,22 @@
+# v1.6.4 - Incident Callable CSP Recovery
+
+- Adds the exact regional Firebase Callable origin to the HTML and Hosting `connect-src` policies.
+- Makes `deploy:incident` publish Hosting CSP, Firestore rules/indexes, and incident Functions together.
+- Adds callable endpoint metadata and transport error normalization for CSP/network failures.
+- Separates missing deployment, network/CSP blocking, unavailable SDK, internal Functions errors, authentication failures, and permission denials.
+- Shows actionable recovery guidance, raw failure codes, and the affected endpoint in the incident-reporting dialog.
+- Bumps incident service metadata to schema v2 and adds behavioral regression coverage.
+
+# v1.6.3 - Health Acknowledgement and Settings Summary
+
+- Removes duplicate decode-activity accounting from performance diagnostics.
+- Requires two consecutive watch or danger samples before changing the visible settings state.
+- Adds a concise normal/watch/danger reason inside the Settings panel.
+- Persists acknowledgement of the same danger condition for 30 minutes while retaining the settings badge.
+- Keeps different danger conditions visible immediately and clears the full notice after healthy recovery.
+- Coordinates the bottom health notice with the live toast stack to prevent mobile overlap.
+- Adds behavioral regression coverage for reload acknowledgement, state hysteresis, settings summaries, and overlay spacing.
+
 # v1.6.2 - Non-Blocking Health Status and Design Polish
 
 - Separates routine import, decode, mastering, wake-lock, and render activity from actionable performance warnings.

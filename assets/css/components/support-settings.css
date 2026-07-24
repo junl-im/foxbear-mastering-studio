@@ -52,3 +52,4 @@ body.incident-reporting-open { overflow: hidden; }
   .incident-reporting-pipeline { grid-template-columns: 1fr; }
   .support-settings-actions { grid-template-columns: 1fr; }
 }
+.support-settings-guidance[data-tone='error'] { padding: 9px 10px; border: 1px solid rgba(248,113,113,.24); border-radius: 11px; background: rgba(248,113,113,.075); color: #ffd0d0 !important; overflow-wrap: anywhere; }

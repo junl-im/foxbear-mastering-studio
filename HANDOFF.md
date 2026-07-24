@@ -1,3 +1,47 @@
+# Handoff - v1.6.4
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.4 current focus
+
+- The exact `asia-northeast3` Firebase Callable origin is present in both the HTML meta CSP and Firebase Hosting response CSP.
+- `npm run deploy:incident` deploys Hosting, Firestore rules/indexes, and the complete incident Functions stack together so CSP and server functions cannot drift independently.
+- Callable transport failures distinguish deployment missing, CSP/network blocking, unavailable SDK, internal Functions failure, authentication failure, and permission denial.
+- The incident UI shows the raw diagnostic code plus the callable endpoint and an actionable recovery instruction.
+- Incident service metadata schema v2 returns the canonical callable origin for web/server deployment comparison.
+- Regression: `node qa/v1604_incident_callable_csp_recovery_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
+# Handoff - v1.6.3
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.3 current focus
+
+- Ambient watch and danger state requires two consecutive samples before it changes the visible settings indicator.
+- Settings shows the current health level and a concise actionable reason without opening the full diagnostics modal.
+- Acknowledging the same danger condition suppresses the full notice for 30 minutes across reloads while the settings badge remains visible.
+- A different danger condition is not suppressed by the previous acknowledgement.
+- The health notice reserves the visible toast stack height to avoid mobile overlap.
+- Regression: `node qa/v1603_health_acknowledgement_settings_summary_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
 # Handoff - v1.6.2
 
 # 필수 결과 보고 형식

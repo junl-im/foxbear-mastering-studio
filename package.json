@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.2",
+  "version": "1.6.4",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with transient performance diagnostics, stable auto-dismiss, and no persisted startup popup.",
+  "description": "FoxBear AI Mastering Studio Pro with callable CSP recovery and actionable incident mail diagnostics.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.2-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.2-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.4-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.4-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest,functions:submitIncidentReport,functions:getIncidentDeliveryStatus,functions:getIncidentServiceStatus",
+    "deploy:incident": "firebase deploy --only hosting,firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest,functions:submitIncidentReport,functions:getIncidentDeliveryStatus,functions:getIncidentServiceStatus",
     "version:dry-run": "node tools/sync-release-metadata.js --dry-run",
     "dependencies:check": "node tools/check-dependency-health.js",
     "qa:browser:preflight": "node qa/browser/run-browser-preflight.js",
@@ -360,15 +360,17 @@
     "node qa/v1599_import_copy_callable_mail_recovery_smoke.js",
     "node qa/v1600_incident_mail_pipeline_health_smoke.js",
     "node qa/v1601_transient_performance_diagnostics_smoke.js",
-    "node qa/v1602_nonblocking_health_design_polish_smoke.js"
+    "node qa/v1602_nonblocking_health_design_polish_smoke.js",
+    "node qa/v1603_health_acknowledgement_settings_summary_smoke.js",
+    "node qa/v1604_incident_callable_csp_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "nonblocking-health-status-design-polish",
-    "assetVersion": "1.6.2-nonblocking-health-status-design-polish",
-    "cacheName": "foxbear-shell-v1.6.2-nonblocking-health-status-design-polish",
-    "bootRevision": "boot-sri-v1602",
-    "updateSafetyRevision": "update-safety-v1602",
-    "serviceWorkerRevision": "sw-v1602"
+    "buildId": "incident-callable-csp-recovery",
+    "assetVersion": "1.6.4-incident-callable-csp-recovery",
+    "cacheName": "foxbear-shell-v1.6.4-incident-callable-csp-recovery",
+    "bootRevision": "boot-sri-v1604",
+    "updateSafetyRevision": "update-safety-v1604",
+    "serviceWorkerRevision": "sw-v1604"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

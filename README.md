@@ -1,3 +1,28 @@
+# FoxBear AI Mastering Studio Pro v1.6.4
+
+현재 릴리스는 실제 메일 테스트를 막을 수 있던 Firebase Callable CSP 누락을 수정하고, Hosting CSP·Firestore 규칙·Functions를 `npm run deploy:incident` 한 번으로 함께 배포합니다. 메일 테스트 실패 시 배포 누락·CSP/네트워크 차단·인증·권한·서버 내부 오류를 구분해 코드와 복구 안내를 표시합니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1604_incident_callable_csp_recovery_smoke.js`
+- 오류 신고 전체 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 327개.
+
+# FoxBear AI Mastering Studio Pro v1.6.3
+
+현재 릴리스는 성능 상태를 두 번 연속 확인한 뒤에만 설정에 표시하고, 설정 안에서 정상·주의·위험과 현재 원인을 바로 확인할 수 있게 합니다. 동일한 위험 안내를 닫으면 30분 동안 반복하지 않으며, 토스트와 성능 안내가 모바일 화면에서 겹치지 않도록 위치를 자동 조정합니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1603_health_acknowledgement_settings_summary_smoke.js`
+- 설정된 정적·회귀 검사: 326개.
+
 # FoxBear AI Mastering Studio Pro v1.6.2
 
 현재 릴리스는 정상적인 불러오기·분석·마스터링 작업을 성능 오류와 구분하고, 실제 위험이 연속 확인될 때만 설정 아이콘의 작은 배지와 비차단형 안내를 표시합니다. 상태가 정상화되면 안내와 배지가 자동으로 사라지며 진단 팝업은 사용자가 직접 열 때만 표시됩니다.

@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.6.2 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.6.4 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -154,7 +154,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.6.2-nonblocking-health-status-design-polish',
+            version: '1.6.4-incident-callable-csp-recovery',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -482,7 +482,7 @@
         }
 
         return Object.freeze({
-            version: '1.6.2-bulk-pause-skip-reorder-summary',
+            version: '1.6.4-bulk-pause-skip-reorder-summary',
             runBatch,
             cancelActiveBatch,
             pauseActiveBatch,
@@ -494,7 +494,7 @@
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.6.2-nonblocking-health-status-design-polish',
+        version: '1.6.4-incident-callable-csp-recovery',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner

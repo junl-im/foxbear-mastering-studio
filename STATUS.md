@@ -1,3 +1,31 @@
+# FoxBear Status - v1.6.4
+
+## v1.6.4 current focus
+
+- Firebase Callable requests are allowed by both deployed and meta Content Security Policies.
+- Incident deployment updates Hosting CSP, Firestore rules/indexes, and Functions in one command.
+- Mail test errors expose the failing transport category, endpoint, code, and recovery action.
+- Server status schema v2 reports the canonical Functions origin.
+- Configured static/regression target: 327 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+# FoxBear Status - v1.6.3
+
+## v1.6.3 current focus
+
+- Settings exposes normal, watch, or danger with the current performance reason.
+- Watch and danger indicators require two consecutive samples to prevent transient flicker.
+- Repeated identical danger notices are suppressed for 30 minutes after acknowledgement, including after reload.
+- Toast and health-notice overlays reserve separate mobile space.
+- Configured static/regression target: 326 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.6.2
 
 ## v1.6.2 current focus
@@ -404,10 +432,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.6.2`
-- Build ID: `nonblocking-health-status-design-polish`
-- Asset version: `1.6.2-nonblocking-health-status-design-polish`
-- Service worker cache: `foxbear-shell-v1.6.2-nonblocking-health-status-design-polish`
+- Product version: `1.6.4`
+- Build ID: `incident-callable-csp-recovery`
+- Asset version: `1.6.4-incident-callable-csp-recovery`
+- Service worker cache: `foxbear-shell-v1.6.4-incident-callable-csp-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -439,10 +467,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.2`
-- Build ID: `nonblocking-health-status-design-polish`
-- Asset version: `1.6.2-nonblocking-health-status-design-polish`
-- Service worker cache: `foxbear-shell-v1.6.2-nonblocking-health-status-design-polish`
+- Product version: `1.6.4`
+- Build ID: `incident-callable-csp-recovery`
+- Asset version: `1.6.4-incident-callable-csp-recovery`
+- Service worker cache: `foxbear-shell-v1.6.4-incident-callable-csp-recovery`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

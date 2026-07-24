@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.2 (nonblocking-health-status-design-polish).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.4 (incident-callable-csp-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.2"
+  "version": "1.6.4"
 }

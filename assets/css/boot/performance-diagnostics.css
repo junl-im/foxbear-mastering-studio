@@ -195,7 +195,7 @@ body.foxbear-modal-layer-open { overscroll-behavior: none; }
 @media (max-width: 520px) { .foxbear-perf-worker-header { align-items: flex-start; flex-direction: column; gap: 3px; } .foxbear-perf-worker-meta { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } }
 
 
-/* v1.6.2 non-blocking ambient health status and compact normal-state design */
+/* v1.6.3 acknowledged ambient health status and overlay stack coordination */
 .mobile-native-quick-toggle { position: relative; }
 .performance-health-badge {
     position: absolute;
@@ -224,7 +224,7 @@ body.foxbear-modal-layer-open { overscroll-behavior: none; }
 .foxbear-health-notice {
     position: fixed;
     right: max(12px, env(safe-area-inset-right, 0px) + 12px);
-    bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 14px);
+    bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + var(--foxbear-health-toast-offset, 0px) + 14px);
     z-index: 1390;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto auto;
@@ -282,7 +282,7 @@ body.foxbear-modal-layer-open { overscroll-behavior: none; }
     .foxbear-health-notice {
         left: 8px;
         right: 8px;
-        bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + 8px);
+        bottom: calc(var(--bottom-preview-height, 0px) + env(safe-area-inset-bottom, 0px) + var(--foxbear-health-toast-offset, 0px) + 8px);
         width: auto;
         grid-template-columns: auto minmax(0, 1fr) auto;
     }

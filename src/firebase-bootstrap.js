@@ -37,6 +37,7 @@ const FIREBASE_CONFIG = Object.freeze({
     messagingSenderId: '52981410353',
     appId: '1:52981410353:web:c9c700a8e55672a999c310'
 });
+const FIREBASE_FUNCTIONS_ORIGIN = `https://${FIREBASE_FUNCTIONS_REGION}-${FIREBASE_CONFIG.projectId}.cloudfunctions.net`;
 const APP_CHECK_SITE_KEY = String(
     window.FOXBEAR_APP_CHECK_SITE_KEY
     || document.querySelector('meta[name="foxbear-app-check-site-key"]')?.content
@@ -133,6 +134,7 @@ function makePublicBridge(extra = {}) {
         storageEnabled: false,
         storageReason: bridgeState.storageReason,
         incidentTransport: bridgeState.functions ? 'callable-primary' : 'firestore-fallback',
+        incidentFunctionsOrigin: FIREBASE_FUNCTIONS_ORIGIN,
         appCheck: Object.freeze({
             configured: bridgeState.appCheckConfigured,
             ready: bridgeState.appCheckReady,
@@ -364,15 +366,37 @@ function callableErrorMessage(error) {
     return limitText(error?.message || error || 'Callable request failed', 240);
 }
 
+function normalizeIncidentCallableError(error, name) {
+    const originalCode = callableErrorCode(error);
+    const originalMessage = callableErrorMessage(error);
+    const evidence = `${originalCode} ${originalMessage}`;
+    const networkBlocked = /failed to fetch|networkerror|network request failed|load failed|content security policy|refused to connect|csp/i.test(evidence);
+    const internalTransport = originalCode === 'functions/internal' && /^(internal|unknown)$/i.test(originalMessage.trim());
+    if (!networkBlocked && !internalTransport) return error;
+    const wrapped = new Error(`Firebase Callable 연결에 실패했습니다. Hosting CSP, 네트워크, Functions 배포 상태를 확인하세요. endpoint=${FIREBASE_FUNCTIONS_ORIGIN}/${name}; cause=${originalCode}: ${originalMessage}`);
+    wrapped.code = 'FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED';
+    wrapped.originalCode = originalCode;
+    wrapped.functionName = name;
+    wrapped.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
+    wrapped.cause = error;
+    return wrapped;
+}
+
 async function invokeIncidentCallable(name, data) {
     if (!bridgeState.functions || typeof httpsCallable !== 'function') {
-        const error = new Error('Firebase Functions 신고 API가 초기화되지 않았습니다.');
+        const error = new Error(`Firebase Functions 신고 API가 초기화되지 않았습니다. endpoint=${FIREBASE_FUNCTIONS_ORIGIN}/${name}`);
         error.code = 'FOXBEAR_INCIDENT_CALLABLE_UNAVAILABLE';
+        error.functionName = name;
+        error.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
         throw error;
     }
-    const callable = httpsCallable(bridgeState.functions, name, { timeout: 15000 });
-    const response = await callable(data);
-    return response?.data || {};
+    try {
+        const callable = httpsCallable(bridgeState.functions, name, { timeout: 15000 });
+        const response = await callable(data);
+        return response?.data || {};
+    } catch (error) {
+        throw normalizeIncidentCallableError(error, name);
+    }
 }
 
 function normalizeIncidentServiceStatus(value = {}) {
@@ -385,6 +409,7 @@ function normalizeIncidentServiceStatus(value = {}) {
         productVersion: limitText(value.productVersion || '', 24),
         serviceSchemaVersion: safeIncidentNumber(value.serviceSchemaVersion, 0, 99),
         region: limitText(value.region || FIREBASE_FUNCTIONS_REGION, 40),
+        functionsOrigin: limitText(value.functionsOrigin || FIREBASE_FUNCTIONS_ORIGIN, 180),
         status: limitText(value.status || 'unknown', 20),
         transport: limitText(value.transport || 'callable', 30),
         mailTrigger: limitText(value.mailTrigger || '', 80),
