@@ -1,3 +1,13 @@
+# FoxBear QA Report - v1.5.95
+
+- Rewrote the version/about dialog as a concise product overview covering smart analysis, quality protection, A/B preview, batch workflow, export support, and local audio privacy.
+- Moved incident reporting and memory/performance diagnostics into dedicated settings actions and dialogs.
+- Reduced the shared close control to a compact 32px circle with a 10px glyph and added a generic role-dialog backdrop fallback while preserving in-flight action safety.
+- Fixed first-use incident mail testing by creating the deterministic Firestore report before any owner-only duplicate read.
+- Added single-flight mail testing, ARIA busy state, and actionable permission diagnostics.
+- Added regression coverage for settings discoverability, popup dismissal, close geometry, and create-first incident persistence.
+- Configured static/regression target: 316 checks before installed-browser confirmation.
+
 # FoxBear QA Report - v1.5.94
 
 - Audited the v1.5.93 decode and Worker lifecycle paths plus release-report handoff persistence.

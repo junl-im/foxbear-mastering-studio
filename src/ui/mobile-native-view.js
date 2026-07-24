@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.94 - header-mounted settings view builder
+// FoxBear AI Mastering Studio Pro v1.5.95 - header-mounted settings and support entry view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {
@@ -154,6 +154,8 @@
             ['persist', '🛡️', '저장보호'],
             ['auto-cache-clean', '🧹', '캐시자동정리'],
             ['smart-performance', '🧠', '성능가드'],
+            ['incident-reporting', '📨', '오류 자동신고', { actionOnly: true, stateLabel: '설정' }],
+            ['performance-diagnostics', '📊', '메모리 성능진단', { actionOnly: true, stateLabel: '열기' }],
             ['clear-cache', '🗑️', '분석캐시정리', { actionOnly: true }],
             ['reset-settings', '↩️', '설정초기화', { actionOnly: true, stateLabel: '초기화' }],
             ['restore', '♻️', '재생복구', { actionOnly: true }]

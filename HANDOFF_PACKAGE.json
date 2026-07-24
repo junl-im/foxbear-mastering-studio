@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.94",
-  "buildId": "aiff-fallback-worker-diagnostics-reporting-contract",
+  "productVersion": "1.5.95",
+  "buildId": "popup-settings-mail-test-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

@@ -18,25 +18,28 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const mobileNative = read('src/ui/mobile-native-view.js');
 
-assert.strictEqual(pkg.version, '1.5.94');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract');
-assert(index.includes('assets/css/components/modal-close-system.css?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract'));
-assert(sw.includes('./assets/css/components/modal-close-system.css?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract'));
+assert(/^1\.5\.\d+$/.test(pkg.version), 'current package version must remain a v1.5 patch');
+const assetVersion = pkg.foxbearRelease.assetVersion;
+assert(assetVersion.startsWith(`${pkg.version}-`), 'asset version must match the package version');
+assert(index.includes(`assets/css/components/modal-close-system.css?v=${assetVersion}`));
+assert(sw.includes(`./assets/css/components/modal-close-system.css?v=${assetVersion}`));
 assert(index.indexOf('assets/css/components/modal-close-system.css') > index.indexOf('assets/css/header-command-bar.css'), 'modal close ownership stylesheet must load last');
 
-for (const id of ['programInfoClose', 'featureDialogClose', 'previewDialogClose', 'adminStatsClose']) {
+for (const id of ['programInfoClose', 'incidentReportingClose', 'featureDialogClose', 'previewDialogClose', 'adminStatsClose']) {
   const pattern = new RegExp(`id="${id}"[^>]+class="[^"]*foxbear-modal-close`);
   assert(pattern.test(index), `${id} must use the shared modal close class`);
 }
 
 for (const token of [
-  '--foxbear-modal-close-size: 38px',
+  '--foxbear-modal-close-size: 32px',
   'position: absolute !important',
   'place-items: center !important',
   '.foxbear-modal-close::before',
   '.foxbear-modal-close::after',
   '.foxbear-modal-close:focus-visible',
-  '--foxbear-modal-close-size: 36px'
+  '--foxbear-modal-close-offset: 12px',
+  '--foxbear-modal-close-line: 10px',
+  'overflow: hidden !important'
 ]) assert(css.includes(token), `shared close CSS missing ${token}`);
 
 for (const source of [downloadDialog, downloadService, app, mobileNative]) {
@@ -46,8 +49,12 @@ assert(app.includes("close.className = 'select-popup-close foxbear-modal-close'"
 assert(app.includes("event.stopImmediatePropagation();") && app.includes('closeAiRecommendationDialog(backdrop);'), 'AI recommendation dialog must own Escape dismissal');
 assert(downloadDialog.includes("event.key !== 'Escape' || actionInFlight") && downloadDialog.includes('closeDownloadOptionsDialog(backdrop);'), 'download dialog must support safe Escape close');
 assert(downloadService.includes("event.key !== 'Escape'") && downloadService.includes('closePanel();'), 'download assist must support Escape');
+assert(downloadService.includes("document.addEventListener('pointerdown'") && downloadService.includes('panel.contains(event.target)'), 'download assist must support outside-click dismissal');
+assert(app.includes('event.target === el.incidentReportingDialog') && app.includes('closeIncidentReportingDialog'), 'incident settings must close from its backdrop');
+assert(app.includes("document.addEventListener('pointerdown'") && app.includes('toggleMobileNativePanel(false)'), 'settings panel must close from outside interaction');
 assert(app.includes('__foxbearReturnFocus') && downloadDialog.includes('__foxbearReturnFocus'), 'dynamic modal focus return must be preserved');
 assert(modalController.includes("button.classList.add('foxbear-modal-close')"), 'registered modal closers must be normalized automatically');
+assert(modalController.includes('closeGenericBackdrop(target, event)'), 'unregistered role-dialog backdrops must use the shared outside-click fallback');
 assert(modalController.includes('.select-popup-backdrop.show') && modalController.includes('#downloadAssist.show'), 'managed modal Escape must defer to the top runtime popup');
 
 console.log('PASS v1.5.57 modal close consistency smoke');

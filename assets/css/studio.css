@@ -8189,14 +8189,14 @@ input[type="file"].hidden.native-picker-input {
 
 /* v1.3.69 Dock/import init cleanup */
 .import-status {
-    margin: 8px 2px 0;
-    padding: 8px 10px;
+    margin: 6px 2px 0;
+    padding: 6px 8px;
     border-radius: 12px;
     border: 1px solid rgba(255,255,255,.08);
     background: rgba(255,255,255,.035);
     color: rgba(224,238,255,.72);
-    font-size: .66rem;
-    font-weight: 750;
+    font-size: .62rem;
+    font-weight: 720;
     line-height: 1.42;
 }
 .import-status[data-tone="active"] {

@@ -30,7 +30,7 @@ function createSandbox(url = 'https://example.test/index.html?foxbearExternal=1'
     history: { state: null, replaceState: (...args) => historyCalls.push(args) },
     btoa: value => Buffer.from(value, 'binary').toString('base64'),
     atob: value => Buffer.from(value, 'base64').toString('binary'),
-    FoxBearBuildInfo: { assetVersion: '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract' }
+    FoxBearBuildInfo: { assetVersion: '1.5.95-popup-settings-mail-test-recovery' }
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;
@@ -114,7 +114,7 @@ assert(app.includes("actions.append(makeMiniButton('외부 브라우저 복구'"
 assert(app.includes('FoxBearMasteringMemoryDiagnostics?.markStage'));
 assert(read('src/audio/mastering-memory-diagnostics-service.js').includes('function capture('));
 assert(download.includes('FoxBearSessionHandoff?.attachToUrl'));
-assert(index.includes('id="performanceDiagnosticsOpen"'));
+assert(read('src/ui/mobile-native-view.js').includes("['performance-diagnostics', '📊', '메모리 성능진단'"));
 assert(index.includes('src/boot/session-handoff-service.js'));
 assert(index.includes('src/audio/mastering-memory-diagnostics-service.js'));
 

@@ -1,3 +1,17 @@
+# FoxBear AI Mastering Studio Pro v1.5.95
+
+## v1.5.95 Product introduction, support settings, and popup consistency
+
+The version popup now explains the real product workflow and local-audio privacy in plain language. Incident reporting and memory diagnostics are available from the settings menu, close controls and outside-click dismissal are normalized across popup types, and the first real incident mail test no longer pre-reads a missing owner-only Firestore document.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- Run the full static/regression suite: `npm run check:static`
+- Run the new regression: `node qa/v1595_popup_settings_mail_test_recovery_smoke.js`
+- Configured static/regression checks: 316.
+
 # FoxBear AI Mastering Studio Pro v1.5.94
 
 ## v1.5.94 AIFF fallback safety and Worker failure diagnostics

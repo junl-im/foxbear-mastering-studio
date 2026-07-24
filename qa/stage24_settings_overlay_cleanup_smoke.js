@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
+const version = '1.5.95-popup-settings-mail-test-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

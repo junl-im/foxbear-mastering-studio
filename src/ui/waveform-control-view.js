@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
+  const VIEW_VERSION = '1.5.95-popup-settings-mail-test-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

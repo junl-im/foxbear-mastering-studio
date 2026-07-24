@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.94 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.95 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -21,7 +21,7 @@ const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetySer
 const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.94';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.95';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1594'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.95-popup-settings-mail-test-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1595'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -522,7 +522,7 @@ function cacheElements() {
         'bulkImportHud', 'bulkImportHudTitle', 'bulkImportHudText', 'bulkImportHudPercent', 'bulkImportHudBar', 'bulkImportHudList', 'bulkImportHudToggle', 'bulkImportHudClose', 'bulkImportHudMasterAll', 'bulkImportHudRestore',
         'aiApplyBtn', 'masterPreviewBtn', 'masterSelectedBtn', 'masterAllBtn', 'zipBtn', 'individualExportBtn', 'clearBtn', 'trackList', 'queuePreview', 'trackDetail',
         'detailStatus', 'queueCount', 'statTracks', 'statDone', 'statSize', 'statState', 'selectedBadge',
-        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'performanceDiagnosticsOpen', 'performanceDiagnosticsStatus', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'genreLockBtn', 'clearCacheBtn',
+        'albumStatus', 'toast', 'featureTooltip', 'programInfoBtn', 'programInfoDialog', 'programInfoClose', 'incidentReportingDialog', 'incidentReportingClose', 'masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect', 'performanceModeSelect', 'outputFormatSelect', 'targetLufsSelect', 'ceilingSelect', 'qualityModeSelect', 'pitchEngineSelect', 'genreLockBtn', 'clearCacheBtn',
         'snapshotSaveBtn', 'snapshotUndoBtn', 'snapshotRedoBtn', 'snapshotAiBtn', 'snapshotOriginalBtn', 'snapshotClearBtn', 'snapshotStatus', 'snapshotHistory', 'globalDiffMeter', 'subscribeNudge', 'subscribeNudgeAction', 'subscribeNudgeClose'
     ];
     ids.forEach(id => { el[id] = document.getElementById(id); });
@@ -732,6 +732,23 @@ function closeProgramInfoDialog() {
     el.programInfoDialog.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('program-info-open');
     if (el.programInfoBtn) el.programInfoBtn.focus({ preventScroll: true });
+}
+function openIncidentReportingDialog() {
+    if (!el.incidentReportingDialog) return false;
+    toggleMobileNativePanel(false);
+    hardSetModalState(el.incidentReportingDialog, true, 'incident-reporting-open');
+    window.FoxBearIncidentReporter?.bindControls?.();
+    const panel = el.incidentReportingDialog.querySelector('.support-settings-panel');
+    if (panel) panel.focus({ preventScroll: true });
+    return true;
+}
+function closeIncidentReportingDialog(options = {}) {
+    if (!el.incidentReportingDialog) return false;
+    hardSetModalState(el.incidentReportingDialog, false, 'incident-reporting-open');
+    if (options.restoreFocus !== false && el.mobileNativeQuickToggle) {
+        try { el.mobileNativeQuickToggle.focus({ preventScroll: true }); } catch (error) {}
+    }
+    return true;
 }
 function openFeatureDialog(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
@@ -2350,6 +2367,8 @@ function initExternalBrowserHandoff() {
 }
 function openPerformanceDiagnosticsPanel() {
     closeProgramInfoDialog();
+    closeIncidentReportingDialog({ restoreFocus: false });
+    toggleMobileNativePanel(false);
     window.FoxBearPerformanceDiagnostics?.setPanelVisible?.(true);
 }
 function persistRuntimeSettings() {
@@ -2405,6 +2424,19 @@ function bindMobileNativeEvents() {
             if (!actionButton) return;
             handleMobileNativeAction(actionButton.dataset.nativeAction);
         });
+    }
+    const mobile = ensureMobileNativeState();
+    if (!mobile.outsideDismissInstalled) {
+        mobile.outsideDismissInstalled = true;
+        document.addEventListener('pointerdown', event => {
+            if (!mobile.quickPanelOpen) return;
+            const target = event.target;
+            if (el.mobileNativePanel?.contains(target) || el.mobileNativeQuickToggle?.contains(target)) return;
+            toggleMobileNativePanel(false);
+        }, true);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && mobile.quickPanelOpen) toggleMobileNativePanel(false);
+        }, true);
     }
     installDockGestureLayer();
 }
@@ -2502,6 +2534,14 @@ function handleMobileNativeAction(action) {
         case 'smart-performance':
             toggleUtilityFeature('smartPerformanceGuard');
             return;
+        case 'incident-reporting':
+            toggleMobileNativePanel(false);
+            requestAnimationFrame(() => openIncidentReportingDialog());
+            return;
+        case 'performance-diagnostics':
+            toggleMobileNativePanel(false);
+            requestAnimationFrame(() => openPerformanceDiagnosticsPanel());
+            return;
     }
 }
 function updateMobileNativeUi() {
@@ -2530,6 +2570,8 @@ function updateMobileNativeUi() {
         setMobileNativeSettingState('smart-performance', Boolean(state.smartPerformanceGuard));
         setMobileNativeActionState('install', mobile.installed ? 'ON' : '추가', mobile.installed);
         setMobileNativeActionState('external-browser', '열기', false);
+        setMobileNativeActionState('incident-reporting', window.FoxBearIncidentReporter?.getStatus?.().enabled === false ? '꺼짐' : '설정', window.FoxBearIncidentReporter?.getStatus?.().enabled !== false);
+        setMobileNativeActionState('performance-diagnostics', '열기', false);
         setMobileNativeActionState('clear-cache', '실행', false);
         setMobileNativeActionState('reset-settings', '초기화', false);
         setMobileNativeActionState('restore', playing ? '실행' : '대기', playing);
@@ -3084,7 +3126,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract') · navigator.serviceWorker.register('./sw.js?v=1.5.94-aiff-fallback-worker-diagnostics-reporting-contract&h=sw-v1594')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.95-popup-settings-mail-test-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.95-popup-settings-mail-test-recovery&h=sw-v1595')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3403,10 +3445,15 @@ function bindEvents() {
     installManagedModalController();
     if (el.programInfoBtn) el.programInfoBtn.addEventListener('click', openProgramInfoDialog);
     if (el.programInfoClose) el.programInfoClose.addEventListener('click', closeProgramInfoDialog);
-    if (el.performanceDiagnosticsOpen) el.performanceDiagnosticsOpen.addEventListener('click', openPerformanceDiagnosticsPanel);
+    if (el.incidentReportingClose) el.incidentReportingClose.addEventListener('click', () => closeIncidentReportingDialog());
     if (el.programInfoDialog) {
         el.programInfoDialog.addEventListener('click', event => {
             if (event.target === el.programInfoDialog) closeProgramInfoDialog();
+        });
+    }
+    if (el.incidentReportingDialog) {
+        el.incidentReportingDialog.addEventListener('click', event => {
+            if (event.target === el.incidentReportingDialog) closeIncidentReportingDialog({ restoreFocus: false });
         });
     }
     installDockRemoteDelegation();
@@ -3426,6 +3473,7 @@ function bindEvents() {
     if (el.snapshotClearBtn) el.snapshotClearBtn.addEventListener('click', clearSnapshotsForSelected);
     window.addEventListener('keydown', event => {
         if (event.key === 'Escape' && el.programInfoDialog?.classList.contains('show')) closeProgramInfoDialog();
+        if (event.key === 'Escape' && el.incidentReportingDialog?.classList.contains('show')) closeIncidentReportingDialog({ restoreFocus: false });
         if (event.key === 'Escape' && el.featureDialog?.classList.contains('show')) closeFeatureDialog({ restoreFocus: false });
         if (event.key === 'Escape' && el.previewDialog?.classList.contains('show')) closePreviewDialog(event, { restoreFocus: false });
         if (event.key === 'Escape' && el.adminStatsDialog?.classList.contains('show')) closeAdminStatsDialog();
@@ -3909,7 +3957,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.95-popup-settings-mail-test-recovery', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4223,7 +4271,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract',
+        version: '1.5.95-popup-settings-mail-test-recovery',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4264,10 +4312,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract',
+    version: '1.5.95-popup-settings-mail-test-recovery',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.95-popup-settings-mail-test-recovery', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4292,12 +4340,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.94-aiff-fallback-worker-diagnostics-reporting-contract', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.95-popup-settings-mail-test-recovery', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.94-aiff-fallback-worker-diagnostics-reporting-contract', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.95-popup-settings-mail-test-recovery', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4312,12 +4360,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.94-aiff-fallback-worker-diagnostics-reporting-contract',
+    version: 'v1.5.95-popup-settings-mail-test-recovery',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.94-aiff-fallback-worker-diagnostics-reporting-contract', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.95-popup-settings-mail-test-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5443,7 +5491,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.94-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.5.95-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -9955,7 +10003,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.94-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.5.95-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13027,7 +13075,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.94',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.95',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

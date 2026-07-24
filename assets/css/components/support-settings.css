@@ -1,0 +1,36 @@
+/* FoxBear v1.5.95 program information and support settings dialogs. */
+
+.program-info-panel-compact { width: min(650px, 100%); padding: 24px; }
+.program-info-lead { max-width: 60ch; }
+.program-info-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 16px 0; }
+.program-info-summary > div { display: grid; align-content: start; gap: 4px; padding: 12px 13px; border: 1px solid rgba(255,255,255,.10); border-radius: 15px; background: rgba(255,255,255,.04); }
+.program-info-summary strong { color: #f6f3ff; font-size: .8rem; }
+.program-info-summary span { color: var(--muted); font-size: .75rem; line-height: 1.52; }
+.program-info-privacy { margin-top: 0 !important; padding: 10px 11px; border-radius: 13px; background: rgba(109,224,255,.065); color: rgba(225,249,255,.88) !important; font-size: .72rem !important; }
+.program-info-note { margin-top: 9px !important; font-size: .7rem !important; }
+.support-settings-backdrop { position: fixed; inset: 0; z-index: 166; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(2,4,10,.76); backdrop-filter: blur(14px); }
+.support-settings-backdrop.show:not([hidden]) { display: flex; }
+.support-settings-backdrop[hidden], .support-settings-backdrop:not(.show) { display: none !important; pointer-events: none !important; }
+body.incident-reporting-open { overflow: hidden; }
+.support-settings-panel { position: relative; width: min(520px, 100%); max-height: min(82dvh, 680px); overflow: auto; padding: 22px; border: 1px solid rgba(255,255,255,.14); border-radius: 24px; background: radial-gradient(circle at 10% 0%, rgba(109,224,255,.14), transparent 34%), linear-gradient(145deg, rgba(25,28,45,.99), rgba(13,16,29,.99)); box-shadow: 0 28px 90px rgba(0,0,0,.55); }
+.support-settings-eyebrow { display: inline-flex; margin-right: calc(var(--foxbear-modal-close-size) + 12px); padding: 5px 9px; border: 1px solid rgba(109,224,255,.24); border-radius: 999px; color: #dff9ff; background: rgba(109,224,255,.10); font-size: .68rem; font-weight: 900; }
+.support-settings-panel h2 { margin: 12px 0 8px; font-size: clamp(1.35rem, 4vw, 1.9rem); line-height: 1.08; }
+.support-settings-panel > p { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.58; }
+.support-settings-card { display: grid; gap: 4px; margin: 15px 0 10px; padding: 12px; border: 1px solid rgba(255,255,255,.10); border-radius: 15px; background: rgba(255,255,255,.045); }
+.support-settings-card strong { font-size: .8rem; }
+.support-settings-card span { color: var(--muted); font-size: .76rem; line-height: 1.5; }
+.support-settings-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.support-settings-status { display: block; margin-top: 10px; padding: 10px 11px; border-radius: 12px; background: rgba(255,255,255,.045); color: var(--muted); font-size: .75rem; line-height: 1.45; }
+.support-settings-status[data-tone='ok'] { color: #baf7df; background: rgba(52,211,153,.08); }
+.support-settings-status[data-tone='error'] { color: #ffd0d0; background: rgba(248,113,113,.09); }
+.support-settings-guidance { margin-top: 9px !important; font-size: .72rem !important; }
+@media (max-width: 640px) {
+  .program-info-panel-compact { padding: 20px 15px 17px; }
+  .program-info-summary { grid-template-columns: 1fr; gap: 7px; }
+  .program-info-summary > div { padding: 10px 11px; }
+}
+@media (max-width: 560px) {
+  .support-settings-backdrop { padding: 10px; }
+  .support-settings-panel { padding: 18px 14px 16px; border-radius: 20px; }
+  .support-settings-actions { grid-template-columns: 1fr; }
+}

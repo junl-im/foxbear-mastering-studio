@@ -1,3 +1,13 @@
+# v1.5.95 - Compact Support Settings, Popup Consistency, and Mail-Test Permission Recovery
+
+- Rewrites the version/about popup as a concise explanation of smart analysis, quality protection, A/B preview, batch workflow, export support, and local audio privacy; also shortens the initial supported-format notice.
+- Moves incident reporting and memory/performance diagnostics into dedicated settings entries and dialogs.
+- Refines the shared circular close button to a compact 32px geometry, reserves a consistent header lane, and adds a generic role-dialog backdrop dismissal fallback across popup types.
+- Adds outside-click dismissal to the settings panel, performance diagnostics, and download assist while preserving in-flight action safety.
+- Fixes the first real incident mail test by removing the owner-only Firestore pre-read of a document that does not yet exist.
+- Adds single-flight mail testing, busy ARIA state, and actionable Firebase permission diagnostics.
+- Adds regression coverage for popup dismissal, close-control geometry, support settings discoverability, and incident create-first behavior.
+
 # v1.5.94 - AIFF Fallback Safety, Worker Failure Diagnostics, and Reporting Contract
 
 - Prevents cancellation and decode-timeout errors from entering the synchronous AIFF PCM fallback.

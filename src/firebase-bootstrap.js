@@ -357,8 +357,10 @@ async function logIncident(payload = {}) {
     const incident = normalizeIncidentPayload(payload);
     const reportId = incidentDocumentId(user.uid, incident);
     const reportRef = doc(bridgeState.db, 'incidentReports', reportId);
-    const existing = await getDoc(reportRef);
-    if (existing.exists()) return { queued: true, deduplicated: true, reportId };
+    // Do not pre-read a deterministic ID before create. Firestore cannot evaluate
+    // owner-only read rules for a document that does not exist, which surfaced as
+    // permission-denied during the first real mail test. Create first, then read
+    // only inside the duplicate/update-denied recovery path where the document exists.
     try {
         await setDoc(reportRef, {
             ...incident,

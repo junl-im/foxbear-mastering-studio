@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.5.94
+// FoxBear audio decode service - v1.5.95
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
+    const SERVICE_VERSION = '1.5.95-popup-settings-mail-test-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

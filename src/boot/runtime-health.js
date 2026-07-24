@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
+    const FALLBACK_VERSION = '1.5.95-popup-settings-mail-test-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

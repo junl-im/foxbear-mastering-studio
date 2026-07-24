@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.94 (aiff-fallback-worker-diagnostics-reporting-contract).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.95 (popup-settings-mail-test-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.94"
+  "version": "1.5.95"
 }

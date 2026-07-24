@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.94
+// FoxBear automatic incident reporter - v1.5.95
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.95-popup-settings-mail-test-recovery';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -32,7 +32,8 @@
         lastFingerprint: '',
         lastDeliveredAt: 0,
         recent: new Map(),
-        flushing: false
+        flushing: false,
+        testInFlight: false
     };
 
     function storageGet(key, fallback = '') {
@@ -395,8 +396,14 @@
             toggle.textContent = current.enabled ? '자동 신고 켜짐' : '자동 신고 꺼짐';
             toggle.setAttribute('aria-pressed', current.enabled ? 'true' : 'false');
         }
-        if (testButton) testButton.disabled = !current.enabled;
-        if (status) status.textContent = message || `대기 ${current.queued}건 · 오늘 자동 제출 ${current.dailyCount}/${MAX_AUTOMATIC_PER_DAY}`;
+        if (testButton) {
+            testButton.disabled = !current.enabled || state.testInFlight;
+            testButton.setAttribute('aria-busy', state.testInFlight ? 'true' : 'false');
+        }
+        if (status) {
+            status.textContent = message || `대기 ${current.queued}건 · 오늘 자동 제출 ${current.dailyCount}/${MAX_AUTOMATIC_PER_DAY}`;
+            status.dataset.tone = /완료|켜짐|대기 0건/.test(status.textContent) ? 'ok' : (/오류|실패|권한|중단/.test(status.textContent) ? 'error' : 'neutral');
+        }
     }
 
     function bindControls() {
@@ -413,34 +420,47 @@
         if (testButton && !testButton.dataset.bound) {
             testButton.dataset.bound = 'true';
             testButton.addEventListener('click', async () => {
-                testButton.disabled = true;
+                if (state.testInFlight) return;
+                state.testInFlight = true;
                 renderControls('실제 테스트 메일을 발송하고 Gmail SMTP 접수 상태를 확인 중입니다…');
-                const result = await test();
-                const status = result?.delivery?.status || (result?.ok ? 'submitted' : result?.code || 'failed');
-                const messages = {
-                    emailed: 'Gmail SMTP 접수 완료: 받은편지함과 스팸함을 확인하세요.',
-                    pending: '신고는 저장됐지만 45초 안에 메일 함수 완료를 확인하지 못했습니다.',
-                    submitted: '신고 저장 완료. 메일 함수 배포 상태를 확인하세요.',
-                    'status-check-failed': '신고 저장 후 메일 상태 조회에 실패했습니다.',
-                    FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE: 'Firebase 연결이 준비되지 않아 테스트 신고를 로컬 대기열에 저장했습니다.',
-                    FOXBEAR_INCIDENT_FIREBASE_ERROR: 'Firebase 초기화 오류로 테스트 신고를 로컬 대기열에 저장했습니다.',
-                    'suppressed-duplicate': '동일 테스트가 중복 억제됐습니다.',
-                    'suppressed-rate-limit': '이전 버전의 일일 한도 상태입니다. 서버가 다음 KST 발송 구간에 자동 복구합니다.',
-                    failed: '메일 발송 함수가 실패했습니다. 자동 재시도 상태를 확인하세요.',
-                    'dead-letter': '메일 발송이 최대 재시도 횟수를 초과했습니다. 관리자 화면에서 강제 재전송하세요.'
-                };
-                const detail = cleanText(result?.delivery?.message || result?.delivery?.reason || result?.reason || '', 140);
-                const baseMessage = messages[status] || `테스트 결과: ${status}`;
-                if (status === 'emailed') {
-                    const subject = cleanText(result?.delivery?.subject || '', 120);
-                    const sender = cleanText(result?.delivery?.senderName || 'AI마스터링 스튜디오', 60);
-                    const acceptedAt = cleanText(result?.delivery?.smtpAcceptedAt || result?.delivery?.checkedAt || '', 40);
-                    const receipt = [sender, subject, acceptedAt ? `접수 ${acceptedAt}` : '', result?.delivery?.messageId ? `ID ${cleanText(result.delivery.messageId, 80)}` : ''].filter(Boolean).join(' · ');
-                    renderControls(`${baseMessage}${receipt ? ` · ${receipt}` : ''}`);
-                } else {
-                    renderControls(detail && status !== 'suppressed-duplicate' ? `${baseMessage} · ${detail}` : baseMessage);
+                let finalMessage = '메일 테스트를 완료하지 못했습니다.';
+                try {
+                    let result;
+                    try { result = await test(); }
+                    catch (error) { result = { ok: false, code: cleanText(error?.code || error?.name || 'failed', 80), reason: cleanText(error?.message || error, 180) }; }
+                    const rawStatus = result?.delivery?.status || (result?.ok ? 'submitted' : result?.code || 'failed');
+                    const failureCode = cleanText(result?.delivery?.code || result?.code || '', 80);
+                    const failureReason = cleanText(result?.delivery?.message || result?.delivery?.reason || result?.reason || '', 180);
+                    const permissionFailure = /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/i.test(`${rawStatus} ${failureCode} ${failureReason}`);
+                    const status = permissionFailure ? 'permission-denied' : rawStatus;
+                    const messages = {
+                        emailed: 'Gmail SMTP 접수 완료: 받은편지함과 스팸함을 확인하세요.',
+                        pending: '신고는 저장됐지만 45초 안에 메일 함수 완료를 확인하지 못했습니다.',
+                        submitted: '신고 저장 완료. 메일 함수 배포 상태를 확인하세요.',
+                        'status-check-failed': '신고 저장 후 메일 상태 조회에 실패했습니다.',
+                        'permission-denied': 'Firebase 권한 오류입니다. 익명 인증과 최신 Firestore 규칙·Functions 배포를 확인하세요. 신고는 로컬 대기열에 보관했습니다.',
+                        FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE: 'Firebase 연결이 준비되지 않아 테스트 신고를 로컬 대기열에 저장했습니다.',
+                        FOXBEAR_INCIDENT_FIREBASE_ERROR: 'Firebase 초기화 오류로 테스트 신고를 로컬 대기열에 저장했습니다.',
+                        'suppressed-duplicate': '동일 테스트가 중복 억제됐습니다.',
+                        'suppressed-rate-limit': '이전 버전의 일일 한도 상태입니다. 서버가 다음 KST 발송 구간에 자동 복구합니다.',
+                        failed: '메일 발송 함수가 실패했습니다. 자동 재시도 상태를 확인하세요.',
+                        'dead-letter': '메일 발송이 최대 재시도 횟수를 초과했습니다. 관리자 화면에서 강제 재전송하세요.'
+                    };
+                    const detail = cleanText(result?.delivery?.message || result?.delivery?.reason || result?.reason || '', 140);
+                    const baseMessage = messages[status] || `테스트 결과: ${status}`;
+                    if (status === 'emailed') {
+                        const subject = cleanText(result?.delivery?.subject || '', 120);
+                        const sender = cleanText(result?.delivery?.senderName || 'AI마스터링 스튜디오', 60);
+                        const acceptedAt = cleanText(result?.delivery?.smtpAcceptedAt || result?.delivery?.checkedAt || '', 40);
+                        const receipt = [sender, subject, acceptedAt ? `접수 ${acceptedAt}` : '', result?.delivery?.messageId ? `ID ${cleanText(result.delivery.messageId, 80)}` : ''].filter(Boolean).join(' · ');
+                        finalMessage = `${baseMessage}${receipt ? ` · ${receipt}` : ''}`;
+                    } else {
+                        finalMessage = detail && status !== 'suppressed-duplicate' ? `${baseMessage} · ${detail}` : baseMessage;
+                    }
+                } finally {
+                    state.testInFlight = false;
+                    renderControls(finalMessage);
                 }
-                testButton.disabled = !isEnabled();
             });
         }
         renderControls();
@@ -492,6 +512,8 @@
         isEnabled,
         setEnabled,
         getStatus,
+        bindControls,
+        renderControls,
         waitForDelivery,
         waitForFirebaseBridge
     });

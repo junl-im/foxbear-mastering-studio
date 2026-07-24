@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.4.0
+// FoxBear Modal State Machine Controller v1.5.95
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -146,6 +146,23 @@
             return null;
         }
 
+        isGenericBackdrop(target) {
+            if (!isElement(target) || target.getAttribute('role') !== 'dialog') return false;
+            if (target.dataset.foxbearBackdropClose === 'false') return false;
+            return Array.from(target.classList || []).some(name => /(?:backdrop|overlay|modal-layer)/i.test(name));
+        }
+
+        closeGenericBackdrop(target, event) {
+            if (!this.isGenericBackdrop(target)) return false;
+            const closeButton = target.querySelector(
+                '.foxbear-modal-close, [data-foxbear-modal-close], [data-modal-close], button[aria-label*="닫기"]'
+            );
+            if (!closeButton || closeButton.disabled || closeButton.getAttribute('aria-disabled') === 'true') return false;
+            stopEvent(event);
+            closeButton.click();
+            return true;
+        }
+
         handleClick(event) {
             const target = event.target;
             if (!target || typeof target.closest !== 'function') return;
@@ -164,6 +181,7 @@
                     return;
                 }
             }
+            this.closeGenericBackdrop(target, event);
         }
 
         handleKeydown(event) {

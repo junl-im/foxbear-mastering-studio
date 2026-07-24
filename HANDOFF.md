@@ -1,3 +1,24 @@
+# Handoff - v1.5.95
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.5.95 current focus
+
+- Keep the version/about popup focused on a clear product explanation: smart analysis, quality protection, A/B preview, batch workflow, safe export, and local audio privacy. Incident reporting and memory diagnostics belong in the header settings panel.
+- Every popup uses the compact shared close-control geometry and supports Escape plus outside-click dismissal. The modal controller provides a generic role-dialog backdrop fallback unless an in-flight destructive/export action explicitly opts out.
+- Incident report creation must happen before duplicate lookup so owner-only Firestore reads never target a missing document.
+- Real mail testing is single-flight, exposes `aria-busy`, and gives actionable permission diagnostics.
+- Regression: `node qa/v1595_popup_settings_mail_test_recovery_smoke.js`.
+- All future patch reports use only the persistent three-section contract above.
+
 # Handoff - v1.5.94
 
 # 필수 결과 보고 형식

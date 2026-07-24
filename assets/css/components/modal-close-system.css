@@ -1,10 +1,10 @@
-/* FoxBear v1.5.57 unified modal close control.
+/* FoxBear v1.5.95 unified modal close control.
    This file loads after legacy modal layers and owns the final close-button geometry. */
 
 :root {
-    --foxbear-modal-close-size: 38px;
+    --foxbear-modal-close-size: 32px;
     --foxbear-modal-close-offset: 12px;
-    --foxbear-modal-close-line: 14px;
+    --foxbear-modal-close-line: 10px;
     --foxbear-modal-close-surface: rgba(255,255,255,.075);
     --foxbear-modal-close-surface-hover: rgba(141,245,232,.16);
     --foxbear-modal-close-border: rgba(255,255,255,.17);
@@ -25,7 +25,8 @@
     min-height: var(--foxbear-modal-close-size) !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: visible !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
     border: 1px solid var(--foxbear-modal-close-border) !important;
     border-radius: 999px !important;
     color: var(--foxbear-modal-close-ink) !important;
@@ -98,7 +99,10 @@
 .ai-recommend-dialog-panel,
 .download-options-panel,
 .download-assist,
-.select-popup-panel {
+.select-popup-panel,
+.support-settings-panel,
+.foxbear-perf-panel,
+.mobile-native-panel {
     position: relative;
 }
 
@@ -107,12 +111,15 @@
 .ai-recommend-dialog-panel > .ai-recommend-eyebrow,
 .download-options-panel > .download-options-title,
 .download-assist > strong,
-.select-popup-panel > .select-popup-title {
+.select-popup-panel > .select-popup-title,
+.support-settings-panel > .support-settings-eyebrow {
     margin-right: calc(var(--foxbear-modal-close-size) + 12px) !important;
 }
 
 .feature-dialog-head,
-.preview-dialog-head {
+.preview-dialog-head,
+.mobile-native-panel-head,
+.foxbear-perf-panel-head {
     padding-right: calc(var(--foxbear-modal-close-size) + 10px) !important;
 }
 
@@ -124,9 +131,9 @@
 
 @media (max-width: 640px) {
     :root {
-        --foxbear-modal-close-size: 36px;
+        --foxbear-modal-close-size: 32px;
         --foxbear-modal-close-offset: 10px;
-        --foxbear-modal-close-line: 13px;
+        --foxbear-modal-close-line: 10px;
     }
 }
 

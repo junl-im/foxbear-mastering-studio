@@ -3,7 +3,7 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.94-aiff-fallback-worker-diagnostics-reporting-contract';
+    const DIAGNOSTICS_VERSION = '1.5.95-popup-settings-mail-test-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -15,6 +15,7 @@
     const state = {
         enabled: false,
         panelVisible: false,
+        backdrop: null,
         panel: null,
         output: null,
         timer: 0,
@@ -250,16 +251,24 @@
 
     function ensurePanel() {
         if (state.panel || !global.document?.body) return state.panel;
+        const backdrop = global.document.createElement('div');
+        backdrop.className = 'foxbear-perf-backdrop';
+        backdrop.hidden = true;
+        backdrop.setAttribute('role', 'dialog');
+        backdrop.setAttribute('aria-modal', 'true');
+        backdrop.setAttribute('aria-hidden', 'true');
+        backdrop.setAttribute('aria-labelledby', 'foxbearPerfPanelTitle');
         const panel = global.document.createElement('section');
         panel.className = 'foxbear-perf-panel';
-        panel.hidden = true;
+        panel.tabIndex = -1;
         panel.setAttribute('aria-live', 'polite');
         panel.setAttribute('aria-label', 'FoxBear 성능 진단 패널');
 
         const header = global.document.createElement('div');
         header.className = 'foxbear-perf-panel-head';
         const title = global.document.createElement('strong');
-        title.textContent = 'Performance diagnostics';
+        title.id = 'foxbearPerfPanelTitle';
+        title.textContent = '메모리·성능 진단';
         const actions = global.document.createElement('div');
         actions.className = 'foxbear-perf-panel-actions';
         const refresh = global.document.createElement('button');
@@ -282,17 +291,23 @@
         });
         const close = global.document.createElement('button');
         close.type = 'button';
-        close.className = 'foxbear-perf-panel-close';
-        close.textContent = '닫기';
+        close.className = 'foxbear-perf-panel-close foxbear-modal-close';
+        close.setAttribute('aria-label', '메모리 성능진단 닫기');
+        close.textContent = '×';
         close.addEventListener('click', () => setPanelVisible(false));
-        actions.append(refresh, copy, clear, close);
-        header.append(title, actions);
+        actions.append(refresh, copy, clear);
+        header.append(title, actions, close);
 
         const output = global.document.createElement('pre');
         output.className = 'foxbear-perf-panel-output';
         output.textContent = 'No snapshot yet';
         panel.append(header, output);
-        global.document.body.appendChild(panel);
+        backdrop.appendChild(panel);
+        backdrop.addEventListener('click', event => {
+            if (event.target === backdrop) setPanelVisible(false);
+        });
+        global.document.body.appendChild(backdrop);
+        state.backdrop = backdrop;
         state.panel = panel;
         state.output = output;
         return panel;
@@ -399,10 +414,16 @@
     function setPanelVisible(visible) {
         const panel = ensurePanel();
         state.panelVisible = Boolean(visible);
-        if (panel) panel.hidden = !state.panelVisible;
+        if (state.backdrop) {
+            state.backdrop.hidden = !state.panelVisible;
+            state.backdrop.classList.toggle('show', state.panelVisible);
+            state.backdrop.setAttribute('aria-hidden', state.panelVisible ? 'false' : 'true');
+        }
+        global.document?.body?.classList?.toggle('foxbear-perf-open', state.panelVisible);
         if (state.panelVisible) {
             setEnabled(true, { persist: true, silent: true });
             startPanelTimer();
+            try { panel?.focus?.({ preventScroll: true }); } catch (error) {}
         } else {
             stopPanelTimer();
         }
@@ -436,11 +457,17 @@
     function installKeyboardToggle() {
         global.document?.addEventListener?.('keydown', event => {
             const key = String(event.key || '').toLowerCase();
+            if (event.key === 'Escape' && state.panelVisible) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setPanelVisible(false);
+                return;
+            }
             if ((event.ctrlKey || event.metaKey) && event.altKey && key === 'p') {
                 event.preventDefault();
                 togglePanel();
             }
-        });
+        }, true);
     }
 
     global.FoxBearPerformanceDiagnostics = Object.freeze({
