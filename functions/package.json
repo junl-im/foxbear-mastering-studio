@@ -1,8 +1,8 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.6.4",
+  "version": "1.6.7",
   "private": true,
-  "description": "Server-side incident delivery with callable-first authenticated report submission, delivery status lookup, mail recovery, and operations diagnostics.",
+  "description": "Server-side incident delivery with authenticated user mail-test retry, delivery status lookup, mail recovery, and operations diagnostics.",
   "main": "index.js",
   "engines": {
     "node": "22"

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.4",
-  "buildId": "incident-callable-csp-recovery",
+  "productVersion": "1.6.7",
+  "buildId": "incident-readiness-history-sync-performance-hud",
   "requiredFiles": [
     "404.html",
     ".gitignore",

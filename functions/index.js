@@ -65,8 +65,10 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.4';
-const INCIDENT_SERVICE_SCHEMA_VERSION = 2;
+const PRODUCT_VERSION = '1.6.7';
+const INCIDENT_SERVICE_SCHEMA_VERSION = 5;
+const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
+const USER_MAIL_TEST_RETRY_LIMIT = 2;
 const INCIDENT_FUNCTIONS_ORIGIN = `https://${REGION}-foxbear-music.cloudfunctions.net`;
 const OPERATIONS_SCHEMA_VERSION = 6;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
@@ -172,9 +174,12 @@ function incidentServiceMetadata(request = {}) {
     status: 'ready',
     transport: 'callable',
     mailTrigger: 'sendIncidentEmail',
+    smtpProvider: 'gmail',
+    smtpCredential: 'firebase-secret',
     appCheckMode: 'monitor',
     appCheckEnforced: false,
     appCheckTokenPresent: Boolean(request.app),
+    readinessCheck: 'checkIncidentDeploymentReadiness',
     checkedAt: new Date().toISOString()
   };
 }
@@ -183,10 +188,12 @@ function serializeIncidentDelivery(snapshot) {
   if (!snapshot?.exists) return { exists: false, status: 'missing' };
   const data = snapshot.data() || {};
   const delivery = data.delivery || {};
+  const userRetryRequestedAtMs = timestampMillis(delivery.userRetryRequestedAt);
   return {
     exists: true,
     status: cleanText(delivery.status || 'pending', 40),
     reason: cleanText(delivery.reason || '', 100),
+    code: cleanText(delivery.code || '', 80),
     message: cleanText(delivery.message || '', 300),
     attemptCount: clampIncidentNumber(delivery.attemptCount, 0, 20),
     terminal: delivery.terminal === true,
@@ -199,7 +206,12 @@ function serializeIncidentDelivery(snapshot) {
     rejectedCount: clampIncidentNumber(delivery.rejectedCount, 0, 20),
     smtpResponse: cleanText(delivery.smtpResponse || '', 300),
     smtpAcceptedAt: timestampToIso(delivery.smtpAcceptedAt),
-    checkedAt: timestampToIso(delivery.checkedAt)
+    nextRetryAt: timestampToIso(delivery.nextRetryAt),
+    checkedAt: timestampToIso(delivery.checkedAt),
+    userRetryCount: clampIncidentNumber(delivery.userRetryCount, 0, USER_MAIL_TEST_RETRY_LIMIT),
+    userRetryLimit: USER_MAIL_TEST_RETRY_LIMIT,
+    userRetryRequestedAt: timestampToIso(delivery.userRetryRequestedAt),
+    userRetryAvailableAt: userRetryRequestedAtMs ? new Date(userRetryRequestedAtMs + USER_MAIL_TEST_RETRY_COOLDOWN_MS).toISOString() : ''
   };
 }
 
@@ -435,12 +447,16 @@ function assertSmtpAccepted(info = {}) {
 function classifySmtpError(error) {
   const code = cleanText(error?.code || error?.responseCode || error?.name || 'smtp-error', 80);
   const message = cleanText(error?.message || error, 500);
+  const evidence = `${code} ${message} ${cleanText(error?.response || '', 300)}`;
   if (code === 'FOXBEAR_GMAIL_SECRET_INVALID') return { reason: 'secret-invalid', code, message };
-  if (/EAUTH|535|534|auth/i.test(`${code} ${message}`)) return { reason: 'smtp-auth-failed', code, message };
-  if (/ETIMEDOUT|ESOCKET|ECONNECTION|ECONNRESET|ENOTFOUND|timeout|network/i.test(`${code} ${message}`)) {
+  if (/EAUTH|\b535\b|\b534\b|invalid login|username and password not accepted|bad credentials|auth/i.test(evidence)) return { reason: 'smtp-auth-failed', code, message };
+  if (/daily-email-limit|rate.?limit|quota|\b421\b|\b450\b|\b454\b/i.test(evidence)) return { reason: 'smtp-rate-limited', code, message };
+  if (code === 'FOXBEAR_SMTP_NO_ACCEPTED_RECIPIENT' || /EENVELOPE|\b550\b|\b553\b|recipient.*reject/i.test(evidence)) {
+    return { reason: 'recipient-rejected', code, message };
+  }
+  if (/ETIMEDOUT|ESOCKET|ECONNECTION|ECONNRESET|ENOTFOUND|timeout|network/i.test(evidence)) {
     return { reason: 'smtp-connection-failed', code, message };
   }
-  if (code === 'FOXBEAR_SMTP_NO_ACCEPTED_RECIPIENT') return { reason: 'recipient-rejected', code, message };
   return { reason: 'smtp-check-failed', code, message };
 }
 
@@ -1581,6 +1597,8 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
           mailType: cleanText(outcome.mailType || 'incident', 40),
           smtpAcceptedAt: Timestamp.fromMillis(now),
           manualResetCount: Math.max(0, Number(currentDelivery.manualResetCount || 0)),
+          userRetryCount: clampIncidentNumber(currentDelivery.userRetryCount, 0, USER_MAIL_TEST_RETRY_LIMIT),
+          userRetryRequestedAt: currentDelivery.userRetryRequestedAt || null,
           leaseId: '', leaseUntil: null, nextRetryAt: null,
           reservationActive: false, reservationDayKey: '',
           checkedAt: FieldValue.serverTimestamp()
@@ -1598,15 +1616,19 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
     }
 
     const terminal = attemptCount >= MAX_DELIVERY_ATTEMPTS;
+    const classifiedError = classifySmtpError(outcome.error);
     transaction.update(reportRef, {
       delivery: {
         status: terminal ? 'dead-letter' : 'failed',
-        reason: cleanText(outcome.error?.code || outcome.error?.name || 'smtp-error', 80),
-        message: cleanText(outcome.error?.message || outcome.error, 500),
+        reason: classifiedError.reason,
+        code: classifiedError.code,
+        message: classifiedError.message,
         attemptCount,
         terminal,
         nextRetryAt: terminal ? null : Timestamp.fromMillis(now + retryDelayMs(attemptCount)),
         manualResetCount: Math.max(0, Number(currentDelivery.manualResetCount || 0)),
+        userRetryCount: clampIncidentNumber(currentDelivery.userRetryCount, 0, USER_MAIL_TEST_RETRY_LIMIT),
+        userRetryRequestedAt: currentDelivery.userRetryRequestedAt || null,
         leaseId: '', leaseUntil: null,
         reservationActive: false, reservationDayKey: '',
         checkedAt: FieldValue.serverTimestamp()
@@ -1912,6 +1934,112 @@ exports.getIncidentServiceStatus = onCall({
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
   return incidentServiceMetadata(request);
+});
+
+async function inspectIncidentDeploymentReadiness(request = {}) {
+  const checks = {
+    functions: { ok: true, status: 'ready', message: `Callable Functions v${PRODUCT_VERSION} 응답 정상` },
+    firestore: { ok: false, status: 'checking', message: 'Firestore 연결 확인 중' },
+    smtpSecret: { ok: false, status: 'checking', message: 'Gmail Secret 확인 중' },
+    smtpConnection: { ok: false, status: 'checking', message: 'Gmail SMTP 연결 확인 중' }
+  };
+  try {
+    await db.collection('incidentOperations').doc(OPERATIONS_HEALTH_DOC_ID).get();
+    checks.firestore = { ok: true, status: 'ready', message: 'Firestore Admin 연결 정상' };
+  } catch (error) {
+    checks.firestore = { ok: false, status: 'error', code: cleanText(error?.code || error?.name || 'firestore-check-failed', 80), message: cleanText(error?.message || error, 220) };
+  }
+  let transport = null;
+  try {
+    normalizedGmailAppPassword();
+    checks.smtpSecret = { ok: true, status: 'ready', message: 'Gmail 앱 비밀번호 Secret 형식 정상' };
+    transport = createTransport();
+    if (typeof transport.verify === 'function') await transport.verify();
+    checks.smtpConnection = { ok: true, status: 'ready', message: 'Gmail SMTP 인증·연결 정상' };
+  } catch (error) {
+    const classified = classifySmtpError(error);
+    if (!checks.smtpSecret.ok && classified.reason === 'secret-invalid') {
+      checks.smtpSecret = { ok: false, status: 'error', code: classified.code, message: 'Gmail 앱 비밀번호 Secret이 없거나 형식이 올바르지 않습니다.' };
+      checks.smtpConnection = { ok: false, status: 'blocked', code: classified.code, message: 'Secret 오류로 SMTP 연결 검사를 건너뛰었습니다.' };
+    } else {
+      if (!checks.smtpSecret.ok) checks.smtpSecret = { ok: true, status: 'ready', message: 'Gmail 앱 비밀번호 Secret 형식 정상' };
+      checks.smtpConnection = { ok: false, status: 'error', code: classified.code, reason: classified.reason, message: classified.message };
+    }
+  } finally {
+    try { transport?.close?.(); } catch (error) {}
+  }
+  const ok = Object.values(checks).every(item => item.ok === true);
+  return { ok, checks, service: incidentServiceMetadata(request), checkedAt: new Date().toISOString() };
+}
+
+exports.checkIncidentDeploymentReadiness = onCall({
+  region: REGION,
+  timeoutSeconds: 35,
+  memory: '256MiB',
+  secrets: [GMAIL_APP_PASSWORD],
+  enforceAppCheck: false
+}, async request => {
+  const uid = cleanText(request.auth?.uid || '', 128);
+  if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
+  return inspectIncidentDeploymentReadiness(request);
+});
+
+exports.retryOwnIncidentReport = onCall({
+  region: REGION,
+  timeoutSeconds: 90,
+  memory: '256MiB',
+  secrets: [GMAIL_APP_PASSWORD],
+  enforceAppCheck: false
+}, async request => {
+  const uid = cleanText(request.auth?.uid || '', 128);
+  if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
+  const reportId = cleanText(request.data?.reportId || '', 180);
+  if (!reportId || !reportId.startsWith(`${uid}_`)) {
+    throw new HttpsError('permission-denied', '본인이 실행한 메일 테스트만 다시 보낼 수 있습니다.');
+  }
+  const reportRef = db.collection('incidentReports').doc(reportId);
+  const now = Date.now();
+  await db.runTransaction(async transaction => {
+    const snapshot = await transaction.get(reportRef);
+    if (!snapshot.exists) throw new HttpsError('not-found', '메일 테스트 보고서를 찾을 수 없습니다.');
+    const data = snapshot.data() || {};
+    const delivery = data.delivery || {};
+    if (cleanText(data.uid || '', 128) !== uid || data.category !== 'manual-test' || data.automatic !== false) {
+      throw new HttpsError('permission-denied', '본인이 실행한 실제 메일 테스트만 다시 보낼 수 있습니다.');
+    }
+    if (delivery.status === 'emailed') throw new HttpsError('already-exists', '이미 SMTP 접수가 완료된 테스트입니다.');
+    if (delivery.terminal === true || delivery.status === 'dead-letter') {
+      throw new HttpsError('failed-precondition', '최종 실패 보고서는 관리자 복구가 필요합니다.');
+    }
+    if (delivery.status !== 'failed') {
+      throw new HttpsError('failed-precondition', '실패 상태가 확정된 테스트만 다시 보낼 수 있습니다.');
+    }
+    const retryCount = clampIncidentNumber(delivery.userRetryCount, 0, USER_MAIL_TEST_RETRY_LIMIT);
+    if (retryCount >= USER_MAIL_TEST_RETRY_LIMIT) {
+      throw new HttpsError('resource-exhausted', '사용자 재시도 한도에 도달했습니다. 자동 재시도 또는 관리자 복구를 기다려 주세요.');
+    }
+    const lastRequestedAt = timestampMillis(delivery.userRetryRequestedAt);
+    if (lastRequestedAt && now - lastRequestedAt < USER_MAIL_TEST_RETRY_COOLDOWN_MS) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((USER_MAIL_TEST_RETRY_COOLDOWN_MS - (now - lastRequestedAt)) / 1000));
+      throw new HttpsError('resource-exhausted', `재시도는 ${retryAfterSeconds}초 후 다시 요청할 수 있습니다.`);
+    }
+    transaction.set(reportRef, {
+      delivery: {
+        ...delivery,
+        userRetryCount: retryCount + 1,
+        userRetryRequestedAt: FieldValue.serverTimestamp(),
+        checkedAt: FieldValue.serverTimestamp()
+      }
+    }, { merge: true });
+  });
+  const outcome = await processIncidentReport(reportRef, { retry: true, manual: true });
+  const snapshot = await reportRef.get();
+  return {
+    retried: outcome.ok === true || outcome.status === 'emailed',
+    outcome: cleanText(outcome.status || outcome.reason || '', 80),
+    ...serializeIncidentDelivery(snapshot),
+    service: incidentServiceMetadata(request)
+  };
 });
 
 exports.sendIncidentEmail = onDocumentCreated({

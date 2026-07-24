@@ -1,3 +1,30 @@
+# FoxBear QA Report - v1.6.7
+
+- Added server-side readiness verification for Functions, Firestore, Gmail Secret validity, and SMTP verify connectivity.
+- Added client-side CSP origin verification and a compact per-stage deployment checklist.
+- Added delivery-history synchronization so automatic retry completion updates the existing local test entry.
+- Added direct retry eligibility behavior using server-provided retry-availability timestamps.
+- Added staged batch performance recovery coverage for danger reason, first healthy sample, and stable-normal resume.
+- Configured static/regression target: 330 checks.
+
+# FoxBear QA Report - v1.6.6
+
+- Added bounded user-owned mail-test retry with two direct attempts and a 60-second server cooldown.
+- Added local history rendering for SMTP attempt count, direct retry count, and automatic retry countdown.
+- Verified terminal, delivered, non-failed, automatic, and foreign reports are excluded from the user retry path.
+- Added performance-danger batch auto-pause before the next track and stable-normal auto-resume behavior coverage.
+- Verified manual resume cannot bypass an active performance-protection pause.
+- Configured static/regression target: 329 checks.
+
+# FoxBear QA Report - v1.6.5
+
+- Added incident server reconnection, deploy-command clipboard recovery, and bounded recent mail-test history.
+- Added client behavior coverage for the five-entry history cap and clipboard fallback contract.
+- Added SMTP classification coverage for invalid Secret, authentication rejection, recipient rejection, rate limiting, and network timeout.
+- Verified callable delivery serialization exposes normalized reason, raw provider code, and next retry timestamp.
+- Verified incident service metadata schema v3 exposes the Gmail provider and Secret credential mode.
+- Configured static/regression target: 328 checks.
+
 # FoxBear QA Report - v1.6.4
 
 - Reproduced the actual mail-test failure path as a missing Firebase Callable origin in `connect-src`.

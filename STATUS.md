@@ -1,3 +1,45 @@
+# FoxBear Status - v1.6.7
+
+## v1.6.7 current focus
+
+- Incident settings performs a single deployment readiness check across web CSP, Callable Functions, Firestore, Gmail Secret, and SMTP connectivity.
+- Local manual-test history synchronizes pending and failed records with current server delivery state, including scheduled automatic retries.
+- Direct retry buttons expose the server-provided cooldown countdown and remain disabled until eligible.
+- Performance-protected multi-track mastering exposes the danger reason and stable-normal recovery sample progress in the HUD.
+- Configured static/regression target: 330 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+# FoxBear Status - v1.6.6
+
+## v1.6.6 current focus
+
+- Manual mail-test history shows SMTP attempts, direct retry usage, and the remaining automatic retry time.
+- Authenticated users can safely retry only their own failed manual test reports, with a two-request limit and a 60-second cooldown.
+- Terminal/dead-letter, already-delivered, automatic, and foreign reports cannot use the user retry path.
+- Confirmed performance danger pauses multi-track mastering before the next track and stable normal health resumes only auto-paused work.
+- Configured static/regression target: 329 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+# FoxBear Status - v1.6.5
+
+## v1.6.5 current focus
+
+- Incident settings exposes server recheck and deploy-command copy actions without requiring developer-console discovery.
+- The latest five real mail-test outcomes remain available locally and can be cleared by the user.
+- SMTP failures distinguish Secret format, Gmail authentication, recipient rejection, quota/rate limiting, and network connectivity.
+- Delivery diagnostics retain normalized reason, provider code, and next retry time separately.
+- Configured static/regression target: 328 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.6.4
 
 ## v1.6.4 current focus
@@ -432,10 +474,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.6.4`
-- Build ID: `incident-callable-csp-recovery`
-- Asset version: `1.6.4-incident-callable-csp-recovery`
-- Service worker cache: `foxbear-shell-v1.6.4-incident-callable-csp-recovery`
+- Product version: `1.6.7`
+- Build ID: `incident-readiness-history-sync-performance-hud`
+- Asset version: `1.6.7-incident-readiness-history-sync-performance-hud`
+- Service worker cache: `foxbear-shell-v1.6.7-incident-readiness-history-sync-performance-hud`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -467,10 +509,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.4`
-- Build ID: `incident-callable-csp-recovery`
-- Asset version: `1.6.4-incident-callable-csp-recovery`
-- Service worker cache: `foxbear-shell-v1.6.4-incident-callable-csp-recovery`
+- Product version: `1.6.7`
+- Build ID: `incident-readiness-history-sync-performance-hud`
+- Asset version: `1.6.7-incident-readiness-history-sync-performance-hud`
+- Service worker cache: `foxbear-shell-v1.6.7-incident-readiness-history-sync-performance-hud`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

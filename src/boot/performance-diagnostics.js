@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.4
+// FoxBear performance diagnostics - v1.6.7
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.4-incident-callable-csp-recovery';
+    const DIAGNOSTICS_VERSION = '1.6.7-incident-readiness-history-sync-performance-hud';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -1058,7 +1058,16 @@
         else hideHealthNotice('health-watch');
         try {
             global.dispatchEvent(new CustomEvent('foxbear:ambient-health-change', {
-                detail: { level, measuredLevel, warnings: resolvedSummary.warnings.slice(), activities: resolvedSummary.activities.slice() }
+                detail: {
+                    level, measuredLevel,
+                    warnings: resolvedSummary.warnings.slice(), activities: resolvedSummary.activities.slice(),
+                    confirmation: {
+                        dangerSamples: state.ambientDangerSamples, watchSamples: state.ambientWatchSamples,
+                        recoverySamples: state.ambientRecoverySamples,
+                        dangerRequired: AMBIENT_DANGER_CONFIRM_SAMPLES, watchRequired: AMBIENT_WATCH_CONFIRM_SAMPLES,
+                        recoveryRequired: AMBIENT_RECOVERY_CONFIRM_SAMPLES
+                    }
+                }
             }));
         } catch (error) {}
         return Object.freeze({ level, measuredLevel, warnings: resolvedSummary.warnings, activities: resolvedSummary.activities });

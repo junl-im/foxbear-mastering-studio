@@ -1,3 +1,67 @@
+# Handoff - v1.6.7
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.7 current focus
+
+- Incident deployment readiness checks web CSP, Callable Functions, Firestore, Gmail Secret format, and SMTP connectivity.
+- Pending and failed manual test history synchronizes with server delivery state so automatic retries update in place.
+- Direct retry cooldown uses the server-provided available timestamp and displays a live seconds countdown.
+- Multi-track mastering HUD shows performance danger cause and stable-normal recovery confirmation progress.
+- Regression: `node qa/v1607_incident_readiness_history_sync_performance_hud_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
+# Handoff - v1.6.6
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.6 current focus
+
+- Mail-test history exposes SMTP attempt count, direct retry usage, and the remaining automatic retry interval.
+- `retryOwnIncidentReport` accepts only the authenticated user's non-terminal failed manual tests, with a two-retry limit and 60-second cooldown.
+- The client never retries another user's, automatic, delivered, pending, or dead-letter report.
+- Confirmed performance danger auto-pauses multi-track mastering before the next track; only stable normal health auto-resumes auto-paused work.
+- Regression: `node qa/v1606_mail_retry_safe_batch_autopause_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
+# Handoff - v1.6.5
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.5 current focus
+
+- Incident settings provides server recheck and deploy-command copy controls.
+- The latest five manual mail-test outcomes are stored locally with a user clear action and no audio or filename data.
+- SMTP errors distinguish invalid Secret, Gmail authentication, recipient rejection, quota/rate limiting, and network failure.
+- Delivery status preserves normalized reason, raw provider code, and the next retry timestamp.
+- Incident service metadata schema v3 reports the Gmail provider and Secret credential mode.
+- Regression: `node qa/v1605_incident_mail_recovery_history_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
 # Handoff - v1.6.4
 
 # 필수 결과 보고 형식

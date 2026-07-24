@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.4-incident-callable-csp-recovery';
+const version = '1.6.7-incident-readiness-history-sync-performance-hud';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

@@ -146,6 +146,8 @@ function makePublicBridge(extra = {}) {
         logIncident,
         getIncidentDelivery,
         getIncidentServiceStatus,
+        checkIncidentDeploymentReadiness,
+        retryOwnIncidentReport,
         getAdminStats,
         getAdminIncidents,
         getIncidentOperationsHistory,
@@ -413,9 +415,12 @@ function normalizeIncidentServiceStatus(value = {}) {
         status: limitText(value.status || 'unknown', 20),
         transport: limitText(value.transport || 'callable', 30),
         mailTrigger: limitText(value.mailTrigger || '', 80),
+        smtpProvider: limitText(value.smtpProvider || '', 30),
+        smtpCredential: limitText(value.smtpCredential || '', 40),
         appCheckMode: limitText(value.appCheckMode || 'unknown', 20),
         appCheckEnforced: value.appCheckEnforced === true,
         appCheckTokenPresent: value.appCheckTokenPresent === true,
+        readinessCheck: limitText(value.readinessCheck || '', 80),
         checkedAt: limitText(value.checkedAt || '', 40),
         clientProductVersion: limitText(window.FoxBearBuildInfo?.productVersion || document.body?.dataset?.build || '', 24),
         clientAppCheck: Object.freeze(localAppCheck)
@@ -442,6 +447,42 @@ async function getIncidentServiceStatus() {
     await signInGuest();
     const result = await invokeIncidentCallable('getIncidentServiceStatus', {});
     return normalizeIncidentServiceStatus(result);
+}
+
+function normalizeDeploymentReadiness(value = {}) {
+    const checks = value?.checks || {};
+    const normalizeCheck = input => Object.freeze({
+        ok: input?.ok === true,
+        status: limitText(input?.status || (input?.ok ? 'ready' : 'unknown'), 24),
+        code: limitText(input?.code || '', 80),
+        reason: limitText(input?.reason || '', 80),
+        message: limitText(input?.message || '', 240)
+    });
+    return Object.freeze({
+        ok: value?.ok === true,
+        checkedAt: limitText(value?.checkedAt || '', 40),
+        checks: Object.freeze({
+            functions: normalizeCheck(checks.functions),
+            firestore: normalizeCheck(checks.firestore),
+            smtpSecret: normalizeCheck(checks.smtpSecret),
+            smtpConnection: normalizeCheck(checks.smtpConnection)
+        }),
+        service: normalizeIncidentServiceStatus(value?.service || {})
+    });
+}
+
+async function checkIncidentDeploymentReadiness() {
+    await signInGuest();
+    const result = await invokeIncidentCallable('checkIncidentDeploymentReadiness', {});
+    return normalizeDeploymentReadiness(result || {});
+}
+
+async function retryOwnIncidentReport(reportId) {
+    const user = await signInGuest();
+    const safeId = limitText(reportId, 180);
+    if (!safeId || !safeId.startsWith(`${user.uid}_`)) throw new Error('본인이 실행한 메일 테스트만 다시 보낼 수 있습니다.');
+    const result = await invokeIncidentCallable('retryOwnIncidentReport', { reportId: safeId });
+    return { ...result, transport: 'callable', service: normalizeIncidentServiceStatus(result.service || {}) };
 }
 
 async function logIncident(payload = {}) {
@@ -503,6 +544,7 @@ async function getIncidentDelivery(reportId) {
             exists: true,
             status: limitText(delivery.status || 'pending', 40),
             reason: limitText(delivery.reason || '', 100),
+            code: limitText(delivery.code || '', 80),
             message: limitText(delivery.message || '', 300),
             attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
             terminal: delivery.terminal === true,
@@ -515,7 +557,10 @@ async function getIncidentDelivery(reportId) {
             rejectedCount: safeIncidentNumber(delivery.rejectedCount, 0, 20),
             smtpResponse: limitText(delivery.smtpResponse || '', 300),
             smtpAcceptedAt: timestampIso(delivery.smtpAcceptedAt),
+            nextRetryAt: timestampIso(delivery.nextRetryAt),
             checkedAt: timestampIso(delivery.checkedAt),
+            userRetryCount: safeIncidentNumber(delivery.userRetryCount, 0, 2),
+            userRetryLimit: 2,
             transport: 'firestore'
         };
     } catch (error) {

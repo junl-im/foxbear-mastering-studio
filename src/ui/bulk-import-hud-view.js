@@ -2,9 +2,9 @@
 (function initBulkImportHudView(global) {
     'use strict';
 
-    const VIEW_VERSION = '1.6.4-bulk-pause-skip-reorder-summary';
-    // v1.6.4 compatibility QA anchor: const VIEW_VERSION = '1.6.4-incident-callable-csp-recovery'
-    // compatibility anchor: const VIEW_VERSION = '1.6.4-bulk-control-eta-result-filter'
+    const VIEW_VERSION = '1.6.7-performance-recovery-stage-hud';
+    // v1.6.7 compatibility QA anchor: const VIEW_VERSION = '1.6.7-incident-readiness-history-sync-performance-hud'
+    // compatibility anchor: const VIEW_VERSION = '1.6.7-bulk-control-eta-result-filter'
     // Legacy copy contract retained for regression discovery: 대량 마스터링 HUD
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
@@ -22,6 +22,13 @@
         resultFilter: 'all',
         cancelRequested: false,
         paused: false,
+        autoPaused: false,
+        pauseReason: '',
+        performanceLevel: 'normal',
+        performanceMeasuredLevel: 'normal',
+        performanceWarnings: [],
+        performanceRecoverySamples: 0,
+        performanceRecoveryRequired: 2,
         skipRequested: false
     };
 
@@ -125,6 +132,13 @@
         hudState.resultFilter = 'all';
         hudState.cancelRequested = false;
         hudState.paused = false;
+        hudState.autoPaused = false;
+        hudState.pauseReason = '';
+        hudState.performanceLevel = 'normal';
+        hudState.performanceMeasuredLevel = 'normal';
+        hudState.performanceWarnings = [];
+        hudState.performanceRecoverySamples = 0;
+        hudState.performanceRecoveryRequired = 2;
         hudState.skipRequested = false;
         items.forEach((track, index) => {
             track.bulkImportBatchId = batchId;
@@ -151,6 +165,13 @@
         hudState.resultFilter = 'all';
         hudState.cancelRequested = false;
         hudState.paused = false;
+        hudState.autoPaused = false;
+        hudState.pauseReason = '';
+        hudState.performanceLevel = 'normal';
+        hudState.performanceMeasuredLevel = 'normal';
+        hudState.performanceWarnings = [];
+        hudState.performanceRecoverySamples = 0;
+        hudState.performanceRecoveryRequired = 2;
         hudState.skipRequested = false;
         items.forEach((track, index) => {
             track.bulkMasteringBatchId = batchId;
@@ -201,7 +222,7 @@
         return false;
     }
 
-    // v1.6.4 compatibility: ['all', 'active', 'completed', 'failed', 'cancelled', 'pending']
+    // v1.6.7 compatibility: ['all', 'active', 'completed', 'failed', 'cancelled', 'pending']
     function normalizeResultFilter(value) {
         const filter = String(value || 'all');
         return ['all', 'active', 'completed', 'failed', 'skipped', 'cancelled', 'pending'].includes(filter) ? filter : 'all';
@@ -300,7 +321,18 @@
     }
 
     function markMasteringPauseChanged(meta = {}) {
+        const wasAutoPaused = hudState.autoPaused && hudState.paused;
+        const snapshot = meta.snapshot || {};
         hudState.paused = Boolean(meta.paused);
+        hudState.autoPaused = Boolean(meta.autoPaused);
+        hudState.pauseReason = String(meta.reason || '');
+        hudState.performanceLevel = String(snapshot.performanceLevel || hudState.performanceLevel || 'normal');
+        hudState.performanceMeasuredLevel = String(snapshot.performanceMeasuredLevel || hudState.performanceMeasuredLevel || hudState.performanceLevel);
+        hudState.performanceWarnings = Array.isArray(snapshot.performanceWarnings) ? snapshot.performanceWarnings.slice(0, 6) : hudState.performanceWarnings;
+        hudState.performanceRecoverySamples = Math.max(0, Number(snapshot.performanceRecoverySamples ?? hudState.performanceRecoverySamples ?? 0));
+        hudState.performanceRecoveryRequired = Math.max(1, Number(snapshot.performanceRecoveryRequired ?? hudState.performanceRecoveryRequired ?? 2));
+        if (!wasAutoPaused && hudState.autoPaused && hudState.paused && typeof deps.showToast === 'function') deps.showToast('성능 보호를 위해 현재 곡 완료 후 대량 작업을 잠시 멈춥니다.');
+        else if (wasAutoPaused && !hudState.paused && meta.reason === 'performance-recovered' && typeof deps.showToast === 'function') deps.showToast('성능 상태가 정상화되어 대량 작업을 안전하게 계속합니다.');
         update();
         return true;
     }
@@ -532,6 +564,13 @@
             resultFilter: normalizeResultFilter(hudState.resultFilter),
             cancelRequested: Boolean(hudState.cancelRequested),
             paused: Boolean(hudState.paused),
+            autoPaused: Boolean(hudState.autoPaused),
+            pauseReason: hudState.pauseReason || '',
+            performanceLevel: hudState.performanceLevel || 'normal',
+            performanceMeasuredLevel: hudState.performanceMeasuredLevel || 'normal',
+            performanceWarnings: Object.freeze([...(hudState.performanceWarnings || [])]),
+            performanceRecoverySamples: Math.max(0, Number(hudState.performanceRecoverySamples || 0)),
+            performanceRecoveryRequired: Math.max(1, Number(hudState.performanceRecoveryRequired || 2)),
             skipRequested: Boolean(hudState.skipRequested),
             expanded: Boolean(hudState.expanded),
             dismissed: Boolean(hudState.dismissedBatchId && hudState.dismissedBatchId === hudState.batchId),
@@ -569,6 +608,13 @@
             resultFilter: summary.resultFilter,
             cancelRequested: summary.cancelRequested,
             paused: summary.paused,
+            autoPaused: summary.autoPaused,
+            pauseReason: summary.pauseReason,
+            performanceLevel: summary.performanceLevel,
+            performanceMeasuredLevel: summary.performanceMeasuredLevel,
+            performanceWarnings: summary.performanceWarnings,
+            performanceRecoverySamples: summary.performanceRecoverySamples,
+            performanceRecoveryRequired: summary.performanceRecoveryRequired,
             skipRequested: summary.skipRequested,
             expanded: summary.expanded,
             dismissed: summary.dismissed,
@@ -635,6 +681,22 @@
         return true;
     }
 
+    function performanceHoldLabel(summary = {}) {
+        if (!summary.autoPaused) return '';
+        const measured = String(summary.performanceMeasuredLevel || summary.performanceLevel || 'danger');
+        const current = Math.max(0, Number(summary.performanceRecoverySamples || 0));
+        const required = Math.max(1, Number(summary.performanceRecoveryRequired || 2));
+        if (measured === 'normal') return `정상화 확인 ${Math.min(current, required)}/${required}`;
+        if (measured === 'watch') return '주의 상태 재확인 중';
+        const codes = Array.isArray(summary.performanceWarnings) ? summary.performanceWarnings : [];
+        const labels = {
+            'worker-stalled': 'Worker 정체', 'memory-pressure': '메모리 압박',
+            'worker-transfer-high': 'Worker 전송 메모리', 'long-task': '메인 스레드 지연',
+            'pcm-retention-high': '완료 PCM 보유량', 'decode-errors': '디코딩 오류'
+        };
+        return `위험 상태${codes[0] ? ` · ${labels[codes[0]] || String(codes[0]).replace(/[-_]/g, ' ')}` : ''}`;
+    }
+
     function update() {
         init();
         const hud = getEl('bulkImportHud');
@@ -690,10 +752,10 @@
         if (text) {
             if (mastering && summary.currentTrack) {
                 const eta = summary.currentRemainingMs ? ` · 현재 곡 약 ${formatDuration(summary.currentRemainingMs)} 남음` : '';
-                text.textContent = `현재 ${summary.currentTrackOrder}/${summary.total} · ${summary.currentTrack.name || '트랙'} · ${summary.currentTrackProgress}%${eta} · 완료 ${summary.done} · 대기 ${summary.pending} · 오류 ${summary.errors} · 건너뜀 ${summary.skipped} · 취소 ${summary.cancelled}${summary.paused ? ' · 다음 곡 전 일시정지' : ''}`;
+                text.textContent = `현재 ${summary.currentTrackOrder}/${summary.total} · ${summary.currentTrack.name || '트랙'} · ${summary.currentTrackProgress}%${eta} · 완료 ${summary.done} · 대기 ${summary.pending} · 오류 ${summary.errors} · 건너뜀 ${summary.skipped} · 취소 ${summary.cancelled}${summary.paused ? (summary.autoPaused ? ` · 성능 보호 · ${performanceHoldLabel(summary)}` : ' · 다음 곡 전 일시정지') : ''}`;
             } else {
                 text.textContent = mastering
-                    ? `${summary.done}/${summary.total} 완성 · 대기 ${summary.pending} · 오류 ${summary.errors} · 건너뜀 ${summary.skipped} · 취소 ${summary.cancelled}${summary.etaLabel ? ` · ${summary.etaLabel}` : ''}${summary.paused ? ' · 일시정지됨' : ''}`
+                    ? `${summary.done}/${summary.total} 완성 · 대기 ${summary.pending} · 오류 ${summary.errors} · 건너뜀 ${summary.skipped} · 취소 ${summary.cancelled}${summary.etaLabel ? ` · ${summary.etaLabel}` : ''}${summary.paused ? (summary.autoPaused ? ` · ${performanceHoldLabel(summary)}` : ' · 일시정지됨') : ''}`
                     : `${summary.done}/${summary.total} 완료 · 분석 ${summary.active} · 대기 ${summary.pending} · 오류 ${summary.errors}`;
             }
         }
@@ -739,8 +801,8 @@
         const busy = mastering && !summary.complete && (summary.active > 0 || summary.pending > 0);
         if (controls.pauseBatch) {
             controls.pauseBatch.hidden = !mastering || !busy;
-            controls.pauseBatch.disabled = !busy || summary.cancelRequested;
-            controls.pauseBatch.textContent = summary.paused ? '계속 진행' : '다음 곡 전 일시정지';
+            controls.pauseBatch.disabled = !busy || summary.cancelRequested || summary.autoPaused;
+            controls.pauseBatch.textContent = summary.autoPaused ? performanceHoldLabel(summary) : (summary.paused ? '계속 진행' : '다음 곡 전 일시정지');
             controls.pauseBatch.setAttribute('aria-pressed', String(summary.paused));
         }
         if (controls.skipCurrent) {

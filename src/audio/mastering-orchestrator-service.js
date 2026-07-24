@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.6.4 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.6.7 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -154,7 +154,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.6.4-incident-callable-csp-recovery',
+            version: '1.6.7-incident-readiness-history-sync-performance-hud',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -208,6 +208,12 @@
                 cancelRequested: Boolean(activeBatch.controller?.signal?.aborted),
                 paused: Boolean(activeBatch.paused),
                 pauseReason: activeBatch.pauseReason || '',
+                autoPaused: Boolean(activeBatch.autoPaused),
+                performanceLevel: activeBatch.performanceLevel || 'normal',
+                performanceMeasuredLevel: activeBatch.performanceMeasuredLevel || 'normal',
+                performanceWarnings: Object.freeze([...(activeBatch.performanceWarnings || [])]),
+                performanceRecoverySamples: Math.max(0, Number(activeBatch.performanceRecoverySamples || 0)),
+                performanceRecoveryRequired: Math.max(1, Number(activeBatch.performanceRecoveryRequired || 2)),
                 skipRequested: Boolean(activeBatch.skipRequested),
                 skipReason: activeBatch.skipReason || '',
                 orderedTrackIds: Object.freeze(activeBatch.items.map(track => track?.id || '')),
@@ -231,17 +237,39 @@
             if (!activeBatch || activeBatch.settled || activeBatch.controller?.signal?.aborted || activeBatch.paused) return false;
             activeBatch.paused = true;
             activeBatch.pauseReason = String(reason || 'user-request');
-            notifyControlChange('pause', { paused: true, reason: activeBatch.pauseReason });
+            activeBatch.autoPaused = activeBatch.pauseReason === 'performance-danger';
+            notifyControlChange('pause', { paused: true, autoPaused: activeBatch.autoPaused, reason: activeBatch.pauseReason });
             return true;
         }
 
         function resumeActiveBatch(reason = 'user-request') {
             if (!activeBatch || activeBatch.settled || !activeBatch.paused) return false;
+            const resumeReason = String(reason || 'user-request');
+            if (activeBatch.autoPaused && resumeReason !== 'performance-recovered') return false;
             activeBatch.paused = false;
             activeBatch.pauseReason = '';
+            activeBatch.autoPaused = false;
             releasePauseWaiters(activeBatch);
-            notifyControlChange('pause', { paused: false, reason: String(reason || 'user-request') });
+            notifyControlChange('pause', { paused: false, autoPaused: false, reason: resumeReason });
             return true;
+        }
+
+        function handleAmbientHealthChange(event) {
+            const detail = event?.detail || {};
+            const level = String(detail.level || 'normal');
+            if (!activeBatch || activeBatch.settled || activeBatch.controller?.signal?.aborted) return false;
+            activeBatch.performanceLevel = level;
+            activeBatch.performanceMeasuredLevel = String(detail.measuredLevel || level);
+            activeBatch.performanceWarnings = Array.isArray(detail.warnings) ? detail.warnings.slice(0, 6) : [];
+            activeBatch.performanceRecoverySamples = Math.max(0, Number(detail.confirmation?.recoverySamples || 0));
+            activeBatch.performanceRecoveryRequired = Math.max(1, Number(detail.confirmation?.recoveryRequired || 2));
+            if (level === 'danger' && !activeBatch.paused) return pauseActiveBatch('performance-danger');
+            if (level === 'normal' && activeBatch.paused && activeBatch.autoPaused) return resumeActiveBatch('performance-recovered');
+            notifyControlChange('pause', {
+                paused: Boolean(activeBatch.paused), autoPaused: Boolean(activeBatch.autoPaused),
+                reason: activeBatch.pauseReason || 'performance-status', performanceOnly: true
+            });
+            return false;
         }
 
         function skipCurrentTrack(reason = 'user-skip') {
@@ -314,6 +342,12 @@
                     trackController: null,
                     paused: false,
                     pauseReason: '',
+                    autoPaused: false,
+                    performanceLevel: 'normal',
+                    performanceMeasuredLevel: 'normal',
+                    performanceWarnings: [],
+                    performanceRecoverySamples: 0,
+                    performanceRecoveryRequired: 2,
                     pauseWaiters: [],
                     skipRequested: false,
                     skipReason: '',
@@ -468,6 +502,7 @@
                     activeBatch.currentTrackId = '';
                     activeBatch.trackController = null;
                     activeBatch.paused = false;
+                    activeBatch.autoPaused = false;
                     activeBatch.settled = true;
                     releasePauseWaiters(activeBatch);
                 }
@@ -481,20 +516,23 @@
             }
         }
 
+        global.addEventListener?.('foxbear:ambient-health-change', handleAmbientHealthChange);
+
         return Object.freeze({
-            version: '1.6.4-bulk-pause-skip-reorder-summary',
+            version: '1.6.7-performance-recovery-stage-hud',
             runBatch,
             cancelActiveBatch,
             pauseActiveBatch,
             resumeActiveBatch,
             skipCurrentTrack,
             movePendingTrack,
-            getActiveBatchSnapshot
+            getActiveBatchSnapshot,
+            handleAmbientHealthChange
         });
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.6.4-incident-callable-csp-recovery',
+        version: '1.6.7-incident-readiness-history-sync-performance-hud',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner

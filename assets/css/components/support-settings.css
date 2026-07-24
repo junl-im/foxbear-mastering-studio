@@ -1,4 +1,4 @@
-/* FoxBear v1.5.95 program information and support settings dialogs. */
+/* FoxBear program information and support settings dialogs - v1.6.7. */
 
 .program-info-panel-compact { width: min(650px, 100%); padding: 24px; }
 .program-info-lead { max-width: 60ch; }
@@ -41,6 +41,24 @@ body.incident-reporting-open { overflow: hidden; }
 .support-settings-status[data-tone='ok'] { color: #baf7df; background: rgba(52,211,153,.08); }
 .support-settings-status[data-tone='error'] { color: #ffd0d0; background: rgba(248,113,113,.09); }
 .support-settings-guidance { margin-top: 9px !important; font-size: .72rem !important; }
+.support-settings-actions-extended { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.incident-history { margin-top: 12px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,.08); }
+.incident-history-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.incident-history-head strong { font-size: .76rem; color: #f5f2ff; }
+.incident-history-head button { padding: 4px 7px; border: 0; background: transparent; color: var(--muted); font-size: .66rem; cursor: pointer; }
+.incident-history-head button:hover, .incident-history-head button:focus-visible { color: #dff9ff; text-decoration: underline; }
+.incident-history ol { display: grid; gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.incident-history li { display: grid; gap: 3px; padding: 8px 9px; border: 1px solid rgba(255,255,255,.08); border-radius: 11px; background: rgba(255,255,255,.025); }
+.incident-history li > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.incident-history li strong { font-size: .69rem; color: #f5f2ff; }
+.incident-history li time, .incident-history li span { color: var(--muted); font-size: .64rem; line-height: 1.4; overflow-wrap: anywhere; }
+.incident-history li[data-state='ok'] { border-color: rgba(52,211,153,.22); }
+.incident-history li[data-state='ok'] strong { color: #baf7df; }
+.incident-history li[data-state='warning'] { border-color: rgba(251,191,36,.24); }
+.incident-history li[data-state='warning'] strong { color: #ffe4a8; }
+.incident-history li[data-state='error'] { border-color: rgba(248,113,113,.24); }
+.incident-history li[data-state='error'] strong { color: #ffd0d0; }
+.incident-history .incident-history-empty { color: var(--muted); font-size: .68rem; text-align: center; }
 @media (max-width: 640px) {
   .program-info-panel-compact { padding: 20px 15px 17px; }
   .program-info-summary { grid-template-columns: 1fr; gap: 7px; }
@@ -51,5 +69,31 @@ body.incident-reporting-open { overflow: hidden; }
   .support-settings-panel { padding: 18px 14px 16px; border-radius: 20px; }
   .incident-reporting-pipeline { grid-template-columns: 1fr; }
   .support-settings-actions { grid-template-columns: 1fr; }
+  .incident-history li > div { align-items: flex-start; flex-direction: column; gap: 2px; }
 }
 .support-settings-guidance[data-tone='error'] { padding: 9px 10px; border: 1px solid rgba(248,113,113,.24); border-radius: 11px; background: rgba(248,113,113,.075); color: #ffd0d0 !important; overflow-wrap: anywhere; }
+
+/* v1.6.6 mail retry status */
+.incident-history-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.incident-history-meta small { min-width: 0; color: rgba(202,218,236,.68); font-size: .61rem; line-height: 1.35; overflow-wrap: anywhere; }
+.incident-history-retry { flex: 0 0 auto; min-height: 28px; padding: 4px 8px; border: 1px solid rgba(109,224,255,.25); border-radius: 9px; background: rgba(109,224,255,.08); color: #dff9ff; font-size: .62rem; cursor: pointer; }
+.incident-history-retry:hover, .incident-history-retry:focus-visible { border-color: rgba(109,224,255,.55); background: rgba(109,224,255,.14); }
+.incident-history-retry:disabled { opacity: .5; cursor: wait; }
+@media (max-width: 560px) { .incident-history-meta { align-items: stretch; flex-direction: column; } .incident-history-retry { width: 100%; } }
+
+
+/* v1.6.7 deployment readiness and live retry status */
+.incident-deployment-checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 8px 0 0; padding: 0; list-style: none; }
+.incident-deployment-checks li { display: grid; gap: 2px; min-width: 0; padding: 8px 9px; border: 1px solid rgba(255,255,255,.08); border-radius: 11px; background: rgba(255,255,255,.025); }
+.incident-deployment-checks strong { color: #f5f2ff; font-size: .67rem; }
+.incident-deployment-checks span { color: var(--muted); font-size: .63rem; line-height: 1.35; overflow-wrap: anywhere; }
+.incident-deployment-checks li[data-state='active'] { border-color: rgba(109,224,255,.34); background: rgba(109,224,255,.07); }
+.incident-deployment-checks li[data-state='ok'] { border-color: rgba(52,211,153,.28); background: rgba(52,211,153,.06); }
+.incident-deployment-checks li[data-state='ok'] span { color: #baf7df; }
+.incident-deployment-checks li[data-state='warning'] { border-color: rgba(251,191,36,.32); background: rgba(251,191,36,.065); }
+.incident-deployment-checks li[data-state='warning'] span { color: #ffe4a8; }
+.incident-deployment-checks li[data-state='error'] { border-color: rgba(248,113,113,.32); background: rgba(248,113,113,.07); }
+.incident-deployment-checks li[data-state='error'] span { color: #ffd0d0; }
+.incident-deployment-check-button { grid-column: span 2; }
+.incident-history-retry[data-cooldown='true'] { cursor: default; }
+@media (max-width: 560px) { .incident-deployment-checks { grid-template-columns: 1fr; } .incident-deployment-check-button { grid-column: auto; } }

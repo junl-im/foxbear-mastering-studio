@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.4-incident-callable-csp-recovery';
+  const VIEW_VERSION = '1.6.7-incident-readiness-history-sync-performance-hud';
   const DEFAULT_BINS = 96;
 
   function getService() {

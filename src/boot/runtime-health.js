@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.4-incident-callable-csp-recovery';
+    const FALLBACK_VERSION = '1.6.7-incident-readiness-history-sync-performance-hud';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

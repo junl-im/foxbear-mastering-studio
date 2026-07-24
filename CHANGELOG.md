@@ -1,3 +1,30 @@
+# v1.6.7 - Incident Deployment Readiness and Recovery Progress HUD
+
+- Adds an authenticated deployment self-check for Callable Functions, Firestore Admin access, Gmail Secret format, and SMTP authentication/connectivity.
+- Verifies the currently served HTML CSP contains the canonical regional Callable origin.
+- Synchronizes the latest five manual mail-test records with server delivery state so scheduled automatic retry results appear without rerunning the test.
+- Shows direct-retry cooldown in seconds and disables retry until the server-provided availability time.
+- Exposes performance danger reason and stable-recovery sample progress in the multi-track mastering HUD.
+- Adds regression coverage for readiness checks, history synchronization, cooldown enforcement, and staged performance recovery.
+
+# v1.6.6 - Mail Retry Countdown and Performance-Safe Batch Pause
+
+- Shows SMTP attempt count, direct retry usage, and a live human-readable countdown to the next automatic retry in local mail-test history.
+- Adds an authenticated `retryOwnIncidentReport` callable limited to the signed-in user's manual mail tests, two direct retries, and a 60-second cooldown.
+- Refuses direct retry for already-delivered, non-failed, foreign, automatic, or terminal/dead-letter reports.
+- Pauses active multi-track mastering before the next track after a confirmed performance danger state.
+- Prevents manual resume while the confirmed danger condition remains and resumes automatically only after the performance monitor returns to stable normal.
+- Adds regression coverage for retry privacy/rate limits, countdown formatting, and automatic batch pause/resume behavior.
+
+# v1.6.5 - Incident Mail Recovery Controls and SMTP Diagnostics
+
+- Adds one-click server connection recheck and a copyable `npm run deploy:incident` recovery command to the incident settings dialog.
+- Keeps the latest five manual mail-test outcomes locally with bounded, privacy-safe report and Message-ID summaries.
+- Separates invalid Secret, Gmail authentication rejection, recipient rejection, rate limiting, and SMTP network failures.
+- Stores normalized SMTP failure reason and raw provider code independently and exposes the next retry timestamp.
+- Extends incident service metadata with the Gmail provider and required Firebase Secret name.
+- Adds regression coverage for bounded history, clipboard recovery, server metadata, and SMTP classification.
+
 # v1.6.4 - Incident Callable CSP Recovery
 
 - Adds the exact regional Firebase Callable origin to the HTML and Hosting `connect-src` policies.

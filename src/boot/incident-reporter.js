@@ -1,15 +1,18 @@
-// FoxBear automatic incident reporter - v1.6.4
+// FoxBear automatic incident reporter - v1.6.7
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.4-incident-callable-csp-recovery';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.4').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.7-incident-readiness-history-sync-performance-hud';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.7').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
     const DAILY_KEY = `${STORAGE_PREFIX}:daily`;
+    const TEST_HISTORY_KEY = `${STORAGE_PREFIX}:test-history`;
+    const DEPLOY_COMMAND = 'npm run deploy:incident';
     const MAX_QUEUE = 8;
+    const MAX_TEST_HISTORY = 5;
     const MAX_AUTOMATIC_PER_SESSION = 5;
     const MAX_AUTOMATIC_PER_DAY = 12;
     const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
@@ -39,7 +42,14 @@
         serviceError: '',
         serviceErrorCode: '',
         serviceEndpoint: '',
-        serviceCheckInFlight: null
+        serviceCheckInFlight: null,
+        lastTestResult: null,
+        historyRetryReportId: '',
+        historyRefreshTimer: 0,
+        historySyncInFlight: null,
+        lastHistorySyncAt: 0,
+        deploymentCheckInFlight: null,
+        deploymentReadiness: null
     };
 
     function storageGet(key, fallback = '') {
@@ -50,6 +60,320 @@
     function storageSet(key, value) {
         try { global.localStorage?.setItem?.(key, value); return true; }
         catch (error) { return false; }
+    }
+
+
+    function loadTestHistory() {
+        try {
+            const parsed = JSON.parse(storageGet(TEST_HISTORY_KEY, '[]'));
+            return Array.isArray(parsed) ? parsed.slice(0, MAX_TEST_HISTORY) : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function saveTestHistory(items) {
+        const safe = Array.isArray(items) ? items.slice(0, MAX_TEST_HISTORY) : [];
+        storageSet(TEST_HISTORY_KEY, JSON.stringify(safe));
+        return safe;
+    }
+
+    function clearTestHistory() {
+        saveTestHistory([]);
+        renderTestHistory();
+    }
+
+    function historyStatusLabel(status = '') {
+        const labels = {
+            emailed: 'SMTP 접수 완료', pending: '처리 지연', submitted: '대기열 저장', retrying: '자동 재시도 중', sending: 'SMTP 전송 중',
+            'status-check-failed': '상태 조회 실패', 'server-api-not-deployed': '서버 미배포',
+            'server-network-blocked': '연결 차단', 'server-api-unavailable': '서버 연결 실패',
+            'server-api-internal': '서버 내부 오류', 'authentication-failed': '인증 실패',
+            'permission-denied': '권한 오류', 'smtp-secret-invalid': 'SMTP Secret 오류',
+            'smtp-auth-failed': 'Gmail 인증 실패', 'smtp-recipient-rejected': '수신 거부',
+            'smtp-rate-limited': '발송 한도', 'smtp-network-failed': 'SMTP 연결 실패',
+            failed: '발송 실패', 'dead-letter': '최종 실패'
+        };
+        return labels[status] || cleanText(status || '결과 미확인', 40);
+    }
+
+    function formatRetryCountdown(value, now = Date.now()) {
+        const retryAt = Date.parse(String(value || ''));
+        if (!Number.isFinite(retryAt)) return '';
+        const remainingMs = retryAt - Number(now || Date.now());
+        if (remainingMs <= 0) return '자동 재시도 가능';
+        const minutes = Math.max(1, Math.ceil(remainingMs / 60000));
+        if (minutes < 60) return `자동 재시도까지 약 ${minutes}분`;
+        const hours = Math.floor(minutes / 60);
+        const rest = minutes % 60;
+        return `자동 재시도까지 약 ${hours}시간${rest ? ` ${rest}분` : ''}`;
+    }
+
+    function getHistoryRetryAvailability(item = {}, now = Date.now()) {
+        const retryCount = Math.max(0, Number(item.userRetryCount || 0));
+        const retryLimit = Math.max(1, Number(item.userRetryLimit || 2));
+        const status = String(item.status || '');
+        const visible = Boolean(item.reportId && !item.terminal && retryCount < retryLimit
+            && !['emailed', 'pending', 'submitted', 'retrying', 'sending', 'dead-letter'].includes(status));
+        const availableAt = Date.parse(String(item.userRetryAvailableAt || ''));
+        const remainingMs = Number.isFinite(availableAt) ? Math.max(0, availableAt - Number(now || Date.now())) : 0;
+        return Object.freeze({ visible, ready: visible && remainingMs <= 0, remainingMs, remainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000)), retryCount, retryLimit });
+    }
+
+    function canRetryHistoryItem(item = {}) {
+        return getHistoryRetryAvailability(item).ready;
+    }
+
+    function scheduleHistoryRefresh(history = loadTestHistory()) {
+        if (state.historyRefreshTimer) global.clearTimeout(state.historyRefreshTimer);
+        state.historyRefreshTimer = 0;
+        const now = Date.now();
+        const activeStatuses = new Set(['pending', 'submitted', 'failed', 'retrying', 'sending', 'status-check-failed']);
+        const active = history.some(item => item?.reportId && !item?.terminal && activeStatuses.has(String(item?.status || '')));
+        const nextTimes = history.flatMap(item => [item?.nextRetryAt, item?.userRetryAvailableAt])
+            .map(value => Date.parse(String(value || ''))).filter(value => Number.isFinite(value) && value > now).sort((a, b) => a - b);
+        const hasCooldown = history.some(item => getHistoryRetryAvailability(item, now).remainingMs > 0);
+        if (!active && !nextTimes.length && !hasCooldown) return;
+        let delay = active ? 15000 : 30000;
+        if (nextTimes.length) delay = Math.min(delay, Math.max(1000, nextTimes[0] - now));
+        if (hasCooldown) delay = Math.min(delay, 1000);
+        state.historyRefreshTimer = global.setTimeout(async () => {
+            state.historyRefreshTimer = 0;
+            const shouldSync = active && Date.now() - state.lastHistorySyncAt >= 14000;
+            if (shouldSync) await refreshTestHistoryFromServer({ silent: true }).catch(() => renderTestHistory());
+            else renderTestHistory();
+        }, delay);
+    }
+
+    function appendTestHistory(status, result = {}, message = '') {
+        const delivery = result?.delivery || {};
+        const reportId = cleanText(result?.result?.reportId || result?.reportId || '', 180);
+        const entry = {
+            at: new Date().toISOString(),
+            status: cleanText(status || 'failed', 60),
+            label: historyStatusLabel(status),
+            detail: cleanText(message || delivery.message || delivery.reason || '', 180),
+            reportId,
+            messageId: cleanText(delivery.messageId || '', 120),
+            attemptCount: Math.max(0, Number(delivery.attemptCount || 0)),
+            nextRetryAt: cleanText(delivery.nextRetryAt || '', 40),
+            terminal: delivery.terminal === true,
+            userRetryCount: Math.max(0, Number(delivery.userRetryCount || 0)),
+            userRetryLimit: Math.max(1, Number(delivery.userRetryLimit || 2)),
+            userRetryRequestedAt: cleanText(delivery.userRetryRequestedAt || '', 40),
+            userRetryAvailableAt: cleanText(delivery.userRetryAvailableAt || '', 40),
+            checkedAt: cleanText(delivery.checkedAt || '', 40)
+        };
+        const history = loadTestHistory().filter(item => item?.reportId !== reportId || !reportId);
+        history.unshift(entry);
+        saveTestHistory(history);
+        state.lastTestResult = entry;
+        renderTestHistory();
+        return entry;
+    }
+
+    function renderTestHistory() {
+        const list = document.getElementById('incidentReportingHistory');
+        const clear = document.getElementById('incidentHistoryClear');
+        if (!list) return;
+        const history = loadTestHistory();
+        list.replaceChildren();
+        if (!history.length) {
+            const empty = document.createElement('li');
+            empty.className = 'incident-history-empty';
+            empty.textContent = '아직 실행한 메일 테스트가 없습니다.';
+            list.appendChild(empty);
+            if (clear) clear.hidden = true;
+            scheduleHistoryRefresh([]);
+            return;
+        }
+        if (clear) clear.hidden = false;
+        history.forEach(item => {
+            const row = document.createElement('li');
+            row.dataset.state = item.status === 'emailed' ? 'ok' : ['pending', 'submitted', 'retrying', 'sending'].includes(item.status) ? 'warning' : 'error';
+            const head = document.createElement('div');
+            const label = document.createElement('strong');
+            const time = document.createElement('time');
+            label.textContent = cleanText(item.label || historyStatusLabel(item.status), 60);
+            time.dateTime = cleanText(item.at || '', 40);
+            const parsed = Date.parse(item.at || '');
+            time.textContent = Number.isFinite(parsed) ? new Date(parsed).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '시간 미확인';
+            head.append(label, time);
+            const detail = document.createElement('span');
+            detail.textContent = cleanText(item.detail || item.messageId || item.reportId || '상세 정보 없음', 180);
+            const meta = document.createElement('div');
+            meta.className = 'incident-history-meta';
+            const attempt = document.createElement('small');
+            const retryLabel = formatRetryCountdown(item.nextRetryAt);
+            const attemptLabel = Number(item.attemptCount || 0) > 0 ? `SMTP 시도 ${Number(item.attemptCount)}회` : 'SMTP 시도 전';
+            const userRetryLabel = Number(item.userRetryCount || 0) > 0 ? `직접 재시도 ${Number(item.userRetryCount)}/${Math.max(1, Number(item.userRetryLimit || 2))}` : '';
+            attempt.textContent = [attemptLabel, retryLabel, userRetryLabel].filter(Boolean).join(' · ');
+            meta.appendChild(attempt);
+            const availability = getHistoryRetryAvailability(item);
+            if (availability.visible) {
+                const retry = document.createElement('button');
+                retry.type = 'button';
+                retry.className = 'incident-history-retry';
+                retry.dataset.cooldown = availability.remainingSeconds > 0 ? 'true' : 'false';
+                retry.textContent = state.historyRetryReportId === item.reportId ? '재시도 중…' : availability.remainingSeconds > 0 ? `다시 시도 ${availability.remainingSeconds}초 후` : '지금 다시 시도';
+                retry.disabled = Boolean(state.testInFlight || state.historyRetryReportId || !availability.ready);
+                retry.addEventListener('click', () => retryHistoryItem(item, retry));
+                meta.appendChild(retry);
+            }
+            row.append(head, detail, meta);
+            list.appendChild(row);
+        });
+        scheduleHistoryRefresh(history);
+    }
+
+    async function retryHistoryItem(item = {}, button = null) {
+        const reportId = cleanText(item.reportId || '', 180);
+        const availability = getHistoryRetryAvailability(item);
+        if (!reportId || !availability.ready || state.testInFlight || state.historyRetryReportId) return false;
+        state.historyRetryReportId = reportId;
+        renderControls('실패한 메일 테스트를 안전하게 다시 전송합니다…');
+        if (button) button.disabled = true;
+        try {
+            const bridge = await waitForFirebaseBridge();
+            if (typeof bridge.retryOwnIncidentReport !== 'function') throw Object.assign(new Error('재시도 서버 기능이 아직 배포되지 않았습니다.'), { code: 'functions/not-found' });
+            const delivery = await bridge.retryOwnIncidentReport(reportId);
+            const status = classifyMailTestFailure(delivery?.status || delivery?.outcome || 'failed', delivery?.code || '', `${delivery?.reason || ''} ${delivery?.message || ''}`);
+            const message = status === 'emailed'
+                ? '재시도 SMTP 접수 완료: 받은편지함과 스팸함을 확인하세요.'
+                : `${historyStatusLabel(status)} · ${cleanText(delivery?.message || delivery?.reason || delivery?.outcome || '처리 결과를 확인하세요.', 140)}`;
+            appendTestHistory(status, { reportId, result: { reportId }, delivery }, message);
+            renderRecoveryGuidance(status, delivery?.code || '', delivery?.message || delivery?.reason || '');
+            renderControls(message);
+            return status === 'emailed';
+        } catch (error) {
+            const code = cleanText(error?.code || error?.name || 'retry-failed', 80);
+            const reason = cleanText(error?.message || error, 180);
+            const status = classifyMailTestFailure(code, code, reason);
+            renderRecoveryGuidance(status, code, reason);
+            renderControls(`메일 재시도 실패 · ${code} · ${reason}`);
+            return false;
+        } finally {
+            state.historyRetryReportId = '';
+            renderTestHistory();
+        }
+    }
+
+    function mergeHistoryDelivery(item = {}, delivery = {}) {
+        const rawStatus = cleanText(delivery.status || item.status || 'failed', 60);
+        const status = classifyMailTestFailure(rawStatus, delivery.code || '', `${delivery.reason || ''} ${delivery.message || ''}`);
+        return {
+            ...item,
+            status,
+            label: historyStatusLabel(status),
+            detail: cleanText(delivery.message || delivery.reason || item.detail || '', 180),
+            messageId: cleanText(delivery.messageId || item.messageId || '', 120),
+            attemptCount: Math.max(0, Number(delivery.attemptCount ?? item.attemptCount ?? 0)),
+            nextRetryAt: cleanText(delivery.nextRetryAt || '', 40),
+            terminal: delivery.terminal === true,
+            userRetryCount: Math.max(0, Number(delivery.userRetryCount ?? item.userRetryCount ?? 0)),
+            userRetryLimit: Math.max(1, Number(delivery.userRetryLimit ?? item.userRetryLimit ?? 2)),
+            userRetryRequestedAt: cleanText(delivery.userRetryRequestedAt || item.userRetryRequestedAt || '', 40),
+            userRetryAvailableAt: cleanText(delivery.userRetryAvailableAt || item.userRetryAvailableAt || '', 40),
+            checkedAt: cleanText(delivery.checkedAt || new Date().toISOString(), 40)
+        };
+    }
+
+    async function refreshTestHistoryFromServer(options = {}) {
+        if (state.historySyncInFlight) return state.historySyncInFlight;
+        const task = (async () => {
+            const history = loadTestHistory();
+            const candidates = history.filter(item => item?.reportId && !item?.terminal && !['emailed', 'dead-letter'].includes(String(item.status || '')));
+            if (!candidates.length) return history;
+            const bridge = await waitForFirebaseBridge();
+            if (typeof bridge.getIncidentDelivery !== 'function') return history;
+            const updates = new Map();
+            for (const item of candidates) {
+                try { updates.set(item.reportId, await bridge.getIncidentDelivery(item.reportId)); }
+                catch (error) { if (!options.silent) throw error; }
+            }
+            const next = history.map(item => updates.has(item.reportId) ? mergeHistoryDelivery(item, updates.get(item.reportId)) : item);
+            saveTestHistory(next);
+            state.lastHistorySyncAt = Date.now();
+            renderTestHistory();
+            return next;
+        })().finally(() => { if (state.historySyncInFlight === task) state.historySyncInFlight = null; });
+        state.historySyncInFlight = task;
+        return task;
+    }
+
+    function setDeploymentCheckState(key, stateName = 'idle', message = '확인 전') {
+        const row = document.querySelector?.(`[data-deploy-check="${key}"]`);
+        if (!row) return;
+        row.dataset.state = stateName;
+        const text = row.querySelector?.('span');
+        if (text) text.textContent = cleanText(message, 180);
+    }
+
+    function inspectClientCsp(endpoint = '') {
+        const origin = cleanText(endpoint || state.serviceEndpoint || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 180);
+        const policy = document.querySelector?.('meta[http-equiv="Content-Security-Policy"]')?.getAttribute?.('content') || '';
+        const ok = Boolean(origin && policy.includes(origin));
+        return { ok, status: ok ? 'ready' : 'error', message: ok ? 'Callable 주소가 웹 CSP에 포함되어 있습니다.' : 'Callable 주소가 웹 CSP connect-src에 없습니다.', code: ok ? '' : 'FOXBEAR_INCIDENT_CSP_ORIGIN_MISSING' };
+    }
+
+    function renderDeploymentReadiness(result = null) {
+        const checks = result?.checks || {};
+        const mapping = { functions: 'functions', firestore: 'firestore', smtpSecret: 'smtpSecret', smtpConnection: 'smtpConnection', csp: 'csp' };
+        Object.entries(mapping).forEach(([key, checkKey]) => {
+            const item = checks[checkKey];
+            if (!item) return;
+            const stateName = item.ok === true ? 'ok' : item.status === 'checking' ? 'active' : item.status === 'blocked' ? 'warning' : 'error';
+            setDeploymentCheckState(key, stateName, item.message || item.code || item.status || '확인 결과 없음');
+        });
+    }
+
+    async function runDeploymentSelfCheck() {
+        if (state.deploymentCheckInFlight) return state.deploymentCheckInFlight;
+        ['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection'].forEach(key => setDeploymentCheckState(key, 'active', '확인 중…'));
+        const task = (async () => {
+            const bridge = await waitForFirebaseBridge();
+            if (typeof bridge.checkIncidentDeploymentReadiness !== 'function') throw Object.assign(new Error('배포 자체 점검 서버 기능이 아직 배포되지 않았습니다.'), { code: 'functions/not-found' });
+            const remote = await bridge.checkIncidentDeploymentReadiness();
+            const csp = inspectClientCsp(remote?.service?.functionsOrigin || bridge.incidentFunctionsOrigin || '');
+            const combined = Object.freeze({ ...remote, ok: remote?.ok === true && csp.ok, checks: Object.freeze({ ...remote?.checks, csp }) });
+            state.deploymentReadiness = combined;
+            if (remote?.service) state.serviceStatus = remote.service;
+            renderDeploymentReadiness(combined);
+            return combined;
+        })().catch(error => {
+            const code = cleanText(error?.code || error?.name || 'deployment-check-failed', 80);
+            const message = cleanText(error?.message || error, 220);
+            const csp = inspectClientCsp();
+            const failed = { ok: false, status: 'error', code, message };
+            const combined = { ok: false, checks: { csp, functions: failed, firestore: failed, smtpSecret: failed, smtpConnection: failed } };
+            state.deploymentReadiness = combined;
+            renderDeploymentReadiness(combined);
+            throw error;
+        }).finally(() => { if (state.deploymentCheckInFlight === task) state.deploymentCheckInFlight = null; });
+        state.deploymentCheckInFlight = task;
+        return task;
+    }
+
+    async function copyDeployCommand() {
+        let copied = false;
+        try {
+            if (global.navigator?.clipboard?.writeText) {
+                await global.navigator.clipboard.writeText(DEPLOY_COMMAND);
+                copied = true;
+            }
+        } catch (error) {}
+        if (!copied) {
+            const textarea = document.createElement('textarea');
+            textarea.value = DEPLOY_COMMAND;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try { copied = document.execCommand?.('copy') === true; } catch (error) {}
+            textarea.remove();
+        }
+        return copied;
     }
 
     function isEnabled() {
@@ -342,6 +666,11 @@
         if (/functions\/internal/i.test(evidence)) return 'server-api-internal';
         if (/permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/i.test(evidence)) return 'permission-denied';
         if (/unauthenticated|FOXBEAR_INCIDENT_AUTH_NOT_READY/i.test(evidence)) return 'authentication-failed';
+        if (/FOXBEAR_GMAIL_SECRET_INVALID|secret-invalid|16-character Google app password/i.test(evidence)) return 'smtp-secret-invalid';
+        if (/smtp-auth-failed|EAUTH|\b535\b|\b534\b|invalid login|username and password not accepted|bad credentials/i.test(evidence)) return 'smtp-auth-failed';
+        if (/recipient-rejected|FOXBEAR_SMTP_NO_ACCEPTED_RECIPIENT|EENVELOPE|\b550\b|\b553\b|recipient.*reject/i.test(evidence)) return 'smtp-recipient-rejected';
+        if (/daily-email-limit|smtp-rate-limited|rate.?limit|quota|\b421\b|\b450\b|\b454\b/i.test(evidence)) return 'smtp-rate-limited';
+        if (/smtp-connection-failed|ETIMEDOUT|ESOCKET|ECONNECTION|ECONNRESET|ENOTFOUND|smtp.*timeout/i.test(evidence)) return 'smtp-network-failed';
         return rawStatus || failureCode || 'failed';
     }
 
@@ -355,7 +684,12 @@
             'server-api-unavailable': 'Firebase Functions 초기화가 완료되지 않았습니다. 네트워크 연결과 Firebase SDK 로드를 확인하세요.',
             'server-api-internal': 'Callable Functions 내부 오류입니다. Firebase Functions 로그와 Secret 설정을 확인하세요.',
             'permission-denied': '익명 인증 또는 Firestore 규칙이 현재 웹 빌드와 맞지 않습니다. npm run deploy:incident로 규칙과 Functions를 함께 갱신하세요.',
-            'authentication-failed': '익명 인증이 실패했습니다. Firebase Authentication의 익명 로그인을 활성화했는지 확인하세요.'
+            'authentication-failed': '익명 인증이 실패했습니다. Firebase Authentication의 익명 로그인을 활성화했는지 확인하세요.',
+            'smtp-secret-invalid': 'Gmail 앱 비밀번호 Secret이 없거나 16자리 형식이 아닙니다. Secret을 다시 등록한 뒤 Functions를 배포하세요.',
+            'smtp-auth-failed': 'Gmail이 앱 비밀번호 인증을 거부했습니다. 2단계 인증과 앱 비밀번호 상태를 확인하고 Secret을 교체하세요.',
+            'smtp-recipient-rejected': 'Gmail SMTP가 수신 주소를 승인하지 않았습니다. 수신 주소와 Gmail 정책을 확인하세요.',
+            'smtp-rate-limited': 'Gmail 또는 앱의 일일 발송 한도에 도달했습니다. 표시된 재시도 시각 이후 다시 확인하세요.',
+            'smtp-network-failed': 'Firebase Functions에서 Gmail SMTP 연결에 실패했습니다. 잠시 후 다시 시도하고 Functions 로그를 확인하세요.'
         };
         const codeText = cleanText(code || '', 80);
         const detailText = cleanText(detail || '', 180);
@@ -546,18 +880,25 @@
         onProgress('queue', 'ok', `${transport} 저장 완료`);
         onProgress('mail', 'active', 'SMTP 처리 결과 확인 중');
         const delivery = await waitForDelivery(reportId);
-        const mailTone = delivery?.status === 'emailed' ? 'ok' : ['failed', 'dead-letter', 'status-check-failed'].includes(delivery?.status) ? 'error' : 'warning';
-        const mailText = delivery?.status === 'emailed' ? 'SMTP 접수 완료'
-            : delivery?.status === 'pending' ? '처리 지연'
-                : delivery?.status === 'status-check-failed' ? '상태 조회 실패'
-                    : `결과 ${delivery?.status || 'unknown'}`;
-        onProgress('mail', mailTone, mailText);
+        const classified = classifyMailTestFailure(delivery?.status || '', delivery?.code || '', `${delivery?.reason || ''} ${delivery?.message || ''}`);
+        const mailTone = delivery?.status === 'emailed' ? 'ok' : ['pending', 'submitted'].includes(delivery?.status) ? 'warning' : 'error';
+        const mailLabels = {
+            emailed: 'SMTP 접수 완료', pending: '처리 지연', 'status-check-failed': '상태 조회 실패',
+            'smtp-secret-invalid': 'SMTP Secret 오류', 'smtp-auth-failed': 'Gmail 인증 실패',
+            'smtp-recipient-rejected': '수신 거부', 'smtp-rate-limited': '발송 한도',
+            'smtp-network-failed': 'SMTP 연결 실패', failed: '발송 실패', 'dead-letter': '최종 실패'
+        };
+        onProgress('mail', mailTone, mailLabels[classified] || `결과 ${delivery?.status || 'unknown'}`);
         return Object.freeze({ ...submission, delivery });
     }
 
     function renderControls(message = '') {
         const toggle = document.getElementById('incidentReportingToggle');
         const testButton = document.getElementById('incidentReportingTest');
+        const retryButton = document.getElementById('incidentServiceRetry');
+        const deploymentButton = document.getElementById('incidentDeploymentCheck');
+        const copyButton = document.getElementById('incidentDeployCopy');
+        const historyClear = document.getElementById('incidentHistoryClear');
         const status = document.getElementById('incidentReportingStatus');
         const current = getStatus();
         if (toggle) {
@@ -568,16 +909,30 @@
             testButton.disabled = !current.enabled || state.testInFlight;
             testButton.setAttribute('aria-busy', state.testInFlight ? 'true' : 'false');
         }
+        if (retryButton) {
+            retryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight);
+            retryButton.setAttribute('aria-busy', state.serviceCheckInFlight ? 'true' : 'false');
+        }
+        if (deploymentButton) {
+            deploymentButton.disabled = state.testInFlight || Boolean(state.deploymentCheckInFlight);
+            deploymentButton.setAttribute('aria-busy', state.deploymentCheckInFlight ? 'true' : 'false');
+        }
+        if (copyButton) copyButton.dataset.command = DEPLOY_COMMAND;
         if (status) {
             status.textContent = message || `대기 ${current.queued}건 · 오늘 자동 제출 ${current.dailyCount}/${MAX_AUTOMATIC_PER_DAY}`;
             status.dataset.tone = /완료|켜짐|대기 0건/.test(status.textContent) ? 'ok' : (/오류|실패|권한|중단/.test(status.textContent) ? 'error' : 'neutral');
         }
         renderServiceDiagnostics();
+        renderTestHistory();
     }
 
     function bindControls() {
         const toggle = document.getElementById('incidentReportingToggle');
         const testButton = document.getElementById('incidentReportingTest');
+        const retryButton = document.getElementById('incidentServiceRetry');
+        const deploymentButton = document.getElementById('incidentDeploymentCheck');
+        const copyButton = document.getElementById('incidentDeployCopy');
+        const historyClear = document.getElementById('incidentHistoryClear');
         if (toggle && !toggle.dataset.bound) {
             toggle.dataset.bound = 'true';
             toggle.addEventListener('click', () => {
@@ -585,6 +940,54 @@
                 renderControls(enabled ? '자동 문제 신고를 켰습니다.' : '자동 문제 신고를 껐습니다.');
                 if (enabled) flushQueue().then(() => renderControls()).catch(() => renderControls());
             });
+        }
+        if (retryButton && !retryButton.dataset.bound) {
+            retryButton.dataset.bound = 'true';
+            retryButton.addEventListener('click', async () => {
+                retryButton.disabled = true;
+                renderControls('서버 연결과 배포 버전을 다시 확인합니다…');
+                try {
+                    const service = await refreshServiceStatus({ force: true });
+                    const comparison = compareVersions(service?.productVersion, CLIENT_PRODUCT_VERSION);
+                    renderControls(comparison === -1 ? `서버 v${service?.productVersion || '?'}가 웹보다 오래됐습니다.` : '오류 신고 서버 연결이 정상입니다.');
+                    renderRecoveryGuidance('', '', '');
+                } catch (error) {
+                    const code = cleanText(error?.code || error?.name || '', 80);
+                    const reason = cleanText(error?.message || error, 180);
+                    const status = classifyMailTestFailure(code, code, reason);
+                    renderRecoveryGuidance(status, code, reason);
+                    renderControls(`서버 연결 재확인 실패 · ${code || reason}`);
+                }
+            });
+        }
+        if (deploymentButton && !deploymentButton.dataset.bound) {
+            deploymentButton.dataset.bound = 'true';
+            deploymentButton.addEventListener('click', async () => {
+                renderControls('웹·서버·Firestore·Gmail SMTP 배포 상태를 점검합니다…');
+                try {
+                    const result = await runDeploymentSelfCheck();
+                    renderControls(result.ok ? '배포 상태 자체 점검 완료 · 모든 항목 정상' : '배포 상태 자체 점검에서 확인이 필요한 항목이 있습니다.');
+                    renderRecoveryGuidance(result.ok ? '' : 'server-api-internal', '', result.ok ? '' : '점검 결과의 오류 항목을 확인하세요.');
+                } catch (error) {
+                    const code = cleanText(error?.code || error?.name || '', 80);
+                    const reason = cleanText(error?.message || error, 180);
+                    renderRecoveryGuidance(classifyMailTestFailure(code, code, reason), code, reason);
+                    renderControls(`배포 상태 자체 점검 실패 · ${code || reason}`);
+                }
+            });
+        }
+        if (copyButton && !copyButton.dataset.bound) {
+            copyButton.dataset.bound = 'true';
+            copyButton.addEventListener('click', async () => {
+                const copied = await copyDeployCommand();
+                const previous = copyButton.textContent;
+                copyButton.textContent = copied ? '배포 명령 복사됨' : '복사 실패';
+                global.setTimeout(() => { copyButton.textContent = previous || '배포 명령 복사'; }, 1800);
+            });
+        }
+        if (historyClear && !historyClear.dataset.bound) {
+            historyClear.dataset.bound = 'true';
+            historyClear.addEventListener('click', clearTestHistory);
         }
         if (testButton && !testButton.dataset.bound) {
             testButton.dataset.bound = 'true';
@@ -614,6 +1017,11 @@
                         'server-api-unavailable': 'Firebase Functions 연결이 초기화되지 않았습니다. 네트워크와 SDK 로드를 확인하세요.',
                         'server-api-internal': 'Firebase Callable 내부 오류가 발생했습니다. Functions 로그와 Secret 설정을 확인하세요.',
                         'authentication-failed': 'Firebase 익명 인증에 실패했습니다. Authentication 설정을 확인하세요.',
+                        'smtp-secret-invalid': 'SMTP Secret이 없거나 Google 앱 비밀번호 형식이 잘못됐습니다.',
+                        'smtp-auth-failed': 'Gmail이 앱 비밀번호 인증을 거부했습니다.',
+                        'smtp-recipient-rejected': 'Gmail SMTP가 수신 주소를 승인하지 않았습니다.',
+                        'smtp-rate-limited': '메일 발송 한도에 도달했습니다. 재시도 시각 이후 다시 확인하세요.',
+                        'smtp-network-failed': 'Firebase Functions에서 Gmail SMTP 연결에 실패했습니다.',
                         FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE: 'Firebase 연결이 준비되지 않아 테스트 신고를 로컬 대기열에 저장했습니다.',
                         FOXBEAR_INCIDENT_FIREBASE_ERROR: 'Firebase 초기화 오류로 테스트 신고를 로컬 대기열에 저장했습니다.',
                         'suppressed-duplicate': '동일 테스트가 중복 억제됐습니다.',
@@ -631,11 +1039,14 @@
                         finalMessage = `${baseMessage}${receipt ? ` · ${receipt}` : ''}`;
                     } else {
                         finalMessage = detail && status !== 'suppressed-duplicate' ? `${baseMessage} · ${detail}` : baseMessage;
+                        const retryAt = cleanText(result?.delivery?.nextRetryAt || '', 40);
+                        if (retryAt && ['smtp-rate-limited', 'failed'].includes(status)) finalMessage += ` · 재시도 ${retryAt}`;
                     }
                     renderRecoveryGuidance(status, failureCode, failureReason);
                     if (compareVersions(state.serviceStatus?.productVersion, CLIENT_PRODUCT_VERSION) === -1) {
                         finalMessage += ` · 서버 v${state.serviceStatus.productVersion}를 웹 v${CLIENT_PRODUCT_VERSION}에 맞게 배포하세요.`;
                     }
+                    appendTestHistory(status, result, finalMessage);
                 } finally {
                     state.testInFlight = false;
                     renderControls(finalMessage);
@@ -644,7 +1055,10 @@
         }
         renderControls();
         const dialogVisible = document.getElementById('incidentReportingDialog')?.classList?.contains('show');
-        if (dialogVisible) refreshServiceStatus().catch(() => {});
+        if (dialogVisible) {
+            refreshServiceStatus().catch(() => {});
+            refreshTestHistoryFromServer({ silent: true }).catch(() => {});
+        }
     }
 
     function getStatus() {
@@ -665,7 +1079,10 @@
             serviceStatus: state.serviceStatus,
             serviceError: state.serviceError,
             serviceErrorCode: state.serviceErrorCode,
-            serviceEndpoint: state.serviceEndpoint
+            serviceEndpoint: state.serviceEndpoint,
+            recentTests: loadTestHistory(),
+            deploymentReadiness: state.deploymentReadiness,
+            deployCommand: DEPLOY_COMMAND
         });
     }
 
@@ -705,6 +1122,18 @@
         compareVersions,
         updatePipelineStage,
         classifyMailTestFailure,
-        renderRecoveryGuidance
+        renderRecoveryGuidance,
+        loadTestHistory,
+        clearTestHistory,
+        renderTestHistory,
+        refreshTestHistoryFromServer,
+        getHistoryRetryAvailability,
+        runDeploymentSelfCheck,
+        inspectClientCsp,
+        appendTestHistory,
+        copyDeployCommand,
+        formatRetryCountdown,
+        canRetryHistoryItem,
+        retryHistoryItem
     });
 })(window);

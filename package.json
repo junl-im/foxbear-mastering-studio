@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.4",
+  "version": "1.6.7",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with callable CSP recovery and actionable incident mail diagnostics.",
+  "description": "FoxBear AI Mastering Studio Pro with deployment self-checks, live mail retry history sync, and staged performance-recovery HUD guidance.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.4-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.4-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.7-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.7-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only hosting,firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest,functions:submitIncidentReport,functions:getIncidentDeliveryStatus,functions:getIncidentServiceStatus",
+    "deploy:incident": "firebase deploy --only hosting,firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest,functions:submitIncidentReport,functions:getIncidentDeliveryStatus,functions:getIncidentServiceStatus,functions:retryOwnIncidentReport,functions:checkIncidentDeploymentReadiness",
     "version:dry-run": "node tools/sync-release-metadata.js --dry-run",
     "dependencies:check": "node tools/check-dependency-health.js",
     "qa:browser:preflight": "node qa/browser/run-browser-preflight.js",
@@ -362,15 +362,18 @@
     "node qa/v1601_transient_performance_diagnostics_smoke.js",
     "node qa/v1602_nonblocking_health_design_polish_smoke.js",
     "node qa/v1603_health_acknowledgement_settings_summary_smoke.js",
-    "node qa/v1604_incident_callable_csp_recovery_smoke.js"
+    "node qa/v1604_incident_callable_csp_recovery_smoke.js",
+    "node qa/v1605_incident_mail_recovery_history_smoke.js",
+    "node qa/v1606_mail_retry_safe_batch_autopause_smoke.js",
+    "node qa/v1607_incident_readiness_history_sync_performance_hud_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-callable-csp-recovery",
-    "assetVersion": "1.6.4-incident-callable-csp-recovery",
-    "cacheName": "foxbear-shell-v1.6.4-incident-callable-csp-recovery",
-    "bootRevision": "boot-sri-v1604",
-    "updateSafetyRevision": "update-safety-v1604",
-    "serviceWorkerRevision": "sw-v1604"
+    "buildId": "incident-readiness-history-sync-performance-hud",
+    "assetVersion": "1.6.7-incident-readiness-history-sync-performance-hud",
+    "cacheName": "foxbear-shell-v1.6.7-incident-readiness-history-sync-performance-hud",
+    "bootRevision": "boot-sri-v1607",
+    "updateSafetyRevision": "update-safety-v1607",
+    "serviceWorkerRevision": "sw-v1607"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

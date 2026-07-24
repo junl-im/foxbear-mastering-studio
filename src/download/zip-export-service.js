@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.6.4 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.6.7 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.6.4-incident-callable-csp-recovery';
+    const VERSION = 'v1.6.7-incident-readiness-history-sync-performance-hud';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {

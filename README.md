@@ -1,3 +1,42 @@
+# FoxBear AI Mastering Studio Pro v1.6.7
+
+현재 릴리스는 오류 자동신고 화면에서 웹 CSP·Callable Functions·Firestore·Gmail Secret·SMTP 연결을 한 번에 자체 점검합니다. 최근 메일 테스트 이력은 서버 상태를 다시 읽어 자동 재시도 결과까지 반영하며, 직접 재시도 쿨다운은 초 단위로 표시됩니다. 여러 곡 마스터링이 성능 보호로 멈춘 경우 HUD에서 위험 원인과 정상화 확인 진행도를 볼 수 있습니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1607_incident_readiness_history_sync_performance_hud_smoke.js`
+- 오류 신고 전체 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 330개.
+
+# FoxBear AI Mastering Studio Pro v1.6.6
+
+현재 릴리스는 실패한 실제 메일 테스트의 SMTP 시도 횟수와 다음 자동 재시도까지 남은 시간을 표시하고, 본인이 실행한 테스트만 제한적으로 다시 보낼 수 있게 합니다. 성능 위험이 확정되면 여러 곡 마스터링은 현재 곡을 마친 뒤 다음 곡 전에 자동 일시정지하며, 정상 상태가 안정적으로 확인된 뒤에만 이어서 실행합니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1606_mail_retry_safe_batch_autopause_smoke.js`
+- 오류 신고 전체 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 329개.
+
+# FoxBear AI Mastering Studio Pro v1.6.5
+
+현재 릴리스는 오류 자동신고 화면에서 서버 연결을 다시 확인하고 배포 명령을 바로 복사할 수 있게 합니다. 최근 실제 메일 테스트 5회의 결과를 기기 안에 보관하며, SMTP Secret·Gmail 인증·수신 거부·발송 한도·네트워크 오류를 서로 구분해 복구 방향을 표시합니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1605_incident_mail_recovery_history_smoke.js`
+- 오류 신고 전체 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 328개.
+
 # FoxBear AI Mastering Studio Pro v1.6.4
 
 현재 릴리스는 실제 메일 테스트를 막을 수 있던 Firebase Callable CSP 누락을 수정하고, Hosting CSP·Firestore 규칙·Functions를 `npm run deploy:incident` 한 번으로 함께 배포합니다. 메일 테스트 실패 시 배포 누락·CSP/네트워크 차단·인증·권한·서버 내부 오류를 구분해 코드와 복구 안내를 표시합니다.

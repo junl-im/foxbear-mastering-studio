@@ -12,7 +12,7 @@ const must = (condition, message) => {
   }
 };
 
-const version = '1.6.4-incident-callable-csp-recovery';
+const version = '1.6.7-incident-readiness-history-sync-performance-hud';
 const pkg = JSON.parse(read('package.json'));
 const index = read('index.html');
 const sw = read('sw.js');
@@ -20,15 +20,15 @@ const spectrum = read('src/ui/spectrum-visualizer.js');
 const app = read('src/app.js');
 const runtime = read('src/boot/runtime-health.js');
 
-must(pkg.version === '1.6.4', 'package version should be 1.6.4');
-must(app.includes("const APP_VERSION = 'Pro v1.6.4'"), 'app version should be Pro v1.6.4');
-must(index.includes('data-build="1.6.4"'), 'index build marker should be 1.6.4');
-must(index.includes(`src/ui/spectrum-visualizer.js?v=${version}`), 'index should load spectrum visualizer with v1.6.4 cache key');
-must(sw.includes(`./src/ui/spectrum-visualizer.js?v=${version}`), 'service worker should precache spectrum visualizer with v1.6.4 key');
-must(sw.includes(`foxbear-shell-v${version}`), 'service worker cache should use v1.6.4 key');
+must(pkg.version === '1.6.7', 'package version should be 1.6.7');
+must(app.includes("const APP_VERSION = 'Pro v1.6.7'"), 'app version should be Pro v1.6.7');
+must(index.includes('data-build="1.6.7"'), 'index build marker should be 1.6.7');
+must(index.includes(`src/ui/spectrum-visualizer.js?v=${version}`), 'index should load spectrum visualizer with v1.6.7 cache key');
+must(sw.includes(`./src/ui/spectrum-visualizer.js?v=${version}`), 'service worker should precache spectrum visualizer with v1.6.7 key');
+must(sw.includes(`foxbear-shell-v${version}`), 'service worker cache should use v1.6.7 key');
 must(runtime.includes('FoxBearSpectrumVisualizer.renderPanel'), 'runtime health should require detail spectrum API');
 
-must(spectrum.includes("VISUALIZER_VERSION = '1.6.4-incident-callable-csp-recovery'"), 'spectrum visualizer version should be v1.6.4 hotfix');
+must(spectrum.includes("VISUALIZER_VERSION = '1.6.7-incident-readiness-history-sync-performance-hud'"), 'spectrum visualizer version should be v1.6.7 hotfix');
 must(spectrum.includes('function hasRenderableCanvas'), 'visualizer should detect mounted spectrum canvases');
 must(spectrum.includes('if (!hasRenderableCanvas())'), 'live FFT should skip analyser connection when no spectrum canvas is mounted');
 must(!spectrum.includes('!state.live || !state.analyser || !state.data || !state.canvas'), 'live loop must not require the full detail canvas');
@@ -36,8 +36,8 @@ must(spectrum.includes('drawEveryCanvas(values'), 'live loop should draw to all 
 must(spectrum.includes('function scheduleFrame') && spectrum.includes('setTimeout') && spectrum.includes('getFrameDelay'), 'visualizer should support RAF/timeout fallback');
 must(spectrum.includes('function cancelFrame') && spectrum.includes('clearTimeout'), 'visualizer should cancel RAF fallback');
 must(spectrum.includes('function resumeContext') && spectrum.includes('resumeContext(state.context).finally(() => startLoop())'), 'visualizer should resume suspended AudioContext before live loop');
-must(!app.includes('function renderBottomMiniSpectrum'), 'Dock mini spectrum renderer should be removed in v1.6.4');
-must(!app.includes('bottomPreviewSpectrum'), 'Dock mini spectrum ref should be removed in v1.6.4');
-must(pkg.qaChecks.includes('node qa/v144_fft_live_hotfix_smoke.js'), 'v1.6.4 smoke should run in npm check');
+must(!app.includes('function renderBottomMiniSpectrum'), 'Dock mini spectrum renderer should be removed in v1.6.7');
+must(!app.includes('bottomPreviewSpectrum'), 'Dock mini spectrum ref should be removed in v1.6.7');
+must(pkg.qaChecks.includes('node qa/v144_fft_live_hotfix_smoke.js'), 'v1.6.7 smoke should run in npm check');
 
 console.log('PASS v1.4.26 FFT live hotfix smoke');
