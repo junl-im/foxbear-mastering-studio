@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.95-popup-settings-mail-test-recovery';
+const version = '1.5.96-modal-focus-memory-diagnostics';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

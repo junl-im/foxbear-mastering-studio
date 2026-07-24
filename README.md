@@ -1,3 +1,7 @@
+# FoxBear AI Mastering Studio Pro v1.5.96
+
+현재 릴리스는 모든 주요 팝업의 포커스 복귀·Tab 순환·외부 클릭·Escape·모바일 스크롤 잠금을 공통화하고, 메모리 성능진단을 핵심 상태 카드와 기술 상세 로그로 분리합니다.
+
 # FoxBear AI Mastering Studio Pro v1.5.95
 
 ## v1.5.95 Product introduction, support settings, and popup consistency

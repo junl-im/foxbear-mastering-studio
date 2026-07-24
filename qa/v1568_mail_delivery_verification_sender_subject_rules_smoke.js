@@ -13,8 +13,8 @@ const reporterSource = read('src/boot/incident-reporter.js');
 const indexSource = read('index.html');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.68_MAIL_DELIVERY_VERIFICATION_SENDER_SUBJECT_RULES.md');
-assert.strictEqual(pkg.version, '1.5.95');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.95-popup-settings-mail-test-recovery');
+assert.strictEqual(pkg.version, '1.5.96');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.96-modal-focus-memory-diagnostics');
 for (const token of [
   "const MAIL_FROM_NAME = 'AI마스터링 스튜디오'", "const MAIL_SUBJECT_PREFIX = '[AI마스터링 스튜디오]'",
   'mailFromHeader()', 'buildIncidentSubject', "'X-AI-Mastering-Mail-Type'", 'smtpAcceptedAt: Timestamp.fromMillis(now)'
@@ -51,11 +51,11 @@ vm.runInNewContext(functionsSource, sandbox, { filename: 'functions/index.js' })
 const test = moduleRecord.exports.__test;
 assert.strictEqual(test.mailFromHeader(), 'AI마스터링 스튜디오 <mcwoogi@gmail.com>');
 assert.strictEqual(test.kstTimestampLabel(Date.UTC(2026, 6, 21, 15, 0, 0)), '2026-07-22 00:00:00 KST');
-const manual = test.buildMail({ category: 'manual-test', severity: 'warning', fingerprint: 'manual-test-abc123', appVersion: '1.5.95' }, 'uid_report');
+const manual = test.buildMail({ category: 'manual-test', severity: 'warning', fingerprint: 'manual-test-abc123', appVersion: '1.5.96' }, 'uid_report');
 assert(manual.subject.startsWith('[AI마스터링 스튜디오][메일 테스트] 실제 발송 확인'));
 assert.strictEqual(manual.type, 'manual-test');
-const incident = test.buildMail({ category: 'mastering', severity: 'fatal', fingerprint: 'master', appVersion: '1.5.95' }, 'uid_report_12345');
-assert(incident.subject.includes('[오류 신고] 긴급 · 마스터링 오류 · v1.5.95'));
+const incident = test.buildMail({ category: 'mastering', severity: 'fatal', fingerprint: 'master', appVersion: '1.5.96' }, 'uid_report_12345');
+assert(incident.subject.includes('[오류 신고] 긴급 · 마스터링 오류 · v1.5.96'));
 const summary = test.buildDailySummaryMail([], '2026-07-21');
 assert.strictEqual(summary.subject, '[AI마스터링 스튜디오][일일 요약] 2026-07-21 · 오류 0건');
 const ops = test.buildOperationsAlertMail({ status: 'critical', reasons: [] }, {}, 'alert');

@@ -1,3 +1,16 @@
+# FoxBear Status - v1.5.96
+
+## v1.5.96 current focus
+
+- Shared modal focus trapping, opener restoration, layered scroll locking, Escape, and outside-click dismissal are centralized.
+- Program information, incident reporting, and performance diagnostics follow the same close lifecycle.
+- Memory diagnostics exposes readable health cards and a separate expandable technical log.
+- Configured static/regression target: 317 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.5.95
 
 ## v1.5.95 current focus
@@ -308,10 +321,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.95`
-- Build ID: `popup-settings-mail-test-recovery`
-- Asset version: `1.5.95-popup-settings-mail-test-recovery`
-- Service worker cache: `foxbear-shell-v1.5.95-popup-settings-mail-test-recovery`
+- Product version: `1.5.96`
+- Build ID: `modal-focus-memory-diagnostics`
+- Asset version: `1.5.96-modal-focus-memory-diagnostics`
+- Service worker cache: `foxbear-shell-v1.5.96-modal-focus-memory-diagnostics`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -343,10 +356,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.95`
-- Build ID: `popup-settings-mail-test-recovery`
-- Asset version: `1.5.95-popup-settings-mail-test-recovery`
-- Service worker cache: `foxbear-shell-v1.5.95-popup-settings-mail-test-recovery`
+- Product version: `1.5.96`
+- Build ID: `modal-focus-memory-diagnostics`
+- Asset version: `1.5.96-modal-focus-memory-diagnostics`
+- Service worker cache: `foxbear-shell-v1.5.96-modal-focus-memory-diagnostics`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

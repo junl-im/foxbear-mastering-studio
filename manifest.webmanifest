@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.95 (popup-settings-mail-test-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.96 (modal-focus-memory-diagnostics).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.95"
+  "version": "1.5.96"
 }

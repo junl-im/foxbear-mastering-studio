@@ -1,7 +1,19 @@
-// FoxBear Modal State Machine Controller v1.5.95
+// FoxBear Modal State Machine Controller v1.5.96
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
+    const openLayers = new Set();
+    const FOCUSABLE_SELECTOR = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled]):not([type="hidden"])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+        '[contenteditable="true"]'
+    ].join(',');
+    let scrollLockSnapshot = null;
+
     function isElement(value) {
         return Boolean(value && typeof value === 'object' && value.nodeType === 1);
     }
@@ -13,6 +25,97 @@
         if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
     }
 
+    function getDocument(dialog = null) {
+        return dialog?.ownerDocument || global.document || null;
+    }
+
+    function getFocusable(dialog) {
+        if (!isElement(dialog) || typeof dialog.querySelectorAll !== 'function') return [];
+        return Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR)).filter(element => {
+            if (!isElement(element) || element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
+            if (element.disabled || element.getAttribute('aria-disabled') === 'true') return false;
+            if (typeof global.getComputedStyle !== 'function') return true;
+            const style = global.getComputedStyle(element);
+            return style.display !== 'none' && style.visibility !== 'hidden';
+        });
+    }
+
+    function focusFirst(dialog) {
+        const candidates = getFocusable(dialog);
+        const panel = dialog?.querySelector?.('[tabindex="-1"], [tabindex], .feature-dialog-panel, .preview-dialog-panel, .program-info-panel, .support-settings-panel, .foxbear-perf-panel');
+        const target = candidates[0] || panel || dialog;
+        if (target && typeof target.focus === 'function') {
+            try { target.focus({ preventScroll: true }); } catch (_) {}
+        }
+        return target || null;
+    }
+
+    function lockDocument(doc) {
+        if (!doc?.body || scrollLockSnapshot) return;
+        const body = doc.body;
+        const root = doc.documentElement;
+        const scrollY = Number(global.scrollY || root?.scrollTop || body.scrollTop || 0);
+        scrollLockSnapshot = {
+            body,
+            root,
+            scrollY,
+            bodyPosition: body.style.position,
+            bodyTop: body.style.top,
+            bodyLeft: body.style.left,
+            bodyRight: body.style.right,
+            bodyWidth: body.style.width,
+            bodyOverflow: body.style.overflow,
+            bodyTouchAction: body.style.touchAction,
+            rootOverflow: root?.style?.overflow || ''
+        };
+        body.dataset.foxbearModalScrollY = String(scrollY);
+        body.style.position = 'fixed';
+        body.style.top = `${-scrollY}px`;
+        body.style.left = '0';
+        body.style.right = '0';
+        body.style.width = '100%';
+        body.style.overflow = 'hidden';
+        body.style.touchAction = 'none';
+        if (root?.style) root.style.overflow = 'hidden';
+        body.classList.add('foxbear-modal-layer-open');
+    }
+
+    function unlockDocument() {
+        if (!scrollLockSnapshot) return;
+        const snapshot = scrollLockSnapshot;
+        scrollLockSnapshot = null;
+        const { body, root, scrollY } = snapshot;
+        if (body?.style) {
+            body.style.position = snapshot.bodyPosition;
+            body.style.top = snapshot.bodyTop;
+            body.style.left = snapshot.bodyLeft;
+            body.style.right = snapshot.bodyRight;
+            body.style.width = snapshot.bodyWidth;
+            body.style.overflow = snapshot.bodyOverflow;
+            body.style.touchAction = snapshot.bodyTouchAction;
+            body.classList.remove('foxbear-modal-layer-open');
+            delete body.dataset.foxbearModalScrollY;
+        }
+        if (root?.style) root.style.overflow = snapshot.rootOverflow;
+        if (typeof global.scrollTo === 'function') {
+            try { global.scrollTo({ top: scrollY, left: 0, behavior: 'auto' }); }
+            catch (_) { try { global.scrollTo(0, scrollY); } catch (_) {} }
+        }
+    }
+
+    function syncDocumentLock(dialog = null) {
+        if (openLayers.size > 0) lockDocument(getDocument(dialog));
+        else unlockDocument();
+    }
+
+    function setExternalLayerOpen(layer, open) {
+        if (!isElement(layer)) return false;
+        if (open) openLayers.add(layer);
+        else openLayers.delete(layer);
+        syncDocumentLock(layer);
+        return true;
+    }
+
     function hardSet(dialog, open, bodyClass) {
         if (!isElement(dialog)) return false;
         dialog.hidden = !open;
@@ -20,9 +123,10 @@
         dialog.setAttribute('aria-hidden', open ? 'false' : 'true');
         dialog.style.display = open ? 'flex' : 'none';
         dialog.style.pointerEvents = open ? 'auto' : 'none';
-        if (bodyClass && global.document && global.document.body) {
-            global.document.body.classList.toggle(bodyClass, Boolean(open));
+        if (bodyClass && getDocument(dialog)?.body) {
+            getDocument(dialog).body.classList.toggle(bodyClass, Boolean(open));
         }
+        setExternalLayerOpen(dialog, Boolean(open));
         return true;
     }
 
@@ -31,6 +135,7 @@
             this.document = options.document || global.document;
             this.getElement = options.getElement || (id => this.document.getElementById(id));
             this.modals = new Map();
+            this.returnFocusByName = new Map();
             this.active = null;
             this.installed = false;
             this.boundClick = this.handleClick.bind(this);
@@ -86,36 +191,44 @@
             return Boolean(dialog && !dialog.hidden && dialog.classList.contains('show'));
         }
 
+        rememberReturnFocus(name, options = {}) {
+            const candidate = this.resolve(options.opener) || options.event?.currentTarget || options.event?.target || this.document?.activeElement;
+            if (isElement(candidate) && candidate !== this.document?.body) this.returnFocusByName.set(name, candidate);
+        }
+
+        restoreFocus(name, cfg) {
+            const remembered = this.returnFocusByName.get(name);
+            this.returnFocusByName.delete(name);
+            const focusTarget = remembered || this.resolve(cfg.returnFocus || cfg.openers[0]);
+            if (focusTarget && this.document?.body?.contains?.(focusTarget) && !focusTarget.hidden && focusTarget.getAttribute?.('aria-hidden') !== 'true') {
+                try { focusTarget.focus({ preventScroll: true }); } catch (_) {}
+            }
+        }
+
         setOpen(name, open, options = {}) {
             const cfg = this.modals.get(name);
             if (!cfg) return false;
             const dialog = this.resolve(cfg.dialog);
             if (!dialog) return false;
             if (open && this.active && this.active !== name) this.setOpen(this.active, false, { restoreFocus: false, silent: true });
+            if (open) this.rememberReturnFocus(name, options);
             hardSet(dialog, Boolean(open), cfg.bodyClass);
             if (open) {
                 this.active = name;
                 if (!options.silent && typeof cfg.onOpen === 'function') cfg.onOpen({ name, dialog, controller: this, event: options.event || null });
-                const panel = dialog.querySelector('[tabindex], .feature-dialog-panel, .preview-dialog-panel, .program-info-panel');
-                if (panel && typeof panel.focus === 'function') {
-                    try { panel.focus({ preventScroll: true }); } catch (_) {}
-                }
+                focusFirst(dialog);
             } else {
                 if (this.active === name) this.active = null;
                 if (!options.silent && typeof cfg.onClose === 'function') cfg.onClose({ name, dialog, controller: this, event: options.event || null });
-                if (options.restoreFocus !== false) {
-                    const focusTarget = this.resolve(cfg.returnFocus || cfg.openers[0]);
-                    if (focusTarget && this.document.body.contains(focusTarget)) {
-                        try { focusTarget.focus({ preventScroll: true }); } catch (_) {}
-                    }
-                }
+                if (options.restoreFocus !== false) this.restoreFocus(name, cfg);
+                else this.returnFocusByName.delete(name);
             }
             return true;
         }
 
-        open(name, event = null) {
+        open(name, event = null, opener = null) {
             stopEvent(event);
-            return this.setOpen(name, true, { event });
+            return this.setOpen(name, true, { event, opener });
         }
 
         close(name, event = null, options = {}) {
@@ -163,21 +276,43 @@
             return true;
         }
 
+        trapFocus(event) {
+            if (!this.active || event.key !== 'Tab') return false;
+            const cfg = this.modals.get(this.active);
+            const dialog = cfg ? this.resolve(cfg.dialog) : null;
+            if (!dialog || !this.isOpen(this.active)) return false;
+            const focusable = getFocusable(dialog);
+            if (!focusable.length) {
+                stopEvent(event);
+                focusFirst(dialog);
+                return true;
+            }
+            const current = this.document?.activeElement;
+            const index = focusable.indexOf(current);
+            const nextIndex = event.shiftKey
+                ? (index <= 0 ? focusable.length - 1 : index - 1)
+                : (index < 0 || index >= focusable.length - 1 ? 0 : index + 1);
+            stopEvent(event);
+            try { focusable[nextIndex].focus({ preventScroll: true }); } catch (_) {}
+            return true;
+        }
+
         handleClick(event) {
             const target = event.target;
             if (!target || typeof target.closest !== 'function') return;
             for (const [name, cfg] of this.modals.entries()) {
-                if (this.matchByIdOrSelector(target, cfg.openers, cfg.openerSelector)) {
-                    this.open(name, event);
+                const opener = this.matchByIdOrSelector(target, cfg.openers, cfg.openerSelector);
+                if (opener) {
+                    this.open(name, event, opener);
                     return;
                 }
                 if (this.matchByIdOrSelector(target, cfg.closers, cfg.closeSelector)) {
-                    this.close(name, event, { restoreFocus: false });
+                    this.close(name, event, { restoreFocus: true });
                     return;
                 }
                 const dialog = this.resolve(cfg.dialog);
                 if (cfg.closeOnBackdrop && dialog && target === dialog && this.isOpen(name)) {
-                    this.close(name, event, { restoreFocus: false });
+                    this.close(name, event, { restoreFocus: true });
                     return;
                 }
             }
@@ -185,12 +320,13 @@
         }
 
         handleKeydown(event) {
+            if (this.trapFocus(event)) return;
             if (event.key === 'Escape') {
                 const externalLayer = this.document?.querySelector?.(
                     '.select-popup-backdrop.show, .download-options-backdrop, .ai-recommend-dialog-backdrop.show, #downloadAssist.show'
                 );
                 if (externalLayer) return;
-                if (this.active) this.close(this.active, event, { restoreFocus: false });
+                if (this.active) this.close(this.active, event, { restoreFocus: true });
                 else this.closeAll(event);
                 return;
             }
@@ -198,8 +334,9 @@
             const target = event.target;
             if (!target || typeof target.closest !== 'function') return;
             for (const [name, cfg] of this.modals.entries()) {
-                if (this.matchByIdOrSelector(target, cfg.openers, cfg.openerSelector)) {
-                    this.open(name, event);
+                const opener = this.matchByIdOrSelector(target, cfg.openers, cfg.openerSelector);
+                if (opener) {
+                    this.open(name, event, opener);
                     return;
                 }
             }
@@ -214,5 +351,13 @@
         }
     }
 
-    global.FoxBearModalStateMachine = { FoxBearModalStateMachine, hardSet };
+    global.FoxBearModalStateMachine = {
+        FoxBearModalStateMachine,
+        hardSet,
+        setExternalLayerOpen,
+        getOpenLayerCount: () => openLayers.size,
+        isDocumentLocked: () => Boolean(scrollLockSnapshot),
+        getFocusable,
+        focusFirst
+    };
 })(window);

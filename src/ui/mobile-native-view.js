@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.95 - header-mounted settings and support entry view builder
+// FoxBear AI Mastering Studio Pro v1.5.96 - header-mounted settings and support entry view builder
 'use strict';
 
 (function attachFoxBearMobileNativeView(global) {

@@ -3,14 +3,14 @@
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.95-popup-settings-mail-test-recovery';
+    const DIAGNOSTICS_VERSION = '1.5.96-modal-focus-memory-diagnostics';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
     const MAX_LONG_TASKS = 10;
     const MAX_SAMPLES = 20;
-    const PANEL_REFRESH_MS = 1200;
-    const PANEL_HIDDEN_REFRESH_MS = 6000;
+    const PANEL_REFRESH_MS = 2500;
+    const PANEL_HIDDEN_REFRESH_MS = 10000;
 
     const state = {
         enabled: false,
@@ -18,6 +18,10 @@
         backdrop: null,
         panel: null,
         output: null,
+        summaryGrid: null,
+        summaryLead: null,
+        detailSection: null,
+        returnFocus: null,
         timer: 0,
         longTasks: [],
         samples: [],
@@ -124,6 +128,8 @@
         if ((snapshot.audioDecode?.failedCount || 0) > 0 && snapshot.audioDecode?.lastError) warnings.push('audio-decode-last-error');
         if ((snapshot.masteringQueue?.active || 0) > 0) warnings.push('mastering-active');
         if ((snapshot.memoryGuard?.masteredBufferCount || 0) > 2) warnings.push('mastered-buffer-retention');
+        if ((snapshot.workerJobs?.stalledCount || 0) > 0) warnings.push('worker-job-stalled');
+        if ((snapshot.workerJobs?.activeTransferBytes || 0) > 128 * 1024 * 1024) warnings.push('worker-transfer-memory-high');
         if (snapshot.wakeLock?.active && snapshot.wakeLock?.mode === 'auto') warnings.push('wake-lock-auto-active');
         if (snapshot.wakeLock?.lastError) warnings.push('wake-lock-last-error');
         if (snapshot.renderScheduler?.pending) warnings.push('render-queue-pending');
@@ -171,6 +177,7 @@
         const masteringPerformance = safeCall(() => global.FoxBearMasteringDiagnostics?.getSnapshot?.(), null);
         const wakeLock = safeCall(() => global.FoxBearWakeLockController?.getSnapshot?.(), null);
         const memoryGuard = safeCall(() => global.FoxBearMemoryGuard?.getSnapshot?.(), null);
+        const workerJobs = safeCall(() => global.FoxBearWorkerJobService?.getDiagnostics?.(), null);
         const sessionHandoff = safeCall(() => global.FoxBearSessionHandoff?.getSnapshot?.(), null);
         const snapshot = Object.freeze({
             version: DIAGNOSTICS_VERSION,
@@ -200,6 +207,7 @@
             masteringQueue,
             masteringPerformance,
             memoryGuard,
+            workerJobs,
             sessionHandoff,
             wakeLock,
             renderScheduler,
@@ -251,66 +259,182 @@
 
     function ensurePanel() {
         if (state.panel || !global.document?.body) return state.panel;
-        const backdrop = global.document.createElement('div');
+        const doc = global.document;
+        const backdrop = doc.createElement('div');
         backdrop.className = 'foxbear-perf-backdrop';
         backdrop.hidden = true;
+        backdrop.dataset.foxbearBackdropClose = 'true';
         backdrop.setAttribute('role', 'dialog');
         backdrop.setAttribute('aria-modal', 'true');
         backdrop.setAttribute('aria-hidden', 'true');
         backdrop.setAttribute('aria-labelledby', 'foxbearPerfPanelTitle');
-        const panel = global.document.createElement('section');
+
+        const panel = doc.createElement('section');
         panel.className = 'foxbear-perf-panel';
         panel.tabIndex = -1;
-        panel.setAttribute('aria-live', 'polite');
-        panel.setAttribute('aria-label', 'FoxBear 성능 진단 패널');
+        panel.setAttribute('aria-describedby', 'foxbearPerfPanelDescription');
 
-        const header = global.document.createElement('div');
+        const header = doc.createElement('div');
         header.className = 'foxbear-perf-panel-head';
-        const title = global.document.createElement('strong');
+        const titleWrap = doc.createElement('div');
+        titleWrap.className = 'foxbear-perf-panel-title';
+        const eyebrow = doc.createElement('span');
+        eyebrow.className = 'foxbear-perf-panel-eyebrow';
+        eyebrow.textContent = 'Device Health';
+        const title = doc.createElement('strong');
         title.id = 'foxbearPerfPanelTitle';
         title.textContent = '메모리·성능 진단';
-        const actions = global.document.createElement('div');
+        const description = doc.createElement('p');
+        description.id = 'foxbearPerfPanelDescription';
+        description.textContent = '현재 브라우저의 메모리, 오디오, Worker와 지연 상태를 요약합니다.';
+        titleWrap.append(eyebrow, title, description);
+
+        const actions = doc.createElement('div');
         actions.className = 'foxbear-perf-panel-actions';
-        const refresh = global.document.createElement('button');
+        const refresh = doc.createElement('button');
         refresh.type = 'button';
         refresh.className = 'foxbear-perf-panel-button';
         refresh.textContent = '새로고침';
         refresh.addEventListener('click', () => refreshPanel('manual-refresh'));
-        const copy = global.document.createElement('button');
+        const copy = doc.createElement('button');
         copy.type = 'button';
         copy.className = 'foxbear-perf-panel-button';
-        copy.textContent = '복사';
+        copy.textContent = '진단 복사';
         copy.addEventListener('click', () => copySnapshotToClipboard());
-        const clear = global.document.createElement('button');
+        const clear = doc.createElement('button');
         clear.type = 'button';
         clear.className = 'foxbear-perf-panel-button';
-        clear.textContent = '초기화';
+        clear.textContent = '기록 초기화';
         clear.addEventListener('click', () => {
             clearHistory();
             refreshPanel('clear-history');
         });
-        const close = global.document.createElement('button');
+        actions.append(refresh, copy, clear);
+
+        const close = doc.createElement('button');
         close.type = 'button';
         close.className = 'foxbear-perf-panel-close foxbear-modal-close';
         close.setAttribute('aria-label', '메모리 성능진단 닫기');
         close.textContent = '×';
         close.addEventListener('click', () => setPanelVisible(false));
-        actions.append(refresh, copy, clear);
-        header.append(title, actions, close);
+        header.append(titleWrap, actions, close);
 
-        const output = global.document.createElement('pre');
+        const summaryLead = doc.createElement('p');
+        summaryLead.className = 'foxbear-perf-summary-lead';
+        summaryLead.setAttribute('role', 'status');
+        summaryLead.textContent = '상태를 확인하고 있습니다.';
+        const summaryGrid = doc.createElement('div');
+        summaryGrid.className = 'foxbear-perf-summary-grid';
+        summaryGrid.setAttribute('aria-label', '성능 진단 핵심 상태');
+
+        const details = doc.createElement('details');
+        details.className = 'foxbear-perf-details';
+        const detailsSummary = doc.createElement('summary');
+        detailsSummary.textContent = '기술 상세 로그 보기';
+        const output = doc.createElement('pre');
         output.className = 'foxbear-perf-panel-output';
-        output.textContent = 'No snapshot yet';
-        panel.append(header, output);
+        output.textContent = '아직 진단 스냅샷이 없습니다.';
+        details.append(detailsSummary, output);
+
+        panel.append(header, summaryLead, summaryGrid, details);
         backdrop.appendChild(panel);
         backdrop.addEventListener('click', event => {
             if (event.target === backdrop) setPanelVisible(false);
         });
-        global.document.body.appendChild(backdrop);
+        panel.addEventListener('keydown', event => {
+            if (event.key !== 'Tab') return;
+            const focusable = Array.from(panel.querySelectorAll('button:not([disabled]), summary, a[href], [tabindex]:not([tabindex="-1"])'))
+                .filter(node => !node.hidden && node.getAttribute('aria-hidden') !== 'true');
+            if (!focusable.length) return;
+            const index = focusable.indexOf(doc.activeElement);
+            const next = event.shiftKey
+                ? (index <= 0 ? focusable.length - 1 : index - 1)
+                : (index < 0 || index >= focusable.length - 1 ? 0 : index + 1);
+            event.preventDefault();
+            try { focusable[next].focus({ preventScroll: true }); } catch (error) {}
+        });
+        doc.body.appendChild(backdrop);
         state.backdrop = backdrop;
         state.panel = panel;
         state.output = output;
+        state.summaryGrid = summaryGrid;
+        state.summaryLead = summaryLead;
+        state.detailSection = details;
         return panel;
+    }
+
+    function formatBytes(bytes) {
+        const value = Math.max(0, Number(bytes || 0));
+        if (value >= 1073741824) return `${round(value / 1073741824, 1)}GB`;
+        if (value >= 1048576) return `${round(value / 1048576, 1)}MB`;
+        if (value >= 1024) return `${round(value / 1024, 1)}KB`;
+        return `${Math.round(value)}B`;
+    }
+
+    function renderSummaryCards(snapshot) {
+        if (!state.summaryGrid || !state.summaryLead) return;
+        const doc = global.document;
+        const summary = state.lastSummary || summarizeSnapshot(snapshot);
+        const warningCount = summary.warnings.length;
+        state.summaryLead.dataset.tone = warningCount ? 'warn' : 'ok';
+        state.summaryLead.textContent = warningCount
+            ? `점검이 필요한 항목 ${warningCount}개가 있습니다. 상세 로그에서 원인을 확인하세요.`
+            : '현재 확인된 메모리·성능 이상이 없습니다.';
+        const longTaskMax = snapshot.longTasks.length ? Math.max(...snapshot.longTasks.map(item => Number(item.durationMs || 0))) : 0;
+        const worker = snapshot.workerJobs || {};
+        const memoryGuard = snapshot.memoryGuard || {};
+        const cards = [
+            {
+                label: '종합 상태',
+                value: warningCount ? '점검 필요' : '정상',
+                detail: warningCount ? summary.warnings.slice(0, 2).join(' · ') : '런타임 경고 없음',
+                tone: warningCount ? 'warn' : 'ok'
+            },
+            {
+                label: '브라우저 메모리',
+                value: snapshot.memory ? `${snapshot.memory.usedMB}MB` : '측정 미지원',
+                detail: snapshot.memory ? `한도 ${snapshot.memory.limitMB}MB` : 'Safari 등 일부 브라우저는 JS Heap 수치를 제공하지 않습니다.',
+                tone: snapshot.memory && snapshot.memory.limitMB && snapshot.memory.usedMB / snapshot.memory.limitMB > 0.7 ? 'warn' : 'neutral'
+            },
+            {
+                label: '오디오 재생',
+                value: `${snapshot.audio.playing}/${snapshot.audio.total}`,
+                detail: snapshot.audio.audible > 1 ? `동시 audible ${snapshot.audio.audible}개` : '중복 재생 없음',
+                tone: snapshot.audio.audible > 1 ? 'warn' : 'ok'
+            },
+            {
+                label: 'Worker 작업',
+                value: `${worker.activeCount || 0}개`,
+                detail: `${worker.stalledCount || 0}개 정체 · 전송 ${formatBytes(worker.activeTransferBytes || 0)}`,
+                tone: (worker.stalledCount || 0) > 0 ? 'warn' : 'neutral'
+            },
+            {
+                label: '긴 메인 작업',
+                value: longTaskMax ? `${round(longTaskMax, 0)}ms` : '없음',
+                detail: `${snapshot.longTasks.length}개 기록`,
+                tone: longTaskMax >= 200 ? 'warn' : (longTaskMax >= 80 ? 'watch' : 'ok')
+            },
+            {
+                label: '완료 PCM 보유',
+                value: `${memoryGuard.masteredBufferCount || 0}개`,
+                detail: `${formatBytes(memoryGuard.masteredBufferBytes || 0)} · 저장 Blob ${formatBytes(memoryGuard.outBlobBytes || 0)}`,
+                tone: (memoryGuard.masteredBufferCount || 0) > 2 ? 'warn' : 'neutral'
+            }
+        ];
+        const nodes = cards.map(card => {
+            const article = doc.createElement('article');
+            article.className = 'foxbear-perf-card';
+            article.dataset.tone = card.tone;
+            const label = doc.createElement('span');
+            label.textContent = card.label;
+            const value = doc.createElement('strong');
+            value.textContent = card.value;
+            const detail = doc.createElement('small');
+            detail.textContent = card.detail;
+            article.append(label, value, detail);
+            return article;
+        });
+        state.summaryGrid.replaceChildren(...nodes);
     }
 
     function formatPanel(snapshot) {
@@ -353,6 +477,7 @@
 
     function refreshPanel(reason = 'panel') {
         const snapshot = collectSnapshot(reason);
+        renderSummaryCards(snapshot);
         if (state.output) state.output.textContent = formatPanel(snapshot);
         return snapshot;
     }
@@ -411,21 +536,33 @@
         return true;
     }
 
-    function setPanelVisible(visible) {
+    function setPanelVisible(visible, options = {}) {
         const panel = ensurePanel();
-        state.panelVisible = Boolean(visible);
+        const next = Boolean(visible);
+        if (next && !state.panelVisible) {
+            const candidate = options.returnFocus || global.document?.activeElement;
+            if (candidate && candidate !== global.document?.body) state.returnFocus = candidate;
+        }
+        state.panelVisible = next;
         if (state.backdrop) {
             state.backdrop.hidden = !state.panelVisible;
             state.backdrop.classList.toggle('show', state.panelVisible);
             state.backdrop.setAttribute('aria-hidden', state.panelVisible ? 'false' : 'true');
+            global.FoxBearModalStateMachine?.setExternalLayerOpen?.(state.backdrop, state.panelVisible);
         }
         global.document?.body?.classList?.toggle('foxbear-perf-open', state.panelVisible);
         if (state.panelVisible) {
             setEnabled(true, { persist: true, silent: true });
             startPanelTimer();
-            try { panel?.focus?.({ preventScroll: true }); } catch (error) {}
+            const first = panel?.querySelector?.('button:not([disabled]), summary, [tabindex]:not([tabindex="-1"])') || panel;
+            try { first?.focus?.({ preventScroll: true }); } catch (error) {}
         } else {
             stopPanelTimer();
+            const returnFocus = state.returnFocus;
+            state.returnFocus = null;
+            if (options.restoreFocus !== false && returnFocus && global.document?.body?.contains?.(returnFocus) && !returnFocus.hidden) {
+                try { returnFocus.focus({ preventScroll: true }); } catch (error) {}
+            }
         }
         try { global.dispatchEvent(new CustomEvent(TOGGLE_EVENT, { detail: { enabled: state.enabled, panelVisible: state.panelVisible } })); }
         catch (error) {}

@@ -1,3 +1,11 @@
+# v1.5.96 - Modal Focus Lifecycle and Readable Memory Diagnostics
+
+- Centralizes modal opener memory, focus return, Tab cycling, Escape/backdrop close, and page scroll locking.
+- Moves program information and incident settings onto the shared modal controller.
+- Adds readable memory, audio, Worker, long-task, and retained-PCM cards with expandable technical logs.
+- Reduces diagnostic polling overhead and restores focus to the settings button after close.
+- Adds behavioral regression coverage for layered scroll locks and focus lifecycle contracts.
+
 # v1.5.95 - Compact Support Settings, Popup Consistency, and Mail-Test Permission Recovery
 
 - Rewrites the version/about popup as a concise explanation of smart analysis, quality protection, A/B preview, batch workflow, export support, and local audio privacy; also shortens the initial supported-format notice.

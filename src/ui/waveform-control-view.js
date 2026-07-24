@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.95-popup-settings-mail-test-recovery';
+  const VIEW_VERSION = '1.5.96-modal-focus-memory-diagnostics';
   const DEFAULT_BINS = 96;
 
   function getService() {

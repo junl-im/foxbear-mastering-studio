@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.5.95 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.5.96 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -21,7 +21,7 @@ const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetySer
 const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.95';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.5.96';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.95-popup-settings-mail-test-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1595'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.5.96-modal-focus-memory-diagnostics'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1596'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -718,37 +718,25 @@ function hideFeatureTooltip() {
     el.featureTooltip.classList.remove('show');
     el.featureTooltip.setAttribute('aria-hidden', 'true');
 }
-function openProgramInfoDialog() {
-    if (!el.programInfoDialog) return;
-    el.programInfoDialog.classList.add('show');
-    el.programInfoDialog.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('program-info-open');
-    const panel = el.programInfoDialog.querySelector('.program-info-panel');
-    if (panel) panel.focus({ preventScroll: true });
+function openProgramInfoDialog(event = null, options = {}) {
+    if (!el.programInfoDialog) return false; const controller = state.modalController;
+    if (controller?.modals?.has?.('programInfo')) return controller.setOpen('programInfo', true, { event, opener: options.returnFocus || event?.currentTarget || el.programInfoBtn || document.activeElement });
+    hardSetModalState(el.programInfoDialog, true, 'program-info-open'); window.FoxBearModalStateMachine?.focusFirst?.(el.programInfoDialog); return true;
 }
-function closeProgramInfoDialog() {
-    if (!el.programInfoDialog) return;
-    el.programInfoDialog.classList.remove('show');
-    el.programInfoDialog.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('program-info-open');
-    if (el.programInfoBtn) el.programInfoBtn.focus({ preventScroll: true });
+function closeProgramInfoDialog(options = {}) {
+    if (!el.programInfoDialog) return false; const controller = state.modalController;
+    if (controller?.modals?.has?.('programInfo') && controller.isOpen('programInfo')) return controller.setOpen('programInfo', false, { restoreFocus: options.restoreFocus !== false });
+    hardSetModalState(el.programInfoDialog, false, 'program-info-open'); if (options.restoreFocus !== false && el.programInfoBtn) try { el.programInfoBtn.focus({ preventScroll: true }); } catch (error) {} return true;
 }
-function openIncidentReportingDialog() {
-    if (!el.incidentReportingDialog) return false;
-    toggleMobileNativePanel(false);
-    hardSetModalState(el.incidentReportingDialog, true, 'incident-reporting-open');
-    window.FoxBearIncidentReporter?.bindControls?.();
-    const panel = el.incidentReportingDialog.querySelector('.support-settings-panel');
-    if (panel) panel.focus({ preventScroll: true });
-    return true;
+function openIncidentReportingDialog(options = {}) {
+    if (!el.incidentReportingDialog) return false; toggleMobileNativePanel(false); const controller = state.modalController;
+    if (controller?.modals?.has?.('incidentReporting')) return controller.setOpen('incidentReporting', true, { opener: options.returnFocus || el.mobileNativeQuickToggle || document.activeElement });
+    hardSetModalState(el.incidentReportingDialog, true, 'incident-reporting-open'); window.FoxBearIncidentReporter?.bindControls?.(); window.FoxBearModalStateMachine?.focusFirst?.(el.incidentReportingDialog); return true;
 }
 function closeIncidentReportingDialog(options = {}) {
-    if (!el.incidentReportingDialog) return false;
-    hardSetModalState(el.incidentReportingDialog, false, 'incident-reporting-open');
-    if (options.restoreFocus !== false && el.mobileNativeQuickToggle) {
-        try { el.mobileNativeQuickToggle.focus({ preventScroll: true }); } catch (error) {}
-    }
-    return true;
+    if (!el.incidentReportingDialog) return false; const controller = state.modalController;
+    if (controller?.modals?.has?.('incidentReporting') && controller.isOpen('incidentReporting')) return controller.setOpen('incidentReporting', false, { restoreFocus: options.restoreFocus !== false });
+    hardSetModalState(el.incidentReportingDialog, false, 'incident-reporting-open'); if (options.restoreFocus !== false && el.mobileNativeQuickToggle) try { el.mobileNativeQuickToggle.focus({ preventScroll: true }); } catch (error) {} return true;
 }
 function openFeatureDialog(event = null) {
     if (event && typeof event.preventDefault === 'function') event.preventDefault();
@@ -807,6 +795,22 @@ function installManagedModalController() {
         getElement: id => el[id] || document.getElementById(id)
     });
     controller
+        .register('programInfo', {
+            dialog: 'programInfoDialog',
+            openers: ['programInfoBtn'],
+            closers: ['programInfoClose'],
+            closeSelector: '.program-info-close, [data-program-info-close]',
+            bodyClass: 'program-info-open',
+            returnFocus: 'programInfoBtn'
+        })
+        .register('incidentReporting', {
+            dialog: 'incidentReportingDialog',
+            closers: ['incidentReportingClose'],
+            closeSelector: '.support-settings-close, [data-incident-reporting-close]',
+            bodyClass: 'incident-reporting-open',
+            returnFocus: 'mobileNativeQuickToggle',
+            onOpen: () => window.FoxBearIncidentReporter?.bindControls?.()
+        })
         .register('feature', {
             dialog: 'featureDialog',
             openers: ['featureOpenBtn'],
@@ -2365,11 +2369,13 @@ function initExternalBrowserHandoff() {
     externalBrowserHandoffBridge = FoxBearSessionHandoff.createAppBridge({ state, getSelectedTrack, cloneSettings, cloneTransform, cloneInstrumentLayer, defaults: { transform: DEFAULT_TRANSFORM, instrument: DEFAULT_INSTRUMENT_LAYER }, syncControls: syncOutputControlValues, notify: showToast });
     return externalBrowserHandoffBridge.init();
 }
-function openPerformanceDiagnosticsPanel() {
-    closeProgramInfoDialog();
+function openPerformanceDiagnosticsPanel(options = {}) {
+    closeProgramInfoDialog({ restoreFocus: false });
     closeIncidentReportingDialog({ restoreFocus: false });
     toggleMobileNativePanel(false);
-    window.FoxBearPerformanceDiagnostics?.setPanelVisible?.(true);
+    window.FoxBearPerformanceDiagnostics?.setPanelVisible?.(true, {
+        returnFocus: options.returnFocus || el.mobileNativeQuickToggle || document.activeElement
+    });
 }
 function persistRuntimeSettings() {
     const service = getSettingsService();
@@ -2491,13 +2497,11 @@ function installDockGestureLayer() {
     }, { passive: true });
 }
 function toggleMobileNativePanel(forceOpen = null) {
-    const mobile = ensureMobileNativeState();
-    const next = forceOpen === null ? !mobile.quickPanelOpen : Boolean(forceOpen);
-    mobile.quickPanelOpen = next;
-    document.body.classList.toggle('mobile-native-panel-open', next);
-    if (el.mobileNativePanel) el.mobileNativePanel.setAttribute('aria-hidden', String(!next));
-    if (el.mobileNativeQuickToggle) el.mobileNativeQuickToggle.setAttribute('aria-expanded', String(next));
-    updateMobileNativeUi();
+    const mobile = ensureMobileNativeState(), next = forceOpen === null ? !mobile.quickPanelOpen : Boolean(forceOpen);
+    const focusWasInside = Boolean(el.mobileNativePanel?.contains(document.activeElement)); mobile.quickPanelOpen = next;
+    document.body.classList.toggle('mobile-native-panel-open', next); if (el.mobileNativePanel) el.mobileNativePanel.setAttribute('aria-hidden', String(!next)); if (el.mobileNativeQuickToggle) el.mobileNativeQuickToggle.setAttribute('aria-expanded', String(next)); updateMobileNativeUi();
+    if (next) requestAnimationFrame(() => { const first = el.mobileNativePanel?.querySelector('button:not([disabled]), [tabindex]:not([tabindex="-1"])'); try { first?.focus?.({ preventScroll: true }); } catch (error) {} });
+    else if (focusWasInside) requestAnimationFrame(() => { try { el.mobileNativeQuickToggle?.focus?.({ preventScroll: true }); } catch (error) {} });
 }
 function handleMobileNativeAction(action) {
     switch (action) {
@@ -2534,14 +2538,18 @@ function handleMobileNativeAction(action) {
         case 'smart-performance':
             toggleUtilityFeature('smartPerformanceGuard');
             return;
-        case 'incident-reporting':
+        case 'incident-reporting': {
+            const returnFocus = el.mobileNativeQuickToggle || document.activeElement;
             toggleMobileNativePanel(false);
-            requestAnimationFrame(() => openIncidentReportingDialog());
+            requestAnimationFrame(() => openIncidentReportingDialog({ returnFocus }));
             return;
-        case 'performance-diagnostics':
+        }
+        case 'performance-diagnostics': {
+            const returnFocus = el.mobileNativeQuickToggle || document.activeElement;
             toggleMobileNativePanel(false);
-            requestAnimationFrame(() => openPerformanceDiagnosticsPanel());
+            requestAnimationFrame(() => openPerformanceDiagnosticsPanel({ returnFocus }));
             return;
+        }
     }
 }
 function updateMobileNativeUi() {
@@ -3126,7 +3134,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.95-popup-settings-mail-test-recovery') · navigator.serviceWorker.register('./sw.js?v=1.5.95-popup-settings-mail-test-recovery&h=sw-v1595')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.5.96-modal-focus-memory-diagnostics') · navigator.serviceWorker.register('./sw.js?v=1.5.96-modal-focus-memory-diagnostics&h=sw-v1596')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3957,7 +3965,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.95-popup-settings-mail-test-recovery', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.5.96-modal-focus-memory-diagnostics', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4271,7 +4279,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.5.95-popup-settings-mail-test-recovery',
+        version: '1.5.96-modal-focus-memory-diagnostics',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4312,10 +4320,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.5.95-popup-settings-mail-test-recovery',
+    version: '1.5.96-modal-focus-memory-diagnostics',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.95-popup-settings-mail-test-recovery', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.5.96-modal-focus-memory-diagnostics', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4340,12 +4348,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.95-popup-settings-mail-test-recovery', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.5.96-modal-focus-memory-diagnostics', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.95-popup-settings-mail-test-recovery', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.5.96-modal-focus-memory-diagnostics', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4360,12 +4368,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.5.95-popup-settings-mail-test-recovery',
+    version: 'v1.5.96-modal-focus-memory-diagnostics',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.95-popup-settings-mail-test-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.5.96-modal-focus-memory-diagnostics', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5491,7 +5499,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.5.95-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.5.96-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -10003,7 +10011,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.5.95-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.5.96-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13075,7 +13083,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.5.95',
+        app: 'FoxBear AI Mastering Studio Pro v1.5.96',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

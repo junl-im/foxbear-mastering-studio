@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.5.96
+
+- Centralized opener memory, focus return, Tab cycling, Escape/backdrop dismissal, and layered page scroll locking in the shared modal controller.
+- Registered the program information and incident-reporting dialogs with the common modal state machine.
+- Added readable browser-memory, audio, Worker, long-task, and retained-PCM cards while keeping raw technical diagnostics in an expandable section.
+- Reduced visible diagnostics polling from 1.2 seconds to 2.5 seconds and restored focus to the settings trigger after close.
+- Added behavioral regression for nested modal locks and scroll-position restoration.
+- Configured static/regression target: 317 checks before installed-browser confirmation.
+
 # FoxBear QA Report - v1.5.95
 
 - Rewrote the version/about dialog as a concise product overview covering smart analysis, quality protection, A/B preview, batch workflow, export support, and local audio privacy.

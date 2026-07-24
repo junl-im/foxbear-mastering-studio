@@ -1,8 +1,8 @@
-// FoxBear audio import capability service - v1.5.95
+// FoxBear audio import capability service - v1.5.96
 (function attachFoxBearAudioImportCapabilityService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.95-popup-settings-mail-test-recovery';
+    const SERVICE_VERSION = '1.5.96-modal-focus-memory-diagnostics';
     const FORMAT_DEFINITIONS = Object.freeze([
         Object.freeze({ id: 'wav', label: 'WAV', extensions: ['.wav', '.wave'], mimes: ['audio/wav', 'audio/x-wav'], tier: 'core' }),
         Object.freeze({ id: 'mp3', label: 'MP3', extensions: ['.mp3', '.mpeg', '.mpga'], mimes: ['audio/mpeg'], tier: 'core' }),

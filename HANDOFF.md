@@ -1,4 +1,4 @@
-# Handoff - v1.5.95
+# Handoff - v1.5.96
 
 # 필수 결과 보고 형식
 
@@ -9,6 +9,15 @@
 3. 다음 패치 예정 라인업
 
 `배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.5.96 current focus
+
+- Every primary modal remembers its real opener, traps Tab focus, restores focus on Escape/backdrop/close-button dismissal, and shares one layered mobile scroll lock.
+- Program information and incident reporting are registered in the common modal state machine.
+- Performance diagnostics uses readable health cards while preserving the raw technical snapshot under an expandable section.
+- Performance diagnostics refreshes every 2.5 seconds while visible and returns focus to the settings button.
+- Regression: `node qa/v1596_modal_focus_memory_diagnostics_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
 
 ## v1.5.95 current focus
 

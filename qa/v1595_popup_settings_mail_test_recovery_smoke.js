@@ -24,8 +24,8 @@ const closeCss = read('assets/css/components/modal-close-system.css');
 const studioCss = read('assets/css/studio.css');
 const supportCss = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.5.95');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'popup-settings-mail-test-recovery');
+assert.strictEqual(pkg.version, '1.5.96');
+assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'current build ID must remain kebab-case');
 
 assert(index.includes('program-info-panel program-info-panel-compact'), 'program info must use the compact layout');
 assert(index.includes('스마트 분석과 추천') && index.includes('음질 보호 마스터링') && index.includes('듣고 비교하며 조정') && index.includes('일괄 작업과 안전한 저장'), 'program info must explain the actual product workflow');
@@ -43,8 +43,8 @@ for (const id of ['incidentReportingClose', 'incidentReportingToggle', 'incident
 
 assert(mobile.includes("['incident-reporting', '📨', '오류 자동신고'"), 'settings must expose incident reporting');
 assert(mobile.includes("['performance-diagnostics', '📊', '메모리 성능진단'"), 'settings must expose performance diagnostics');
-assert(app.includes("case 'incident-reporting':") && app.includes('openIncidentReportingDialog()'), 'incident settings action must open its own dialog');
-assert(app.includes("case 'performance-diagnostics':") && app.includes('openPerformanceDiagnosticsPanel()'), 'performance settings action must open its own dialog');
+assert(app.includes("case 'incident-reporting':") && app.includes('openIncidentReportingDialog({ returnFocus })'), 'incident settings action must open its own dialog');
+assert(app.includes("case 'performance-diagnostics':") && app.includes('openPerformanceDiagnosticsPanel({ returnFocus })'), 'performance settings action must open its own dialog');
 assert(app.includes("document.addEventListener('pointerdown'") && app.includes('mobile.quickPanelOpen'), 'settings panel must close on outside pointer interaction');
 
 const logIncidentStart = firebase.indexOf('async function logIncident');
@@ -78,7 +78,7 @@ assert(closeCss.includes('.support-settings-panel') && closeCss.includes('.foxbe
 assert(!studioCss.includes('.program-info-panel-compact') && !studioCss.includes('.support-settings-backdrop'), 'popup styles must not regrow studio.css');
 assert(supportCss.includes('.program-info-panel-compact') && supportCss.includes('.support-settings-backdrop'), 'dedicated intro and settings dialog styles are required');
 assert(index.includes('assets/css/components/support-settings.css'), 'support settings stylesheet must be loaded');
-assert(sw.includes('./assets/css/components/support-settings.css?v=1.5.95-popup-settings-mail-test-recovery'), 'support settings stylesheet must be precached');
+assert(sw.includes('./assets/css/components/support-settings.css?v=1.5.96-modal-focus-memory-diagnostics'), 'support settings stylesheet must be precached');
 
 const modalSandbox = { console };
 modalSandbox.window = modalSandbox;

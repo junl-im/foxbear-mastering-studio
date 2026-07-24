@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.95 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.96 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.95-popup-settings-mail-test-recovery';
+    const VERSION = '1.5.96-modal-focus-memory-diagnostics';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();
