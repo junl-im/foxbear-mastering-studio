@@ -5,7 +5,7 @@ const pkg = require('../package.json');
 const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const runner = fs.readFileSync('tools/run-release-gate.js', 'utf8');
 
-assert.equal(pkg.version, '1.5.91');
+assert.equal(pkg.version, '1.5.92');
 assert.equal(pkg.scripts['check:release'], 'node tools/run-release-gate.js');
 assert.match(runner, /FOXBEAR_RELEASE_PHASE/);
 assert.match(runner, /static:/);
@@ -15,7 +15,7 @@ assert.match(workflow, /static-qa:/);
 assert.match(workflow, /browser-qa:/);
 assert.match(workflow, /needs: \[static-qa, browser-qa\]/);
 assert.match(workflow, /cancel-in-progress: true/);
-assert.match(workflow, /actions\/cache@v4/);
+assert.match(workflow, /actions\/cache@v5/);
 assert.match(workflow, /PLAYWRIGHT_BROWSERS_PATH/);
 assert.match(workflow, /FOXBEAR_RELEASE_PHASE: static/);
 assert.match(workflow, /FOXBEAR_RELEASE_PHASE: browser/);

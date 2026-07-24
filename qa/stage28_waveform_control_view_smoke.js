@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.91-cancellable-audio-pipeline-performance-guards';
+const version = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

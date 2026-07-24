@@ -73,7 +73,7 @@ jobs:
       - name: Restore Playwright browser cache
         id: playwright-cache
         if: steps.browser_scope.outputs.run_browser == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
@@ -85,7 +85,7 @@ jobs:
       - name: Restore browser flaky history
         id: browser-flaky-cache
         if: steps.browser_scope.outputs.run_browser == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: qa/browser-history
           key: browser-flaky-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -120,7 +120,7 @@ jobs:
 
       - name: Save updated browser flaky history
         if: always() && steps.browser_scope.outputs.run_browser == 'true' && steps.browser_primary.outcome == 'failure'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: qa/browser-history
           key: browser-flaky-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}

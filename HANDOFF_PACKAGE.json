@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.91",
-  "buildId": "cancellable-audio-pipeline-performance-guards",
+  "productVersion": "1.5.92",
+  "buildId": "python-bytecode-ci-hygiene-node24-cache",
   "requiredFiles": [
     "404.html",
     ".gitignore",

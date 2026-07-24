@@ -1,3 +1,11 @@
+# v1.5.92 - Python Bytecode CI Hygiene and Node 24 Cache Actions
+
+- Removes stale repository Python bytecode before static QA begins and after every configured check.
+- Forces `PYTHONDONTWRITEBYTECODE=1` for every QA child process instead of relying only on individual `python3 -B` commands.
+- Adds a reusable bytecode cleanup utility and a behavioral regression covering pre-existing caches and indirect Python imports.
+- Runs the isolated SRI repair subprocess with `-B`.
+- Upgrades GitHub Actions cache restore/save usage from v4 to Node 24-based v5.
+
 # v1.5.91 - Cancellable Audio Pipeline and Large-Track Performance Guards
 
 - Propagates mastering cancellation into file decoding, emergency analysis, pitch/BPM transformation, and 15-second master-preview transformation.

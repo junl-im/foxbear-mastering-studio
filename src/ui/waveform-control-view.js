@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.91-cancellable-audio-pipeline-performance-guards';
+  const VIEW_VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
   const DEFAULT_BINS = 96;
 
   function getService() {

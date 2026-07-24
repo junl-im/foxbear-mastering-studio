@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.91 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.92 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.91-cancellable-audio-pipeline-performance-guards';
+    const VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

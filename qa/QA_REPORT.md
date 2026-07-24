@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.5.92
+
+- Reproduced the GitHub static gate failure by seeding stale Python bytecode before the historical v1.5.90 hygiene assertion.
+- Replaced the brittle assumption that the checkout starts clean with deterministic pre-check and post-check cleanup.
+- Added inherited `PYTHONDONTWRITEBYTECODE=1` to every QA child command and retained explicit `-B` on project Python entry points.
+- Added a behavioral regression that imports a temporary Python module without creating `__pycache__`.
+- Upgraded GitHub cache actions to v5 to remove the Node 20 action-runtime warning.
+- Configured static/regression target: 313 checks before installed-browser confirmation.
+
 # FoxBear QA Report - v1.5.91
 
 - Re-ran the complete v1.5.90 static/regression baseline: 311/311 PASS before modification.

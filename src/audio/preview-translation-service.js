@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.91-cancellable-audio-pipeline-performance-guards';
+    const SERVICE_VERSION = '1.5.92-python-bytecode-ci-hygiene-node24-cache';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;

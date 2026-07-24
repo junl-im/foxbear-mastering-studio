@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.5.92
+
+## v1.5.92 CI-safe Python bytecode hygiene
+
+Static QA now removes stale Python bytecode before execution, prevents every child Python process from writing new cache files, and performs cleanup after each check. GitHub cache actions also use the Node 24-based v5 runtime.
+
+- Clean bytecode manually: `npm run qa:python:clean`
+- Run the new regression: `node qa/v1592_python_bytecode_ci_hygiene_smoke.js`
+- Run the full static/regression suite: `npm run check:static`
+- Configured static/regression checks: 313.
+
 # FoxBear AI Mastering Studio Pro v1.5.91
 
 ## v1.5.91 Cancellable audio pipeline and performance guards

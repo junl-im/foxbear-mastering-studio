@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.91 (cancellable-audio-pipeline-performance-guards).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.92 (python-bytecode-ci-hygiene-node24-cache).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.91"
+  "version": "1.5.92"
 }

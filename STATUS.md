@@ -1,4 +1,4 @@
-# FoxBear Status - v1.5.91
+# FoxBear Status - v1.5.92
 
 ## v1.5.91 current focus
 
@@ -266,10 +266,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.91`
-- Build ID: `cancellable-audio-pipeline-performance-guards`
-- Asset version: `1.5.91-cancellable-audio-pipeline-performance-guards`
-- Service worker cache: `foxbear-shell-v1.5.91-cancellable-audio-pipeline-performance-guards`
+- Product version: `1.5.92`
+- Build ID: `python-bytecode-ci-hygiene-node24-cache`
+- Asset version: `1.5.92-python-bytecode-ci-hygiene-node24-cache`
+- Service worker cache: `foxbear-shell-v1.5.92-python-bytecode-ci-hygiene-node24-cache`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -301,10 +301,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.91`
-- Build ID: `cancellable-audio-pipeline-performance-guards`
-- Asset version: `1.5.91-cancellable-audio-pipeline-performance-guards`
-- Service worker cache: `foxbear-shell-v1.5.91-cancellable-audio-pipeline-performance-guards`
+- Product version: `1.5.92`
+- Build ID: `python-bytecode-ci-hygiene-node24-cache`
+- Asset version: `1.5.92-python-bytecode-ci-hygiene-node24-cache`
+- Service worker cache: `foxbear-shell-v1.5.92-python-bytecode-ci-hygiene-node24-cache`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

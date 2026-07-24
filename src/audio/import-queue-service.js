@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.5.91-cancellable-audio-pipeline-performance-guards',
+                version: '1.5.92-python-bytecode-ci-hygiene-node24-cache',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.5.91-cancellable-audio-pipeline-performance-guards',
+        version: '1.5.92-python-bytecode-ci-hygiene-node24-cache',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

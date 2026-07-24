@@ -1,3 +1,14 @@
+# Handoff - v1.5.92
+
+## v1.5.92 current focus
+
+- `qa/run_all_checks.js` must clean Python bytecode before, between, and after configured checks.
+- Every QA child process must inherit `PYTHONDONTWRITEBYTECODE=1`.
+- Keep explicit `python3 -B` for project Python entry points as a second defense.
+- Both Pages workflows use `actions/cache@v5`, `actions/cache/restore@v5`, and `actions/cache/save@v5`.
+- Regression: `node qa/v1592_python_bytecode_ci_hygiene_smoke.js`.
+- Report results as progress, release ZIP, overwrite ZIP, and next patch lineup.
+
 # Handoff - v1.5.91
 
 ## v1.5.91 current focus

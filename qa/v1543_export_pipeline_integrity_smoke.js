@@ -17,7 +17,7 @@ function runSriRepairRuntime() {
     fs.writeFileSync(path.join(temp, 'tools/update-sri.py'), read('tools/update-sri.py'));
     fs.writeFileSync(path.join(temp, 'asset.js'), "console.log('asset');\n");
     fs.writeFileSync(path.join(temp, 'index.html'), '<script src="asset.js?v=test" integrity="" integrity="sha384-stale"></script>\n');
-    const result = spawnSync('python3', ['tools/update-sri.py'], { cwd: temp, encoding: 'utf8' });
+    const result = spawnSync('python3', ['-B', 'tools/update-sri.py'], { cwd: temp, encoding: 'utf8' });
     assert.strictEqual(result.status, 0, result.stderr || result.stdout || 'SRI updater failed');
     const repaired = fs.readFileSync(path.join(temp, 'index.html'), 'utf8');
     assert.strictEqual((repaired.match(/\sintegrity="[^"]*"/g) || []).length, 1, 'SRI updater did not canonicalize duplicate integrity attributes');
@@ -108,7 +108,7 @@ async function main() {
   assert(sriVerifier.includes('INTEGRITY_ATTR_RE.findall(tag)'), 'SRI verifier does not inspect all integrity attributes');
   assert(handoffVerifier.includes('requiredRuntimeAssets') && handoffVerifier.includes('must be loaded exactly once by index.html'), 'archive verifier does not enforce runtime entry loading');
   assert(Array.isArray(handoff.requiredRuntimeAssets) && handoff.requiredRuntimeAssets.includes('src/download/zip-export-service.js'), 'handoff manifest does not declare ZIP service as a required runtime asset');
-  assert(pkg.qaChecks.includes('node qa/v1543_export_pipeline_integrity_smoke.js'), 'v1.5.91 QA is not registered');
+  assert(pkg.qaChecks.includes('node qa/v1543_export_pipeline_integrity_smoke.js'), 'v1.5.92 QA is not registered');
 
   runSriRepairRuntime();
   await runLowCopyWorkerRuntime();
