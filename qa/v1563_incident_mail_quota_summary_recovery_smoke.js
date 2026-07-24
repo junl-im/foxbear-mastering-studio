@@ -16,8 +16,8 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.63_INCIDENT_MAIL_QUOTA_SUMMARY_RECOVERY.md');
 
-assert.strictEqual(pkg.version, '1.5.98');
-assert.strictEqual(meta.assetVersion, '1.5.98-worker-retry-health-levels');
+assert.strictEqual(pkg.version, '1.5.99');
+assert.strictEqual(meta.assetVersion, '1.5.99-incident-callable-mail-recovery');
 
 for (const token of [
   'dailyKst_${dayKey}',
@@ -43,7 +43,7 @@ for (const token of [
   ".orderBy('createdAt', 'desc')",
   'manualResetCount: Math.max(0, Number(delivery.manualResetCount || 0)) + (forceTerminal ? 1 : 0)',
   "status: 'stale-completion'"
-]) assert(functionsSource.includes(token), `v1.5.98 mail recovery missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.5.99 mail recovery missing ${token}`);
 
 assert(!functionsSource.includes('function utcDateKey'), 'UTC quota helper must not remain in the mail path');
 assert(!functionsSource.includes("const rateStatus = options.retry ? 'failed' : 'suppressed-rate-limit'"), 'new incidents can still be permanently suppressed at the daily limit');
@@ -78,6 +78,7 @@ const sandbox = {
   require(request) {
     if (request === 'firebase-functions/v2/firestore') return { onDocumentCreated: (options, handler) => ({ options, handler }) };
     if (request === 'firebase-functions/v2/scheduler') return { onSchedule: (options, handler) => ({ options, handler }) };
+    if (request === 'firebase-functions/v2/https') return { onCall: (options, handler) => ({ options, handler }), HttpsError: class HttpsError extends Error { constructor(code, message) { super(message); this.code = code; } } };
     if (request === 'firebase-functions/params') return { defineSecret: () => ({ value: () => secretValue }) };
     if (request === 'firebase-admin/app') return { initializeApp() {} };
     if (request === 'firebase-admin/firestore') {

@@ -14,8 +14,8 @@ const indexSource = read('index.html');
 const rules = read('firestore.rules');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.69_MAIL_RECEIPT_CONFIRMATION_HISTORY_BRANDED_TEMPLATE.md');
-assert.strictEqual(pkg.version, '1.5.98');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.98-worker-retry-health-levels');
+assert.strictEqual(pkg.version, '1.5.99');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.99-incident-callable-mail-recovery');
 for (const token of [
   "const MAIL_TEST_HISTORY_COLLECTION = 'incidentMailTestHistory'",
   "const MAIL_RECEIPT_CONFIRMATION_COLLECTION = 'incidentMailReceiptConfirmationRequests'",
@@ -49,6 +49,7 @@ const sandbox = {
   require(request) {
     if (request === 'firebase-functions/v2/firestore') return { onDocumentCreated: (options, handler) => ({ options, handler }) };
     if (request === 'firebase-functions/v2/scheduler') return { onSchedule: (options, handler) => ({ options, handler }) };
+    if (request === 'firebase-functions/v2/https') return { onCall: (options, handler) => ({ options, handler }), HttpsError: class HttpsError extends Error { constructor(code, message) { super(message); this.code = code; } } };
     if (request === 'firebase-functions/params') return { defineSecret: () => ({ value: () => secretValue }) };
     if (request === 'firebase-admin/app') return { initializeApp() {} };
     if (request === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) }, Timestamp, getFirestore: () => ({ collection: () => ({}) }) };
@@ -59,7 +60,7 @@ const sandbox = {
 };
 vm.runInNewContext(functionsSource, sandbox, { filename: 'functions/index.js' });
 const test = moduleRecord.exports.__test;
-const manual = test.buildMail({ category: 'manual-test', severity: 'warning', fingerprint: 'manual-test-v1569', appVersion: '1.5.98' }, 'mail_test_v1569');
+const manual = test.buildMail({ category: 'manual-test', severity: 'warning', fingerprint: 'manual-test-v1569', appVersion: '1.5.99' }, 'mail_test_v1569');
 assert(manual.html.includes('AI MASTERING STUDIO'));
 assert(manual.html.includes('실제 발송 테스트'));
 assert(manual.html.includes('발신자: AI마스터링 스튜디오'));

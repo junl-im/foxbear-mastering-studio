@@ -1,3 +1,16 @@
+# FoxBear AI Mastering Studio Pro v1.5.99
+
+현재 릴리스는 파일 불러오기 안내를 짧고 가볍게 정리하고, 실제 메일 테스트를 익명 인증 기반 Callable Functions 우선 경로로 전환해 Firestore 클라이언트 권한 오류를 우회합니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1599_import_copy_callable_mail_recovery_smoke.js`
+- 오류 신고 서버 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 322개.
+
 # FoxBear AI Mastering Studio Pro v1.5.98
 
 현재 릴리스는 정체 Worker를 취소한 뒤 분석·마스터링·15초 하이라이트 작업을 원본 트랙에서 안전하게 다시 구성하며, Worker별 진행률·무응답 시간·전송 메모리와 정상·주의·위험 상태를 표시합니다.

@@ -1,3 +1,12 @@
+# v1.5.99 - Lightweight Import Guidance and Callable Mail Recovery
+
+- Replaces the codec-heavy upload status banner with a short instruction to load one or more mastering files.
+- Adds authenticated callable Functions for incident creation and delivery-status lookup.
+- Uses Admin SDK writes on the server so stale or restrictive client Firestore rules do not block the real mail test.
+- Retains the create-first Firestore path as a compatibility fallback for staggered deployments.
+- Adds clear UI guidance when the new callable endpoints have not been deployed.
+- Extends the incident deployment command and adds regression coverage for import copy, callable transport, authenticated ownership, and fallback behavior.
+
 # v1.5.98 - Safe Worker Retry, Health Levels, and 30-Track Resource Stress
 
 - Adds a high-level recovery coordinator that rebuilds analysis, mastering, and 15-second preview work from retained track sources after a stalled Worker is cancelled.

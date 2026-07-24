@@ -1,3 +1,11 @@
+# FoxBear QA Report - v1.5.99
+
+- Simplified the upload status message while retaining the existing picker accept list and runtime decode validation.
+- Added callable-first authenticated incident submission and delivery-status lookup.
+- Preserved the create-first Firestore compatibility path and improved missing-server-deployment diagnostics.
+- Added source and VM regression coverage for the lightweight import message, callable endpoints, authentication boundary, ownership checks, deployment command, and fallback.
+- Configured static/regression target: 322 checks.
+
 # FoxBear QA Report - v1.5.98
 
 - Added safe high-level Worker recovery for analysis, mastering, and master-preview jobs.

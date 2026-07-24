@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.98 - cancellable jobs, health levels, recovery controls, and stale-result isolation
+// FoxBear worker job service v1.5.99 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.98-worker-retry-health-levels';
+    const VERSION = '1.5.99-incident-callable-mail-recovery';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

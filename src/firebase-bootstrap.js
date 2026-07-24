@@ -19,6 +19,8 @@ let fetchAndActivate;
 let getRemoteConfig;
 let getValue;
 let isRemoteConfigSupported;
+let getFunctions;
+let httpsCallable;
 let initializeAppCheck;
 let ReCaptchaEnterpriseProvider;
 let getToken;
@@ -26,6 +28,7 @@ let firebaseModulesPromise = null;
 
 const FIREBASE_SDK_VERSION = '12.16.0';
 const FIREBASE_MODULE_BASE = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
+const FIREBASE_FUNCTIONS_REGION = 'asia-northeast3';
 const FIREBASE_CONFIG = Object.freeze({
     apiKey: 'AIzaSyBvYuYlN6etTd3B6C_ZGvsaAktbWJU8yOs',
     authDomain: 'foxbear-music.firebaseapp.com',
@@ -81,6 +84,7 @@ const bridgeState = {
     appCheckError: '',
     auth: null,
     db: null,
+    functions: null,
     remoteConfig: null,
     user: null,
     ready: false,
@@ -98,13 +102,15 @@ async function loadFirebaseModules() {
         import(`${FIREBASE_MODULE_BASE}/firebase-auth.js`),
         import(`${FIREBASE_MODULE_BASE}/firebase-firestore.js`),
         import(`${FIREBASE_MODULE_BASE}/firebase-remote-config.js`),
-        import(`${FIREBASE_MODULE_BASE}/firebase-app-check.js`)
-    ]).then(([appModule, authModule, firestoreModule, remoteConfigModule, appCheckModule]) => {
+        import(`${FIREBASE_MODULE_BASE}/firebase-app-check.js`),
+        import(`${FIREBASE_MODULE_BASE}/firebase-functions.js`)
+    ]).then(([appModule, authModule, firestoreModule, remoteConfigModule, appCheckModule, functionsModule]) => {
         ({ initializeApp } = appModule);
         ({ getAuth, onAuthStateChanged, signInAnonymously } = authModule);
         ({ addDoc, collection, doc, getCountFromServer, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, setDoc, where } = firestoreModule);
         ({ fetchAndActivate, getRemoteConfig, getValue, isSupported: isRemoteConfigSupported } = remoteConfigModule);
         ({ initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } = appCheckModule);
+        ({ getFunctions, httpsCallable } = functionsModule);
         return true;
     });
     return firebaseModulesPromise;
@@ -126,6 +132,7 @@ function makePublicBridge(extra = {}) {
         error: bridgeState.error,
         storageEnabled: false,
         storageReason: bridgeState.storageReason,
+        incidentTransport: bridgeState.functions ? 'callable-primary' : 'firestore-fallback',
         appCheck: Object.freeze({
             configured: bridgeState.appCheckConfigured,
             ready: bridgeState.appCheckReady,
@@ -348,6 +355,40 @@ function incidentDocumentId(uid, payload) {
     return `${uid}_${bucket}_${fingerprint}`.slice(0, 180);
 }
 
+function callableErrorCode(error) {
+    return limitText(error?.code || error?.name || 'functions/unknown', 80);
+}
+
+function callableErrorMessage(error) {
+    return limitText(error?.message || error || 'Callable request failed', 240);
+}
+
+async function invokeIncidentCallable(name, data) {
+    if (!bridgeState.functions || typeof httpsCallable !== 'function') {
+        const error = new Error('Firebase Functions 신고 API가 초기화되지 않았습니다.');
+        error.code = 'FOXBEAR_INCIDENT_CALLABLE_UNAVAILABLE';
+        throw error;
+    }
+    const callable = httpsCallable(bridgeState.functions, name, { timeout: 15000 });
+    const response = await callable(data);
+    return response?.data || {};
+}
+
+async function submitIncidentViaCallable(reportId, incident) {
+    const result = await invokeIncidentCallable('submitIncidentReport', { reportId, incident });
+    return {
+        queued: result.queued !== false,
+        deduplicated: result.deduplicated === true,
+        reportId: limitText(result.reportId || reportId, 180),
+        transport: 'callable'
+    };
+}
+
+async function readIncidentDeliveryViaCallable(reportId) {
+    const result = await invokeIncidentCallable('getIncidentDeliveryStatus', { reportId });
+    return { ...result, transport: 'callable' };
+}
+
 async function logIncident(payload = {}) {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
     if (bridgeState.remoteConfigValues.foxbear_incident_reporting_enabled === false && payload.category !== 'manual-test') {
@@ -356,11 +397,18 @@ async function logIncident(payload = {}) {
     const user = await signInGuest();
     const incident = normalizeIncidentPayload(payload);
     const reportId = incidentDocumentId(user.uid, incident);
+    let callableFailure = null;
+
+    try {
+        return await submitIncidentViaCallable(reportId, incident);
+    } catch (error) {
+        callableFailure = error;
+        console.warn('FoxBear incident callable fallback:', callableErrorCode(error), callableErrorMessage(error));
+    }
+
     const reportRef = doc(bridgeState.db, 'incidentReports', reportId);
-    // Do not pre-read a deterministic ID before create. Firestore cannot evaluate
-    // owner-only read rules for a document that does not exist, which surfaced as
-    // permission-denied during the first real mail test. Create first, then read
-    // only inside the duplicate/update-denied recovery path where the document exists.
+    // Compatibility fallback for deployments that have not published the callable
+    // functions yet. Create first; read only after a duplicate/update denial.
     try {
         await setDoc(reportRef, {
             ...incident,
@@ -370,10 +418,14 @@ async function logIncident(payload = {}) {
         });
     } catch (error) {
         const duplicate = await getDoc(reportRef).catch(() => null);
-        if (!duplicate?.exists?.()) throw error;
-        return { queued: true, deduplicated: true, reportId };
+        if (!duplicate?.exists?.()) {
+            const combined = new Error(`서버 신고 API와 Firestore 호환 경로가 모두 실패했습니다. API: ${callableErrorMessage(callableFailure)} / Firestore: ${limitText(error?.message || error, 220)}`);
+            combined.code = error?.code || callableErrorCode(callableFailure) || 'FOXBEAR_INCIDENT_SUBMIT_FAILED';
+            throw combined;
+        }
+        return { queued: true, deduplicated: true, reportId, transport: 'firestore' };
     }
-    return { queued: true, deduplicated: false, reportId };
+    return { queued: true, deduplicated: false, reportId, transport: 'firestore' };
 }
 
 async function getIncidentDelivery(reportId) {
@@ -381,28 +433,41 @@ async function getIncidentDelivery(reportId) {
     const user = await signInGuest();
     const safeId = limitText(reportId, 180);
     if (!safeId.startsWith(`${user.uid}_`)) throw new Error('본인의 문제 보고서만 조회할 수 있습니다.');
-    const snapshot = await getDoc(doc(bridgeState.db, 'incidentReports', safeId));
-    if (!snapshot.exists()) return { exists: false, status: 'missing' };
-    const data = snapshot.data() || {};
-    const delivery = data.delivery || {};
-    return {
-        exists: true,
-        status: limitText(delivery.status || 'pending', 40),
-        reason: limitText(delivery.reason || '', 100),
-        message: limitText(delivery.message || '', 300),
-        attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
-        terminal: delivery.terminal === true,
-        messageId: limitText(delivery.messageId || '', 240),
-        subject: limitText(delivery.subject || '', 180),
-        senderName: limitText(delivery.senderName || '', 80),
-        recipient: limitText(delivery.recipient || '', 180),
-        mailType: limitText(delivery.mailType || '', 40),
-        acceptedCount: safeIncidentNumber(delivery.acceptedCount, 0, 20),
-        rejectedCount: safeIncidentNumber(delivery.rejectedCount, 0, 20),
-        smtpResponse: limitText(delivery.smtpResponse || '', 300),
-        smtpAcceptedAt: timestampIso(delivery.smtpAcceptedAt),
-        checkedAt: timestampIso(delivery.checkedAt)
-    };
+    let callableFailure = null;
+    try {
+        return await readIncidentDeliveryViaCallable(safeId);
+    } catch (error) {
+        callableFailure = error;
+    }
+    try {
+        const snapshot = await getDoc(doc(bridgeState.db, 'incidentReports', safeId));
+        if (!snapshot.exists()) return { exists: false, status: 'missing', transport: 'firestore' };
+        const data = snapshot.data() || {};
+        const delivery = data.delivery || {};
+        return {
+            exists: true,
+            status: limitText(delivery.status || 'pending', 40),
+            reason: limitText(delivery.reason || '', 100),
+            message: limitText(delivery.message || '', 300),
+            attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
+            terminal: delivery.terminal === true,
+            messageId: limitText(delivery.messageId || '', 240),
+            subject: limitText(delivery.subject || '', 180),
+            senderName: limitText(delivery.senderName || '', 80),
+            recipient: limitText(delivery.recipient || '', 180),
+            mailType: limitText(delivery.mailType || '', 40),
+            acceptedCount: safeIncidentNumber(delivery.acceptedCount, 0, 20),
+            rejectedCount: safeIncidentNumber(delivery.rejectedCount, 0, 20),
+            smtpResponse: limitText(delivery.smtpResponse || '', 300),
+            smtpAcceptedAt: timestampIso(delivery.smtpAcceptedAt),
+            checkedAt: timestampIso(delivery.checkedAt),
+            transport: 'firestore'
+        };
+    } catch (error) {
+        const combined = new Error(`메일 상태 API와 Firestore 조회가 모두 실패했습니다. API: ${callableErrorMessage(callableFailure)} / Firestore: ${limitText(error?.message || error, 220)}`);
+        combined.code = error?.code || callableErrorCode(callableFailure) || 'FOXBEAR_INCIDENT_STATUS_FAILED';
+        throw combined;
+    }
 }
 
 async function getAdminProfile() {
@@ -1157,6 +1222,7 @@ async function bootFirebase() {
         await initializeFoxBearAppCheck();
         bridgeState.auth = getAuth(bridgeState.app);
         bridgeState.db = getFirestore(bridgeState.app);
+        bridgeState.functions = getFunctions(bridgeState.app, FIREBASE_FUNCTIONS_REGION);
         exposeBridge();
         onAuthStateChanged(bridgeState.auth, user => {
             bridgeState.user = user;

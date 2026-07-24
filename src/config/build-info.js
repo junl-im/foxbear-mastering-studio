@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.5.98',
-    appVersion: 'Pro v1.5.98',
-    buildId: 'worker-retry-health-levels',
-    assetVersion: '1.5.98-worker-retry-health-levels',
-    cacheName: 'foxbear-shell-v1.5.98-worker-retry-health-levels',
-    bootRevision: 'boot-sri-v1598',
-    updateSafetyRevision: 'update-safety-v1598',
-    serviceWorkerRevision: 'sw-v1598'
+    productVersion: '1.5.99',
+    appVersion: 'Pro v1.5.99',
+    buildId: 'incident-callable-mail-recovery',
+    assetVersion: '1.5.99-incident-callable-mail-recovery',
+    cacheName: 'foxbear-shell-v1.5.99-incident-callable-mail-recovery',
+    bootRevision: 'boot-sri-v1599',
+    updateSafetyRevision: 'update-safety-v1599',
+    serviceWorkerRevision: 'sw-v1599'
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

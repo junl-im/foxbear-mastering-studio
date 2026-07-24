@@ -1,3 +1,17 @@
+# FoxBear Status - v1.5.99
+
+## v1.5.99 current focus
+
+- The upload status message is reduced to a short instruction to load one or more audio files.
+- Authenticated callable Functions are the primary incident report and delivery-status transport.
+- The client Firestore create-first path remains a compatibility fallback for staggered deployments.
+- The incident deployment command includes both callable endpoints and the existing email trigger stack.
+- Configured static/regression target: 322 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.5.98
 
 ## v1.5.98 current focus
@@ -349,10 +363,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.98`
-- Build ID: `worker-retry-health-levels`
-- Asset version: `1.5.98-worker-retry-health-levels`
-- Service worker cache: `foxbear-shell-v1.5.98-worker-retry-health-levels`
+- Product version: `1.5.99`
+- Build ID: `incident-callable-mail-recovery`
+- Asset version: `1.5.99-incident-callable-mail-recovery`
+- Service worker cache: `foxbear-shell-v1.5.99-incident-callable-mail-recovery`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -384,10 +398,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.98`
-- Build ID: `worker-retry-health-levels`
-- Asset version: `1.5.98-worker-retry-health-levels`
-- Service worker cache: `foxbear-shell-v1.5.98-worker-retry-health-levels`
+- Product version: `1.5.99`
+- Build ID: `incident-callable-mail-recovery`
+- Asset version: `1.5.99-incident-callable-mail-recovery`
+- Service worker cache: `foxbear-shell-v1.5.99-incident-callable-mail-recovery`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

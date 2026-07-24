@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.98-worker-retry-health-levels';
+  const VIEW_VERSION = '1.5.99-incident-callable-mail-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

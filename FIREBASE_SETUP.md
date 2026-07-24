@@ -19,7 +19,7 @@
 
 ## 2. 자동 문제 메일의 보안 구조
 
-브라우저는 Gmail에 직접 접속하지 않습니다. `incidentReports`에 제한된 진단 문서를 만들면 Cloud Function `sendIncidentEmail`이 Secret Manager의 비밀번호를 사용해 `mcwoogi@gmail.com`으로 전송합니다.
+브라우저는 Gmail에 직접 접속하지 않습니다. 익명 인증된 Callable Function `submitIncidentReport`가 `incidentReports`에 제한된 진단 문서를 만들고, Cloud Function `sendIncidentEmail`이 Secret Manager의 비밀번호를 사용해 `mcwoogi@gmail.com`으로 전송합니다. Callable 배포가 지연된 경우에만 클라이언트 Firestore 생성 경로를 호환용으로 사용합니다.
 
 저장하거나 전송하지 않는 항목:
 
@@ -46,15 +46,16 @@ firebase functions:secrets:set FOXBEAR_GMAIL_APP_PASSWORD
 npm install
 npm --prefix functions install
 npm run check:release
-firebase deploy --only firestore:rules,functions:sendIncidentEmail,hosting
+npm run deploy:incident
+firebase deploy --only hosting
 ```
 
 ## 5. 실제 발송 테스트
 
 1. 배포 사이트를 엽니다.
-2. 버전 버튼을 눌러 프로그램 정보를 엽니다.
+2. 우측 상단 설정에서 `오류 자동신고`를 엽니다.
 3. `자동 신고 켜짐`을 확인합니다.
-4. `테스트 메일`을 누릅니다.
+4. `실제 메일 테스트`를 누릅니다.
 5. 화면에 발송 완료가 표시되고 `mcwoogi@gmail.com`에 메일이 도착하는지 확인합니다.
 6. Firestore `incidentReports` 문서에서 `delivery.status`가 `emailed`인지 확인합니다.
 

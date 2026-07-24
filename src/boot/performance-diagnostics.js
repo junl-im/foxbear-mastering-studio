@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.5.98
+// FoxBear performance diagnostics - v1.5.99
 // Hidden by default. Enable with ?perf=1, localStorage foxbear-perf-diagnostics=on, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.5.98-worker-retry-health-levels';
+    const DIAGNOSTICS_VERSION = '1.5.99-incident-callable-mail-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

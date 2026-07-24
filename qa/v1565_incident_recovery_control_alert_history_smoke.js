@@ -23,8 +23,8 @@ const status = read('STATUS.md');
 const docs = read('docs/V1.5.65_INCIDENT_RECOVERY_CONTROL_ALERT_HISTORY.md');
 const envExample = read('functions/.env.example');
 
-assert.strictEqual(pkg.version, '1.5.98');
-assert.strictEqual(meta.assetVersion, '1.5.98-worker-retry-health-levels');
+assert.strictEqual(pkg.version, '1.5.99');
+assert.strictEqual(meta.assetVersion, '1.5.99-incident-callable-mail-recovery');
 assert(pkg.scripts['deploy:incident'].includes('functions:retryIncidentBatchRequest'));
 
 for (const token of [
@@ -45,7 +45,7 @@ for (const token of [
   "source: 'scheduled'",
   "reason: 'smtp-unavailable'",
   "health.channels?.webhook?.status !== 'ready'"
-]) assert(functionsSource.includes(token), `v1.5.98 function contract missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.5.99 function contract missing ${token}`);
 
 for (const token of [
   'requestIncidentBatchRecovery',
@@ -55,15 +55,15 @@ for (const token of [
   "getIncidentOperationsHistory({ limit: 24, filter: 'all' }).catch(() => ({ items: [], hasMore: false, nextCursor: 0 }))",
   'normalizeIncidentRecovery',
   'normalizeOperationsHistory'
-]) assert(firebaseSource.includes(token), `v1.5.98 Firebase bridge contract missing ${token}`);
+]) assert(firebaseSource.includes(token), `v1.5.99 Firebase bridge contract missing ${token}`);
 
 for (const token of [
   'adminIncidentRecoverDue',
   'adminIncidentRecoverDead',
   'adminIncidentRecoveryStatus'
 ]) {
-  assert(indexSource.includes(`id="${token}"`), `v1.5.98 HTML missing ${token}`);
-  assert(appSource.includes(`'${token}'`), `v1.5.98 app element cache missing ${token}`);
+  assert(indexSource.includes(`id="${token}"`), `v1.5.99 HTML missing ${token}`);
+  assert(appSource.includes(`'${token}'`), `v1.5.99 app element cache missing ${token}`);
 }
 
 for (const token of [
@@ -74,7 +74,7 @@ for (const token of [
   "requestIncidentBatchRecovery(mode)",
   'getIncidentBatchRecoveryRequest',
   'summarizeHistory'
-]) assert(monitorSource.includes(token), `v1.5.98 admin monitor missing ${token}`);
+]) assert(monitorSource.includes(token), `v1.5.99 admin monitor missing ${token}`);
 
 assert(cssSource.includes('.admin-incident-recovery-actions'));
 assert(rules.includes('validIncidentBatchRecoveryRequest'));
@@ -116,6 +116,7 @@ const sandbox = {
   require(request) {
     if (request === 'firebase-functions/v2/firestore') return { onDocumentCreated: (options, handler) => ({ options, handler }) };
     if (request === 'firebase-functions/v2/scheduler') return { onSchedule: (options, handler) => ({ options, handler }) };
+    if (request === 'firebase-functions/v2/https') return { onCall: (options, handler) => ({ options, handler }), HttpsError: class HttpsError extends Error { constructor(code, message) { super(message); this.code = code; } } };
     if (request === 'firebase-functions/params') return { defineSecret: () => ({ value: () => secretValue }) };
     if (request === 'firebase-admin/app') return { initializeApp() {} };
     if (request === 'firebase-admin/firestore') {

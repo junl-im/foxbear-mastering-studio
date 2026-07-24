@@ -24,7 +24,7 @@ const closeCss = read('assets/css/components/modal-close-system.css');
 const studioCss = read('assets/css/studio.css');
 const supportCss = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.5.98');
+assert.strictEqual(pkg.version, '1.5.99');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'current build ID must remain kebab-case');
 
 assert(index.includes('program-info-panel program-info-panel-compact'), 'program info must use the compact layout');
@@ -54,7 +54,7 @@ assert(logIncident.includes('await setDoc(reportRef'), 'incident flow must creat
 assert(!logIncident.includes('const existing = await getDoc(reportRef)'), 'incident flow must not pre-read a missing owner-only document');
 assert(logIncident.indexOf('await setDoc(reportRef') < logIncident.indexOf('await getDoc(reportRef)'), 'duplicate read is allowed only after create/update failure');
 assert(reporter.includes('testInFlight'), 'real mail test must be single-flight');
-assert(reporter.includes("'permission-denied': 'Firebase 권한 오류"), 'permission failures must have actionable guidance');
+assert(reporter.includes("'permission-denied': '오류 신고 서버가 요청을 허용하지 않았습니다."), 'permission failures must have actionable guidance');
 assert(reporter.includes("testButton.setAttribute('aria-busy'"), 'mail test must expose busy state');
 
 assert(performance.includes("backdrop.className = 'foxbear-perf-backdrop'"), 'performance diagnostics must be a modal backdrop');
@@ -78,7 +78,7 @@ assert(closeCss.includes('.support-settings-panel') && closeCss.includes('.foxbe
 assert(!studioCss.includes('.program-info-panel-compact') && !studioCss.includes('.support-settings-backdrop'), 'popup styles must not regrow studio.css');
 assert(supportCss.includes('.program-info-panel-compact') && supportCss.includes('.support-settings-backdrop'), 'dedicated intro and settings dialog styles are required');
 assert(index.includes('assets/css/components/support-settings.css'), 'support settings stylesheet must be loaded');
-assert(sw.includes('./assets/css/components/support-settings.css?v=1.5.98-worker-retry-health-levels'), 'support settings stylesheet must be precached');
+assert(sw.includes('./assets/css/components/support-settings.css?v=1.5.99-incident-callable-mail-recovery'), 'support settings stylesheet must be precached');
 
 const modalSandbox = { console };
 modalSandbox.window = modalSandbox;

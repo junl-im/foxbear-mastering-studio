@@ -14,7 +14,7 @@ const diagnosticsSource = read('src/boot/performance-diagnostics.js');
 const diagnosticsCss = read('assets/css/boot/performance-diagnostics.css');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.5.98');
+assert.strictEqual(pkg.version, '1.5.99');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(workerSource.includes('function cancelJob(identifier'), 'worker service must support targeted cancellation');
 assert(workerSource.includes('function cancelStalledJobs(options = {})'), 'worker service must support stalled-job recovery');
@@ -26,7 +26,7 @@ assert(diagnosticsSource.includes('const WARNING_GUIDANCE = Object.freeze'), 'di
 assert(diagnosticsSource.includes('권장 조치를 순서대로 확인해 주세요.'), 'diagnostics summary must direct users to actionable guidance');
 assert(diagnosticsCss.includes('.foxbear-perf-recommendations'), 'user guidance requires visible styles');
 assert(diagnosticsCss.includes('.foxbear-perf-recovery-button:not(:disabled)'), 'stalled Worker recovery must have an enabled state');
-assert(handoff.startsWith('# Handoff - v1.5.98'), 'handoff must lead with the current release');
+assert(handoff.startsWith('# Handoff - v1.5.99'), 'handoff must lead with the current release');
 
 let clock = 1_000_000;
 const sandbox = {

@@ -1,4 +1,4 @@
-// FoxBear QualityGate v2.2 service v1.5.98 - dynamics, spectral preservation, phase, pumping, and True Peak checks
+// FoxBear QualityGate v2.2 service v1.5.99 - dynamics, spectral preservation, phase, pumping, and True Peak checks
 'use strict';
 
 (function attachFoxBearQualityGateService(global) {
@@ -188,7 +188,7 @@
     }
 
     global.FoxBearQualityGateService = Object.freeze({
-        version: '1.5.98-engine-quality-regression', legacyVersion: '1.5.0-engine-quality-gate',
+        version: '1.5.99-engine-quality-regression', legacyVersion: '1.5.0-engine-quality-gate',
         rules: DEFAULT_RULES,
         createReport
     });

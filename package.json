@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.98",
+  "version": "1.5.99",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with shared modal focus/scroll lifecycle, opener restoration, and readable memory/Worker diagnostics.",
+  "description": "FoxBear AI Mastering Studio Pro with lightweight import guidance and callable-first incident mail delivery recovery.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.98-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.98-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.99-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.99-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest",
+    "deploy:incident": "firebase deploy --only firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest,functions:submitIncidentReport,functions:getIncidentDeliveryStatus",
     "version:dry-run": "node tools/sync-release-metadata.js --dry-run",
     "dependencies:check": "node tools/check-dependency-health.js",
     "qa:browser:preflight": "node qa/browser/run-browser-preflight.js",
@@ -356,15 +356,16 @@
     "node qa/v1597_worker_recovery_guidance_stress_smoke.js",
     "node --check src/boot/worker-recovery-coordinator.js",
     "node --check src/boot/worker-recovery-app-bridge.js",
-    "node qa/v1598_worker_safe_retry_health_resource_stress_smoke.js"
+    "node qa/v1598_worker_safe_retry_health_resource_stress_smoke.js",
+    "node qa/v1599_import_copy_callable_mail_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "worker-retry-health-levels",
-    "assetVersion": "1.5.98-worker-retry-health-levels",
-    "cacheName": "foxbear-shell-v1.5.98-worker-retry-health-levels",
-    "bootRevision": "boot-sri-v1598",
-    "updateSafetyRevision": "update-safety-v1598",
-    "serviceWorkerRevision": "sw-v1598"
+    "buildId": "incident-callable-mail-recovery",
+    "assetVersion": "1.5.99-incident-callable-mail-recovery",
+    "cacheName": "foxbear-shell-v1.5.99-incident-callable-mail-recovery",
+    "bootRevision": "boot-sri-v1599",
+    "updateSafetyRevision": "update-safety-v1599",
+    "serviceWorkerRevision": "sw-v1599"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

@@ -1,8 +1,8 @@
-// FoxBear audio import capability service - v1.5.98
+// FoxBear audio import capability service - v1.5.99
 (function attachFoxBearAudioImportCapabilityService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.98-worker-retry-health-levels';
+    const SERVICE_VERSION = '1.5.99-incident-callable-mail-recovery';
     const FORMAT_DEFINITIONS = Object.freeze([
         Object.freeze({ id: 'wav', label: 'WAV', extensions: ['.wav', '.wave'], mimes: ['audio/wav', 'audio/x-wav'], tier: 'core' }),
         Object.freeze({ id: 'mp3', label: 'MP3', extensions: ['.mp3', '.mpeg', '.mpga'], mimes: ['audio/mpeg'], tier: 'core' }),
@@ -123,10 +123,7 @@
     }
 
     function getStatusText() {
-        const profile = getProfile();
-        const stable = profile.coreLabels.join(', ');
-        const conditional = profile.conditionalLabels.length ? ` · 현재 브라우저 추가 감지: ${profile.conditionalLabels.join(', ')}` : '';
-        return `안정 입력: ${stable}${conditional}. 내부 코덱은 불러올 때 실제 디코딩으로 최종 확인합니다.`;
+        return '마스터링할 오디오 파일을 불러오세요. 여러 곡도 한 번에 선택할 수 있습니다.';
     }
 
     function applyToInputs(options = {}) {

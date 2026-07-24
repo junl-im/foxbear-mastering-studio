@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.98",
-  "buildId": "worker-retry-health-levels",
+  "productVersion": "1.5.99",
+  "buildId": "incident-callable-mail-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

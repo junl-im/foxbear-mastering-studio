@@ -1,3 +1,23 @@
+# Handoff - v1.5.99
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.5.99 current focus
+
+- The primary upload notice stays lightweight and asks users only to load one or more mastering files; codec validation remains internal.
+- Incident creation and delivery-status lookup use authenticated callable Functions first, with the historical create-first Firestore path retained only as a compatibility fallback.
+- `npm run deploy:incident` must include `submitIncidentReport` and `getIncidentDeliveryStatus` so stale client rules cannot block the real mail test.
+- Regression: `node qa/v1599_import_copy_callable_mail_recovery_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
 # Handoff - v1.5.98
 
 # 필수 결과 보고 형식

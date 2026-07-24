@@ -15,8 +15,8 @@ const cssSource = read('assets/css/components/admin-incident-monitor.css');
 const indexes = read('firestore.indexes.json');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.70_MAIL_TEST_ALERT_TROUBLESHOOTING_STATISTICS_EXPORT.md');
-assert.strictEqual(pkg.version, '1.5.98');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.98-worker-retry-health-levels');
+assert.strictEqual(pkg.version, '1.5.99');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.5.99-incident-callable-mail-recovery');
 for (const token of [
   'MAIL_RECEIPT_OVERDUE_MS', 'MAIL_TEST_HISTORY_SCAN_LIMIT', 'inspectMailTestVerification(',
   "code: 'mail-test-never-run'", "code: 'mail-test-verification-stale'", "code: 'mail-receipt-unconfirmed'",
@@ -47,6 +47,7 @@ const sandbox = {
   require(request) {
     if (request === 'firebase-functions/v2/firestore') return { onDocumentCreated: (options, handler) => ({ options, handler }) };
     if (request === 'firebase-functions/v2/scheduler') return { onSchedule: (options, handler) => ({ options, handler }) };
+    if (request === 'firebase-functions/v2/https') return { onCall: (options, handler) => ({ options, handler }), HttpsError: class HttpsError extends Error { constructor(code, message) { super(message); this.code = code; } } };
     if (request === 'firebase-functions/params') return { defineSecret: () => ({ value: () => secretValue }) };
     if (request === 'firebase-admin/app') return { initializeApp() {} };
     if (request === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) }, Timestamp, getFirestore: () => ({ collection: () => ({}) }) };

@@ -2,6 +2,7 @@
 
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { FieldValue, Timestamp, getFirestore } = require('firebase-admin/firestore');
@@ -64,7 +65,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.5.98';
+const PRODUCT_VERSION = '1.5.99';
 const OPERATIONS_SCHEMA_VERSION = 6;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
 const ADMIN_ACTION_STATE_TTL_DAYS = 7;
@@ -97,6 +98,91 @@ function escapeHtml(value) {
 
 function safeKey(value, fallback = 'unknown') {
   return cleanText(value, 100).replace(/[^a-z0-9_-]/gi, '_').slice(0, 100) || fallback;
+}
+
+const CALLABLE_INCIDENT_SEVERITIES = new Set(['warning', 'error', 'fatal']);
+const CALLABLE_INCIDENT_CATEGORIES = new Set([
+  'runtime', 'resource', 'boot', 'mastering', 'mastering-memory', 'quality-recovery', 'export',
+  'update-safety', 'release-mismatch', 'firebase', 'manual-test', 'unknown'
+]);
+
+function clampIncidentNumber(value, min, max) {
+  const number = Number(value || 0);
+  return Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : min;
+}
+
+function normalizeCallableIncident(payload = {}) {
+  const severity = CALLABLE_INCIDENT_SEVERITIES.has(payload.severity) ? payload.severity : 'error';
+  const category = CALLABLE_INCIDENT_CATEGORIES.has(payload.category) ? payload.category : 'unknown';
+  return {
+    schemaVersion: 1,
+    clientAt: cleanText(payload.clientAt || new Date().toISOString(), 40),
+    appVersion: cleanText(payload.appVersion || PRODUCT_VERSION, 24),
+    assetVersion: cleanText(payload.assetVersion || '', 80),
+    severity, category,
+    reason: cleanText(payload.reason || category, 100),
+    message: cleanText(payload.message || 'Unknown incident', 500),
+    code: cleanText(payload.code || '', 80),
+    stack: cleanText(payload.stack || '', 1400),
+    fingerprint: cleanText(payload.fingerprint || 'unknown', 64),
+    source: cleanText(payload.source || 'foxbear-web-client', 80),
+    pagePath: cleanText(payload.pagePath || '/', 160),
+    browser: cleanText(payload.browser || '', 40),
+    platform: cleanText(payload.platform || '', 40),
+    language: cleanText(payload.language || '', 24),
+    viewport: cleanText(payload.viewport || '', 32),
+    online: payload.online !== false,
+    visibility: cleanText(payload.visibility || '', 20),
+    memoryGb: clampIncidentNumber(payload.memoryGb, 0, 64),
+    cpuCores: clampIncidentNumber(payload.cpuCores, 0, 64),
+    runtimeOk: payload.runtimeOk !== false,
+    resourceFailureCount: clampIncidentNumber(payload.resourceFailureCount, 0, 99),
+    runtimeErrorCount: clampIncidentNumber(payload.runtimeErrorCount, 0, 99),
+    runtimeWarningCount: clampIncidentNumber(payload.runtimeWarningCount, 0, 99),
+    bootFailed: payload.bootFailed === true,
+    bootStalled: payload.bootStalled === true,
+    automatic: payload.automatic !== false,
+    context: cleanText(payload.context || '', 700)
+  };
+}
+
+function callableReportId(uid, requestedId, incident) {
+  const cleanUid = safeKey(uid, 'anonymous');
+  const requested = cleanText(requestedId || '', 180);
+  if (requested.startsWith(`${uid}_`) && /^[A-Za-z0-9_-]+$/.test(requested)) return requested;
+  const bucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString(36);
+  return `${cleanUid}_${bucket}_${safeKey(incident.fingerprint, 'unknown')}`.slice(0, 180);
+}
+
+function timestampToIso(value) {
+  if (!value) return '';
+  if (typeof value.toDate === 'function') return value.toDate().toISOString();
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
+function serializeIncidentDelivery(snapshot) {
+  if (!snapshot?.exists) return { exists: false, status: 'missing' };
+  const data = snapshot.data() || {};
+  const delivery = data.delivery || {};
+  return {
+    exists: true,
+    status: cleanText(delivery.status || 'pending', 40),
+    reason: cleanText(delivery.reason || '', 100),
+    message: cleanText(delivery.message || '', 300),
+    attemptCount: clampIncidentNumber(delivery.attemptCount, 0, 20),
+    terminal: delivery.terminal === true,
+    messageId: cleanText(delivery.messageId || '', 240),
+    subject: cleanText(delivery.subject || '', 180),
+    senderName: cleanText(delivery.senderName || '', 80),
+    recipient: cleanText(delivery.recipient || '', 180),
+    mailType: cleanText(delivery.mailType || '', 40),
+    acceptedCount: clampIncidentNumber(delivery.acceptedCount, 0, 20),
+    rejectedCount: clampIncidentNumber(delivery.rejectedCount, 0, 20),
+    smtpResponse: cleanText(delivery.smtpResponse || '', 300),
+    smtpAcceptedAt: timestampToIso(delivery.smtpAcceptedAt),
+    checkedAt: timestampToIso(delivery.checkedAt)
+  };
 }
 
 function emailTable(rows = []) {
@@ -1755,6 +1841,50 @@ async function runIncidentRecoveryBatch(options = {}) {
   return totals;
 }
 
+exports.submitIncidentReport = onCall({
+  region: REGION,
+  timeoutSeconds: 30,
+  memory: '256MiB',
+  enforceAppCheck: false
+}, async request => {
+  const uid = cleanText(request.auth?.uid || '', 128);
+  if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
+  const incident = normalizeCallableIncident(request.data?.incident || {});
+  const reportId = callableReportId(uid, request.data?.reportId, incident);
+  const reportRef = db.collection('incidentReports').doc(reportId);
+  try {
+    await reportRef.create({
+      ...incident,
+      uid,
+      delivery: { status: 'pending', attemptCount: 0 },
+      createdAt: FieldValue.serverTimestamp()
+    });
+    return { queued: true, deduplicated: false, reportId };
+  } catch (error) {
+    if (Number(error?.code) === 6 || /already.?exists/i.test(String(error?.code || error?.message || ''))) {
+      return { queued: true, deduplicated: true, reportId };
+    }
+    console.error('FoxBear callable incident submit failed', { reportId, error: cleanText(error?.message || error, 300) });
+    throw new HttpsError('internal', '문제 신고를 서버 대기열에 저장하지 못했습니다.');
+  }
+});
+
+exports.getIncidentDeliveryStatus = onCall({
+  region: REGION,
+  timeoutSeconds: 20,
+  memory: '256MiB',
+  enforceAppCheck: false
+}, async request => {
+  const uid = cleanText(request.auth?.uid || '', 128);
+  if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
+  const reportId = cleanText(request.data?.reportId || '', 180);
+  if (!reportId || !reportId.startsWith(`${uid}_`)) {
+    throw new HttpsError('permission-denied', '본인의 문제 보고서만 조회할 수 있습니다.');
+  }
+  const snapshot = await db.collection('incidentReports').doc(reportId).get();
+  return serializeIncidentDelivery(snapshot);
+});
+
 exports.sendIncidentEmail = onDocumentCreated({
   document: 'incidentReports/{reportId}', region: REGION,
   secrets: [GMAIL_APP_PASSWORD], retry: false, maxInstances: 3,
@@ -2254,6 +2384,7 @@ exports.verifyIncidentPostDeployHealth = onSchedule({
 exports.__test = Object.freeze({
   cleanText, escapeHtml, safeKey, mailFromHeader, kstTimestampLabel, incidentSeverityLabel, incidentCategoryLabel,
   buildIncidentSubject, buildMail, buildDailySummaryMail, buildBrandedEmailHtml, emailTable, incidentMessageId, summaryMessageId,
+  normalizeCallableIncident, callableReportId, serializeIncidentDelivery,
   kstDayRange, kstDateKey, nextKstDayRetryAt, retryDelayMs,
   isIncidentDeliveryDue, incidentDueAt, isLongUndelivered,
   normalizedGmailAppPassword, assertSmtpAccepted, classifySmtpError,

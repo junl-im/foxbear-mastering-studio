@@ -1,9 +1,9 @@
-// FoxBear automatic incident reporter - v1.5.98
+// FoxBear automatic incident reporter - v1.5.99
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.98-worker-retry-health-levels';
+    const VERSION = BUILD_INFO.assetVersion || '1.5.99-incident-callable-mail-recovery';
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -432,13 +432,15 @@
                     const failureCode = cleanText(result?.delivery?.code || result?.code || '', 80);
                     const failureReason = cleanText(result?.delivery?.message || result?.delivery?.reason || result?.reason || '', 180);
                     const permissionFailure = /permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/i.test(`${rawStatus} ${failureCode} ${failureReason}`);
-                    const status = permissionFailure ? 'permission-denied' : rawStatus;
+                    const callableMissing = /functions\/(?:not-found|unimplemented)|submitIncidentReport|getIncidentDeliveryStatus|CALLABLE_UNAVAILABLE/i.test(`${rawStatus} ${failureCode} ${failureReason}`);
+                    const status = callableMissing && permissionFailure ? 'server-api-not-deployed' : (permissionFailure ? 'permission-denied' : rawStatus);
                     const messages = {
                         emailed: 'Gmail SMTP 접수 완료: 받은편지함과 스팸함을 확인하세요.',
                         pending: '신고는 저장됐지만 45초 안에 메일 함수 완료를 확인하지 못했습니다.',
-                        submitted: '신고 저장 완료. 메일 함수 배포 상태를 확인하세요.',
-                        'status-check-failed': '신고 저장 후 메일 상태 조회에 실패했습니다.',
-                        'permission-denied': 'Firebase 권한 오류입니다. 익명 인증과 최신 Firestore 규칙·Functions 배포를 확인하세요. 신고는 로컬 대기열에 보관했습니다.',
+                        submitted: '서버 대기열 저장 완료. 메일 처리 상태를 확인하세요.',
+                        'status-check-failed': '신고는 저장됐지만 서버의 메일 상태를 확인하지 못했습니다.',
+                        'permission-denied': '오류 신고 서버가 요청을 허용하지 않았습니다. 익명 인증과 최신 서버 기능 배포를 확인하세요. 신고는 로컬 대기열에 보관했습니다.',
+                        'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다. npm run deploy:incident 실행 후 다시 테스트하세요.',
                         FOXBEAR_INCIDENT_BRIDGE_UNAVAILABLE: 'Firebase 연결이 준비되지 않아 테스트 신고를 로컬 대기열에 저장했습니다.',
                         FOXBEAR_INCIDENT_FIREBASE_ERROR: 'Firebase 초기화 오류로 테스트 신고를 로컬 대기열에 저장했습니다.',
                         'suppressed-duplicate': '동일 테스트가 중복 억제됐습니다.',

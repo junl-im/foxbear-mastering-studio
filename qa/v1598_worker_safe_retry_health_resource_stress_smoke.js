@@ -19,12 +19,12 @@ const index = read('index.html');
 const sw = read('sw.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.5.98');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'worker-retry-health-levels');
-assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.5.98-worker-retry-health-levels'));
-assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.5.98-worker-retry-health-levels'));
-assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.5.98-worker-retry-health-levels'));
-assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.5.98-worker-retry-health-levels'));
+assert.strictEqual(pkg.version, '1.5.99');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
+assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.5.99-incident-callable-mail-recovery'));
+assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.5.99-incident-callable-mail-recovery'));
+assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.5.99-incident-callable-mail-recovery'));
+assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.5.99-incident-callable-mail-recovery'));
 assert(workerSource.includes('function cancelStalledJob(identifier, options = {})'));
 assert(workerSource.includes("healthLevel, activeCount: jobs.length"));
 assert(workerSource.includes('watchThresholdMs: WATCH_THRESHOLD_MS'));
@@ -40,7 +40,7 @@ assert(diagnosticsSource.includes('cancelSingleStalledWorker(item)'));
 assert(diagnosticsSource.includes("return 'danger'"));
 assert(diagnosticsCss.includes('.foxbear-perf-worker-list'));
 assert(diagnosticsCss.includes('.foxbear-perf-health-badge'));
-assert(handoff.startsWith('# Handoff - v1.5.98'));
+assert(handoff.startsWith('# Handoff - v1.5.99'));
 
 let clock = 1_000_000;
 const workerSandbox = { console, ArrayBuffer, Date: { now: () => clock }, setTimeout, clearTimeout };
