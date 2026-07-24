@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.5.90 - cancellable jobs, progress, deadlines, and stale-result isolation
+// FoxBear worker job service v1.5.91 - cancellable jobs, progress, deadlines, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
+    const VERSION = '1.5.91-cancellable-audio-pipeline-performance-guards';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();
@@ -124,6 +124,15 @@
                         estimatedRemainingMs: record.estimatedRemainingMs
                     });
                     try { options.onProgress?.(progress); } catch (error) { console.warn('FoxBear worker progress callback failed:', error); }
+                    return;
+                }
+                if (data?.ok === false) {
+                    const error = new Error(String(data.error || data.message || `${label} 실행 실패`));
+                    error.name = String(data.errorName || 'Error');
+                    if (data.code) error.code = String(data.code);
+                    error.jobId = jobId;
+                    error.workerData = data;
+                    finish(reject, error, 'failed');
                     return;
                 }
                 record.percent = 100;

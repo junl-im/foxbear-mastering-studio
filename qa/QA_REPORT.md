@@ -1,3 +1,16 @@
+# FoxBear QA Report - v1.5.91
+
+- Re-ran the complete v1.5.90 static/regression baseline: 311/311 PASS before modification.
+- Found that mastering cancellation was checked only after file decode and pitch/BPM conversion, allowing expensive work to continue after track or batch cancellation.
+- Found that pitch/BPM used a separate manual Worker lifecycle without shared timeout diagnostics, stale-result identity, or cancellation ownership.
+- Found that failed analysis or pitch workers could move large tracks onto blocking main-thread FFT/WSOLA fallback paths.
+- Routed analysis and pitch workers through the common job service and added job-scoped progress messages.
+- Added large-track fallback guards and direct `subarray()` PCM slicing to reduce UI stalls and temporary memory pressure.
+- Fixed shared Worker diagnostics so `{ok:false}` messages are recorded as failed rather than completed and verified error code propagation.
+- Guarded pitch progress against cancelled or replaced mastering jobs.
+- Added VM regression coverage for cancellation, Worker job identity, failure diagnostics, progress, large-track protection, and source contracts.
+- Configured static/regression checks: 312/312 PASS; real Chromium audio timing remains installed-browser verification.
+
 # FoxBear QA Report - v1.5.90
 
 - Re-ran the complete v1.5.89 static/regression baseline: 309/309 PASS before modification.

@@ -1,3 +1,15 @@
+# v1.5.91 - Cancellable Audio Pipeline and Large-Track Performance Guards
+
+- Propagates mastering cancellation into file decoding, emergency analysis, pitch/BPM transformation, and 15-second master-preview transformation.
+- Routes analysis and pitch/BPM workers through the shared Worker job service for timeout, cancellation, stale-result isolation, progress telemetry, and guaranteed termination.
+- Adds Worker job identity and staged progress messages to analysis and WSOLA workers.
+- Prevents failed or unavailable workers from falling back to blocking main-thread FFT/WSOLA work for large tracks.
+- Preserves lightweight synchronous fallback for small tracks and keeps cancellation from showing false worker-failure warnings.
+- Removes an avoidable per-channel allocation when slicing master-preview PCM by copying from `subarray()` directly into the destination buffer.
+- Treats explicit Worker `{ok:false}` responses as failed jobs instead of completed diagnostics, preserving error code/name and terminating the Worker immediately.
+- Prevents stale pitch progress from updating a track after its mastering job has been replaced or cancelled.
+- Adds behavioral regression coverage for worker ownership, cancellation propagation, large-track fallback guards, failure diagnostics, progress identity, and the existing app line budget.
+
 # v1.5.90 - Browser Retry Integrity, Metadata-Aware Scope, and Full Audit Hardening
 
 - Distinguishes a real retry pass from skipped, repeated, and missing Playwright results.

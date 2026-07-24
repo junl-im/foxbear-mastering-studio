@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.5.90 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.5.91 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
+    const VERSION = '1.5.91-cancellable-audio-pipeline-performance-guards';
     let sequence = 0;
 
     function createFallbackAbortController() {

@@ -2,8 +2,9 @@
 'use strict';
 
 self.onmessage = event => {
+    const payload = event.data || {}, jobId = String(payload.__foxbearJobId || '');
     try {
-        const payload = event.data || {};
+        postProgress(jobId, 4, '피치/BPM 변환', 'PCM 입력과 변환 계획을 준비합니다.');
         const sampleRate = Number(payload.sampleRate || 44100);
         const channels = Math.max(1, Math.min(2, Number(payload.channels || 1)));
         const length = Math.max(1, Number(payload.length || 1));
@@ -19,15 +20,22 @@ self.onmessage = event => {
         const targetLength = Math.max(1, Math.round(length / speedRatio));
 
         const afterPitch = inputBuffers.map(src => Math.abs(pitchSemitones) > 0.01 ? resampleChannel(src, pitchLength) : new Float32Array(src));
-        const output = Math.abs(afterPitch[0].length - targetLength) > 4 ? solaStretchBuffers(afterPitch, targetLength, sampleRate, qualityMode) : afterPitch.map(src => resampleChannel(src, targetLength));
+        postProgress(jobId, 36, '피치 변환', '위상 보존 리샘플링을 완료했습니다.');
+        const output = Math.abs(afterPitch[0].length - targetLength) > 4 ? solaStretchBuffers(afterPitch, targetLength, sampleRate, qualityMode, jobId) : afterPitch.map(src => resampleChannel(src, targetLength));
+        postProgress(jobId, 92, '피치/BPM 변환', '출력 길이와 경계 페이드를 정리합니다.');
         applyEdgeFade(output, sampleRate, 0.006);
 
         const transfers = output.map(arr => arr.buffer);
-        self.postMessage({ ok: true, sampleRate, channels, length: targetLength, channelBuffers: transfers }, transfers);
+        self.postMessage({ ok: true, sampleRate, channels, length: targetLength, channelBuffers: transfers, __foxbearJobId: jobId }, transfers);
     } catch (error) {
-        self.postMessage({ ok: false, error: error.message || String(error) });
+        self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: jobId });
     }
 };
+
+
+function postProgress(jobId, percent, stage, detail = '') {
+    self.postMessage({ type: 'progress', __foxbearProgress: true, __foxbearJobId: String(jobId || ''), percent: Math.max(0, Math.min(100, Number(percent) || 0)), stage: String(stage || '피치/BPM 변환'), detail: String(detail || '') });
+}
 
 function resampleChannel(input, targetLength) {
     const output = new Float32Array(Math.max(1, targetLength));
@@ -69,12 +77,13 @@ function cubicInterpolate(y0, y1, y2, y3, t) {
     return clamp(a0 * t * t * t + a1 * t * t + a2 * t + a3, -1.2, 1.2);
 }
 
-function solaStretchBuffers(inputBuffers, targetLength, sampleRate, qualityMode) {
+function solaStretchBuffers(inputBuffers, targetLength, sampleRate, qualityMode, jobId = '') {
     if (!inputBuffers.length || targetLength <= 0) return [new Float32Array(Math.max(1, targetLength))];
     if (Math.abs(targetLength - inputBuffers[0].length) < 8) return inputBuffers.map(src => resampleChannel(src, targetLength));
 
     const reference = createMonoReference(inputBuffers);
     const plan = buildSolaPlan(reference, targetLength, sampleRate, qualityMode);
+    postProgress(jobId, 72, 'WSOLA 시간 변환', `${plan.frames.length.toLocaleString()}개 프레임의 위상 정렬 계획을 완료했습니다.`);
     return inputBuffers.map(src => renderSolaFromPlan(src, plan, targetLength));
 }
 

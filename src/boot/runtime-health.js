@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
+    const FALLBACK_VERSION = '1.5.91-cancellable-audio-pipeline-performance-guards';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

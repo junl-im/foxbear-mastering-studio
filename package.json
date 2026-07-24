@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.5.90",
+  "version": "1.5.91",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with browser retry integrity, metadata-aware impact selection, and stale flaky-history cleanup.",
+  "description": "FoxBear AI Mastering Studio Pro with cancellable decode/analysis/pitch jobs, worker progress diagnostics, and large-track main-thread fallback guards.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.90-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.90-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.5.91-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.5.91-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -345,15 +345,16 @@
     "node qa/v1588_browser_impact_flaky_history_smoke.js",
     "node --check qa/browser/run-browser-health-first.js",
     "node qa/v1589_browser_health_first_selector_flaky_issues_smoke.js",
-    "node qa/v1590_browser_retry_integrity_metadata_scope_smoke.js"
+    "node qa/v1590_browser_retry_integrity_metadata_scope_smoke.js",
+    "node qa/v1591_cancellable_audio_pipeline_performance_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "browser-retry-integrity-metadata-aware-scope",
-    "assetVersion": "1.5.90-browser-retry-integrity-metadata-aware-scope",
-    "cacheName": "foxbear-shell-v1.5.90-browser-retry-integrity-metadata-aware-scope",
-    "bootRevision": "boot-sri-v1590",
-    "updateSafetyRevision": "update-safety-v1590",
-    "serviceWorkerRevision": "sw-v1590"
+    "buildId": "cancellable-audio-pipeline-performance-guards",
+    "assetVersion": "1.5.91-cancellable-audio-pipeline-performance-guards",
+    "cacheName": "foxbear-shell-v1.5.91-cancellable-audio-pipeline-performance-guards",
+    "bootRevision": "boot-sri-v1591",
+    "updateSafetyRevision": "update-safety-v1591",
+    "serviceWorkerRevision": "sw-v1591"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

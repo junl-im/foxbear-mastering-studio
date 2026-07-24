@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.90 (browser-retry-integrity-metadata-aware-scope).",
+  "description": "FoxBear AI Mastering Studio Pro v1.5.91 (cancellable-audio-pipeline-performance-guards).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.90"
+  "version": "1.5.91"
 }

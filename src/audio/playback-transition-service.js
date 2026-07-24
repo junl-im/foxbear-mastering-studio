@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.90-browser-retry-integrity-metadata-aware-scope';
+    const SERVICE_VERSION = '1.5.91-cancellable-audio-pipeline-performance-guards';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

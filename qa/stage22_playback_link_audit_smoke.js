@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.5.90-browser-retry-integrity-metadata-aware-scope';
+const version = '1.5.91-cancellable-audio-pipeline-performance-guards';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

@@ -13,7 +13,7 @@ const previewCss = fs.readFileSync('assets/css/components/preview-system.css', '
 const cardsCss = fs.readFileSync('assets/css/components/cards.css', 'utf8');
 const pkg = fs.readFileSync('package.json', 'utf8');
 const overwrite = fs.readFileSync('tools/create-overwrite-zip.sh', 'utf8');
-const version = '1.5.90-browser-retry-integrity-metadata-aware-scope';
+const version = '1.5.91-cancellable-audio-pipeline-performance-guards';
 assert(index.includes(version), 'index should use Stage26 asset key');
 assert(sw.includes(`foxbear-shell-v${version}`) || sw.includes(`foxbear-shell-${version}`), 'service worker should use Stage26 cache key');
 assert(pkg.includes('node qa/stage26_unified_waveform_controls_smoke.js'), 'package should run Stage26 smoke');

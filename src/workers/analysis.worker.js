@@ -2,22 +2,25 @@
 'use strict';
 
 self.onmessage = event => {
+    const data = event.data || {}, jobId = String(data.__foxbearJobId || '');
     try {
-        const data = event.data || {};
-        const analysis = analyze(data);
-        self.postMessage({ ok: true, analysis });
+        postProgress(jobId, 4, '오디오 분석', 'PCM 입력을 준비합니다.');
+        const analysis = analyze(data, jobId);
+        self.postMessage({ ok: true, analysis, __foxbearJobId: jobId });
     } catch (error) {
-        self.postMessage({ ok: false, error: error.message || String(error) });
+        self.postMessage({ ok: false, error: error.message || String(error), __foxbearJobId: jobId });
     }
 };
 
-function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
+function analyze({ sampleRate, duration, channels, length, channelBuffers }, jobId = '') {
     const totalSamples = Math.max(0, Number(length || 0));
     const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
     const usableChannels = Math.max(1, Math.min(Number(channels || 1), Array.isArray(channelBuffers) ? channelBuffers.length : 1));
     const channelData = Array.from({ length: usableChannels }, (_, ch) => new Float32Array(channelBuffers[ch] || channelBuffers[0] || totalSamples));
     const time = measureTimeDomainFeatures(channelData, safeRate, totalSamples, usableChannels);
+    postProgress(jobId, 28, '시간 영역 분석', '피크, RMS, 스테레오 상관도를 계산했습니다.');
     const spectrum = measureFftSpectrumFeatures(channelData, safeRate, totalSamples, usableChannels);
+    postProgress(jobId, 68, '주파수 분석', 'FFT와 24밴드 스펙트럼을 계산했습니다.');
 
     const brightness = spectrum.valid ? clamp01(spectrum.brightness * 0.78 + time.brightness * 0.22) : time.brightness;
     const metallicHint = spectrum.valid ? clamp01(spectrum.metallicHint * 0.74 + time.metallicHint * 0.26) : time.metallicHint;
@@ -27,6 +30,7 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
     const highRatio = spectrum.valid ? spectrum.highRatio : time.highRatio;
     const transientDensity = spectrum.valid ? clamp01(time.transientDensity * 0.48 + spectrum.spectralFlux * 0.52) : time.transientDensity;
     const loudnessIntegrated = measureKWeightedGatedLoudness(channelData, safeRate, totalSamples, usableChannels);
+    postProgress(jobId, 88, '라우드니스 분석', 'K-weighted LUFS와 번역 위험도를 계산합니다.');
     const loudnessHint = 20 * Math.log10(Math.max(0.000001, time.rms));
     const peakDb = 20 * Math.log10(Math.max(0.000001, time.peak));
     const headroomDb = -1.0 - peakDb;
@@ -50,6 +54,11 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }) {
         mobileSpeakerDetail: { boom: mobileSpeaker.boom, box: mobileSpeaker.box, honk: mobileSpeaker.honk, harsh: mobileSpeaker.harsh, density: mobileSpeaker.density },
         loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling, 24-band reference profile', targetDynamicFreq: estimatedTargetFreq
     };
+}
+
+
+function postProgress(jobId, percent, stage, detail = '') {
+    self.postMessage({ type: 'progress', __foxbearProgress: true, __foxbearJobId: String(jobId || ''), percent: Math.max(0, Math.min(100, Number(percent) || 0)), stage: String(stage || '오디오 분석'), detail: String(detail || '') });
 }
 
 function measureTimeDomainFeatures(channelData, sampleRate, totalSamples, channels) {

@@ -1,3 +1,15 @@
+# Handoff - v1.5.91
+
+## v1.5.91 current focus
+
+- Mastering cancellation must be passed to decode, emergency analysis, pitch/BPM Worker processing, and master-preview conversion.
+- Analysis and pitch workers must preserve `__foxbearJobId`, publish progress, and be terminated by the shared Worker job service on timeout or abort.
+- Large analysis and pitch workloads must not execute synchronous main-thread fallback after Worker failure or on browsers without Worker support.
+- Small-track compatibility fallback remains available, but user cancellation must never enter fallback or display a misleading failure toast.
+- Master-preview PCM slicing uses `subarray()` into the destination channel to avoid an extra full segment allocation.
+- Regression command: `node qa/v1591_cancellable_audio_pipeline_performance_smoke.js`.
+- Static/regression verification: 312/312 PASS; installed Chromium remains the final browser confirmation.
+
 # Handoff - v1.5.90
 
 ## v1.5.90 current focus

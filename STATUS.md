@@ -1,6 +1,15 @@
-# FoxBear Status - v1.5.90
+# FoxBear Status - v1.5.91
 
-## v1.5.90 current focus
+## v1.5.91 current focus
+
+- Mastering cancellation now reaches decode, emergency analysis, pitch/BPM processing, and master-preview transformation.
+- Analysis and WSOLA workers use the shared lifecycle manager with job identity, progress, timeout, abort, and guaranteed termination.
+- Large tracks cannot fall back to blocking main-thread FFT or WSOLA after Worker failure or unavailability.
+- Small compatibility fallbacks remain available and cancellation is never reported as a worker failure.
+- Master-preview PCM slicing avoids an extra per-channel segment allocation.
+- Configured static/regression checks: 312/312 PASS before installed-browser confirmation.
+
+## v1.5.90 previous focus
 
 - Retry recovery distinguishes pass, skip, repeat failure, and missing results.
 - A new workflow verifier blocks deployment unless every primary browser failure genuinely passes on retry.
@@ -257,10 +266,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.90`
-- Build ID: `browser-retry-integrity-metadata-aware-scope`
-- Asset version: `1.5.90-browser-retry-integrity-metadata-aware-scope`
-- Service worker cache: `foxbear-shell-v1.5.90-browser-retry-integrity-metadata-aware-scope`
+- Product version: `1.5.91`
+- Build ID: `cancellable-audio-pipeline-performance-guards`
+- Asset version: `1.5.91-cancellable-audio-pipeline-performance-guards`
+- Service worker cache: `foxbear-shell-v1.5.91-cancellable-audio-pipeline-performance-guards`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -292,10 +301,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.90`
-- Build ID: `browser-retry-integrity-metadata-aware-scope`
-- Asset version: `1.5.90-browser-retry-integrity-metadata-aware-scope`
-- Service worker cache: `foxbear-shell-v1.5.90-browser-retry-integrity-metadata-aware-scope`
+- Product version: `1.5.91`
+- Build ID: `cancellable-audio-pipeline-performance-guards`
+- Asset version: `1.5.91-cancellable-audio-pipeline-performance-guards`
+- Service worker cache: `foxbear-shell-v1.5.91-cancellable-audio-pipeline-performance-guards`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

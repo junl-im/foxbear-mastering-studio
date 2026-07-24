@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.5.91
+
+## v1.5.91 Cancellable audio pipeline and performance guards
+
+Mastering cancellation now reaches decode, emergency analysis, pitch/BPM conversion, and master-preview conversion. Analysis and WSOLA use the common Worker lifecycle manager, while large tracks no longer fall back to expensive synchronous FFT or time-stretch processing that can freeze the page.
+
+- Run the full static/regression suite: `npm run check:static`
+- Run the new pipeline regression: `node qa/v1591_cancellable_audio_pipeline_performance_smoke.js`
+- Inspect active Worker jobs from `FoxBearMasteringGuard.getSnapshot().workerJobs`
+- Worker-declared failures are recorded as `failed`, not successful completions, and stale pitch progress cannot overwrite a replacement job.
+- Configured static/regression checks: 312/312 PASS.
+
 # FoxBear AI Mastering Studio Pro v1.5.90
 
 ## v1.5.90 Browser retry integrity and metadata-aware impact selection

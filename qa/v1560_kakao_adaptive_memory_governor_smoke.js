@@ -50,7 +50,7 @@ const memorySandbox = {
       jsHeapSizeLimit: 200 * 1024 * 1024
     }
   },
-  FoxBearBuildInfo: { assetVersion: '1.5.90-kakao-adaptive-memory-governor' }
+  FoxBearBuildInfo: { assetVersion: '1.5.91-kakao-adaptive-memory-governor' }
 };
 memorySandbox.window = memorySandbox;
 memorySandbox.globalThis = memorySandbox;
@@ -85,7 +85,7 @@ assert(track.performanceInfo.memoryGovernorHistory.length >= 1, 'governor histor
 
 const app = read('src/app.js');
 assert(app.includes("stage: '사전 진단'"), 'mastering preflight governor is missing');
-assert(app.indexOf("stage: '사전 진단'") < app.indexOf('currentSourceBuffer = await decodeAudio(track.file)'), 'preflight must run before mastering decode');
+assert(app.indexOf("stage: '사전 진단'") < app.indexOf('currentSourceBuffer = await decodeAudio(track.file'), 'preflight must run before mastering decode');
 assert(app.includes('canReleasePreparedBeforeRecovery'), 'post-encode PCM release policy is missing');
 assert(app.includes("markPerformanceStage(track, 'PCM 조기 해제'"), 'PCM release stage diagnostics are missing');
 assert(app.includes('track.memoryGovernorInfo?.compactWaveform'), 'compact waveform path is missing');
