@@ -1,3 +1,12 @@
+# FoxBear QA Report - v1.6.1
+
+- Reproduced the persistent startup popup through the legacy `foxbear-perf-diagnostics=on` localStorage value.
+- Added one-time migration to `off` and verified normal startup does not construct or display the diagnostics panel.
+- Verified explicit `?perf=1` still schedules diagnostic opening after DOM readiness.
+- Added consecutive healthy-runtime and minimum-uptime guards for automatic dismissal.
+- Verified Settings-opened diagnostics are marked manual and never persist future startup behavior.
+- Configured static/regression target: 324 checks.
+
 # FoxBear QA Report - v1.6.0
 
 - Added stage-specific incident mail test diagnostics for authentication, server API, queue persistence, and SMTP acceptance.

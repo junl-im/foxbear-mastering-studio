@@ -9,7 +9,7 @@ function assert(condition, message) {
     process.exit(1);
   }
 }
-const version = '1.6.0-incident-mail-pipeline-health';
+const version = '1.6.1-transient-performance-diagnostics';
 const index = read('index.html');
 const sw = read('sw.js');
 const cfg = read('src/config/app-runtime-config.js');
@@ -27,7 +27,7 @@ assert(healthTag && !/\bdefer\b/.test(healthTag) && !/type="module"/.test(health
 assert(index.includes(`assets/css/boot/runtime-health.css?v=${version}`), 'runtime recovery CSS should be loaded');
 assert(sw.includes(`./assets/css/boot/runtime-health.css?v=${version}`), 'service worker should precache runtime recovery CSS');
 assert(sw.includes(`./src/boot/runtime-health.js?v=${version}`), 'service worker should precache runtime-health');
-assert(sw.includes(`foxbear-shell-v1.6.0-incident-mail-pipeline-health`), 'service worker cache name should be stage16');
+assert(sw.includes(`foxbear-shell-v1.6.1-transient-performance-diagnostics`), 'service worker cache name should be stage16');
 assert(cfg.includes(`const ASSET_VERSION = '${version}'`), 'runtime config should expose stage14 asset version');
 assert(health.includes('recordResourceFailure'), 'runtime health should record resource/SRI failures');
 assert(health.includes('clearCachesAndReload'), 'runtime health should expose cache recovery');

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.0",
-  "buildId": "incident-mail-pipeline-health",
+  "productVersion": "1.6.1",
+  "buildId": "transient-performance-diagnostics",
   "requiredFiles": [
     "404.html",
     ".gitignore",

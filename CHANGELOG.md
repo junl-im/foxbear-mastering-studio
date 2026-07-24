@@ -1,3 +1,11 @@
+# v1.6.1 - Transient Performance Diagnostics
+
+- Stops a legacy `foxbear-perf-diagnostics=on` preference from reopening memory diagnostics on every app launch.
+- Makes Settings and keyboard diagnostic openings session-only instead of persisting future startup behavior.
+- Keeps normal startup hidden by default and reserves automatic opening for explicit `?perf=1` or `?foxbearPerf=1` requests.
+- Automatically dismisses an explicitly auto-opened panel after two healthy runtime samples once boot stabilization is complete.
+- Cancels auto-dismiss when the user interacts with the panel and adds lifecycle diagnostics plus regression coverage.
+
 # v1.6.0 - Incident Mail Pipeline Health
 
 - Adds four-stage mail-test progress for authentication, callable API, queue persistence, and SMTP acceptance.

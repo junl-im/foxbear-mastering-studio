@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.6.1
+
+현재 릴리스는 이전 버전에서 저장된 메모리 성능진단 자동 열림 상태를 제거하고, 일반 실행에서는 진단창을 숨긴 채 유지합니다. 설정이나 단축키로 연 진단창은 현재 세션에서만 표시되며, 명시적 자동 진단 모드는 런타임이 정상화되면 스스로 닫힙니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1601_transient_performance_diagnostics_smoke.js`
+- 설정된 정적·회귀 검사: 324개.
+
 # FoxBear AI Mastering Studio Pro v1.6.0
 
 현재 릴리스는 실제 메일 테스트를 익명 인증·서버 API·신고 대기열·SMTP 접수의 네 단계로 표시하고, 배포된 Functions 버전과 App Check 준비 상태를 설정 화면에서 확인할 수 있게 합니다.

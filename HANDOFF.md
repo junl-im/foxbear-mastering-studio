@@ -1,3 +1,24 @@
+# Handoff - v1.6.1
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.1 current focus
+
+- Memory/performance diagnostics stays hidden during normal startup even if an older release persisted `foxbear-perf-diagnostics=on`.
+- Opening diagnostics from Settings or the keyboard is session-only and never persists a future startup popup.
+- Explicit diagnostic URLs such as `?perf=1` may auto-open, but close after two healthy runtime samples once boot stabilization is complete.
+- User interaction with an automatically opened panel converts it to manual mode and prevents unexpected auto-dismiss.
+- Regression: `node qa/v1601_transient_performance_diagnostics_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
 # Handoff - v1.6.0
 
 # 필수 결과 보고 형식

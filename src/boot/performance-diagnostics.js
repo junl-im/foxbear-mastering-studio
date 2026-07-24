@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.0
-// Hidden by default. Enable with ?perf=1, localStorage foxbear-perf-diagnostics=on, or Ctrl/Command+Alt+P.
+// FoxBear performance diagnostics - v1.6.1
+// Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.0-incident-mail-pipeline-health';
+    const DIAGNOSTICS_VERSION = '1.6.1-transient-performance-diagnostics';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -11,6 +11,8 @@
     const MAX_SAMPLES = 20;
     const PANEL_REFRESH_MS = 2500;
     const PANEL_HIDDEN_REFRESH_MS = 10000;
+    const AUTO_CLOSE_STABLE_SAMPLES = 2;
+    const AUTO_CLOSE_MIN_UPTIME_MS = 3500;
 
     const state = {
         enabled: false,
@@ -35,7 +37,11 @@
         observer: null,
         bootAt: now(),
         lastSnapshot: null,
-        lastSummary: null
+        lastSummary: null,
+        openSource: 'closed',
+        autoOpened: false,
+        autoStableSamples: 0,
+        legacyAutoOpenMigrated: false
     };
 
     function now() {
@@ -52,13 +58,20 @@
         catch (error) {}
     }
 
-    function shouldAutoEnable() {
+    function readAutoOpenRequest() {
         try {
             const url = new URL(global.location.href);
-            if (url.searchParams.get('perf') === '1') return true;
-            if (url.searchParams.get('foxbearPerf') === '1') return true;
+            if (url.searchParams.get('perf') === '1') return Object.freeze({ open: true, source: 'query-perf' });
+            if (url.searchParams.get('foxbearPerf') === '1') return Object.freeze({ open: true, source: 'query-foxbear-perf' });
         } catch (error) {}
-        return readStorage() === 'on';
+        return Object.freeze({ open: false, source: 'hidden-default' });
+    }
+
+    function migrateLegacyAutoOpenPreference() {
+        if (readStorage() !== 'on') return false;
+        writeStorage(false);
+        state.legacyAutoOpenMigrated = true;
+        return true;
     }
 
     function round(value, digits = 1) {
@@ -409,6 +422,13 @@
         backdrop.addEventListener('click', event => {
             if (event.target === backdrop) setPanelVisible(false);
         });
+        panel.addEventListener('pointerdown', () => {
+            if (state.autoOpened) {
+                state.autoOpened = false;
+                state.autoStableSamples = 0;
+                state.openSource = 'user-interaction';
+            }
+        });
         panel.addEventListener('keydown', event => {
             if (event.key !== 'Tab') return;
             const focusable = Array.from(panel.querySelectorAll('button:not([disabled]), summary, a[href], [tabindex]:not([tabindex="-1"])'))
@@ -738,10 +758,28 @@
         return lines.join('\n');
     }
 
+    function maybeAutoCloseStablePanel(snapshot) {
+        if (!state.panelVisible || !state.autoOpened) return false;
+        const summary = state.lastSummary || summarizeSnapshot(snapshot);
+        const runtimeReady = snapshot.runtime?.ok === true && snapshot.runtime?.appReady === true;
+        const stable = runtimeReady && summary.ok === true;
+        state.autoStableSamples = stable ? state.autoStableSamples + 1 : 0;
+        if (state.autoStableSamples < AUTO_CLOSE_STABLE_SAMPLES || Number(snapshot.uptimeMs || 0) < AUTO_CLOSE_MIN_UPTIME_MS) return false;
+        const stableSamples = state.autoStableSamples;
+        setPanelVisible(false, { restoreFocus: false, reason: 'auto-stable' });
+        try {
+            global.dispatchEvent(new CustomEvent('foxbear:performance-diagnostics-auto-closed', {
+                detail: { reason: 'runtime-stable', stableSamples }
+            }));
+        } catch (error) {}
+        return true;
+    }
+
     function refreshPanel(reason = 'panel') {
         const snapshot = collectSnapshot(reason);
         renderSummaryCards(snapshot);
         if (state.output) state.output.textContent = formatPanel(snapshot);
+        maybeAutoCloseStablePanel(snapshot);
         return snapshot;
     }
 
@@ -805,6 +843,9 @@
         if (next && !state.panelVisible) {
             const candidate = options.returnFocus || global.document?.activeElement;
             if (candidate && candidate !== global.document?.body) state.returnFocus = candidate;
+            state.autoOpened = options.auto === true;
+            state.autoStableSamples = 0;
+            state.openSource = String(options.source || (state.autoOpened ? 'automatic' : 'manual'));
         }
         state.panelVisible = next;
         if (state.backdrop) {
@@ -815,12 +856,15 @@
         }
         global.document?.body?.classList?.toggle('foxbear-perf-open', state.panelVisible);
         if (state.panelVisible) {
-            setEnabled(true, { persist: true, silent: true });
+            setEnabled(true, { persist: false, silent: true });
             startPanelTimer();
             const first = panel?.querySelector?.('button:not([disabled]), summary, [tabindex]:not([tabindex="-1"])') || panel;
             try { first?.focus?.({ preventScroll: true }); } catch (error) {}
         } else {
             stopPanelTimer();
+            state.autoOpened = false;
+            state.autoStableSamples = 0;
+            state.openSource = 'closed';
             const returnFocus = state.returnFocus;
             state.returnFocus = null;
             if (options.restoreFocus !== false && returnFocus && global.document?.body?.contains?.(returnFocus) && !returnFocus.hidden) {
@@ -832,8 +876,8 @@
         return state.panelVisible;
     }
 
-    function togglePanel() {
-        return setPanelVisible(!state.panelVisible);
+    function togglePanel(options = {}) {
+        return setPanelVisible(!state.panelVisible, { ...options, source: options.source || 'toggle' });
     }
 
     function setEnabled(enabled, options = {}) {
@@ -865,7 +909,7 @@
             }
             if ((event.ctrlKey || event.metaKey) && event.altKey && key === 'p') {
                 event.preventDefault();
-                togglePanel();
+                togglePanel({ source: 'keyboard' });
             }
         }, true);
     }
@@ -886,17 +930,32 @@
         clearHistory,
         getSnapshot: () => state.lastSnapshot || collectSnapshot('getSnapshot'),
         getSamples: () => state.samples.slice(),
-        getLongTasks: () => state.longTasks.slice()
+        getLongTasks: () => state.longTasks.slice(),
+        getLifecycleState: () => Object.freeze({
+            enabled: state.enabled,
+            panelVisible: state.panelVisible,
+            openSource: state.openSource,
+            autoOpened: state.autoOpened,
+            autoStableSamples: state.autoStableSamples,
+            legacyAutoOpenMigrated: state.legacyAutoOpenMigrated
+        })
     });
 
     installKeyboardToggle();
     installVisibilityTimerSync();
-    if (shouldAutoEnable()) {
+    migrateLegacyAutoOpenPreference();
+    const autoOpenRequest = readAutoOpenRequest();
+    if (autoOpenRequest.open) {
         setEnabled(true, { persist: false, silent: true });
+        const openAutomatically = () => setPanelVisible(true, {
+            auto: true,
+            source: autoOpenRequest.source,
+            restoreFocus: false
+        });
         if (global.document?.readyState === 'loading') {
-            global.document.addEventListener('DOMContentLoaded', () => setPanelVisible(true), { once: true });
+            global.document.addEventListener('DOMContentLoaded', openAutomatically, { once: true });
         } else {
-            setPanelVisible(true);
+            openAutomatically();
         }
     }
 })(window);
