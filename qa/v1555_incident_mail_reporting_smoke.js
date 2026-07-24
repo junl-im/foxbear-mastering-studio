@@ -18,7 +18,7 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert(/^1\.5\.\d+$/.test(pkg.version), 'current package version must remain a v1.5 patch');
+assert(/^\d+\.\d+\.\d+$/.test(pkg.version), 'current package version must remain semantic x.y.z');
 const assetVersion = pkg.foxbearRelease.assetVersion;
 assert(assetVersion.startsWith(`${pkg.version}-`), 'incident assets must match current release metadata');
 assert(index.includes(`src/boot/incident-reporter.js?v=${assetVersion}`));

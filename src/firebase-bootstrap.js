@@ -143,6 +143,7 @@ function makePublicBridge(extra = {}) {
         logVisit,
         logIncident,
         getIncidentDelivery,
+        getIncidentServiceStatus,
         getAdminStats,
         getAdminIncidents,
         getIncidentOperationsHistory,
@@ -374,19 +375,48 @@ async function invokeIncidentCallable(name, data) {
     return response?.data || {};
 }
 
+function normalizeIncidentServiceStatus(value = {}) {
+    const localAppCheck = {
+        configured: bridgeState.appCheckConfigured,
+        ready: bridgeState.appCheckReady,
+        error: limitText(bridgeState.appCheckError || '', 240)
+    };
+    return Object.freeze({
+        productVersion: limitText(value.productVersion || '', 24),
+        serviceSchemaVersion: safeIncidentNumber(value.serviceSchemaVersion, 0, 99),
+        region: limitText(value.region || FIREBASE_FUNCTIONS_REGION, 40),
+        status: limitText(value.status || 'unknown', 20),
+        transport: limitText(value.transport || 'callable', 30),
+        mailTrigger: limitText(value.mailTrigger || '', 80),
+        appCheckMode: limitText(value.appCheckMode || 'unknown', 20),
+        appCheckEnforced: value.appCheckEnforced === true,
+        appCheckTokenPresent: value.appCheckTokenPresent === true,
+        checkedAt: limitText(value.checkedAt || '', 40),
+        clientProductVersion: limitText(window.FoxBearBuildInfo?.productVersion || document.body?.dataset?.build || '', 24),
+        clientAppCheck: Object.freeze(localAppCheck)
+    });
+}
+
 async function submitIncidentViaCallable(reportId, incident) {
     const result = await invokeIncidentCallable('submitIncidentReport', { reportId, incident });
     return {
         queued: result.queued !== false,
         deduplicated: result.deduplicated === true,
         reportId: limitText(result.reportId || reportId, 180),
-        transport: 'callable'
+        transport: 'callable',
+        service: normalizeIncidentServiceStatus(result.service || {})
     };
 }
 
 async function readIncidentDeliveryViaCallable(reportId) {
     const result = await invokeIncidentCallable('getIncidentDeliveryStatus', { reportId });
-    return { ...result, transport: 'callable' };
+    return { ...result, transport: 'callable', service: normalizeIncidentServiceStatus(result.service || {}) };
+}
+
+async function getIncidentServiceStatus() {
+    await signInGuest();
+    const result = await invokeIncidentCallable('getIncidentServiceStatus', {});
+    return normalizeIncidentServiceStatus(result);
 }
 
 async function logIncident(payload = {}) {

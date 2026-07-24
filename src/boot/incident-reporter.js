@@ -1,9 +1,10 @@
-// FoxBear automatic incident reporter - v1.5.99
+// FoxBear automatic incident reporter - v1.6.0
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.5.99-incident-callable-mail-recovery';
+    const VERSION = BUILD_INFO.assetVersion || '1.6.0-incident-mail-pipeline-health';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.0').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -33,7 +34,10 @@
         lastDeliveredAt: 0,
         recent: new Map(),
         flushing: false,
-        testInFlight: false
+        testInFlight: false,
+        serviceStatus: null,
+        serviceError: '',
+        serviceCheckInFlight: null
     };
 
     function storageGet(key, fallback = '') {
@@ -53,6 +57,80 @@
     function setEnabled(value) {
         storageSet(ENABLED_KEY, value ? 'on' : 'off');
         return isEnabled();
+    }
+
+    function parseVersion(value) {
+        const match = String(value || '').trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
+        return match ? match.slice(1).map(Number) : null;
+    }
+
+    function compareVersions(left, right) {
+        const a = parseVersion(left);
+        const b = parseVersion(right);
+        if (!a || !b) return null;
+        for (let index = 0; index < 3; index += 1) {
+            if (a[index] !== b[index]) return a[index] > b[index] ? 1 : -1;
+        }
+        return 0;
+    }
+
+    const PIPELINE_STAGE_IDS = Object.freeze({
+        auth: 'incidentStageAuth',
+        api: 'incidentStageApi',
+        queue: 'incidentStageQueue',
+        mail: 'incidentStageMail'
+    });
+
+    function updatePipelineStage(stage, tone = 'idle', message = '') {
+        const element = document.getElementById(PIPELINE_STAGE_IDS[stage] || '');
+        if (!element) return;
+        const item = element.closest?.('[data-incident-stage]');
+        if (item) item.dataset.state = tone;
+        element.textContent = message || '확인 전';
+    }
+
+    function resetPipelineStages() {
+        updatePipelineStage('auth', 'idle', '확인 전');
+        updatePipelineStage('api', 'idle', '확인 전');
+        updatePipelineStage('queue', 'idle', '테스트 대기');
+        updatePipelineStage('mail', 'idle', '테스트 대기');
+    }
+
+    function renderServiceDiagnostics(service = state.serviceStatus, errorMessage = state.serviceError) {
+        const server = document.getElementById('incidentServiceStatus');
+        const appCheck = document.getElementById('incidentAppCheckStatus');
+        const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
+        if (server) {
+            if (service?.status === 'ready') {
+                const comparison = compareVersions(service.productVersion, CLIENT_PRODUCT_VERSION);
+                const versionText = comparison === -1
+                    ? `서버 v${service.productVersion || '?'} · 웹 v${CLIENT_PRODUCT_VERSION}보다 오래됨`
+                    : comparison === 1
+                        ? `서버 v${service.productVersion || '?'} · 웹보다 새 버전`
+                        : `서버 v${service.productVersion || CLIENT_PRODUCT_VERSION} · 동기화됨`;
+                server.textContent = `${versionText} · ${service.region || 'region 확인 중'}`;
+                server.dataset.tone = comparison === -1 ? 'warning' : 'ok';
+            } else if (errorMessage) {
+                server.textContent = `서버 상태 확인 실패 · ${cleanText(errorMessage, 150)}`;
+                server.dataset.tone = 'error';
+            } else {
+                server.textContent = '서버 상태를 확인하지 않았습니다.';
+                server.dataset.tone = 'neutral';
+            }
+        }
+        if (appCheck) {
+            const local = service?.clientAppCheck || bridge.appCheck || {};
+            const configured = local.configured === true;
+            const ready = local.ready === true;
+            const tokenPresent = service?.appCheckTokenPresent === true;
+            const enforced = service?.appCheckEnforced === true;
+            appCheck.textContent = enforced
+                ? `App Check 강제 적용 · ${tokenPresent ? '토큰 확인' : '토큰 없음'}`
+                : configured
+                    ? `App Check 감시 모드 · ${ready && tokenPresent ? '토큰 확인' : '토큰 준비 중'}`
+                    : 'App Check 선택 설정 · 현재는 익명 인증으로 동작';
+            appCheck.dataset.tone = enforced && !tokenPresent ? 'error' : (configured && ready ? 'ok' : 'neutral');
+        }
     }
 
     function cleanText(value, maxLength = 300) {
@@ -252,6 +330,42 @@
         });
     }
 
+    async function refreshServiceStatus(options = {}) {
+        if (state.serviceCheckInFlight && options.force !== true) return state.serviceCheckInFlight;
+        let authComplete = false;
+        const task = (async () => {
+            updatePipelineStage('auth', 'active', '익명 인증 확인 중');
+            const bridge = await waitForFirebaseBridge();
+            if (!bridge.authReady && typeof bridge.signInGuest === 'function') await bridge.signInGuest();
+            const bridgeStatus = bridge.getStatus?.() || bridge;
+            if (!bridgeStatus.authReady && !bridgeStatus.uid) throw Object.assign(new Error('익명 인증 상태를 확인하지 못했습니다.'), { code: 'FOXBEAR_INCIDENT_AUTH_NOT_READY' });
+            updatePipelineStage('auth', 'ok', '익명 인증 완료');
+            authComplete = true;
+            updatePipelineStage('api', 'active', '서버 버전 확인 중');
+            if (typeof bridge.getIncidentServiceStatus !== 'function') throw Object.assign(new Error('서버 상태 API가 현재 웹 빌드에 없습니다.'), { code: 'FOXBEAR_INCIDENT_SERVICE_STATUS_UNAVAILABLE' });
+            const service = await bridge.getIncidentServiceStatus();
+            state.serviceStatus = service;
+            state.serviceError = '';
+            const comparison = compareVersions(service?.productVersion, CLIENT_PRODUCT_VERSION);
+            updatePipelineStage('api', comparison === -1 ? 'warning' : 'ok', comparison === -1
+                ? `서버 v${service?.productVersion || '?'} · 업데이트 필요`
+                : `서버 v${service?.productVersion || CLIENT_PRODUCT_VERSION} 연결 완료`);
+            renderServiceDiagnostics(service, '');
+            return service;
+        })().catch(error => {
+            state.serviceStatus = null;
+            state.serviceError = cleanText(error?.message || error, 240);
+            if (authComplete) updatePipelineStage('api', 'error', '서버 상태 확인 실패');
+            else updatePipelineStage('auth', 'error', '익명 인증 또는 Firebase 연결 실패');
+            renderServiceDiagnostics(null, state.serviceError);
+            throw error;
+        }).finally(() => {
+            if (state.serviceCheckInFlight === task) state.serviceCheckInFlight = null;
+        });
+        state.serviceCheckInFlight = task;
+        return task;
+    }
+
     async function deliver(payload) {
         const bridge = await waitForFirebaseBridge();
         return withTimeout(bridge.logIncident(payload));
@@ -372,8 +486,10 @@
         return { status: 'pending', reason: 'function-not-finished' };
     }
 
-    async function test() {
+    async function test(options = {}) {
+        const onProgress = typeof options.onProgress === 'function' ? options.onProgress : () => {};
         const testId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+        onProgress('queue', 'active', '서버 대기열에 저장 중');
         const submission = await report({
             category: 'manual-test',
             severity: 'warning',
@@ -383,8 +499,21 @@
             context: `사용자가 직접 실행한 실제 Gmail SMTP 발송 검증입니다. 테스트 ID=${testId}. 오디오 데이터와 파일명은 포함되지 않습니다.`
         }, { automatic: false, manual: true, force: true });
         const reportId = submission?.result?.reportId || '';
-        if (!submission.ok || !reportId) return submission;
-        return Object.freeze({ ...submission, delivery: await waitForDelivery(reportId) });
+        if (!submission.ok || !reportId) {
+            onProgress('queue', 'error', '대기열 저장 실패');
+            return submission;
+        }
+        const transport = submission?.result?.transport === 'firestore' ? 'Firestore 호환 경로' : 'Callable 서버';
+        onProgress('queue', 'ok', `${transport} 저장 완료`);
+        onProgress('mail', 'active', 'SMTP 처리 결과 확인 중');
+        const delivery = await waitForDelivery(reportId);
+        const mailTone = delivery?.status === 'emailed' ? 'ok' : ['failed', 'dead-letter', 'status-check-failed'].includes(delivery?.status) ? 'error' : 'warning';
+        const mailText = delivery?.status === 'emailed' ? 'SMTP 접수 완료'
+            : delivery?.status === 'pending' ? '처리 지연'
+                : delivery?.status === 'status-check-failed' ? '상태 조회 실패'
+                    : `결과 ${delivery?.status || 'unknown'}`;
+        onProgress('mail', mailTone, mailText);
+        return Object.freeze({ ...submission, delivery });
     }
 
     function renderControls(message = '') {
@@ -404,6 +533,7 @@
             status.textContent = message || `대기 ${current.queued}건 · 오늘 자동 제출 ${current.dailyCount}/${MAX_AUTOMATIC_PER_DAY}`;
             status.dataset.tone = /완료|켜짐|대기 0건/.test(status.textContent) ? 'ok' : (/오류|실패|권한|중단/.test(status.textContent) ? 'error' : 'neutral');
         }
+        renderServiceDiagnostics();
     }
 
     function bindControls() {
@@ -422,11 +552,13 @@
             testButton.addEventListener('click', async () => {
                 if (state.testInFlight) return;
                 state.testInFlight = true;
-                renderControls('실제 테스트 메일을 발송하고 Gmail SMTP 접수 상태를 확인 중입니다…');
+                resetPipelineStages();
+                renderControls('인증·서버·대기열·SMTP 순서로 메일 경로를 확인합니다…');
                 let finalMessage = '메일 테스트를 완료하지 못했습니다.';
                 try {
+                    try { await refreshServiceStatus({ force: true }); } catch (error) {}
                     let result;
-                    try { result = await test(); }
+                    try { result = await test({ onProgress: updatePipelineStage }); }
                     catch (error) { result = { ok: false, code: cleanText(error?.code || error?.name || 'failed', 80), reason: cleanText(error?.message || error, 180) }; }
                     const rawStatus = result?.delivery?.status || (result?.ok ? 'submitted' : result?.code || 'failed');
                     const failureCode = cleanText(result?.delivery?.code || result?.code || '', 80);
@@ -459,6 +591,9 @@
                     } else {
                         finalMessage = detail && status !== 'suppressed-duplicate' ? `${baseMessage} · ${detail}` : baseMessage;
                     }
+                    if (compareVersions(state.serviceStatus?.productVersion, CLIENT_PRODUCT_VERSION) === -1) {
+                        finalMessage += ` · 서버 v${state.serviceStatus.productVersion}를 웹 v${CLIENT_PRODUCT_VERSION}에 맞게 배포하세요.`;
+                    }
                 } finally {
                     state.testInFlight = false;
                     renderControls(finalMessage);
@@ -466,6 +601,8 @@
             });
         }
         renderControls();
+        const dialogVisible = document.getElementById('incidentReportingDialog')?.classList?.contains('show');
+        if (dialogVisible) refreshServiceStatus().catch(() => {});
     }
 
     function getStatus() {
@@ -482,7 +619,9 @@
             failed: state.failed,
             lastError: state.lastError,
             lastFingerprint: state.lastFingerprint,
-            lastDeliveredAt: state.lastDeliveredAt
+            lastDeliveredAt: state.lastDeliveredAt,
+            serviceStatus: state.serviceStatus,
+            serviceError: state.serviceError
         });
     }
 
@@ -517,6 +656,9 @@
         bindControls,
         renderControls,
         waitForDelivery,
-        waitForFirebaseBridge
+        waitForFirebaseBridge,
+        refreshServiceStatus,
+        compareVersions,
+        updatePipelineStage
     });
 })(window);

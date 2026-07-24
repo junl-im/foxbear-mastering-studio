@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.5.99-incident-callable-mail-recovery';
+  const VIEW_VERSION = '1.6.0-incident-mail-pipeline-health';
   const DEFAULT_BINS = 96;
 
   function getService() {

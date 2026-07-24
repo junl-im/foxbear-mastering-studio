@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.5.99-incident-callable-mail-recovery';
+    const SERVICE_VERSION = '1.6.0-incident-mail-pipeline-health';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

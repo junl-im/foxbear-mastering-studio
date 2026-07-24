@@ -19,6 +19,23 @@ body.incident-reporting-open { overflow: hidden; }
 .support-settings-card { display: grid; gap: 4px; margin: 15px 0 10px; padding: 12px; border: 1px solid rgba(255,255,255,.10); border-radius: 15px; background: rgba(255,255,255,.045); }
 .support-settings-card strong { font-size: .8rem; }
 .support-settings-card span { color: var(--muted); font-size: .76rem; line-height: 1.5; }
+
+.support-service-card { margin-top: 8px; }
+.support-service-card span[data-tone='ok'] { color: #baf7df; }
+.support-service-card span[data-tone='warning'] { color: #ffe4a8; }
+.support-service-card span[data-tone='error'] { color: #ffd0d0; }
+.incident-reporting-pipeline { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin: 10px 0 0; padding: 0; list-style: none; }
+.incident-reporting-pipeline li { display: grid; gap: 3px; min-width: 0; padding: 9px 10px; border: 1px solid rgba(255,255,255,.09); border-radius: 12px; background: rgba(255,255,255,.035); }
+.incident-reporting-pipeline strong { font-size: .7rem; color: #f5f2ff; }
+.incident-reporting-pipeline span { overflow-wrap: anywhere; color: var(--muted); font-size: .68rem; line-height: 1.35; }
+.incident-reporting-pipeline li[data-state='active'] { border-color: rgba(109,224,255,.34); background: rgba(109,224,255,.075); }
+.incident-reporting-pipeline li[data-state='ok'] { border-color: rgba(52,211,153,.28); background: rgba(52,211,153,.065); }
+.incident-reporting-pipeline li[data-state='ok'] span { color: #baf7df; }
+.incident-reporting-pipeline li[data-state='warning'] { border-color: rgba(251,191,36,.34); background: rgba(251,191,36,.07); }
+.incident-reporting-pipeline li[data-state='warning'] span { color: #ffe4a8; }
+.incident-reporting-pipeline li[data-state='error'] { border-color: rgba(248,113,113,.34); background: rgba(248,113,113,.075); }
+.incident-reporting-pipeline li[data-state='error'] span { color: #ffd0d0; }
+
 .support-settings-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .support-settings-status { display: block; margin-top: 10px; padding: 10px 11px; border-radius: 12px; background: rgba(255,255,255,.045); color: var(--muted); font-size: .75rem; line-height: 1.45; }
 .support-settings-status[data-tone='ok'] { color: #baf7df; background: rgba(52,211,153,.08); }
@@ -32,5 +49,6 @@ body.incident-reporting-open { overflow: hidden; }
 @media (max-width: 560px) {
   .support-settings-backdrop { padding: 10px; }
   .support-settings-panel { padding: 18px 14px 16px; border-radius: 20px; }
+  .incident-reporting-pipeline { grid-template-columns: 1fr; }
   .support-settings-actions { grid-template-columns: 1fr; }
 }

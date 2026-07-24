@@ -1,3 +1,16 @@
+# FoxBear Status - v1.6.0
+
+## v1.6.0 current focus
+
+- The real mail test displays anonymous authentication, server API, queue, and SMTP acceptance as distinct stages.
+- The client checks the deployed incident Functions version and warns about web/server skew.
+- App Check readiness is visible without blocking anonymous incident reporting.
+- Configured static/regression target: 323 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.5.99
 
 ## v1.5.99 current focus
@@ -363,10 +376,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.5.99`
-- Build ID: `incident-callable-mail-recovery`
-- Asset version: `1.5.99-incident-callable-mail-recovery`
-- Service worker cache: `foxbear-shell-v1.5.99-incident-callable-mail-recovery`
+- Product version: `1.6.0`
+- Build ID: `incident-mail-pipeline-health`
+- Asset version: `1.6.0-incident-mail-pipeline-health`
+- Service worker cache: `foxbear-shell-v1.6.0-incident-mail-pipeline-health`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -398,10 +411,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.5.99`
-- Build ID: `incident-callable-mail-recovery`
-- Asset version: `1.5.99-incident-callable-mail-recovery`
-- Service worker cache: `foxbear-shell-v1.5.99-incident-callable-mail-recovery`
+- Product version: `1.6.0`
+- Build ID: `incident-mail-pipeline-health`
+- Asset version: `1.6.0-incident-mail-pipeline-health`
+- Service worker cache: `foxbear-shell-v1.6.0-incident-mail-pipeline-health`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

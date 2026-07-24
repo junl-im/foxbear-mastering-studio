@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.5.99
+// FoxBear Modal State Machine Controller v1.6.0
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {

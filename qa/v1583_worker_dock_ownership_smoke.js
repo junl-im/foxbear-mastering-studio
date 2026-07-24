@@ -11,7 +11,7 @@ const appSource = fs.readFileSync('src/app.js', 'utf8');
 const lifecycleSource = fs.readFileSync('src/state/track-lifecycle-service.js', 'utf8');
 const playbackLinkSource = fs.readFileSync('src/audio/playback-link-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.5.99');
+assert.strictEqual(pkg.version, '1.6.0');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1583_worker_dock_ownership_smoke.js'));
 assert(workerSource.includes('function getDiagnostics()'));

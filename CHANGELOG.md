@@ -1,3 +1,11 @@
+# v1.6.0 - Incident Mail Pipeline Health
+
+- Adds four-stage mail-test progress for authentication, callable API, queue persistence, and SMTP acceptance.
+- Adds an authenticated incident service-status callable with deployed version, region, schema, and App Check monitor metadata.
+- Warns when the deployed Functions version is older than the current web release.
+- Shows App Check readiness while preserving anonymous reporting in optional monitor mode.
+- Adds regression coverage for service metadata, version comparison, stage rendering, and authenticated status access.
+
 # v1.5.99 - Lightweight Import Guidance and Callable Mail Recovery
 
 - Replaces the codec-heavy upload status banner with a short instruction to load one or more mastering files.

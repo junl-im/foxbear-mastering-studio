@@ -15,8 +15,8 @@ const reporterSource = read('src/boot/incident-reporter.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.5.99');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'incident-callable-mail-recovery');
+assert.strictEqual(pkg.version, '1.6.0');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.scripts['deploy:incident'].includes('functions:submitIncidentReport'));
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentDeliveryStatus'));
 assert(importSource.includes("return '마스터링할 오디오 파일을 불러오세요. 여러 곡도 한 번에 선택할 수 있습니다.'"));
@@ -34,7 +34,7 @@ assert(functionsSource.includes("if (!uid) throw new HttpsError('unauthenticated
 assert(functionsSource.includes('await reportRef.create({'));
 assert(functionsSource.includes("if (!reportId || !reportId.startsWith(`${uid}_`))"));
 assert(reporterSource.includes("'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다."));
-assert(handoff.startsWith('# Handoff - v1.5.99'));
+assert(handoff.startsWith('# Handoff - v1.6.0'));
 
 const sandbox = {
   console,

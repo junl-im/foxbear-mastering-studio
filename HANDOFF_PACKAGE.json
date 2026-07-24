@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.5.99",
-  "buildId": "incident-callable-mail-recovery",
+  "productVersion": "1.6.0",
+  "buildId": "incident-mail-pipeline-health",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -62,7 +62,9 @@
     "qa/v1576_release_sync_dependency_health_smoke.js",
     "docs/V1.5.76_ATOMIC_RELEASE_SYNC_DEPENDENCY_HEALTH.md",
     "qa/v1577_runtime_resource_lifecycle_smoke.js",
-    "docs/V1.5.77_RUNTIME_RESOURCE_LIFECYCLE_RECOVERY.md"
+    "docs/V1.5.77_RUNTIME_RESOURCE_LIFECYCLE_RECOVERY.md",
+    "qa/v1600_incident_mail_pipeline_health_smoke.js",
+    "docs/V1.6.0_INCIDENT_MAIL_PIPELINE_HEALTH.md"
   ],
   "requiredPrefixes": [
     "assets/",

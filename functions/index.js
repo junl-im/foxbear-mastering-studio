@@ -65,7 +65,8 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.5.99';
+const PRODUCT_VERSION = '1.6.0';
+const INCIDENT_SERVICE_SCHEMA_VERSION = 1;
 const OPERATIONS_SCHEMA_VERSION = 6;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
 const ADMIN_ACTION_STATE_TTL_DAYS = 7;
@@ -159,6 +160,21 @@ function timestampToIso(value) {
   if (typeof value.toDate === 'function') return value.toDate().toISOString();
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
+function incidentServiceMetadata(request = {}) {
+  return {
+    productVersion: PRODUCT_VERSION,
+    serviceSchemaVersion: INCIDENT_SERVICE_SCHEMA_VERSION,
+    region: REGION,
+    status: 'ready',
+    transport: 'callable',
+    mailTrigger: 'sendIncidentEmail',
+    appCheckMode: 'monitor',
+    appCheckEnforced: false,
+    appCheckTokenPresent: Boolean(request.app),
+    checkedAt: new Date().toISOString()
+  };
 }
 
 function serializeIncidentDelivery(snapshot) {
@@ -1859,10 +1875,10 @@ exports.submitIncidentReport = onCall({
       delivery: { status: 'pending', attemptCount: 0 },
       createdAt: FieldValue.serverTimestamp()
     });
-    return { queued: true, deduplicated: false, reportId };
+    return { queued: true, deduplicated: false, reportId, service: incidentServiceMetadata(request) };
   } catch (error) {
     if (Number(error?.code) === 6 || /already.?exists/i.test(String(error?.code || error?.message || ''))) {
-      return { queued: true, deduplicated: true, reportId };
+      return { queued: true, deduplicated: true, reportId, service: incidentServiceMetadata(request) };
     }
     console.error('FoxBear callable incident submit failed', { reportId, error: cleanText(error?.message || error, 300) });
     throw new HttpsError('internal', '문제 신고를 서버 대기열에 저장하지 못했습니다.');
@@ -1882,7 +1898,18 @@ exports.getIncidentDeliveryStatus = onCall({
     throw new HttpsError('permission-denied', '본인의 문제 보고서만 조회할 수 있습니다.');
   }
   const snapshot = await db.collection('incidentReports').doc(reportId).get();
-  return serializeIncidentDelivery(snapshot);
+  return { ...serializeIncidentDelivery(snapshot), service: incidentServiceMetadata(request) };
+});
+
+exports.getIncidentServiceStatus = onCall({
+  region: REGION,
+  timeoutSeconds: 15,
+  memory: '256MiB',
+  enforceAppCheck: false
+}, async request => {
+  const uid = cleanText(request.auth?.uid || '', 128);
+  if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
+  return incidentServiceMetadata(request);
 });
 
 exports.sendIncidentEmail = onDocumentCreated({
@@ -2384,7 +2411,7 @@ exports.verifyIncidentPostDeployHealth = onSchedule({
 exports.__test = Object.freeze({
   cleanText, escapeHtml, safeKey, mailFromHeader, kstTimestampLabel, incidentSeverityLabel, incidentCategoryLabel,
   buildIncidentSubject, buildMail, buildDailySummaryMail, buildBrandedEmailHtml, emailTable, incidentMessageId, summaryMessageId,
-  normalizeCallableIncident, callableReportId, serializeIncidentDelivery,
+  normalizeCallableIncident, callableReportId, serializeIncidentDelivery, incidentServiceMetadata,
   kstDayRange, kstDateKey, nextKstDayRetryAt, retryDelayMs,
   isIncidentDeliveryDue, incidentDueAt, isLongUndelivered,
   normalizedGmailAppPassword, assertSmtpAccepted, classifySmtpError,

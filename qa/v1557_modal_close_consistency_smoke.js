@@ -18,7 +18,7 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const mobileNative = read('src/ui/mobile-native-view.js');
 
-assert(/^1\.5\.\d+$/.test(pkg.version), 'current package version must remain a v1.5 patch');
+assert(/^\d+\.\d+\.\d+$/.test(pkg.version), 'current package version must remain semantic x.y.z');
 const assetVersion = pkg.foxbearRelease.assetVersion;
 assert(assetVersion.startsWith(`${pkg.version}-`), 'asset version must match the package version');
 assert(index.includes(`assets/css/components/modal-close-system.css?v=${assetVersion}`));

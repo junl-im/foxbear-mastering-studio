@@ -1,3 +1,16 @@
+# FoxBear AI Mastering Studio Pro v1.6.0
+
+현재 릴리스는 실제 메일 테스트를 익명 인증·서버 API·신고 대기열·SMTP 접수의 네 단계로 표시하고, 배포된 Functions 버전과 App Check 준비 상태를 설정 화면에서 확인할 수 있게 합니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1600_incident_mail_pipeline_health_smoke.js`
+- 오류 신고 서버 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 323개.
+
 # FoxBear AI Mastering Studio Pro v1.5.99
 
 현재 릴리스는 파일 불러오기 안내를 짧고 가볍게 정리하고, 실제 메일 테스트를 익명 인증 기반 Callable Functions 우선 경로로 전환해 Firestore 클라이언트 권한 오류를 우회합니다.

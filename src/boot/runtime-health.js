@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.5.99-incident-callable-mail-recovery';
+    const FALLBACK_VERSION = '1.6.0-incident-mail-pipeline-health';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

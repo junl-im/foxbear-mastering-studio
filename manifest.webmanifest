@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.5.99 (incident-callable-mail-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.0 (incident-mail-pipeline-health).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.5.99"
+  "version": "1.6.0"
 }

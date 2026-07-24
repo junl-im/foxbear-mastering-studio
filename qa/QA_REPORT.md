@@ -1,3 +1,11 @@
+# FoxBear QA Report - v1.6.0
+
+- Added stage-specific incident mail test diagnostics for authentication, server API, queue persistence, and SMTP acceptance.
+- Added deployed service version and App Check monitor-state reporting.
+- Added web/server version comparison and stale Functions deployment warnings.
+- Added VM behavior coverage for stage state changes and authenticated service-status access.
+- Configured static/regression target: 323 checks.
+
 # FoxBear QA Report - v1.5.99
 
 - Simplified the upload status message while retaining the existing picker accept list and runtime decode validation.
