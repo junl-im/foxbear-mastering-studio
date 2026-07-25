@@ -97,3 +97,39 @@ body.incident-reporting-open { overflow: hidden; }
 .incident-deployment-check-button { grid-column: span 2; }
 .incident-history-retry[data-cooldown='true'] { cursor: default; }
 @media (max-width: 560px) { .incident-deployment-checks { grid-template-columns: 1fr; } .incident-deployment-check-button { grid-column: auto; } }
+
+/* v1.6.8 readiness recovery, cache status, and mobile summary polish */
+.incident-deployment-checks small[data-deploy-recovery] { display: block; padding-top: 4px; border-top: 1px solid rgba(255,255,255,.06); color: rgba(255,224,168,.88); font-size: .59rem; line-height: 1.38; overflow-wrap: anywhere; }
+.incident-deployment-checks small[data-deploy-recovery][hidden] { display: none !important; }
+.incident-deployment-meta { margin: 7px 1px 0 !important; color: var(--muted); font-size: .62rem !important; line-height: 1.4 !important; }
+.incident-deployment-meta[data-tone='ok'] { color: #baf7df !important; }
+.incident-deployment-meta[data-tone='warning'] { color: #ffe4a8 !important; }
+.mobile-native-setting[data-native-action='incident-reporting'][data-incident-tone='ok'] .mobile-native-setting-state { border-color: rgba(52,211,153,.38); background: rgba(52,211,153,.13); color: #dffff0; }
+.mobile-native-setting[data-native-action='incident-reporting'][data-incident-tone='danger'] .mobile-native-setting-state { border-color: rgba(248,113,113,.42); background: rgba(248,113,113,.14); color: #ffd5dc; }
+@media (max-width: 560px) {
+  .support-settings-panel { overscroll-behavior: contain; }
+  .incident-deployment-checks li { padding: 9px 10px; }
+  .incident-deployment-checks small[data-deploy-recovery] { font-size: .62rem; }
+  .support-settings-actions button { min-height: 42px; }
+}
+
+/* v1.6.9 readiness history, recovery copy, and immediate status polish */
+.incident-deployment-checks button[data-deploy-copy] { justify-self: start; min-height: 28px; margin-top: 3px; padding: 4px 8px; border: 1px solid rgba(109,224,255,.25); border-radius: 9px; background: rgba(109,224,255,.08); color: #dff9ff; font-size: .6rem; cursor: pointer; }
+.incident-deployment-checks button[data-deploy-copy]:hover, .incident-deployment-checks button[data-deploy-copy]:focus-visible { border-color: rgba(109,224,255,.55); background: rgba(109,224,255,.14); }
+.incident-deployment-checks button[data-deploy-copy][hidden] { display: none !important; }
+.incident-readiness-history { margin-top: 9px; padding-top: 9px; border-top: 1px solid rgba(255,255,255,.07); }
+.incident-readiness-history-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.incident-readiness-history-head strong { color: #f5f2ff; font-size: .7rem; }
+.incident-readiness-history-head button { padding: 4px 7px; border: 0; background: transparent; color: var(--muted); font-size: .62rem; cursor: pointer; }
+.incident-readiness-history-head button:hover, .incident-readiness-history-head button:focus-visible { color: #dff9ff; text-decoration: underline; }
+.incident-readiness-history ol { display: grid; gap: 5px; margin: 7px 0 0; padding: 0; list-style: none; }
+.incident-readiness-history li { display: grid; gap: 2px; padding: 7px 8px; border: 1px solid rgba(255,255,255,.07); border-radius: 10px; background: rgba(255,255,255,.02); }
+.incident-readiness-history li > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.incident-readiness-history li strong { color: #f5f2ff; font-size: .64rem; }
+.incident-readiness-history li time, .incident-readiness-history li span { color: var(--muted); font-size: .6rem; line-height: 1.35; overflow-wrap: anywhere; }
+.incident-readiness-history li[data-state='ok'] { border-color: rgba(52,211,153,.2); }
+.incident-readiness-history li[data-state='ok'] strong { color: #baf7df; }
+.incident-readiness-history li[data-state='error'] { border-color: rgba(248,113,113,.22); }
+.incident-readiness-history li[data-state='error'] strong { color: #ffd0d0; }
+.incident-readiness-history .incident-readiness-history-empty { color: var(--muted); text-align: center; }
+@media (max-width: 560px) { .incident-deployment-checks button[data-deploy-copy] { width: 100%; min-height: 42px; } .incident-readiness-history li > div { align-items: flex-start; flex-direction: column; gap: 1px; } }

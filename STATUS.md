@@ -1,3 +1,31 @@
+# FoxBear Status - v1.6.9
+
+## v1.6.9 current focus
+
+- Deployment readiness keeps a bounded local history of the latest three checks and status transitions.
+- Failed readiness cards expose copyable deploy commands or safe setup guidance without Secret identifiers.
+- Cached checks deduplicate by check timestamp.
+- Settings incident-mail summary updates immediately through the shared incident status event.
+- Configured static/regression target: 332 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+# FoxBear Status - v1.6.8
+
+## v1.6.8 current focus
+
+- Incident deployment self-checks use a 60-second client/server cache to prevent repeated SMTP verification calls.
+- The dialog preserves the most recent healthy check timestamp and shows whether a cached result was used.
+- Failed CSP, Functions, Firestore, Gmail Secret, and SMTP cards show concise recovery directions.
+- The Settings entry exposes a compact mail-health summary without opening the diagnostic dialog.
+- Configured static/regression target: 331 checks before installed-browser confirmation.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
 # FoxBear Status - v1.6.7
 
 ## v1.6.7 current focus
@@ -474,10 +502,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.6.7`
-- Build ID: `incident-readiness-history-sync-performance-hud`
-- Asset version: `1.6.7-incident-readiness-history-sync-performance-hud`
-- Service worker cache: `foxbear-shell-v1.6.7-incident-readiness-history-sync-performance-hud`
+- Product version: `1.6.9`
+- Build ID: `incident-readiness-history-recovery-copy-events`
+- Asset version: `1.6.9-incident-readiness-history-recovery-copy-events`
+- Service worker cache: `foxbear-shell-v1.6.9-incident-readiness-history-recovery-copy-events`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -509,10 +537,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.7`
-- Build ID: `incident-readiness-history-sync-performance-hud`
-- Asset version: `1.6.7-incident-readiness-history-sync-performance-hud`
-- Service worker cache: `foxbear-shell-v1.6.7-incident-readiness-history-sync-performance-hud`
+- Product version: `1.6.9`
+- Build ID: `incident-readiness-history-recovery-copy-events`
+- Asset version: `1.6.9-incident-readiness-history-recovery-copy-events`
+- Service worker cache: `foxbear-shell-v1.6.9-incident-readiness-history-recovery-copy-events`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.7",
+  "version": "1.6.9",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with deployment self-checks, live mail retry history sync, and staged performance-recovery HUD guidance.",
+  "description": "FoxBear AI Mastering Studio Pro with bounded deployment readiness history, per-card recovery copy controls, privacy-safe guidance, and immediate incident status events.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.7-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.7-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.9-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.9-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -365,15 +365,17 @@
     "node qa/v1604_incident_callable_csp_recovery_smoke.js",
     "node qa/v1605_incident_mail_recovery_history_smoke.js",
     "node qa/v1606_mail_retry_safe_batch_autopause_smoke.js",
-    "node qa/v1607_incident_readiness_history_sync_performance_hud_smoke.js"
+    "node qa/v1607_incident_readiness_history_sync_performance_hud_smoke.js",
+    "node qa/v1608_incident_readiness_recovery_summary_rate_limit_smoke.js",
+    "node qa/v1609_incident_readiness_history_recovery_copy_events_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-readiness-history-sync-performance-hud",
-    "assetVersion": "1.6.7-incident-readiness-history-sync-performance-hud",
-    "cacheName": "foxbear-shell-v1.6.7-incident-readiness-history-sync-performance-hud",
-    "bootRevision": "boot-sri-v1607",
-    "updateSafetyRevision": "update-safety-v1607",
-    "serviceWorkerRevision": "sw-v1607"
+    "buildId": "incident-readiness-history-recovery-copy-events",
+    "assetVersion": "1.6.9-incident-readiness-history-recovery-copy-events",
+    "cacheName": "foxbear-shell-v1.6.9-incident-readiness-history-recovery-copy-events",
+    "bootRevision": "boot-sri-v1609",
+    "updateSafetyRevision": "update-safety-v1609",
+    "serviceWorkerRevision": "sw-v1609"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

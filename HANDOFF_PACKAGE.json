@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.7",
-  "buildId": "incident-readiness-history-sync-performance-hud",
+  "productVersion": "1.6.9",
+  "buildId": "incident-readiness-history-recovery-copy-events",
   "requiredFiles": [
     "404.html",
     ".gitignore",

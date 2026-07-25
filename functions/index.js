@@ -65,10 +65,13 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.7';
-const INCIDENT_SERVICE_SCHEMA_VERSION = 5;
+const PRODUCT_VERSION = '1.6.9';
+const INCIDENT_SERVICE_SCHEMA_VERSION = 6;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
+const INCIDENT_READINESS_COLLECTION = 'incidentDeploymentReadiness';
+const INCIDENT_READINESS_COOLDOWN_MS = 60 * 1000;
+const INCIDENT_READINESS_TTL_MS = 24 * 60 * 60 * 1000;
 const INCIDENT_FUNCTIONS_ORIGIN = `https://${REGION}-foxbear-music.cloudfunctions.net`;
 const OPERATIONS_SCHEMA_VERSION = 6;
 const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState';
@@ -180,6 +183,7 @@ function incidentServiceMetadata(request = {}) {
     appCheckEnforced: false,
     appCheckTokenPresent: Boolean(request.app),
     readinessCheck: 'checkIncidentDeploymentReadiness',
+    readinessCooldownSeconds: Math.ceil(INCIDENT_READINESS_COOLDOWN_MS / 1000),
     checkedAt: new Date().toISOString()
   };
 }
@@ -1981,7 +1985,45 @@ exports.checkIncidentDeploymentReadiness = onCall({
 }, async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
-  return inspectIncidentDeploymentReadiness(request);
+  const now = Date.now();
+  const checkRef = db.collection(INCIDENT_READINESS_COLLECTION).doc(safeKey(uid, 'anonymous'));
+  let previous = null;
+  try {
+    const snapshot = await checkRef.get();
+    previous = snapshot.exists ? snapshot.data() || null : null;
+  } catch (error) {}
+  const previousCheckedAt = timestampMillis(previous?.checkedAt);
+  const nextCheckAtMs = previousCheckedAt ? previousCheckedAt + INCIDENT_READINESS_COOLDOWN_MS : 0;
+  if (previous?.result && nextCheckAtMs > now) {
+    return {
+      ...previous.result,
+      cached: true,
+      checkedAt: timestampToIso(previous.checkedAt),
+      lastHealthyAt: timestampToIso(previous.lastHealthyAt),
+      nextCheckAt: new Date(nextCheckAtMs).toISOString()
+    };
+  }
+  const result = await inspectIncidentDeploymentReadiness(request);
+  const checkedAt = Timestamp.fromMillis(now);
+  const lastHealthyAt = result.ok ? checkedAt : previous?.lastHealthyAt || null;
+  try {
+    await checkRef.set({
+      uid,
+      checkedAt,
+      lastHealthyAt,
+      expiresAt: Timestamp.fromMillis(now + INCIDENT_READINESS_TTL_MS),
+      result: { ok: result.ok, checks: result.checks, service: result.service }
+    }, { merge: true });
+  } catch (error) {
+    console.warn('FoxBear readiness cache write failed', cleanText(error?.message || error, 180));
+  }
+  return {
+    ...result,
+    cached: false,
+    checkedAt: new Date(now).toISOString(),
+    lastHealthyAt: timestampToIso(lastHealthyAt),
+    nextCheckAt: new Date(now + INCIDENT_READINESS_COOLDOWN_MS).toISOString()
+  };
 });
 
 exports.retryOwnIncidentReport = onCall({

@@ -1,3 +1,45 @@
+# Handoff - v1.6.9
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.9 current focus
+
+- The latest three deployment readiness results are retained locally with normal/failure transitions and no mail content or Secret identifiers.
+- Every failed CSP, Functions, Firestore, Gmail Secret, and SMTP card exposes a privacy-safe recovery copy action.
+- Repeated cached checks update the same history entry instead of creating duplicates.
+- Incident readiness and enabled-state changes emit a shared event and immediately refresh the Settings summary.
+- Regression: `node qa/v1609_incident_readiness_history_recovery_copy_events_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
+# Handoff - v1.6.8
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+`배포 파일 2종`에는 반드시 `전체 프로젝트 릴리스 ZIP`과 `누적 덮어쓰기용 패치 ZIP`을 함께 제공한다. 제한 사항과 검증 결과는 `진행된 내용` 안에 짧게 포함한다.
+
+## v1.6.8 current focus
+
+- Deployment readiness checks are cached and rate-limited for 60 seconds so repeated UI actions do not repeatedly authenticate against Gmail SMTP.
+- The last successful readiness timestamp remains visible even when a later check reports a problem.
+- Every failed readiness card shows the exact recovery location or deploy action without exposing Firebase Secret values or identifiers.
+- The Settings entry summarizes incident mail health as normal, needs attention, connected, unchecked, or disabled.
+- Regression: `node qa/v1608_incident_readiness_recovery_summary_rate_limit_smoke.js`.
+- All future patch reports continue to use only the persistent three-section contract above.
+
 # Handoff - v1.6.7
 
 # 필수 결과 보고 형식

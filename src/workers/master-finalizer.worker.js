@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.7 - limiter correctness, bounded quality fingerprints, and performance telemetry.
+// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.9 - limiter correctness, bounded quality fingerprints, and performance telemetry.
 'use strict';
 
 self.onmessage = event => {

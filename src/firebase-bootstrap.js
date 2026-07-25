@@ -460,7 +460,10 @@ function normalizeDeploymentReadiness(value = {}) {
     });
     return Object.freeze({
         ok: value?.ok === true,
+        cached: value?.cached === true,
         checkedAt: limitText(value?.checkedAt || '', 40),
+        lastHealthyAt: limitText(value?.lastHealthyAt || '', 40),
+        nextCheckAt: limitText(value?.nextCheckAt || '', 40),
         checks: Object.freeze({
             functions: normalizeCheck(checks.functions),
             firestore: normalizeCheck(checks.firestore),

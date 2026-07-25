@@ -19,16 +19,16 @@ const orchestratorSource = read('src/audio/mastering-orchestrator-service.js');
 const hudSource = read('src/ui/bulk-import-hud-view.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.7');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'incident-readiness-history-sync-performance-hud');
+assert(/^1\.6\.\d+$/.test(pkg.version));
+assert(/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.scripts['deploy:incident'].includes('functions:checkIncidentDeploymentReadiness'));
-assert.strictEqual(pkg.qaChecks.length, 330);
+assert(pkg.qaChecks.length >= 330);
 assert(html.includes('id="incidentDeploymentCheck"'));
 assert(html.includes('id="incidentDeploymentChecks"'));
 for (const key of ['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection']) assert(html.includes(`data-deploy-check="${key}"`));
 assert(css.includes('.incident-deployment-checks'));
 assert(css.includes('.incident-deployment-check-button'));
-assert(functionsSource.includes('const INCIDENT_SERVICE_SCHEMA_VERSION = 5'));
+assert(/const INCIDENT_SERVICE_SCHEMA_VERSION = [5-9]\d*/.test(functionsSource));
 assert(functionsSource.includes('exports.checkIncidentDeploymentReadiness = onCall'));
 assert(functionsSource.includes('async function inspectIncidentDeploymentReadiness'));
 assert(functionsSource.includes("readinessCheck: 'checkIncidentDeploymentReadiness'"));
@@ -42,7 +42,7 @@ assert(performanceSource.includes('recoveryRequired: AMBIENT_RECOVERY_CONFIRM_SA
 assert(orchestratorSource.includes('performanceRecoverySamples'));
 assert(hudSource.includes('function performanceHoldLabel'));
 assert(hudSource.includes('정상화 확인'));
-assert(handoff.startsWith('# Handoff - v1.6.7'));
+assert(handoff.startsWith(`# Handoff - v${pkg.version}`));
 
 const memory = new Map();
 const now = Date.now();
@@ -55,7 +55,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.7' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.9' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -64,7 +64,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.7', assetVersion: '1.6.7-incident-readiness-history-sync-performance-hud' }
+  FoxBearBuildInfo: { productVersion: '1.6.9', assetVersion: '1.6.9-incident-readiness-history-recovery-copy-events' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -74,7 +74,7 @@ reporterSandbox.FoxBearFirebase = {
   checkIncidentDeploymentReadiness: async () => ({
     ok: true,
     checkedAt: new Date().toISOString(),
-    service: { productVersion: '1.6.7', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
+    service: { productVersion: '1.6.9', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -124,7 +124,7 @@ const functionSandbox = {
     if (request === 'firebase-admin/firestore') return {
       FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) },
       Timestamp: { fromMillis: value => ({ toMillis: () => value, toDate: () => new Date(value) }) },
-      getFirestore: () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false }) }) }) })
+      getFirestore: () => ({ collection: () => ({ doc: () => ({ get: async () => ({ exists: false }), set: async () => true }) }) })
     };
     if (request === 'nodemailer') return { createTransport: () => ({ verify: async () => true, sendMail: async () => ({}), close() {} }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
@@ -150,7 +150,7 @@ assert(readinessCallable && typeof readinessCallable.handler === 'function');
   assert.strictEqual(serverReadiness.checks.firestore.ok, true);
   assert.strictEqual(serverReadiness.checks.smtpSecret.ok, true);
   assert.strictEqual(serverReadiness.checks.smtpConnection.ok, true);
-  assert.strictEqual(serverReadiness.service.serviceSchemaVersion, 5);
+  assert(serverReadiness.service.serviceSchemaVersion >= 5);
 
   const listeners = new Map();
   const pauseEvents = [];

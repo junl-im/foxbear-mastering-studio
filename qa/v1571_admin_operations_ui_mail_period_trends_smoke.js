@@ -14,10 +14,10 @@ const indexSource = read('index.html');
 const cssSource = read('assets/css/components/admin-incident-monitor.css');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.71_ADMIN_OPERATIONS_UI_MAIL_PERIOD_TRENDS.md');
-assert.strictEqual(pkg.version, '1.6.7');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.7-incident-readiness-history-sync-performance-hud');
+assert.strictEqual(pkg.version, '1.6.9');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.9-incident-readiness-history-recovery-copy-events');
 for (const token of [
-  "const PRODUCT_VERSION = '1.6.7'", 'nextVerificationDueAt', 'verificationAgeDays', 'scheduleStatus',
+  "const PRODUCT_VERSION = '1.6.9'", 'nextVerificationDueAt', 'verificationAgeDays', 'scheduleStatus',
   'mailTestPeriodTrends: true', 'mailVerificationSchedule: true', 'adminOperationsUiHierarchy: true'
 ]) assert(functionsSource.includes(token), `functions contract missing: ${token}`);
 for (const token of ['nextVerificationDueAt', 'verificationAgeDays', 'scheduleStatus', 'getIncidentMailTestHistory({ limit: 200 })']) {

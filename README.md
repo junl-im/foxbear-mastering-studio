@@ -1,3 +1,29 @@
+# FoxBear AI Mastering Studio Pro v1.6.9
+
+현재 릴리스는 최근 배포 자체 점검 3회의 정상·실패 변화를 기기 내부에만 보관하고, 실패한 각 점검 카드에서 복구 명령 또는 안전한 설정 안내를 바로 복사할 수 있습니다. 같은 캐시 결과는 중복 저장하지 않으며, 오류 자동신고 상태가 바뀌면 설정 메뉴 요약도 즉시 갱신됩니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1609_incident_readiness_history_recovery_copy_events_smoke.js`
+- 오류 신고 전체 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 332개.
+
+# FoxBear AI Mastering Studio Pro v1.6.8
+
+현재 릴리스는 오류 신고 배포 자체 점검을 60초 동안 안전하게 캐시해 SMTP 인증을 반복 호출하지 않습니다. 마지막 정상 점검 시각과 다음 점검 가능 시간을 유지하고, 실패한 CSP·Functions·Firestore·Gmail Secret·SMTP 카드마다 복구 위치를 바로 표시합니다. 설정 메뉴에서도 메일 상태를 정상·확인 필요·연결됨·미확인·꺼짐으로 간단히 확인할 수 있습니다.
+
+1. 진행된 내용
+2. 배포 파일 2종
+3. 다음 패치 예정 라인업
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1608_incident_readiness_recovery_summary_rate_limit_smoke.js`
+- 오류 신고 전체 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 331개.
+
 # FoxBear AI Mastering Studio Pro v1.6.7
 
 현재 릴리스는 오류 자동신고 화면에서 웹 CSP·Callable Functions·Firestore·Gmail Secret·SMTP 연결을 한 번에 자체 점검합니다. 최근 메일 테스트 이력은 서버 상태를 다시 읽어 자동 재시도 결과까지 반영하며, 직접 재시도 쿨다운은 초 단위로 표시됩니다. 여러 곡 마스터링이 성능 보호로 멈춘 경우 HUD에서 위험 원인과 정상화 확인 진행도를 볼 수 있습니다.

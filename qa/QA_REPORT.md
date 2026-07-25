@@ -1,3 +1,20 @@
+# FoxBear QA Report - v1.6.9
+
+- Added a bounded three-entry deployment readiness history with cached-result deduplication.
+- Added per-stage recovery copy controls without exposing Firebase Secret identifiers or values.
+- Added shared incident status events for immediate Settings summary synchronization.
+- Added narrow-screen recovery action and readiness history layout coverage.
+- Configured static/regression target: 332 checks.
+
+# FoxBear QA Report - v1.6.8
+
+- Added server-side 60-second readiness caching so repeated user checks perform a single SMTP verification.
+- Added local readiness persistence with last-check, last-healthy, next-eligible-check, and cached-result metadata.
+- Added per-stage recovery guidance for CSP, Functions, Firestore, Gmail Secret, and SMTP failures.
+- Added Settings-level incident mail health summary states without exposing Secret values or identifiers.
+- Added responsive readiness-card and action sizing coverage for narrow mobile layouts.
+- Configured static/regression target: 331 checks.
+
 # FoxBear QA Report - v1.6.7
 
 - Added server-side readiness verification for Functions, Firestore, Gmail Secret validity, and SMTP verify connectivity.

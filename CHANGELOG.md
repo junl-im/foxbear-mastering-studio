@@ -1,3 +1,22 @@
+# v1.6.9 - Incident Readiness History and Recovery Copy
+
+- Keeps the latest three deployment readiness outcomes locally with normal/failure transitions.
+- Deduplicates repeated cached readiness results by their check timestamp.
+- Adds per-card recovery copy actions for CSP, Functions, Firestore, Gmail Secret, and SMTP failures.
+- Copies only the deploy command or privacy-safe setup guidance and never exposes Firebase Secret identifiers or values.
+- Emits a shared incident status event and refreshes the Settings summary immediately when readiness or reporting enablement changes.
+- Adds mobile-friendly recovery buttons and compact readiness history cards.
+- Adds regression coverage for bounded history, copy privacy, deduplication, and status events.
+
+# v1.6.8 - Cached Incident Readiness and Recovery Guidance
+
+- Rate-limits deployment readiness checks for 60 seconds on both the client and Callable server to avoid repeated Gmail SMTP verification.
+- Persists the latest readiness result, last successful check time, and next eligible check time locally and server-side.
+- Adds concise recovery directions to each failed CSP, Functions, Firestore, Gmail Secret, and SMTP card.
+- Summarizes incident mail health directly in Settings as normal, needs attention, connected, unchecked, or disabled.
+- Improves narrow-screen readiness cards, action sizing, and modal overscroll containment.
+- Adds regression coverage for server cache reuse, local cache reuse, health summary state, and recovery guidance.
+
 # v1.6.7 - Incident Deployment Readiness and Recovery Progress HUD
 
 - Adds an authenticated deployment self-check for Callable Functions, Firestore Admin access, Gmail Secret format, and SMTP authentication/connectivity.

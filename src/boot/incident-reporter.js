@@ -1,24 +1,30 @@
-// FoxBear automatic incident reporter - v1.6.7
+// FoxBear automatic incident reporter - v1.6.9
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.7-incident-readiness-history-sync-performance-hud';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.7').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.9-incident-readiness-history-recovery-copy-events';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.9').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
     const DAILY_KEY = `${STORAGE_PREFIX}:daily`;
     const TEST_HISTORY_KEY = `${STORAGE_PREFIX}:test-history`;
+    const DEPLOYMENT_READINESS_KEY = `${STORAGE_PREFIX}:deployment-readiness`;
+    const DEPLOYMENT_HISTORY_KEY = `${STORAGE_PREFIX}:deployment-history`;
     const DEPLOY_COMMAND = 'npm run deploy:incident';
     const MAX_QUEUE = 8;
     const MAX_TEST_HISTORY = 5;
+    const MAX_DEPLOYMENT_HISTORY = 3;
     const MAX_AUTOMATIC_PER_SESSION = 5;
     const MAX_AUTOMATIC_PER_DAY = 12;
     const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
     const SEND_TIMEOUT_MS = 12000;
     const FIREBASE_READY_TIMEOUT_MS = 15000;
     const DELIVERY_STATUS_TIMEOUT_MS = 45000;
+    const DEPLOYMENT_CHECK_COOLDOWN_MS = 60 * 1000;
+    const READINESS_SUMMARY_FRESH_MS = 24 * 60 * 60 * 1000;
+    const INCIDENT_STATUS_EVENT = 'foxbear:incident-status-change';
     const ALLOWED_SEVERITIES = new Set(['warning', 'error', 'fatal']);
     const ALLOWED_CATEGORIES = new Set([
         'runtime', 'resource', 'boot', 'mastering', 'mastering-memory', 'quality-recovery', 'export',
@@ -49,7 +55,8 @@
         historySyncInFlight: null,
         lastHistorySyncAt: 0,
         deploymentCheckInFlight: null,
-        deploymentReadiness: null
+        deploymentReadiness: null,
+        deploymentRefreshTimer: 0
     };
 
     function storageGet(key, fallback = '') {
@@ -81,6 +88,126 @@
     function clearTestHistory() {
         saveTestHistory([]);
         renderTestHistory();
+    }
+
+    function loadDeploymentReadiness() {
+        try {
+            const parsed = JSON.parse(storageGet(DEPLOYMENT_READINESS_KEY, 'null'));
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function loadDeploymentHistory() {
+        try {
+            const parsed = JSON.parse(storageGet(DEPLOYMENT_HISTORY_KEY, '[]'));
+            return Array.isArray(parsed) ? parsed.slice(0, MAX_DEPLOYMENT_HISTORY) : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function saveDeploymentHistory(items) {
+        const safe = Array.isArray(items) ? items.slice(0, MAX_DEPLOYMENT_HISTORY) : [];
+        storageSet(DEPLOYMENT_HISTORY_KEY, JSON.stringify(safe));
+        return safe;
+    }
+
+    function readinessFailureKeys(value = {}) {
+        return Object.entries(value?.checks || {}).filter(([, item]) => item?.ok !== true).map(([key]) => key).slice(0, 5);
+    }
+
+    function appendDeploymentHistory(value = {}) {
+        const checkedAt = cleanText(value?.checkedAt || '', 40);
+        if (!checkedAt) return loadDeploymentHistory();
+        const entry = {
+            checkedAt,
+            ok: value?.ok === true,
+            cached: value?.cached === true || value?.localCached === true,
+            failed: readinessFailureKeys(value),
+            serverVersion: cleanText(value?.service?.productVersion || '', 24),
+            lastHealthyAt: cleanText(value?.lastHealthyAt || '', 40)
+        };
+        const history = loadDeploymentHistory().filter(item => item?.checkedAt !== checkedAt);
+        history.unshift(entry);
+        return saveDeploymentHistory(history);
+    }
+
+    function clearDeploymentHistory() {
+        saveDeploymentHistory([]);
+        renderDeploymentHistory();
+    }
+
+    function emitIncidentStatusChange(reason = 'status') {
+        const summary = getSettingsSummary();
+        try {
+            const detail = Object.freeze({ reason, summary, readiness: state.deploymentReadiness || loadDeploymentReadiness() });
+            const event = typeof global.CustomEvent === 'function' ? new global.CustomEvent(INCIDENT_STATUS_EVENT, { detail }) : { type: INCIDENT_STATUS_EVENT, detail };
+            global.dispatchEvent?.(event);
+        } catch (error) {}
+        return summary;
+    }
+
+    function saveDeploymentReadiness(value) {
+        const safe = value && typeof value === 'object' ? value : null;
+        if (safe) {
+            storageSet(DEPLOYMENT_READINESS_KEY, JSON.stringify(safe));
+            appendDeploymentHistory(safe);
+        }
+        state.deploymentReadiness = safe;
+        renderDeploymentHistory();
+        syncSettingsSummary();
+        emitIncidentStatusChange('deployment-readiness');
+        return safe;
+    }
+
+    function formatCheckTime(value = '') {
+        const parsed = Date.parse(String(value || ''));
+        return Number.isFinite(parsed) ? new Date(parsed).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    }
+
+    function getDeploymentCheckAvailability(result = state.deploymentReadiness, now = Date.now()) {
+        const nextAt = Date.parse(String(result?.nextCheckAt || ''));
+        const remainingMs = Number.isFinite(nextAt) ? Math.max(0, nextAt - Number(now || Date.now())) : 0;
+        return Object.freeze({ ready: remainingMs <= 0, remainingMs, remainingSeconds: Math.max(0, Math.ceil(remainingMs / 1000)) });
+    }
+
+    function deploymentRecoveryInfo(key = '', item = {}) {
+        if (item?.ok === true) return Object.freeze({ message: '', command: '' });
+        const map = {
+            csp: ['Hosting CSP를 포함해 전체 오류 신고 배포를 다시 실행하세요.', DEPLOY_COMMAND],
+            functions: ['Callable Functions를 최신 웹 버전에 맞게 다시 배포하세요.', DEPLOY_COMMAND],
+            firestore: ['Firebase 프로젝트와 Firestore Admin 연결을 확인한 뒤 다시 배포하세요.', DEPLOY_COMMAND],
+            smtpSecret: ['FIREBASE_SETUP.md의 Gmail 앱 비밀번호 Secret 등록 절차를 확인하세요.', 'FIREBASE_SETUP.md'],
+            smtpConnection: ['Gmail 2단계 인증·앱 비밀번호·Functions 네트워크 상태를 확인하세요.', 'FIREBASE_SETUP.md']
+        };
+        const [message, command] = map[key] || ['배포 문서와 Functions 로그를 확인하세요.', DEPLOY_COMMAND];
+        return Object.freeze({ message, command });
+    }
+
+    function getSettingsSummary() {
+        const readiness = state.deploymentReadiness || loadDeploymentReadiness();
+        if (!isEnabled()) return Object.freeze({ label: '꺼짐', tone: 'off' });
+        if (readiness?.ok === true) {
+            const checkedAt = Date.parse(String(readiness.checkedAt || ''));
+            const fresh = Number.isFinite(checkedAt) && Date.now() - checkedAt <= READINESS_SUMMARY_FRESH_MS;
+            const serverOld = compareVersions(readiness?.service?.productVersion, CLIENT_PRODUCT_VERSION) === -1;
+            return Object.freeze(serverOld ? { label: '업데이트', tone: 'danger' } : fresh ? { label: '정상', tone: 'ok' } : { label: '재확인', tone: 'neutral' });
+        }
+        if (readiness && readiness.ok === false) return Object.freeze({ label: '확인 필요', tone: 'danger' });
+        if (state.serviceStatus?.status === 'ready') return Object.freeze({ label: '연결됨', tone: 'ok' });
+        return Object.freeze({ label: '미확인', tone: 'neutral' });
+    }
+
+    function syncSettingsSummary() {
+        const summary = getSettingsSummary();
+        const button = document.querySelector?.('[data-native-action="incident-reporting"]');
+        if (!button) return summary;
+        button.dataset.incidentTone = summary.tone;
+        const node = button.querySelector?.('[data-setting-state]');
+        if (node) node.textContent = summary.label;
+        return summary;
     }
 
     function historyStatusLabel(status = '') {
@@ -301,12 +428,25 @@
         return task;
     }
 
-    function setDeploymentCheckState(key, stateName = 'idle', message = '확인 전') {
+    function setDeploymentCheckState(key, stateName = 'idle', message = '확인 전', item = null) {
         const row = document.querySelector?.(`[data-deploy-check="${key}"]`);
         if (!row) return;
         row.dataset.state = stateName;
         const text = row.querySelector?.('span');
         if (text) text.textContent = cleanText(message, 180);
+        const info = deploymentRecoveryInfo(key, item || { ok: stateName === 'ok' });
+        const recovery = row.querySelector?.('[data-deploy-recovery]');
+        if (recovery) {
+            recovery.textContent = info.message;
+            recovery.hidden = !info.message;
+            recovery.dataset.command = info.command;
+        }
+        const copy = row.querySelector?.('[data-deploy-copy]');
+        if (copy) {
+            copy.hidden = !info.message;
+            copy.dataset.command = info.command;
+            copy.textContent = info.command === DEPLOY_COMMAND ? '복구 명령 복사' : '설정 안내 복사';
+        }
     }
 
     function inspectClientCsp(endpoint = '') {
@@ -323,48 +463,67 @@
             const item = checks[checkKey];
             if (!item) return;
             const stateName = item.ok === true ? 'ok' : item.status === 'checking' ? 'active' : item.status === 'blocked' ? 'warning' : 'error';
-            setDeploymentCheckState(key, stateName, item.message || item.code || item.status || '확인 결과 없음');
+            setDeploymentCheckState(key, stateName, item.message || item.code || item.status || '확인 결과 없음', item);
+        });
+        const meta = document.getElementById('incidentDeploymentMeta');
+        if (meta) {
+            const checked = formatCheckTime(result?.checkedAt);
+            const healthy = formatCheckTime(result?.lastHealthyAt);
+            const checkedMs = Date.parse(String(result?.checkedAt || ''));
+            const stale = Number.isFinite(checkedMs) && Date.now() - checkedMs > READINESS_SUMMARY_FRESH_MS;
+            const parts = [checked ? `최근 점검 ${checked}` : '최근 점검 기록 없음', healthy ? `마지막 정상 ${healthy}` : '', result?.cached ? '서버 캐시 사용' : '', stale ? '24시간 경과 · 재점검 필요' : ''];
+            meta.textContent = parts.filter(Boolean).join(' · ');
+            meta.dataset.tone = result?.ok === true && !stale ? 'ok' : result ? 'warning' : 'neutral';
+        }
+        syncSettingsSummary();
+    }
+
+    function renderDeploymentHistory() {
+        const list = document.getElementById('incidentDeploymentHistory');
+        const clear = document.getElementById('incidentDeploymentHistoryClear');
+        if (!list) return;
+        const history = loadDeploymentHistory();
+        list.replaceChildren();
+        if (clear) clear.hidden = !history.length;
+        if (!history.length) {
+            const empty = document.createElement('li');
+            empty.className = 'incident-readiness-history-empty';
+            empty.textContent = '아직 배포 점검 기록이 없습니다.';
+            list.appendChild(empty);
+            return;
+        }
+        const names = { csp: '웹 CSP', functions: '서버 API', firestore: 'Firestore', smtpSecret: 'Gmail Secret', smtpConnection: 'SMTP 연결' };
+        history.forEach(item => {
+            const row = document.createElement('li');
+            row.dataset.state = item.ok ? 'ok' : 'error';
+            const head = document.createElement('div');
+            const label = document.createElement('strong');
+            const time = document.createElement('time');
+            label.textContent = item.ok ? '전체 정상' : '확인 필요';
+            time.dateTime = cleanText(item.checkedAt || '', 40);
+            time.textContent = formatCheckTime(item.checkedAt) || '시간 미확인';
+            head.append(label, time);
+            const detail = document.createElement('span');
+            const failures = (item.failed || []).map(key => names[key] || key).filter(Boolean);
+            detail.textContent = item.ok ? `서버 v${item.serverVersion || CLIENT_PRODUCT_VERSION}${item.cached ? ' · 캐시 결과' : ''}` : `${failures.join(' · ') || '점검 실패'}${item.cached ? ' · 캐시 결과' : ''}`;
+            row.append(head, detail);
+            list.appendChild(row);
         });
     }
 
-    async function runDeploymentSelfCheck() {
-        if (state.deploymentCheckInFlight) return state.deploymentCheckInFlight;
-        ['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection'].forEach(key => setDeploymentCheckState(key, 'active', '확인 중…'));
-        const task = (async () => {
-            const bridge = await waitForFirebaseBridge();
-            if (typeof bridge.checkIncidentDeploymentReadiness !== 'function') throw Object.assign(new Error('배포 자체 점검 서버 기능이 아직 배포되지 않았습니다.'), { code: 'functions/not-found' });
-            const remote = await bridge.checkIncidentDeploymentReadiness();
-            const csp = inspectClientCsp(remote?.service?.functionsOrigin || bridge.incidentFunctionsOrigin || '');
-            const combined = Object.freeze({ ...remote, ok: remote?.ok === true && csp.ok, checks: Object.freeze({ ...remote?.checks, csp }) });
-            state.deploymentReadiness = combined;
-            if (remote?.service) state.serviceStatus = remote.service;
-            renderDeploymentReadiness(combined);
-            return combined;
-        })().catch(error => {
-            const code = cleanText(error?.code || error?.name || 'deployment-check-failed', 80);
-            const message = cleanText(error?.message || error, 220);
-            const csp = inspectClientCsp();
-            const failed = { ok: false, status: 'error', code, message };
-            const combined = { ok: false, checks: { csp, functions: failed, firestore: failed, smtpSecret: failed, smtpConnection: failed } };
-            state.deploymentReadiness = combined;
-            renderDeploymentReadiness(combined);
-            throw error;
-        }).finally(() => { if (state.deploymentCheckInFlight === task) state.deploymentCheckInFlight = null; });
-        state.deploymentCheckInFlight = task;
-        return task;
-    }
-
-    async function copyDeployCommand() {
+    async function copyText(value = '') {
+        const text = String(value || '').trim();
+        if (!text) return false;
         let copied = false;
         try {
             if (global.navigator?.clipboard?.writeText) {
-                await global.navigator.clipboard.writeText(DEPLOY_COMMAND);
+                await global.navigator.clipboard.writeText(text);
                 copied = true;
             }
         } catch (error) {}
         if (!copied) {
             const textarea = document.createElement('textarea');
-            textarea.value = DEPLOY_COMMAND;
+            textarea.value = text;
             textarea.setAttribute('readonly', '');
             textarea.style.position = 'fixed';
             textarea.style.opacity = '0';
@@ -376,12 +535,73 @@
         return copied;
     }
 
+    async function copyDeploymentRecovery(key = '', button = null) {
+        const item = state.deploymentReadiness?.checks?.[key] || loadDeploymentReadiness()?.checks?.[key] || { ok: false };
+        const info = deploymentRecoveryInfo(key, item);
+        const text = info.command === DEPLOY_COMMAND ? DEPLOY_COMMAND : [info.message, info.command].filter(Boolean).join('\n');
+        const copied = await copyText(text);
+        if (button) {
+            const previous = button.textContent;
+            button.textContent = copied ? '복사됨' : '복사 실패';
+            global.setTimeout(() => { button.textContent = previous || '복구 안내 복사'; }, 1600);
+        }
+        return copied;
+    }
+
+    function scheduleDeploymentRefresh() {
+        if (state.deploymentRefreshTimer) global.clearTimeout(state.deploymentRefreshTimer);
+        state.deploymentRefreshTimer = 0;
+        const availability = getDeploymentCheckAvailability();
+        if (availability.ready) return;
+        state.deploymentRefreshTimer = global.setTimeout(() => { state.deploymentRefreshTimer = 0; renderControls(); }, Math.min(1000, Math.max(250, availability.remainingMs)));
+    }
+
+    async function runDeploymentSelfCheck() {
+        if (state.deploymentCheckInFlight) return state.deploymentCheckInFlight;
+        const cached = state.deploymentReadiness || loadDeploymentReadiness();
+        if (cached && !getDeploymentCheckAvailability(cached).ready) {
+            saveDeploymentReadiness(cached);
+            renderDeploymentReadiness(cached);
+            return Object.freeze({ ...cached, cached: true, localCached: true });
+        }
+        ['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection'].forEach(key => setDeploymentCheckState(key, 'active', '확인 중…'));
+        const task = (async () => {
+            const bridge = await waitForFirebaseBridge();
+            if (typeof bridge.checkIncidentDeploymentReadiness !== 'function') throw Object.assign(new Error('배포 자체 점검 서버 기능이 아직 배포되지 않았습니다.'), { code: 'functions/not-found' });
+            const remote = await bridge.checkIncidentDeploymentReadiness();
+            const csp = inspectClientCsp(remote?.service?.functionsOrigin || bridge.incidentFunctionsOrigin || '');
+            const combined = Object.freeze({ ...remote, ok: remote?.ok === true && csp.ok, checks: Object.freeze({ ...remote?.checks, csp }) });
+            saveDeploymentReadiness(combined);
+            if (remote?.service) state.serviceStatus = remote.service;
+            renderDeploymentReadiness(combined);
+            return combined;
+        })().catch(error => {
+            const code = cleanText(error?.code || error?.name || 'deployment-check-failed', 80);
+            const message = cleanText(error?.message || error, 220);
+            const csp = inspectClientCsp();
+            const failed = { ok: false, status: 'error', code, message };
+            const checkedAt = new Date().toISOString();
+            const combined = { ok: false, checkedAt, nextCheckAt: new Date(Date.now() + DEPLOYMENT_CHECK_COOLDOWN_MS).toISOString(), checks: { csp, functions: failed, firestore: failed, smtpSecret: failed, smtpConnection: failed } };
+            saveDeploymentReadiness(combined);
+            renderDeploymentReadiness(combined);
+            throw error;
+        }).finally(() => { if (state.deploymentCheckInFlight === task) state.deploymentCheckInFlight = null; });
+        state.deploymentCheckInFlight = task;
+        return task;
+    }
+
+    async function copyDeployCommand() {
+        return copyText(DEPLOY_COMMAND);
+    }
+
     function isEnabled() {
         return storageGet(ENABLED_KEY, 'on') !== 'off';
     }
 
     function setEnabled(value) {
         storageSet(ENABLED_KEY, value ? 'on' : 'off');
+        syncSettingsSummary();
+        emitIncidentStatusChange('enabled');
         return isEnabled();
     }
 
@@ -914,7 +1134,9 @@
             retryButton.setAttribute('aria-busy', state.serviceCheckInFlight ? 'true' : 'false');
         }
         if (deploymentButton) {
-            deploymentButton.disabled = state.testInFlight || Boolean(state.deploymentCheckInFlight);
+            const availability = getDeploymentCheckAvailability();
+            deploymentButton.disabled = state.testInFlight || Boolean(state.deploymentCheckInFlight) || !availability.ready;
+            deploymentButton.textContent = state.deploymentCheckInFlight ? '배포 상태 점검 중…' : availability.ready ? '배포 상태 자체 점검' : `다시 점검 ${availability.remainingSeconds}초 후`;
             deploymentButton.setAttribute('aria-busy', state.deploymentCheckInFlight ? 'true' : 'false');
         }
         if (copyButton) copyButton.dataset.command = DEPLOY_COMMAND;
@@ -923,16 +1145,23 @@
             status.dataset.tone = /완료|켜짐|대기 0건/.test(status.textContent) ? 'ok' : (/오류|실패|권한|중단/.test(status.textContent) ? 'error' : 'neutral');
         }
         renderServiceDiagnostics();
+        renderDeploymentReadiness(state.deploymentReadiness || loadDeploymentReadiness());
+        renderDeploymentHistory();
         renderTestHistory();
+        scheduleDeploymentRefresh();
+        syncSettingsSummary();
     }
 
     function bindControls() {
+        if (!state.deploymentReadiness) state.deploymentReadiness = loadDeploymentReadiness();
         const toggle = document.getElementById('incidentReportingToggle');
         const testButton = document.getElementById('incidentReportingTest');
         const retryButton = document.getElementById('incidentServiceRetry');
         const deploymentButton = document.getElementById('incidentDeploymentCheck');
         const copyButton = document.getElementById('incidentDeployCopy');
         const historyClear = document.getElementById('incidentHistoryClear');
+        const deploymentHistoryClear = document.getElementById('incidentDeploymentHistoryClear');
+        const deploymentChecks = document.getElementById('incidentDeploymentChecks');
         if (toggle && !toggle.dataset.bound) {
             toggle.dataset.bound = 'true';
             toggle.addEventListener('click', () => {
@@ -984,6 +1213,18 @@
                 copyButton.textContent = copied ? '배포 명령 복사됨' : '복사 실패';
                 global.setTimeout(() => { copyButton.textContent = previous || '배포 명령 복사'; }, 1800);
             });
+        }
+        if (deploymentChecks && !deploymentChecks.dataset.copyBound) {
+            deploymentChecks.dataset.copyBound = 'true';
+            deploymentChecks.addEventListener('click', event => {
+                const button = event.target?.closest?.('[data-deploy-copy]');
+                const row = button?.closest?.('[data-deploy-check]');
+                if (button && row) copyDeploymentRecovery(row.dataset.deployCheck || '', button);
+            });
+        }
+        if (deploymentHistoryClear && !deploymentHistoryClear.dataset.bound) {
+            deploymentHistoryClear.dataset.bound = 'true';
+            deploymentHistoryClear.addEventListener('click', clearDeploymentHistory);
         }
         if (historyClear && !historyClear.dataset.bound) {
             historyClear.dataset.bound = 'true';
@@ -1081,7 +1322,9 @@
             serviceErrorCode: state.serviceErrorCode,
             serviceEndpoint: state.serviceEndpoint,
             recentTests: loadTestHistory(),
-            deploymentReadiness: state.deploymentReadiness,
+            deploymentReadiness: state.deploymentReadiness || loadDeploymentReadiness(),
+            deploymentHistory: loadDeploymentHistory(),
+            settingsSummary: getSettingsSummary(),
             deployCommand: DEPLOY_COMMAND
         });
     }
@@ -1134,6 +1377,17 @@
         copyDeployCommand,
         formatRetryCountdown,
         canRetryHistoryItem,
-        retryHistoryItem
+        retryHistoryItem,
+        loadDeploymentReadiness,
+        saveDeploymentReadiness,
+        loadDeploymentHistory,
+        clearDeploymentHistory,
+        renderDeploymentHistory,
+        copyDeploymentRecovery,
+        emitIncidentStatusChange,
+        getDeploymentCheckAvailability,
+        deploymentRecoveryInfo,
+        getSettingsSummary,
+        syncSettingsSummary
     });
 })(window);

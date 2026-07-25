@@ -1,6 +1,6 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.6.7",
+  "version": "1.6.9",
   "private": true,
   "description": "Server-side incident delivery with authenticated user mail-test retry, delivery status lookup, mail recovery, and operations diagnostics.",
   "main": "index.js",
