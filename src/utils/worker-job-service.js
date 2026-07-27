@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.6.12 - cancellable jobs, health levels, recovery controls, and stale-result isolation
+// FoxBear worker job service v1.6.13 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.6.12-mastering-tone-loudness-fastpath';
+    const VERSION = '1.6.13-download-format-context-menu';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

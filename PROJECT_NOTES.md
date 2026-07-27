@@ -1,3 +1,10 @@
+# v1.6.13 project notes
+
+- MP3/WAV are format families; bitrate and bit depth remain encoder format IDs and must not be collapsed in the download service.
+- The quality menu is presentation-only and must not mutate the selected output until a concrete quality item is chosen.
+- Escape closes the quality menu before it closes the containing download dialog.
+- Same-format output reuse, transient user activation, worker cancellation, and recovery actions remain release invariants.
+
 # v1.6.12 project notes
 
 - Preserve the sequential order of mobile resonance guard, dynamic de-esser, and multiband dynamics; their outputs intentionally feed the next stage.

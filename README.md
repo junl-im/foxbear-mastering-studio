@@ -1,3 +1,18 @@
+# FoxBear AI Mastering Studio Pro v1.6.13
+
+마스터링 파일 다운로드 창은 이제 MP3와 WAV 두 항목만 상시 표시합니다. 각 항목을 누르면 Windows 우클릭 메뉴처럼 음질 선택 메뉴가 떠서 MP3 128/192/256/320 kbps 또는 WAV 16/24/32-bit Float를 고를 수 있으며, 선택하면 메뉴가 자동으로 닫히고 기존 다운로드·공유·저장 도움 흐름을 그대로 사용합니다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1613_download_format_context_menu_smoke.js`
+- 다운로드 관련 회귀: `node qa/v1574_bulk_pause_mobile_download_smoke.js`
+- 브라우저 계약 사전검사: `node qa/browser/run-browser-preflight.js`
+- 설정된 정적·회귀 검사: 337개.
+- MP3/WAV 인코더와 파일 생성 로직은 변경하지 않고 선택 UI만 단순화했습니다.
+
 # FoxBear AI Mastering Studio Pro v1.6.12
 
 현재 릴리스는 v1.6.11의 측정 재사용에 이어 finalizer의 가장 큰 잔여 병목을 줄입니다. 모노·스테레오 tone dynamics를 전용 루프로 처리하고, K-weighted 채널 버퍼 대신 샘플별 전력 배열을 공유하며, 입력·출력 안전 스캔을 결합해 음질과 최종 샘플을 유지하면서 처리 시간을 단축합니다.

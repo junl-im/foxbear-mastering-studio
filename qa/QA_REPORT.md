@@ -1,3 +1,13 @@
+# FoxBear QA Report - v1.6.13
+
+- New regression: `qa/v1613_download_format_context_menu_smoke.js`.
+- Verifies only MP3/WAV family controls remain persistently visible while quality choices start hidden.
+- Verifies context-menu anchoring, vertical quality choices, current-selection checkmark, and all seven existing output qualities.
+- Verifies menu semantics, Arrow Up/Down, Home/End, Escape dismissal, and focus restoration contracts.
+- Re-runs historical download, activation-lifecycle, modal-close, export-reliability, mobile-sheet, and browser preflight checks.
+- Configured cumulative static/regression target: 337 checks.
+- Installed-browser visual confirmation and real-device touch validation remain environment-dependent gates.
+
 # FoxBear QA Report - v1.6.12
 
 - New regression: `qa/v1612_mastering_tone_loudness_fastpath_smoke.js`.

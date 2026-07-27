@@ -1,3 +1,25 @@
+# Handoff - v1.6.13
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+
+## v1.6.13 current focus
+
+- The mastered-file download sheet permanently shows only the MP3 and WAV family buttons.
+- Clicking either family opens a context-style vertical quality menu anchored to that button.
+- MP3 keeps 128/192/256/320 kbps; WAV keeps 16-bit PCM, 24-bit PCM, and 32-bit Float.
+- Selection closes the menu, updates the summary, and preserves all existing download/share/recovery actions.
+- Keyboard users can open with Arrow Down, move with Arrow keys/Home/End, close with Escape, and return focus to the family button.
+- Regression: `node qa/v1613_download_format_context_menu_smoke.js`.
+- Configured cumulative static/regression target: 337 checks before installed-browser confirmation.
+
 # Handoff - v1.6.12
 
 # 필수 결과 보고 형식

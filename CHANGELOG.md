@@ -1,3 +1,12 @@
+# v1.6.13 - MP3/WAV Context Quality Menu
+
+- Keeps only MP3 and WAV format-family buttons visible in the mastered-file download dialog.
+- Opens bitrate or bit-depth choices in a compact Windows-style context menu anchored to the selected format.
+- Closes the quality menu after selection, outside interaction, repeated format click, or Escape.
+- Adds Arrow Up/Down, Home, End, and focus-return keyboard behavior with menuitemradio accessibility semantics.
+- Preserves the existing encoder formats, download/share/recovery flows, mobile bottom sheet, and current-output reuse path.
+- Adds v1.6.13 regression coverage for compact visibility, menu anchoring, quality ranges, keyboard behavior, and versioned assets.
+
 # v1.6.12 - Mastering Tone and Loudness Fast Path
 
 - Specializes the finalizer tone-dynamics loops for mono and stereo buffers, removing repeated channel-loop and scratch-object overhead.

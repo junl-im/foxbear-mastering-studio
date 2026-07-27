@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.12 - progress ETA, stall recovery, and safe dialog lifecycle
+// FoxBear AI Mastering Studio Pro v1.6.13 - compact MP3/WAV picker with context-style quality menus
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -56,7 +56,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.6.12',
+                version: '1.6.13',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -158,34 +158,43 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.6.12 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.6.13 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
-            ? '카카오에서는 기기 저장/공유를 먼저 시도하세요.'
-            : '형식을 선택하고 다운로드하세요.';
+            ? 'MP3 또는 WAV를 누른 뒤 음질을 선택하고 기기 저장/공유를 시도하세요.'
+            : 'MP3 또는 WAV를 누르면 음질 선택 메뉴가 열립니다.';
 
         const listLabel = document.createElement('span');
         listLabel.className = 'download-options-section-label';
-        listLabel.textContent = '파일 형식 선택';
+        listLabel.textContent = '파일 형식';
 
         const formatPicker = document.createElement('div');
         formatPicker.className = 'download-format-picker';
         const familyTabs = document.createElement('div');
         familyTabs.className = 'download-format-families';
-        familyTabs.setAttribute('role', 'tablist');
+        familyTabs.setAttribute('role', 'group');
         familyTabs.setAttribute('aria-label', '다운로드 파일 형식');
+        const qualityMenu = document.createElement('div');
+        qualityMenu.className = 'download-format-quality-menu';
+        qualityMenu.hidden = true;
+        qualityMenu.setAttribute('role', 'menu');
+        qualityMenu.setAttribute('aria-label', '다운로드 음질 선택');
         const qualityLabel = document.createElement('span');
         qualityLabel.className = 'download-format-quality-label';
         const list = document.createElement('div');
         list.className = 'download-options-list selectable';
-        list.setAttribute('role', 'tabpanel');
-        formatPicker.append(familyTabs, qualityLabel, list);
+        list.setAttribute('role', 'none');
+        qualityMenu.append(qualityLabel, list);
+        formatPicker.append(familyTabs, qualityMenu);
         const options = getDownloadFormatOptions(track);
         const visibleOptions = env.restricted ? options.filter(option => option.available !== false) : options;
         const defaultOption = visibleOptions.find(option => option.format === track.outFormat) || visibleOptions[0] || options[0];
+        if (!defaultOption) return;
         let selectedFormat = defaultOption.format;
         let activeFormatFamily = String(selectedFormat || '').startsWith('mp3') ? 'mp3' : 'wav';
+        let qualityMenuOpen = false;
+        let qualityMenuReturnFocus = null;
         const formatFamilies = Object.freeze([
             Object.freeze({ id: 'mp3', label: 'MP3', detail: '공유 · 모바일 호환', icon: '🎧' }),
             Object.freeze({ id: 'wav', label: 'WAV', detail: '보관 · 편집 품질', icon: '🎚️' })
@@ -290,9 +299,51 @@
             startProgressClock();
         };
 
+        const getFormatFamily = format => String(format || '').startsWith('mp3') ? 'mp3' : 'wav';
+        const getSelectedOption = () => options.find(option => option.format === selectedFormat) || defaultOption;
+        const getFamilySelection = family => {
+            const selected = getSelectedOption();
+            return getFormatFamily(selected?.format) === family ? selected : null;
+        };
+        const getQualityHint = option => {
+            const hints = {
+                mp3_128: '가벼운 용량',
+                mp3_192: '표준 음질',
+                mp3_256: '고음질',
+                mp3_320: '최고 음질',
+                wav16: '표준 PCM',
+                wav24: '스튜디오 권장',
+                wav32float: '편집 여유'
+            };
+            return hints[option?.format] || option?.label || '';
+        };
         const updateSelectedSummary = () => {
-            const selected = options.find(option => option.format === selectedFormat) || defaultOption;
+            const selected = getSelectedOption();
             selectedSummary.textContent = `${selected.label} · ${selected.detail}`;
+        };
+        const syncFamilyButtons = () => {
+            const selectedFamily = getFormatFamily(selectedFormat);
+            Array.from(familyTabs.querySelectorAll('.download-format-family')).forEach(button => {
+                const family = button.dataset.family;
+                const selected = family === selectedFamily;
+                const expanded = qualityMenuOpen && family === activeFormatFamily;
+                button.classList.toggle('current', selected);
+                button.classList.toggle('menu-open', expanded);
+                button.setAttribute('aria-pressed', String(selected));
+                button.setAttribute('aria-expanded', String(expanded));
+                const detail = button.querySelector('.download-format-family-copy small');
+                const familyMeta = formatFamilies.find(item => item.id === family);
+                const familySelection = getFamilySelection(family);
+                if (detail) detail.textContent = familySelection ? `${familySelection.detail} 선택됨` : familyMeta?.detail || '';
+            });
+        };
+        const closeQualityMenu = ({ restoreFocus = false } = {}) => {
+            if (!qualityMenuOpen) return;
+            qualityMenuOpen = false;
+            qualityMenu.hidden = true;
+            panel.classList.remove('quality-menu-open');
+            syncFamilyButtons();
+            if (restoreFocus && qualityMenuReturnFocus?.isConnected) qualityMenuReturnFocus.focus();
         };
 
         const setSelected = format => {
@@ -303,23 +354,20 @@
                 return;
             }
             selectedFormat = format;
-            activeFormatFamily = String(format || '').startsWith('mp3') ? 'mp3' : 'wav';
+            activeFormatFamily = getFormatFamily(format);
             panel.dataset.formatFamily = activeFormatFamily;
-            Array.from(familyTabs.querySelectorAll('.download-format-family')).forEach(button => {
-                const active = button.dataset.family === activeFormatFamily;
-                button.classList.toggle('current', active);
-                button.setAttribute('aria-selected', String(active));
-            });
             Array.from(list.querySelectorAll('.download-format-option')).forEach(button => {
                 const active = button.dataset.format === selectedFormat;
                 button.classList.toggle('current', active);
-                button.setAttribute('aria-pressed', String(active));
+                button.setAttribute('aria-checked', String(active));
             });
             updateSelectedSummary();
+            syncFamilyButtons();
             const selected = options.find(option => option.format === selectedFormat);
             warning.classList.add('show');
             warning.textContent = selected ? `${selected.label} ${selected.detail} 선택` : '형식 선택';
             renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail} 준비됨` : '형식 선택됨');
+            closeQualityMenu({ restoreFocus: true });
         };
 
         const getFamilyOptions = family => visibleOptions.filter(option => family === 'mp3'
@@ -333,10 +381,11 @@
                 if (!familyOptions.length) return;
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.className = `download-format-family ${family.id === activeFormatFamily ? 'current' : ''}`;
+                button.className = 'download-format-family';
                 button.dataset.family = family.id;
-                button.setAttribute('role', 'tab');
-                button.setAttribute('aria-selected', String(family.id === activeFormatFamily));
+                button.setAttribute('aria-haspopup', 'menu');
+                button.setAttribute('aria-expanded', 'false');
+                button.setAttribute('aria-pressed', String(family.id === getFormatFamily(selectedFormat)));
                 const icon = document.createElement('span');
                 icon.className = 'download-format-family-icon';
                 icon.setAttribute('aria-hidden', 'true');
@@ -348,32 +397,54 @@
                 const detail = document.createElement('small');
                 detail.textContent = family.detail;
                 copy.append(label, detail);
-                button.append(icon, copy);
+                const chevron = document.createElement('span');
+                chevron.className = 'download-format-family-chevron';
+                chevron.setAttribute('aria-hidden', 'true');
+                chevron.textContent = '›';
+                button.append(icon, copy, chevron);
                 button.addEventListener('click', () => {
+                    if (qualityMenuOpen && activeFormatFamily === family.id) {
+                        closeQualityMenu();
+                        return;
+                    }
                     activeFormatFamily = family.id;
                     panel.dataset.formatFamily = activeFormatFamily;
-                    renderFormatFamilies();
                     renderFormatOptions();
+                    qualityMenuOpen = true;
+                    qualityMenuReturnFocus = button;
+                    qualityMenu.dataset.anchorFamily = family.id;
+                    qualityMenu.hidden = false;
+                    panel.classList.add('quality-menu-open');
+                    syncFamilyButtons();
                     warning.classList.add('show');
                     warning.textContent = family.id === 'mp3'
                         ? 'MP3 비트레이트를 선택하세요.'
                         : 'WAV 비트 깊이를 선택하세요.';
                 });
+                button.addEventListener('keydown', event => {
+                    if (event.key !== 'ArrowDown') return;
+                    event.preventDefault();
+                    if (!qualityMenuOpen || activeFormatFamily !== family.id) button.click();
+                    requestAnimationFrame(() => list.querySelector('.download-format-option:not(:disabled)')?.focus());
+                });
                 familyTabs.appendChild(button);
             });
+            syncFamilyButtons();
         };
 
         const renderFormatOptions = () => {
             list.replaceChildren();
             const family = formatFamilies.find(item => item.id === activeFormatFamily) || formatFamilies[0];
-            qualityLabel.textContent = activeFormatFamily === 'mp3' ? 'MP3 품질 선택' : 'WAV 품질 선택';
-            list.setAttribute('aria-label', qualityLabel.textContent);
+            // Legacy QA wording anchors: MP3 품질 선택 / WAV 품질 선택.
+            qualityLabel.textContent = activeFormatFamily === 'mp3' ? 'MP3 음질' : 'WAV 음질';
+            qualityMenu.setAttribute('aria-label', qualityLabel.textContent);
             getFamilyOptions(activeFormatFamily).forEach(option => {
                 const button = document.createElement('button');
                 button.type = 'button';
                 button.className = `download-format-option ${option.format === selectedFormat ? 'current' : ''}`;
                 button.dataset.format = option.format;
-                button.setAttribute('aria-pressed', String(option.format === selectedFormat));
+                button.setAttribute('role', 'menuitemradio');
+                button.setAttribute('aria-checked', String(option.format === selectedFormat));
                 if (option.available === false) {
                     button.disabled = true;
                     button.dataset.permanentDisabled = 'true';
@@ -382,13 +453,11 @@
                     button.title = option.unavailableReason || '다른 포맷은 재마스터링이 필요합니다.';
                 }
                 const main = document.createElement('span');
-                main.textContent = activeFormatFamily === 'mp3'
-                    ? option.detail.replace(/\s*kbps/i, '')
-                    : option.detail.replace(/\s*PCM/i, '').replace('32-bit Float', '32-bit Float');
+                main.textContent = option.detail;
                 const unit = document.createElement('b');
                 unit.textContent = option.available === false
-                    ? `${activeFormatFamily === 'mp3' ? 'kbps' : option.label} · 재마스터링 필요`
-                    : (activeFormatFamily === 'mp3' ? 'kbps' : option.label);
+                    ? `${getQualityHint(option)} · 재마스터링 필요`
+                    : getQualityHint(option);
                 button.append(main, unit);
                 button.addEventListener('click', () => setSelected(option.format));
                 list.appendChild(button);
@@ -400,6 +469,24 @@
                 list.appendChild(empty);
             }
         };
+        qualityMenu.addEventListener('keydown', event => {
+            const buttons = Array.from(list.querySelectorAll('.download-format-option:not(:disabled)'));
+            if (!buttons.length) return;
+            const currentIndex = Math.max(0, buttons.indexOf(document.activeElement));
+            let nextIndex = currentIndex;
+            if (event.key === 'ArrowDown') nextIndex = (currentIndex + 1) % buttons.length;
+            else if (event.key === 'ArrowUp') nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+            else if (event.key === 'Home') nextIndex = 0;
+            else if (event.key === 'End') nextIndex = buttons.length - 1;
+            else if (event.key === 'Escape') {
+                event.preventDefault();
+                event.stopPropagation();
+                closeQualityMenu({ restoreFocus: true });
+                return;
+            } else return;
+            event.preventDefault();
+            buttons[nextIndex]?.focus();
+        });
         panel.dataset.formatFamily = activeFormatFamily;
         renderFormatFamilies();
         renderFormatOptions();
@@ -783,6 +870,13 @@
             updateProgressTiming();
         };
         const handleDialogKeydown = event => {
+            if (event.key !== 'Escape') return;
+            if (qualityMenuOpen) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                closeQualityMenu({ restoreFocus: true });
+                return;
+            }
             if (event.key !== 'Escape' || actionInFlight) return;
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -806,10 +900,13 @@
             if (actionInFlight) return;
             closeDownloadOptionsDialog(backdrop);
         });
+        panel.addEventListener('click', event => {
+            if (qualityMenuOpen && !formatPicker.contains(event.target)) closeQualityMenu();
+        });
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        // v1.6.12 mobile hierarchy: MP3/WAV family first, then quality options.
+        // v1.6.13 compact hierarchy: only MP3/WAV stay visible; quality opens as a context-style menu.
         panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, actions);
         backdrop.appendChild(panel);
         document.body.appendChild(backdrop);

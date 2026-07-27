@@ -55,7 +55,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.12' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.13' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -64,7 +64,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.12', assetVersion: '1.6.12-mastering-tone-loudness-fastpath' }
+  FoxBearBuildInfo: { productVersion: '1.6.13', assetVersion: '1.6.13-download-format-context-menu' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -74,7 +74,7 @@ reporterSandbox.FoxBearFirebase = {
   checkIncidentDeploymentReadiness: async () => ({
     ok: true,
     checkedAt: new Date().toISOString(),
-    service: { productVersion: '1.6.12', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
+    service: { productVersion: '1.6.13', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.12",
-  "buildId": "mastering-tone-loudness-fastpath",
+  "productVersion": "1.6.13",
+  "buildId": "download-format-context-menu",
   "requiredFiles": [
     "404.html",
     ".gitignore",

@@ -14,7 +14,7 @@ const css = read('assets/css/components/support-settings.css');
 const reporterSource = read('src/boot/incident-reporter.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.12');
+assert.strictEqual(pkg.version, '1.6.13');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 assert(pkg.qaChecks.length >= 332);
 assert.strictEqual((html.match(/data-deploy-copy/g) || []).length, 5);
@@ -26,7 +26,7 @@ assert(reporterSource.includes('const MAX_DEPLOYMENT_HISTORY = 3'));
 assert(reporterSource.includes("const INCIDENT_STATUS_EVENT = 'foxbear:incident-status-change'"));
 assert(reporterSource.includes('function copyDeploymentRecovery'));
 assert(reporterSource.includes('function renderDeploymentHistory'));
-assert(handoff.startsWith('# Handoff - v1.6.12'));
+assert(handoff.startsWith('# Handoff - v1.6.13'));
 
 const memory = new Map();
 const copied = [];
@@ -42,7 +42,7 @@ const sandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.12' }, appendChild() {} }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.13' }, appendChild() {} }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => `connect-src 'self' ${origin}` };
@@ -51,7 +51,7 @@ const sandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.6.12', assetVersion: '1.6.12-mastering-tone-loudness-fastpath' }
+  FoxBearBuildInfo: { productVersion: '1.6.13', assetVersion: '1.6.13-download-format-context-menu' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -66,7 +66,7 @@ const reporter = sandbox.FoxBearIncidentReporter;
     checkedAt: new Date(base + index * 1000).toISOString(),
     lastHealthyAt: ok ? new Date(base + index * 1000).toISOString() : new Date(base).toISOString(),
     nextCheckAt: '',
-    service: { productVersion: '1.6.12', functionsOrigin: origin },
+    service: { productVersion: '1.6.13', functionsOrigin: origin },
     checks: {
       csp: { ok: failedKey !== 'csp' }, functions: { ok: failedKey !== 'functions' }, firestore: { ok: failedKey !== 'firestore' },
       smtpSecret: { ok: failedKey !== 'smtpSecret' }, smtpConnection: { ok: failedKey !== 'smtpConnection' }

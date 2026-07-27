@@ -1048,3 +1048,169 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     }
     .download-format-family-copy small { font-size: .49rem; }
 }
+
+/* v1.6.13: keep only MP3/WAV visible and open quality as a context-style menu. */
+.download-format-picker {
+    position: relative;
+    isolation: isolate;
+}
+.download-options-panel.quality-menu-open .download-format-picker {
+    z-index: 20;
+}
+.download-format-family {
+    position: relative;
+    cursor: pointer;
+}
+.download-format-family:hover,
+.download-format-family:focus-visible,
+.download-format-family.menu-open {
+    border-color: rgba(141,245,232,.52);
+    background: linear-gradient(135deg, rgba(141,245,232,.14), rgba(120,215,255,.075));
+    outline: none;
+}
+.download-format-family-chevron {
+    margin-left: auto;
+    color: rgba(221,240,250,.62);
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    transform: rotate(0deg);
+    transition: transform 140ms ease, color 140ms ease;
+}
+.download-format-family.menu-open .download-format-family-chevron {
+    color: rgba(174,255,244,.96);
+    transform: rotate(90deg);
+}
+.download-format-quality-menu {
+    position: absolute;
+    z-index: 24;
+    top: calc(100% + 7px);
+    width: min(268px, calc(100% - 2px));
+    padding: 7px;
+    border: 1px solid rgba(255,255,255,.19);
+    border-radius: 13px;
+    background: rgba(25,28,38,.985);
+    box-shadow: 0 18px 54px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.075);
+    backdrop-filter: blur(18px) saturate(1.05);
+    transform-origin: top left;
+    animation: foxbear-quality-menu-in 120ms ease-out;
+}
+.download-format-quality-menu[hidden] {
+    display: none !important;
+}
+.download-format-quality-menu[data-anchor-family="mp3"] {
+    left: 0;
+    right: auto;
+    transform-origin: top left;
+}
+.download-format-quality-menu[data-anchor-family="wav"] {
+    right: 0;
+    left: auto;
+    transform-origin: top right;
+}
+.download-format-quality-menu::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    width: 9px;
+    height: 9px;
+    border-left: 1px solid rgba(255,255,255,.16);
+    border-top: 1px solid rgba(255,255,255,.16);
+    background: rgba(25,28,38,.985);
+    transform: rotate(45deg);
+}
+.download-format-quality-menu[data-anchor-family="mp3"]::before { left: 26px; }
+.download-format-quality-menu[data-anchor-family="wav"]::before { right: 26px; }
+.download-format-quality-menu .download-format-quality-label {
+    padding: 4px 8px 7px;
+    color: rgba(231,244,252,.72);
+    font-size: .58rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+.download-options-panel-v1574 .download-format-quality-menu .download-options-list,
+.download-options-panel-v1574[data-format-family="wav"] .download-format-quality-menu .download-options-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+}
+.download-options-panel-v1574 .download-format-quality-menu .download-format-option {
+    min-height: 44px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 34px 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    text-align: left;
+    box-shadow: none;
+}
+.download-options-panel-v1574 .download-format-quality-menu .download-format-option:hover,
+.download-options-panel-v1574 .download-format-quality-menu .download-format-option:focus-visible {
+    background: rgba(111,199,255,.15);
+    outline: 1px solid rgba(141,245,232,.2);
+}
+.download-options-panel-v1574 .download-format-quality-menu .download-format-option.current {
+    background: rgba(141,245,232,.11);
+}
+.download-options-list.selectable .download-format-option.current::after,
+.download-format-quality-menu .download-format-option.current::after {
+    content: '✓';
+    right: 11px;
+    top: 50%;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: rgba(161,255,240,.98);
+    font-size: .78rem;
+    transform: translateY(-50%);
+}
+.download-options-panel-v1574 .download-format-quality-menu .download-format-option span {
+    font-size: .72rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+}
+.download-options-panel-v1574 .download-format-quality-menu .download-format-option b {
+    color: rgba(211,228,239,.62);
+    font-size: .53rem;
+    font-weight: 750;
+    white-space: nowrap;
+}
+.download-options-panel.working .download-format-quality-menu {
+    pointer-events: none;
+    opacity: .68;
+}
+@keyframes foxbear-quality-menu-in {
+    from { opacity: 0; transform: translateY(-4px) scale(.985); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 640px) {
+    .download-format-quality-menu {
+        top: calc(100% + 8px);
+        width: min(288px, calc(100% - 2px));
+        max-height: min(46dvh, 340px);
+        overflow: auto;
+    }
+    .download-options-panel-v1574 .download-format-quality-menu .download-format-option {
+        min-height: 48px;
+        padding-top: 9px;
+        padding-bottom: 9px;
+    }
+    .download-options-panel-v1574 .download-format-quality-menu .download-format-option span {
+        font-size: .76rem;
+    }
+}
+@media (max-width: 380px) {
+    .download-format-quality-menu {
+        width: 100%;
+        left: 0 !important;
+        right: auto !important;
+    }
+    .download-format-quality-menu[data-anchor-family="wav"]::before { right: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .download-format-quality-menu { animation: none; }
+    .download-format-family-chevron { transition: none; }
+}

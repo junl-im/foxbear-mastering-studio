@@ -17,11 +17,11 @@ function assert(condition, message) {
   }
 }
 
-assert(pkg.version === '1.6.12', 'package version should be 1.6.12');
+assert(pkg.version === '1.6.13', 'package version should be 1.6.13');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-assert(html.includes('data-build="1.6.12"'), 'index build should be 1.6.12');
-assert(config.includes("ASSET_VERSION = '1.6.12-mastering-tone-loudness-fastpath'"), 'asset key should be v1.6.12 bulk import guard');
-assert(sw.includes("foxbear-shell-v1.6.12-mastering-tone-loudness-fastpath"), 'service worker cache should be v1.6.12 bulk import guard');
+assert(html.includes('data-build="1.6.13"'), 'index build should be 1.6.13');
+assert(config.includes("ASSET_VERSION = '1.6.13-download-format-context-menu'"), 'asset key should be v1.6.13 bulk import guard');
+assert(sw.includes("foxbear-shell-v1.6.13-download-format-context-menu"), 'service worker cache should be v1.6.13 bulk import guard');
 
 assert(config.includes('IMPORT_ANALYSIS_CONCURRENCY: 1'), 'runtime config should force single analysis worker for bulk imports');
 assert(config.includes('LARGE_IMPORT_BATCH_THRESHOLD: 12'), 'runtime config should define large import threshold');

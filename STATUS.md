@@ -1,3 +1,17 @@
+# FoxBear Status - v1.6.13
+
+## v1.6.13 current focus
+
+- The download dialog shows only MP3 and WAV until the user asks for quality choices.
+- Each format opens a Windows-style anchored quality menu instead of expanding every bitrate/bit-depth inline.
+- Quality selection closes the menu and preserves current download, share, assist, cancellation, and recovery behavior.
+- Keyboard and mobile touch navigation are included in the same menu contract.
+- Configured static/regression target: 337 checks before installed-browser confirmation.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
 # FoxBear Status - v1.6.12
 
 ## v1.6.12 current focus
@@ -549,10 +563,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.6.12`
-- Build ID: `mastering-tone-loudness-fastpath`
-- Asset version: `1.6.12-mastering-tone-loudness-fastpath`
-- Service worker cache: `foxbear-shell-v1.6.12-mastering-tone-loudness-fastpath`
+- Product version: `1.6.13`
+- Build ID: `download-format-context-menu`
+- Asset version: `1.6.13-download-format-context-menu`
+- Service worker cache: `foxbear-shell-v1.6.13-download-format-context-menu`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -584,10 +598,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.12`
-- Build ID: `mastering-tone-loudness-fastpath`
-- Asset version: `1.6.12-mastering-tone-loudness-fastpath`
-- Service worker cache: `foxbear-shell-v1.6.12-mastering-tone-loudness-fastpath`
+- Product version: `1.6.13`
+- Build ID: `download-format-context-menu`
+- Asset version: `1.6.13-download-format-context-menu`
+- Service worker cache: `foxbear-shell-v1.6.13-download-format-context-menu`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

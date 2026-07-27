@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.12-mastering-tone-loudness-fastpath';
+  const VIEW_VERSION = '1.6.13-download-format-context-menu';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.12-mastering-tone-loudness-fastpath';
+    const SERVICE_VERSION = '1.6.13-download-format-context-menu';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;
