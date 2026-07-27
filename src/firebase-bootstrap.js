@@ -450,7 +450,8 @@ async function getIncidentServiceStatus() {
 }
 
 function normalizeDeploymentReadiness(value = {}) {
-    const checks = value?.checks || {};
+    const requiredCheckKeys = Object.freeze(['functions', 'firestore', 'smtpSecret', 'smtpConnection']);
+    const sourceChecks = value?.checks && typeof value.checks === 'object' ? value.checks : {};
     const normalizeCheck = input => Object.freeze({
         ok: input?.ok === true,
         status: limitText(input?.status || (input?.ok ? 'ready' : 'unknown'), 24),
@@ -458,19 +459,36 @@ function normalizeDeploymentReadiness(value = {}) {
         reason: limitText(input?.reason || '', 80),
         message: limitText(input?.message || '', 240)
     });
+    const normalizedChecks = Object.fromEntries(requiredCheckKeys.map(key => [key, normalizeCheck(sourceChecks[key])]));
+    const checkedAt = limitText(value?.checkedAt || '', 40);
+    const service = normalizeIncidentServiceStatus(value?.service || {});
+    const contractValid = Boolean(
+        value && typeof value === 'object'
+        && Number.isFinite(Date.parse(checkedAt))
+        && service.productVersion
+        && service.functionsOrigin
+        && requiredCheckKeys.every(key => Object.prototype.hasOwnProperty.call(sourceChecks, key) && typeof sourceChecks[key]?.ok === 'boolean')
+    );
+    if (!contractValid && normalizedChecks.functions.ok) {
+        normalizedChecks.functions = Object.freeze({
+            ok: false,
+            status: 'error',
+            code: 'FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID',
+            reason: 'response-contract-invalid',
+            message: '배포 점검 응답 형식이 불완전합니다. Callable Functions를 다시 배포하세요.'
+        });
+    }
+    const checks = Object.freeze(normalizedChecks);
     return Object.freeze({
-        ok: value?.ok === true,
+        ok: value?.ok === true && contractValid && requiredCheckKeys.every(key => checks[key].ok === true),
         cached: value?.cached === true,
-        checkedAt: limitText(value?.checkedAt || '', 40),
+        checkedAt,
         lastHealthyAt: limitText(value?.lastHealthyAt || '', 40),
         nextCheckAt: limitText(value?.nextCheckAt || '', 40),
-        checks: Object.freeze({
-            functions: normalizeCheck(checks.functions),
-            firestore: normalizeCheck(checks.firestore),
-            smtpSecret: normalizeCheck(checks.smtpSecret),
-            smtpConnection: normalizeCheck(checks.smtpConnection)
-        }),
-        service: normalizeIncidentServiceStatus(value?.service || {})
+        contractValid,
+        contractCode: contractValid ? '' : 'FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID',
+        checks,
+        service
     });
 }
 

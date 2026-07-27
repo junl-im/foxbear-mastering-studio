@@ -19,9 +19,9 @@ const dialog = read('src/ui/download-dialog-view.js');
 const downloadCss = read('assets/css/download-dialog.css');
 const browserSpec = read('qa/browser/v1574-mobile-download-batch-controls-visual.spec.js');
 
-assert.strictEqual(pkg.version, '1.6.9', 'package version should be v1.6.9');
+assert.strictEqual(pkg.version, '1.6.10', 'package version should be v1.6.10');
 for (const id of ['bulkImportHudPause', 'bulkImportHudSkip', 'bulkImportHudSummary']) {
-  assert(index.includes(`id="${id}"`), `v1.6.9 bulk control missing: ${id}`);
+  assert(index.includes(`id="${id}"`), `v1.6.10 bulk control missing: ${id}`);
 }
 assert(index.includes('<option value="skipped">건너뜀</option>'), 'skipped result filter missing');
 assert(app.includes('pauseActiveMasteringBatch') && app.includes('resumeActiveMasteringBatch'), 'pause/resume app bridge missing');
@@ -34,7 +34,7 @@ assert(hud.includes('renderBatchSummary') && hud.includes('bulk-import-row-order
 assert(hudCss.includes('.bulk-import-hud-pause') && hudCss.includes('.bulk-import-hud-skip'), 'pause/skip styles missing');
 assert(hudCss.includes('.bulk-import-row-order-actions') && hudCss.includes('.bulk-import-hud-summary'), 'queue/summary styles missing');
 assert(dialog.includes('download-format-families') && dialog.includes('MP3 품질 선택') && dialog.includes('WAV 품질 선택'), 'two-stage format picker missing');
-assert(dialog.includes('download-options-panel-v1574') && dialog.includes('formatPicker'), 'v1.6.9 download panel contract missing');
+assert(dialog.includes('download-options-panel-v1574') && dialog.includes('formatPicker'), 'v1.6.10 download panel contract missing');
 assert(downloadCss.includes('height: min(94dvh, 820px)') && downloadCss.includes('position: sticky'), 'mobile full-height/sticky action layout missing');
 assert(browserSpec.includes('375') && browserSpec.includes('screenshot') && browserSpec.includes('download-format-family'), 'mobile visual regression contract missing');
 

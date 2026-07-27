@@ -1,3 +1,11 @@
+## v1.6.10 project notes
+
+- Readiness health is now derived from the complete required-check contract, not only the server's top-level success flag.
+- Exact CSP source-token matching prevents lookalike hosts from producing false healthy diagnostics.
+- Cached results preserve one bounded history record and accurately disclose local reuse.
+- Local storage is treated as untrusted input and malformed history entries are discarded.
+- Next focus: split the oversized incident reporter into storage, readiness, mail-history, and view-controller modules without changing the public bridge.
+
 
 ## v1.5.74
 

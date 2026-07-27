@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.9-incident-readiness-history-recovery-copy-events',
+                version: '1.6.10-incident-readiness-contract-csp-cache-hardening',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.9-incident-readiness-history-recovery-copy-events',
+        version: '1.6.10-incident-readiness-contract-csp-cache-hardening',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

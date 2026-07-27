@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.9
+// FoxBear automatic incident reporter - v1.6.10
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.9-incident-readiness-history-recovery-copy-events';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.9').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.10-incident-readiness-contract-csp-cache-hardening';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.10').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -90,32 +90,97 @@
         renderTestHistory();
     }
 
+    const DEPLOYMENT_CHECK_KEYS = Object.freeze(['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection']);
+    const DEPLOYMENT_CHECK_KEY_SET = new Set(DEPLOYMENT_CHECK_KEYS);
+
+    function normalizeDeploymentCheck(value = {}) {
+        return Object.freeze({
+            ok: value?.ok === true,
+            status: cleanText(value?.status || (value?.ok ? 'ready' : 'unknown'), 24),
+            code: cleanText(value?.code || '', 80),
+            reason: cleanText(value?.reason || '', 80),
+            message: cleanText(value?.message || '', 240)
+        });
+    }
+
+    function normalizeDeploymentReadinessSnapshot(value) {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+        const sourceChecks = value.checks && typeof value.checks === 'object' ? value.checks : {};
+        const checks = Object.fromEntries(DEPLOYMENT_CHECK_KEYS.map(key => [key, normalizeDeploymentCheck(sourceChecks[key])]));
+        const checkedAt = cleanText(value.checkedAt || '', 40);
+        const service = Object.freeze({
+            status: cleanText(value?.service?.status || '', 20),
+            productVersion: cleanText(value?.service?.productVersion || '', 24),
+            region: cleanText(value?.service?.region || '', 40),
+            functionsOrigin: cleanText(value?.service?.functionsOrigin || '', 180)
+        });
+        const contractValid = Boolean(
+            Number.isFinite(Date.parse(checkedAt))
+            && service.productVersion
+            && service.functionsOrigin
+            && DEPLOYMENT_CHECK_KEYS.every(key => Object.prototype.hasOwnProperty.call(sourceChecks, key) && typeof sourceChecks[key]?.ok === 'boolean')
+        );
+        if (!contractValid && checks.functions.ok) {
+            checks.functions = Object.freeze({
+                ok: false,
+                status: 'error',
+                code: 'FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID',
+                reason: 'response-contract-invalid',
+                message: '배포 점검 응답 형식이 불완전합니다. Callable Functions를 다시 배포하세요.'
+            });
+        }
+        const frozenChecks = Object.freeze(checks);
+        return Object.freeze({
+            ok: value.ok === true && contractValid && DEPLOYMENT_CHECK_KEYS.every(key => frozenChecks[key].ok === true),
+            cached: value.cached === true || value.localCached === true,
+            localCached: value.localCached === true,
+            checkedAt,
+            lastHealthyAt: cleanText(value.lastHealthyAt || '', 40),
+            nextCheckAt: cleanText(value.nextCheckAt || '', 40),
+            contractValid,
+            contractCode: contractValid ? '' : 'FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID',
+            checks: frozenChecks,
+            service
+        });
+    }
+
     function loadDeploymentReadiness() {
         try {
-            const parsed = JSON.parse(storageGet(DEPLOYMENT_READINESS_KEY, 'null'));
-            return parsed && typeof parsed === 'object' ? parsed : null;
+            return normalizeDeploymentReadinessSnapshot(JSON.parse(storageGet(DEPLOYMENT_READINESS_KEY, 'null')));
         } catch (error) {
             return null;
         }
     }
 
+    function normalizeDeploymentHistoryEntry(value) {
+        if (!value || typeof value !== 'object' || !Number.isFinite(Date.parse(String(value.checkedAt || '')))) return null;
+        return Object.freeze({
+            checkedAt: cleanText(value.checkedAt || '', 40),
+            ok: value.ok === true,
+            cached: value.cached === true,
+            failed: Array.isArray(value.failed) ? value.failed.map(key => cleanText(key, 32)).filter(key => DEPLOYMENT_CHECK_KEY_SET.has(key)).slice(0, 5) : [],
+            serverVersion: cleanText(value.serverVersion || '', 24),
+            lastHealthyAt: cleanText(value.lastHealthyAt || '', 40)
+        });
+    }
+
     function loadDeploymentHistory() {
         try {
             const parsed = JSON.parse(storageGet(DEPLOYMENT_HISTORY_KEY, '[]'));
-            return Array.isArray(parsed) ? parsed.slice(0, MAX_DEPLOYMENT_HISTORY) : [];
+            return Array.isArray(parsed) ? parsed.map(normalizeDeploymentHistoryEntry).filter(Boolean).slice(0, MAX_DEPLOYMENT_HISTORY) : [];
         } catch (error) {
             return [];
         }
     }
 
     function saveDeploymentHistory(items) {
-        const safe = Array.isArray(items) ? items.slice(0, MAX_DEPLOYMENT_HISTORY) : [];
+        const safe = Array.isArray(items) ? items.map(normalizeDeploymentHistoryEntry).filter(Boolean).slice(0, MAX_DEPLOYMENT_HISTORY) : [];
         storageSet(DEPLOYMENT_HISTORY_KEY, JSON.stringify(safe));
         return safe;
     }
 
     function readinessFailureKeys(value = {}) {
-        return Object.entries(value?.checks || {}).filter(([, item]) => item?.ok !== true).map(([key]) => key).slice(0, 5);
+        return DEPLOYMENT_CHECK_KEYS.filter(key => value?.checks?.[key]?.ok !== true);
     }
 
     function appendDeploymentHistory(value = {}) {
@@ -150,7 +215,7 @@
     }
 
     function saveDeploymentReadiness(value) {
-        const safe = value && typeof value === 'object' ? value : null;
+        const safe = normalizeDeploymentReadinessSnapshot(value);
         if (safe) {
             storageSet(DEPLOYMENT_READINESS_KEY, JSON.stringify(safe));
             appendDeploymentHistory(safe);
@@ -449,11 +514,26 @@
         }
     }
 
+    function normalizeHttpOrigin(value = '') {
+        const text = cleanText(value, 180).replace(/\/+$/, '');
+        if (!/^https?:\/\//i.test(text)) return '';
+        try {
+            const parsed = typeof global.URL === 'function' ? new global.URL(text) : null;
+            return parsed?.origin ? cleanText(parsed.origin, 180).replace(/\/+$/, '') : text.match(/^https?:\/\/[^/]+/i)?.[0] || '';
+        } catch (error) {
+            return text.match(/^https?:\/\/[^/]+/i)?.[0] || '';
+        }
+    }
+
     function inspectClientCsp(endpoint = '') {
-        const origin = cleanText(endpoint || state.serviceEndpoint || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 180);
+        const origin = normalizeHttpOrigin(endpoint || state.serviceEndpoint || global.FoxBearFirebase?.incidentFunctionsOrigin || '');
         const policy = document.querySelector?.('meta[http-equiv="Content-Security-Policy"]')?.getAttribute?.('content') || '';
-        const ok = Boolean(origin && policy.includes(origin));
-        return { ok, status: ok ? 'ready' : 'error', message: ok ? 'Callable 주소가 웹 CSP에 포함되어 있습니다.' : 'Callable 주소가 웹 CSP connect-src에 없습니다.', code: ok ? '' : 'FOXBEAR_INCIDENT_CSP_ORIGIN_MISSING' };
+        const connectDirective = String(policy).split(';').map(item => item.trim()).find(item => /^connect-src(?:\s|$)/i.test(item)) || '';
+        const sources = connectDirective.split(/\s+/).slice(1).map(normalizeHttpOrigin).filter(Boolean);
+        const ok = Boolean(origin && sources.includes(origin));
+        const code = origin ? 'FOXBEAR_INCIDENT_CSP_ORIGIN_MISSING' : 'FOXBEAR_INCIDENT_FUNCTIONS_ORIGIN_INVALID';
+        const message = ok ? 'Callable 주소가 웹 CSP에 정확히 포함되어 있습니다.' : origin ? 'Callable 주소가 웹 CSP connect-src에 없습니다.' : 'Callable Functions 주소 형식이 올바르지 않습니다.';
+        return Object.freeze({ ok, status: ok ? 'ready' : 'error', message, code: ok ? '' : code });
     }
 
     function renderDeploymentReadiness(result = null) {
@@ -560,9 +640,10 @@
         if (state.deploymentCheckInFlight) return state.deploymentCheckInFlight;
         const cached = state.deploymentReadiness || loadDeploymentReadiness();
         if (cached && !getDeploymentCheckAvailability(cached).ready) {
-            saveDeploymentReadiness(cached);
-            renderDeploymentReadiness(cached);
-            return Object.freeze({ ...cached, cached: true, localCached: true });
+            const localCached = normalizeDeploymentReadinessSnapshot({ ...cached, cached: true, localCached: true });
+            saveDeploymentReadiness(localCached);
+            renderDeploymentReadiness(localCached);
+            return localCached;
         }
         ['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection'].forEach(key => setDeploymentCheckState(key, 'active', '확인 중…'));
         const task = (async () => {
@@ -1388,6 +1469,8 @@
         getDeploymentCheckAvailability,
         deploymentRecoveryInfo,
         getSettingsSummary,
-        syncSettingsSummary
+        syncSettingsSummary,
+        normalizeDeploymentReadinessSnapshot,
+        normalizeHttpOrigin
     });
 })(window);

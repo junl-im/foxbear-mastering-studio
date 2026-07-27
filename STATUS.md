@@ -1,3 +1,18 @@
+# FoxBear Status - v1.6.10
+
+## v1.6.10 current focus
+
+- Deployment readiness is fail-closed when required checks, timestamps, server version, or Functions origin are incomplete.
+- Cached server readiness is reused only when its required check contract is complete.
+- CSP verification requires an exact normalized origin token in `connect-src`.
+- Local cached rechecks update one history record and mark it as cached.
+- Invalid local history entries are ignored safely.
+- Configured static/regression target: 333 checks before installed-browser confirmation.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
 # FoxBear Status - v1.6.9
 
 ## v1.6.9 current focus
@@ -502,10 +517,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.6.9`
-- Build ID: `incident-readiness-history-recovery-copy-events`
-- Asset version: `1.6.9-incident-readiness-history-recovery-copy-events`
-- Service worker cache: `foxbear-shell-v1.6.9-incident-readiness-history-recovery-copy-events`
+- Product version: `1.6.10`
+- Build ID: `incident-readiness-contract-csp-cache-hardening`
+- Asset version: `1.6.10-incident-readiness-contract-csp-cache-hardening`
+- Service worker cache: `foxbear-shell-v1.6.10-incident-readiness-contract-csp-cache-hardening`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -537,10 +552,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.9`
-- Build ID: `incident-readiness-history-recovery-copy-events`
-- Asset version: `1.6.9-incident-readiness-history-recovery-copy-events`
-- Service worker cache: `foxbear-shell-v1.6.9-incident-readiness-history-recovery-copy-events`
+- Product version: `1.6.10`
+- Build ID: `incident-readiness-contract-csp-cache-hardening`
+- Asset version: `1.6.10-incident-readiness-contract-csp-cache-hardening`
+- Service worker cache: `foxbear-shell-v1.6.10-incident-readiness-contract-csp-cache-hardening`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

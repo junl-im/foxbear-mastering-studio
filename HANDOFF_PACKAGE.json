@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.9",
-  "buildId": "incident-readiness-history-recovery-copy-events",
+  "productVersion": "1.6.10",
+  "buildId": "incident-readiness-contract-csp-cache-hardening",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -64,7 +64,9 @@
     "qa/v1577_runtime_resource_lifecycle_smoke.js",
     "docs/V1.5.77_RUNTIME_RESOURCE_LIFECYCLE_RECOVERY.md",
     "qa/v1600_incident_mail_pipeline_health_smoke.js",
-    "docs/V1.6.0_INCIDENT_MAIL_PIPELINE_HEALTH.md"
+    "docs/V1.6.0_INCIDENT_MAIL_PIPELINE_HEALTH.md",
+    "qa/v1610_incident_readiness_contract_csp_cache_hardening_smoke.js",
+    "docs/V1.6.10_INCIDENT_READINESS_CONTRACT_CSP_CACHE_HARDENING.md"
   ],
   "requiredPrefixes": [
     "assets/",

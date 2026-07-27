@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.9-incident-readiness-history-recovery-copy-events';
+  const VIEW_VERSION = '1.6.10-incident-readiness-contract-csp-cache-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

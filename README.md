@@ -1,3 +1,16 @@
+# FoxBear AI Mastering Studio Pro v1.6.10
+
+현재 릴리스는 배포 자체 점검 응답이 일부 누락되거나 손상된 경우 상위 `ok: true`를 그대로 믿지 않고 안전하게 실패 처리합니다. 웹 CSP는 `connect-src` 안의 정확한 Callable origin만 인정하며, 60초 로컬 캐시 재사용은 같은 이력 한 건을 캐시 결과로 갱신합니다. 손상된 로컬 점검 이력은 설정 화면을 깨뜨리지 않고 제외됩니다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1610_incident_readiness_contract_csp_cache_hardening_smoke.js`
+- 오류 신고 전체 배포: `npm run deploy:incident`
+- 설정된 정적·회귀 검사: 333개.
+
 # FoxBear AI Mastering Studio Pro v1.6.9
 
 현재 릴리스는 최근 배포 자체 점검 3회의 정상·실패 변화를 기기 내부에만 보관하고, 실패한 각 점검 카드에서 복구 명령 또는 안전한 설정 안내를 바로 복사할 수 있습니다. 같은 캐시 결과는 중복 저장하지 않으며, 오류 자동신고 상태가 바뀌면 설정 메뉴 요약도 즉시 갱신됩니다.

@@ -65,7 +65,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.9';
+const PRODUCT_VERSION = '1.6.10';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 6;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -1940,6 +1940,18 @@ exports.getIncidentServiceStatus = onCall({
   return incidentServiceMetadata(request);
 });
 
+const INCIDENT_READINESS_CHECK_KEYS = Object.freeze(['functions', 'firestore', 'smtpSecret', 'smtpConnection']);
+
+function isIncidentReadinessResultComplete(value = {}) {
+  const checks = value?.checks && typeof value.checks === 'object' ? value.checks : {};
+  return Boolean(
+    value && typeof value === 'object'
+    && value.service?.productVersion
+    && value.service?.functionsOrigin
+    && INCIDENT_READINESS_CHECK_KEYS.every(key => Object.prototype.hasOwnProperty.call(checks, key) && typeof checks[key]?.ok === 'boolean')
+  );
+}
+
 async function inspectIncidentDeploymentReadiness(request = {}) {
   const checks = {
     functions: { ok: true, status: 'ready', message: `Callable Functions v${PRODUCT_VERSION} 응답 정상` },
@@ -1994,7 +2006,7 @@ exports.checkIncidentDeploymentReadiness = onCall({
   } catch (error) {}
   const previousCheckedAt = timestampMillis(previous?.checkedAt);
   const nextCheckAtMs = previousCheckedAt ? previousCheckedAt + INCIDENT_READINESS_COOLDOWN_MS : 0;
-  if (previous?.result && nextCheckAtMs > now) {
+  if (isIncidentReadinessResultComplete(previous?.result) && nextCheckAtMs > now) {
     return {
       ...previous.result,
       cached: true,

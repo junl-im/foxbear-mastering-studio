@@ -1,3 +1,14 @@
+# v1.6.10 - Incident Readiness Contract, CSP, and Cache Hardening
+
+- Fails closed when a deployment-readiness payload claims success but omits required checks or core metadata.
+- Validates cached readiness on both the Firebase client bridge and Callable server before reuse.
+- Converts malformed success responses into an actionable Functions contract error.
+- Verifies the exact normalized Callable origin inside the CSP `connect-src` directive instead of using substring matching.
+- Marks local cooldown reuse as cached while deduplicating the same check timestamp.
+- Filters corrupt local readiness-history entries without breaking the settings UI.
+- Persists the required final report format as `작업한 내역 / 다운로드 파일 2종 / 다음 예정 내역`.
+- Adds regression coverage for malformed contracts, CSP lookalikes, cache accuracy, and storage corruption.
+
 # v1.6.9 - Incident Readiness History and Recovery Copy
 
 - Keeps the latest three deployment readiness outcomes locally with normal/failure transitions.

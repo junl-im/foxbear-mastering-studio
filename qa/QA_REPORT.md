@@ -1,3 +1,10 @@
+# FoxBear QA Report - v1.6.10
+
+- New regression: `qa/v1610_incident_readiness_contract_csp_cache_hardening_smoke.js`.
+- Covers fail-closed missing-check responses, exact CSP origin matching, cache-history deduplication/marking, and corrupt local-storage recovery.
+- Configured cumulative static/regression target: 333 checks.
+- Browser, Firebase production deployment, Gmail SMTP receipt, and real-device audio validation remain environment-dependent gates.
+
 # FoxBear QA Report - v1.6.9
 
 - Added a bounded three-entry deployment readiness history with cached-result deduplication.
