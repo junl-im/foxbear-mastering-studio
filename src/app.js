@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.10 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.6.12 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -21,7 +21,7 @@ const FoxBearInAppMasteringSafetyService = window.FoxBearInAppMasteringSafetySer
 const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.10';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.12';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,7 +65,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.10-incident-readiness-contract-csp-cache-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1610'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.12-mastering-tone-loudness-fastpath'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1612'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -3134,7 +3134,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.10-incident-readiness-contract-csp-cache-hardening') · navigator.serviceWorker.register('./sw.js?v=1.6.10-incident-readiness-contract-csp-cache-hardening&h=sw-v1610')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.12-mastering-tone-loudness-fastpath') · navigator.serviceWorker.register('./sw.js?v=1.6.12-mastering-tone-loudness-fastpath&h=sw-v1612')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3965,7 +3965,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.10-incident-readiness-contract-csp-cache-hardening', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.12-mastering-tone-loudness-fastpath', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4279,7 +4279,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.6.10-incident-readiness-contract-csp-cache-hardening',
+        version: '1.6.12-mastering-tone-loudness-fastpath',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4320,10 +4320,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.6.10-incident-readiness-contract-csp-cache-hardening',
+    version: '1.6.12-mastering-tone-loudness-fastpath',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.10-incident-readiness-contract-csp-cache-hardening', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.12-mastering-tone-loudness-fastpath', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4348,12 +4348,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.10-incident-readiness-contract-csp-cache-hardening', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.12-mastering-tone-loudness-fastpath', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.10-incident-readiness-contract-csp-cache-hardening', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.12-mastering-tone-loudness-fastpath', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4368,12 +4368,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.6.10-incident-readiness-contract-csp-cache-hardening',
+    version: 'v1.6.12-mastering-tone-loudness-fastpath',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.10-incident-readiness-contract-csp-cache-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.12-mastering-tone-loudness-fastpath', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5499,7 +5499,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.6.10-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.6.12-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -8796,113 +8796,15 @@ function reportOperationalIncident(category, error, context = '', options = {}) 
         console.warn('Operational incident report skipped:', reportError);
     }
 }
-function measureApproxGatedLoudness(buffer) {
-    return measureKWeightedGatedLoudness(buffer);
+function getLoudnessMeasurementService() {
+    const service = window.FoxBearLoudnessMeasurementService;
+    if (!service?.measureBundle || !service?.measureIntegrated || !service?.measureShortTerm) throw new Error('K-weighted loudness service unavailable.');
+    return service;
 }
-function measureKWeightedGatedLoudness(buffer) {
-    if (!buffer || !buffer.length) return -90;
-    const sampleRate = Math.max(3000, Math.min(384000, buffer.sampleRate || 44100));
-    const length = Math.max(1, buffer.length || 1), channels = Math.max(1, Math.min(2, buffer.numberOfChannels || 1));
-    const filtered = filterKWeightedAudioBuffer(buffer, sampleRate, length, channels);
-    const frameSize = Math.max(1024, Math.round(sampleRate * 0.400));
-    const hopSize = Math.max(512, Math.round(frameSize / 4));
-    const powers = [];
-    for (let start = 0; start < length; start += hopSize) {
-        const end = Math.min(length, start + frameSize);
-        let sum = 0;
-        let count = 0;
-        for (let i = start; i < end; i += 1) {
-            let channelPower = 0;
-            for (let ch = 0; ch < channels; ch += 1) {
-                const sample = filtered[ch][i] || 0;
-                channelPower += sample * sample;
-            }
-            sum += channelPower;
-            count += 1;
-        }
-        const power = sum / Math.max(1, count);
-        const db = loudnessDbFromPower(power);
-        if (db > -70) powers.push(power);
-    }
-    if (!powers.length) return -90;
-    const ungatedMean = powers.reduce((sum, item) => sum + item, 0) / powers.length;
-    const relativeGate = loudnessDbFromPower(ungatedMean) - 10;
-    const gated = powers.filter(power => loudnessDbFromPower(power) >= relativeGate);
-    const selected = gated.length ? gated : powers;
-    const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
-    return loudnessDbFromPower(mean);
-}
-function measureShortTermLufsStats(buffer, options = {}) {
-    if (!buffer || !buffer.length) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: 0, hopSec: 0 };
-    const sampleRate = Math.max(3000, Math.min(384000, buffer.sampleRate || 44100));
-    const length = Math.max(1, buffer.length || 1);
-    const channels = Math.max(1, Math.min(2, buffer.numberOfChannels || 1));
-    const filtered = filterKWeightedAudioBuffer(buffer, sampleRate, length, channels);
-    const chunkSize = Math.max(256, Math.round(sampleRate * 0.100));
-    const chunkCount = Math.max(1, Math.ceil(length / chunkSize));
-    const chunkPowers = Array.from({ length: chunkCount }, (_, chunk) => {
-        const start = chunk * chunkSize, end = Math.min(length, start + chunkSize);
-        let sum = 0, count = 0;
-        for (let i = start; i < end; i += 1) { let channelPower = 0; for (let ch = 0; ch < channels; ch += 1) { const sample = filtered[ch][i] || 0; channelPower += sample * sample; } sum += channelPower; count += 1; }
-        return sum / Math.max(1, count);
-    });
-    const chunkSec = chunkSize / sampleRate, windowChunks = Math.max(1, Math.min(chunkCount, Math.round(Number(options.windowSec || 3) / Math.max(0.001, chunkSec)))), hopChunks = Math.max(1, Math.round(Number(options.hopSec || 1) / Math.max(0.001, chunkSec)));
-    const values = [];
-    for (let start = 0; start < chunkCount; start += hopChunks) {
-        const end = Math.min(chunkCount, start + windowChunks), sum = chunkPowers.slice(start, end).reduce((acc, value) => acc + value, 0), db = loudnessDbFromPower(sum / Math.max(1, end - start));
-        if (db > -70) values.push(db); if (end >= chunkCount) break;
-    }
-    const windowSec = Number((windowChunks * chunkSec).toFixed(2)), hopSec = Number((hopChunks * chunkSec).toFixed(2));
-    if (!values.length) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec, hopSec };
-    const min = Math.min(...values), max = Math.max(...values), mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-    return { min: Number(min.toFixed(2)), max: Number(max.toFixed(2)), mean: Number(mean.toFixed(2)), range: Number((max - min).toFixed(2)), count: values.length, windowSec, hopSec };
-}
-function filterKWeightedAudioBuffer(buffer, sampleRate, length, channels) {
-    const output = [];
-    for (let ch = 0; ch < channels; ch += 1) {
-        const input = buffer.getChannelData(ch);
-        const filtered = new Float32Array(length);
-        const shelf = createKWeightHighShelfFilter(sampleRate, 1681.974450955533, 4.0);
-        const highpass = createKWeightHighpassFilter(sampleRate, 38.13547087613982, 0.5);
-        for (let i = 0; i < length; i += 1) {
-            const x = Number.isFinite(input[i]) ? input[i] : 0;
-            filtered[i] = processKWeightBiquad(highpass, processKWeightBiquad(shelf, x));
-        }
-        output.push(filtered);
-    }
-    return output;
-}
-function loudnessDbFromPower(power) {
-    return -0.691 + 10 * Math.log10(Math.max(1e-12, power));
-}
-function createKWeightHighpassFilter(sampleRate, frequency, q) {
-    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
-    const cos = Math.cos(w0);
-    const sin = Math.sin(w0);
-    const alpha = sin / (2 * Math.max(0.001, q));
-    const b0 = (1 + cos) / 2;
-    const b1 = -(1 + cos);
-    const b2 = (1 + cos) / 2;
-    const a0 = 1 + alpha;
-    const a1 = -2 * cos;
-    const a2 = 1 - alpha;
-    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
-}
-function createKWeightHighShelfFilter(sampleRate, frequency, gainDb) {
-    const a = Math.pow(10, gainDb / 40);
-    const w0 = 2 * Math.PI * clamp(frequency, 1, sampleRate * 0.45) / sampleRate;
-    const cos = Math.cos(w0);
-    const sin = Math.sin(w0);
-    const sqrtA = Math.sqrt(a);
-    const alpha = sin / 2 * Math.sqrt(2);
-    const b0 = a * ((a + 1) + (a - 1) * cos + 2 * sqrtA * alpha);
-    const b1 = -2 * a * ((a - 1) + (a + 1) * cos);
-    const b2 = a * ((a + 1) + (a - 1) * cos - 2 * sqrtA * alpha);
-    const a0 = (a + 1) - (a - 1) * cos + 2 * sqrtA * alpha;
-    const a1 = 2 * ((a - 1) - (a + 1) * cos);
-    const a2 = (a + 1) - (a - 1) * cos - 2 * sqrtA * alpha;
-    return normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2);
-}
+function measureApproxGatedLoudness(buffer) { return measureKWeightedGatedLoudness(buffer); }
+function measureKWeightedGatedLoudness(buffer) { return getLoudnessMeasurementService().measureIntegrated(buffer); }
+function measureKWeightedLoudnessBundleAudioBuffer(buffer, options = {}) { return getLoudnessMeasurementService().measureBundle(buffer, options); }
+function measureShortTermLufsStats(buffer, options = {}) { return getLoudnessMeasurementService().measureShortTerm(buffer, options); }
 function normalizeKWeightBiquad(b0, b1, b2, a0, a1, a2) {
     const inv = 1 / Math.max(1e-12, a0);
     return { b0: b0 * inv, b1: b1 * inv, b2: b2 * inv, a1: a1 * inv, a2: a2 * inv, x1: 0, x2: 0, y1: 0, y2: 0 };
@@ -8932,8 +8834,9 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         applyBufferGain(working, Math.pow(10, loudnessGainDb / 20));
         const peakInfo = applyTransparentLimiterGuard(working, targetDb, options.truePeak !== false, qualityMode);
         sanitizeAudioBuffer(working, 'finalizer-fallback-output');
-        const loudnessAfter = measureApproxGatedLoudness(working);
-        const shortTermLufs = measureShortTermLufsStats(working);
+        const finalLoudness = measureKWeightedLoudnessBundleAudioBuffer(working);
+        const loudnessAfter = finalLoudness.integrated;
+        const shortTermLufs = finalLoudness.shortTerm;
         return {
             buffer: working,
             info: {
@@ -10011,7 +9914,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.6.10-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.6.12-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13083,7 +12986,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.6.10',
+        app: 'FoxBear AI Mastering Studio Pro v1.6.12',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

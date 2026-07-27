@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.10 - limiter correctness, bounded quality fingerprints, and performance telemetry.
+// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.12 - channel-specialized tone dynamics and fused safety scans.
 'use strict';
 
 self.onmessage = event => {
@@ -33,17 +33,19 @@ self.onmessage = event => {
 
         const oversample = truePeak ? 4 : 1;
         const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
-        const data = channelBuffers.map(src => src.slice(0, length));
+        // The buffers were transferred into this worker, so exact-length views are
+        // exclusively owned here and can be processed in place. Only trim/copy
+        // malformed oversized inputs to preserve the declared output length.
+        const data = channelBuffers.map(src => src.length === length ? src : src.slice(0, length));
         const qualityBefore = makeQualityFingerprint(data, length);
         postProgress(jobId, 8, '입력 정리', '샘플 복사와 비정상 값 정리를 시작합니다.');
-        const inputHealth = inspectInputSignal(data, length, sampleRate);
+        const inputHealth = inspectAndSanitizeInputSignal(data, length, sampleRate);
         if (!inputHealth.ok) {
             const inputError = new Error(inputHealth.message);
             inputError.name = 'MasteringInputError';
             inputError.code = inputHealth.code;
             throw inputError;
         }
-        sanitizeBuffers(data, length);
         removeDcOffset(data, length);
         markStage('inputPreparation');
         postProgress(jobId, 18, '공진 보호', '모바일 공진과 치찰음 위험을 줄입니다.');
@@ -63,12 +65,13 @@ self.onmessage = event => {
         postProgress(jobId, 62, '목표 레벨 적용', '목표 LUFS에 맞춰 게인을 조정했습니다.');
 
         const ceiling = Math.pow(10, ceilingDb / 20);
-        const preLimiterPeak = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
+        // A positive constant gain scales sample and FIR true peaks linearly.
+        // Reusing the already measured peak avoids a second full oversampled scan.
+        const preLimiterPeak = peakBefore * Math.abs(gain);
         postProgress(jobId, 72, '리미터 처리', '룩어헤드 리미터와 출력 ceiling을 적용합니다.');
         const limiterInfo = applyLookaheadLimiter(data, length, ceiling, sampleRate, qualityMode);
         applySoftCeiling(data, length, ceiling);
-        removeDcOffset(data, length);
-        sanitizeBuffers(data, length);
+        removeDcOffsetAndSanitize(data, length);
         markStage('gainLimiter');
 
         postProgress(jobId, 84, '최종 안전 검사', 'True Peak와 잔여 클리핑을 다시 확인합니다.');
@@ -80,9 +83,13 @@ self.onmessage = event => {
             peakAfter = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
         }
         postProgress(jobId, 92, '최종 측정', '완성 LUFS와 단기 라우드니스를 계산합니다.');
-        const loudnessAfter = measureKWeightedGatedLoudness(data, sampleRate, length, channels);
-        const shortTermLufs = measureShortTermLufsStatsBuffers(data, sampleRate, length, channels);
-        const finalPeak = truePeak ? measureFirTruePeak(data, length, oversample) : measureSamplePeak(data, length);
+        // Integrated and short-term loudness share the same K-weighted signal.
+        // Filtering once removes one full stereo biquad pass and its allocations.
+        const finalLoudness = measureKWeightedLoudnessBundle(data, sampleRate, length, channels);
+        const loudnessAfter = finalLoudness.integrated;
+        const shortTermLufs = finalLoudness.shortTerm;
+        // peakAfter already reflects the optional safety-gain remeasurement.
+        const finalPeak = peakAfter;
         markStage('finalMeasurement');
         const qualityAfter = makeQualityFingerprint(data, length);
         const qualityFingerprint = { before: qualityBefore, after: qualityAfter, delta: { highActivityDb: dbRatio(qualityAfter.highActivity, qualityBefore.highActivity), lowActivityDb: dbRatio(qualityAfter.lowActivity, qualityBefore.lowActivity), crestDb: qualityAfter.crestDb - qualityBefore.crestDb, stereoCorrelation: qualityAfter.stereoCorrelation - qualityBefore.stereoCorrelation } };
@@ -200,12 +207,74 @@ function removeDcOffset(buffers, length) {
     }
 }
 
+
+function removeDcOffsetAndSanitize(buffers, length) {
+    const hardLimit = 8;
+    for (const data of buffers) {
+        let sum = 0;
+        for (let i = 0; i < length; i += 1) sum += data[i] || 0;
+        const mean = sum / Math.max(1, length);
+        if (Math.abs(mean) < 1e-7) {
+            for (let i = 0; i < length; i += 1) {
+                const value = data[i];
+                data[i] = Number.isFinite(value) ? (value > hardLimit ? hardLimit : value < -hardLimit ? -hardLimit : value) : 0;
+            }
+            continue;
+        }
+        for (let i = 0; i < length; i += 1) {
+            const shifted = (data[i] || 0) - mean;
+            data[i] = Number.isFinite(shifted) ? (shifted > hardLimit ? hardLimit : shifted < -hardLimit ? -hardLimit : shifted) : 0;
+        }
+    }
+}
+
 function measureKWeightedGatedLoudness(buffers, sampleRate, length, channels) {
     if (!buffers || !buffers.length || length <= 0) return -90;
     const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
     const usableChannels = Math.max(1, Math.min(channels || buffers.length || 1, buffers.length));
-    const filtered = filterKWeightedBuffers(buffers, safeRate, length, usableChannels);
-    const frameSize = Math.max(1024, Math.round(safeRate * 0.400));
+    const powerBySample = filterKWeightedPower(buffers, safeRate, length, usableChannels);
+    return measureKWeightedGatedLoudnessFromPower(powerBySample, safeRate, length);
+}
+
+function measureKWeightedLoudnessBundle(buffers, sampleRate, length, channels) {
+    const emptyShortTerm = { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: 0, hopSec: 0 };
+    if (!buffers || !buffers.length || length <= 0) return { integrated: -90, shortTerm: emptyShortTerm };
+    const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
+    const usableChannels = Math.max(1, Math.min(channels || buffers.length || 1, buffers.length));
+    const powerBySample = filterKWeightedPower(buffers, safeRate, length, usableChannels);
+    return {
+        integrated: measureKWeightedGatedLoudnessFromPower(powerBySample, safeRate, length),
+        shortTerm: measureShortTermLufsStatsFromPower(powerBySample, safeRate, length)
+    };
+}
+
+function measureKWeightedGatedLoudnessFromPower(powerBySample, sampleRate, length) {
+    const frameSize = Math.max(1024, Math.round(sampleRate * 0.400));
+    const hopSize = Math.max(512, Math.round(frameSize / 4));
+    const powers = [];
+    for (let start = 0; start < length; start += hopSize) {
+        const end = Math.min(length, start + frameSize);
+        let sum = 0;
+        let count = 0;
+        for (let i = start; i < end; i += 1) {
+            sum += powerBySample[i];
+            count += 1;
+        }
+        const power = sum / Math.max(1, count);
+        const db = loudnessDbFromPower(power);
+        if (db > -70) powers.push(power);
+    }
+    if (!powers.length) return -90;
+    const ungatedMean = powers.reduce((sum, item) => sum + item, 0) / powers.length;
+    const relativeGate = loudnessDbFromPower(ungatedMean) - 10;
+    const gated = powers.filter(power => loudnessDbFromPower(power) >= relativeGate);
+    const selected = gated.length ? gated : powers;
+    const mean = selected.reduce((sum, item) => sum + item, 0) / Math.max(1, selected.length);
+    return loudnessDbFromPower(mean);
+}
+
+function measureKWeightedGatedLoudnessFromFiltered(filtered, sampleRate, length, channels) {
+    const frameSize = Math.max(1024, Math.round(sampleRate * 0.400));
     const hopSize = Math.max(512, Math.round(frameSize / 4));
     const powers = [];
     for (let start = 0; start < length; start += hopSize) {
@@ -214,7 +283,7 @@ function measureKWeightedGatedLoudness(buffers, sampleRate, length, channels) {
         let count = 0;
         for (let i = start; i < end; i += 1) {
             let channelPower = 0;
-            for (let ch = 0; ch < usableChannels; ch += 1) {
+            for (let ch = 0; ch < channels; ch += 1) {
                 const sample = filtered[ch][i] || 0;
                 channelPower += sample * sample;
             }
@@ -234,13 +303,16 @@ function measureKWeightedGatedLoudness(buffers, sampleRate, length, channels) {
     return loudnessDbFromPower(mean);
 }
 
-
 function measureShortTermLufsStatsBuffers(buffers, sampleRate, length, channels) {
     if (!buffers || !buffers.length || length <= 0) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: 0, hopSec: 0 };
     const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
     const usableChannels = Math.max(1, Math.min(channels || buffers.length || 1, buffers.length));
-    const filtered = filterKWeightedBuffers(buffers, safeRate, length, usableChannels);
-    const chunkSize = Math.max(256, Math.round(safeRate * 0.100));
+    const powerBySample = filterKWeightedPower(buffers, safeRate, length, usableChannels);
+    return measureShortTermLufsStatsFromPower(powerBySample, safeRate, length);
+}
+
+function measureShortTermLufsStatsFromPower(powerBySample, sampleRate, length) {
+    const chunkSize = Math.max(256, Math.round(sampleRate * 0.100));
     const chunkCount = Math.max(1, Math.ceil(length / chunkSize));
     const chunkPowers = new Array(chunkCount).fill(0);
     for (let chunk = 0; chunk < chunkCount; chunk += 1) {
@@ -249,17 +321,12 @@ function measureShortTermLufsStatsBuffers(buffers, sampleRate, length, channels)
         let sum = 0;
         let count = 0;
         for (let i = start; i < end; i += 1) {
-            let channelPower = 0;
-            for (let ch = 0; ch < usableChannels; ch += 1) {
-                const sample = filtered[ch][i] || 0;
-                channelPower += sample * sample;
-            }
-            sum += channelPower;
+            sum += powerBySample[i];
             count += 1;
         }
         chunkPowers[chunk] = sum / Math.max(1, count);
     }
-    const chunkSec = chunkSize / safeRate;
+    const chunkSec = chunkSize / sampleRate;
     const windowChunks = Math.max(1, Math.min(chunkCount, Math.round(3.0 / Math.max(0.001, chunkSec))));
     const hopChunks = Math.max(1, Math.round(1.0 / Math.max(0.001, chunkSec)));
     const values = [];
@@ -276,6 +343,60 @@ function measureShortTermLufsStatsBuffers(buffers, sampleRate, length, channels)
     const max = Math.max(...values);
     const mean = values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
     return { min: Number(min.toFixed(2)), max: Number(max.toFixed(2)), mean: Number(mean.toFixed(2)), range: Number((max - min).toFixed(2)), count: values.length, windowSec: Number((windowChunks * chunkSec).toFixed(2)), hopSec: Number((hopChunks * chunkSec).toFixed(2)) };
+}
+
+function measureShortTermLufsStatsFromFiltered(filtered, sampleRate, length, channels) {
+    const chunkSize = Math.max(256, Math.round(sampleRate * 0.100));
+    const chunkCount = Math.max(1, Math.ceil(length / chunkSize));
+    const chunkPowers = new Array(chunkCount).fill(0);
+    for (let chunk = 0; chunk < chunkCount; chunk += 1) {
+        const start = chunk * chunkSize;
+        const end = Math.min(length, start + chunkSize);
+        let sum = 0;
+        let count = 0;
+        for (let i = start; i < end; i += 1) {
+            let channelPower = 0;
+            for (let ch = 0; ch < channels; ch += 1) {
+                const sample = filtered[ch][i] || 0;
+                channelPower += sample * sample;
+            }
+            sum += channelPower;
+            count += 1;
+        }
+        chunkPowers[chunk] = sum / Math.max(1, count);
+    }
+    const chunkSec = chunkSize / sampleRate;
+    const windowChunks = Math.max(1, Math.min(chunkCount, Math.round(3.0 / Math.max(0.001, chunkSec))));
+    const hopChunks = Math.max(1, Math.round(1.0 / Math.max(0.001, chunkSec)));
+    const values = [];
+    for (let start = 0; start < chunkCount; start += hopChunks) {
+        const end = Math.min(chunkCount, start + windowChunks);
+        let sum = 0;
+        for (let i = start; i < end; i += 1) sum += chunkPowers[i] || 0;
+        const db = loudnessDbFromPower(sum / Math.max(1, end - start));
+        if (db > -70) values.push(db);
+        if (end >= chunkCount) break;
+    }
+    if (!values.length) return { min: -90, max: -90, mean: -90, range: 0, count: 0, windowSec: Number((windowChunks * chunkSec).toFixed(2)), hopSec: Number((hopChunks * chunkSec).toFixed(2)) };
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const mean = values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
+    return { min: Number(min.toFixed(2)), max: Number(max.toFixed(2)), mean: Number(mean.toFixed(2)), range: Number((max - min).toFixed(2)), count: values.length, windowSec: Number((windowChunks * chunkSec).toFixed(2)), hopSec: Number((hopChunks * chunkSec).toFixed(2)) };
+}
+
+function filterKWeightedPower(buffers, sampleRate, length, channels) {
+    const powerBySample = new Float64Array(length);
+    for (let ch = 0; ch < channels; ch += 1) {
+        const input = buffers[ch] || buffers[0];
+        const shelf = createHighShelfFilter(sampleRate, 1681.974450955533, 4.0);
+        const highpass = createHighpassFilter(sampleRate, 38.13547087613982, 0.5);
+        for (let i = 0; i < length; i += 1) {
+            const x = Number.isFinite(input[i]) ? input[i] : 0;
+            const filtered = Math.fround(processBiquad(highpass, processBiquad(shelf, x)));
+            powerBySample[i] += filtered * filtered;
+        }
+    }
+    return powerBySample;
 }
 
 function filterKWeightedBuffers(buffers, sampleRate, length, channels) {
@@ -340,6 +461,26 @@ function processBiquad(state, x) {
     state.y2 = state.y1;
     state.y1 = Number.isFinite(y) ? y : 0;
     return state.y1;
+}
+
+function createBiquadProcessor(state) {
+    const b0 = state.b0;
+    const b1 = state.b1;
+    const b2 = state.b2;
+    const a1 = state.a1;
+    const a2 = state.a2;
+    let x1 = state.x1;
+    let x2 = state.x2;
+    let y1 = state.y1;
+    let y2 = state.y2;
+    return x => {
+        const y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+        x2 = x1;
+        x1 = x;
+        y2 = y1;
+        y1 = Number.isFinite(y) ? y : 0;
+        return y1;
+    };
 }
 
 function measureSamplePeak(buffers, length) {
@@ -461,26 +602,30 @@ function normalizeAnalysis(analysis) {
     };
 }
 
-function inspectInputSignal(buffers, length, sampleRate) {
+function inspectAndSanitizeInputSignal(buffers, length, sampleRate) {
     const durationSec = length / Math.max(1, sampleRate);
     if (durationSec < 0.10) {
         return { ok: false, code: 'MASTERING_INPUT_TOO_SHORT', message: '오디오가 0.10초보다 짧아 안정적으로 마스터링할 수 없습니다.', durationSec, peak: 0, rms: 0, invalidSamples: 0, sampledSamples: 0, invalidRatio: 0 };
     }
+    const hardLimit = 8;
     let peak = 0;
     let sumSquares = 0;
     let sampledSamples = 0;
     let invalidSamples = 0;
     for (const data of buffers) {
         for (let i = 0; i < length; i += 1) {
-            const value = Number(data[i]);
+            const original = Number(data[i]);
             sampledSamples += 1;
-            if (!Number.isFinite(value)) {
+            if (!Number.isFinite(original)) {
                 invalidSamples += 1;
+                data[i] = 0;
                 continue;
             }
-            const absolute = Math.abs(value);
+            const absolute = Math.abs(original);
             if (absolute > peak) peak = absolute;
-            sumSquares += value * value;
+            sumSquares += original * original;
+            if (original > hardLimit) data[i] = hardLimit;
+            else if (original < -hardLimit) data[i] = -hardLimit;
         }
     }
     const finiteSamples = Math.max(0, sampledSamples - invalidSamples);
@@ -496,6 +641,9 @@ function inspectInputSignal(buffers, length, sampleRate) {
     return { ok: true, code: 'MASTERING_INPUT_OK', message: '입력 신호 정상', ...metrics, nearSilent: peak < 0.002 || rms < 0.0002 };
 }
 
+function inspectInputSignal(buffers, length, sampleRate) {
+    return inspectAndSanitizeInputSignal(buffers, length, sampleRate);
+}
 
 function applyMobileSpeakerResonanceGuard(buffers, length, sampleRate, qualityMode, analysis) {
     if (!buffers || !buffers.length || length < 16) return { mode: 'bypass', risk: 0, cuts: {} };
@@ -512,17 +660,40 @@ function applyMobileSpeakerResonanceGuard(buffers, length, sampleRate, qualityMo
         phoneDb: clamp(-(Number(detail.harsh || fallbackRisk.harsh) * 0.58 + Math.max(0, analysis.presenceRatio - 0.20) * 0.72) * amount, -1.15, 0)
     };
     const filterSets = buffers.map(() => [
-        createBiquadLowShelfGeneric(safeRate, 105, 0.707, cuts.lowShelfDb),
-        createBiquadPeakingGeneric(safeRate, 285, 0.86, cuts.mudDb),
-        createBiquadPeakingGeneric(safeRate, 465, 1.12, cuts.boxDb),
-        createBiquadPeakingGeneric(safeRate, 4150, 1.45, cuts.phoneDb)
+        createBiquadProcessor(createBiquadLowShelfGeneric(safeRate, 105, 0.707, cuts.lowShelfDb)),
+        createBiquadProcessor(createBiquadPeakingGeneric(safeRate, 285, 0.86, cuts.mudDb)),
+        createBiquadProcessor(createBiquadPeakingGeneric(safeRate, 465, 1.12, cuts.boxDb)),
+        createBiquadProcessor(createBiquadPeakingGeneric(safeRate, 4150, 1.45, cuts.phoneDb))
     ]);
-    for (let i = 0; i < length; i += 1) {
-        for (let ch = 0; ch < buffers.length; ch += 1) {
-            let x = Number.isFinite(buffers[ch][i]) ? buffers[ch][i] : 0;
-            for (const filter of filterSets[ch]) x = processBiquad(filter, x);
-            buffers[ch][i] = x;
+    const left = buffers[0];
+    const leftFilters = filterSets[0];
+    if (buffers.length === 1) {
+        for (let i = 0; i < length; i += 1) {
+            let x = left[i];
+            x = leftFilters[0](x);
+            x = leftFilters[1](x);
+            x = leftFilters[2](x);
+            x = leftFilters[3](x);
+            left[i] = x;
         }
+        return { mode: 'mobileSpeakerResonanceGuard', risk, cuts };
+    }
+    const right = buffers[1];
+    const rightFilters = filterSets[1];
+    for (let i = 0; i < length; i += 1) {
+        let leftValue = left[i];
+        leftValue = leftFilters[0](leftValue);
+        leftValue = leftFilters[1](leftValue);
+        leftValue = leftFilters[2](leftValue);
+        leftValue = leftFilters[3](leftValue);
+        left[i] = leftValue;
+
+        let rightValue = right[i];
+        rightValue = rightFilters[0](rightValue);
+        rightValue = rightFilters[1](rightValue);
+        rightValue = rightFilters[2](rightValue);
+        rightValue = rightFilters[3](rightValue);
+        right[i] = rightValue;
     }
     return { mode: 'mobileSpeakerResonanceGuard', risk, cuts };
 }
@@ -572,11 +743,11 @@ function applyDynamicDeEsser(buffers, length, sampleRate, qualityMode, analysis)
     const presenceTop = clamp(target * 0.78, 4300, 6200);
     const sibilanceBottom = clamp(target * 0.82, 4800, 7200);
     const sibilanceTop = clamp(target * 1.28, 7200, 9800);
-    const harshHp = buffers.map(() => createBiquadHighpassGeneric(safeRate, 2300, 0.707));
-    const harshLp = buffers.map(() => createBiquadLowpass(safeRate, presenceTop, 0.707));
-    const sibilanceHp = buffers.map(() => createBiquadHighpassGeneric(safeRate, sibilanceBottom, 0.707));
-    const sibilanceLp = buffers.map(() => createBiquadLowpass(safeRate, sibilanceTop, 0.707));
-    const airHp = buffers.map(() => createBiquadHighpassGeneric(safeRate, 9200, 0.707));
+    const harshHp = buffers.map(() => createBiquadProcessor(createBiquadHighpassGeneric(safeRate, 2300, 0.707)));
+    const harshLp = buffers.map(() => createBiquadProcessor(createBiquadLowpass(safeRate, presenceTop, 0.707)));
+    const sibilanceHp = buffers.map(() => createBiquadProcessor(createBiquadHighpassGeneric(safeRate, sibilanceBottom, 0.707)));
+    const sibilanceLp = buffers.map(() => createBiquadProcessor(createBiquadLowpass(safeRate, sibilanceTop, 0.707)));
+    const airHp = buffers.map(() => createBiquadProcessor(createBiquadHighpassGeneric(safeRate, 9200, 0.707)));
     const harshDetector = createEnvelopeFollower(safeRate, 2.2, 70);
     const sibilanceDetector = createEnvelopeFollower(safeRate, 1.1, 62);
     const airDetector = createEnvelopeFollower(safeRate, 3.5, 95);
@@ -590,35 +761,60 @@ function applyDynamicDeEsser(buffers, length, sampleRate, qualityMode, analysis)
     const wetSib = clamp(0.24 + need.risk * 0.26, 0.20, 0.52);
     const wetAir = clamp(0.12 + need.risk * 0.10, 0.10, 0.24);
     let minHarsh = 1, minSibilance = 1, minAir = 1, activeSamples = 0;
-    const scratch = buffers.map(() => ({ x: 0, harsh: 0, sib: 0, air: 0 }));
-    for (let i = 0; i < length; i += 1) {
-        let harshAbs = 0, sibAbs = 0, airAbs = 0;
-        for (let ch = 0; ch < buffers.length; ch += 1) {
-            const x = Number.isFinite(buffers[ch][i]) ? buffers[ch][i] : 0;
-            const harsh = processBiquad(harshLp[ch], processBiquad(harshHp[ch], x));
-            const sib = processBiquad(sibilanceLp[ch], processBiquad(sibilanceHp[ch], x));
-            const air = processBiquad(airHp[ch], x);
-            scratch[ch].x = x;
-            scratch[ch].harsh = harsh;
-            scratch[ch].sib = sib;
-            scratch[ch].air = air;
-            harshAbs = Math.max(harshAbs, Math.abs(harsh));
-            sibAbs = Math.max(sibAbs, Math.abs(sib));
-            airAbs = Math.max(airAbs, Math.abs(air));
+    const left = buffers[0];
+
+    if (buffers.length === 1) {
+        for (let i = 0; i < length; i += 1) {
+            const x = left[i];
+            const harsh = harshLp[0](harshHp[0](x));
+            const sib = sibilanceLp[0](sibilanceHp[0](x));
+            const air = airHp[0](x);
+            const harshGain = computeBandGain(updateEnvelope(harshDetector, Math.abs(harsh)), harshThresh, 1.85, maxHarshDb);
+            const sibGain = computeBandGain(updateEnvelope(sibilanceDetector, Math.abs(sib)), sibilanceThresh, 2.45, maxSibDb);
+            const airGain = computeBandGain(updateEnvelope(airDetector, Math.abs(air)), airThresh, 1.55, maxAirDb);
+            minHarsh = Math.min(minHarsh, harshGain);
+            minSibilance = Math.min(minSibilance, sibGain);
+            minAir = Math.min(minAir, airGain);
+            if (harshGain < 0.999 || sibGain < 0.999 || airGain < 0.999) activeSamples += 1;
+            left[i] = x
+                - harsh * (1 - harshGain) * wetHarsh
+                - sib * (1 - sibGain) * wetSib
+                - air * (1 - airGain) * wetAir;
         }
-        const harshGain = computeBandGain(updateEnvelope(harshDetector, harshAbs), harshThresh, 1.85, maxHarshDb);
-        const sibGain = computeBandGain(updateEnvelope(sibilanceDetector, sibAbs), sibilanceThresh, 2.45, maxSibDb);
-        const airGain = computeBandGain(updateEnvelope(airDetector, airAbs), airThresh, 1.55, maxAirDb);
-        minHarsh = Math.min(minHarsh, harshGain);
-        minSibilance = Math.min(minSibilance, sibGain);
-        minAir = Math.min(minAir, airGain);
-        if (harshGain < 0.999 || sibGain < 0.999 || airGain < 0.999) activeSamples += 1;
-        for (let ch = 0; ch < buffers.length; ch += 1) {
-            const item = scratch[ch];
-            buffers[ch][i] = item.x
-                - item.harsh * (1 - harshGain) * wetHarsh
-                - item.sib * (1 - sibGain) * wetSib
-                - item.air * (1 - airGain) * wetAir;
+    } else {
+        const right = buffers[1];
+        for (let i = 0; i < length; i += 1) {
+            const leftX = left[i];
+            const leftHarsh = harshLp[0](harshHp[0](leftX));
+            const leftSib = sibilanceLp[0](sibilanceHp[0](leftX));
+            const leftAir = airHp[0](leftX);
+            let harshAbs = Math.max(0, Math.abs(leftHarsh));
+            let sibAbs = Math.max(0, Math.abs(leftSib));
+            let airAbs = Math.max(0, Math.abs(leftAir));
+
+            const rightX = right[i];
+            const rightHarsh = harshLp[1](harshHp[1](rightX));
+            const rightSib = sibilanceLp[1](sibilanceHp[1](rightX));
+            const rightAir = airHp[1](rightX);
+            harshAbs = Math.max(harshAbs, Math.abs(rightHarsh));
+            sibAbs = Math.max(sibAbs, Math.abs(rightSib));
+            airAbs = Math.max(airAbs, Math.abs(rightAir));
+
+            const harshGain = computeBandGain(updateEnvelope(harshDetector, harshAbs), harshThresh, 1.85, maxHarshDb);
+            const sibGain = computeBandGain(updateEnvelope(sibilanceDetector, sibAbs), sibilanceThresh, 2.45, maxSibDb);
+            const airGain = computeBandGain(updateEnvelope(airDetector, airAbs), airThresh, 1.55, maxAirDb);
+            minHarsh = Math.min(minHarsh, harshGain);
+            minSibilance = Math.min(minSibilance, sibGain);
+            minAir = Math.min(minAir, airGain);
+            if (harshGain < 0.999 || sibGain < 0.999 || airGain < 0.999) activeSamples += 1;
+            left[i] = leftX
+                - leftHarsh * (1 - harshGain) * wetHarsh
+                - leftSib * (1 - sibGain) * wetSib
+                - leftAir * (1 - airGain) * wetAir;
+            right[i] = rightX
+                - rightHarsh * (1 - harshGain) * wetHarsh
+                - rightSib * (1 - sibGain) * wetSib
+                - rightAir * (1 - airGain) * wetAir;
         }
     }
     const bands = {
@@ -644,10 +840,10 @@ function applyGentleMultibandDynamics(buffers, length, sampleRate, qualityMode, 
     const maxLowDb = 0.7 + lowNeed * 2.2;
     const maxMidDb = 0.45 + midNeed * 1.25;
     const maxHighDb = 0.55 + highNeed * 1.85;
-    const lowFilters = buffers.map(() => createBiquadLowpass(safeRate, 170, 0.707));
-    const midHp = buffers.map(() => createBiquadHighpassGeneric(safeRate, 180, 0.707));
-    const midLp = buffers.map(() => createBiquadLowpass(safeRate, 4200, 0.707));
-    const highFilters = buffers.map(() => createBiquadHighpassGeneric(safeRate, 5200, 0.707));
+    const lowFilters = buffers.map(() => createBiquadProcessor(createBiquadLowpass(safeRate, 170, 0.707)));
+    const midHp = buffers.map(() => createBiquadProcessor(createBiquadHighpassGeneric(safeRate, 180, 0.707)));
+    const midLp = buffers.map(() => createBiquadProcessor(createBiquadLowpass(safeRate, 4200, 0.707)));
+    const highFilters = buffers.map(() => createBiquadProcessor(createBiquadHighpassGeneric(safeRate, 5200, 0.707)));
     const lowDetector = createEnvelopeFollower(safeRate, 7, 155);
     const midDetector = createEnvelopeFollower(safeRate, 12, 115);
     const highDetector = createEnvelopeFollower(safeRate, 4, 82);
@@ -658,40 +854,60 @@ function applyGentleMultibandDynamics(buffers, length, sampleRate, qualityMode, 
     let minMidGain = 1;
     let minHighGain = 1;
     let activeSamples = 0;
-    const scratch = buffers.map(() => ({ low: 0, mid: 0, high: 0, x: 0 }));
-    for (let i = 0; i < length; i += 1) {
-        let lowAbs = 0;
-        let midAbs = 0;
-        let highAbs = 0;
-        for (let ch = 0; ch < buffers.length; ch += 1) {
-            const x = Number.isFinite(buffers[ch][i]) ? buffers[ch][i] : 0;
-            const low = processBiquad(lowFilters[ch], x);
-            const mid = processBiquad(midLp[ch], processBiquad(midHp[ch], x));
-            const high = processBiquad(highFilters[ch], x);
-            scratch[ch].x = x;
-            scratch[ch].low = low;
-            scratch[ch].mid = mid;
-            scratch[ch].high = high;
-            lowAbs = Math.max(lowAbs, Math.abs(low));
-            midAbs = Math.max(midAbs, Math.abs(mid));
-            highAbs = Math.max(highAbs, Math.abs(high));
+    const left = buffers[0];
+
+    if (buffers.length === 1) {
+        for (let i = 0; i < length; i += 1) {
+            const x = left[i];
+            const low = lowFilters[0](x);
+            const mid = midLp[0](midHp[0](x));
+            const high = highFilters[0](x);
+            const lowGain = computeBandGain(updateEnvelope(lowDetector, Math.abs(low)), lowThresh, 2.0, maxLowDb);
+            const midGain = computeBandGain(updateEnvelope(midDetector, Math.abs(mid)), midThresh, 1.55, maxMidDb);
+            const highGain = computeBandGain(updateEnvelope(highDetector, Math.abs(high)), highThresh, 2.15, maxHighDb);
+            minLowGain = Math.min(minLowGain, lowGain);
+            minMidGain = Math.min(minMidGain, midGain);
+            minHighGain = Math.min(minHighGain, highGain);
+            if (lowGain < 0.999 || midGain < 0.999 || highGain < 0.999) activeSamples += 1;
+            left[i] = x
+                - low * (1 - lowGain) * wetLow
+                - mid * (1 - midGain) * wetMid
+                - high * (1 - highGain) * wetHigh;
         }
-        const lowEnv = updateEnvelope(lowDetector, lowAbs);
-        const midEnv = updateEnvelope(midDetector, midAbs);
-        const highEnv = updateEnvelope(highDetector, highAbs);
-        const lowGain = computeBandGain(lowEnv, lowThresh, 2.0, maxLowDb);
-        const midGain = computeBandGain(midEnv, midThresh, 1.55, maxMidDb);
-        const highGain = computeBandGain(highEnv, highThresh, 2.15, maxHighDb);
-        minLowGain = Math.min(minLowGain, lowGain);
-        minMidGain = Math.min(minMidGain, midGain);
-        minHighGain = Math.min(minHighGain, highGain);
-        if (lowGain < 0.999 || midGain < 0.999 || highGain < 0.999) activeSamples += 1;
-        for (let ch = 0; ch < buffers.length; ch += 1) {
-            const item = scratch[ch];
-            buffers[ch][i] = item.x
-                - item.low * (1 - lowGain) * wetLow
-                - item.mid * (1 - midGain) * wetMid
-                - item.high * (1 - highGain) * wetHigh;
+    } else {
+        const right = buffers[1];
+        for (let i = 0; i < length; i += 1) {
+            const leftX = left[i];
+            const leftLow = lowFilters[0](leftX);
+            const leftMid = midLp[0](midHp[0](leftX));
+            const leftHigh = highFilters[0](leftX);
+            let lowAbs = Math.max(0, Math.abs(leftLow));
+            let midAbs = Math.max(0, Math.abs(leftMid));
+            let highAbs = Math.max(0, Math.abs(leftHigh));
+
+            const rightX = right[i];
+            const rightLow = lowFilters[1](rightX);
+            const rightMid = midLp[1](midHp[1](rightX));
+            const rightHigh = highFilters[1](rightX);
+            lowAbs = Math.max(lowAbs, Math.abs(rightLow));
+            midAbs = Math.max(midAbs, Math.abs(rightMid));
+            highAbs = Math.max(highAbs, Math.abs(rightHigh));
+
+            const lowGain = computeBandGain(updateEnvelope(lowDetector, lowAbs), lowThresh, 2.0, maxLowDb);
+            const midGain = computeBandGain(updateEnvelope(midDetector, midAbs), midThresh, 1.55, maxMidDb);
+            const highGain = computeBandGain(updateEnvelope(highDetector, highAbs), highThresh, 2.15, maxHighDb);
+            minLowGain = Math.min(minLowGain, lowGain);
+            minMidGain = Math.min(minMidGain, midGain);
+            minHighGain = Math.min(minHighGain, highGain);
+            if (lowGain < 0.999 || midGain < 0.999 || highGain < 0.999) activeSamples += 1;
+            left[i] = leftX
+                - leftLow * (1 - lowGain) * wetLow
+                - leftMid * (1 - midGain) * wetMid
+                - leftHigh * (1 - highGain) * wetHigh;
+            right[i] = rightX
+                - rightLow * (1 - lowGain) * wetLow
+                - rightMid * (1 - midGain) * wetMid
+                - rightHigh * (1 - highGain) * wetHigh;
         }
     }
     const bands = {

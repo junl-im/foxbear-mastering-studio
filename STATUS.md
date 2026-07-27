@@ -1,3 +1,35 @@
+# FoxBear Status - v1.6.12
+
+## v1.6.12 current focus
+
+- Mono and stereo tone-dynamics loops avoid generic channel iteration and temporary scratch objects.
+- K-weighted integrated and short-term loudness use one exact Float32-equivalent power representation.
+- Input validation/sanitization and final DC/safety cleanup each use one fewer full-buffer pass.
+- Worker and fallback final loudness paths share the same measurement work.
+- Same-input regression preserves output samples and reported quality metrics.
+- Configured static/regression target: 336 checks before installed-browser confirmation.
+- Local Node VM 1-second stereo stress comparisons show roughly 10-21% lower processing time across measured runs.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+# FoxBear Status - v1.6.11
+
+## v1.6.11 current focus
+
+- Finalizer exact-length transfer buffers are reused without a second full channel copy.
+- Final integrated and short-term LUFS share one K-weighted filter pass.
+- Two redundant 4x True Peak scans are eliminated through mathematically safe measurement reuse.
+- Same-input comparison preserves every output sample and final quality metric.
+- Historical build-ID assertions no longer fail valid future releases.
+- Local synthetic benchmark median processing time decreased by about 40% in Node VM.
+- Configured static/regression target: 334 checks before installed-browser confirmation.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
 # FoxBear Status - v1.6.10
 
 ## v1.6.10 current focus
@@ -517,10 +549,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Current release
 
-- Product version: `1.6.10`
-- Build ID: `incident-readiness-contract-csp-cache-hardening`
-- Asset version: `1.6.10-incident-readiness-contract-csp-cache-hardening`
-- Service worker cache: `foxbear-shell-v1.6.10-incident-readiness-contract-csp-cache-hardening`
+- Product version: `1.6.12`
+- Build ID: `mastering-tone-loudness-fastpath`
+- Asset version: `1.6.12-mastering-tone-loudness-fastpath`
+- Service worker cache: `foxbear-shell-v1.6.12-mastering-tone-loudness-fastpath`
 - Browser QA target: risk-specific recovery success, injected recovery exception preservation, silent/short rejection, cancellation during expensive stages, mono/high-rate mastering, and malformed-analysis safety
 
 ## v1.5.25 deterministic preview stability invariant
@@ -552,10 +584,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.10`
-- Build ID: `incident-readiness-contract-csp-cache-hardening`
-- Asset version: `1.6.10-incident-readiness-contract-csp-cache-hardening`
-- Service worker cache: `foxbear-shell-v1.6.10-incident-readiness-contract-csp-cache-hardening`
+- Product version: `1.6.12`
+- Build ID: `mastering-tone-loudness-fastpath`
+- Asset version: `1.6.12-mastering-tone-loudness-fastpath`
+- Service worker cache: `foxbear-shell-v1.6.12-mastering-tone-loudness-fastpath`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

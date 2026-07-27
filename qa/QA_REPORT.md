@@ -1,3 +1,24 @@
+# FoxBear QA Report - v1.6.12
+
+- New regression: `qa/v1612_mastering_tone_loudness_fastpath_smoke.js`.
+- Covers exact K-weighted integrated/short-term equivalence at 32 kHz, 44.1 kHz, and 48 kHz for mono and stereo inputs.
+- Covers fused input inspection/sanitization equivalence for clipped and non-finite samples.
+- Covers channel-specialized tone processing, fallback final-measurement reuse, stage telemetry, and output ceiling safety.
+- Same-input v1.6.11/v1.6.12 comparisons preserve all output Float32 samples and checked finalizer telemetry.
+- Configured cumulative static/regression target: 336 checks.
+- Local Node VM 1-second stereo stress comparisons measured approximately 10-21% lower processing time across runs; this is not a browser-device guarantee.
+- Installed-browser, real-device thermal, and long-duration multi-track validation remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.11
+
+- New regression: `qa/v1611_mastering_speed_measurement_reuse_smoke.js`.
+- Covers in-place reuse of transferred channel buffers, shared K-weighted loudness results, duplicate True Peak scan removal, valid performance telemetry, and output ceiling safety.
+- Same-input v1.6.10/v1.6.11 comparison: zero output-sample differences; final integrated LUFS, final LUFS, final True Peak, limiter reduction, and short-term LUFS unchanged.
+- Local Node VM 3-second stereo benchmark median: about 8.34 seconds before and 4.98 seconds after, approximately 40% lower processing time in that harness.
+- Historical v1.6.9/v1.6.10 checks now validate build-ID shape without pinning an obsolete release ID.
+- Configured cumulative static/regression target: 334 checks.
+- Installed-browser, real-device thermal, and long-duration 35-track validation remain environment-dependent gates.
+
 # FoxBear QA Report - v1.6.10
 
 - New regression: `qa/v1610_incident_readiness_contract_csp_cache_hardening_smoke.js`.

@@ -1,3 +1,36 @@
+# Handoff - v1.6.12
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+
+## v1.6.12 current focus
+
+- Finalizer tone dynamics use dedicated mono/stereo loops instead of generic channel loops and per-sample scratch objects.
+- K-weighted loudness stores one per-sample channel-power value and reuses it for integrated and short-term calculations.
+- Input inspection now sanitizes in the same pass; final DC correction and safety sanitization are also fused.
+- The main-thread finalizer fallback shares the same final loudness measurement rather than filtering twice.
+- Same-input v1.6.11/v1.6.12 comparisons preserve every output Float32 sample and final telemetry checked by the regression harness.
+- Configured cumulative static/regression target: 336 checks before installed-browser confirmation.
+- Local Node VM 1-second stereo stress comparisons showed roughly 10-21% lower processing time across measured runs; browser/device validation remains required.
+
+## v1.6.11 current focus
+
+- Exact-length channel buffers transferred into the finalizer Worker are processed in place instead of copied again.
+- Pre-limiter peak reuses the existing pre-gain True Peak measurement through constant-gain scaling.
+- Final integrated and short-term loudness share one K-weighted filter pass.
+- The already verified post-safety peak is reused as the final peak instead of running another 4x FIR scan.
+- A same-input v1.6.10/v1.6.11 comparison produced zero output-sample differences and identical final LUFS/True Peak metrics.
+- Local 3-second stereo synthetic benchmark median improved from about 8.34 seconds to 4.98 seconds; actual browser gains vary by device.
+- Historical v1.6.9/v1.6.10 regressions now validate the current build-ID format instead of pinning a previous release ID.
+- Regression: `node qa/v1611_mastering_speed_measurement_reuse_smoke.js`.
+
 # Handoff - v1.6.10
 
 # 필수 결과 보고 형식

@@ -18,8 +18,8 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css');
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
-assert.strictEqual(pkg.version, '1.6.10');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.10-incident-readiness-contract-csp-cache-hardening');
+assert.strictEqual(pkg.version, '1.6.12');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.12-mastering-tone-loudness-fastpath');
 assert(index.includes('name="foxbear-app-check-site-key"'));
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));

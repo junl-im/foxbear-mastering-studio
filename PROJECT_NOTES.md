@@ -1,3 +1,10 @@
+# v1.6.12 project notes
+
+- Preserve the sequential order of mobile resonance guard, dynamic de-esser, and multiband dynamics; their outputs intentionally feed the next stage.
+- Channel specialization may remove loop/object overhead but must not reorder filter calls, detector updates, or Float32 output writes.
+- K-weighted power aggregation must retain `Math.fround` at the former Float32-buffer boundary so loudness metrics remain exact.
+- Performance changes require same-input sample comparison, engine QA, golden audio, and the cumulative static gate.
+
 ## v1.6.10 project notes
 
 - Readiness health is now derived from the complete required-check contract, not only the server's top-level success flag.

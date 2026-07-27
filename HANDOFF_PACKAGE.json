@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.10",
-  "buildId": "incident-readiness-contract-csp-cache-hardening",
+  "productVersion": "1.6.12",
+  "buildId": "mastering-tone-loudness-fastpath",
   "requiredFiles": [
     "404.html",
     ".gitignore",

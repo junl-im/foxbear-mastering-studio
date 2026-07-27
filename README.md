@@ -1,3 +1,19 @@
+# FoxBear AI Mastering Studio Pro v1.6.12
+
+현재 릴리스는 v1.6.11의 측정 재사용에 이어 finalizer의 가장 큰 잔여 병목을 줄입니다. 모노·스테레오 tone dynamics를 전용 루프로 처리하고, K-weighted 채널 버퍼 대신 샘플별 전력 배열을 공유하며, 입력·출력 안전 스캔을 결합해 음질과 최종 샘플을 유지하면서 처리 시간을 단축합니다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1612_mastering_tone_loudness_fastpath_smoke.js`
+- 엔진 벤치: `node qa/engine_qa_bench.js`
+- 골든 오디오: `node qa/golden_audio_qa_pack.js`
+- 설정된 정적·회귀 검사: 336개 전체 통과.
+- 로컬 Node VM 1초 스테레오 강보정 비교에서 실행별 약 10~21% 처리 시간 감소를 확인했습니다. 실제 브라우저 수치는 기기별로 달라집니다.
+- 과거 회귀 검사의 이전 build ID 고정 비교도 제거했습니다.
+
 # FoxBear AI Mastering Studio Pro v1.6.10
 
 현재 릴리스는 배포 자체 점검 응답이 일부 누락되거나 손상된 경우 상위 `ok: true`를 그대로 믿지 않고 안전하게 실패 처리합니다. 웹 CSP는 `connect-src` 안의 정확한 Callable origin만 인정하며, 60초 로컬 캐시 재사용은 같은 이력 한 건을 캐시 결과로 갱신합니다. 손상된 로컬 점검 이력은 설정 화면을 깨뜨리지 않고 제외됩니다.

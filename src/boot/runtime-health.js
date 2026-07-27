@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.10-incident-readiness-contract-csp-cache-hardening';
+    const FALLBACK_VERSION = '1.6.12-mastering-tone-loudness-fastpath';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

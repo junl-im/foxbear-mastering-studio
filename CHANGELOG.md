@@ -1,3 +1,22 @@
+# v1.6.12 - Mastering Tone and Loudness Fast Path
+
+- Specializes the finalizer tone-dynamics loops for mono and stereo buffers, removing repeated channel-loop and scratch-object overhead.
+- Replaces temporary per-channel K-weighted audio buffers with one Float64 per-sample power array while preserving Float32 filter rounding and exact LUFS results.
+- Shares the same power fast path across integrated and short-term loudness in the Worker and the main-thread fallback.
+- Fuses input validation with sanitization and final DC removal with the final safety sanitize pass.
+- Preserves output samples and reported loudness/peak/limiter values in same-input v1.6.11 comparisons.
+- Adds v1.6.12 regression coverage for metric equivalence, malformed-input behavior, specialized tone loops, fallback reuse, and output ceiling safety.
+
+# v1.6.11 - Mastering Speed Measurement Reuse
+
+- Reuses exact-length transferred finalizer channel buffers instead of allocating and copying each channel again.
+- Derives pre-limiter peak from the existing peak and constant gain, removing a redundant 4x FIR True Peak scan.
+- Shares one K-weighted filtered signal between final integrated LUFS and short-term LUFS calculations.
+- Reuses the post-safety `peakAfter` value as the final peak, removing another redundant True Peak scan.
+- Preserves output samples, final LUFS, final True Peak, limiter behavior, and short-term loudness on same-input comparison.
+- Fixes two historical regression tests that incorrectly pinned the previous release build ID.
+- Adds a dedicated regression for zero-copy ownership, shared measurement equivalence, peak reuse, and ceiling safety.
+
 # v1.6.10 - Incident Readiness Contract, CSP, and Cache Hardening
 
 - Fails closed when a deployment-readiness payload claims success but omits required checks or core metadata.

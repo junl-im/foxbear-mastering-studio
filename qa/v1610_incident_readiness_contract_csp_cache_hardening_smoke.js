@@ -14,9 +14,9 @@ const firebaseSource = read('src/firebase-bootstrap.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.10');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'incident-readiness-contract-csp-cache-hardening');
-assert.strictEqual(pkg.qaChecks.length, 333);
+assert.strictEqual(pkg.version, '1.6.12');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
+assert(pkg.qaChecks.length >= 333);
 assert(firebaseSource.includes('FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID'));
 assert(firebaseSource.includes('requiredCheckKeys.every'));
 assert(functionsSource.includes('function isIncidentReadinessResultComplete'));
@@ -46,7 +46,7 @@ const sandbox = {
     setItem: (key, value) => memory.set(key, String(value))
   },
   document: {
-    body: { dataset: { build: '1.6.10' }, appendChild() {} }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.12' }, appendChild() {} }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -55,7 +55,7 @@ const sandbox = {
     addEventListener() {}, createElement: makeElement, execCommand: () => true
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.6.10', assetVersion: '1.6.10-incident-readiness-contract-csp-cache-hardening' }
+  FoxBearBuildInfo: { productVersion: '1.6.12', assetVersion: '1.6.12-mastering-tone-loudness-fastpath' }
 };
 const completeRemote = () => {
   const checkedAt = new Date().toISOString();
@@ -65,7 +65,7 @@ const completeRemote = () => {
     checkedAt,
     lastHealthyAt: checkedAt,
     nextCheckAt: new Date(Date.now() + 60000).toISOString(),
-    service: { status: 'ready', productVersion: '1.6.10', functionsOrigin: origin },
+    service: { status: 'ready', productVersion: '1.6.12', functionsOrigin: origin },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
