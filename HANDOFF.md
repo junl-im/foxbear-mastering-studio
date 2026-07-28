@@ -1,4 +1,4 @@
-# Handoff - v1.6.20
+# Handoff - v1.6.22
 
 ## Mandatory result format
 
@@ -8,17 +8,36 @@
 
 ## Current release
 
-- Product version: `1.6.20`
-- Build ID: `incident-background-sync-network-decay`
-- Asset version: `1.6.20-incident-background-sync-network-decay`
-- Service worker cache: `foxbear-shell-v1.6.20-incident-background-sync-network-decay`
-- Configured static/regression target: 351 checks.
+- Product version: `1.6.21`
+- Build ID: `incident-lifecycle-network-exploration`
+- Asset version: `1.6.21-incident-lifecycle-network-exploration`
+- Service worker cache: `foxbear-shell-v1.6.21-incident-lifecycle-network-exploration`
+- Configured static/regression target: 353 checks.
 
-## v1.6.20 handoff
+## v1.6.21 handoff
 
-- `incident-mail-sync-service.js` uses visibility-aware polling and immediate foreground refresh for active mail.
-- `incident-route-policy.js` decays prior route evidence after network-context changes and clears stale cooldowns.
-- Production Firebase routing and Gmail receipt remain environment gates.
+- `src/boot/incident-lifecycle-service.js` must load after the mail-sync scheduler and before `incident-reporter.js`.
+- Connectivity and visibility listeners belong to the lifecycle coordinator; avoid adding duplicate global online/offline listeners to the reporter.
+- A network-key change decays old route scores and opens exactly four exploration attempts. `recordAttempt()` must be called only when a route request is actually started.
+- Long-resume recovery is deduplicated and may refresh queue, delivery history, service status, and stale readiness without storing report contents.
+- Local administrator route cards describe only the current browser; they are not fleet-wide production metrics.
+- Preserve the three-section final report rule.
+
+# Handoff - v1.6.19
+
+## Mandatory result format
+
+1. 작업한 내역
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+3. 다음 예정 내역
+
+## Current release
+
+- Product version: `1.6.18`
+- Build ID: `incident-state-adaptive-route-policy`
+- Asset version: `1.6.18-incident-state-adaptive-route-policy`
+- Service worker cache: `foxbear-shell-v1.6.18-incident-state-adaptive-route-policy`
+- Configured static/regression target: 348 checks.
 
 ## v1.6.18 handoff
 

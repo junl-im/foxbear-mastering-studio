@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.20",
+  "version": "1.6.22",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with visibility-aware mail synchronization, network-context route decay, and privacy-safe incident recovery telemetry.",
+  "description": "FoxBear AI Mastering Studio Pro with integrated incident lifecycle recovery, network exploration routing, and privacy-safe local admin transport visibility.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.20-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.20-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.22-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.22-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -86,6 +86,7 @@
     "node --check src/boot/runtime-health.js",
     "node --check src/boot/incident-route-policy.js",
     "node --check src/boot/incident-mail-sync-service.js",
+    "node --check src/boot/incident-lifecycle-service.js",
     "node --check src/boot/performance-diagnostics.js",
     "node --check src/boot/render-scheduler.js",
     "node --check sw.js",
@@ -386,12 +387,14 @@
     "node qa/v1617_incident_transport_metrics_module_split_smoke.js",
     "node qa/v1618_incident_state_adaptive_route_smoke.js",
     "node qa/v1619_incident_mail_sync_route_scoring_smoke.js",
-    "node qa/v1620_incident_background_sync_network_decay_smoke.js"
+    "node qa/v1620_incident_background_sync_network_decay_smoke.js",
+    "node qa/v1621_incident_lifecycle_network_exploration_smoke.js",
+    "node qa/v1622_incident_recovery_coalescing_time_decay_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-background-sync-network-decay",
-    "assetVersion": "1.6.20-incident-background-sync-network-decay",
-    "cacheName": "foxbear-shell-v1.6.20-incident-background-sync-network-decay",
+    "buildId": "incident-recovery-coalescing-time-decay",
+    "assetVersion": "1.6.22-incident-recovery-coalescing-time-decay",
+    "cacheName": "foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay",
     "bootRevision": "boot-sri-v1618",
     "updateSafetyRevision": "update-safety-v1618",
     "serviceWorkerRevision": "sw-v1618"

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.20",
-  "buildId": "incident-background-sync-network-decay",
+  "productVersion": "1.6.22",
+  "buildId": "incident-recovery-coalescing-time-decay",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -78,7 +78,11 @@
     "qa/v1617_incident_transport_metrics_module_split_smoke.js",
     "docs/V1.6.17_INCIDENT_TRANSPORT_METRICS_MODULE_SPLIT.md",
     "qa/v1618_incident_state_adaptive_route_smoke.js",
-    "docs/V1.6.18_INCIDENT_STATE_ADAPTIVE_ROUTE_POLICY.md"
+    "docs/V1.6.18_INCIDENT_STATE_ADAPTIVE_ROUTE_POLICY.md",
+    "src/boot/incident-mail-sync-service.js",
+    "src/boot/incident-lifecycle-service.js",
+    "qa/v1621_incident_lifecycle_network_exploration_smoke.js",
+    "docs/V1.6.21_INCIDENT_LIFECYCLE_NETWORK_EXPLORATION.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -122,6 +126,8 @@
     "src/boot/incident-support-service.js",
     "src/boot/incident-state-service.js",
     "src/boot/incident-recovery-policy.js",
-    "src/boot/incident-reporter.js"
+    "src/boot/incident-reporter.js",
+    "src/boot/incident-mail-sync-service.js",
+    "src/boot/incident-lifecycle-service.js"
   ]
 }

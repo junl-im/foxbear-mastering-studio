@@ -49,10 +49,12 @@ const INCIDENT_SAME_ORIGIN_PATHS = Object.freeze({
 });
 const INCIDENT_ROUTE_POLICY_FALLBACK = Object.freeze({
     shouldAttempt: () => true,
+    recordAttempt: () => null,
     recordSuccess: () => null,
     recordFailure: () => null,
     getHealth: () => Object.freeze({ routes: Object.freeze({}) }),
     getPreferredRoutes: () => Object.freeze(['callable', 'hosting-rewrite']),
+    observeNetworkChange: () => Object.freeze({ routes: Object.freeze({}) }),
     clear: () => Object.freeze({ routes: Object.freeze({}) })
 });
 const incidentRoutePolicy = window.FoxBearIncidentRoutePolicy || INCIDENT_ROUTE_POLICY_FALLBACK;
@@ -582,6 +584,7 @@ async function invokeIncidentCallable(name, data) {
     const preferredRoutes = incidentRoutePolicy.getPreferredRoutes?.() || ['callable', 'hosting-rewrite'];
     const hostingPreferred = preferredRoutes[0] === 'hosting-rewrite';
     if (hostingPreferred) {
+        incidentRoutePolicy.recordAttempt?.('hosting-rewrite');
         try {
             const result = await invokeIncidentCallableSameOrigin(name, data);
             incidentRoutePolicy.recordSuccess('hosting-rewrite');
@@ -593,6 +596,7 @@ async function invokeIncidentCallable(name, data) {
     }
     const callableAllowed = incidentRoutePolicy.shouldAttempt('callable');
     if (callableReady && callableAllowed) {
+        incidentRoutePolicy.recordAttempt?.('callable');
         try {
             const callable = httpsCallable(bridgeState.functions, name, { timeout: 15000 });
             const response = await callable(data);
@@ -617,6 +621,7 @@ async function invokeIncidentCallable(name, data) {
         primaryError.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
     }
     try {
+        incidentRoutePolicy.recordAttempt?.('hosting-rewrite');
         const result = await invokeIncidentCallableSameOrigin(name, data);
         incidentRoutePolicy.recordSuccess('hosting-rewrite');
         return result;

@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.20-incident-background-sync-network-decay',
+                version: '1.6.22-incident-recovery-coalescing-time-decay',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.20-incident-background-sync-network-decay',
+        version: '1.6.22-incident-recovery-coalescing-time-decay',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

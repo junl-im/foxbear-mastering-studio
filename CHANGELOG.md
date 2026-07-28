@@ -1,8 +1,19 @@
-# v1.6.20 - Background Mail Sync and Network Context Decay
+# v1.6.22 - Incident Recovery Coalescing and Route Time Decay
 
-- Slows incident mail polling while the page is hidden and rechecks active mail immediately when the page becomes visible.
-- Decays old Callable and Hosting route scores when the browser network context changes, clearing stale cooldowns.
-- Adds `qa/v1620_incident_background_sync_network_decay_smoke.js` and raises the configured cumulative target to 351 checks.
+- Coalesces simultaneous online, network-change, and long-resume recovery requests into one in-flight sweep.
+- Merges stronger pending service and deployment checks into one bounded follow-up sweep.
+- Exposes merged lifecycle reasons in anonymous diagnostics.
+- Decays Callable and Hosting success/failure evidence by 15% per elapsed day, capped at eight steps.
+- Adds `qa/v1622_incident_recovery_coalescing_time_decay_smoke.js` and raises the configured cumulative target to 354 checks.
+
+# v1.6.21 - Incident Lifecycle Recovery and Network Exploration
+
+- Adds `incident-lifecycle-service.js` to coordinate online/offline transitions, long-background resume, and connection-type changes.
+- Runs one deduplicated recovery sweep for queued anonymous reports, mail-delivery history, service health, and stale deployment readiness after connectivity or long-resume events.
+- Starts a four-attempt route exploration window after network changes and alternates Callable and Hosting same-origin paths to rebuild current-network evidence quickly.
+- Records route attempts separately from outcomes so exploration cannot be consumed by passive status rendering.
+- Shows the current browser route and local anonymous report queue in the administrator incident summary without exposing report contents.
+- Adds `qa/v1621_incident_lifecycle_network_exploration_smoke.js` and raises the configured cumulative target to 353 checks.
 
 # v1.6.19 - Incident Mail Sync and Route Scoring
 

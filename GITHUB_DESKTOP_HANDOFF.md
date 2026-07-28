@@ -1,3 +1,12 @@
+# GitHub Desktop Handoff - v1.6.21
+
+- Apply the complete v1.6.21 overwrite package or commit the full release package.
+- Confirm `incident-lifecycle-service.js` loads after `incident-mail-sync-service.js` and before `incident-reporter.js` and is present in the service-worker cache.
+- Confirm Firebase bridge requests call `recordAttempt()` immediately before Callable or Hosting requests begin.
+- Run `npm run check:static`, `npm run handoff:check`, and both package verification commands before publishing.
+- In the incident panel, change networks and confirm `새 네트워크 탐색` counts down without exposing report contents.
+- Recommended branch: `patch/v1.6.21`.
+
 # GitHub Desktop Handoff - v1.6.18
 
 - Apply the complete v1.6.18 overwrite package or commit the full release package.

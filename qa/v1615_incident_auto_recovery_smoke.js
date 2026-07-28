@@ -10,10 +10,11 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 const firebase = read('src/firebase-bootstrap.js');
 const reporter = read('src/boot/incident-reporter.js');
+const lifecycle = read('src/boot/incident-lifecycle-service.js');
 const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.20');
+assert.strictEqual(pkg.version, '1.6.22');
 assert(firebase.includes("classification: 'client-offline'"), 'offline endpoint classification missing');
 assert(firebase.includes("const opaqueResponse = await request('no-cors')"), 'opaque reachability fallback missing');
 assert(firebase.includes("classification: 'endpoint-reachable-opaque'"), 'CORS-readable response distinction missing');
@@ -25,8 +26,9 @@ assert(reporter.includes('async function runServiceAutoRecovery'), 'automatic re
 assert(reporter.includes('async function copyIncidentDiagnostics'), 'sanitized diagnostic copy action missing');
 assert(reporter.includes('function buildSanitizedDiagnostics'), 'sanitized diagnostic builder missing');
 assert(reporter.includes("'server-response-blocked'"), 'CORS response-blocked user state missing');
-assert(reporter.includes("global.addEventListener('online'"), 'online recovery trigger missing');
-assert(reporter.includes("global.addEventListener('offline'"), 'offline state trigger missing');
+assert(lifecycle.includes("addEventListener?.('online'"), 'online lifecycle trigger missing');
+assert(lifecycle.includes("addEventListener?.('offline'"), 'offline lifecycle trigger missing');
+assert(reporter.includes('onOnline:') && reporter.includes('onOffline:'), 'reporter lifecycle recovery callbacks missing');
 assert(reporter.includes('flushQueue().catch'), 'queued anonymous report retry missing');
 assert(reporter.includes('serviceRecoveryAttempt'), 'recovery attempt state missing');
 for (const id of ['incidentAutoRecoveryStatus', 'incidentAutoRecovery', 'incidentDiagnosticsCopy']) {

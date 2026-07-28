@@ -1,8 +1,8 @@
-// FoxBear export progress view v1.6.20 - queue pause, recovery, failure guidance and ETA
+// FoxBear export progress view v1.6.22 - queue pause, recovery, failure guidance and ETA
 'use strict';
 
 (function attachFoxBearExportProgressView(global) {
-    const VERSION = 'v1.6.20-incident-background-sync-network-decay';
+    const VERSION = 'v1.6.22-incident-recovery-coalescing-time-decay';
     const LEGACY_VERSION = 'v1.5.6-export-progress-recovery';
     let snapshot = Object.freeze({ version: VERSION, visible: false, mode: 'zip', state: 'idle', percent: 0, completedCount: 0, outputBytes: 0, message: '', cancellable: false });
     let refs = null;

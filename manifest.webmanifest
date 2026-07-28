@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.20 (incident-background-sync-network-decay).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.22 (incident-recovery-coalescing-time-decay).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.20"
+  "version": "1.6.22"
 }

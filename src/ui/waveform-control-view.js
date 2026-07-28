@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.20-incident-background-sync-network-decay';
+  const VIEW_VERSION = '1.6.22-incident-recovery-coalescing-time-decay';
   const DEFAULT_BINS = 96;
 
   function getService() {

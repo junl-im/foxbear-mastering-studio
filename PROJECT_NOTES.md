@@ -1,3 +1,12 @@
+## v1.6.21 current focus
+
+- Keep online/offline, visibility, and connection-type event ownership inside `incident-lifecycle-service.js`.
+- Long-resume recovery must remain deduplicated and bounded; do not start parallel queue, mail, service, or readiness sweeps.
+- Exploration alternates only actual transport attempts. Passive UI rendering and health reads must not consume exploration budget.
+- Network context is coarse (`online`, connection type, effective type, save-data) and must never gain IP, SSID, carrier, location, or report-content fields.
+- Administrator browser-route cards are local diagnostics, not server-wide operational statistics.
+- Preserve the three-section final report rule.
+
 ## v1.6.18 current focus
 
 - Keep the adaptive cooldown limited to transient network/availability failures; never hide permission, authentication, validation, or missing-deployment errors behind route switching.

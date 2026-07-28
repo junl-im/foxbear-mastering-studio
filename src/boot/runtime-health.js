@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.20-incident-background-sync-network-decay';
+    const FALLBACK_VERSION = '1.6.22-incident-recovery-coalescing-time-decay';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

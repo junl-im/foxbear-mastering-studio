@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.6.20 - stable-idle and cross-tab activity guard
+// FoxBear service worker update coordinator v1.6.22 - stable-idle and cross-tab activity guard
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.6.20-incident-background-sync-network-decay';
+  const VERSION = '1.6.22-incident-recovery-coalescing-time-decay';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

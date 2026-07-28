@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.20
+// FoxBear automatic incident reporter - v1.6.22
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.20-incident-background-sync-network-decay';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.20').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.22-incident-recovery-coalescing-time-decay';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.22').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -60,7 +60,11 @@
         serviceRecoveryReason: '',
         serviceRecoveryInFlight: null,
         lastRecoveryResult: null,
-        lastRecoveryStatus: ''
+        lastRecoveryStatus: '',
+        lifecycleSweepInFlight: null,
+        lastLifecycleSweepAt: 0,
+        lastLifecycleSweepResult: null,
+        lifecycleSweepPending: null
     };
 
     const support = global.FoxBearIncidentSupport;
@@ -80,6 +84,14 @@
                 },
                 cancel() { if (timer) global.clearTimeout?.(timer); timer = 0; },
                 hasTimer() { return Boolean(timer); }
+            });
+        }
+    });
+    const lifecycleService = global.FoxBearIncidentLifecycle || Object.freeze({
+        createController() {
+            return Object.freeze({
+                getState: () => Object.freeze({ online: global.navigator?.onLine !== false, visible: global.document?.visibilityState !== 'hidden' }),
+                dispose() {}
             });
         }
     });
@@ -391,6 +403,85 @@
         return task;
     }
 
+    function isDeploymentReadinessStale(value = state.deploymentReadiness || loadDeploymentReadiness(), maxAgeMs = 30 * 60 * 1000) {
+        const checkedAt = Date.parse(String(value?.checkedAt || ''));
+        return !Number.isFinite(checkedAt) || Date.now() - checkedAt >= Math.max(60000, Number(maxAgeMs || 0));
+    }
+
+    function mergeLifecycleSweepOptions(current = null, incoming = {}) {
+        const previous = current && typeof current === 'object' ? current : {};
+        const reasons = new Set([...(Array.isArray(previous.reasons) ? previous.reasons : []), cleanText(incoming.reason || 'lifecycle', 80)].filter(Boolean));
+        return Object.freeze({
+            reasons: Object.freeze(Array.from(reasons).slice(-6)),
+            forceService: previous.forceService === true || incoming.forceService === true,
+            checkDeployment: previous.checkDeployment === true || incoming.checkDeployment === true
+        });
+    }
+
+    async function runLifecycleRecoverySweep(options = {}) {
+        const requested = mergeLifecycleSweepOptions(null, options);
+        if (state.lifecycleSweepInFlight) {
+            state.lifecycleSweepPending = mergeLifecycleSweepOptions(state.lifecycleSweepPending, options);
+            return state.lifecycleSweepInFlight;
+        }
+        const task = (async () => {
+            let current = requested;
+            let finalResult = null;
+            do {
+                state.lifecycleSweepPending = null;
+                const reason = current.reasons.join('+') || 'lifecycle';
+                if (global.navigator?.onLine === false) {
+                    finalResult = Object.freeze({ ok: false, reason, offline: true, mergedReasons: current.reasons });
+                } else {
+                    const startedAt = Date.now();
+                    let queueResult = null;
+                    let historyResult = null;
+                    let serviceResult = null;
+                    let readinessResult = null;
+                    const errors = [];
+                    try { queueResult = await flushQueue(); } catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
+                    try { historyResult = await refreshTestHistoryFromServer({ silent: true }); } catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
+                    const shouldRefreshService = current.forceService === true || isIncidentDialogVisible() || Boolean(state.serviceStatus || state.serviceError);
+                    if (shouldRefreshService) {
+                        try { serviceResult = await refreshServiceStatus({ force: true, skipRecoverySchedule: !isIncidentDialogVisible() }); }
+                        catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
+                    }
+                    const shouldCheckDeployment = current.checkDeployment === true
+                        && isDeploymentReadinessStale()
+                        && (isIncidentDialogVisible() || Boolean(state.deploymentReadiness || loadDeploymentReadiness()));
+                    if (shouldCheckDeployment) {
+                        try { readinessResult = await runDeploymentSelfCheck(); }
+                        catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
+                    }
+                    state.lastLifecycleSweepAt = Date.now();
+                    finalResult = Object.freeze({
+                        ok: errors.length === 0,
+                        reason,
+                        mergedReasons: current.reasons,
+                        checkedAt: new Date().toISOString(),
+                        durationMs: Math.max(0, Date.now() - startedAt),
+                        queueDelivered: Number(queueResult?.delivered || 0),
+                        queueRemaining: Number(queueResult?.remaining ?? loadQueue().length),
+                        historyCount: Array.isArray(historyResult) ? historyResult.length : loadTestHistory().length,
+                        serviceChecked: Boolean(serviceResult || shouldRefreshService),
+                        readinessChecked: Boolean(readinessResult || shouldCheckDeployment),
+                        errors: Object.freeze(errors.slice(0, 4))
+                    });
+                    state.lastLifecycleSweepResult = finalResult;
+                    renderTransportMetrics();
+                    emitIncidentStatusChange(`lifecycle-${reason}`);
+                }
+                current = state.lifecycleSweepPending;
+            } while (current);
+            return finalResult;
+        })().finally(() => {
+            if (state.lifecycleSweepInFlight === task) state.lifecycleSweepInFlight = null;
+            state.lifecycleSweepPending = null;
+        });
+        state.lifecycleSweepInFlight = task;
+        return task;
+    }
+
     function setDeploymentCheckState(key, stateName = 'idle', message = '확인 전', item = null) {
         const row = document.querySelector?.(`[data-deploy-check="${key}"]`);
         if (!row) return;
@@ -634,7 +725,12 @@
             const health = typeof bridge.getIncidentRouteHealth === 'function' ? bridge.getIncidentRouteHealth() : bridge.incidentRouteHealth;
             const callableHealth = health?.routes?.callable || {};
             const hostingHealth = health?.routes?.['hosting-rewrite'] || {};
-            if (callableHealth.coolingDown) {
+            const exploration = health?.exploration || {};
+            if (exploration.active) {
+                const nextLabel = exploration.nextRoute === 'hosting-rewrite' ? 'Hosting' : 'Callable';
+                adaptive.textContent = `적응형 경로: 새 네트워크 탐색 ${Math.max(1, Number(exploration.remaining || 0))}회 남음 · 다음 ${nextLabel}`;
+                adaptive.dataset.tone = 'neutral';
+            } else if (callableHealth.coolingDown) {
                 adaptive.textContent = `적응형 경로: Callable ${Math.max(1, Number(callableHealth.remainingSeconds || 0))}초 우회 · Hosting 우선`;
                 adaptive.dataset.tone = 'warning';
             } else if (hostingHealth.coolingDown) {
@@ -1074,6 +1170,17 @@
             recoveryAttempt: state.serviceRecoveryAttempt,
             transportMetrics: getTransportMetrics(),
             adaptiveRouteHealth: routeHealth,
+            networkContext: {
+                key: cleanText(rawRouteHealth?.networkKey || '', 100),
+                changedAt: cleanText(rawRouteHealth?.networkChangedAt || '', 40),
+                explorationRemaining: Math.max(0, Number(rawRouteHealth?.exploration?.remaining || 0)),
+                explorationNextRoute: cleanText(rawRouteHealth?.exploration?.nextRoute || '', 40)
+            },
+            lifecycle: {
+                lastSweepAt: state.lastLifecycleSweepAt || 0,
+                lastSweepReason: cleanText(state.lastLifecycleSweepResult?.reason || '', 80),
+                lastSweepOk: state.lastLifecycleSweepResult?.ok === true
+            },
             deploymentChecks: checks
         });
     }
@@ -1662,6 +1769,7 @@
                 return typeof bridge.getIncidentRouteHealth === 'function' ? bridge.getIncidentRouteHealth() : bridge.incidentRouteHealth || null;
             })(),
             serviceRecovery: Object.freeze({ attempt: state.serviceRecoveryAttempt, nextAt: state.serviceRecoveryNextAt, reason: state.serviceRecoveryReason, inFlight: Boolean(state.serviceRecoveryInFlight), lastResult: state.lastRecoveryResult }),
+            lifecycle: Object.freeze({ state: lifecycleController?.getState?.() || null, lastSweepAt: state.lastLifecycleSweepAt, lastSweepResult: state.lastLifecycleSweepResult }),
             recentTests: loadTestHistory(),
             deploymentReadiness: state.deploymentReadiness || loadDeploymentReadiness(),
             deploymentHistory: loadDeploymentHistory(),
@@ -1678,17 +1786,35 @@
         report({ category: 'release-mismatch', severity: 'error', reason: 'service-worker-generation-mismatch', message: 'Service worker generation mismatch', context: JSON.stringify(event.detail || {}).slice(0, 650) }, { automatic: true }).catch(() => {});
     });
     global.addEventListener('foxbear:firebase-ready', () => { flushQueue().catch(() => {}); });
-    global.addEventListener('online', () => {
-        flushQueue().catch(() => {});
-        if (isIncidentDialogVisible() && state.serviceError) runServiceAutoRecovery({ automatic: true, checkDeployment: false }).catch(() => {});
-    });
-    global.addEventListener('offline', () => {
-        if (isIncidentDialogVisible()) {
-            state.serviceErrorCode = 'FOXBEAR_INCIDENT_CLIENT_OFFLINE';
-            state.serviceError = '브라우저가 오프라인 상태입니다. 연결 복구 후 자동으로 다시 확인합니다.';
-            renderServiceDiagnostics(null, state.serviceError, state.serviceErrorCode);
-            renderRecoveryGuidance('client-offline', state.serviceErrorCode, state.serviceError);
-            scheduleServiceRecovery('client-offline', state.serviceErrorCode);
+    const lifecycleController = lifecycleService.createController({
+        routePolicy: global.FoxBearIncidentRoutePolicy,
+        onOnline: ({ offlineDurationMs = 0 } = {}) => {
+            runLifecycleRecoverySweep({
+                reason: offlineDurationMs >= 60000 ? 'online-after-offline' : 'online',
+                forceService: isIncidentDialogVisible() || Boolean(state.serviceError),
+                checkDeployment: offlineDurationMs >= 5 * 60 * 1000
+            }).catch(() => {});
+        },
+        onOffline: () => {
+            if (isIncidentDialogVisible()) {
+                state.serviceErrorCode = 'FOXBEAR_INCIDENT_CLIENT_OFFLINE';
+                state.serviceError = '브라우저가 오프라인 상태입니다. 연결 복구 후 자동으로 다시 확인합니다.';
+                renderServiceDiagnostics(null, state.serviceError, state.serviceErrorCode);
+                renderRecoveryGuidance('client-offline', state.serviceErrorCode, state.serviceError);
+                scheduleServiceRecovery('client-offline', state.serviceErrorCode);
+            }
+            renderTransportMetrics();
+            emitIncidentStatusChange('offline');
+        },
+        onVisible: () => { renderTransportMetrics(); },
+        onLongResume: ({ backgroundDurationMs = 0 } = {}) => {
+            runLifecycleRecoverySweep({ reason: 'long-resume', forceService: true, checkDeployment: backgroundDurationMs >= 5 * 60 * 1000 }).catch(() => {});
+        },
+        onConnectionChange: ({ changed = false } = {}) => {
+            renderTransportMetrics();
+            if (changed && global.navigator?.onLine !== false) {
+                runLifecycleRecoverySweep({ reason: 'network-change', forceService: isIncidentDialogVisible(), checkDeployment: false }).catch(() => {});
+            }
         }
     });
 
@@ -1717,6 +1843,7 @@
         refreshServiceStatus,
         runServiceAutoRecovery,
         scheduleServiceRecovery,
+        runLifecycleRecoverySweep,
         copyIncidentDiagnostics,
         buildSanitizedDiagnostics,
         compareVersions,

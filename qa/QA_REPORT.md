@@ -1,3 +1,22 @@
+# FoxBear QA Report - v1.6.22
+
+- New regression: `qa/v1622_incident_recovery_coalescing_time_decay_smoke.js`.
+- Verifies elapsed-time route-score decay and exposed decay timestamp.
+- Verifies lifecycle recovery request coalescing, merged reasons, and pending stronger-option handling.
+- Re-runs historical incident, Firebase, overlay, download, mastering-engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 354 checks.
+
+# FoxBear QA Report - v1.6.21
+
+- New regression: `qa/v1621_incident_lifecycle_network_exploration_smoke.js`.
+- Verifies five-minute long-background detection, online recovery duration, debounced connection changes, route-policy observation, and listener cleanup.
+- Verifies four alternating route attempts after a network change and confirms attempts are consumed only when Firebase actually starts a route request.
+- Verifies lifecycle script order, service-worker caching, reporter recovery-sweep wiring, and local administrator route/queue summaries.
+- Re-runs historical incident, Firebase, overlay, download, mastering-engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 353 checks.
+- Final configured run: `353/353` passed.
+- Production Firebase routing, Gmail receipt, App Check enforcement, and real mobile background behavior remain environment-dependent gates.
+
 # FoxBear QA Report - v1.6.20
 
 - New regression: `qa/v1620_incident_background_sync_network_decay_smoke.js`.

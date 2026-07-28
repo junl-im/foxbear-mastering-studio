@@ -29,12 +29,12 @@ const changelog = read('CHANGELOG.md');
 const qaReport = read('qa/QA_REPORT.md');
 
 assert(fs.existsSync('src/download/export-progress-view.js'), 'export progress view file missing');
-assert(index.includes('src/download/export-progress-view.js?v=1.6.20-incident-background-sync-network-decay&h=export-progress-v156'), 'export progress view not loaded with v1.5.6 cache key');
+assert(index.includes('src/download/export-progress-view.js?v=1.6.22-incident-recovery-coalescing-time-decay&h=export-progress-v156'), 'export progress view not loaded with v1.5.6 cache key');
 assert(index.indexOf('src/download/export-guard-service.js') < index.indexOf('src/download/export-progress-view.js'), 'export progress view should load after Export Guard');
 assert(index.indexOf('src/download/export-progress-view.js') < index.indexOf('src/ui/download-dialog-view.js'), 'export progress view should load before app UI dependencies');
-assert(sw.includes('./src/download/export-progress-view.js?v=1.6.20-incident-background-sync-network-decay&h=export-progress-v156'), 'export progress view not precached');
-assert(index.includes('assets/css/export.css?v=1.6.20-incident-background-sync-network-decay&h=export-progress-v156'), 'export CSS cache key missing');
-assert(sw.includes('./assets/css/export.css?v=1.6.20-incident-background-sync-network-decay&h=export-progress-v156'), 'export CSS cache key missing from SW');
+assert(sw.includes('./src/download/export-progress-view.js?v=1.6.22-incident-recovery-coalescing-time-decay&h=export-progress-v156'), 'export progress view not precached');
+assert(index.includes('assets/css/export.css?v=1.6.22-incident-recovery-coalescing-time-decay&h=export-progress-v156'), 'export CSS cache key missing');
+assert(sw.includes('./assets/css/export.css?v=1.6.22-incident-recovery-coalescing-time-decay&h=export-progress-v156'), 'export CSS cache key missing from SW');
 assert(index.includes(sri('src/download/export-progress-view.js')), 'export progress view SRI mismatch');
 assert(index.includes(sri('assets/css/export.css')), 'export CSS SRI mismatch');
 assert(index.includes(sri('src/app.js')), 'app SRI mismatch');
@@ -51,8 +51,8 @@ assert(css.includes('.export-progress-panel') && css.includes('.export-progress-
 assert(['boot-sri-v156','boot-sri-v1618'].some(key => index.includes(`h=${key}`) && sw.includes(`h=${key}`)), 'boot-critical v1.5.6+ cache key missing');
 assert(['update-safety-v156','update-safety-v1618'].some(key => index.includes(`h=${key}`) && sw.includes(`h=${key}`)), 'update safety v1.5.6+ cache key missing');
 assert(updateSafety.includes('const EXPECTED_BOOT_KEY = BUILD_INFO.bootRevision ||') && updateSafety.includes('boot-sri-v1618'), 'Update Safety expected boot key should be build-info driven');
-assert((sw.includes("foxbear-shell-v1.5.6-export-progress-recovery") || sw.includes("foxbear-shell-v1.6.20-incident-background-sync-network-decay")) && sw.includes("foxbear-shell-v1.5.5-update-safety"), 'service worker cache generation/legacy missing');
-assert(['sw-v156','sw-v1618'].some(key => app.includes(`./sw.js?v=1.6.20-incident-background-sync-network-decay&h=${key}`)), 'app should register service worker with v1.5.6+ key');
+assert((sw.includes("foxbear-shell-v1.5.6-export-progress-recovery") || sw.includes("foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay")) && sw.includes("foxbear-shell-v1.5.5-update-safety"), 'service worker cache generation/legacy missing');
+assert(['sw-v156','sw-v1618'].some(key => app.includes(`./sw.js?v=1.6.22-incident-recovery-coalescing-time-decay&h=${key}`)), 'app should register service worker with v1.5.6+ key');
 assert(pkg.qaChecks.includes('node --check src/download/export-progress-view.js'), 'package QA missing export progress syntax check');
 assert(pkg.qaChecks.includes('node qa/v156_export_progress_recovery_smoke.js'), 'package QA missing v1.5.6 smoke');
 assert(readme.includes('v1.5.6 Export Progress Recovery') && handoff.includes('v1.5.6 export progress recovery'), 'docs missing v1.5.6 notes');

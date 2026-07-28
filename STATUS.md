@@ -1,18 +1,29 @@
-# FoxBear Status - v1.6.20
+# FoxBear Status - v1.6.22
 
 ## Current release
 
-- Product version: `1.6.20`
-- Build ID: `incident-background-sync-network-decay`
-- Asset version: `1.6.20-incident-background-sync-network-decay`
-- Service worker cache: `foxbear-shell-v1.6.20-incident-background-sync-network-decay`
+- Product version: `1.6.22`
+- Build ID: `incident-recovery-coalescing-time-decay`
+- Asset version: `1.6.22-incident-recovery-coalescing-time-decay`
+- Service worker cache: `foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay`
 
-## v1.6.20 status
+## v1.6.21 status
 
-- Hidden-page mail polling is reduced to conserve battery and network use.
-- Returning to the foreground immediately refreshes active delivery state.
-- Network-context changes decay old route scores and clear stale cooldowns.
-- Configured cumulative static/regression target: 351 checks.
+- Connectivity, long-background resume, and connection-type changes use one incident lifecycle coordinator.
+- Five-minute resume performs a deduplicated queue, mail, service, and stale-readiness recovery sweep.
+- Network changes start four alternating route attempts to rebuild Callable/Hosting reliability evidence.
+- The administrator incident summary shows local browser route state and anonymous queue count.
+- Configured cumulative static/regression target: 353 checks.
+- Production Firebase, Gmail receipt, App Check, and real-device background behavior remain environment gates.
+
+# FoxBear Status - v1.6.19
+
+## Current release
+
+- Product version: `1.6.19`
+- Build ID: `incident-mail-sync-route-scoring`
+- Asset version: `1.6.19-incident-mail-sync-route-scoring`
+- Service worker cache: `foxbear-shell-v1.6.19-incident-mail-sync-route-scoring`
 
 ## v1.6.18 status
 
@@ -693,10 +704,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.20`
-- Build ID: `incident-background-sync-network-decay`
-- Asset version: `1.6.20-incident-background-sync-network-decay`
-- Service worker cache: `foxbear-shell-v1.6.20-incident-background-sync-network-decay`
+- Product version: `1.6.22`
+- Build ID: `incident-recovery-coalescing-time-decay`
+- Asset version: `1.6.22-incident-recovery-coalescing-time-decay`
+- Service worker cache: `foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

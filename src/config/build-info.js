@@ -3,11 +3,11 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.6.20',
-    appVersion: 'Pro v1.6.20',
-    buildId: 'incident-background-sync-network-decay',
-    assetVersion: '1.6.20-incident-background-sync-network-decay',
-    cacheName: 'foxbear-shell-v1.6.20-incident-background-sync-network-decay',
+    productVersion: '1.6.22',
+    appVersion: 'Pro v1.6.22',
+    buildId: 'incident-recovery-coalescing-time-decay',
+    assetVersion: '1.6.22-incident-recovery-coalescing-time-decay',
+    cacheName: 'foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay',
     bootRevision: 'boot-sri-v1618',
     updateSafetyRevision: 'update-safety-v1618',
     serviceWorkerRevision: 'sw-v1618'

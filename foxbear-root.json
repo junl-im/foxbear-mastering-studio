@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.6.20",
-  "assetVersion": "1.6.20-incident-background-sync-network-decay"
+  "productVersion": "1.6.22",
+  "assetVersion": "1.6.22-incident-recovery-coalescing-time-decay"
 }

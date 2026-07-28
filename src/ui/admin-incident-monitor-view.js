@@ -88,6 +88,17 @@
                 appendSummaryCard('수신 확인률', `${Number(mailTestStats.receiptConfirmationRate || 0).toFixed(1).replace(/\.0$/, '')}%`, safeNumber(mailTestStats.receiptOverdue, 0) ? 'warning' : 'firebase');
                 appendSummaryCard('수신 확인 누락', `${safeNumber(operationsMailVerification.overdueReceiptCount ?? mailTestStats.receiptOverdue, 0)}건`, safeNumber(operationsMailVerification.overdueReceiptCount ?? mailTestStats.receiptOverdue, 0) ? 'warning' : 'firebase');
                 appendSummaryCard('App Check', appCheck.ready ? '보호 중' : appCheck.configured ? '확인 필요' : '키 미설정', appCheck.ready ? 'firebase' : 'warning');
+                const localIncidentStatus = global.FoxBearIncidentReporter?.getStatus?.() || {};
+                const localRouteHealth = localIncidentStatus.adaptiveRouteHealth || {};
+                const exploration = localRouteHealth.exploration || {};
+                const callableHealth = localRouteHealth.routes?.callable || {};
+                const routeLabel = exploration.active
+                    ? `탐색 ${safeNumber(exploration.remaining, 0)}회 · 다음 ${exploration.nextRoute === 'hosting-rewrite' ? 'Hosting' : 'Callable'}`
+                    : callableHealth.coolingDown
+                        ? `Hosting 우선 · ${safeNumber(callableHealth.remainingSeconds, 0)}초`
+                        : 'Callable 우선 · 자동 복구 대기';
+                appendSummaryCard('현재 브라우저 경로', routeLabel, exploration.active || callableHealth.coolingDown ? 'warning' : 'firebase');
+                appendSummaryCard('로컬 신고 대기열', `${safeNumber(localIncidentStatus.queued, 0)}건`, safeNumber(localIncidentStatus.queued, 0) ? 'warning' : 'firebase');
                 if (el.adminIncidentsNotice) {
                     const protection = appCheck.ready
                         ? 'App Check 토큰이 활성화되어 있습니다.'

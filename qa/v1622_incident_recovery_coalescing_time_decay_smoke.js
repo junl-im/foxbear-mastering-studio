@@ -1,0 +1,28 @@
+'use strict';
+const assert = require('assert');
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const root = path.resolve(__dirname, '..');
+const pkg = require(path.join(root, 'package.json'));
+function load(relative, context) { vm.runInNewContext(fs.readFileSync(path.join(root, relative), 'utf8'), context, { filename: relative }); }
+assert.strictEqual(pkg.version, '1.6.22');
+assert.strictEqual(pkg.foxbearRelease.buildId, 'incident-recovery-coalescing-time-decay');
+const store = new Map();
+let now = Date.now();
+const context = { Date: class extends Date { static now(){ return now; } }, console, JSON, Math, Object, String, Number, Array, Boolean, navigator:{onLine:true,connection:{type:'wifi',effectiveType:'4g',saveData:false}}, localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)}, globalThis:null };
+context.globalThis=context;
+load('src/boot/incident-route-policy.js', context);
+const policy=context.FoxBearIncidentRoutePolicy;
+for(let i=0;i<20;i++) policy.recordSuccess('callable');
+const before=policy.getHealth(now).routes.callable.successes;
+now += 3 * 24 * 60 * 60 * 1000;
+const after=policy.getHealth(now);
+assert(after.routes.callable.successes < before, 'aged route scores should decay');
+assert(after.lastDecayAt, 'time decay timestamp should be exposed');
+const reporter=fs.readFileSync(path.join(root,'src/boot/incident-reporter.js'),'utf8');
+assert(reporter.includes('mergeLifecycleSweepOptions'));
+assert(reporter.includes('state.lifecycleSweepPending'));
+assert(reporter.includes('mergedReasons'));
+assert(reporter.includes('do {'));
+console.log('v1.6.22 incident recovery coalescing and time decay smoke passed');

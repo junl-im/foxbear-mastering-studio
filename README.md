@@ -1,25 +1,23 @@
-# FoxBear AI Mastering Studio Pro v1.6.20
+# FoxBear AI Mastering Studio Pro v1.6.22
 
 ## Latest patch
 
-- Incident mail synchronization now uses slower polling while hidden and an immediate active-state refresh when the app returns to the foreground.
-- Adaptive transport statistics are decayed when the network type changes so stale Wi-Fi or mobile results do not dominate the next connection.
+- Incident lifecycle recovery requests now coalesce into one active sweep and one merged follow-up instead of starting duplicate queue, mail, service, or readiness checks.
+- Callable and Hosting route success evidence now decays by 15% per elapsed day so stale network history gradually loses influence.
+- Anonymous lifecycle diagnostics expose merged trigger reasons and the last route-score decay time.
 
-- Mail-test history and deployment-readiness persistence now live in a dedicated incident state service instead of the main reporter.
-- Local state is schema-bounded, corrupt JSON fails closed, and sensitive-looking email, credential, token, URL-query, and local-path text is removed before persistence.
-- Repeated transient Callable failures open a short adaptive cooldown so the authenticated Hosting same-origin route is tried first instead of repeating a known slow failure.
-- A successful Callable request closes the cooldown immediately; authorization, authentication, deployment-contract, and user-input errors never open the circuit.
-- The incident panel shows whether the default route order is active or a route is being temporarily bypassed.
+- Online recovery, long-background resume, and network-type changes now share one incident lifecycle coordinator.
+- Returning after five minutes or more triggers a bounded sweep of the local anonymous queue, active mail status, service health, and stale readiness state.
+- A changed network starts four route-exploration attempts that alternate Callable and Hosting same-origin paths before normal success-rate routing resumes.
+- The incident panel reports the remaining exploration attempts and next route, and the administrator summary shows the current browser route and local queue count.
+- Audio, filenames, report bodies, local paths, authentication tokens, and Firebase Secrets are never added to lifecycle or route metadata.
 
 1. 작업한 내역
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
 - 전체 정적·행동 검사: `npm run check:static`
-- 신규 회귀: `node qa/v1618_incident_state_adaptive_route_smoke.js`
-- 설정된 정적·회귀 검사: 348개.
-
-# FoxBear AI Mastering Studio Pro v1.6.17
+- 신규 회귀: `node qa/v1621_incident_lifecycle_network_exploration_smoke.js`
 
 ## Latest patch
 

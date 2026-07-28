@@ -5,7 +5,7 @@ const pkg = require('../package.json');
 const workflow = fs.readFileSync('.github/workflows/pages.yml', 'utf8');
 const runner = fs.readFileSync('tools/run-release-gate.js', 'utf8');
 
-assert.equal(pkg.version, '1.6.20');
+assert.equal(pkg.version, '1.6.22');
 assert.equal(pkg.scripts['check:release'], 'node tools/run-release-gate.js');
 assert.match(runner, /FOXBEAR_RELEASE_PHASE/);
 assert.match(runner, /static:/);

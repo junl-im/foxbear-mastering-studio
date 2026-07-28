@@ -3,7 +3,7 @@
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const PATCH_ID = BUILD_INFO.assetVersion ? `v${BUILD_INFO.assetVersion}` : 'v1.6.20-incident-background-sync-network-decay';
+    const PATCH_ID = BUILD_INFO.assetVersion ? `v${BUILD_INFO.assetVersion}` : 'v1.6.22-incident-recovery-coalescing-time-decay';
     const EXPECTED_BOOT_KEY = BUILD_INFO.bootRevision || 'boot-sri-v1618';
     const BOOT_CRITICAL_RE = /(?:src\/boot\/runtime-health\.js|src\/boot\/performance-diagnostics\.js|src\/app\.js)$/;
     const LOCAL_ASSET_RE = /^(?:\.\/)?(?:src\/|assets\/|manifest\.webmanifest|sw\.js|vendor\/)/;

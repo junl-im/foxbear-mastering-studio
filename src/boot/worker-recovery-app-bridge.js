@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.20 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.22 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.20-incident-background-sync-network-decay';
+    const VERSION = '1.6.22-incident-recovery-coalescing-time-decay';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

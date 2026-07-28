@@ -5,8 +5,9 @@ const vm = require('vm');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const pkg = require(path.join(root, 'package.json'));
-assert.strictEqual(pkg.version, '1.6.20');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'incident-background-sync-network-decay');
+assert.strictEqual(pkg.version, '1.6.22');
+assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9][a-z0-9-]*$/);
+assert.strictEqual(pkg.foxbearRelease.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 
 function load(file, context) { vm.runInNewContext(fs.readFileSync(path.join(root, file), 'utf8'), context, { filename: file }); }
 const listeners = {};
