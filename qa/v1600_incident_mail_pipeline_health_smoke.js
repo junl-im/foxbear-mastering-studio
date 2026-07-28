@@ -13,10 +13,13 @@ const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 const firebaseSource = read('src/firebase-bootstrap.js');
 const reporterSource = read('src/boot/incident-reporter.js');
+const incidentSupportSource = read('src/boot/incident-support-service.js');
+const incidentStateSource = read('src/boot/incident-state-service.js');
+const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.13');
+assert.strictEqual(pkg.version, '1.6.20');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentServiceStatus'));
 assert(html.includes('id="incidentReportingPipeline"'));
@@ -28,7 +31,7 @@ assert(html.includes('id="incidentServiceStatus"'));
 assert(html.includes('id="incidentAppCheckStatus"'));
 assert(css.includes(".incident-reporting-pipeline li[data-state='warning']"));
 assert(css.includes(".incident-reporting-pipeline li[data-state='error']"));
-assert(firebaseSource.includes("invokeIncidentCallable('getIncidentServiceStatus'"));
+assert(firebaseSource.includes("const INCIDENT_STATUS_FUNCTION_NAME = 'getIncidentServiceStatus'") && firebaseSource.includes('invokeIncidentCallable(INCIDENT_STATUS_FUNCTION_NAME'));
 assert(firebaseSource.includes('normalizeIncidentServiceStatus'));
 assert(firebaseSource.includes('clientProductVersion'));
 assert(reporterSource.includes('async function refreshServiceStatus'));
@@ -38,7 +41,7 @@ assert(reporterSource.includes("onProgress('mail', 'active'"));
 assert(functionsSource.includes('exports.getIncidentServiceStatus = onCall'));
 assert(functionsSource.includes("appCheckMode: 'monitor'"));
 assert(functionsSource.includes('appCheckTokenPresent: Boolean(request.app)'));
-assert(handoff.startsWith('# Handoff - v1.6.13'));
+assert(handoff.startsWith('# Handoff - v1.6.20'));
 
 const stageItems = {};
 const elements = {};
@@ -58,7 +61,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.13' } },
+    body: { dataset: { build: '1.6.20' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -67,11 +70,16 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.13', assetVersion: '1.6.13-download-format-context-menu' }
+  FoxBearBuildInfo: { productVersion: '1.6.20', assetVersion: '1.6.20-incident-background-sync-network-decay' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
+vm.runInContext(incidentSupportSource, sandbox, { filename: 'incident-support-service.js' });
+vm.runInContext(incidentStateSource, sandbox, { filename: 'incident-state-service.js' });
+
+vm.runInContext(incidentRecoveryPolicySource, sandbox, { filename: 'incident-recovery-policy.js' });
+
 vm.runInContext(reporterSource, sandbox, { filename: 'incident-reporter.js' });
 const reporter = sandbox.FoxBearIncidentReporter;
 assert.strictEqual(reporter.compareVersions('2.0.0', '2.0.0'), 0);
@@ -118,7 +126,7 @@ const functionSandbox = {
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: { appId: 'verified' } });
-assert.strictEqual(metadata.productVersion, '1.6.13');
+assert.strictEqual(metadata.productVersion, '1.6.20');
 assert.strictEqual(metadata.status, 'ready');
 assert.strictEqual(metadata.appCheckMode, 'monitor');
 assert.strictEqual(metadata.appCheckEnforced, false);
@@ -126,7 +134,7 @@ assert.strictEqual(metadata.appCheckTokenPresent, true);
 const serviceStatus = moduleRecord.exports.getIncidentServiceStatus;
 assert.strictEqual(serviceStatus.options.enforceAppCheck, false);
 serviceStatus.handler({ auth: { uid: 'guest-1' }, app: null }).then(result => {
-  assert.strictEqual(result.productVersion, '1.6.13');
+  assert.strictEqual(result.productVersion, '1.6.20');
   assert.strictEqual(result.appCheckTokenPresent, false);
   return serviceStatus.handler({ auth: null, app: null }).then(
     () => assert.fail('unauthenticated request should fail'),

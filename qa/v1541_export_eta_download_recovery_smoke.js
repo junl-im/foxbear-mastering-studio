@@ -14,7 +14,7 @@ assert(dialog.includes('download-options-worker-progress-timing'), 'export timin
 assert(dialog.includes("suffix = `약 ${formatDuration(remainingMs)} 남음`"), 'remaining-time estimate is missing');
 assert(dialog.includes("progressCard.classList.add('is-stalled')"), 'stalled-task visual state is missing');
 assert(dialog.includes("document.hidden\n                    ? '백그라운드 제한으로 느려질 수 있음'"), 'background throttling guidance is missing');
-assert(dialog.includes("Array.from(panel.querySelectorAll('button')).filter(button => button !== cancelAction)"), 'all dialog actions are not locked during export');
+assert(dialog.includes("[...panel.querySelectorAll('button'), ...qualityMenu.querySelectorAll('button')].filter(button => button !== cancelAction)"), 'all dialog and portalled quality actions are not locked during export');
 assert(dialog.includes('previous?.__foxbearCleanup?.()'), 'replaced dialog does not clean timers/listeners');
 assert(dialog.includes('backdrop.__foxbearCleanup = () =>'), 'dialog lifecycle cleanup hook is missing');
 assert(app.includes('panel.__foxbearCleanup?.()'), 'app dialog close path does not call lifecycle cleanup');

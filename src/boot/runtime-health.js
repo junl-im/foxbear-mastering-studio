@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.13-download-format-context-menu';
+    const FALLBACK_VERSION = '1.6.20-incident-background-sync-network-decay';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -64,6 +64,7 @@
         'FoxBearWakeLockController.getSnapshot',
         'FoxBearSettingsService.applyToContext',
         'FoxBearDownloadService.downloadBlob',
+        'FoxBearDownloadService.getDownloadSizeEstimate',
         'FoxBearDownloadService.copyDownloadTroubleshootingGuide',
         'FoxBearDownloadService.getDownloadCapabilitySummary',
         'FoxBearDownloadService.getRecommendedDownloadFlow',

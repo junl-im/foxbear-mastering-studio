@@ -39,3 +39,91 @@ body.processing-hud-active .download-options {
         max-width: min(340px, calc(100vw - 16px));
     }
 }
+
+/* v1.6.15: shared viewport-contained overlay stack for nested dialogs and floating recovery panels. */
+:root {
+    --foxbear-visual-viewport-top: 0px;
+    --foxbear-visual-viewport-left: 0px;
+    --foxbear-visual-viewport-width: 100vw;
+    --foxbear-visual-viewport-height: 100dvh;
+}
+
+.foxbear-fixed-overlay-layer {
+    z-index: var(--foxbear-overlay-z, 30000) !important;
+    box-sizing: border-box;
+}
+
+.foxbear-fixed-overlay-layer.foxbear-overlay-dialog {
+    position: fixed !important;
+    top: var(--foxbear-visual-viewport-top, 0px) !important;
+    left: var(--foxbear-visual-viewport-left, 0px) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: var(--foxbear-visual-viewport-width, 100vw) !important;
+    height: var(--foxbear-visual-viewport-height, 100dvh) !important;
+    max-width: var(--foxbear-visual-viewport-width, 100vw) !important;
+    max-height: var(--foxbear-visual-viewport-height, 100dvh) !important;
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+}
+
+.foxbear-fixed-overlay-layer.foxbear-overlay-floating {
+    position: fixed !important;
+    max-width: calc(var(--foxbear-visual-viewport-width, 100vw) - 20px) !important;
+    max-height: calc(var(--foxbear-visual-viewport-height, 100dvh) - 20px) !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.foxbear-fixed-overlay-layer .foxbear-viewport-panel,
+.foxbear-fixed-overlay-layer.foxbear-viewport-panel {
+    box-sizing: border-box;
+    max-width: calc(var(--foxbear-visual-viewport-width, 100vw) - 24px) !important;
+    max-height: calc(var(--foxbear-visual-viewport-height, 100dvh) - 24px) !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+.foxbear-fixed-overlay-layer[data-foxbear-nested-overlay="true"] {
+    background-color: rgba(2,4,10,.82);
+    backdrop-filter: blur(16px) saturate(.92);
+}
+
+[role="dialog"][data-foxbear-modal-suspended="true"] {
+    pointer-events: none !important;
+}
+
+[role="dialog"][data-foxbear-modal-suspended="true"] > * {
+    filter: brightness(.78) saturate(.78);
+    transform: scale(.992);
+    transition: filter 120ms ease, transform 120ms ease;
+}
+
+@media (max-width: 640px) {
+    .foxbear-fixed-overlay-layer.foxbear-overlay-dialog {
+        padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
+        padding-right: max(8px, env(safe-area-inset-right, 0px)) !important;
+        padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+        padding-left: max(8px, env(safe-area-inset-left, 0px)) !important;
+        align-items: center !important;
+    }
+    .foxbear-fixed-overlay-layer .foxbear-viewport-panel,
+    .foxbear-fixed-overlay-layer.foxbear-viewport-panel {
+        max-width: calc(var(--foxbear-visual-viewport-width, 100vw) - 16px) !important;
+        max-height: calc(var(--foxbear-visual-viewport-height, 100dvh) - 16px) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [role="dialog"][data-foxbear-modal-suspended="true"] > * {
+        transition: none;
+    }
+}
+
+/* v1.6.16: nested overlay parents stay visible but cannot receive input. */
+.foxbear-fixed-overlay-layer[data-foxbear-overlay-suspended='true'] {
+    pointer-events: none !important;
+}

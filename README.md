@@ -1,3 +1,89 @@
+# FoxBear AI Mastering Studio Pro v1.6.20
+
+## Latest patch
+
+- Incident mail synchronization now uses slower polling while hidden and an immediate active-state refresh when the app returns to the foreground.
+- Adaptive transport statistics are decayed when the network type changes so stale Wi-Fi or mobile results do not dominate the next connection.
+
+- Mail-test history and deployment-readiness persistence now live in a dedicated incident state service instead of the main reporter.
+- Local state is schema-bounded, corrupt JSON fails closed, and sensitive-looking email, credential, token, URL-query, and local-path text is removed before persistence.
+- Repeated transient Callable failures open a short adaptive cooldown so the authenticated Hosting same-origin route is tried first instead of repeating a known slow failure.
+- A successful Callable request closes the cooldown immediately; authorization, authentication, deployment-contract, and user-input errors never open the circuit.
+- The incident panel shows whether the default route order is active or a route is being temporarily bypassed.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1618_incident_state_adaptive_route_smoke.js`
+- 설정된 정적·회귀 검사: 348개.
+
+# FoxBear AI Mastering Studio Pro v1.6.17
+
+## Latest patch
+
+- Error reporting now separates reusable privacy/storage/transport helpers and failure recovery policy from the main reporter orchestration file.
+- The settings panel shows local-only success ratios for Firebase Callable, Hosting same-origin recovery, and Firestore compatibility routes.
+- It also shows how many queued anonymous reports were recovered and how many remain, without storing audio, filenames, local paths, report bodies, tokens, or Secret values.
+- Corrupt metrics are discarded safely and `기록 초기화` clears only these counters, not queued reports or user settings.
+- Production use still requires deploying Hosting rewrites and Functions together with `npm run deploy:incident`.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1617_incident_transport_metrics_module_split_smoke.js`
+- 설정된 정적·회귀 검사: 345개.
+
+# FoxBear AI Mastering Studio Pro v1.6.16
+
+## Latest patch
+
+- Firebase incident requests now use three reliability layers: direct Callable SDK, authenticated Firebase Hosting same-origin rewrite, and the existing Firestore compatibility fallback where supported.
+- The error-reporting panel shows the active transport and provides one-line repair buttons selected from the actual failure class.
+- Nested interactive dialogs now suspend their parent layer and mobile browser Back closes the top overlay before page navigation. The existing work-exit confirmation ignores Back events already consumed by an overlay.
+- Lightweight hover tooltips remain lightweight and are not unnecessarily promoted to blocking overlays.
+- Production use requires deploying Hosting rewrites and Functions together with `npm run deploy:incident`.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1616_same_origin_incident_overlay_navigation_smoke.js`
+- 설정된 정적·회귀 검사: 342개.
+
+# FoxBear AI Mastering Studio Pro v1.6.15
+
+## Latest patch
+
+- Popup-on-popup flows now use a conditional shared fixed-overlay stack, so a secondary dialog does not push, resize, or replace its parent when nesting is appropriate.
+- Nested layers are constrained to the active visual viewport, scroll internally on short screens, preserve z-order, and restore parent focus and scroll ownership when closed.
+- Automatic incident reporting now distinguishes offline, unreachable network, CORS-unreadable endpoint, missing Function, and reachable server-internal failures.
+- Transient failures retry after 5, 15, and 45 seconds, queued anonymous reports retry when connectivity returns, and users can run recovery or copy sanitized diagnostics manually.
+- Production Firebase confirmation still requires deploying Hosting and Functions together with `npm run deploy:incident`.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1615_nested_overlay_stack_smoke.js`
+- 신규 오류신고 회귀: `node qa/v1615_incident_auto_recovery_smoke.js`
+- 설정된 정적·회귀 검사: 341개.
+
+# FoxBear AI Mastering Studio Pro v1.6.14
+
+## Latest patch
+
+- The mastered-file download dialog keeps MP3 and WAV visible and opens quality choices in a viewport-contained context menu.
+- The popup is rendered outside the scrollable sheet, chooses above/below placement, clamps to the visible screen, and scrolls internally when the screen is short.
+- The app remembers valid MP3/WAV choices and shows exact or estimated output sizes.
+- Incident reporting now identifies `getIncidentServiceStatus`, its regional endpoint, direct HTTP reachability, CSP inclusion, and App Check state separately.
+- Apply Hosting and Functions together with `npm run deploy:incident` before production verification.
+
 # FoxBear AI Mastering Studio Pro v1.6.13
 
 마스터링 파일 다운로드 창은 이제 MP3와 WAV 두 항목만 상시 표시합니다. 각 항목을 누르면 Windows 우클릭 메뉴처럼 음질 선택 메뉴가 떠서 MP3 128/192/256/320 kbps 또는 WAV 16/24/32-bit Float를 고를 수 있으며, 선택하면 메뉴가 자동으로 닫히고 기존 다운로드·공유·저장 도움 흐름을 그대로 사용합니다.

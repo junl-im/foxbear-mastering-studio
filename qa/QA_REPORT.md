@@ -1,3 +1,66 @@
+# FoxBear QA Report - v1.6.20
+
+- New regression: `qa/v1620_incident_background_sync_network_decay_smoke.js`.
+- Verifies hidden-page polling, foreground refresh, network-key changes, route-score decay, and stale cooldown reset.
+- Configured cumulative static/regression target: 351 checks.
+- Production Firebase, App Check, Gmail receipt, and installed-browser gates remain environment-dependent.
+
+# FoxBear QA Report - v1.6.19
+
+- New regression: `qa/v1619_incident_mail_sync_route_scoring_smoke.js`.
+- Verifies mail-history synchronization planning, retry timing, route success scoring, cooldown recovery, and module load order.
+- Re-runs historical incident, overlay, download, mastering-engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 350 checks.
+- Installed-browser rendering, production Firebase deployment, App Check, and Gmail receipt remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.18
+
+- New regression: `qa/v1618_incident_state_adaptive_route_smoke.js`.
+- Verifies state-service ownership, module load order, service-worker/handoff inclusion, history limits, corrupt-state recovery, and sensitive-text redaction.
+- Verifies the Callable circuit opens only after two transient failures, closes on success, and ignores non-transient permission failures.
+- Re-runs historical incident, Firebase, overlay, download, mastering-engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 348 checks.
+- Installed-browser routing, production Firebase deployment, App Check, and Gmail receipt remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.17
+
+- New regression: `qa/v1617_incident_transport_metrics_module_split_smoke.js`.
+- Verifies support/recovery modules load before the reporter and are included in service-worker and handoff runtime assets.
+- Verifies Callable, Hosting rewrite, Firestore, unresolved failure, queue recovery, corruption recovery, and metrics reset contracts.
+- Verifies persisted route metrics redact email addresses and long credential-like values and never add audio/file/path fields.
+- Re-runs historical overlay, download, incident, Firebase, mastering engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 345 checks.
+- Installed-browser rendering, production Firebase deployment, and Gmail receipt remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.16
+
+- New regression: `qa/v1616_same_origin_incident_overlay_navigation_smoke.js`.
+- Verifies all four Firebase Hosting incident rewrites, Functions region consistency, authenticated Callable protocol fallback, App Check propagation, and transport disclosure.
+- Verifies failure-specific one-line recovery actions and sanitized same-origin diagnostics.
+- Verifies nested external parent ownership, parent input suspension, explicit close callbacks, and mobile browser-back top-layer dismissal.
+- Re-runs historical modal, download, mobile, export, incident, mastering engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 342 checks.
+- Installed-browser Back behavior, real-device viewport testing, production Firebase deployment, and Gmail receipt remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.15
+
+- New regressions: `qa/v1615_nested_overlay_stack_smoke.js` and `qa/v1615_incident_auto_recovery_smoke.js`.
+- Verifies conditional popup-on-popup stacking, parent suspension, viewport containment, body scroll ownership, and external overlay registration.
+- Verifies offline and opaque endpoint probing, bounded service recovery, online queue retry, manual recovery, and sanitized diagnostic-copy UI.
+- Re-runs historical modal focus, download, mobile, export, incident, mastering engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 341 checks.
+- Installed-browser nested-focus confirmation, real mobile viewport testing, production Firebase deployment, and Gmail receipt remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.14
+
+- New regressions: `qa/v1614_download_quality_memory_size_position_smoke.js` and `qa/v1614_incident_callable_endpoint_diagnostics_smoke.js`.
+- Verifies portalled fixed positioning, visual-viewport four-edge clamp, above/below placement, maximum height, internal scrolling, cleanup, and taller mobile sheet behavior.
+- Verifies guarded quality preference persistence and exact/estimated MP3/WAV size calculations.
+- Verifies the exact Callable function name, privacy-safe bounded endpoint probe, exact CSP origin, and separate not-deployed/network/internal classifications.
+- Re-runs historical download, mobile, export, incident, engine, golden-audio, SRI, handoff, and package checks.
+- Configured cumulative static/regression target: 339 checks.
+- Installed-browser visual confirmation, real-device touch testing, production Firebase deployment, and Gmail receipt remain environment-dependent gates.
+
 # FoxBear QA Report - v1.6.13
 
 - New regression: `qa/v1613_download_format_context_menu_smoke.js`.

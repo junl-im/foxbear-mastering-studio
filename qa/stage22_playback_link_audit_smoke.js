@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.13-download-format-context-menu';
+const version = '1.6.20-incident-background-sync-network-decay';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

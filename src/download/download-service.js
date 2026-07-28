@@ -136,6 +136,48 @@
         };
     });
 
+    const getTrackDurationSeconds = track => {
+        const direct = [track?.masteredDurationSec, track?.analysis?.duration, track?.masteredBuffer?.duration]
+            .map(Number)
+            .find(value => Number.isFinite(value) && value > 0);
+        if (direct) return direct;
+        const sampleRate = Number(track?.analysis?.sampleRate || track?.masteredBuffer?.sampleRate || 0);
+        const length = Number(track?.analysis?.length || track?.masteredBuffer?.length || 0);
+        return sampleRate > 0 && length > 0 ? length / sampleRate : 0;
+    };
+
+    const formatEstimatedFileSize = bytes => {
+        const size = Math.max(0, Number(bytes || 0));
+        if (!size) return '';
+        if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(size >= 10 * 1024 * 1024 ? 0 : 1)} MB`;
+        if (size >= 1024) return `${Math.round(size / 1024)} KB`;
+        return `${Math.round(size)} B`;
+    };
+
+    const getDownloadSizeEstimate = (track, format) => {
+        const requestedFormat = String(format || track?.outFormat || '').trim();
+        if (!requestedFormat) return null;
+        if (requestedFormat === track?.outFormat && Number(track?.outBlob?.size || 0) > 0) {
+            const bytes = Number(track.outBlob.size);
+            return Object.freeze({ bytes, label: formatEstimatedFileSize(bytes), exact: true, source: 'current-blob', format: requestedFormat });
+        }
+        const duration = getTrackDurationSeconds(track);
+        if (!(duration > 0)) return null;
+        if (/^mp3_(128|192|256|320)$/.test(requestedFormat)) {
+            const bitrateKbps = Number(requestedFormat.split('_')[1]);
+            const payloadBytes = duration * bitrateKbps * 1000 / 8;
+            const bytes = Math.ceil(payloadBytes * 1.008 + 1024);
+            return Object.freeze({ bytes, label: formatEstimatedFileSize(bytes), exact: false, source: 'mp3-cbr-estimate', format: requestedFormat, duration, bitrateKbps });
+        }
+        const wavBits = requestedFormat === 'wav16' ? 16 : requestedFormat === 'wav24' ? 24 : requestedFormat === 'wav32float' ? 32 : 0;
+        if (!wavBits) return null;
+        const sampleRate = Number(track?.analysis?.sampleRate || track?.masteredBuffer?.sampleRate || 0);
+        const channels = Number(track?.analysis?.channels || track?.analysis?.numberOfChannels || track?.masteredBuffer?.numberOfChannels || 0);
+        if (!(sampleRate > 0) || !(channels > 0)) return null;
+        const bytes = Math.ceil(duration * sampleRate * channels * (wavBits / 8)) + 44;
+        return Object.freeze({ bytes, label: formatEstimatedFileSize(bytes), exact: false, source: 'wav-pcm-estimate', format: requestedFormat, duration, sampleRate, channels, bitsPerSample: wavBits });
+    };
+
     const getFallbackMasteredFileName = (track, deps, options = {}) => {
         if (typeof deps?.buildMasteredFileName === 'function') return deps.buildMasteredFileName(track, options);
         const base = String(track?.name || 'track').replace(/\.[^.]+$/, '').replace(/[^A-Za-z0-9가-힣._ -]+/g, '_').trim() || 'track';
@@ -313,7 +355,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.6.13',
+                version: '1.6.20',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -333,7 +375,7 @@
             };
         }
         return {
-            version: '1.6.13',
+            version: '1.6.20',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -397,7 +439,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.6.13',
+            version: '1.6.20',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -435,7 +477,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.6.13',
+            version: '1.6.20',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -463,7 +505,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.6.13',
+            version: '1.6.20',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -494,7 +536,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.6.13',
+            version: '1.6.20',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -519,7 +561,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.6.13',
+            version: '1.6.20',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -588,7 +630,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.6.13',
+            version: '1.6.20',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -815,7 +857,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.6.13 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.6.20 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         if (url) addActiveUrl(url, deps);
@@ -926,6 +968,7 @@
             panelActionGeneration += 1;
             releasePanelListeners();
             panel.classList.remove('show');
+            global.FoxBearModalStateMachine?.setExternalLayerOpen?.(panel, false);
             panelRemoveTimer = setTimeout(() => panel.remove(), 140);
             if (url) panelRevokeTimer = setTimeout(() => revokeDownloadUrl(url, deps), 250);
             if (returnFocus && document.body.contains(returnFocus)) {
@@ -935,6 +978,7 @@
         };
         panel.__foxbearCleanup = () => {
             panelClosed = true;
+            global.FoxBearModalStateMachine?.setExternalLayerOpen?.(panel, false);
             panelActionGeneration += 1;
             releasePanelListeners();
             if (panelRemoveTimer) clearTimeout(panelRemoveTimer);
@@ -1062,6 +1106,14 @@
         panel.classList.add('download-assist-simple');
         panel.append(closeTop, title, message, file, actions);
         document.body.appendChild(panel);
+        global.FoxBearModalStateMachine?.setExternalLayerOpen?.(panel, true, {
+            mode: 'floating',
+            panel,
+            opener: returnFocus,
+            lockScroll: false,
+            history: false,
+            onRequestClose: () => closePanel()
+        });
         panelShowFrame = requestAnimationFrame(() => { panelShowFrame = 0; if (!panelClosed) panel.classList.add('show'); });
     };
 
@@ -1122,6 +1174,7 @@
 
     global.FoxBearDownloadService = Object.freeze({
         getDownloadFormatOptions,
+        getDownloadSizeEstimate,
         inspectDownloadBlob,
         assertDownloadBlob,
         markDownloadBlobVerified,

@@ -24,7 +24,7 @@ const closeCss = read('assets/css/components/modal-close-system.css');
 const studioCss = read('assets/css/studio.css');
 const supportCss = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.13');
+assert.strictEqual(pkg.version, '1.6.20');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'current build ID must remain kebab-case');
 
 assert(index.includes('program-info-panel program-info-panel-compact'), 'program info must use the compact layout');
@@ -78,7 +78,7 @@ assert(closeCss.includes('.support-settings-panel') && closeCss.includes('.foxbe
 assert(!studioCss.includes('.program-info-panel-compact') && !studioCss.includes('.support-settings-backdrop'), 'popup styles must not regrow studio.css');
 assert(supportCss.includes('.program-info-panel-compact') && supportCss.includes('.support-settings-backdrop'), 'dedicated intro and settings dialog styles are required');
 assert(index.includes('assets/css/components/support-settings.css'), 'support settings stylesheet must be loaded');
-assert(sw.includes('./assets/css/components/support-settings.css?v=1.6.13-download-format-context-menu'), 'support settings stylesheet must be precached');
+assert(sw.includes('./assets/css/components/support-settings.css?v=1.6.20-incident-background-sync-network-decay'), 'support settings stylesheet must be precached');
 
 const modalSandbox = { console };
 modalSandbox.window = modalSandbox;

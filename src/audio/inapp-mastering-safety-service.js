@@ -1,8 +1,8 @@
-// FoxBear in-app mastering safety service v1.6.13 - Kakao adaptive memory governor and recovery guard.
+// FoxBear in-app mastering safety service v1.6.20 - Kakao adaptive memory governor and recovery guard.
 'use strict';
 
 (function attachFoxBearInAppMasteringSafetyService(global) {
-    const VERSION = '1.6.13-kakao-adaptive-memory-governor';
+    const VERSION = '1.6.20-kakao-adaptive-memory-governor';
     const MB = 1024 * 1024;
 
     function finite(value, fallback = 0) {

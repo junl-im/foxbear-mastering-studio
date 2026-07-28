@@ -112,6 +112,36 @@
           }
         ]
       }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/incident/status",
+        "function": {
+          "functionId": "getIncidentServiceStatus",
+          "region": "asia-northeast3"
+        }
+      },
+      {
+        "source": "/api/incident/submit",
+        "function": {
+          "functionId": "submitIncidentReport",
+          "region": "asia-northeast3"
+        }
+      },
+      {
+        "source": "/api/incident/delivery",
+        "function": {
+          "functionId": "getIncidentDeliveryStatus",
+          "region": "asia-northeast3"
+        }
+      },
+      {
+        "source": "/api/incident/readiness",
+        "function": {
+          "functionId": "checkIncidentDeploymentReadiness",
+          "region": "asia-northeast3"
+        }
+      }
     ]
   },
   "firestore": {

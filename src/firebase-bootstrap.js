@@ -38,6 +38,24 @@ const FIREBASE_CONFIG = Object.freeze({
     appId: '1:52981410353:web:c9c700a8e55672a999c310'
 });
 const FIREBASE_FUNCTIONS_ORIGIN = `https://${FIREBASE_FUNCTIONS_REGION}-${FIREBASE_CONFIG.projectId}.cloudfunctions.net`;
+const INCIDENT_STATUS_FUNCTION_NAME = 'getIncidentServiceStatus';
+const INCIDENT_DIRECT_PROBE_TIMEOUT_MS = 4500;
+const INCIDENT_SAME_ORIGIN_TIMEOUT_MS = 9000;
+const INCIDENT_SAME_ORIGIN_PATHS = Object.freeze({
+    getIncidentServiceStatus: '/api/incident/status',
+    submitIncidentReport: '/api/incident/submit',
+    getIncidentDeliveryStatus: '/api/incident/delivery',
+    checkIncidentDeploymentReadiness: '/api/incident/readiness'
+});
+const INCIDENT_ROUTE_POLICY_FALLBACK = Object.freeze({
+    shouldAttempt: () => true,
+    recordSuccess: () => null,
+    recordFailure: () => null,
+    getHealth: () => Object.freeze({ routes: Object.freeze({}) }),
+    getPreferredRoutes: () => Object.freeze(['callable', 'hosting-rewrite']),
+    clear: () => Object.freeze({ routes: Object.freeze({}) })
+});
+const incidentRoutePolicy = window.FoxBearIncidentRoutePolicy || INCIDENT_ROUTE_POLICY_FALLBACK;
 const APP_CHECK_SITE_KEY = String(
     window.FOXBEAR_APP_CHECK_SITE_KEY
     || document.querySelector('meta[name="foxbear-app-check-site-key"]')?.content
@@ -133,8 +151,11 @@ function makePublicBridge(extra = {}) {
         error: bridgeState.error,
         storageEnabled: false,
         storageReason: bridgeState.storageReason,
-        incidentTransport: bridgeState.functions ? 'callable-primary' : 'firestore-fallback',
+        incidentTransport: bridgeState.functions ? 'callable-primary+hosting-rewrite-fallback' : 'hosting-rewrite+firestore-fallback',
         incidentFunctionsOrigin: FIREBASE_FUNCTIONS_ORIGIN,
+        incidentStatusFunctionName: INCIDENT_STATUS_FUNCTION_NAME,
+        incidentSameOriginStatusPath: INCIDENT_SAME_ORIGIN_PATHS[INCIDENT_STATUS_FUNCTION_NAME],
+        incidentRouteHealth: incidentRoutePolicy.getHealth(),
         appCheck: Object.freeze({
             configured: bridgeState.appCheckConfigured,
             ready: bridgeState.appCheckReady,
@@ -146,6 +167,9 @@ function makePublicBridge(extra = {}) {
         logIncident,
         getIncidentDelivery,
         getIncidentServiceStatus,
+        getIncidentRouteHealth: () => incidentRoutePolicy.getHealth(),
+        clearIncidentRouteHealth: () => incidentRoutePolicy.clear(),
+        probeIncidentCallableEndpoint,
         checkIncidentDeploymentReadiness,
         retryOwnIncidentReport,
         getAdminStats,
@@ -373,9 +397,8 @@ function normalizeIncidentCallableError(error, name) {
     const originalMessage = callableErrorMessage(error);
     const evidence = `${originalCode} ${originalMessage}`;
     const networkBlocked = /failed to fetch|networkerror|network request failed|load failed|content security policy|refused to connect|csp/i.test(evidence);
-    const internalTransport = originalCode === 'functions/internal' && /^(internal|unknown)$/i.test(originalMessage.trim());
-    if (!networkBlocked && !internalTransport) return error;
-    const wrapped = new Error(`Firebase Callable 연결에 실패했습니다. Hosting CSP, 네트워크, Functions 배포 상태를 확인하세요. endpoint=${FIREBASE_FUNCTIONS_ORIGIN}/${name}; cause=${originalCode}: ${originalMessage}`);
+    if (!networkBlocked) return error;
+    const wrapped = new Error(`Firebase Callable 연결에 실패했습니다. Hosting CSP 또는 네트워크 연결을 확인하세요. function=${name}; cause=${originalCode}: ${originalMessage}`);
     wrapped.code = 'FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED';
     wrapped.originalCode = originalCode;
     wrapped.functionName = name;
@@ -384,20 +407,232 @@ function normalizeIncidentCallableError(error, name) {
     return wrapped;
 }
 
-async function invokeIncidentCallable(name, data) {
-    if (!bridgeState.functions || typeof httpsCallable !== 'function') {
-        const error = new Error(`Firebase Functions 신고 API가 초기화되지 않았습니다. endpoint=${FIREBASE_FUNCTIONS_ORIGIN}/${name}`);
-        error.code = 'FOXBEAR_INCIDENT_CALLABLE_UNAVAILABLE';
-        error.functionName = name;
-        error.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
+async function probeIncidentCallableEndpoint(name = INCIDENT_STATUS_FUNCTION_NAME, timeoutMs = INCIDENT_DIRECT_PROBE_TIMEOUT_MS) {
+    const functionName = limitText(name || INCIDENT_STATUS_FUNCTION_NAME, 80) || INCIDENT_STATUS_FUNCTION_NAME;
+    const endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${functionName}`;
+    const boundedTimeout = Math.max(1000, Math.min(10000, Number(timeoutMs) || INCIDENT_DIRECT_PROBE_TIMEOUT_MS));
+    const checkedAt = () => new Date().toISOString();
+    if (window.navigator?.onLine === false) {
+        return Object.freeze({
+            ok: false,
+            reachable: false,
+            deployed: null,
+            corsReadable: false,
+            classification: 'client-offline',
+            functionName,
+            endpoint,
+            status: 0,
+            statusText: '',
+            code: 'FOXBEAR_INCIDENT_CLIENT_OFFLINE',
+            message: '브라우저가 오프라인 상태입니다.',
+            attempts: 0,
+            checkedAt: checkedAt()
+        });
+    }
+
+    const request = async mode => {
+        const controller = typeof AbortController === 'function' ? new AbortController() : null;
+        let timer = 0;
+        try {
+            if (controller) timer = window.setTimeout(() => controller.abort('incident-endpoint-probe-timeout'), boundedTimeout);
+            return await fetch(endpoint, {
+                method: 'POST',
+                mode,
+                credentials: 'omit',
+                cache: 'no-store',
+                headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                body: '{}',
+                signal: controller?.signal
+            });
+        } finally {
+            if (timer) window.clearTimeout(timer);
+        }
+    };
+
+    try {
+        const response = await request('cors');
+        const status = Number(response?.status) || 0;
+        const deployed = status !== 404;
+        return Object.freeze({
+            ok: deployed,
+            reachable: true,
+            deployed,
+            corsReadable: true,
+            classification: deployed ? 'endpoint-reachable' : 'not-deployed',
+            functionName,
+            endpoint,
+            status,
+            statusText: limitText(response?.statusText || '', 80),
+            attempts: 1,
+            checkedAt: checkedAt()
+        });
+    } catch (corsError) {
+        const corsTimeout = corsError?.name === 'AbortError';
+        try {
+            const opaqueResponse = await request('no-cors');
+            return Object.freeze({
+                ok: false,
+                reachable: true,
+                deployed: null,
+                corsReadable: false,
+                classification: 'endpoint-reachable-opaque',
+                functionName,
+                endpoint,
+                status: Number(opaqueResponse?.status) || 0,
+                statusText: '',
+                code: 'FOXBEAR_INCIDENT_CALLABLE_RESPONSE_BLOCKED',
+                message: 'Functions endpoint에는 도달했지만 브라우저가 응답 내용을 읽지 못했습니다.',
+                attempts: 2,
+                checkedAt: checkedAt()
+            });
+        } catch (opaqueError) {
+            const timeout = corsTimeout || opaqueError?.name === 'AbortError';
+            return Object.freeze({
+                ok: false,
+                reachable: false,
+                deployed: null,
+                corsReadable: false,
+                classification: timeout ? 'timeout' : 'network-blocked',
+                functionName,
+                endpoint,
+                status: 0,
+                statusText: '',
+                code: limitText(opaqueError?.code || opaqueError?.name || corsError?.code || corsError?.name || (timeout ? 'AbortError' : 'TypeError'), 80),
+                message: limitText(opaqueError?.message || corsError?.message || (timeout ? 'Endpoint probe timed out' : 'Endpoint probe failed'), 180),
+                attempts: 2,
+                checkedAt: checkedAt()
+            });
+        }
+    }
+}
+
+function shouldTrySameOriginCallable(error) {
+    const evidence = `${callableErrorCode(error)} ${callableErrorMessage(error)}`;
+    return /FOXBEAR_INCIDENT_CALLABLE_(?:NETWORK_BLOCKED|UNAVAILABLE)|functions\/(?:unavailable|deadline-exceeded)|failed to fetch|networkerror|network request failed|load failed|content security policy|refused to connect|cors/i.test(evidence);
+}
+
+function normalizeCallableHttpError(payload = {}, response = null, name = '') {
+    const source = payload?.error && typeof payload.error === 'object' ? payload.error : payload;
+    const rawStatus = limitText(source?.status || source?.code || `http-${response?.status || 0}`, 80);
+    const normalizedStatus = rawStatus.toLowerCase().replace(/_/g, '-');
+    const error = new Error(limitText(source?.message || `Same-origin Callable request failed (${response?.status || 0})`, 240));
+    error.code = normalizedStatus.startsWith('functions/') ? normalizedStatus : `functions/${normalizedStatus}`;
+    error.httpStatus = Number(response?.status || 0);
+    error.functionName = name;
+    error.endpoint = INCIDENT_SAME_ORIGIN_PATHS[name] || '';
+    return error;
+}
+
+async function getSameOriginCallableHeaders() {
+    const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
+    const user = bridgeState.user || await signInGuest().catch(() => null);
+    if (user?.getIdToken) {
+        const token = await user.getIdToken(false).catch(() => '');
+        if (token) headers.Authorization = `Bearer ${token}`;
+    }
+    if (bridgeState.appCheck && bridgeState.appCheckReady && typeof getToken === 'function') {
+        const appCheckResult = await getToken(bridgeState.appCheck, false).catch(() => null);
+        if (appCheckResult?.token) headers['X-Firebase-AppCheck'] = appCheckResult.token;
+    }
+    return headers;
+}
+
+async function invokeIncidentCallableSameOrigin(name, data) {
+    const path = INCIDENT_SAME_ORIGIN_PATHS[name];
+    if (!path || typeof window.fetch !== 'function') {
+        const error = new Error(`Same-origin incident route is unavailable. function=${name}`);
+        error.code = 'FOXBEAR_INCIDENT_SAME_ORIGIN_UNAVAILABLE';
         throw error;
     }
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = window.setTimeout(() => controller?.abort(), INCIDENT_SAME_ORIGIN_TIMEOUT_MS);
     try {
-        const callable = httpsCallable(bridgeState.functions, name, { timeout: 15000 });
-        const response = await callable(data);
-        return response?.data || {};
+        const response = await window.fetch(path, {
+            method: 'POST',
+            credentials: 'same-origin',
+            cache: 'no-store',
+            redirect: 'follow',
+            headers: await getSameOriginCallableHeaders(),
+            body: JSON.stringify({ data: data || {} }),
+            signal: controller?.signal
+        });
+        let payload = null;
+        try { payload = await response.json(); } catch (_) { payload = null; }
+        if (!response.ok || payload?.error) throw normalizeCallableHttpError(payload || {}, response, name);
+        const result = payload?.result ?? payload?.data ?? {};
+        if (result && typeof result === 'object') return { ...result, serverTransport: result.transport || '', transport: 'hosting-rewrite' };
+        return { value: result, transport: 'hosting-rewrite' };
     } catch (error) {
-        throw normalizeIncidentCallableError(error, name);
+        if (error?.name === 'AbortError') {
+            const timeoutError = new Error(`Same-origin Callable request timed out. function=${name}`);
+            timeoutError.code = 'FOXBEAR_INCIDENT_SAME_ORIGIN_TIMEOUT';
+            timeoutError.functionName = name;
+            timeoutError.endpoint = path;
+            throw timeoutError;
+        }
+        throw error;
+    } finally {
+        window.clearTimeout(timer);
+    }
+}
+
+async function invokeIncidentCallable(name, data) {
+    let primaryError = null;
+    const callableReady = bridgeState.functions && typeof httpsCallable === 'function';
+    const preferredRoutes = incidentRoutePolicy.getPreferredRoutes?.() || ['callable', 'hosting-rewrite'];
+    const hostingPreferred = preferredRoutes[0] === 'hosting-rewrite';
+    if (hostingPreferred) {
+        try {
+            const result = await invokeIncidentCallableSameOrigin(name, data);
+            incidentRoutePolicy.recordSuccess('hosting-rewrite');
+            return result;
+        } catch (hostingPreferredError) {
+            incidentRoutePolicy.recordFailure('hosting-rewrite', hostingPreferredError);
+            primaryError = hostingPreferredError;
+        }
+    }
+    const callableAllowed = incidentRoutePolicy.shouldAttempt('callable');
+    if (callableReady && callableAllowed) {
+        try {
+            const callable = httpsCallable(bridgeState.functions, name, { timeout: 15000 });
+            const response = await callable(data);
+            incidentRoutePolicy.recordSuccess('callable');
+            const result = response?.data || {};
+            return result && typeof result === 'object' ? { ...result, transport: result.transport || 'callable' } : result;
+        } catch (error) {
+            primaryError = normalizeIncidentCallableError(error, name);
+            incidentRoutePolicy.recordFailure('callable', primaryError);
+            if (!shouldTrySameOriginCallable(primaryError)) throw primaryError;
+        }
+    } else if (callableReady && !callableAllowed) {
+        primaryError = new Error(`Firebase Callable 경로가 반복 실패로 잠시 우회되었습니다. function=${name}`);
+        primaryError.code = 'FOXBEAR_INCIDENT_CALLABLE_COOLDOWN';
+        primaryError.functionName = name;
+        primaryError.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
+        primaryError.adaptiveRouteSkipped = true;
+    } else {
+        primaryError = new Error(`Firebase Functions 신고 API가 초기화되지 않았습니다. endpoint=${FIREBASE_FUNCTIONS_ORIGIN}/${name}`);
+        primaryError.code = 'FOXBEAR_INCIDENT_CALLABLE_UNAVAILABLE';
+        primaryError.functionName = name;
+        primaryError.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
+    }
+    try {
+        const result = await invokeIncidentCallableSameOrigin(name, data);
+        incidentRoutePolicy.recordSuccess('hosting-rewrite');
+        return result;
+    } catch (fallbackError) {
+        incidentRoutePolicy.recordFailure('hosting-rewrite', fallbackError);
+        const combined = new Error(`Firebase Callable 기본 경로와 Hosting same-origin 복구 경로가 모두 실패했습니다. primary=${callableErrorCode(primaryError)}; fallback=${callableErrorCode(fallbackError)}`);
+        combined.code = primaryError?.adaptiveRouteSkipped === true
+            ? (callableErrorCode(fallbackError) || 'FOXBEAR_INCIDENT_CALLABLE_FAILED')
+            : (callableErrorCode(primaryError) || callableErrorCode(fallbackError) || 'FOXBEAR_INCIDENT_CALLABLE_FAILED');
+        combined.primaryError = primaryError;
+        combined.fallbackError = fallbackError;
+        combined.functionName = name;
+        combined.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
+        combined.sameOriginEndpoint = INCIDENT_SAME_ORIGIN_PATHS[name] || '';
+        combined.adaptiveRouteSkipped = primaryError?.adaptiveRouteSkipped === true;
+        throw combined;
     }
 }
 
@@ -433,19 +668,19 @@ async function submitIncidentViaCallable(reportId, incident) {
         queued: result.queued !== false,
         deduplicated: result.deduplicated === true,
         reportId: limitText(result.reportId || reportId, 180),
-        transport: 'callable',
+        transport: result.transport || 'callable',
         service: normalizeIncidentServiceStatus(result.service || {})
     };
 }
 
 async function readIncidentDeliveryViaCallable(reportId) {
     const result = await invokeIncidentCallable('getIncidentDeliveryStatus', { reportId });
-    return { ...result, transport: 'callable', service: normalizeIncidentServiceStatus(result.service || {}) };
+    return { ...result, transport: result.transport || 'callable', service: normalizeIncidentServiceStatus(result.service || {}) };
 }
 
 async function getIncidentServiceStatus() {
     await signInGuest();
-    const result = await invokeIncidentCallable('getIncidentServiceStatus', {});
+    const result = await invokeIncidentCallable(INCIDENT_STATUS_FUNCTION_NAME, {});
     return normalizeIncidentServiceStatus(result);
 }
 

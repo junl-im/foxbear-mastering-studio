@@ -1,3 +1,40 @@
+# GitHub Desktop Handoff - v1.6.18
+
+- Apply the complete v1.6.18 overwrite package or commit the full release package.
+- Confirm `incident-route-policy.js` loads before `firebase-bootstrap.js` and `incident-state-service.js` loads between support and recovery modules.
+- Deploy Hosting and Functions together with `npm run deploy:incident`.
+- Run `npm run check:static`, `npm run handoff:check`, and both package verification commands before publishing.
+- In the incident panel, confirm `적응형 경로` returns to the default order after a successful Callable request.
+- Recommended branch: `patch/v1.6.18`.
+
+# GitHub Desktop Handoff - v1.6.16
+
+- Replace the existing project with the v1.6.16 overwrite package or commit the complete release package.
+- Deploy Hosting and Functions together because `/api/incident/*` rewrites depend on the matching regional Functions.
+- Run `npm run check:static`, `npm run handoff:check`, and both package verification commands before publishing.
+- Confirm mobile browser Back closes the top nested dialog and does not leave the page on the first press.
+- Confirm the incident panel shows `Hosting same-origin 복구: 사용 중` only when the rewrite path actually handled the request.
+
+# GitHub Desktop Patch Handoff - v1.6.15
+
+## 이번 패치 확인
+
+- `src/ui/modal-controller.js`의 중첩 모달 스택, 부모 inert 처리, visualViewport 동기화, 외부 레이어 등록 API를 함께 커밋합니다.
+- `src/app.js`, `src/ui/download-dialog-view.js`, `src/download/download-service.js`의 공통 오버레이 등록·해제 경로를 확인합니다.
+- `src/firebase-bootstrap.js`, `src/boot/incident-reporter.js`, `index.html`의 오프라인/CORS 판별, 자동 복구, 익명 진단 복사를 함께 반영합니다.
+- Firebase 운영 반영 시 `npm run deploy:incident`로 Hosting CSP와 Functions를 같은 릴리스에서 배포합니다.
+- 권장 브랜치 이름: `patch/v1.6.15`.
+
+# GitHub Desktop Patch Handoff - v1.6.14
+
+## 이번 패치 확인
+
+- `src/ui/download-dialog-view.js`와 `assets/css/download-dialog.css`의 화면 경계 내 품질 팝업을 확인합니다.
+- `src/download/download-service.js`의 예상 용량 계산과 품질 선택 저장을 확인합니다.
+- `src/firebase-bootstrap.js`, `src/boot/incident-reporter.js`, `index.html`의 Callable endpoint 진단을 함께 커밋합니다.
+- Firebase 운영 반영 시 `npm run deploy:incident`로 Hosting CSP와 Functions를 같은 릴리스에서 배포합니다.
+- 권장 브랜치 이름: `patch/v1.6.14`.
+
 
 ## v1.5.74 적용 확인
 
@@ -39,6 +76,13 @@ FoxBear 패치는 **GitHub Desktop을 기본 Git 클라이언트로 사용하는
 ## 작업 결과 보고 규칙
 
 작업 완료 보고는 `작업한 내역`, `다운로드 파일 2종`, `다음 예정 내역`의 세 구역만 사용합니다. `다운로드 파일 2종`에는 전체 프로젝트 통파일 ZIP과 저장소 루트에 붙여넣어 덮어쓰는 누적 패치 ZIP을 항상 함께 전달합니다. 과거 문서의 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용`은 이전 명칭입니다.
+
+## v1.6.17 적용 확인
+
+- `src/boot/incident-support-service.js`와 `src/boot/incident-recovery-policy.js`가 새 파일로 추가됩니다.
+- `index.html`, `sw.js`, `HANDOFF_PACKAGE.json`에 두 파일이 포함되어야 합니다.
+- 적용 후 오류 자동신고 창에서 `익명 전송 복구 현황` 카드가 보이는지 확인합니다.
+- 전체 검사는 `npm run check:static`, 패키지는 `npm run package:all`로 확인합니다.
 
 ## 적용 전
 

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.13",
-  "buildId": "download-format-context-menu",
+  "productVersion": "1.6.20",
+  "buildId": "incident-background-sync-network-decay",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -40,9 +40,13 @@
     "qa/v1539_ci_hook_lifecycle_hardening_smoke.js",
     "foxbear-root.json",
     "src/boot/service-worker-recovery-service.js",
+    "src/boot/incident-route-policy.js",
     "functions/index.js",
     "functions/package.json",
     "functions/package-lock.json",
+    "src/boot/incident-support-service.js",
+    "src/boot/incident-state-service.js",
+    "src/boot/incident-recovery-policy.js",
     "src/boot/incident-reporter.js",
     "firestore.rules",
     "firestore.indexes.json",
@@ -66,7 +70,15 @@
     "qa/v1600_incident_mail_pipeline_health_smoke.js",
     "docs/V1.6.0_INCIDENT_MAIL_PIPELINE_HEALTH.md",
     "qa/v1610_incident_readiness_contract_csp_cache_hardening_smoke.js",
-    "docs/V1.6.10_INCIDENT_READINESS_CONTRACT_CSP_CACHE_HARDENING.md"
+    "docs/V1.6.10_INCIDENT_READINESS_CONTRACT_CSP_CACHE_HARDENING.md",
+    "qa/v1614_download_quality_memory_size_position_smoke.js",
+    "docs/V1.6.14_DOWNLOAD_QUALITY_MEMORY_SIZE_ADAPTIVE_POSITION.md",
+    "qa/v1614_incident_callable_endpoint_diagnostics_smoke.js",
+    "docs/V1.6.14_INCIDENT_CALLABLE_ENDPOINT_DIAGNOSTICS.md",
+    "qa/v1617_incident_transport_metrics_module_split_smoke.js",
+    "docs/V1.6.17_INCIDENT_TRANSPORT_METRICS_MODULE_SPLIT.md",
+    "qa/v1618_incident_state_adaptive_route_smoke.js",
+    "docs/V1.6.18_INCIDENT_STATE_ADAPTIVE_ROUTE_POLICY.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -98,6 +110,7 @@
   ],
   "requiredRuntimeAssets": [
     "src/boot/service-worker-recovery-service.js",
+    "src/boot/incident-route-policy.js",
     "src/utils/worker-job-service.js",
     "src/audio/mastering-input-guard-service.js",
     "src/download/download-service.js",
@@ -106,6 +119,9 @@
     "src/download/zip-export-service.js",
     "src/download/export-queue-service.js",
     "src/workers/zip-encoder.worker.js",
+    "src/boot/incident-support-service.js",
+    "src/boot/incident-state-service.js",
+    "src/boot/incident-recovery-policy.js",
     "src/boot/incident-reporter.js"
   ]
 }

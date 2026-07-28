@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.13
+// FoxBear performance diagnostics - v1.6.20
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.13-download-format-context-menu';
+    const DIAGNOSTICS_VERSION = '1.6.20-incident-background-sync-network-decay';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -1202,7 +1202,13 @@
             state.backdrop.hidden = !state.panelVisible;
             state.backdrop.classList.toggle('show', state.panelVisible);
             state.backdrop.setAttribute('aria-hidden', state.panelVisible ? 'false' : 'true');
-            global.FoxBearModalStateMachine?.setExternalLayerOpen?.(state.backdrop, state.panelVisible);
+            global.FoxBearModalStateMachine?.setExternalLayerOpen?.(state.backdrop, state.panelVisible, {
+                mode: 'dialog',
+                panel,
+                opener: state.returnFocus,
+                lockScroll: true,
+                onRequestClose: () => setPanelVisible(false, { restoreFocus: true })
+            });
         }
         global.document?.body?.classList?.toggle('foxbear-perf-open', state.panelVisible);
         if (state.panelVisible) {

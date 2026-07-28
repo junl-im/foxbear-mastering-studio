@@ -1,0 +1,21 @@
+'use strict';
+const fs = require('fs');
+const vm = require('vm');
+const assert = require('assert');
+function load(file, context) { vm.runInNewContext(fs.readFileSync(file, 'utf8'), context, { filename: file }); }
+const store = new Map();
+const context = { console, Date, Object, Set, Math, JSON, String, Number, Array, Boolean, localStorage: { getItem:k=>store.get(k)||null, setItem:(k,v)=>store.set(k,v) }, setTimeout:()=>1, clearTimeout:()=>{} };
+context.globalThis=context; context.window=context;
+load('src/boot/incident-mail-sync-service.js', context);
+load('src/boot/incident-route-policy.js', context);
+const sync=context.FoxBearIncidentMailSync;
+let plan=sync.plan([{reportId:'r1',status:'pending',terminal:false}], Date.now(), ()=>({remainingMs:0}));
+assert.equal(plan.scheduled,true); assert.equal(plan.shouldSync,true); assert.equal(plan.delayMs,15000);
+plan=sync.plan([], Date.now(), ()=>({remainingMs:0})); assert.equal(plan.scheduled,false);
+const routes=context.FoxBearIncidentRoutePolicy;
+for(let i=0;i<3;i++) routes.recordFailure('callable',{code:'network-error'});
+for(let i=0;i<3;i++) routes.recordSuccess('hosting-rewrite');
+assert.equal(routes.getPreferredRoutes()[0],'hosting-rewrite');
+routes.recordSuccess('callable');
+assert.ok(routes.getHealth().routes.callable.coolingDown===false);
+console.log('PASS v1.6.19 incident mail sync and route scoring');

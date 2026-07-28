@@ -1,3 +1,69 @@
+# v1.6.20 - Background Mail Sync and Network Context Decay
+
+- Slows incident mail polling while the page is hidden and rechecks active mail immediately when the page becomes visible.
+- Decays old Callable and Hosting route scores when the browser network context changes, clearing stale cooldowns.
+- Adds `qa/v1620_incident_background_sync_network_decay_smoke.js` and raises the configured cumulative target to 351 checks.
+
+# v1.6.19 - Incident Mail Sync and Route Scoring
+
+- Extracts mail-test polling, retry countdown scheduling, and refresh timing into `incident-mail-sync-service.js`.
+- Uses bounded success-rate evidence to prefer Hosting only when it is materially more reliable than Callable.
+- Keeps non-transient server, permission, and deployment failures visible instead of hiding them behind route switching.
+- Adds `qa/v1619_incident_mail_sync_route_scoring_smoke.js` and raises the configured cumulative target to 350 checks.
+
+# v1.6.18 - Incident State Service and Adaptive Route Policy
+
+- Moves mail-test history, deployment-readiness snapshots, and deployment history into `incident-state-service.js`.
+- Normalizes corrupt local snapshots and redacts email, credential-like, and local-path text before incident history is persisted.
+- Adds `incident-route-policy.js`, which opens a bounded Callable cooldown after repeated transient failures and temporarily prefers the authenticated Hosting same-origin route.
+- Resets the cooldown immediately after a successful primary request and never opens it for permission, authentication, or invalid-request failures.
+- Shows the active adaptive route state in the incident settings panel and clears it together with privacy-safe transport counters.
+- Keeps Firestore as the final compatibility path and preserves Firebase ID-token, optional App Check, and Callable protocol behavior.
+- Adds `qa/v1618_incident_state_adaptive_route_smoke.js` and raises the configured cumulative target to 348 checks.
+
+# v1.6.17 - Incident Transport Metrics and Module Split
+
+- Splits privacy-safe storage, sanitization, version helpers, and transport metrics into `incident-support-service.js`.
+- Splits failure classification and status-specific recovery actions into `incident-recovery-policy.js`.
+- Keeps `incident-reporter.js` focused on reporting orchestration, Firebase bridge coordination, and UI rendering.
+- Adds local-only success/failure counters for Callable, Hosting same-origin rewrite, and Firestore compatibility routes.
+- Shows recovered and remaining local queue counts and the most recent privacy-safe transport outcome.
+- Redacts email addresses, credentials, tokens, and local paths before any transport diagnostic code is persisted.
+- Recovers corrupt local metrics to an empty fail-safe snapshot and allows users to clear metrics without deleting queued reports or settings.
+- Adds `qa/v1617_incident_transport_metrics_module_split_smoke.js` and raises the configured cumulative target to 345 checks.
+
+# v1.6.16 - Same-Origin Incident Recovery and Overlay Back Navigation
+
+- Adds Firebase Hosting same-origin rewrites for incident status, submission, delivery status, and readiness checks.
+- Falls back from the Firebase Callable SDK to the authenticated same-origin Callable protocol before using the existing Firestore compatibility path.
+- Adds failure-specific one-line recovery actions for network, deployment, authentication, Firestore, Gmail Secret, SMTP authentication, recipient, rate-limit, and SMTP network states.
+- Shows whether the incident service is using the primary Callable route or the Hosting same-origin recovery route.
+- Extends the shared overlay manager with external parent ownership, parent input suspension, explicit close callbacks, and mobile browser-back handling that closes the top dialog before leaving the page.
+- Coordinates overlay Back consumption with the existing unsaved-work exit guard so one `popstate` cannot both close a popup and trigger page-exit confirmation.
+- Keeps simple non-interactive tooltips lightweight; only blocking or interactive popup-on-popup flows join the shared overlay stack.
+- Adds `qa/v1616_same_origin_incident_overlay_navigation_smoke.js` and raises the configured cumulative static/regression target to 342 checks.
+
+# v1.6.15 - Conditional Nested Overlays and Incident Auto-Recovery
+
+- Generalizes the viewport-safe download popup into a shared fixed-overlay stack for appropriate popup-on-popup flows.
+- Keeps parent dialogs mounted but inert while child overlays own focus and restores the parent cleanly after close.
+- Constrains dialog and floating layers to the active visual viewport with internal scrolling and mobile viewport updates.
+- Registers AI recommendation, select popup, download dialog, and download assistance panels with the shared manager.
+- Separates offline, true network block, CORS-unreadable endpoint, missing deployment, and reachable server-internal incident states.
+- Adds bounded 5/15/45-second service recovery, online-triggered queue retry, a manual recovery action, and privacy-safe diagnostic copy.
+- Adds two v1.6.15 regression checks and raises the cumulative configured target to 341 checks.
+
+# v1.6.14 - Viewport-Safe Download Quality and Incident Endpoint Diagnostics
+
+- Moves the MP3/WAV quality list into a fixed overlay so opening it no longer increases or pushes the download sheet below the visible screen.
+- Clamps the menu to the current visual viewport, chooses above/below placement, caps height, and enables internal scrolling.
+- Makes the mobile download sheet taller but viewport-bounded with internal scrolling and safe-area padding.
+- Remembers the last MP3 bitrate, WAV bit depth, and selected format using guarded local storage.
+- Shows exact current-output size and estimated alternate MP3/WAV sizes.
+- Displays the exact `getIncidentServiceStatus` function, endpoint, direct HTTP reachability, CSP status, and App Check status separately.
+- Stops treating generic reachable `functions/internal` errors as network blocking; distinguishes missing deployment, CSP/network failure, and server-internal failure.
+- Adds two v1.6.14 regression checks and raises the configured cumulative target to 339 checks.
+
 # v1.6.13 - MP3/WAV Context Quality Menu
 
 - Keeps only MP3 and WAV format-family buttons visible in the mastered-file download dialog.

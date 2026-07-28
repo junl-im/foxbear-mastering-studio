@@ -1,11 +1,43 @@
-// FoxBear AI Mastering Studio Pro v1.6.13 - compact MP3/WAV picker with context-style quality menus
+// FoxBear AI Mastering Studio Pro v1.6.20 - viewport-contained MP3/WAV quality menu and size estimates
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
+    const DOWNLOAD_QUALITY_PREFERENCES_KEY = 'foxbear:download-quality-preferences:v1';
+    const VALID_QUALITY_FORMATS = Object.freeze({
+        mp3: Object.freeze(['mp3_128', 'mp3_192', 'mp3_256', 'mp3_320']),
+        wav: Object.freeze(['wav16', 'wav24', 'wav32float'])
+    });
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+    const normalizeDownloadQualityPreferences = value => {
+        const fallback = { mp3: 'mp3_320', wav: 'wav24', lastFormat: '' };
+        const source = value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+        const mp3 = VALID_QUALITY_FORMATS.mp3.includes(source.mp3) ? source.mp3 : fallback.mp3;
+        const wav = VALID_QUALITY_FORMATS.wav.includes(source.wav) ? source.wav : fallback.wav;
+        const allFormats = [...VALID_QUALITY_FORMATS.mp3, ...VALID_QUALITY_FORMATS.wav];
+        const lastFormat = allFormats.includes(source.lastFormat) ? source.lastFormat : fallback.lastFormat;
+        return { mp3, wav, lastFormat };
+    };
+
+    const loadDownloadQualityPreferences = () => {
+        try {
+            return normalizeDownloadQualityPreferences(JSON.parse(global.localStorage?.getItem?.(DOWNLOAD_QUALITY_PREFERENCES_KEY) || 'null'));
+        } catch (error) {
+            return normalizeDownloadQualityPreferences(null);
+        }
+    };
+
+    const saveDownloadQualityPreferences = value => {
+        const normalized = normalizeDownloadQualityPreferences(value);
+        try { global.localStorage?.setItem?.(DOWNLOAD_QUALITY_PREFERENCES_KEY, JSON.stringify(normalized)); } catch (error) {}
+        return normalized;
+    };
+
     function showDownloadOptionsDialog(track, deps = {}) {
         const {
             getDownloadEnvironmentInfo,
             getDownloadFormatOptions,
+            getDownloadSizeEstimate,
             prepareTrackDownloadBlob,
             getImmediateTrackDownloadBlob,
             isRestrictedDownloadBrowser,
@@ -43,7 +75,9 @@
         const previous = document.querySelector('.download-options-backdrop');
         try { previous?.__foxbearAbortController?.abort?.('download-dialog-replaced'); } catch (error) {}
         try { previous?.__foxbearCleanup?.(); } catch (error) {}
+        if (previous) global.FoxBearModalStateMachine?.setExternalLayerOpen?.(previous, false);
         if (previous) previous.remove();
+        document.querySelectorAll('.download-format-quality-menu-portal').forEach(menu => menu.remove());
         document.body.classList.remove('download-options-open');
 
         const env = getDownloadEnvironmentInfo();
@@ -56,7 +90,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.6.13',
+                version: '1.6.20',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -158,7 +192,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.6.13 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.6.20 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -176,7 +210,7 @@
         familyTabs.setAttribute('role', 'group');
         familyTabs.setAttribute('aria-label', '다운로드 파일 형식');
         const qualityMenu = document.createElement('div');
-        qualityMenu.className = 'download-format-quality-menu';
+        qualityMenu.className = 'download-format-quality-menu download-format-quality-menu-portal';
         qualityMenu.hidden = true;
         qualityMenu.setAttribute('role', 'menu');
         qualityMenu.setAttribute('aria-label', '다운로드 음질 선택');
@@ -186,15 +220,19 @@
         list.className = 'download-options-list selectable';
         list.setAttribute('role', 'none');
         qualityMenu.append(qualityLabel, list);
-        formatPicker.append(familyTabs, qualityMenu);
+        formatPicker.append(familyTabs);
         const options = getDownloadFormatOptions(track);
         const visibleOptions = env.restricted ? options.filter(option => option.available !== false) : options;
-        const defaultOption = visibleOptions.find(option => option.format === track.outFormat) || visibleOptions[0] || options[0];
+        let qualityPreferences = loadDownloadQualityPreferences();
+        const rememberedOption = visibleOptions.find(option => option.available !== false && option.format === qualityPreferences.lastFormat);
+        const defaultOption = rememberedOption || visibleOptions.find(option => option.format === track.outFormat) || visibleOptions[0] || options[0];
         if (!defaultOption) return;
         let selectedFormat = defaultOption.format;
         let activeFormatFamily = String(selectedFormat || '').startsWith('mp3') ? 'mp3' : 'wav';
         let qualityMenuOpen = false;
         let qualityMenuReturnFocus = null;
+        let qualityMenuAnchor = null;
+        let qualityMenuPositionFrame = 0;
         const formatFamilies = Object.freeze([
             Object.freeze({ id: 'mp3', label: 'MP3', detail: '공유 · 모바일 호환', icon: '🎧' }),
             Object.freeze({ id: 'wav', label: 'WAV', detail: '보관 · 편집 품질', icon: '🎚️' })
@@ -303,7 +341,9 @@
         const getSelectedOption = () => options.find(option => option.format === selectedFormat) || defaultOption;
         const getFamilySelection = family => {
             const selected = getSelectedOption();
-            return getFormatFamily(selected?.format) === family ? selected : null;
+            if (getFormatFamily(selected?.format) === family) return selected;
+            const rememberedFormat = qualityPreferences[family];
+            return options.find(option => option.format === rememberedFormat && option.available !== false) || null;
         };
         const getQualityHint = option => {
             const hints = {
@@ -317,9 +357,20 @@
             };
             return hints[option?.format] || option?.label || '';
         };
+        const getOptionSizeEstimate = option => {
+            if (!option || typeof getDownloadSizeEstimate !== 'function') return null;
+            try { return getDownloadSizeEstimate(track, option.format) || null; }
+            catch (error) { return null; }
+        };
+        const getOptionSizeText = option => {
+            const estimate = getOptionSizeEstimate(option);
+            if (!estimate?.label) return '';
+            return `${estimate.exact ? '' : '약 '}${estimate.label}`;
+        };
         const updateSelectedSummary = () => {
             const selected = getSelectedOption();
-            selectedSummary.textContent = `${selected.label} · ${selected.detail}`;
+            const sizeText = getOptionSizeText(selected);
+            selectedSummary.textContent = `${selected.label} · ${selected.detail}${sizeText ? ` · ${sizeText}` : ''}`;
         };
         const syncFamilyButtons = () => {
             const selectedFamily = getFormatFamily(selectedFormat);
@@ -334,13 +385,79 @@
                 const detail = button.querySelector('.download-format-family-copy small');
                 const familyMeta = formatFamilies.find(item => item.id === family);
                 const familySelection = getFamilySelection(family);
-                if (detail) detail.textContent = familySelection ? `${familySelection.detail} 선택됨` : familyMeta?.detail || '';
+                const selectionSize = getOptionSizeText(familySelection);
+                if (detail) {
+                    detail.textContent = familySelection
+                        ? `${familySelection.detail}${selectionSize ? ` · ${selectionSize}` : ''} ${selected ? '선택됨' : '기억됨'}`
+                        : familyMeta?.detail || '';
+                }
             });
+        };
+        const cancelQualityMenuPosition = () => {
+            if (qualityMenuPositionFrame) {
+                try { global.cancelAnimationFrame?.(qualityMenuPositionFrame); } catch (error) {}
+            }
+            qualityMenuPositionFrame = 0;
+        };
+        const positionQualityMenu = () => {
+            qualityMenuPositionFrame = 0;
+            if (!qualityMenuOpen || qualityMenu.hidden || !qualityMenuAnchor?.isConnected) return;
+            const anchorRect = qualityMenuAnchor.getBoundingClientRect();
+            const visualViewport = global.visualViewport || null;
+            const viewportLeft = Math.max(0, Number(visualViewport?.offsetLeft || 0));
+            const viewportTop = Math.max(0, Number(visualViewport?.offsetTop || 0));
+            const viewportWidth = Math.max(240, Number(visualViewport?.width || global.innerWidth || document.documentElement?.clientWidth || 720));
+            const viewportHeight = Math.max(240, Number(visualViewport?.height || global.innerHeight || document.documentElement?.clientHeight || 720));
+            const viewportRight = viewportLeft + viewportWidth;
+            const viewportBottom = viewportTop + viewportHeight;
+            const edgeMargin = 10;
+            const anchorGap = 8;
+
+            qualityMenu.style.removeProperty('max-height');
+            qualityMenu.style.maxWidth = `${Math.max(180, Math.floor(viewportWidth - edgeMargin * 2))}px`;
+            const naturalRect = qualityMenu.getBoundingClientRect();
+            const menuWidth = Math.min(Math.max(180, Number(naturalRect.width || 268)), Math.max(180, viewportWidth - edgeMargin * 2));
+            const naturalHeight = Math.max(1, Number(naturalRect.height || 1));
+            const menuHeight = Math.min(naturalHeight, Math.max(96, viewportHeight - edgeMargin * 2));
+            const availableBelow = Math.max(0, viewportBottom - edgeMargin - anchorRect.bottom - anchorGap);
+            const availableAbove = Math.max(0, anchorRect.top - viewportTop - edgeMargin - anchorGap);
+            const placeAbove = availableBelow < naturalHeight && (availableAbove >= naturalHeight || availableAbove > availableBelow);
+            const preferredTop = placeAbove
+                ? anchorRect.top - anchorGap - menuHeight
+                : anchorRect.bottom + anchorGap;
+            const minTop = viewportTop + edgeMargin;
+            const maxTop = Math.max(minTop, viewportBottom - edgeMargin - menuHeight);
+            const top = clamp(preferredTop, minTop, maxTop);
+            const preferredLeft = activeFormatFamily === 'wav' ? anchorRect.right - menuWidth : anchorRect.left;
+            const minLeft = viewportLeft + edgeMargin;
+            const maxLeft = Math.max(minLeft, viewportRight - edgeMargin - menuWidth);
+            const left = clamp(preferredLeft, minLeft, maxLeft);
+            const arrowCenter = anchorRect.left + anchorRect.width / 2 - left;
+            const verticallyClamped = Math.abs(top - preferredTop) > 1;
+
+            qualityMenu.dataset.placement = placeAbove ? 'above' : 'below';
+            qualityMenu.dataset.viewportClamped = verticallyClamped ? 'true' : 'false';
+            qualityMenu.style.left = `${Math.round(left)}px`;
+            qualityMenu.style.right = 'auto';
+            qualityMenu.style.top = `${Math.round(top)}px`;
+            qualityMenu.style.bottom = 'auto';
+            qualityMenu.style.maxHeight = `${Math.floor(menuHeight)}px`;
+            qualityMenu.style.setProperty('--quality-menu-arrow-x', `${Math.round(clamp(arrowCenter - 5, 14, Math.max(14, menuWidth - 24)))}px`);
+            qualityMenu.style.visibility = 'visible';
+        };
+        const scheduleQualityMenuPosition = () => {
+            cancelQualityMenuPosition();
+            if (!qualityMenuOpen) return;
+            const requestFrame = global.requestAnimationFrame || (callback => global.setTimeout(callback, 0));
+            qualityMenuPositionFrame = requestFrame(positionQualityMenu);
         };
         const closeQualityMenu = ({ restoreFocus = false } = {}) => {
             if (!qualityMenuOpen) return;
             qualityMenuOpen = false;
+            cancelQualityMenuPosition();
             qualityMenu.hidden = true;
+            qualityMenu.style.visibility = 'hidden';
+            qualityMenuAnchor = null;
             panel.classList.remove('quality-menu-open');
             syncFamilyButtons();
             if (restoreFocus && qualityMenuReturnFocus?.isConnected) qualityMenuReturnFocus.focus();
@@ -355,6 +472,11 @@
             }
             selectedFormat = format;
             activeFormatFamily = getFormatFamily(format);
+            qualityPreferences = saveDownloadQualityPreferences({
+                ...qualityPreferences,
+                [activeFormatFamily]: format,
+                lastFormat: format
+            });
             panel.dataset.formatFamily = activeFormatFamily;
             Array.from(list.querySelectorAll('.download-format-option')).forEach(button => {
                 const active = button.dataset.format === selectedFormat;
@@ -364,9 +486,10 @@
             updateSelectedSummary();
             syncFamilyButtons();
             const selected = options.find(option => option.format === selectedFormat);
+            const sizeText = getOptionSizeText(selected);
             warning.classList.add('show');
-            warning.textContent = selected ? `${selected.label} ${selected.detail} 선택` : '형식 선택';
-            renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail} 준비됨` : '형식 선택됨');
+            warning.textContent = selected ? `${selected.label} ${selected.detail} 선택${sizeText ? ` · ${sizeText}` : ''}` : '형식 선택';
+            renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail}${sizeText ? ` · ${sizeText}` : ''} 준비됨` : '형식 선택됨');
             closeQualityMenu({ restoreFocus: true });
         };
 
@@ -412,10 +535,19 @@
                     renderFormatOptions();
                     qualityMenuOpen = true;
                     qualityMenuReturnFocus = button;
+                    qualityMenuAnchor = button;
                     qualityMenu.dataset.anchorFamily = family.id;
+                    qualityMenu.dataset.placement = 'below';
+                    qualityMenu.dataset.viewportClamped = 'false';
+                    qualityMenu.style.visibility = 'hidden';
                     qualityMenu.hidden = false;
                     panel.classList.add('quality-menu-open');
                     syncFamilyButtons();
+                    scheduleQualityMenuPosition();
+                    requestAnimationFrame(() => {
+                        const preferredFormat = qualityPreferences[family.id] || selectedFormat;
+                        list.querySelector(`[data-format="${preferredFormat}"]`)?.scrollIntoView?.({ block: 'nearest' });
+                    });
                     warning.classList.add('show');
                     warning.textContent = family.id === 'mp3'
                         ? 'MP3 비트레이트를 선택하세요.'
@@ -425,7 +557,11 @@
                     if (event.key !== 'ArrowDown') return;
                     event.preventDefault();
                     if (!qualityMenuOpen || activeFormatFamily !== family.id) button.click();
-                    requestAnimationFrame(() => list.querySelector('.download-format-option:not(:disabled)')?.focus());
+                    requestAnimationFrame(() => {
+                        const preferredFormat = qualityPreferences[family.id] || selectedFormat;
+                        const preferred = list.querySelector(`[data-format="${preferredFormat}"]:not(:disabled)`);
+                        (preferred || list.querySelector('.download-format-option:not(:disabled)'))?.focus();
+                    });
                 });
                 familyTabs.appendChild(button);
             });
@@ -453,12 +589,21 @@
                     button.title = option.unavailableReason || '다른 포맷은 재마스터링이 필요합니다.';
                 }
                 const main = document.createElement('span');
+                main.className = 'download-format-option-value';
                 main.textContent = option.detail;
+                const meta = document.createElement('span');
+                meta.className = 'download-format-option-meta';
                 const unit = document.createElement('b');
                 unit.textContent = option.available === false
                     ? `${getQualityHint(option)} · 재마스터링 필요`
                     : getQualityHint(option);
-                button.append(main, unit);
+                const size = document.createElement('small');
+                size.className = 'download-format-option-size';
+                const estimate = getOptionSizeEstimate(option);
+                size.textContent = estimate?.label ? `${estimate.exact ? '현재 ' : '약 '}${estimate.label}` : '용량 계산 불가';
+                meta.append(unit, size);
+                button.setAttribute('aria-label', `${option.label} ${option.detail}, ${unit.textContent}, ${size.textContent}`);
+                button.append(main, meta);
                 button.addEventListener('click', () => setSelected(option.format));
                 list.appendChild(button);
             });
@@ -692,7 +837,7 @@
 
         let currentActionController = null;
         let currentActionButton = null;
-        const allButtons = () => Array.from(panel.querySelectorAll('button')).filter(button => button !== cancelAction);
+        const allButtons = () => [...panel.querySelectorAll('button'), ...qualityMenu.querySelectorAll('button')].filter(button => button !== cancelAction);
         const setBusy = (busy, options = {}) => {
             const active = Boolean(busy);
             const showProgress = active && options.showProgress !== false;
@@ -705,6 +850,7 @@
             cancelAction.disabled = !showProgress;
             progressCard.hidden = !showProgress;
             panel.classList.toggle('working', showProgress);
+            qualityMenu.classList.toggle('working', showProgress);
             if (!active) stopProgressClock();
         };
 
@@ -869,6 +1015,14 @@
             progressLastAt = Date.now();
             updateProgressTiming();
         };
+        const handleQualityMenuViewportChange = () => {
+            if (qualityMenuOpen) scheduleQualityMenuPosition();
+        };
+        const handleQualityMenuOutsidePointer = event => {
+            if (!qualityMenuOpen) return;
+            if (qualityMenu.contains(event.target) || formatPicker.contains(event.target)) return;
+            closeQualityMenu();
+        };
         const handleDialogKeydown = event => {
             if (event.key !== 'Escape') return;
             if (qualityMenuOpen) {
@@ -884,12 +1038,24 @@
         };
         document.addEventListener('visibilitychange', handleProgressRestore, { passive: true });
         document.addEventListener('keydown', handleDialogKeydown, true);
+        document.addEventListener('pointerdown', handleQualityMenuOutsidePointer, true);
         global.addEventListener('pageshow', handleProgressRestore, { passive: true });
+        global.addEventListener('resize', handleQualityMenuViewportChange, { passive: true });
+        global.visualViewport?.addEventListener?.('resize', handleQualityMenuViewportChange, { passive: true });
+        global.visualViewport?.addEventListener?.('scroll', handleQualityMenuViewportChange, { passive: true });
+        panel.addEventListener('scroll', handleQualityMenuViewportChange, { passive: true });
         backdrop.__foxbearCleanup = () => {
             stopProgressClock();
+            cancelQualityMenuPosition();
             document.removeEventListener('visibilitychange', handleProgressRestore);
             document.removeEventListener('keydown', handleDialogKeydown, true);
+            document.removeEventListener('pointerdown', handleQualityMenuOutsidePointer, true);
             global.removeEventListener('pageshow', handleProgressRestore);
+            global.removeEventListener('resize', handleQualityMenuViewportChange);
+            global.visualViewport?.removeEventListener?.('resize', handleQualityMenuViewportChange);
+            global.visualViewport?.removeEventListener?.('scroll', handleQualityMenuViewportChange);
+            panel.removeEventListener('scroll', handleQualityMenuViewportChange);
+            qualityMenu.remove();
         };
 
         bindActionButton(download, primaryAction, download.textContent);
@@ -906,11 +1072,19 @@
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        // v1.6.13 compact hierarchy: only MP3/WAV stay visible; quality opens as a context-style menu.
+        // v1.6.20 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
         panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, actions);
-        backdrop.appendChild(panel);
+        backdrop.append(panel, qualityMenu);
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');
+        global.FoxBearModalStateMachine?.setExternalLayerOpen?.(backdrop, true, {
+            mode: 'dialog',
+            panel,
+            opener: backdrop.__foxbearReturnFocus,
+            lockScroll: true,
+            onRequestClose: () => { if (!actionInFlight) closeDownloadOptionsDialog(backdrop); },
+            onViewportChange: () => scheduleQualityMenuPosition()
+        });
         requestAnimationFrame(() => panel.focus());
     }
 

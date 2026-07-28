@@ -1,3 +1,127 @@
+# Handoff - v1.6.20
+
+## Mandatory result format
+
+1. 작업한 내역
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+3. 다음 예정 내역
+
+## Current release
+
+- Product version: `1.6.20`
+- Build ID: `incident-background-sync-network-decay`
+- Asset version: `1.6.20-incident-background-sync-network-decay`
+- Service worker cache: `foxbear-shell-v1.6.20-incident-background-sync-network-decay`
+- Configured static/regression target: 351 checks.
+
+## v1.6.20 handoff
+
+- `incident-mail-sync-service.js` uses visibility-aware polling and immediate foreground refresh for active mail.
+- `incident-route-policy.js` decays prior route evidence after network-context changes and clears stale cooldowns.
+- Production Firebase routing and Gmail receipt remain environment gates.
+
+## v1.6.18 handoff
+
+- `src/boot/incident-state-service.js` owns local mail-test and deployment-readiness/history persistence.
+- `src/boot/incident-route-policy.js` must load before `src/firebase-bootstrap.js` so repeated transient Callable failures can temporarily prefer Hosting same-origin recovery.
+- `src/boot/incident-support-service.js`, state service, recovery policy, and reporter must retain their current order.
+- Deploy Hosting rewrites and Functions atomically with `npm run deploy:incident`; the adaptive policy cannot repair a missing or stale server deployment.
+- Route health and transport metrics are local metadata only and must never include audio, filenames, report bodies, local paths, auth tokens, or Firebase Secrets.
+
+# Handoff - v1.6.17
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+
+## v1.6.17 current focus
+
+- Incident storage, sanitization, hashing, browser classification, version comparison, and local transport metrics live in `src/boot/incident-support-service.js`.
+- Incident failure classification and recovery action policy live in `src/boot/incident-recovery-policy.js`.
+- The main reporter records privacy-safe outcomes for Callable, Hosting rewrite, Firestore compatibility, service checks, report submission, and local queue recovery.
+- The settings dialog shows route success ratios, fallback success count, recovered queue count, remaining queue count, and the latest metadata-only outcome.
+- Metrics are local-only, redact emails/tokens/paths, fail safely on corrupt storage, and can be cleared without deleting queued reports or reporting preferences.
+- Regression: `node qa/v1617_incident_transport_metrics_module_split_smoke.js`.
+- Configured cumulative static/regression target: 345 checks before installed-browser and production Firebase confirmation.
+
+# Handoff - v1.6.16
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+
+## v1.6.16 current focus
+
+- Incident status, submit, delivery-status, and readiness calls have same-origin Firebase Hosting rewrite routes.
+- The Firebase Callable SDK remains primary; only network/unavailable failures activate the authenticated Hosting rewrite fallback.
+- Same-origin calls preserve the Firebase ID token and App Check token when available and keep the standard Callable `{ data }` protocol envelope.
+- Failure-specific one-line recovery buttons route users to retry, automatic recovery, deployment verification, deploy-command copy, diagnostic copy, or mail-test actions.
+- External nested overlays identify their parent layer, suspend parent input, restore it after close, and expose explicit close callbacks.
+- One browser-history sentinel closes the top blocking overlay on mobile Back; nested parents stay open and receive control again.
+- One browser-history sentinel closes the top blocking overlay on mobile Back; nested parents stay open and receive control again.
+- Overlay-consumed `popstate` events are marked so the existing unsaved-work exit guard cannot also prompt or navigate on the same Back action.
+- Simple hover-only tooltips remain outside the blocking overlay manager by design.
+- Regression: `node qa/v1616_same_origin_incident_overlay_navigation_smoke.js`.
+- Configured cumulative static/regression target: 342 checks before installed-browser and production Firebase confirmation.
+
+# Handoff - v1.6.15
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+
+## v1.6.15 current focus
+
+- Secondary dialogs and floating panels opened from an active popup use a shared fixed overlay stack when nesting is appropriate.
+- Parent dialogs remain mounted but inert, child layers stay inside the visual viewport, and focus/scroll ownership returns on close.
+- AI recommendation, select popup, download dialog, and download assistance paths use the common layer manager; the existing download quality menu remains a viewport-fixed portal inside that dialog flow.
+- Incident endpoint probing separates offline, true network failure, CORS-unreadable reachability, missing deployment, and server-internal failure.
+- Transient incident failures receive bounded 5/15/45-second recovery attempts; returning online retries the local anonymous queue.
+- Manual recovery and sanitized diagnostic-copy actions do not include audio, filenames, full local paths, or report payloads.
+- Regression: `node qa/v1615_nested_overlay_stack_smoke.js` and `node qa/v1615_incident_auto_recovery_smoke.js`.
+- Configured cumulative static/regression target: 341 checks before installed-browser and production Firebase confirmation.
+
+# Handoff - v1.6.14
+
+# 필수 결과 보고 형식
+
+앞으로 사용자가 별도 형식을 명시하지 않는 한 모든 패치 결과는 아래 세 구역만 사용한다. 제목과 순서를 유지하고 추가 독립 구역을 만들지 않는다.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+
+## v1.6.14 current focus
+
+- The MP3/WAV quality menu is a fixed portal outside the scrollable download sheet and is clamped to the active visual viewport.
+- The menu automatically opens above or below, uses a viewport-limited maximum height, and scrolls internally on short screens.
+- The mobile download sheet is limited to 96dvh and keeps all controls reachable through internal scrolling.
+- Valid MP3/WAV quality preferences are remembered and alternate output sizes are estimated without changing the encoder or mastering DSP.
+- Incident diagnostics show the exact `getIncidentServiceStatus` function, Functions endpoint, direct reachability, exact CSP result, and App Check mode independently.
+- A reachable `functions/internal` error is server-internal; only CSP or direct network evidence becomes `FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED`.
+- Regression: `node qa/v1614_download_quality_memory_size_position_smoke.js` and `node qa/v1614_incident_callable_endpoint_diagnostics_smoke.js`.
+- Configured cumulative static/regression target: 339 checks before installed-browser and production Firebase confirmation.
+
 # Handoff - v1.6.13
 
 # 필수 결과 보고 형식

@@ -12,19 +12,22 @@ const pkg = JSON.parse(read('package.json'));
 const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 const reporterSource = read('src/boot/incident-reporter.js');
+const incidentSupportSource = read('src/boot/incident-support-service.js');
+const incidentStateSource = read('src/boot/incident-state-service.js');
+const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
 const firebaseSource = read('src/firebase-bootstrap.js');
 const functionsSource = read('functions/index.js');
 const appSource = read('src/app.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.13');
+assert.strictEqual(pkg.version, '1.6.20');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build id must remain valid kebab-case');
 assert(pkg.qaChecks.length >= 331, 'v1.6.8 readiness contract must remain in the cumulative QA set');
 assert(html.includes('id="incidentDeploymentMeta"'));
 assert.strictEqual((html.match(/data-deploy-recovery/g) || []).length, 5);
 assert(css.includes('readiness recovery, cache status, and mobile summary polish'));
 assert(css.includes("data-incident-tone='danger'"));
-assert(reporterSource.includes('const DEPLOYMENT_READINESS_KEY'));
+assert(incidentStateSource.includes('const DEPLOYMENT_READINESS_KEY'));
 assert(reporterSource.includes('function deploymentRecoveryInfo'));
 assert(reporterSource.includes('function getSettingsSummary'));
 assert(reporterSource.includes('function getDeploymentCheckAvailability'));
@@ -35,7 +38,7 @@ assert(functionsSource.includes('cached: true'));
 assert(functionsSource.includes('lastHealthyAt: timestampToIso'));
 assert(functionsSource.includes('const INCIDENT_SERVICE_SCHEMA_VERSION = 6'));
 assert(appSource.includes("getSettingsSummary?.().label"));
-assert(handoff.startsWith('# Handoff - v1.6.13'));
+assert(handoff.startsWith('# Handoff - v1.6.20'));
 
 const memory = new Map();
 let readinessCalls = 0;
@@ -47,7 +50,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.13' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.20' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => `connect-src 'self' ${origin}` };
@@ -56,7 +59,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.13', assetVersion: '1.6.13-download-format-context-menu' }
+  FoxBearBuildInfo: { productVersion: '1.6.20', assetVersion: '1.6.20-incident-background-sync-network-decay' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -69,7 +72,7 @@ reporterSandbox.FoxBearFirebase = {
     return {
       ok: true, cached: false, checkedAt, lastHealthyAt: checkedAt,
       nextCheckAt: new Date(Date.now() + 60000).toISOString(),
-      service: { status: 'ready', productVersion: '1.6.13', functionsOrigin: origin },
+      service: { status: 'ready', productVersion: '1.6.20', functionsOrigin: origin },
       checks: {
         functions: { ok: true, status: 'ready', message: 'functions ok' },
         firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -82,6 +85,11 @@ reporterSandbox.FoxBearFirebase = {
 reporterSandbox.window = reporterSandbox;
 reporterSandbox.globalThis = reporterSandbox;
 vm.createContext(reporterSandbox);
+vm.runInContext(incidentSupportSource, reporterSandbox, { filename: 'incident-support-service.js' });
+vm.runInContext(incidentStateSource, reporterSandbox, { filename: 'incident-state-service.js' });
+
+vm.runInContext(incidentRecoveryPolicySource, reporterSandbox, { filename: 'incident-recovery-policy.js' });
+
 vm.runInContext(reporterSource, reporterSandbox, { filename: 'incident-reporter.js' });
 const reporter = reporterSandbox.FoxBearIncidentReporter;
 

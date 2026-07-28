@@ -10,11 +10,14 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 const reporterSource = read('src/boot/incident-reporter.js');
+const incidentSupportSource = read('src/boot/incident-support-service.js');
+const incidentStateSource = read('src/boot/incident-state-service.js');
+const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
 const firebaseSource = read('src/firebase-bootstrap.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.13');
+assert.strictEqual(pkg.version, '1.6.20');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 assert(pkg.qaChecks.length >= 333);
 assert(firebaseSource.includes('FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID'));
@@ -46,7 +49,7 @@ const sandbox = {
     setItem: (key, value) => memory.set(key, String(value))
   },
   document: {
-    body: { dataset: { build: '1.6.13' }, appendChild() {} }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.20' }, appendChild() {} }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -55,7 +58,7 @@ const sandbox = {
     addEventListener() {}, createElement: makeElement, execCommand: () => true
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.6.13', assetVersion: '1.6.13-download-format-context-menu' }
+  FoxBearBuildInfo: { productVersion: '1.6.20', assetVersion: '1.6.20-incident-background-sync-network-decay' }
 };
 const completeRemote = () => {
   const checkedAt = new Date().toISOString();
@@ -65,7 +68,7 @@ const completeRemote = () => {
     checkedAt,
     lastHealthyAt: checkedAt,
     nextCheckAt: new Date(Date.now() + 60000).toISOString(),
-    service: { status: 'ready', productVersion: '1.6.13', functionsOrigin: origin },
+    service: { status: 'ready', productVersion: '1.6.20', functionsOrigin: origin },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -87,6 +90,11 @@ sandbox.FoxBearFirebase = {
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
+vm.runInContext(incidentSupportSource, sandbox, { filename: 'incident-support-service.js' });
+vm.runInContext(incidentStateSource, sandbox, { filename: 'incident-state-service.js' });
+
+vm.runInContext(incidentRecoveryPolicySource, sandbox, { filename: 'incident-recovery-policy.js' });
+
 vm.runInContext(reporterSource, sandbox, { filename: 'incident-reporter.js' });
 const reporter = sandbox.FoxBearIncidentReporter;
 

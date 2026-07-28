@@ -15,7 +15,7 @@ const perf = read('src/boot/performance-diagnostics.js');
 const perfCss = read('assets/css/boot/performance-diagnostics.css');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.13');
+assert.strictEqual(pkg.version, '1.6.20');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 
 assert(modal.includes('const FOCUSABLE_SELECTOR'), 'modal controller must own the shared focusable selector');
@@ -44,7 +44,7 @@ assert(perf.includes("detailsSummary.textContent = '기술 상세 로그 보기'
 assert(perf.includes("label: '브라우저 메모리'"), 'diagnostics must explain browser memory');
 assert(perf.includes("label: 'Worker 작업'"), 'diagnostics must explain Worker activity');
 assert(perf.includes("label: '완료 PCM 보유'"), 'diagnostics must expose retained PCM');
-assert(perf.includes('global.FoxBearModalStateMachine?.setExternalLayerOpen?.(state.backdrop, state.panelVisible)'), 'performance dialog must join shared scroll locking');
+assert(perf.includes('global.FoxBearModalStateMachine?.setExternalLayerOpen?.(state.backdrop, state.panelVisible'), 'performance dialog must join shared scroll locking');
 assert(perf.includes('state.returnFocus = candidate'), 'performance dialog must remember the opener');
 assert(perf.includes('returnFocus.focus({ preventScroll: true })'), 'performance dialog must restore opener focus');
 assert(perf.includes("if (event.target === backdrop) setPanelVisible(false);"), 'performance dialog must close from outside click');
@@ -53,7 +53,7 @@ assert(perfCss.includes('.foxbear-perf-summary-grid'), 'diagnostics summary grid
 assert(perfCss.includes('.foxbear-perf-card'), 'diagnostics card styles are required');
 assert(perfCss.includes(".foxbear-perf-summary-lead[data-tone='warn']"), 'diagnostics warning state must be visible');
 assert(perfCss.includes('body.foxbear-modal-layer-open'), 'shared modal scroll state must have CSS protection');
-assert(handoff.startsWith('# Handoff - v1.6.13'), 'handoff must lead with the current release');
+assert(handoff.startsWith('# Handoff - v1.6.20'), 'handoff must lead with the current release');
 assert(handoff.includes('# 필수 결과 보고 형식'), 'three-section report contract must remain persistent');
 
 function classList(initial = []) {

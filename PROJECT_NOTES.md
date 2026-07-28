@@ -1,3 +1,50 @@
+## v1.6.18 current focus
+
+- Keep the adaptive cooldown limited to transient network/availability failures; never hide permission, authentication, validation, or missing-deployment errors behind route switching.
+- A successful Callable request must immediately restore the primary route.
+- Treat local mail-test/readiness snapshots as untrusted and schema-normalize every read and write.
+- Hosting rewrites and Functions remain one atomic deployment unit.
+- Preserve the three-section final report rule.
+
+## v1.6.17 current focus
+
+- Keep incident transport metrics metadata-only and local to the browser.
+- Confirm Hosting rewrite fallback and queue recovery counters after production deployment.
+- Continue reducing `incident-reporter.js` by moving history and readiness persistence into dedicated services only when regression coverage exists.
+- Preserve the three-section final report rule.
+
+# Current Project Notes - v1.6.16
+
+## v1.6.16 focus
+
+- Same-origin incident fallback is not a second unauthenticated API. Preserve Firebase ID-token and optional App Check headers and the Callable protocol envelope.
+- Hosting rewrites and Functions must be deployed atomically; a Hosting-only deploy creates routes that point to stale or missing function contracts.
+- The Firestore compatibility path remains the last submission/status fallback and must keep owner-only report IDs and rules.
+- Promote only interactive or blocking child windows to the overlay stack. Hover tooltips and passive status hints should remain lightweight.
+- Browser Back owns one overlay sentinel, not one permanent history entry per dialog. Closing the final dialog must release the sentinel without trapping navigation.
+- Failure-specific recovery actions must call existing tested controls rather than duplicating deployment, retry, or mail-test implementations.
+
+# Current Project Notes - v1.6.15
+
+## v1.6.15 focus
+
+- Use nested fixed overlays only when an action is opened from inside the active dialog; unrelated top-level navigation should retain replacement behavior.
+- Every blocking layer participates in one body-scroll lock, z-order stack, Escape policy, focus handoff, and visual-viewport clamp.
+- Floating help/assist panels may opt out of document scroll locking but must still unregister on every close and cleanup path.
+- Incident recovery is bounded and evidence-based. An opaque `no-cors` response proves endpoint reachability but does not prove Callable health.
+- Sanitized diagnostics may contain version and health metadata only; never add audio samples, filenames, local paths, report text, auth tokens, or Firebase Secret values.
+- Production verification still requires the matching Hosting CSP, Functions deployment, and real Gmail delivery confirmation.
+
+# Current Project Notes - v1.6.14
+
+## v1.6.14 focus
+
+- Never place the download quality list inside the scrolling sheet layout; keep it as a viewport-fixed portal.
+- Reposition the menu on window, visual viewport, and panel scroll changes, and remove every listener on close.
+- Treat saved download preferences as untrusted local data and normalize them before use.
+- A Callable `functions/internal` error is not proof of a network block. Use exact CSP inspection and the bounded direct endpoint probe to classify it.
+- Production confirmation still requires deploying the matching Hosting CSP and `getIncidentServiceStatus` Function.
+
 # v1.6.13 project notes
 
 - MP3/WAV are format families; bitrate and bit depth remain encoder format IDs and must not be collapsed in the download service.

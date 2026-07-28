@@ -1,3 +1,98 @@
+# FoxBear Status - v1.6.20
+
+## Current release
+
+- Product version: `1.6.20`
+- Build ID: `incident-background-sync-network-decay`
+- Asset version: `1.6.20-incident-background-sync-network-decay`
+- Service worker cache: `foxbear-shell-v1.6.20-incident-background-sync-network-decay`
+
+## v1.6.20 status
+
+- Hidden-page mail polling is reduced to conserve battery and network use.
+- Returning to the foreground immediately refreshes active delivery state.
+- Network-context changes decay old route scores and clear stale cooldowns.
+- Configured cumulative static/regression target: 351 checks.
+
+## v1.6.18 status
+
+- Mail-test and deployment-readiness persistence has moved out of the main incident reporter.
+- Local incident history is normalized and privacy-redacted before storage.
+- Repeated transient Callable failures temporarily prefer the authenticated Hosting rewrite path.
+- The incident settings panel exposes the adaptive route state without storing report contents.
+- Configured cumulative static/regression target: 348 checks.
+- Production Firebase routing and Gmail receipt remain environment gates.
+
+# FoxBear Status - v1.6.17
+
+## Current release
+
+- Product version: `1.6.17`
+- Build ID: `incident-transport-metrics-module-split`
+- Asset version: `1.6.17-incident-transport-metrics-module-split`
+- Service worker cache: `foxbear-shell-v1.6.17-incident-transport-metrics-module-split`
+
+## v1.6.17 status
+
+- Incident support and recovery policy have been split out of the main reporter.
+- Privacy-safe local metrics identify which Firebase transport path succeeds or fails.
+- Queue recovery counts and remaining queued reports are visible without exposing report contents.
+- Corrupt metrics fail closed and the user can clear only the metrics snapshot.
+- Configured cumulative static/regression target: 345 checks.
+- Production Firebase, Gmail receipt, and installed mobile browser confirmation remain environment gates.
+
+# FoxBear Status - v1.6.16
+
+## Current release
+
+- Product version: `1.6.16`
+- Build ID: `same-origin-incident-overlay-back-navigation`
+- Asset version: `1.6.16-same-origin-incident-overlay-back-navigation`
+- Service worker cache: `foxbear-shell-v1.6.16-same-origin-incident-overlay-back-navigation`
+
+## v1.6.16 status
+
+- Incident Callable traffic has an authenticated same-origin Hosting fallback for status, submission, delivery status, and readiness.
+- Failure-class recovery buttons now expose the next safe action directly in the settings dialog.
+- Nested external overlays suspend their parent and browser Back closes the top blocking layer first.
+- Configured cumulative static/regression target: 342 checks.
+- Production Hosting rewrite, Functions, App Check, and Gmail delivery confirmation remain pending environment gates.
+
+# FoxBear Status - v1.6.15
+
+## Current release
+
+- Product version: `1.6.15`
+- Build ID: `nested-overlay-incident-auto-recovery`
+- Asset version: `1.6.15-nested-overlay-incident-auto-recovery`
+- Service worker cache: `foxbear-shell-v1.6.15-nested-overlay-incident-auto-recovery`
+
+## v1.6.15 status
+
+- Conditional nested dialogs and floating panels use a shared fixed visual-viewport overlay stack.
+- Parent dialog focus, inert state, z-order, body scroll lock, and cleanup are centrally managed.
+- Incident diagnostics distinguish offline, network blocked, response blocked, not deployed, and server internal states.
+- Transient service failures receive bounded automatic recovery and queued anonymous reports retry after connectivity returns.
+- Manual recovery and sanitized diagnostic-copy controls are available in the error-reporting settings.
+- Configured regression target: 341 checks.
+
+# FoxBear Status - v1.6.14
+
+## Current release
+
+- Product version: `1.6.14`
+- Build ID: `download-viewport-incident-diagnostics`
+- Asset version: `1.6.14-download-viewport-incident-diagnostics`
+- Service worker cache: `foxbear-shell-v1.6.14-download-viewport-incident-diagnostics`
+
+## v1.6.14 status
+
+- Download quality popup is portalled outside the sheet and constrained to the visual viewport.
+- Mobile sheet height, scrolling, safe areas, remembered quality, and file-size estimates are implemented.
+- Incident status UI separates function name, endpoint, direct HTTP response, CSP, and App Check diagnostics.
+- Generic Functions internal errors are no longer classified as network blocks without reachability evidence.
+- Configured regression target: 339 checks.
+
 # FoxBear Status - v1.6.13
 
 ## v1.6.13 current focus
@@ -598,10 +693,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.13`
-- Build ID: `download-format-context-menu`
-- Asset version: `1.6.13-download-format-context-menu`
-- Service worker cache: `foxbear-shell-v1.6.13-download-format-context-menu`
+- Product version: `1.6.20`
+- Build ID: `incident-background-sync-network-decay`
+- Asset version: `1.6.20-incident-background-sync-network-decay`
+- Service worker cache: `foxbear-shell-v1.6.20-incident-background-sync-network-decay`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

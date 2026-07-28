@@ -1,21 +1,16 @@
-// FoxBear automatic incident reporter - v1.6.13
+// FoxBear automatic incident reporter - v1.6.20
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.13-download-format-context-menu';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.13').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.20-incident-background-sync-network-decay';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.20').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
     const DAILY_KEY = `${STORAGE_PREFIX}:daily`;
-    const TEST_HISTORY_KEY = `${STORAGE_PREFIX}:test-history`;
-    const DEPLOYMENT_READINESS_KEY = `${STORAGE_PREFIX}:deployment-readiness`;
-    const DEPLOYMENT_HISTORY_KEY = `${STORAGE_PREFIX}:deployment-history`;
     const DEPLOY_COMMAND = 'npm run deploy:incident';
     const MAX_QUEUE = 8;
-    const MAX_TEST_HISTORY = 5;
-    const MAX_DEPLOYMENT_HISTORY = 3;
     const MAX_AUTOMATIC_PER_SESSION = 5;
     const MAX_AUTOMATIC_PER_DAY = 12;
     const DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
@@ -23,6 +18,7 @@
     const FIREBASE_READY_TIMEOUT_MS = 15000;
     const DELIVERY_STATUS_TIMEOUT_MS = 45000;
     const DEPLOYMENT_CHECK_COOLDOWN_MS = 60 * 1000;
+    const SERVICE_RECOVERY_DELAYS_MS = Object.freeze([5000, 15000, 45000]);
     const READINESS_SUMMARY_FRESH_MS = 24 * 60 * 60 * 1000;
     const INCIDENT_STATUS_EVENT = 'foxbear:incident-status-change';
     const ALLOWED_SEVERITIES = new Set(['warning', 'error', 'fatal']);
@@ -48,6 +44,7 @@
         serviceError: '',
         serviceErrorCode: '',
         serviceEndpoint: '',
+        directProbe: null,
         serviceCheckInFlight: null,
         lastTestResult: null,
         historyRetryReportId: '',
@@ -56,151 +53,64 @@
         lastHistorySyncAt: 0,
         deploymentCheckInFlight: null,
         deploymentReadiness: null,
-        deploymentRefreshTimer: 0
+        deploymentRefreshTimer: 0,
+        serviceRecoveryTimer: 0,
+        serviceRecoveryAttempt: 0,
+        serviceRecoveryNextAt: 0,
+        serviceRecoveryReason: '',
+        serviceRecoveryInFlight: null,
+        lastRecoveryResult: null,
+        lastRecoveryStatus: ''
     };
 
-    function storageGet(key, fallback = '') {
-        try { return global.localStorage?.getItem?.(key) ?? fallback; }
-        catch (error) { return fallback; }
-    }
-
-    function storageSet(key, value) {
-        try { global.localStorage?.setItem?.(key, value); return true; }
-        catch (error) { return false; }
-    }
-
-
-    function loadTestHistory() {
-        try {
-            const parsed = JSON.parse(storageGet(TEST_HISTORY_KEY, '[]'));
-            return Array.isArray(parsed) ? parsed.slice(0, MAX_TEST_HISTORY) : [];
-        } catch (error) {
-            return [];
+    const support = global.FoxBearIncidentSupport;
+    const stateStore = global.FoxBearIncidentState;
+    const recoveryPolicy = global.FoxBearIncidentRecoveryPolicy;
+    const mailSyncService = global.FoxBearIncidentMailSync || Object.freeze({
+        createController() {
+            let timer = 0;
+            return Object.freeze({
+                schedule(history = [], context = {}) {
+                    if (timer) global.clearTimeout?.(timer);
+                    timer = 0;
+                    const active = history.some(item => item?.reportId && !item?.terminal && ['pending', 'submitted', 'failed', 'retrying', 'sending', 'status-check-failed'].includes(String(item?.status || '')));
+                    if (!active) return Object.freeze({ scheduled: false, delayMs: 0, active: false, shouldSync: false });
+                    timer = global.setTimeout?.(async () => { timer = 0; await context.sync?.(); }, 15000) || 0;
+                    return Object.freeze({ scheduled: Boolean(timer), delayMs: 15000, active: true, shouldSync: true });
+                },
+                cancel() { if (timer) global.clearTimeout?.(timer); timer = 0; },
+                hasTimer() { return Boolean(timer); }
+            });
         }
-    }
-
-    function saveTestHistory(items) {
-        const safe = Array.isArray(items) ? items.slice(0, MAX_TEST_HISTORY) : [];
-        storageSet(TEST_HISTORY_KEY, JSON.stringify(safe));
-        return safe;
-    }
+    });
+    if (!support || !stateStore || !recoveryPolicy) throw new Error('FoxBear incident support modules are not loaded.');
+    const {
+        storageGet, storageSet, cleanText, redactSensitiveText, normalizeError, fnv1a,
+        classifyBrowser, classifyPlatform, compareVersions, getTransportMetrics,
+        recordTransportOutcome, recordQueueRecovery, clearTransportMetrics
+    } = support;
+    const classifyMailTestFailure = recoveryPolicy.classify;
+    const getRecoveryActionPlan = recoveryPolicy.getActionPlan;
+    const RECOVERY_ACTION_LABELS = recoveryPolicy.actionLabels;
+    const {
+        deploymentCheckKeys: DEPLOYMENT_CHECK_KEYS,
+        loadTestHistory,
+        saveTestHistory,
+        loadDeploymentReadiness,
+        normalizeDeploymentReadinessSnapshot,
+        saveDeploymentReadiness: persistDeploymentReadiness,
+        loadDeploymentHistory,
+        clearTestHistory: clearStoredTestHistory,
+        clearDeploymentHistory: clearStoredDeploymentHistory
+    } = stateStore;
 
     function clearTestHistory() {
-        saveTestHistory([]);
+        clearStoredTestHistory();
         renderTestHistory();
     }
 
-    const DEPLOYMENT_CHECK_KEYS = Object.freeze(['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection']);
-    const DEPLOYMENT_CHECK_KEY_SET = new Set(DEPLOYMENT_CHECK_KEYS);
-
-    function normalizeDeploymentCheck(value = {}) {
-        return Object.freeze({
-            ok: value?.ok === true,
-            status: cleanText(value?.status || (value?.ok ? 'ready' : 'unknown'), 24),
-            code: cleanText(value?.code || '', 80),
-            reason: cleanText(value?.reason || '', 80),
-            message: cleanText(value?.message || '', 240)
-        });
-    }
-
-    function normalizeDeploymentReadinessSnapshot(value) {
-        if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-        const sourceChecks = value.checks && typeof value.checks === 'object' ? value.checks : {};
-        const checks = Object.fromEntries(DEPLOYMENT_CHECK_KEYS.map(key => [key, normalizeDeploymentCheck(sourceChecks[key])]));
-        const checkedAt = cleanText(value.checkedAt || '', 40);
-        const service = Object.freeze({
-            status: cleanText(value?.service?.status || '', 20),
-            productVersion: cleanText(value?.service?.productVersion || '', 24),
-            region: cleanText(value?.service?.region || '', 40),
-            functionsOrigin: cleanText(value?.service?.functionsOrigin || '', 180)
-        });
-        const contractValid = Boolean(
-            Number.isFinite(Date.parse(checkedAt))
-            && service.productVersion
-            && service.functionsOrigin
-            && DEPLOYMENT_CHECK_KEYS.every(key => Object.prototype.hasOwnProperty.call(sourceChecks, key) && typeof sourceChecks[key]?.ok === 'boolean')
-        );
-        if (!contractValid && checks.functions.ok) {
-            checks.functions = Object.freeze({
-                ok: false,
-                status: 'error',
-                code: 'FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID',
-                reason: 'response-contract-invalid',
-                message: '배포 점검 응답 형식이 불완전합니다. Callable Functions를 다시 배포하세요.'
-            });
-        }
-        const frozenChecks = Object.freeze(checks);
-        return Object.freeze({
-            ok: value.ok === true && contractValid && DEPLOYMENT_CHECK_KEYS.every(key => frozenChecks[key].ok === true),
-            cached: value.cached === true || value.localCached === true,
-            localCached: value.localCached === true,
-            checkedAt,
-            lastHealthyAt: cleanText(value.lastHealthyAt || '', 40),
-            nextCheckAt: cleanText(value.nextCheckAt || '', 40),
-            contractValid,
-            contractCode: contractValid ? '' : 'FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID',
-            checks: frozenChecks,
-            service
-        });
-    }
-
-    function loadDeploymentReadiness() {
-        try {
-            return normalizeDeploymentReadinessSnapshot(JSON.parse(storageGet(DEPLOYMENT_READINESS_KEY, 'null')));
-        } catch (error) {
-            return null;
-        }
-    }
-
-    function normalizeDeploymentHistoryEntry(value) {
-        if (!value || typeof value !== 'object' || !Number.isFinite(Date.parse(String(value.checkedAt || '')))) return null;
-        return Object.freeze({
-            checkedAt: cleanText(value.checkedAt || '', 40),
-            ok: value.ok === true,
-            cached: value.cached === true,
-            failed: Array.isArray(value.failed) ? value.failed.map(key => cleanText(key, 32)).filter(key => DEPLOYMENT_CHECK_KEY_SET.has(key)).slice(0, 5) : [],
-            serverVersion: cleanText(value.serverVersion || '', 24),
-            lastHealthyAt: cleanText(value.lastHealthyAt || '', 40)
-        });
-    }
-
-    function loadDeploymentHistory() {
-        try {
-            const parsed = JSON.parse(storageGet(DEPLOYMENT_HISTORY_KEY, '[]'));
-            return Array.isArray(parsed) ? parsed.map(normalizeDeploymentHistoryEntry).filter(Boolean).slice(0, MAX_DEPLOYMENT_HISTORY) : [];
-        } catch (error) {
-            return [];
-        }
-    }
-
-    function saveDeploymentHistory(items) {
-        const safe = Array.isArray(items) ? items.map(normalizeDeploymentHistoryEntry).filter(Boolean).slice(0, MAX_DEPLOYMENT_HISTORY) : [];
-        storageSet(DEPLOYMENT_HISTORY_KEY, JSON.stringify(safe));
-        return safe;
-    }
-
-    function readinessFailureKeys(value = {}) {
-        return DEPLOYMENT_CHECK_KEYS.filter(key => value?.checks?.[key]?.ok !== true);
-    }
-
-    function appendDeploymentHistory(value = {}) {
-        const checkedAt = cleanText(value?.checkedAt || '', 40);
-        if (!checkedAt) return loadDeploymentHistory();
-        const entry = {
-            checkedAt,
-            ok: value?.ok === true,
-            cached: value?.cached === true || value?.localCached === true,
-            failed: readinessFailureKeys(value),
-            serverVersion: cleanText(value?.service?.productVersion || '', 24),
-            lastHealthyAt: cleanText(value?.lastHealthyAt || '', 40)
-        };
-        const history = loadDeploymentHistory().filter(item => item?.checkedAt !== checkedAt);
-        history.unshift(entry);
-        return saveDeploymentHistory(history);
-    }
-
     function clearDeploymentHistory() {
-        saveDeploymentHistory([]);
+        clearStoredDeploymentHistory();
         renderDeploymentHistory();
     }
 
@@ -215,11 +125,7 @@
     }
 
     function saveDeploymentReadiness(value) {
-        const safe = normalizeDeploymentReadinessSnapshot(value);
-        if (safe) {
-            storageSet(DEPLOYMENT_READINESS_KEY, JSON.stringify(safe));
-            appendDeploymentHistory(safe);
-        }
+        const safe = persistDeploymentReadiness(value);
         state.deploymentReadiness = safe;
         renderDeploymentHistory();
         syncSettingsSummary();
@@ -316,25 +222,17 @@
         return getHistoryRetryAvailability(item).ready;
     }
 
+    const historySyncController = mailSyncService.createController();
+
     function scheduleHistoryRefresh(history = loadTestHistory()) {
-        if (state.historyRefreshTimer) global.clearTimeout(state.historyRefreshTimer);
-        state.historyRefreshTimer = 0;
-        const now = Date.now();
-        const activeStatuses = new Set(['pending', 'submitted', 'failed', 'retrying', 'sending', 'status-check-failed']);
-        const active = history.some(item => item?.reportId && !item?.terminal && activeStatuses.has(String(item?.status || '')));
-        const nextTimes = history.flatMap(item => [item?.nextRetryAt, item?.userRetryAvailableAt])
-            .map(value => Date.parse(String(value || ''))).filter(value => Number.isFinite(value) && value > now).sort((a, b) => a - b);
-        const hasCooldown = history.some(item => getHistoryRetryAvailability(item, now).remainingMs > 0);
-        if (!active && !nextTimes.length && !hasCooldown) return;
-        let delay = active ? 15000 : 30000;
-        if (nextTimes.length) delay = Math.min(delay, Math.max(1000, nextTimes[0] - now));
-        if (hasCooldown) delay = Math.min(delay, 1000);
-        state.historyRefreshTimer = global.setTimeout(async () => {
-            state.historyRefreshTimer = 0;
-            const shouldSync = active && Date.now() - state.lastHistorySyncAt >= 14000;
-            if (shouldSync) await refreshTestHistoryFromServer({ silent: true }).catch(() => renderTestHistory());
-            else renderTestHistory();
-        }, delay);
+        const plan = historySyncController.schedule(history, {
+            lastSyncAt: state.lastHistorySyncAt,
+            retryAvailability: getHistoryRetryAvailability,
+            sync: () => refreshTestHistoryFromServer({ silent: true }).catch(() => renderTestHistory()),
+            render: renderTestHistory
+        });
+        state.historyRefreshTimer = historySyncController.hasTimer() ? 1 : 0;
+        return plan;
     }
 
     function appendTestHistory(status, result = {}, message = '') {
@@ -686,20 +584,6 @@
         return isEnabled();
     }
 
-    function parseVersion(value) {
-        const match = String(value || '').trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
-        return match ? match.slice(1).map(Number) : null;
-    }
-
-    function compareVersions(left, right) {
-        const a = parseVersion(left);
-        const b = parseVersion(right);
-        if (!a || !b) return null;
-        for (let index = 0; index < 3; index += 1) {
-            if (a[index] !== b[index]) return a[index] > b[index] ? 1 : -1;
-        }
-        return 0;
-    }
 
     const PIPELINE_STAGE_IDS = Object.freeze({
         auth: 'incidentStageAuth',
@@ -723,29 +607,167 @@
         updatePipelineStage('mail', 'idle', '테스트 대기');
     }
 
+    function renderTransportMetrics() {
+        const summary = document.getElementById('incidentTransportSummary');
+        const routes = document.getElementById('incidentTransportRoutes');
+        const adaptive = document.getElementById('incidentTransportAdaptive');
+        const queue = document.getElementById('incidentTransportQueue');
+        const clear = document.getElementById('incidentTransportMetricsClear');
+        if (!summary && !routes && !adaptive && !queue && !clear) return;
+        const metrics = getTransportMetrics();
+        const route = key => metrics.byTransport?.[key] || { attempts: 0, successful: 0, failed: 0 };
+        const callable = route('callable');
+        const hosting = route('hosting-rewrite');
+        const firestore = route('firestore');
+        if (summary) {
+            summary.textContent = metrics.totalAttempts
+                ? `전송·상태 확인 성공 ${metrics.successful}/${metrics.totalAttempts} · 복구 경로 성공 ${metrics.fallbackSuccessful}`
+                : '아직 전송 경로 기록이 없습니다.';
+            summary.dataset.tone = metrics.failed > 0 ? 'warning' : (metrics.successful > 0 ? 'ok' : 'neutral');
+        }
+        if (routes) {
+            routes.textContent = `Callable ${callable.successful}/${callable.attempts} · Hosting ${hosting.successful}/${hosting.attempts} · Firestore ${firestore.successful}/${firestore.attempts}`;
+            routes.dataset.tone = metrics.fallbackSuccessful > 0 ? 'ok' : 'neutral';
+        }
+        if (adaptive) {
+            const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
+            const health = typeof bridge.getIncidentRouteHealth === 'function' ? bridge.getIncidentRouteHealth() : bridge.incidentRouteHealth;
+            const callableHealth = health?.routes?.callable || {};
+            const hostingHealth = health?.routes?.['hosting-rewrite'] || {};
+            if (callableHealth.coolingDown) {
+                adaptive.textContent = `적응형 경로: Callable ${Math.max(1, Number(callableHealth.remainingSeconds || 0))}초 우회 · Hosting 우선`;
+                adaptive.dataset.tone = 'warning';
+            } else if (hostingHealth.coolingDown) {
+                adaptive.textContent = `적응형 경로: Hosting ${Math.max(1, Number(hostingHealth.remainingSeconds || 0))}초 관찰 · Callable 우선`;
+                adaptive.dataset.tone = 'warning';
+            } else if (Number(callableHealth.failures || 0) > 0 || Number(hostingHealth.failures || 0) > 0) {
+                adaptive.textContent = '적응형 경로: 실패 이력은 있으나 현재 기본 순서로 재검증';
+                adaptive.dataset.tone = 'neutral';
+            } else {
+                adaptive.textContent = '적응형 경로: 기본 순서로 확인';
+                adaptive.dataset.tone = 'ok';
+            }
+        }
+        if (queue) {
+            const last = metrics.last;
+            const lastText = last?.at ? ` · 최근 ${last.phase || '확인'} ${last.ok ? '성공' : '실패'} (${last.transport})` : '';
+            queue.textContent = `로컬 대기열 복구 ${metrics.queueRecovered}건 · 현재 ${metrics.queueRemaining}건${lastText}`;
+            queue.dataset.tone = metrics.queueRemaining > 0 ? 'warning' : (metrics.queueRecovered > 0 ? 'ok' : 'neutral');
+        }
+        if (clear) clear.hidden = metrics.totalAttempts === 0 && metrics.queueRecovered === 0 && metrics.queueRemaining === 0;
+    }
+
+    function recordTransport(detail = {}) {
+        const metrics = recordTransportOutcome(detail);
+        renderTransportMetrics();
+        emitIncidentStatusChange('transport-metrics');
+        return metrics;
+    }
+
+    function recordQueueResult(detail = {}) {
+        const metrics = recordQueueRecovery(detail);
+        renderTransportMetrics();
+        emitIncidentStatusChange('queue-metrics');
+        return metrics;
+    }
+
     function renderServiceDiagnostics(service = state.serviceStatus, errorMessage = state.serviceError, errorCode = state.serviceErrorCode) {
         const server = document.getElementById('incidentServiceStatus');
+        const functionStatus = document.getElementById('incidentFunctionStatus');
+        const endpointStatus = document.getElementById('incidentEndpointStatus');
+        const directStatus = document.getElementById('incidentDirectStatus');
+        const sameOriginStatus = document.getElementById('incidentSameOriginStatus');
+        const cspStatus = document.getElementById('incidentCspStatus');
         const appCheck = document.getElementById('incidentAppCheckStatus');
         const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
+        const functionName = cleanText(bridge.incidentStatusFunctionName || 'getIncidentServiceStatus', 80);
+        const origin = cleanText(service?.functionsOrigin || bridge.incidentFunctionsOrigin || state.serviceEndpoint || '', 180).replace(/\/+$/, '');
+        const endpoint = origin ? `${origin}/${functionName}` : '';
+        const sameOriginPath = cleanText(bridge.incidentSameOriginStatusPath || '/api/incident/status', 120);
+        const csp = inspectClientCsp(origin);
+        const probe = state.directProbe;
+        const classification = classifyMailTestFailure(errorCode, errorCode, errorMessage);
+
         if (server) {
             if (service?.status === 'ready') {
                 const comparison = compareVersions(service.productVersion, CLIENT_PRODUCT_VERSION);
                 const versionText = comparison === -1
-                    ? `서버 v${service.productVersion || '?'} · 웹 v${CLIENT_PRODUCT_VERSION}보다 오래됨`
+                    ? `서버 v${service.productVersion || '?'} · 업데이트 필요`
                     : comparison === 1
                         ? `서버 v${service.productVersion || '?'} · 웹보다 새 버전`
-                        : `서버 v${service.productVersion || CLIENT_PRODUCT_VERSION} · 동기화됨`;
+                        : `서버 v${service.productVersion || CLIENT_PRODUCT_VERSION} · 연결 정상`;
                 server.textContent = `${versionText} · ${service.region || 'region 확인 중'}`;
-                state.serviceEndpoint = cleanText(service.functionsOrigin || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 180);
+                state.serviceEndpoint = origin;
                 server.dataset.tone = comparison === -1 ? 'warning' : 'ok';
             } else if (errorMessage) {
                 const codeText = cleanText(errorCode || '', 80);
-                server.textContent = `서버 상태 확인 실패${codeText ? ` (${codeText})` : ''} · ${cleanText(errorMessage, 150)}`;
+                const concise = classification === 'client-offline'
+                    ? '브라우저가 오프라인 상태입니다.'
+                    : classification === 'server-response-blocked'
+                        ? 'Endpoint 도달 후 브라우저 응답 읽기가 차단됐습니다.'
+                        : classification === 'server-api-not-deployed'
+                    ? 'Callable 함수가 배포되지 않았거나 이름이 일치하지 않습니다.'
+                    : classification === 'server-network-blocked'
+                        ? 'Functions origin에 도달하지 못했습니다.'
+                        : classification === 'server-api-internal'
+                            ? 'Functions endpoint는 응답했지만 서버 내부 오류가 발생했습니다.'
+                            : '서버 상태 확인에 실패했습니다.';
+                server.textContent = `${concise}${codeText ? ` (${codeText})` : ''}`;
                 server.dataset.tone = 'error';
             } else {
                 server.textContent = '서버 상태를 확인하지 않았습니다.';
                 server.dataset.tone = 'neutral';
             }
+        }
+        if (functionStatus) {
+            functionStatus.textContent = `호출 함수: ${functionName}`;
+            functionStatus.dataset.tone = functionName === 'getIncidentServiceStatus' ? 'ok' : 'warning';
+        }
+        if (endpointStatus) {
+            endpointStatus.textContent = endpoint ? `Functions endpoint: ${endpoint}` : 'Functions endpoint: 확인 불가';
+            endpointStatus.dataset.tone = endpoint ? 'neutral' : 'error';
+            endpointStatus.title = endpoint;
+        }
+        if (sameOriginStatus) {
+            const transport = cleanText(service?.transport || bridge.incidentTransport || '', 80);
+            if (service?.status === 'ready' && transport === 'hosting-rewrite') {
+                sameOriginStatus.textContent = `Hosting same-origin 복구: 사용 중 · ${sameOriginPath}`;
+                sameOriginStatus.dataset.tone = 'ok';
+            } else if (sameOriginPath) {
+                sameOriginStatus.textContent = `Hosting same-origin 복구: 대기 · ${sameOriginPath}`;
+                sameOriginStatus.dataset.tone = 'neutral';
+            } else {
+                sameOriginStatus.textContent = 'Hosting same-origin 복구: 설정 없음';
+                sameOriginStatus.dataset.tone = 'warning';
+            }
+        }
+        if (directStatus) {
+            if (service?.status === 'ready') {
+                const transport = cleanText(service?.transport || 'callable', 40);
+                directStatus.textContent = transport === 'hosting-rewrite'
+                    ? 'Callable 기본 경로 실패 후 Hosting same-origin 복구 성공'
+                    : 'Callable 응답: 정상 · 직접 HTTP 진단 불필요';
+                directStatus.dataset.tone = 'ok';
+            } else if (probe?.reachable === true) {
+                directStatus.textContent = probe.corsReadable === false
+                    ? '직접 HTTP 도달 확인 · 응답 읽기 제한(CORS/브라우저 정책)'
+                    : probe.deployed === false
+                        ? `직접 HTTP 응답: ${probe.status || 404} · 함수 미배포 가능성`
+                        : `직접 HTTP 응답: ${probe.status || '응답 수신'} · endpoint 도달 확인`;
+                directStatus.dataset.tone = probe.deployed === false || probe.corsReadable === false ? 'warning' : 'ok';
+            } else if (probe) {
+                directStatus.textContent = `직접 HTTP 도달 실패 · ${cleanText(probe.classification || probe.code || 'network-blocked', 80)}`;
+                directStatus.dataset.tone = 'error';
+            } else {
+                directStatus.textContent = '직접 HTTP 도달성: 오류 발생 시 자동 확인';
+                directStatus.dataset.tone = 'neutral';
+            }
+        }
+        if (cspStatus) {
+            cspStatus.textContent = csp.ok
+                ? 'Hosting CSP: Functions origin 포함됨'
+                : `Hosting CSP: ${csp.message}`;
+            cspStatus.dataset.tone = csp.ok ? 'ok' : 'error';
         }
         if (appCheck) {
             const local = service?.clientAppCheck || bridge.appCheck || {};
@@ -760,65 +782,6 @@
                     : 'App Check 선택 설정 · 현재는 익명 인증으로 동작';
             appCheck.dataset.tone = enforced && !tokenPresent ? 'error' : (configured && ready ? 'ok' : 'neutral');
         }
-    }
-
-    function cleanText(value, maxLength = 300) {
-        return String(value ?? '')
-            .replace(/[\u0000-\u001f\u007f]/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, maxLength);
-    }
-
-    function redactSensitiveText(value, maxLength = 1200) {
-        let text = String(value ?? '');
-        text = text.replace(/([?&](?:token|key|code|secret|password|auth|credential)=)[^&#\s]+/gi, '$1[redacted]');
-        text = text.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email]');
-        text = text.replace(/\b(?:Bearer\s+)?[A-Za-z0-9_-]{32,}\b/g, '[token]');
-        text = text.replace(/(?:file:\/\/\/|[A-Za-z]:\\|\/Users\/|\/home\/)[^\s)]+/g, '[local-path]');
-        text = text.replace(/https?:\/\/([^/\s]+)(\/[^?\s#]*)?(?:\?[^\s#]*)?/gi, (_match, host, path = '') => `${host}${path}`);
-        return cleanText(text, maxLength);
-    }
-
-    function normalizeError(error, fallbackMessage = 'Unknown incident') {
-        if (error && typeof error === 'object') {
-            return {
-                message: redactSensitiveText(error.message || fallbackMessage, 500),
-                code: cleanText(error.code || error.name || '', 80),
-                stack: redactSensitiveText(error.stack || '', 1400)
-            };
-        }
-        return { message: redactSensitiveText(error || fallbackMessage, 500), code: '', stack: '' };
-    }
-
-    function fnv1a(value) {
-        let hash = 0x811c9dc5;
-        const text = String(value || '');
-        for (let index = 0; index < text.length; index += 1) {
-            hash ^= text.charCodeAt(index);
-            hash = Math.imul(hash, 0x01000193);
-        }
-        return (hash >>> 0).toString(36);
-    }
-
-    function classifyBrowser() {
-        const ua = String(global.navigator?.userAgent || '');
-        if (/Edg\//.test(ua)) return 'Edge';
-        if (/Firefox\//.test(ua)) return 'Firefox';
-        if (/CriOS\//.test(ua)) return 'Chrome iOS';
-        if (/Chrome\//.test(ua)) return 'Chrome';
-        if (/Safari\//.test(ua) && /Version\//.test(ua)) return 'Safari';
-        return 'Other';
-    }
-
-    function classifyPlatform() {
-        const ua = String(global.navigator?.userAgent || '');
-        if (/Android/i.test(ua)) return 'Android';
-        if (/iPhone|iPad|iPod/i.test(ua)) return 'iOS';
-        if (/Windows/i.test(ua)) return 'Windows';
-        if (/Macintosh|Mac OS X/i.test(ua)) return 'macOS';
-        if (/Linux/i.test(ua)) return 'Linux';
-        return cleanText(global.navigator?.platform || 'Other', 40);
     }
 
     function getDailyState() {
@@ -856,6 +819,7 @@
         const queue = loadQueue();
         if (!queue.some(item => item.fingerprint === payload.fingerprint)) queue.push(payload);
         saveQueue(queue);
+        recordQueueResult({ ok: false, delivered: 0, remaining: queue.length, phase: 'queue-store', code: 'queued-locally' });
     }
 
     function buildPayload(input = {}, options = {}) {
@@ -959,27 +923,51 @@
         });
     }
 
-    function classifyMailTestFailure(rawStatus = '', failureCode = '', failureReason = '') {
-        const evidence = `${rawStatus} ${failureCode} ${failureReason}`;
-        if (/functions\/(?:not-found|unimplemented)|FOXBEAR_INCIDENT_SERVICE_STATUS_UNAVAILABLE/i.test(evidence)) return 'server-api-not-deployed';
-        if (/FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED|failed to fetch|networkerror|network request failed|load failed|content security policy|refused to connect|csp/i.test(evidence)) return 'server-network-blocked';
-        if (/FOXBEAR_INCIDENT_CALLABLE_UNAVAILABLE|functions\/unavailable/i.test(evidence)) return 'server-api-unavailable';
-        if (/functions\/internal/i.test(evidence)) return 'server-api-internal';
-        if (/permission-denied|PERMISSION_DENIED|Missing or insufficient permissions/i.test(evidence)) return 'permission-denied';
-        if (/unauthenticated|FOXBEAR_INCIDENT_AUTH_NOT_READY/i.test(evidence)) return 'authentication-failed';
-        if (/FOXBEAR_GMAIL_SECRET_INVALID|secret-invalid|16-character Google app password/i.test(evidence)) return 'smtp-secret-invalid';
-        if (/smtp-auth-failed|EAUTH|\b535\b|\b534\b|invalid login|username and password not accepted|bad credentials/i.test(evidence)) return 'smtp-auth-failed';
-        if (/recipient-rejected|FOXBEAR_SMTP_NO_ACCEPTED_RECIPIENT|EENVELOPE|\b550\b|\b553\b|recipient.*reject/i.test(evidence)) return 'smtp-recipient-rejected';
-        if (/daily-email-limit|smtp-rate-limited|rate.?limit|quota|\b421\b|\b450\b|\b454\b/i.test(evidence)) return 'smtp-rate-limited';
-        if (/smtp-connection-failed|ETIMEDOUT|ESOCKET|ECONNECTION|ECONNRESET|ENOTFOUND|smtp.*timeout/i.test(evidence)) return 'smtp-network-failed';
-        return rawStatus || failureCode || 'failed';
+    function renderRecoveryActions(status = state.lastRecoveryStatus) {
+        const container = document.getElementById('incidentRecoveryActions');
+        const label = document.getElementById('incidentRecoveryActionLabel');
+        const buttons = document.getElementById('incidentRecoveryActionButtons');
+        if (!container || !label || !buttons) return;
+        const plan = getRecoveryActionPlan(status);
+        state.lastRecoveryStatus = plan ? status : '';
+        container.hidden = !plan;
+        buttons.textContent = '';
+        if (!plan) return;
+        label.textContent = plan.label;
+        const busy = Boolean(state.testInFlight || state.serviceCheckInFlight || state.serviceRecoveryInFlight || state.deploymentCheckInFlight);
+        plan.actions.forEach(action => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.dataset.incidentRecoveryAction = action;
+            button.textContent = RECOVERY_ACTION_LABELS[action] || action;
+            button.disabled = busy;
+            buttons.appendChild(button);
+        });
+    }
+
+    function runRecoveryAction(action = '') {
+        const targetIds = {
+            retry: 'incidentServiceRetry',
+            'auto-recovery': 'incidentAutoRecovery',
+            'deployment-check': 'incidentDeploymentCheck',
+            'copy-deploy': 'incidentDeployCopy',
+            'copy-diagnostics': 'incidentDiagnosticsCopy',
+            'mail-test': 'incidentReportingTest'
+        };
+        const target = document.getElementById(targetIds[action] || '');
+        if (!target || target.disabled) return false;
+        target.click();
+        return true;
     }
 
     function renderRecoveryGuidance(status = '', code = '', detail = '') {
         const guidance = document.getElementById('incidentReportingGuidance');
         if (!guidance) return;
+        state.lastRecoveryStatus = status || '';
         const endpoint = cleanText(state.serviceEndpoint || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 160);
         const messages = {
+            'client-offline': '현재 브라우저가 오프라인입니다. 인터넷 연결이 복구되면 보관된 익명 신고를 자동으로 다시 전송합니다.',
+            'server-response-blocked': `Functions endpoint에는 도달했지만 브라우저가 응답을 읽지 못했습니다. Callable CORS 응답과 Hosting CSP를 함께 확인하세요.${endpoint ? ` endpoint: ${endpoint}` : ''}`,
             'server-network-blocked': `서버 API 연결이 브라우저 보안정책 또는 네트워크에서 차단됐습니다. npm run deploy:incident로 Hosting CSP와 Functions를 함께 배포하세요.${endpoint ? ` endpoint: ${endpoint}` : ''}`,
             'server-api-not-deployed': 'Callable Functions가 아직 배포되지 않았습니다. npm run deploy:incident를 실행한 뒤 다시 확인하세요.',
             'server-api-unavailable': 'Firebase Functions 초기화가 완료되지 않았습니다. 네트워크 연결과 Firebase SDK 로드를 확인하세요.',
@@ -997,14 +985,158 @@
         guidance.textContent = messages[status] || '단계별 상태에서 실패 지점을 확인할 수 있습니다.';
         if (codeText || detailText) guidance.textContent += ` 진단: ${[codeText, detailText].filter(Boolean).join(' · ')}`;
         guidance.dataset.tone = messages[status] ? 'error' : 'neutral';
+        renderRecoveryActions(status);
+    }
+
+    function isIncidentDialogVisible() {
+        const dialog = document.getElementById('incidentReportingDialog');
+        return Boolean(dialog && !dialog.hidden && dialog.classList.contains('show'));
+    }
+
+    function clearServiceRecoveryTimer(options = {}) {
+        if (state.serviceRecoveryTimer) global.clearTimeout(state.serviceRecoveryTimer);
+        state.serviceRecoveryTimer = 0;
+        state.serviceRecoveryNextAt = 0;
+        if (options.resetAttempt === true) {
+            state.serviceRecoveryAttempt = 0;
+            state.serviceRecoveryReason = '';
+        }
+    }
+
+    function isTransientServiceFailure(status = '') {
+        return ['client-offline', 'server-response-blocked', 'server-network-blocked', 'server-api-unavailable', 'server-api-internal', 'authentication-failed'].includes(status);
+    }
+
+    function scheduleServiceRecovery(status = '', reason = '') {
+        if (!isTransientServiceFailure(status) || state.serviceRecoveryTimer || state.serviceRecoveryInFlight) return false;
+        if (state.serviceRecoveryAttempt >= SERVICE_RECOVERY_DELAYS_MS.length) return false;
+        const delay = SERVICE_RECOVERY_DELAYS_MS[state.serviceRecoveryAttempt];
+        state.serviceRecoveryAttempt += 1;
+        state.serviceRecoveryReason = cleanText(reason || status, 120);
+        state.serviceRecoveryNextAt = Date.now() + delay;
+        state.serviceRecoveryTimer = global.setTimeout(() => {
+            state.serviceRecoveryTimer = 0;
+            state.serviceRecoveryNextAt = 0;
+            if (!isIncidentDialogVisible()) return;
+            runServiceAutoRecovery({ automatic: true, checkDeployment: false }).catch(() => {});
+        }, delay);
+        renderControls(`자동 연결 복구 예약 · ${Math.ceil(delay / 1000)}초 후 재확인`);
+        return true;
+    }
+
+    function buildSanitizedDiagnostics() {
+        const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
+        const csp = inspectClientCsp(state.serviceEndpoint || bridge.incidentFunctionsOrigin || '');
+        const readiness = state.deploymentReadiness || loadDeploymentReadiness();
+        const rawRouteHealth = typeof bridge.getIncidentRouteHealth === 'function' ? bridge.getIncidentRouteHealth() : bridge.incidentRouteHealth;
+        const routeHealth = Object.fromEntries(['callable', 'hosting-rewrite'].map(key => {
+            const item = rawRouteHealth?.routes?.[key] || {};
+            return [key, {
+                coolingDown: item.coolingDown === true,
+                remainingSeconds: Math.max(0, Number(item.remainingSeconds || 0)),
+                failures: Math.max(0, Number(item.failures || 0)),
+                consecutiveTransientFailures: Math.max(0, Number(item.consecutiveTransientFailures || 0)),
+                lastFailureCode: cleanText(item.lastFailureCode || '', 80)
+            }];
+        }));
+        const checks = Object.fromEntries(DEPLOYMENT_CHECK_KEYS.map(key => {
+            const item = readiness?.checks?.[key] || {};
+            return [key, { ok: item.ok === true, status: cleanText(item.status || '', 24), code: cleanText(item.code || '', 80) }];
+        }));
+        return Object.freeze({
+            generatedAt: new Date().toISOString(),
+            clientVersion: CLIENT_PRODUCT_VERSION,
+            assetVersion: VERSION,
+            online: global.navigator?.onLine !== false,
+            functionName: cleanText(bridge.incidentStatusFunctionName || 'getIncidentServiceStatus', 80),
+            functionsOrigin: cleanText(state.serviceEndpoint || bridge.incidentFunctionsOrigin || '', 180),
+            sameOriginStatusPath: cleanText(bridge.incidentSameOriginStatusPath || '/api/incident/status', 120),
+            serviceTransport: cleanText(state.serviceStatus?.transport || bridge.incidentTransport || '', 80),
+            serviceStatus: cleanText(state.serviceStatus?.status || '', 24),
+            serviceVersion: cleanText(state.serviceStatus?.productVersion || '', 24),
+            errorCode: cleanText(state.serviceErrorCode || '', 80),
+            errorMessage: redactSensitiveText(state.serviceError || '', 240),
+            directProbe: state.directProbe ? {
+                reachable: state.directProbe.reachable === true,
+                deployed: state.directProbe.deployed,
+                corsReadable: state.directProbe.corsReadable !== false,
+                classification: cleanText(state.directProbe.classification || '', 80),
+                status: Number(state.directProbe.status || 0),
+                attempts: Number(state.directProbe.attempts || 0)
+            } : null,
+            csp: { ok: csp.ok === true, code: cleanText(csp.code || '', 80) },
+            appCheck: {
+                configured: bridge.appCheck?.configured === true,
+                ready: bridge.appCheck?.ready === true,
+                enforced: state.serviceStatus?.appCheckEnforced === true
+            },
+            localQueueCount: loadQueue().length,
+            recoveryAttempt: state.serviceRecoveryAttempt,
+            transportMetrics: getTransportMetrics(),
+            adaptiveRouteHealth: routeHealth,
+            deploymentChecks: checks
+        });
+    }
+
+    async function copyIncidentDiagnostics(button = null) {
+        const copied = await copyText(JSON.stringify(buildSanitizedDiagnostics(), null, 2));
+        if (button) {
+            const previous = button.textContent;
+            button.textContent = copied ? '진단 복사됨' : '복사 실패';
+            global.setTimeout(() => { button.textContent = previous || '익명 진단 복사'; }, 1600);
+        }
+        return copied;
+    }
+
+    async function runServiceAutoRecovery(options = {}) {
+        if (state.serviceRecoveryInFlight) return state.serviceRecoveryInFlight;
+        if (options.manual === true) state.serviceRecoveryAttempt = 0;
+        clearServiceRecoveryTimer();
+        const task = (async () => {
+            if (global.navigator?.onLine === false) {
+                throw Object.assign(new Error('브라우저가 오프라인 상태입니다.'), { code: 'FOXBEAR_INCIDENT_CLIENT_OFFLINE' });
+            }
+            renderControls(options.manual ? '오류 신고 연결을 자동 복구합니다…' : '오류 신고 연결을 자동 재확인합니다…');
+            const service = await refreshServiceStatus({ force: true, skipRecoverySchedule: true });
+            const queueResult = await flushQueue();
+            let readiness = null;
+            if (options.checkDeployment !== false) {
+                try { readiness = await runDeploymentSelfCheck(); } catch (error) { readiness = null; }
+            }
+            clearServiceRecoveryTimer({ resetAttempt: true });
+            state.lastRecoveryResult = Object.freeze({
+                ok: true,
+                checkedAt: new Date().toISOString(),
+                queueDelivered: Number(queueResult?.delivered || 0),
+                queueRemaining: Number(queueResult?.remaining || 0),
+                readinessOk: readiness?.ok === true
+            });
+            renderRecoveryGuidance('', '', '');
+            renderControls(`자동 복구 완료 · 대기열 ${queueResult?.remaining || 0}건${readiness ? ` · 배포 점검 ${readiness.ok ? '정상' : '확인 필요'}` : ''}`);
+            return Object.freeze({ ok: true, service, queue: queueResult, readiness });
+        })().catch(error => {
+            const code = cleanText(error?.code || error?.name || '', 80);
+            const reason = cleanText(error?.message || error, 180);
+            const status = classifyMailTestFailure(code, code, reason);
+            state.lastRecoveryResult = Object.freeze({ ok: false, checkedAt: new Date().toISOString(), code, reason, status });
+            renderRecoveryGuidance(status, code, reason);
+            if (options.schedule !== false) scheduleServiceRecovery(status, code || reason);
+            renderControls(`자동 복구 실패 · ${code || reason}`);
+            throw error;
+        }).finally(() => {
+            if (state.serviceRecoveryInFlight === task) state.serviceRecoveryInFlight = null;
+        });
+        state.serviceRecoveryInFlight = task;
+        return task;
     }
 
     async function refreshServiceStatus(options = {}) {
         if (state.serviceCheckInFlight && options.force !== true) return state.serviceCheckInFlight;
         let authComplete = false;
+        let bridge = null;
         const task = (async () => {
             updatePipelineStage('auth', 'active', '익명 인증 확인 중');
-            const bridge = await waitForFirebaseBridge();
+            bridge = await waitForFirebaseBridge();
             if (!bridge.authReady && typeof bridge.signInGuest === 'function') await bridge.signInGuest();
             const bridgeStatus = bridge.getStatus?.() || bridge;
             if (!bridgeStatus.authReady && !bridgeStatus.uid) throw Object.assign(new Error('익명 인증 상태를 확인하지 못했습니다.'), { code: 'FOXBEAR_INCIDENT_AUTH_NOT_READY' });
@@ -1016,23 +1148,66 @@
             state.serviceStatus = service;
             state.serviceError = '';
             state.serviceErrorCode = '';
+            state.directProbe = null;
+            clearServiceRecoveryTimer({ resetAttempt: true });
             state.serviceEndpoint = cleanText(service?.functionsOrigin || bridge?.incidentFunctionsOrigin || '', 180);
             const comparison = compareVersions(service?.productVersion, CLIENT_PRODUCT_VERSION);
             updatePipelineStage('api', comparison === -1 ? 'warning' : 'ok', comparison === -1
                 ? `서버 v${service?.productVersion || '?'} · 업데이트 필요`
                 : `서버 v${service?.productVersion || CLIENT_PRODUCT_VERSION} 연결 완료`);
+            recordTransport({ phase: 'service-status', ok: true, transport: service?.transport || 'callable' });
             renderServiceDiagnostics(service, '');
             return service;
-        })().catch(error => {
+        })().catch(async error => {
             state.serviceStatus = null;
-            state.serviceError = cleanText(error?.message || error, 240);
-            state.serviceErrorCode = cleanText(error?.code || error?.name || '', 80);
-            state.serviceEndpoint = cleanText(error?.endpoint || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 180);
-            if (authComplete) updatePipelineStage('api', 'error', '서버 상태 확인 실패');
+            const originalCode = cleanText(error?.code || error?.name || '', 80);
+            const originalMessage = cleanText(error?.message || error, 240);
+            const origin = cleanText(error?.endpoint || bridge?.incidentFunctionsOrigin || global.FoxBearFirebase?.incidentFunctionsOrigin || '', 180).replace(/\/getIncidentServiceStatus$/, '');
+            state.serviceEndpoint = origin;
+            const csp = inspectClientCsp(origin);
+            let probe = null;
+            if (bridge && typeof bridge.probeIncidentCallableEndpoint === 'function' && authComplete) {
+                try { probe = await bridge.probeIncidentCallableEndpoint(bridge.incidentStatusFunctionName || 'getIncidentServiceStatus'); }
+                catch (probeError) { probe = { reachable: false, deployed: null, classification: 'probe-error', code: probeError?.code || probeError?.name || '', message: probeError?.message || String(probeError) }; }
+            }
+            state.directProbe = probe;
+
+            let effectiveCode = originalCode;
+            let effectiveMessage = originalMessage;
+            if (probe?.classification === 'client-offline' || global.navigator?.onLine === false) {
+                effectiveCode = 'FOXBEAR_INCIDENT_CLIENT_OFFLINE';
+                effectiveMessage = '브라우저가 오프라인 상태입니다. 연결 복구 후 자동으로 다시 확인합니다.';
+            } else if (probe?.deployed === false || /functions\/(?:not-found|unimplemented)/i.test(originalCode)) {
+                effectiveCode = 'functions/not-found';
+                effectiveMessage = 'getIncidentServiceStatus Callable 함수가 배포되지 않았거나 현재 region에 없습니다.';
+            } else if (csp.ok === false || probe?.reachable === false) {
+                effectiveCode = 'FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED';
+                effectiveMessage = csp.ok === false
+                    ? 'Hosting CSP connect-src에 Firebase Functions origin이 포함되지 않았습니다.'
+                    : 'Firebase Functions endpoint 직접 HTTP 도달성 확인에 실패했습니다.';
+            } else if (probe?.reachable === true && probe?.corsReadable === false) {
+                effectiveCode = 'FOXBEAR_INCIDENT_CALLABLE_RESPONSE_BLOCKED';
+                effectiveMessage = 'Functions endpoint에는 도달했지만 브라우저가 응답 내용을 읽지 못했습니다. Callable CORS 응답을 확인하세요.';
+            } else if (probe?.reachable === true && /functions\/internal/i.test(originalCode)) {
+                effectiveCode = 'functions/internal';
+                effectiveMessage = 'Functions endpoint는 응답했지만 Callable 내부 처리에서 오류가 발생했습니다.';
+            }
+
+            state.serviceError = effectiveMessage;
+            state.serviceErrorCode = effectiveCode;
+            recordTransport({ phase: 'service-status', ok: false, transport: error?.transport || 'unresolved', code: effectiveCode });
+            if (authComplete) updatePipelineStage('api', 'error', classifyMailTestFailure(effectiveCode, effectiveCode, effectiveMessage) === 'server-api-internal' ? '서버 내부 오류' : '서버 상태 확인 실패');
             else updatePipelineStage('auth', 'error', '익명 인증 또는 Firebase 연결 실패');
             renderServiceDiagnostics(null, state.serviceError, state.serviceErrorCode);
-            renderRecoveryGuidance(classifyMailTestFailure(state.serviceErrorCode, state.serviceErrorCode, state.serviceError), state.serviceErrorCode, state.serviceError);
-            throw error;
+            const recoveryStatus = classifyMailTestFailure(state.serviceErrorCode, state.serviceErrorCode, state.serviceError);
+            renderRecoveryGuidance(recoveryStatus, state.serviceErrorCode, state.serviceError);
+            if (options.skipRecoverySchedule !== true) scheduleServiceRecovery(recoveryStatus, state.serviceErrorCode || state.serviceError);
+            const diagnosticError = new Error(state.serviceError);
+            diagnosticError.code = state.serviceErrorCode;
+            diagnosticError.originalCode = originalCode;
+            diagnosticError.endpoint = origin ? `${origin}/${bridge?.incidentStatusFunctionName || 'getIncidentServiceStatus'}` : '';
+            diagnosticError.cause = error;
+            throw diagnosticError;
         }).finally(() => {
             if (state.serviceCheckInFlight === task) state.serviceCheckInFlight = null;
         });
@@ -1042,7 +1217,14 @@
 
     async function deliver(payload) {
         const bridge = await waitForFirebaseBridge();
-        return withTimeout(bridge.logIncident(payload));
+        try {
+            const result = await withTimeout(bridge.logIncident(payload));
+            recordTransport({ phase: 'incident-submit', ok: true, transport: result?.transport || 'callable' });
+            return result;
+        } catch (error) {
+            recordTransport({ phase: 'incident-submit', ok: false, transport: error?.transport || 'unresolved', code: error?.code || error?.name || 'delivery-failed' });
+            throw error;
+        }
     }
 
     async function report(input = {}, options = {}) {
@@ -1076,7 +1258,11 @@
     async function flushQueue() {
         if (state.flushing || global.navigator?.onLine === false || !isEnabled()) return Object.freeze({ ok: false, skipped: true });
         const queue = loadQueue();
-        if (!queue.length) return Object.freeze({ ok: true, delivered: 0, remaining: 0 });
+        if (!queue.length) {
+            const empty = Object.freeze({ ok: true, delivered: 0, remaining: 0 });
+            recordQueueResult(empty);
+            return empty;
+        }
         state.flushing = true;
         const remaining = [];
         let delivered = 0;
@@ -1099,7 +1285,9 @@
                 }
             }
             saveQueue(remaining);
-            return Object.freeze({ ok: remaining.length === 0, delivered, remaining: remaining.length });
+            const result = Object.freeze({ ok: remaining.length === 0, delivered, remaining: remaining.length });
+            recordQueueResult(result);
+            return result;
         } finally {
             state.flushing = false;
         }
@@ -1197,6 +1385,9 @@
         const toggle = document.getElementById('incidentReportingToggle');
         const testButton = document.getElementById('incidentReportingTest');
         const retryButton = document.getElementById('incidentServiceRetry');
+        const recoveryButton = document.getElementById('incidentAutoRecovery');
+        const diagnosticsButton = document.getElementById('incidentDiagnosticsCopy');
+        const recoveryStatus = document.getElementById('incidentAutoRecoveryStatus');
         const deploymentButton = document.getElementById('incidentDeploymentCheck');
         const copyButton = document.getElementById('incidentDeployCopy');
         const historyClear = document.getElementById('incidentHistoryClear');
@@ -1211,8 +1402,33 @@
             testButton.setAttribute('aria-busy', state.testInFlight ? 'true' : 'false');
         }
         if (retryButton) {
-            retryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight);
+            retryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || Boolean(state.serviceRecoveryInFlight);
             retryButton.setAttribute('aria-busy', state.serviceCheckInFlight ? 'true' : 'false');
+        }
+        if (recoveryButton) {
+            recoveryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || Boolean(state.serviceRecoveryInFlight);
+            recoveryButton.textContent = state.serviceRecoveryInFlight ? '자동 복구 실행 중…' : '연결 자동 복구';
+            recoveryButton.setAttribute('aria-busy', state.serviceRecoveryInFlight ? 'true' : 'false');
+        }
+        if (diagnosticsButton) diagnosticsButton.disabled = Boolean(state.serviceRecoveryInFlight);
+        if (recoveryStatus) {
+            const remainingSeconds = state.serviceRecoveryNextAt > Date.now() ? Math.max(1, Math.ceil((state.serviceRecoveryNextAt - Date.now()) / 1000)) : 0;
+            if (state.serviceRecoveryInFlight) {
+                recoveryStatus.textContent = '서버 연결·로컬 대기열·배포 상태를 순서대로 복구 중입니다.';
+                recoveryStatus.dataset.tone = 'active';
+            } else if (remainingSeconds) {
+                recoveryStatus.textContent = `일시적 연결 오류 감지 · ${remainingSeconds}초 후 자동 재확인 (${state.serviceRecoveryAttempt}/${SERVICE_RECOVERY_DELAYS_MS.length})`;
+                recoveryStatus.dataset.tone = 'warning';
+            } else if (state.lastRecoveryResult?.ok === true) {
+                recoveryStatus.textContent = `최근 자동 복구 성공 · 대기열 ${state.lastRecoveryResult.queueRemaining || 0}건`;
+                recoveryStatus.dataset.tone = 'ok';
+            } else if (state.lastRecoveryResult?.ok === false) {
+                recoveryStatus.textContent = `최근 자동 복구 실패 · ${cleanText(state.lastRecoveryResult.code || state.lastRecoveryResult.status || '확인 필요', 80)}`;
+                recoveryStatus.dataset.tone = 'error';
+            } else {
+                recoveryStatus.textContent = '일시적 네트워크·인증 오류는 최대 3회 자동 재확인하며, 실패 신고는 로컬 대기열에 보관합니다.';
+                recoveryStatus.dataset.tone = 'neutral';
+            }
         }
         if (deploymentButton) {
             const availability = getDeploymentCheckAvailability();
@@ -1226,6 +1442,8 @@
             status.dataset.tone = /완료|켜짐|대기 0건/.test(status.textContent) ? 'ok' : (/오류|실패|권한|중단/.test(status.textContent) ? 'error' : 'neutral');
         }
         renderServiceDiagnostics();
+        renderTransportMetrics();
+        renderRecoveryActions(state.lastRecoveryStatus);
         renderDeploymentReadiness(state.deploymentReadiness || loadDeploymentReadiness());
         renderDeploymentHistory();
         renderTestHistory();
@@ -1238,11 +1456,24 @@
         const toggle = document.getElementById('incidentReportingToggle');
         const testButton = document.getElementById('incidentReportingTest');
         const retryButton = document.getElementById('incidentServiceRetry');
+        const recoveryButton = document.getElementById('incidentAutoRecovery');
+        const diagnosticsButton = document.getElementById('incidentDiagnosticsCopy');
+        const recoveryStatus = document.getElementById('incidentAutoRecoveryStatus');
         const deploymentButton = document.getElementById('incidentDeploymentCheck');
         const copyButton = document.getElementById('incidentDeployCopy');
         const historyClear = document.getElementById('incidentHistoryClear');
+        const transportMetricsClear = document.getElementById('incidentTransportMetricsClear');
         const deploymentHistoryClear = document.getElementById('incidentDeploymentHistoryClear');
         const deploymentChecks = document.getElementById('incidentDeploymentChecks');
+        const recoveryActions = document.getElementById('incidentRecoveryActions');
+        if (recoveryActions && !recoveryActions.dataset.bound) {
+            recoveryActions.dataset.bound = 'true';
+            recoveryActions.addEventListener('click', event => {
+                const button = event.target?.closest?.('[data-incident-recovery-action]');
+                if (!button || button.disabled) return;
+                runRecoveryAction(button.dataset.incidentRecoveryAction || '');
+            });
+        }
         if (toggle && !toggle.dataset.bound) {
             toggle.dataset.bound = 'true';
             toggle.addEventListener('click', () => {
@@ -1269,6 +1500,16 @@
                     renderControls(`서버 연결 재확인 실패 · ${code || reason}`);
                 }
             });
+        }
+        if (recoveryButton && !recoveryButton.dataset.bound) {
+            recoveryButton.dataset.bound = 'true';
+            recoveryButton.addEventListener('click', () => {
+                runServiceAutoRecovery({ manual: true, checkDeployment: true }).catch(() => {});
+            });
+        }
+        if (diagnosticsButton && !diagnosticsButton.dataset.bound) {
+            diagnosticsButton.dataset.bound = 'true';
+            diagnosticsButton.addEventListener('click', () => copyIncidentDiagnostics(diagnosticsButton));
         }
         if (deploymentButton && !deploymentButton.dataset.bound) {
             deploymentButton.dataset.bound = 'true';
@@ -1311,6 +1552,16 @@
             historyClear.dataset.bound = 'true';
             historyClear.addEventListener('click', clearTestHistory);
         }
+        if (transportMetricsClear && !transportMetricsClear.dataset.bound) {
+            transportMetricsClear.dataset.bound = 'true';
+            transportMetricsClear.addEventListener('click', () => {
+                clearTransportMetrics();
+                const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
+                if (typeof bridge.clearIncidentRouteHealth === 'function') bridge.clearIncidentRouteHealth();
+                renderTransportMetrics();
+                renderControls('익명 전송 경로 기록과 적응형 우회 상태를 초기화했습니다.');
+            });
+        }
         if (testButton && !testButton.dataset.bound) {
             testButton.dataset.bound = 'true';
             testButton.addEventListener('click', async () => {
@@ -1334,6 +1585,8 @@
                         submitted: '서버 대기열 저장 완료. 메일 처리 상태를 확인하세요.',
                         'status-check-failed': '신고는 저장됐지만 서버의 메일 상태를 확인하지 못했습니다.',
                         'permission-denied': '오류 신고 서버가 요청을 허용하지 않았습니다. 익명 인증과 최신 서버 기능 배포를 확인하세요. 신고는 로컬 대기열에 보관했습니다.',
+                        'client-offline': '현재 브라우저가 오프라인입니다. 인터넷 연결 후 자동 복구 또는 다시 테스트를 사용하세요.',
+                        'server-response-blocked': 'Functions endpoint에는 도달했지만 응답 읽기가 차단됐습니다. Callable CORS 응답과 Hosting CSP를 확인하세요.',
                         'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다. npm run deploy:incident 실행 후 다시 테스트하세요.',
                         'server-network-blocked': 'Firebase Callable 연결이 브라우저 CSP 또는 네트워크에서 차단됐습니다. Hosting과 Functions를 함께 배포하세요.',
                         'server-api-unavailable': 'Firebase Functions 연결이 초기화되지 않았습니다. 네트워크와 SDK 로드를 확인하세요.',
@@ -1402,6 +1655,13 @@
             serviceError: state.serviceError,
             serviceErrorCode: state.serviceErrorCode,
             serviceEndpoint: state.serviceEndpoint,
+            directProbe: state.directProbe,
+            transportMetrics: getTransportMetrics(),
+            adaptiveRouteHealth: (() => {
+                const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
+                return typeof bridge.getIncidentRouteHealth === 'function' ? bridge.getIncidentRouteHealth() : bridge.incidentRouteHealth || null;
+            })(),
+            serviceRecovery: Object.freeze({ attempt: state.serviceRecoveryAttempt, nextAt: state.serviceRecoveryNextAt, reason: state.serviceRecoveryReason, inFlight: Boolean(state.serviceRecoveryInFlight), lastResult: state.lastRecoveryResult }),
             recentTests: loadTestHistory(),
             deploymentReadiness: state.deploymentReadiness || loadDeploymentReadiness(),
             deploymentHistory: loadDeploymentHistory(),
@@ -1418,7 +1678,19 @@
         report({ category: 'release-mismatch', severity: 'error', reason: 'service-worker-generation-mismatch', message: 'Service worker generation mismatch', context: JSON.stringify(event.detail || {}).slice(0, 650) }, { automatic: true }).catch(() => {});
     });
     global.addEventListener('foxbear:firebase-ready', () => { flushQueue().catch(() => {}); });
-    global.addEventListener('online', () => { flushQueue().catch(() => {}); });
+    global.addEventListener('online', () => {
+        flushQueue().catch(() => {});
+        if (isIncidentDialogVisible() && state.serviceError) runServiceAutoRecovery({ automatic: true, checkDeployment: false }).catch(() => {});
+    });
+    global.addEventListener('offline', () => {
+        if (isIncidentDialogVisible()) {
+            state.serviceErrorCode = 'FOXBEAR_INCIDENT_CLIENT_OFFLINE';
+            state.serviceError = '브라우저가 오프라인 상태입니다. 연결 복구 후 자동으로 다시 확인합니다.';
+            renderServiceDiagnostics(null, state.serviceError, state.serviceErrorCode);
+            renderRecoveryGuidance('client-offline', state.serviceErrorCode, state.serviceError);
+            scheduleServiceRecovery('client-offline', state.serviceErrorCode);
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', () => {
         bindControls();
@@ -1443,6 +1715,10 @@
         waitForDelivery,
         waitForFirebaseBridge,
         refreshServiceStatus,
+        runServiceAutoRecovery,
+        scheduleServiceRecovery,
+        copyIncidentDiagnostics,
+        buildSanitizedDiagnostics,
         compareVersions,
         updatePipelineStage,
         classifyMailTestFailure,
