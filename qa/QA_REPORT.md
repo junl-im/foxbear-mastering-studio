@@ -1,3 +1,45 @@
+# FoxBear QA Report - v1.6.25
+
+- New regression: `qa/v1625_incident_recovery_timeout_abort_stress_smoke.js`.
+- Verifies successful service/queue/deployment sequencing, shared AbortSignal delivery, phase-specific timeout codes, and slow-phase diagnostics.
+- Verifies a failed run schedules its next retry after active ownership clears instead of losing the retry to the in-flight guard.
+- Verifies offline waiting consumes no attempts or timers, hidden surfaces suspend unused retries, and online resume completes recovery.
+- Verifies 50 simultaneous run triggers share one Promise and 50 schedule requests retain one timer.
+- Verifies disposal aborts active work and prevents retry scheduling.
+- Configured cumulative static/regression target: 359 checks.
+- Final configured run: `359/359` passed.
+- Browser fixture preflight, Functions syntax, release metadata, handoff state, SRI, dependency metadata, and both archive verifiers passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peak values remained between `-9.62` and `-5.64 dBTP`.
+- Dependency health completed with five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both ZIP packages contain 634 entries and pass compressed-data integrity checks.
+- Installed-browser rendering, production Firebase/App Check/Gmail, and real-device network/background behavior remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.24
+
+- New regression: `qa/v1624_incident_recovery_sweep_observability_smoke.js`.
+- Verifies active-promise sharing, pending reason coalescing, stronger service/deployment option merging, and bounded phase errors.
+- Verifies offline attempts skip network work while still publishing queue/history diagnostic snapshots.
+- Verifies lifecycle callback errors remain contained and become visible through reporter status and anonymous diagnostics.
+- Verifies script order, service-worker inclusion, handoff package requirements, and extracted-module syntax.
+- Configured cumulative static/regression target: 357 checks.
+- Final configured run: `357/357` passed.
+- Browser fixture preflight, Functions syntax, release metadata, handoff state, SRI, and dependency metadata checks passed.
+- Dependency health completed with five expected installation warnings because root Playwright and Functions runtime packages are not installed in this sandbox.
+- Installed-browser rendering, production Firebase/App Check/Gmail, and real-device long-background behavior remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.23
+
+- New regression: `qa/v1623_route_decay_lifecycle_handoff_safety_smoke.js`.
+- Verifies persisted time decay, stale-evidence prevention, combined time/network decay, and deterministic route timestamps.
+- Verifies browser event callback throw/rejection containment and absence of unhandled Promise rejections.
+- Verifies synchronized handoff Current release metadata, GitHub Desktop title, 355-check target, and the three-section delivery-rule contract.
+- Re-runs targeted route, lifecycle, metadata, SRI, engine, golden-audio, handoff, and archive verification checks.
+- Configured cumulative static/regression target: 355 checks.
+- Final configured run: `355/355` passed.
+- Browser fixture preflight, Functions syntax, release metadata, handoff state, and both archive verifiers passed.
+- Full installed-browser execution was not run because the sandbox lacked a valid installed Playwright runtime and browser; production Firebase/App Check/Gmail and real-device background behavior remain environment gates.
+- Production Firebase, App Check, Gmail delivery, installed-browser UI, and real-device background behavior remain environment-dependent gates.
+
 # FoxBear QA Report - v1.6.22
 
 - New regression: `qa/v1622_incident_recovery_coalescing_time_decay_smoke.js`.

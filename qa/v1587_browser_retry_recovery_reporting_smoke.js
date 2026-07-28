@@ -88,7 +88,7 @@ assert(contractNames.includes('pwa-runtime-recovery'));
 assert.strictEqual(scanFixtureContracts().length, 0);
 
 const pkg = require('../package.json');
-assert.strictEqual(pkg.version, '1.6.22');
+assert.strictEqual(pkg.version, '1.6.25');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert.strictEqual(pkg.scripts['qa:browser:retry:report'], 'node qa/browser/retry-recovery-report.js');
 

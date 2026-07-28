@@ -1,3 +1,20 @@
+## v1.6.24 current focus
+
+- Keep recovery-sweep orchestration in `incident-recovery-sweep-service.js`; the reporter should inject operations rather than regain the coalescing loop.
+- Every sweep result must be bounded, privacy-safe, and published even when the browser is offline.
+- Lifecycle callback failures may expose phase, normalized code, and bounded message only; never include report text, filenames, audio, tokens, Secrets, IP, SSID, or location.
+- Preserve the single active sweep plus one merged pending request contract to prevent reconnect/resume storms.
+- Preserve the three-section final report rule.
+
+## v1.6.23 current focus
+
+- Route-health reads and writes share one persisted preparation step; do not add a mutation path that bypasses elapsed-time decay.
+- Keep time decay and network decay independent so both execute when a stale snapshot is first read on a changed network.
+- Browser event listeners must absorb callback rejection; direct controller methods may still reject for explicit test and caller control.
+- `DELIVERY_RULES.md` is the canonical final-output contract and must stay in both the full release and cumulative overwrite package.
+- Preserve audio/filename/report-body/token/Secret privacy boundaries in all incident diagnostics.
+- Preserve the three-section final report rule.
+
 ## v1.6.21 current focus
 
 - Keep online/offline, visibility, and connection-type event ownership inside `incident-lifecycle-service.js`.

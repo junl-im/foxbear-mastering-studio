@@ -104,6 +104,30 @@ function synchronizeStatusMetadata(text) {
   return status;
 }
 
+function synchronizeHandoffMetadata(text, qaTarget = 0) {
+  const fields = {
+    'Product version': `\`${meta.productVersion}\``,
+    'Build ID': `\`${meta.buildId}\``,
+    'Asset version': `\`${meta.assetVersion}\``,
+    'Service worker cache': `\`${meta.cacheName}\``
+  };
+  let handoff = String(text).replace(/^# Handoff - v\d+\.\d+\.\d+$/m, `# Handoff - v${meta.productVersion}`);
+  handoff = replaceMarkdownSectionFields(handoff, 'Current release', fields);
+  const pattern = /(^|\n)(## Current release\s*\n)([\s\S]*?)(?=\n## |$)/;
+  handoff = handoff.replace(pattern, (match, prefix, title, body) => {
+    const targetLine = `- Configured static/regression target: ${Math.max(0, Number(qaTarget || 0))} checks.`;
+    const nextBody = /(^|\n)- Configured static\/regression target: \d+ checks\.(?=\n|$)/.test(body)
+      ? body.replace(/(^|\n)- Configured static\/regression target: \d+ checks\.(?=\n|$)/, `$1${targetLine}`)
+      : `${body.replace(/\s*$/, '')}\n${targetLine}\n`;
+    return `${prefix}${title}${nextBody}`;
+  });
+  return handoff;
+}
+
+function synchronizeDesktopHandoffMetadata(text) {
+  return String(text).replace(/^# GitHub Desktop Handoff - v\d+\.\d+\.\d+$/m, `# GitHub Desktop Handoff - v${meta.productVersion}`);
+}
+
 function markdownSection(text, heading) {
   const pattern = new RegExp(`(?:^|\\n)## ${escapeRegExp(heading)}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`);
   return String(text).match(pattern)?.[1] || '';
@@ -185,6 +209,8 @@ function sync() {
   const rootMarker = { foxbearAppRoot: true, productVersion: meta.productVersion, assetVersion: meta.assetVersion };
   write('foxbear-root.json', `${JSON.stringify(rootMarker, null, 2)}\n`);
   write('STATUS.md', synchronizeStatusMetadata(read('STATUS.md')));
+  write('HANDOFF.md', synchronizeHandoffMetadata(read('HANDOFF.md'), Array.isArray(pkg.qaChecks) ? pkg.qaChecks.length : 0));
+  write('GITHUB_DESKTOP_HANDOFF.md', synchronizeDesktopHandoffMetadata(read('GITHUB_DESKTOP_HANDOFF.md')));
 
   let index = read('index.html');
   index = index.replace(/<meta name="description" content="[^"]*" \/>/, `<meta name="description" content="FoxBear AI Mastering Studio Pro v${meta.productVersion} - ${meta.buildId}" />`);
@@ -371,7 +397,10 @@ function validate() {
   const qaReport = read('qa/QA_REPORT.md');
   const readme = read('README.md');
   const handoff = read('HANDOFF.md');
+  const desktopHandoff = read('GITHUB_DESKTOP_HANDOFF.md');
+  const deliveryRules = read('DELIVERY_RULES.md');
   const status = read('STATUS.md');
+  const handoffCurrentRelease = markdownSection(handoff, 'Current release');
   const currentReleaseStatus = markdownSection(status, 'Current release');
   const releaseMetadataStatus = markdownSection(status, 'Release metadata');
   const legacyCacheList = sw.match(/const LEGACY_CACHE_NAMES = \[([^\]]*)\];/)?.[1] || '';
@@ -421,6 +450,15 @@ function validate() {
   expect(changelog.startsWith(`# v${meta.productVersion} -`), 'CHANGELOG latest entry does not match package version');
   expect(readme.startsWith(`# FoxBear AI Mastering Studio Pro v${meta.productVersion}`), 'README title does not match package version');
   expect(handoff.startsWith(`# Handoff - v${meta.productVersion}`), 'HANDOFF title does not match package version');
+  expect(handoffCurrentRelease.includes(`- Product version: \`${meta.productVersion}\``), 'HANDOFF Current release product version is not synchronized');
+  expect(handoffCurrentRelease.includes(`- Build ID: \`${meta.buildId}\``), 'HANDOFF Current release build ID is not synchronized');
+  expect(handoffCurrentRelease.includes(`- Asset version: \`${meta.assetVersion}\``), 'HANDOFF Current release asset version is not synchronized');
+  expect(handoffCurrentRelease.includes(`- Service worker cache: \`${meta.cacheName}\``), 'HANDOFF Current release cache name is not synchronized');
+  expect(handoffCurrentRelease.includes(`- Configured static/regression target: ${Array.isArray(pkg.qaChecks) ? pkg.qaChecks.length : 0} checks.`), 'HANDOFF Current release QA target is not synchronized');
+  expect(desktopHandoff.startsWith(`# GitHub Desktop Handoff - v${meta.productVersion}`), 'GITHUB_DESKTOP_HANDOFF title does not match package version');
+  for (const heading of ['## 1. 작업한 내역', '## 2. 다운로드 파일 2종', '## 3. 다음 예정 내역']) {
+    expect(deliveryRules.includes(heading), `DELIVERY_RULES.md is missing required heading: ${heading}`);
+  }
   expect(status.startsWith(`# FoxBear Status - v${meta.productVersion}`), 'STATUS title does not match package version');
   for (const [sectionName, section] of [['Current release', currentReleaseStatus], ['Release metadata', releaseMetadataStatus]]) {
     expect(section.includes(`- Product version: \`${meta.productVersion}\``), `STATUS ${sectionName} product version is not synchronized`);

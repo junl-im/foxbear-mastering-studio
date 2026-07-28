@@ -1,7 +1,7 @@
-// FoxBear ZIP encoder worker v1.6.22 - low-copy cancellable STORE packaging off the main thread
+// FoxBear ZIP encoder worker v1.6.25 - low-copy cancellable STORE packaging off the main thread
 'use strict';
 
-importScripts('../../vendor/jszip/jszip.min.js?v=1.6.22-incident-recovery-coalescing-time-decay&lib=3.10.1');
+importScripts('../../vendor/jszip/jszip.min.js?v=1.6.25-incident-recovery-timeout-abort-stress&lib=3.10.1');
 
 const MAX_FILES = 200;
 const MAX_TOTAL_BYTES = 1500 * 1024 * 1024;

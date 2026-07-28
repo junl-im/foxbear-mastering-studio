@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.22-incident-recovery-coalescing-time-decay';
+    const SERVICE_VERSION = '1.6.25-incident-recovery-timeout-abort-stress';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

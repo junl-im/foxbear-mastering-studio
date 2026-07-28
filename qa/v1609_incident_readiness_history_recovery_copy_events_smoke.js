@@ -12,12 +12,13 @@ const pkg = JSON.parse(read('package.json'));
 const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 const reporterSource = read('src/boot/incident-reporter.js');
+const incidentRecoverySweepSource = read('src/boot/incident-recovery-sweep-service.js');
 const incidentSupportSource = read('src/boot/incident-support-service.js');
 const incidentStateSource = read('src/boot/incident-state-service.js');
 const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.22');
+assert.strictEqual(pkg.version, '1.6.25');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 assert(pkg.qaChecks.length >= 332);
 assert.strictEqual((html.match(/data-deploy-copy/g) || []).length, 5);
@@ -29,7 +30,7 @@ assert(incidentStateSource.includes('const MAX_DEPLOYMENT_HISTORY = 3'));
 assert(reporterSource.includes("const INCIDENT_STATUS_EVENT = 'foxbear:incident-status-change'"));
 assert(reporterSource.includes('function copyDeploymentRecovery'));
 assert(reporterSource.includes('function renderDeploymentHistory'));
-assert(handoff.startsWith('# Handoff - v1.6.22'));
+assert(handoff.startsWith('# Handoff - v1.6.25'));
 
 const memory = new Map();
 const copied = [];
@@ -45,7 +46,7 @@ const sandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.22' }, appendChild() {} }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.25' }, appendChild() {} }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => `connect-src 'self' ${origin}` };
@@ -54,7 +55,7 @@ const sandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.6.22', assetVersion: '1.6.22-incident-recovery-coalescing-time-decay' }
+  FoxBearBuildInfo: { productVersion: '1.6.25', assetVersion: '1.6.25-incident-recovery-timeout-abort-stress' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -64,6 +65,7 @@ vm.runInContext(incidentStateSource, sandbox, { filename: 'incident-state-servic
 
 vm.runInContext(incidentRecoveryPolicySource, sandbox, { filename: 'incident-recovery-policy.js' });
 
+vm.runInContext(incidentRecoverySweepSource, sandbox, { filename: 'incident-recovery-sweep-service.js' });
 vm.runInContext(reporterSource, sandbox, { filename: 'incident-reporter.js' });
 const reporter = sandbox.FoxBearIncidentReporter;
 
@@ -74,7 +76,7 @@ const reporter = sandbox.FoxBearIncidentReporter;
     checkedAt: new Date(base + index * 1000).toISOString(),
     lastHealthyAt: ok ? new Date(base + index * 1000).toISOString() : new Date(base).toISOString(),
     nextCheckAt: '',
-    service: { productVersion: '1.6.22', functionsOrigin: origin },
+    service: { productVersion: '1.6.25', functionsOrigin: origin },
     checks: {
       csp: { ok: failedKey !== 'csp' }, functions: { ok: failedKey !== 'functions' }, firestore: { ok: failedKey !== 'firestore' },
       smtpSecret: { ok: failedKey !== 'smtpSecret' }, smtpConnection: { ok: failedKey !== 'smtpConnection' }

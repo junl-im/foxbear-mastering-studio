@@ -10,6 +10,7 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 const reporterSource = read('src/boot/incident-reporter.js');
+const incidentRecoverySweepSource = read('src/boot/incident-recovery-sweep-service.js');
 const incidentSupportSource = read('src/boot/incident-support-service.js');
 const incidentStateSource = read('src/boot/incident-state-service.js');
 const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
@@ -17,7 +18,7 @@ const firebaseSource = read('src/firebase-bootstrap.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.22');
+assert.strictEqual(pkg.version, '1.6.25');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 assert(pkg.qaChecks.length >= 333);
 assert(firebaseSource.includes('FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID'));
@@ -49,7 +50,7 @@ const sandbox = {
     setItem: (key, value) => memory.set(key, String(value))
   },
   document: {
-    body: { dataset: { build: '1.6.22' }, appendChild() {} }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.25' }, appendChild() {} }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -58,7 +59,7 @@ const sandbox = {
     addEventListener() {}, createElement: makeElement, execCommand: () => true
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.6.22', assetVersion: '1.6.22-incident-recovery-coalescing-time-decay' }
+  FoxBearBuildInfo: { productVersion: '1.6.25', assetVersion: '1.6.25-incident-recovery-timeout-abort-stress' }
 };
 const completeRemote = () => {
   const checkedAt = new Date().toISOString();
@@ -68,7 +69,7 @@ const completeRemote = () => {
     checkedAt,
     lastHealthyAt: checkedAt,
     nextCheckAt: new Date(Date.now() + 60000).toISOString(),
-    service: { status: 'ready', productVersion: '1.6.22', functionsOrigin: origin },
+    service: { status: 'ready', productVersion: '1.6.25', functionsOrigin: origin },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -95,6 +96,7 @@ vm.runInContext(incidentStateSource, sandbox, { filename: 'incident-state-servic
 
 vm.runInContext(incidentRecoveryPolicySource, sandbox, { filename: 'incident-recovery-policy.js' });
 
+vm.runInContext(incidentRecoverySweepSource, sandbox, { filename: 'incident-recovery-sweep-service.js' });
 vm.runInContext(reporterSource, sandbox, { filename: 'incident-reporter.js' });
 const reporter = sandbox.FoxBearIncidentReporter;
 

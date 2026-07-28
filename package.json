@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.22",
+  "version": "1.6.25",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with integrated incident lifecycle recovery, network exploration routing, and privacy-safe local admin transport visibility.",
+  "description": "FoxBear AI Mastering Studio Pro with isolated incident service recovery, phase timeouts, abort propagation, offline retry pausing, and trigger-storm protection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.22-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.22-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.25-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.25-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -389,15 +389,20 @@
     "node qa/v1619_incident_mail_sync_route_scoring_smoke.js",
     "node qa/v1620_incident_background_sync_network_decay_smoke.js",
     "node qa/v1621_incident_lifecycle_network_exploration_smoke.js",
-    "node qa/v1622_incident_recovery_coalescing_time_decay_smoke.js"
+    "node qa/v1622_incident_recovery_coalescing_time_decay_smoke.js",
+    "node qa/v1623_route_decay_lifecycle_handoff_safety_smoke.js",
+    "node --check src/boot/incident-recovery-sweep-service.js",
+    "node qa/v1624_incident_recovery_sweep_observability_smoke.js",
+    "node --check src/boot/incident-service-recovery-controller.js",
+    "node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-recovery-coalescing-time-decay",
-    "assetVersion": "1.6.22-incident-recovery-coalescing-time-decay",
-    "cacheName": "foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay",
-    "bootRevision": "boot-sri-v1618",
-    "updateSafetyRevision": "update-safety-v1618",
-    "serviceWorkerRevision": "sw-v1618"
+    "buildId": "incident-recovery-timeout-abort-stress",
+    "assetVersion": "1.6.25-incident-recovery-timeout-abort-stress",
+    "cacheName": "foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress",
+    "bootRevision": "boot-sri-v1625",
+    "updateSafetyRevision": "update-safety-v1625",
+    "serviceWorkerRevision": "sw-v1625"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

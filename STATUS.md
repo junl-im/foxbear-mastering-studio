@@ -1,20 +1,26 @@
-# FoxBear Status - v1.6.22
+# FoxBear Status - v1.6.25
 
 ## Current release
 
-- Product version: `1.6.22`
-- Build ID: `incident-recovery-coalescing-time-decay`
-- Asset version: `1.6.22-incident-recovery-coalescing-time-decay`
-- Service worker cache: `foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay`
+- Product version: `1.6.25`
+- Build ID: `incident-recovery-timeout-abort-stress`
+- Asset version: `1.6.25-incident-recovery-timeout-abort-stress`
+- Service worker cache: `foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress`
 
-## v1.6.21 status
+## Release metadata
 
-- Connectivity, long-background resume, and connection-type changes use one incident lifecycle coordinator.
-- Five-minute resume performs a deduplicated queue, mail, service, and stale-readiness recovery sweep.
-- Network changes start four alternating route attempts to rebuild Callable/Hosting reliability evidence.
-- The administrator incident summary shows local browser route state and anonymous queue count.
-- Configured cumulative static/regression target: 353 checks.
-- Production Firebase, Gmail receipt, App Check, and real-device background behavior remain environment gates.
+- Product version: `1.6.25`
+- Build ID: `incident-recovery-timeout-abort-stress`
+- Asset version: `1.6.25-incident-recovery-timeout-abort-stress`
+- Service worker cache: `foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress`
+
+## v1.6.25 status
+
+- Automatic incident service recovery is owned by a dedicated timeout and abort-aware controller.
+- Retry scheduling occurs after active cleanup, offline waiting consumes no attempt, and repeated triggers remain single-flight.
+- Service, queue, and deployment deadlines produce bounded anonymous diagnostics.
+- Configured cumulative static/regression target: 359 checks.
+- Production Firebase, Gmail receipt, App Check, installed-browser rendering, and real-device lifecycle behavior remain environment gates.
 
 # FoxBear Status - v1.6.19
 
@@ -704,10 +710,10 @@ Automatic incident reporting is implemented in source. Static/package verificati
 
 ## Release metadata
 
-- Product version: `1.6.22`
-- Build ID: `incident-recovery-coalescing-time-decay`
-- Asset version: `1.6.22-incident-recovery-coalescing-time-decay`
-- Service worker cache: `foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay`
+- Product version: `1.6.24`
+- Build ID: `incident-recovery-sweep-observability`
+- Asset version: `1.6.24-incident-recovery-sweep-observability`
+- Service worker cache: `foxbear-shell-v1.6.24-incident-recovery-sweep-observability`
 ## v1.5.68 current focus
 
 - 실제 Gmail SMTP 테스트 메일 경로와 접수 영수증 표시

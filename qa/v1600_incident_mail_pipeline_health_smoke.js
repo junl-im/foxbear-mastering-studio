@@ -13,13 +13,14 @@ const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 const firebaseSource = read('src/firebase-bootstrap.js');
 const reporterSource = read('src/boot/incident-reporter.js');
+const incidentRecoverySweepSource = read('src/boot/incident-recovery-sweep-service.js');
 const incidentSupportSource = read('src/boot/incident-support-service.js');
 const incidentStateSource = read('src/boot/incident-state-service.js');
 const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.22');
+assert.strictEqual(pkg.version, '1.6.25');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentServiceStatus'));
 assert(html.includes('id="incidentReportingPipeline"'));
@@ -41,7 +42,7 @@ assert(reporterSource.includes("onProgress('mail', 'active'"));
 assert(functionsSource.includes('exports.getIncidentServiceStatus = onCall'));
 assert(functionsSource.includes("appCheckMode: 'monitor'"));
 assert(functionsSource.includes('appCheckTokenPresent: Boolean(request.app)'));
-assert(handoff.startsWith('# Handoff - v1.6.22'));
+assert(handoff.startsWith('# Handoff - v1.6.25'));
 
 const stageItems = {};
 const elements = {};
@@ -61,7 +62,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.22' } },
+    body: { dataset: { build: '1.6.25' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -70,7 +71,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.22', assetVersion: '1.6.22-incident-recovery-coalescing-time-decay' }
+  FoxBearBuildInfo: { productVersion: '1.6.25', assetVersion: '1.6.25-incident-recovery-timeout-abort-stress' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -80,6 +81,7 @@ vm.runInContext(incidentStateSource, sandbox, { filename: 'incident-state-servic
 
 vm.runInContext(incidentRecoveryPolicySource, sandbox, { filename: 'incident-recovery-policy.js' });
 
+vm.runInContext(incidentRecoverySweepSource, sandbox, { filename: 'incident-recovery-sweep-service.js' });
 vm.runInContext(reporterSource, sandbox, { filename: 'incident-reporter.js' });
 const reporter = sandbox.FoxBearIncidentReporter;
 assert.strictEqual(reporter.compareVersions('2.0.0', '2.0.0'), 0);
@@ -126,7 +128,7 @@ const functionSandbox = {
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: { appId: 'verified' } });
-assert.strictEqual(metadata.productVersion, '1.6.22');
+assert.strictEqual(metadata.productVersion, '1.6.25');
 assert.strictEqual(metadata.status, 'ready');
 assert.strictEqual(metadata.appCheckMode, 'monitor');
 assert.strictEqual(metadata.appCheckEnforced, false);
@@ -134,7 +136,7 @@ assert.strictEqual(metadata.appCheckTokenPresent, true);
 const serviceStatus = moduleRecord.exports.getIncidentServiceStatus;
 assert.strictEqual(serviceStatus.options.enforceAppCheck, false);
 serviceStatus.handler({ auth: { uid: 'guest-1' }, app: null }).then(result => {
-  assert.strictEqual(result.productVersion, '1.6.22');
+  assert.strictEqual(result.productVersion, '1.6.25');
   assert.strictEqual(result.appCheckTokenPresent, false);
   return serviceStatus.handler({ auth: null, app: null }).then(
     () => assert.fail('unauthenticated request should fail'),

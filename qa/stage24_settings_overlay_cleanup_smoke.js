@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.22-incident-recovery-coalescing-time-decay';
+const version = '1.6.25-incident-recovery-timeout-abort-stress';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

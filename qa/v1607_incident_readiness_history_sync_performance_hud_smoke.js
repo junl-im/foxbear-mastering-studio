@@ -12,6 +12,7 @@ const pkg = JSON.parse(read('package.json'));
 const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 const reporterSource = read('src/boot/incident-reporter.js');
+const incidentRecoverySweepSource = read('src/boot/incident-recovery-sweep-service.js');
 const incidentSupportSource = read('src/boot/incident-support-service.js');
 const incidentStateSource = read('src/boot/incident-state-service.js');
 const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
@@ -58,7 +59,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.22' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.25' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -67,7 +68,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.22', assetVersion: '1.6.22-incident-recovery-coalescing-time-decay' }
+  FoxBearBuildInfo: { productVersion: '1.6.25', assetVersion: '1.6.25-incident-recovery-timeout-abort-stress' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -77,7 +78,7 @@ reporterSandbox.FoxBearFirebase = {
   checkIncidentDeploymentReadiness: async () => ({
     ok: true,
     checkedAt: new Date().toISOString(),
-    service: { productVersion: '1.6.22', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
+    service: { productVersion: '1.6.25', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -94,6 +95,7 @@ vm.runInContext(incidentStateSource, reporterSandbox, { filename: 'incident-stat
 
 vm.runInContext(incidentRecoveryPolicySource, reporterSandbox, { filename: 'incident-recovery-policy.js' });
 
+vm.runInContext(incidentRecoverySweepSource, reporterSandbox, { filename: 'incident-recovery-sweep-service.js' });
 vm.runInContext(reporterSource, reporterSandbox, { filename: 'incident-reporter.js' });
 const reporter = reporterSandbox.FoxBearIncidentReporter;
 const availability = reporter.getHistoryRetryAvailability({

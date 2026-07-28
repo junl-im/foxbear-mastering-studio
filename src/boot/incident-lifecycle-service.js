@@ -1,4 +1,4 @@
-// FoxBear incident connectivity and resume lifecycle coordinator - v1.6.22
+// FoxBear incident connectivity and resume lifecycle coordinator - v1.6.25
 (function attachFoxBearIncidentLifecycle(global) {
     'use strict';
 
@@ -26,6 +26,28 @@
         let lastOnlineAt = navigatorRef.onLine === false ? 0 : safeNow(now);
         let connectionTimer = 0;
         let lastConnectionKey = routePolicy?.currentNetworkKey?.() || '';
+
+        function notifyError(phase, error) {
+            if (disposed || typeof options.onError !== 'function') return;
+            const detail = Object.freeze({
+                phase: String(phase || 'lifecycle').slice(0, 80),
+                name: String(error?.name || 'Error').slice(0, 80),
+                code: String(error?.code || '').slice(0, 80),
+                message: String(error?.message || error || 'Lifecycle callback failed').replace(/\s+/g, ' ').trim().slice(0, 240)
+            });
+            try {
+                const result = options.onError(detail, error);
+                if (result && typeof result.catch === 'function') result.catch(() => {});
+            } catch (handlerError) {}
+        }
+
+        function runEvent(handler, phase) {
+            if (disposed || typeof handler !== 'function') return;
+            try {
+                const result = handler();
+                if (result && typeof result.catch === 'function') result.catch(error => notifyError(phase, error));
+            } catch (error) { notifyError(phase, error); }
+        }
 
         function invoke(callback, detail) {
             if (disposed || typeof callback !== 'function') return Promise.resolve(null);
@@ -93,24 +115,30 @@
                     routeHealth
                 });
             };
-            if (setTimer) connectionTimer = setTimer(run, CONNECTION_CHANGE_DEBOUNCE_MS);
-            else run().catch(() => {});
+            const execute = () => run().catch(error => notifyError('connection-change', error));
+            if (setTimer) connectionTimer = setTimer(execute, CONNECTION_CHANGE_DEBOUNCE_MS);
+            else execute();
         }
 
-        globalRef.addEventListener?.('online', handleOnline);
-        globalRef.addEventListener?.('offline', handleOffline);
-        documentRef?.addEventListener?.('visibilitychange', handleVisibilityChange);
-        connection?.addEventListener?.('change', handleConnectionChange);
+        const onlineListener = () => runEvent(handleOnline, 'online');
+        const offlineListener = () => runEvent(handleOffline, 'offline');
+        const visibilityListener = () => runEvent(handleVisibilityChange, 'visibility-change');
+        const connectionListener = () => runEvent(handleConnectionChange, 'connection-change-schedule');
+
+        globalRef.addEventListener?.('online', onlineListener);
+        globalRef.addEventListener?.('offline', offlineListener);
+        documentRef?.addEventListener?.('visibilitychange', visibilityListener);
+        connection?.addEventListener?.('change', connectionListener);
 
         function dispose() {
             if (disposed) return;
             disposed = true;
             if (connectionTimer && clearTimer) clearTimer(connectionTimer);
             connectionTimer = 0;
-            globalRef.removeEventListener?.('online', handleOnline);
-            globalRef.removeEventListener?.('offline', handleOffline);
-            documentRef?.removeEventListener?.('visibilitychange', handleVisibilityChange);
-            connection?.removeEventListener?.('change', handleConnectionChange);
+            globalRef.removeEventListener?.('online', onlineListener);
+            globalRef.removeEventListener?.('offline', offlineListener);
+            documentRef?.removeEventListener?.('visibilitychange', visibilityListener);
+            connection?.removeEventListener?.('change', connectionListener);
         }
 
         function getState() {
@@ -136,7 +164,7 @@
     }
 
     global.FoxBearIncidentLifecycle = Object.freeze({
-        version: '1.6.22',
+        version: '1.6.25',
         longBackgroundMs: LONG_BACKGROUND_MS,
         connectionChangeDebounceMs: CONNECTION_CHANGE_DEBOUNCE_MS,
         createController

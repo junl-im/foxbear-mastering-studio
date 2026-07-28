@@ -1,3 +1,29 @@
+# v1.6.25 - Incident Recovery Timeout, Abort, and Trigger-Storm Hardening
+
+- Extracts automatic service-recovery timers, retry budget, active ownership, and phase execution into `incident-service-recovery-controller.js`.
+- Fixes retries being dropped when a failed run tried to schedule while its in-flight flag was still active.
+- Adds 22s service, 30s queue, and 45s deployment deadlines with shared AbortSignal propagation.
+- Pauses retries offline without consuming attempts and suspends unused retries when the settings surface closes.
+- Adds bounded timeout, abort, and slow-phase metadata to anonymous diagnostics.
+- Adds deterministic 50-trigger and 50-schedule stress coverage and raises the configured cumulative target to 359 checks.
+
+# v1.6.24 - Incident Recovery Sweep Module Split and Observability
+
+- Extracts lifecycle recovery coalescing and phase orchestration into `incident-recovery-sweep-service.js`.
+- Preserves single-flight queue, history, service, and deployment recovery with bounded merged reasons.
+- Records offline recovery attempts as diagnostic snapshots instead of leaving the previous online result visible.
+- Surfaces contained lifecycle callback failures through reporter status and anonymous diagnostics.
+- Deduplicates and bounds normalized phase-error summaries while retaining phase-level observer events.
+- Adds `qa/v1624_incident_recovery_sweep_observability_smoke.js` and raises the configured cumulative target to 357 checks.
+
+# v1.6.23 - Persisted Route Decay, Lifecycle Rejection Containment, and Handoff Safety
+
+- Persists elapsed-time Callable and Hosting route-score decay instead of returning a temporary decayed view.
+- Applies elapsed-time and network decay before every route attempt, success, and failure mutation.
+- Contains asynchronous lifecycle callback failures at browser event boundaries and reports sanitized phase diagnostics through `onError`.
+- Verifies current handoff metadata, GitHub Desktop guide version, configured QA target, and the mandatory delivery-rule document.
+- Adds `qa/v1623_route_decay_lifecycle_handoff_safety_smoke.js` and raises the configured cumulative target to 355 checks.
+
 # v1.6.22 - Incident Recovery Coalescing and Route Time Decay
 
 - Coalesces simultaneous online, network-change, and long-resume recovery requests into one in-flight sweep.

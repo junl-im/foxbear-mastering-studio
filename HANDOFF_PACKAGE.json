@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.22",
-  "buildId": "incident-recovery-coalescing-time-decay",
+  "productVersion": "1.6.25",
+  "buildId": "incident-recovery-timeout-abort-stress",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -82,7 +82,16 @@
     "src/boot/incident-mail-sync-service.js",
     "src/boot/incident-lifecycle-service.js",
     "qa/v1621_incident_lifecycle_network_exploration_smoke.js",
-    "docs/V1.6.21_INCIDENT_LIFECYCLE_NETWORK_EXPLORATION.md"
+    "docs/V1.6.21_INCIDENT_LIFECYCLE_NETWORK_EXPLORATION.md",
+    "DELIVERY_RULES.md",
+    "qa/v1623_route_decay_lifecycle_handoff_safety_smoke.js",
+    "docs/V1.6.23_FULL_AUDIT_ROUTE_DECAY_LIFECYCLE_HANDOFF.md",
+    "src/boot/incident-recovery-sweep-service.js",
+    "qa/v1624_incident_recovery_sweep_observability_smoke.js",
+    "docs/V1.6.24_INCIDENT_RECOVERY_SWEEP_OBSERVABILITY.md",
+    "src/boot/incident-service-recovery-controller.js",
+    "qa/v1625_incident_recovery_timeout_abort_stress_smoke.js",
+    "docs/V1.6.25_INCIDENT_RECOVERY_TIMEOUT_ABORT_STRESS.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -128,6 +137,8 @@
     "src/boot/incident-recovery-policy.js",
     "src/boot/incident-reporter.js",
     "src/boot/incident-mail-sync-service.js",
-    "src/boot/incident-lifecycle-service.js"
+    "src/boot/incident-lifecycle-service.js",
+    "src/boot/incident-recovery-sweep-service.js",
+    "src/boot/incident-service-recovery-controller.js"
   ]
 }

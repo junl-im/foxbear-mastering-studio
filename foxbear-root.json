@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.6.22",
-  "assetVersion": "1.6.22-incident-recovery-coalescing-time-decay"
+  "productVersion": "1.6.25",
+  "assetVersion": "1.6.25-incident-recovery-timeout-abort-stress"
 }

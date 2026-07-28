@@ -1,4 +1,4 @@
-# Handoff - v1.6.22
+# Handoff - v1.6.25
 
 ## Mandatory result format
 
@@ -6,46 +6,25 @@
 2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
 3. 다음 예정 내역
 
-## Current release
-
-- Product version: `1.6.21`
-- Build ID: `incident-lifecycle-network-exploration`
-- Asset version: `1.6.21-incident-lifecycle-network-exploration`
-- Service worker cache: `foxbear-shell-v1.6.21-incident-lifecycle-network-exploration`
-- Configured static/regression target: 353 checks.
-
-## v1.6.21 handoff
-
-- `src/boot/incident-lifecycle-service.js` must load after the mail-sync scheduler and before `incident-reporter.js`.
-- Connectivity and visibility listeners belong to the lifecycle coordinator; avoid adding duplicate global online/offline listeners to the reporter.
-- A network-key change decays old route scores and opens exactly four exploration attempts. `recordAttempt()` must be called only when a route request is actually started.
-- Long-resume recovery is deduplicated and may refresh queue, delivery history, service status, and stale readiness without storing report contents.
-- Local administrator route cards describe only the current browser; they are not fleet-wide production metrics.
-- Preserve the three-section final report rule.
-
-# Handoff - v1.6.19
-
-## Mandatory result format
-
-1. 작업한 내역
-2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
-3. 다음 예정 내역
+상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
 
 ## Current release
 
-- Product version: `1.6.18`
-- Build ID: `incident-state-adaptive-route-policy`
-- Asset version: `1.6.18-incident-state-adaptive-route-policy`
-- Service worker cache: `foxbear-shell-v1.6.18-incident-state-adaptive-route-policy`
-- Configured static/regression target: 348 checks.
+- Product version: `1.6.25`
+- Build ID: `incident-recovery-timeout-abort-stress`
+- Asset version: `1.6.25-incident-recovery-timeout-abort-stress`
+- Service worker cache: `foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress`
+- Configured static/regression target: 359 checks.
 
-## v1.6.18 handoff
+## v1.6.25 handoff
 
-- `src/boot/incident-state-service.js` owns local mail-test and deployment-readiness/history persistence.
-- `src/boot/incident-route-policy.js` must load before `src/firebase-bootstrap.js` so repeated transient Callable failures can temporarily prefer Hosting same-origin recovery.
-- `src/boot/incident-support-service.js`, state service, recovery policy, and reporter must retain their current order.
-- Deploy Hosting rewrites and Functions atomically with `npm run deploy:incident`; the adaptive policy cannot repair a missing or stale server deployment.
-- Route health and transport metrics are local metadata only and must never include audio, filenames, report bodies, local paths, auth tokens, or Firebase Secrets.
+- Keep retry timers, retry budget, active task ownership, deadlines, and abort signals inside `src/boot/incident-service-recovery-controller.js`.
+- Do not schedule the next retry until the previous active Promise has released ownership.
+- Offline waiting and hidden-surface suspension must not consume retry attempts.
+- Reporter service, queue, and deployment callbacks must preserve AbortSignal checks before state mutation.
+- Timeout, abort, and slow-phase diagnostics remain metadata-only and must not include report contents, audio, filenames, tokens, or paths.
+- Regression: `node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js`.
+- Production Firebase/App Check/Gmail, installed Chromium, and real-device lifecycle behavior remain external release gates.
 
 # Handoff - v1.6.17
 

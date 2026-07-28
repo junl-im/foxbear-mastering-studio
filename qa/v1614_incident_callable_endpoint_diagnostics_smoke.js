@@ -15,7 +15,7 @@ const css = read('assets/css/components/support-settings.css');
 const firebaseJson = JSON.parse(read('firebase.json'));
 const origin = 'https://asia-northeast3-foxbear-music.cloudfunctions.net';
 
-assert.strictEqual(pkg.version, '1.6.22');
+assert.strictEqual(pkg.version, '1.6.25');
 assert(firebaseSource.includes("const INCIDENT_STATUS_FUNCTION_NAME = 'getIncidentServiceStatus';"), 'exact incident status function constant missing');
 assert(firebaseSource.includes('const INCIDENT_DIRECT_PROBE_TIMEOUT_MS = 4500;'), 'bounded direct probe timeout missing');
 assert(firebaseSource.includes('async function probeIncidentCallableEndpoint'), 'direct endpoint probe missing');

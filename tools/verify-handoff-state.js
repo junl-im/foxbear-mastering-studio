@@ -39,6 +39,15 @@ function fail(message, failures) {
   console.error(`FAIL ${message}`);
 }
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function markdownSection(text, heading) {
+  const pattern = new RegExp(`(?:^|\\n)## ${escapeRegExp(heading)}\\s*\\n([\\s\\S]*?)(?=\\n## |$)`);
+  return String(text).match(pattern)?.[1] || '';
+}
+
 const failures = [];
 const warnings = [];
 const manifestPath = 'HANDOFF_PACKAGE.json';
@@ -149,9 +158,20 @@ if (!scripts['handoff:check']) fail('package.json is missing handoff:check', fai
 
 const handoff = fs.readFileSync(path.join(root, 'HANDOFF.md'), 'utf8');
 const desktopGuide = fs.readFileSync(path.join(root, 'GITHUB_DESKTOP_HANDOFF.md'), 'utf8');
+const deliveryRules = fs.readFileSync(path.join(root, 'DELIVERY_RULES.md'), 'utf8');
+const handoffCurrentRelease = markdownSection(handoff, 'Current release');
 if (!handoff.startsWith(`# Handoff - v${pkg.version}`)) fail('HANDOFF.md title does not match package version', failures);
+if (!handoffCurrentRelease.includes(`- Product version: \`${pkg.version}\``)) fail('HANDOFF.md Current release product version does not match package version', failures);
+if (!handoffCurrentRelease.includes(`- Build ID: \`${pkg.foxbearRelease?.buildId || ''}\``)) fail('HANDOFF.md Current release build ID does not match package.json', failures);
+if (!handoffCurrentRelease.includes(`- Asset version: \`${pkg.foxbearRelease?.assetVersion || ''}\``)) fail('HANDOFF.md Current release asset version does not match package.json', failures);
+if (!handoffCurrentRelease.includes(`- Service worker cache: \`${pkg.foxbearRelease?.cacheName || ''}\``)) fail('HANDOFF.md Current release cache name does not match package.json', failures);
+if (!handoffCurrentRelease.includes(`- Configured static/regression target: ${Array.isArray(pkg.qaChecks) ? pkg.qaChecks.length : 0} checks.`)) fail('HANDOFF.md Current release QA target does not match package.json', failures);
 if (!/GitHub Desktop/i.test(handoff)) fail('HANDOFF.md does not record the GitHub Desktop workflow', failures);
+if (!desktopGuide.startsWith(`# GitHub Desktop Handoff - v${pkg.version}`)) fail('GitHub Desktop guide title does not match package version', failures);
 if (!/Fetch origin/i.test(desktopGuide) || !/Push origin/i.test(desktopGuide)) fail('GitHub Desktop guide is missing fetch/push workflow', failures);
+for (const heading of ['## 1. 작업한 내역', '## 2. 다운로드 파일 2종', '## 3. 다음 예정 내역']) {
+  if (!deliveryRules.includes(heading)) fail(`DELIVERY_RULES.md is missing required heading: ${heading}`, failures);
+}
 
 for (const workflow of ['.github/workflows/pages.yml', '.github/workflows/pages-branch-fallback.yml']) {
   const text = fs.readFileSync(path.join(root, workflow), 'utf8');

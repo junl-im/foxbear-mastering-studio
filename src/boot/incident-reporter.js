@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.22
+// FoxBear automatic incident reporter - v1.6.25
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.22-incident-recovery-coalescing-time-decay';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.22').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.25-incident-recovery-timeout-abort-stress';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.25').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -54,17 +54,10 @@
         deploymentCheckInFlight: null,
         deploymentReadiness: null,
         deploymentRefreshTimer: 0,
-        serviceRecoveryTimer: 0,
-        serviceRecoveryAttempt: 0,
-        serviceRecoveryNextAt: 0,
-        serviceRecoveryReason: '',
-        serviceRecoveryInFlight: null,
-        lastRecoveryResult: null,
         lastRecoveryStatus: '',
-        lifecycleSweepInFlight: null,
         lastLifecycleSweepAt: 0,
         lastLifecycleSweepResult: null,
-        lifecycleSweepPending: null
+        lastLifecycleError: null
     };
 
     const support = global.FoxBearIncidentSupport;
@@ -87,6 +80,33 @@
             });
         }
     });
+    const recoverySweepService = global.FoxBearIncidentRecoverySweep;
+    const serviceRecoveryService = global.FoxBearIncidentServiceRecovery || Object.freeze({
+        createController(options = {}) {
+            let inFlight = null;
+            let lastResult = null;
+            const transient = new Set(['client-offline', 'server-response-blocked', 'server-network-blocked', 'server-api-unavailable', 'server-api-internal', 'authentication-failed']);
+            return Object.freeze({
+                schedule() { return false; },
+                cancel() { return true; },
+                isTransient(status) { return transient.has(String(status || '')); },
+                getState() { return Object.freeze({ attempt: 0, maxAttempts: SERVICE_RECOVERY_DELAYS_MS.length, nextAt: 0, reason: '', inFlight: Boolean(inFlight), scheduled: false, waitingForOnline: false, suspended: false, lastResult, timeoutCount: 0, abortCount: 0, phaseTimeouts: null }); },
+                run(runOptions = {}) {
+                    if (inFlight) return inFlight;
+                    const task = (async () => {
+                        const service = await options.refreshService?.({ signal: null });
+                        const queue = await options.flushQueue?.({ signal: null });
+                        const readiness = runOptions.checkDeployment === false ? null : await options.checkDeployment?.({ signal: null });
+                        lastResult = Object.freeze({ ok: true, checkedAt: new Date().toISOString(), queueRemaining: Number(queue?.remaining || 0), readinessOk: readiness?.ok === true, service, queue, readiness });
+                        options.onResult?.(lastResult);
+                        return lastResult;
+                    })().finally(() => { if (inFlight === task) inFlight = null; });
+                    inFlight = task;
+                    return task;
+                }
+            });
+        }
+    });
     const lifecycleService = global.FoxBearIncidentLifecycle || Object.freeze({
         createController() {
             return Object.freeze({
@@ -95,7 +115,7 @@
             });
         }
     });
-    if (!support || !stateStore || !recoveryPolicy) throw new Error('FoxBear incident support modules are not loaded.');
+    if (!support || !stateStore || !recoveryPolicy || !recoverySweepService || !serviceRecoveryService) throw new Error('FoxBear incident support modules are not loaded.');
     const {
         storageGet, storageSet, cleanText, redactSensitiveText, normalizeError, fnv1a,
         classifyBrowser, classifyPlatform, compareVersions, getTransportMetrics,
@@ -408,78 +428,45 @@
         return !Number.isFinite(checkedAt) || Date.now() - checkedAt >= Math.max(60000, Number(maxAgeMs || 0));
     }
 
+    const recoverySweepController = recoverySweepService.createController({
+        isOnline: () => global.navigator?.onLine !== false,
+        flushQueue: () => flushQueue(),
+        syncHistory: () => refreshTestHistoryFromServer({ silent: true }),
+        shouldRefreshService: request => request.forceService === true || isIncidentDialogVisible() || Boolean(state.serviceStatus || state.serviceError),
+        refreshService: () => refreshServiceStatus({ force: true, skipRecoverySchedule: !isIncidentDialogVisible() }),
+        shouldCheckDeployment: request => request.checkDeployment === true
+            && isDeploymentReadinessStale()
+            && (isIncidentDialogVisible() || Boolean(state.deploymentReadiness || loadDeploymentReadiness())),
+        checkDeployment: () => runDeploymentSelfCheck(),
+        getQueueLength: () => loadQueue().length,
+        getHistoryCount: () => loadTestHistory().length,
+        onResult: result => {
+            state.lastLifecycleSweepAt = Date.parse(String(result?.checkedAt || '')) || Date.now();
+            state.lastLifecycleSweepResult = result || null;
+            renderTransportMetrics();
+            emitIncidentStatusChange(`lifecycle-${cleanText(result?.reason || 'recovery', 80)}`);
+        },
+        onError: detail => recordLifecycleCallbackError(detail)
+    });
+
     function mergeLifecycleSweepOptions(current = null, incoming = {}) {
-        const previous = current && typeof current === 'object' ? current : {};
-        const reasons = new Set([...(Array.isArray(previous.reasons) ? previous.reasons : []), cleanText(incoming.reason || 'lifecycle', 80)].filter(Boolean));
-        return Object.freeze({
-            reasons: Object.freeze(Array.from(reasons).slice(-6)),
-            forceService: previous.forceService === true || incoming.forceService === true,
-            checkDeployment: previous.checkDeployment === true || incoming.checkDeployment === true
-        });
+        return recoverySweepService.mergeRequests(current, incoming);
     }
 
-    async function runLifecycleRecoverySweep(options = {}) {
-        const requested = mergeLifecycleSweepOptions(null, options);
-        if (state.lifecycleSweepInFlight) {
-            state.lifecycleSweepPending = mergeLifecycleSweepOptions(state.lifecycleSweepPending, options);
-            return state.lifecycleSweepInFlight;
-        }
-        const task = (async () => {
-            let current = requested;
-            let finalResult = null;
-            do {
-                state.lifecycleSweepPending = null;
-                const reason = current.reasons.join('+') || 'lifecycle';
-                if (global.navigator?.onLine === false) {
-                    finalResult = Object.freeze({ ok: false, reason, offline: true, mergedReasons: current.reasons });
-                } else {
-                    const startedAt = Date.now();
-                    let queueResult = null;
-                    let historyResult = null;
-                    let serviceResult = null;
-                    let readinessResult = null;
-                    const errors = [];
-                    try { queueResult = await flushQueue(); } catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
-                    try { historyResult = await refreshTestHistoryFromServer({ silent: true }); } catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
-                    const shouldRefreshService = current.forceService === true || isIncidentDialogVisible() || Boolean(state.serviceStatus || state.serviceError);
-                    if (shouldRefreshService) {
-                        try { serviceResult = await refreshServiceStatus({ force: true, skipRecoverySchedule: !isIncidentDialogVisible() }); }
-                        catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
-                    }
-                    const shouldCheckDeployment = current.checkDeployment === true
-                        && isDeploymentReadinessStale()
-                        && (isIncidentDialogVisible() || Boolean(state.deploymentReadiness || loadDeploymentReadiness()));
-                    if (shouldCheckDeployment) {
-                        try { readinessResult = await runDeploymentSelfCheck(); }
-                        catch (error) { errors.push(cleanText(error?.code || error?.message || error, 120)); }
-                    }
-                    state.lastLifecycleSweepAt = Date.now();
-                    finalResult = Object.freeze({
-                        ok: errors.length === 0,
-                        reason,
-                        mergedReasons: current.reasons,
-                        checkedAt: new Date().toISOString(),
-                        durationMs: Math.max(0, Date.now() - startedAt),
-                        queueDelivered: Number(queueResult?.delivered || 0),
-                        queueRemaining: Number(queueResult?.remaining ?? loadQueue().length),
-                        historyCount: Array.isArray(historyResult) ? historyResult.length : loadTestHistory().length,
-                        serviceChecked: Boolean(serviceResult || shouldRefreshService),
-                        readinessChecked: Boolean(readinessResult || shouldCheckDeployment),
-                        errors: Object.freeze(errors.slice(0, 4))
-                    });
-                    state.lastLifecycleSweepResult = finalResult;
-                    renderTransportMetrics();
-                    emitIncidentStatusChange(`lifecycle-${reason}`);
-                }
-                current = state.lifecycleSweepPending;
-            } while (current);
-            return finalResult;
-        })().finally(() => {
-            if (state.lifecycleSweepInFlight === task) state.lifecycleSweepInFlight = null;
-            state.lifecycleSweepPending = null;
+    function runLifecycleRecoverySweep(options = {}) {
+        return recoverySweepController.run(options);
+    }
+
+    function recordLifecycleCallbackError(detail = {}) {
+        const error = Object.freeze({
+            at: new Date().toISOString(),
+            phase: cleanText(detail.phase || 'lifecycle', 80),
+            code: cleanText(detail.code || detail.error || '', 80),
+            message: cleanText(detail.message || detail.error || 'Lifecycle callback failed', 240)
         });
-        state.lifecycleSweepInFlight = task;
-        return task;
+        state.lastLifecycleError = error;
+        emitIncidentStatusChange(`lifecycle-error-${error.phase}`);
+        return error;
     }
 
     function setDeploymentCheckState(key, stateName = 'idle', message = '확인 전', item = null) {
@@ -625,7 +612,7 @@
         state.deploymentRefreshTimer = global.setTimeout(() => { state.deploymentRefreshTimer = 0; renderControls(); }, Math.min(1000, Math.max(250, availability.remainingMs)));
     }
 
-    async function runDeploymentSelfCheck() {
+    async function runDeploymentSelfCheck(options = {}) {
         if (state.deploymentCheckInFlight) return state.deploymentCheckInFlight;
         const cached = state.deploymentReadiness || loadDeploymentReadiness();
         if (cached && !getDeploymentCheckAvailability(cached).ready) {
@@ -636,9 +623,11 @@
         }
         ['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection'].forEach(key => setDeploymentCheckState(key, 'active', '확인 중…'));
         const task = (async () => {
-            const bridge = await waitForFirebaseBridge();
+            const bridge = await waitForFirebaseBridge(FIREBASE_READY_TIMEOUT_MS, options.signal);
+            throwIfAborted(options.signal, 'deployment');
             if (typeof bridge.checkIncidentDeploymentReadiness !== 'function') throw Object.assign(new Error('배포 자체 점검 서버 기능이 아직 배포되지 않았습니다.'), { code: 'functions/not-found' });
             const remote = await bridge.checkIncidentDeploymentReadiness();
+            throwIfAborted(options.signal, 'deployment');
             const csp = inspectClientCsp(remote?.service?.functionsOrigin || bridge.incidentFunctionsOrigin || '');
             const combined = Object.freeze({ ...remote, ok: remote?.ok === true && csp.ok, checks: Object.freeze({ ...remote?.checks, csp }) });
             saveDeploymentReadiness(combined);
@@ -646,6 +635,7 @@
             renderDeploymentReadiness(combined);
             return combined;
         })().catch(error => {
+            if (isAbortError(error)) throw error;
             const code = cleanText(error?.code || error?.name || 'deployment-check-failed', 80);
             const message = cleanText(error?.message || error, 220);
             const csp = inspectClientCsp();
@@ -973,17 +963,50 @@
         return '';
     }
 
-    function withTimeout(promise, timeoutMs = SEND_TIMEOUT_MS) {
+    function createAbortError(signal, phase = 'operation') {
+        const source = signal?.reason;
+        if (source instanceof Error) return source;
+        const error = new Error(cleanText(source || `Incident ${phase} aborted`, 240));
+        error.name = 'AbortError';
+        error.code = 'FOXBEAR_INCIDENT_RECOVERY_ABORTED';
+        error.phase = cleanText(phase, 40);
+        return error;
+    }
+
+    function throwIfAborted(signal, phase = 'operation') {
+        if (signal?.aborted) throw createAbortError(signal, phase);
+    }
+
+    function isAbortError(error) {
+        return error?.name === 'AbortError' || error?.code === 'FOXBEAR_INCIDENT_RECOVERY_ABORTED';
+    }
+
+    function withTimeout(promise, timeoutMs = SEND_TIMEOUT_MS, signal = null) {
         return new Promise((resolve, reject) => {
-            const timer = global.setTimeout(() => reject(Object.assign(new Error('Incident delivery timeout'), { code: 'FOXBEAR_INCIDENT_TIMEOUT' })), timeoutMs);
+            let settled = false;
+            let timer = 0;
+            const cleanup = () => {
+                if (timer) global.clearTimeout(timer);
+                signal?.removeEventListener?.('abort', onAbort);
+            };
+            const finish = (callback, value) => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                callback(value);
+            };
+            const onAbort = () => finish(reject, createAbortError(signal, 'delivery'));
+            if (signal?.aborted) return onAbort();
+            signal?.addEventListener?.('abort', onAbort, { once: true });
+            timer = global.setTimeout(() => finish(reject, Object.assign(new Error('Incident delivery timeout'), { code: 'FOXBEAR_INCIDENT_TIMEOUT' })), timeoutMs);
             Promise.resolve(promise).then(
-                value => { global.clearTimeout(timer); resolve(value); },
-                error => { global.clearTimeout(timer); reject(error); }
+                value => finish(resolve, value),
+                error => finish(reject, error)
             );
         });
     }
 
-    function waitForFirebaseBridge(timeoutMs = FIREBASE_READY_TIMEOUT_MS) {
+    function waitForFirebaseBridge(timeoutMs = FIREBASE_READY_TIMEOUT_MS, signal = null) {
         const current = global.FoxBearFirebase;
         if (current?.ready === true && current?.logIncident && current?.getIncidentDelivery) return Promise.resolve(current);
         return new Promise((resolve, reject) => {
@@ -993,6 +1016,7 @@
                 if (timer) global.clearTimeout(timer);
                 global.removeEventListener('foxbear:firebase-ready', onReady);
                 global.removeEventListener('foxbear:firebase-error', onError);
+                signal?.removeEventListener?.('abort', onAbort);
             };
             const finish = (callback, value) => {
                 if (settled) return;
@@ -1000,6 +1024,7 @@
                 cleanup();
                 callback(value);
             };
+            const onAbort = () => finish(reject, createAbortError(signal, 'firebase-bridge'));
             const onReady = () => {
                 const bridge = global.FoxBearFirebase;
                 if (bridge?.ready === true && bridge?.logIncident && bridge?.getIncidentDelivery) finish(resolve, bridge);
@@ -1009,6 +1034,8 @@
                 const error = Object.assign(new Error(message), { code: 'FOXBEAR_INCIDENT_FIREBASE_ERROR' });
                 finish(reject, error);
             };
+            if (signal?.aborted) return onAbort();
+            signal?.addEventListener?.('abort', onAbort, { once: true });
             global.addEventListener('foxbear:firebase-ready', onReady);
             global.addEventListener('foxbear:firebase-error', onError);
             timer = global.setTimeout(() => {
@@ -1030,7 +1057,8 @@
         buttons.textContent = '';
         if (!plan) return;
         label.textContent = plan.label;
-        const busy = Boolean(state.testInFlight || state.serviceCheckInFlight || state.serviceRecoveryInFlight || state.deploymentCheckInFlight);
+        const recoveryState = getServiceRecoveryState();
+        const busy = Boolean(state.testInFlight || state.serviceCheckInFlight || recoveryState.inFlight || state.deploymentCheckInFlight);
         plan.actions.forEach(action => {
             const button = document.createElement('button');
             button.type = 'button';
@@ -1089,38 +1117,49 @@
         return Boolean(dialog && !dialog.hidden && dialog.classList.contains('show'));
     }
 
+    let serviceRecoveryController = null;
+
+    function getServiceRecoveryState() {
+        return serviceRecoveryController?.getState?.() || Object.freeze({
+            attempt: 0,
+            maxAttempts: SERVICE_RECOVERY_DELAYS_MS.length,
+            nextAt: 0,
+            reason: '',
+            inFlight: false,
+            scheduled: false,
+            waitingForOnline: false,
+            suspended: false,
+            lastResult: null,
+            timeoutCount: 0,
+            abortCount: 0,
+            phaseTimeouts: null
+        });
+    }
+
     function clearServiceRecoveryTimer(options = {}) {
-        if (state.serviceRecoveryTimer) global.clearTimeout(state.serviceRecoveryTimer);
-        state.serviceRecoveryTimer = 0;
-        state.serviceRecoveryNextAt = 0;
-        if (options.resetAttempt === true) {
-            state.serviceRecoveryAttempt = 0;
-            state.serviceRecoveryReason = '';
-        }
+        return serviceRecoveryController?.cancel?.({
+            resetAttempt: options.resetAttempt === true,
+            abortInFlight: options.abortInFlight === true,
+            reason: options.reason || 'service-recovery-cleared'
+        }) || false;
     }
 
     function isTransientServiceFailure(status = '') {
-        return ['client-offline', 'server-response-blocked', 'server-network-blocked', 'server-api-unavailable', 'server-api-internal', 'authentication-failed'].includes(status);
+        return serviceRecoveryController?.isTransient?.(status) === true;
     }
 
     function scheduleServiceRecovery(status = '', reason = '') {
-        if (!isTransientServiceFailure(status) || state.serviceRecoveryTimer || state.serviceRecoveryInFlight) return false;
-        if (state.serviceRecoveryAttempt >= SERVICE_RECOVERY_DELAYS_MS.length) return false;
-        const delay = SERVICE_RECOVERY_DELAYS_MS[state.serviceRecoveryAttempt];
-        state.serviceRecoveryAttempt += 1;
-        state.serviceRecoveryReason = cleanText(reason || status, 120);
-        state.serviceRecoveryNextAt = Date.now() + delay;
-        state.serviceRecoveryTimer = global.setTimeout(() => {
-            state.serviceRecoveryTimer = 0;
-            state.serviceRecoveryNextAt = 0;
-            if (!isIncidentDialogVisible()) return;
-            runServiceAutoRecovery({ automatic: true, checkDeployment: false }).catch(() => {});
-        }, delay);
-        renderControls(`자동 연결 복구 예약 · ${Math.ceil(delay / 1000)}초 후 재확인`);
-        return true;
+        const scheduled = serviceRecoveryController?.schedule?.(status, reason, { checkDeployment: false }) === true;
+        if (scheduled) {
+            const recoveryState = getServiceRecoveryState();
+            if (recoveryState.waitingForOnline) renderControls('오프라인 상태 · 연결 복구 시 자동 재확인');
+            else if (recoveryState.nextAt > Date.now()) renderControls(`자동 연결 복구 예약 · ${Math.max(1, Math.ceil((recoveryState.nextAt - Date.now()) / 1000))}초 후 재확인`);
+        }
+        return scheduled;
     }
 
     function buildSanitizedDiagnostics() {
+        const recoveryState = getServiceRecoveryState();
         const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
         const csp = inspectClientCsp(state.serviceEndpoint || bridge.incidentFunctionsOrigin || '');
         const readiness = state.deploymentReadiness || loadDeploymentReadiness();
@@ -1167,7 +1206,17 @@
                 enforced: state.serviceStatus?.appCheckEnforced === true
             },
             localQueueCount: loadQueue().length,
-            recoveryAttempt: state.serviceRecoveryAttempt,
+            recoveryAttempt: recoveryState.attempt,
+            serviceRecoveryAttempt: recoveryState.attempt,
+            serviceRecovery: {
+                scheduled: recoveryState.scheduled === true,
+                waitingForOnline: recoveryState.waitingForOnline === true,
+                suspended: recoveryState.suspended === true,
+                timeoutCount: Math.max(0, Number(recoveryState.timeoutCount || 0)),
+                abortCount: Math.max(0, Number(recoveryState.abortCount || 0)),
+                lastTimedOutPhase: cleanText(recoveryState.lastResult?.timedOutPhase || '', 40),
+                slowPhases: Array.isArray(recoveryState.lastResult?.slowPhases) ? recoveryState.lastResult.slowPhases.slice(0, 3) : []
+            },
             transportMetrics: getTransportMetrics(),
             adaptiveRouteHealth: routeHealth,
             networkContext: {
@@ -1179,7 +1228,10 @@
             lifecycle: {
                 lastSweepAt: state.lastLifecycleSweepAt || 0,
                 lastSweepReason: cleanText(state.lastLifecycleSweepResult?.reason || '', 80),
-                lastSweepOk: state.lastLifecycleSweepResult?.ok === true
+                lastSweepOk: state.lastLifecycleSweepResult?.ok === true,
+                lastSweepOffline: state.lastLifecycleSweepResult?.offline === true,
+                lastErrorPhase: cleanText(state.lastLifecycleError?.phase || '', 80),
+                lastErrorCode: cleanText(state.lastLifecycleError?.code || '', 80)
             },
             deploymentChecks: checks
         });
@@ -1196,46 +1248,39 @@
     }
 
     async function runServiceAutoRecovery(options = {}) {
-        if (state.serviceRecoveryInFlight) return state.serviceRecoveryInFlight;
-        if (options.manual === true) state.serviceRecoveryAttempt = 0;
-        clearServiceRecoveryTimer();
-        const task = (async () => {
-            if (global.navigator?.onLine === false) {
-                throw Object.assign(new Error('브라우저가 오프라인 상태입니다.'), { code: 'FOXBEAR_INCIDENT_CLIENT_OFFLINE' });
-            }
-            renderControls(options.manual ? '오류 신고 연결을 자동 복구합니다…' : '오류 신고 연결을 자동 재확인합니다…');
-            const service = await refreshServiceStatus({ force: true, skipRecoverySchedule: true });
-            const queueResult = await flushQueue();
-            let readiness = null;
-            if (options.checkDeployment !== false) {
-                try { readiness = await runDeploymentSelfCheck(); } catch (error) { readiness = null; }
-            }
-            clearServiceRecoveryTimer({ resetAttempt: true });
-            state.lastRecoveryResult = Object.freeze({
-                ok: true,
-                checkedAt: new Date().toISOString(),
-                queueDelivered: Number(queueResult?.delivered || 0),
-                queueRemaining: Number(queueResult?.remaining || 0),
-                readinessOk: readiness?.ok === true
-            });
-            renderRecoveryGuidance('', '', '');
-            renderControls(`자동 복구 완료 · 대기열 ${queueResult?.remaining || 0}건${readiness ? ` · 배포 점검 ${readiness.ok ? '정상' : '확인 필요'}` : ''}`);
-            return Object.freeze({ ok: true, service, queue: queueResult, readiness });
-        })().catch(error => {
-            const code = cleanText(error?.code || error?.name || '', 80);
-            const reason = cleanText(error?.message || error, 180);
-            const status = classifyMailTestFailure(code, code, reason);
-            state.lastRecoveryResult = Object.freeze({ ok: false, checkedAt: new Date().toISOString(), code, reason, status });
-            renderRecoveryGuidance(status, code, reason);
-            if (options.schedule !== false) scheduleServiceRecovery(status, code || reason);
-            renderControls(`자동 복구 실패 · ${code || reason}`);
-            throw error;
-        }).finally(() => {
-            if (state.serviceRecoveryInFlight === task) state.serviceRecoveryInFlight = null;
-        });
-        state.serviceRecoveryInFlight = task;
-        return task;
+        return serviceRecoveryController.run(options);
     }
+
+    serviceRecoveryController = serviceRecoveryService.createController({
+        delaysMs: SERVICE_RECOVERY_DELAYS_MS,
+        isOnline: () => global.navigator?.onLine !== false,
+        shouldRun: () => isIncidentDialogVisible(),
+        isTransient: status => ['client-offline', 'server-response-blocked', 'server-network-blocked', 'server-api-unavailable', 'server-api-internal', 'authentication-failed'].includes(status),
+        classifyFailure: (code, originalCode, message) => /FOXBEAR_INCIDENT_RECOVERY_[A-Z_]+_TIMEOUT/.test(code)
+            ? 'server-api-unavailable'
+            : classifyMailTestFailure(code, originalCode, message),
+        refreshService: context => refreshServiceStatus({ force: true, skipRecoverySchedule: true, signal: context.signal }),
+        flushQueue: context => flushQueue({ signal: context.signal }),
+        checkDeployment: context => runDeploymentSelfCheck({ signal: context.signal }),
+        getQueueLength: () => loadQueue().length,
+        onProgress: progress => {
+            if (progress.phase === 'service' && progress.state === 'active') renderControls('오류 신고 서버 연결을 복구 중입니다…');
+            else if (progress.phase === 'queue' && progress.state === 'active') renderControls('로컬 오류 신고 대기열을 복구 중입니다…');
+            else if (progress.phase === 'deployment' && progress.state === 'active') renderControls('배포 상태를 점검 중입니다…');
+        },
+        onResult: result => {
+            if (result.ok) {
+                renderRecoveryGuidance('', '', '');
+                renderControls(`자동 복구 완료 · 대기열 ${result.queueRemaining || 0}건${result.readiness ? ` · 배포 점검 ${result.readinessOk ? '정상' : '확인 필요'}` : ''}`);
+            } else {
+                renderRecoveryGuidance(result.status, result.code, result.reason);
+                const timeoutLabel = result.timedOutPhase ? ` · ${result.timedOutPhase} 단계 시간 초과` : '';
+                renderControls(`자동 복구 실패 · ${result.code || result.reason}${timeoutLabel}`);
+            }
+            emitIncidentStatusChange(result.ok ? 'service-recovery-complete' : 'service-recovery-failed');
+        },
+        onError: detail => recordLifecycleCallbackError({ ...detail, phase: `service-recovery-${detail.phase || 'run'}` })
+    });
 
     async function refreshServiceStatus(options = {}) {
         if (state.serviceCheckInFlight && options.force !== true) return state.serviceCheckInFlight;
@@ -1243,8 +1288,10 @@
         let bridge = null;
         const task = (async () => {
             updatePipelineStage('auth', 'active', '익명 인증 확인 중');
-            bridge = await waitForFirebaseBridge();
+            bridge = await waitForFirebaseBridge(FIREBASE_READY_TIMEOUT_MS, options.signal);
+            throwIfAborted(options.signal, 'service');
             if (!bridge.authReady && typeof bridge.signInGuest === 'function') await bridge.signInGuest();
+            throwIfAborted(options.signal, 'service-auth');
             const bridgeStatus = bridge.getStatus?.() || bridge;
             if (!bridgeStatus.authReady && !bridgeStatus.uid) throw Object.assign(new Error('익명 인증 상태를 확인하지 못했습니다.'), { code: 'FOXBEAR_INCIDENT_AUTH_NOT_READY' });
             updatePipelineStage('auth', 'ok', '익명 인증 완료');
@@ -1252,6 +1299,7 @@
             updatePipelineStage('api', 'active', '서버 버전 확인 중');
             if (typeof bridge.getIncidentServiceStatus !== 'function') throw Object.assign(new Error('서버 상태 API가 현재 웹 빌드에 없습니다.'), { code: 'FOXBEAR_INCIDENT_SERVICE_STATUS_UNAVAILABLE' });
             const service = await bridge.getIncidentServiceStatus();
+            throwIfAborted(options.signal, 'service-status');
             state.serviceStatus = service;
             state.serviceError = '';
             state.serviceErrorCode = '';
@@ -1266,6 +1314,7 @@
             renderServiceDiagnostics(service, '');
             return service;
         })().catch(async error => {
+            if (isAbortError(error)) throw error;
             state.serviceStatus = null;
             const originalCode = cleanText(error?.code || error?.name || '', 80);
             const originalMessage = cleanText(error?.message || error, 240);
@@ -1274,7 +1323,11 @@
             const csp = inspectClientCsp(origin);
             let probe = null;
             if (bridge && typeof bridge.probeIncidentCallableEndpoint === 'function' && authComplete) {
-                try { probe = await bridge.probeIncidentCallableEndpoint(bridge.incidentStatusFunctionName || 'getIncidentServiceStatus'); }
+                try {
+                    throwIfAborted(options.signal, 'service-probe');
+                    probe = await bridge.probeIncidentCallableEndpoint(bridge.incidentStatusFunctionName || 'getIncidentServiceStatus');
+                    throwIfAborted(options.signal, 'service-probe');
+                }
                 catch (probeError) { probe = { reachable: false, deployed: null, classification: 'probe-error', code: probeError?.code || probeError?.name || '', message: probeError?.message || String(probeError) }; }
             }
             state.directProbe = probe;
@@ -1322,10 +1375,12 @@
         return task;
     }
 
-    async function deliver(payload) {
-        const bridge = await waitForFirebaseBridge();
+    async function deliver(payload, options = {}) {
+        const bridge = await waitForFirebaseBridge(FIREBASE_READY_TIMEOUT_MS, options.signal);
+        throwIfAborted(options.signal, 'incident-submit');
         try {
-            const result = await withTimeout(bridge.logIncident(payload));
+            const result = await withTimeout(bridge.logIncident(payload), SEND_TIMEOUT_MS, options.signal);
+            throwIfAborted(options.signal, 'incident-submit');
             recordTransport({ phase: 'incident-submit', ok: true, transport: result?.transport || 'callable' });
             return result;
         } catch (error) {
@@ -1362,7 +1417,8 @@
         }
     }
 
-    async function flushQueue() {
+    async function flushQueue(options = {}) {
+        throwIfAborted(options.signal, 'queue');
         if (state.flushing || global.navigator?.onLine === false || !isEnabled()) return Object.freeze({ ok: false, skipped: true });
         const queue = loadQueue();
         if (!queue.length) {
@@ -1377,7 +1433,8 @@
             for (let index = 0; index < queue.length; index += 1) {
                 const payload = queue[index];
                 try {
-                    await deliver(payload);
+                    await deliver(payload, { signal: options.signal });
+                    throwIfAborted(options.signal, 'queue');
                     delivered += 1;
                     state.delivered += 1;
                     state.lastDeliveredAt = Date.now();
@@ -1386,6 +1443,7 @@
                         incrementDailyCount();
                     }
                 } catch (error) {
+                    if (isAbortError(error)) throw error;
                     remaining.push(...queue.slice(index));
                     state.lastError = cleanText(error?.message || error, 300);
                     break;
@@ -1500,6 +1558,7 @@
         const historyClear = document.getElementById('incidentHistoryClear');
         const status = document.getElementById('incidentReportingStatus');
         const current = getStatus();
+        const recoveryState = getServiceRecoveryState();
         if (toggle) {
             toggle.textContent = current.enabled ? '자동 신고 켜짐' : '자동 신고 꺼짐';
             toggle.setAttribute('aria-pressed', current.enabled ? 'true' : 'false');
@@ -1509,28 +1568,31 @@
             testButton.setAttribute('aria-busy', state.testInFlight ? 'true' : 'false');
         }
         if (retryButton) {
-            retryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || Boolean(state.serviceRecoveryInFlight);
+            retryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || recoveryState.inFlight;
             retryButton.setAttribute('aria-busy', state.serviceCheckInFlight ? 'true' : 'false');
         }
         if (recoveryButton) {
-            recoveryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || Boolean(state.serviceRecoveryInFlight);
-            recoveryButton.textContent = state.serviceRecoveryInFlight ? '자동 복구 실행 중…' : '연결 자동 복구';
-            recoveryButton.setAttribute('aria-busy', state.serviceRecoveryInFlight ? 'true' : 'false');
+            recoveryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || recoveryState.inFlight;
+            recoveryButton.textContent = recoveryState.inFlight ? '자동 복구 실행 중…' : '연결 자동 복구';
+            recoveryButton.setAttribute('aria-busy', recoveryState.inFlight ? 'true' : 'false');
         }
-        if (diagnosticsButton) diagnosticsButton.disabled = Boolean(state.serviceRecoveryInFlight);
+        if (diagnosticsButton) diagnosticsButton.disabled = recoveryState.inFlight;
         if (recoveryStatus) {
-            const remainingSeconds = state.serviceRecoveryNextAt > Date.now() ? Math.max(1, Math.ceil((state.serviceRecoveryNextAt - Date.now()) / 1000)) : 0;
-            if (state.serviceRecoveryInFlight) {
+            const remainingSeconds = recoveryState.nextAt > Date.now() ? Math.max(1, Math.ceil((recoveryState.nextAt - Date.now()) / 1000)) : 0;
+            if (recoveryState.inFlight) {
                 recoveryStatus.textContent = '서버 연결·로컬 대기열·배포 상태를 순서대로 복구 중입니다.';
                 recoveryStatus.dataset.tone = 'active';
-            } else if (remainingSeconds) {
-                recoveryStatus.textContent = `일시적 연결 오류 감지 · ${remainingSeconds}초 후 자동 재확인 (${state.serviceRecoveryAttempt}/${SERVICE_RECOVERY_DELAYS_MS.length})`;
+            } else if (recoveryState.waitingForOnline) {
+                recoveryStatus.textContent = '오프라인 상태 · 연결 복구 시 자동 재확인';
                 recoveryStatus.dataset.tone = 'warning';
-            } else if (state.lastRecoveryResult?.ok === true) {
-                recoveryStatus.textContent = `최근 자동 복구 성공 · 대기열 ${state.lastRecoveryResult.queueRemaining || 0}건`;
+            } else if (remainingSeconds) {
+                recoveryStatus.textContent = `일시적 연결 오류 감지 · ${remainingSeconds}초 후 자동 재확인 (${recoveryState.attempt}/${recoveryState.maxAttempts})`;
+                recoveryStatus.dataset.tone = 'warning';
+            } else if (recoveryState.lastResult?.ok === true) {
+                recoveryStatus.textContent = `최근 자동 복구 성공 · 대기열 ${recoveryState.lastResult.queueRemaining || 0}건`;
                 recoveryStatus.dataset.tone = 'ok';
-            } else if (state.lastRecoveryResult?.ok === false) {
-                recoveryStatus.textContent = `최근 자동 복구 실패 · ${cleanText(state.lastRecoveryResult.code || state.lastRecoveryResult.status || '확인 필요', 80)}`;
+            } else if (recoveryState.lastResult?.ok === false) {
+                recoveryStatus.textContent = `최근 자동 복구 실패 · ${cleanText(recoveryState.lastResult.code || recoveryState.lastResult.status || '확인 필요', 80)}`;
                 recoveryStatus.dataset.tone = 'error';
             } else {
                 recoveryStatus.textContent = '일시적 네트워크·인증 오류는 최대 3회 자동 재확인하며, 실패 신고는 로컬 대기열에 보관합니다.';
@@ -1768,8 +1830,8 @@
                 const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
                 return typeof bridge.getIncidentRouteHealth === 'function' ? bridge.getIncidentRouteHealth() : bridge.incidentRouteHealth || null;
             })(),
-            serviceRecovery: Object.freeze({ attempt: state.serviceRecoveryAttempt, nextAt: state.serviceRecoveryNextAt, reason: state.serviceRecoveryReason, inFlight: Boolean(state.serviceRecoveryInFlight), lastResult: state.lastRecoveryResult }),
-            lifecycle: Object.freeze({ state: lifecycleController?.getState?.() || null, lastSweepAt: state.lastLifecycleSweepAt, lastSweepResult: state.lastLifecycleSweepResult }),
+            serviceRecovery: getServiceRecoveryState(),
+            lifecycle: Object.freeze({ state: lifecycleController?.getState?.() || null, sweep: recoverySweepController.getState(), lastSweepAt: state.lastLifecycleSweepAt, lastSweepResult: state.lastLifecycleSweepResult, lastError: state.lastLifecycleError }),
             recentTests: loadTestHistory(),
             deploymentReadiness: state.deploymentReadiness || loadDeploymentReadiness(),
             deploymentHistory: loadDeploymentHistory(),
@@ -1788,13 +1850,11 @@
     global.addEventListener('foxbear:firebase-ready', () => { flushQueue().catch(() => {}); });
     const lifecycleController = lifecycleService.createController({
         routePolicy: global.FoxBearIncidentRoutePolicy,
-        onOnline: ({ offlineDurationMs = 0 } = {}) => {
-            runLifecycleRecoverySweep({
+        onOnline: ({ offlineDurationMs = 0 } = {}) => runLifecycleRecoverySweep({
                 reason: offlineDurationMs >= 60000 ? 'online-after-offline' : 'online',
                 forceService: isIncidentDialogVisible() || Boolean(state.serviceError),
                 checkDeployment: offlineDurationMs >= 5 * 60 * 1000
-            }).catch(() => {});
-        },
+            }),
         onOffline: () => {
             if (isIncidentDialogVisible()) {
                 state.serviceErrorCode = 'FOXBEAR_INCIDENT_CLIENT_OFFLINE';
@@ -1807,15 +1867,15 @@
             emitIncidentStatusChange('offline');
         },
         onVisible: () => { renderTransportMetrics(); },
-        onLongResume: ({ backgroundDurationMs = 0 } = {}) => {
-            runLifecycleRecoverySweep({ reason: 'long-resume', forceService: true, checkDeployment: backgroundDurationMs >= 5 * 60 * 1000 }).catch(() => {});
-        },
+        onLongResume: ({ backgroundDurationMs = 0 } = {}) => runLifecycleRecoverySweep({ reason: 'long-resume', forceService: true, checkDeployment: backgroundDurationMs >= 5 * 60 * 1000 }),
         onConnectionChange: ({ changed = false } = {}) => {
             renderTransportMetrics();
             if (changed && global.navigator?.onLine !== false) {
-                runLifecycleRecoverySweep({ reason: 'network-change', forceService: isIncidentDialogVisible(), checkDeployment: false }).catch(() => {});
+                return runLifecycleRecoverySweep({ reason: 'network-change', forceService: isIncidentDialogVisible(), checkDeployment: false });
             }
-        }
+            return null;
+        },
+        onError: detail => recordLifecycleCallbackError(detail)
     });
 
     document.addEventListener('DOMContentLoaded', () => {

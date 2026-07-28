@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.22-incident-recovery-coalescing-time-decay';
+  const VIEW_VERSION = '1.6.25-incident-recovery-timeout-abort-stress';
   const DEFAULT_BINS = 96;
 
   function getService() {

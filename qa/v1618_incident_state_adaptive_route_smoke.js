@@ -19,7 +19,7 @@ const stateSource = read('src/boot/incident-state-service.js');
 const routeSource = read('src/boot/incident-route-policy.js');
 const policySource = read('src/boot/incident-recovery-policy.js');
 
-assert.strictEqual(pkg.version, '1.6.22');
+assert.strictEqual(pkg.version, '1.6.25');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9][a-z0-9-]*$/);
 for (const file of ['src/boot/incident-route-policy.js', 'src/boot/incident-state-service.js']) {
   assert(handoff.requiredFiles.includes(file), `${file} missing from requiredFiles`);

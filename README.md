@@ -1,39 +1,22 @@
-# FoxBear AI Mastering Studio Pro v1.6.22
+# FoxBear AI Mastering Studio Pro v1.6.25
 
 ## Latest patch
 
-- Incident lifecycle recovery requests now coalesce into one active sweep and one merged follow-up instead of starting duplicate queue, mail, service, or readiness checks.
-- Callable and Hosting route success evidence now decays by 15% per elapsed day so stale network history gradually loses influence.
-- Anonymous lifecycle diagnostics expose merged trigger reasons and the last route-score decay time.
-
-- Online recovery, long-background resume, and network-type changes now share one incident lifecycle coordinator.
-- Returning after five minutes or more triggers a bounded sweep of the local anonymous queue, active mail status, service health, and stale readiness state.
-- A changed network starts four route-exploration attempts that alternate Callable and Hosting same-origin paths before normal success-rate routing resumes.
-- The incident panel reports the remaining exploration attempts and next route, and the administrator summary shows the current browser route and local queue count.
-- Audio, filenames, report bodies, local paths, authentication tokens, and Firebase Secrets are never added to lifecycle or route metadata.
+- Automatic incident-service retry timers and phase execution now live in a dedicated recovery controller.
+- Failed recovery runs schedule their next bounded retry only after active ownership is released, preventing silent retry loss.
+- Service, queue, and deployment phases have individual deadlines and share an AbortSignal so late completions cannot overwrite timed-out state.
+- Offline periods wait for connectivity without consuming retry attempts, and hidden settings surfaces suspend unused retries.
+- Repeated network triggers share one active task and repeated schedule requests keep one timer.
+- Audio mastering DSP, quality targets, encoder formats, Firebase schema, SMTP payloads, and incident contents are unchanged.
 
 1. 작업한 내역
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
 - 전체 정적·행동 검사: `npm run check:static`
-- 신규 회귀: `node qa/v1621_incident_lifecycle_network_exploration_smoke.js`
-
-## Latest patch
-
-- Error reporting now separates reusable privacy/storage/transport helpers and failure recovery policy from the main reporter orchestration file.
-- The settings panel shows local-only success ratios for Firebase Callable, Hosting same-origin recovery, and Firestore compatibility routes.
-- It also shows how many queued anonymous reports were recovered and how many remain, without storing audio, filenames, local paths, report bodies, tokens, or Secret values.
-- Corrupt metrics are discarded safely and `기록 초기화` clears only these counters, not queued reports or user settings.
-- Production use still requires deploying Hosting rewrites and Functions together with `npm run deploy:incident`.
-
-1. 작업한 내역
-2. 다운로드 파일 2종
-3. 다음 예정 내역
-
-- 전체 정적·행동 검사: `npm run check:static`
-- 신규 회귀: `node qa/v1617_incident_transport_metrics_module_split_smoke.js`
-- 설정된 정적·회귀 검사: 345개.
+- 신규 회귀: `node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js`
+- 인수인계 검사: `npm run handoff:check`
+- 설정된 정적·회귀 검사: 359개.
 
 # FoxBear AI Mastering Studio Pro v1.6.16
 

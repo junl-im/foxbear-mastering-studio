@@ -1,9 +1,9 @@
-// FoxBear adaptive incident transport route policy - v1.6.22
+// FoxBear adaptive incident transport route policy - v1.6.25
 (function attachFoxBearIncidentRoutePolicy(global) {
     'use strict';
 
     const STORAGE_KEY = 'foxbear-incident-reporter-v1:route-health';
-    const SCHEMA_VERSION = 4;
+    const SCHEMA_VERSION = 5;
     const ROUTES = Object.freeze(['callable', 'hosting-rewrite']);
     const FAILURE_THRESHOLD = 2;
     const BASE_COOLDOWN_MS = 2 * 60 * 1000;
@@ -16,6 +16,8 @@
     function clean(value, max = 80) { return String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max); }
     function storageGet() { try { return global.localStorage?.getItem?.(STORAGE_KEY) || ''; } catch (error) { return ''; } }
     function storageSet(value) { try { global.localStorage?.setItem?.(STORAGE_KEY, JSON.stringify(value)); return true; } catch (error) { return false; } }
+    function resolveNow(now = Date.now()) { const value = Number(now); return Number.isFinite(value) && value >= 0 ? value : Date.now(); }
+    function isoAt(now = Date.now()) { return new Date(resolveNow(now)).toISOString(); }
     function blankRoute() { return { successes: 0, failures: 0, consecutiveTransientFailures: 0, cooldownUntil: 0, lastSuccessAt: '', lastFailureAt: '', lastFailureCode: '' }; }
     function blankExploration() { return { remaining: 0, nextRoute: 'callable', startedAt: '', lastAttemptAt: '', reason: '' }; }
     function safeCount(value) { const number = Number(value || 0); return Number.isFinite(number) ? Math.max(0, Math.floor(number)) : 0; }
@@ -52,9 +54,9 @@
             return state;
         } catch (error) { return blankState(); }
     }
-    function save(state) {
+    function save(state, now = Date.now()) {
         const safe = blankState();
-        safe.updatedAt = new Date().toISOString();
+        safe.updatedAt = isoAt(now);
         safe.lastDecayAt = clean(state?.lastDecayAt, 40);
         safe.networkKey = clean(state?.networkKey, 100) || currentNetworkKey();
         safe.networkChangedAt = clean(state?.networkChangedAt, 40);
@@ -63,22 +65,26 @@
         storageSet(safe);
         return safe;
     }
-    function startExploration(state, reason = 'network-change') {
+    function startExploration(state, reason = 'network-change', now = Date.now()) {
         state.exploration = {
             remaining: EXPLORATION_ATTEMPTS,
             nextRoute: 'callable',
-            startedAt: new Date().toISOString(),
+            startedAt: isoAt(now),
             lastAttemptAt: '',
             reason: clean(reason, 80)
         };
         return state;
     }
     function decayForElapsedTime(state, now = Date.now()) {
+        const timestamp = resolveNow(now);
         const previous = Date.parse(String(state?.lastDecayAt || state?.updatedAt || ''));
-        if (!Number.isFinite(previous)) { state.lastDecayAt = new Date(Number(now || Date.now())).toISOString(); return state; }
-        const elapsed = Math.max(0, Number(now || Date.now()) - previous);
+        if (!Number.isFinite(previous)) {
+            state.lastDecayAt = isoAt(timestamp);
+            return true;
+        }
+        const elapsed = Math.max(0, timestamp - previous);
         const steps = Math.min(8, Math.floor(elapsed / TIME_DECAY_INTERVAL_MS));
-        if (steps <= 0) return state;
+        if (steps <= 0) return false;
         const factor = TIME_DECAY_FACTOR ** steps;
         for (const route of ROUTES) {
             const item = normalizeRoute(state.routes[route]);
@@ -86,12 +92,12 @@
             item.failures = Math.floor(item.failures * factor);
             state.routes[route] = item;
         }
-        state.lastDecayAt = new Date(Number(now || Date.now())).toISOString();
-        return state;
+        state.lastDecayAt = isoAt(timestamp);
+        return true;
     }
-    function decayForNetworkChange(state) {
+    function decayForNetworkChange(state, now = Date.now()) {
         const nextKey = currentNetworkKey();
-        if (!nextKey || !state.networkKey || nextKey === state.networkKey) return state;
+        if (!nextKey || !state.networkKey || nextKey === state.networkKey) return false;
         for (const route of ROUTES) {
             const item = normalizeRoute(state.routes[route]);
             item.successes = Math.floor(item.successes * NETWORK_DECAY_FACTOR);
@@ -101,9 +107,16 @@
             state.routes[route] = item;
         }
         state.networkKey = nextKey;
-        state.networkChangedAt = new Date().toISOString();
-        startExploration(state);
-        save(state);
+        state.networkChangedAt = isoAt(now);
+        startExploration(state, 'network-change', now);
+        return true;
+    }
+    function prepareState(now = Date.now()) {
+        const timestamp = resolveNow(now);
+        let state = load();
+        const timeChanged = decayForElapsedTime(state, timestamp);
+        const networkChanged = decayForNetworkChange(state, timestamp);
+        if (timeChanged || networkChanged) state = save(state, timestamp);
         return state;
     }
     function errorCode(error) { return clean(error?.code || error?.name || error || '', 80); }
@@ -112,11 +125,12 @@
         return /unavailable|timeout|timed out|network|failed to fetch|load failed|cors|response blocked|same.origin|resource-exhausted|aborted|connection/i.test(evidence) && !/permission|unauthenticated|invalid-argument|not-found|unimplemented|secret|smtp-auth/i.test(evidence);
     }
     function getHealth(now = Date.now()) {
-        const state = decayForNetworkChange(decayForElapsedTime(load(), now));
+        const timestamp = resolveNow(now);
+        const state = prepareState(timestamp);
         const routes = {};
         for (const route of ROUTES) {
             const item = normalizeRoute(state.routes[route]);
-            const remainingMs = Math.max(0, item.cooldownUntil - Number(now || Date.now()));
+            const remainingMs = Math.max(0, item.cooldownUntil - timestamp);
             routes[route] = Object.freeze({ ...item, coolingDown: remainingMs > 0, remainingMs, remainingSeconds: Math.ceil(remainingMs / 1000) });
         }
         const exploration = normalizeExploration(state.exploration);
@@ -131,31 +145,34 @@
         });
     }
     function shouldAttempt(route, now = Date.now()) { const key = normalizeRouteName(route); return !key || getHealth(now).routes[key].coolingDown !== true; }
-    function recordAttempt(route) {
-        const key = normalizeRouteName(route); if (!key) return getHealth();
-        const state = decayForNetworkChange(load());
+    function recordAttempt(route, now = Date.now()) {
+        const key = normalizeRouteName(route); if (!key) return getHealth(now);
+        const timestamp = resolveNow(now);
+        let state = prepareState(timestamp);
         const exploration = normalizeExploration(state.exploration);
         if (exploration.remaining > 0) {
             exploration.remaining = Math.max(0, exploration.remaining - 1);
             exploration.nextRoute = key === 'callable' ? 'hosting-rewrite' : 'callable';
-            exploration.lastAttemptAt = new Date().toISOString();
+            exploration.lastAttemptAt = isoAt(timestamp);
             state.exploration = exploration;
-            save(state);
+            state = save(state, timestamp);
         }
-        return getHealth();
+        return getHealth(timestamp);
     }
-    function recordSuccess(route) {
-        const key = normalizeRouteName(route); if (!key) return getHealth();
-        const state = decayForNetworkChange(load()); const item = normalizeRoute(state.routes[key]);
-        item.successes += 1; item.consecutiveTransientFailures = 0; item.cooldownUntil = 0; item.lastSuccessAt = new Date().toISOString(); state.routes[key] = item; save(state); return getHealth();
+    function recordSuccess(route, now = Date.now()) {
+        const key = normalizeRouteName(route); if (!key) return getHealth(now);
+        const timestamp = resolveNow(now);
+        let state = prepareState(timestamp); const item = normalizeRoute(state.routes[key]);
+        item.successes += 1; item.consecutiveTransientFailures = 0; item.cooldownUntil = 0; item.lastSuccessAt = isoAt(timestamp); state.routes[key] = item; state = save(state, timestamp); return getHealth(timestamp);
     }
-    function recordFailure(route, error) {
-        const key = normalizeRouteName(route); if (!key) return getHealth();
-        const state = decayForNetworkChange(load()); const item = normalizeRoute(state.routes[key]); const transient = isTransientFailure(error);
-        item.failures += 1; item.lastFailureAt = new Date().toISOString(); item.lastFailureCode = errorCode(error); item.consecutiveTransientFailures = transient ? item.consecutiveTransientFailures + 1 : 0;
-        if (transient && item.consecutiveTransientFailures >= FAILURE_THRESHOLD) { const exponent = Math.min(3, item.consecutiveTransientFailures - FAILURE_THRESHOLD); item.cooldownUntil = Date.now() + Math.min(MAX_COOLDOWN_MS, BASE_COOLDOWN_MS * (2 ** exponent)); }
+    function recordFailure(route, error, now = Date.now()) {
+        const key = normalizeRouteName(route); if (!key) return getHealth(now);
+        const timestamp = resolveNow(now);
+        let state = prepareState(timestamp); const item = normalizeRoute(state.routes[key]); const transient = isTransientFailure(error);
+        item.failures += 1; item.lastFailureAt = isoAt(timestamp); item.lastFailureCode = errorCode(error); item.consecutiveTransientFailures = transient ? item.consecutiveTransientFailures + 1 : 0;
+        if (transient && item.consecutiveTransientFailures >= FAILURE_THRESHOLD) { const exponent = Math.min(3, item.consecutiveTransientFailures - FAILURE_THRESHOLD); item.cooldownUntil = timestamp + Math.min(MAX_COOLDOWN_MS, BASE_COOLDOWN_MS * (2 ** exponent)); }
         else if (!transient) item.cooldownUntil = 0;
-        state.routes[key] = item; save(state); return getHealth();
+        state.routes[key] = item; state = save(state, timestamp); return getHealth(timestamp);
     }
     function successRate(item = {}) { const successes = safeCount(item.successes); const failures = safeCount(item.failures); const attempts = successes + failures; return attempts > 0 ? successes / attempts : 0; }
     function getPreferredRoutes(now = Date.now()) {
@@ -172,10 +189,10 @@
         if (callableAttempts >= 3 && hostingAttempts >= 3 && successRate(hosting) - successRate(callable) >= 0.35) return Object.freeze(['hosting-rewrite', 'callable']);
         return Object.freeze(['callable', 'hosting-rewrite']);
     }
-    function observeNetworkChange() { decayForNetworkChange(load()); return getHealth(); }
-    function clear() { save(blankState()); return getHealth(); }
+    function observeNetworkChange(now = Date.now()) { return getHealth(now); }
+    function clear(now = Date.now()) { const timestamp = resolveNow(now); save(blankState(), timestamp); return getHealth(timestamp); }
     global.FoxBearIncidentRoutePolicy = Object.freeze({
-        version: '1.6.22',
+        version: '1.6.25',
         failureThreshold: FAILURE_THRESHOLD,
         networkDecayFactor: NETWORK_DECAY_FACTOR,
         explorationAttempts: EXPLORATION_ATTEMPTS,
