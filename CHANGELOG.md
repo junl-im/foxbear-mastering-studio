@@ -1,3 +1,69 @@
+# v1.6.34 - History Hard-Stall and Service-Worker Activity Lifecycle
+
+- Adds a 30-second terminal recovery for an overlay history release that never traverses and never emits `popstate`.
+- Neutralizes a stale sentinel without issuing a second Back, or retains it when a dialog reopened during the stalled transaction.
+- Suspends and resumes service-worker cross-tab activity heartbeat and BroadcastChannel ownership across BFCache.
+- Deduplicates repeated service-worker registration observers and exposes lifecycle diagnostics.
+- Adds terminal-stall, BFCache heartbeat, and observer-idempotency regression coverage and raises the configured cumulative target to 374 checks.
+
+# v1.6.33 - Full Audit and Overlay History Watchdog Recovery
+
+- Recovers an internal overlay history release when traversal completed but the browser omitted `popstate`.
+- Avoids a second programmatic Back when the current sentinel has not moved, preventing accidental traversal beyond the workspace exit guard.
+- Bounds delayed release-generation tracking to eight entries in addition to the 30-second expiry.
+- Adds watchdog recovery, hard-stall, and pending-generation pressure diagnostics without recording navigation URLs or user content.
+- Re-runs system, performance, technology, functionality, engine, error, exception, handoff, and archive gates and raises the configured cumulative target to 373 checks.
+
+# v1.6.32 - Overlay History Generation and BFCache Recovery
+
+- Adds matching generation markers to each overlay sentinel and its destination history entry.
+- Consumes a popstate as internal cleanup only when its destination generation matches a pending release.
+- Prevents a delayed programmatic popstate from swallowing a newer genuine user Back action.
+- Recovers suspended overlay-history transactions across pagehide and BFCache pageshow without duplicating the workspace exit guard.
+- Adds representative download, recommendation, settings, and incident dialog cycles and raises the configured cumulative target to 372 checks.
+
+# v1.6.30 - Overlay History Release and Exit Guard Safety
+
+- Fixes an event-order race where closing a dialog normally could be mistaken for a browser Back action.
+- Exposes internal modal history-sentinel release state so the navigation exit guard can ignore only that programmatic popstate.
+- Stops the modal controller from marking genuine Back events as consumed when no overlay is open.
+- Adds integrated listener-order coverage and raises the configured cumulative target to 370 checks.
+
+# v1.6.29 - Stable Incident Submission Fencing and Adaptive Polling
+
+- Adds `incident-submission-identity-service.js` so a queued occurrence keeps one deterministic submission key and report ID even when recovery happens after the previous 15-minute window.
+- Returns and verifies the submission key across Callable and Firestore compatibility paths, preventing a stale acknowledgement from committing the wrong queued occurrence.
+- Adds lease-generation fencing so a same-token generation replacement aborts the stale owner before local queue commit.
+- Replaces fixed two-second fallback polling with active, idle, and hidden-page schedules and immediate foreground resynchronization.
+- Extracts incident settings control rendering, one-time event binding, and transient button feedback into `incident-controls-view-service.js`.
+- Adds 500-write quota pressure, generation replacement, adaptive polling, stable identity, and idempotent DOM binding coverage and raises the configured cumulative target to 369 checks.
+
+# v1.6.28 - Incident Lease Takeover, Fallback Sync, and Diagnostics UI Safety
+
+- Releases queue ownership immediately on BFCache pagehide and validates it again on pageshow, focus, and visible-state restoration.
+- Reclaims expired crash leases, aborts on lock-token replacement, and treats lease renewal storage failure as an ownership loss.
+- Adds bounded revision polling so peer queue changes remain observable when BroadcastChannel or storage events are unavailable or unreliable.
+- Extracts service diagnostic DOM rendering, queue status text, and status-event dispatch into `incident-diagnostics-view-service.js`.
+- Adds stale-lease, BFCache, polling-only, renewal-failure, 200-write pressure, rendering, and cleanup coverage and raises the configured cumulative target to 366 checks.
+
+# v1.6.27 - Multi-Tab Incident Queue Ownership Safety
+
+- Adds per-tab bounded queue shards so simultaneous localStorage writes cannot overwrite another tab's report.
+- Adds BroadcastChannel and storage-revision synchronization for peer queue changes and delivered-entry compaction.
+- Adds Web Locks ownership with a renewable localStorage lease fallback so only one tab can flush reports at a time.
+- Commits exact fingerprint-plus-client-time occurrences, preventing stale delivery resurrection without permanently suppressing a later matching issue.
+- Migrates the legacy single-key queue through the coordinated read and commit path.
+- Adds two-tab write storms, 50-owner contention, concurrent enqueue/commit, exact tombstone, and legacy migration coverage and raises the configured cumulative target to 364 checks.
+
+# v1.6.26 - Incident Diagnostics and Conflict-Safe Local Queue
+
+- Extracts Firebase incident-service failure classification and seven-row diagnostic UI view-model generation into `incident-service-diagnostics.js`.
+- Extracts local report parsing, deduplication, bounds, quota fallback, and flush commits into `incident-local-queue-service.js`.
+- Fixes a race where a report queued during active recovery could be overwritten by a stale queue snapshot.
+- Removes successfully delivered entries even when a later delivery fails or recovery is aborted, preventing duplicate resubmission.
+- Reports the actual persisted queue count after the eight-item cap and exposes metadata-only queue storage health.
+- Adds 50-enqueue, conflict-merge, malformed-storage, oversized-storage, and quota-pressure regression coverage and raises the configured cumulative target to 362 checks.
+
 # v1.6.25 - Incident Recovery Timeout, Abort, and Trigger-Storm Hardening
 
 - Extracts automatic service-recovery timers, retry budget, active ownership, and phase execution into `incident-service-recovery-controller.js`.

@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.6.25 - stable-idle and cross-tab activity guard
+// FoxBear service worker update coordinator v1.6.34 - stable-idle and BFCache-safe cross-tab activity guard
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.6.25-incident-recovery-timeout-abort-stress';
+  const VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;
@@ -11,7 +11,12 @@
   const STORAGE_PREFIX = 'foxbear-sw-activity:';
   const TAB_ID = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   const peers = new Map();
+  const observedRegistrations = new WeakSet();
+  const registrationOptions = new WeakMap();
+  let observedRegistrationCount = 0;
   let channel = null;
+  let storageListenerInstalled = false;
+  let activitySuspended = false;
   const state = {
     registration: null,
     waiting: null,
@@ -24,7 +29,9 @@
     lastActivationAt: 0,
     lastHeartbeatAt: 0,
     lastReason: 'idle',
-    checks: 0
+    checks: 0,
+    activityPauseCount: 0,
+    activityResumeCount: 0
   };
 
   function safeCall(fn, fallback = null) {
@@ -120,25 +127,53 @@
     try { global.localStorage?.setItem?.(peerStorageKey(), JSON.stringify(payload)); } catch (error) {}
   }
 
-  function closeActivityChannel() {
-    const payload = { type: 'FOXBEAR_TAB_ACTIVITY', tabId: TAB_ID, updatedAt: Date.now(), closed: true };
+  function handlePeerStorage(event) {
+    if (!event.key?.startsWith?.(STORAGE_PREFIX) || !event.newValue) return;
+    try { rememberPeer(JSON.parse(event.newValue)); } catch (error) {}
+  }
+
+  function pauseActivityChannel(reason = 'pagehide') {
+    if (activitySuspended && !state.heartbeatTimer && !channel) return false;
+    const payload = { type: 'FOXBEAR_TAB_ACTIVITY', tabId: TAB_ID, updatedAt: Date.now(), closed: true, reason };
     try { channel?.postMessage?.(payload); } catch (error) {}
+    if (state.heartbeatTimer) {
+      try { global.clearInterval?.(state.heartbeatTimer); } catch (error) {}
+      state.heartbeatTimer = 0;
+    }
+    try { channel?.close?.(); } catch (error) {}
+    channel = null;
     try { global.localStorage?.removeItem?.(peerStorageKey()); } catch (error) {}
+    activitySuspended = true;
+    state.activityPauseCount += 1;
+    return true;
+  }
+
+  function resumeActivityChannel(reason = 'resume') {
+    if (!channel) {
+      try {
+        if (typeof global.BroadcastChannel === 'function') {
+          channel = new global.BroadcastChannel(CHANNEL_NAME);
+          channel.addEventListener('message', event => rememberPeer(event.data));
+        }
+      } catch (error) { channel = null; }
+    }
+    if (!state.heartbeatTimer && typeof global.setInterval === 'function') {
+      state.heartbeatTimer = global.setInterval(() => publishActivity(), HEARTBEAT_MS);
+    }
+    const resumed = activitySuspended;
+    activitySuspended = false;
+    if (resumed) state.activityResumeCount += 1;
+    publishActivity(true);
+    state.lastReason = resumed ? `activity-resumed:${reason}` : state.lastReason;
+    return true;
   }
 
   function initializePeerChannel() {
-    try {
-      if (typeof global.BroadcastChannel === 'function') {
-        channel = new global.BroadcastChannel(CHANNEL_NAME);
-        channel.addEventListener('message', event => rememberPeer(event.data));
-      }
-    } catch (error) { channel = null; }
-    global.addEventListener?.('storage', event => {
-      if (!event.key?.startsWith?.(STORAGE_PREFIX) || !event.newValue) return;
-      try { rememberPeer(JSON.parse(event.newValue)); } catch (error) {}
-    });
-    state.heartbeatTimer = global.setInterval(() => publishActivity(), HEARTBEAT_MS);
-    publishActivity(true);
+    if (!storageListenerInstalled) {
+      storageListenerInstalled = true;
+      global.addEventListener?.('storage', handlePeerStorage);
+    }
+    resumeActivityChannel('initialize');
   }
 
   function clearTimer() {
@@ -232,10 +267,16 @@
   function coordinate(registration, options = {}) {
     if (!registration) return getSnapshot();
     state.registration = registration;
+    registrationOptions.set(registration, options || {});
     state.waiting = global.navigator?.serviceWorker?.controller ? (registration.waiting || null) : null;
-    registration.addEventListener?.('updatefound', () => observeInstalling(registration, options));
-    observeInstalling(registration, options);
-    publishActivity(true);
+    if (!observedRegistrations.has(registration)) {
+      observedRegistrations.add(registration);
+      observedRegistrationCount += 1;
+      registration.addEventListener?.('updatefound', () => observeInstalling(registration, registrationOptions.get(registration) || {}));
+    }
+    observeInstalling(registration, registrationOptions.get(registration) || {});
+    if (activitySuspended) resumeActivityChannel('coordinate');
+    else publishActivity(true);
     if (state.waiting) scheduleCheck(0, options);
     return getSnapshot();
   }
@@ -261,6 +302,12 @@
       lastActivationAt: state.lastActivationAt,
       lastReason: state.lastReason,
       checks: state.checks,
+      activitySuspended,
+      heartbeatActive: Boolean(state.heartbeatTimer),
+      channelActive: Boolean(channel),
+      observedRegistrationCount,
+      activityPauseCount: state.activityPauseCount,
+      activityResumeCount: state.activityResumeCount,
       activity: getActivitySnapshot(),
       peerActivity: getPeerActivitySnapshot()
     });
@@ -269,9 +316,17 @@
   initializePeerChannel();
   global.navigator?.serviceWorker?.addEventListener?.('controllerchange', handleControllerChange);
   global.addEventListener?.('online', () => { publishActivity(true); if (state.waiting) scheduleCheck(0); });
-  global.addEventListener?.('pagehide', closeActivityChannel);
-  global.addEventListener?.('beforeunload', closeActivityChannel);
-  global.document?.addEventListener?.('visibilitychange', () => { publishActivity(true); if (state.waiting) scheduleCheck(0); });
+  global.addEventListener?.('pagehide', event => pauseActivityChannel(event?.persisted ? 'bfcache-pagehide' : 'pagehide'));
+  global.addEventListener?.('pageshow', event => {
+    if (event?.persisted || activitySuspended) resumeActivityChannel(event?.persisted ? 'bfcache-pageshow' : 'pageshow');
+    if (state.waiting) scheduleCheck(0);
+  });
+  global.addEventListener?.('beforeunload', () => pauseActivityChannel('beforeunload'));
+  global.document?.addEventListener?.('visibilitychange', () => {
+    if (global.document?.visibilityState === 'visible' && activitySuspended) resumeActivityChannel('visibility');
+    else publishActivity(true);
+    if (state.waiting) scheduleCheck(0);
+  });
 
   global.FoxBearServiceWorkerUpdateService = Object.freeze({
     version: VERSION,
@@ -279,6 +334,8 @@
     check: checkWaitingWorker,
     requestActivation,
     publishActivity,
+    pauseActivityChannel,
+    resumeActivityChannel,
     getActivitySnapshot,
     getPeerActivitySnapshot,
     getSnapshot

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.25",
-  "buildId": "incident-recovery-timeout-abort-stress",
+  "productVersion": "1.6.34",
+  "buildId": "history-hard-stall-sw-activity-lifecycle",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -91,7 +91,25 @@
     "docs/V1.6.24_INCIDENT_RECOVERY_SWEEP_OBSERVABILITY.md",
     "src/boot/incident-service-recovery-controller.js",
     "qa/v1625_incident_recovery_timeout_abort_stress_smoke.js",
-    "docs/V1.6.25_INCIDENT_RECOVERY_TIMEOUT_ABORT_STRESS.md"
+    "docs/V1.6.25_INCIDENT_RECOVERY_TIMEOUT_ABORT_STRESS.md",
+    "src/boot/incident-local-queue-service.js",
+    "src/boot/incident-queue-coordination-service.js",
+    "src/boot/incident-service-diagnostics.js",
+    "qa/v1626_incident_diagnostics_queue_conflict_safety_smoke.js",
+    "docs/V1.6.26_INCIDENT_DIAGNOSTICS_QUEUE_CONFLICT_SAFETY.md",
+    "qa/v1627_incident_multitab_queue_ownership_stress_smoke.js",
+    "docs/V1.6.27_INCIDENT_MULTITAB_QUEUE_OWNERSHIP_SAFETY.md",
+    "src/boot/incident-diagnostics-view-service.js",
+    "qa/v1628_incident_lease_takeover_fallback_ui_smoke.js",
+    "docs/V1.6.28_INCIDENT_LEASE_TAKEOVER_FALLBACK_UI_SAFETY.md",
+    "qa/v1630_overlay_history_release_false_exit_prompt_smoke.js",
+    "docs/V1.6.30_OVERLAY_HISTORY_RELEASE_EXIT_GUARD_SAFETY.md",
+    "qa/v1631_overlay_history_transaction_coalescing_smoke.js",
+    "docs/V1.6.31_OVERLAY_HISTORY_TRANSACTION_COALESCING.md",
+    "qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js",
+    "docs/V1.6.32_OVERLAY_HISTORY_GENERATION_BFCACHE_RECOVERY.md",
+    "qa/v1633_overlay_history_watchdog_recovery_smoke.js",
+    "docs/V1.6.33_FULL_AUDIT_HISTORY_WATCHDOG_RECOVERY.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -139,6 +157,10 @@
     "src/boot/incident-mail-sync-service.js",
     "src/boot/incident-lifecycle-service.js",
     "src/boot/incident-recovery-sweep-service.js",
-    "src/boot/incident-service-recovery-controller.js"
+    "src/boot/incident-service-recovery-controller.js",
+    "src/boot/incident-local-queue-service.js",
+    "src/boot/incident-queue-coordination-service.js",
+    "src/boot/incident-service-diagnostics.js",
+    "src/boot/incident-diagnostics-view-service.js"
   ]
 }

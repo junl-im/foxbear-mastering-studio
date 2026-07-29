@@ -81,6 +81,7 @@ const MAX_TEXT_LENGTHS = Object.freeze({
     code: 80,
     stack: 1400,
     fingerprint: 64,
+    submissionKey: 64,
     source: 80,
     browser: 40,
     platform: 40,
@@ -345,11 +346,12 @@ function safeIncidentNumber(value, min, max) {
 }
 
 function normalizeIncidentPayload(payload = {}) {
+    const identity = window.FoxBearIncidentSubmissionIdentity;
     const severity = INCIDENT_SEVERITIES.has(payload.severity) ? payload.severity : 'error';
     const category = INCIDENT_CATEGORIES.has(payload.category) ? payload.category : 'unknown';
     return {
         schemaVersion: 1,
-        clientAt: limitText(payload.clientAt || new Date().toISOString(), 40),
+        clientAt: identity?.normalizeClientAt?.(payload.clientAt || new Date().toISOString()) || limitText(payload.clientAt || new Date().toISOString(), 40),
         appVersion: limitText(payload.appVersion || document.body?.dataset?.build || '', MAX_TEXT_LENGTHS.appVersion),
         assetVersion: limitText(payload.assetVersion || '', MAX_TEXT_LENGTHS.assetVersion),
         severity,
@@ -359,6 +361,7 @@ function normalizeIncidentPayload(payload = {}) {
         code: limitText(payload.code || '', MAX_TEXT_LENGTHS.code),
         stack: limitText(payload.stack || '', MAX_TEXT_LENGTHS.stack),
         fingerprint: limitText(payload.fingerprint || 'unknown', MAX_TEXT_LENGTHS.fingerprint),
+        submissionKey: limitText(identity?.createSubmissionKey?.(payload) || payload.submissionKey || '', MAX_TEXT_LENGTHS.submissionKey),
         source: limitText(payload.source || 'foxbear-web-client', MAX_TEXT_LENGTHS.source),
         pagePath: limitText(payload.pagePath || window.location.pathname || '/', MAX_TEXT_LENGTHS.path),
         browser: limitText(payload.browser || '', MAX_TEXT_LENGTHS.browser),
@@ -381,9 +384,10 @@ function normalizeIncidentPayload(payload = {}) {
 }
 
 function incidentDocumentId(uid, payload) {
-    const bucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString(36);
-    const fingerprint = String(payload.fingerprint || 'unknown').replace(/[^a-z0-9_-]/gi, '').slice(0, 64) || 'unknown';
-    return `${uid}_${bucket}_${fingerprint}`.slice(0, 180);
+    const identity = window.FoxBearIncidentSubmissionIdentity;
+    if (identity?.createReportId) return identity.createReportId(uid, payload);
+    const submissionKey = String(payload.submissionKey || payload.fingerprint || 'unknown').replace(/[^a-z0-9_-]/gi, '').slice(0, 64) || 'unknown';
+    return `${uid}_${submissionKey}`.slice(0, 180);
 }
 
 function callableErrorCode(error) {
@@ -673,6 +677,7 @@ async function submitIncidentViaCallable(reportId, incident) {
         queued: result.queued !== false,
         deduplicated: result.deduplicated === true,
         reportId: limitText(result.reportId || reportId, 180),
+        submissionKey: limitText(result.submissionKey || incident.submissionKey || '', 64),
         transport: result.transport || 'callable',
         service: normalizeIncidentServiceStatus(result.service || {})
     };
@@ -780,9 +785,9 @@ async function logIncident(payload = {}) {
             combined.code = error?.code || callableErrorCode(callableFailure) || 'FOXBEAR_INCIDENT_SUBMIT_FAILED';
             throw combined;
         }
-        return { queued: true, deduplicated: true, reportId, transport: 'firestore' };
+        return { queued: true, deduplicated: true, reportId, submissionKey: incident.submissionKey, transport: 'firestore' };
     }
-    return { queued: true, deduplicated: false, reportId, transport: 'firestore' };
+    return { queued: true, deduplicated: false, reportId, submissionKey: incident.submissionKey, transport: 'firestore' };
 }
 
 async function getIncidentDelivery(reportId) {

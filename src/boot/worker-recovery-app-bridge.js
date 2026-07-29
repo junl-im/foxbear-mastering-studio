@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.25 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.34 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.25-incident-recovery-timeout-abort-stress';
+    const VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

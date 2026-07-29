@@ -1,3 +1,70 @@
+# v1.6.33 notes
+
+- A completed History traversal without `popstate` must be settled from the exact base generation by the watchdog.
+- Never retry `history.back()` solely because the sentinel is still current; a delayed first traversal could otherwise skip the exit guard.
+- Pending delayed release generations remain metadata-only and are bounded to eight entries and 30 seconds.
+- Preserve the three-section final report rule in `DELIVERY_RULES.md`.
+
+# v1.6.32 notes
+
+- Overlay history now uses paired base/sentinel generations.
+- Exact generation matching prevents delayed internal cleanup from consuming a newer user Back.
+- BFCache restore reconciles suspended transactions and avoids duplicate exit guards.
+- New regression: `qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js`.
+
+# Current Project Notes - v1.6.30
+
+
+## v1.6.34 update
+
+- Terminal overlay history hard-stall recovery after 30 seconds without duplicate traversal.
+- BFCache-safe service-worker activity heartbeat/channel pause and resume.
+- Idempotent service-worker registration observers and expanded anonymous diagnostics.
+- Configured cumulative static/behavioral target: 374 checks.
+
+## v1.6.30 current focus
+
+- Distinguish user navigation from internal overlay history-sentinel cleanup.
+- Do not depend on popstate listener registration order for correctness.
+- Mark a popstate overlay-handled only when an overlay action was actually consumed.
+- Preserve the workspace exit confirmation for genuine Back with meaningful work state.
+- Preserve the three-section final report rule.
+
+# Current Project Notes - v1.6.29
+
+## v1.6.29 current focus
+
+- Treat `submissionKey` as the immutable identity of one incident occurrence across local queue, Callable, Firestore fallback, and delayed retries.
+- Do not use the retry time when generating a report ID.
+- A lease token without the matching generation is not ownership.
+- Polling fallback must remain bounded and adapt to queue and page visibility state.
+- Keep controls rendering and binding separated from reporting orchestration.
+- Preserve the three-section final report rule.
+
+## v1.6.28 current focus
+
+- Treat a failed lease renewal, token replacement, or expired watchdog as immediate ownership loss; network recovery must stop through the shared AbortSignal.
+- Release active ownership on BFCache pagehide and reconcile queue state on pageshow, focus, and visible-state restoration.
+- Keep fallback polling bounded and metadata-only; never include report contents, tab IDs, audio, filenames, credentials, IP, SSID, or location.
+- Keep diagnostic DOM rendering and incident status event construction inside `incident-diagnostics-view-service.js`.
+- Preserve the three-section final report rule.
+
+## v1.6.27 current focus
+
+- Keep each tab's writes isolated in its own incident queue shard; never return to a shared array read-modify-write path.
+- All network queue recovery must hold verified cross-tab ownership and stop if ownership is lost.
+- Delivery tombstones identify one exact queued occurrence and remain bounded; a future occurrence of the same fingerprint must still be reportable.
+- Peer diagnostics may expose counts and lock state only, never report text, stacks, audio, filenames, credentials, network identity, or location.
+- Preserve the three-section final report rule.
+
+## v1.6.26 current focus
+
+- Keep local queue persistence and conflict-safe commit semantics inside `incident-local-queue-service.js`.
+- A flush may remove only fingerprints confirmed delivered; it must preserve entries added after the snapshot.
+- Keep Firebase service error classification and diagnostic row view models inside `incident-service-diagnostics.js`.
+- Queue diagnostics remain metadata-only and may not expose report content, stack traces, filenames, audio, credentials, or local paths.
+- Preserve the three-section final report rule.
+
 ## v1.6.24 current focus
 
 - Keep recovery-sweep orchestration in `incident-recovery-sweep-service.js`; the reporter should inject operations rather than regain the coalescing loop.

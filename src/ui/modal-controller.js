@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.25
+// FoxBear Modal State Machine Controller v1.6.34
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -32,8 +32,122 @@
     let historyListenersInstalled = false;
     let historySentinelActive = false;
     let historyReleaseInFlight = false;
+    let historyReleaseStalled = false;
+    let historyReleaseTimer = 0;
+    let historyReleaseEpoch = 0;
+    let historyGenerationCounter = 0;
+    let historySentinelGeneration = 0;
+    let historyReleaseGeneration = 0;
+    let historyReleaseSuspended = false;
     let historyPopHandling = false;
+    const pendingHistoryReleaseGenerations = new Map();
     const HISTORY_SENTINEL_KEY = '__foxbearOverlaySentinel';
+    const HISTORY_SENTINEL_GENERATION_KEY = '__foxbearOverlaySentinelGeneration';
+    const HISTORY_BASE_GENERATION_KEY = '__foxbearOverlayBaseGeneration';
+    const HISTORY_RELEASE_WATCHDOG_MS = 1500;
+    const HISTORY_RELEASE_HARD_STALL_RECOVERY_MS = 30000;
+    const HISTORY_RELEASE_GENERATION_TTL_MS = 30000;
+    const HISTORY_PENDING_RELEASE_LIMIT = 8;
+    const historyDiagnostics = {
+        sentinelPushCount: 0,
+        releaseRequestCount: 0,
+        coalescedReleaseCount: 0,
+        internalReleasePopCount: 0,
+        releaseRearmCount: 0,
+        releaseWatchdogCount: 0,
+        userBackCloseCount: 0,
+        passThroughPopCount: 0,
+        staleSentinelResetCount: 0,
+        releaseGenerationMismatchCount: 0,
+        staleInternalReleasePopCount: 0,
+        releaseSuspendCount: 0,
+        releaseResumeCount: 0,
+        releaseRecoveredCount: 0,
+        releaseWatchdogRecoveredCount: 0,
+        releaseHardStallCount: 0,
+        releaseHardStallRecoveredCount: 0,
+        releaseHardStallRetainedSentinelCount: 0,
+        pendingReleaseTrimCount: 0,
+        lastTransition: 'boot'
+    };
+
+    function setHistoryTransition(transition) {
+        historyDiagnostics.lastTransition = String(transition || 'unknown').slice(0, 48);
+    }
+
+    function clearHistoryReleaseTimer() {
+        if (!historyReleaseTimer) return;
+        try { global.clearTimeout?.(historyReleaseTimer); } catch (_) {}
+        historyReleaseTimer = 0;
+    }
+
+    function readHistoryGeneration(value) {
+        const generation = Number(value || 0);
+        return Number.isSafeInteger(generation) && generation > 0 ? generation : 0;
+    }
+
+    function getHistoryState(event = null) {
+        const state = event && typeof event.state === 'object' ? event.state : global.history?.state;
+        return state && typeof state === 'object' ? state : {};
+    }
+
+    function getSentinelGeneration(state = global.history?.state) {
+        if (!state || state[HISTORY_SENTINEL_KEY] !== true) return 0;
+        return readHistoryGeneration(state[HISTORY_SENTINEL_GENERATION_KEY]);
+    }
+
+    function getBaseGeneration(state = global.history?.state) {
+        if (!state || state[HISTORY_SENTINEL_KEY] === true) return 0;
+        return readHistoryGeneration(state[HISTORY_BASE_GENERATION_KEY]);
+    }
+
+    function hasCurrentHistorySentinel() {
+        return Boolean(global.history?.state?.[HISTORY_SENTINEL_KEY]);
+    }
+
+    function prunePendingHistoryReleaseGenerations(now = Date.now()) {
+        for (const [generation, expiresAt] of pendingHistoryReleaseGenerations.entries()) {
+            if (Number(expiresAt || 0) <= now) pendingHistoryReleaseGenerations.delete(generation);
+        }
+    }
+
+    function rememberPendingHistoryRelease(generation) {
+        if (!generation) return;
+        prunePendingHistoryReleaseGenerations();
+        pendingHistoryReleaseGenerations.set(generation, Date.now() + HISTORY_RELEASE_GENERATION_TTL_MS);
+        while (pendingHistoryReleaseGenerations.size > HISTORY_PENDING_RELEASE_LIMIT) {
+            const oldest = pendingHistoryReleaseGenerations.keys().next().value;
+            pendingHistoryReleaseGenerations.delete(oldest);
+            historyDiagnostics.pendingReleaseTrimCount += 1;
+        }
+    }
+
+    function forgetPendingHistoryRelease(generation) {
+        if (generation) pendingHistoryReleaseGenerations.delete(generation);
+    }
+
+    function isInternalHistoryReleaseEvent(event) {
+        const generation = getBaseGeneration(getHistoryState(event));
+        if (!generation) return historyReleaseInFlight && historyReleaseGeneration === 0;
+        prunePendingHistoryReleaseGenerations();
+        return generation === historyReleaseGeneration || pendingHistoryReleaseGenerations.has(generation);
+    }
+
+    function getHistoryDiagnostics() {
+        prunePendingHistoryReleaseGenerations();
+        return Object.freeze({
+            version: '1.6.34-history-hard-stall-sw-activity-lifecycle',
+            sentinelActive: historySentinelActive,
+            sentinelGeneration: historySentinelGeneration,
+            releaseInFlight: historyReleaseInFlight,
+            releaseGeneration: historyReleaseGeneration,
+            releaseSuspended: historyReleaseSuspended,
+            releaseStalled: historyReleaseStalled,
+            pendingReleaseGenerationCount: pendingHistoryReleaseGenerations.size,
+            eligibleLayerCount: historyEligibleLayers().length,
+            ...historyDiagnostics
+        });
+    }
 
     function isElement(value) {
         return Boolean(value && typeof value === 'object' && value.nodeType === 1);
@@ -233,60 +347,305 @@
         });
     }
 
+    function resetActiveHistoryRelease({ forgetGeneration = false } = {}) {
+        const generation = historyReleaseGeneration;
+        clearHistoryReleaseTimer();
+        historyReleaseInFlight = false;
+        historyReleaseSuspended = false;
+        historyReleaseStalled = false;
+        historyReleaseGeneration = 0;
+        if (forgetGeneration) forgetPendingHistoryRelease(generation);
+        return generation;
+    }
+
+    function settleInternalHistoryRelease(event, generation, { recovered = false, stale = false, watchdog = false } = {}) {
+        try { event.foxbearOverlayHandled = true; } catch (_) {}
+        try { event.foxbearOverlayHistorySource = stale ? 'stale-internal-release' : 'internal-release'; } catch (_) {}
+        if (generation === historyReleaseGeneration) resetActiveHistoryRelease({ forgetGeneration: true });
+        else forgetPendingHistoryRelease(generation);
+        historySentinelActive = false;
+        historySentinelGeneration = 0;
+        historyDiagnostics.internalReleasePopCount += 1;
+        if (stale) historyDiagnostics.staleInternalReleasePopCount += 1;
+        if (recovered) historyDiagnostics.releaseRecoveredCount += 1;
+        if (watchdog) historyDiagnostics.releaseWatchdogRecoveredCount += 1;
+        setHistoryTransition(watchdog
+            ? 'release-recovered-watchdog'
+            : (recovered ? 'release-recovered-pageshow' : (stale ? 'stale-internal-release-popstate' : 'internal-release-popstate')));
+        if (historyEligibleLayers().length) {
+            historyDiagnostics.releaseRearmCount += 1;
+            ensureHistorySentinel();
+        }
+    }
+
+    function abandonMismatchedHistoryRelease() {
+        if (!historyReleaseInFlight) return;
+        clearHistoryReleaseTimer();
+        historyReleaseInFlight = false;
+        historyReleaseSuspended = false;
+        historyReleaseStalled = false;
+        historyReleaseGeneration = 0;
+        historyDiagnostics.releaseGenerationMismatchCount += 1;
+        setHistoryTransition('release-generation-mismatch');
+    }
+
+    function scheduleHistoryReleaseWatchdog(releaseEpoch, delayMs = HISTORY_RELEASE_WATCHDOG_MS, terminal = false) {
+        clearHistoryReleaseTimer();
+        historyReleaseTimer = global.setTimeout?.(() => {
+            if (terminal) reconcileTerminalHistoryRelease(releaseEpoch);
+            else reconcileHistoryReleaseWatchdog(releaseEpoch);
+        }, Math.max(250, Number(delayMs) || HISTORY_RELEASE_WATCHDOG_MS)) || 0;
+        return historyReleaseTimer;
+    }
+
+    function recoverHardStalledSentinel(expectedGeneration) {
+        const layers = historyEligibleLayers();
+        resetActiveHistoryRelease({ forgetGeneration: true });
+        if (layers.length) {
+            historySentinelActive = true;
+            historySentinelGeneration = expectedGeneration;
+            historyDiagnostics.releaseHardStallRetainedSentinelCount += 1;
+            setHistoryTransition('release-hard-stall-retained-sentinel');
+            return true;
+        }
+        const currentState = getHistoryState();
+        const nextState = { ...currentState, [HISTORY_BASE_GENERATION_KEY]: expectedGeneration };
+        delete nextState[HISTORY_SENTINEL_KEY];
+        delete nextState[HISTORY_SENTINEL_GENERATION_KEY];
+        try { global.history?.replaceState?.(nextState, '', global.location?.href); } catch (_) {}
+        historySentinelActive = false;
+        historySentinelGeneration = 0;
+        setHistoryTransition('release-hard-stall-neutralized');
+        return true;
+    }
+
+    function reconcileTerminalHistoryRelease(releaseEpoch) {
+        if (!historyReleaseInFlight || historyReleaseSuspended || releaseEpoch !== historyReleaseEpoch) return;
+        historyReleaseTimer = 0;
+        const expectedGeneration = historyReleaseGeneration;
+        const currentState = getHistoryState();
+        const currentBaseGeneration = getBaseGeneration(currentState);
+        const currentSentinelGeneration = getSentinelGeneration(currentState);
+        if (expectedGeneration && currentBaseGeneration === expectedGeneration) {
+            settleInternalHistoryRelease({}, expectedGeneration, { recovered: true, watchdog: true });
+            return;
+        }
+        if (expectedGeneration && currentSentinelGeneration === expectedGeneration) {
+            historyDiagnostics.releaseHardStallRecoveredCount += 1;
+            recoverHardStalledSentinel(expectedGeneration);
+            return;
+        }
+        abandonMismatchedHistoryRelease();
+        historySentinelActive = Boolean(currentSentinelGeneration);
+        historySentinelGeneration = currentSentinelGeneration;
+        if (historyEligibleLayers().length && !historySentinelActive) ensureHistorySentinel();
+    }
+
+    function reconcileHistoryReleaseWatchdog(releaseEpoch) {
+        if (!historyReleaseInFlight || historyReleaseSuspended || releaseEpoch !== historyReleaseEpoch) return;
+        historyReleaseTimer = 0;
+        const expectedGeneration = historyReleaseGeneration;
+        const currentState = getHistoryState();
+        const currentBaseGeneration = getBaseGeneration(currentState);
+        const currentSentinelGeneration = getSentinelGeneration(currentState);
+        if (expectedGeneration && currentBaseGeneration === expectedGeneration) {
+            settleInternalHistoryRelease({}, expectedGeneration, { recovered: true, watchdog: true });
+            return;
+        }
+        if (expectedGeneration && currentSentinelGeneration !== expectedGeneration) {
+            abandonMismatchedHistoryRelease();
+            historySentinelActive = Boolean(currentSentinelGeneration);
+            historySentinelGeneration = currentSentinelGeneration;
+            if (historyEligibleLayers().length && !historySentinelActive) ensureHistorySentinel();
+            return;
+        }
+        historyReleaseStalled = true;
+        historyDiagnostics.releaseWatchdogCount += 1;
+        historyDiagnostics.releaseHardStallCount += 1;
+        setHistoryTransition('release-popstate-stalled');
+        scheduleHistoryReleaseWatchdog(
+            releaseEpoch,
+            Math.max(250, HISTORY_RELEASE_HARD_STALL_RECOVERY_MS - HISTORY_RELEASE_WATCHDOG_MS),
+            true
+        );
+    }
+
+    function reconcileHistoryAfterPageShow(event) {
+        const layers = historyEligibleLayers();
+        const currentState = getHistoryState();
+        const currentSentinelGeneration = getSentinelGeneration(currentState);
+        const currentBaseGeneration = getBaseGeneration(currentState);
+        if (historyReleaseInFlight || historyReleaseSuspended) {
+            historyDiagnostics.releaseResumeCount += 1;
+            const expectedGeneration = historyReleaseGeneration;
+            if (expectedGeneration && currentBaseGeneration === expectedGeneration) {
+                settleInternalHistoryRelease(event || {}, expectedGeneration, { recovered: true });
+                return;
+            }
+            if (expectedGeneration && currentSentinelGeneration === expectedGeneration) {
+                resetActiveHistoryRelease({ forgetGeneration: true });
+                historySentinelActive = true;
+                historySentinelGeneration = currentSentinelGeneration;
+                setHistoryTransition(layers.length ? 'release-resume-overlay-open' : 'release-resume-retry');
+                if (!layers.length) releaseHistorySentinelIfIdle();
+                return;
+            }
+            resetActiveHistoryRelease({ forgetGeneration: true });
+            historyDiagnostics.releaseGenerationMismatchCount += 1;
+            setHistoryTransition('release-resume-state-mismatch');
+        }
+        historySentinelActive = Boolean(currentSentinelGeneration);
+        historySentinelGeneration = currentSentinelGeneration;
+        historyGenerationCounter = Math.max(historyGenerationCounter, currentSentinelGeneration, currentBaseGeneration);
+        if (layers.length && !historySentinelActive) ensureHistorySentinel();
+    }
+
     function installHistoryListeners() {
         if (historyListenersInstalled) return;
         if (!global.history?.pushState || !global.addEventListener) return;
         historyListenersInstalled = true;
         global.addEventListener('popstate', event => {
-            try { event.foxbearOverlayHandled = true; } catch (_) {}
-            if (historyReleaseInFlight) {
-                historyReleaseInFlight = false;
-                historySentinelActive = false;
+            const internalReleaseGeneration = getBaseGeneration(getHistoryState(event));
+            if (isInternalHistoryReleaseEvent(event)) {
+                settleInternalHistoryRelease(event, internalReleaseGeneration, {
+                    stale: internalReleaseGeneration !== historyReleaseGeneration
+                });
                 return;
             }
+            if (historyReleaseInFlight) abandonMismatchedHistoryRelease();
             const layers = historyEligibleLayers();
             historySentinelActive = false;
-            if (!layers.length) return;
+            historySentinelGeneration = 0;
+            if (!layers.length) {
+                historyDiagnostics.passThroughPopCount += 1;
+                setHistoryTransition('pass-through-popstate');
+                return;
+            }
+            try { event.foxbearOverlayHandled = true; } catch (_) {}
+            try { event.foxbearOverlayHistorySource = 'user-back-overlay-close'; } catch (_) {}
             const topLayer = layers[layers.length - 1];
+            historyDiagnostics.userBackCloseCount += 1;
+            setHistoryTransition('user-back-overlay-close');
             historyPopHandling = true;
             requestCloseLayer(topLayer, 'browser-back');
             historyPopHandling = false;
             if (historyEligibleLayers().length) ensureHistorySentinel();
         });
+        global.addEventListener('pagehide', event => {
+            if (!historyReleaseInFlight) return;
+            clearHistoryReleaseTimer();
+            historyReleaseSuspended = true;
+            historyDiagnostics.releaseSuspendCount += 1;
+            setHistoryTransition(event?.persisted ? 'release-suspended-bfcache' : 'release-suspended-pagehide');
+        });
+        global.addEventListener('pageshow', event => {
+            if (!event?.persisted && !historyReleaseSuspended) return;
+            reconcileHistoryAfterPageShow(event);
+        });
     }
 
     function ensureHistorySentinel() {
-        if (historySentinelActive || historyPopHandling || !historyEligibleLayers().length) return false;
+        if (historyReleaseInFlight || historyPopHandling || !historyEligibleLayers().length) return false;
+        const currentState = getHistoryState();
+        const currentSentinelGeneration = getSentinelGeneration(currentState);
+        if (currentSentinelGeneration) {
+            historySentinelActive = true;
+            historySentinelGeneration = currentSentinelGeneration;
+            historyGenerationCounter = Math.max(historyGenerationCounter, currentSentinelGeneration);
+            return false;
+        }
+        if (historySentinelActive && hasCurrentHistorySentinel()) return false;
+        if (historySentinelActive && !hasCurrentHistorySentinel()) {
+            historySentinelActive = false;
+            historySentinelGeneration = 0;
+            historyDiagnostics.staleSentinelResetCount += 1;
+            setHistoryTransition('stale-sentinel-reset');
+        }
         if (!global.history?.pushState || !global.location) return false;
         installHistoryListeners();
-        const current = global.history.state && typeof global.history.state === 'object' ? global.history.state : {};
+        if (typeof global.history.replaceState !== 'function') {
+            try {
+                global.history.pushState({ ...currentState, [HISTORY_SENTINEL_KEY]: true }, '', global.location.href);
+                historySentinelActive = true;
+                historySentinelGeneration = 0;
+                historyDiagnostics.sentinelPushCount += 1;
+                setHistoryTransition('sentinel-pushed-legacy');
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+        const generation = Math.max(
+            historyGenerationCounter + 1,
+            getBaseGeneration(currentState) + 1,
+            getSentinelGeneration(currentState) + 1
+        );
+        historyGenerationCounter = generation;
+        const baseState = { ...currentState, [HISTORY_BASE_GENERATION_KEY]: generation };
+        delete baseState[HISTORY_SENTINEL_KEY];
+        delete baseState[HISTORY_SENTINEL_GENERATION_KEY];
         try {
-            global.history.pushState({ ...current, [HISTORY_SENTINEL_KEY]: true }, '', global.location.href);
+            global.history.replaceState(baseState, '', global.location.href);
+            global.history.pushState({
+                ...baseState,
+                [HISTORY_SENTINEL_KEY]: true,
+                [HISTORY_SENTINEL_GENERATION_KEY]: generation
+            }, '', global.location.href);
             historySentinelActive = true;
+            historySentinelGeneration = generation;
+            historyDiagnostics.sentinelPushCount += 1;
+            setHistoryTransition('sentinel-pushed');
             return true;
         } catch (_) {
+            historySentinelGeneration = 0;
             return false;
         }
     }
 
     function releaseHistorySentinelIfIdle() {
-        if (!historySentinelActive || historyPopHandling || historyEligibleLayers().length) return false;
+        if (historyReleaseInFlight) {
+            historyDiagnostics.coalescedReleaseCount += 1;
+            setHistoryTransition('release-coalesced');
+            return true;
+        }
+        if (historyPopHandling || historyEligibleLayers().length) return false;
+        const currentSentinelGeneration = getSentinelGeneration(getHistoryState());
+        if (!historySentinelActive && currentSentinelGeneration) historySentinelActive = true;
+        if (currentSentinelGeneration) historySentinelGeneration = currentSentinelGeneration;
+        if (!historySentinelActive) return false;
+        if (!historySentinelGeneration && typeof global.history?.replaceState === 'function') {
+            const current = getHistoryState();
+            const next = { ...current };
+            delete next[HISTORY_SENTINEL_KEY];
+            delete next[HISTORY_SENTINEL_GENERATION_KEY];
+            try { global.history.replaceState(next, '', global.location?.href); } catch (_) {}
+            historySentinelActive = false;
+            historyDiagnostics.staleSentinelResetCount += 1;
+            setHistoryTransition('legacy-sentinel-replaced');
+            return true;
+        }
         if (!global.history?.back) {
             historySentinelActive = false;
+            historySentinelGeneration = 0;
             return false;
         }
+        const releaseEpoch = ++historyReleaseEpoch;
         historyReleaseInFlight = true;
+        historyReleaseSuspended = false;
+        historyReleaseStalled = false;
+        historyReleaseGeneration = historySentinelGeneration;
+        rememberPendingHistoryRelease(historyReleaseGeneration);
+        historyDiagnostics.releaseRequestCount += 1;
+        setHistoryTransition('release-requested');
         try { global.history.back(); }
         catch (_) {
-            historyReleaseInFlight = false;
+            resetActiveHistoryRelease({ forgetGeneration: true });
             historySentinelActive = false;
+            historySentinelGeneration = 0;
+            setHistoryTransition('release-back-error');
             return false;
         }
-        global.setTimeout?.(() => {
-            if (!historyReleaseInFlight) return;
-            historyReleaseInFlight = false;
-            historySentinelActive = false;
-        }, 500);
+        scheduleHistoryReleaseWatchdog(releaseEpoch);
         return true;
     }
 
@@ -706,6 +1065,9 @@
         hasOpenRuntimePopup,
         getOpenLayerCount: () => openLayers.size,
         getOpenLayerStack: () => layerStack.slice(),
+        isHistoryReleaseInFlight: () => historyReleaseInFlight,
+        isInternalHistoryReleaseEvent,
+        getHistoryDiagnostics,
         isDocumentLocked: () => Boolean(scrollLockSnapshot),
         getVisualViewportRect,
         syncVisualViewport,

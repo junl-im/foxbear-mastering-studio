@@ -1,3 +1,46 @@
+# v1.6.34 추가 릴리스 확인
+
+- [x] 1.5초 watchdog 이후에도 history가 30초간 움직이지 않으면 중복 Back 없이 stale sentinel을 정산한다.
+- [x] hard stall 중 새 팝업이 열리면 기존 sentinel을 유지해 실제 뒤로가기가 팝업을 먼저 닫는다.
+- [x] BFCache pagehide에서 서비스워커 활동 heartbeat와 BroadcastChannel을 정리한다.
+- [x] BFCache pageshow에서 활동 채널과 단일 heartbeat를 즉시 복구한다.
+- [x] 동일 ServiceWorkerRegistration의 반복 coordinate가 `updatefound` 리스너를 누적하지 않는다.
+- [x] `DELIVERY_RULES.md`의 3단 결과 형식이 두 패키지의 필수 계약으로 유지된다.
+- [x] `node qa/v1634_history_hard_stall_sw_activity_lifecycle_smoke.js`가 통과한다.
+- [x] 누적 정적·행동 검사 `374/374`, 엔진·골든 오디오·패키지 계약을 확인한다.
+- [ ] Android/iOS/설치형 PWA의 실제 BFCache·뒤로가기·서비스워커 업데이트 시점을 검증한다.
+
+# v1.6.33 추가 릴리스 확인
+
+- [x] 내부 Back 이동은 완료됐지만 `popstate`가 누락된 경우 watchdog이 정확한 base 세대를 정산한다.
+- [x] sentinel이 그대로인 hard stall에서는 중복 `history.back()`을 호출하지 않는다.
+- [x] watchdog 복구 뒤 다음 팝업이 새 sentinel 세대를 받는다.
+- [x] 지연 release 세대는 30초 TTL과 최대 8개 상한을 함께 적용한다.
+- [x] `DELIVERY_RULES.md`의 3단 결과 형식이 패키지 필수 계약으로 유지된다.
+- [x] `node qa/v1633_overlay_history_watchdog_recovery_smoke.js`가 통과한다.
+- [x] 누적 정적·행동 검사 `373/373`, 엔진·골든 오디오·패키지 계약을 확인한다.
+- [ ] Android/iOS/설치형 PWA에서 실제 history 이벤트 누락·지연을 검증한다.
+
+# v1.6.32 추가 릴리스 확인
+
+- [x] overlay sentinel과 목적지 base history 항목이 같은 세대 번호를 가진다.
+- [x] 지연된 내부 `popstate`가 더 최신의 실제 사용자 뒤로가기를 소비하지 않는다.
+- [x] 늦게 도착한 정확한 내부 세대는 두 번째 종료 확인 없이 흡수된다.
+- [x] BFCache 복귀 시 완료·미완료 history 해제를 복구하고 종료 가드를 중복 생성하지 않는다.
+- [x] 다운로드·추천·설정·오류 신고 팝업 반복 시나리오가 통과한다.
+- [x] `node qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js`가 통과한다.
+- [x] 누적 정적·행동 검사 `372/372`가 통과한다.
+- [ ] Android 시스템 뒤로가기, iOS Safari 스와이프, 설치형 PWA BFCache를 실제 기기에서 확인한다.
+
+# v1.6.31 추가 릴리스 확인
+
+- [x] 빠른 팝업 닫기·열기·닫기가 내부 `history.back()`을 한 번만 요청한다.
+- [x] 내부 sentinel 해제 중 다시 열린 팝업에 popstate 완료 후 새 sentinel이 한 번만 생성된다.
+- [x] 실제 뒤로가기는 열린 팝업을 먼저 닫고 다음 뒤로가기에서만 작업 화면 종료 확인을 표시한다.
+- [x] history 진단은 제한된 카운터와 분류명만 포함한다.
+- [x] `node qa/v1631_overlay_history_transaction_coalescing_smoke.js`가 통과한다.
+- [ ] Android 시스템 뒤로가기, iOS Safari 스와이프, 설치형 PWA 제스처를 실제 기기에서 확인한다.
+
 
 ## v1.5.74 추가 확인
 

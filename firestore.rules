@@ -74,6 +74,7 @@ service cloud.firestore {
           'code',
           'stack',
           'fingerprint',
+          'submissionKey',
           'source',
           'pagePath',
           'browser',
@@ -110,6 +111,8 @@ service cloud.firestore {
         && validShortString(request.resource.data.code, 80)
         && validShortString(request.resource.data.stack, 1400)
         && validShortString(request.resource.data.fingerprint, 64)
+        && validShortString(request.resource.data.submissionKey, 64)
+        && request.resource.data.submissionKey.size() >= 8
         && validShortString(request.resource.data.source, 80)
         && validShortString(request.resource.data.pagePath, 160)
         && validShortString(request.resource.data.browser, 40)

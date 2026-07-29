@@ -10,12 +10,14 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 const firebaseSource = read('src/firebase-bootstrap.js');
 const reporter = read('src/boot/incident-reporter.js');
+const diagnostics = read('src/boot/incident-service-diagnostics.js');
+const diagnosticsView = read('src/boot/incident-diagnostics-view-service.js');
 const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 const firebaseJson = JSON.parse(read('firebase.json'));
 const origin = 'https://asia-northeast3-foxbear-music.cloudfunctions.net';
 
-assert.strictEqual(pkg.version, '1.6.25');
+assert.strictEqual(pkg.version, '1.6.34');
 assert(firebaseSource.includes("const INCIDENT_STATUS_FUNCTION_NAME = 'getIncidentServiceStatus';"), 'exact incident status function constant missing');
 assert(firebaseSource.includes('const INCIDENT_DIRECT_PROBE_TIMEOUT_MS = 4500;'), 'bounded direct probe timeout missing');
 assert(firebaseSource.includes('async function probeIncidentCallableEndpoint'), 'direct endpoint probe missing');
@@ -26,13 +28,13 @@ assert(firebaseSource.includes('AbortController'), 'direct probe cancellation/ti
 assert(!firebaseSource.includes('const internalTransport ='), 'generic functions/internal must not be forced into a network-blocked error');
 assert(firebaseSource.includes('incidentStatusFunctionName: INCIDENT_STATUS_FUNCTION_NAME'), 'public bridge function-name diagnostic missing');
 assert(firebaseSource.includes('probeIncidentCallableEndpoint,'), 'public bridge direct probe missing');
-assert(reporter.includes("document.getElementById('incidentFunctionStatus')"), 'function-name UI diagnostic missing');
-assert(reporter.includes("document.getElementById('incidentEndpointStatus')"), 'endpoint UI diagnostic missing');
-assert(reporter.includes("document.getElementById('incidentDirectStatus')"), 'direct HTTP UI diagnostic missing');
-assert(reporter.includes("document.getElementById('incidentCspStatus')"), 'CSP UI diagnostic missing');
-assert(reporter.includes("probe?.reachable === true && /functions\\/internal/i.test(originalCode)"), 'reachable internal errors must stay classified as server internal');
-assert(reporter.includes("effectiveCode = 'functions/not-found'"), '404/not-deployed classification missing');
-assert(reporter.includes("effectiveCode = 'FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED'"), 'network/CSP classification missing');
+assert(reporter.includes('diagnosticsView.renderService(document, model)'), 'reporter must delegate service diagnostic rendering');
+for (const id of ['incidentFunctionStatus', 'incidentEndpointStatus', 'incidentDirectStatus', 'incidentCspStatus']) {
+  assert(diagnosticsView.includes(`${id}: model.`), `${id} diagnostics view binding missing`);
+}
+assert(diagnostics.includes("probe?.reachable === true && /functions\\/internal/i.test(originalCode)"), 'reachable internal errors must stay classified as server internal');
+assert(diagnostics.includes("code = 'functions/not-found'"), '404/not-deployed classification missing');
+assert(diagnostics.includes("code = 'FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED'"), 'network/CSP classification missing');
 for (const id of ['incidentFunctionStatus', 'incidentEndpointStatus', 'incidentDirectStatus', 'incidentCspStatus']) {
   assert(html.includes(`id="${id}"`), `${id} UI element missing`);
 }

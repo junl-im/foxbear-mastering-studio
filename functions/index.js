@@ -65,7 +65,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.25';
+const PRODUCT_VERSION = '1.6.34';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 6;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -132,6 +132,7 @@ function normalizeCallableIncident(payload = {}) {
     code: cleanText(payload.code || '', 80),
     stack: cleanText(payload.stack || '', 1400),
     fingerprint: cleanText(payload.fingerprint || 'unknown', 64),
+    submissionKey: cleanText(payload.submissionKey || '', 64),
     source: cleanText(payload.source || 'foxbear-web-client', 80),
     pagePath: cleanText(payload.pagePath || '/', 160),
     browser: cleanText(payload.browser || '', 40),
@@ -153,12 +154,28 @@ function normalizeCallableIncident(payload = {}) {
   };
 }
 
+function incidentSubmissionKey(incident = {}) {
+  const provided = cleanText(incident.submissionKey || '', 64);
+  if (/^[a-z0-9][a-z0-9_-]{7,63}$/i.test(provided)) return provided.toLowerCase();
+  const fingerprint = cleanText(incident.fingerprint || 'unknown', 64) || 'unknown';
+  const parsedClientAt = Date.parse(cleanText(incident.clientAt || '', 40));
+  const clientAt = new Date(Number.isFinite(parsedClientAt) ? parsedClientAt : Date.now()).toISOString();
+  const hash = (value, seed) => {
+    let output = seed >>> 0;
+    for (let index = 0; index < value.length; index += 1) {
+      output ^= value.charCodeAt(index);
+      output = Math.imul(output, 0x01000193) >>> 0;
+    }
+    return output.toString(16).padStart(8, '0');
+  };
+  return `inc_${hash(`${fingerprint}|${clientAt}|foxbear-submit-v1`, 0x811c9dc5)}${hash(`${clientAt}|${fingerprint}|foxbear-submit-v1`, 0x9e3779b9)}`;
+}
+
 function callableReportId(uid, requestedId, incident) {
   const cleanUid = safeKey(uid, 'anonymous');
   const requested = cleanText(requestedId || '', 180);
   if (requested.startsWith(`${uid}_`) && /^[A-Za-z0-9_-]+$/.test(requested)) return requested;
-  const bucket = Math.floor(Date.now() / (15 * 60 * 1000)).toString(36);
-  return `${cleanUid}_${bucket}_${safeKey(incident.fingerprint, 'unknown')}`.slice(0, 180);
+  return `${cleanUid}_${incidentSubmissionKey(incident)}`.slice(0, 180);
 }
 
 function timestampToIso(value) {
@@ -1903,10 +1920,10 @@ exports.submitIncidentReport = onCall({
       delivery: { status: 'pending', attemptCount: 0 },
       createdAt: FieldValue.serverTimestamp()
     });
-    return { queued: true, deduplicated: false, reportId, service: incidentServiceMetadata(request) };
+    return { queued: true, deduplicated: false, reportId, submissionKey: incident.submissionKey || incidentSubmissionKey(incident), service: incidentServiceMetadata(request) };
   } catch (error) {
     if (Number(error?.code) === 6 || /already.?exists/i.test(String(error?.code || error?.message || ''))) {
-      return { queued: true, deduplicated: true, reportId, service: incidentServiceMetadata(request) };
+      return { queued: true, deduplicated: true, reportId, submissionKey: incident.submissionKey || incidentSubmissionKey(incident), service: incidentServiceMetadata(request) };
     }
     console.error('FoxBear callable incident submit failed', { reportId, error: cleanText(error?.message || error, 300) });
     throw new HttpsError('internal', '문제 신고를 서버 대기열에 저장하지 못했습니다.');

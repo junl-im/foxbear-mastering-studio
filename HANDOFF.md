@@ -1,4 +1,12 @@
-# Handoff - v1.6.25
+# Handoff - v1.6.34
+
+
+## v1.6.34 update
+
+- Terminal overlay history hard-stall recovery after 30 seconds without duplicate traversal.
+- BFCache-safe service-worker activity heartbeat/channel pause and resume.
+- Idempotent service-worker registration observers and expanded anonymous diagnostics.
+- Configured cumulative static/behavioral target: 374 checks.
 
 ## Mandatory result format
 
@@ -10,11 +18,150 @@
 
 ## Current release
 
-- Product version: `1.6.25`
-- Build ID: `incident-recovery-timeout-abort-stress`
-- Asset version: `1.6.25-incident-recovery-timeout-abort-stress`
-- Service worker cache: `foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress`
-- Configured static/regression target: 359 checks.
+- Product version: `1.6.34`
+- Build ID: `history-hard-stall-sw-activity-lifecycle`
+- Asset version: `1.6.34-history-hard-stall-sw-activity-lifecycle`
+- Service worker cache: `foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle`
+- Configured static/regression target: 374 checks.
+
+## v1.6.33 handoff
+
+- The watchdog may settle only the exact expected base generation after an omitted `popstate`.
+- Do not add an automatic second Back while the same sentinel remains current.
+- Keep pending delayed generations bounded to eight and expired after 30 seconds.
+- Keep watchdog and history diagnostics metadata-only.
+- Regression: `node qa/v1633_overlay_history_watchdog_recovery_smoke.js`.
+- Installed browser, mobile/PWA navigation, production Firebase/App Check, and real Gmail receipt remain external gates.
+
+# Handoff - v1.6.32
+
+## Mandatory result format
+
+1. 작업한 내역
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+3. 다음 예정 내역
+
+상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
+
+## Current release
+
+- Product version: `1.6.32`
+- Build ID: `overlay-history-generation-bfcache-recovery`
+- Asset version: `1.6.32-overlay-history-generation-bfcache-recovery`
+- Service worker cache: `foxbear-shell-v1.6.32-overlay-history-generation-bfcache-recovery`
+- Configured static/regression target: 372 checks.
+
+## v1.6.32 handoff
+
+- Keep overlay base and sentinel generation markers paired; do not return to a release-wide boolean classifier in modern browsers.
+- The exit guard must call `isInternalHistoryReleaseEvent(event)` before deciding that a popstate is programmatic.
+- A mismatched generation is a genuine navigation candidate and must continue to the overlay-close or workspace-exit path.
+- BFCache reconciliation must not push another exit guard when the current state is already an exit guard or overlay sentinel.
+- Legacy pushState-only environments may use the bounded compatibility path, but production browsers should retain generation fencing.
+- Regression: `node qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js`.
+- Installed Android/iOS/PWA gesture behavior remains an external release gate.
+
+## v1.6.30 handoff
+
+- Keep the exit guard installed before or after the modal listener without changing behavior.
+- Internal `history.back()` used to remove an overlay sentinel must never open the workspace exit confirmation.
+- A popstate with no open overlay and no release in flight must remain a genuine navigation event.
+- Do not restore unconditional `foxbearOverlayHandled` marking at the top of the modal popstate listener.
+- Regression: `node qa/v1630_overlay_history_release_false_exit_prompt_smoke.js`.
+- Installed Chromium and mobile/PWA real-device navigation remain external release gates.
+
+# Handoff - v1.6.29
+
+## Mandatory result format
+
+1. 작업한 내역
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+3. 다음 예정 내역
+
+상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
+
+## Current release
+
+- Product version: `1.6.29`
+- Build ID: `incident-submission-fencing-adaptive-polling`
+- Asset version: `1.6.29-incident-submission-fencing-adaptive-polling`
+- Service worker cache: `foxbear-shell-v1.6.29-incident-submission-fencing-adaptive-polling`
+- Configured static/regression target: 369 checks.
+
+## v1.6.29 handoff
+
+- Keep stable occurrence identity in `incident-submission-identity-service.js`; delayed recovery must never derive a new report ID from the retry clock.
+- Queue delivery may commit only while the original token and lease generation still match. A generation replacement is immediate ownership loss.
+- Keep fallback synchronization adaptive: active queues use the fast cadence, empty visible tabs use idle cadence, and hidden tabs use the slow cadence.
+- Keep primary settings-control DOM rendering and one-time binding inside `incident-controls-view-service.js`.
+- Submission and ownership diagnostics remain metadata-only and must not contain report text, stack traces, audio, filenames, credentials, network identity, or location.
+- Regression: `node qa/v1629_incident_submission_fencing_adaptive_polling_smoke.js`.
+- Production Firebase/App Check/Gmail, installed Chromium, and Safari/iOS lifecycle behavior remain external release gates.
+
+# Handoff - v1.6.28
+
+## Mandatory result format
+
+1. 작업한 내역
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+3. 다음 예정 내역
+
+상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
+
+## Current release
+
+- Product version: `1.6.28`
+- Build ID: `incident-lease-takeover-fallback-ui-safety`
+- Asset version: `1.6.28-incident-lease-takeover-fallback-ui-safety`
+- Service worker cache: `foxbear-shell-v1.6.28-incident-lease-takeover-fallback-ui-safety`
+- Configured static/regression target: 366 checks.
+
+## v1.6.28 handoff
+
+- Keep crash takeover, lease renewal, lifecycle release, polling fallback, and cross-tab ownership inside `incident-queue-coordination-service.js`.
+- A renewal write failure is ownership loss; do not allow delivery to continue after the shared signal aborts.
+- BFCache pagehide must release the lease without disposing the queue, and pageshow must reconcile shards and tombstones.
+- Keep service diagnostic DOM rendering, queue coordination text, and incident status event dispatch inside `incident-diagnostics-view-service.js`.
+- Fallback diagnostics may include counts and synchronization mode only; never report text, tab IDs, audio, filenames, credentials, network identity, or location.
+- Regression: `node qa/v1628_incident_lease_takeover_fallback_ui_smoke.js`.
+- Production Firebase/App Check/Gmail, installed Chromium, and Safari/iOS WebView lifecycle behavior remain external release gates.
+
+# Handoff - v1.6.27
+
+## Mandatory result format
+
+1. 작업한 내역
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+3. 다음 예정 내역
+
+상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
+
+## Current release
+
+- Product version: `1.6.27`
+- Build ID: `incident-multitab-queue-ownership-safety`
+- Asset version: `1.6.27-incident-multitab-queue-ownership-safety`
+- Service worker cache: `foxbear-shell-v1.6.27-incident-multitab-queue-ownership-safety`
+- Configured static/regression target: 364 checks.
+
+## v1.6.27 handoff
+
+- Keep cross-tab shard discovery, exact delivery tombstones, queue-change broadcasting, and flush ownership inside `src/boot/incident-queue-coordination-service.js`.
+- Every tab writes only its own shard. Do not restore one shared read-modify-write queue path.
+- Queue recovery must acquire Web Locks or the verified lease fallback before the first network delivery and re-check ownership around every submission.
+- Delivered occurrences use fingerprint plus client timestamp; do not replace this with a permanent fingerprint-only tombstone.
+- Cross-tab diagnostics remain metadata-only and must never contain report text, stack traces, audio, filenames, credentials, IP, SSID, or location.
+- Regression: `node qa/v1627_incident_multitab_queue_ownership_stress_smoke.js`.
+- Production Firebase/App Check/Gmail, installed Chromium, and real-device multi-tab lifecycle behavior remain external release gates.
+
+## v1.6.26 handoff
+
+- Keep local report storage, bounds, quota fallback, and conflict-safe flush commits inside `src/boot/incident-local-queue-service.js`.
+- Never restore a stale flush snapshot over the current queue; remove only fingerprints confirmed delivered.
+- Keep service failure classification and diagnostic row text/tone generation inside `src/boot/incident-service-diagnostics.js`.
+- Queue health diagnostics may include counts, byte limits, and error counters only; never include report text, stacks, audio, filenames, tokens, Secrets, or paths.
+- Regression: `node qa/v1626_incident_diagnostics_queue_conflict_safety_smoke.js`.
+- Production Firebase/App Check/Gmail, installed Chromium, and real-device lifecycle behavior remain external release gates.
 
 ## v1.6.25 handoff
 

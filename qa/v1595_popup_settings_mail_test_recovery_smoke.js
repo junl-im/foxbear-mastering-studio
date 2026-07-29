@@ -15,6 +15,7 @@ const index = read('index.html');
 const app = read('src/app.js');
 const firebase = read('src/firebase-bootstrap.js');
 const reporter = read('src/boot/incident-reporter.js');
+const incidentControls = read('src/boot/incident-controls-view-service.js');
 const performance = read('src/boot/performance-diagnostics.js');
 const mobile = read('src/ui/mobile-native-view.js');
 const downloadService = read('src/download/download-service.js');
@@ -24,7 +25,7 @@ const closeCss = read('assets/css/components/modal-close-system.css');
 const studioCss = read('assets/css/studio.css');
 const supportCss = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.25');
+assert.strictEqual(pkg.version, '1.6.34');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'current build ID must remain kebab-case');
 
 assert(index.includes('program-info-panel program-info-panel-compact'), 'program info must use the compact layout');
@@ -55,7 +56,7 @@ assert(!logIncident.includes('const existing = await getDoc(reportRef)'), 'incid
 assert(logIncident.indexOf('await setDoc(reportRef') < logIncident.indexOf('await getDoc(reportRef)'), 'duplicate read is allowed only after create/update failure');
 assert(reporter.includes('testInFlight'), 'real mail test must be single-flight');
 assert(reporter.includes("'permission-denied': '오류 신고 서버가 요청을 허용하지 않았습니다."), 'permission failures must have actionable guidance');
-assert(reporter.includes("testButton.setAttribute('aria-busy'"), 'mail test must expose busy state');
+assert(incidentControls.includes("setAttribute?.('aria-busy'") && reporter.includes('controlsView.render'), 'mail test must expose busy state through the controls view contract');
 
 assert(performance.includes("backdrop.className = 'foxbear-perf-backdrop'"), 'performance diagnostics must be a modal backdrop');
 assert(performance.includes("close.className = 'foxbear-perf-panel-close foxbear-modal-close'"), 'performance diagnostics must use the shared close control');
@@ -78,7 +79,7 @@ assert(closeCss.includes('.support-settings-panel') && closeCss.includes('.foxbe
 assert(!studioCss.includes('.program-info-panel-compact') && !studioCss.includes('.support-settings-backdrop'), 'popup styles must not regrow studio.css');
 assert(supportCss.includes('.program-info-panel-compact') && supportCss.includes('.support-settings-backdrop'), 'dedicated intro and settings dialog styles are required');
 assert(index.includes('assets/css/components/support-settings.css'), 'support settings stylesheet must be loaded');
-assert(sw.includes('./assets/css/components/support-settings.css?v=1.6.25-incident-recovery-timeout-abort-stress'), 'support settings stylesheet must be precached');
+assert(sw.includes('./assets/css/components/support-settings.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle'), 'support settings stylesheet must be precached');
 
 const modalSandbox = { console };
 modalSandbox.window = modalSandbox;

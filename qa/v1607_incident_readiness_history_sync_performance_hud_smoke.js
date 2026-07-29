@@ -16,6 +16,12 @@ const incidentRecoverySweepSource = read('src/boot/incident-recovery-sweep-servi
 const incidentSupportSource = read('src/boot/incident-support-service.js');
 const incidentStateSource = read('src/boot/incident-state-service.js');
 const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
+const incidentLocalQueueSource = read('src/boot/incident-local-queue-service.js');
+const incidentQueueCoordinationSource = read('src/boot/incident-queue-coordination-service.js');
+const incidentServiceDiagnosticsSource = read('src/boot/incident-service-diagnostics.js');
+const incidentDiagnosticsViewSource = read('src/boot/incident-diagnostics-view-service.js');
+const incidentSubmissionIdentitySource = read('src/boot/incident-submission-identity-service.js');
+const incidentControlsViewSource = read('src/boot/incident-controls-view-service.js');
 const firebaseSource = read('src/firebase-bootstrap.js');
 const functionsSource = read('functions/index.js');
 const performanceSource = read('src/boot/performance-diagnostics.js');
@@ -59,7 +65,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.25' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.34' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -68,7 +74,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.25', assetVersion: '1.6.25-incident-recovery-timeout-abort-stress' }
+  FoxBearBuildInfo: { productVersion: '1.6.34', assetVersion: '1.6.34-history-hard-stall-sw-activity-lifecycle' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -78,7 +84,7 @@ reporterSandbox.FoxBearFirebase = {
   checkIncidentDeploymentReadiness: async () => ({
     ok: true,
     checkedAt: new Date().toISOString(),
-    service: { productVersion: '1.6.25', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
+    service: { productVersion: '1.6.34', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -96,6 +102,12 @@ vm.runInContext(incidentStateSource, reporterSandbox, { filename: 'incident-stat
 vm.runInContext(incidentRecoveryPolicySource, reporterSandbox, { filename: 'incident-recovery-policy.js' });
 
 vm.runInContext(incidentRecoverySweepSource, reporterSandbox, { filename: 'incident-recovery-sweep-service.js' });
+vm.runInContext(incidentLocalQueueSource, reporterSandbox, { filename: 'incident-local-queue-service.js' });
+vm.runInContext(incidentQueueCoordinationSource, reporterSandbox, { filename: 'incident-queue-coordination-service.js' });
+vm.runInContext(incidentServiceDiagnosticsSource, reporterSandbox, { filename: 'incident-service-diagnostics.js' });
+vm.runInContext(incidentDiagnosticsViewSource, reporterSandbox, { filename: 'incident-diagnostics-view-service.js' });
+vm.runInContext(incidentSubmissionIdentitySource, reporterSandbox, { filename: 'incident-submission-identity-service.js' });
+vm.runInContext(incidentControlsViewSource, reporterSandbox, { filename: 'incident-controls-view-service.js' });
 vm.runInContext(reporterSource, reporterSandbox, { filename: 'incident-reporter.js' });
 const reporter = reporterSandbox.FoxBearIncidentReporter;
 const availability = reporter.getHistoryRetryAvailability({

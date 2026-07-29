@@ -60,7 +60,11 @@ const restored = service.getNavigationExitGuardState();
 assert.strictEqual(restored.pageHiding, false, 'BFCache restore left pageHiding stuck');
 assert.strictEqual(restored.allowLeave, false, 'BFCache restore left allowLeave enabled');
 assert.strictEqual(restored.bfcacheReady, true, 'BFCache readiness not exposed');
-assert(pushes >= 2, 'BFCache restore did not rebuild history exit guard');
+assert.strictEqual(pushes, 1, 'BFCache restore duplicated an exit guard that was already current');
+context.history.state = {};
+for (const handler of listeners.get('pagehide') || []) handler({ persisted: true });
+for (const handler of listeners.get('pageshow') || []) handler({ persisted: true });
+assert.strictEqual(pushes, 2, 'BFCache restore did not rebuild a missing history exit guard');
 assert((listeners.get('beforeunload') || new Set()).size >= 1, 'beforeunload guard missing after BFCache restore');
 
 console.log('PASS v1.5.36 BFCache navigation exit guard recovery smoke');

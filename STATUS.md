@@ -1,18 +1,137 @@
-# FoxBear Status - v1.6.25
+# FoxBear Status - v1.6.34
 
 ## Current release
 
-- Product version: `1.6.25`
-- Build ID: `incident-recovery-timeout-abort-stress`
-- Asset version: `1.6.25-incident-recovery-timeout-abort-stress`
-- Service worker cache: `foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress`
+- Product version: `1.6.34`
+- Build ID: `history-hard-stall-sw-activity-lifecycle`
+- Asset version: `1.6.34-history-hard-stall-sw-activity-lifecycle`
+- Service worker cache: `foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle`
+- Configured static/regression target: 373 checks.
+
+## v1.6.34 current focus
+
+- Terminally recover an overlay sentinel when History traversal remains unchanged for 30 seconds.
+- Preserve a reopened dialog sentinel without duplicate Back requests.
+- Pause and resume cross-tab service-worker activity resources across BFCache.
+- Keep registration update observers idempotent and visible in diagnostics.
+
+
+## v1.6.33 current focus
+
+- Recover completed overlay-history traversal when a browser omits `popstate`.
+- Avoid duplicate Back traversal during a hard stall.
+- Bound delayed generation state by count and time.
+- Preserve engine, download, Firebase, PWA, handoff, archive, and three-section delivery contracts.
 
 ## Release metadata
 
-- Product version: `1.6.25`
-- Build ID: `incident-recovery-timeout-abort-stress`
-- Asset version: `1.6.25-incident-recovery-timeout-abort-stress`
-- Service worker cache: `foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress`
+- Product version: `1.6.34`
+- Build ID: `history-hard-stall-sw-activity-lifecycle`
+- Asset version: `1.6.34-history-hard-stall-sw-activity-lifecycle`
+- Service worker cache: `foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle`
+
+# FoxBear Status - v1.6.32
+
+## Current release
+
+- Product version: `1.6.32`
+- Build ID: `overlay-history-generation-bfcache-recovery`
+- Asset version: `1.6.32-overlay-history-generation-bfcache-recovery`
+- Service worker cache: `foxbear-shell-v1.6.32-overlay-history-generation-bfcache-recovery`
+- Configured static/regression target: 372 checks.
+
+## v1.6.32 current focus
+
+- Generation-fenced overlay history cleanup is implemented.
+- Out-of-order delayed popstate and BFCache restore paths have dedicated runtime regression coverage.
+- Remaining external gates are installed Android/iOS/PWA gesture testing and real browser BFCache timing.
+
+## v1.6.30 status
+
+- Programmatic overlay history cleanup is no longer classified as user Back navigation.
+- Genuine Back events remain available to the workspace exit guard when no overlay is open.
+- Listener registration order no longer changes navigation behavior.
+- Audio, download, Firebase, incident-report, and authentication contracts are unchanged.
+- Installed-browser and real-device navigation remain environment gates.
+
+# FoxBear Status - v1.6.29
+
+## Current release
+
+- Product version: `1.6.29`
+- Build ID: `incident-submission-fencing-adaptive-polling`
+- Asset version: `1.6.29-incident-submission-fencing-adaptive-polling`
+- Service worker cache: `foxbear-shell-v1.6.29-incident-submission-fencing-adaptive-polling`
+- Configured static/regression target: 369 checks.
+
+## v1.6.29 status
+
+- Stable occurrence identity prevents retry-time windows from generating duplicate server reports.
+- Callable and Firestore acknowledgements are fenced by the original submission key.
+- Lease token and generation must both match before delivery commit or lease cleanup.
+- Fallback synchronization adapts to active, idle, hidden, and foreground-resume states.
+- Primary incident control rendering and binding are isolated from reporter orchestration.
+- Production Firebase, Gmail receipt, App Check, installed-browser rendering, and real Safari/iOS behavior remain environment gates.
+
+# FoxBear Status - v1.6.28
+
+## Current release
+
+- Product version: `1.6.29`
+- Build ID: `incident-submission-fencing-adaptive-polling`
+- Asset version: `1.6.29-incident-submission-fencing-adaptive-polling`
+- Service worker cache: `foxbear-shell-v1.6.29-incident-submission-fencing-adaptive-polling`
+
+## Release metadata
+
+- Product version: `1.6.32`
+- Build ID: `overlay-history-generation-bfcache-recovery`
+- Asset version: `1.6.32-overlay-history-generation-bfcache-recovery`
+- Service worker cache: `foxbear-shell-v1.6.32-overlay-history-generation-bfcache-recovery`
+
+## v1.6.28 status
+
+- BFCache transitions release active local queue ownership immediately and resynchronize on return.
+- Expired crash leases are reclaimed; lock replacement, expiry, and renewal failure abort the old owner.
+- Revision polling supplements BroadcastChannel and storage-event synchronization in restricted browsers.
+- Service diagnostic DOM and status-event responsibilities are isolated in a dedicated view module.
+- Configured cumulative static/regression target: 366 checks.
+- Production Firebase, Gmail receipt, App Check, installed-browser rendering, and real Safari/iOS WebView lifecycle behavior remain environment gates.
+
+# FoxBear Status - v1.6.27
+
+## Current release
+
+- Product version: `1.6.27`
+- Build ID: `incident-multitab-queue-ownership-safety`
+- Asset version: `1.6.27-incident-multitab-queue-ownership-safety`
+- Service worker cache: `foxbear-shell-v1.6.27-incident-multitab-queue-ownership-safety`
+
+## Release metadata
+
+- Product version: `1.6.27`
+- Build ID: `incident-multitab-queue-ownership-safety`
+- Asset version: `1.6.27-incident-multitab-queue-ownership-safety`
+- Service worker cache: `foxbear-shell-v1.6.27-incident-multitab-queue-ownership-safety`
+
+## v1.6.27 status
+
+- Local anonymous incident queues use per-tab shards and merge into the existing global eight-item visible bound.
+- BroadcastChannel and storage revision events synchronize peer queue changes without exposing report contents.
+- Web Locks or a renewable lease enforce one active cross-tab flush owner.
+- Exact delivery occurrence tombstones prevent stale retry resurrection and preserve later matching reports.
+- Legacy queue data remains readable and is migrated through coordinated commits.
+- Configured cumulative static/regression target: 364 checks.
+- Production Firebase, Gmail receipt, App Check, installed-browser rendering, and real-device multi-tab behavior remain environment gates.
+
+## v1.6.26 status
+
+- Incident service classification and diagnostic row generation are isolated from reporter state mutation.
+- The local report queue is bounded by item count and serialized size and handles quota pressure by retaining newest entries.
+- Flush completion removes delivered fingerprints from current storage, preserving reports queued during recovery.
+- Abort and partial failure paths commit successful deliveries before returning or rethrowing.
+- Configured cumulative static/regression target: 362 checks.
+- Production Firebase, Gmail receipt, App Check, installed-browser rendering, and real-device lifecycle behavior remain environment gates.
 
 ## v1.6.25 status
 

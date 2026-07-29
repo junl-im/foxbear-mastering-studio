@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.6.25",
-  "assetVersion": "1.6.25-incident-recovery-timeout-abort-stress"
+  "productVersion": "1.6.34",
+  "assetVersion": "1.6.34-history-hard-stall-sw-activity-lifecycle"
 }

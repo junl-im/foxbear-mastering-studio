@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.25",
+  "version": "1.6.34",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with isolated incident service recovery, phase timeouts, abort propagation, offline retry pausing, and trigger-storm protection.",
+  "description": "FoxBear AI Mastering Studio Pro with terminal overlay history hard-stall recovery and BFCache-safe service-worker activity coordination.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.25-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.25-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.34-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.34-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -394,15 +394,30 @@
     "node --check src/boot/incident-recovery-sweep-service.js",
     "node qa/v1624_incident_recovery_sweep_observability_smoke.js",
     "node --check src/boot/incident-service-recovery-controller.js",
-    "node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js"
+    "node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js",
+    "node --check src/boot/incident-local-queue-service.js",
+    "node --check src/boot/incident-service-diagnostics.js",
+    "node qa/v1626_incident_diagnostics_queue_conflict_safety_smoke.js",
+    "node --check src/boot/incident-queue-coordination-service.js",
+    "node qa/v1627_incident_multitab_queue_ownership_stress_smoke.js",
+    "node --check src/boot/incident-diagnostics-view-service.js",
+    "node qa/v1628_incident_lease_takeover_fallback_ui_smoke.js",
+    "node --check src/boot/incident-submission-identity-service.js",
+    "node --check src/boot/incident-controls-view-service.js",
+    "node qa/v1629_incident_submission_fencing_adaptive_polling_smoke.js",
+    "node qa/v1630_overlay_history_release_false_exit_prompt_smoke.js",
+    "node qa/v1631_overlay_history_transaction_coalescing_smoke.js",
+    "node qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js",
+    "node qa/v1633_overlay_history_watchdog_recovery_smoke.js",
+    "node qa/v1634_history_hard_stall_sw_activity_lifecycle_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-recovery-timeout-abort-stress",
-    "assetVersion": "1.6.25-incident-recovery-timeout-abort-stress",
-    "cacheName": "foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress",
-    "bootRevision": "boot-sri-v1625",
-    "updateSafetyRevision": "update-safety-v1625",
-    "serviceWorkerRevision": "sw-v1625"
+    "buildId": "history-hard-stall-sw-activity-lifecycle",
+    "assetVersion": "1.6.34-history-hard-stall-sw-activity-lifecycle",
+    "cacheName": "foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle",
+    "bootRevision": "boot-sri-v1634",
+    "updateSafetyRevision": "update-safety-v1634",
+    "serviceWorkerRevision": "sw-v1634"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

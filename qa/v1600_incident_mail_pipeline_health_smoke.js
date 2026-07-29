@@ -17,10 +17,16 @@ const incidentRecoverySweepSource = read('src/boot/incident-recovery-sweep-servi
 const incidentSupportSource = read('src/boot/incident-support-service.js');
 const incidentStateSource = read('src/boot/incident-state-service.js');
 const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
+const incidentLocalQueueSource = read('src/boot/incident-local-queue-service.js');
+const incidentQueueCoordinationSource = read('src/boot/incident-queue-coordination-service.js');
+const incidentServiceDiagnosticsSource = read('src/boot/incident-service-diagnostics.js');
+const incidentDiagnosticsViewSource = read('src/boot/incident-diagnostics-view-service.js');
+const incidentSubmissionIdentitySource = read('src/boot/incident-submission-identity-service.js');
+const incidentControlsViewSource = read('src/boot/incident-controls-view-service.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.25');
+assert.strictEqual(pkg.version, '1.6.34');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentServiceStatus'));
 assert(html.includes('id="incidentReportingPipeline"'));
@@ -42,7 +48,7 @@ assert(reporterSource.includes("onProgress('mail', 'active'"));
 assert(functionsSource.includes('exports.getIncidentServiceStatus = onCall'));
 assert(functionsSource.includes("appCheckMode: 'monitor'"));
 assert(functionsSource.includes('appCheckTokenPresent: Boolean(request.app)'));
-assert(handoff.startsWith('# Handoff - v1.6.25'));
+assert(handoff.startsWith('# Handoff - v1.6.34'));
 
 const stageItems = {};
 const elements = {};
@@ -62,7 +68,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.25' } },
+    body: { dataset: { build: '1.6.34' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -71,7 +77,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.25', assetVersion: '1.6.25-incident-recovery-timeout-abort-stress' }
+  FoxBearBuildInfo: { productVersion: '1.6.34', assetVersion: '1.6.34-history-hard-stall-sw-activity-lifecycle' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -82,6 +88,12 @@ vm.runInContext(incidentStateSource, sandbox, { filename: 'incident-state-servic
 vm.runInContext(incidentRecoveryPolicySource, sandbox, { filename: 'incident-recovery-policy.js' });
 
 vm.runInContext(incidentRecoverySweepSource, sandbox, { filename: 'incident-recovery-sweep-service.js' });
+vm.runInContext(incidentLocalQueueSource, sandbox, { filename: 'incident-local-queue-service.js' });
+vm.runInContext(incidentQueueCoordinationSource, sandbox, { filename: 'incident-queue-coordination-service.js' });
+vm.runInContext(incidentServiceDiagnosticsSource, sandbox, { filename: 'incident-service-diagnostics.js' });
+vm.runInContext(incidentDiagnosticsViewSource, sandbox, { filename: 'incident-diagnostics-view-service.js' });
+vm.runInContext(incidentSubmissionIdentitySource, sandbox, { filename: 'incident-submission-identity-service.js' });
+vm.runInContext(incidentControlsViewSource, sandbox, { filename: 'incident-controls-view-service.js' });
 vm.runInContext(reporterSource, sandbox, { filename: 'incident-reporter.js' });
 const reporter = sandbox.FoxBearIncidentReporter;
 assert.strictEqual(reporter.compareVersions('2.0.0', '2.0.0'), 0);
@@ -128,7 +140,7 @@ const functionSandbox = {
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: { appId: 'verified' } });
-assert.strictEqual(metadata.productVersion, '1.6.25');
+assert.strictEqual(metadata.productVersion, '1.6.34');
 assert.strictEqual(metadata.status, 'ready');
 assert.strictEqual(metadata.appCheckMode, 'monitor');
 assert.strictEqual(metadata.appCheckEnforced, false);
@@ -136,7 +148,7 @@ assert.strictEqual(metadata.appCheckTokenPresent, true);
 const serviceStatus = moduleRecord.exports.getIncidentServiceStatus;
 assert.strictEqual(serviceStatus.options.enforceAppCheck, false);
 serviceStatus.handler({ auth: { uid: 'guest-1' }, app: null }).then(result => {
-  assert.strictEqual(result.productVersion, '1.6.25');
+  assert.strictEqual(result.productVersion, '1.6.34');
   assert.strictEqual(result.appCheckTokenPresent, false);
   return serviceStatus.handler({ auth: null, app: null }).then(
     () => assert.fail('unauthenticated request should fail'),

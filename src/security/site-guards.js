@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.6.25 - site and UI guard helpers
+// FoxBear AI Mastering Studio Pro v1.6.34 - site and UI guard helpers
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.6.25-incident-recovery-timeout-abort-stress';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
@@ -100,6 +100,12 @@
         confirmOpen: false,
         pageHiding: false,
         leaveAttempts: 0,
+        popstateCount: 0,
+        userBackCount: 0,
+        overlayHandledSkips: 0,
+        overlayOpenSkips: 0,
+        overlayReleaseSkips: 0,
+        lastPopstateSource: 'none',
         exitAttemptToken: 0,
         lastLeaveReason: '',
         lastLeaveMethod: '',
@@ -136,8 +142,13 @@
 
     function tryPushExitGuardState() {
         if (navigationExitGuardState.pushed || !global.history || typeof global.history.pushState !== 'function') return;
+        const currentState = global.history.state && typeof global.history.state === 'object' ? global.history.state : {};
+        if (currentState.foxbearExitGuard === true || currentState.__foxbearOverlaySentinel === true) {
+            navigationExitGuardState.pushed = true;
+            return;
+        }
         try {
-            global.history.replaceState({ ...(global.history.state || {}), foxbearEntry: true }, '', global.location.href);
+            global.history.replaceState({ ...currentState, foxbearEntry: true }, '', global.location.href);
             global.history.pushState({ foxbearExitGuard: true }, '', global.location.href);
             navigationExitGuardState.pushed = true;
         } catch (error) {}
@@ -173,7 +184,21 @@
     function handlePopStateGuard(event) {
         const overlayManager = global.FoxBearModalStateMachine;
         const overlayOpen = Number(overlayManager?.getOpenLayerCount?.() || 0) > 0;
-        if (event?.foxbearOverlayHandled === true || overlayOpen) return;
+        const overlayHistoryRelease = overlayManager?.isInternalHistoryReleaseEvent?.(event) === true;
+        navigationExitGuardState.popstateCount += 1;
+        if (event?.foxbearOverlayHandled === true) {
+            navigationExitGuardState.overlayHandledSkips += 1;
+            navigationExitGuardState.lastPopstateSource = event?.foxbearOverlayHistorySource || 'overlay-handled';
+        } else if (overlayHistoryRelease) {
+            navigationExitGuardState.overlayReleaseSkips += 1;
+            navigationExitGuardState.lastPopstateSource = 'internal-overlay-release';
+        } else if (overlayOpen) {
+            navigationExitGuardState.overlayOpenSkips += 1;
+            navigationExitGuardState.lastPopstateSource = 'overlay-open';
+        }
+        if (event?.foxbearOverlayHandled === true || overlayOpen || overlayHistoryRelease) return;
+        navigationExitGuardState.userBackCount += 1;
+        navigationExitGuardState.lastPopstateSource = 'user-back';
         if (navigationExitGuardState.allowLeave) return;
         if (navigationExitGuardState.confirmOpen) {
             navigationExitGuardState.pushed = false;
@@ -333,6 +358,12 @@
             pageHiding: navigationExitGuardState.pageHiding,
             bfcacheReady: true,
             leaveAttempts: navigationExitGuardState.leaveAttempts,
+            popstateCount: navigationExitGuardState.popstateCount,
+            userBackCount: navigationExitGuardState.userBackCount,
+            overlayHandledSkips: navigationExitGuardState.overlayHandledSkips,
+            overlayOpenSkips: navigationExitGuardState.overlayOpenSkips,
+            overlayReleaseSkips: navigationExitGuardState.overlayReleaseSkips,
+            lastPopstateSource: navigationExitGuardState.lastPopstateSource,
             lastLeaveReason: navigationExitGuardState.lastLeaveReason,
             lastLeaveMethod: navigationExitGuardState.lastLeaveMethod,
             fallbackRendered: navigationExitGuardState.fallbackRendered,

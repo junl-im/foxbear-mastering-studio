@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.25
+// FoxBear automatic incident reporter - v1.6.34
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.25-incident-recovery-timeout-abort-stress';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.25').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.34-history-hard-stall-sw-activity-lifecycle';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.34').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -81,6 +81,12 @@
         }
     });
     const recoverySweepService = global.FoxBearIncidentRecoverySweep;
+    const localQueueService = global.FoxBearIncidentLocalQueue;
+    const queueCoordinationService = global.FoxBearIncidentQueueCoordination;
+    const serviceDiagnostics = global.FoxBearIncidentServiceDiagnostics;
+    const diagnosticsView = global.FoxBearIncidentDiagnosticsView;
+    const submissionIdentity = global.FoxBearIncidentSubmissionIdentity;
+    const controlsView = global.FoxBearIncidentControlsView;
     const serviceRecoveryService = global.FoxBearIncidentServiceRecovery || Object.freeze({
         createController(options = {}) {
             let inFlight = null;
@@ -115,7 +121,7 @@
             });
         }
     });
-    if (!support || !stateStore || !recoveryPolicy || !recoverySweepService || !serviceRecoveryService) throw new Error('FoxBear incident support modules are not loaded.');
+    if (!support || !stateStore || !recoveryPolicy || !recoverySweepService || !localQueueService || !queueCoordinationService || !serviceDiagnostics || !diagnosticsView || !submissionIdentity || !controlsView || !serviceRecoveryService) throw new Error('FoxBear incident support modules are not loaded.');
     const {
         storageGet, storageSet, cleanText, redactSensitiveText, normalizeError, fnv1a,
         classifyBrowser, classifyPlatform, compareVersions, getTransportMetrics,
@@ -136,6 +142,8 @@
         clearDeploymentHistory: clearStoredDeploymentHistory
     } = stateStore;
 
+    const incidentQueue = queueCoordinationService.createCoordinator({ key: QUEUE_KEY, maxItems: MAX_QUEUE });
+
     function clearTestHistory() {
         clearStoredTestHistory();
         renderTestHistory();
@@ -148,11 +156,11 @@
 
     function emitIncidentStatusChange(reason = 'status') {
         const summary = getSettingsSummary();
-        try {
-            const detail = Object.freeze({ reason, summary, readiness: state.deploymentReadiness || loadDeploymentReadiness() });
-            const event = typeof global.CustomEvent === 'function' ? new global.CustomEvent(INCIDENT_STATUS_EVENT, { detail }) : { type: INCIDENT_STATUS_EVENT, detail };
-            global.dispatchEvent?.(event);
-        } catch (error) {}
+        diagnosticsView.emitStatus(global, INCIDENT_STATUS_EVENT, {
+            reason,
+            summary,
+            readiness: state.deploymentReadiness || loadDeploymentReadiness()
+        });
         return summary;
     }
 
@@ -438,7 +446,7 @@
             && isDeploymentReadinessStale()
             && (isIncidentDialogVisible() || Boolean(state.deploymentReadiness || loadDeploymentReadiness())),
         checkDeployment: () => runDeploymentSelfCheck(),
-        getQueueLength: () => loadQueue().length,
+        getQueueLength: () => incidentQueue.count(),
         getHistoryCount: () => loadTestHistory().length,
         onResult: result => {
             state.lastLifecycleSweepAt = Date.parse(String(result?.checkedAt || '')) || Date.now();
@@ -734,12 +742,7 @@
                 adaptive.dataset.tone = 'ok';
             }
         }
-        if (queue) {
-            const last = metrics.last;
-            const lastText = last?.at ? ` · 최근 ${last.phase || '확인'} ${last.ok ? '성공' : '실패'} (${last.transport})` : '';
-            queue.textContent = `로컬 대기열 복구 ${metrics.queueRecovered}건 · 현재 ${metrics.queueRemaining}건${lastText}`;
-            queue.dataset.tone = metrics.queueRemaining > 0 ? 'warning' : (metrics.queueRecovered > 0 ? 'ok' : 'neutral');
-        }
+        if (queue) diagnosticsView.renderQueue(document, metrics, incidentQueue.getState());
         if (clear) clear.hidden = metrics.totalAttempts === 0 && metrics.queueRecovered === 0 && metrics.queueRemaining === 0;
     }
 
@@ -758,116 +761,22 @@
     }
 
     function renderServiceDiagnostics(service = state.serviceStatus, errorMessage = state.serviceError, errorCode = state.serviceErrorCode) {
-        const server = document.getElementById('incidentServiceStatus');
-        const functionStatus = document.getElementById('incidentFunctionStatus');
-        const endpointStatus = document.getElementById('incidentEndpointStatus');
-        const directStatus = document.getElementById('incidentDirectStatus');
-        const sameOriginStatus = document.getElementById('incidentSameOriginStatus');
-        const cspStatus = document.getElementById('incidentCspStatus');
-        const appCheck = document.getElementById('incidentAppCheckStatus');
         const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
-        const functionName = cleanText(bridge.incidentStatusFunctionName || 'getIncidentServiceStatus', 80);
         const origin = cleanText(service?.functionsOrigin || bridge.incidentFunctionsOrigin || state.serviceEndpoint || '', 180).replace(/\/+$/, '');
-        const endpoint = origin ? `${origin}/${functionName}` : '';
-        const sameOriginPath = cleanText(bridge.incidentSameOriginStatusPath || '/api/incident/status', 120);
-        const csp = inspectClientCsp(origin);
-        const probe = state.directProbe;
-        const classification = classifyMailTestFailure(errorCode, errorCode, errorMessage);
-
-        if (server) {
-            if (service?.status === 'ready') {
-                const comparison = compareVersions(service.productVersion, CLIENT_PRODUCT_VERSION);
-                const versionText = comparison === -1
-                    ? `서버 v${service.productVersion || '?'} · 업데이트 필요`
-                    : comparison === 1
-                        ? `서버 v${service.productVersion || '?'} · 웹보다 새 버전`
-                        : `서버 v${service.productVersion || CLIENT_PRODUCT_VERSION} · 연결 정상`;
-                server.textContent = `${versionText} · ${service.region || 'region 확인 중'}`;
-                state.serviceEndpoint = origin;
-                server.dataset.tone = comparison === -1 ? 'warning' : 'ok';
-            } else if (errorMessage) {
-                const codeText = cleanText(errorCode || '', 80);
-                const concise = classification === 'client-offline'
-                    ? '브라우저가 오프라인 상태입니다.'
-                    : classification === 'server-response-blocked'
-                        ? 'Endpoint 도달 후 브라우저 응답 읽기가 차단됐습니다.'
-                        : classification === 'server-api-not-deployed'
-                    ? 'Callable 함수가 배포되지 않았거나 이름이 일치하지 않습니다.'
-                    : classification === 'server-network-blocked'
-                        ? 'Functions origin에 도달하지 못했습니다.'
-                        : classification === 'server-api-internal'
-                            ? 'Functions endpoint는 응답했지만 서버 내부 오류가 발생했습니다.'
-                            : '서버 상태 확인에 실패했습니다.';
-                server.textContent = `${concise}${codeText ? ` (${codeText})` : ''}`;
-                server.dataset.tone = 'error';
-            } else {
-                server.textContent = '서버 상태를 확인하지 않았습니다.';
-                server.dataset.tone = 'neutral';
-            }
-        }
-        if (functionStatus) {
-            functionStatus.textContent = `호출 함수: ${functionName}`;
-            functionStatus.dataset.tone = functionName === 'getIncidentServiceStatus' ? 'ok' : 'warning';
-        }
-        if (endpointStatus) {
-            endpointStatus.textContent = endpoint ? `Functions endpoint: ${endpoint}` : 'Functions endpoint: 확인 불가';
-            endpointStatus.dataset.tone = endpoint ? 'neutral' : 'error';
-            endpointStatus.title = endpoint;
-        }
-        if (sameOriginStatus) {
-            const transport = cleanText(service?.transport || bridge.incidentTransport || '', 80);
-            if (service?.status === 'ready' && transport === 'hosting-rewrite') {
-                sameOriginStatus.textContent = `Hosting same-origin 복구: 사용 중 · ${sameOriginPath}`;
-                sameOriginStatus.dataset.tone = 'ok';
-            } else if (sameOriginPath) {
-                sameOriginStatus.textContent = `Hosting same-origin 복구: 대기 · ${sameOriginPath}`;
-                sameOriginStatus.dataset.tone = 'neutral';
-            } else {
-                sameOriginStatus.textContent = 'Hosting same-origin 복구: 설정 없음';
-                sameOriginStatus.dataset.tone = 'warning';
-            }
-        }
-        if (directStatus) {
-            if (service?.status === 'ready') {
-                const transport = cleanText(service?.transport || 'callable', 40);
-                directStatus.textContent = transport === 'hosting-rewrite'
-                    ? 'Callable 기본 경로 실패 후 Hosting same-origin 복구 성공'
-                    : 'Callable 응답: 정상 · 직접 HTTP 진단 불필요';
-                directStatus.dataset.tone = 'ok';
-            } else if (probe?.reachable === true) {
-                directStatus.textContent = probe.corsReadable === false
-                    ? '직접 HTTP 도달 확인 · 응답 읽기 제한(CORS/브라우저 정책)'
-                    : probe.deployed === false
-                        ? `직접 HTTP 응답: ${probe.status || 404} · 함수 미배포 가능성`
-                        : `직접 HTTP 응답: ${probe.status || '응답 수신'} · endpoint 도달 확인`;
-                directStatus.dataset.tone = probe.deployed === false || probe.corsReadable === false ? 'warning' : 'ok';
-            } else if (probe) {
-                directStatus.textContent = `직접 HTTP 도달 실패 · ${cleanText(probe.classification || probe.code || 'network-blocked', 80)}`;
-                directStatus.dataset.tone = 'error';
-            } else {
-                directStatus.textContent = '직접 HTTP 도달성: 오류 발생 시 자동 확인';
-                directStatus.dataset.tone = 'neutral';
-            }
-        }
-        if (cspStatus) {
-            cspStatus.textContent = csp.ok
-                ? 'Hosting CSP: Functions origin 포함됨'
-                : `Hosting CSP: ${csp.message}`;
-            cspStatus.dataset.tone = csp.ok ? 'ok' : 'error';
-        }
-        if (appCheck) {
-            const local = service?.clientAppCheck || bridge.appCheck || {};
-            const configured = local.configured === true;
-            const ready = local.ready === true;
-            const tokenPresent = service?.appCheckTokenPresent === true;
-            const enforced = service?.appCheckEnforced === true;
-            appCheck.textContent = enforced
-                ? `App Check 강제 적용 · ${tokenPresent ? '토큰 확인' : '토큰 없음'}`
-                : configured
-                    ? `App Check 감시 모드 · ${ready && tokenPresent ? '토큰 확인' : '토큰 준비 중'}`
-                    : 'App Check 선택 설정 · 현재는 익명 인증으로 동작';
-            appCheck.dataset.tone = enforced && !tokenPresent ? 'error' : (configured && ready ? 'ok' : 'neutral');
-        }
+        const model = serviceDiagnostics.buildViewModel({
+            service,
+            errorMessage,
+            errorCode,
+            bridge,
+            probe: state.directProbe,
+            csp: inspectClientCsp(origin),
+            clientVersion: CLIENT_PRODUCT_VERSION,
+            serviceEndpoint: state.serviceEndpoint,
+            classifyFailure: classifyMailTestFailure
+        });
+        if (service?.status === 'ready') state.serviceEndpoint = model.origin;
+        diagnosticsView.renderService(document, model);
+        return model;
     }
 
     function getDailyState() {
@@ -887,25 +796,26 @@
     }
 
     function loadQueue() {
-        try {
-            const parsed = JSON.parse(storageGet(QUEUE_KEY, '[]'));
-            return Array.isArray(parsed) ? parsed.slice(-MAX_QUEUE) : [];
-        } catch (error) {
-            return [];
-        }
+        return incidentQueue.load();
     }
 
     function saveQueue(queue) {
-        const safe = Array.isArray(queue) ? queue.slice(-MAX_QUEUE) : [];
-        storageSet(QUEUE_KEY, JSON.stringify(safe));
-        state.queued = safe.length;
+        const saved = incidentQueue.save(queue);
+        state.queued = saved.count;
+        return saved;
     }
 
     function queueIncident(payload) {
-        const queue = loadQueue();
-        if (!queue.some(item => item.fingerprint === payload.fingerprint)) queue.push(payload);
-        saveQueue(queue);
-        recordQueueResult({ ok: false, delivered: 0, remaining: queue.length, phase: 'queue-store', code: 'queued-locally' });
+        const saved = incidentQueue.enqueue(payload);
+        state.queued = saved.count;
+        recordQueueResult({
+            ok: false,
+            delivered: 0,
+            remaining: saved.count,
+            phase: 'queue-store',
+            code: saved.ok ? (saved.duplicate ? 'duplicate-local' : 'queued-locally') : 'queue-storage-failed'
+        });
+        return saved;
     }
 
     function buildPayload(input = {}, options = {}) {
@@ -917,11 +827,14 @@
         const pagePath = cleanText(global.location?.pathname || '/', 160);
         const signature = [category, reason, normalized.code, normalized.message, normalized.stack.split(' ').slice(0, 18).join(' ')].join('|');
         const fingerprint = cleanText(input.fingerprint || fnv1a(signature), 64);
+        const clientAt = submissionIdentity.normalizeClientAt(input.clientAt || new Date().toISOString());
+        const submissionKey = submissionIdentity.createSubmissionKey({ submissionKey: input.submissionKey, fingerprint, clientAt });
         const runtime = global.FoxBearRuntimeHealth?.getReport?.() || null;
         const viewport = `${Math.max(0, global.innerWidth || 0)}x${Math.max(0, global.innerHeight || 0)}`;
         return Object.freeze({
             schemaVersion: 1,
-            clientAt: new Date().toISOString(),
+            clientAt,
+            submissionKey,
             appVersion: cleanText(BUILD_INFO.productVersion || document.body?.dataset?.build || '', 24),
             assetVersion: cleanText(BUILD_INFO.assetVersion || VERSION, 80),
             severity,
@@ -1205,7 +1118,9 @@
                 ready: bridge.appCheck?.ready === true,
                 enforced: state.serviceStatus?.appCheckEnforced === true
             },
-            localQueueCount: loadQueue().length,
+            localQueueCount: incidentQueue.count(),
+            localQueue: incidentQueue.getState(),
+            queueCoordination: incidentQueue.getState(),
             recoveryAttempt: recoveryState.attempt,
             serviceRecoveryAttempt: recoveryState.attempt,
             serviceRecovery: {
@@ -1239,11 +1154,7 @@
 
     async function copyIncidentDiagnostics(button = null) {
         const copied = await copyText(JSON.stringify(buildSanitizedDiagnostics(), null, 2));
-        if (button) {
-            const previous = button.textContent;
-            button.textContent = copied ? '진단 복사됨' : '복사 실패';
-            global.setTimeout(() => { button.textContent = previous || '익명 진단 복사'; }, 1600);
-        }
+        if (button) controlsView.flashButton(global, button, copied ? '진단 복사됨' : '복사 실패', '익명 진단 복사', 1600);
         return copied;
     }
 
@@ -1332,26 +1243,15 @@
             }
             state.directProbe = probe;
 
-            let effectiveCode = originalCode;
-            let effectiveMessage = originalMessage;
-            if (probe?.classification === 'client-offline' || global.navigator?.onLine === false) {
-                effectiveCode = 'FOXBEAR_INCIDENT_CLIENT_OFFLINE';
-                effectiveMessage = '브라우저가 오프라인 상태입니다. 연결 복구 후 자동으로 다시 확인합니다.';
-            } else if (probe?.deployed === false || /functions\/(?:not-found|unimplemented)/i.test(originalCode)) {
-                effectiveCode = 'functions/not-found';
-                effectiveMessage = 'getIncidentServiceStatus Callable 함수가 배포되지 않았거나 현재 region에 없습니다.';
-            } else if (csp.ok === false || probe?.reachable === false) {
-                effectiveCode = 'FOXBEAR_INCIDENT_CALLABLE_NETWORK_BLOCKED';
-                effectiveMessage = csp.ok === false
-                    ? 'Hosting CSP connect-src에 Firebase Functions origin이 포함되지 않았습니다.'
-                    : 'Firebase Functions endpoint 직접 HTTP 도달성 확인에 실패했습니다.';
-            } else if (probe?.reachable === true && probe?.corsReadable === false) {
-                effectiveCode = 'FOXBEAR_INCIDENT_CALLABLE_RESPONSE_BLOCKED';
-                effectiveMessage = 'Functions endpoint에는 도달했지만 브라우저가 응답 내용을 읽지 못했습니다. Callable CORS 응답을 확인하세요.';
-            } else if (probe?.reachable === true && /functions\/internal/i.test(originalCode)) {
-                effectiveCode = 'functions/internal';
-                effectiveMessage = 'Functions endpoint는 응답했지만 Callable 내부 처리에서 오류가 발생했습니다.';
-            }
+            const classifiedFailure = serviceDiagnostics.classifyFailure({
+                originalCode,
+                originalMessage,
+                probe,
+                csp,
+                online: global.navigator?.onLine !== false
+            });
+            const effectiveCode = classifiedFailure.code;
+            const effectiveMessage = classifiedFailure.message;
 
             state.serviceError = effectiveMessage;
             state.serviceErrorCode = effectiveCode;
@@ -1381,7 +1281,12 @@
         try {
             const result = await withTimeout(bridge.logIncident(payload), SEND_TIMEOUT_MS, options.signal);
             throwIfAborted(options.signal, 'incident-submit');
-            recordTransport({ phase: 'incident-submit', ok: true, transport: result?.transport || 'callable' });
+            if (result?.submissionKey && payload.submissionKey && result.submissionKey !== payload.submissionKey) {
+                const identityError = new Error('Incident submission identity did not match the server acknowledgement.');
+                identityError.code = 'FOXBEAR_INCIDENT_SUBMISSION_IDENTITY_MISMATCH';
+                throw identityError;
+            }
+            recordTransport({ phase: 'incident-submit', ok: true, transport: result?.transport || 'callable', code: options.ownershipGeneration ? `lease-generation-${options.ownershipGeneration}` : '' });
             return result;
         } catch (error) {
             recordTransport({ phase: 'incident-submit', ok: false, transport: error?.transport || 'unresolved', code: error?.code || error?.name || 'delivery-failed' });
@@ -1419,43 +1324,76 @@
 
     async function flushQueue(options = {}) {
         throwIfAborted(options.signal, 'queue');
-        if (state.flushing || global.navigator?.onLine === false || !isEnabled()) return Object.freeze({ ok: false, skipped: true });
-        const queue = loadQueue();
-        if (!queue.length) {
-            const empty = Object.freeze({ ok: true, delivered: 0, remaining: 0 });
-            recordQueueResult(empty);
-            return empty;
-        }
-        state.flushing = true;
-        const remaining = [];
-        let delivered = 0;
-        try {
-            for (let index = 0; index < queue.length; index += 1) {
-                const payload = queue[index];
-                try {
-                    await deliver(payload, { signal: options.signal });
-                    throwIfAborted(options.signal, 'queue');
-                    delivered += 1;
-                    state.delivered += 1;
-                    state.lastDeliveredAt = Date.now();
-                    if (payload.automatic) {
-                        state.automaticSentThisSession += 1;
-                        incrementDailyCount();
-                    }
-                } catch (error) {
-                    if (isAbortError(error)) throw error;
-                    remaining.push(...queue.slice(index));
-                    state.lastError = cleanText(error?.message || error, 300);
-                    break;
-                }
+        if (global.navigator?.onLine === false || !isEnabled()) return Object.freeze({ ok: false, skipped: true, reason: 'offline-or-disabled', remaining: incidentQueue.count() });
+        const ownership = await incidentQueue.runExclusive(async owner => {
+            throwIfAborted(owner.signal, 'queue');
+            if (state.flushing) return Object.freeze({ ok: false, skipped: true, reason: 'same-tab-in-flight', remaining: incidentQueue.count() });
+            const snapshot = incidentQueue.snapshot();
+            if (!snapshot.items.length) {
+                const empty = Object.freeze({ ok: true, delivered: 0, remaining: 0, crossTabOwned: true });
+                recordQueueResult(empty);
+                return empty;
             }
-            saveQueue(remaining);
-            const result = Object.freeze({ ok: remaining.length === 0, delivered, remaining: remaining.length });
-            recordQueueResult(result);
-            return result;
-        } finally {
-            state.flushing = false;
+            state.flushing = true;
+            const deliveredEntries = [];
+            let delivered = 0;
+            let deliveryError = null;
+            try {
+                for (const payload of snapshot.items) {
+                    try {
+                        if (!owner.isOwner()) {
+                            const ownershipError = new Error('Incident queue ownership was lost to another tab.');
+                            ownershipError.name = 'AbortError';
+                            ownershipError.code = 'FOXBEAR_INCIDENT_QUEUE_OWNERSHIP_LOST';
+                            throw ownershipError;
+                        }
+                        await deliver(payload, { signal: owner.signal, ownershipGeneration: owner.generation, queueEntryId: incidentQueue.entryId(payload) });
+                        throwIfAborted(owner.signal, 'queue');
+                        if (!owner.isOwner()) {
+                            const ownershipError = new Error('Incident queue ownership was lost after delivery.');
+                            ownershipError.name = 'AbortError';
+                            ownershipError.code = 'FOXBEAR_INCIDENT_QUEUE_OWNERSHIP_LOST';
+                            throw ownershipError;
+                        }
+                        deliveredEntries.push(payload);
+                        delivered += 1;
+                        state.delivered += 1;
+                        state.lastDeliveredAt = Date.now();
+                        if (payload.automatic) {
+                            state.automaticSentThisSession += 1;
+                            incrementDailyCount();
+                        }
+                    } catch (error) {
+                        deliveryError = error;
+                        if (!isAbortError(error)) state.lastError = cleanText(error?.message || error, 300);
+                        break;
+                    }
+                }
+                const committed = incidentQueue.removeEntries(deliveredEntries);
+                state.queued = committed.count;
+                const result = Object.freeze({
+                    ok: !deliveryError && committed.ok && committed.count === 0,
+                    delivered,
+                    remaining: committed.count,
+                    preservedConcurrent: Math.max(0, Number(committed.preservedConcurrent || 0)),
+                    storageOk: committed.ok,
+                    crossTabOwned: true,
+                    ownershipGeneration: Math.max(0, Number(owner.generation || 0)),
+                    ownershipMode: cleanText(owner.mode || '', 24)
+                });
+                recordQueueResult(result);
+                if (deliveryError && isAbortError(deliveryError)) throw deliveryError;
+                return result;
+            } finally {
+                state.flushing = false;
+            }
+        }, { signal: options.signal });
+        if (!ownership.acquired) {
+            state.queued = incidentQueue.count();
+            emitIncidentStatusChange('queue-peer-owner');
+            return Object.freeze({ ok: false, skipped: true, peerOwned: true, reason: ownership.reason || 'peer-owner', remaining: state.queued });
         }
+        return ownership.value;
     }
 
     function reportRuntimeIssue(detail = {}) {
@@ -1547,69 +1485,26 @@
     }
 
     function renderControls(message = '') {
-        const toggle = document.getElementById('incidentReportingToggle');
-        const testButton = document.getElementById('incidentReportingTest');
-        const retryButton = document.getElementById('incidentServiceRetry');
-        const recoveryButton = document.getElementById('incidentAutoRecovery');
-        const diagnosticsButton = document.getElementById('incidentDiagnosticsCopy');
-        const recoveryStatus = document.getElementById('incidentAutoRecoveryStatus');
-        const deploymentButton = document.getElementById('incidentDeploymentCheck');
-        const copyButton = document.getElementById('incidentDeployCopy');
-        const historyClear = document.getElementById('incidentHistoryClear');
-        const status = document.getElementById('incidentReportingStatus');
         const current = getStatus();
         const recoveryState = getServiceRecoveryState();
-        if (toggle) {
-            toggle.textContent = current.enabled ? '자동 신고 켜짐' : '자동 신고 꺼짐';
-            toggle.setAttribute('aria-pressed', current.enabled ? 'true' : 'false');
-        }
-        if (testButton) {
-            testButton.disabled = !current.enabled || state.testInFlight;
-            testButton.setAttribute('aria-busy', state.testInFlight ? 'true' : 'false');
-        }
-        if (retryButton) {
-            retryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || recoveryState.inFlight;
-            retryButton.setAttribute('aria-busy', state.serviceCheckInFlight ? 'true' : 'false');
-        }
-        if (recoveryButton) {
-            recoveryButton.disabled = state.testInFlight || Boolean(state.serviceCheckInFlight) || recoveryState.inFlight;
-            recoveryButton.textContent = recoveryState.inFlight ? '자동 복구 실행 중…' : '연결 자동 복구';
-            recoveryButton.setAttribute('aria-busy', recoveryState.inFlight ? 'true' : 'false');
-        }
-        if (diagnosticsButton) diagnosticsButton.disabled = recoveryState.inFlight;
-        if (recoveryStatus) {
-            const remainingSeconds = recoveryState.nextAt > Date.now() ? Math.max(1, Math.ceil((recoveryState.nextAt - Date.now()) / 1000)) : 0;
-            if (recoveryState.inFlight) {
-                recoveryStatus.textContent = '서버 연결·로컬 대기열·배포 상태를 순서대로 복구 중입니다.';
-                recoveryStatus.dataset.tone = 'active';
-            } else if (recoveryState.waitingForOnline) {
-                recoveryStatus.textContent = '오프라인 상태 · 연결 복구 시 자동 재확인';
-                recoveryStatus.dataset.tone = 'warning';
-            } else if (remainingSeconds) {
-                recoveryStatus.textContent = `일시적 연결 오류 감지 · ${remainingSeconds}초 후 자동 재확인 (${recoveryState.attempt}/${recoveryState.maxAttempts})`;
-                recoveryStatus.dataset.tone = 'warning';
-            } else if (recoveryState.lastResult?.ok === true) {
-                recoveryStatus.textContent = `최근 자동 복구 성공 · 대기열 ${recoveryState.lastResult.queueRemaining || 0}건`;
-                recoveryStatus.dataset.tone = 'ok';
-            } else if (recoveryState.lastResult?.ok === false) {
-                recoveryStatus.textContent = `최근 자동 복구 실패 · ${cleanText(recoveryState.lastResult.code || recoveryState.lastResult.status || '확인 필요', 80)}`;
-                recoveryStatus.dataset.tone = 'error';
-            } else {
-                recoveryStatus.textContent = '일시적 네트워크·인증 오류는 최대 3회 자동 재확인하며, 실패 신고는 로컬 대기열에 보관합니다.';
-                recoveryStatus.dataset.tone = 'neutral';
-            }
-        }
-        if (deploymentButton) {
-            const availability = getDeploymentCheckAvailability();
-            deploymentButton.disabled = state.testInFlight || Boolean(state.deploymentCheckInFlight) || !availability.ready;
-            deploymentButton.textContent = state.deploymentCheckInFlight ? '배포 상태 점검 중…' : availability.ready ? '배포 상태 자체 점검' : `다시 점검 ${availability.remainingSeconds}초 후`;
-            deploymentButton.setAttribute('aria-busy', state.deploymentCheckInFlight ? 'true' : 'false');
-        }
-        if (copyButton) copyButton.dataset.command = DEPLOY_COMMAND;
-        if (status) {
-            status.textContent = message || `대기 ${current.queued}건 · 오늘 자동 제출 ${current.dailyCount}/${MAX_AUTOMATIC_PER_DAY}`;
-            status.dataset.tone = /완료|켜짐|대기 0건/.test(status.textContent) ? 'ok' : (/오류|실패|권한|중단/.test(status.textContent) ? 'error' : 'neutral');
-        }
+        const availability = getDeploymentCheckAvailability();
+        controlsView.render(document, {
+            enabled: current.enabled,
+            queued: current.queued,
+            dailyCount: current.dailyCount,
+            maxDaily: MAX_AUTOMATIC_PER_DAY,
+            message,
+            testInFlight: state.testInFlight,
+            serviceCheckInFlight: Boolean(state.serviceCheckInFlight),
+            recovery: recoveryState,
+            deployment: {
+                inFlight: Boolean(state.deploymentCheckInFlight),
+                ready: availability.ready,
+                remainingSeconds: availability.remainingSeconds
+            },
+            deployCommand: DEPLOY_COMMAND,
+            now: Date.now()
+        });
         renderServiceDiagnostics();
         renderTransportMetrics();
         renderRecoveryActions(state.lastRecoveryStatus);
@@ -1622,38 +1517,32 @@
 
     function bindControls() {
         if (!state.deploymentReadiness) state.deploymentReadiness = loadDeploymentReadiness();
-        const toggle = document.getElementById('incidentReportingToggle');
-        const testButton = document.getElementById('incidentReportingTest');
-        const retryButton = document.getElementById('incidentServiceRetry');
-        const recoveryButton = document.getElementById('incidentAutoRecovery');
-        const diagnosticsButton = document.getElementById('incidentDiagnosticsCopy');
-        const recoveryStatus = document.getElementById('incidentAutoRecoveryStatus');
-        const deploymentButton = document.getElementById('incidentDeploymentCheck');
-        const copyButton = document.getElementById('incidentDeployCopy');
-        const historyClear = document.getElementById('incidentHistoryClear');
-        const transportMetricsClear = document.getElementById('incidentTransportMetricsClear');
-        const deploymentHistoryClear = document.getElementById('incidentDeploymentHistoryClear');
-        const deploymentChecks = document.getElementById('incidentDeploymentChecks');
-        const recoveryActions = document.getElementById('incidentRecoveryActions');
-        if (recoveryActions && !recoveryActions.dataset.bound) {
-            recoveryActions.dataset.bound = 'true';
-            recoveryActions.addEventListener('click', event => {
+        const nodes = controlsView.collect(document);
+        const {
+            toggle,
+            testButton,
+            retryButton,
+            recoveryButton,
+            diagnosticsButton,
+            deploymentButton,
+            deployCopyButton: copyButton,
+            historyClear,
+            transportMetricsClear,
+            deploymentHistoryClear,
+            deploymentChecks,
+            recoveryActions
+        } = nodes;
+        controlsView.bindOnce(recoveryActions, 'recoveryActions', 'click', event => {
                 const button = event.target?.closest?.('[data-incident-recovery-action]');
                 if (!button || button.disabled) return;
                 runRecoveryAction(button.dataset.incidentRecoveryAction || '');
             });
-        }
-        if (toggle && !toggle.dataset.bound) {
-            toggle.dataset.bound = 'true';
-            toggle.addEventListener('click', () => {
+        controlsView.bindOnce(toggle, 'toggle', 'click', () => {
                 const enabled = setEnabled(!isEnabled());
                 renderControls(enabled ? '자동 문제 신고를 켰습니다.' : '자동 문제 신고를 껐습니다.');
                 if (enabled) flushQueue().then(() => renderControls()).catch(() => renderControls());
             });
-        }
-        if (retryButton && !retryButton.dataset.bound) {
-            retryButton.dataset.bound = 'true';
-            retryButton.addEventListener('click', async () => {
+        controlsView.bindOnce(retryButton, 'retry', 'click', async () => {
                 retryButton.disabled = true;
                 renderControls('서버 연결과 배포 버전을 다시 확인합니다…');
                 try {
@@ -1669,20 +1558,11 @@
                     renderControls(`서버 연결 재확인 실패 · ${code || reason}`);
                 }
             });
-        }
-        if (recoveryButton && !recoveryButton.dataset.bound) {
-            recoveryButton.dataset.bound = 'true';
-            recoveryButton.addEventListener('click', () => {
+        controlsView.bindOnce(recoveryButton, 'recovery', 'click', () => {
                 runServiceAutoRecovery({ manual: true, checkDeployment: true }).catch(() => {});
             });
-        }
-        if (diagnosticsButton && !diagnosticsButton.dataset.bound) {
-            diagnosticsButton.dataset.bound = 'true';
-            diagnosticsButton.addEventListener('click', () => copyIncidentDiagnostics(diagnosticsButton));
-        }
-        if (deploymentButton && !deploymentButton.dataset.bound) {
-            deploymentButton.dataset.bound = 'true';
-            deploymentButton.addEventListener('click', async () => {
+        controlsView.bindOnce(diagnosticsButton, 'diagnostics', 'click', () => copyIncidentDiagnostics(diagnosticsButton));
+        controlsView.bindOnce(deploymentButton, 'deployment', 'click', async () => {
                 renderControls('웹·서버·Firestore·Gmail SMTP 배포 상태를 점검합니다…');
                 try {
                     const result = await runDeploymentSelfCheck();
@@ -1695,45 +1575,25 @@
                     renderControls(`배포 상태 자체 점검 실패 · ${code || reason}`);
                 }
             });
-        }
-        if (copyButton && !copyButton.dataset.bound) {
-            copyButton.dataset.bound = 'true';
-            copyButton.addEventListener('click', async () => {
+        controlsView.bindOnce(copyButton, 'deployCopy', 'click', async () => {
                 const copied = await copyDeployCommand();
-                const previous = copyButton.textContent;
-                copyButton.textContent = copied ? '배포 명령 복사됨' : '복사 실패';
-                global.setTimeout(() => { copyButton.textContent = previous || '배포 명령 복사'; }, 1800);
+                controlsView.flashButton(global, copyButton, copied ? '배포 명령 복사됨' : '복사 실패', '배포 명령 복사', 1800);
             });
-        }
-        if (deploymentChecks && !deploymentChecks.dataset.copyBound) {
-            deploymentChecks.dataset.copyBound = 'true';
-            deploymentChecks.addEventListener('click', event => {
+        controlsView.bindOnce(deploymentChecks, 'copy', 'click', event => {
                 const button = event.target?.closest?.('[data-deploy-copy]');
                 const row = button?.closest?.('[data-deploy-check]');
                 if (button && row) copyDeploymentRecovery(row.dataset.deployCheck || '', button);
             });
-        }
-        if (deploymentHistoryClear && !deploymentHistoryClear.dataset.bound) {
-            deploymentHistoryClear.dataset.bound = 'true';
-            deploymentHistoryClear.addEventListener('click', clearDeploymentHistory);
-        }
-        if (historyClear && !historyClear.dataset.bound) {
-            historyClear.dataset.bound = 'true';
-            historyClear.addEventListener('click', clearTestHistory);
-        }
-        if (transportMetricsClear && !transportMetricsClear.dataset.bound) {
-            transportMetricsClear.dataset.bound = 'true';
-            transportMetricsClear.addEventListener('click', () => {
+        controlsView.bindOnce(deploymentHistoryClear, 'clear', 'click', clearDeploymentHistory);
+        controlsView.bindOnce(historyClear, 'clear', 'click', clearTestHistory);
+        controlsView.bindOnce(transportMetricsClear, 'clear', 'click', () => {
                 clearTransportMetrics();
                 const bridge = global.FoxBearFirebase?.getStatus?.() || global.FoxBearFirebase || {};
                 if (typeof bridge.clearIncidentRouteHealth === 'function') bridge.clearIncidentRouteHealth();
                 renderTransportMetrics();
                 renderControls('익명 전송 경로 기록과 적응형 우회 상태를 초기화했습니다.');
             });
-        }
-        if (testButton && !testButton.dataset.bound) {
-            testButton.dataset.bound = 'true';
-            testButton.addEventListener('click', async () => {
+        controlsView.bindOnce(testButton, 'test', 'click', async () => {
                 if (state.testInFlight) return;
                 state.testInFlight = true;
                 resetPipelineStages();
@@ -1796,7 +1656,6 @@
                     renderControls(finalMessage);
                 }
             });
-        }
         renderControls();
         const dialogVisible = document.getElementById('incidentReportingDialog')?.classList?.contains('show');
         if (dialogVisible) {
@@ -1813,6 +1672,7 @@
             automaticSentThisSession: state.automaticSentThisSession,
             dailyCount: getDailyState().count,
             queued: loadQueue().length,
+            queueCoordination: incidentQueue.getState(),
             attempted: state.attempted,
             delivered: state.delivered,
             suppressed: state.suppressed,
@@ -1839,6 +1699,15 @@
             deployCommand: DEPLOY_COMMAND
         });
     }
+
+    const unsubscribeQueueCoordination = incidentQueue.subscribe(detail => {
+        state.queued = Math.max(0, Number(detail?.count || incidentQueue.count()));
+        if (detail?.source === 'peer') {
+            renderTransportMetrics();
+            syncSettingsSummary();
+            emitIncidentStatusChange('queue-peer-sync');
+        }
+    });
 
     global.addEventListener('foxbear:runtime-issue', event => { reportRuntimeIssue(event.detail || {}).catch(() => {}); });
     global.addEventListener('foxbear:update-safety-risk', event => {
@@ -1876,6 +1745,12 @@
             return null;
         },
         onError: detail => recordLifecycleCallbackError(detail)
+    });
+
+    global.addEventListener('pagehide', event => {
+        if (event?.persisted) return;
+        unsubscribeQueueCoordination?.();
+        incidentQueue.dispose?.();
     });
 
     document.addEventListener('DOMContentLoaded', () => {

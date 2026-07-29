@@ -14,11 +14,17 @@ const incidentRecoverySweepSource = read('src/boot/incident-recovery-sweep-servi
 const incidentSupportSource = read('src/boot/incident-support-service.js');
 const incidentStateSource = read('src/boot/incident-state-service.js');
 const incidentRecoveryPolicySource = read('src/boot/incident-recovery-policy.js');
+const incidentLocalQueueSource = read('src/boot/incident-local-queue-service.js');
+const incidentQueueCoordinationSource = read('src/boot/incident-queue-coordination-service.js');
+const incidentServiceDiagnosticsSource = read('src/boot/incident-service-diagnostics.js');
+const incidentDiagnosticsViewSource = read('src/boot/incident-diagnostics-view-service.js');
+const incidentSubmissionIdentitySource = read('src/boot/incident-submission-identity-service.js');
+const incidentControlsViewSource = read('src/boot/incident-controls-view-service.js');
 const firebaseSource = read('src/firebase-bootstrap.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.25');
+assert.strictEqual(pkg.version, '1.6.34');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 assert(pkg.qaChecks.length >= 333);
 assert(firebaseSource.includes('FOXBEAR_INCIDENT_READINESS_CONTRACT_INVALID'));
@@ -50,7 +56,7 @@ const sandbox = {
     setItem: (key, value) => memory.set(key, String(value))
   },
   document: {
-    body: { dataset: { build: '1.6.25' }, appendChild() {} }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.34' }, appendChild() {} }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -59,7 +65,7 @@ const sandbox = {
     addEventListener() {}, createElement: makeElement, execCommand: () => true
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.6.25', assetVersion: '1.6.25-incident-recovery-timeout-abort-stress' }
+  FoxBearBuildInfo: { productVersion: '1.6.34', assetVersion: '1.6.34-history-hard-stall-sw-activity-lifecycle' }
 };
 const completeRemote = () => {
   const checkedAt = new Date().toISOString();
@@ -69,7 +75,7 @@ const completeRemote = () => {
     checkedAt,
     lastHealthyAt: checkedAt,
     nextCheckAt: new Date(Date.now() + 60000).toISOString(),
-    service: { status: 'ready', productVersion: '1.6.25', functionsOrigin: origin },
+    service: { status: 'ready', productVersion: '1.6.34', functionsOrigin: origin },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -97,6 +103,12 @@ vm.runInContext(incidentStateSource, sandbox, { filename: 'incident-state-servic
 vm.runInContext(incidentRecoveryPolicySource, sandbox, { filename: 'incident-recovery-policy.js' });
 
 vm.runInContext(incidentRecoverySweepSource, sandbox, { filename: 'incident-recovery-sweep-service.js' });
+vm.runInContext(incidentLocalQueueSource, sandbox, { filename: 'incident-local-queue-service.js' });
+vm.runInContext(incidentQueueCoordinationSource, sandbox, { filename: 'incident-queue-coordination-service.js' });
+vm.runInContext(incidentServiceDiagnosticsSource, sandbox, { filename: 'incident-service-diagnostics.js' });
+vm.runInContext(incidentDiagnosticsViewSource, sandbox, { filename: 'incident-diagnostics-view-service.js' });
+vm.runInContext(incidentSubmissionIdentitySource, sandbox, { filename: 'incident-submission-identity-service.js' });
+vm.runInContext(incidentControlsViewSource, sandbox, { filename: 'incident-controls-view-service.js' });
 vm.runInContext(reporterSource, sandbox, { filename: 'incident-reporter.js' });
 const reporter = sandbox.FoxBearIncidentReporter;
 

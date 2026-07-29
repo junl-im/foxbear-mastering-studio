@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.25-incident-recovery-timeout-abort-stress';
+const version = '1.6.34-history-hard-stall-sw-activity-lifecycle';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

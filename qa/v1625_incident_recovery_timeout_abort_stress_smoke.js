@@ -63,12 +63,12 @@ function loadController(extra = {}) {
 }
 
 async function main() {
-    assert.strictEqual(pkg.version, '1.6.25');
-    assert.strictEqual(pkg.foxbearRelease.buildId, 'incident-recovery-timeout-abort-stress');
-    assert.strictEqual(pkg.qaChecks.at(-1), 'node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js');
+    assert.strictEqual(pkg.version, '1.6.34');
+    assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
+    assert(pkg.qaChecks.includes('node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js'));
 
     const service = loadController();
-    assert.strictEqual(service.version, '1.6.25');
+    assert.strictEqual(service.version, '1.6.34');
     assert.deepStrictEqual(Array.from(service.defaultDelaysMs), [5000, 15000, 45000]);
     assert.strictEqual(service.defaultPhaseTimeoutsMs.service, 22000);
 

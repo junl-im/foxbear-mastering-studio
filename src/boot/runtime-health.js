@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.25-incident-recovery-timeout-abort-stress';
+    const FALLBACK_VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

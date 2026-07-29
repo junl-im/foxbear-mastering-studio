@@ -1,22 +1,123 @@
-# FoxBear AI Mastering Studio Pro v1.6.25
+# FoxBear AI Mastering Studio Pro v1.6.34
+
+
+## v1.6.34 update
+
+- Terminal overlay history hard-stall recovery after 30 seconds without duplicate traversal.
+- BFCache-safe service-worker activity heartbeat/channel pause and resume.
+- Idempotent service-worker registration observers and expanded anonymous diagnostics.
+- Configured cumulative static/behavioral target: 374 checks.
+
+## v1.6.33 full audit and overlay history watchdog recovery
+
+- An omitted overlay `popstate` is reconciled from the exact destination generation instead of leaving history cleanup active indefinitely.
+- A sentinel that has not moved is diagnosed as a hard stall without issuing a duplicate Back request.
+- Delayed internal generations are bounded by both time and count.
+- System, performance, technical, functional, engine, error, bug, and exception gates are re-audited.
 
 ## Latest patch
 
-- Automatic incident-service retry timers and phase execution now live in a dedicated recovery controller.
-- Failed recovery runs schedule their next bounded retry only after active ownership is released, preventing silent retry loss.
-- Service, queue, and deployment phases have individual deadlines and share an AbortSignal so late completions cannot overwrite timed-out state.
-- Offline periods wait for connectivity without consuming retry attempts, and hidden settings surfaces suspend unused retries.
-- Repeated network triggers share one active task and repeated schedule requests keep one timer.
-- Audio mastering DSP, quality targets, encoder formats, Firebase schema, SMTP payloads, and incident contents are unchanged.
+- New regression: `node qa/v1633_overlay_history_watchdog_recovery_smoke.js`.
+- Full static and behavioral gate: `npm run check:static`.
+- Mandatory final-output contract remains `DELIVERY_RULES.md`:
+  1. 작업한 내역
+  2. 다운로드 파일 2종
+  3. 다음 예정 내역
+- Configured static/regression target: 373 checks.
+
+# FoxBear AI Mastering Studio Pro v1.6.32
+
+## v1.6.32 overlay history generation and BFCache recovery
+
+- Every overlay history sentinel now carries a generation shared with its exact Back destination.
+- Delayed internal history cleanup can no longer consume a newer user Back event.
+- BFCache restore reconciles a completed or interrupted internal release without stacking a second exit guard.
+- Download, recommendation, settings, and incident dialogs share the same generation-fenced navigation contract.
+
+## Latest patch
+
+- The exit guard asks the modal controller whether the specific popstate belongs to an internal release.
+- Pagehide suspends the release watchdog, while pageshow settles, retries, or safely abandons the exact generation.
+- Performance diagnostics expose generation, suspended, recovered, mismatch, and stale-release counters without navigation URLs or user content.
 
 1. 작업한 내역
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
 - 전체 정적·행동 검사: `npm run check:static`
-- 신규 회귀: `node qa/v1625_incident_recovery_timeout_abort_stress_smoke.js`
+- 신규 회귀: `node qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js`
 - 인수인계 검사: `npm run handoff:check`
-- 설정된 정적·회귀 검사: 359개.
+- 설정된 정적·회귀 검사: 372개.
+
+# FoxBear AI Mastering Studio Pro v1.6.30
+
+## v1.6.30 overlay history release and exit guard safety
+
+- Normal dialog close no longer triggers the leave-confirmation or “exit cancelled” message.
+- Internal overlay history cleanup is distinguished from a genuine browser Back action.
+- Genuine Back still closes an open top dialog first and reaches the workspace exit guard when no dialog is open.
+
+## Latest patch
+
+- The modal controller exposes its short-lived internal history-release state.
+- The exit guard ignores only that internal release instead of relying on listener execution order.
+- Overlay popstate events are marked handled only when a dialog or sentinel release was actually consumed.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1630_overlay_history_release_false_exit_prompt_smoke.js`
+- 인수인계 검사: `npm run handoff:check`
+- 설정된 정적·회귀 검사: 370개.
+
+# FoxBear AI Mastering Studio Pro v1.6.29
+
+
+## v1.6.29 incident submission fencing and adaptive polling
+
+- Stable per-occurrence submission identity prevents delayed local-queue recovery from creating a second server report.
+- Lease-generation fencing stops stale tabs before they commit delivered entries.
+- Cross-tab fallback polling now slows down for idle and hidden tabs and immediately resynchronizes on foreground return.
+- Incident settings control rendering and one-time bindings are isolated from the reporter orchestration.
+
+## Latest patch
+
+- One stable submission key now follows an incident occurrence from local queue storage through Callable and Firestore fallback delivery.
+- Delayed recovery no longer derives a new server report ID from the retry clock.
+- Lease ownership is fenced by token and generation before delivery commit.
+- Fallback synchronization uses active, idle, and hidden-page polling schedules with immediate foreground resync.
+- Settings control rendering and one-time event binding are isolated in a dedicated view module.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1629_incident_submission_fencing_adaptive_polling_smoke.js`
+- 인수인계 검사: `npm run handoff:check`
+- 설정된 정적·회귀 검사: 369개.
+
+# FoxBear AI Mastering Studio Pro v1.6.27
+
+## Latest patch
+
+- Local anonymous incident reports are stored in per-tab bounded shards, preventing two tabs from overwriting one shared queue array.
+- Queue changes synchronize through BroadcastChannel with a storage-revision fallback.
+- Only one browser tab may flush reports at a time through Web Locks or a renewable localStorage lease fallback.
+- Delivered reports are committed by exact occurrence, while reports added during recovery and later matching fingerprints remain safe.
+- Legacy queues migrate automatically through the coordinated path.
+- Cross-tab diagnostics remain metadata-only; audio, filenames, report contents, credentials, and local paths are unchanged.
+
+1. 작업한 내역
+2. 다운로드 파일 2종
+3. 다음 예정 내역
+
+- 전체 정적·행동 검사: `npm run check:static`
+- 신규 회귀: `node qa/v1627_incident_multitab_queue_ownership_stress_smoke.js`
+- 인수인계 검사: `npm run handoff:check`
+- 설정된 정적·회귀 검사: 364개.
 
 # FoxBear AI Mastering Studio Pro v1.6.16
 

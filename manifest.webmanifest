@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.25 (incident-recovery-timeout-abort-stress).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.34 (history-hard-stall-sw-activity-lifecycle).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.25"
+  "version": "1.6.34"
 }

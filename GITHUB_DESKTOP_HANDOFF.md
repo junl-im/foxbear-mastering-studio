@@ -1,3 +1,57 @@
+# GitHub Desktop Handoff - v1.6.34
+
+- Apply the complete v1.6.33 overwrite package or commit the full release package.
+- Keep the watchdog generation reconciliation and the no-duplicate-Back hard-stall rule together in `src/ui/modal-controller.js`.
+- Run `npm run version:check`, `npm run handoff:check`, `node qa/v1633_overlay_history_watchdog_recovery_smoke.js`, and both package verification commands before publishing.
+- Confirm the first `Current release` block in `HANDOFF.md` reports v1.6.33 and 373 configured checks.
+- Confirm `DELIVERY_RULES.md`, the v1.6.33 audit document, and the v1.6.33 regression remain in both archives.
+- Recommended branch: `patch/v1.6.33`.
+
+# GitHub Desktop Handoff - v1.6.32
+
+- Apply the complete v1.6.32 overwrite package or commit the full release package.
+- Run `Fetch origin` before applying the patch and use `Push origin` only after all gates pass.
+- Run `npm run version:check`, `npm run handoff:check`, `node qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js`, and both package verification commands before publishing.
+- Confirm the first `Current release` block in `HANDOFF.md` reports v1.6.32 and 372 configured checks.
+- Confirm `modal-controller.js`, `site-guards.js`, the v1.6.32 audit document, and the v1.6.32 regression remain in both archives.
+- Recommended branch: `patch/v1.6.32`.
+
+# GitHub Desktop Handoff - v1.6.29
+
+- Apply the complete v1.6.29 overwrite package or commit the full release package.
+- Confirm `incident-submission-identity-service.js` loads before `firebase-bootstrap.js`, and `incident-controls-view-service.js` loads before `incident-reporter.js`.
+- Run `npm run version:check`, `npm run handoff:check`, `node qa/v1629_incident_submission_fencing_adaptive_polling_smoke.js`, and both package verification commands before publishing.
+- Confirm the first `Current release` block in `HANDOFF.md` reports v1.6.29 and 369 configured checks.
+- Confirm both new runtime modules, the v1.6.29 audit document, and the v1.6.29 regression remain in both archives.
+- Recommended branch: `patch/v1.6.29`.
+
+# GitHub Desktop Handoff - v1.6.28
+
+- Apply the complete v1.6.28 overwrite package or commit the full release package.
+- Confirm `incident-diagnostics-view-service.js` loads after `incident-service-diagnostics.js` and before `incident-reporter.js`.
+- Run `npm run version:check`, `npm run handoff:check`, `node qa/v1628_incident_lease_takeover_fallback_ui_smoke.js`, and both package verification commands before publishing.
+- Confirm the first `Current release` block in `HANDOFF.md` reports v1.6.28 and 366 configured checks.
+- Confirm the new view module, v1.6.28 audit document, and v1.6.28 regression remain in both archives.
+- Recommended branch: `patch/v1.6.28`.
+
+# GitHub Desktop Handoff - v1.6.27
+
+- Apply the complete v1.6.27 overwrite package or commit the full release package.
+- Confirm `incident-queue-coordination-service.js` loads after `incident-local-queue-service.js` and before `incident-reporter.js`.
+- Run `npm run version:check`, `npm run handoff:check`, `node qa/v1627_incident_multitab_queue_ownership_stress_smoke.js`, and both package verification commands before publishing.
+- Confirm the first `Current release` block in `HANDOFF.md` reports v1.6.27 and 364 configured checks.
+- Confirm the coordination module, v1.6.27 audit document, and v1.6.27 regression remain in both archives.
+- Recommended branch: `patch/v1.6.27`.
+
+# GitHub Desktop Handoff - v1.6.26
+
+- Apply the complete v1.6.26 overwrite package or commit the full release package.
+- Confirm `incident-local-queue-service.js` and `incident-service-diagnostics.js` load after incident support and before `incident-reporter.js`.
+- Run `npm run version:check`, `npm run handoff:check`, `node qa/v1626_incident_diagnostics_queue_conflict_safety_smoke.js`, and both package verification commands before publishing.
+- Confirm the first `Current release` block in `HANDOFF.md` reports v1.6.26 and 362 configured checks.
+- Confirm both new runtime modules, the v1.6.26 audit document, and the v1.6.26 regression remain in both archives.
+- Recommended branch: `patch/v1.6.26`.
+
 # GitHub Desktop Handoff - v1.6.25
 
 - Apply the complete v1.6.25 overwrite package or commit the full release package.
@@ -25,6 +79,14 @@
 - Confirm the incident panel shows `Hosting same-origin 복구: 사용 중` only when the rewrite path actually handled the request.
 
 # GitHub Desktop Patch Handoff - v1.6.15
+
+
+## v1.6.34 update
+
+- Terminal overlay history hard-stall recovery after 30 seconds without duplicate traversal.
+- BFCache-safe service-worker activity heartbeat/channel pause and resume.
+- Idempotent service-worker registration observers and expanded anonymous diagnostics.
+- Configured cumulative static/behavioral target: 374 checks.
 
 ## 이번 패치 확인
 

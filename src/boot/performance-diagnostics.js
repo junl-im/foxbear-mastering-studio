@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.25
+// FoxBear performance diagnostics - v1.6.34
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.25-incident-recovery-timeout-abort-stress';
+    const DIAGNOSTICS_VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -316,6 +316,7 @@
         const runtimeReport = safeCall(() => global.FoxBearRuntimeHealth?.getReport?.(), null);
         const spectrum = safeCall(() => global.FoxBearSpectrumVisualizer?.getDiagnostics?.(), null);
         const navigationGuard = safeCall(() => global.FoxBearSiteGuards?.getNavigationExitGuardState?.(), null);
+        const overlayHistory = safeCall(() => global.FoxBearModalStateMachine?.getHistoryDiagnostics?.(), null);
         const playback = safeCall(() => global.FoxBearPlaybackLinkService?.getOrchestrationSnapshot?.(), null);
         const importQueue = safeCall(() => global.FoxBearBulkImportGuard?.getSnapshot?.(), null);
         const bulkImportHud = safeCall(() => global.FoxBearBulkImportHud?.getSnapshot?.(), null);
@@ -328,6 +329,7 @@
         const memoryGuard = safeCall(() => global.FoxBearMemoryGuard?.getSnapshot?.(), null);
         const workerJobs = safeCall(() => global.FoxBearWorkerJobService?.getDiagnostics?.(), null);
         const sessionHandoff = safeCall(() => global.FoxBearSessionHandoff?.getSnapshot?.(), null);
+        const serviceWorkerUpdate = safeCall(() => global.FoxBearServiceWorkerUpdateService?.getSnapshot?.(), null);
         const snapshot = Object.freeze({
             version: DIAGNOSTICS_VERSION,
             reason,
@@ -349,6 +351,7 @@
             } : null,
             spectrum,
             navigationGuard,
+            overlayHistory,
             importQueue,
             bulkImportHud,
             audioDecode,
@@ -358,6 +361,7 @@
             memoryGuard,
             workerJobs,
             sessionHandoff,
+            serviceWorkerUpdate,
             wakeLock,
             renderScheduler,
             playback: playback ? {
@@ -848,6 +852,8 @@
             `spectrum: ${spectrum}`,
             `runtime: ${snapshot.runtime ? (snapshot.runtime.ok ? 'ok' : 'check') : 'n/a'} · errors ${snapshot.runtime?.runtimeErrors ?? 0} · warnings ${snapshot.runtime?.runtimeWarnings ?? 0}`,
             `nav guard: ${snapshot.navigationGuard?.installed ? 'on' : 'off'} · confirm ${snapshot.navigationGuard?.confirmOpen ? 'open' : 'idle'}`,
+            `overlay history: ${snapshot.overlayHistory?.releaseSuspended ? 'suspended' : (snapshot.overlayHistory?.releaseInFlight ? 'release' : 'idle')} · gen ${snapshot.overlayHistory?.sentinelGeneration ?? 0}/${snapshot.overlayHistory?.releaseGeneration ?? 0} · push ${snapshot.overlayHistory?.sentinelPushCount ?? 0} · coalesced ${snapshot.overlayHistory?.coalescedReleaseCount ?? 0} · recovered ${snapshot.overlayHistory?.releaseRecoveredCount ?? 0}/${snapshot.overlayHistory?.releaseHardStallRecoveredCount ?? 0} · mismatch ${snapshot.overlayHistory?.releaseGenerationMismatchCount ?? 0} · user back ${snapshot.overlayHistory?.userBackCloseCount ?? 0}`,
+            `SW activity: ${snapshot.serviceWorkerUpdate?.activitySuspended ? 'suspended' : 'active'} · heartbeat ${snapshot.serviceWorkerUpdate?.heartbeatActive ? 'on' : 'off'} · channel ${snapshot.serviceWorkerUpdate?.channelActive ? 'on' : 'fallback'} · pause/resume ${snapshot.serviceWorkerUpdate?.activityPauseCount ?? 0}/${snapshot.serviceWorkerUpdate?.activityResumeCount ?? 0} · registrations ${snapshot.serviceWorkerUpdate?.observedRegistrationCount ?? 0}`, 
             `long tasks: ${snapshot.longTasks.length}${snapshot.longTasks.length ? ' · max ' + Math.max(...snapshot.longTasks.map(item => item.durationMs || 0)) + 'ms' : ''}`,
             `warnings: ${(state.lastSummary?.warnings || []).join(', ') || 'none'}`,
             `activities: ${(state.lastSummary?.activities || []).join(', ') || 'none'}`

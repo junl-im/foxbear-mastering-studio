@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.25-incident-recovery-timeout-abort-stress';
+  const VIEW_VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
   const DEFAULT_BINS = 96;
 
   function getService() {

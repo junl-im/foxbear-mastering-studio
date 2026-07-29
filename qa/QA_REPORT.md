@@ -1,3 +1,146 @@
+# FoxBear QA Report - v1.6.34
+
+## v1.6.34 terminal history and service-worker activity lifecycle
+
+- New regression: `qa/v1634_history_hard_stall_sw_activity_lifecycle_smoke.js`.
+- Verifies a 30-second hard-stall terminal recovery clears an unchanged sentinel without another Back request.
+- Verifies a later dialog receives a fresh generation after neutralization.
+- Verifies BFCache pagehide clears heartbeat/channel resources and pageshow restores exactly one heartbeat.
+- Verifies repeated service-worker coordination installs one `updatefound` observer per registration.
+- Configured cumulative static/regression target: 374 checks.
+- Final configured run: `374/374` passed.
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, golden-audio regression, and archive contracts passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peaks remained between `-9.62` and `-5.64 dBTP`.
+- Synthetic mastering speed regression measured approximately `1.86x` realtime in the final full run.
+- Dependency health completed with zero errors and five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain `658` entries and pass compressed-data integrity checks.
+- Installed-browser execution could not start because the sandbox has no usable Playwright/Chromium runtime; real Android/iOS/PWA navigation and production Firebase/App Check/Gmail remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.33
+
+- New regression: `qa/v1633_overlay_history_watchdog_recovery_smoke.js`.
+- Verifies a completed internal history traversal is recovered when `popstate` is omitted.
+- Verifies watchdog recovery releases the transaction and allows a fresh sentinel on the next dialog.
+- Verifies an unchanged sentinel does not trigger a duplicate programmatic Back.
+- Verifies a late exact traversal settles safely after a diagnosed hard stall.
+- Verifies delayed generation tracking is bounded by an eight-entry contract.
+- Configured cumulative static/regression target: 373 checks.
+- Final configured run: `373/373` passed.
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, golden-audio regression, and archive contracts passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peaks remained between `-9.62` and `-5.64 dBTP`.
+- Synthetic mastering speed regression measured approximately `1.73x` realtime in the final full run.
+- Dependency health completed with zero errors and five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain `656` entries and pass compressed-data integrity checks.
+- Installed-browser execution could not start because the sandbox has no usable Playwright/Chromium runtime; real Android/iOS/PWA navigation and production Firebase/App Check/Gmail remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.32
+
+- New regression: `qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js`.
+- Verifies an out-of-order genuine Back is not swallowed while an internal release popstate is delayed.
+- Verifies the delayed exact generation is absorbed later without a second exit confirmation.
+- Verifies BFCache pageshow settles a release completed while hidden and does not duplicate the exit guard.
+- Verifies download, recommendation, settings, and incident dialog history cycles use monotonically increasing generations.
+- Configured cumulative static/regression target: 372 checks.
+- Final configured run: `372/372` passed.
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, and golden-audio regression passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peak values remained between `-9.62` and `-5.64 dBTP`.
+- Synthetic mastering engine QA retained approximately `1.90x` realtime in the balanced fixture; the full quality and safety contracts passed.
+- Dependency health completed with zero errors and five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain `654` entries and pass archive-contract and compressed-data integrity checks.
+- Installed-browser execution could not start because the sandbox has no usable Playwright/Chromium runtime; real Android/iOS/PWA navigation remains an environment-dependent gate.
+
+# FoxBear QA Report - v1.6.31
+
+- New regression: `qa/v1631_overlay_history_transaction_coalescing_smoke.js`.
+- Verifies rapid close/reopen/close requests issue one internal history traversal.
+- Verifies an overlay reopened during release receives a new sentinel after popstate settlement.
+- Verifies user Back closes the overlay first and only the next Back reaches workspace exit confirmation.
+- Verifies navigation and overlay history diagnostics expose bounded classification counters only.
+- Configured cumulative static/regression target: 371 checks.
+- Final configured run: `371/371` passed.
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, and golden-audio regression passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peak values remained between `-9.62` and `-5.64 dBTP`.
+- Synthetic mastering speed regression measured approximately `1.88x` to `1.90x` realtime across the final verification runs.
+- Dependency health completed with zero errors and five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain `652` entries and pass archive-contract and compressed-data integrity checks.
+- Installed-browser execution could not start because the sandbox has no usable Playwright/Chromium runtime; real Android/iOS/PWA navigation remains an environment-dependent gate.
+
+# FoxBear QA Report - v1.6.30
+
+- New regression: `qa/v1630_overlay_history_release_false_exit_prompt_smoke.js`.
+- Verifies the real listener order where the exit guard is registered before the modal popstate listener.
+- Verifies a normal dialog close releases its history sentinel without opening the leave confirmation.
+- Verifies a genuine Back event with no open overlay is not consumed by the modal controller and still reaches the exit guard.
+- Configured cumulative static/regression target: 370 checks.
+- Final configured run: `370/370` passed.
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, and golden-audio regression passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peak values remained between `-9.62` and `-5.64 dBTP`.
+- Synthetic mastering speed regression reported approximately `1.79x` realtime.
+- Dependency health completed with zero errors and five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain `650` entries and pass archive-contract and compressed-data integrity checks.
+- Installed-browser execution could not start because the sandbox has no usable Playwright/Chromium runtime; real mobile/PWA navigation and production Firebase/App Check/Gmail remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.29
+
+- New regression: `qa/v1629_incident_submission_fencing_adaptive_polling_smoke.js`.
+- Verifies stable occurrence submission keys and report IDs across delayed recovery windows.
+- Verifies lease-generation replacement aborts stale ownership before commit and stale cleanup preserves the replacement generation.
+- Verifies active, idle, hidden, and immediate foreground polling schedules.
+- Verifies 500-write quota pressure remains bounded and settings control bindings remain idempotent.
+- Verifies the two new boot modules are present in the service-worker atomic install graph.
+- Configured cumulative static/regression target: 369 checks.
+- Final configured run: `369/369` passed.
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, and golden-audio regression passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peak values remained between `-9.62` and `-5.64 dBTP`, while peak stress remained at `-1.00 dBTP`.
+- Synthetic mastering speed regression reported approximately `1.82x` realtime.
+- Dependency health completed with zero errors and five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain `648` entries and pass archive-contract and compressed-data integrity checks.
+- Installed-browser execution could not start because the sandbox has no usable Playwright/Chromium runtime; production Firebase/App Check/Gmail and real Safari/iOS lifecycle behavior remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.28
+
+- New regression: `qa/v1628_incident_lease_takeover_fallback_ui_smoke.js`.
+- Verifies polling-only peer synchronization and a 200-write global-bound pressure case without BroadcastChannel or dispatched storage events.
+- Verifies expired crash-lease takeover, immediate BFCache release, lock renewal storage failure abort, and polling cleanup.
+- Verifies the isolated diagnostic view renders seven service rows, queue ownership/fallback metadata, and status events.
+- Verifies runtime script order, service-worker inclusion, reporter delegation, and handoff requirements.
+- Configured cumulative static/regression target: 366 checks.
+- Final configured run: `366/366` passed.
+- Browser fixture preflight, Functions syntax, release metadata, handoff state, SRI, dependency metadata, engine bench, golden-audio regression, and archive contract checks passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peak values remained between `-9.62` and `-5.64 dBTP`.
+- Synthetic mastering speed regression reported approximately `1.88x` realtime.
+- Dependency health completed with five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain 644 entries and pass archive-contract and compressed-data integrity checks.
+- Installed-browser execution could not start because the sandbox has no usable Playwright/Chromium runtime; production Firebase/App Check/Gmail and real Safari/iOS WebView lifecycle behavior remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.27
+
+- New regression: `qa/v1627_incident_multitab_queue_ownership_stress_smoke.js`.
+- Verifies independent per-tab writes, BroadcastChannel peer synchronization, duplicate merging, and a 60-write global bound stress case.
+- Verifies stale snapshot commits preserve reports queued by a peer after the snapshot.
+- Verifies exact delivery tombstones permit a later occurrence of the same fingerprint.
+- Verifies 50 simultaneous peer ownership attempts cannot start a second flush loop and ownership releases cleanly.
+- Verifies legacy queue migration, runtime script order, service-worker inclusion, reporter wiring, and handoff requirements.
+- Configured cumulative static/regression target: 364 checks.
+- Final configured run: `364/364` passed.
+- Browser fixture preflight, Functions syntax, release metadata, handoff state, SRI, dependency metadata, engine bench, golden-audio regression, and archive contract checks passed.
+- Golden audio retained `-14.00 LUFS` across all four fixtures; peak values remained between `-9.62` and `-5.64 dBTP`, while peak-stress remained at `-1.00 dBTP`.
+- Dependency health completed with five expected installation warnings because Playwright and Functions runtime packages are not installed in this sandbox.
+- Both final ZIP packages contain 641 entries and pass archive-contract and compressed-data integrity checks.
+- The installed-browser branch of `check:release` could not start because the sandbox has no usable Playwright/Chromium runtime; this was recorded as an environment gate rather than a product-code pass.
+- Installed-browser rendering, production Firebase/App Check/Gmail, and real-device multi-tab lifecycle behavior remain environment-dependent gates.
+
+# FoxBear QA Report - v1.6.26
+
+- New regression: `qa/v1626_incident_diagnostics_queue_conflict_safety_smoke.js`.
+- Verifies a 50-item enqueue storm retains the newest eight reports within the serialized storage budget.
+- Verifies duplicate suppression, malformed and oversized storage recovery, and quota-pressure fallback to the newest persistable entries.
+- Verifies conflict-safe flush commits preserve reports added after the active snapshot and remove only successfully delivered fingerprints.
+- Verifies Firebase service failure classification precedence and immutable diagnostic UI view models.
+- Configured cumulative static/regression target: 362 checks.
+- Final configured run: pending final package verification.
+- Installed-browser rendering, production Firebase/App Check/Gmail, and real-device network/background behavior remain environment-dependent gates.
+
 # FoxBear QA Report - v1.6.25
 
 - New regression: `qa/v1625_incident_recovery_timeout_abort_stress_smoke.js`.
