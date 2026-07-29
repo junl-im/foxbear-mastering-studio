@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.37",
+  "version": "1.6.39",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with cross-generation service-worker shell retention and boot-level UI visibility recovery.",
+  "description": "FoxBear AI Mastering Studio Pro with partial critical-script recovery and generation-probe stale-client isolation.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.37-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.37-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.39-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.39-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -415,15 +415,18 @@
     "node qa/v1636_sw_activation_generation_bfcache_reconcile_smoke.js",
     "node qa/v1636_audio_worker_concurrent_cleanup_stress_smoke.js",
     "node --check src/boot/ui-shell-recovery-service.js",
-    "node qa/v1637_ui_shell_cross_generation_recovery_smoke.js"
+    "node qa/v1637_ui_shell_cross_generation_recovery_smoke.js",
+    "node qa/v1638_ui_shell_runtime_health_cache_retirement_smoke.js",
+    "node qa/v1639_ui_shell_partial_script_recovery_smoke.js",
+    "node qa/v1639_sw_client_probe_restart_late_report_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "ui-shell-cross-generation-recovery",
-    "assetVersion": "1.6.37-ui-shell-cross-generation-recovery",
-    "cacheName": "foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery",
-    "bootRevision": "boot-sri-v1637",
-    "updateSafetyRevision": "update-safety-v1637",
-    "serviceWorkerRevision": "sw-v1637"
+    "buildId": "ui-shell-partial-script-probe-isolation",
+    "assetVersion": "1.6.39-ui-shell-partial-script-probe-isolation",
+    "cacheName": "foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation",
+    "bootRevision": "boot-sri-v1639",
+    "updateSafetyRevision": "update-safety-v1639",
+    "serviceWorkerRevision": "sw-v1639"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

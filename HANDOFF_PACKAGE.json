@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.37",
-  "buildId": "ui-shell-cross-generation-recovery",
+  "productVersion": "1.6.39",
+  "buildId": "ui-shell-partial-script-probe-isolation",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -121,7 +121,12 @@
     "src/boot/ui-shell-recovery-service.js",
     "assets/css/boot/ui-shell-recovery.css",
     "qa/v1637_ui_shell_cross_generation_recovery_smoke.js",
-    "docs/V1.6.37_UI_SHELL_CROSS_GENERATION_RECOVERY.md"
+    "docs/V1.6.37_UI_SHELL_CROSS_GENERATION_RECOVERY.md",
+    "qa/v1638_ui_shell_runtime_health_cache_retirement_smoke.js",
+    "docs/V1.6.38_UI_SHELL_RUNTIME_HEALTH_CACHE_RETIREMENT.md",
+    "qa/v1639_ui_shell_partial_script_recovery_smoke.js",
+    "qa/v1639_sw_client_probe_restart_late_report_smoke.js",
+    "docs/V1.6.39_UI_SHELL_PARTIAL_SCRIPT_PROBE_ISOLATION.md"
   ],
   "requiredPrefixes": [
     "assets/",

@@ -25,14 +25,14 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 
-must(pkg.version === '1.6.37', 'package version should be 1.6.37');
+must(pkg.version === '1.6.39', 'package version should be 1.6.39');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1-4-26');
-must(pkg.qaChecks.includes('node qa/v1425_exit_guard_fallback_smoke.js'), 'package should run v1.6.37 smoke');
-must(index.includes('data-build="1.6.37"'), 'index build marker should be 1.6.37');
-must(index.includes('src/security/site-guards.js?v=1.6.37-ui-shell-cross-generation-recovery'), 'site guard cache key should be updated');
-must(index.includes('assets/css/studio.css?v=1.6.37-ui-shell-cross-generation-recovery'), 'studio CSS cache key should be updated');
-must(app.includes("const APP_VERSION = 'Pro v1.6.37'"), 'app version should be Pro v1.6.37');
-must(sw.includes('foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery'), 'service worker cache should use v1.6.37 key');
+must(pkg.qaChecks.includes('node qa/v1425_exit_guard_fallback_smoke.js'), 'package should run v1.6.39 smoke');
+must(index.includes('data-build="1.6.39"'), 'index build marker should be 1.6.39');
+must(index.includes('src/security/site-guards.js?v=1.6.39-ui-shell-partial-script-probe-isolation'), 'site guard cache key should be updated');
+must(index.includes('assets/css/studio.css?v=1.6.39-ui-shell-partial-script-probe-isolation'), 'studio CSS cache key should be updated');
+must(app.includes("const APP_VERSION = 'Pro v1.6.39'"), 'app version should be Pro v1.6.39');
+must(sw.includes('foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation'), 'service worker cache should use v1.6.39 key');
 
 [
   'EXIT_FALLBACK_DELAY_MS',
@@ -74,9 +74,9 @@ must(perf.includes('navigationGuard'), 'performance diagnostics should still col
   'flex-direction: column'
 ].forEach(token => must(studioCss.includes(token), `studio CSS should include ${token}`));
 
-must(changelog.includes('v1.6.37') && changelog.includes('Exit Guard'), 'changelog should mention v1.6.37 Exit Guard');
-must(handoff.includes('v1.6.37') && handoff.includes('뒤로가기'), 'handoff should mention v1.6.37 back navigation');
+must(changelog.includes('v1.6.39') && changelog.includes('Exit Guard'), 'changelog should mention v1.6.39 Exit Guard');
+must(handoff.includes('v1.6.39') && handoff.includes('뒤로가기'), 'handoff should mention v1.6.39 back navigation');
 must(notes.includes('fallback'), 'project notes should preserve exit fallback guidance');
-must(matrix.includes('v1.4.26') && matrix.includes('exit fallback'), 'matrix should cover v1.6.37 exit fallback');
+must(matrix.includes('v1.4.26') && matrix.includes('exit fallback'), 'matrix should cover v1.6.39 exit fallback');
 
 console.log('PASS v1.4.26 exit guard fallback smoke');

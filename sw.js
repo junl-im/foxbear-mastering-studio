@@ -1,10 +1,14 @@
-// FoxBear AI Mastering Studio Pro v1.6.37 service worker · ui-shell-cross-generation-recovery
+// FoxBear AI Mastering Studio Pro v1.6.39 service worker · ui-shell-partial-script-probe-isolation
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery';
-const CURRENT_ASSET_VERSION = '1.6.37-ui-shell-cross-generation-recovery';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.17-incident-transport-metrics-module-split', 'foxbear-shell-v1.6.18-incident-state-adaptive-route-policy', 'foxbear-shell-v1.6.19-incident-mail-sync-route-scoring', 'foxbear-shell-v1.6.20-incident-background-sync-network-decay', 'foxbear-shell-v1.6.21-incident-lifecycle-network-exploration', 'foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay', 'foxbear-shell-v1.6.23-incident-route-decay-lifecycle-handoff-safety', 'foxbear-shell-v1.6.24-incident-recovery-sweep-observability', 'foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress', 'foxbear-shell-v1.6.26-incident-diagnostics-queue-conflict-safety', 'foxbear-shell-v1.6.27-incident-multitab-queue-ownership-safety', 'foxbear-shell-v1.6.28-incident-lease-takeover-fallback-ui-safety', 'foxbear-shell-v1.6.29-incident-submission-fencing-adaptive-polling', 'foxbear-shell-v1.6.30-overlay-history-release-exit-guard-safety', 'foxbear-shell-v1.6.31-overlay-history-transaction-coalescing', 'foxbear-shell-v1.6.32-overlay-history-generation-bfcache-recovery', 'foxbear-shell-v1.6.33-overlay-history-watchdog-recovery-full-audit', 'foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle', 'foxbear-shell-v1.6.35-history-terminal-race-sw-activation-lease', 'foxbear-shell-v1.6.36-sw-activation-generation-fencing-resource-stress'];
+const CACHE_NAME = 'foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation';
+const CURRENT_ASSET_VERSION = '1.6.39-ui-shell-partial-script-probe-isolation';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.19-incident-mail-sync-route-scoring', 'foxbear-shell-v1.6.20-incident-background-sync-network-decay', 'foxbear-shell-v1.6.21-incident-lifecycle-network-exploration', 'foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay', 'foxbear-shell-v1.6.23-incident-route-decay-lifecycle-handoff-safety', 'foxbear-shell-v1.6.24-incident-recovery-sweep-observability', 'foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress', 'foxbear-shell-v1.6.26-incident-diagnostics-queue-conflict-safety', 'foxbear-shell-v1.6.27-incident-multitab-queue-ownership-safety', 'foxbear-shell-v1.6.28-incident-lease-takeover-fallback-ui-safety', 'foxbear-shell-v1.6.29-incident-submission-fencing-adaptive-polling', 'foxbear-shell-v1.6.30-overlay-history-release-exit-guard-safety', 'foxbear-shell-v1.6.31-overlay-history-transaction-coalescing', 'foxbear-shell-v1.6.32-overlay-history-generation-bfcache-recovery', 'foxbear-shell-v1.6.33-overlay-history-watchdog-recovery-full-audit', 'foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle', 'foxbear-shell-v1.6.35-history-terminal-race-sw-activation-lease', 'foxbear-shell-v1.6.36-sw-activation-generation-fencing-resource-stress', 'foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery', 'foxbear-shell-v1.6.38-ui-shell-runtime-health-cache-retirement'];
 const RETAINED_LEGACY_SHELL_COUNT = 2;
+const CLIENT_SHELL_PROBE_TIMEOUT_MS = 400;
+const CLIENT_SHELL_CLEANUP_COOLDOWN_MS = 2500;
+const CLIENT_SHELL_REPORT_MAX_AGE_MS = 120000;
+const CLIENT_SHELL_PROBE_RETRY_MS = 120;
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -16,7 +20,7 @@ const CORE_ASSETS = [
   './external-browser.html',
   './assets/css/external-browser.css',
   './src/boot/kakao-entry-guard.js',
-  './src/boot/kakao-entry-guard.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/kakao-entry-guard.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
   './src/boot/kakao-external-browser.js',
   './manifest.webmanifest',
   './sw.js',
@@ -26,12 +30,12 @@ const CORE_ASSETS = [
   './src/workers/master-finalizer.worker.js',
   './src/workers/pitch-wsola.worker.js',
   './src/workers/zip-encoder.worker.js',
-  './src/workers/wav-encoder.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/workers/mp3-encoder.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/workers/analysis.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/workers/master-finalizer.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/workers/pitch-wsola.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/workers/zip-encoder.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/workers/wav-encoder.worker.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/workers/mp3-encoder.worker.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/workers/analysis.worker.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/workers/master-finalizer.worker.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/workers/pitch-wsola.worker.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/workers/zip-encoder.worker.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
   './src/engines/pitch-engine-adapter.js',
   './assets/icons/foxbear-icon-48.png',
   './assets/icons/foxbear-icon-72.png',
@@ -43,117 +47,117 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/icons/foxbear-icon-32.png?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/icons/foxbear-icon-192.png?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/icons/foxbear-icon-512.png?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/icons/apple-touch-icon.png?v=1.6.37-ui-shell-cross-generation-recovery',
-  './manifest.webmanifest?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/boot/performance-diagnostics.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/boot/runtime-health.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/boot/ui-shell-recovery.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/theme.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/layout.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/base-components.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/forms.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/cards.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/preview-system.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/playback-link.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/studio.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/admin-incident-monitor.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/dock.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/dock-waveform.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/waveform-compare.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/spectrum-visualizer.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/export.css?v=1.6.37-ui-shell-cross-generation-recovery&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/bulk-import-hud.css?v=1.6.37-ui-shell-cross-generation-recovery&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/dock-ui-repair.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/floating-overlays.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/header-command-bar.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/support-settings.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/css/components/modal-close-system.css?v=1.6.37-ui-shell-cross-generation-recovery',
-  './vendor/jszip/jszip.min.js?v=1.6.37-ui-shell-cross-generation-recovery&lib=3.10.1',
-  './src/config/build-info.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/release-presentation-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/session-handoff-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-route-policy.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-submission-identity-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/firebase-bootstrap.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-support-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-state-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-mail-sync-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-lifecycle-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-recovery-sweep-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-service-recovery-controller.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-recovery-policy.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-local-queue-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-queue-coordination-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-service-diagnostics.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-diagnostics-view-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-controls-view-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/incident-reporter.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/config/mastering-presets.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/config/genre-presets.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/config/reference-targets.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/config/app-runtime-config.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/state/app-state.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/settings/settings-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/utils/core-utils.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/utils/worker-job-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/recommendation/recommendation-engine.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/mastering-inspector.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/highlight-compare-inspector.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/playback-link-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/playback-transition-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/audio-context-manager.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/preview-translation-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/audio-import-capability-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/audio-decode-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/inapp-mastering-safety-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/import-preflight-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/import-queue-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/analysis-cache-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/memory-guard-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/reference-profile-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/loudness-measurement-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/mastering-input-guard-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/mastering-quality-audit-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/quality-gate-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/mastering-orchestrator-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/master-preview-job-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/state/track-lifecycle-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/audio/waveform-control-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/waveform-control-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/spectrum-visualizer.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/modal-controller.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/dock-controller.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/mobile-native-view.js?v=1.6.37-ui-shell-cross-generation-recovery&h=bulk-hud-restore-v153',
-  './src/download/download-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/download/export-guard-service.js?v=1.6.37-ui-shell-cross-generation-recovery&h=export-v156',
-  './src/download/export-progress-view.js?v=1.6.37-ui-shell-cross-generation-recovery&h=export-progress-v156',
-  './src/download/zip-export-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/download/export-queue-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/download-dialog-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/bulk-import-hud-view.js?v=1.6.37-ui-shell-cross-generation-recovery&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/detail-panels-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/detail-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/ui/admin-incident-monitor-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/security/site-guards.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/runtime-health.js?v=1.6.37-ui-shell-cross-generation-recovery&h=boot-sri-v1637',
-  './src/boot/ui-shell-recovery-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/update-safety-service.js?v=1.6.37-ui-shell-cross-generation-recovery&h=update-safety-v1637',
-  './src/boot/service-worker-update-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/service-worker-recovery-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/worker-recovery-coordinator.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/boot/performance-diagnostics.js?v=1.6.37-ui-shell-cross-generation-recovery&h=boot-sri-v1637',
-  './src/boot/render-scheduler.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './src/app.js?v=1.6.37-ui-shell-cross-generation-recovery&h=boot-sri-v1637',
-  './src/boot/worker-recovery-app-bridge.js?v=1.6.37-ui-shell-cross-generation-recovery',
-  './assets/icons/foxbear-music.png?v=1.6.37-ui-shell-cross-generation-recovery'
+  './assets/icons/foxbear-icon-16.png?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/icons/foxbear-icon-32.png?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/icons/foxbear-icon-192.png?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/icons/foxbear-icon-512.png?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/icons/apple-touch-icon.png?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './manifest.webmanifest?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/boot/performance-diagnostics.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/boot/runtime-health.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/boot/ui-shell-recovery.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/theme.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/layout.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/base-components.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/forms.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/cards.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/preview-system.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/playback-link.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/studio.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/admin-incident-monitor.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/dock.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/dock-waveform.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/waveform-compare.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/spectrum-visualizer.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/export.css?v=1.6.39-ui-shell-partial-script-probe-isolation&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/bulk-import-hud.css?v=1.6.39-ui-shell-partial-script-probe-isolation&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/dock-ui-repair.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/floating-overlays.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/header-command-bar.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/support-settings.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/css/components/modal-close-system.css?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './vendor/jszip/jszip.min.js?v=1.6.39-ui-shell-partial-script-probe-isolation&lib=3.10.1',
+  './src/config/build-info.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/release-presentation-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/session-handoff-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-route-policy.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-submission-identity-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/firebase-bootstrap.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-support-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-state-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-mail-sync-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-lifecycle-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-recovery-sweep-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-service-recovery-controller.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-recovery-policy.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-local-queue-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-queue-coordination-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-service-diagnostics.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-diagnostics-view-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-controls-view-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/incident-reporter.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/config/mastering-presets.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/config/genre-presets.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/config/reference-targets.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/config/app-runtime-config.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/state/app-state.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/settings/settings-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/utils/core-utils.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/utils/worker-job-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/recommendation/recommendation-engine.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/mastering-inspector.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/highlight-compare-inspector.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/playback-link-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/playback-transition-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/audio-context-manager.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/preview-translation-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/audio-import-capability-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/audio-decode-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/inapp-mastering-safety-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/import-preflight-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/import-queue-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/analysis-cache-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/memory-guard-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/reference-profile-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/loudness-measurement-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/mastering-input-guard-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/mastering-quality-audit-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/quality-gate-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/mastering-orchestrator-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/master-preview-job-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/state/track-lifecycle-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/audio/waveform-control-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/waveform-control-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/spectrum-visualizer.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/modal-controller.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/dock-controller.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/mobile-native-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=bulk-hud-restore-v153',
+  './src/download/download-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/download/export-guard-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=export-v156',
+  './src/download/export-progress-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=export-progress-v156',
+  './src/download/zip-export-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/download/export-queue-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/download-dialog-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/bulk-import-hud-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/detail-panels-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/detail-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/ui/admin-incident-monitor-view.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/security/site-guards.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/runtime-health.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=boot-sri-v1639',
+  './src/boot/ui-shell-recovery-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/update-safety-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=update-safety-v1639',
+  './src/boot/service-worker-update-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/service-worker-recovery-service.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/worker-recovery-coordinator.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/boot/performance-diagnostics.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=boot-sri-v1639',
+  './src/boot/render-scheduler.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './src/app.js?v=1.6.39-ui-shell-partial-script-probe-isolation&h=boot-sri-v1639',
+  './src/boot/worker-recovery-app-bridge.js?v=1.6.39-ui-shell-partial-script-probe-isolation',
+  './assets/icons/foxbear-music.png?v=1.6.39-ui-shell-partial-script-probe-isolation'
 ];
 
 const INSTALL_ASSETS = [
@@ -167,6 +171,14 @@ const INSTALL_ASSETS = [
 const INSTALL_ASSET_SET = new Set(INSTALL_ASSETS);
 const WARM_ASSETS = CORE_ASSETS.filter(asset => !INSTALL_ASSET_SET.has(asset));
 let warmCachePromise = null;
+let legacyCleanupPromise = null;
+let lastLegacyCleanupAt = 0;
+let clientShellProbeSequence = 0;
+let ignoredLateClientShellReportCount = 0;
+let prunedClientShellReportCount = 0;
+let clientShellProbeRetryCount = 0;
+const clientShellReports = new Map();
+const clientShellProbes = new Map();
 
 async function warmFoxBearCoreCache(options = {}) {
   if (warmCachePromise) return warmCachePromise;
@@ -215,12 +227,136 @@ function retainedLegacyShellNames() {
   return new Set(LEGACY_CACHE_NAMES.slice(-RETAINED_LEGACY_SHELL_COUNT));
 }
 
-async function purgeLegacyShellCaches() {
+function cacheNameForAssetVersion(assetVersion) {
+  const version = String(assetVersion || '').trim();
+  return version ? `foxbear-shell-v${version}` : '';
+}
+
+function rememberClientShellState(event, payload) {
+  const clientId = String(event?.source?.id || payload?.clientId || '');
+  if (!clientId) return false;
+  const requestId = String(payload?.requestId || '');
+  const probe = requestId ? clientShellProbes.get(requestId) : null;
+  if (requestId && (!probe || !probe.expected.has(clientId))) {
+    ignoredLateClientShellReportCount += 1;
+    return false;
+  }
+  if (payload?.type === 'FOXBEAR_CLIENT_SHELL_INACTIVE' || payload?.active === false) {
+    clientShellReports.delete(clientId);
+    return true;
+  }
+  const assetVersion = String(payload?.assetVersion || '').trim();
+  if (!assetVersion) return false;
+  const report = {
+    clientId,
+    assetVersion,
+    cacheName: String(payload?.cacheName || cacheNameForAssetVersion(assetVersion)),
+    updatedAt: Date.now(),
+    visibility: String(payload?.visibility || 'unknown')
+  };
+  clientShellReports.set(clientId, report);
+  if (probe) {
+    probe.responses.set(clientId, report);
+    if (probe.responses.size >= probe.expected.size) probe.resolve();
+  }
+  return true;
+}
+
+function pruneClientShellReports(activeClientIds = null) {
+  const now = Date.now();
+  clientShellReports.forEach((report, clientId) => {
+    const inactive = activeClientIds instanceof Set && !activeClientIds.has(clientId);
+    const stale = now - Number(report?.updatedAt || 0) > CLIENT_SHELL_REPORT_MAX_AGE_MS;
+    if (!inactive && !stale) return;
+    clientShellReports.delete(clientId);
+    prunedClientShellReportCount += 1;
+  });
+}
+
+async function queryActiveClientShellVersions() {
+  let windows = [];
+  try { windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true }); } catch (error) {}
+  const initialIds = new Set(windows.map(client => String(client.id || '')).filter(Boolean));
+  pruneClientShellReports(initialIds);
+  if (!windows.length) return { complete: true, clientCount: 0, reportedCount: 0, versions: new Set(), cacheNames: new Set(), disappearedCount: 0 };
+  const requestId = `shell-probe-${Date.now().toString(36)}-${(++clientShellProbeSequence).toString(36)}`;
+  const expected = new Set(initialIds);
+  const responses = new Map();
+  let resolveProbe = () => undefined;
+  const settled = new Promise(resolve => { resolveProbe = resolve; });
+  clientShellProbes.set(requestId, { expected, responses, resolve: resolveProbe });
+  const postQuery = clients => {
+    for (const client of clients) {
+      const clientId = String(client?.id || '');
+      if (!clientId || !expected.has(clientId) || responses.has(clientId)) continue;
+      try { client.postMessage({ type: 'FOXBEAR_QUERY_CLIENT_SHELL_STATE', requestId, assetVersion: CURRENT_ASSET_VERSION }); } catch (error) {}
+    }
+  };
+  postQuery(windows);
+  if (responses.size < expected.size) {
+    await Promise.race([settled, new Promise(resolve => setTimeout(resolve, CLIENT_SHELL_PROBE_TIMEOUT_MS))]);
+  }
+  let currentWindows = windows;
+  try { currentWindows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true }); } catch (error) {}
+  const currentIds = new Set(currentWindows.map(client => String(client.id || '')).filter(Boolean));
+  let disappearedCount = 0;
+  Array.from(expected).forEach(clientId => {
+    if (currentIds.has(clientId)) return;
+    expected.delete(clientId);
+    responses.delete(clientId);
+    disappearedCount += 1;
+  });
+  pruneClientShellReports(currentIds);
+  if (responses.size < expected.size && currentWindows.length) {
+    clientShellProbeRetryCount += 1;
+    postQuery(currentWindows);
+    await Promise.race([settled, new Promise(resolve => setTimeout(resolve, CLIENT_SHELL_PROBE_RETRY_MS))]);
+  }
+  clientShellProbes.delete(requestId);
+  const complete = Array.from(expected).every(clientId => responses.has(clientId));
+  const versions = new Set();
+  const cacheNames = new Set();
+  responses.forEach((report, clientId) => {
+    if (!expected.has(clientId)) return;
+    if (report.assetVersion) versions.add(report.assetVersion);
+    if (report.cacheName) cacheNames.add(report.cacheName);
+  });
+  return { complete, clientCount: expected.size, reportedCount: responses.size, versions, cacheNames, disappearedCount };
+}
+
+async function purgeLegacyShellCaches(options = {}) {
   const names = await caches.keys();
   const retained = retainedLegacyShellNames();
-  await Promise.all(names
-    .filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME && !retained.has(name))
-    .map(name => caches.delete(name)));
+  const deleted = [];
+  const obsolete = names.filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME && !retained.has(name));
+  await Promise.all(obsolete.map(async name => {
+    if (await caches.delete(name)) deleted.push(name);
+  }));
+
+  let probe = null;
+  if (options.probeClients === true) {
+    probe = await queryActiveClientShellVersions();
+    if (probe.complete) {
+      const latestRollback = LEGACY_CACHE_NAMES[LEGACY_CACHE_NAMES.length - 1] || '';
+      const protectedNames = new Set([latestRollback, ...probe.cacheNames].filter(Boolean));
+      const optionalRetained = names.filter(name => retained.has(name) && !protectedNames.has(name));
+      await Promise.all(optionalRetained.map(async name => {
+        if (await caches.delete(name)) deleted.push(name);
+      }));
+    }
+  }
+  lastLegacyCleanupAt = Date.now();
+  return { deleted, retained: Array.from(retained), probe };
+}
+
+function scheduleLegacyShellCleanup(reason = 'client-state') {
+  if (legacyCleanupPromise) return legacyCleanupPromise;
+  const elapsed = Date.now() - lastLegacyCleanupAt;
+  const delay = Math.max(0, CLIENT_SHELL_CLEANUP_COOLDOWN_MS - elapsed);
+  legacyCleanupPromise = new Promise(resolve => setTimeout(resolve, delay))
+    .then(() => purgeLegacyShellCaches({ probeClients: true, reason }))
+    .finally(() => { legacyCleanupPromise = null; });
+  return legacyCleanupPromise;
 }
 
 async function matchExactAcrossShellCaches(request) {
@@ -255,18 +391,25 @@ async function isCurrentShellHtml(response) {
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    await purgeLegacyShellCaches();
+    await purgeLegacyShellCaches({ probeClients: false, reason: 'activate-pre-claim' });
     if (self.registration?.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); } catch (error) {}
     }
     await self.clients.claim();
+    await purgeLegacyShellCaches({ probeClients: true, reason: 'activate-post-claim' });
   })());
 });
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && (event.data.type === 'FOXBEAR_CLIENT_SHELL_STATE' || event.data.type === 'FOXBEAR_CLIENT_SHELL_INACTIVE')) {
+    rememberClientShellState(event, event.data);
+    if (!event.data.requestId || event.data.type === 'FOXBEAR_CLIENT_SHELL_INACTIVE') {
+      event.waitUntil(scheduleLegacyShellCleanup(event.data.type).catch(() => undefined));
+    }
+  }
   if (event.data && event.data.type === 'FOXBEAR_GET_RELEASE_INFO') {
-    const payload = { type: 'FOXBEAR_RELEASE_INFO', cacheName: CACHE_NAME, assetVersion: CACHE_NAME.replace(/^foxbear-shell-v/, '') };
+    const payload = { type: 'FOXBEAR_RELEASE_INFO', cacheName: CACHE_NAME, assetVersion: CACHE_NAME.replace(/^foxbear-shell-v/, ''), retainedLegacyShellCount: RETAINED_LEGACY_SHELL_COUNT, clientShellReportCount: clientShellReports.size, ignoredLateClientShellReportCount, prunedClientShellReportCount, clientShellProbeRetryCount };
     try { event.ports?.[0]?.postMessage?.(payload); } catch (error) {}
     try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}
   }

@@ -1,3 +1,35 @@
+# GitHub Desktop Handoff - v1.6.39
+
+## Apply
+
+1. Fetch origin before applying the patch.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Review changes, run the release gates, commit, and Push origin.
+
+## Release focus
+
+- Partial critical-script boot recovery and Runtime Health reporting
+- Expired service-worker probe response isolation
+- Client termination reconciliation and bounded shell-generation retry
+- Mandatory three-section delivery contract in `DELIVERY_RULES.md`
+- Final configured checks: `383/383`; dependency metadata errors: `0`; expected missing-install warnings: `5`
+- Final verified archive size: `673` entries in both full and overwrite ZIPs
+
+# GitHub Desktop Handoff - v1.6.38
+
+## Apply
+
+1. Fetch origin before applying the patch.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Review changes, commit, and Push origin.
+
+## Release focus
+
+- UI-shell pending/failure classification and recovery resolution
+- Runtime Health recovery-surface deduplication
+- Controlled-client generation probes and safe legacy-cache retirement
+- Final verified archive size: 670 entries in both full and overwrite ZIPs
+
 # GitHub Desktop Handoff - v1.6.37
 
 - Build ID: `ui-shell-cross-generation-recovery`

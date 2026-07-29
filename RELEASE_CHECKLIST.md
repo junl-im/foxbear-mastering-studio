@@ -1,3 +1,28 @@
+# v1.6.39 release checklist
+
+- [x] Critical scripts have pending, failed, and restored states.
+- [x] Partial JavaScript failure keeps the static UI visible and opens one recovery surface.
+- [x] Expired probe responses cannot repopulate client shell reports.
+- [x] Clients terminated during a probe are removed from the expected set.
+- [x] Surviving non-responders receive one bounded retry.
+- [x] `DELIVERY_RULES.md` remains a required package file.
+- [x] Run all 383 configured checks and release gates.
+- [x] Browser fixture preflight and Functions syntax pass.
+- [x] Dependency metadata reports 0 errors and 5 expected missing-install warnings.
+- [x] Engine balanced fixture measures approximately 1.81x realtime and golden audio remains -14.00 LUFS.
+- [x] Both final archives contain 673 entries and zero compressed-data errors.
+- [ ] Run installed Chromium and real Android/iOS/PWA cross-generation deployment scenarios.
+
+# v1.6.38 release checklist
+
+- [x] Run 381 configured static and behavioral checks.
+- [x] Run browser fixture preflight and Functions syntax checks.
+- [x] Verify version, SRI, cache, handoff, and both archive contracts.
+- [x] Confirm pending styles do not show a false recovery notice.
+- [x] Confirm Runtime Health suppresses the duplicate shell notice.
+- [x] Confirm current and latest rollback shell caches remain after client-aware cleanup.
+- [x] Verify both final archives contain 670 entries and zero compressed-data errors.
+
 # FoxBear v1.6.37 release checklist
 
 - [x] Two recent legacy service-worker shell caches are retained.

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.37-ui-shell-cross-generation-recovery';
+const version = '1.6.39-ui-shell-partial-script-probe-isolation';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

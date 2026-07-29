@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.37-ui-shell-cross-generation-recovery',
+                version: '1.6.39-ui-shell-partial-script-probe-isolation',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.37-ui-shell-cross-generation-recovery',
+        version: '1.6.39-ui-shell-partial-script-probe-isolation',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

@@ -1,3 +1,43 @@
+# Handoff - v1.6.39
+
+- Build: `ui-shell-partial-script-probe-isolation`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep critical-script failure reporting together with the static UI shell recovery path.
+- Probe responses carrying an expired request ID must never repopulate service-worker client state.
+- A client that disappears during collection must be removed from the expected probe set before cache retirement is evaluated.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.39`
+- Build ID: `ui-shell-partial-script-probe-isolation`
+- Asset version: `1.6.39-ui-shell-partial-script-probe-isolation`
+- Service worker cache: `foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation`
+- Configured static/regression target: 383 checks.
+- Final configured checks: `383/383`; browser preflight and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Installed Playwright/Chromium execution remains an external environment gate.
+- Final full and overwrite archives contain `673` entries each and pass archive verification.
+
+# Handoff - v1.6.38
+
+- Build: `ui-shell-runtime-health-cache-retirement`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep pending-style classification, Runtime Health notice deduplication, and client shell reporting together.
+- Never retire the latest rollback cache, and retain both recent generations when any controlled client does not answer the shell probe.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.38`
+- Build ID: `ui-shell-runtime-health-cache-retirement`
+- Asset version: `1.6.38-ui-shell-runtime-health-cache-retirement`
+- Service worker cache: `foxbear-shell-v1.6.38-ui-shell-runtime-health-cache-retirement`
+- Configured static/regression target: 381 checks.
+- Final configured checks: `381/381`; browser preflight and Functions syntax passed.
+- Installed Playwright/Chromium execution remains an external environment gate.
+- Final full and overwrite archives contain `670` entries each and pass archive verification.
+
 # Handoff - v1.6.37
 
 - Build: `ui-shell-cross-generation-recovery`.

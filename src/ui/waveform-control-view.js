@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.37-ui-shell-cross-generation-recovery';
+  const VIEW_VERSION = '1.6.39-ui-shell-partial-script-probe-isolation';
   const DEFAULT_BINS = 96;
 
   function getService() {

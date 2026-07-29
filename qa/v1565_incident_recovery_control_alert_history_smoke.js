@@ -23,8 +23,8 @@ const status = read('STATUS.md');
 const docs = read('docs/V1.5.65_INCIDENT_RECOVERY_CONTROL_ALERT_HISTORY.md');
 const envExample = read('functions/.env.example');
 
-assert.strictEqual(pkg.version, '1.6.37');
-assert.strictEqual(meta.assetVersion, '1.6.37-ui-shell-cross-generation-recovery');
+assert.strictEqual(pkg.version, '1.6.39');
+assert.strictEqual(meta.assetVersion, '1.6.39-ui-shell-partial-script-probe-isolation');
 assert(pkg.scripts['deploy:incident'].includes('functions:retryIncidentBatchRequest'));
 
 for (const token of [
@@ -45,7 +45,7 @@ for (const token of [
   "source: 'scheduled'",
   "reason: 'smtp-unavailable'",
   "health.channels?.webhook?.status !== 'ready'"
-]) assert(functionsSource.includes(token), `v1.6.37 function contract missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.6.39 function contract missing ${token}`);
 
 for (const token of [
   'requestIncidentBatchRecovery',
@@ -55,15 +55,15 @@ for (const token of [
   "getIncidentOperationsHistory({ limit: 24, filter: 'all' }).catch(() => ({ items: [], hasMore: false, nextCursor: 0 }))",
   'normalizeIncidentRecovery',
   'normalizeOperationsHistory'
-]) assert(firebaseSource.includes(token), `v1.6.37 Firebase bridge contract missing ${token}`);
+]) assert(firebaseSource.includes(token), `v1.6.39 Firebase bridge contract missing ${token}`);
 
 for (const token of [
   'adminIncidentRecoverDue',
   'adminIncidentRecoverDead',
   'adminIncidentRecoveryStatus'
 ]) {
-  assert(indexSource.includes(`id="${token}"`), `v1.6.37 HTML missing ${token}`);
-  assert(appSource.includes(`'${token}'`), `v1.6.37 app element cache missing ${token}`);
+  assert(indexSource.includes(`id="${token}"`), `v1.6.39 HTML missing ${token}`);
+  assert(appSource.includes(`'${token}'`), `v1.6.39 app element cache missing ${token}`);
 }
 
 for (const token of [
@@ -74,7 +74,7 @@ for (const token of [
   "requestIncidentBatchRecovery(mode)",
   'getIncidentBatchRecoveryRequest',
   'summarizeHistory'
-]) assert(monitorSource.includes(token), `v1.6.37 admin monitor missing ${token}`);
+]) assert(monitorSource.includes(token), `v1.6.39 admin monitor missing ${token}`);
 
 assert(cssSource.includes('.admin-incident-recovery-actions'));
 assert(rules.includes('validIncidentBatchRecoveryRequest'));

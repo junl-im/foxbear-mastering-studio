@@ -1,3 +1,19 @@
+# v1.6.39 - UI Shell Partial Script Recovery and Probe Isolation
+
+- Adds critical JavaScript pending, failure, and recovery classification alongside the existing core-style recovery state.
+- Keeps the static interface visible and routes confirmed script failures into Runtime Health instead of silently resolving recovery.
+- Rejects late responses from expired service-worker shell probes so terminated tabs cannot repopulate cache-retention state.
+- Reconciles clients that disappear during a probe and retries surviving non-responders once before deciding whether cache retirement is safe.
+- Adds two dedicated regressions, raising the configured target to 383 checks.
+
+# v1.6.38 - UI Shell Runtime Health and Cache Retirement
+
+- Separates pending core styles from confirmed failures so normal loading does not trigger a false safe-UI warning.
+- Resolves fallback state after styles recover and deduplicates the shell notice with the Runtime Health recovery panel.
+- Adds page-to-service-worker shell generation reporting and retires an inactive older retained cache only after every controlled client responds.
+- Keeps the latest rollback cache and preserves both retained generations whenever an older client cannot report its version.
+- Adds dedicated regression coverage, raising the configured target to 381 checks.
+
 # v1.6.37 - UI Shell Cross-Generation Recovery
 
 - Retains the two latest legacy service-worker shell caches so already-open clients can finish loading exact previous-generation assets.

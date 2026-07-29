@@ -1,3 +1,18 @@
+# v1.6.39 project notes
+
+- A visible shell with failed critical JavaScript is degraded, not healthy.
+- Do not label unresolved script downloads as failed before the window load boundary or an explicit resource error.
+- A shell probe response is valid only while its request ID is active and expects that client ID.
+- Re-check active clients after the probe timeout so a tab closed mid-probe cannot block retirement forever.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP delivery contract.
+
+# v1.6.38 project notes
+
+- Preserve the current shell plus the latest rollback shell.
+- Optional older retained shells may be removed only after all controlled clients answer the generation probe.
+- UI-shell fallback must not classify unresolved stylesheet loading as failure before the load boundary.
+- Runtime Health owns the visible recovery panel when both recovery systems detect the same issue.
+
 # v1.6.37 project notes
 
 - Never purge every previous shell cache while `clients.claim()` can take over an already-open previous-generation document.

@@ -108,7 +108,10 @@ const handlers = {};
 const selfStub = {
   location: { origin: 'https://foxbear.invalid' },
   registration: { navigationPreload: { async enable() {} } },
-  clients: { async claim() {} },
+  clients: {
+    async claim() {},
+    async matchAll() { return [{ id: 'legacy-open-client', postMessage() {} }]; }
+  },
   async skipWaiting() {},
   addEventListener(type, handler) { handlers[type] = handler; }
 };
@@ -127,6 +130,8 @@ const swContext = {
   Number,
   String,
   Date,
+  setTimeout(fn) { fn(); return 1; },
+  clearTimeout() {},
   console
 };
 vm.createContext(swContext);
@@ -150,9 +155,9 @@ handlers.activate({ waitUntil(promise) { activation = promise; } });
 (async () => {
   await activation;
   assert(cacheMap.has(meta.cacheName), 'current cache was deleted during activation');
-  assert(cacheMap.has(newest) && cacheMap.has(secondNewest), 'the two newest legacy shells must remain available to already-open clients');
+  assert(cacheMap.has(newest) && cacheMap.has(secondNewest), 'an unresponsive legacy client must keep both recent shell generations available');
   assert(!cacheMap.has(older), 'legacy shells older than the retained safety window must be removed');
-  assert(!deletedCaches.includes(newest) && !deletedCaches.includes(secondNewest) && deletedCaches.includes(older), 'bounded legacy cache retention is incorrect');
+  assert(!deletedCaches.includes(newest) && !deletedCaches.includes(secondNewest) && deletedCaches.includes(older), 'client-safe bounded legacy cache retention is incorrect');
   assert(cacheMap.has('unrelated-cache'), 'unrelated cache must not be deleted');
 
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-probe-cleanup-'));

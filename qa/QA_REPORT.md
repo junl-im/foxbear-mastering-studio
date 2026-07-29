@@ -1,3 +1,57 @@
+# FoxBear QA Report - v1.6.39
+
+## Configured target
+
+- Static and behavioral checks: 383
+- New regressions: `qa/v1639_ui_shell_partial_script_recovery_smoke.js`, `qa/v1639_sw_client_probe_restart_late_report_smoke.js`
+
+## Focus
+
+- Critical script pending-versus-failed classification
+- Static UI preservation during partial JavaScript boot failure
+- Runtime Health script-degradation reporting and recovery resolution
+- Service-worker restart shell-generation recollection
+- Terminated-client and expired-probe response isolation
+
+## Final result
+
+- Official configured checks: `383/383` passed in ordered chunks (`96 + 96 + 96 + 95`).
+- Browser fixture preflight and Firebase Functions syntax: passed.
+- Release metadata, SRI, service-worker cache, and GitHub Desktop handoff: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution did not start because Playwright and Chromium are unavailable in this environment.
+- Engine balanced fixture: approximately `1.81x` realtime.
+- Golden audio: all four fixtures remained at `-14.00 LUFS`, with peaks from `-9.62` to `-5.64 dBTP`.
+- Final release and overwrite archives contain `673` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.38: `256` modified files, `3` added files, `0` deleted files.
+
+# FoxBear QA Report - v1.6.38
+
+## Configured target
+
+- Static and behavioral checks: 381
+- New regression: `qa/v1638_ui_shell_runtime_health_cache_retirement_smoke.js`
+
+## Focus
+
+- Pending versus failed core stylesheet classification
+- Runtime Health and safe-UI notice deduplication
+- Safe-UI resolution after resource recovery
+- Controlled-client shell generation reporting
+- Client-aware retirement of an inactive older retained shell cache
+
+## Final result
+
+- Official configured checks: `381/381` passed in ordered chunks (`96 + 96 + 96 + 93`).
+- Browser fixture preflight and Firebase Functions syntax: passed.
+- Release metadata, SRI, service-worker cache, and GitHub Desktop handoff: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution did not start because Playwright and Chromium are unavailable in this environment.
+- Engine balanced fixture: approximately `2.12x` realtime.
+- Golden audio: all four fixtures remained at `-14.00 LUFS`, with peaks from `-9.62` to `-5.64 dBTP`.
+- Final release and overwrite archives contain `670` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.37: `258` modified files, `2` added files, `0` deleted files.
+
 # FoxBear QA Report - v1.6.37
 
 ## v1.6.37 UI shell and cross-generation recovery

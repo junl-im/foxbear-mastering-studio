@@ -22,8 +22,8 @@ const notes = fs.readFileSync('PROJECT_NOTES.md', 'utf8');
 assert(index.includes('assets/css/dock-waveform.css'), 'index.html should load dock-waveform.css');
 assert(index.indexOf('assets/css/dock.css') < index.indexOf('assets/css/dock-waveform.css'), 'dock-waveform.css should load after dock.css');
 assert(index.indexOf('assets/css/dock-waveform.css') < index.indexOf('assets/css/waveform-compare.css'), 'waveform-compare.css should remain after dock-waveform.css');
-assert(sw.includes('foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery') || (/foxbear-shell-v1\.4\.0/.test(sw) && /stage(?:9(?:\.1)?|10|11|12(?:\.1|\.2)?|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw)), 'service worker cache should be bumped to stage9 or later');
-assert(sw.includes('./assets/css/dock-waveform.css?v=1.6.37-ui-shell-cross-generation-recovery'), 'service worker should precache dock-waveform.css');
+assert(sw.includes('foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation') || (/foxbear-shell-v1\.4\.0/.test(sw) && /stage(?:9(?:\.1)?|10|11|12(?:\.1|\.2)?|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw)), 'service worker cache should be bumped to stage9 or later');
+assert(sw.includes('./assets/css/dock-waveform.css?v=1.6.39-ui-shell-partial-script-probe-isolation'), 'service worker should precache dock-waveform.css');
 
 assert(dockWaveformCss.includes('Stage9: Dock waveform dedicated CSS layer'), 'dock-waveform.css should declare Stage9 layer ownership');
 assert(dockWaveformCss.includes('.bottom-waveform-bars') && dockWaveformCss.includes('.dock-integrated-waveform-bars'), 'dock waveform selectors should live in dock-waveform.css');

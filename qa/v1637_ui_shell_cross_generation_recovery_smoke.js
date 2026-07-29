@@ -35,11 +35,12 @@ const shell = {
 const body = { classList: classList(), appendChild(node){ this.notice=node; }, querySelector(){ return null; } };
 const html = { classList: classList() };
 const links = [
-  { getAttribute:()=> 'assets/css/theme.css', sheet:null },
-  { getAttribute:()=> 'assets/css/layout.css', sheet:null },
-  { getAttribute:()=> 'assets/css/studio.css', sheet:null }
+  { getAttribute:()=> 'assets/css/theme.css', sheet:null, dataset:{ foxbearLoadError:'true' } },
+  { getAttribute:()=> 'assets/css/layout.css', sheet:null, dataset:{ foxbearLoadError:'true' } },
+  { getAttribute:()=> 'assets/css/studio.css', sheet:null, dataset:{ foxbearLoadError:'true' } }
 ];
 const document = {
+  readyState: 'complete',
   body, documentElement: html,
   querySelector(sel){ return sel === '.app-shell' ? shell : null; },
   querySelectorAll(){ return links; },

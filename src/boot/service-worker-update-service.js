@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.6.37 - generation-fenced activation claim and BFCache controller reconciliation
+// FoxBear service worker update coordinator v1.6.39 - generation-fenced activation claim and BFCache controller reconciliation
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.6.37-ui-shell-cross-generation-recovery';
+  const VERSION = '1.6.39-ui-shell-partial-script-probe-isolation';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;
@@ -47,6 +47,10 @@
     activationClaimFencedCount: 0,
     activationResumeReconcileCount: 0,
     activationControllerChangeDedupCount: 0,
+    clientShellAnnouncementCount: 0,
+    clientShellQueryCount: 0,
+    clientShellInactiveCount: 0,
+    lastClientShellAnnouncementAt: 0,
     activationLeaseToken: '',
     activationLeaseGeneration: 0,
     activationLeasePersistent: false,
@@ -59,6 +63,41 @@
   function safeCall(fn, fallback = null) {
     try { return typeof fn === 'function' ? fn() : fallback; }
     catch (error) { return fallback; }
+  }
+
+  function getClientShellPayload(requestId = '', reason = 'announce', active = true) {
+    return {
+      type: active ? 'FOXBEAR_CLIENT_SHELL_STATE' : 'FOXBEAR_CLIENT_SHELL_INACTIVE',
+      requestId: String(requestId || ''),
+      assetVersion: VERSION,
+      cacheName: String(global.FoxBearBuildInfo?.cacheName || `foxbear-shell-v${VERSION}`),
+      tabId: TAB_ID,
+      active: active === true,
+      visibility: global.document?.visibilityState || 'unknown',
+      reason: String(reason || 'announce'),
+      updatedAt: Date.now()
+    };
+  }
+
+  function postClientShellState(requestId = '', reason = 'announce', active = true, target = null) {
+    const worker = target?.postMessage ? target : global.navigator?.serviceWorker?.controller;
+    if (!worker?.postMessage) return false;
+    try {
+      worker.postMessage(getClientShellPayload(requestId, reason, active));
+      state.lastClientShellAnnouncementAt = Date.now();
+      if (active) state.clientShellAnnouncementCount += 1;
+      else state.clientShellInactiveCount += 1;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function handleServiceWorkerMessage(event) {
+    const payload = event?.data;
+    if (!payload || payload.type !== 'FOXBEAR_QUERY_CLIENT_SHELL_STATE') return false;
+    state.clientShellQueryCount += 1;
+    return postClientShellState(payload.requestId, 'service-worker-query', true, event.source);
   }
 
   function getActivitySnapshot() {
@@ -559,6 +598,10 @@
       activationClaimFencedCount: state.activationClaimFencedCount,
       activationResumeReconcileCount: state.activationResumeReconcileCount,
       activationControllerChangeDedupCount: state.activationControllerChangeDedupCount,
+      clientShellAnnouncementCount: state.clientShellAnnouncementCount,
+      clientShellQueryCount: state.clientShellQueryCount,
+      clientShellInactiveCount: state.clientShellInactiveCount,
+      lastClientShellAnnouncementAt: state.lastClientShellAnnouncementAt,
       channelActive: Boolean(channel),
       observedRegistrationCount,
       activityPauseCount: state.activityPauseCount,
@@ -569,20 +612,32 @@
   }
 
   initializePeerChannel();
-  global.navigator?.serviceWorker?.addEventListener?.('controllerchange', () => handleControllerChange('event'));
-  global.addEventListener?.('online', () => { publishActivity(true); if (state.waiting) scheduleCheck(0); });
-  global.addEventListener?.('pagehide', event => pauseActivityChannel(event?.persisted ? 'bfcache-pagehide' : 'pagehide'));
+  global.navigator?.serviceWorker?.addEventListener?.('message', handleServiceWorkerMessage);
+  global.navigator?.serviceWorker?.addEventListener?.('controllerchange', () => {
+    handleControllerChange('event');
+    postClientShellState('', 'controllerchange', true);
+  });
+  global.addEventListener?.('online', () => { publishActivity(true); postClientShellState('', 'online', true); if (state.waiting) scheduleCheck(0); });
+  global.addEventListener?.('pagehide', event => {
+    postClientShellState('', event?.persisted ? 'bfcache-pagehide' : 'pagehide', event?.persisted === true);
+    pauseActivityChannel(event?.persisted ? 'bfcache-pagehide' : 'pagehide');
+  });
   global.addEventListener?.('pageshow', event => {
     if (event?.persisted || activitySuspended) resumeActivityChannel(event?.persisted ? 'bfcache-pageshow' : 'pageshow');
     reconcileControllerAfterResume();
+    postClientShellState('', event?.persisted ? 'bfcache-pageshow' : 'pageshow', true);
     if (state.waiting) scheduleCheck(0);
   });
-  global.addEventListener?.('beforeunload', () => pauseActivityChannel('beforeunload'));
+  global.addEventListener?.('beforeunload', () => { postClientShellState('', 'beforeunload', false); pauseActivityChannel('beforeunload'); });
   global.document?.addEventListener?.('visibilitychange', () => {
     if (global.document?.visibilityState === 'visible' && activitySuspended) resumeActivityChannel('visibility');
     else publishActivity(true);
+    postClientShellState('', 'visibilitychange', true);
     if (state.waiting) scheduleCheck(0);
   });
+
+  if (typeof global.setTimeout === 'function') global.setTimeout(() => postClientShellState('', 'initial', true), 0);
+  else postClientShellState('', 'initial', true);
 
   global.FoxBearServiceWorkerUpdateService = Object.freeze({
     version: VERSION,
@@ -592,6 +647,7 @@
     publishActivity,
     pauseActivityChannel,
     resumeActivityChannel,
+    postClientShellState,
     getActivitySnapshot,
     getPeerActivitySnapshot,
     getSnapshot

@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.37 (ui-shell-cross-generation-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.39 (ui-shell-partial-script-probe-isolation).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.37"
+  "version": "1.6.39"
 }

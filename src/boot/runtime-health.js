@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.37-ui-shell-cross-generation-recovery';
+    const FALLBACK_VERSION = '1.6.39-ui-shell-partial-script-probe-isolation';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -135,6 +135,32 @@
         return dottedPath.split('.').reduce((value, key) => (value == null ? undefined : value[key]), root);
     }
 
+    function getUiShellRecoverySnapshot() {
+        try {
+            const snapshot = global.FoxBearUiShellRecoveryService?.getSnapshot?.();
+            if (!snapshot) return null;
+            return Object.freeze({
+                version: String(snapshot.version || ''),
+                active: snapshot.active === true,
+                stylesMissing: snapshot.stylesMissing === true,
+                stylesPending: snapshot.stylesPending === true,
+                scriptsMissing: snapshot.scriptsMissing === true,
+                scriptsPending: snapshot.scriptsPending === true,
+                noticeVisible: snapshot.noticeVisible === true,
+                runtimePanelVisible: snapshot.runtimePanelVisible === true,
+                recoveries: Number(snapshot.recoveries || 0),
+                resolvedRecoveries: Number(snapshot.resolvedRecoveries || 0),
+                missingScriptRecoveries: Number(snapshot.missingScriptRecoveries || 0),
+                resourceFailureCount: Number(snapshot.resourceFailureCount || 0),
+                lastReason: String(snapshot.lastReason || ''),
+                recoveredAt: Number(snapshot.recoveredAt || 0),
+                resolvedAt: Number(snapshot.resolvedAt || 0)
+            });
+        } catch (error) {
+            return null;
+        }
+    }
+
     function uniquePush(list, item, keyFn, limit) {
         const key = keyFn(item);
         if (!list.some(existing => keyFn(existing) === key)) list.push(item);
@@ -235,10 +261,13 @@
         const missingGlobals = findMissingGlobals();
         const missingDomIds = document.readyState === 'loading' ? [] : findMissingDomIds();
         const assetVersionMismatches = findAssetVersionMismatches();
+        const uiShellRecovery = getUiShellRecoverySnapshot();
+        const uiShellDegraded = Boolean(uiShellRecovery?.active && (uiShellRecovery?.stylesMissing || uiShellRecovery?.scriptsMissing));
         const ok = missingGlobals.length === 0
             && missingDomIds.length === 0
             && assetVersionMismatches.length === 0
             && state.resourceFailures.length === 0
+            && !uiShellDegraded
             && !state.bootFailed
             && !state.bootStalled;
         return Object.freeze({
@@ -253,6 +282,7 @@
             resourceFailures: state.resourceFailures.slice(),
             runtimeErrors: state.runtimeErrors.slice(),
             runtimeWarnings: state.runtimeWarnings.slice(),
+            uiShellRecovery,
             checkedAt: Date.now()
         });
     }
@@ -267,6 +297,7 @@
     function summarizeProblems(report) {
         const problems = [];
         if (report.resourceFailures.length) problems.push(`리소스 ${report.resourceFailures.length}개`);
+        if (report.uiShellRecovery?.active) problems.push(report.uiShellRecovery.stylesMissing ? '안전 UI 활성' : (report.uiShellRecovery.scriptsMissing ? '핵심 기능 로드 실패' : 'UI 표시 복구'));
         if (report.missingGlobals.length) problems.push(`모듈 ${report.missingGlobals.length}개`);
         if (report.missingDomIds.length) problems.push(`DOM ${report.missingDomIds.length}개`);
         if (report.assetVersionMismatches.length) problems.push('캐시 버전 불일치');
@@ -324,8 +355,10 @@
     function markAppReady() {
         state.appReady = true;
         state.bootStalled = false;
-        hideRecoveryPanel();
-        return check({ silent: true });
+        const report = check({ silent: true });
+        if (report.ok) hideRecoveryPanel();
+        else showRecoveryPanel(report, { reason: 'app-ready-degraded' });
+        return report;
     }
 
     function markBootFailed(error) {
@@ -365,6 +398,13 @@
         }
         if (report.missingDomIds.length) {
             lines.push(`누락 DOM: ${report.missingDomIds.join(', ')}`);
+        }
+        if (report.uiShellRecovery?.active) {
+            lines.push(report.uiShellRecovery.stylesMissing
+                ? '핵심 스타일 일부가 없어 최소 안전 UI로 표시 중입니다.'
+                : report.uiShellRecovery.scriptsMissing
+                    ? '화면은 표시되지만 핵심 스크립트 일부를 불러오지 못했습니다.'
+                    : '숨겨진 UI shell을 자동으로 복구했습니다.');
         }
         if (report.bootFailed || report.bootStalled) {
             lines.push(report.bootFailed ? '앱 초기화 실패가 감지되었습니다.' : '앱 초기화 완료 신호가 늦어지고 있습니다.');
@@ -419,6 +459,8 @@
             if (!panel) return;
             panel.hidden = false;
             state.panelVisible = true;
+            try { global.FoxBearUiShellRecoveryService?.setRuntimePanelVisible?.(true); } catch (error) {}
+            try { global.dispatchEvent(new CustomEvent('foxbear:runtime-recovery-panel', { detail: { visible: true, reason: options.reason || 'unknown' } })); } catch (error) {}
         };
         if (document.body) display();
         else document.addEventListener('DOMContentLoaded', display, { once: true });
@@ -428,6 +470,8 @@
         if (!state.panel) return;
         state.panel.hidden = true;
         state.panelVisible = false;
+        try { global.FoxBearUiShellRecoveryService?.setRuntimePanelVisible?.(false); } catch (error) {}
+        try { global.dispatchEvent(new CustomEvent('foxbear:runtime-recovery-panel', { detail: { visible: false, reason: 'dismissed' } })); } catch (error) {}
     }
 
     function getCanonicalRecoveryUrl() {

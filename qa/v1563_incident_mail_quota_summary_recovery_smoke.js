@@ -16,8 +16,8 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.63_INCIDENT_MAIL_QUOTA_SUMMARY_RECOVERY.md');
 
-assert.strictEqual(pkg.version, '1.6.37');
-assert.strictEqual(meta.assetVersion, '1.6.37-ui-shell-cross-generation-recovery');
+assert.strictEqual(pkg.version, '1.6.39');
+assert.strictEqual(meta.assetVersion, '1.6.39-ui-shell-partial-script-probe-isolation');
 
 for (const token of [
   'dailyKst_${dayKey}',
@@ -43,7 +43,7 @@ for (const token of [
   ".orderBy('createdAt', 'desc')",
   'manualResetCount: Math.max(0, Number(delivery.manualResetCount || 0)) + (forceTerminal ? 1 : 0)',
   "status: 'stale-completion'"
-]) assert(functionsSource.includes(token), `v1.6.37 mail recovery missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.6.39 mail recovery missing ${token}`);
 
 assert(!functionsSource.includes('function utcDateKey'), 'UTC quota helper must not remain in the mail path');
 assert(!functionsSource.includes("const rateStatus = options.retry ? 'failed' : 'suppressed-rate-limit'"), 'new incidents can still be permanently suppressed at the daily limit');

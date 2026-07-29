@@ -1,3 +1,58 @@
+# FoxBear Status - v1.6.39
+
+## Current release
+
+- Product version: `1.6.39`
+- Build ID: `ui-shell-partial-script-probe-isolation`
+- Asset version: `1.6.39-ui-shell-partial-script-probe-isolation`
+- Service worker cache: `foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation`
+- Configured static/regression target: 383 checks.
+
+## Current focus
+
+- Keep the static UI available when one critical JavaScript asset fails.
+- Distinguish pending scripts from confirmed boot failures.
+- Prevent expired or terminated client probe responses from retaining stale caches.
+- Recollect active shell generations safely after service-worker restart.
+
+## Verified
+
+- Official configured QA: **383/383 passed**.
+- Browser fixture preflight and Functions syntax: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Engine balanced fixture: approximately **1.81x realtime**.
+- Golden audio: four fixtures at **-14.00 LUFS**.
+- Installed Playwright/Chromium execution: unavailable in this sandbox.
+- Full and overwrite ZIP packages: **673 entries each**, compressed-data errors: **0**.
+- Change scope: **256 modified, 3 added, 0 deleted**.
+
+# FoxBear Status - v1.6.38
+
+## Current release
+
+- Product version: `1.6.38`
+- Build ID: `ui-shell-runtime-health-cache-retirement`
+- Asset version: `1.6.38-ui-shell-runtime-health-cache-retirement`
+- Service worker cache: `foxbear-shell-v1.6.38-ui-shell-runtime-health-cache-retirement`
+- Configured static/regression target: 381 checks.
+
+## Current focus
+
+- Prevent false safe-UI activation while CSS is still loading.
+- Merge UI-shell and Runtime Health recovery feedback.
+- Retire only client-confirmed inactive legacy shell generations.
+
+## Verified
+
+- Official configured QA: **381/381 passed**.
+- Browser fixture preflight and Functions syntax: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Engine balanced fixture: approximately **2.12x realtime**.
+- Golden audio: four fixtures at **-14.00 LUFS**.
+- Installed Playwright/Chromium execution: unavailable in this sandbox.
+- Full and overwrite ZIP packages: **670 entries each**, compressed-data errors: **0**.
+- Change scope: **258 modified, 2 added, 0 deleted**.
+
 # FoxBear Status - v1.6.37
 
 - UI shell disappearance after cross-generation service-worker activation: patched.
@@ -61,10 +116,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.37`
-- Build ID: `ui-shell-cross-generation-recovery`
-- Asset version: `1.6.37-ui-shell-cross-generation-recovery`
-- Service worker cache: `foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery`
+- Product version: `1.6.39`
+- Build ID: `ui-shell-partial-script-probe-isolation`
+- Asset version: `1.6.39-ui-shell-partial-script-probe-isolation`
+- Service worker cache: `foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation`
 
 # FoxBear Status - v1.6.32
 

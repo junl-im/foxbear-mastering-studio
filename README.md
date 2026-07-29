@@ -1,3 +1,23 @@
+# FoxBear AI Mastering Studio Pro v1.6.39
+
+## v1.6.39 partial boot and client-probe isolation
+
+- A failed critical JavaScript asset now keeps the static UI visible while Runtime Health reports the missing feature layer.
+- Pending scripts are not classified as failed before the window load boundary.
+- Service-worker client probes discard expired request responses and remove clients that terminate during collection.
+- Surviving clients receive one bounded retry after a service-worker restart.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
+# FoxBear AI Mastering Studio Pro v1.6.38
+
+## v1.6.38 UI shell follow-up
+
+- Core styles are pending until confirmed failed, preventing premature minimal-UI activation.
+- Runtime Health and UI-shell recovery now share one visible recovery surface.
+- Active clients report their shell generation before an optional retained cache is retired.
+- The newest rollback shell remains available, and unresponsive older tabs keep both recent generations protected.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
 # FoxBear AI Mastering Studio Pro v1.6.37
 
 ## v1.6.37 UI recovery hotfix
