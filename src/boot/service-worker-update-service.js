@@ -1,14 +1,18 @@
-// FoxBear service worker update coordinator v1.6.34 - stable-idle and BFCache-safe cross-tab activity guard
+// FoxBear service worker update coordinator v1.6.37 - generation-fenced activation claim and BFCache controller reconciliation
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
+  const VERSION = '1.6.37-ui-shell-cross-generation-recovery';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;
   const HEARTBEAT_MS = 1500;
   const CHANNEL_NAME = 'foxbear-sw-activity-v1';
   const STORAGE_PREFIX = 'foxbear-sw-activity:';
+  const ACTIVATION_LEASE_KEY = 'foxbear-sw-activation-lease:v1';
+  const ACTIVATION_LEASE_TTL_MS = 15000;
+  const ACTIVATION_WATCHDOG_MS = 12000;
+  const ACTIVATION_CLAIM_SETTLE_MS = 80;
   const TAB_ID = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   const peers = new Map();
   const observedRegistrations = new WeakSet();
@@ -22,6 +26,8 @@
     waiting: null,
     timer: 0,
     heartbeatTimer: 0,
+    activationTimer: 0,
+    activationClaimTimer: 0,
     idleSince: 0,
     activationRequested: false,
     controllerChangePending: false,
@@ -31,7 +37,23 @@
     lastReason: 'idle',
     checks: 0,
     activityPauseCount: 0,
-    activityResumeCount: 0
+    activityResumeCount: 0,
+    activationLeaseAcquireCount: 0,
+    activationLeaseBusyCount: 0,
+    activationLeaseReleaseCount: 0,
+    activationTimeoutCount: 0,
+    activationLeaseLostCount: 0,
+    activationClaimCount: 0,
+    activationClaimFencedCount: 0,
+    activationResumeReconcileCount: 0,
+    activationControllerChangeDedupCount: 0,
+    activationLeaseToken: '',
+    activationLeaseGeneration: 0,
+    activationLeasePersistent: false,
+    activationLeaseExpiresAt: 0,
+    controllerBeforeActivation: null,
+    lastController: global.navigator?.serviceWorker?.controller || null,
+    lastOptions: {}
   };
 
   function safeCall(fn, fallback = null) {
@@ -62,6 +84,144 @@
 
   function peerStorageKey(id = TAB_ID) {
     return `${STORAGE_PREFIX}${id}`;
+  }
+
+  function readStoredActivationLease() {
+    try {
+      const value = JSON.parse(global.localStorage?.getItem?.(ACTIVATION_LEASE_KEY) || 'null');
+      if (!value || !value.token) return null;
+      return {
+        token: String(value.token),
+        generation: Math.max(1, Number(value.generation || 1)),
+        acquiredAt: Number(value.acquiredAt || 0),
+        expiresAt: Number(value.expiresAt || 0)
+      };
+    } catch (error) { return null; }
+  }
+
+  function readActivationLease() {
+    const value = readStoredActivationLease();
+    if (!value || value.expiresAt <= Date.now()) return null;
+    return value;
+  }
+
+  function leaseMatches(value, token = state.activationLeaseToken, generation = state.activationLeaseGeneration) {
+    return Boolean(value && value.token === token && Number(value.generation || 0) === Number(generation || 0));
+  }
+
+  function acquireActivationLease() {
+    const current = readStoredActivationLease();
+    if (current && current.expiresAt > Date.now() && current.token !== TAB_ID) {
+      state.activationLeaseBusyCount += 1;
+      state.activationLeaseExpiresAt = Number(current.expiresAt || 0);
+      return null;
+    }
+    const generation = Math.max(Number(current?.generation || 0), Number(state.activationLeaseGeneration || 0)) + 1;
+    const lease = { token: TAB_ID, generation, acquiredAt: Date.now(), expiresAt: Date.now() + ACTIVATION_LEASE_TTL_MS };
+    try {
+      global.localStorage?.setItem?.(ACTIVATION_LEASE_KEY, JSON.stringify(lease));
+      const verified = readActivationLease();
+      if (!leaseMatches(verified, TAB_ID, generation)) {
+        state.activationLeaseBusyCount += 1;
+        return null;
+      }
+      state.activationLeaseToken = TAB_ID;
+      state.activationLeaseGeneration = generation;
+      state.activationLeasePersistent = true;
+      state.activationLeaseExpiresAt = lease.expiresAt;
+      state.activationLeaseAcquireCount += 1;
+      return lease;
+    } catch (error) {
+      state.activationLeaseToken = TAB_ID;
+      state.activationLeaseGeneration = generation;
+      state.activationLeasePersistent = false;
+      state.activationLeaseExpiresAt = lease.expiresAt;
+      state.activationLeaseAcquireCount += 1;
+      state.lastReason = 'activation-lease-local-fallback';
+      return lease;
+    }
+  }
+
+  function clearActivationClaimTimer() {
+    if (!state.activationClaimTimer) return;
+    try { global.clearTimeout?.(state.activationClaimTimer); } catch (error) {}
+    state.activationClaimTimer = 0;
+  }
+
+  function releaseActivationLease(reason = 'release', expectedGeneration = state.activationLeaseGeneration) {
+    if (state.activationLeaseToken !== TAB_ID || Number(expectedGeneration || 0) !== Number(state.activationLeaseGeneration || 0)) return false;
+    try {
+      const current = readStoredActivationLease();
+      if (leaseMatches(current, TAB_ID, expectedGeneration)) global.localStorage?.removeItem?.(ACTIVATION_LEASE_KEY);
+    } catch (error) {}
+    state.activationLeaseToken = '';
+    state.activationLeaseGeneration = 0;
+    state.activationLeasePersistent = false;
+    state.activationLeaseExpiresAt = 0;
+    state.activationLeaseReleaseCount += 1;
+    state.lastReason = reason || state.lastReason;
+    return true;
+  }
+
+  function clearActivationWatchdog() {
+    if (!state.activationTimer) return;
+    try { global.clearTimeout?.(state.activationTimer); } catch (error) {}
+    state.activationTimer = 0;
+  }
+
+  function resetActivationRequestState() {
+    clearActivationClaimTimer();
+    clearActivationWatchdog();
+    state.activationRequested = false;
+    state.controllerChangePending = false;
+    state.controllerBeforeActivation = null;
+  }
+
+  function handleActivationTimeout(expectedGeneration) {
+    state.activationTimer = 0;
+    if (Number(expectedGeneration || 0) !== Number(state.activationLeaseGeneration || 0)) return false;
+    if (!state.controllerChangePending && !state.activationRequested) return false;
+    state.activationRequested = false;
+    state.controllerChangePending = false;
+    state.controllerBeforeActivation = null;
+    state.activationTimeoutCount += 1;
+    state.lastReason = 'activation-timeout';
+    releaseActivationLease('activation-timeout-release', expectedGeneration);
+    if (getWaitingWorker()) scheduleCheck(state.lastOptions?.pollMs || DEFAULT_POLL_MS, state.lastOptions || {});
+    return true;
+  }
+
+  function scheduleActivationWatchdog(expectedGeneration) {
+    clearActivationWatchdog();
+    if (typeof global.setTimeout !== 'function') return 0;
+    state.activationTimer = global.setTimeout(() => handleActivationTimeout(expectedGeneration), ACTIVATION_WATCHDOG_MS) || 0;
+    return state.activationTimer;
+  }
+
+  function loseActivationClaim(reason = 'activation-lease-lost') {
+    const expectedGeneration = state.activationLeaseGeneration;
+    clearActivationClaimTimer();
+    clearActivationWatchdog();
+    state.activationRequested = false;
+    state.controllerChangePending = false;
+    state.controllerBeforeActivation = null;
+    state.activationLeaseToken = '';
+    state.activationLeaseGeneration = 0;
+    state.activationLeasePersistent = false;
+    state.activationLeaseLostCount += 1;
+    state.lastReason = reason;
+    if (getWaitingWorker()) scheduleCheck(state.lastOptions?.pollMs || DEFAULT_POLL_MS, state.lastOptions || {});
+    return expectedGeneration;
+  }
+
+  function handleActivationLeaseStorage(event) {
+    if (event?.key !== ACTIVATION_LEASE_KEY || (!state.activationRequested && !state.controllerChangePending)) return false;
+    let lease = null;
+    try { lease = event.newValue ? JSON.parse(event.newValue) : null; } catch (error) {}
+    if (leaseMatches(lease, TAB_ID, state.activationLeaseGeneration)) return false;
+    state.activationLeaseExpiresAt = Number(lease?.expiresAt || 0);
+    loseActivationClaim('activation-lease-lost');
+    return true;
   }
 
   function rememberPeer(payload) {
@@ -128,6 +288,7 @@
   }
 
   function handlePeerStorage(event) {
+    if (event?.key === ACTIVATION_LEASE_KEY) { handleActivationLeaseStorage(event); return; }
     if (!event.key?.startsWith?.(STORAGE_PREFIX) || !event.newValue) return;
     try { rememberPeer(JSON.parse(event.newValue)); } catch (error) {}
   }
@@ -186,6 +347,51 @@
     return registration?.waiting || state.waiting || null;
   }
 
+  function finalizeActivationClaim(expectedGeneration, waiting, reason) {
+    state.activationClaimTimer = 0;
+    if (!state.activationRequested || Number(expectedGeneration || 0) !== Number(state.activationLeaseGeneration || 0)) return false;
+    if (state.activationLeasePersistent) {
+      const current = readActivationLease();
+      if (!leaseMatches(current, TAB_ID, expectedGeneration)) {
+        state.activationClaimFencedCount += 1;
+        loseActivationClaim('activation-claim-fenced');
+        return false;
+      }
+    }
+    const peerActivity = getPeerActivitySnapshot();
+    if (!peerActivity.idle) {
+      state.activationClaimFencedCount += 1;
+      state.activationRequested = false;
+      state.controllerChangePending = false;
+      releaseActivationLease('activation-peer-busy-release', expectedGeneration);
+      state.lastReason = `peer-busy-after-claim:${peerActivity.busyCount}`;
+      if (getWaitingWorker()) scheduleCheck(state.lastOptions?.pollMs || DEFAULT_POLL_MS, state.lastOptions || {});
+      return false;
+    }
+    state.controllerChangePending = true;
+    state.controllerBeforeActivation = global.navigator?.serviceWorker?.controller || null;
+    state.activationClaimCount += 1;
+    try {
+      waiting.postMessage({
+        type: 'SKIP_WAITING',
+        reason,
+        requestedAt: state.lastActivationAt,
+        leaseOwner: TAB_ID,
+        leaseGeneration: expectedGeneration
+      });
+      scheduleActivationWatchdog(expectedGeneration);
+      return true;
+    } catch (error) {
+      state.activationRequested = false;
+      state.controllerChangePending = false;
+      state.controllerBeforeActivation = null;
+      clearActivationWatchdog();
+      releaseActivationLease('activation-error-release', expectedGeneration);
+      state.lastReason = `activation-error:${error?.message || error}`;
+      return false;
+    }
+  }
+
   function requestActivation(reason = 'stable-idle') {
     const waiting = getWaitingWorker();
     if (!waiting || state.activationRequested || state.controllerChangePending) return false;
@@ -194,19 +400,23 @@
       state.lastReason = `peer-busy:${peerActivity.busyCount}`;
       return false;
     }
-    state.activationRequested = true;
-    state.controllerChangePending = true;
-    state.lastActivationAt = Date.now();
-    state.lastReason = reason;
-    try {
-      waiting.postMessage({ type: 'SKIP_WAITING', reason, requestedAt: state.lastActivationAt });
-      return true;
-    } catch (error) {
-      state.activationRequested = false;
-      state.controllerChangePending = false;
-      state.lastReason = `activation-error:${error?.message || error}`;
+    const lease = acquireActivationLease();
+    if (!lease) {
+      state.lastReason = 'activation-owned-by-peer';
       return false;
     }
+    state.activationRequested = true;
+    state.controllerChangePending = false;
+    state.lastActivationAt = Date.now();
+    state.lastReason = `activation-claim:${reason}`;
+    if (typeof global.setTimeout === 'function' && state.activationLeasePersistent) {
+      state.activationClaimTimer = global.setTimeout(
+        () => finalizeActivationClaim(lease.generation, waiting, reason),
+        ACTIVATION_CLAIM_SETTLE_MS
+      ) || 0;
+      return true;
+    }
+    return finalizeActivationClaim(lease.generation, waiting, reason);
   }
 
   function scheduleCheck(delay = DEFAULT_POLL_MS, options = {}) {
@@ -240,8 +450,10 @@
     const stableIdleMs = Math.max(250, Number(options.stableIdleMs || DEFAULT_STABLE_IDLE_MS));
     const idleFor = Date.now() - state.idleSince;
     state.lastReason = `idle:${idleFor}`;
-    if (idleFor >= stableIdleMs) requestActivation('stable-idle-all-tabs');
-    else scheduleCheck(Math.min(Number(options.pollMs || DEFAULT_POLL_MS), stableIdleMs - idleFor), options);
+    if (idleFor >= stableIdleMs) {
+      const requested = requestActivation('stable-idle-all-tabs');
+      if (!requested && getWaitingWorker()) scheduleCheck(options.pollMs || DEFAULT_POLL_MS, options);
+    } else scheduleCheck(Math.min(Number(options.pollMs || DEFAULT_POLL_MS), stableIdleMs - idleFor), options);
     return getSnapshot();
   }
 
@@ -266,7 +478,9 @@
 
   function coordinate(registration, options = {}) {
     if (!registration) return getSnapshot();
+    state.lastOptions = options || {};
     state.registration = registration;
+    if (!state.activationRequested && !state.controllerChangePending) state.lastController = global.navigator?.serviceWorker?.controller || state.lastController;
     registrationOptions.set(registration, options || {});
     state.waiting = global.navigator?.serviceWorker?.controller ? (registration.waiting || null) : null;
     if (!observedRegistrations.has(registration)) {
@@ -281,13 +495,39 @@
     return getSnapshot();
   }
 
-  function handleControllerChange() {
+  function handleControllerChange(source = 'event') {
+    const currentController = global.navigator?.serviceWorker?.controller || null;
+    const changed = currentController !== state.lastController;
+    if (!changed && !state.activationRequested && !state.controllerChangePending) {
+      state.activationControllerChangeDedupCount += 1;
+      return false;
+    }
+    const expectedGeneration = state.activationLeaseGeneration;
+    clearActivationClaimTimer();
+    clearActivationWatchdog();
+    releaseActivationLease('controller-change-release', expectedGeneration);
     state.waiting = null;
     state.activationRequested = false;
     state.controllerChangePending = false;
+    state.controllerBeforeActivation = null;
     state.idleSince = 0;
-    state.lastReason = 'controller-changed';
+    state.lastController = currentController;
+    state.lastReason = source === 'resume' ? 'controller-changed-during-bfcache' : 'controller-changed';
     clearTimer();
+    return true;
+  }
+
+  function reconcileControllerAfterResume() {
+    const currentController = global.navigator?.serviceWorker?.controller || null;
+    const changedSinceActivation = Boolean(
+      (state.activationRequested || state.controllerChangePending)
+      && currentController
+      && currentController !== state.controllerBeforeActivation
+    );
+    const changedSinceLastSeen = currentController !== state.lastController;
+    if (!changedSinceActivation && !changedSinceLastSeen) return false;
+    state.activationResumeReconcileCount += 1;
+    return handleControllerChange('resume');
   }
 
   function getSnapshot() {
@@ -304,6 +544,21 @@
       checks: state.checks,
       activitySuspended,
       heartbeatActive: Boolean(state.heartbeatTimer),
+      activationWatchdogActive: Boolean(state.activationTimer),
+      activationClaimPending: Boolean(state.activationClaimTimer),
+      activationLeaseOwned: state.activationLeaseToken === TAB_ID,
+      activationLeaseGeneration: state.activationLeaseGeneration,
+      activationLeasePersistent: state.activationLeasePersistent,
+      activationLeaseExpiresAt: state.activationLeaseExpiresAt,
+      activationLeaseAcquireCount: state.activationLeaseAcquireCount,
+      activationLeaseBusyCount: state.activationLeaseBusyCount,
+      activationLeaseReleaseCount: state.activationLeaseReleaseCount,
+      activationTimeoutCount: state.activationTimeoutCount,
+      activationLeaseLostCount: state.activationLeaseLostCount,
+      activationClaimCount: state.activationClaimCount,
+      activationClaimFencedCount: state.activationClaimFencedCount,
+      activationResumeReconcileCount: state.activationResumeReconcileCount,
+      activationControllerChangeDedupCount: state.activationControllerChangeDedupCount,
       channelActive: Boolean(channel),
       observedRegistrationCount,
       activityPauseCount: state.activityPauseCount,
@@ -314,11 +569,12 @@
   }
 
   initializePeerChannel();
-  global.navigator?.serviceWorker?.addEventListener?.('controllerchange', handleControllerChange);
+  global.navigator?.serviceWorker?.addEventListener?.('controllerchange', () => handleControllerChange('event'));
   global.addEventListener?.('online', () => { publishActivity(true); if (state.waiting) scheduleCheck(0); });
   global.addEventListener?.('pagehide', event => pauseActivityChannel(event?.persisted ? 'bfcache-pagehide' : 'pagehide'));
   global.addEventListener?.('pageshow', event => {
     if (event?.persisted || activitySuspended) resumeActivityChannel(event?.persisted ? 'bfcache-pageshow' : 'pageshow');
+    reconcileControllerAfterResume();
     if (state.waiting) scheduleCheck(0);
   });
   global.addEventListener?.('beforeunload', () => pauseActivityChannel('beforeunload'));

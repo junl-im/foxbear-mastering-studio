@@ -1,5 +1,22 @@
-# FoxBear AI Mastering Studio Pro v1.6.34
+# FoxBear AI Mastering Studio Pro v1.6.37
 
+## v1.6.37 UI recovery hotfix
+
+- Prevents a newly activated service worker from deleting the exact previous-generation assets still needed by an open or BFCache-restored page.
+- Keeps the two latest legacy shell caches and serves only exact stale-generation cache matches.
+- Adds a boot-level UI visibility guard and readable minimal fallback styling.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
+# FoxBear AI Mastering Studio Pro v1.6.36
+
+## v1.6.36 update
+
+- Service-worker activation now uses token-plus-generation fencing and an 80 ms ownership settlement window.
+- Competing tabs cannot both send `SKIP_WAITING` after observing the same expired or empty lease.
+- BFCache pageshow reconciles a controller change that occurred while the page was frozen.
+- Managed AudioContext cleanup joins concurrent close requests instead of calling native close twice.
+- New Worker and AudioContext stress coverage raises the configured cumulative target to 378 checks.
+- Final results remain fixed to the three sections stored in `DELIVERY_RULES.md`.
 
 ## v1.6.34 update
 

@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.34-history-hard-stall-sw-activity-lifecycle';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.37-ui-shell-cross-generation-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();
@@ -77,7 +77,8 @@
             resumeCount: 0,
             resumePromise: null,
             lastResumeError: '',
-            closeReason: ''
+            closeReason: '',
+            closePromise: null
         };
         records.set(id, record);
         contextIds.set(context, id);
@@ -139,8 +140,8 @@
         return context;
     }
 
-    async function close(context, reason = 'close') {
-        if (!context) return false;
+    function close(context, reason = 'close') {
+        if (!context) return Promise.resolve(false);
         const record = getRecord(context);
         if (record) record.closeReason = reason;
         if (context.state === 'closed') {
@@ -148,20 +149,29 @@
                 records.delete(record.id);
                 removeOwnerReference(record);
             }
-            return true;
+            return Promise.resolve(true);
         }
-        try {
-            if (typeof context.close === 'function') await context.close();
+        if (record?.closePromise) {
+            pushEvent('close-join', record, { reason });
+            return record.closePromise;
+        }
+        let pending;
+        pending = Promise.resolve().then(async () => {
+            if (context.state !== 'closed' && typeof context.close === 'function') await context.close();
             pushEvent('close', record, { reason });
             if (record) {
                 records.delete(record.id);
                 removeOwnerReference(record);
             }
             return true;
-        } catch (error) {
+        }).catch(error => {
             pushEvent('close-error', record, { reason, message: error?.message || String(error || '') });
             return false;
-        }
+        }).finally(() => {
+            if (record?.closePromise === pending) record.closePromise = null;
+        });
+        if (record) record.closePromise = pending;
+        return pending;
     }
 
     function closeOwner(ownerId, reason = 'owner-close') {
@@ -219,6 +229,7 @@
                 ageMs: Math.max(0, now() - record.createdAt),
                 resumeCount: record.resumeCount,
                 resumePending: Boolean(record.resumePromise),
+                closePending: Boolean(record.closePromise),
                 lastResumeError: record.lastResumeError,
                 closeReason: record.closeReason
             }))),

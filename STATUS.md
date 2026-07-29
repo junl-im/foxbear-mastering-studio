@@ -1,11 +1,47 @@
+# FoxBear Status - v1.6.37
+
+- UI shell disappearance after cross-generation service-worker activation: patched.
+- Exact previous-generation CSS/JS/Worker cache fallback: implemented.
+- Boot-level hidden-shell and missing-style recovery: implemented.
+- Configured cumulative QA target: 380.
+- Final configured QA: **380/380 passed**.
+- Browser fixture preflight and Functions syntax: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Mandatory three-section delivery rule remains in `DELIVERY_RULES.md`.
+- Full and overwrite ZIP packages: 668 entries each; compressed-data errors: 0.
+
+# FoxBear Status - v1.6.36
+
+- Service-worker activation claim: generation-fenced and settled before `SKIP_WAITING`.
+- BFCache controller reconciliation: implemented with duplicate-event suppression.
+- Managed AudioContext concurrent close: single-Promise cleanup.
+- Configured cumulative QA target: 378.
+- Final configured QA: **378/378 passed**.
+- Browser fixture preflight and Functions syntax: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Installed Playwright/Chromium execution: unavailable in this sandbox.
+- Mandatory three-section delivery rule remains in `DELIVERY_RULES.md`.
+
+# FoxBear Status - v1.6.35
+
+- Terminal history boundary race: patched with exact-generation 500 ms grace.
+- Service-worker activation: serialized across tabs with a 15-second lease and 12-second recovery watchdog.
+- Download assist same-URL ownership: patched.
+- Managed AudioContext stress: 200 create/close cycles return to zero active contexts.
+- Configured cumulative QA target: 376.
+- Final configured QA: **376/376 passed**.
+- Browser fixture preflight and Functions syntax: passed.
+- Installed Playwright/Chromium execution: unavailable in this sandbox.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+
 # FoxBear Status - v1.6.34
 
 ## Current release
 
-- Product version: `1.6.34`
-- Build ID: `history-hard-stall-sw-activity-lifecycle`
-- Asset version: `1.6.34-history-hard-stall-sw-activity-lifecycle`
-- Service worker cache: `foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle`
+- Product version: `1.6.37`
+- Build ID: `ui-shell-cross-generation-recovery`
+- Asset version: `1.6.37-ui-shell-cross-generation-recovery`
+- Service worker cache: `foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery`
 - Configured static/regression target: 373 checks.
 
 ## v1.6.34 current focus
@@ -25,10 +61,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.34`
-- Build ID: `history-hard-stall-sw-activity-lifecycle`
-- Asset version: `1.6.34-history-hard-stall-sw-activity-lifecycle`
-- Service worker cache: `foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle`
+- Product version: `1.6.37`
+- Build ID: `ui-shell-cross-generation-recovery`
+- Asset version: `1.6.37-ui-shell-cross-generation-recovery`
+- Service worker cache: `foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery`
 
 # FoxBear Status - v1.6.32
 

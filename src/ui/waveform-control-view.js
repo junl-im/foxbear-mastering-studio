@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
+  const VIEW_VERSION = '1.6.37-ui-shell-cross-generation-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

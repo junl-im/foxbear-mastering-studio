@@ -1,3 +1,53 @@
+# FoxBear QA Report - v1.6.37
+
+## v1.6.37 UI shell and cross-generation recovery
+
+- New regression: `qa/v1637_ui_shell_cross_generation_recovery_smoke.js`.
+- Verifies missing core styles cannot leave `.app-shell` hidden, inert, or zero-opacity.
+- Verifies the service worker retains two recent shell generations and resolves stale asset requests only through exact cache-key matches.
+- Configured cumulative static/regression target: 380 checks.
+- Final configured run: `380/380` passed.
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, and golden-audio regression passed.
+- Balanced synthetic mastering measured approximately `1.91x` realtime; all four golden fixtures remained at `-14.00 LUFS` with peaks from `-9.62` to `-5.64 dBTP`.
+- Dependency health reported zero errors and five expected missing-install warnings.
+- Installed Node Playwright execution remains unavailable until dependencies are installed; real mobile/PWA deployment remains an external gate.
+- Final full and overwrite ZIP packages contain `668` entries each and pass compressed-data integrity checks.
+
+# FoxBear QA Report - v1.6.36
+
+## v1.6.36 activation fencing and concurrent resource cleanup
+
+- New regressions: `qa/v1636_sw_activation_generation_bfcache_reconcile_smoke.js` and `qa/v1636_audio_worker_concurrent_cleanup_stress_smoke.js`.
+- Verifies two tabs that both initially observe an empty activation lease still produce one `SKIP_WAITING`.
+- Verifies stale generation watchdog cleanup cannot remove the newer stored generation.
+- Verifies BFCache pageshow reconciles a missed controller change and later duplicate delivery is idempotent.
+- Verifies 120 AudioContexts survive explicit close plus pagehide cleanup with one native close per context.
+- Verifies 301 Worker jobs across success, failure, and cancellation terminate and leave zero active jobs.
+- Configured cumulative static/regression target: 378 checks.
+- Final configured run: `378/378` passed through four ordered chunks of the official `qaChecks` array (`95 + 95 + 95 + 93`).
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, and golden-audio regression passed.
+- Balanced synthetic mastering measured approximately `1.86x` realtime; all four golden fixtures remained at `-14.00 LUFS` with peaks from `-9.62` to `-5.64 dBTP`.
+- Dependency health reported zero errors and five expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this sandbox; real mobile/PWA and production Firebase/App Check/Gmail remain external gates.
+
+# FoxBear QA Report - v1.6.35
+
+## v1.6.35 terminal history, service-worker activation, and resource lifecycle
+
+- New regressions: `qa/v1635_history_terminal_race_sw_activation_lease_smoke.js` and `qa/v1635_resource_lifecycle_stress_smoke.js`.
+- Verifies the exact terminal generation remains absorbable only across a 500 ms boundary grace.
+- Verifies non-BFCache page unload clears the active transaction and pending generation.
+- Verifies two tabs produce only one `SKIP_WAITING`, controller change transfers ownership, and a 12-second timeout releases a stuck lease.
+- Verifies replacing download assist with the same Object URL does not revoke the live URL.
+- Verifies 200 managed AudioContext create/close cycles leave zero active contexts.
+- Configured cumulative static/regression target: 376 checks.
+- Final configured checks: `376/376` passed through four ordered chunks of the official `qaChecks` array (`95 + 95 + 95 + 91`).
+- Browser fixture preflight, Functions syntax, release metadata, SRI, handoff state, dependency metadata, engine bench, and golden-audio regression passed.
+- Balanced synthetic mastering measured approximately `1.87x` realtime; all four golden fixtures remained at `-14.00 LUFS` with peaks from `-9.62` to `-5.64 dBTP`.
+- Dependency health reported zero errors and five expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this sandbox; real mobile/PWA and production Firebase/App Check/Gmail remain external gates.
+- Full and overwrite ZIP packages contain `661` entries each and pass compressed-data integrity checks.
+
 # FoxBear QA Report - v1.6.34
 
 ## v1.6.34 terminal history and service-worker activity lifecycle

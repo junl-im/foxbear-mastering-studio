@@ -37,7 +37,7 @@ assert(sw.includes('matchCurrentOrRecovery'), 'network-first requests must use c
 assert(sw.includes('return await matchCurrentOrRecovery(cache, request) || fresh'), 'HTTP non-success assets must fall back to the current cache');
 assert(sw.includes('Response.redirect(getCanonicalAppRootUrl().toString(), 302)'), 'invalid navigation must redirect to the canonical shell root');
 assert(sw.includes('currentCachedMatch(cache, canonicalIndex)'), 'canonical navigation must fall back to the current shell');
-assert(sw.includes('isStaleAssetGeneration(url)') && !sw.includes('matchFoxBearRecoveryCache') && sw.includes('return Response.error()'), 'stale script generations must be rejected instead of mixed or revived');
+assert(sw.includes('isStaleAssetGeneration(url)') && !sw.includes('matchFoxBearRecoveryCache') && sw.includes('matchExactAcrossShellCaches(request) || Response.error()'), 'stale script generations must use exact retained cache matches or fail');
 
 async function exerciseQueueCancellation() {
   const context = {

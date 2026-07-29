@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
+    const FALLBACK_VERSION = '1.6.37-ui-shell-cross-generation-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

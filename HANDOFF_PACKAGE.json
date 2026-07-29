@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.34",
-  "buildId": "history-hard-stall-sw-activity-lifecycle",
+  "productVersion": "1.6.37",
+  "buildId": "ui-shell-cross-generation-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -109,7 +109,19 @@
     "qa/v1632_overlay_history_generation_bfcache_recovery_smoke.js",
     "docs/V1.6.32_OVERLAY_HISTORY_GENERATION_BFCACHE_RECOVERY.md",
     "qa/v1633_overlay_history_watchdog_recovery_smoke.js",
-    "docs/V1.6.33_FULL_AUDIT_HISTORY_WATCHDOG_RECOVERY.md"
+    "docs/V1.6.33_FULL_AUDIT_HISTORY_WATCHDOG_RECOVERY.md",
+    "qa/v1634_history_hard_stall_sw_activity_lifecycle_smoke.js",
+    "docs/V1.6.34_HISTORY_HARD_STALL_SW_ACTIVITY_LIFECYCLE.md",
+    "qa/v1635_history_terminal_race_sw_activation_lease_smoke.js",
+    "qa/v1635_resource_lifecycle_stress_smoke.js",
+    "docs/V1.6.35_HISTORY_TERMINAL_RACE_SW_ACTIVATION_LEASE.md",
+    "qa/v1636_sw_activation_generation_bfcache_reconcile_smoke.js",
+    "qa/v1636_audio_worker_concurrent_cleanup_stress_smoke.js",
+    "docs/V1.6.36_SW_ACTIVATION_GENERATION_FENCING_RESOURCE_STRESS.md",
+    "src/boot/ui-shell-recovery-service.js",
+    "assets/css/boot/ui-shell-recovery.css",
+    "qa/v1637_ui_shell_cross_generation_recovery_smoke.js",
+    "docs/V1.6.37_UI_SHELL_CROSS_GENERATION_RECOVERY.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -161,6 +173,10 @@
     "src/boot/incident-local-queue-service.js",
     "src/boot/incident-queue-coordination-service.js",
     "src/boot/incident-service-diagnostics.js",
-    "src/boot/incident-diagnostics-view-service.js"
+    "src/boot/incident-diagnostics-view-service.js",
+    "src/boot/service-worker-update-service.js",
+    "src/audio/audio-context-manager.js",
+    "src/boot/ui-shell-recovery-service.js",
+    "assets/css/boot/ui-shell-recovery.css"
   ]
 }

@@ -30,7 +30,7 @@ function createSandbox(url = 'https://example.test/index.html?foxbearExternal=1'
     history: { state: null, replaceState: (...args) => historyCalls.push(args) },
     btoa: value => Buffer.from(value, 'binary').toString('base64'),
     atob: value => Buffer.from(value, 'base64').toString('binary'),
-    FoxBearBuildInfo: { assetVersion: '1.6.34-history-hard-stall-sw-activity-lifecycle' }
+    FoxBearBuildInfo: { assetVersion: '1.6.37-ui-shell-cross-generation-recovery' }
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;

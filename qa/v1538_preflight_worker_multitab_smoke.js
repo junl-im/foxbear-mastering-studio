@@ -75,6 +75,7 @@ function makeWavHeader({ sampleRate = 48000, channels = 2, seconds = 600, bits =
     activity: { idle: false, reasons: ['mastering'], mastering: 1 }
   }));
   const posted = [];
+  const updateTimers = [];
   const updateContext = {
     window: null,
     navigator: { serviceWorker: { controller: {}, addEventListener() {} } },
@@ -86,7 +87,7 @@ function makeWavHeader({ sampleRate = 48000, channels = 2, seconds = 600, bits =
       setItem(key, value) { storage.set(key, String(value)); },
       removeItem(key) { storage.delete(key); }
     },
-    setTimeout: () => 1, clearTimeout() {}, setInterval: () => 1,
+    setTimeout(callback, delay) { updateTimers.push({ callback, delay }); return updateTimers.length; }, clearTimeout() {}, setInterval: () => 1,
     addEventListener() {}, Date, Math, JSON, Object, Number, String, Array, console
   };
   updateContext.window = updateContext;
@@ -97,7 +98,10 @@ function makeWavHeader({ sampleRate = 48000, channels = 2, seconds = 600, bits =
   assert.strictEqual(posted.length, 0, 'waiting worker received activation despite busy peer');
   storage.set('foxbear-sw-activity:peer', JSON.stringify({ type: 'FOXBEAR_TAB_ACTIVITY', tabId: 'peer', updatedAt: Date.now(), closed: true }));
   assert.strictEqual(updateContext.FoxBearServiceWorkerUpdateService.requestActivation('test'), true, 'SW activation should proceed after peers become idle');
-  assert.strictEqual(posted[0]?.type, 'SKIP_WAITING', 'waiting worker activation message missing');
+  const activationClaim = updateTimers.find(timer => timer.delay === 80);
+  assert(activationClaim, 'waiting worker activation claim timer missing');
+  activationClaim.callback();
+  assert.strictEqual(posted[0]?.type, 'SKIP_WAITING', 'waiting worker activation message missing after claim settlement');
 
   console.log('v1.5.38 preflight, worker job, and multi-tab update smoke passed');
 })().catch(error => {

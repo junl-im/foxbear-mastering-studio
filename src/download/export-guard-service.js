@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.6.34 - ZIP working-set limits and STORE-only audio packaging
+// FoxBear export guard service v1.6.37 - ZIP working-set limits and STORE-only audio packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.6.34-history-hard-stall-sw-activity-lifecycle';
+    const VERSION = 'v1.6.37-ui-shell-cross-generation-recovery';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

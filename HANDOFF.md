@@ -1,3 +1,44 @@
+# Handoff - v1.6.37
+
+- Build: `ui-shell-cross-generation-recovery`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep exact stale-generation cache matching together with retention of the two newest legacy shells.
+- Keep `ui-shell-recovery-service.js` and its fallback CSS loaded before the main UI stack.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.37`
+- Build ID: `ui-shell-cross-generation-recovery`
+- Asset version: `1.6.37-ui-shell-cross-generation-recovery`
+- Service worker cache: `foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery`
+- Configured static/regression target: 380 checks.
+- Final configured checks: `380/380`; browser preflight and Functions syntax passed.
+
+# Handoff - v1.6.36
+
+- Build: `sw-activation-generation-fencing-resource-stress`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep activation token and generation checks together with the 80 ms claim settlement.
+- Keep BFCache controller reconciliation and duplicate controllerchange suppression together.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+- Final configured checks: `378/378`; installed-browser execution remains an external gate.
+
+## Current release
+
+- Product version: `1.6.36`
+- Build ID: `sw-activation-generation-fencing-resource-stress`
+- Asset version: `1.6.36-sw-activation-generation-fencing-resource-stress`
+- Service worker cache: `foxbear-shell-v1.6.36-sw-activation-generation-fencing-resource-stress`
+- Configured static/regression target: 378 checks.
+
+# Handoff - v1.6.35
+
+- Build: `history-terminal-race-sw-activation-lease`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Key changes: terminal history boundary grace, non-BFCache release reset, single-owner service-worker activation lease, activation timeout recovery, same-URL download assist preservation, and AudioContext lifecycle stress.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
 # Handoff - v1.6.34
 
 
@@ -18,11 +59,11 @@
 
 ## Current release
 
-- Product version: `1.6.34`
-- Build ID: `history-hard-stall-sw-activity-lifecycle`
-- Asset version: `1.6.34-history-hard-stall-sw-activity-lifecycle`
-- Service worker cache: `foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle`
-- Configured static/regression target: 374 checks.
+- Product version: `1.6.35`
+- Build ID: `history-terminal-race-sw-activation-lease`
+- Asset version: `1.6.35-history-terminal-race-sw-activation-lease`
+- Service worker cache: `foxbear-shell-v1.6.35-history-terminal-race-sw-activation-lease`
+- Configured static/regression target: 376 checks.
 
 ## v1.6.33 handoff
 

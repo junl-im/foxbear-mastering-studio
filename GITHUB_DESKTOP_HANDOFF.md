@@ -1,3 +1,27 @@
+# GitHub Desktop Handoff - v1.6.37
+
+- Build ID: `ui-shell-cross-generation-recovery`
+- Overwrite the repository root with the v1.6.37 overwrite package, review changes, commit, and push.
+- Confirm the UI shell recovery JS/CSS, v1.6.37 regression, and audit document are present.
+- Run `npm run check:static`, `npm run handoff:check`, and both package verifiers before deployment.
+- Final configured checks: `380/380`; dependency metadata errors: `0`; expected missing-install warnings: `5`.
+- Final full and overwrite archives contain `668` entries each.
+
+# GitHub Desktop Handoff - v1.6.36
+
+- Build ID: `sw-activation-generation-fencing-resource-stress`
+- Overwrite the repository root with the v1.6.36 overwrite package, review changes, commit, and push.
+- Run `npm run check:static`, `npm run handoff:check`, and both package verifiers before deployment.
+- Confirm both v1.6.36 regressions and the audit document are present in the archive.
+- Final configured checks: `378/378`; dependency metadata errors: `0`; expected missing-install warnings: `5`.
+
+# GitHub Desktop Handoff - v1.6.35
+
+- Build ID: `history-terminal-race-sw-activation-lease`
+- Overwrite the repository root with the v1.6.35 overwrite package, review changes, commit, and push.
+- Run `npm run check:static`, `npm run handoff:check`, and package verifiers before deployment.
+- Final configured checks: 376/376; both archives contain 661 entries.
+
 # GitHub Desktop Handoff - v1.6.34
 
 - Apply the complete v1.6.33 overwrite package or commit the full release package.

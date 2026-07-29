@@ -1,3 +1,26 @@
+# v1.6.37 - UI Shell Cross-Generation Recovery
+
+- Retains the two latest legacy service-worker shell caches so already-open clients can finish loading exact previous-generation assets.
+- Serves stale CSS/JS/Worker requests only from an exact retained cache-key match, preserving SRI instead of mixing generations.
+- Adds a boot-level UI shell recovery service and minimal fallback stylesheet so the interface remains visible when core styles are blocked.
+- Adds dedicated UI-shell and cross-generation regression coverage, raising the configured target to 380 checks.
+
+# v1.6.36 - Service-Worker Activation Generation Fencing and Resource Stress
+
+- Adds generation-fenced two-phase activation claims so competing tabs settle to one `SKIP_WAITING` sender.
+- Prevents stale watchdog and release paths from deleting a newer activation lease generation.
+- Reconciles a controller change missed during BFCache freeze and deduplicates the later controllerchange event.
+- Coalesces concurrent managed AudioContext close calls and exposes pending cleanup diagnostics.
+- Adds 301-worker lifecycle and 120-context concurrent cleanup stress, raising the configured target to 378 checks.
+
+# v1.6.35 - History Terminal Race and Service-Worker Activation Lease
+
+- Keeps a short exact-generation grace after terminal overlay recovery so a boundary-late internal popstate cannot trigger the workspace exit guard.
+- Clears active overlay release state on non-BFCache page unload instead of preserving a transaction that cannot resume.
+- Adds a cross-tab service-worker activation lease and controller-change timeout recovery so one tab owns `SKIP_WAITING`.
+- Preserves a reused download-assist Object URL and adds 200-cycle managed AudioContext cleanup stress.
+- Adds two regressions and raises the configured cumulative target to 376 checks.
+
 # v1.6.34 - History Hard-Stall and Service-Worker Activity Lifecycle
 
 - Adds a 30-second terminal recovery for an overlay history release that never traverses and never emits `popstate`.

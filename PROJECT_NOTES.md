@@ -1,3 +1,24 @@
+# v1.6.37 project notes
+
+- Never purge every previous shell cache while `clients.claim()` can take over an already-open previous-generation document.
+- A stale-generation asset may be served only from an exact cache-key match; never return current bytes under old SRI metadata.
+- Keep the boot-level UI shell fallback independent from the main app bundle.
+- Do not remove `DELIVERY_RULES.md`.
+
+# v1.6.36 project notes
+
+- Do not remove `DELIVERY_RULES.md`; final delivery requires work summary, two ZIPs, and next work.
+- A service-worker activation claim is not final until token and generation still match after the settlement window.
+- Stale timers and controller events may release only their captured generation.
+- Concurrent AudioContext cleanup must join the pending close Promise.
+
+# v1.6.35 project notes
+
+- Do not remove `DELIVERY_RULES.md`; final delivery requires work summary, two ZIPs, and next work.
+- History terminal recovery retains only the exact generation for a short boundary grace.
+- Service-worker activation uses localStorage lease ownership and timeout release.
+- Same Object URL replacement in download assist must not revoke the live panel URL.
+
 # v1.6.33 notes
 
 - A completed History traversal without `popstate` must be settled from the exact base generation by the watchdog.

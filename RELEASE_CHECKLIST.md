@@ -1,3 +1,32 @@
+# FoxBear v1.6.37 release checklist
+
+- [x] Two recent legacy service-worker shell caches are retained.
+- [x] Stale generation assets use exact cache-key fallback only.
+- [x] UI shell recovery JS and minimal fallback CSS load before the main app.
+- [x] Hidden/inert/zero-opacity shell recovery is regression-tested.
+- [x] Final cumulative QA `380/380`, browser preflight, Functions, and dependency metadata are recorded.
+- [x] Final archives contain 668 entries each and pass compressed-data integrity checks.
+
+# FoxBear v1.6.36 release checklist
+
+- [x] Competing activation claims are fenced before `SKIP_WAITING`.
+- [x] Stale generation watchdog cannot remove a newer lease.
+- [x] BFCache pageshow reconciles a missed controller change.
+- [x] Duplicate controllerchange delivery is idempotent.
+- [x] Concurrent AudioContext close calls join one native close.
+- [x] 301-cycle Worker lifecycle stress returns to zero active jobs.
+- [x] Final cumulative QA `378/378`, browser preflight, Functions, dependency, and engine gates.
+- [ ] Final archive entry count and SHA-256 are recorded after packaging.
+
+# FoxBear v1.6.35 release checklist
+
+- [x] Terminal-boundary and page-unload history regressions added.
+- [x] Cross-tab service-worker activation lease and timeout regression added.
+- [x] Same-URL download assist ownership checked.
+- [x] Managed AudioContext 200-cycle cleanup checked.
+- [x] Final cumulative QA, browser preflight, Functions, and dependency metadata verified.
+- [x] Full and overwrite packages verified with 661 entries each and zero compressed-data errors.
+
 # v1.6.34 추가 릴리스 확인
 
 - [x] 1.5초 watchdog 이후에도 history가 30초간 움직이지 않으면 중복 Back 없이 stale sentinel을 정산한다.

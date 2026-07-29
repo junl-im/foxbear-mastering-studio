@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.34
+// FoxBear Modal State Machine Controller v1.6.37
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -47,6 +47,7 @@
     const HISTORY_RELEASE_WATCHDOG_MS = 1500;
     const HISTORY_RELEASE_HARD_STALL_RECOVERY_MS = 30000;
     const HISTORY_RELEASE_GENERATION_TTL_MS = 30000;
+    const HISTORY_TERMINAL_RELEASE_GRACE_MS = 500;
     const HISTORY_PENDING_RELEASE_LIMIT = 8;
     const historyDiagnostics = {
         sentinelPushCount: 0,
@@ -67,6 +68,8 @@
         releaseHardStallCount: 0,
         releaseHardStallRecoveredCount: 0,
         releaseHardStallRetainedSentinelCount: 0,
+        releaseTerminalGraceCount: 0,
+        releasePageUnloadResetCount: 0,
         pendingReleaseTrimCount: 0,
         lastTransition: 'boot'
     };
@@ -111,10 +114,11 @@
         }
     }
 
-    function rememberPendingHistoryRelease(generation) {
+    function rememberPendingHistoryRelease(generation, ttlMs = HISTORY_RELEASE_GENERATION_TTL_MS) {
         if (!generation) return;
         prunePendingHistoryReleaseGenerations();
-        pendingHistoryReleaseGenerations.set(generation, Date.now() + HISTORY_RELEASE_GENERATION_TTL_MS);
+        const ttl = Math.max(50, Number(ttlMs) || HISTORY_RELEASE_GENERATION_TTL_MS);
+        pendingHistoryReleaseGenerations.set(generation, Date.now() + ttl);
         while (pendingHistoryReleaseGenerations.size > HISTORY_PENDING_RELEASE_LIMIT) {
             const oldest = pendingHistoryReleaseGenerations.keys().next().value;
             pendingHistoryReleaseGenerations.delete(oldest);
@@ -136,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.34-history-hard-stall-sw-activity-lifecycle',
+            version: '1.6.37-ui-shell-cross-generation-recovery',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,
@@ -400,7 +404,9 @@
 
     function recoverHardStalledSentinel(expectedGeneration) {
         const layers = historyEligibleLayers();
-        resetActiveHistoryRelease({ forgetGeneration: true });
+        resetActiveHistoryRelease();
+        rememberPendingHistoryRelease(expectedGeneration, HISTORY_TERMINAL_RELEASE_GRACE_MS);
+        historyDiagnostics.releaseTerminalGraceCount += 1;
         if (layers.length) {
             historySentinelActive = true;
             historySentinelGeneration = expectedGeneration;
@@ -534,9 +540,17 @@
         global.addEventListener('pagehide', event => {
             if (!historyReleaseInFlight) return;
             clearHistoryReleaseTimer();
+            if (!event?.persisted) {
+                resetActiveHistoryRelease({ forgetGeneration: true });
+                historySentinelActive = false;
+                historySentinelGeneration = 0;
+                historyDiagnostics.releasePageUnloadResetCount += 1;
+                setHistoryTransition('release-reset-page-unload');
+                return;
+            }
             historyReleaseSuspended = true;
             historyDiagnostics.releaseSuspendCount += 1;
-            setHistoryTransition(event?.persisted ? 'release-suspended-bfcache' : 'release-suspended-pagehide');
+            setHistoryTransition('release-suspended-bfcache');
         });
         global.addEventListener('pageshow', event => {
             if (!event?.persisted && !historyReleaseSuspended) return;

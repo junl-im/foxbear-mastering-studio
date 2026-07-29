@@ -15,7 +15,7 @@ const overwrite = read('tools/create-overwrite-zip.sh');
 
 assert(sw.includes('const INSTALL_ASSETS = [') && sw.includes('CORE_ASSETS.filter'), 'service worker boot install graph is not derived atomically');
 assert(sw.includes('const WARM_ASSETS = CORE_ASSETS.filter') && sw.includes('!INSTALL_ASSET_SET.has(asset)'), 'optional warm graph is missing');
-assert(sw.includes('isStaleAssetGeneration(url)') && sw.includes('return Response.error()') && !sw.includes('matchFoxBearRecoveryCache'), 'stale generation rejection is missing');
+assert(sw.includes('isStaleAssetGeneration(url)') && sw.includes('matchExactAcrossShellCaches(request) || Response.error()') && !sw.includes('matchFoxBearRecoveryCache'), 'stale generation exact-match isolation is missing');
 assert(sw.includes('isCanonicalShellRequest(url)') && sw.includes('Response.redirect(getCanonicalAppRootUrl().toString(), 302)'), 'bad navigation paths are not redirected to the application root');
 assert(runtime.includes("new URL('../../', RUNTIME_SCRIPT_URL)"), 'runtime recovery does not derive the canonical app root from its script URL');
 assert(runtime.includes('probeDeployedGeneration') && runtime.includes('recoverStaleGeneration'), 'runtime generation mismatch recovery probe is missing');
@@ -25,8 +25,8 @@ assert(page404.includes('foxbear-root.json') && page404.includes('getRegistratio
 assert(prepare.includes('required_files=(index.html 404.html foxbear-root.json manifest.webmanifest sw.js)'), 'Pages artifact does not require the root marker');
 assert(overwrite.includes('copy_path "foxbear-root.json"'), 'overwrite package omits the root marker');
 assert(!read('firebase.json').includes('"destination": "/index.html"'), 'Firebase must not serve index.html at an invalid relative-asset URL');
-assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle'), 'service worker recovery module is not loaded');
-assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle'), 'service worker recovery module is not cached');
+assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.37-ui-shell-cross-generation-recovery'), 'service worker recovery module is not loaded');
+assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.37-ui-shell-cross-generation-recovery'), 'service worker recovery module is not cached');
 
 function runtimeHardRefreshUsesScriptRoot() {
   const scripts=[{src:'https://user.github.io/foxbear-mastering-studio/src/boot/runtime-health.js?v=test'}];
@@ -53,7 +53,7 @@ async function exerciseServiceWorkerGenerationIsolation() {
   });
   const cachesApi={
     async open(name){return name.includes('1.5.30') ? makeCache(legacyEntries) : makeCache(currentEntries);},
-    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle'];},
+    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery'];},
     async delete(){return true;}
   };
   const context={console,URL,Request,Response,Set,Map,Promise,Math,Date,indexedDB:{},caches:cachesApi,fetch:async request=>{fetched.push(String(request.url||request));return new Response('missing',{status:404});},self:{location:{origin:'https://user.github.io'},registration:{scope:'https://user.github.io/foxbear-mastering-studio/',navigationPreload:null},clients:{async claim(){}},async skipWaiting(){},addEventListener(type,handler){listeners.set(type,handler);}}};

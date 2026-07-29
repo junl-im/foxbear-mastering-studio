@@ -1,9 +1,10 @@
-// FoxBear AI Mastering Studio Pro v1.6.34 service worker · history-hard-stall-sw-activity-lifecycle
+// FoxBear AI Mastering Studio Pro v1.6.37 service worker · ui-shell-cross-generation-recovery
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle';
-const CURRENT_ASSET_VERSION = '1.6.34-history-hard-stall-sw-activity-lifecycle';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.14-download-viewport-incident-diagnostics', 'foxbear-shell-v1.6.15-nested-overlay-incident-auto-recovery', 'foxbear-shell-v1.6.16-same-origin-incident-overlay-back-navigation', 'foxbear-shell-v1.6.17-incident-transport-metrics-module-split', 'foxbear-shell-v1.6.18-incident-state-adaptive-route-policy', 'foxbear-shell-v1.6.19-incident-mail-sync-route-scoring', 'foxbear-shell-v1.6.20-incident-background-sync-network-decay', 'foxbear-shell-v1.6.21-incident-lifecycle-network-exploration', 'foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay', 'foxbear-shell-v1.6.23-incident-route-decay-lifecycle-handoff-safety', 'foxbear-shell-v1.6.24-incident-recovery-sweep-observability', 'foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress', 'foxbear-shell-v1.6.26-incident-diagnostics-queue-conflict-safety', 'foxbear-shell-v1.6.27-incident-multitab-queue-ownership-safety', 'foxbear-shell-v1.6.28-incident-lease-takeover-fallback-ui-safety', 'foxbear-shell-v1.6.29-incident-submission-fencing-adaptive-polling', 'foxbear-shell-v1.6.30-overlay-history-release-exit-guard-safety', 'foxbear-shell-v1.6.31-overlay-history-transaction-coalescing', 'foxbear-shell-v1.6.32-overlay-history-generation-bfcache-recovery', 'foxbear-shell-v1.6.33-overlay-history-watchdog-recovery-full-audit'];
+const CACHE_NAME = 'foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery';
+const CURRENT_ASSET_VERSION = '1.6.37-ui-shell-cross-generation-recovery';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.17-incident-transport-metrics-module-split', 'foxbear-shell-v1.6.18-incident-state-adaptive-route-policy', 'foxbear-shell-v1.6.19-incident-mail-sync-route-scoring', 'foxbear-shell-v1.6.20-incident-background-sync-network-decay', 'foxbear-shell-v1.6.21-incident-lifecycle-network-exploration', 'foxbear-shell-v1.6.22-incident-recovery-coalescing-time-decay', 'foxbear-shell-v1.6.23-incident-route-decay-lifecycle-handoff-safety', 'foxbear-shell-v1.6.24-incident-recovery-sweep-observability', 'foxbear-shell-v1.6.25-incident-recovery-timeout-abort-stress', 'foxbear-shell-v1.6.26-incident-diagnostics-queue-conflict-safety', 'foxbear-shell-v1.6.27-incident-multitab-queue-ownership-safety', 'foxbear-shell-v1.6.28-incident-lease-takeover-fallback-ui-safety', 'foxbear-shell-v1.6.29-incident-submission-fencing-adaptive-polling', 'foxbear-shell-v1.6.30-overlay-history-release-exit-guard-safety', 'foxbear-shell-v1.6.31-overlay-history-transaction-coalescing', 'foxbear-shell-v1.6.32-overlay-history-generation-bfcache-recovery', 'foxbear-shell-v1.6.33-overlay-history-watchdog-recovery-full-audit', 'foxbear-shell-v1.6.34-history-hard-stall-sw-activity-lifecycle', 'foxbear-shell-v1.6.35-history-terminal-race-sw-activation-lease', 'foxbear-shell-v1.6.36-sw-activation-generation-fencing-resource-stress'];
+const RETAINED_LEGACY_SHELL_COUNT = 2;
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
@@ -15,7 +16,7 @@ const CORE_ASSETS = [
   './external-browser.html',
   './assets/css/external-browser.css',
   './src/boot/kakao-entry-guard.js',
-  './src/boot/kakao-entry-guard.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
+  './src/boot/kakao-entry-guard.js?v=1.6.37-ui-shell-cross-generation-recovery',
   './src/boot/kakao-external-browser.js',
   './manifest.webmanifest',
   './sw.js',
@@ -25,12 +26,12 @@ const CORE_ASSETS = [
   './src/workers/master-finalizer.worker.js',
   './src/workers/pitch-wsola.worker.js',
   './src/workers/zip-encoder.worker.js',
-  './src/workers/wav-encoder.worker.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/workers/mp3-encoder.worker.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/workers/analysis.worker.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/workers/master-finalizer.worker.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/workers/pitch-wsola.worker.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/workers/zip-encoder.worker.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
+  './src/workers/wav-encoder.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/workers/mp3-encoder.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/workers/analysis.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/workers/master-finalizer.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/workers/pitch-wsola.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/workers/zip-encoder.worker.js?v=1.6.37-ui-shell-cross-generation-recovery',
   './src/engines/pitch-engine-adapter.js',
   './assets/icons/foxbear-icon-48.png',
   './assets/icons/foxbear-icon-72.png',
@@ -42,115 +43,117 @@ const CORE_ASSETS = [
   './assets/icons/foxbear-icon-192.png',
   './assets/icons/foxbear-icon-384.png',
   './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/icons/foxbear-icon-32.png?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/icons/foxbear-icon-192.png?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/icons/foxbear-icon-512.png?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/icons/apple-touch-icon.png?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './manifest.webmanifest?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/boot/performance-diagnostics.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/boot/runtime-health.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/theme.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/layout.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/base-components.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/forms.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/cards.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/preview-system.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/playback-link.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/studio.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/admin-incident-monitor.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/dock.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/dock-waveform.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/waveform-compare.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/spectrum-visualizer.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/export.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/bulk-import-hud.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/dock-ui-repair.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/floating-overlays.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/header-command-bar.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/support-settings.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/css/components/modal-close-system.css?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './vendor/jszip/jszip.min.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&lib=3.10.1',
-  './src/config/build-info.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/release-presentation-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/session-handoff-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-route-policy.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-submission-identity-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/firebase-bootstrap.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-support-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-state-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-mail-sync-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-lifecycle-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-recovery-sweep-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-service-recovery-controller.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-recovery-policy.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-local-queue-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-queue-coordination-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-service-diagnostics.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-diagnostics-view-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-controls-view-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/incident-reporter.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/config/mastering-presets.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/config/genre-presets.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/config/reference-targets.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/config/app-runtime-config.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/state/app-state.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/settings/settings-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/utils/core-utils.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/utils/worker-job-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/recommendation/recommendation-engine.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/mastering-inspector.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/highlight-compare-inspector.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/playback-link-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/playback-transition-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/audio-context-manager.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/preview-translation-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/audio-import-capability-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/audio-decode-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/inapp-mastering-safety-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/import-preflight-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/import-queue-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/analysis-cache-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/memory-guard-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/reference-profile-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/loudness-measurement-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/mastering-input-guard-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/mastering-quality-audit-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/quality-gate-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/mastering-orchestrator-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/master-preview-job-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/state/track-lifecycle-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/audio/waveform-control-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/waveform-control-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/spectrum-visualizer.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/modal-controller.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/dock-controller.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/mobile-native-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=bulk-hud-restore-v153',
-  './src/download/download-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/download/export-guard-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=export-v156',
-  './src/download/export-progress-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=export-progress-v156',
-  './src/download/zip-export-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/download/export-queue-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/download-dialog-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/bulk-import-hud-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/detail-panels-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/detail-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/ui/admin-incident-monitor-view.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/security/site-guards.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/runtime-health.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=boot-sri-v1634',
-  './src/boot/update-safety-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=update-safety-v1634',
-  './src/boot/service-worker-update-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/service-worker-recovery-service.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/worker-recovery-coordinator.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/boot/performance-diagnostics.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=boot-sri-v1634',
-  './src/boot/render-scheduler.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './src/app.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle&h=boot-sri-v1634',
-  './src/boot/worker-recovery-app-bridge.js?v=1.6.34-history-hard-stall-sw-activity-lifecycle',
-  './assets/icons/foxbear-music.png?v=1.6.34-history-hard-stall-sw-activity-lifecycle'
+  './assets/icons/foxbear-icon-16.png?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/icons/foxbear-icon-32.png?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/icons/foxbear-icon-192.png?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/icons/foxbear-icon-512.png?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/icons/apple-touch-icon.png?v=1.6.37-ui-shell-cross-generation-recovery',
+  './manifest.webmanifest?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/boot/performance-diagnostics.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/boot/runtime-health.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/boot/ui-shell-recovery.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/theme.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/layout.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/base-components.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/forms.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/cards.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/preview-system.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/playback-link.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/studio.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/admin-incident-monitor.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/dock.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/dock-waveform.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/waveform-compare.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/spectrum-visualizer.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/export.css?v=1.6.37-ui-shell-cross-generation-recovery&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/bulk-import-hud.css?v=1.6.37-ui-shell-cross-generation-recovery&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/dock-ui-repair.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/floating-overlays.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/header-command-bar.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/support-settings.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/css/components/modal-close-system.css?v=1.6.37-ui-shell-cross-generation-recovery',
+  './vendor/jszip/jszip.min.js?v=1.6.37-ui-shell-cross-generation-recovery&lib=3.10.1',
+  './src/config/build-info.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/release-presentation-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/session-handoff-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-route-policy.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-submission-identity-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/firebase-bootstrap.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-support-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-state-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-mail-sync-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-lifecycle-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-recovery-sweep-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-service-recovery-controller.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-recovery-policy.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-local-queue-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-queue-coordination-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-service-diagnostics.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-diagnostics-view-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-controls-view-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/incident-reporter.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/config/mastering-presets.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/config/genre-presets.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/config/reference-targets.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/config/app-runtime-config.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/state/app-state.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/settings/settings-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/utils/core-utils.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/utils/worker-job-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/recommendation/recommendation-engine.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/mastering-inspector.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/highlight-compare-inspector.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/playback-link-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/playback-transition-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/audio-context-manager.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/preview-translation-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/audio-import-capability-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/audio-decode-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/inapp-mastering-safety-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/import-preflight-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/import-queue-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/analysis-cache-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/memory-guard-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/reference-profile-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/loudness-measurement-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/mastering-input-guard-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/mastering-quality-audit-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/quality-gate-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/mastering-orchestrator-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/master-preview-job-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/state/track-lifecycle-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/audio/waveform-control-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/waveform-control-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/spectrum-visualizer.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/modal-controller.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/dock-controller.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/mobile-native-view.js?v=1.6.37-ui-shell-cross-generation-recovery&h=bulk-hud-restore-v153',
+  './src/download/download-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/download/export-guard-service.js?v=1.6.37-ui-shell-cross-generation-recovery&h=export-v156',
+  './src/download/export-progress-view.js?v=1.6.37-ui-shell-cross-generation-recovery&h=export-progress-v156',
+  './src/download/zip-export-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/download/export-queue-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/download-dialog-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/bulk-import-hud-view.js?v=1.6.37-ui-shell-cross-generation-recovery&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/detail-panels-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/detail-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/ui/admin-incident-monitor-view.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/security/site-guards.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/runtime-health.js?v=1.6.37-ui-shell-cross-generation-recovery&h=boot-sri-v1637',
+  './src/boot/ui-shell-recovery-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/update-safety-service.js?v=1.6.37-ui-shell-cross-generation-recovery&h=update-safety-v1637',
+  './src/boot/service-worker-update-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/service-worker-recovery-service.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/worker-recovery-coordinator.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/boot/performance-diagnostics.js?v=1.6.37-ui-shell-cross-generation-recovery&h=boot-sri-v1637',
+  './src/boot/render-scheduler.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './src/app.js?v=1.6.37-ui-shell-cross-generation-recovery&h=boot-sri-v1637',
+  './src/boot/worker-recovery-app-bridge.js?v=1.6.37-ui-shell-cross-generation-recovery',
+  './assets/icons/foxbear-music.png?v=1.6.37-ui-shell-cross-generation-recovery'
 ];
 
 const INSTALL_ASSETS = [
@@ -208,11 +211,30 @@ self.addEventListener('install', event => {
   })());
 });
 
+function retainedLegacyShellNames() {
+  return new Set(LEGACY_CACHE_NAMES.slice(-RETAINED_LEGACY_SHELL_COUNT));
+}
+
 async function purgeLegacyShellCaches() {
   const names = await caches.keys();
+  const retained = retainedLegacyShellNames();
   await Promise.all(names
-    .filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME)
+    .filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME && !retained.has(name))
     .map(name => caches.delete(name)));
+}
+
+async function matchExactAcrossShellCaches(request) {
+  const names = await caches.keys();
+  const retained = retainedLegacyShellNames();
+  const candidates = [CACHE_NAME, ...names.filter(name => retained.has(name)).reverse()];
+  for (const name of candidates) {
+    try {
+      const cache = await caches.open(name);
+      const response = await cache.match(request);
+      if (response) return response;
+    } catch (error) {}
+  }
+  return null;
 }
 
 async function currentCachedMatch(cache, request, fallbackRequest = null) {
@@ -331,10 +353,10 @@ async function networkFirstNoFallbackOnIntegrityAssets(request) {
   const url = new URL(request.url);
   const cache = await caches.open(CACHE_NAME);
   if (isStaleAssetGeneration(url)) {
-    // Never mix a stale HTML generation with current bytes: SRI will block the
-    // response and can leave the app half-booted. Serve only an exact same-
-    // generation cached response; otherwise fail so Runtime Health can recover.
-    return Response.error();
+    // An already-open or BFCache-restored client can briefly request its exact
+    // previous generation after the new worker claims the page. Keep the latest
+    // legacy shells and return only an exact cache-key match so SRI stays valid.
+    return await matchExactAcrossShellCaches(request) || Response.error();
   }
   const hasPatchBust = url.searchParams.has('h') || url.searchParams.has('ui');
   try {
@@ -386,7 +408,7 @@ async function networkFirstNavigation(request, preloadResponse) {
 async function staleWhileRevalidate(request) {
   const url = new URL(request.url);
   const cache = await caches.open(CACHE_NAME);
-  if (isStaleAssetGeneration(url)) return Response.error();
+  if (isStaleAssetGeneration(url)) return await matchExactAcrossShellCaches(request) || Response.error();
   const cached = await matchCurrentOrRecovery(cache, request);
   const freshPromise = fetch(request, { cache: 'reload' }).then(response => {
     if (response && response.ok) cache.put(request, response.clone()).catch(() => undefined);
