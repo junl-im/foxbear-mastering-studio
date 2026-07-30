@@ -210,29 +210,60 @@ body.incident-reporting-open { overflow: hidden; }
   .incident-transport-metrics-head button { min-height: 36px; }
 }
 
-/* v1.6.41: server-verified administrator access prompt. */
-.admin-access-panel { width: min(460px, 100%); }
+/* v1.6.42: Spark-compatible Google administrator access prompt. */
+.admin-access-panel { width: min(480px, 100%); }
 .admin-access-form { display: grid; gap: 12px; margin-top: 16px; }
-.admin-access-field { display: grid; gap: 8px; }
-.admin-access-field strong { color: #f7fbff; font-size: .8rem; }
-.admin-access-field input {
-  width: 100%;
-  min-height: 48px;
-  box-sizing: border-box;
-  padding: 10px 13px;
-  border: 1px solid rgba(109,224,255,.24);
-  border-radius: 13px;
-  outline: none;
-  background: rgba(2,8,17,.7);
-  color: #fff;
-  font: inherit;
-  font-size: 1.08rem;
-  letter-spacing: .22em;
+.admin-access-provider {
+  display: grid;
+  gap: 5px;
+  padding: 13px 14px;
+  border: 1px solid rgba(109,224,255,.22);
+  border-radius: 14px;
+  background: rgba(4,12,23,.56);
 }
-.admin-access-field input:focus { border-color: rgba(109,224,255,.72); box-shadow: 0 0 0 3px rgba(109,224,255,.1); }
-.admin-access-field input[aria-invalid='true'] { border-color: rgba(248,113,113,.72); box-shadow: 0 0 0 3px rgba(248,113,113,.08); }
+.admin-access-provider strong { color: #f7fbff; font-size: .82rem; }
+.admin-access-provider span { color: rgba(202,218,236,.74); font-size: .68rem; line-height: 1.45; }
 .admin-access-security-note { margin: 0 !important; color: rgba(202,218,236,.72) !important; font-size: .69rem !important; line-height: 1.5 !important; }
+.admin-access-security-note code { color: #dff9ff; overflow-wrap: anywhere; }
+.admin-access-identity {
+  display: grid;
+  grid-template-columns: minmax(92px, auto) minmax(0, 1fr);
+  gap: 7px 10px;
+  align-items: center;
+  padding: 11px 12px;
+  border: 1px solid rgba(167,139,250,.2);
+  border-radius: 13px;
+  background: rgba(167,139,250,.055);
+}
+.admin-access-identity[hidden] { display: none !important; }
+.admin-access-identity > span { color: var(--muted); font-size: .62rem; }
+.admin-access-identity strong, .admin-access-identity code { min-width: 0; color: #f7fbff; font-size: .68rem; overflow-wrap: anywhere; }
+.admin-access-identity button { grid-column: 2; justify-self: start; }
 .admin-access-form button[aria-busy='true'] { cursor: wait; opacity: .72; }
 @media (max-width: 560px) {
-  .admin-access-field input { min-height: 52px; font-size: 1.12rem; }
+  .admin-access-identity { grid-template-columns: 1fr; }
+  .admin-access-identity button { grid-column: auto; width: 100%; min-height: 42px; }
+}
+
+/* v1.6.42: administrator session lifetime, refresh, and explicit revocation. */
+.admin-session-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(141,245,232,.16);
+  border-radius: 15px;
+  background: rgba(4,12,23,.52);
+}
+.admin-session-status { color: #c7f9ef; font-size: .68rem; line-height: 1.45; }
+.admin-session-status[data-tone='warning'] { color: #ffe4a8; }
+.admin-session-status[data-tone='error'] { color: #fecaca; }
+.admin-session-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.admin-session-actions button[aria-busy='true'] { cursor: wait; opacity: .68; }
+@media (max-width: 560px) {
+  .admin-session-toolbar { align-items: stretch; flex-direction: column; }
+  .admin-session-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .admin-session-actions button { min-height: 40px; }
 }

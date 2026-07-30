@@ -1,38 +1,68 @@
-# FoxBear Firebase 설정 가이드 - v1.6.41
+# FoxBear Firebase 설정 가이드 - v1.6.42
 
-## 관리자 모니터링 비밀번호 보안 설정
+## Spark 무료 요금제 관리자 모니터링
 
-관리자 비밀번호는 HTML, JavaScript, `.env`, 문서 또는 Git 저장소에 기록하지 않습니다. Firebase Secret Manager에만 등록하고 Callable Function `unlockAdminAccess`가 서버에서 검증합니다.
+v1.6.42부터 관리자 진입에는 비밀번호, Secret Manager, 관리자 인증 Cloud Function을 사용하지 않습니다. Firebase Google Authentication과 Firestore `siteAdmins/{UID}` 문서를 조합하므로 Spark 무료 요금제에서 배포할 수 있습니다.
+
+### 1. Firebase Authentication 제공업체 활성화
+
+Firebase Console에서 프로젝트 `foxbear-music`을 열고 다음 항목을 활성화합니다.
+
+1. `Authentication → Sign-in method`
+2. `Anonymous` 활성화
+3. `Google` 활성화
+4. Google 지원 이메일로 `mcwoogi@gmail.com` 선택
+5. `Authentication → Settings → Authorized domains`에서 실제 배포 도메인을 확인
+
+기본 Firebase Hosting 도메인인 `foxbear-music.web.app`, `foxbear-music.firebaseapp.com`은 일반적으로 자동 등록됩니다. 별도 도메인을 사용한다면 해당 도메인도 추가합니다.
+
+### 2. Spark 전용 배포
+
+프로젝트 최상위 폴더의 터미널에서 실행합니다.
 
 ```bash
 firebase login
 firebase use foxbear-music
-firebase functions:secrets:set FOXBEAR_ADMIN_ACCESS_PIN
+npm install
+npm run check:release
+npm run deploy:spark
 ```
 
-명령 실행 후 표시되는 보안 입력 프롬프트에 실제 관리자 비밀번호를 입력합니다. 입력값은 터미널 명령행, 프로젝트 파일, 배포된 웹 번들에 남기지 않습니다.
+`deploy:spark`는 Hosting, Firestore Rules, Firestore Indexes만 배포합니다. Cloud Functions나 Secret Manager를 요청하지 않으므로 Blaze 업그레이드가 필요하지 않습니다.
 
-배포 명령:
+### 3. 관리자 Google UID 등록
 
-```bash
-npm run deploy:incident
-```
-
-배포 후 사이트의 `설정 → 관리자 모니터링`에서 비밀번호를 입력합니다. 서버 검증이 성공하면 현재 익명 Firebase UID에 8시간 동안만 유효한 관리자 세션이 발급됩니다. 실패는 UID와 네트워크 지문별로 제한되며, 10분 안에 5회 실패하면 15분 동안 잠깁니다. 원본 IP는 Firestore에 저장하지 않습니다.
-
-### 선택적 App Check 강제
-
-Firebase App Check와 reCAPTCHA Enterprise 사이트 키를 먼저 구성한 뒤 `<meta name="foxbear-app-check-site-key">`에 공개 사이트 키를 설정합니다. 그 다음 Functions 배포 환경에서 아래 파라미터를 `true`로 지정하고 다시 배포하면 관리자 잠금 해제 요청에 유효한 App Check 토큰이 필수가 됩니다.
+1. 배포된 사이트에서 `설정 → 관리자 모니터링`을 엽니다.
+2. `Google 계정으로 인증`을 누르고 `mcwoogi@gmail.com`으로 로그인합니다.
+3. 최초에는 관리자 문서가 없으므로 접근이 거절되고 Firebase UID가 화면에 표시됩니다.
+4. `UID 복사`를 누릅니다.
+5. Firebase Console에서 `Firestore Database → 데이터`를 엽니다.
+6. 컬렉션 `siteAdmins`를 만들고, 문서 ID에 복사한 UID를 붙여 넣습니다.
+7. 다음 필드를 정확한 타입으로 추가합니다.
 
 ```text
-FOXBEAR_ADMIN_REQUIRE_APP_CHECK=true
+active       Boolean  true
+role         String   admin
+email        String   mcwoogi@gmail.com
+authProvider String   google.com
 ```
 
-App Check 구성이 끝나기 전에 이 값을 켜면 관리자 잠금 해제 요청이 거절됩니다. 기본값은 `false`입니다.
+Firestore Rules는 Google 로그인, 이메일 인증, 문서 UID, 문서 이메일, 인증 제공업체를 모두 확인합니다. 웹 클라이언트는 `siteAdmins` 문서를 생성하거나 수정할 수 없습니다.
 
-## Firestore TTL 추가
+### 4. 확인
 
-Firestore TTL 정책에 `adminAccessAttempts.expiresAt`을 추가합니다. 잠금 및 실패 횟수 문서는 약 2일 후 자동 정리됩니다. 기존 `siteAdmins`의 영구 관리자 문서는 `expiresAt`이 없으면 계속 유효하며, 비밀번호로 발급된 임시 세션만 만료 시각을 검사합니다.
+사이트를 새로고침한 뒤 다시 `설정 → 관리자 모니터링`에서 같은 Google 계정으로 로그인합니다. 등록이 정상이면 관리자 모니터가 열립니다. 관리자 화면의 `관리자 로그아웃`을 누르면 Google 세션이 종료되고 일반 익명 세션으로 자동 전환됩니다.
+
+### 5. 오류별 확인
+
+- `operation-not-allowed`: Authentication에서 Google 제공업체가 꺼져 있습니다.
+- `unauthorized-domain`: Authentication의 Authorized domains에 현재 도메인이 없습니다.
+- 로그인은 됐지만 UID 등록 안내가 표시됨: `siteAdmins/{UID}` 문서 ID 또는 필드 타입을 확인합니다.
+- 권한 없음: 문서의 `email`이 로그인 이메일과 정확히 같고 `authProvider`가 `google.com`인지 확인합니다.
+
+## Blaze 선택 기능
+
+오류 메일 자동 발송 등 `functions/`의 서버 기능은 Blaze 요금제가 필요한 선택 기능입니다. Spark 운영에서는 `npm run deploy:spark`만 사용하고 `npm run deploy:incident`는 실행하지 않습니다.
 
 ---
 

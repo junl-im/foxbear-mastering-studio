@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.41 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.42 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.41-admin-secret-pin-session';
+    const VERSION = '1.6.42-spark-google-admin-auth';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

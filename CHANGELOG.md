@@ -1,3 +1,12 @@
+# v1.6.42 - Spark Google Administrator Authentication
+
+- Replaces the Blaze-only administrator PIN and Secret Manager flow with Firebase Google Authentication that works on the Spark plan.
+- Adds a Settings-based Google account selector and displays the signed-in email and Firebase UID when one-time administrator registration is required.
+- Requires a verified `google.com` identity plus an active matching `siteAdmins/{UID}` document in Firestore Rules.
+- Adds explicit Google administrator logout and restores an anonymous Firebase session afterward.
+- Removes administrator PIN Callable Functions and adds `npm run deploy:spark` for Hosting, Firestore Rules, and indexes without paid APIs.
+- Adds dedicated regression coverage while keeping the configured target at 386 checks.
+
 # v1.6.41 - Secret Manager Administrator PIN Session
 
 - Adds a visible `관리자 모니터링` entry inside Settings while keeping the administrator secret out of HTML, JavaScript, environment examples, and release archives.

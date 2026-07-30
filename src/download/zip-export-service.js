@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.6.41 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.6.42 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.6.41-admin-secret-pin-session';
+    const VERSION = 'v1.6.42-spark-google-admin-auth';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {

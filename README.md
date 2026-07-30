@@ -1,13 +1,18 @@
-# FoxBear AI Mastering Studio Pro v1.6.41
+# FoxBear AI Mastering Studio Pro v1.6.42
 
-## v1.6.41 administrator monitoring access
+## v1.6.42 Spark Google administrator access
 
-- Settings now contains `관리자 모니터링`.
-- The password is never embedded in the web page or JavaScript bundle; Firebase Secret Manager stores it and `unlockAdminAccess` verifies it server-side.
-- A successful verification grants the current anonymous Firebase session an eight-hour administrator role.
-- Repeated failures are rate-limited, and optional Firebase App Check enforcement can be enabled after production configuration.
+- Settings contains `관리자 모니터링` with Firebase Google sign-in.
+- Spark deployments use `npm run deploy:spark`; no administrator Secret Manager or Cloud Function is required.
+- Firestore Rules require a verified Google account and a matching active `siteAdmins/{UID}` document.
+- Unregistered accounts see their Firebase UID so the owner can complete the one-time Firestore registration.
+- Administrator logout signs out the Google account and restores an anonymous visitor session.
 - Deployment instructions are in `FIREBASE_SETUP.md`.
 - Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
+# FoxBear AI Mastering Studio Pro v1.6.41 (superseded)
+
+The temporary PIN/Secret Manager design from v1.6.41 was replaced before production use because the project remains on the Spark plan.
 
 # FoxBear AI Mastering Studio Pro v1.6.40
 

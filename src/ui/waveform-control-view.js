@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.41-admin-secret-pin-session';
+  const VIEW_VERSION = '1.6.42-spark-google-admin-auth';
   const DEFAULT_BINS = 96;
 
   function getService() {

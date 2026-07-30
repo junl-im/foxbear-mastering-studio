@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.41
+// FoxBear performance diagnostics - v1.6.42
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.41-admin-secret-pin-session';
+    const DIAGNOSTICS_VERSION = '1.6.42-spark-google-admin-auth';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

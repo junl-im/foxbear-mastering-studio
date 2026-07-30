@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.6.41', 'package version should be 1.6.41');
-assert(index.includes('data-build="1.6.41"'), 'index data-build should be 1.6.41');
-assert(index.includes('1.6.41-admin-secret-pin-session'), 'index assets should use v1.6.41 cache key');
-assert(sw.includes('foxbear-shell-v1.6.41-admin-secret-pin-session'), 'service worker cache should use v1.6.41 key');
+assert(pkg.version === '1.6.42', 'package version should be 1.6.42');
+assert(index.includes('data-build="1.6.42"'), 'index data-build should be 1.6.42');
+assert(index.includes('1.6.42-spark-google-admin-auth'), 'index assets should use v1.6.42 cache key');
+assert(sw.includes('foxbear-shell-v1.6.42-spark-google-admin-auth'), 'service worker cache should use v1.6.42 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');

@@ -1,3 +1,18 @@
+# v1.6.42 release checklist
+
+- [x] Settings exposes Google administrator authentication without a shared browser PIN.
+- [x] Unregistered Google accounts receive their Firebase UID for one-time Firestore registration.
+- [x] Firestore Rules require `google.com`, verified email, `active: true`, matching email, and matching provider fields.
+- [x] Clients cannot create, update, list, or delete `siteAdmins` documents.
+- [x] Administrator logout signs out Google and restores anonymous Firebase authentication.
+- [x] Administrator PIN Secret Manager and Callable Function dependencies are removed.
+- [x] `npm run deploy:spark` deploys Hosting, Firestore Rules, and indexes only.
+- [x] All 386 configured static and behavioral checks pass.
+- [x] Static release gate, browser preflight, Functions syntax, dependency, engine, and golden-audio checks pass.
+- [x] Both final archives contain 678 entries and zero compressed-data errors.
+- [ ] Enable Google Authentication and create the production `siteAdmins/{UID}` document.
+- [ ] Perform the real deployed Google login and administrator monitor check.
+
 # v1.6.41 release checklist
 
 - [x] Settings exposes an administrator monitoring action on mobile and desktop layouts.
@@ -14,7 +29,7 @@
 - [x] Dependency metadata reports 0 errors and 5 expected missing-install warnings.
 - [x] Engine balanced fixture measures approximately 1.95x realtime and golden audio remains -14.00 LUFS.
 - [x] Both final archives contain 678 entries and zero compressed-data errors.
-- [ ] Register the production administrator PIN through `firebase functions:secrets:set FOXBEAR_ADMIN_ACCESS_PIN`.
+- [ ] Retired in v1.6.42: do not configure the former Secret Manager administrator credential.
 - [ ] Deploy Hosting, Firestore Rules/indexes, and `unlockAdminAccess`.
 - [ ] Configure Firestore TTL for `adminAccessAttempts.expiresAt`.
 - [ ] Enable and validate App Check in the production domain.

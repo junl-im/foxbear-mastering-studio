@@ -1,24 +1,26 @@
-# Handoff - v1.6.41
+# Handoff - v1.6.42
 
-- Build: `admin-secret-pin-session`.
+- Build: `spark-google-admin-auth`.
 - Apply the overwrite ZIP at repository root or use the full release ZIP.
-- Never place the real administrator PIN in source code, documentation, `.env`, CI variables exposed to the client, or Hosting assets.
-- Set `FOXBEAR_ADMIN_ACCESS_PIN` through Firebase Secret Manager before deploying `unlockAdminAccess`.
-- Keep Firestore session expiration and server-side attempt limits together with the Settings entry.
-- App Check enforcement is intentionally opt-in until the production site key is configured.
+- Administrator access uses Firebase Google Authentication and an active matching `siteAdmins/{UID}` document.
+- Do not restore the retired shared PIN, Secret Manager administrator secret, or administrator unlock Callable Function.
+- Spark deployments must use `npm run deploy:spark`; Blaze-only incident mail Functions remain optional and separate.
+- Keep the verified Google provider/email checks in Firestore Rules together with the Settings entry and UID handoff.
 - Required result structure remains stored in `DELIVERY_RULES.md`.
 
 ## Current release
 
-- Product version: `1.6.41`
-- Build ID: `admin-secret-pin-session`
-- Asset version: `1.6.41-admin-secret-pin-session`
-- Service worker cache: `foxbear-shell-v1.6.41-admin-secret-pin-session`
+- Product version: `1.6.42`
+- Build ID: `spark-google-admin-auth`
+- Asset version: `1.6.42-spark-google-admin-auth`
+- Service worker cache: `foxbear-shell-v1.6.42-spark-google-admin-auth`
 - Configured static/regression target: 386 checks.
-- Final configured checks: `386/386`; browser preflight and Functions syntax passed.
+- Final configured checks: `386/386`; static release gate, browser preflight, and Functions syntax passed.
 - Dependency health: 0 errors and 5 expected missing-install warnings.
-- Installed Playwright/Chromium and real Firebase secret deployment remain external environment gates.
-- Final full and overwrite archives contain `678` entries each and pass archive verification.
+- Installed Playwright/Chromium and real Firebase production login remain external environment gates.
+- Engine balanced fixture: approximately `1.89x` realtime; four golden fixtures remain at `-14.00 LUFS`.
+- Final full and overwrite archives contain `678` entries each and pass compressed-data integrity checks.
+- Change scope from the v1.6.42 PIN draft: `262` modified, `2` added, `4` deleted files.
 
 # Handoff - v1.6.40
 

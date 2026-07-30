@@ -1,3 +1,42 @@
+# FoxBear Status - v1.6.42
+
+## Current release
+
+- Product version: `1.6.42`
+- Build ID: `spark-google-admin-auth`
+- Asset version: `1.6.42-spark-google-admin-auth`
+- Service worker cache: `foxbear-shell-v1.6.42-spark-google-admin-auth`
+- Configured static/regression target: 386 checks.
+
+## Current focus
+
+- Keep administrator monitoring available on the Firebase Spark plan.
+- Authenticate administrators through Google instead of a shared browser PIN.
+- Enforce verified Google identity and matching `siteAdmins/{UID}` authorization in Firestore Rules.
+- Show the signed-in UID for one-time administrator document registration.
+- Sign out the administrator Google account and restore anonymous browsing explicitly.
+
+## Verified
+
+- Official configured QA: **386/386 passed**.
+- Static release gate, browser fixture preflight, and Firebase Functions syntax: passed.
+- Release metadata, SRI, service-worker cache, and GitHub Desktop handoff: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Embedded administrator password values: **0 occurrences** in current source and release content.
+- Administrator PIN Secret and unlock/revoke Callable exports: removed.
+- Engine balanced fixture: approximately **1.89x realtime**.
+- Golden audio: four fixtures remained at **-14.00 LUFS**.
+- Installed Playwright/Chromium execution: unavailable in this sandbox.
+- Full and overwrite ZIP packages: **678 entries each**, compressed-data errors: **0**.
+- Change scope from the v1.6.42 PIN draft: **262 modified, 2 added, 4 deleted**.
+
+## Production deployment required
+
+- Enable Anonymous and Google providers in Firebase Authentication.
+- Run `npm run deploy:spark` from the project root.
+- Sign in once, copy the displayed Google Firebase UID, and create `siteAdmins/{UID}` with the fields documented in `FIREBASE_SETUP.md`.
+- Re-open administrator monitoring with the same Google account.
+
 # FoxBear Status - v1.6.41
 
 ## Current release
@@ -31,7 +70,7 @@
 
 ## Production deployment required
 
-- Register `FOXBEAR_ADMIN_ACCESS_PIN` interactively with Firebase Secret Manager.
+- Retired in v1.6.42: do not configure the former Secret Manager administrator credential.
 - Deploy `unlockAdminAccess`, Hosting, Firestore Rules, and indexes with `npm run deploy:incident`.
 - Add Firestore TTL for `adminAccessAttempts.expiresAt`.
 - Enable `FOXBEAR_ADMIN_REQUIRE_APP_CHECK=true` only after the web App Check key is configured.
@@ -183,10 +222,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.41`
-- Build ID: `admin-secret-pin-session`
-- Asset version: `1.6.41-admin-secret-pin-session`
-- Service worker cache: `foxbear-shell-v1.6.41-admin-secret-pin-session`
+- Product version: `1.6.42`
+- Build ID: `spark-google-admin-auth`
+- Asset version: `1.6.42-spark-google-admin-auth`
+- Service worker cache: `foxbear-shell-v1.6.42-spark-google-admin-auth`
 
 # FoxBear Status - v1.6.32
 

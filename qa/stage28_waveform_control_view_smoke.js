@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.41-admin-secret-pin-session';
+const version = '1.6.42-spark-google-admin-auth';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

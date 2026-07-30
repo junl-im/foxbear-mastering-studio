@@ -1,3 +1,34 @@
+# FoxBear QA Report - v1.6.42
+
+## Configured target
+
+- Static and behavioral checks: 386
+- New syntax targets: `src/firebase-bootstrap.js`, `src/ui/admin-access-controller.js`
+- New regression: `qa/v1642_spark_google_admin_auth_smoke.js`
+
+## Focus
+
+- Spark-plan Google administrator sign-in
+- Verified Google provider and email enforcement in Firestore Rules
+- One-time administrator UID handoff inside Settings
+- Explicit Google sign-out and anonymous-session restoration
+- Removal of administrator PIN, Secret Manager, and admin Callable Function dependencies
+- Hosting, Firestore Rules, and indexes-only deployment command
+
+## Final result
+
+- Official configured checks: `386/386` passed.
+- Static release gate, browser fixture preflight, and Firebase Functions syntax: passed.
+- Release metadata, SRI, service-worker cache, and GitHub Desktop handoff: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution did not start because Playwright and Chromium are unavailable in this environment.
+- Real Firebase Google provider enablement, administrator UID registration, and production login remain external gates.
+- Repository and both release archives contain no embedded administrator password value.
+- Engine balanced fixture: approximately `1.89x` realtime.
+- Golden audio: all four fixtures remained at `-14.00 LUFS`, with peaks from `-9.62` to `-5.64 dBTP`.
+- Final release and overwrite archives contain `678` entries each and pass compressed-data integrity checks.
+- Change scope from the v1.6.42 PIN draft: `262` modified files, `2` added files, `4` deleted files.
+
 # FoxBear QA Report - v1.6.41
 
 ## Configured target

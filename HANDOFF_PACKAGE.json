@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.41",
-  "buildId": "admin-secret-pin-session",
+  "productVersion": "1.6.42",
+  "buildId": "spark-google-admin-auth",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -135,9 +135,9 @@
     "src/ui/mobile-native-view.js",
     "src/state/app-state.js",
     "assets/css/components/support-settings.css",
-    "qa/v1641_admin_secret_pin_session_smoke.js",
-    "docs/V1.6.41_ADMIN_SECRET_PIN_SESSION.md",
-    "src/ui/admin-access-controller.js"
+    "src/ui/admin-access-controller.js",
+    "qa/v1642_spark_google_admin_auth_smoke.js",
+    "docs/V1.6.42_SPARK_GOOGLE_ADMIN_AUTH.md"
   ],
   "requiredPrefixes": [
     "assets/",

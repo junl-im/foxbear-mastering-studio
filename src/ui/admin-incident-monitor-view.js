@@ -670,6 +670,14 @@
         }
 
 
+        function formatAuditAction(action) {
+            const labels = {
+                'admin-access-unlock': '관리자 인증',
+                'admin-access-revoke': '관리자 로그아웃'
+            };
+            return labels[action] || action || 'unknown';
+        }
+
         function renderAuditLog(items = []) {
             if (!el.adminIncidentAuditRows) return;
             el.adminIncidentAuditRows.textContent = '';
@@ -688,7 +696,7 @@
                 const values = [
                     ['시간', formatTime(item.at)],
                     ['관리자', item.uid ? `${item.uid.slice(0, 8)}…` : '-'],
-                    ['작업', item.action || 'unknown'],
+                    ['작업', formatAuditAction(item.action)],
                     ['상태', item.status || 'recorded'],
                     ['대상 / 결과', [item.targetType, item.targetId, item.reason, item.result?.succeeded ? `성공 ${item.result.succeeded}` : '', item.result?.failed ? `실패 ${item.result.failed}` : ''].filter(Boolean).join(' · ') || '-']
                 ];

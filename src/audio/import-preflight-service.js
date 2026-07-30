@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.6.41 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.6.42 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.6.41-admin-secret-pin-session';
+    const VERSION = '1.6.42-spark-google-admin-auth';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

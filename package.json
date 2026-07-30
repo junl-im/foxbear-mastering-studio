@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.41",
+  "version": "1.6.42",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with Firebase Secret Manager administrator PIN sessions, server-side rate limiting, and settings-based monitoring access.",
+  "description": "FoxBear AI Mastering Studio Pro with Spark-compatible Google administrator authentication, Firestore UID authorization, and explicit session logout.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,14 +18,14 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.41-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.41-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.42-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.42-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
     "functions:audit": "npm --prefix functions run audit:prod",
     "functions:install": "npm --prefix functions install",
-    "deploy:incident": "firebase deploy --only hosting,firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest,functions:submitIncidentReport,functions:getIncidentDeliveryStatus,functions:getIncidentServiceStatus,functions:retryOwnIncidentReport,functions:checkIncidentDeploymentReadiness,functions:unlockAdminAccess",
+    "deploy:incident": "firebase deploy --only hosting,firestore:rules,firestore:indexes,functions:sendIncidentEmail,functions:retryFailedIncidentEmails,functions:retryIncidentEmailRequest,functions:retryIncidentBatchRequest,functions:testIncidentAlertChannelRequest,functions:verifyIncidentDeploymentRequest,functions:sendDailyIncidentSummary,functions:auditIncidentMailOperations,functions:verifyIncidentPostDeployHealth,functions:confirmIncidentMailReceiptRequest,functions:cleanupIncidentMailTestsRequest,functions:submitIncidentReport,functions:getIncidentDeliveryStatus,functions:getIncidentServiceStatus,functions:retryOwnIncidentReport,functions:checkIncidentDeploymentReadiness",
     "version:dry-run": "node tools/sync-release-metadata.js --dry-run",
     "dependencies:check": "node tools/check-dependency-health.js",
     "qa:browser:preflight": "node qa/browser/run-browser-preflight.js",
@@ -33,7 +33,8 @@
     "qa:browser:retry:report": "node qa/browser/retry-recovery-report.js",
     "qa:browser:impact": "node qa/browser/select-browser-scope.js",
     "qa:browser:retry:verify": "node qa/browser/verify-retry-recovery.js",
-    "qa:python:clean": "node qa/python-bytecode-hygiene.js"
+    "qa:python:clean": "node qa/python-bytecode-hygiene.js",
+    "deploy:spark": "firebase deploy --only hosting,firestore:rules,firestore:indexes"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -421,15 +422,15 @@
     "node qa/v1639_ui_shell_partial_script_recovery_smoke.js",
     "node qa/v1639_sw_client_probe_restart_late_report_smoke.js",
     "node qa/v1640_ui_shell_retry_replacement_settlement_smoke.js",
-    "node qa/v1641_admin_secret_pin_session_smoke.js"
+    "node qa/v1642_spark_google_admin_auth_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "admin-secret-pin-session",
-    "assetVersion": "1.6.41-admin-secret-pin-session",
-    "cacheName": "foxbear-shell-v1.6.41-admin-secret-pin-session",
-    "bootRevision": "boot-sri-v1641",
-    "updateSafetyRevision": "update-safety-v1641",
-    "serviceWorkerRevision": "sw-v1641"
+    "buildId": "spark-google-admin-auth",
+    "assetVersion": "1.6.42-spark-google-admin-auth",
+    "cacheName": "foxbear-shell-v1.6.42-spark-google-admin-auth",
+    "bootRevision": "boot-sri-v1642-google-admin",
+    "updateSafetyRevision": "update-safety-v1642-google-admin",
+    "serviceWorkerRevision": "sw-v1642-google-admin"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

@@ -2,6 +2,13 @@ let initializeApp;
 let getAuth;
 let onAuthStateChanged;
 let signInAnonymously;
+let GoogleAuthProvider;
+let browserSessionPersistence;
+let getRedirectResult;
+let setPersistence;
+let signInWithPopup;
+let signInWithRedirect;
+let signOut;
 let addDoc;
 let collection;
 let doc;
@@ -128,7 +135,7 @@ async function loadFirebaseModules() {
         import(`${FIREBASE_MODULE_BASE}/firebase-functions.js`)
     ]).then(([appModule, authModule, firestoreModule, remoteConfigModule, appCheckModule, functionsModule]) => {
         ({ initializeApp } = appModule);
-        ({ getAuth, onAuthStateChanged, signInAnonymously } = authModule);
+        ({ getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, browserSessionPersistence, getRedirectResult, setPersistence, signInWithPopup, signInWithRedirect, signOut } = authModule);
         ({ addDoc, collection, doc, getCountFromServer, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, setDoc, where } = firestoreModule);
         ({ fetchAndActivate, getRemoteConfig, getValue, isSupported: isRemoteConfigSupported } = remoteConfigModule);
         ({ initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } = appCheckModule);
@@ -175,7 +182,8 @@ function makePublicBridge(extra = {}) {
         probeIncidentCallableEndpoint,
         checkIncidentDeploymentReadiness,
         retryOwnIncidentReport,
-        unlockAdminAccess,
+        signInAdminWithGoogle,
+        signOutAdminAccess,
         getAdminStats,
         getAdminIncidents,
         getIncidentOperationsHistory,
@@ -321,30 +329,62 @@ async function signInGuest() {
     return credential.user;
 }
 
-async function unlockAdminAccess(pin) {
-    const user = await signInGuest();
-    if (!bridgeState.functions || typeof httpsCallable !== 'function') {
-        throw new Error('Firebase 관리자 인증 함수가 초기화되지 않았습니다.');
-    }
-    const candidate = String(pin || '').trim();
-    if (!/^\d{4,12}$/.test(candidate)) throw new Error('관리자 비밀번호는 숫자 4~12자리로 입력해주세요.');
-    const callable = httpsCallable(bridgeState.functions, 'unlockAdminAccess', { timeout: 15000 });
-    try {
-        const response = await callable({ pin: candidate });
-        const result = response?.data || {};
+async function signInAdminWithGoogle() {
+    if (!bridgeState.auth) throw new Error('Firebase Auth가 초기화되지 않았습니다.');
+    const current = bridgeState.auth.currentUser;
+    const hasGoogleProvider = current?.providerData?.some?.(item => item?.providerId === 'google.com');
+    if (current && !current.isAnonymous && hasGoogleProvider) {
         return Object.freeze({
-            uid: user.uid,
-            active: result.active === true,
-            role: limitText(result.role || '', 40),
-            expiresAt: limitText(result.expiresAt || '', 40),
-            appCheckVerified: result.appCheckVerified === true
+            uid: current.uid,
+            email: limitText(current.email || '', 160),
+            displayName: limitText(current.displayName || '', 120),
+            emailVerified: current.emailVerified === true,
+            providerId: 'google.com',
+            redirecting: false
+        });
+    }
+    if (typeof GoogleAuthProvider !== 'function' || typeof signInWithPopup !== 'function') {
+        throw new Error('Firebase Google 로그인 모듈이 준비되지 않았습니다.');
+    }
+    await setPersistence(bridgeState.auth, browserSessionPersistence);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+        const credential = await signInWithPopup(bridgeState.auth, provider);
+        bridgeState.user = credential.user;
+        bridgeState.authReady = true;
+        return Object.freeze({
+            uid: credential.user.uid,
+            email: limitText(credential.user.email || '', 160),
+            displayName: limitText(credential.user.displayName || '', 120),
+            emailVerified: credential.user.emailVerified === true,
+            providerId: 'google.com',
+            redirecting: false
         });
     } catch (error) {
-        const normalized = new Error(limitText(error?.message || '관리자 인증에 실패했습니다.', 240));
-        normalized.code = limitText(error?.code || '', 100);
-        normalized.details = error?.details || null;
+        const code = String(error?.code || '');
+        if ((code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') && typeof signInWithRedirect === 'function') {
+            try { sessionStorage.setItem('foxbear.admin.google.redirect', '1'); } catch (storageError) {}
+            await signInWithRedirect(bridgeState.auth, provider);
+            return Object.freeze({ redirecting: true, providerId: 'google.com' });
+        }
+        const normalized = new Error(limitText(error?.message || 'Google 관리자 로그인에 실패했습니다.', 240));
+        normalized.code = limitText(code, 100);
         throw normalized;
     }
+}
+
+async function signOutAdminAccess() {
+    if (!bridgeState.auth) throw new Error('Firebase Auth가 초기화되지 않았습니다.');
+    const current = bridgeState.auth.currentUser;
+    const wasAdminAccount = Boolean(current && !current.isAnonymous);
+    if (current && typeof signOut === 'function') await signOut(bridgeState.auth);
+    const guest = await signInGuest();
+    return Object.freeze({
+        active: false,
+        signedOut: wasAdminAccount,
+        uid: guest?.uid || ''
+    });
 }
 
 async function logVisit(payload = {}) {
@@ -865,20 +905,41 @@ async function getIncidentDelivery(reportId) {
 
 async function getAdminProfile() {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
-    const user = await signInGuest();
+    const user = bridgeState.auth?.currentUser || await signInGuest();
+    const providerId = user?.providerData?.some?.(item => item?.providerId === 'google.com') ? 'google.com' : (user?.isAnonymous ? 'anonymous' : 'unknown');
+    const identity = {
+        uid: user?.uid || '',
+        email: limitText(user?.email || '', 160),
+        displayName: limitText(user?.displayName || '', 120),
+        emailVerified: user?.emailVerified === true,
+        providerId
+    };
+    if (!user || providerId !== 'google.com' || !identity.emailVerified) {
+        return { ...identity, exists: false, active: false, role: '', authMethod: providerId, expiresAt: '' };
+    }
     const adminRef = doc(bridgeState.db, 'siteAdmins', user.uid);
     const snapshot = await getDoc(adminRef);
     const data = snapshot.exists() ? (snapshot.data() || {}) : {};
+    const configuredEmail = limitText(data.email || '', 160).toLowerCase();
+    const signedInEmail = identity.email.toLowerCase();
+    const emailMatches = !configuredEmail || configuredEmail === signedInEmail;
+    const providerMatches = !data.authProvider || data.authProvider === 'google.com';
     const expiresAt = timestampIso(data.expiresAt);
     const expiresAtMs = expiresAt ? Date.parse(expiresAt) : 0;
-    const active = snapshot.exists() && data.active === true && (!expiresAtMs || expiresAtMs > Date.now());
+    const active = snapshot.exists()
+        && data.active === true
+        && emailMatches
+        && providerMatches
+        && (!expiresAtMs || expiresAtMs > Date.now());
     return {
-        uid: user.uid,
+        ...identity,
         exists: snapshot.exists(),
         active,
         role: active ? limitText(data.role || 'admin', 40) : '',
-        authMethod: active ? limitText(data.authMethod || '', 60) : '',
-        expiresAt: active ? expiresAt : ''
+        authMethod: 'google.com',
+        expiresAt: active ? expiresAt : '',
+        emailMatches,
+        providerMatches
     };
 }
 
@@ -1627,6 +1688,19 @@ async function bootFirebase() {
             exposeBridge();
             dispatchFirebaseEvent('foxbear:firebase-auth', { user });
         });
+        if (typeof getRedirectResult === 'function') {
+            try {
+                const redirectResult = await getRedirectResult(bridgeState.auth);
+                if (redirectResult?.user) {
+                    bridgeState.user = redirectResult.user;
+                    bridgeState.authReady = true;
+                    try { sessionStorage.removeItem('foxbear.admin.google.redirect'); } catch (storageError) {}
+                }
+            } catch (error) {
+                bridgeState.error = limitText(error?.message || error, 300);
+                try { sessionStorage.removeItem('foxbear.admin.google.redirect'); } catch (storageError) {}
+            }
+        }
         await signInGuest();
         await loadRemoteConfig();
         bridgeState.ready = true;

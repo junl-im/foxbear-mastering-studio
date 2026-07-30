@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.6.41',
-    appVersion: 'Pro v1.6.41',
-    buildId: 'admin-secret-pin-session',
-    assetVersion: '1.6.41-admin-secret-pin-session',
-    cacheName: 'foxbear-shell-v1.6.41-admin-secret-pin-session',
-    bootRevision: 'boot-sri-v1641',
-    updateSafetyRevision: 'update-safety-v1641',
-    serviceWorkerRevision: 'sw-v1641'
+    productVersion: '1.6.42',
+    appVersion: 'Pro v1.6.42',
+    buildId: 'spark-google-admin-auth',
+    assetVersion: '1.6.42-spark-google-admin-auth',
+    cacheName: 'foxbear-shell-v1.6.42-spark-google-admin-auth',
+    bootRevision: 'boot-sri-v1642-google-admin',
+    updateSafetyRevision: 'update-safety-v1642-google-admin',
+    serviceWorkerRevision: 'sw-v1642-google-admin'
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

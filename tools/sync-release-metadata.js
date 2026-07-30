@@ -38,9 +38,9 @@ function detectPrevious() {
     appVersion: pick('appVersion', `Pro v${manifest.version || meta.productVersion}`),
     assetVersion: pick('assetVersion', read('index.html').match(/src\/app\.js\?v=([^"&]+)/)?.[1] || meta.assetVersion),
     cacheName: pick('cacheName', read('sw.js').match(/const CACHE_NAME = '([^']+)'/)?.[1] || meta.cacheName),
-    bootRevision: pick('bootRevision', read('index.html').match(/h=(boot-sri-v\d+)/)?.[1] || meta.bootRevision),
-    updateSafetyRevision: pick('updateSafetyRevision', read('index.html').match(/h=(update-safety-v\d+)/)?.[1] || meta.updateSafetyRevision),
-    serviceWorkerRevision: pick('serviceWorkerRevision', read('src/app.js').match(/h=(sw-v\d+)/)?.[1] || meta.serviceWorkerRevision)
+    bootRevision: pick('bootRevision', read('index.html').match(/h=(boot-sri-v[0-9a-z-]+)/)?.[1] || meta.bootRevision),
+    updateSafetyRevision: pick('updateSafetyRevision', read('index.html').match(/h=(update-safety-v[0-9a-z-]+)/)?.[1] || meta.updateSafetyRevision),
+    serviceWorkerRevision: pick('serviceWorkerRevision', read('src/app.js').match(/h=(sw-v[0-9a-z-]+)/)?.[1] || meta.serviceWorkerRevision)
   };
 }
 
@@ -70,8 +70,8 @@ function canonicalizeRuntimeMetadata(text) {
     .replace(/data-build="\d+\.\d+\.\d+"/g, `data-build="${meta.productVersion}"`)
     .replace(/(data-release-label="version-button">)v\d+\.\d+\.\d+(<\/strong>)/g, `$1v${meta.productVersion}$2`)
     .replace(/\?v=\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*/g, `?v=${meta.assetVersion}`)
-    .replace(/&h=boot-sri-v\d+/g, `&h=${meta.bootRevision}`)
-    .replace(/&h=update-safety-v\d+/g, `&h=${meta.updateSafetyRevision}`);
+    .replace(/&h=boot-sri-v[0-9a-z-]+/g, `&h=${meta.bootRevision}`)
+    .replace(/&h=update-safety-v[0-9a-z-]+/g, `&h=${meta.updateSafetyRevision}`);
 }
 
 function escapeRegExp(value) {
@@ -219,8 +219,8 @@ function sync() {
   let sw = read('sw.js');
   sw = replaceAll(sw, previous.assetVersion, meta.assetVersion);
   sw = sw.replace(/\?v=\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*/g, `?v=${meta.assetVersion}`);
-  sw = sw.replace(/&h=boot-sri-v\d+/g, `&h=${meta.bootRevision}`);
-  sw = sw.replace(/&h=update-safety-v\d+/g, `&h=${meta.updateSafetyRevision}`);
+  sw = sw.replace(/&h=boot-sri-v[0-9a-z-]+/g, `&h=${meta.bootRevision}`);
+  sw = sw.replace(/&h=update-safety-v[0-9a-z-]+/g, `&h=${meta.updateSafetyRevision}`);
   sw = replaceAll(sw, previous.bootRevision, meta.bootRevision);
   sw = replaceAll(sw, previous.updateSafetyRevision, meta.updateSafetyRevision);
   sw = sw.replace(/const CACHE_NAME = '[^']+';/, `const CACHE_NAME = '${meta.cacheName}';`);

@@ -28,7 +28,7 @@ const css = read('assets/css/components/support-settings.css');
 const handoff = read('HANDOFF.md');
 const origin = 'https://asia-northeast3-foxbear-music.cloudfunctions.net';
 
-assert.strictEqual(pkg.version, '1.6.41');
+assert.strictEqual(pkg.version, '1.6.42');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].startsWith('firebase deploy --only hosting,firestore:rules,firestore:indexes,'));
 const metaCsp = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)" \/>/)?.[1] || '';
@@ -47,7 +47,7 @@ assert(reporterSource.includes('Hosting CSP와 Functions를 함께 배포'));
 assert(/const INCIDENT_SERVICE_SCHEMA_VERSION = [2-9]\d*;/.test(functionsSource));
 assert(functionsSource.includes('functionsOrigin: INCIDENT_FUNCTIONS_ORIGIN'));
 assert(css.includes(".support-settings-guidance[data-tone='error']"));
-assert(handoff.startsWith('# Handoff - v1.6.41'));
+assert(handoff.startsWith('# Handoff - v1.6.42'));
 
 const elements = {
   incidentReportingGuidance: { textContent: '', dataset: {} },
@@ -63,7 +63,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.41' } },
+    body: { dataset: { build: '1.6.42' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -72,7 +72,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.41', assetVersion: '1.6.41-admin-secret-pin-session' },
+  FoxBearBuildInfo: { productVersion: '1.6.42', assetVersion: '1.6.42-spark-google-admin-auth' },
   FoxBearFirebase: { incidentFunctionsOrigin: origin }
 };
 sandbox.window = sandbox;
@@ -139,7 +139,7 @@ const functionSandbox = {
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: null });
-assert.strictEqual(metadata.productVersion, '1.6.41');
+assert.strictEqual(metadata.productVersion, '1.6.42');
 assert(metadata.serviceSchemaVersion >= 2);
 assert.strictEqual(metadata.functionsOrigin, origin);
 
