@@ -1,3 +1,11 @@
+# v1.6.43 project notes
+
+- Keep `require-trusted-types-for 'script'`; do not disable Trusted Types to make Google Auth work.
+- The `default` policy may allow only the exact Firebase Auth gapi loader, existing reCAPTCHA paths, and controlled same-origin script directories.
+- Keep document CSP and Firebase Hosting header CSP synchronized.
+- Preserve `same-origin-allow-popups` while Google popup authentication is supported.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP delivery contract.
+
 # v1.6.41 project notes
 
 - The Settings item may be visible, but the real administrator secret must never be shipped to the browser.

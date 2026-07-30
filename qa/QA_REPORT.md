@@ -1,3 +1,32 @@
+# FoxBear QA Report - v1.6.43
+
+## Configured target
+
+- Static and behavioral checks: 388
+- New syntax target: `src/security/trusted-types-bootstrap.js`
+- New regression: `qa/v1643_google_auth_trusted_types_csp_recovery_smoke.js`
+
+## Focus
+
+- Firebase Auth Google API TrustedScriptURL compatibility
+- Narrow default Trusted Types script URL validation
+- Document and Firebase Hosting CSP parity
+- Firebase authentication iframe/account origin permissions
+- Google popup COOP compatibility
+- Service-worker precache and stale-cache guidance
+
+## Final result
+
+- Official configured checks: `388/388` passed.
+- Dedicated v1.6.43 Trusted Types/CSP regression: passed.
+- Static release gate, browser fixture preflight, and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- The command-line Chromium executable did not complete startup in this sandbox, so the real Google account chooser remains a production verification gate.
+- Engine balanced fixture: approximately `1.93x` realtime.
+- Golden audio: all four fixtures remained at `-14.00 LUFS`, with peaks from `-9.62` to `-5.64 dBTP`.
+- Final release and overwrite archives contain `681` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.42: `262` modified files, `3` added files, `0` deleted files.
+
 # FoxBear QA Report - v1.6.42
 
 ## Configured target

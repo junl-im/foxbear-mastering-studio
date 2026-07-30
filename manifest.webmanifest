@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.42 (spark-google-admin-auth).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.43 (google-auth-trusted-types-csp-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.42"
+  "version": "1.6.43"
 }

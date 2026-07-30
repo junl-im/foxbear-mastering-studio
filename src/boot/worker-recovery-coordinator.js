@@ -1,8 +1,8 @@
-// FoxBear worker recovery coordinator v1.6.42 - safe high-level retries after stalled Worker cancellation
+// FoxBear worker recovery coordinator v1.6.43 - safe high-level retries after stalled Worker cancellation
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.6.42-spark-google-admin-auth';
+    const VERSION = '1.6.43-google-auth-trusted-types-csp-recovery';
     const handlers = [];
 
     function normalizeJob(job) {

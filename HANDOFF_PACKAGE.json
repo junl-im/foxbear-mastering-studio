@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.42",
-  "buildId": "spark-google-admin-auth",
+  "productVersion": "1.6.43",
+  "buildId": "google-auth-trusted-types-csp-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

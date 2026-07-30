@@ -1,4 +1,4 @@
-# FoxBear Firebase 설정 가이드 - v1.6.42
+# FoxBear Firebase 설정 가이드 - v1.6.43
 
 ## Spark 무료 요금제 관리자 모니터링
 

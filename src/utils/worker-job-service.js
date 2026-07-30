@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.6.42 - cancellable jobs, health levels, recovery controls, and stale-result isolation
+// FoxBear worker job service v1.6.43 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.6.42-spark-google-admin-auth';
+    const VERSION = '1.6.43-google-auth-trusted-types-csp-recovery';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

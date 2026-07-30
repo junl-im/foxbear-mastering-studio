@@ -1,3 +1,12 @@
+# v1.6.43 - Google Auth Trusted Types and CSP Recovery
+
+- Fixes the administrator Google sign-in failure caused by strict TrustedScriptURL enforcement.
+- Installs an early, narrow Trusted Types `default` policy for the exact Firebase Auth Google API loader, existing reCAPTCHA loaders, and FoxBear same-origin script directories.
+- Aligns document and Firebase Hosting CSP allowlists for Google Auth scripts, account endpoints, and the Firebase authentication iframe.
+- Changes COOP to `same-origin-allow-popups` so the Google account chooser can complete without weakening frame ancestry controls.
+- Precaches the security bootstrap and adds a friendly stale-cache recovery message.
+- Adds syntax and dedicated security regression coverage, raising the configured target to 388 checks.
+
 # v1.6.42 - Spark Google Administrator Authentication
 
 - Replaces the Blaze-only administrator PIN and Secret Manager flow with Firebase Google Authentication that works on the Spark plan.

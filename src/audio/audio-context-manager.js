@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.42-spark-google-admin-auth';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.43-google-auth-trusted-types-csp-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

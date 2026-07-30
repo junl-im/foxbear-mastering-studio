@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.42-spark-google-admin-auth';
+const version = '1.6.43-google-auth-trusted-types-csp-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.6.43
+
+## v1.6.43 Google authentication security recovery
+
+- Fixes the TrustedScriptURL error shown when selecting `Google 계정으로 인증`.
+- Keeps strict Trusted Types enforcement while adding a narrow Firebase Auth-compatible default policy.
+- Allows only the exact Google API loader and existing reCAPTCHA paths; unrelated external and same-origin paths remain blocked.
+- Aligns Firebase Hosting CSP and popup isolation headers with the Google administrator login flow.
+- Spark deployments still use `npm run deploy:spark`; no Secret Manager or paid administrator Function is required.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
 # FoxBear AI Mastering Studio Pro v1.6.42
 
 ## v1.6.42 Spark Google administrator access

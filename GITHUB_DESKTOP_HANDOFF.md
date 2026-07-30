@@ -1,4 +1,4 @@
-# GitHub Desktop Handoff - v1.6.42
+# GitHub Desktop Handoff - v1.6.43
 
 ## Apply
 
@@ -325,3 +325,10 @@ Apply FoxBear v1.5.27 handoff patch
 - `package.json`과 `HANDOFF.md`의 버전이 같은지
 - Actions 로그에서 `handoff:check`, 정적 QA, 브라우저 QA 중 어느 단계가 실패했는지
 - 실패 아티팩트가 생성됐는지
+
+## v1.6.43 verification
+
+- Configured QA: `388/388`
+- Archive entries: `681` each
+- Engine fixture: approximately `1.93x` realtime
+- Golden audio: four fixtures at `-14.00 LUFS`

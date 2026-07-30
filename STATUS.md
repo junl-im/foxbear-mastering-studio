@@ -1,3 +1,38 @@
+# FoxBear Status - v1.6.43
+
+## Current release
+
+- Product version: `1.6.43`
+- Build ID: `google-auth-trusted-types-csp-recovery`
+- Asset version: `1.6.43-google-auth-trusted-types-csp-recovery`
+- Service worker cache: `foxbear-shell-v1.6.43-google-auth-trusted-types-csp-recovery`
+- Configured static/regression target: 388 checks.
+
+## Current focus
+
+- Recover Firebase Google administrator authentication under strict Trusted Types enforcement.
+- Keep the dynamic-script allowlist narrow instead of disabling CSP or Trusted Types.
+- Keep document and Hosting CSP policies synchronized for Google Auth.
+- Preserve Spark-plan deployment and Firestore UID authorization.
+
+## Verified
+
+- Official configured QA: **388/388 passed**.
+- Dedicated Trusted Types/CSP regression: passed.
+- Static release gate, browser fixture preflight, and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Command-line Chromium was present but did not complete startup in this sandbox; real production Google login remains an external gate.
+- Engine balanced fixture: approximately **1.93x realtime**.
+- Golden audio: four fixtures remained at **-14.00 LUFS**.
+- Full and overwrite ZIP packages: **681 entries each**, compressed-data errors: **0**.
+- Change scope versus v1.6.42: **262 modified, 3 added, 0 deleted**.
+
+## Production deployment required
+
+- Deploy with `npm run deploy:spark`.
+- Force-refresh the deployed site once so the new service-worker generation and CSP headers replace v1.6.42.
+- Retry Settings → 관리자 모니터링 → Google 계정으로 인증.
+
 # FoxBear Status - v1.6.42
 
 ## Current release
@@ -222,10 +257,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.42`
-- Build ID: `spark-google-admin-auth`
-- Asset version: `1.6.42-spark-google-admin-auth`
-- Service worker cache: `foxbear-shell-v1.6.42-spark-google-admin-auth`
+- Product version: `1.6.43`
+- Build ID: `google-auth-trusted-types-csp-recovery`
+- Asset version: `1.6.43-google-auth-trusted-types-csp-recovery`
+- Service worker cache: `foxbear-shell-v1.6.43-google-auth-trusted-types-csp-recovery`
 
 # FoxBear Status - v1.6.32
 

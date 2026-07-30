@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.42
+// FoxBear Modal State Machine Controller v1.6.43
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.42-spark-google-admin-auth',
+            version: '1.6.43-google-auth-trusted-types-csp-recovery',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,

@@ -1,3 +1,28 @@
+# Handoff - v1.6.43
+
+- Build: `google-auth-trusted-types-csp-recovery`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep strict Trusted Types enforcement enabled.
+- Load `src/security/trusted-types-bootstrap.js` before Firebase initialization.
+- Keep the default policy allowlist limited to the exact Firebase Auth gapi loader, existing reCAPTCHA loaders, and controlled same-origin script directories.
+- Keep the document CSP and Firebase Hosting response CSP synchronized.
+- Spark deployments continue to use `npm run deploy:spark`.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.43`
+- Build ID: `google-auth-trusted-types-csp-recovery`
+- Asset version: `1.6.43-google-auth-trusted-types-csp-recovery`
+- Service worker cache: `foxbear-shell-v1.6.43-google-auth-trusted-types-csp-recovery`
+- Configured static/regression target: 388 checks.
+- Final configured checks: `388/388`; static release gate, browser preflight, and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Command-line Chromium did not complete startup in this sandbox; real Firebase production Google login remains an external environment gate.
+- Engine balanced fixture: approximately `1.93x` realtime; four golden fixtures remain at `-14.00 LUFS`.
+- Final full and overwrite archives contain `681` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.42: `262` modified, `3` added, `0` deleted files.
+
 # Handoff - v1.6.42
 
 - Build: `spark-google-admin-auth`.

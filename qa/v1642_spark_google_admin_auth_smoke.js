@@ -16,8 +16,8 @@ const rules = read('firestore.rules');
 const functions = read('functions/index.js');
 const setup = read('FIREBASE_SETUP.md');
 
-assert(pkg.version === '1.6.42', 'package version must be 1.6.42');
-assert(pkg.foxbearRelease?.buildId === 'spark-google-admin-auth', 'release build id must describe Spark Google admin auth');
+assert(pkg.version === '1.6.43', 'package version must be 1.6.43');
+assert(String(pkg.foxbearRelease?.buildId || '').includes('google-auth'), 'current release build id must retain Google administrator authentication');
 assert(pkg.scripts['deploy:spark'] === 'firebase deploy --only hosting,firestore:rules,firestore:indexes', 'Spark deployment must avoid Cloud Functions');
 assert(!pkg.scripts['deploy:incident'].includes('unlockAdminAccess'), 'incident deployment must not include the removed PIN unlock function');
 assert(!pkg.scripts['deploy:incident'].includes('revokeAdminAccess'), 'incident deployment must not include the removed PIN revoke function');

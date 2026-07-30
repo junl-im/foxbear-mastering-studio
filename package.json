@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.42",
+  "version": "1.6.43",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with Spark-compatible Google administrator authentication, Firestore UID authorization, and explicit session logout.",
+  "description": "FoxBear AI Mastering Studio Pro with Spark-compatible Google administrator authentication and narrow Trusted Types/CSP recovery for Firebase Auth.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.42-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.42-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.43-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.43-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -84,6 +84,7 @@
     "node --check src/ui/detail-panels-view.js",
     "node --check src/ui/detail-view.js",
     "node --check src/ui/admin-incident-monitor-view.js",
+    "node --check src/security/trusted-types-bootstrap.js",
     "node --check src/security/site-guards.js",
     "node --check src/boot/runtime-health.js",
     "node --check src/boot/incident-route-policy.js",
@@ -422,15 +423,16 @@
     "node qa/v1639_ui_shell_partial_script_recovery_smoke.js",
     "node qa/v1639_sw_client_probe_restart_late_report_smoke.js",
     "node qa/v1640_ui_shell_retry_replacement_settlement_smoke.js",
-    "node qa/v1642_spark_google_admin_auth_smoke.js"
+    "node qa/v1642_spark_google_admin_auth_smoke.js",
+    "node qa/v1643_google_auth_trusted_types_csp_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "spark-google-admin-auth",
-    "assetVersion": "1.6.42-spark-google-admin-auth",
-    "cacheName": "foxbear-shell-v1.6.42-spark-google-admin-auth",
-    "bootRevision": "boot-sri-v1642-google-admin",
-    "updateSafetyRevision": "update-safety-v1642-google-admin",
-    "serviceWorkerRevision": "sw-v1642-google-admin"
+    "buildId": "google-auth-trusted-types-csp-recovery",
+    "assetVersion": "1.6.43-google-auth-trusted-types-csp-recovery",
+    "cacheName": "foxbear-shell-v1.6.43-google-auth-trusted-types-csp-recovery",
+    "bootRevision": "boot-sri-v1643-auth-csp",
+    "updateSafetyRevision": "update-safety-v1643-auth-csp",
+    "serviceWorkerRevision": "sw-v1643-auth-csp"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

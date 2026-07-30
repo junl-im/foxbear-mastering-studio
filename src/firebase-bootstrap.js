@@ -368,8 +368,15 @@ async function signInAdminWithGoogle() {
             await signInWithRedirect(bridgeState.auth, provider);
             return Object.freeze({ redirecting: true, providerId: 'google.com' });
         }
-        const normalized = new Error(limitText(error?.message || 'Google 관리자 로그인에 실패했습니다.', 240));
-        normalized.code = limitText(code, 100);
+        const rawMessage = String(error?.message || 'Google 관리자 로그인에 실패했습니다.');
+        const trustedTypesBlocked = /TrustedScriptURL|Trusted Types|requires ['"]?TrustedScriptURL/i.test(rawMessage);
+        const normalized = new Error(limitText(
+            trustedTypesBlocked
+                ? '브라우저 보안 정책이 Google 인증 스크립트를 차단했습니다. 최신 버전으로 강력 새로고침한 뒤 다시 시도해주세요.'
+                : rawMessage,
+            240
+        ));
+        normalized.code = trustedTypesBlocked ? 'auth/trusted-types-blocked' : limitText(code, 100);
         throw normalized;
     }
 }

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.42-spark-google-admin-auth';
+  const VIEW_VERSION = '1.6.43-google-auth-trusted-types-csp-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -1,4 +1,11 @@
-# v1.6.42 release checklist
+# v1.6.43 release checklist
+
+- [x] Official configured QA passes `388/388`.
+- [x] Both archives contain 681 entries and pass compressed-data integrity.
+- [x] Trusted Types remains enforced with a narrow Firebase Auth-compatible default policy.
+- [x] Document and Hosting CSP allow the exact Google Auth loader and Firebase authentication iframe.
+- [x] COOP uses `same-origin-allow-popups` for the Google account chooser.
+- [x] The Trusted Types bootstrap is precached before Firebase initialization.
 
 - [x] Settings exposes Google administrator authentication without a shared browser PIN.
 - [x] Unregistered Google accounts receive their Firebase UID for one-time Firestore registration.
