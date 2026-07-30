@@ -1,10 +1,15 @@
+# v1.6.41 project notes
+
+- The Settings item may be visible, but the real administrator secret must never be shipped to the browser.
+- Administrator access is granted only by the server Callable Function and expires after eight hours.
+- Keep UID and hashed-network attempt limits; do not log the submitted PIN or raw IP address.
+- App Check enforcement remains off until the production web key is configured, then should be enabled and verified.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP delivery contract.
+
 # v1.6.40 project notes
 
-- A failed resource node and its replacement must be evaluated as one candidate set.
-- A loaded replacement is authoritative even when the failed original remains in the DOM.
-- Dynamically inserted critical replacements must schedule recovery automatically through the scoped observer.
-- A resource inserted after the window load boundary is pending until its own load event or bounded retry timeout.
-- Keep the recovery surface active while a confirmed failure is being retried.
+- Evaluate every matching retry resource node; do not let a stale failed node mask a successful replacement.
+- Post-load inserted resources remain pending until their own settlement or the retry deadline.
 - Preserve `DELIVERY_RULES.md` and the two-ZIP delivery contract.
 
 # v1.6.39 project notes

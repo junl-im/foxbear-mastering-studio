@@ -7,12 +7,14 @@ const { defineSecret } = require('firebase-functions/params');
 const { initializeApp } = require('firebase-admin/app');
 const { FieldValue, Timestamp, getFirestore } = require('firebase-admin/firestore');
 const nodemailer = require('nodemailer');
-const { randomUUID } = require('node:crypto');
+const { createHash, randomUUID, timingSafeEqual } = require('node:crypto');
 
 initializeApp();
 
 const db = getFirestore();
 const GMAIL_APP_PASSWORD = defineSecret('FOXBEAR_GMAIL_APP_PASSWORD');
+const ADMIN_ACCESS_PIN = defineSecret('FOXBEAR_ADMIN_ACCESS_PIN');
+const ADMIN_REQUIRE_APP_CHECK = String(process.env.FOXBEAR_ADMIN_REQUIRE_APP_CHECK || '').trim().toLowerCase() === 'true';
 const ALERT_RECIPIENT = 'mcwoogi@gmail.com';
 const ALERT_SENDER = 'mcwoogi@gmail.com';
 const MAIL_FROM_NAME = 'AI마스터링 스튜디오';
@@ -65,7 +67,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.40';
+const PRODUCT_VERSION = '1.6.41';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 6;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -81,6 +83,12 @@ const ADMIN_BATCH_COOLDOWN_MS = 2 * 60 * 1000;
 const ADMIN_ALERT_TEST_COOLDOWN_MS = 5 * 60 * 1000;
 const ADMIN_DEPLOY_VERIFY_COOLDOWN_MS = 10 * 60 * 1000;
 const ADMIN_MAIL_TEST_CLEANUP_COOLDOWN_MS = 10 * 60 * 1000;
+const ADMIN_ACCESS_ATTEMPTS_COLLECTION = 'adminAccessAttempts';
+const ADMIN_ACCESS_SESSION_MS = 8 * 60 * 60 * 1000;
+const ADMIN_ACCESS_WINDOW_MS = 10 * 60 * 1000;
+const ADMIN_ACCESS_LOCK_MS = 15 * 60 * 1000;
+const ADMIN_ACCESS_ATTEMPT_LIMIT = 5;
+const ADMIN_ACCESS_ATTEMPT_TTL_MS = 2 * 24 * 60 * 60 * 1000;
 const OPERATIONS_WEBHOOK_ALLOWED_HOSTS = Object.freeze([
   'hooks.slack.com', 'discord.com', 'discordapp.com', 'chat.googleapis.com',
   'outlook.office.com', 'webhook.office.com'
@@ -348,11 +356,132 @@ function adminActionStateId(uid, action) {
   return safeKey(`${uid}_${action}`, 'admin_action').slice(0, 140);
 }
 
+function adminAccessFingerprint(value, prefix = 'key') {
+  const digest = createHash('sha256').update(String(value || 'unknown')).digest('hex').slice(0, 40);
+  return `${prefix}_${digest}`;
+}
+
+function adminAccessNetworkKey(request = {}) {
+  const forwarded = cleanText(request.rawRequest?.headers?.['x-forwarded-for'] || '', 200).split(',')[0].trim();
+  const address = forwarded || cleanText(request.rawRequest?.ip || request.rawRequest?.socket?.remoteAddress || 'unknown', 120);
+  return adminAccessFingerprint(address, 'network');
+}
+
+function secureTextEqual(left, right) {
+  const leftDigest = createHash('sha256').update(String(left || '')).digest();
+  const rightDigest = createHash('sha256').update(String(right || '')).digest();
+  return timingSafeEqual(leftDigest, rightDigest);
+}
+
+function normalizeAdminAttemptState(snapshot, now) {
+  const data = snapshot?.exists ? (snapshot.data() || {}) : {};
+  const windowStartedAt = timestampMillis(data.windowStartedAt);
+  const withinWindow = windowStartedAt > 0 && now - windowStartedAt < ADMIN_ACCESS_WINDOW_MS;
+  return {
+    attempts: withinWindow ? Math.max(0, Number(data.attempts || 0)) : 0,
+    windowStartedAt: withinWindow ? windowStartedAt : now,
+    lockUntil: timestampMillis(data.lockUntil)
+  };
+}
+
+function serializeAdminAccessError(error) {
+  return {
+    code: cleanText(error?.code || error?.name || 'unknown', 80),
+    message: cleanText(error?.message || error, 240)
+  };
+}
+
+async function grantAdminPinSession(request, pin) {
+  const uid = cleanText(request.auth?.uid || '', 128);
+  if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
+  if (ADMIN_REQUIRE_APP_CHECK && !request.app) {
+    throw new HttpsError('failed-precondition', '관리자 인증에 App Check 검증이 필요합니다.');
+  }
+  const candidate = cleanText(pin || '', 32);
+  if (!/^\d{4,12}$/.test(candidate)) throw new HttpsError('invalid-argument', '관리자 비밀번호 형식이 올바르지 않습니다.');
+
+  const configuredPin = String(ADMIN_ACCESS_PIN.value() || '');
+  if (!configuredPin) {
+    console.error('FoxBear administrator access secret is missing.');
+    throw new HttpsError('failed-precondition', '관리자 인증 서버 설정이 완료되지 않았습니다.');
+  }
+
+  const now = Date.now();
+  const uidAttemptRef = db.collection(ADMIN_ACCESS_ATTEMPTS_COLLECTION).doc(adminAccessFingerprint(uid, 'uid'));
+  const networkAttemptRef = db.collection(ADMIN_ACCESS_ATTEMPTS_COLLECTION).doc(adminAccessNetworkKey(request));
+  const adminRef = db.collection('siteAdmins').doc(uid);
+  const matched = secureTextEqual(candidate, configuredPin);
+
+  const result = await db.runTransaction(async transaction => {
+    const [uidAttemptSnapshot, networkAttemptSnapshot] = await Promise.all([
+      transaction.get(uidAttemptRef),
+      transaction.get(networkAttemptRef)
+    ]);
+    const uidState = normalizeAdminAttemptState(uidAttemptSnapshot, now);
+    const networkState = normalizeAdminAttemptState(networkAttemptSnapshot, now);
+    const lockUntil = Math.max(uidState.lockUntil, networkState.lockUntil);
+    if (lockUntil > now) {
+      return { status: 'locked', retryAfterSeconds: Math.max(1, Math.ceil((lockUntil - now) / 1000)) };
+    }
+
+    const writeAttempt = (reference, state, success) => {
+      const attempts = success ? 0 : state.attempts + 1;
+      const nextLockUntil = !success && attempts >= ADMIN_ACCESS_ATTEMPT_LIMIT ? now + ADMIN_ACCESS_LOCK_MS : 0;
+      transaction.set(reference, {
+        schemaVersion: 1,
+        attempts,
+        windowStartedAt: Timestamp.fromMillis(success ? now : state.windowStartedAt),
+        lastAttemptAt: Timestamp.fromMillis(now),
+        lockUntil: nextLockUntil ? Timestamp.fromMillis(nextLockUntil) : null,
+        expiresAt: Timestamp.fromMillis(now + ADMIN_ACCESS_ATTEMPT_TTL_MS)
+      }, { merge: true });
+      return nextLockUntil;
+    };
+
+    const uidLockUntil = writeAttempt(uidAttemptRef, uidState, matched);
+    const networkLockUntil = writeAttempt(networkAttemptRef, networkState, matched);
+    if (!matched) {
+      const retryLockUntil = Math.max(uidLockUntil, networkLockUntil);
+      return {
+        status: retryLockUntil > now ? 'locked-after-failure' : 'denied',
+        retryAfterSeconds: retryLockUntil > now ? Math.ceil((retryLockUntil - now) / 1000) : 0
+      };
+    }
+
+    const expiresAt = now + ADMIN_ACCESS_SESSION_MS;
+    transaction.set(adminRef, {
+      active: true,
+      role: 'admin-session',
+      authMethod: 'secret-pin-callable',
+      grantedAt: Timestamp.fromMillis(now),
+      expiresAt: Timestamp.fromMillis(expiresAt),
+      updatedAt: FieldValue.serverTimestamp()
+    }, { merge: true });
+    return { status: 'granted', expiresAt };
+  });
+
+  if (result.status === 'locked' || result.status === 'locked-after-failure') {
+    throw new HttpsError('resource-exhausted', '관리자 인증 시도가 잠시 제한되었습니다.', {
+      retryAfterSeconds: result.retryAfterSeconds
+    });
+  }
+  if (result.status !== 'granted') throw new HttpsError('permission-denied', '관리자 비밀번호가 올바르지 않습니다.');
+  return {
+    active: true,
+    role: 'admin-session',
+    expiresAt: new Date(result.expiresAt).toISOString(),
+    appCheckVerified: Boolean(request.app)
+  };
+}
+
 async function getActiveAdmin(uid) {
   const safeUid = cleanText(uid || '', 128);
   if (!safeUid) return { active: false, uid: '' };
   const snapshot = await db.collection('siteAdmins').doc(safeUid).get();
-  return { active: snapshot.exists && snapshot.data()?.active === true, uid: safeUid };
+  const data = snapshot.exists ? (snapshot.data() || {}) : {};
+  const expiresAt = timestampMillis(data.expiresAt);
+  const active = snapshot.exists && data.active === true && (!expiresAt || expiresAt > Date.now());
+  return { active, uid: safeUid, role: active ? cleanText(data.role || 'admin', 40) : '', expiresAt };
 }
 
 async function claimAdminAction(uid, action, options = {}) {
@@ -1901,6 +2030,23 @@ async function runIncidentRecoveryBatch(options = {}) {
   await writeRecoveryRun(totals, Date.now());
   return totals;
 }
+
+exports.unlockAdminAccess = onCall({
+  region: REGION,
+  timeoutSeconds: 20,
+  memory: '256MiB',
+  secrets: [ADMIN_ACCESS_PIN],
+  enforceAppCheck: false,
+  consumeAppCheckToken: false
+}, async request => {
+  try {
+    return await grantAdminPinSession(request, request.data?.pin);
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    console.error('FoxBear administrator access verification failed', serializeAdminAccessError(error));
+    throw new HttpsError('internal', '관리자 인증을 처리하지 못했습니다.');
+  }
+});
 
 exports.submitIncidentReport = onCall({
   region: REGION,

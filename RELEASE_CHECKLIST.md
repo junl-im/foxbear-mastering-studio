@@ -1,3 +1,25 @@
+# v1.6.41 release checklist
+
+- [x] Settings exposes an administrator monitoring action on mobile and desktop layouts.
+- [x] The administrator PIN is absent from HTML, JavaScript, setup examples, environment examples, and release archives.
+- [x] `unlockAdminAccess` reads the PIN only from Firebase Secret Manager.
+- [x] PIN comparison uses fixed-length cryptographic digests and `timingSafeEqual`.
+- [x] Failed attempts are bounded by UID and hashed network fingerprint without storing the raw address.
+- [x] Five failures within ten minutes create a fifteen-minute lock.
+- [x] Successful verification creates an eight-hour administrator session.
+- [x] Firestore Rules reject expired administrator sessions.
+- [x] Optional App Check enforcement is documented and disabled until production setup is complete.
+- [x] All 386 configured static and behavioral checks pass.
+- [x] Browser fixture preflight and Firebase Functions syntax pass.
+- [x] Dependency metadata reports 0 errors and 5 expected missing-install warnings.
+- [x] Engine balanced fixture measures approximately 1.95x realtime and golden audio remains -14.00 LUFS.
+- [x] Both final archives contain 678 entries and zero compressed-data errors.
+- [ ] Register the production administrator PIN through `firebase functions:secrets:set FOXBEAR_ADMIN_ACCESS_PIN`.
+- [ ] Deploy Hosting, Firestore Rules/indexes, and `unlockAdminAccess`.
+- [ ] Configure Firestore TTL for `adminAccessAttempts.expiresAt`.
+- [ ] Enable and validate App Check in the production domain.
+- [ ] Perform the real production PIN unlock and verify visit/error monitor data.
+
 # v1.6.40 release checklist
 
 - [x] All matching critical script and stylesheet nodes are evaluated as one candidate set.

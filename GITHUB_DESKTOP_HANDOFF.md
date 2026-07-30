@@ -1,3 +1,30 @@
+# GitHub Desktop Handoff - v1.6.41
+
+## Apply
+
+1. Fetch origin before applying the patch.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Review changes, run the release gates, commit, and Push origin.
+
+## Release focus
+
+- Settings-based administrator monitoring entry
+- Secret Manager-only PIN verification through `unlockAdminAccess`
+- Eight-hour expiring Firestore administrator session
+- UID and hashed-network attempt limiting
+- Optional App Check hard gate after production configuration
+- Mandatory three-section delivery contract in `DELIVERY_RULES.md`
+- Final configured checks: `386/386`; dependency metadata errors: `0`; expected missing-install warnings: `5`
+- Final verified archive size: `678` entries in both full and overwrite ZIPs
+
+## Production setup after push
+
+- Register `FOXBEAR_ADMIN_ACCESS_PIN` interactively; never commit the value.
+- Run `npm run deploy:incident`.
+- Add TTL for `adminAccessAttempts.expiresAt`.
+- Test the Settings unlock flow on the production domain.
+- Configure App Check, then set `FOXBEAR_ADMIN_REQUIRE_APP_CHECK=true` and redeploy.
+
 # GitHub Desktop Handoff - v1.6.40
 
 ## Apply

@@ -175,6 +175,7 @@ function makePublicBridge(extra = {}) {
         probeIncidentCallableEndpoint,
         checkIncidentDeploymentReadiness,
         retryOwnIncidentReport,
+        unlockAdminAccess,
         getAdminStats,
         getAdminIncidents,
         getIncidentOperationsHistory,
@@ -318,6 +319,32 @@ async function signInGuest() {
     bridgeState.user = credential.user;
     bridgeState.authReady = true;
     return credential.user;
+}
+
+async function unlockAdminAccess(pin) {
+    const user = await signInGuest();
+    if (!bridgeState.functions || typeof httpsCallable !== 'function') {
+        throw new Error('Firebase 관리자 인증 함수가 초기화되지 않았습니다.');
+    }
+    const candidate = String(pin || '').trim();
+    if (!/^\d{4,12}$/.test(candidate)) throw new Error('관리자 비밀번호는 숫자 4~12자리로 입력해주세요.');
+    const callable = httpsCallable(bridgeState.functions, 'unlockAdminAccess', { timeout: 15000 });
+    try {
+        const response = await callable({ pin: candidate });
+        const result = response?.data || {};
+        return Object.freeze({
+            uid: user.uid,
+            active: result.active === true,
+            role: limitText(result.role || '', 40),
+            expiresAt: limitText(result.expiresAt || '', 40),
+            appCheckVerified: result.appCheckVerified === true
+        });
+    } catch (error) {
+        const normalized = new Error(limitText(error?.message || '관리자 인증에 실패했습니다.', 240));
+        normalized.code = limitText(error?.code || '', 100);
+        normalized.details = error?.details || null;
+        throw normalized;
+    }
 }
 
 async function logVisit(payload = {}) {
@@ -842,12 +869,16 @@ async function getAdminProfile() {
     const adminRef = doc(bridgeState.db, 'siteAdmins', user.uid);
     const snapshot = await getDoc(adminRef);
     const data = snapshot.exists() ? (snapshot.data() || {}) : {};
-    const active = snapshot.exists() && data.active === true;
+    const expiresAt = timestampIso(data.expiresAt);
+    const expiresAtMs = expiresAt ? Date.parse(expiresAt) : 0;
+    const active = snapshot.exists() && data.active === true && (!expiresAtMs || expiresAtMs > Date.now());
     return {
         uid: user.uid,
         exists: snapshot.exists(),
         active,
-        role: active ? limitText(data.role || 'admin', 40) : ''
+        role: active ? limitText(data.role || 'admin', 40) : '',
+        authMethod: active ? limitText(data.authMethod || '', 60) : '',
+        expiresAt: active ? expiresAt : ''
     };
 }
 

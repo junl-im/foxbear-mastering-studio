@@ -209,3 +209,30 @@ body.incident-reporting-open { overflow: hidden; }
   .incident-transport-metrics-head { align-items: flex-start; }
   .incident-transport-metrics-head button { min-height: 36px; }
 }
+
+/* v1.6.41: server-verified administrator access prompt. */
+.admin-access-panel { width: min(460px, 100%); }
+.admin-access-form { display: grid; gap: 12px; margin-top: 16px; }
+.admin-access-field { display: grid; gap: 8px; }
+.admin-access-field strong { color: #f7fbff; font-size: .8rem; }
+.admin-access-field input {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 10px 13px;
+  border: 1px solid rgba(109,224,255,.24);
+  border-radius: 13px;
+  outline: none;
+  background: rgba(2,8,17,.7);
+  color: #fff;
+  font: inherit;
+  font-size: 1.08rem;
+  letter-spacing: .22em;
+}
+.admin-access-field input:focus { border-color: rgba(109,224,255,.72); box-shadow: 0 0 0 3px rgba(109,224,255,.1); }
+.admin-access-field input[aria-invalid='true'] { border-color: rgba(248,113,113,.72); box-shadow: 0 0 0 3px rgba(248,113,113,.08); }
+.admin-access-security-note { margin: 0 !important; color: rgba(202,218,236,.72) !important; font-size: .69rem !important; line-height: 1.5 !important; }
+.admin-access-form button[aria-busy='true'] { cursor: wait; opacity: .72; }
+@media (max-width: 560px) {
+  .admin-access-field input { min-height: 52px; font-size: 1.12rem; }
+}

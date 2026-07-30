@@ -1,3 +1,36 @@
+# FoxBear QA Report - v1.6.41
+
+## Configured target
+
+- Static and behavioral checks: 386
+- New syntax target: `src/ui/admin-access-controller.js`
+- New regression: `qa/v1641_admin_secret_pin_session_smoke.js`
+
+## Focus
+
+- Settings-based administrator monitor discovery
+- Secret Manager-only PIN ownership
+- Callable authentication and fixed-length comparison
+- UID and hashed-network lockout policy
+- Eight-hour administrator session expiry
+- Firestore Rules expiry enforcement
+- Optional App Check hard gate
+- Administrator UI controller modularization and app line-budget preservation
+
+## Final result
+
+- Official configured checks: `386/386` passed.
+- Browser fixture preflight and Firebase Functions syntax: passed.
+- Release metadata, SRI, service-worker cache, and GitHub Desktop handoff: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution did not start because Playwright and Chromium are unavailable in this environment.
+- Real Firebase Secret Manager registration, Function deployment, App Check enforcement, and production unlock remain external gates.
+- Repository and both release archives contain no embedded administrator PIN literal.
+- Engine balanced fixture: approximately `1.95x` realtime.
+- Golden audio: all four fixtures remained at `-14.00 LUFS`, with peaks from `-9.62` to `-5.64 dBTP`.
+- Final release and overwrite archives contain `678` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.40: `262` modified files, `3` added files, `0` deleted files.
+
 # FoxBear QA Report - v1.6.40
 
 ## Configured target

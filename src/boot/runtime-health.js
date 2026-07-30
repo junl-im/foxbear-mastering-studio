@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.40-ui-shell-retry-replacement-settlement';
+    const FALLBACK_VERSION = '1.6.41-admin-secret-pin-session';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

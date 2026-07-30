@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.6.40 - site and UI guard helpers
+// FoxBear AI Mastering Studio Pro v1.6.41 - site and UI guard helpers
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.6.40-ui-shell-retry-replacement-settlement';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.6.41-admin-secret-pin-session';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

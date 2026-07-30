@@ -9,7 +9,11 @@ service cloud.firestore {
     function isAdmin() {
       return signedIn()
         && exists(/databases/$(database)/documents/siteAdmins/$(request.auth.uid))
-        && get(/databases/$(database)/documents/siteAdmins/$(request.auth.uid)).data.active == true;
+        && get(/databases/$(database)/documents/siteAdmins/$(request.auth.uid)).data.active == true
+        && (
+          !('expiresAt' in get(/databases/$(database)/documents/siteAdmins/$(request.auth.uid)).data)
+          || get(/databases/$(database)/documents/siteAdmins/$(request.auth.uid)).data.expiresAt > request.time
+        );
     }
 
     function validShortString(field, maxSize) {

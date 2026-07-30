@@ -1,3 +1,41 @@
+# FoxBear Firebase 설정 가이드 - v1.6.41
+
+## 관리자 모니터링 비밀번호 보안 설정
+
+관리자 비밀번호는 HTML, JavaScript, `.env`, 문서 또는 Git 저장소에 기록하지 않습니다. Firebase Secret Manager에만 등록하고 Callable Function `unlockAdminAccess`가 서버에서 검증합니다.
+
+```bash
+firebase login
+firebase use foxbear-music
+firebase functions:secrets:set FOXBEAR_ADMIN_ACCESS_PIN
+```
+
+명령 실행 후 표시되는 보안 입력 프롬프트에 실제 관리자 비밀번호를 입력합니다. 입력값은 터미널 명령행, 프로젝트 파일, 배포된 웹 번들에 남기지 않습니다.
+
+배포 명령:
+
+```bash
+npm run deploy:incident
+```
+
+배포 후 사이트의 `설정 → 관리자 모니터링`에서 비밀번호를 입력합니다. 서버 검증이 성공하면 현재 익명 Firebase UID에 8시간 동안만 유효한 관리자 세션이 발급됩니다. 실패는 UID와 네트워크 지문별로 제한되며, 10분 안에 5회 실패하면 15분 동안 잠깁니다. 원본 IP는 Firestore에 저장하지 않습니다.
+
+### 선택적 App Check 강제
+
+Firebase App Check와 reCAPTCHA Enterprise 사이트 키를 먼저 구성한 뒤 `<meta name="foxbear-app-check-site-key">`에 공개 사이트 키를 설정합니다. 그 다음 Functions 배포 환경에서 아래 파라미터를 `true`로 지정하고 다시 배포하면 관리자 잠금 해제 요청에 유효한 App Check 토큰이 필수가 됩니다.
+
+```text
+FOXBEAR_ADMIN_REQUIRE_APP_CHECK=true
+```
+
+App Check 구성이 끝나기 전에 이 값을 켜면 관리자 잠금 해제 요청이 거절됩니다. 기본값은 `false`입니다.
+
+## Firestore TTL 추가
+
+Firestore TTL 정책에 `adminAccessAttempts.expiresAt`을 추가합니다. 잠금 및 실패 횟수 문서는 약 2일 후 자동 정리됩니다. 기존 `siteAdmins`의 영구 관리자 문서는 `expiresAt`이 없으면 계속 유효하며, 비밀번호로 발급된 임시 세션만 만료 시각을 검사합니다.
+
+---
+
 ## v1.5.70 mail verification deployment
 
 - Deploy `auditIncidentMailOperations` because mail-test freshness and receipt-overdue alerts are evaluated in the 15-minute scheduled audit.

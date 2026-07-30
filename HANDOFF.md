@@ -1,3 +1,25 @@
+# Handoff - v1.6.41
+
+- Build: `admin-secret-pin-session`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Never place the real administrator PIN in source code, documentation, `.env`, CI variables exposed to the client, or Hosting assets.
+- Set `FOXBEAR_ADMIN_ACCESS_PIN` through Firebase Secret Manager before deploying `unlockAdminAccess`.
+- Keep Firestore session expiration and server-side attempt limits together with the Settings entry.
+- App Check enforcement is intentionally opt-in until the production site key is configured.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.41`
+- Build ID: `admin-secret-pin-session`
+- Asset version: `1.6.41-admin-secret-pin-session`
+- Service worker cache: `foxbear-shell-v1.6.41-admin-secret-pin-session`
+- Configured static/regression target: 386 checks.
+- Final configured checks: `386/386`; browser preflight and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Installed Playwright/Chromium and real Firebase secret deployment remain external environment gates.
+- Final full and overwrite archives contain `678` entries each and pass archive verification.
+
 # Handoff - v1.6.40
 
 - Build: `ui-shell-retry-replacement-settlement`.

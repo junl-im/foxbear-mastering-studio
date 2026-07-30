@@ -1,12 +1,20 @@
+# FoxBear AI Mastering Studio Pro v1.6.41
+
+## v1.6.41 administrator monitoring access
+
+- Settings now contains `관리자 모니터링`.
+- The password is never embedded in the web page or JavaScript bundle; Firebase Secret Manager stores it and `unlockAdminAccess` verifies it server-side.
+- A successful verification grants the current anonymous Firebase session an eight-hour administrator role.
+- Repeated failures are rate-limited, and optional Firebase App Check enforcement can be enabled after production configuration.
+- Deployment instructions are in `FIREBASE_SETUP.md`.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
 # FoxBear AI Mastering Studio Pro v1.6.40
 
-## v1.6.40 replacement-aware boot recovery
+## v1.6.40 retry replacement settlement
 
-- Failed critical scripts and styles can now be replaced by a newly inserted resource node without stale failure state winning forever.
-- Replacement nodes inserted after window load remain pending until their own load event instead of being assumed healthy.
-- Dynamically inserted critical replacements are detected automatically through a scoped DOM observer.
-- A 2.5-second bounded retry grace prevents indefinite pending state and converts silent stalls into actionable recovery.
-- New diagnostics expose script/style retry state while the static UI and Runtime Health surface remain available.
+- Critical resource recovery now evaluates failed originals and replacement nodes together.
+- Dynamically inserted retries remain pending until their own load/error event or the bounded deadline.
 - Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
 
 # FoxBear AI Mastering Studio Pro v1.6.39

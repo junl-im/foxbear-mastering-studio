@@ -14,7 +14,7 @@ const workerSource = fs.readFileSync(workerPath, 'utf8');
 const appSource = fs.readFileSync(appPath, 'utf8');
 const loudnessServiceSource = fs.readFileSync(loudnessServicePath, 'utf8');
 
-assert(workerSource.includes('channel-specialized tone dynamics and fused safety scans'), 'v1.6.40 finalizer marker is missing');
+assert(workerSource.includes('channel-specialized tone dynamics and fused safety scans'), 'v1.6.41 finalizer marker is missing');
 assert(workerSource.includes('function filterKWeightedPower('), 'K-weighted power fast path is missing');
 assert(workerSource.includes('const filtered = Math.fround(processBiquad('), 'K-weighted Float32-equivalent rounding is missing');
 assert(workerSource.includes('function inspectAndSanitizeInputSignal('), 'input inspection and sanitization are not fused');
@@ -140,6 +140,6 @@ worker.self.onmessage({ data: {
 assert(result?.ok, `optimized finalizer failed: ${result?.error || 'unknown error'}`);
 assert(Number.isFinite(result.info?.performance?.stageMs?.toneDynamics), 'tone-dynamics timing is missing');
 assert(Number.isFinite(result.info?.performance?.stageMs?.finalMeasurement), 'final-measurement timing is missing');
-assert(result.info.peakAfter <= Math.pow(10, -1 / 20) * 1.012, 'v1.6.40 output exceeded ceiling tolerance');
+assert(result.info.peakAfter <= Math.pow(10, -1 / 20) * 1.012, 'v1.6.41 output exceeded ceiling tolerance');
 
 console.log('PASS v1.6.12 mastering tone/loudness fast path: exact K-weighted metrics · fused safety scans · channel-specialized dynamics · fallback measurement reuse');

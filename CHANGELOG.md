@@ -1,11 +1,19 @@
+# v1.6.41 - Secret Manager Administrator PIN Session
+
+- Adds a visible `관리자 모니터링` entry inside Settings while keeping the administrator secret out of HTML, JavaScript, environment examples, and release archives.
+- Verifies the submitted PIN only in the Firebase Callable Function `unlockAdminAccess` using Secret Manager and constant-time digest comparison.
+- Issues an eight-hour Firestore administrator session for the current anonymous UID and enforces its expiration in both client state and Firestore Rules.
+- Adds UID and hashed-network rate limiting: five failures within ten minutes trigger a fifteen-minute lock without storing the raw network address.
+- Supports optional Firebase App Check enforcement after the production App Check site key is configured.
+- Adds dedicated regression coverage, raising the configured target to 386 checks.
+
 # v1.6.40 - UI Shell Retry Replacement Settlement
 
-- Evaluates every matching critical script and stylesheet candidate instead of trusting the first DOM node.
-- Lets a confirmed loaded replacement supersede an older failed node without clearing the recovery state prematurely.
-- Keeps post-load replacement resources in a bounded 2.5-second retry state until their own load or error settlement.
-- Uses a scoped `MutationObserver` to detect critical replacement nodes and schedule recovery automatically.
-- Converts a silent replacement timeout into a confirmed failure and exposes script/style retry diagnostics.
-- Adds dedicated replacement and timeout regression coverage, raising the configured target to 384 checks.
+- Evaluates all matching critical resource candidates so a stale failed node cannot mask a successful replacement.
+- Keeps post-load replacement resources pending until their own load/error event or a bounded 2.5-second deadline.
+- Detects dynamically inserted critical resources and starts settlement automatically.
+- Keeps the recovery surface visible until retry settlement completes.
+- Adds dedicated regression coverage, raising the configured target to 384 checks.
 
 # v1.6.39 - UI Shell Partial Script Recovery and Probe Isolation
 

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.40-ui-shell-retry-replacement-settlement';
+  const VIEW_VERSION = '1.6.41-admin-secret-pin-session';
   const DEFAULT_BINS = 96;
 
   function getService() {

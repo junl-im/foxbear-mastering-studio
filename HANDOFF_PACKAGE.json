@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.40",
-  "buildId": "ui-shell-retry-replacement-settlement",
+  "productVersion": "1.6.41",
+  "buildId": "admin-secret-pin-session",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -128,7 +128,16 @@
     "qa/v1639_sw_client_probe_restart_late_report_smoke.js",
     "docs/V1.6.39_UI_SHELL_PARTIAL_SCRIPT_PROBE_ISOLATION.md",
     "qa/v1640_ui_shell_retry_replacement_settlement_smoke.js",
-    "docs/V1.6.40_UI_SHELL_RETRY_REPLACEMENT_SETTLEMENT.md"
+    "docs/V1.6.40_UI_SHELL_RETRY_REPLACEMENT_SETTLEMENT.md",
+    "FIREBASE_SETUP.md",
+    "functions/.env.example",
+    "src/firebase-bootstrap.js",
+    "src/ui/mobile-native-view.js",
+    "src/state/app-state.js",
+    "assets/css/components/support-settings.css",
+    "qa/v1641_admin_secret_pin_session_smoke.js",
+    "docs/V1.6.41_ADMIN_SECRET_PIN_SESSION.md",
+    "src/ui/admin-access-controller.js"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -184,6 +193,7 @@
     "src/boot/service-worker-update-service.js",
     "src/audio/audio-context-manager.js",
     "src/boot/ui-shell-recovery-service.js",
-    "assets/css/boot/ui-shell-recovery.css"
+    "assets/css/boot/ui-shell-recovery.css",
+    "src/ui/admin-access-controller.js"
   ]
 }

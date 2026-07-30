@@ -50,7 +50,7 @@ const memorySandbox = {
       jsHeapSizeLimit: 200 * 1024 * 1024
     }
   },
-  FoxBearBuildInfo: { assetVersion: '1.6.40-kakao-adaptive-memory-governor' }
+  FoxBearBuildInfo: { assetVersion: '1.6.41-kakao-adaptive-memory-governor' }
 };
 memorySandbox.window = memorySandbox;
 memorySandbox.globalThis = memorySandbox;

@@ -1,3 +1,41 @@
+# FoxBear Status - v1.6.41
+
+## Current release
+
+- Product version: `1.6.41`
+- Build ID: `admin-secret-pin-session`
+- Asset version: `1.6.41-admin-secret-pin-session`
+- Service worker cache: `foxbear-shell-v1.6.41-admin-secret-pin-session`
+- Configured static/regression target: 386 checks.
+
+## Current focus
+
+- Expose administrator monitoring inside the Settings surface.
+- Keep the administrator PIN exclusively in Firebase Secret Manager.
+- Verify access through an authenticated Callable Function rather than client-side comparison.
+- Bound brute-force attempts by anonymous UID and hashed network fingerprint.
+- Grant an expiring eight-hour administrator session and enforce expiry in Firestore Rules.
+- Allow optional App Check enforcement after production configuration.
+
+## Verified
+
+- Official configured QA: **386/386 passed**.
+- Browser fixture preflight and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Repository and both release archives contain no embedded administrator PIN literal.
+- Engine balanced fixture: approximately **1.95x realtime**.
+- Golden audio: four fixtures remained at **-14.00 LUFS**.
+- Installed Playwright/Chromium execution: unavailable in this sandbox.
+- Full and overwrite ZIP packages: **678 entries each**, compressed-data errors: **0**.
+- Change scope versus v1.6.40: **262 modified, 3 added, 0 deleted**.
+
+## Production deployment required
+
+- Register `FOXBEAR_ADMIN_ACCESS_PIN` interactively with Firebase Secret Manager.
+- Deploy `unlockAdminAccess`, Hosting, Firestore Rules, and indexes with `npm run deploy:incident`.
+- Add Firestore TTL for `adminAccessAttempts.expiresAt`.
+- Enable `FOXBEAR_ADMIN_REQUIRE_APP_CHECK=true` only after the web App Check key is configured.
+
 # FoxBear Status - v1.6.40
 
 ## Current release
@@ -145,10 +183,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.40`
-- Build ID: `ui-shell-retry-replacement-settlement`
-- Asset version: `1.6.40-ui-shell-retry-replacement-settlement`
-- Service worker cache: `foxbear-shell-v1.6.40-ui-shell-retry-replacement-settlement`
+- Product version: `1.6.41`
+- Build ID: `admin-secret-pin-session`
+- Asset version: `1.6.41-admin-secret-pin-session`
+- Service worker cache: `foxbear-shell-v1.6.41-admin-secret-pin-session`
 
 # FoxBear Status - v1.6.32
 
