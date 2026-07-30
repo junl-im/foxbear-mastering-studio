@@ -1,4 +1,4 @@
-// FoxBear incident service diagnostics classification and UI view-model - v1.6.43
+// FoxBear incident service diagnostics classification and UI view-model - v1.6.44
 (function attachFoxBearIncidentServiceDiagnostics(global) {
     'use strict';
 
@@ -134,7 +134,7 @@
     }
 
     global.FoxBearIncidentServiceDiagnostics = Object.freeze({
-        version: '1.6.43',
+        version: '1.6.44',
         classifyFailure,
         buildViewModel
     });

@@ -1,3 +1,10 @@
+# v1.6.44 - Google Auth gapi Module Trusted Types Recovery
+
+- Allows the second-stage Firebase Auth gapi iframe module under the exact `https://apis.google.com/_/scs/apps-static/_/js/` prefix.
+- Keeps the first-stage `/js/api.js` loader and existing reCAPTCHA paths while continuing to reject lookalike or unrelated script URLs.
+- Adds query-free rejected-path diagnostics and normalizes the FoxBear Trusted Types rejection in the administrator sign-in flow.
+- Adds dedicated regression coverage, raising the configured target to 389 checks.
+
 # v1.6.43 - Google Auth Trusted Types and CSP Recovery
 
 - Fixes the administrator Google sign-in failure caused by strict TrustedScriptURL enforcement.

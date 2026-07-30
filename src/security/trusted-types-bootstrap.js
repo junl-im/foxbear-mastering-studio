@@ -6,6 +6,7 @@
     const documentRef = global.document;
     const FIREBASE_AUTH_GAPI_ORIGIN = 'https://apis.google.com';
     const FIREBASE_AUTH_GAPI_PATH = '/js/api.js';
+    const FIREBASE_AUTH_GAPI_MODULE_PATH_PREFIX = '/_/scs/apps-static/_/js/';
     const GOOGLE_RECAPTCHA_ORIGIN = 'https://www.google.com';
     const GOOGLE_RECAPTCHA_PATH_PREFIX = '/recaptcha/';
     const GOOGLE_RECAPTCHA_STATIC_ORIGIN = 'https://www.gstatic.com';
@@ -29,8 +30,9 @@
         if (location?.origin && url.origin === location.origin) {
             return SAME_ORIGIN_SCRIPT_PATHS.some(prefix => url.pathname.startsWith(prefix));
         }
-        if (url.origin === FIREBASE_AUTH_GAPI_ORIGIN && url.pathname === FIREBASE_AUTH_GAPI_PATH) {
-            return true;
+        if (url.origin === FIREBASE_AUTH_GAPI_ORIGIN) {
+            return url.pathname === FIREBASE_AUTH_GAPI_PATH
+                || url.pathname.startsWith(FIREBASE_AUTH_GAPI_MODULE_PATH_PREFIX);
         }
         if (url.origin === GOOGLE_RECAPTCHA_ORIGIN && url.pathname.startsWith(GOOGLE_RECAPTCHA_PATH_PREFIX)) {
             return true;
@@ -39,10 +41,17 @@
             && url.pathname.startsWith(GOOGLE_RECAPTCHA_STATIC_PATH_PREFIX);
     }
 
+    let lastRejectedScriptUrl = '';
+
+    function describeScriptUrl(url) {
+        return `${url.origin}${url.pathname}`.slice(0, 220);
+    }
+
     function createScriptUrl(value) {
         const url = normalizeScriptUrl(value);
         if (!isAllowedScriptUrl(url.href)) {
-            throw new TypeError('허용되지 않은 동적 스크립트 URL입니다.');
+            lastRejectedScriptUrl = describeScriptUrl(url);
+            throw new TypeError(`허용되지 않은 동적 스크립트 URL입니다: ${lastRejectedScriptUrl}`);
         }
         return url.href;
     }
@@ -51,7 +60,10 @@
         policyName: 'default',
         installed: false,
         isAllowedScriptUrl,
-        createScriptUrl
+        createScriptUrl,
+        getLastRejectedScriptUrl() {
+            return lastRejectedScriptUrl;
+        }
     };
 
     if (trustedTypes && typeof trustedTypes.createPolicy === 'function') {

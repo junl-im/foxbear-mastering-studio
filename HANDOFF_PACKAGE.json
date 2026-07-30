@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.43",
-  "buildId": "google-auth-trusted-types-csp-recovery",
+  "productVersion": "1.6.44",
+  "buildId": "google-auth-gapi-module-trusted-types-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

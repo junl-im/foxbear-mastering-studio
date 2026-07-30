@@ -1,3 +1,18 @@
+# GitHub Desktop Handoff - v1.6.44
+
+## Apply
+
+1. Fetch origin before applying the patch.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Run release gates, review changes, commit, and Push origin.
+
+## Release focus
+
+- Firebase Auth generated gapi module Trusted Types recovery
+- Narrow `apis.google.com/_/scs/apps-static/_/js/` allowlist
+- Query-free rejected-path diagnostics
+- Spark-compatible Google administrator authentication
+
 # GitHub Desktop Handoff - v1.6.43
 
 ## Apply

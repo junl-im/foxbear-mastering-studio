@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.43-google-auth-trusted-types-csp-recovery',
+                version: '1.6.44-google-auth-gapi-module-trusted-types-recovery',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.43-google-auth-trusted-types-csp-recovery',
+        version: '1.6.44-google-auth-gapi-module-trusted-types-recovery',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

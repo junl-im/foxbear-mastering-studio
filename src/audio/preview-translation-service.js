@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.43-google-auth-trusted-types-csp-recovery';
+    const SERVICE_VERSION = '1.6.44-google-auth-gapi-module-trusted-types-recovery';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;

@@ -369,10 +369,10 @@ async function signInAdminWithGoogle() {
             return Object.freeze({ redirecting: true, providerId: 'google.com' });
         }
         const rawMessage = String(error?.message || 'Google 관리자 로그인에 실패했습니다.');
-        const trustedTypesBlocked = /TrustedScriptURL|Trusted Types|requires ['"]?TrustedScriptURL/i.test(rawMessage);
+        const trustedTypesBlocked = /TrustedScriptURL|Trusted Types|requires ['"]?TrustedScriptURL|허용되지 않은 동적 스크립트 URL/i.test(rawMessage);
         const normalized = new Error(limitText(
             trustedTypesBlocked
-                ? '브라우저 보안 정책이 Google 인증 스크립트를 차단했습니다. 최신 버전으로 강력 새로고침한 뒤 다시 시도해주세요.'
+                ? `브라우저 보안 정책이 Google 인증 스크립트를 차단했습니다. ${window.FoxBearTrustedTypesBootstrap?.getLastRejectedScriptUrl?.() || '차단 경로를 확인할 수 없습니다.'} 최신 버전으로 강력 새로고침한 뒤 다시 시도해주세요.`
                 : rawMessage,
             240
         ));

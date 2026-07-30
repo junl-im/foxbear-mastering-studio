@@ -1,8 +1,8 @@
-// FoxBear memory guard service v1.6.43 - release-after-encode PCM retention policy and diagnostics
+// FoxBear memory guard service v1.6.44 - release-after-encode PCM retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const VERSION = 'v1.6.43-google-auth-trusted-types-csp-recovery';
+    const VERSION = 'v1.6.44-google-auth-gapi-module-trusted-types-recovery';
     const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 

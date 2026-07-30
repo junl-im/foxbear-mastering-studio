@@ -1,3 +1,31 @@
+# FoxBear QA Report - v1.6.44
+
+## Configured target
+
+- Static and behavioral checks: 389
+- New syntax targets: `src/security/trusted-types-bootstrap.js`, `src/firebase-bootstrap.js`
+- New regression: `qa/v1644_google_auth_gapi_module_trusted_types_recovery_smoke.js`
+
+## Focus
+
+- Firebase Auth second-stage gapi iframe module TrustedScriptURL compatibility
+- Narrow `/_/scs/apps-static/_/js/` allowlist on `apis.google.com`
+- Continued rejection of lookalike paths and external origins
+- Query-free rejected URL diagnostics
+- Spark administrator authentication regression preservation
+
+## Final result
+
+- Official configured checks: `389/389` passed in bounded execution chunks.
+- Dedicated v1.6.43 initial-loader and v1.6.44 generated-module Trusted Types regressions: passed.
+- Release metadata, SRI, handoff, browser fixture preflight, and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox, so the real Google account chooser remains a production verification gate.
+- Engine synthetic safety bench: passed.
+- Golden audio: all four fixtures remained at `-14.00 LUFS`, with peaks from `-9.62` to `-5.64 dBTP`.
+- Final release and overwrite archives contain `683` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.43: `261` modified files, `2` added files, `0` deleted files.
+
 # FoxBear QA Report - v1.6.43
 
 ## Configured target

@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.6.44
+
+## v1.6.44 Google authentication gapi module recovery
+
+- Fixes the remaining `허용되지 않은 동적 스크립트 URL입니다` failure after the initial Firebase Auth loader succeeds.
+- Allows only Firebase Auth's generated `apis.google.com/_/scs/apps-static/_/js/` iframe module path.
+- Keeps strict Trusted Types and CSP enforcement enabled; unrelated Google and external script paths remain blocked.
+- Stores only rejected origin and pathname for diagnostics, without query strings or callback values.
+- Spark deployments still use `npm run deploy:spark`.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
 # FoxBear AI Mastering Studio Pro v1.6.43
 
 ## v1.6.43 Google authentication security recovery

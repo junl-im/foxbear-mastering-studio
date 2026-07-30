@@ -1,3 +1,38 @@
+# FoxBear Status - v1.6.44
+
+## Current release
+
+- Product version: `1.6.44`
+- Build ID: `google-auth-gapi-module-trusted-types-recovery`
+- Asset version: `1.6.44-google-auth-gapi-module-trusted-types-recovery`
+- Service worker cache: `foxbear-shell-v1.6.44-google-auth-gapi-module-trusted-types-recovery`
+- Configured static/regression target: 389 checks.
+
+## Current focus
+
+- Allow Firebase Auth's second-stage gapi iframe module without weakening Trusted Types globally.
+- Keep the allowlist restricted to the exact Google API loader and generated apps-static JavaScript module prefix.
+- Preserve query-free rejected-path diagnostics for future production failures.
+- Preserve Spark-plan Google administrator authentication and Firestore UID authorization.
+
+## Verified
+
+- Official configured QA: **389/389 passed** in bounded execution chunks.
+- Dedicated v1.6.43 loader and v1.6.44 generated-module Trusted Types regressions: passed.
+- Release metadata, SRI, handoff, browser fixture preflight, and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium runtime is not installed in this sandbox; real deployed Google account selection remains an external gate.
+- Engine synthetic safety bench: passed.
+- Golden audio: four fixtures remained at **-14.00 LUFS**.
+- Full and overwrite ZIP packages: **683 entries each**, compressed-data errors: **0**.
+- Change scope versus v1.6.43: **261 modified, 2 added, 0 deleted**.
+
+## Production deployment required
+
+- Deploy with `npm run deploy:spark`.
+- Close all existing FoxBear tabs and reopen the site so the new service-worker generation is active.
+- Retry Settings → 관리자 모니터링 → Google 계정으로 인증.
+
 # FoxBear Status - v1.6.43
 
 ## Current release
@@ -257,10 +292,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.43`
-- Build ID: `google-auth-trusted-types-csp-recovery`
-- Asset version: `1.6.43-google-auth-trusted-types-csp-recovery`
-- Service worker cache: `foxbear-shell-v1.6.43-google-auth-trusted-types-csp-recovery`
+- Product version: `1.6.44`
+- Build ID: `google-auth-gapi-module-trusted-types-recovery`
+- Asset version: `1.6.44-google-auth-gapi-module-trusted-types-recovery`
+- Service worker cache: `foxbear-shell-v1.6.44-google-auth-gapi-module-trusted-types-recovery`
 
 # FoxBear Status - v1.6.32
 

@@ -1,3 +1,28 @@
+# Handoff - v1.6.44
+
+- Build: `google-auth-gapi-module-trusted-types-recovery`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep strict Trusted Types enforcement enabled.
+- Allow the exact Firebase Auth gapi bootstrap loader and only the generated `/_/scs/apps-static/_/js/` module prefix on `apis.google.com`.
+- Do not broaden the default policy to all Google script paths.
+- Keep rejected diagnostics query-free.
+- Spark deployments continue to use `npm run deploy:spark`.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.44`
+- Build ID: `google-auth-gapi-module-trusted-types-recovery`
+- Asset version: `1.6.44-google-auth-gapi-module-trusted-types-recovery`
+- Service worker cache: `foxbear-shell-v1.6.44-google-auth-gapi-module-trusted-types-recovery`
+- Configured static/regression target: 389 checks.
+- Final configured checks: `389/389`; metadata, SRI, handoff, browser preflight, and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real Firebase production Google login remains an external environment gate.
+- Engine synthetic safety bench passed; four golden fixtures remain at `-14.00 LUFS`.
+- Final full and overwrite archives contain `683` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.43: `261` modified, `2` added, `0` deleted files.
+
 # Handoff - v1.6.43
 
 - Build: `google-auth-trusted-types-csp-recovery`.

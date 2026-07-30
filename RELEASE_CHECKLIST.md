@@ -1,3 +1,14 @@
+# v1.6.44 release checklist
+
+- [x] The exact Firebase Auth loader `/js/api.js` remains allowed.
+- [x] Generated gapi iframe modules under `/_/scs/apps-static/_/js/` are allowed.
+- [x] Lookalike Google paths and external origins remain blocked.
+- [x] Rejected URL diagnostics omit query strings.
+- [x] Strict Trusted Types and CSP enforcement remain enabled.
+- [x] All 389 configured static and behavioral checks pass.
+- [x] Both final archives contain 683 entries and pass compressed-data integrity checks.
+- [ ] Deploy with `npm run deploy:spark` and verify the real Google account chooser.
+
 # v1.6.43 release checklist
 
 - [x] Official configured QA passes `388/388`.

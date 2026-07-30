@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.6.43 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.6.44 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.6.43-google-auth-trusted-types-csp-recovery';
+    const VERSION = '1.6.44-google-auth-gapi-module-trusted-types-recovery';
     let sequence = 0;
 
     function createFallbackAbortController() {

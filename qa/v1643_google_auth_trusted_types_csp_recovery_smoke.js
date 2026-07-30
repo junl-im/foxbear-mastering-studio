@@ -19,8 +19,8 @@ const header = name => hostingHeaders.find(item => item.key === name)?.value || 
 const indexCsp = index.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] || '';
 const hostingCsp = header('Content-Security-Policy');
 
-assert(pkg.version === '1.6.43', 'package version must be 1.6.43');
-assert(pkg.foxbearRelease?.buildId === 'google-auth-trusted-types-csp-recovery', 'release build id must describe Google Auth Trusted Types recovery');
+assert(pkg.version === '1.6.44', 'package version must be 1.6.44');
+assert(/google-auth/.test(pkg.foxbearRelease?.buildId || '') && /trusted-types/.test(pkg.foxbearRelease?.buildId || ''), 'release build id must retain Google Auth Trusted Types recovery');
 assert(index.includes('src/security/trusted-types-bootstrap.js'), 'Trusted Types bootstrap must be loaded by index.html');
 assert(index.indexOf('src/security/trusted-types-bootstrap.js') < index.indexOf('src/firebase-bootstrap.js'), 'Trusted Types bootstrap must run before Firebase Auth');
 assert(indexCsp.includes("trusted-types foxbear default"), 'document CSP must allow the narrow default Trusted Types policy');

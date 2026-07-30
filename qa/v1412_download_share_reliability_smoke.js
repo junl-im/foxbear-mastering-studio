@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.6.43', 'package version should be 1.6.43');
-assert(index.includes('data-build="1.6.43"'), 'index data-build should be 1.6.43');
-assert(index.includes('1.6.43-google-auth-trusted-types-csp-recovery'), 'index assets should use v1.6.43 cache key');
-assert(sw.includes('foxbear-shell-v1.6.43-google-auth-trusted-types-csp-recovery'), 'service worker cache should use v1.6.43 key');
+assert(pkg.version === '1.6.44', 'package version should be 1.6.44');
+assert(index.includes('data-build="1.6.44"'), 'index data-build should be 1.6.44');
+assert(index.includes('1.6.44-google-auth-gapi-module-trusted-types-recovery'), 'index assets should use v1.6.44 cache key');
+assert(sw.includes('foxbear-shell-v1.6.44-google-auth-gapi-module-trusted-types-recovery'), 'service worker cache should use v1.6.44 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');

@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.43-google-auth-trusted-types-csp-recovery';
+    const FALLBACK_VERSION = '1.6.44-google-auth-gapi-module-trusted-types-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
