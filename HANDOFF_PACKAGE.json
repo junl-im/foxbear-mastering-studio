@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.39",
-  "buildId": "ui-shell-partial-script-probe-isolation",
+  "productVersion": "1.6.40",
+  "buildId": "ui-shell-retry-replacement-settlement",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -126,7 +126,9 @@
     "docs/V1.6.38_UI_SHELL_RUNTIME_HEALTH_CACHE_RETIREMENT.md",
     "qa/v1639_ui_shell_partial_script_recovery_smoke.js",
     "qa/v1639_sw_client_probe_restart_late_report_smoke.js",
-    "docs/V1.6.39_UI_SHELL_PARTIAL_SCRIPT_PROBE_ISOLATION.md"
+    "docs/V1.6.39_UI_SHELL_PARTIAL_SCRIPT_PROBE_ISOLATION.md",
+    "qa/v1640_ui_shell_retry_replacement_settlement_smoke.js",
+    "docs/V1.6.40_UI_SHELL_RETRY_REPLACEMENT_SETTLEMENT.md"
   ],
   "requiredPrefixes": [
     "assets/",

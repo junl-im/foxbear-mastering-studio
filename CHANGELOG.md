@@ -1,3 +1,12 @@
+# v1.6.40 - UI Shell Retry Replacement Settlement
+
+- Evaluates every matching critical script and stylesheet candidate instead of trusting the first DOM node.
+- Lets a confirmed loaded replacement supersede an older failed node without clearing the recovery state prematurely.
+- Keeps post-load replacement resources in a bounded 2.5-second retry state until their own load or error settlement.
+- Uses a scoped `MutationObserver` to detect critical replacement nodes and schedule recovery automatically.
+- Converts a silent replacement timeout into a confirmed failure and exposes script/style retry diagnostics.
+- Adds dedicated replacement and timeout regression coverage, raising the configured target to 384 checks.
+
 # v1.6.39 - UI Shell Partial Script Recovery and Probe Isolation
 
 - Adds critical JavaScript pending, failure, and recovery classification alongside the existing core-style recovery state.

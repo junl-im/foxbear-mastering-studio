@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.39-ui-shell-partial-script-probe-isolation';
+    const SERVICE_VERSION = '1.6.40-ui-shell-retry-replacement-settlement';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

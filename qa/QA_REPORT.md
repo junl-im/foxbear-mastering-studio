@@ -1,3 +1,31 @@
+# FoxBear QA Report - v1.6.40
+
+## Configured target
+
+- Static and behavioral checks: 384
+- New regression: `qa/v1640_ui_shell_retry_replacement_settlement_smoke.js`
+
+## Focus
+
+- Multi-candidate critical script and stylesheet evaluation
+- Stale failed-node isolation after successful replacement
+- Post-window-load replacement pending state
+- Automatic critical-resource replacement observation
+- Bounded replacement timeout and failure conversion
+- Recovery-surface continuity during resource retry
+
+## Final result
+
+- Official configured checks: `384/384` passed.
+- Browser fixture preflight and Firebase Functions syntax: passed.
+- Release metadata, SRI, service-worker cache, and GitHub Desktop handoff: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution did not start because Playwright and Chromium are unavailable in this environment.
+- Engine balanced fixture: approximately `1.87x` realtime.
+- Golden audio: all four fixtures remained at `-14.00 LUFS`, with peaks from `-9.62` to `-5.64 dBTP`.
+- Final release and overwrite archives contain `675` entries each and pass compressed-data integrity checks.
+- Change scope versus v1.6.39: `257` modified files, `2` added files, `2` deleted bytecode-cache files.
+
 # FoxBear QA Report - v1.6.39
 
 ## Configured target

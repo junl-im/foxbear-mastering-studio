@@ -1,3 +1,12 @@
+# v1.6.40 project notes
+
+- A failed resource node and its replacement must be evaluated as one candidate set.
+- A loaded replacement is authoritative even when the failed original remains in the DOM.
+- Dynamically inserted critical replacements must schedule recovery automatically through the scoped observer.
+- A resource inserted after the window load boundary is pending until its own load event or bounded retry timeout.
+- Keep the recovery surface active while a confirmed failure is being retried.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP delivery contract.
+
 # v1.6.39 project notes
 
 - A visible shell with failed critical JavaScript is degraded, not healthy.

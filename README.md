@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.6.40
+
+## v1.6.40 replacement-aware boot recovery
+
+- Failed critical scripts and styles can now be replaced by a newly inserted resource node without stale failure state winning forever.
+- Replacement nodes inserted after window load remain pending until their own load event instead of being assumed healthy.
+- Dynamically inserted critical replacements are detected automatically through a scoped DOM observer.
+- A 2.5-second bounded retry grace prevents indefinite pending state and converts silent stalls into actionable recovery.
+- New diagnostics expose script/style retry state while the static UI and Runtime Health surface remain available.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
 # FoxBear AI Mastering Studio Pro v1.6.39
 
 ## v1.6.39 partial boot and client-probe isolation

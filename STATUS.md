@@ -1,3 +1,32 @@
+# FoxBear Status - v1.6.40
+
+## Current release
+
+- Product version: `1.6.40`
+- Build ID: `ui-shell-retry-replacement-settlement`
+- Asset version: `1.6.40-ui-shell-retry-replacement-settlement`
+- Service worker cache: `foxbear-shell-v1.6.40-ui-shell-retry-replacement-settlement`
+- Configured static/regression target: 384 checks.
+
+## Current focus
+
+- Settle retried critical resources from all matching DOM candidates.
+- Prevent stale failed nodes from masking a successful replacement.
+- Prevent post-load replacement nodes from being assumed healthy before load.
+- Detect dynamically inserted critical replacement nodes and schedule settlement automatically.
+- Bound silent replacement retries and keep recovery visible until settlement.
+
+## Verified
+
+- Official configured QA: **384/384 passed**.
+- Browser fixture preflight and Functions syntax: passed.
+- Dependency metadata: 0 errors, 5 expected missing-install warnings.
+- Engine balanced fixture: approximately **1.83x realtime**.
+- Golden audio: four fixtures at **-14.00 LUFS**.
+- Installed Playwright/Chromium execution: unavailable in this sandbox.
+- Full and overwrite ZIP packages: **675 entries each**, compressed-data errors: **0**.
+- Change scope: **257 modified, 2 added, 2 deleted**.
+
 # FoxBear Status - v1.6.39
 
 ## Current release
@@ -116,10 +145,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.39`
-- Build ID: `ui-shell-partial-script-probe-isolation`
-- Asset version: `1.6.39-ui-shell-partial-script-probe-isolation`
-- Service worker cache: `foxbear-shell-v1.6.39-ui-shell-partial-script-probe-isolation`
+- Product version: `1.6.40`
+- Build ID: `ui-shell-retry-replacement-settlement`
+- Asset version: `1.6.40-ui-shell-retry-replacement-settlement`
+- Service worker cache: `foxbear-shell-v1.6.40-ui-shell-retry-replacement-settlement`
 
 # FoxBear Status - v1.6.32
 

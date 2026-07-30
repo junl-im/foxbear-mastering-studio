@@ -1,3 +1,25 @@
+# Handoff - v1.6.40
+
+- Build: `ui-shell-retry-replacement-settlement`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep failed original resources and replacement candidates evaluated together.
+- A post-load replacement must remain pending until its own load event or the bounded retry deadline.
+- Critical replacement insertion must be observed automatically; callers should not need a manual recovery trigger.
+- Keep the recovery surface active while replacement settlement is unresolved.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.40`
+- Build ID: `ui-shell-retry-replacement-settlement`
+- Asset version: `1.6.40-ui-shell-retry-replacement-settlement`
+- Service worker cache: `foxbear-shell-v1.6.40-ui-shell-retry-replacement-settlement`
+- Configured static/regression target: 384 checks.
+- Final configured checks: `384/384`; browser preflight and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Installed Playwright/Chromium execution remains an external environment gate.
+- Final full and overwrite archives contain `675` entries each and pass archive verification.
+
 # Handoff - v1.6.39
 
 - Build: `ui-shell-partial-script-probe-isolation`.

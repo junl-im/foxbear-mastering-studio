@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.39 - partial script recovery and stale resource isolation
+// FoxBear UI shell recovery v1.6.40 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.39-ui-shell-partial-script-probe-isolation';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.40-ui-shell-retry-replacement-settlement';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',
@@ -16,6 +16,10 @@
   ]);
   const MAX_FAILURES = 12;
   const TRANSIENT_NOTICE_MS = 5000;
+  const RESOURCE_RETRY_GRACE_MS = 2500;
+  const initialResourceNodes = new WeakSet(Array.from(global.document?.querySelectorAll?.('link[href],script[src]') || []));
+  const retryFirstSeenAt = new WeakMap();
+  const retryDeadlineScheduled = new WeakSet();
   const state = {
     checks: 0,
     recoveries: 0,
@@ -23,6 +27,7 @@
     missingStyleRecoveries: 0,
     missingScriptRecoveries: 0,
     shellVisibilityRecoveries: 0,
+    replacementObservationCount: 0,
     noticeSuppressedCount: 0,
     noticeDismissCount: 0,
     resourceFailures: [],
@@ -32,8 +37,10 @@
     resolvedAt: 0,
     stylesMissing: false,
     stylesPending: false,
+    stylesRetrying: false,
     scriptsMissing: false,
     scriptsPending: false,
+    scriptsRetrying: false,
     active: false,
     noticeVisible: false,
     runtimePanelVisible: false,
@@ -60,52 +67,119 @@
     if (index >= 0) state.resourceFailures.splice(index, 1);
   }
 
-  function findStylesheet(fragment) {
+  function findStylesheets(fragment) {
     const links = Array.from(global.document?.querySelectorAll?.('link[rel="stylesheet"][href]') || []);
-    return links.find(node => String(node.getAttribute?.('href') || node.href || '').includes(fragment)) || null;
+    return links.filter(node => String(node.getAttribute?.('href') || node.href || '').includes(fragment));
+  }
+
+  function scheduleRetryDeadline(node, label) {
+    if (!node || initialResourceNodes.has(node) || retryDeadlineScheduled.has(node)) return;
+    retryDeadlineScheduled.add(node);
+    if (!retryFirstSeenAt.has(node)) retryFirstSeenAt.set(node, Date.now());
+    if (typeof global.setTimeout === 'function') {
+      global.setTimeout(() => recover(`resource-retry-timeout:${label}`), RESOURCE_RETRY_GRACE_MS + 25);
+    }
+  }
+
+  function retryPending(node, label) {
+    if (!node || initialResourceNodes.has(node)) return false;
+    scheduleRetryDeadline(node, label);
+    const firstSeenAt = Number(retryFirstSeenAt.get(node) || Date.now());
+    return Date.now() - firstSeenAt < RESOURCE_RETRY_GRACE_MS;
+  }
+
+  function trackedResourceLabel(node) {
+    const tagName = String(node?.tagName || '').toUpperCase();
+    const source = String(node?.getAttribute?.(tagName === 'LINK' ? 'href' : 'src') || node?.href || node?.src || '');
+    if (tagName === 'LINK') return REQUIRED_STYLES.find(fragment => source.includes(fragment)) || '';
+    if (tagName === 'SCRIPT') return REQUIRED_SCRIPTS.find(fragment => source.includes(fragment)) || '';
+    return '';
+  }
+
+  function observeResourceReplacements() {
+    if (typeof global.MutationObserver !== 'function' || !global.document?.documentElement) return null;
+    const observer = new global.MutationObserver(records => {
+      let found = false;
+      for (const record of records || []) {
+        for (const addedNode of Array.from(record?.addedNodes || [])) {
+          const nodes = [addedNode, ...Array.from(addedNode?.querySelectorAll?.('link[rel="stylesheet"][href],script[src]') || [])];
+          for (const node of nodes) {
+            const label = trackedResourceLabel(node);
+            if (!label) continue;
+            scheduleRetryDeadline(node, label);
+            state.replacementObservationCount += 1;
+            found = true;
+          }
+        }
+      }
+      if (found) schedule('resource-retry-inserted', 0);
+    });
+    try { observer.observe(global.document.documentElement, { childList: true, subtree: true }); }
+    catch (error) { return null; }
+    return observer;
+  }
+
+  function stylesheetCandidateState(link, fragment) {
+    const failed = link?.dataset?.foxbearLoadError === 'true';
+    let loaded = false;
+    try { loaded = !failed && Boolean(link.sheet); } catch (error) { loaded = !failed; }
+    const pending = !loaded && !failed && (!state.windowLoaded || retryPending(link, fragment));
+    return Object.freeze({ loaded, failed: failed || (!loaded && !pending && state.windowLoaded), pending });
   }
 
   function stylesheetState(fragment) {
-    const link = findStylesheet(fragment);
-    if (!link) return Object.freeze({ fragment, exists: false, loaded: false, failed: true, pending: false });
-    const failed = link.dataset?.foxbearLoadError === 'true'
-      || state.resourceFailures.some(path => path.includes(fragment));
-    let loaded = false;
-    try { loaded = Boolean(link.sheet); } catch (error) { loaded = true; }
-    const pending = !loaded && !failed && !state.windowLoaded;
-    return Object.freeze({ fragment, exists: true, loaded, failed, pending });
+    const links = findStylesheets(fragment);
+    if (!links.length) return Object.freeze({ fragment, exists: false, loaded: false, failed: true, pending: false, candidates: 0 });
+    const candidates = links.map(link => stylesheetCandidateState(link, fragment));
+    const loaded = candidates.some(item => item.loaded);
+    const pending = !loaded && candidates.some(item => item.pending);
+    const failed = !loaded && !pending && candidates.some(item => item.failed);
+    const retrying = !loaded && pending && candidates.some(item => item.failed);
+    return Object.freeze({ fragment, exists: true, loaded, failed, pending, retrying, candidates: candidates.length });
   }
 
   function getCoreStyleStatus() {
     const entries = REQUIRED_STYLES.map(stylesheetState);
     const pending = entries.filter(item => item.pending);
-    const missing = entries.filter(item => !item.exists || item.failed || (!item.loaded && state.windowLoaded));
-    return Object.freeze({ entries: Object.freeze(entries), pending: Object.freeze(pending), missing: Object.freeze(missing) });
+    const missing = entries.filter(item => !item.exists || item.failed);
+    const retrying = entries.filter(item => item.retrying);
+    return Object.freeze({ entries: Object.freeze(entries), pending: Object.freeze(pending), missing: Object.freeze(missing), retrying: Object.freeze(retrying) });
   }
 
-  function findScript(fragment) {
+  function findScripts(fragment) {
     const scripts = Array.from(global.document?.querySelectorAll?.('script[src]') || []);
-    return scripts.find(node => String(node.getAttribute?.('src') || node.src || '').includes(fragment)) || null;
+    return scripts.filter(node => String(node.getAttribute?.('src') || node.src || '').includes(fragment));
+  }
+
+  function scriptCandidateState(script, fragment) {
+    const failed = script?.dataset?.foxbearLoadError === 'true';
+    const loaded = !failed && (
+      script.dataset?.foxbearLoadComplete === 'true'
+      || script.readyState === 'complete'
+      || script.readyState === 'loaded'
+      || (state.windowLoaded && initialResourceNodes.has(script))
+    );
+    const pending = !loaded && !failed && (!state.windowLoaded || retryPending(script, fragment));
+    return Object.freeze({ loaded, failed: failed || (!loaded && !pending && state.windowLoaded), pending });
   }
 
   function scriptState(fragment) {
-    const script = findScript(fragment);
-    if (!script) return Object.freeze({ fragment, exists: false, loaded: false, failed: state.windowLoaded, pending: !state.windowLoaded });
-    const failed = script.dataset?.foxbearLoadError === 'true'
-      || state.resourceFailures.some(path => path.includes(fragment));
-    const loaded = script.dataset?.foxbearLoadComplete === 'true'
-      || script.readyState === 'complete'
-      || script.readyState === 'loaded'
-      || (state.windowLoaded && !failed);
-    const pending = !loaded && !failed && !state.windowLoaded;
-    return Object.freeze({ fragment, exists: true, loaded, failed, pending });
+    const scripts = findScripts(fragment);
+    if (!scripts.length) return Object.freeze({ fragment, exists: false, loaded: false, failed: state.windowLoaded, pending: !state.windowLoaded, candidates: 0 });
+    const candidates = scripts.map(script => scriptCandidateState(script, fragment));
+    const loaded = candidates.some(item => item.loaded);
+    const pending = !loaded && candidates.some(item => item.pending);
+    const failed = !loaded && !pending && candidates.some(item => item.failed);
+    const retrying = !loaded && pending && candidates.some(item => item.failed);
+    return Object.freeze({ fragment, exists: true, loaded, failed, pending, retrying, candidates: candidates.length });
   }
 
   function getCriticalScriptStatus() {
     const entries = REQUIRED_SCRIPTS.map(scriptState);
     const pending = entries.filter(item => item.pending);
-    const missing = entries.filter(item => !item.exists || item.failed || (!item.loaded && state.windowLoaded));
-    return Object.freeze({ entries: Object.freeze(entries), pending: Object.freeze(pending), missing: Object.freeze(missing) });
+    const missing = entries.filter(item => !item.exists || item.failed);
+    const retrying = entries.filter(item => item.retrying);
+    return Object.freeze({ entries: Object.freeze(entries), pending: Object.freeze(pending), missing: Object.freeze(missing), retrying: Object.freeze(retrying) });
   }
 
   function clearDismissTimer() {
@@ -152,6 +226,8 @@
       ? '화면 스타일 일부를 불러오지 못해 안전 UI로 복구했습니다. 아래 복구 도구에서 새로고침이나 캐시 초기화를 시도할 수 있습니다.'
       : reason === 'critical-scripts-missing'
         ? '화면은 표시되지만 핵심 기능 일부를 불러오지 못했습니다. 복구 도구에서 새로고침이나 캐시 초기화를 시도할 수 있습니다.'
+        : reason === 'resource-retry-pending'
+          ? '핵심 화면 리소스 복구를 다시 시도하고 있습니다. 완료될 때까지 현재 화면을 유지합니다.'
         : '화면 표시 상태를 자동 복구했습니다.';
     state.noticeVisible = true;
     clearDismissTimer();
@@ -197,8 +273,11 @@
     const wasActive = state.active;
     state.active = false;
     state.stylesMissing = false;
+    state.stylesRetrying = false;
+    state.scriptsMissing = false;
+    state.scriptsRetrying = false;
     shell?.removeAttribute?.('data-ui-shell-recovered');
-    global.document?.documentElement?.classList?.remove?.('foxbear-ui-shell-styles-missing', 'foxbear-ui-shell-recovery-active');
+    global.document?.documentElement?.classList?.remove?.('foxbear-ui-shell-styles-missing', 'foxbear-ui-shell-scripts-missing', 'foxbear-ui-shell-recovery-active');
     global.document?.body?.classList?.remove?.('foxbear-ui-shell-recovery-active');
     if (wasActive) {
       state.resolvedRecoveries += 1;
@@ -224,19 +303,24 @@
     const scriptStatus = getCriticalScriptStatus();
     const stylesMissing = styleStatus.missing.length > 0;
     const scriptsMissing = scriptStatus.missing.length > 0;
+    const stylesRetrying = styleStatus.retrying.length > 0;
+    const scriptsRetrying = scriptStatus.retrying.length > 0;
     state.stylesPending = styleStatus.pending.length > 0;
     state.stylesMissing = stylesMissing;
+    state.stylesRetrying = stylesRetrying;
     state.scriptsPending = scriptStatus.pending.length > 0;
     state.scriptsMissing = scriptsMissing;
+    state.scriptsRetrying = scriptsRetrying;
 
     document.documentElement.classList.toggle('foxbear-ui-shell-styles-missing', stylesMissing);
     document.documentElement.classList.toggle('foxbear-ui-shell-scripts-missing', scriptsMissing);
+    document.documentElement.classList.toggle('foxbear-ui-shell-resource-retry-pending', stylesRetrying || scriptsRetrying);
     document.documentElement.classList.toggle('foxbear-ui-shell-recovery-active', !visible);
     document.body.classList?.toggle('foxbear-ui-shell-recovery-active', !visible);
 
     const shellWasRecovered = !wasVisible && visible;
-    const degraded = stylesMissing || scriptsMissing || !visible;
-    const signature = `${stylesMissing ? 'styles' : ''}:${scriptsMissing ? 'scripts' : ''}:${!visible ? 'hidden' : ''}:${shellWasRecovered ? 'unhidden' : ''}`;
+    const degraded = stylesMissing || scriptsMissing || stylesRetrying || scriptsRetrying || !visible;
+    const signature = `${stylesMissing ? 'styles' : ''}:${scriptsMissing ? 'scripts' : ''}:${stylesRetrying || scriptsRetrying ? 'retrying' : ''}:${!visible ? 'hidden' : ''}:${shellWasRecovered ? 'unhidden' : ''}`;
     if (stylesMissing) {
       shell.setAttribute('data-ui-shell-recovered', 'true');
       state.active = true;
@@ -255,6 +339,10 @@
         state.recoveredAt = Date.now();
       }
       ensureNotice('critical-scripts-missing');
+    } else if (stylesRetrying || scriptsRetrying) {
+      shell.setAttribute('data-ui-shell-recovered', 'true');
+      state.active = true;
+      ensureNotice('resource-retry-pending');
     } else if (!visible) {
       shell.setAttribute('data-ui-shell-recovered', 'true');
       state.active = true;
@@ -279,7 +367,7 @@
 
     state.lastSignature = signature;
     publish(reason);
-    return stylesMissing || scriptsMissing || shellWasRecovered || !visible;
+    return stylesMissing || scriptsMissing || stylesRetrying || scriptsRetrying || shellWasRecovered || !visible;
   }
 
   function schedule(reason, delay) {
@@ -293,7 +381,7 @@
       if (state.noticeVisible) state.noticeSuppressedCount += 1;
       removeNotice('runtime-panel-visible');
     }
-    else if (state.active) ensureNotice(state.stylesMissing ? 'core-styles-missing' : (state.scriptsMissing ? 'critical-scripts-missing' : state.lastReason));
+    else if (state.active) ensureNotice(state.stylesMissing ? 'core-styles-missing' : (state.scriptsMissing ? 'critical-scripts-missing' : (state.stylesRetrying || state.scriptsRetrying ? 'resource-retry-pending' : state.lastReason)));
     publish('runtime-panel-visibility');
     return state.runtimePanelVisible;
   }
@@ -334,6 +422,7 @@
     schedule('late-style-probe', 2200);
   }, { once: true });
   global.addEventListener?.('pageshow', () => schedule('pageshow', 0));
+  observeResourceReplacements();
 
   function getSnapshot() {
     return Object.freeze({
@@ -344,6 +433,7 @@
       missingStyleRecoveries: state.missingStyleRecoveries,
       missingScriptRecoveries: state.missingScriptRecoveries,
       shellVisibilityRecoveries: state.shellVisibilityRecoveries,
+      replacementObservationCount: state.replacementObservationCount,
       noticeSuppressedCount: state.noticeSuppressedCount,
       noticeDismissCount: state.noticeDismissCount,
       resourceFailureCount: state.resourceFailures.length,
@@ -354,8 +444,10 @@
       resolvedAt: state.resolvedAt,
       stylesMissing: state.stylesMissing,
       stylesPending: state.stylesPending,
+      stylesRetrying: state.stylesRetrying,
       scriptsMissing: state.scriptsMissing,
       scriptsPending: state.scriptsPending,
+      scriptsRetrying: state.scriptsRetrying,
       active: state.active,
       noticeVisible: state.noticeVisible,
       runtimePanelVisible: state.runtimePanelVisible,

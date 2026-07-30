@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.39
+// FoxBear audio decode service - v1.6.40
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.39-ui-shell-partial-script-probe-isolation';
+    const SERVICE_VERSION = '1.6.40-ui-shell-retry-replacement-settlement';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

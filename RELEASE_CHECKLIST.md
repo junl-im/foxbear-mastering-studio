@@ -1,3 +1,19 @@
+# v1.6.40 release checklist
+
+- [x] All matching critical script and stylesheet nodes are evaluated as one candidate set.
+- [x] A loaded replacement overrides an older failed duplicate.
+- [x] Post-load replacement resources are not marked successful before their own load event.
+- [x] Replacement retry state remains bounded to 2.5 seconds.
+- [x] Silent replacement timeout becomes a confirmed failure.
+- [x] Recovery remains active while a replacement is still pending.
+- [x] `DELIVERY_RULES.md` remains a required package file.
+- [x] Run all 384 configured checks and release gates.
+- [x] Browser fixture preflight and Functions syntax pass.
+- [x] Dependency metadata reports 0 errors and 5 expected missing-install warnings.
+- [x] Engine balanced fixture measures approximately 1.83x realtime and golden audio remains -14.00 LUFS.
+- [x] Both final archives contain 675 entries and zero compressed-data errors.
+- [ ] Run installed Chromium and real Android/iOS/PWA resource-replacement timing scenarios.
+
 # v1.6.39 release checklist
 
 - [x] Critical scripts have pending, failed, and restored states.

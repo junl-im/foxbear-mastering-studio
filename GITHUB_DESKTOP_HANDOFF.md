@@ -1,3 +1,20 @@
+# GitHub Desktop Handoff - v1.6.40
+
+## Apply
+
+1. Fetch origin before applying the patch.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Review changes, run the release gates, commit, and Push origin.
+
+## Release focus
+
+- Replacement-aware critical script and stylesheet settlement
+- Bounded post-load retry grace and silent-timeout failure conversion
+- Stale failed-node isolation when a new resource loads successfully
+- Mandatory three-section delivery contract in `DELIVERY_RULES.md`
+- Final configured checks: `384/384`; dependency metadata errors: `0`; expected missing-install warnings: `5`
+- Final verified archive size: `675` entries in both full and overwrite ZIPs
+
 # GitHub Desktop Handoff - v1.6.39
 
 ## Apply
