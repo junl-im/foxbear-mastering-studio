@@ -18,25 +18,24 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css');
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
-assert.strictEqual(pkg.version, '1.6.44');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.44-google-auth-gapi-module-trusted-types-recovery');
-assert(index.includes('name="foxbear-app-check-site-key"'));
+assert.strictEqual(pkg.version, '1.6.45');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.45-windows-release-gate-spark-hosting-no-app-check');
+assert(!index.includes('name="foxbear-app-check-site-key"'), 'App Check site key must not be shipped');
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));
 assert(index.includes('id="adminIncidentsSummary"'));
 assert(index.includes('Operations Monitor'));
 
 for (const token of [
-  'firebase-app-check.js',
-  'initializeAppCheck',
-  'ReCaptchaEnterpriseProvider',
-  'isTokenAutoRefreshEnabled: true',
   'refreshAppCheckToken',
+  "mode: 'disabled'",
   'getAdminIncidents',
   'requestIncidentRetry',
   'getIncidentRetryRequest'
 ]) assert(firebase.includes(token), `firebase bridge missing ${token}`);
-assert(firebase.indexOf('await initializeFoxBearAppCheck()') < firebase.indexOf('bridgeState.auth = getAuth'), 'App Check must initialize before Firebase services');
+for (const forbidden of ['firebase-app-check.js', 'initializeAppCheck', 'ReCaptchaEnterpriseProvider', "headers['X-Firebase-AppCheck']"]) {
+  assert(!firebase.includes(forbidden), `App Check runtime must be absent: ${forbidden}`);
+}
 assert(!firebase.includes('FOXBEAR_GMAIL_APP_PASSWORD'), 'client must never contain Gmail secret name');
 
 for (const token of [
@@ -75,7 +74,9 @@ for (const origin of [
   'https://www.gstatic.com/recaptcha/',
   'https://recaptcha.google.com/recaptcha/',
   'https://firebaseappcheck.googleapis.com'
-]) assert(csp.includes(origin), `CSP missing ${origin}`);
+]) assert(!csp.includes(origin), `App Check CSP origin must be absent: ${origin}`);
+assert(functions.includes("appCheckMode: 'disabled'"));
+assert(functions.includes('appCheckTokenPresent: false'));
 
 assert(index.includes('assets/css/components/admin-incident-monitor.css'), 'admin incident monitor stylesheet should be loaded');
 assert(adminIncidentCss.includes('.admin-monitor-tabs'), 'admin incident monitor stylesheet should include monitor tabs');
@@ -84,4 +85,4 @@ for (const token of ['getAdminIncidents', 'requestIncidentRetry', 'formatStatus'
   assert(adminIncidentView.includes(token), `admin incident view missing ${token}`);
 }
 
-console.log('PASS v1.5.56 incident operations and App Check smoke');
+console.log('PASS incident operations with explicit no-App-Check policy smoke');

@@ -28,9 +28,6 @@ let getValue;
 let isRemoteConfigSupported;
 let getFunctions;
 let httpsCallable;
-let initializeAppCheck;
-let ReCaptchaEnterpriseProvider;
-let getToken;
 let firebaseModulesPromise = null;
 
 const FIREBASE_SDK_VERSION = '12.16.0';
@@ -65,12 +62,6 @@ const INCIDENT_ROUTE_POLICY_FALLBACK = Object.freeze({
     clear: () => Object.freeze({ routes: Object.freeze({}) })
 });
 const incidentRoutePolicy = window.FoxBearIncidentRoutePolicy || INCIDENT_ROUTE_POLICY_FALLBACK;
-const APP_CHECK_SITE_KEY = String(
-    window.FOXBEAR_APP_CHECK_SITE_KEY
-    || document.querySelector('meta[name="foxbear-app-check-site-key"]')?.content
-    || ''
-).trim();
-
 
 const MAX_TEXT_LENGTHS = Object.freeze({
     referrer: 160,
@@ -108,7 +99,7 @@ const REMOTE_CONFIG_DEFAULTS = Object.freeze({
 const bridgeState = {
     app: null,
     appCheck: null,
-    appCheckConfigured: Boolean(APP_CHECK_SITE_KEY),
+    appCheckConfigured: false,
     appCheckReady: false,
     appCheckError: '',
     auth: null,
@@ -131,14 +122,12 @@ async function loadFirebaseModules() {
         import(`${FIREBASE_MODULE_BASE}/firebase-auth.js`),
         import(`${FIREBASE_MODULE_BASE}/firebase-firestore.js`),
         import(`${FIREBASE_MODULE_BASE}/firebase-remote-config.js`),
-        import(`${FIREBASE_MODULE_BASE}/firebase-app-check.js`),
         import(`${FIREBASE_MODULE_BASE}/firebase-functions.js`)
-    ]).then(([appModule, authModule, firestoreModule, remoteConfigModule, appCheckModule, functionsModule]) => {
+    ]).then(([appModule, authModule, firestoreModule, remoteConfigModule, functionsModule]) => {
         ({ initializeApp } = appModule);
         ({ getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, browserSessionPersistence, getRedirectResult, setPersistence, signInWithPopup, signInWithRedirect, signOut } = authModule);
         ({ addDoc, collection, doc, getCountFromServer, getDoc, getDocs, getFirestore, limit, orderBy, query, serverTimestamp, setDoc, where } = firestoreModule);
         ({ fetchAndActivate, getRemoteConfig, getValue, isSupported: isRemoteConfigSupported } = remoteConfigModule);
-        ({ initializeAppCheck, ReCaptchaEnterpriseProvider, getToken } = appCheckModule);
         ({ getFunctions, httpsCallable } = functionsModule);
         return true;
     });
@@ -167,9 +156,11 @@ function makePublicBridge(extra = {}) {
         incidentSameOriginStatusPath: INCIDENT_SAME_ORIGIN_PATHS[INCIDENT_STATUS_FUNCTION_NAME],
         incidentRouteHealth: incidentRoutePolicy.getHealth(),
         appCheck: Object.freeze({
-            configured: bridgeState.appCheckConfigured,
-            ready: bridgeState.appCheckReady,
-            error: bridgeState.appCheckError
+            mode: 'disabled',
+            disabled: true,
+            configured: false,
+            ready: false,
+            error: ''
         }),
         remoteConfig: { ...bridgeState.remoteConfigValues },
         signInGuest,
@@ -274,50 +265,8 @@ function normalizeFirestoreVisit(snapshot) {
 }
 
 
-async function initializeFoxBearAppCheck() {
-    if (!APP_CHECK_SITE_KEY) {
-        bridgeState.appCheckConfigured = false;
-        bridgeState.appCheckReady = false;
-        bridgeState.appCheckError = 'reCAPTCHA Enterprise 사이트 키가 설정되지 않았습니다.';
-        return false;
-    }
-    try {
-        bridgeState.appCheck = initializeAppCheck(bridgeState.app, {
-            provider: new ReCaptchaEnterpriseProvider(APP_CHECK_SITE_KEY),
-            isTokenAutoRefreshEnabled: true
-        });
-        bridgeState.appCheckConfigured = true;
-        bridgeState.appCheckReady = true;
-        bridgeState.appCheckError = '';
-        return true;
-    } catch (error) {
-        bridgeState.appCheckReady = false;
-        bridgeState.appCheckError = limitText(error?.message || error, 300);
-        console.warn('Firebase App Check initialization skipped:', error);
-        return false;
-    }
-}
-
-async function refreshAppCheckToken(forceRefresh = false) {
-    if (!bridgeState.appCheck) {
-        return { configured: bridgeState.appCheckConfigured, ready: false, error: bridgeState.appCheckError || 'App Check가 초기화되지 않았습니다.' };
-    }
-    try {
-        const result = await getToken(bridgeState.appCheck, Boolean(forceRefresh));
-        bridgeState.appCheckReady = Boolean(result?.token);
-        bridgeState.appCheckError = '';
-        exposeBridge();
-        return {
-            configured: true,
-            ready: bridgeState.appCheckReady,
-            expireTimeMillis: Math.max(0, Number(result?.expireTimeMillis || 0))
-        };
-    } catch (error) {
-        bridgeState.appCheckReady = false;
-        bridgeState.appCheckError = limitText(error?.message || error, 300);
-        exposeBridge();
-        return { configured: true, ready: false, error: bridgeState.appCheckError };
-    }
+async function refreshAppCheckToken() {
+    return Object.freeze({ mode: 'disabled', disabled: true, configured: false, ready: false, error: '' });
 }
 
 async function signInGuest() {
@@ -610,10 +559,6 @@ async function getSameOriginCallableHeaders() {
         const token = await user.getIdToken(false).catch(() => '');
         if (token) headers.Authorization = `Bearer ${token}`;
     }
-    if (bridgeState.appCheck && bridgeState.appCheckReady && typeof getToken === 'function') {
-        const appCheckResult = await getToken(bridgeState.appCheck, false).catch(() => null);
-        if (appCheckResult?.token) headers['X-Firebase-AppCheck'] = appCheckResult.token;
-    }
     return headers;
 }
 
@@ -720,11 +665,7 @@ async function invokeIncidentCallable(name, data) {
 }
 
 function normalizeIncidentServiceStatus(value = {}) {
-    const localAppCheck = {
-        configured: bridgeState.appCheckConfigured,
-        ready: bridgeState.appCheckReady,
-        error: limitText(bridgeState.appCheckError || '', 240)
-    };
+    const localAppCheck = { mode: 'disabled', disabled: true, configured: false, ready: false, error: '' };
     return Object.freeze({
         productVersion: limitText(value.productVersion || '', 24),
         serviceSchemaVersion: safeIncidentNumber(value.serviceSchemaVersion, 0, 99),
@@ -735,7 +676,7 @@ function normalizeIncidentServiceStatus(value = {}) {
         mailTrigger: limitText(value.mailTrigger || '', 80),
         smtpProvider: limitText(value.smtpProvider || '', 30),
         smtpCredential: limitText(value.smtpCredential || '', 40),
-        appCheckMode: limitText(value.appCheckMode || 'unknown', 20),
+        appCheckMode: limitText(value.appCheckMode || 'disabled', 20),
         appCheckEnforced: value.appCheckEnforced === true,
         appCheckTokenPresent: value.appCheckTokenPresent === true,
         readinessCheck: limitText(value.readinessCheck || '', 80),
@@ -1436,11 +1377,7 @@ async function getAdminIncidents(options = {}) {
         auditLogHasMore: auditLog.hasMore === true,
         auditLogNextCursor: safeIncidentNumber(auditLog.nextCursor, 0, Number.MAX_SAFE_INTEGER),
         dateKey: kstRange.dateKey,
-        appCheck: {
-            configured: bridgeState.appCheckConfigured,
-            ready: bridgeState.appCheckReady,
-            error: bridgeState.appCheckError
-        }
+        appCheck: { mode: 'disabled', disabled: true, configured: false, ready: false, error: '' }
     };
 }
 
@@ -1684,7 +1621,6 @@ async function bootFirebase() {
     try {
         await loadFirebaseModules();
         bridgeState.app = initializeApp(FIREBASE_CONFIG);
-        await initializeFoxBearAppCheck();
         bridgeState.auth = getAuth(bridgeState.app);
         bridgeState.db = getFirestore(bridgeState.app);
         bridgeState.functions = getFunctions(bridgeState.app, FIREBASE_FUNCTIONS_REGION);

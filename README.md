@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.6.45
+
+## v1.6.45 Windows/Spark deployment recovery
+
+- Fixes `spawnSync npm.cmd EINVAL` on current Windows/Node environments.
+- Prevents Windows executable files from being uploaded by Firebase Hosting on the Spark plan.
+- Removes Firebase App Check and reCAPTCHA setup from the runtime and deployment contract.
+- Keeps administrator access on Google Authentication plus `siteAdmins/{UID}` Firestore authorization.
+- Deploy with `npm run deploy:spark` after `npm run check:release`.
+- Mandatory delivery remains the three sections stored in `DELIVERY_RULES.md`.
+
 # FoxBear AI Mastering Studio Pro v1.6.44
 
 ## v1.6.44 Google authentication gapi module recovery

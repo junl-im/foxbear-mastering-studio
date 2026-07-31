@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.6.44 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.6.45 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.6.44-google-auth-gapi-module-trusted-types-recovery';
+    const VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

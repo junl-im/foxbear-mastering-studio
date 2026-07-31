@@ -1,9 +1,9 @@
-// FoxBear external-browser session handoff service v1.6.44.
+// FoxBear external-browser session handoff service v1.6.45.
 'use strict';
 
 (function attachFoxBearSessionHandoffService(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.44-google-auth-gapi-module-trusted-types-recovery';
+    const VERSION = BUILD_INFO.assetVersion || '1.6.45-windows-release-gate-spark-hosting-no-app-check';
     const PARAM = 'foxbearHandoff';
     const MAX_TOKEN_LENGTH = 7200;
     const MAX_AGE_MS = 20 * 60 * 1000;

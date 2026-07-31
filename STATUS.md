@@ -1,3 +1,35 @@
+# FoxBear Status - v1.6.45
+
+## Current release
+
+- Product version: `1.6.45`
+- Build ID: `windows-release-gate-spark-hosting-no-app-check`
+- Asset version: `1.6.45-windows-release-gate-spark-hosting-no-app-check`
+- Service worker cache: `foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check`
+- Configured static/regression target: 390 checks.
+
+## Current focus
+
+- Restore release-gate execution on current Windows/Node installations.
+- Prevent `.exe`, `.cmd`, and related executable payloads from entering Spark Hosting or release archives.
+- Operate without Firebase App Check while preserving Firebase Auth and Firestore Rules authorization.
+- Preserve the narrow Google Auth Trusted Types allowlist.
+
+## Verified
+
+- Official configured QA: **390/390 passed** through the Windows-compatible release gate.
+- Browser fixture preflight, Hosting payload hygiene, Functions syntax, metadata, SRI, and handoff checks passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution remains unavailable because Playwright/Chromium is not installed.
+- Full and overwrite ZIP packages: **688 entries each**, executable payloads: **0**.
+
+## Production deployment required
+
+- Delete any old repository-root `cmd.exe`.
+- Keep App Check enforcement disabled in Firebase Console.
+- Run `npm run check:release` and `npm run deploy:spark`.
+- Clear the old service worker/site data, then retry Google administrator authentication.
+
 # FoxBear Status - v1.6.44
 
 ## Current release
@@ -292,10 +324,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.44`
-- Build ID: `google-auth-gapi-module-trusted-types-recovery`
-- Asset version: `1.6.44-google-auth-gapi-module-trusted-types-recovery`
-- Service worker cache: `foxbear-shell-v1.6.44-google-auth-gapi-module-trusted-types-recovery`
+- Product version: `1.6.45`
+- Build ID: `windows-release-gate-spark-hosting-no-app-check`
+- Asset version: `1.6.45-windows-release-gate-spark-hosting-no-app-check`
+- Service worker cache: `foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check`
 
 # FoxBear Status - v1.6.32
 

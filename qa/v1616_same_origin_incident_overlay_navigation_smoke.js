@@ -18,7 +18,7 @@ const overlayCss = read('assets/css/components/floating-overlays.css');
 const siteGuards = read('src/security/site-guards.js');
 const settingsCss = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.44');
+assert.strictEqual(pkg.version, '1.6.45');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9][a-z0-9-]*$/);
 assert.strictEqual(pkg.foxbearRelease.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 
@@ -33,7 +33,7 @@ assert(rewrites.every(item => item.function?.region === 'asia-northeast3'), 'inc
 assert(firebase.includes('const INCIDENT_SAME_ORIGIN_PATHS = Object.freeze'), 'same-origin incident path map missing');
 assert(firebase.includes('async function invokeIncidentCallableSameOrigin'), 'same-origin callable fallback missing');
 assert(firebase.includes("headers.Authorization = `Bearer ${token}`"), 'same-origin fallback must preserve Firebase auth');
-assert(firebase.includes("headers['X-Firebase-AppCheck'] = appCheckResult.token"), 'same-origin fallback must preserve App Check when available');
+assert(!firebase.includes("X-Firebase-AppCheck"), 'same-origin fallback must not attach App Check headers');
 assert(firebase.includes("body: JSON.stringify({ data: data || {} })"), 'same-origin fallback must use the Callable protocol envelope');
 assert(firebase.includes("transport: 'hosting-rewrite'"), 'same-origin transport marker missing');
 assert(firebase.includes('Firebase Callable 기본 경로와 Hosting same-origin 복구 경로가 모두 실패했습니다.'), 'dual-path failure evidence missing');

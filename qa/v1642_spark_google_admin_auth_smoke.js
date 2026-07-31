@@ -16,9 +16,10 @@ const rules = read('firestore.rules');
 const functions = read('functions/index.js');
 const setup = read('FIREBASE_SETUP.md');
 
-assert(pkg.version === '1.6.44', 'package version must be 1.6.44');
-assert(String(pkg.foxbearRelease?.buildId || '').includes('google-auth'), 'current release build id must retain Google administrator authentication');
-assert(pkg.scripts['deploy:spark'] === 'firebase deploy --only hosting,firestore:rules,firestore:indexes', 'Spark deployment must avoid Cloud Functions');
+assert(pkg.version === '1.6.45', 'package version must be 1.6.45');
+assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current release build id must remain kebab-case');
+assert(pkg.scripts['deploy:spark'].includes('firebase deploy --only hosting,firestore:rules,firestore:indexes'), 'Spark deployment must avoid Cloud Functions');
+assert(pkg.scripts['deploy:spark'].startsWith('npm run hosting:check && '), 'Spark deployment must run Hosting payload hygiene first');
 assert(!pkg.scripts['deploy:incident'].includes('unlockAdminAccess'), 'incident deployment must not include the removed PIN unlock function');
 assert(!pkg.scripts['deploy:incident'].includes('revokeAdminAccess'), 'incident deployment must not include the removed PIN revoke function');
 

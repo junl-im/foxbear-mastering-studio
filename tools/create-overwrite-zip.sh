@@ -75,6 +75,7 @@ find "$WORK_DIR" -type f -name '*.log' -delete
 find "$WORK_DIR" -type f -name '*.tmp' -delete
 find "$WORK_DIR" -type f -name '*.trace' -delete
 find "$WORK_DIR" -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
+find "$WORK_DIR" -type f \( -iname '*.exe' -o -iname '*.dll' -o -iname '*.bat' -o -iname '*.cmd' -o -iname '*.com' -o -iname '*.msi' -o -iname '*.scr' -o -iname '*.ps1' \) -delete
 find "$WORK_DIR" -type d -name '__pycache__' -prune -exec rm -rf {} +
 find "$WORK_DIR" -type d -name 'node_modules' -prune -exec rm -rf {} +
 find "$WORK_DIR/qa" -maxdepth 1 -type f \( -name 'static-audit*.txt' -o -name 'browser-check*.txt' -o -name 'static-check*.txt' \) -delete

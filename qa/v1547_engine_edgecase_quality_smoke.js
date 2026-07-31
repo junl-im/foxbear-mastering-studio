@@ -168,7 +168,7 @@ for (const checkpoint of ['decode', 'emergency-analysis', 'pitch-speed', 'master
 
 const pkg = JSON.parse(read('package.json'));
 assert(pkg.qaChecks.includes('node --check src/audio/mastering-input-guard-service.js'), 'input guard syntax check is not registered');
-assert(pkg.qaChecks.includes('node qa/v1547_engine_edgecase_quality_smoke.js'), 'v1.6.44 QA is not registered');
+assert(pkg.qaChecks.includes('node qa/v1547_engine_edgecase_quality_smoke.js'), 'v1.6.45 QA is not registered');
 const status = read('STATUS.md');
 const currentVersionLine = `- Product version: \`${pkg.version}\``;
 assert(status.startsWith(`# FoxBear Status - v${pkg.version}`), 'STATUS title is stale');

@@ -1,3 +1,12 @@
+# v1.6.45 - Windows Release Gate, Spark Hosting Hygiene, and No-App-Check Policy
+
+- Fixes Windows `spawnSync npm.cmd EINVAL` by executing the npm CLI JavaScript entry with the active Node runtime.
+- Excludes Windows executable and command files from Firebase Hosting, Git tracking, release ZIPs, and overwrite ZIPs.
+- Adds `npm run hosting:check` before Spark and incident deployments.
+- Removes the App Check SDK, site key, token header, reCAPTCHA CSP/Trusted Types allowances, and setup requirement.
+- Keeps Google administrator access on Firebase Auth plus strict `siteAdmins/{UID}` Firestore Rules.
+- Adds dedicated regression coverage, raising the configured target to 390 checks.
+
 # v1.6.44 - Google Auth gapi Module Trusted Types Recovery
 
 - Allows the second-stage Firebase Auth gapi iframe module under the exact `https://apis.google.com/_/scs/apps-static/_/js/` prefix.

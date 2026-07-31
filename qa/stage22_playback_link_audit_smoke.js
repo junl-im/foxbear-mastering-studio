@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.44-google-auth-gapi-module-trusted-types-recovery';
+const version = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

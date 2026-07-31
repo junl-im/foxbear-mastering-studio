@@ -21,3 +21,13 @@ qa/static-check*.txt
 __pycache__/
 *.py[cod]
 
+
+# Spark Hosting and release archive executable hygiene
+*.exe
+*.dll
+*.bat
+*.cmd
+*.com
+*.msi
+*.scr
+*.ps1

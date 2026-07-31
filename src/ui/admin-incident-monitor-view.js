@@ -87,7 +87,7 @@
                 appendSummaryCard('SMTP 성공률', `${Number(mailTestStats.smtpSuccessRate || 0).toFixed(1).replace(/\.0$/, '')}%`, safeNumber(mailTestStats.failed, 0) ? 'warning' : 'firebase');
                 appendSummaryCard('수신 확인률', `${Number(mailTestStats.receiptConfirmationRate || 0).toFixed(1).replace(/\.0$/, '')}%`, safeNumber(mailTestStats.receiptOverdue, 0) ? 'warning' : 'firebase');
                 appendSummaryCard('수신 확인 누락', `${safeNumber(operationsMailVerification.overdueReceiptCount ?? mailTestStats.receiptOverdue, 0)}건`, safeNumber(operationsMailVerification.overdueReceiptCount ?? mailTestStats.receiptOverdue, 0) ? 'warning' : 'firebase');
-                appendSummaryCard('App Check', appCheck.ready ? '보호 중' : appCheck.configured ? '확인 필요' : '키 미설정', appCheck.ready ? 'firebase' : 'warning');
+                appendSummaryCard('App Check', '미사용 정책', 'firebase');
                 const localIncidentStatus = global.FoxBearIncidentReporter?.getStatus?.() || {};
                 const localRouteHealth = localIncidentStatus.adaptiveRouteHealth || {};
                 const exploration = localRouteHealth.exploration || {};
@@ -100,11 +100,7 @@
                 appendSummaryCard('현재 브라우저 경로', routeLabel, exploration.active || callableHealth.coolingDown ? 'warning' : 'firebase');
                 appendSummaryCard('로컬 신고 대기열', `${safeNumber(localIncidentStatus.queued, 0)}건`, safeNumber(localIncidentStatus.queued, 0) ? 'warning' : 'firebase');
                 if (el.adminIncidentsNotice) {
-                    const protection = appCheck.ready
-                        ? 'App Check 토큰이 활성화되어 있습니다.'
-                        : appCheck.configured
-                            ? `App Check 확인 필요: ${appCheck.error || '토큰 상태 미확인'}`
-                            : 'App Check 사이트 키를 설정한 뒤 콘솔에서 점진적으로 강제 적용하세요.';
+                    const protection = 'App Check는 사용하지 않으며 Firebase Auth와 Firestore Rules로 관리자 권한을 검증합니다.';
                     const checked = operations.checkedAt ? ` 마지막 자동 점검 ${formatTime(operations.checkedAt)}.` : ' 자동 점검 결과가 아직 없습니다.';
                     const issues = Array.isArray(operations.reasons) && operations.reasons.length
                         ? ` 감지: ${operations.reasons.map(item => item.message || item.code).filter(Boolean).slice(0, 3).join(' / ')}`
@@ -258,7 +254,7 @@
         }
 
         function pickPrimaryAction(context = {}) {
-            const { operationalStatus, queue = {}, smtp = {}, deployment = {}, mailVerification = {}, operationsMailVerification = {}, appCheck = {} } = context;
+            const { operationalStatus, queue = {}, smtp = {}, deployment = {}, mailVerification = {}, operationsMailVerification = {} } = context;
             const overdue = safeNumber(operationsMailVerification.overdueReceiptCount, 0);
             if (smtp.status !== 'ok') return 'Gmail 앱 비밀번호와 SMTP 인증을 먼저 확인하세요.';
             if (safeNumber(queue.deadLetter, 0) > 0) return '최종 실패 메일을 검토한 뒤 일괄 재전송하세요.';
@@ -266,7 +262,6 @@
             if (overdue > 0) return 'Gmail에서 최신 테스트를 찾아 실수신 위치를 기록하세요.';
             if (!mailVerification.confirmedLatest || mailVerification.stale) return '새 실제 메일 테스트 후 받은편지함 도착을 확인하세요.';
             if (!deployment.exists || deployment.stale || deployment.status !== 'healthy') return '배포 상태 검증으로 Functions와 인덱스를 확인하세요.';
-            if (!appCheck.ready) return 'App Check 보호 상태를 확인하고 단계적으로 강제 적용하세요.';
             return operationalStatus === 'healthy' ? '현재 긴급 조치는 없습니다. 주 1회 실수신 검증을 유지하세요.' : '감지된 권장 조치를 순서대로 확인하세요.';
         }
 

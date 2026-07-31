@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.45
+
+## Configured target
+
+- Static and behavioral checks: 390
+- New syntax target: `tools/check-hosting-payload.js`
+- New regression: `qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js`
+
+## Focus
+
+- Windows-safe npm release-gate child execution
+- Spark Hosting executable-file exclusion
+- Release archive executable rejection
+- Explicit no-App-Check runtime and deployment policy
+- Google Auth plus `siteAdmins/{UID}` administrator authorization preservation
+
+## Final result
+
+- Official configured checks: `390/390` passed through the Windows-compatible release-gate runner.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this environment.
+- Real Firebase production Google login remains an external environment gate.
+- Final release and overwrite archives contain `688` entries each, contain no `.exe`, `.cmd`, or related executable payloads, and pass compressed-data integrity checks.
+
 # FoxBear QA Report - v1.6.44
 
 ## Configured target

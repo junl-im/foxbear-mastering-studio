@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.44 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.45 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.44-google-auth-gapi-module-trusted-types-recovery';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.45-windows-release-gate-spark-hosting-no-app-check';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

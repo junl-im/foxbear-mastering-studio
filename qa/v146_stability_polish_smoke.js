@@ -23,12 +23,12 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 
-must(pkg.version === '1.6.44', 'package version should be 1.6.44');
-must(app.includes("const APP_VERSION = 'Pro v1.6.44'"), 'app version should be Pro v1.6.44');
-must(index.includes('data-build="1.6.44"'), 'index build marker should be 1.6.44');
-must(index.includes('1.6.44-google-auth-gapi-module-trusted-types-recovery'), 'index should use v1.6.44 cache key');
-must(sw.includes('foxbear-shell-v1.6.44-google-auth-gapi-module-trusted-types-recovery'), 'service worker cache should use v1.6.44 key');
-must(sw.includes('./src/ui/spectrum-visualizer.js?v=1.6.44-google-auth-gapi-module-trusted-types-recovery'), 'service worker should precache v1.6.44 spectrum visualizer');
+must(pkg.version === '1.6.45', 'package version should be 1.6.45');
+must(app.includes("const APP_VERSION = 'Pro v1.6.45'"), 'app version should be Pro v1.6.45');
+must(index.includes('data-build="1.6.45"'), 'index build marker should be 1.6.45');
+must(index.includes('1.6.45-windows-release-gate-spark-hosting-no-app-check'), 'index should use v1.6.45 cache key');
+must(sw.includes('foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check'), 'service worker cache should use v1.6.45 key');
+must(sw.includes('./src/ui/spectrum-visualizer.js?v=1.6.45-windows-release-gate-spark-hosting-no-app-check'), 'service worker should precache v1.6.45 spectrum visualizer');
 
 must(spectrum.includes('function pruneDisconnectedCanvases'), 'spectrum should prune disconnected spectrum canvases');
 must(spectrum.includes('if (state.canvas && state.canvas.isConnected === false) state.canvas = null'), 'spectrum should release stale full canvas refs');
@@ -45,9 +45,9 @@ must(guards.includes('function getNavigationExitGuardState'), 'exit guard should
 must(runtime.includes('FoxBearSpectrumVisualizer.getDiagnostics'), 'runtime health should require spectrum diagnostics');
 must(runtime.includes('FoxBearSiteGuards.getNavigationExitGuardState'), 'runtime health should require exit guard diagnostics');
 
-must(matrix.includes('v1.4.26') && matrix.includes('confirm') && matrix.includes('Dock mini FFT'), 'QA matrix should mention v1.6.44 Dock FFT/back confirm focus');
-must(changelog.includes('v1.6.44') && changelog.includes('stability'), 'changelog should include v1.6.44 stability entry');
-must(handoff.includes('v1.6.44') && handoff.includes('stability'), 'handoff should include v1.6.44 stability entry');
-must(pkg.qaChecks.includes('node qa/v146_stability_polish_smoke.js'), 'package should run v1.6.44 polish smoke');
+must(matrix.includes('v1.4.26') && matrix.includes('confirm') && matrix.includes('Dock mini FFT'), 'QA matrix should mention v1.6.45 Dock FFT/back confirm focus');
+must(changelog.includes('v1.6.45') && changelog.includes('stability'), 'changelog should include v1.6.45 stability entry');
+must(handoff.includes('v1.6.45') && handoff.includes('stability'), 'handoff should include v1.6.45 stability entry');
+must(pkg.qaChecks.includes('node qa/v146_stability_polish_smoke.js'), 'package should run v1.6.45 polish smoke');
 
 console.log('PASS v1.4.26 stability polish smoke');

@@ -125,7 +125,8 @@ function main() {
     assert.strictEqual(readyModel.server.tone, 'warning');
     assert(readyModel.server.text.includes('업데이트 필요'));
     assert.strictEqual(readyModel.sameOriginStatus.tone, 'ok');
-    assert.strictEqual(readyModel.appCheckStatus.tone, 'error');
+    assert.strictEqual(readyModel.appCheckStatus.tone, 'neutral');
+    assert(readyModel.appCheckStatus.text.includes('미사용 정책'));
     assert.strictEqual(readyModel.endpoint, 'https://example.test/getIncidentServiceStatus');
 
     const errorModel = diagnostics.buildViewModel({

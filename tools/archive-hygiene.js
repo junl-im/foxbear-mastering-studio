@@ -23,7 +23,7 @@ function normalizeRelative(root, full) {
 function isTransientFile(relative, name) {
   if (name === '.DS_Store' || name === '.last-run.json') return true;
   if (/^\.foxbear-e2e-probe-.*\.txt$/i.test(name)) return true;
-  if (/\.(?:log|zip|tmp|trace|pyc|pyo)$/i.test(name)) return true;
+  if (/\.(?:log|zip|tmp|trace|pyc|pyo|exe|dll|bat|cmd|com|msi|scr|ps1)$/i.test(name)) return true;
   if (/(?:^|\/)qa\/(?:static-audit|browser-check|static-check)[^/]*\.txt$/i.test(relative)) return true;
   return false;
 }

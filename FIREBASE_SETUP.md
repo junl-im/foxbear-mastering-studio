@@ -1,4 +1,4 @@
-# FoxBear Firebase 설정 가이드 - v1.6.43
+# FoxBear Firebase 설정 가이드 - v1.6.45
 
 ## Spark 무료 요금제 관리자 모니터링
 
@@ -20,13 +20,16 @@ Firebase Console에서 프로젝트 `foxbear-music`을 열고 다음 항목을 �
 
 프로젝트 최상위 폴더의 터미널에서 실행합니다.
 
-```bash
+```bat
 firebase login
 firebase use foxbear-music
 npm install
+del /f /q cmd.exe 2>nul
 npm run check:release
 npm run deploy:spark
 ```
+
+`cmd.exe`는 프로젝트 파일이 아닙니다. 기존 폴더에 남아 있어도 v1.6.45의 Hosting ignore가 업로드에서 제외하지만, 혼동 방지를 위해 삭제합니다. `npm run deploy:spark`는 실행 전 `npm run hosting:check`를 자동 실행합니다.
 
 `deploy:spark`는 Hosting, Firestore Rules, Firestore Indexes만 배포합니다. Cloud Functions나 Secret Manager를 요청하지 않으므로 Blaze 업그레이드가 필요하지 않습니다.
 
@@ -148,9 +151,11 @@ Firestore TTL 정책에서 다음 두 컬렉션의 `expiresAt` 필드를 등록�
 | `foxbear_incident_reporting_enabled` | boolean | true | 자동 문제 신고 원격 중지 스위치 |
 | `foxbear_youtube_url` | string | 채널 URL | 채널 링크 |
 
-## 8. 다음 보안 단계
+## 8. App Check 미사용 정책
 
-공개 사용자가 늘기 전에 Firebase App Check(reCAPTCHA Enterprise)를 구성하고 Firestore 요청에 강제 적용합니다. 현재도 클라이언트/서버 중복 억제, strict Rules, 일일 상한이 있지만 App Check가 없으면 자동화된 남용 가능성이 남습니다.
+이 프로젝트는 Firebase App Check를 사용하지 않습니다. Web App 사이트 키를 추가하지 않고 Firestore 또는 Functions에서 App Check Enforcement를 활성화하지 않습니다. 관리자 권한은 Firebase Google Authentication의 UID·인증된 이메일·`google.com` 제공업체와 Firestore `siteAdmins/{UID}` 문서를 함께 검사합니다.
+
+App Check를 사용하지 않는 대신 Firestore Rules, 관리자 문서의 `active`/`email`/`authProvider`, 최소 권한, 요청 상한과 중복 억제 정책을 유지합니다.
 
 ## v1.5.66 운영 작업 및 배포 검증
 

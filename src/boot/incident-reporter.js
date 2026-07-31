@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.44
+// FoxBear automatic incident reporter - v1.6.45
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.44-google-auth-gapi-module-trusted-types-recovery';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.44').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.45-windows-release-gate-spark-hosting-no-app-check';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.45').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -1113,11 +1113,7 @@
                 attempts: Number(state.directProbe.attempts || 0)
             } : null,
             csp: { ok: csp.ok === true, code: cleanText(csp.code || '', 80) },
-            appCheck: {
-                configured: bridge.appCheck?.configured === true,
-                ready: bridge.appCheck?.ready === true,
-                enforced: state.serviceStatus?.appCheckEnforced === true
-            },
+            appCheck: { mode: 'disabled', configured: false, ready: false, enforced: false },
             localQueueCount: incidentQueue.count(),
             localQueue: incidentQueue.getState(),
             queueCoordination: incidentQueue.getState(),

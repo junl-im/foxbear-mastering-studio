@@ -1,3 +1,27 @@
+# GitHub Desktop Handoff - v1.6.45
+
+## Apply
+
+1. Fetch origin before applying the patch.
+2. Delete a pre-existing repository-root `cmd.exe` if present.
+3. Extract the overwrite ZIP into the repository root and replace matching files.
+4. Run release gates, review changes, commit, and Push origin.
+
+## Release focus
+
+- Windows-safe release-gate npm execution
+- Spark Hosting executable-file exclusion and archive rejection
+- Explicit no-App-Check runtime and deployment policy
+- Firebase Google administrator authentication with `siteAdmins/{UID}` authorization
+
+## Production setup after push
+
+- Keep Firebase App Check enforcement disabled.
+- In Firebase Authentication, enable Anonymous and Google providers.
+- Confirm the production domain under Authorized domains.
+- Run `npm run check:release`, then `npm run deploy:spark`.
+- Create or verify the administrator document exactly as described in `FIREBASE_SETUP.md`.
+
 # GitHub Desktop Handoff - v1.6.44
 
 ## Apply

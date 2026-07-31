@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.6.44 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.6.45 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.6.44-google-auth-gapi-module-trusted-types-recovery';
+    const VERSION = 'v1.6.45-windows-release-gate-spark-hosting-no-app-check';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {

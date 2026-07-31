@@ -1,3 +1,14 @@
+# v1.6.45 release checklist
+
+- [x] The release gate does not directly spawn `npm.cmd` on Windows.
+- [x] Firebase Hosting ignores Windows executable and command-file extensions.
+- [x] Release and overwrite ZIP verification rejects executable payloads.
+- [x] `deploy:spark` runs Hosting payload hygiene before Firebase deployment.
+- [x] App Check SDK, site key, token header, and reCAPTCHA CSP allowances are absent.
+- [x] Administrator authorization remains Google Auth plus `siteAdmins/{UID}` Firestore Rules.
+- [x] All 390 configured checks pass; both verified archives contain 688 entries.
+- [ ] Deploy with `npm run deploy:spark` and verify the real Google account chooser.
+
 # v1.6.44 release checklist
 
 - [x] The exact Firebase Auth loader `/js/api.js` remains allowed.

@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.44
+// FoxBear Modal State Machine Controller v1.6.45
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.44-google-auth-gapi-module-trusted-types-recovery',
+            version: '1.6.45-windows-release-gate-spark-hosting-no-app-check',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,

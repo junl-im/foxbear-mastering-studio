@@ -49,6 +49,14 @@ zip -qr "${OUTPUT_FILE}" . \
   -x '__pycache__/*' \
   -x '*.pyc' \
   -x '*.pyo' \
+  -x '*.exe' \
+  -x '*.dll' \
+  -x '*.bat' \
+  -x '*.cmd' \
+  -x '*.com' \
+  -x '*.msi' \
+  -x '*.scr' \
+  -x '*.ps1' \
   -x '*.zip' \
   -x '*.log' \
   -x '*.tmp' \

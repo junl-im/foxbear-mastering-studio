@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.44-google-auth-gapi-module-trusted-types-recovery';
+  const VIEW_VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.44 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.45 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.44-google-auth-gapi-module-trusted-types-recovery';
+    const VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

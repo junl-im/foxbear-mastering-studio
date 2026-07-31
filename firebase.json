@@ -18,7 +18,15 @@
       "dist/**",
       "tools/**",
       "*.zip",
-      "functions/**"
+      "functions/**",
+      "**/*.exe",
+      "**/*.dll",
+      "**/*.bat",
+      "**/*.cmd",
+      "**/*.com",
+      "**/*.msi",
+      "**/*.scr",
+      "**/*.ps1"
     ],
     "headers": [
       {
@@ -26,7 +34,7 @@
         "headers": [
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-src https://foxbear-music.firebaseapp.com https://accounts.google.com https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://apis.google.com https://www.gstatic.com/firebasejs/ https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; script-src-elem 'self' https://apis.google.com https://www.gstatic.com/firebasejs/ https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data: https://www.gstatic.com/recaptcha/; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://accounts.google.com https://apis.google.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com https://firebaseappcheck.googleapis.com https://asia-northeast3-foxbear-music.cloudfunctions.net https://www.googleapis.com https://www.google.com/recaptcha/; worker-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types foxbear default; upgrade-insecure-requests"
+            "value": "default-src 'self'; base-uri 'self'; object-src 'none'; frame-src https://foxbear-music.firebaseapp.com https://accounts.google.com; frame-ancestors 'none'; form-action 'none'; script-src 'self' https://apis.google.com https://www.gstatic.com/firebasejs/; script-src-elem 'self' https://apis.google.com https://www.gstatic.com/firebasejs/; script-src-attr 'none'; style-src 'self'; style-src-elem 'self'; style-src-attr 'none'; img-src 'self' data:; font-src 'self'; media-src 'self' blob: data:; connect-src 'self' https://accounts.google.com https://apis.google.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebaseinstallations.googleapis.com https://firebaseremoteconfig.googleapis.com https://firebase.googleapis.com https://asia-northeast3-foxbear-music.cloudfunctions.net https://www.googleapis.com; worker-src 'self'; manifest-src 'self'; require-trusted-types-for 'script'; trusted-types foxbear default; upgrade-insecure-requests"
           },
           {
             "key": "Referrer-Policy",

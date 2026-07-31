@@ -65,7 +65,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.44';
+const PRODUCT_VERSION = '1.6.45';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 6;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -196,9 +196,9 @@ function incidentServiceMetadata(request = {}) {
     mailTrigger: 'sendIncidentEmail',
     smtpProvider: 'gmail',
     smtpCredential: 'firebase-secret',
-    appCheckMode: 'monitor',
+    appCheckMode: 'disabled',
     appCheckEnforced: false,
-    appCheckTokenPresent: Boolean(request.app),
+    appCheckTokenPresent: false,
     readinessCheck: 'checkIncidentDeploymentReadiness',
     readinessCooldownSeconds: Math.ceil(INCIDENT_READINESS_COOLDOWN_MS / 1000),
     checkedAt: new Date().toISOString()

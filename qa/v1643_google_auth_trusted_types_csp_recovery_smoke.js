@@ -19,8 +19,8 @@ const header = name => hostingHeaders.find(item => item.key === name)?.value || 
 const indexCsp = index.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] || '';
 const hostingCsp = header('Content-Security-Policy');
 
-assert(pkg.version === '1.6.44', 'package version must be 1.6.44');
-assert(/google-auth/.test(pkg.foxbearRelease?.buildId || '') && /trusted-types/.test(pkg.foxbearRelease?.buildId || ''), 'release build id must retain Google Auth Trusted Types recovery');
+assert(pkg.version === '1.6.45', 'package version must be 1.6.45');
+assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease?.buildId || ''), 'release build id must remain kebab-case');
 assert(index.includes('src/security/trusted-types-bootstrap.js'), 'Trusted Types bootstrap must be loaded by index.html');
 assert(index.indexOf('src/security/trusted-types-bootstrap.js') < index.indexOf('src/firebase-bootstrap.js'), 'Trusted Types bootstrap must run before Firebase Auth');
 assert(indexCsp.includes("trusted-types foxbear default"), 'document CSP must allow the narrow default Trusted Types policy');
@@ -63,10 +63,13 @@ assert(context.FoxBearTrustedTypesBootstrap?.installed === true, 'Trusted Types 
 const gapiUrl = 'https://apis.google.com/js/api.js?onload=__iframefcb123';
 assert(capturedRules.createScriptURL(gapiUrl) === gapiUrl, 'Firebase Auth gapi loader URL must be allowed');
 assert(capturedRules.createScriptURL('https://foxbear.example/src/firebase-bootstrap.js').includes('/src/firebase-bootstrap.js'), 'same-origin application scripts must be allowed');
-assert(capturedRules.createScriptURL('https://www.google.com/recaptcha/enterprise.js?render=site-key').includes('/recaptcha/enterprise.js'), 'configured reCAPTCHA loader must remain allowed');
-assert(capturedRules.createScriptURL('https://www.gstatic.com/recaptcha/releases/test/recaptcha__ko.js').includes('/recaptcha/releases/'), 'reCAPTCHA runtime script must remain allowed');
+assert(!indexCsp.includes('recaptcha'), 'document CSP must not include App Check reCAPTCHA origins');
+assert(!hostingCsp.includes('recaptcha'), 'Hosting CSP must not include App Check reCAPTCHA origins');
+assert(!hostingCsp.includes('firebaseappcheck.googleapis.com'), 'Hosting CSP must not include App Check API');
 
 for (const blocked of [
+    'https://www.google.com/recaptcha/enterprise.js?render=site-key',
+    'https://www.gstatic.com/recaptcha/releases/test/recaptcha__ko.js',
     'https://evil.example/steal.js',
     'https://apis.google.com/js/evil.js',
     'https://foxbear.example/uploads/untrusted.js'

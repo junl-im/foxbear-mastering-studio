@@ -11,7 +11,7 @@ const dialogSource = fs.readFileSync('src/ui/download-dialog-view.js', 'utf8');
 const appSource = fs.readFileSync('src/app.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.6.44');
+assert.strictEqual(pkg.version, '1.6.45');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1579_preview_download_ownership_smoke.js'));
 assert(transitionSource.includes('cancelPlaybackRequest'));

@@ -1,4 +1,4 @@
-// FoxBear incident service diagnostics classification and UI view-model - v1.6.44
+// FoxBear incident service diagnostics classification and UI view-model - v1.6.45
 (function attachFoxBearIncidentServiceDiagnostics(global) {
     'use strict';
 
@@ -106,16 +106,7 @@
             direct = item('직접 HTTP 도달성: 오류 발생 시 자동 확인', 'neutral');
         }
 
-        const localAppCheck = service?.clientAppCheck || bridge.appCheck || {};
-        const configured = localAppCheck.configured === true;
-        const ready = localAppCheck.ready === true;
-        const tokenPresent = service?.appCheckTokenPresent === true;
-        const enforced = service?.appCheckEnforced === true;
-        const appCheck = enforced
-            ? item(`App Check 강제 적용 · ${tokenPresent ? '토큰 확인' : '토큰 없음'}`, tokenPresent ? 'ok' : 'error')
-            : configured
-                ? item(`App Check 감시 모드 · ${ready && tokenPresent ? '토큰 확인' : '토큰 준비 중'}`, ready ? 'ok' : 'neutral')
-                : item('App Check 선택 설정 · 현재는 익명 인증으로 동작', 'neutral');
+        const appCheck = item('App Check: 미사용 정책 · Firebase Auth/Rules 사용', 'neutral');
 
         return Object.freeze({
             functionName,
@@ -134,7 +125,7 @@
     }
 
     global.FoxBearIncidentServiceDiagnostics = Object.freeze({
-        version: '1.6.44',
+        version: '1.6.45',
         classifyFailure,
         buildViewModel
     });

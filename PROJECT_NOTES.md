@@ -1,3 +1,11 @@
+# v1.6.45 project notes
+
+- `cmd.exe` is not a FoxBear source file and must never be committed, hosted, or archived.
+- On Windows, do not directly spawn `npm.cmd`; run the npm CLI entry with the active Node executable.
+- App Check is intentionally disabled and removed from the client runtime. Administrator authorization remains Google Auth plus Firestore Rules.
+- Do not remove the exact Firebase Auth gapi module Trusted Types allowance introduced in v1.6.44.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP delivery contract.
+
 # v1.6.43 project notes
 
 - Keep `require-trusted-types-for 'script'`; do not disable Trusted Types to make Google Auth work.

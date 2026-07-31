@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.6.44',
-    appVersion: 'Pro v1.6.44',
-    buildId: 'google-auth-gapi-module-trusted-types-recovery',
-    assetVersion: '1.6.44-google-auth-gapi-module-trusted-types-recovery',
-    cacheName: 'foxbear-shell-v1.6.44-google-auth-gapi-module-trusted-types-recovery',
-    bootRevision: 'boot-sri-v1644-gapi-module',
-    updateSafetyRevision: 'update-safety-v1644-gapi-module',
-    serviceWorkerRevision: 'sw-v1644-gapi-module'
+    productVersion: '1.6.45',
+    appVersion: 'Pro v1.6.45',
+    buildId: 'windows-release-gate-spark-hosting-no-app-check',
+    assetVersion: '1.6.45-windows-release-gate-spark-hosting-no-app-check',
+    cacheName: 'foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check',
+    bootRevision: 'boot-sri-v1645-spark-hosting',
+    updateSafetyRevision: 'update-safety-v1645-spark-hosting',
+    serviceWorkerRevision: 'sw-v1645-spark-hosting'
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

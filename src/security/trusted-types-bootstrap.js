@@ -7,10 +7,6 @@
     const FIREBASE_AUTH_GAPI_ORIGIN = 'https://apis.google.com';
     const FIREBASE_AUTH_GAPI_PATH = '/js/api.js';
     const FIREBASE_AUTH_GAPI_MODULE_PATH_PREFIX = '/_/scs/apps-static/_/js/';
-    const GOOGLE_RECAPTCHA_ORIGIN = 'https://www.google.com';
-    const GOOGLE_RECAPTCHA_PATH_PREFIX = '/recaptcha/';
-    const GOOGLE_RECAPTCHA_STATIC_ORIGIN = 'https://www.gstatic.com';
-    const GOOGLE_RECAPTCHA_STATIC_PATH_PREFIX = '/recaptcha/';
     const SAME_ORIGIN_SCRIPT_PATHS = Object.freeze([
         '/src/',
         '/vendor/'
@@ -34,11 +30,7 @@
             return url.pathname === FIREBASE_AUTH_GAPI_PATH
                 || url.pathname.startsWith(FIREBASE_AUTH_GAPI_MODULE_PATH_PREFIX);
         }
-        if (url.origin === GOOGLE_RECAPTCHA_ORIGIN && url.pathname.startsWith(GOOGLE_RECAPTCHA_PATH_PREFIX)) {
-            return true;
-        }
-        return url.origin === GOOGLE_RECAPTCHA_STATIC_ORIGIN
-            && url.pathname.startsWith(GOOGLE_RECAPTCHA_STATIC_PATH_PREFIX);
+        return false;
     }
 
     let lastRejectedScriptUrl = '';

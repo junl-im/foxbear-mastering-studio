@@ -1,3 +1,28 @@
+# Handoff - v1.6.45
+
+- Build: `windows-release-gate-spark-hosting-no-app-check`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Delete any pre-existing root `cmd.exe`; it is not a project file.
+- Keep Spark Hosting executable-file ignore rules and archive rejection guards enabled.
+- Run npm child scripts through the active Node/npm CLI entry; do not restore direct `spawnSync('npm.cmd')`.
+- App Check is intentionally not used. Do not add a site key, SDK import, token header, enforcement, or reCAPTCHA CSP allowance.
+- Administrator access remains Firebase Google Authentication plus an active matching `siteAdmins/{UID}` document.
+- Keep the exact Firebase Auth gapi loader and `/_/scs/apps-static/_/js/` Trusted Types allowlist.
+- Spark deployments use `npm run deploy:spark`.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.45`
+- Build ID: `windows-release-gate-spark-hosting-no-app-check`
+- Asset version: `1.6.45-windows-release-gate-spark-hosting-no-app-check`
+- Service worker cache: `foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check`
+- Configured static/regression target: 390 checks.
+- Final configured checks: `390/390`; metadata, SRI, handoff, browser preflight, Hosting payload hygiene, and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real Firebase production Google login remains an external environment gate.
+- Final full and overwrite archives contain `688` entries each, contain no executable payloads, and pass compressed-data integrity checks.
+
 # Handoff - v1.6.44
 
 - Build: `google-auth-gapi-module-trusted-types-recovery`.

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.44",
-  "buildId": "google-auth-gapi-module-trusted-types-recovery",
+  "productVersion": "1.6.45",
+  "buildId": "windows-release-gate-spark-hosting-no-app-check",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -137,7 +137,10 @@
     "assets/css/components/support-settings.css",
     "src/ui/admin-access-controller.js",
     "qa/v1642_spark_google_admin_auth_smoke.js",
-    "docs/V1.6.42_SPARK_GOOGLE_ADMIN_AUTH.md"
+    "docs/V1.6.42_SPARK_GOOGLE_ADMIN_AUTH.md",
+    "tools/check-hosting-payload.js",
+    "qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js",
+    "docs/V1.6.45_WINDOWS_RELEASE_GATE_SPARK_HOSTING_NO_APP_CHECK.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -161,11 +164,13 @@
   "forbiddenArchiveFiles": [
     ".firebaserc",
     "check.log",
-    "qa/static-audit.txt"
+    "qa/static-audit.txt",
+    "cmd.exe"
   ],
   "deletePaths": [
     "qa/__pycache__",
-    "tools/__pycache__"
+    "tools/__pycache__",
+    "cmd.exe"
   ],
   "requiredRuntimeAssets": [
     "src/boot/service-worker-recovery-service.js",
