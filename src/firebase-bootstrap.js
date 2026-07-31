@@ -34,6 +34,8 @@ const FIREBASE_SDK_VERSION = '12.16.0';
 const FIREBASE_MODULE_BASE = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
 const FIREBASE_FUNCTIONS_REGION = 'asia-northeast3';
 const FIREBASE_DEFAULT_AUTH_DOMAIN = 'foxbear-music.firebaseapp.com';
+const FIREBASE_SECURE_ADMIN_ORIGIN = 'https://foxbear-music.web.app';
+const FIREBASE_SECURE_ADMIN_MARKER = 'foxbearAdmin';
 const FIREBASE_HOSTING_AUTH_DOMAINS = Object.freeze(new Set([
     'foxbear-music.firebaseapp.com',
     'foxbear-music.web.app'
@@ -46,6 +48,18 @@ function resolveFirebaseAuthDomain() {
     return FIREBASE_HOSTING_AUTH_DOMAINS.has(currentHost)
         ? currentHost
         : FIREBASE_DEFAULT_AUTH_DOMAIN;
+}
+
+function isFirebaseHostingAdminOrigin() {
+    const currentHost = String(globalThis.location?.hostname || '').trim().toLowerCase();
+    const protocol = String(globalThis.location?.protocol || '').trim().toLowerCase();
+    return protocol === 'https:' && FIREBASE_HOSTING_AUTH_DOMAINS.has(currentHost);
+}
+
+function getSecureAdminLaunchUrl() {
+    const url = new URL('/', FIREBASE_SECURE_ADMIN_ORIGIN);
+    url.searchParams.set(FIREBASE_SECURE_ADMIN_MARKER, '1');
+    return url.href;
 }
 
 const FIREBASE_CONFIG = Object.freeze({
@@ -189,6 +203,14 @@ function makePublicBridge(extra = {}) {
             ready: false,
             error: ''
         }),
+        adminAuth: Object.freeze({
+            mode: isFirebaseHostingAdminOrigin() ? 'firebase-hosting' : 'external-popup',
+            secureOrigin: FIREBASE_SECURE_ADMIN_ORIGIN,
+            currentOrigin: String(globalThis.location?.origin || ''),
+            onSecureOrigin: isFirebaseHostingAdminOrigin(),
+            redirectSupported: isFirebaseHostingAdminOrigin()
+        }),
+        getSecureAdminLaunchUrl,
         remoteConfig: { ...bridgeState.remoteConfigValues },
         signInGuest,
         logVisit,
@@ -368,7 +390,44 @@ function clearAdminRedirectState() {
     } catch (error) {}
 }
 
+function hasGoogleAdminProvider(user) {
+    return Boolean(user && !user.isAnonymous && user.providerData?.some?.(item => item?.providerId === 'google.com'));
+}
+
+function makeGoogleAdminIdentity(user) {
+    if (!hasGoogleAdminProvider(user)) return null;
+    return Object.freeze({
+        uid: user.uid,
+        email: limitText(user.email || '', 160),
+        displayName: limitText(user.displayName || '', 120),
+        emailVerified: user.emailVerified === true,
+        providerId: 'google.com',
+        redirecting: false
+    });
+}
+
+async function waitForGoogleAdminUser(timeoutMs = 3600) {
+    const deadline = Date.now() + Math.max(300, Number(timeoutMs) || 3600);
+    while (Date.now() < deadline) {
+        const user = bridgeState.auth?.currentUser || bridgeState.user;
+        if (hasGoogleAdminProvider(user)) return user;
+        await new Promise(resolve => globalThis.setTimeout(resolve, 120));
+    }
+    const finalUser = bridgeState.auth?.currentUser || bridgeState.user;
+    return hasGoogleAdminProvider(finalUser) ? finalUser : null;
+}
+
+function makeSecureOriginRequiredError(sourceError = null) {
+    const error = new Error('현재 배포 주소에서는 Google 리디렉션 인증을 안전하게 완료할 수 없습니다. Firebase Hosting 보안 주소로 이동해 다시 인증해주세요.');
+    error.code = 'auth/secure-origin-required';
+    error.secureUrl = getSecureAdminLaunchUrl();
+    error.cause = sourceError || undefined;
+    error.diagnostics = recordAdminAuthDiagnostics(error, { redirectAttempted: false });
+    return error;
+}
+
 async function beginAdminGoogleRedirect(provider, sourceError) {
+    if (!isFirebaseHostingAdminOrigin()) throw makeSecureOriginRequiredError(sourceError);
     if (typeof signInWithRedirect !== 'function') throw sourceError;
     const attempts = readAdminRedirectAttempts();
     if (attempts >= 1) {
@@ -389,18 +448,8 @@ async function beginAdminGoogleRedirect(provider, sourceError) {
 
 async function signInAdminWithGoogle() {
     if (!bridgeState.auth) throw new Error('Firebase Auth가 초기화되지 않았습니다.');
-    const current = bridgeState.auth.currentUser;
-    const hasGoogleProvider = current?.providerData?.some?.(item => item?.providerId === 'google.com');
-    if (current && !current.isAnonymous && hasGoogleProvider) {
-        return Object.freeze({
-            uid: current.uid,
-            email: limitText(current.email || '', 160),
-            displayName: limitText(current.displayName || '', 120),
-            emailVerified: current.emailVerified === true,
-            providerId: 'google.com',
-            redirecting: false
-        });
-    }
+    const currentIdentity = makeGoogleAdminIdentity(bridgeState.auth.currentUser);
+    if (currentIdentity) return currentIdentity;
     if (typeof GoogleAuthProvider !== 'function' || typeof signInWithPopup !== 'function') {
         throw new Error('Firebase Google 로그인 모듈이 준비되지 않았습니다.');
     }
@@ -415,22 +464,27 @@ async function signInAdminWithGoogle() {
         bridgeState.authReady = true;
         clearAdminRedirectState();
         clearAdminAuthDiagnostics();
-        return Object.freeze({
-            uid: credential.user.uid,
-            email: limitText(credential.user.email || '', 160),
-            displayName: limitText(credential.user.displayName || '', 120),
-            emailVerified: credential.user.emailVerified === true,
-            providerId: 'google.com',
-            redirecting: false
-        });
+        return makeGoogleAdminIdentity(credential.user);
     } catch (error) {
         const code = normalizeAdminAuthCode(error);
+        if (code === 'auth/network-request-failed') {
+            const recoveredUser = await waitForGoogleAdminUser();
+            const recoveredIdentity = makeGoogleAdminIdentity(recoveredUser);
+            if (recoveredIdentity) {
+                bridgeState.user = recoveredUser;
+                bridgeState.authReady = true;
+                clearAdminRedirectState();
+                clearAdminAuthDiagnostics();
+                return recoveredIdentity;
+            }
+        }
         const redirectFallbackCodes = new Set([
             'auth/popup-blocked',
             'auth/operation-not-supported-in-this-environment',
             'auth/network-request-failed'
         ]);
         if (redirectFallbackCodes.has(code)) {
+            if (!isFirebaseHostingAdminOrigin()) throw makeSecureOriginRequiredError(error);
             return beginAdminGoogleRedirect(provider, error);
         }
         const rawMessage = sanitizeAdminAuthMessage(error);
@@ -1749,7 +1803,7 @@ async function bootFirebase() {
             exposeBridge();
             dispatchFirebaseEvent('foxbear:firebase-auth', { user });
         });
-        if (typeof getRedirectResult === 'function') {
+        if (isFirebaseHostingAdminOrigin() && typeof getRedirectResult === 'function') {
             try {
                 const redirectResult = await getRedirectResult(bridgeState.auth);
                 if (redirectResult?.user) {
@@ -1768,6 +1822,8 @@ async function bootFirebase() {
                 recordAdminAuthDiagnostics(error, { redirectAttempted: true });
                 clearAdminRedirectState();
             }
+        } else {
+            clearAdminRedirectState();
         }
         await signInGuest();
         await loadRemoteConfig();

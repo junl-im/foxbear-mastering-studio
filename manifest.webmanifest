@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.46 (google-auth-same-origin-network-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.47 (external-host-admin-auth-opaque-error-recovery).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.46"
+  "version": "1.6.47"
 }

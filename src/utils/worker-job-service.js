@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.6.46 - cancellable jobs, health levels, recovery controls, and stale-result isolation
+// FoxBear worker job service v1.6.47 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.6.46-google-auth-same-origin-network-recovery';
+    const VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

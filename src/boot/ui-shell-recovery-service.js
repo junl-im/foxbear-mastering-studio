@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.46 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.47 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.46-google-auth-same-origin-network-recovery';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.47-external-host-admin-auth-opaque-error-recovery';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

@@ -30,7 +30,7 @@ function createSandbox(url = 'https://example.test/index.html?foxbearExternal=1'
     history: { state: null, replaceState: (...args) => historyCalls.push(args) },
     btoa: value => Buffer.from(value, 'binary').toString('base64'),
     atob: value => Buffer.from(value, 'base64').toString('binary'),
-    FoxBearBuildInfo: { assetVersion: '1.6.46-google-auth-same-origin-network-recovery' }
+    FoxBearBuildInfo: { assetVersion: '1.6.47-external-host-admin-auth-opaque-error-recovery' }
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;

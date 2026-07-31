@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.46",
+  "version": "1.6.47",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with Spark-compatible Google administrator authentication, same-origin authDomain recovery, and safe network diagnostics.",
+  "description": "FoxBear AI Mastering Studio Pro with GitHub Pages popup authentication recovery, Firebase Hosting secure administrator fallback, and opaque external script-error isolation.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.46-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.46-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.47-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.47-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -428,15 +428,16 @@
     "node qa/v1643_google_auth_trusted_types_csp_recovery_smoke.js",
     "node qa/v1644_google_auth_gapi_module_trusted_types_recovery_smoke.js",
     "node qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js",
-    "node qa/v1646_google_auth_same_origin_network_recovery_smoke.js"
+    "node qa/v1646_google_auth_same_origin_network_recovery_smoke.js",
+    "node qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "google-auth-same-origin-network-recovery",
-    "assetVersion": "1.6.46-google-auth-same-origin-network-recovery",
-    "cacheName": "foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery",
-    "bootRevision": "boot-sri-v1646-google-auth",
-    "updateSafetyRevision": "update-safety-v1646-google-auth",
-    "serviceWorkerRevision": "sw-v1646-google-auth"
+    "buildId": "external-host-admin-auth-opaque-error-recovery",
+    "assetVersion": "1.6.47-external-host-admin-auth-opaque-error-recovery",
+    "cacheName": "foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery",
+    "bootRevision": "boot-sri-v1647-admin-auth",
+    "updateSafetyRevision": "update-safety-v1647-admin-auth",
+    "serviceWorkerRevision": "sw-v1647-admin-auth"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.47
+
+## Configured target
+
+- Static and behavioral checks: 392
+- New syntax targets: `src/firebase-bootstrap.js`, `src/ui/admin-access-controller.js`, `src/app.js`, `src/boot/runtime-health.js`
+- New regression: `qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js`
+
+## Focus
+
+- GitHub Pages Google popup authentication without unsupported external-host redirect recovery
+- Delayed Google authentication-state settlement after popup completion
+- Firebase Hosting secure-origin administrator recovery with bounded session handoff
+- Opaque cross-origin `Script error.` isolation from the file-import status UI
+- Continued query-free diagnostics, App Check disabled policy, and narrow Trusted Types rules
+
+## Final result
+
+- Official configured checks: `392/392` passed in bounded chunks (`200/200`, `147/147`, and `45/45`).
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this environment.
+- Real Firebase production Google login remains an external environment gate.
+- Final release and overwrite archives contain `692` entries each, contain no executable payloads, and pass compressed-data integrity checks.
+
 # FoxBear QA Report - v1.6.46
 
 ## Configured target

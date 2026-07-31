@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.46-google-auth-same-origin-network-recovery';
+    const FALLBACK_VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -220,9 +220,13 @@
         return firebaseIdentity && networkFailure;
     }
 
+    function isOpaqueExternalRuntimeIssue(issue) {
+        return /^Script error\.?$/i.test(String(issue?.message || '').trim()) && !String(issue?.stack || '').trim();
+    }
+
     function recordRuntimeError(error, reason) {
         const issue = normalizeRuntimeIssue(error, reason);
-        const optional = isOptionalRemoteRuntimeIssue(issue);
+        const optional = isOpaqueExternalRuntimeIssue(issue) || isOptionalRemoteRuntimeIssue(issue);
         const target = optional ? state.runtimeWarnings : state.runtimeErrors;
         uniquePush(target, issue, item => `${item.reason}:${item.code}:${item.message}`, 12);
         dispatchRuntimeIssue(optional ? 'warning' : (reason === 'boot-failed' ? 'boot' : 'runtime'), { issue, optional });

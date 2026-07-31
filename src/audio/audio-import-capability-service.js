@@ -1,8 +1,8 @@
-// FoxBear audio import capability service - v1.6.46
+// FoxBear audio import capability service - v1.6.47
 (function attachFoxBearAudioImportCapabilityService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.46-google-auth-same-origin-network-recovery';
+    const SERVICE_VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery';
     const FORMAT_DEFINITIONS = Object.freeze([
         Object.freeze({ id: 'wav', label: 'WAV', extensions: ['.wav', '.wave'], mimes: ['audio/wav', 'audio/x-wav'], tier: 'core' }),
         Object.freeze({ id: 'mp3', label: 'MP3', extensions: ['.mp3', '.mpeg', '.mpga'], mimes: ['audio/mpeg'], tier: 'core' }),

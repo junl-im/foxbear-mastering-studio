@@ -1,3 +1,27 @@
+# GitHub Desktop Handoff - v1.6.47
+
+## Apply
+
+1. Fetch origin before applying the overwrite ZIP.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Run the release gates, review changes, commit, and Push origin.
+4. Run `npm run deploy:spark` so the secure Firebase Hosting fallback receives the same release.
+
+## Release focus
+
+- GitHub Pages popup-only Google authentication
+- Delayed Firebase auth-state reconciliation after popup network errors
+- Fixed Firebase Hosting secure-origin fallback with settings handoff
+- Opaque cross-origin `Script error.` isolation
+- Existing no-App-Check and `siteAdmins/{UID}` authorization policy
+
+## Production verification
+
+- Keep `jurl-img.github.io`, `foxbear-music.web.app`, and `foxbear-music.firebaseapp.com` in Firebase Authentication Authorized domains.
+- Keep only the two Firebase Hosting `/__/auth/handler` URLs in the Google OAuth client.
+- Verify administrator login from GitHub Pages and from `foxbear-music.web.app`.
+- Confirm that the file-import banner remains normal during and after Google authentication.
+
 # GitHub Desktop Handoff - v1.6.46
 
 ## Apply

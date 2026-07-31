@@ -1,3 +1,35 @@
+# FoxBear Status - v1.6.47
+
+## Current release
+
+- Product version: `1.6.47`
+- Build ID: `external-host-admin-auth-opaque-error-recovery`
+- Asset version: `1.6.47-external-host-admin-auth-opaque-error-recovery`
+- Service worker cache: `foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery`
+- Configured static/regression target: 392 checks.
+
+## Current focus
+
+- Keep GitHub Pages on popup-only Firebase Google authentication.
+- Reconcile delayed auth state before external-host recovery.
+- Move unresolved administrator auth to the fixed Firebase Hosting origin.
+- Isolate opaque cross-origin script errors from application import status.
+
+## Verified
+
+- Official configured QA: **392/392 passed** in three bounded execution chunks.
+- Browser fixture preflight, Hosting payload hygiene, Functions syntax, metadata, SRI, dependency, and handoff checks passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution remains unavailable because Playwright/Chromium is not installed.
+- Full and overwrite ZIP packages: **692 entries each**, executable payloads: **0**.
+
+## Production deployment required
+
+- Deploy the same v1.6.47 assets to GitHub Pages and Firebase Hosting.
+- Keep `jurl-img.github.io` and both Firebase Hosting domains in Firebase Authentication Authorized domains.
+- Run `npm run check:release` and `npm run deploy:spark`.
+- Clear stale site data once, then verify Google login and `siteAdmins/{UID}` authorization on the secure Hosting origin.
+
 # FoxBear Status - v1.6.46
 
 ## Current release
@@ -356,10 +388,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.46`
-- Build ID: `google-auth-same-origin-network-recovery`
-- Asset version: `1.6.46-google-auth-same-origin-network-recovery`
-- Service worker cache: `foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery`
+- Product version: `1.6.47`
+- Build ID: `external-host-admin-auth-opaque-error-recovery`
+- Asset version: `1.6.47-external-host-admin-auth-opaque-error-recovery`
+- Service worker cache: `foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery`
 
 # FoxBear Status - v1.6.32
 

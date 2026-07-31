@@ -1,3 +1,17 @@
+# v1.6.47 release checklist
+
+- [x] Non-Firebase Hosting origins do not call `getRedirectResult()`.
+- [x] GitHub Pages uses popup authentication first.
+- [x] Popup network failure waits for a delayed Google auth-state result.
+- [x] Redirect authentication is restricted to approved Firebase Hosting origins.
+- [x] External-host failure uses a fixed, validated `foxbear-music.web.app` fallback with bounded settings handoff.
+- [x] The secure-origin marker is removed from the address and the administrator dialog is reopened.
+- [x] Opaque cross-origin `Script error.` events do not overwrite the import status.
+- [x] Same-origin application exceptions still use the visible error path.
+- [x] All 392 configured checks pass in three bounded chunks.
+- [x] Both verified archives contain 692 entries and zero executable payloads.
+- [ ] Deploy both GitHub Pages and Firebase Hosting, then verify the real Google account and `siteAdmins/{UID}` flow.
+
 # v1.6.46 release checklist
 
 - [x] `auth/network-request-failed` is handled before any `siteAdmins/{UID}` authorization claim.

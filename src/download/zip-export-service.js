@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.6.46 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.6.47 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.6.46-google-auth-same-origin-network-recovery';
+    const VERSION = 'v1.6.47-external-host-admin-auth-opaque-error-recovery';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
 
     function getSnapshot() {

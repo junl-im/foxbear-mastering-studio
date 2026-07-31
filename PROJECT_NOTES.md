@@ -1,3 +1,12 @@
+# v1.6.47 project notes
+
+- GitHub Pages is an external host: use popup first and never run Firebase redirect-result recovery there.
+- Redirect authentication remains limited to `foxbear-music.web.app` and `foxbear-music.firebaseapp.com`.
+- A popup network failure must first wait for a delayed Google auth-state update, then use the fixed Firebase Hosting fallback.
+- The secure fallback URL must remain hard-coded and hostname-validated; do not accept a user-provided redirect destination.
+- Opaque cross-origin `Script error.` events without stack/source details are warnings, not application boot failures.
+- Preserve App Check disabled policy, narrow Trusted Types rules, and `siteAdmins/{UID}` authorization.
+
 # v1.6.46 project notes
 
 - `auth/network-request-failed` occurs before the `siteAdmins/{UID}` read; do not change administrator documents to diagnose this stage.

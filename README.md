@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.6.47
+
+## v1.6.47 GitHub Pages administrator authentication recovery
+
+- Detects that `jurl-img.github.io` is not Firebase Hosting and keeps it on popup-only authentication.
+- Waits for a delayed Google authentication state after the account chooser instead of immediately failing on `auth/network-request-failed`.
+- Moves unresolved administrator login to the fixed Firebase Hosting security origin and restores non-audio settings.
+- Reopens the administrator login dialog on `foxbear-music.web.app` without attempting an automatic popup outside a user gesture.
+- Stops generic cross-origin `Script error.` events from replacing the normal file-import status.
+- App Check remains disabled; administrator authorization still requires `siteAdmins/{UID}`.
+
 # FoxBear AI Mastering Studio Pro v1.6.46
 
 ## v1.6.46 Google administrator authentication network recovery

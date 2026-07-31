@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.46 - DSP amount inspector and adaptive target helpers
+// FoxBear AI Mastering Studio Pro v1.6.47 - DSP amount inspector and adaptive target helpers
 'use strict';
 
 (function attachFoxBearMasteringInspector(global) {

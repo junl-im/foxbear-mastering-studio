@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.6.46",
-  "assetVersion": "1.6.46-google-auth-same-origin-network-recovery"
+  "productVersion": "1.6.47",
+  "assetVersion": "1.6.47-external-host-admin-auth-opaque-error-recovery"
 }

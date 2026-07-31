@@ -1,4 +1,4 @@
-# FoxBear Firebase 설정 가이드 - v1.6.46
+# FoxBear Firebase 설정 가이드 - v1.6.47
 
 ## Spark 무료 요금제 관리자 모니터링
 
@@ -14,11 +14,11 @@ Firebase Console에서 프로젝트 `foxbear-music`을 열고 다음 항목을 �
 4. Google 지원 이메일로 `mcwoogi@gmail.com` 선택
 5. `Authentication → Settings → Authorized domains`에서 실제 배포 도메인을 확인
 
-기본 Firebase Hosting 도메인인 `foxbear-music.web.app`, `foxbear-music.firebaseapp.com`은 일반적으로 자동 등록됩니다. 두 항목이 모두 실제 목록에 있는지 확인하고, 별도 도메인을 사용한다면 해당 도메인도 추가합니다.
+기본 Firebase Hosting 도메인인 `foxbear-music.web.app`, `foxbear-music.firebaseapp.com`은 일반적으로 자동 등록됩니다. 두 항목이 모두 실제 목록에 있는지 확인합니다. GitHub Pages 미러에서도 Google 팝업 인증을 시도하려면 `jurl-img.github.io`도 Authorized domains에 등록합니다.
 
-### 2. Google OAuth 리디렉션 URI 등록
+### 2. 배포 주소별 Google 인증 정책
 
-v1.6.46은 현재 접속한 승인 Firebase Hosting 도메인을 `authDomain`으로 사용합니다. Google Cloud Console에서 `API 및 서비스 → 사용자 인증 정보`를 열고, Firebase Authentication이 사용하는 **OAuth 2.0 클라이언트 ID의 웹 애플리케이션** 항목을 선택합니다. 보통 이름에 `Web client` 또는 `auto created for Google Service`가 포함되어 있습니다.
+Firebase Hosting 주소에서는 현재 접속한 승인 Hosting 도메인을 `authDomain`으로 사용합니다. Google Cloud Console에서 `API 및 서비스 → 사용자 인증 정보`를 열고, Firebase Authentication이 사용하는 **OAuth 2.0 클라이언트 ID의 웹 애플리케이션** 항목을 선택합니다. 보통 이름에 `Web client` 또는 `auto created for Google Service`가 포함되어 있습니다.
 
 `승인된 리디렉션 URI`에 다음 두 주소를 모두 추가하고 저장합니다.
 
@@ -28,6 +28,14 @@ https://foxbear-music.web.app/__/auth/handler
 ```
 
 `/__/auth/handler`까지 정확히 포함해야 합니다. 새 OAuth 클라이언트를 임의로 만들기보다 Firebase Google 제공업체가 사용 중인 기존 웹 클라이언트를 수정합니다.
+
+GitHub Pages는 Firebase Hosting이 아니므로 `signInWithRedirect`의 인증 도우미를 동일 출처로 제공할 수 없습니다. v1.6.47은 `jurl-img.github.io`에서 `getRedirectResult()`를 실행하지 않고 `signInWithPopup()`만 먼저 사용합니다. 팝업 완료 뒤 Firebase 인증 상태가 늦게 반영되면 최대 약 3.6초 동안 Google 사용자 상태를 재확인합니다. 그래도 교차 출처 인증 통신이 실패하면 작업 설정을 안전한 handoff 값으로 넘기고 다음 Firebase Hosting 보안 주소로 자동 이동합니다.
+
+```text
+https://foxbear-music.web.app/?foxbearAdmin=1
+```
+
+GitHub Pages 주소를 OAuth 리디렉션 URI로 추가하지 마세요. GitHub Pages는 `/__/auth/handler`를 Firebase 인증 도우미로 역방향 프록시하지 못합니다. 관리자 인증의 최종 복구 경로는 Firebase Hosting 보안 주소입니다.
 
 ### 3. Spark 전용 배포
 
@@ -73,8 +81,9 @@ Firestore Rules는 Google 로그인, 이메일 인증, 문서 UID, 문서 이메
 
 - `operation-not-allowed`: Authentication에서 Google 제공업체가 꺼져 있습니다.
 - `unauthorized-domain`: Authentication의 Authorized domains에 현재 도메인이 없습니다.
-- `network-request-failed`: `siteAdmins` 문제가 아니라 Google/Firebase 인증 통신 단계입니다. v1.6.46은 한 번만 동일 출처 redirect 복구를 시도합니다. 계속 실패하면 화면에 표시되는 `host`, `authDomain`, 오류 코드를 확인하고 두 OAuth 리디렉션 URI 등록 여부를 점검합니다.
-- `redirect-result-missing` 또는 `redirect-loop-prevented`: OAuth 리디렉션 URI가 빠졌거나 브라우저가 사이트 저장소를 차단한 상태입니다.
+- `network-request-failed`: `siteAdmins` 문제가 아니라 Google/Firebase 인증 통신 단계입니다. v1.6.47은 팝업 직후 Google 인증 상태를 다시 확인합니다. GitHub Pages에서 계속 실패하면 Firebase Hosting 보안 주소로 자동 전환하며, Hosting 주소에서만 한 번의 `signInWithRedirect` 복구를 허용합니다.
+- `secure-origin-required`: GitHub Pages의 교차 출처 팝업 통신이 완료되지 않아 Firebase Hosting 보안 주소로 전환하는 정상 복구 신호입니다.
+- `redirect-result-missing` 또는 `redirect-loop-prevented`: Firebase Hosting OAuth 리디렉션 URI가 빠졌거나 브라우저가 사이트 저장소를 차단한 상태입니다.
 - 로그인은 됐지만 UID 등록 안내가 표시됨: `siteAdmins/{UID}` 문서 ID 또는 필드 타입을 확인합니다.
 - 권한 없음: 문서의 `email`이 로그인 이메일과 정확히 같고 `authProvider`가 `google.com`인지 확인합니다.
 

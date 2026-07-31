@@ -1,3 +1,28 @@
+# Handoff - v1.6.47
+
+- Build: `external-host-admin-auth-opaque-error-recovery`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Treat `jurl-img.github.io` as external hosting: popup first, no `getRedirectResult()` there.
+- Keep redirect authentication limited to the two approved Firebase Hosting domains.
+- Preserve delayed auth-state reconciliation before external-host fallback.
+- Keep the fallback fixed to `https://foxbear-music.web.app`; do not add open-redirect inputs.
+- Keep opaque cross-origin `Script error.` events out of the file-import error banner.
+- App Check remains intentionally disabled.
+- Spark deployments use `npm run deploy:spark`.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.47`
+- Build ID: `external-host-admin-auth-opaque-error-recovery`
+- Asset version: `1.6.47-external-host-admin-auth-opaque-error-recovery`
+- Service worker cache: `foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery`
+- Configured static/regression target: 392 checks.
+- Final configured checks: `392/392` passed in three bounded release-gate chunks; metadata, SRI, handoff, browser preflight, Hosting payload hygiene, and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real Firebase production Google login remains an external environment gate.
+- Final full and overwrite archives contain `692` entries each, contain no executable payloads, and pass compressed-data integrity checks.
+
 # Handoff - v1.6.46
 
 - Build: `google-auth-same-origin-network-recovery`.

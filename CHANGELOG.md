@@ -1,3 +1,12 @@
+# v1.6.47 - External-Host Admin Auth and Opaque Script-Error Recovery
+
+- Keeps GitHub Pages on popup authentication and stops calling redirect-result recovery on non-Firebase Hosting origins.
+- Reconciles a delayed Google auth state for 3.6 seconds after `auth/network-request-failed` before treating the popup as failed.
+- Restricts redirect authentication to approved Firebase Hosting origins and automatically moves failed external-host admin login to `foxbear-music.web.app`.
+- Preserves non-audio settings through the existing bounded handoff and reopens the administrator dialog on the secure origin.
+- Prevents opaque cross-origin `Script error.` events from overwriting the file-import status while retaining real same-origin error reporting.
+- Adds dedicated regression coverage, raising the configured target to 392 checks.
+
 # v1.6.46 - Google Auth Same-Origin Network Recovery
 
 - Uses the active approved Firebase Hosting hostname as `authDomain`, keeping the authentication helper same-origin on `foxbear-music.web.app` and `foxbear-music.firebaseapp.com`.

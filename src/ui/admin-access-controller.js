@@ -1,8 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.6.46 - Spark-compatible Google administrator access controller
+// FoxBear AI Mastering Studio Pro v1.6.47 - Spark-compatible Google administrator access controller
 'use strict';
 
 (function attachFoxBearAdminAccessController(global) {
     const SESSION_REFRESH_THROTTLE_MS = 30000;
+    const SECURE_ADMIN_MARKER = 'foxbearAdmin';
 
     function create(options = {}) {
         const state = options.state || {};
@@ -21,6 +22,44 @@
             if (!el.adminAccessStatus) return;
             el.adminAccessStatus.textContent = String(message || '');
             el.adminAccessStatus.dataset.tone = tone;
+        }
+
+        function getAdminAuthPolicy() {
+            return global.FoxBearFirebase?.adminAuth || {};
+        }
+
+        function getSubmitLabel() {
+            if (state.adminUnlockBusy) return 'Google 로그인 중…';
+            return getAdminAuthPolicy().onSecureOrigin === false
+                ? 'Google 인증 또는 보안 주소로 전환'
+                : 'Google 계정으로 인증';
+        }
+
+        function updateSubmitLabel() {
+            if (el.adminAccessSubmit && !state.adminUnlockBusy) el.adminAccessSubmit.textContent = getSubmitLabel();
+        }
+
+        function buildSecureAdminLaunchUrl(input = '') {
+            let target;
+            try {
+                target = new URL(String(input || global.FoxBearFirebase?.getSecureAdminLaunchUrl?.() || ''), global.location?.href);
+            } catch (error) {
+                return '';
+            }
+            if (target.protocol !== 'https:' || target.hostname !== 'foxbear-music.web.app') return '';
+            target.searchParams.set(SECURE_ADMIN_MARKER, '1');
+            const handoffUrl = global.FoxBearSessionHandoff?.attachToUrl?.(target.href, { reason: 'admin-secure-origin-recovery' });
+            return String(handoffUrl || target.href);
+        }
+
+        function consumeSecureAdminLaunchMarker() {
+            let url;
+            try { url = new URL(global.location?.href || ''); } catch (error) { return false; }
+            if (url.searchParams.get(SECURE_ADMIN_MARKER) !== '1') return false;
+            url.searchParams.delete(SECURE_ADMIN_MARKER);
+            try { global.history?.replaceState?.(global.history.state, '', `${url.pathname}${url.search}${url.hash}`); } catch (error) {}
+            global.setTimeout?.(() => open({ returnFocus: el.mobileNativeQuickToggle || global.document?.activeElement }), 160);
+            return true;
         }
 
         function updateIdentity(profile = {}) {
@@ -166,12 +205,16 @@
 
         function prepare() {
             const diagnostics = global.FoxBearFirebase?.getAdminAuthDiagnostics?.();
+            const policy = getAdminAuthPolicy();
             if (diagnostics?.code) {
                 setStatus(formatFailure({ code: diagnostics.code, message: diagnostics.message, diagnostics }), 'error');
+            } else if (policy.onSecureOrigin === false) {
+                setStatus('현재 GitHub Pages 주소에서는 Google 팝업을 먼저 시도하고, 브라우저가 인증 통신을 막으면 Firebase Hosting 보안 주소로 자동 전환합니다.', 'neutral');
             } else {
                 setStatus('Google 관리자 계정 인증 대기', 'neutral');
             }
             updateIdentity({});
+            updateSubmitLabel();
         }
 
         function clear() {}
@@ -219,16 +262,19 @@
                 try { return new URL(diagnostics.pageOrigin || global.location?.origin || '').host; } catch (parseError) { return ''; }
             })();
             const authDomain = String(diagnostics.authDomain || global.FoxBearFirebase?.authDomain || '');
+            const secureOrigin = String(global.FoxBearFirebase?.adminAuth?.secureOrigin || '');
             const context = [
                 pageHost ? `host=${pageHost}` : '',
                 authDomain ? `authDomain=${authDomain}` : '',
+                secureOrigin ? `secure=${secureOrigin}` : '',
                 diagnostics.online === false ? '브라우저 오프라인' : ''
             ].filter(Boolean).join(' · ');
             const suffix = context ? ` (${fullCode} · ${context})` : ` (${fullCode})`;
             if (code === 'popup-closed-by-user' || code === 'cancelled-popup-request') return 'Google 로그인이 취소되었습니다.';
             if (code === 'unauthorized-domain') return `Firebase Authentication 승인 도메인에 현재 사이트 주소를 추가해주세요.${suffix}`;
             if (code === 'operation-not-allowed') return `Firebase Authentication에서 Google 로그인 제공업체를 활성화해주세요.${suffix}`;
-            if (code === 'network-request-failed') return `Google 인증 서버와 통신하지 못했습니다. 동일 출처 리디렉션 복구도 완료되지 않았습니다.${suffix}`;
+            if (code === 'secure-origin-required') return `GitHub Pages의 교차 출처 인증 통신이 완료되지 않아 Firebase Hosting 보안 주소로 전환합니다.${suffix}`;
+            if (code === 'network-request-failed') return `Google 인증 서버와 통신하지 못했습니다. 로그인 상태를 재확인한 뒤 Firebase Hosting 보안 주소 복구를 사용합니다.${suffix}`;
             if (code === 'redirect-result-missing' || code === 'redirect-loop-prevented') return `${error?.message || 'Google 리디렉션 인증 결과를 확인하지 못했습니다.'}${suffix}`;
             if (code === 'web-storage-unsupported') return `브라우저가 인증용 사이트 저장소를 차단했습니다. 쿠키·사이트 데이터 차단 설정을 확인해주세요.${suffix}`;
             return `${error?.message || 'Google 관리자 인증에 실패했습니다.'}${suffix}`;
@@ -278,6 +324,14 @@
                     online: diagnostics?.online !== false,
                     rejectedScriptUrl: diagnostics?.rejectedScriptUrl || ''
                 });
+                if (String(error?.code || '') === 'auth/secure-origin-required') {
+                    const secureUrl = buildSecureAdminLaunchUrl(error?.secureUrl);
+                    setStatus(formatFailure({ code: error?.code, message: error?.message, diagnostics }), 'warning');
+                    if (secureUrl) {
+                        global.setTimeout?.(() => global.location.assign(secureUrl), 80);
+                        return true;
+                    }
+                }
                 setStatus(formatFailure({ code: error?.code, message: error?.message, diagnostics }), 'error');
                 return false;
             } finally {
@@ -285,7 +339,7 @@
                 if (el.adminAccessSubmit) {
                     el.adminAccessSubmit.disabled = false;
                     el.adminAccessSubmit.removeAttribute('aria-busy');
-                    el.adminAccessSubmit.textContent = 'Google 계정으로 인증';
+                    el.adminAccessSubmit.textContent = getSubmitLabel();
                 }
                 updateSessionUi();
                 updateUi();
@@ -336,6 +390,8 @@
                 if (global.document.visibilityState === 'visible') refreshAfterResume();
             });
             updateSessionUi();
+            updateSubmitLabel();
+            consumeSecureAdminLaunchMarker();
             return true;
         }
 
@@ -359,5 +415,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.6.46-google-auth-same-origin-network-recovery', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.6.47-external-host-admin-auth-opaque-error-recovery', create });
 })(typeof window !== 'undefined' ? window : globalThis);

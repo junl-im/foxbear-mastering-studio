@@ -26,15 +26,15 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const readme = read('README.md');
 
-const version = '1.6.46-google-auth-same-origin-network-recovery';
+const version = '1.6.47-external-host-admin-auth-opaque-error-recovery';
 
-must(pkg.version === '1.6.46', 'package version should be 1.6.46');
-must(pkg.name === 'foxbear-mastering-studio', 'package name should be v1.6.46');
-must(index.includes('data-build="1.6.46"'), 'index build marker should be 1.6.46');
-must(app.includes("const APP_VERSION = 'Pro v1.6.46'"), 'app version should be Pro v1.6.46');
-must(index.includes(`src/ui/spectrum-visualizer.js?v=${version}`), 'index should load spectrum visualizer with v1.6.46 key');
-must(sw.includes(`foxbear-shell-v${version}`), 'service worker should use v1.6.46 cache key');
-must(sw.includes(`./src/ui/spectrum-visualizer.js?v=${version}`), 'service worker should precache v1.6.46 spectrum visualizer');
+must(pkg.version === '1.6.47', 'package version should be 1.6.47');
+must(pkg.name === 'foxbear-mastering-studio', 'package name should be v1.6.47');
+must(index.includes('data-build="1.6.47"'), 'index build marker should be 1.6.47');
+must(app.includes("const APP_VERSION = 'Pro v1.6.47'"), 'app version should be Pro v1.6.47');
+must(index.includes(`src/ui/spectrum-visualizer.js?v=${version}`), 'index should load spectrum visualizer with v1.6.47 key');
+must(sw.includes(`foxbear-shell-v${version}`), 'service worker should use v1.6.47 cache key');
+must(sw.includes(`./src/ui/spectrum-visualizer.js?v=${version}`), 'service worker should precache v1.6.47 spectrum visualizer');
 
 must(!index.includes('id="bottomPreviewSpectrum"'), 'Dock mini spectrum host should remain removed');
 must(!app.includes('bottomPreviewSpectrum'), 'app should not cache Dock mini spectrum refs');
@@ -54,10 +54,10 @@ must(!spectrum.includes('miniCanvasCount'), 'diagnostics should not report remov
 
 must(mobileCss.includes('display: inline-flex !important') && mobileCss.includes('justify-content: center !important'), 'settings gear centering CSS should remain');
 must(matrix.includes('runtime health does not require `renderMini`'), 'matrix should document renderMini cleanup');
-must(changelog.includes('v1.6.46') && changelog.includes('renderMini'), 'changelog should document v1.6.46 renderMini cleanup');
-must(handoff.includes('v1.6.46') && handoff.includes('detail-only FFT'), 'handoff should mention detail-only FFT');
+must(changelog.includes('v1.6.47') && changelog.includes('renderMini'), 'changelog should document v1.6.47 renderMini cleanup');
+must(handoff.includes('v1.6.47') && handoff.includes('detail-only FFT'), 'handoff should mention detail-only FFT');
 must(notes.includes('renderMini') && notes.includes('removed'), 'project notes should record renderMini removal');
-must(readme.includes('v1.6.46') && readme.includes('detail-only'), 'README should summarize v1.6.46 detail-only FFT');
-must(pkg.qaChecks.includes('node qa/v148_dock_spectrum_cleanup_smoke.js'), 'package should run v1.6.46 smoke');
+must(readme.includes('v1.6.47') && readme.includes('detail-only'), 'README should summarize v1.6.47 detail-only FFT');
+must(pkg.qaChecks.includes('node qa/v148_dock_spectrum_cleanup_smoke.js'), 'package should run v1.6.47 smoke');
 
 console.log('PASS v1.4.26 Dock spectrum cleanup smoke');

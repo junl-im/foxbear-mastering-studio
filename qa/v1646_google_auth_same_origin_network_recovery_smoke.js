@@ -30,7 +30,8 @@ const diagnosticSection = firebase.slice(firebase.indexOf('function recordAdminA
 assert(!diagnosticSection.includes('query'));
 assert(!diagnosticSection.includes('location.search'));
 
-assert(controller.includes('동일 출처 리디렉션 복구도 완료되지 않았습니다.'));
+assert(controller.includes('Firebase Hosting 보안 주소 복구를 사용합니다.'));
+assert(firebase.includes("if (isFirebaseHostingAdminOrigin() && typeof getRedirectResult === 'function')"));
 assert(controller.includes('authDomain=${authDomain}'));
 assert(controller.includes('getAdminAuthDiagnostics'));
 assert(controller.includes("code === 'redirect-result-missing' || code === 'redirect-loop-prevented'"));

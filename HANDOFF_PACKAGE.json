@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.46",
-  "buildId": "google-auth-same-origin-network-recovery",
+  "productVersion": "1.6.47",
+  "buildId": "external-host-admin-auth-opaque-error-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -140,7 +140,9 @@
     "docs/V1.6.42_SPARK_GOOGLE_ADMIN_AUTH.md",
     "tools/check-hosting-payload.js",
     "qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js",
-    "docs/V1.6.45_WINDOWS_RELEASE_GATE_SPARK_HOSTING_NO_APP_CHECK.md"
+    "docs/V1.6.45_WINDOWS_RELEASE_GATE_SPARK_HOSTING_NO_APP_CHECK.md",
+    "qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js",
+    "docs/V1.6.47_EXTERNAL_HOST_ADMIN_AUTH_OPAQUE_ERROR_RECOVERY.md"
   ],
   "requiredPrefixes": [
     "assets/",
