@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.6.45', 'package version should be 1.6.45');
-assert(index.includes('data-build="1.6.45"'), 'index data-build should be 1.6.45');
-assert(index.includes('1.6.45-windows-release-gate-spark-hosting-no-app-check'), 'index assets should use v1.6.45 cache key');
-assert(sw.includes('foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check'), 'service worker cache should use v1.6.45 key');
+assert(pkg.version === '1.6.46', 'package version should be 1.6.46');
+assert(index.includes('data-build="1.6.46"'), 'index data-build should be 1.6.46');
+assert(index.includes('1.6.46-google-auth-same-origin-network-recovery'), 'index assets should use v1.6.46 cache key');
+assert(sw.includes('foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery'), 'service worker cache should use v1.6.46 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');

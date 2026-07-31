@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.45",
-  "buildId": "windows-release-gate-spark-hosting-no-app-check",
+  "productVersion": "1.6.46",
+  "buildId": "google-auth-same-origin-network-recovery",
   "requiredFiles": [
     "404.html",
     ".gitignore",

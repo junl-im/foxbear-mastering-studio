@@ -26,7 +26,7 @@ const incidentControlsViewSource = read('src/boot/incident-controls-view-service
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.45');
+assert.strictEqual(pkg.version, '1.6.46');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentServiceStatus'));
 assert(html.includes('id="incidentReportingPipeline"'));
@@ -48,7 +48,7 @@ assert(reporterSource.includes("onProgress('mail', 'active'"));
 assert(functionsSource.includes('exports.getIncidentServiceStatus = onCall'));
 assert(functionsSource.includes("appCheckMode: 'disabled'"));
 assert(functionsSource.includes('appCheckTokenPresent: false'));
-assert(handoff.startsWith('# Handoff - v1.6.45'));
+assert(handoff.startsWith('# Handoff - v1.6.46'));
 
 const stageItems = {};
 const elements = {};
@@ -68,7 +68,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.45' } },
+    body: { dataset: { build: '1.6.46' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -77,7 +77,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.45', assetVersion: '1.6.45-windows-release-gate-spark-hosting-no-app-check' }
+  FoxBearBuildInfo: { productVersion: '1.6.46', assetVersion: '1.6.46-google-auth-same-origin-network-recovery' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -140,7 +140,7 @@ const functionSandbox = {
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: { appId: 'verified' } });
-assert.strictEqual(metadata.productVersion, '1.6.45');
+assert.strictEqual(metadata.productVersion, '1.6.46');
 assert.strictEqual(metadata.status, 'ready');
 assert.strictEqual(metadata.appCheckMode, 'disabled');
 assert.strictEqual(metadata.appCheckEnforced, false);
@@ -148,7 +148,7 @@ assert.strictEqual(metadata.appCheckTokenPresent, false);
 const serviceStatus = moduleRecord.exports.getIncidentServiceStatus;
 assert.strictEqual(serviceStatus.options.enforceAppCheck, false);
 serviceStatus.handler({ auth: { uid: 'guest-1' }, app: null }).then(result => {
-  assert.strictEqual(result.productVersion, '1.6.45');
+  assert.strictEqual(result.productVersion, '1.6.46');
   assert.strictEqual(result.appCheckTokenPresent, false);
   return serviceStatus.handler({ auth: null, app: null }).then(
     () => assert.fail('unauthenticated request should fail'),

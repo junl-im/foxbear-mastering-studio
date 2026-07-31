@@ -1,3 +1,27 @@
+# GitHub Desktop Handoff - v1.6.46
+
+## Apply
+
+1. Fetch origin before applying the patch.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Run the release gates, review changes, commit, and Push origin.
+
+## Release focus
+
+- Same-origin Firebase Hosting `authDomain` selection
+- Popup network failure to single redirect recovery
+- Redirect-loop fencing and missing-result diagnostics
+- Query-free Google authentication failure reporting
+- Existing no-App-Check and `siteAdmins/{UID}` authorization policy
+
+## Production setup after push
+
+- Keep Anonymous and Google Authentication enabled.
+- Keep `foxbear-music.web.app` and `foxbear-music.firebaseapp.com` in Authorized domains.
+- Add both `/__/auth/handler` URLs from `FIREBASE_SETUP.md` to the Firebase Google OAuth web client.
+- Run `npm run check:release`, then `npm run deploy:spark`.
+- Clear site data once and retry administrator authentication.
+
 # GitHub Desktop Handoff - v1.6.45
 
 ## Apply

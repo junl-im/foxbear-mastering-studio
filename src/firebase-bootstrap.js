@@ -33,9 +33,24 @@ let firebaseModulesPromise = null;
 const FIREBASE_SDK_VERSION = '12.16.0';
 const FIREBASE_MODULE_BASE = `https://www.gstatic.com/firebasejs/${FIREBASE_SDK_VERSION}`;
 const FIREBASE_FUNCTIONS_REGION = 'asia-northeast3';
+const FIREBASE_DEFAULT_AUTH_DOMAIN = 'foxbear-music.firebaseapp.com';
+const FIREBASE_HOSTING_AUTH_DOMAINS = Object.freeze(new Set([
+    'foxbear-music.firebaseapp.com',
+    'foxbear-music.web.app'
+]));
+const ADMIN_GOOGLE_REDIRECT_MARKER = 'foxbear.admin.google.redirect';
+const ADMIN_GOOGLE_REDIRECT_ATTEMPTS = 'foxbear.admin.google.redirectAttempts';
+
+function resolveFirebaseAuthDomain() {
+    const currentHost = String(globalThis.location?.hostname || '').trim().toLowerCase();
+    return FIREBASE_HOSTING_AUTH_DOMAINS.has(currentHost)
+        ? currentHost
+        : FIREBASE_DEFAULT_AUTH_DOMAIN;
+}
+
 const FIREBASE_CONFIG = Object.freeze({
     apiKey: 'AIzaSyBvYuYlN6etTd3B6C_ZGvsaAktbWJU8yOs',
-    authDomain: 'foxbear-music.firebaseapp.com',
+    authDomain: resolveFirebaseAuthDomain(),
     projectId: 'foxbear-music',
     storageBucket: 'foxbear-music.firebasestorage.app',
     messagingSenderId: '52981410353',
@@ -112,7 +127,17 @@ const bridgeState = {
     remoteConfigValues: { ...REMOTE_CONFIG_DEFAULTS },
     error: '',
     storageEnabled: false,
-    storageReason: 'Spark 무료 요금제에서는 Cloud Storage for Firebase를 사용하지 않습니다.'
+    storageReason: 'Spark 무료 요금제에서는 Cloud Storage for Firebase를 사용하지 않습니다.',
+    adminAuthDiagnostics: Object.freeze({
+        code: '',
+        message: '',
+        online: true,
+        pageOrigin: '',
+        authDomain: FIREBASE_CONFIG.authDomain,
+        rejectedScriptUrl: '',
+        redirectAttempted: false,
+        occurredAt: ''
+    })
 };
 
 async function loadFirebaseModules() {
@@ -144,6 +169,8 @@ function makePublicBridge(extra = {}) {
     return Object.freeze({
         sdkVersion: FIREBASE_SDK_VERSION,
         projectId: FIREBASE_CONFIG.projectId,
+        authDomain: FIREBASE_CONFIG.authDomain,
+        pageOrigin: String(globalThis.location?.origin || ''),
         ready: bridgeState.ready,
         authReady: bridgeState.authReady,
         uid: bridgeState.user?.uid || '',
@@ -174,6 +201,7 @@ function makePublicBridge(extra = {}) {
         checkIncidentDeploymentReadiness,
         retryOwnIncidentReport,
         signInAdminWithGoogle,
+        getAdminAuthDiagnostics: () => bridgeState.adminAuthDiagnostics,
         signOutAdminAccess,
         getAdminStats,
         getAdminIncidents,
@@ -278,6 +306,87 @@ async function signInGuest() {
     return credential.user;
 }
 
+function normalizeAdminAuthCode(error) {
+    return limitText(String(error?.code || 'auth/unknown').trim() || 'auth/unknown', 100);
+}
+
+function sanitizeAdminAuthMessage(error) {
+    const raw = String(error?.message || error || 'Google 관리자 로그인에 실패했습니다.');
+    return limitText(raw.replace(/https?:\/\/[^\s)]+/gi, value => {
+        try {
+            const url = new URL(value);
+            return `${url.origin}${url.pathname}`;
+        } catch (parseError) {
+            return '[URL 생략]';
+        }
+    }), 240);
+}
+
+function recordAdminAuthDiagnostics(error, extra = {}) {
+    const diagnostics = Object.freeze({
+        code: normalizeAdminAuthCode(error),
+        message: sanitizeAdminAuthMessage(error),
+        online: globalThis.navigator?.onLine !== false,
+        pageOrigin: limitText(String(globalThis.location?.origin || ''), 180),
+        authDomain: FIREBASE_CONFIG.authDomain,
+        rejectedScriptUrl: limitText(String(globalThis.FoxBearTrustedTypesBootstrap?.getLastRejectedScriptUrl?.() || ''), 220),
+        redirectAttempted: extra.redirectAttempted === true,
+        occurredAt: new Date().toISOString()
+    });
+    bridgeState.adminAuthDiagnostics = diagnostics;
+    exposeBridge();
+    return diagnostics;
+}
+
+function clearAdminAuthDiagnostics() {
+    bridgeState.adminAuthDiagnostics = Object.freeze({
+        code: '',
+        message: '',
+        online: globalThis.navigator?.onLine !== false,
+        pageOrigin: limitText(String(globalThis.location?.origin || ''), 180),
+        authDomain: FIREBASE_CONFIG.authDomain,
+        rejectedScriptUrl: '',
+        redirectAttempted: false,
+        occurredAt: ''
+    });
+    exposeBridge();
+}
+
+function readAdminRedirectAttempts() {
+    try {
+        const value = Number.parseInt(sessionStorage.getItem(ADMIN_GOOGLE_REDIRECT_ATTEMPTS) || '0', 10);
+        return Number.isFinite(value) ? Math.max(0, value) : 0;
+    } catch (error) {
+        return 0;
+    }
+}
+
+function clearAdminRedirectState() {
+    try {
+        sessionStorage.removeItem(ADMIN_GOOGLE_REDIRECT_MARKER);
+        sessionStorage.removeItem(ADMIN_GOOGLE_REDIRECT_ATTEMPTS);
+    } catch (error) {}
+}
+
+async function beginAdminGoogleRedirect(provider, sourceError) {
+    if (typeof signInWithRedirect !== 'function') throw sourceError;
+    const attempts = readAdminRedirectAttempts();
+    if (attempts >= 1) {
+        const loopError = new Error('Google 리디렉션 인증 결과를 확인하지 못했습니다. 브라우저의 사이트 데이터 차단 또는 OAuth 리디렉션 URI 설정을 확인해주세요.');
+        loopError.code = 'auth/redirect-loop-prevented';
+        loopError.diagnostics = recordAdminAuthDiagnostics(loopError, { redirectAttempted: true });
+        clearAdminRedirectState();
+        throw loopError;
+    }
+    try {
+        sessionStorage.setItem(ADMIN_GOOGLE_REDIRECT_MARKER, normalizeAdminAuthCode(sourceError));
+        sessionStorage.setItem(ADMIN_GOOGLE_REDIRECT_ATTEMPTS, String(attempts + 1));
+    } catch (storageError) {}
+    recordAdminAuthDiagnostics(sourceError, { redirectAttempted: true });
+    await signInWithRedirect(bridgeState.auth, provider);
+    return Object.freeze({ redirecting: true, providerId: 'google.com' });
+}
+
 async function signInAdminWithGoogle() {
     if (!bridgeState.auth) throw new Error('Firebase Auth가 초기화되지 않았습니다.');
     const current = bridgeState.auth.currentUser;
@@ -296,12 +405,16 @@ async function signInAdminWithGoogle() {
         throw new Error('Firebase Google 로그인 모듈이 준비되지 않았습니다.');
     }
     await setPersistence(bridgeState.auth, browserSessionPersistence);
+    bridgeState.auth.useDeviceLanguage?.();
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
+    clearAdminAuthDiagnostics();
     try {
         const credential = await signInWithPopup(bridgeState.auth, provider);
         bridgeState.user = credential.user;
         bridgeState.authReady = true;
+        clearAdminRedirectState();
+        clearAdminAuthDiagnostics();
         return Object.freeze({
             uid: credential.user.uid,
             email: limitText(credential.user.email || '', 160),
@@ -311,21 +424,26 @@ async function signInAdminWithGoogle() {
             redirecting: false
         });
     } catch (error) {
-        const code = String(error?.code || '');
-        if ((code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') && typeof signInWithRedirect === 'function') {
-            try { sessionStorage.setItem('foxbear.admin.google.redirect', '1'); } catch (storageError) {}
-            await signInWithRedirect(bridgeState.auth, provider);
-            return Object.freeze({ redirecting: true, providerId: 'google.com' });
+        const code = normalizeAdminAuthCode(error);
+        const redirectFallbackCodes = new Set([
+            'auth/popup-blocked',
+            'auth/operation-not-supported-in-this-environment',
+            'auth/network-request-failed'
+        ]);
+        if (redirectFallbackCodes.has(code)) {
+            return beginAdminGoogleRedirect(provider, error);
         }
-        const rawMessage = String(error?.message || 'Google 관리자 로그인에 실패했습니다.');
-        const trustedTypesBlocked = /TrustedScriptURL|Trusted Types|requires ['"]?TrustedScriptURL|허용되지 않은 동적 스크립트 URL/i.test(rawMessage);
+        const rawMessage = sanitizeAdminAuthMessage(error);
+        const rejectedScriptUrl = String(globalThis.FoxBearTrustedTypesBootstrap?.getLastRejectedScriptUrl?.() || '');
+        const trustedTypesBlocked = Boolean(rejectedScriptUrl) || /TrustedScriptURL|Trusted Types|requires ['"]?TrustedScriptURL|허용되지 않은 동적 스크립트 URL/i.test(rawMessage);
         const normalized = new Error(limitText(
             trustedTypesBlocked
-                ? `브라우저 보안 정책이 Google 인증 스크립트를 차단했습니다. ${window.FoxBearTrustedTypesBootstrap?.getLastRejectedScriptUrl?.() || '차단 경로를 확인할 수 없습니다.'} 최신 버전으로 강력 새로고침한 뒤 다시 시도해주세요.`
+                ? `브라우저 보안 정책이 Google 인증 스크립트를 차단했습니다. ${rejectedScriptUrl || '차단 경로를 확인할 수 없습니다.'} 최신 버전으로 강력 새로고침한 뒤 다시 시도해주세요.`
                 : rawMessage,
             240
         ));
-        normalized.code = trustedTypesBlocked ? 'auth/trusted-types-blocked' : limitText(code, 100);
+        normalized.code = trustedTypesBlocked ? 'auth/trusted-types-blocked' : code;
+        normalized.diagnostics = recordAdminAuthDiagnostics(normalized);
         throw normalized;
     }
 }
@@ -1637,11 +1755,18 @@ async function bootFirebase() {
                 if (redirectResult?.user) {
                     bridgeState.user = redirectResult.user;
                     bridgeState.authReady = true;
-                    try { sessionStorage.removeItem('foxbear.admin.google.redirect'); } catch (storageError) {}
+                    clearAdminRedirectState();
+                    clearAdminAuthDiagnostics();
+                } else if (readAdminRedirectAttempts() > 0) {
+                    const missingResult = new Error('Google 로그인에서 돌아왔지만 인증 결과를 확인하지 못했습니다. OAuth 리디렉션 URI와 브라우저 사이트 데이터 허용 상태를 확인해주세요.');
+                    missingResult.code = 'auth/redirect-result-missing';
+                    recordAdminAuthDiagnostics(missingResult, { redirectAttempted: true });
+                    clearAdminRedirectState();
                 }
             } catch (error) {
-                bridgeState.error = limitText(error?.message || error, 300);
-                try { sessionStorage.removeItem('foxbear.admin.google.redirect'); } catch (storageError) {}
+                bridgeState.error = sanitizeAdminAuthMessage(error);
+                recordAdminAuthDiagnostics(error, { redirectAttempted: true });
+                clearAdminRedirectState();
             }
         }
         await signInGuest();

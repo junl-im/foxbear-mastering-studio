@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.45
+// FoxBear automatic incident reporter - v1.6.46
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.45-windows-release-gate-spark-hosting-no-app-check';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.45').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.46-google-auth-same-origin-network-recovery';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.46').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;

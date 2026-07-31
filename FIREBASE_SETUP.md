@@ -1,4 +1,4 @@
-# FoxBear Firebase 설정 가이드 - v1.6.45
+# FoxBear Firebase 설정 가이드 - v1.6.46
 
 ## Spark 무료 요금제 관리자 모니터링
 
@@ -14,9 +14,22 @@ Firebase Console에서 프로젝트 `foxbear-music`을 열고 다음 항목을 �
 4. Google 지원 이메일로 `mcwoogi@gmail.com` 선택
 5. `Authentication → Settings → Authorized domains`에서 실제 배포 도메인을 확인
 
-기본 Firebase Hosting 도메인인 `foxbear-music.web.app`, `foxbear-music.firebaseapp.com`은 일반적으로 자동 등록됩니다. 별도 도메인을 사용한다면 해당 도메인도 추가합니다.
+기본 Firebase Hosting 도메인인 `foxbear-music.web.app`, `foxbear-music.firebaseapp.com`은 일반적으로 자동 등록됩니다. 두 항목이 모두 실제 목록에 있는지 확인하고, 별도 도메인을 사용한다면 해당 도메인도 추가합니다.
 
-### 2. Spark 전용 배포
+### 2. Google OAuth 리디렉션 URI 등록
+
+v1.6.46은 현재 접속한 승인 Firebase Hosting 도메인을 `authDomain`으로 사용합니다. Google Cloud Console에서 `API 및 서비스 → 사용자 인증 정보`를 열고, Firebase Authentication이 사용하는 **OAuth 2.0 클라이언트 ID의 웹 애플리케이션** 항목을 선택합니다. 보통 이름에 `Web client` 또는 `auto created for Google Service`가 포함되어 있습니다.
+
+`승인된 리디렉션 URI`에 다음 두 주소를 모두 추가하고 저장합니다.
+
+```text
+https://foxbear-music.firebaseapp.com/__/auth/handler
+https://foxbear-music.web.app/__/auth/handler
+```
+
+`/__/auth/handler`까지 정확히 포함해야 합니다. 새 OAuth 클라이언트를 임의로 만들기보다 Firebase Google 제공업체가 사용 중인 기존 웹 클라이언트를 수정합니다.
+
+### 3. Spark 전용 배포
 
 프로젝트 최상위 폴더의 터미널에서 실행합니다.
 
@@ -33,7 +46,7 @@ npm run deploy:spark
 
 `deploy:spark`는 Hosting, Firestore Rules, Firestore Indexes만 배포합니다. Cloud Functions나 Secret Manager를 요청하지 않으므로 Blaze 업그레이드가 필요하지 않습니다.
 
-### 3. 관리자 Google UID 등록
+### 4. 관리자 Google UID 등록
 
 1. 배포된 사이트에서 `설정 → 관리자 모니터링`을 엽니다.
 2. `Google 계정으로 인증`을 누르고 `mcwoogi@gmail.com`으로 로그인합니다.
@@ -52,14 +65,16 @@ authProvider String   google.com
 
 Firestore Rules는 Google 로그인, 이메일 인증, 문서 UID, 문서 이메일, 인증 제공업체를 모두 확인합니다. 웹 클라이언트는 `siteAdmins` 문서를 생성하거나 수정할 수 없습니다.
 
-### 4. 확인
+### 5. 확인
 
 사이트를 새로고침한 뒤 다시 `설정 → 관리자 모니터링`에서 같은 Google 계정으로 로그인합니다. 등록이 정상이면 관리자 모니터가 열립니다. 관리자 화면의 `관리자 로그아웃`을 누르면 Google 세션이 종료되고 일반 익명 세션으로 자동 전환됩니다.
 
-### 5. 오류별 확인
+### 6. 오류별 확인
 
 - `operation-not-allowed`: Authentication에서 Google 제공업체가 꺼져 있습니다.
 - `unauthorized-domain`: Authentication의 Authorized domains에 현재 도메인이 없습니다.
+- `network-request-failed`: `siteAdmins` 문제가 아니라 Google/Firebase 인증 통신 단계입니다. v1.6.46은 한 번만 동일 출처 redirect 복구를 시도합니다. 계속 실패하면 화면에 표시되는 `host`, `authDomain`, 오류 코드를 확인하고 두 OAuth 리디렉션 URI 등록 여부를 점검합니다.
+- `redirect-result-missing` 또는 `redirect-loop-prevented`: OAuth 리디렉션 URI가 빠졌거나 브라우저가 사이트 저장소를 차단한 상태입니다.
 - 로그인은 됐지만 UID 등록 안내가 표시됨: `siteAdmins/{UID}` 문서 ID 또는 필드 타입을 확인합니다.
 - 권한 없음: 문서의 `email`이 로그인 이메일과 정확히 같고 `authProvider`가 `google.com`인지 확인합니다.
 

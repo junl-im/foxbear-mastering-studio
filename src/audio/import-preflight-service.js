@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.6.45 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.6.46 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
+    const VERSION = '1.6.46-google-auth-same-origin-network-recovery';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

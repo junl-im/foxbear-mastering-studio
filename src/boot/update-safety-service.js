@@ -3,8 +3,8 @@
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const PATCH_ID = BUILD_INFO.assetVersion ? `v${BUILD_INFO.assetVersion}` : 'v1.6.45-windows-release-gate-spark-hosting-no-app-check';
-    const EXPECTED_BOOT_KEY = BUILD_INFO.bootRevision || 'boot-sri-v1645-spark-hosting';
+    const PATCH_ID = BUILD_INFO.assetVersion ? `v${BUILD_INFO.assetVersion}` : 'v1.6.46-google-auth-same-origin-network-recovery';
+    const EXPECTED_BOOT_KEY = BUILD_INFO.bootRevision || 'boot-sri-v1646-google-auth';
     const BOOT_CRITICAL_RE = /(?:src\/boot\/runtime-health\.js|src\/boot\/performance-diagnostics\.js|src\/app\.js)$/;
     const LOCAL_ASSET_RE = /^(?:\.\/)?(?:src\/|assets\/|manifest\.webmanifest|sw\.js|vendor\/)/;
     const state = {
@@ -112,7 +112,7 @@
             return Object.freeze([
                 'Runtime Health 복구 패널에서 캐시 초기화 후 재시도를 실행합니다.',
                 '같은 문제가 반복되면 배포 서버/CDN이 최신 index.html과 JS를 같은 세대로 제공하는지 확인합니다.',
-                '직접 확인 시 app.js, performance-diagnostics.js, runtime-health.js의 h=boot-sri-v1645-spark-hosting와 SRI가 일치해야 합니다.'
+                '직접 확인 시 app.js, performance-diagnostics.js, runtime-health.js의 h=boot-sri-v1646-google-auth와 SRI가 일치해야 합니다.'
             ]);
         }
         if (active.level === 'warn') {

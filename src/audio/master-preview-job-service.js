@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.6.45 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.6.46 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
+    const VERSION = '1.6.46-google-auth-same-origin-network-recovery';
     let sequence = 0;
 
     function createFallbackAbortController() {

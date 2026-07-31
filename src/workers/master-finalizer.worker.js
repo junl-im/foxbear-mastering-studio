@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.45 - channel-specialized tone dynamics and fused safety scans.
+// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.46 - channel-specialized tone dynamics and fused safety scans.
 'use strict';
 
 self.onmessage = event => {

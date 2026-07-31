@@ -1,3 +1,17 @@
+# v1.6.46 release checklist
+
+- [x] `auth/network-request-failed` is handled before any `siteAdmins/{UID}` authorization claim.
+- [x] Approved Firebase Hosting domains resolve to same-origin `authDomain` values.
+- [x] Document and Hosting CSP permit both project Hosting origins for auth frames and connections.
+- [x] Popup network failure receives at most one redirect fallback attempt.
+- [x] Redirect loops and missing redirect results become explicit diagnostics.
+- [x] Diagnostics omit query strings, OAuth parameters, and tokens.
+- [x] App Check remains disabled and Trusted Types remains narrowly enforced.
+- [x] All 391 configured checks pass in bounded execution chunks.
+- [x] Both verified archives contain 690 entries and zero executable payloads.
+- [ ] Add both OAuth `/__/auth/handler` redirect URIs in the production Google OAuth client.
+- [ ] Deploy and verify real Google administrator login.
+
 # v1.6.45 release checklist
 
 - [x] The release gate does not directly spawn `npm.cmd` on Windows.

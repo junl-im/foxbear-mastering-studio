@@ -10,7 +10,7 @@ const appSource = fs.readFileSync('src/app.js', 'utf8');
 const contextSource = fs.readFileSync('src/audio/audio-context-manager.js', 'utf8');
 const downloadSource = fs.readFileSync('src/download/download-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.45');
+assert.strictEqual(pkg.version, '1.6.46');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1580_mobile_return_media_focus_smoke.js'));
 assert(appSource.includes("reason: 'visibility-hidden', ttlMs: 12 * 60 * 60 * 1000"));
@@ -33,7 +33,7 @@ function sourceBetween(source, startMarker, endMarker) {
 async function testInterruptedContextResumeDeduplication() {
   const listeners = new Map();
   const fakeWindow = {
-    FoxBearBuildInfo: { assetVersion: '1.6.45-windows-release-gate-spark-hosting-no-app-check' },
+    FoxBearBuildInfo: { assetVersion: '1.6.46-google-auth-same-origin-network-recovery' },
     addEventListener(type, handler) { listeners.set(type, handler); }
   };
   vm.runInNewContext(contextSource, {

@@ -1,3 +1,35 @@
+# FoxBear Status - v1.6.46
+
+## Current release
+
+- Product version: `1.6.46`
+- Build ID: `google-auth-same-origin-network-recovery`
+- Asset version: `1.6.46-google-auth-same-origin-network-recovery`
+- Service worker cache: `foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery`
+- Configured static/regression target: 391 checks.
+
+## Current focus
+
+- Recover Firebase `auth/network-request-failed` before the administrator document stage.
+- Keep Firebase Hosting auth helpers same-origin on the active approved project domain.
+- Retry popup transport failures once through redirect without allowing a loop.
+- Preserve query-free diagnostics and the existing no-App-Check policy.
+
+## Verified
+
+- Official configured QA: **391/391 passed** in bounded release-gate chunks.
+- Browser fixture preflight, Hosting payload hygiene, Functions syntax, metadata, SRI, dependency, and handoff checks passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution remains unavailable because Playwright/Chromium is not installed.
+- Full and overwrite ZIP packages: **690 entries each**, executable payloads: **0**.
+
+## Production deployment required
+
+- Add both Firebase Hosting `/__/auth/handler` URLs to the Firebase Google OAuth web client.
+- Keep both project Hosting domains in Firebase Authentication Authorized domains.
+- Run `npm run check:release` and `npm run deploy:spark`.
+- Clear site data once, then retry Google administrator authentication.
+
 # FoxBear Status - v1.6.45
 
 ## Current release
@@ -324,10 +356,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.45`
-- Build ID: `windows-release-gate-spark-hosting-no-app-check`
-- Asset version: `1.6.45-windows-release-gate-spark-hosting-no-app-check`
-- Service worker cache: `foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check`
+- Product version: `1.6.46`
+- Build ID: `google-auth-same-origin-network-recovery`
+- Asset version: `1.6.46-google-auth-same-origin-network-recovery`
+- Service worker cache: `foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery`
 
 # FoxBear Status - v1.6.32
 

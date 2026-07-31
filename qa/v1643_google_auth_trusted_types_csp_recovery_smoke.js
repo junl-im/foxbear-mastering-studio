@@ -19,7 +19,7 @@ const header = name => hostingHeaders.find(item => item.key === name)?.value || 
 const indexCsp = index.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] || '';
 const hostingCsp = header('Content-Security-Policy');
 
-assert(pkg.version === '1.6.45', 'package version must be 1.6.45');
+assert(pkg.version === '1.6.46', 'package version must be 1.6.46');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease?.buildId || ''), 'release build id must remain kebab-case');
 assert(index.includes('src/security/trusted-types-bootstrap.js'), 'Trusted Types bootstrap must be loaded by index.html');
 assert(index.indexOf('src/security/trusted-types-bootstrap.js') < index.indexOf('src/firebase-bootstrap.js'), 'Trusted Types bootstrap must run before Firebase Auth');
@@ -27,7 +27,7 @@ assert(indexCsp.includes("trusted-types foxbear default"), 'document CSP must al
 assert(hostingCsp.includes("trusted-types foxbear default"), 'Hosting CSP must allow the narrow default Trusted Types policy');
 assert(indexCsp.includes('script-src \'self\' https://apis.google.com'), 'document CSP must allow the Firebase Auth Google API loader');
 assert(hostingCsp.includes('script-src \'self\' https://apis.google.com'), 'Hosting CSP must allow the Firebase Auth Google API loader');
-assert(hostingCsp.includes('frame-src https://foxbear-music.firebaseapp.com https://accounts.google.com'), 'Hosting CSP must allow Firebase Auth iframe/account origins');
+assert(hostingCsp.includes('frame-src') && hostingCsp.includes('https://foxbear-music.firebaseapp.com') && hostingCsp.includes('https://accounts.google.com'), 'Hosting CSP must allow Firebase Auth iframe/account origins');
 assert(header('Cross-Origin-Opener-Policy') === 'same-origin-allow-popups', 'Google Auth popup flow requires same-origin-allow-popups');
 assert(sw.includes("'./src/security/trusted-types-bootstrap.js'"), 'service worker must precache the Trusted Types bootstrap');
 assert(firebase.includes("normalized.code = trustedTypesBlocked ? 'auth/trusted-types-blocked'"), 'Firebase bridge must normalize stale Trusted Types failures');

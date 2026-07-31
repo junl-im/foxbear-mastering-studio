@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.6.46
+
+## v1.6.46 Google administrator authentication network recovery
+
+- Treats the screenshot error as Firebase `auth/network-request-failed`, which occurs before `siteAdmins/{UID}` authorization.
+- Uses the current approved Firebase Hosting domain as `authDomain` so the authentication helper is same-origin.
+- Falls back from popup network failure to one fenced redirect attempt.
+- Shows the real Firebase error code, page host, and auth domain instead of a generic network message.
+- Keep App Check disabled and authorize both Firebase Hosting OAuth handler URIs described in `FIREBASE_SETUP.md`.
+- Deploy with `npm run deploy:spark` after `npm run check:release`.
+
 # FoxBear AI Mastering Studio Pro v1.6.45
 
 ## v1.6.45 Windows/Spark deployment recovery

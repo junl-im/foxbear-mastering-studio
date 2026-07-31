@@ -1,3 +1,12 @@
+# v1.6.46 - Google Auth Same-Origin Network Recovery
+
+- Uses the active approved Firebase Hosting hostname as `authDomain`, keeping the authentication helper same-origin on `foxbear-music.web.app` and `foxbear-music.firebaseapp.com`.
+- Adds both Hosting origins to synchronized CSP frame and connection allowlists.
+- Retries `auth/network-request-failed`, blocked popup, and unsupported popup environments once through redirect authentication.
+- Prevents redirect loops and reports a missing redirect result explicitly.
+- Preserves safe diagnostics with error code, page origin, auth domain, online state, and query-free Trusted Types rejection path only.
+- Adds dedicated regression coverage, raising the configured target to 391 checks.
+
 # v1.6.45 - Windows Release Gate, Spark Hosting Hygiene, and No-App-Check Policy
 
 - Fixes Windows `spawnSync npm.cmd EINVAL` by executing the npm CLI JavaScript entry with the active Node runtime.

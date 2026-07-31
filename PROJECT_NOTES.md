@@ -1,3 +1,11 @@
+# v1.6.46 project notes
+
+- `auth/network-request-failed` occurs before the `siteAdmins/{UID}` read; do not change administrator documents to diagnose this stage.
+- Keep `authDomain` limited to the two approved Firebase Hosting domains and use the current host when it matches.
+- Keep one redirect fallback attempt only; never allow an authentication redirect loop.
+- Diagnostics may contain error code and origins but must not retain query strings, OAuth parameters, ID tokens, or account credentials.
+- Keep App Check disabled and preserve the narrow Trusted Types gapi allowlist.
+
 # v1.6.45 project notes
 
 - `cmd.exe` is not a FoxBear source file and must never be committed, hosted, or archived.

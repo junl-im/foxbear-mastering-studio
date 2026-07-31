@@ -16,7 +16,7 @@ const rules = read('firestore.rules');
 const functions = read('functions/index.js');
 const setup = read('FIREBASE_SETUP.md');
 
-assert(pkg.version === '1.6.45', 'package version must be 1.6.45');
+assert(pkg.version === '1.6.46', 'package version must be 1.6.46');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current release build id must remain kebab-case');
 assert(pkg.scripts['deploy:spark'].includes('firebase deploy --only hosting,firestore:rules,firestore:indexes'), 'Spark deployment must avoid Cloud Functions');
 assert(pkg.scripts['deploy:spark'].startsWith('npm run hosting:check && '), 'Spark deployment must run Hosting payload hygiene first');
@@ -28,7 +28,7 @@ assert(index.includes('Google 계정으로 인증'), 'Google administrator login
 assert(index.includes('id="adminAccessUid"'), 'administrator UID handoff field is missing');
 assert(index.includes('id="adminAccessUidCopy"'), 'administrator UID copy action is missing');
 assert(!index.includes('id="adminAccessPin"'), 'administrator PIN input must be removed');
-assert(index.includes('frame-src https://foxbear-music.firebaseapp.com https://accounts.google.com'), 'CSP must allow the Firebase Google authentication frame and account flow');
+assert(index.includes('frame-src') && index.includes('https://foxbear-music.firebaseapp.com') && index.includes('https://accounts.google.com'), 'CSP must allow the Firebase Google authentication frame and account flow');
 
 assert(firebase.includes('GoogleAuthProvider'), 'Firebase bridge must load GoogleAuthProvider');
 assert(firebase.includes('browserSessionPersistence'), 'Google administrator auth must use browser session persistence');

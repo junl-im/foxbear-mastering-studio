@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
+    const FALLBACK_VERSION = '1.6.46-google-auth-same-origin-network-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

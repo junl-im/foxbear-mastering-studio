@@ -1,8 +1,8 @@
-// FoxBear memory guard service v1.6.45 - release-after-encode PCM retention policy and diagnostics
+// FoxBear memory guard service v1.6.46 - release-after-encode PCM retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const VERSION = 'v1.6.45-windows-release-gate-spark-hosting-no-app-check';
+    const VERSION = 'v1.6.46-google-auth-same-origin-network-recovery';
     const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 

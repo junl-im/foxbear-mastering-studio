@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
+    const SERVICE_VERSION = '1.6.46-google-auth-same-origin-network-recovery';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

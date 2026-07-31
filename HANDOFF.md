@@ -1,3 +1,29 @@
+# Handoff - v1.6.46
+
+- Build: `google-auth-same-origin-network-recovery`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- The displayed `auth/network-request-failed` occurs before any `siteAdmins/{UID}` read.
+- Keep `authDomain` restricted to the active approved FoxBear Firebase Hosting domain.
+- Keep the popup-to-redirect recovery limited to one attempt and preserve redirect-loop fencing.
+- Keep auth diagnostics limited to code, origins, online state, and query-free rejected script path.
+- App Check remains intentionally disabled.
+- Preserve the narrow Firebase Auth gapi Trusted Types allowlist.
+- Add both OAuth `/__/auth/handler` URIs documented in `FIREBASE_SETUP.md` before production verification.
+- Spark deployments use `npm run deploy:spark`.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.46`
+- Build ID: `google-auth-same-origin-network-recovery`
+- Asset version: `1.6.46-google-auth-same-origin-network-recovery`
+- Service worker cache: `foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery`
+- Configured static/regression target: 391 checks.
+- Final configured checks: `391/391` passed in bounded release-gate chunks; metadata, SRI, handoff, browser preflight, Hosting payload hygiene, and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real Firebase production Google login remains an external environment gate.
+- Final full and overwrite archives contain `690` entries each, contain no executable payloads, and pass compressed-data integrity checks.
+
 # Handoff - v1.6.45
 
 - Build: `windows-release-gate-spark-hosting-no-app-check`.

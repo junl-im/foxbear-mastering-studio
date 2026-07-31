@@ -1,8 +1,8 @@
-// FoxBear audio import capability service - v1.6.45
+// FoxBear audio import capability service - v1.6.46
 (function attachFoxBearAudioImportCapabilityService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
+    const SERVICE_VERSION = '1.6.46-google-auth-same-origin-network-recovery';
     const FORMAT_DEFINITIONS = Object.freeze([
         Object.freeze({ id: 'wav', label: 'WAV', extensions: ['.wav', '.wave'], mimes: ['audio/wav', 'audio/x-wav'], tier: 'core' }),
         Object.freeze({ id: 'mp3', label: 'MP3', extensions: ['.mp3', '.mpeg', '.mpga'], mimes: ['audio/mpeg'], tier: 'core' }),

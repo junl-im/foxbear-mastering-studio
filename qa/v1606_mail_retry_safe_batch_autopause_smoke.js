@@ -26,7 +26,7 @@ const orchestratorSource = read('src/audio/mastering-orchestrator-service.js');
 const hudSource = read('src/ui/bulk-import-hud-view.js');
 const css = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.45');
+assert.strictEqual(pkg.version, '1.6.46');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'release build ID must remain valid kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:retryOwnIncidentReport'));
 assert(functionsSource.includes('exports.retryOwnIncidentReport = onCall'));
@@ -50,12 +50,12 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.get(key) || null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.45' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.46' } }, visibilityState: 'visible',
     getElementById: () => null, addEventListener() {},
     createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.45', assetVersion: '1.6.45-windows-release-gate-spark-hosting-no-app-check' }
+  FoxBearBuildInfo: { productVersion: '1.6.46', assetVersion: '1.6.46-google-auth-same-origin-network-recovery' }
 };
 reporterSandbox.window = reporterSandbox;
 reporterSandbox.globalThis = reporterSandbox;

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.45-windows-release-gate-spark-hosting-no-app-check';
+  const VIEW_VERSION = '1.6.46-google-auth-same-origin-network-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

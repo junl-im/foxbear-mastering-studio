@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.46
+
+## Configured target
+
+- Static and behavioral checks: 391
+- New syntax targets: `src/firebase-bootstrap.js`, `src/ui/admin-access-controller.js`
+- New regression: `qa/v1646_google_auth_same_origin_network_recovery_smoke.js`
+
+## Focus
+
+- Firebase Hosting same-origin `authDomain` selection
+- `auth/network-request-failed` popup-to-redirect recovery
+- Redirect-loop fencing and missing-result diagnostics
+- Synchronized auth frame/connection CSP
+- Query-free error diagnostics with App Check still disabled
+
+## Final result
+
+- Official configured checks: `391/391` passed in bounded release-gate chunks.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax: passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this environment.
+- Real Firebase production Google login remains an external environment gate.
+- Final release and overwrite archives contain `690` entries each, contain no executable payloads, and pass compressed-data integrity checks.
+
 # FoxBear QA Report - v1.6.45
 
 ## Configured target

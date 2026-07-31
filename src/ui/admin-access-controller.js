@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.45 - Spark-compatible Google administrator access controller
+// FoxBear AI Mastering Studio Pro v1.6.46 - Spark-compatible Google administrator access controller
 'use strict';
 
 (function attachFoxBearAdminAccessController(global) {
@@ -165,7 +165,12 @@
         }
 
         function prepare() {
-            setStatus('Google 관리자 계정 인증 대기', 'neutral');
+            const diagnostics = global.FoxBearFirebase?.getAdminAuthDiagnostics?.();
+            if (diagnostics?.code) {
+                setStatus(formatFailure({ code: diagnostics.code, message: diagnostics.message, diagnostics }), 'error');
+            } else {
+                setStatus('Google 관리자 계정 인증 대기', 'neutral');
+            }
             updateIdentity({});
         }
 
@@ -207,12 +212,26 @@
         }
 
         function formatFailure(error) {
-            const code = String(error?.code || '').replace(/^auth\//, '');
+            const fullCode = String(error?.code || 'auth/unknown');
+            const code = fullCode.replace(/^auth\//, '');
+            const diagnostics = error?.diagnostics || global.FoxBearFirebase?.getAdminAuthDiagnostics?.() || {};
+            const pageHost = (() => {
+                try { return new URL(diagnostics.pageOrigin || global.location?.origin || '').host; } catch (parseError) { return ''; }
+            })();
+            const authDomain = String(diagnostics.authDomain || global.FoxBearFirebase?.authDomain || '');
+            const context = [
+                pageHost ? `host=${pageHost}` : '',
+                authDomain ? `authDomain=${authDomain}` : '',
+                diagnostics.online === false ? '브라우저 오프라인' : ''
+            ].filter(Boolean).join(' · ');
+            const suffix = context ? ` (${fullCode} · ${context})` : ` (${fullCode})`;
             if (code === 'popup-closed-by-user' || code === 'cancelled-popup-request') return 'Google 로그인이 취소되었습니다.';
-            if (code === 'unauthorized-domain') return 'Firebase Authentication의 승인된 도메인에 현재 사이트 주소를 추가해주세요.';
-            if (code === 'operation-not-allowed') return 'Firebase Authentication에서 Google 로그인 제공업체를 활성화해주세요.';
-            if (code === 'network-request-failed') return '네트워크 연결을 확인한 뒤 다시 시도해주세요.';
-            return error?.message || 'Google 관리자 인증에 실패했습니다.';
+            if (code === 'unauthorized-domain') return `Firebase Authentication 승인 도메인에 현재 사이트 주소를 추가해주세요.${suffix}`;
+            if (code === 'operation-not-allowed') return `Firebase Authentication에서 Google 로그인 제공업체를 활성화해주세요.${suffix}`;
+            if (code === 'network-request-failed') return `Google 인증 서버와 통신하지 못했습니다. 동일 출처 리디렉션 복구도 완료되지 않았습니다.${suffix}`;
+            if (code === 'redirect-result-missing' || code === 'redirect-loop-prevented') return `${error?.message || 'Google 리디렉션 인증 결과를 확인하지 못했습니다.'}${suffix}`;
+            if (code === 'web-storage-unsupported') return `브라우저가 인증용 사이트 저장소를 차단했습니다. 쿠키·사이트 데이터 차단 설정을 확인해주세요.${suffix}`;
+            return `${error?.message || 'Google 관리자 인증에 실패했습니다.'}${suffix}`;
         }
 
         async function submit(event = null) {
@@ -250,7 +269,16 @@
                 global.requestAnimationFrame?.(() => openMonitor());
                 return true;
             } catch (error) {
-                setStatus(formatFailure(error), 'error');
+                const diagnostics = error?.diagnostics || global.FoxBearFirebase?.getAdminAuthDiagnostics?.();
+                console.warn('FoxBear Google administrator authentication failed:', {
+                    code: error?.code || diagnostics?.code || 'auth/unknown',
+                    message: error?.message || diagnostics?.message || '',
+                    pageOrigin: diagnostics?.pageOrigin || global.location?.origin || '',
+                    authDomain: diagnostics?.authDomain || global.FoxBearFirebase?.authDomain || '',
+                    online: diagnostics?.online !== false,
+                    rejectedScriptUrl: diagnostics?.rejectedScriptUrl || ''
+                });
+                setStatus(formatFailure({ code: error?.code, message: error?.message, diagnostics }), 'error');
                 return false;
             } finally {
                 state.adminUnlockBusy = false;
@@ -331,5 +359,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.6.45-windows-release-gate-spark-hosting-no-app-check', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.6.46-google-auth-same-origin-network-recovery', create });
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.45",
+  "version": "1.6.46",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with Spark-compatible Google administrator authentication and Firebase gapi module Trusted Types recovery.",
+  "description": "FoxBear AI Mastering Studio Pro with Spark-compatible Google administrator authentication, same-origin authDomain recovery, and safe network diagnostics.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.45-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.45-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.46-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.46-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -427,15 +427,16 @@
     "node qa/v1642_spark_google_admin_auth_smoke.js",
     "node qa/v1643_google_auth_trusted_types_csp_recovery_smoke.js",
     "node qa/v1644_google_auth_gapi_module_trusted_types_recovery_smoke.js",
-    "node qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js"
+    "node qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js",
+    "node qa/v1646_google_auth_same_origin_network_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "windows-release-gate-spark-hosting-no-app-check",
-    "assetVersion": "1.6.45-windows-release-gate-spark-hosting-no-app-check",
-    "cacheName": "foxbear-shell-v1.6.45-windows-release-gate-spark-hosting-no-app-check",
-    "bootRevision": "boot-sri-v1645-spark-hosting",
-    "updateSafetyRevision": "update-safety-v1645-spark-hosting",
-    "serviceWorkerRevision": "sw-v1645-spark-hosting"
+    "buildId": "google-auth-same-origin-network-recovery",
+    "assetVersion": "1.6.46-google-auth-same-origin-network-recovery",
+    "cacheName": "foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery",
+    "bootRevision": "boot-sri-v1646-google-auth",
+    "updateSafetyRevision": "update-safety-v1646-google-auth",
+    "serviceWorkerRevision": "sw-v1646-google-auth"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"
