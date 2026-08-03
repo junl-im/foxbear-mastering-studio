@@ -1,3 +1,167 @@
+# FoxBear QA Report - v1.6.56
+
+## Configured target
+
+- Static and behavioral checks: 405
+- Updated syntax targets: `src/app.js`, `src/audio/playback-transition-service.js`, `src/audio/playback-source-recovery-service.js`, `src/audio/playback-lifecycle-recovery-service.js`, `src/state/track-lifecycle-service.js`
+- New regression: `qa/v1656_playback_blob_source_resilience_smoke.js`
+
+## Focus
+
+- Blob URL source recreation from retained File/Blob data
+- Deferred retirement of still-owned mastered URLs
+- Playback position and intent restoration after source repair
+- Stale near-zero volume reconciliation after lifecycle return
+- Existing post-master, mobile focus, rapid transport, download, Kakao, and PWA compatibility
+
+## Final result
+
+- Official configured static and behavioral checks: `405/405` passed in bounded slices (`135/135`, `135/135`, and `135/135`).
+- Dedicated v1.6.56 source resilience regression passed.
+- Historical v1.6.52 post-master readiness, v1.6.53 crossfade settlement, v1.6.54 intent arbitration, and v1.6.55 mobile focus/resume regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real Android/iOS memory-pressure, long-idle, PWA, and KakaoTalk WebView tests remain external device verification gates.
+- Final release and overwrite archives contain `715` entries each and pass compressed-data integrity and executable-payload checks.
+
+# FoxBear QA Report - v1.6.55
+
+## Configured target
+
+- Static and behavioral checks: 403
+- Updated syntax targets: `src/app.js`, `src/audio/playback-transition-service.js`, `src/audio/playback-lifecycle-recovery-service.js`
+- New regression: `qa/v1655_mobile_playback_focus_resume_smoke.js`
+
+## Focus
+
+- Mobile background playback resume reconciliation
+- Stale playing-intent cleanup after blocked autoplay
+- Visible audio-focus and route-change pause recovery
+- Interrupted Dock crossfade cleanup before lifecycle return
+- Existing post-master, rapid transport, download, Kakao, and PWA compatibility
+
+## Final result
+
+- Official configured static and behavioral checks: `403/403` passed in bounded slices (`135/135`, `135/135`, and `133/133`).
+- Dedicated v1.6.55 lifecycle regression passed.
+- Historical v1.5.80 mobile return, v1.5.82 mastering cancellation, v1.6.52 post-master readiness, v1.6.53 crossfade settlement, and v1.6.54 intent-arbitration regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real Android/iOS phone-call, wired headset, Bluetooth, PWA return, and KakaoTalk WebView focus transitions remain external device verification gates.
+- Final release and overwrite archives contain `712` entries each and pass compressed-data integrity and executable-payload checks.
+
+# FoxBear QA Report - v1.6.54
+
+## Configured target
+
+- Static and behavioral checks: 401
+- Updated syntax targets: `src/app.js`, `src/audio/playback-transition-service.js`, `src/audio/playback-link-service.js`
+- New regression: `qa/v1654_playback_intent_arbitration_smoke.js`
+
+## Focus
+
+- Rapid Play/Pause last-intent preservation
+- Late `play()` completion suppression after a newer pause
+- Pending exclusive-preview cancellation
+- Background transport and Media Session intent continuity
+- Existing post-master readiness and crossfade settlement compatibility
+
+## Final result
+
+- Official configured static and behavioral checks: `401/401` passed in bounded slices (`134/134`, `134/134`, and `133/133`).
+- Dedicated v1.6.54 intent-arbitration regression passed.
+- Historical v1.5.78 transition race, v1.5.79 preview ownership, v1.5.80 mobile return, v1.6.52 post-master readiness, and v1.6.53 crossfade settlement regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real Android/iOS rapid transport tapping, background return, Media Session, and KakaoTalk WebView playback remain external device verification gates.
+- Final release and overwrite archives contain `709` entries each and pass compressed-data integrity and executable-payload checks.
+
+# FoxBear QA Report - v1.6.53
+
+## Configured target
+
+- Static and behavioral checks: 400
+- Updated syntax targets: `src/app.js`, `src/audio/playback-transition-service.js`
+- New regression: `qa/v1653_playback_crossfade_settlement_smoke.js`
+
+## Focus
+
+- Non-destructive readiness waiting after a user-gesture `play()`
+- Resolved-false Dock crossfade cleanup
+- Legacy player and crossfade-class retirement on every terminal path
+- Active-source-only fallback after thrown transition errors
+- Existing application line-budget preservation
+
+## Final result
+
+- Official configured static and behavioral checks: `400/400` passed in bounded slices (`134/134`, `133/133`, and `133/133`).
+- Dedicated v1.6.53 crossfade settlement regression and historical v1.5.78/v1.6.52 playback regressions passed.
+- Historical Dock, mobile return, download, PWA, service-worker, security, and incident-operation checks passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Final release and overwrite archives contain `707` entries each and pass compressed-data integrity and executable-payload checks.
+
+# FoxBear QA Report - v1.6.52
+
+## Configured target
+
+- Static and behavioral checks: 399
+- Updated syntax targets: `src/app.js`, `src/audio/playback-transition-service.js`
+- New syntax target: `src/audio/post-master-playback-recovery-service.js`
+- Strengthened regression: `qa/v1578_playback_transition_race_recovery_smoke.js`
+- New regression: `qa/v1652_post_master_playback_readiness_smoke.js`
+
+## Focus
+
+- Single-commit Dock player stability at mastering completion
+- Active-audio owner routing instead of stale first-child playback
+- Mastered Blob preload and delayed media readiness recovery
+- Detached-player and ended-media replay recovery
+- Audible-volume restoration after cancelled fades and crossfades
+
+## Final result
+
+- Official configured static and behavioral checks: `399/399` passed in bounded slices (`133/133`, `133/133`, and `133/133`).
+- Dedicated v1.6.52 playback-readiness regression and the strengthened transition-race regression passed.
+- Historical Dock playback, mobile return, preview ownership, download, cancellation, PWA, service-worker, and security regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real mobile background-return, KakaoTalk WebView, and immediate post-completion tapping remain device verification gates.
+- Final release and overwrite archives contain `705` entries each and pass compressed-data integrity and executable-payload checks.
+
+# FoxBear QA Report - v1.6.51
+
+## Configured target
+
+- Static and behavioral checks: 397
+- Updated syntax targets: `src/boot/kakao-entry-notice.js`, `src/download/download-service.js`
+- Updated regression: `qa/v1650_kakao_center_entry_notice_smoke.js`
+- New regression: `qa/v1651_download_conversion_concurrency_smoke.js`
+
+## Focus
+
+- Kakao first-touch input consumption and background-control protection
+- Notice singleton, orphan cleanup, and pagehide lifecycle release
+- Identical conversion coalescing with progress fan-out
+- Independent subscriber cancellation and last-subscriber worker abort
+- Source Blob snapshot isolation during master replacement
+
+## Final result
+
+- Official configured static and behavioral checks: `397/397` passed in bounded slices (`133/133`, `132/132`, and `132/132`).
+- Dedicated v1.6.51 concurrency regression and the strengthened v1.6.50 Kakao notice regression passed.
+- Historical download format, cache, Blob validation, cancellation, worker, PWA, service-worker, and security regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real KakaoTalk Android/iOS first-touch isolation and concurrent request behavior remain external verification gates.
+- Final release and overwrite archives contain `702` entries each and pass compressed-data integrity and executable-payload checks.
+
 # FoxBear QA Report - v1.6.50
 
 ## Configured target

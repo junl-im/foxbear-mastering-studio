@@ -1,3 +1,48 @@
+# GitHub Desktop Handoff - v1.6.56
+
+## Apply
+
+1. Fetch origin before applying the overwrite ZIP.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Run the release gates, review changes, commit, and Push origin.
+4. Run `npm run deploy:spark` so Hosting receives the synchronized cache generation.
+
+## Release focus
+
+- Blob audio source recreation from retained File/Blob data
+- Playback position and last-intent preservation
+- Deferred previous-master URL retirement
+- Near-zero stale volume reconciliation
+
+## Production verification
+
+- Leave mastered playback idle or backgrounded, return, and confirm the next Play action remains effective.
+- Re-master while an older mastered source is still playing and confirm it is not interrupted before the player switches.
+- Repeat in KakaoTalk, Chrome, Safari, and installed PWA environments.
+
+# GitHub Desktop Handoff - v1.6.52
+
+## Apply
+
+1. Fetch origin before applying the overwrite ZIP.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Run the release gates, review changes, commit, and Push origin.
+4. Run `npm run deploy:spark` so Hosting receives the same cache generation.
+
+## Release focus
+
+- Kakao notice first-touch input safety and duplicate-execution cleanup
+- Shared identical download conversion work
+- Independent cancellation for each waiting dialog/action
+- Source Blob snapshot isolation during master replacement
+
+## Production verification
+
+- Open FoxBear in KakaoTalk and tap directly above an upload or download control; confirm only the notice closes.
+- Reload and confirm only one notice exists and it still auto-closes after eight seconds.
+- Start two identical alternate-format requests and verify one conversion serves both.
+- Cancel one waiting request and confirm the other completes.
+
 # GitHub Desktop Handoff - v1.6.50
 
 ## Apply

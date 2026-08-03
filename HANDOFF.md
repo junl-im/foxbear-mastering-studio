@@ -1,3 +1,81 @@
+# Handoff - v1.6.56
+
+- Build: `playback-blob-source-resilience`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep source repair backed by the retained File, mastered Blob, or highlight Blob; never synthesize a new audio payload.
+- Preserve playback position and resume only when the latest transport intent is still playing.
+- Do not immediately revoke a previous mastered URL while a connected player still owns it.
+- Keep recovery attempts bounded and release all deferred URLs when the track is removed.
+- Keep the recovery implementation in `src/audio/playback-source-recovery-service.js` so `src/app.js` remains below its historical line budget.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.56`
+- Build ID: `playback-blob-source-resilience`
+- Asset version: `1.6.56-playback-blob-source-resilience`
+- Service worker cache: `foxbear-shell-v1.6.56-playback-blob-source-resilience`
+- Configured static/regression target: 405 checks.
+- Final configured checks: `405/405` passed in bounded slices (`135/135`, `135/135`, and `135/135`).
+- Dedicated source resilience and historical post-master, crossfade, rapid-intent, and mobile-focus regressions passed.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real Android/iOS memory-pressure, long-idle, PWA, and KakaoTalk WebView checks remain external device gates.
+- Final full and overwrite archives contain `715` entries each and pass compressed-data integrity and executable-payload checks.
+
+# Handoff - v1.6.52
+
+- Build: `post-master-playback-readiness-recovery`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Do not restore the `master-complete` forced Dock refresh after the 100% render; the committed player must survive the first user tap.
+- Resolve playback ownership from the active audio element rather than the first player child during crossfade cleanup.
+- Keep mastered/highlight Blob preload, the bounded 2.2-second readiness window, ended-media rewind, and source-error recovery together.
+- Preserve transition generation fencing and restore the remembered audible volume when a fade is cancelled.
+- Keep the recovery implementation in `src/audio/post-master-playback-recovery-service.js` so `src/app.js` remains within the line-budget contract.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.52`
+- Build ID: `post-master-playback-readiness-recovery`
+- Asset version: `1.6.52-post-master-playback-readiness-recovery`
+- Service worker cache: `foxbear-shell-v1.6.52-post-master-playback-readiness-recovery`
+- Configured static/regression target: 399 checks.
+- Final configured checks: `399/399` passed in bounded slices (`133/133`, `133/133`, and `133/133`).
+- Dedicated post-master playback readiness and strengthened transition-race regressions passed with historical Dock, mobile return, preview ownership, download, PWA, service-worker, and security coverage.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real Android/iOS immediate post-completion tapping, background return, and KakaoTalk WebView playback remain external environment gates.
+- Final full and overwrite archives contain `705` entries each and pass compressed-data integrity and executable-payload checks.
+
+# Handoff - v1.6.51
+
+- Build: `stability-concurrency-input-guard`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep the Kakao notice overlay input-blocking until its dismissal pointer finishes; do not restore background click-through.
+- Keep duplicate-script singleton and orphan-notice cleanup behavior.
+- Keep conversion jobs keyed by exact source Blob, source format, and requested format.
+- Do not pass an individual caller signal directly to a shared worker job.
+- Abort shared decode/encode only when the final subscriber leaves.
+- Preserve source snapshot isolation so a replaced master cannot receive stale variant cache data.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.51`
+- Build ID: `stability-concurrency-input-guard`
+- Asset version: `1.6.51-stability-concurrency-input-guard`
+- Service worker cache: `foxbear-shell-v1.6.51-stability-concurrency-input-guard`
+- Configured static/regression target: 397 checks.
+- Final configured checks: `397/397` passed in bounded slices (`133/133`, `132/132`, and `132/132`).
+- Dedicated Kakao input-safety and shared conversion concurrency regressions passed with historical download, cancellation, cache, PWA, service-worker, and security coverage.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real KakaoTalk Android/iOS gesture and concurrent download verification remains an external environment gate.
+- Final full and overwrite archives contain `702` entries each and pass compressed-data integrity and executable-payload checks.
+
 # Handoff - v1.6.50
 
 - Build: `kakao-centered-entry-notice`.

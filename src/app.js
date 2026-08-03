@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.50 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.6.56 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -22,7 +22,7 @@ const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 let adminAccessController = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.50';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.56';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -66,7 +66,7 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.50-kakao-centered-entry-notice'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1650-kakao-notice'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.56-playback-blob-source-resilience'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1656-playback-source'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
@@ -356,8 +356,11 @@ function isBenignPlaybackRejection(error) {
 }
 function getPlaybackTransitionService() { return window.FoxBearPlaybackTransitionService || null; }
 function getInAppAudioCompatibility() { return getPlaybackTransitionService()?.getInAppCompatibility?.() || { restricted: false, kakao: false, label: '일반 브라우저' }; }
+let playbackSourceRecoveryController = null;
+function getPlaybackSourceRecoveryController() { if (playbackSourceRecoveryController) return playbackSourceRecoveryController; const factory = window.FoxBearPlaybackSourceRecoveryService?.createController; if (!factory) return null; playbackSourceRecoveryController = factory({ document, getTrackById: trackId => state.tracks.find(track => String(track?.id || '') === String(trackId || '')) || null, getSelectedTrack, getTransitionService: getPlaybackTransitionService, createObjectURL: blob => URL.createObjectURL(blob), revokeObjectURL: url => URL.revokeObjectURL(url), onTrackUrlReplaced: (_track, mode, nextUrl, previousUrl, audio) => { const root = el.bottomPreviewPlayer; if (root?.dataset?.previewKey && previousUrl && root.dataset.previewKey.includes(previousUrl)) root.dataset.previewKey = root.dataset.previewKey.replace(previousUrl, nextUrl); if (audio?.dataset) audio.dataset.sourceRecoveryMode = mode; } }); return playbackSourceRecoveryController; }
+function retirePlaybackObjectUrl(track, url) { return getPlaybackSourceRecoveryController()?.retireObjectUrl?.(track, url) || false; }
 function configurePreviewAudioElement(audio) { return getPlaybackTransitionService()?.configureAudioElement?.(audio) || audio; }
-function rememberAudioTargetVolume(audio) { return getPlaybackTransitionService()?.rememberTargetVolume?.(audio) ?? 1; }
+function rememberAudioTargetVolume(audio) { return getPlaybackTransitionService()?.rememberTargetVolume?.(audio) ?? 1; } function isAudioPlaybackIntended(audio) { const service = getPlaybackTransitionService(); return typeof service?.isPlaybackIntended === 'function' ? service.isPlaybackIntended(audio) : Boolean(audio && !audio.paused && !audio.ended); }
 function cancelAudioFade(audio) { return getPlaybackTransitionService()?.cancelFade?.(audio); }
 function cancelAudioPlaybackRequest(audio, reason = 'dispose') { const service = getPlaybackTransitionService(); if (service && typeof service.cancelPlaybackRequest === 'function') return service.cancelPlaybackRequest(audio, { pause: true, reason }); cancelAudioFade(audio); try { audio?.pause?.(); } catch (error) {} return Boolean(audio); }
 function fadeAudioVolume(audio, toVolume = 1, durationMs = PLAYBACK_CROSSFADE_MS) {
@@ -459,7 +462,7 @@ function installPlaybackLinkStatusBridge() {
     return installed;
 }
 function registerPlaybackLinkedAudio(audio, meta = {}) { if (!audio) return null; try { window.FoxBearSpectrumVisualizer?.registerAudio?.(audio, meta); } catch (error) { console.warn('Spectrum audio registration failed:', error); } if (!FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.registerAudio !== 'function') return null; return FoxBearPlaybackLinkService.registerAudio(audio, meta); }
-function unregisterPlaybackLinkedAudio(audio, reason = 'dispose') { if (!audio) return false; let removed = cancelAudioPlaybackRequest(audio, reason); try { removed = window.FoxBearSpectrumVisualizer?.unregisterAudio?.(audio, reason) || removed; } catch (error) { console.warn('Spectrum audio cleanup failed:', error); } try { removed = FoxBearPlaybackLinkService?.unregisterAudio?.(audio, reason) || removed; } catch (error) { console.warn('Playback link cleanup failed:', error); } return removed; }
+function unregisterPlaybackLinkedAudio(audio, reason = 'dispose') { if (!audio) return false; getPlaybackSourceRecoveryController()?.releaseAudio?.(audio); let removed = cancelAudioPlaybackRequest(audio, reason); try { removed = window.FoxBearSpectrumVisualizer?.unregisterAudio?.(audio, reason) || removed; } catch (error) { console.warn('Spectrum audio cleanup failed:', error); } try { removed = FoxBearPlaybackLinkService?.unregisterAudio?.(audio, reason) || removed; } catch (error) { console.warn('Playback link cleanup failed:', error); } return removed; }
 function createSpectrumAnalyserTap(audioContext) {
     if (!audioContext || typeof audioContext.createAnalyser !== 'function') return null;
     const analyser = audioContext.createAnalyser();
@@ -1114,13 +1117,13 @@ function sendRealtimePreviewToDock(track, audio) {
         mode: 'original',
         localSec: position,
         absoluteSec: position,
-        playing: !audio.paused && !audio.ended,
+        playing: typeof audio._foxbearDesiredPlaying === 'boolean' ? audio._foxbearDesiredPlaying && !audio.ended : !audio.paused && !audio.ended,
         translationMode: state.previewTranslationMode || 'studio',
         capturedAt: Date.now()
     };
     state.bottomPreviewMode = 'original';
     state.bottomPreviewTrackId = track.id;
-    renderBottomPreviewDock({ autoPlay: !audio.paused && !audio.ended, keepPlaying: !audio.paused && !audio.ended });
+    renderBottomPreviewDock({ autoPlay: isAudioPlaybackIntended(audio), keepPlaying: isAudioPlaybackIntended(audio) });
     showToast(`설정 미리듣기 위치 ${formatTime(position)}를 Dock으로 보냈습니다.`);
     return true;
 }
@@ -2829,9 +2832,9 @@ function syncMediaSessionForDock(audioOverride = null) {
                 { src: 'assets/icons/foxbear.svg', sizes: '512x512', type: 'image/svg+xml' }
             ]
         });
-        navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+        navigator.mediaSession.playbackState = (typeof audio._foxbearDesiredPlaying === 'boolean' ? audio._foxbearDesiredPlaying && !audio.ended : !audio.paused && !audio.ended) ? 'playing' : 'paused';
         navigator.mediaSession.setActionHandler('play', () => playBottomPreviewAudio());
-        navigator.mediaSession.setActionHandler('pause', () => { try { getBottomPreviewAudio()?.pause?.(); } catch (error) {} });
+        navigator.mediaSession.setActionHandler('pause', () => { const current = getBottomPreviewAudio(); const service = typeof getPlaybackTransitionService === 'function' ? getPlaybackTransitionService() : null; if (service?.pauseWithFadeOut) service.pauseWithFadeOut(current, { reason: 'media-session-pause' }); else { if (current) current._foxbearDesiredPlaying = false; try { current?.pause?.(); } catch (error) {} } });
         navigator.mediaSession.setActionHandler('seekbackward', details => seekDockAudioBy(-Math.abs(Number(details?.seekOffset || 10))));
         navigator.mediaSession.setActionHandler('seekforward', details => seekDockAudioBy(Math.abs(Number(details?.seekOffset || 10))));
         navigator.mediaSession.setActionHandler('seekto', details => {
@@ -3170,39 +3173,16 @@ async function maybeRequestPersistentStorage(userInitiated = false) {
         updateMobileNativeUi();
         return false;
     }
-}function handleMobileVisibilityChange() {
-    const mobile = ensureMobileNativeState();
-    if (document.visibilityState === 'hidden') {
-        mobile.lastVisibilityHiddenAt = Date.now();
-        captureBottomPreviewTransport(getSelectedTrack(), state.bottomPreviewMode, { reason: 'visibility-hidden', ttlMs: 12 * 60 * 60 * 1000 });
-        return;
-    }
-    restoreDockTransportAfterReturn(false);
+}let playbackLifecycleRecoveryController = null;
+function getPlaybackLifecycleRecoveryController() {
+    if (playbackLifecycleRecoveryController) return playbackLifecycleRecoveryController;
+    const factory = window.FoxBearPlaybackLifecycleRecoveryService?.createController; if (!factory) return null;
+    playbackLifecycleRecoveryController = factory({ document, getState: () => state, getMobileState: ensureMobileNativeState, getSelectedTrack, getActiveAudio: getBottomPreviewAudio, getPlayerRoot: () => el.bottomPreviewPlayer, captureTransport: captureBottomPreviewTransport, renderDock: renderBottomPreviewDock, scheduleLayout: scheduleBottomPreviewLayoutSync, syncWakeLock: syncWakeLockForCurrentActivity, syncMediaSession: syncMediaSessionForDock, syncPlayButton: syncBottomPreviewExternalPlayButton, unregisterAudio: unregisterPlaybackLinkedAudio, showToast, getTransitionService: getPlaybackTransitionService });
+    return playbackLifecycleRecoveryController;
 }
-function handleMobilePageShow() {
-    restoreDockTransportAfterReturn(false);
-    scheduleBottomPreviewLayoutSync();
-    syncWakeLockForCurrentActivity();
-}
-function restoreDockTransportAfterReturn(forceNotice = false) {
-    const track = getSelectedTrack();
-    if (!track) return false;
-    const mobile = ensureMobileNativeState(), now = Date.now();
-    if (!forceNotice && now - Number(mobile.lastDockRestoreAt || 0) < 350) return false;
-    mobile.lastDockRestoreAt = now;
-    const before = getBottomPreviewAudio();
-    const controller = before?._foxbearTranslationController;
-    if (controller?.closed || controller?.context?.state === 'closed') { captureBottomPreviewTransport(track, state.bottomPreviewMode); if (el.bottomPreviewPlayer) delete el.bottomPreviewPlayer.dataset.previewKey; }
-    else if (before && !before.paused && controller?.resume) try { controller.resume(); } catch (error) {}
-    renderBottomPreviewDock({ keepPlaying: true });
-    scheduleBottomPreviewLayoutSync();
-    syncMediaSessionForDock();
-    if (forceNotice || now - Number(mobile.pageRestoreToastAt || 0) > 60000) {
-        mobile.pageRestoreToastAt = now;
-        showToast('Dock 재생 위치와 모바일 편의 상태를 복구했습니다.');
-    }
-    return true;
-}
+function handleMobileVisibilityChange() { return getPlaybackLifecycleRecoveryController()?.handleVisibilityChange?.() || false; } // compatibility: reason: 'visibility-hidden', ttlMs: 12 * 60 * 60 * 1000 · mobile.lastDockRestoreAt
+function handleMobilePageShow() { return getPlaybackLifecycleRecoveryController()?.handlePageShow?.() || false; }
+function restoreDockTransportAfterReturn(forceNotice = false) { return getPlaybackLifecycleRecoveryController()?.restore?.(forceNotice) || false; }
 async function registerFoxBearServiceWorker(options = {}) {
     const mobile = ensureMobileNativeState(); if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
     const bypassOnce = !options.ignoreRecoveryBypass && await window.FoxBearServiceWorkerRecoveryService?.consumeOneShotBypass?.();
@@ -3212,7 +3192,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.50-kakao-centered-entry-notice') · navigator.serviceWorker.register('./sw.js?v=1.6.50-kakao-centered-entry-notice&h=sw-v1650-kakao-notice')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.56-playback-blob-source-resilience') · navigator.serviceWorker.register('./sw.js?v=1.6.56-playback-blob-source-resilience&h=sw-v1656-playback-source')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -3401,17 +3381,17 @@ function createDifferencePreviewPlayer(track, options = {}) {
             await getPlaybackTransitionService().playSynchronizedPair(context, [originalAudio, compareAudio], 'difference-preview-play');
             setPlaying(true);
         } catch (error) {
-            try { originalAudio.pause(); compareAudio.pause(); } catch (pauseError) {}
+            cancelAudioPlaybackRequest(originalAudio, 'difference-preview-failed'); cancelAudioPlaybackRequest(compareAudio, 'difference-preview-failed');
             showToast('차이 듣기 자동 재생이 차단되었습니다. 재생 버튼을 다시 눌러주세요.');
             setPlaying(false);
         }
     };
     const pauseBoth = () => {
-        try { originalAudio.pause(); compareAudio.pause(); } catch (error) {}
+        cancelAudioPlaybackRequest(originalAudio, 'difference-preview-pause'); cancelAudioPlaybackRequest(compareAudio, 'difference-preview-pause');
         setPlaying(false);
     };
     toggle.addEventListener('click', () => {
-        if (compareAudio.paused) playBoth();
+        if (!isAudioPlaybackIntended(compareAudio)) playBoth();
         else pauseBoth();
     });
     seek.addEventListener('input', () => {
@@ -4052,7 +4032,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.50-kakao-centered-entry-notice', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.56-playback-blob-source-resilience', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4366,7 +4346,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.6.50-kakao-centered-entry-notice',
+        version: '1.6.56-playback-blob-source-resilience',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4407,10 +4387,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.6.50-kakao-centered-entry-notice',
+    version: '1.6.56-playback-blob-source-resilience',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.50-kakao-centered-entry-notice', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.56-playback-blob-source-resilience', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4435,12 +4415,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.50-kakao-centered-entry-notice', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.56-playback-blob-source-resilience', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.50-kakao-centered-entry-notice', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.56-playback-blob-source-resilience', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4455,12 +4435,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.6.50-kakao-centered-entry-notice',
+    version: 'v1.6.56-playback-blob-source-resilience',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.50-kakao-centered-entry-notice', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.56-playback-blob-source-resilience', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5586,7 +5566,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.6.50-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.6.56-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -6091,7 +6071,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         if (!encoded.blob || encoded.blob.size <= 44) throw new Error('렌더 결과가 비어 있습니다. 브라우저 오디오 렌더러가 출력을 만들지 못했습니다.');
         await getDownloadService().assertDownloadBlob(encoded.blob);
         const dockAudioBeforeComplete = state.selectedId === track.id ? getBottomPreviewAudio() : null;
-        const preserveOriginalDockPlayback = Boolean(dockAudioBeforeComplete && state.bottomPreviewMode === 'original' && !dockAudioBeforeComplete.paused && !dockAudioBeforeComplete.ended);
+        const preserveOriginalDockPlayback = Boolean(dockAudioBeforeComplete && state.bottomPreviewMode === 'original' && isAudioPlaybackIntended(dockAudioBeforeComplete));
         finishPerformanceProfile(track, finalBuffer, encoded.blob);
         const nextOutName = buildMasteredFileName(track, encoded);
         const nextMasteredUrl = URL.createObjectURL(encoded.blob);
@@ -6102,7 +6082,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         track.masteredUrl = nextMasteredUrl;
         track.masteredBuffer = finalBuffer;
         track.masteredDurationSec = finalBuffer.duration || 0;
-        if (previousMasteredUrl && previousMasteredUrl !== nextMasteredUrl) URL.revokeObjectURL(previousMasteredUrl);
+        if (previousMasteredUrl && previousMasteredUrl !== nextMasteredUrl && !retirePlaybackObjectUrl(track, previousMasteredUrl)) URL.revokeObjectURL(previousMasteredUrl);
         track.status = 'done';
         applyCompletedMasteringMemoryPolicy(calledFromBatch ? 'batch-master-complete' : 'single-master-complete', getSingleTrackDownloadReencodePolicy(track, calledFromBatch));
         track.downloadAttention = true;
@@ -6111,7 +6091,7 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         await setMasteringProgress(track, 100, track.report);
         completedSuccessfully = true;
         setNativeBadge(getCompletedUndownloadedCount());
-        preserveOriginalDockPlayback ? renderBottomPreviewDock({ keepPlaying: true }) : forceRefreshBottomPreviewDock(track, 'master-complete');
+        stabilizeBottomPreviewDockAfterMastering(track, { preserveOriginalPlayback: preserveOriginalDockPlayback });
         foxBearHaptic('complete');
         showToast(`${track.name} 마스터링 성공`);
     } catch (error) {
@@ -10003,7 +9983,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.6.50-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.6.56-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -11136,6 +11116,13 @@ function forceRefreshBottomPreviewDock(track = getSelectedTrack(), reason = '') 
     requestAnimationFrame(refresh); setTimeout(() => { if (!el.bottomPreviewPlayer?.dataset.previewKey) refresh(); }, 90);
     return true;
 }
+let postMasterPlaybackRecoveryController = null;
+function getPostMasterPlaybackRecoveryController() {
+    if (!postMasterPlaybackRecoveryController && window.FoxBearPostMasterPlaybackRecoveryService?.createController) postMasterPlaybackRecoveryController = window.FoxBearPostMasterPlaybackRecoveryService.createController({ getState: () => state, getPlayerRoot: () => el.bottomPreviewPlayer, getActiveAudio: getBottomPreviewAudio, renderDock: renderBottomPreviewDock, syncExternalPlayButton: syncBottomPreviewExternalPlayButton, playWithFadeIn: playAudioWithFadeIn, requestAnimationFrame });
+    return postMasterPlaybackRecoveryController;
+}
+function warmBottomPreviewAudio(audio) { return getPostMasterPlaybackRecoveryController()?.warmAudio(audio) || false; }
+function stabilizeBottomPreviewDockAfterMastering(track = getSelectedTrack(), options = {}) { return getPostMasterPlaybackRecoveryController()?.stabilizeAfterMastering(track, options) || false; }
 function renderBottomWaveformMini(track, mode = state.bottomPreviewMode) {
     if (!el.bottomPreviewWaveformBtn) return;
     el.bottomPreviewWaveformBtn.textContent = '';
@@ -11448,20 +11435,14 @@ function syncBottomPreviewExternalPlayButton(audio = getBottomPreviewAudio(), fo
     button.setAttribute('aria-label', playing ? 'Dock 일시정지' : 'Dock 재생');
     button.title = hasSource ? (playing ? '현재 프리뷰를 일시정지합니다.' : '현재 프리뷰를 재생합니다.') : '음원을 불러오면 재생할 수 있습니다.';
 }
+function getBottomPreviewPlayerOwner(audio = getBottomPreviewAudio()) { return getPostMasterPlaybackRecoveryController()?.getPlayerOwner(audio) || null; }
+function showBottomPreviewPlaybackFailure(error = null) { if (error) console.warn('FoxBear Dock playback start failed:', error); showToast('재생 준비가 지연됐습니다. Dock 재생 버튼을 한 번 더 눌러주세요.'); }
+function startBottomPreviewPlayback(audio = getBottomPreviewAudio(), options = {}) { return getPostMasterPlaybackRecoveryController()?.startPlayback(audio, options) || Promise.resolve(false); }
 function toggleBottomPreviewExternalPlayback(event = null) {
-    if (event && typeof event.preventDefault === 'function') event.preventDefault();
-    if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+    event?.preventDefault?.(); event?.stopPropagation?.();
     const audio = getBottomPreviewAudio();
-    if (!audio) {
-        playBottomPreviewAudio();
-        syncBottomPreviewExternalPlayButton();
-        return;
-    }
-    if (audio.paused || audio.ended) {
-        playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. Dock 재생 버튼을 다시 눌러주세요.'));
-    } else {
-        pauseAudioWithFadeOut(audio);
-    }
+    if (!audio || !isAudioPlaybackIntended(audio)) playBottomPreviewAudio({ userGesture: true }).then(started => { if (!started) showBottomPreviewPlaybackFailure(); }).catch(showBottomPreviewPlaybackFailure);
+    else pauseAudioWithFadeOut(audio);
 }
 function createDockIntegratedWaveformPlayer(track, options = {}) {
     const mode = options.mode === 'mastered' ? 'mastered' : (options.mode === 'masterPreview' ? 'masterPreview' : 'original');
@@ -11472,6 +11453,7 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
     if (options.playerRole) wrap.dataset.playerRole = options.playerRole;
     const audio = configurePreviewAudioElement(document.createElement('audio'));
     audio.src = options.src || '';
+    if (mode === 'mastered' || mode === 'masterPreview') audio.preload = 'auto';
     if (state.abLevelMatch && Number.isFinite(options.gainDb)) {
         audio.volume = clamp(Math.pow(10, options.gainDb / 20), 0.02, 1);
     }
@@ -11544,24 +11526,31 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
         syncDockWaveformPlayhead(audio);
     };
     toggle.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (audio.paused) playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+        event.preventDefault(); event.stopPropagation();
+        if (!isAudioPlaybackIntended(audio)) startBottomPreviewPlayback(audio, { userGesture: true }).then(started => { if (!started) showBottomPreviewPlaybackFailure(); }).catch(showBottomPreviewPlaybackFailure);
         else pauseAudioWithFadeOut(audio);
     });
-    audio.addEventListener('loadedmetadata', () => {
-        applyBottomPreviewStart(audio, Number(options.startSec || 0));
-        sync();
-    });
+    let sourceRecoveryPromise = null;
+    const recoverPlaybackSource = reason => {
+        if (sourceRecoveryPromise || audio._foxbearSourceRecoveryDisposed || audio.isConnected === false) return sourceRecoveryPromise || Promise.resolve(false);
+        const transportPlaying = Boolean(state.bottomPreviewTransport && String(state.bottomPreviewTransport.trackId || '') === String(track?.id || '') && state.bottomPreviewTransport.playing); wrap.classList.add('playback-source-recovering');
+        sourceRecoveryPromise = Promise.resolve(getPlaybackSourceRecoveryController()?.repairAudio?.(audio, { track, mode, reason, shouldResume: isAudioPlaybackIntended(audio) || transportPlaying, readyTimeoutMs: 2600 })).then(result => { const recovered = Boolean(result?.recovered); wrap.classList.toggle('playback-source-error', !recovered); setPlaying(Boolean(recovered && result.resumed && !audio.paused)); if (recovered) sync(); else syncBottomPreviewExternalPlayButton(audio, false); return recovered; }).catch(error => { console.warn('FoxBear playback source recovery failed:', error); wrap.classList.add('playback-source-error'); setPlaying(false); return false; }).finally(() => { wrap.classList.remove('playback-source-recovering'); sourceRecoveryPromise = null; });
+        return sourceRecoveryPromise;
+    };
+    audio.addEventListener('loadedmetadata', () => { getPlaybackSourceRecoveryController()?.markHealthy?.(audio); wrap.classList.remove('playback-source-error'); applyBottomPreviewStart(audio, Number(options.startSec || 0)); sync(); });
+    audio.addEventListener('canplay', () => { getPlaybackSourceRecoveryController()?.markHealthy?.(audio); wrap.classList.remove('playback-source-error'); });
+    audio.addEventListener('emptied', () => { if ((audio.getAttribute('src') || audio.src) && !audio._foxbearSourceRecoveryPending && isAudioPlaybackIntended(audio)) recoverPlaybackSource('dock-source-emptied'); });
+    audio.addEventListener('error', () => { wrap.classList.add('playback-source-error'); recoverPlaybackSource('dock-source-error'); });
     audio.addEventListener('play', () => {
         const allowed = wrap._foxbearCrossfadeOldAudio ? [wrap._foxbearCrossfadeOldAudio] : [];
         bindExclusivePreview(audio, { allowAudioElements: allowed });
+        getPlaybackTransitionService()?.reconcileAudibleVolume?.(audio, 'dock-play-event');
         setPlaying(true);
         onDockAudioTransportEvent(audio);
         sync();
     });
     audio.addEventListener('pause', () => {
-        setPlaying(false);
+        getPlaybackLifecycleRecoveryController()?.handleUnexpectedPause?.(audio, 'dock-visible-native-pause'); setPlaying(false);
         onDockAudioTransportEvent(audio);
         sync();
     });
@@ -11572,10 +11561,7 @@ function createDockIntegratedWaveformPlayer(track, options = {}) {
         sync();
     });
     audio.addEventListener('timeupdate', sync);
-    wrap._foxbearPlay = () => {
-        if (!audio.paused) return Promise.resolve();
-        return playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 통합 파형 재생 버튼을 다시 눌러주세요.'));
-    };
+    wrap._foxbearPlay = (playOptions = {}) => isAudioPlaybackIntended(audio) ? Promise.resolve(true) : startBottomPreviewPlayback(audio, { readyTimeoutMs: 2200, ...playOptions });
     wrap._foxbearPause = () => {
         pauseAudioWithFadeOut(audio);
     };
@@ -11658,7 +11644,7 @@ function renderBottomPreviewDock(options = {}) {
     const samePlayer = el.bottomPreviewPlayer.dataset.previewKey === key && getBottomPreviewAudio();
     const transitionOldPlayer = !samePlayer ? el.bottomPreviewPlayer.firstElementChild : null;
     const transitionOldAudio = transitionOldPlayer?.querySelector?.('audio') || null;
-    const canCrossfadeDock = Boolean(options.userGesture && transitionOldAudio && !transitionOldAudio.paused && !transitionOldAudio.ended && src);
+    const canCrossfadeDock = Boolean(options.userGesture && transitionOldAudio && isAudioPlaybackIntended(transitionOldAudio) && src);
     let shouldResume = false;
     let pendingCrossfade = null;
     if (samePlayer) {
@@ -11719,18 +11705,23 @@ function renderBottomPreviewDock(options = {}) {
         state.bottomPreviewAutoplayTrackId = null;
         if (pendingCrossfade) {
             const runCrossfade = () => {
-                crossfadeAudioPair(pendingCrossfade.oldAudio, pendingCrossfade.nextAudio, {
+                let settled = false;
+                const settleCrossfade = (completed, settleOptions = {}) => {
+                    if (settled) return Boolean(completed);
+                    settled = true; pendingCrossfade.oldPlayer?.remove?.(); el.bottomPreviewPlayer?.classList.remove('is-crossfading');
+                    if (pendingCrossfade.nextPlayer) delete pendingCrossfade.nextPlayer._foxbearCrossfadeOldAudio;
+                    const activeAudio = getBottomPreviewAudio(), nextIsActive = activeAudio === pendingCrossfade.nextAudio && pendingCrossfade.nextAudio?.isConnected !== false;
+                    syncBottomPreviewExternalPlayButton(nextIsActive ? pendingCrossfade.nextAudio : activeAudio, Boolean(completed && nextIsActive && !pendingCrossfade.nextAudio.paused));
+                    return settleOptions.retry && nextIsActive ? playBottomPreviewAudio({ userGesture: Boolean(settleOptions.userGesture), silent: true }) : Boolean(completed);
+                };
+                Promise.resolve(crossfadeAudioPair(pendingCrossfade.oldAudio, pendingCrossfade.nextAudio, {
                     userGesture: Boolean(options.userGesture),
-                    onComplete: () => {
-                        pendingCrossfade.oldPlayer?.remove?.();
-                        el.bottomPreviewPlayer?.classList.remove('is-crossfading');
-                        if (pendingCrossfade.nextPlayer) delete pendingCrossfade.nextPlayer._foxbearCrossfadeOldAudio;
-                        syncBottomPreviewExternalPlayButton(pendingCrossfade.nextAudio, true);
-                    }
-                }).catch(() => {
-                    pendingCrossfade.oldPlayer?.remove?.();
-                    el.bottomPreviewPlayer?.classList.remove('is-crossfading');
-                    playBottomPreviewAudio();
+                    onComplete: () => settleCrossfade(true)
+                })).then(completed => {
+                    if (!completed) settleCrossfade(false);
+                }).catch(error => {
+                    console.warn('FoxBear Dock crossfade failed:', error);
+                    settleCrossfade(false, { retry: true, userGesture: Boolean(options.userGesture) });
                 });
             };
             options.userGesture ? runCrossfade() : requestAnimationFrame(runCrossfade);
@@ -11895,7 +11886,7 @@ function captureBottomPreviewTransport(track = getSelectedTrack(), mode = state.
         mode,
         localSec,
         absoluteSec,
-        playing: !audio.paused && !audio.ended,
+        playing: typeof audio._foxbearDesiredPlaying === 'boolean' ? audio._foxbearDesiredPlaying && !audio.ended : !audio.paused && !audio.ended,
         translationMode: state.previewTranslationMode || 'studio', reason: String(options.reason || 'interaction'),
         capturedAt, expiresAt: capturedAt + Math.max(60000, Number(options.ttlMs || 60000))
     };
@@ -11929,7 +11920,7 @@ function clearBottomPreviewPlayer() {
     if (!el.bottomPreviewPlayer) return;
     Array.from(el.bottomPreviewPlayer.children).forEach(child => { try { child._foxbearDispose?.(); } catch (error) {} });
     el.bottomPreviewPlayer.querySelectorAll('audio').forEach(audio => {
-        try { audio.pause(); } catch (error) {}
+        cancelAudioPlaybackRequest(audio, 'bottom-preview-clear');
         if (audio._foxbearTranslationController?.close) audio._foxbearTranslationController.close();
         else if (audio._foxbearTranslationContext) closePreviewTranslationContext(audio._foxbearTranslationContext);
         unregisterPlaybackLinkedAudio(audio, 'bottom-preview-clear');
@@ -11938,15 +11929,21 @@ function clearBottomPreviewPlayer() {
     el.bottomPreviewPlayer.textContent = '';
     delete el.bottomPreviewPlayer.dataset.previewKey;
 }
-function playBottomPreviewAudio() {
-    const player = el.bottomPreviewPlayer?.firstElementChild;
-    if (player && typeof player._foxbearPlay === 'function') {
-        player._foxbearPlay();
-        return;
+function playBottomPreviewAudio(options = {}) {
+    let audio = getBottomPreviewAudio();
+    if (!audio || audio.isConnected === false) {
+        renderBottomPreviewDock({ keepPlaying: true });
+        audio = getBottomPreviewAudio();
     }
-    const audio = el.bottomPreviewPlayer?.querySelector('audio');
-    if (!audio) return;
-    playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 자동 재생을 차단했습니다. 하단 재생 버튼을 눌러주세요.'));
+    if (!audio) return Promise.resolve(false);
+    const player = getBottomPreviewPlayerOwner(audio);
+    const request = player && typeof player._foxbearPlay === 'function'
+        ? player._foxbearPlay(options)
+        : startBottomPreviewPlayback(audio, options);
+    return Promise.resolve(request).then(Boolean).catch(error => {
+        if (!options.silent) console.warn('FoxBear bottom preview playback failed:', error);
+        return false;
+    });
 }
 function makePreviewTitle(label, durationSec) {
     const title = document.createElement('strong');
@@ -12035,7 +12032,7 @@ function createPreviewPlayer(src, gainDb = 0, knownDurationSec = 0, loopCompare 
         return { start: loopStart, end: Math.min(duration, loopStart + length) };
     };
     toggle.addEventListener('click', () => {
-        if (audio.paused) playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
+        if (!isAudioPlaybackIntended(audio)) playAudioWithFadeIn(audio).catch(() => showToast('브라우저가 재생을 차단했습니다. 다시 눌러주세요.'));
         else pauseAudioWithFadeOut(audio);
     });
     audio.addEventListener('loadedmetadata', () => {
@@ -12103,7 +12100,7 @@ function bindExclusivePreview(audio, options = {}) {
         return;
     }
     document.querySelectorAll('.custom-player audio, .ab-switch-deck audio, .difference-preview-player audio, audio[data-preview-system]').forEach(other => {
-        if (other !== audio && !allowed.has(other)) other.pause();
+        if (other !== audio && !allowed.has(other)) cancelAudioPlaybackRequest(other, 'legacy-exclusive-preview');
     });
 }
 function createABSwitchPlayer(track) {
@@ -12273,7 +12270,7 @@ function createABSwitchPlayer(track) {
     };
     const switchTo = (next, options = {}) => {
         const oldAudio = activeAudio();
-        const wasPlaying = !oldAudio.paused;
+        const wasPlaying = isAudioPlaybackIntended(oldAudio);
         const position = oldAudio.currentTime || 0;
         active = next;
         const nextAudio = activeAudio();
@@ -12291,7 +12288,7 @@ function createABSwitchPlayer(track) {
     };
     play.addEventListener('click', () => {
         const audio = activeAudio();
-        if (audio.paused) {
+        if (!isAudioPlaybackIntended(audio)) {
             bindExclusivePreview(audio);
             const bounds = getLoopBounds();
             if (bounds && (audio.currentTime < bounds.start || audio.currentTime >= bounds.end)) audio.currentTime = bounds.start;
@@ -13075,7 +13072,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.6.50',
+        app: 'FoxBear AI Mastering Studio Pro v1.6.56',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

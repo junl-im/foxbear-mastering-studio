@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.50-kakao-centered-entry-notice';
+const version = '1.6.56-playback-blob-source-resilience';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.50",
+  "version": "1.6.56",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with a centered Kakao in-app download warning, touch-to-dismiss fade, timed dismissal, and PWA guidance.",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.56 - playback Blob source resilience",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.50-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.50-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.56-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.56-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -52,6 +52,8 @@
     "node --check src/audio/highlight-compare-inspector.js",
     "node --check src/audio/playback-link-service.js",
     "node --check src/audio/playback-transition-service.js",
+    "node --check src/audio/playback-source-recovery-service.js",
+    "node --check src/audio/playback-lifecycle-recovery-service.js",
     "node --check src/audio/audio-context-manager.js",
     "node --check src/audio/preview-translation-service.js",
     "node --check src/audio/audio-import-capability-service.js",
@@ -433,15 +435,22 @@
     "node qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js",
     "node qa/v1646_google_auth_same_origin_network_recovery_smoke.js",
     "node qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js",
-    "node qa/v1650_kakao_center_entry_notice_smoke.js"
+    "node qa/v1650_kakao_center_entry_notice_smoke.js",
+    "node qa/v1651_download_conversion_concurrency_smoke.js",
+    "node --check src/audio/post-master-playback-recovery-service.js",
+    "node qa/v1652_post_master_playback_readiness_smoke.js",
+    "node qa/v1653_playback_crossfade_settlement_smoke.js",
+    "node qa/v1654_playback_intent_arbitration_smoke.js",
+    "node qa/v1655_mobile_playback_focus_resume_smoke.js",
+    "node qa/v1656_playback_blob_source_resilience_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "kakao-centered-entry-notice",
-    "assetVersion": "1.6.50-kakao-centered-entry-notice",
-    "cacheName": "foxbear-shell-v1.6.50-kakao-centered-entry-notice",
-    "bootRevision": "boot-sri-v1650-kakao-notice",
-    "updateSafetyRevision": "update-safety-v1650-kakao-notice",
-    "serviceWorkerRevision": "sw-v1650-kakao-notice"
+    "buildId": "playback-blob-source-resilience",
+    "assetVersion": "1.6.56-playback-blob-source-resilience",
+    "cacheName": "foxbear-shell-v1.6.56-playback-blob-source-resilience",
+    "bootRevision": "boot-sri-v1656-playback-source",
+    "updateSafetyRevision": "update-safety-v1656-playback-source",
+    "serviceWorkerRevision": "sw-v1656-playback-source"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

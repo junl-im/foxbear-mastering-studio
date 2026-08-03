@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.50",
-  "buildId": "kakao-centered-entry-notice",
+  "productVersion": "1.6.56",
+  "buildId": "playback-blob-source-resilience",
   "requiredFiles": [
     "404.html",
     ".gitignore",

@@ -18,6 +18,7 @@
     const downloadDiagnosticEvents = [];
     const verifiedBlobInspections = typeof WeakMap === 'function' ? new WeakMap() : null;
     const downloadVariantCache = typeof WeakMap === 'function' ? new WeakMap() : null;
+    const downloadVariantJobs = typeof WeakMap === 'function' ? new WeakMap() : null;
     const downloadUrlTimers = new Map();
     const downloadUrlContexts = new Map();
 
@@ -196,16 +197,17 @@
 
 
     const decodeMasteredOutputForDownload = async (track, options = {}) => {
-        if (!track?.outBlob) throw new Error('다시 읽을 완성 마스터 파일이 없습니다.');
+        const sourceBlob = options.sourceBlob || track?.outBlob || null;
+        if (!sourceBlob) throw new Error('다시 읽을 완성 마스터 파일이 없습니다.');
         const service = global.FoxBearAudioDecodeService;
         if (!service || typeof service.decodeAudioFile !== 'function') throw new Error('완성 파일 디코더를 불러오지 못했습니다.');
-        const format = track.outFormat || 'wav24';
+        const format = options.sourceFormat || track?.outFormat || 'wav24';
         const extension = /^mp3_/.test(format) ? 'mp3' : 'wav';
-        const fileName = track.outName || `foxbear-mastered.${extension}`;
-        const mime = track.outBlob.type || (extension === 'mp3' ? 'audio/mpeg' : 'audio/wav');
+        const fileName = options.sourceName || track?.outName || `foxbear-mastered.${extension}`;
+        const mime = sourceBlob.type || (extension === 'mp3' ? 'audio/mpeg' : 'audio/wav');
         const sourceFile = typeof global.File === 'function'
-            ? new global.File([track.outBlob], fileName, { type: mime, lastModified: Date.now() })
-            : track.outBlob;
+            ? new global.File([sourceBlob], fileName, { type: mime, lastModified: Date.now() })
+            : sourceBlob;
         emitDownloadProgress(options, { percent: 6, stage: '완성 파일 읽기', detail: '마스터링 결과의 오디오 데이터를 확인합니다.' });
         const decoded = await service.decodeAudioFile(sourceFile, {
             signal: options.signal || null,
@@ -319,6 +321,241 @@
         return { blob: track.outBlob, fileName, format: outputFormat, reused: true, inspection };
     };
 
+    const getDownloadVariantJobKey = (track, requestedFormat) => `${String(track?.outFormat || '')}::${String(requestedFormat || '')}`;
+
+    const getDownloadVariantJobMap = (sourceBlob, create = false) => {
+        if (!downloadVariantJobs || !sourceBlob) return null;
+        try {
+            let jobs = downloadVariantJobs.get(sourceBlob) || null;
+            if (!jobs && create) {
+                jobs = new Map();
+                downloadVariantJobs.set(sourceBlob, jobs);
+            }
+            return jobs;
+        } catch (error) {
+            return null;
+        }
+    };
+
+    const getDownloadVariantJob = (track, requestedFormat) => {
+        const jobs = getDownloadVariantJobMap(track?.outBlob, false);
+        return jobs?.get?.(getDownloadVariantJobKey(track, requestedFormat)) || null;
+    };
+
+    const deleteDownloadVariantJob = job => {
+        if (!job?.sourceBlob) return false;
+        const jobs = getDownloadVariantJobMap(job.sourceBlob, false);
+        if (!jobs || jobs.get(job.key) !== job) return false;
+        jobs.delete(job.key);
+        if (!jobs.size) {
+            try { downloadVariantJobs?.delete?.(job.sourceBlob); } catch (error) {}
+        }
+        return true;
+    };
+
+    const broadcastDownloadVariantProgress = (job, progress) => {
+        if (!job) return;
+        job.lastProgress = progress ? { ...progress } : null;
+        for (const subscriber of [...job.subscribers]) {
+            if (!subscriber?.active || subscriber.signal?.aborted) continue;
+            emitDownloadProgress({ onProgress: subscriber.onProgress }, job.lastProgress);
+        }
+    };
+
+    const abortDownloadVariantJobIfUnused = job => {
+        if (!job || job.settled || job.subscribers.size > 0) return false;
+        const signal = job.controller?.signal || null;
+        if (signal?.aborted) return false;
+        try {
+            job.controller?.abort?.('download-variant-no-subscribers');
+            recordDownloadEvent('variant-job-abort-unused', { format: job.requestedFormat });
+            return true;
+        } catch (error) {
+            return false;
+        }
+    };
+
+    const subscribeToDownloadVariantJob = (job, options = {}) => {
+        throwIfDownloadAborted(options.signal);
+        return new Promise((resolve, reject) => {
+            const subscriber = {
+                active: true,
+                signal: options.signal || null,
+                onProgress: typeof options.onProgress === 'function' ? options.onProgress : null,
+                abortHandler: null
+            };
+            const cleanup = () => {
+                if (!subscriber.active) return;
+                subscriber.active = false;
+                job.subscribers.delete(subscriber);
+                try { subscriber.signal?.removeEventListener?.('abort', subscriber.abortHandler); } catch (error) {}
+            };
+            const rejectForAbort = () => {
+                if (!subscriber.active) return;
+                const reason = subscriber.signal?.reason || 'download-subscriber-cancelled';
+                cleanup();
+                recordDownloadEvent('variant-job-subscriber-abort', {
+                    format: job.requestedFormat,
+                    remainingSubscribers: job.subscribers.size,
+                    reason: String(reason || '')
+                });
+                reject(makeDownloadAbortError(reason));
+                abortDownloadVariantJobIfUnused(job);
+            };
+
+            subscriber.abortHandler = rejectForAbort;
+            job.subscribers.add(subscriber);
+            if (job.subscribers.size > 1) {
+                recordDownloadEvent('variant-job-join', {
+                    format: job.requestedFormat,
+                    subscribers: job.subscribers.size
+                });
+            }
+            if (job.lastProgress) emitDownloadProgress(options, job.lastProgress);
+            if (subscriber.signal?.addEventListener) subscriber.signal.addEventListener('abort', rejectForAbort, { once: true });
+
+            job.promise.then(result => {
+                if (!subscriber.active) return;
+                cleanup();
+                resolve(result);
+            }, error => {
+                if (!subscriber.active) return;
+                cleanup();
+                reject(error);
+            });
+        });
+    };
+
+    const runDownloadVariantConversion = async (track, requestedFormat, deps, job) => {
+        const sourceTrack = job.sourceTrack || track;
+        const signal = job.controller?.signal || null;
+        const jobId = job.jobId || '';
+        const publishProgress = progress => broadcastDownloadVariantProgress(job, progress);
+        throwIfDownloadAborted(signal);
+
+        let sourceBuffer = sourceTrack.masteredBuffer || null;
+        let conversionSource = sourceBuffer ? 'mastered-pcm' : 'mastered-file';
+        if (!sourceBuffer) {
+            const decodeOutput = typeof deps.decodeMasteredOutputAsync === 'function'
+                ? deps.decodeMasteredOutputAsync
+                : (canDecodeCompletedOutput(sourceTrack) ? decodeMasteredOutputForDownload : null);
+            if (!decodeOutput) {
+                const error = new Error('완료 PCM이 해제되었고 완성 파일을 다시 읽을 수 없습니다. 출력 포맷을 변경한 뒤 다시 마스터링해 주세요.');
+                error.code = 'FORMAT_REQUIRES_REMASTER';
+                error.currentFormat = sourceTrack.outFormat || '';
+                error.requestedFormat = requestedFormat;
+                throw error;
+            }
+            publishProgress({ percent: 3, stage: '완성 파일 읽기', detail: '마스터링 결과를 다시 읽어 포맷 변환을 준비합니다.' });
+            sourceBuffer = await decodeOutput(track, {
+                signal,
+                jobId,
+                onProgress: publishProgress,
+                sourceBlob: sourceTrack.outBlob,
+                sourceFormat: sourceTrack.outFormat,
+                sourceName: sourceTrack.outName || ''
+            });
+            throwIfDownloadAborted(signal);
+            if (!sourceBuffer || !Number(sourceBuffer.length || 0)) throw new Error('완성된 마스터 파일을 다시 읽지 못했습니다.');
+            publishProgress({ percent: 20, stage: '완성 파일 읽기 완료', detail: '선택한 확장자와 음질로 변환합니다.' });
+        }
+        if (typeof deps.encodeMasterOutputAsync !== 'function') throw new Error('선택한 포맷을 인코딩할 수 없습니다.');
+        const forwardEncodeProgress = progress => {
+            if (conversionSource !== 'mastered-file') {
+                publishProgress(progress);
+                return;
+            }
+            const rawPercent = Math.max(0, Math.min(100, Number(progress?.percent) || 0));
+            publishProgress({
+                ...progress,
+                percent: Math.min(98, 20 + rawPercent * 0.78),
+                stage: progress?.stage || '포맷 변환'
+            });
+        };
+        let encoded = null;
+        try {
+            encoded = await deps.encodeMasterOutputAsync(sourceBuffer, requestedFormat, {
+                signal,
+                jobId,
+                onProgress: forwardEncodeProgress
+            });
+        } finally {
+            if (conversionSource === 'mastered-file') sourceBuffer = null;
+        }
+        throwIfDownloadAborted(signal);
+        if (!encoded?.blob || encoded.blob.size <= 44) throw new Error('선택한 포맷 파일을 만들지 못했습니다.');
+        publishProgress({ percent: 99, stage: '파일 검증', detail: '생성된 오디오 헤더와 파일 크기를 확인합니다.' });
+        await assertDownloadBlob(encoded.blob);
+        throwIfDownloadAborted(signal);
+        publishProgress({ percent: 100, stage: '파일 준비 완료', detail: '선택한 확장자와 음질의 파일 생성이 완료됐습니다.' });
+        const fileName = getFallbackMasteredFileName(sourceTrack, deps, encoded);
+        const result = {
+            blob: encoded.blob,
+            fileName,
+            format: encoded.format || requestedFormat,
+            reused: false,
+            conversionSource,
+            fallbackFrom: encoded.fallbackFrom || '',
+            fallbackReason: encoded.fallbackReason || '',
+            qualityWarning: conversionSource === 'mastered-file' && /^mp3_/.test(String(sourceTrack.outFormat || '')) && /^wav/.test(requestedFormat)
+                ? 'MP3 마스터 파일 기반 변환이므로 WAV로 바꿔도 손실 음질은 복원되지 않습니다.'
+                : conversionSource === 'mastered-file' && /^mp3_/.test(String(sourceTrack.outFormat || ''))
+                    ? 'MP3 마스터 파일을 다시 인코딩하므로 더 높은 비트레이트를 선택해도 손실 음질은 복원되지 않습니다.'
+                    : ''
+        };
+        cacheDownloadVariant(sourceTrack, requestedFormat, result);
+        return result;
+    };
+
+    const createDownloadVariantJob = (track, requestedFormat, deps = {}, options = {}) => {
+        const jobs = getDownloadVariantJobMap(track?.outBlob, true);
+        const key = getDownloadVariantJobKey(track, requestedFormat);
+        const controller = typeof global.AbortController === 'function' ? new global.AbortController() : null;
+        const sourceTrack = {
+            ...track,
+            outBlob: track.outBlob,
+            outFormat: track.outFormat,
+            masteredBuffer: track.masteredBuffer || null
+        };
+        const job = {
+            key,
+            sourceBlob: sourceTrack.outBlob,
+            sourceFormat: String(sourceTrack.outFormat || ''),
+            sourceTrack,
+            requestedFormat,
+            controller,
+            jobId: options.jobId || `download-variant:${requestedFormat}:${Date.now().toString(36)}`,
+            subscribers: new Set(),
+            lastProgress: null,
+            settled: false,
+            promise: null
+        };
+        if (jobs) jobs.set(key, job);
+        recordDownloadEvent('variant-job-start', { format: requestedFormat, sourceFormat: job.sourceFormat });
+        job.promise = runDownloadVariantConversion(track, requestedFormat, deps, job)
+            .then(result => {
+                job.settled = true;
+                recordDownloadEvent('variant-job-complete', {
+                    format: requestedFormat,
+                    actualFormat: result?.format || '',
+                    sizeBytes: Number(result?.blob?.size || 0),
+                    subscribers: job.subscribers.size
+                });
+                return result;
+            }, error => {
+                job.settled = true;
+                recordDownloadEvent('variant-job-failed', {
+                    format: requestedFormat,
+                    name: error?.name || '',
+                    code: error?.code || '',
+                    message: error?.message || String(error)
+                });
+                throw error;
+            })
+            .finally(() => deleteDownloadVariantJob(job));
+        return job;
+    };
+
     const prepareTrackDownloadBlob = async (track, format, deps = {}, options = {}) => {
         throwIfDownloadAborted(options.signal);
         if (!track || !track.outBlob) throw new Error('완성된 마스터링 파일이 없습니다.');
@@ -352,72 +589,8 @@
                 qualityWarning: cachedVariant.qualityWarning || ''
             };
         }
-        let sourceBuffer = track.masteredBuffer || null;
-        let conversionSource = sourceBuffer ? 'mastered-pcm' : 'mastered-file';
-        if (!sourceBuffer) {
-            const decodeOutput = typeof deps.decodeMasteredOutputAsync === 'function'
-                ? deps.decodeMasteredOutputAsync
-                : (canDecodeCompletedOutput(track) ? decodeMasteredOutputForDownload : null);
-            if (!decodeOutput) {
-                const error = new Error('완료 PCM이 해제되었고 완성 파일을 다시 읽을 수 없습니다. 출력 포맷을 변경한 뒤 다시 마스터링해 주세요.');
-                error.code = 'FORMAT_REQUIRES_REMASTER';
-                error.currentFormat = track.outFormat || '';
-                error.requestedFormat = requestedFormat;
-                throw error;
-            }
-            emitDownloadProgress(options, { percent: 3, stage: '완성 파일 읽기', detail: '마스터링 결과를 다시 읽어 포맷 변환을 준비합니다.' });
-            sourceBuffer = await decodeOutput(track, {
-                signal: options.signal || null,
-                jobId: options.jobId || '',
-                onProgress: typeof options.onProgress === 'function' ? options.onProgress : null
-            });
-            throwIfDownloadAborted(options.signal);
-            if (!sourceBuffer || !Number(sourceBuffer.length || 0)) throw new Error('완성된 마스터 파일을 다시 읽지 못했습니다.');
-            emitDownloadProgress(options, { percent: 20, stage: '완성 파일 읽기 완료', detail: '선택한 확장자와 음질로 변환합니다.' });
-        }
-        if (typeof deps.encodeMasterOutputAsync !== 'function') throw new Error('선택한 포맷을 인코딩할 수 없습니다.');
-        const forwardEncodeProgress = progress => {
-            if (conversionSource !== 'mastered-file') {
-                emitDownloadProgress(options, progress);
-                return;
-            }
-            const rawPercent = Math.max(0, Math.min(100, Number(progress?.percent) || 0));
-            emitDownloadProgress(options, {
-                ...progress,
-                percent: Math.min(98, 20 + rawPercent * 0.78),
-                stage: progress?.stage || '포맷 변환'
-            });
-        };
-        let encoded = null;
-        try {
-            encoded = await deps.encodeMasterOutputAsync(sourceBuffer, requestedFormat, {
-                signal: options.signal || null,
-                jobId: options.jobId || '',
-                onProgress: typeof options.onProgress === 'function' ? forwardEncodeProgress : null
-            });
-        } finally {
-            if (conversionSource === 'mastered-file') sourceBuffer = null;
-        }
-        if (!encoded?.blob || encoded.blob.size <= 44) throw new Error('선택한 포맷 파일을 만들지 못했습니다.');
-        emitDownloadProgress(options, { percent: 99, stage: '파일 검증', detail: '생성된 오디오 헤더와 파일 크기를 확인합니다.' });
-        await assertDownloadBlob(encoded.blob);
-        throwIfDownloadAborted(options.signal);
-        emitDownloadProgress(options, { percent: 100, stage: '파일 준비 완료', detail: '선택한 확장자와 음질의 파일 생성이 완료됐습니다.' });
-        const fileName = getFallbackMasteredFileName(track, deps, encoded);
-        const result = {
-            blob: encoded.blob,
-            fileName,
-            format: encoded.format || requestedFormat,
-            reused: false,
-            conversionSource,
-            qualityWarning: conversionSource === 'mastered-file' && /^mp3_/.test(String(track.outFormat || '')) && /^wav/.test(requestedFormat)
-                ? 'MP3 마스터 파일 기반 변환이므로 WAV로 바꿔도 손실 음질은 복원되지 않습니다.'
-                : conversionSource === 'mastered-file' && /^mp3_/.test(String(track.outFormat || ''))
-                    ? 'MP3 마스터 파일을 다시 인코딩하므로 더 높은 비트레이트를 선택해도 손실 음질은 복원되지 않습니다.'
-                : ''
-        };
-        cacheDownloadVariant(track, requestedFormat, result);
-        return result;
+        const activeJob = getDownloadVariantJob(track, requestedFormat) || createDownloadVariantJob(track, requestedFormat, deps, options);
+        return subscribeToDownloadVariantJob(activeJob, options);
     };
 
     const canShareTinyAudioProbe = () => {
@@ -538,7 +711,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.6.50',
+                version: '1.6.56',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -558,7 +731,7 @@
             };
         }
         return {
-            version: '1.6.50',
+            version: '1.6.56',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -622,7 +795,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.6.50',
+            version: '1.6.56',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -660,7 +833,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.6.50',
+            version: '1.6.56',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -688,7 +861,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.6.50',
+            version: '1.6.56',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -719,7 +892,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.6.50',
+            version: '1.6.56',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -744,7 +917,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.6.50',
+            version: '1.6.56',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -813,7 +986,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.6.50',
+            version: '1.6.56',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -1040,7 +1213,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.6.50 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.6.56 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         recordDownloadEvent('assist-open', { fileName, mimeType, sizeBytes: Number(blob?.size || 0), hasUrl: Boolean(url) });

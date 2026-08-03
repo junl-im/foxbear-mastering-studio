@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.50-kakao-centered-entry-notice';
+  const VIEW_VERSION = '1.6.56-playback-blob-source-resilience';
   const DEFAULT_BINS = 96;
 
   function getService() {

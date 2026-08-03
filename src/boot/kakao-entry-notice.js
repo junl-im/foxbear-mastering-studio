@@ -1,7 +1,13 @@
-// FoxBear KakaoTalk entry notice: centered, non-blocking download compatibility guidance.
+// FoxBear KakaoTalk entry notice: centered, input-safe download compatibility guidance.
 'use strict';
 
 (function initializeKakaoEntryNotice(global) {
+  var existingApi = global.FoxBearKakaoEntryNotice;
+  if (existingApi && typeof existingApi.show === 'function' && typeof existingApi.dismiss === 'function') {
+    try { existingApi.show(); } catch (error) {}
+    return;
+  }
+
   var documentRef = global.document;
   var navigatorRef = global.navigator || {};
   var entry = global.FoxBearKakaoEntry || null;
@@ -12,10 +18,11 @@
   var layer = null;
   var dismissTimer = 0;
   var removeTimer = 0;
-  var dismissEventName = 'PointerEvent' in global ? 'pointerdown' : 'touchstart';
+  var dismissEventNames = 'PointerEvent' in global ? ['pointerdown'] : ['touchstart', 'mousedown'];
   var dismissed = false;
   var shown = false;
   var dismissReason = '';
+  var pagehideBound = false;
 
   function isStandaloneMode() {
     if (navigatorRef.standalone === true) return true;
@@ -32,16 +39,36 @@
     return true;
   }
 
+  function removeLayerListeners(target) {
+    if (!target || !target.removeEventListener) return;
+    dismissEventNames.forEach(function removeDismissListener(eventName) {
+      target.removeEventListener(eventName, handleScreenTouch, true);
+    });
+  }
+
   function removeGlobalListeners() {
-    if (!documentRef || !documentRef.removeEventListener) return;
-    documentRef.removeEventListener(dismissEventName, handleScreenTouch, true);
-    documentRef.removeEventListener('keydown', handleKeyDown, true);
+    if (documentRef && documentRef.removeEventListener) {
+      documentRef.removeEventListener('keydown', handleKeyDown, true);
+    }
+    if (pagehideBound && global.removeEventListener) {
+      global.removeEventListener('pagehide', handlePageHide, true);
+      pagehideBound = false;
+    }
+  }
+
+  function clearTimers() {
+    if (dismissTimer) global.clearTimeout(dismissTimer);
+    if (removeTimer) global.clearTimeout(removeTimer);
+    dismissTimer = 0;
+    removeTimer = 0;
   }
 
   function finalizeRemoval() {
     if (!layer) return;
     var current = layer;
     layer = null;
+    removeTimer = 0;
+    removeLayerListeners(current);
     if (current.parentNode) current.parentNode.removeChild(current);
   }
 
@@ -49,8 +76,8 @@
     if (!layer || dismissed) return false;
     dismissed = true;
     dismissReason = String(reason || 'dismissed');
-    global.clearTimeout(dismissTimer);
-    global.clearTimeout(removeTimer);
+    if (dismissTimer) global.clearTimeout(dismissTimer);
+    dismissTimer = 0;
     removeGlobalListeners();
     layer.classList.remove('is-visible');
     layer.classList.add('is-leaving');
@@ -59,12 +86,36 @@
     return true;
   }
 
-  function handleScreenTouch() {
+  function destroy(reason) {
+    dismissReason = String(reason || dismissReason || 'destroyed');
+    dismissed = true;
+    clearTimers();
+    removeGlobalListeners();
+    finalizeRemoval();
+    return true;
+  }
+
+  function consumeEvent(event) {
+    if (!event) return;
+    try { if (event.cancelable) event.preventDefault(); } catch (error) {}
+    try { event.stopImmediatePropagation(); } catch (error) {
+      try { event.stopPropagation(); } catch (nestedError) {}
+    }
+  }
+
+  function handleScreenTouch(event) {
+    consumeEvent(event);
     dismiss('screen-touch');
   }
 
   function handleKeyDown(event) {
-    if (event && event.key === 'Escape') dismiss('escape-key');
+    if (!event || event.key !== 'Escape') return;
+    consumeEvent(event);
+    dismiss('escape-key');
+  }
+
+  function handlePageHide() {
+    destroy('pagehide');
   }
 
   function createTextNode(tagName, className, text) {
@@ -72,6 +123,14 @@
     node.className = className;
     node.textContent = text;
     return node;
+  }
+
+  function removeOrphanedNotice() {
+    if (!documentRef || typeof documentRef.getElementById !== 'function') return;
+    var orphan = documentRef.getElementById('foxbearKakaoEntryNotice');
+    if (!orphan || orphan === layer) return;
+    removeLayerListeners(orphan);
+    if (orphan.parentNode) orphan.parentNode.removeChild(orphan);
   }
 
   function createNotice() {
@@ -130,13 +189,20 @@
     var parent = documentRef.body || documentRef.documentElement;
     if (!parent) return false;
 
+    removeOrphanedNotice();
     shown = true;
     dismissed = false;
     dismissReason = '';
     layer = createNotice();
     parent.appendChild(layer);
-    documentRef.addEventListener(dismissEventName, handleScreenTouch, true);
+    dismissEventNames.forEach(function addDismissListener(eventName) {
+      layer.addEventListener(eventName, handleScreenTouch, { capture: true, passive: false });
+    });
     documentRef.addEventListener('keydown', handleKeyDown, true);
+    if (global.addEventListener) {
+      global.addEventListener('pagehide', handlePageHide, true);
+      pagehideBound = true;
+    }
 
     var reveal = function revealNotice() {
       if (layer && !dismissed) layer.classList.add('is-visible');
@@ -153,8 +219,11 @@
   global.FoxBearKakaoEntryNotice = Object.freeze({
     show: show,
     dismiss: dismiss,
+    destroy: destroy,
     shouldShow: shouldShow,
     autoDismissMs: AUTO_DISMISS_MS,
+    inputSafe: true,
+    singleton: true,
     get active() { return Boolean(layer && !dismissed); },
     get shown() { return shown; },
     get dismissReason() { return dismissReason; }

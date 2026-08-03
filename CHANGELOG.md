@@ -1,3 +1,46 @@
+# v1.6.56 - Playback Blob Source Resilience
+
+- Rebuilds expired or invalid original, mastered, and highlight Blob URLs from their retained File/Blob backing data.
+- Preserves playback position and the latest play intent across a successful source repair.
+- Defers revocation of a previous mastered URL while any connected audio element still owns it.
+- Reconciles stale near-zero fade volume after lifecycle or output-route recovery.
+- Adds bounded source-recovery attempts and dedicated regression coverage, raising the configured target to 405 checks.
+
+# v1.6.55 - Mobile Focus Resume Reconciliation
+
+- Attempts one bounded playback recovery after a mobile background return when the captured Dock transport was actively playing.
+- Clears stale playing intent when the browser blocks automatic resume, keeping the next Dock tap actionable.
+- Reconciles unexpected visible audio pauses caused by phone calls, headset changes, Bluetooth routing, or native media focus loss.
+- Preserves hidden-page resume intent while preventing late lifecycle recovery from restarting audio after the page is hidden again.
+- Collapses interrupted crossfade shells to the active player before resume and adds dedicated lifecycle regression coverage, raising the configured target to 403 checks.
+
+# v1.6.53 - Playback Crossfade Settlement Guard
+
+- Prevents user-gesture source switching from calling `load()` immediately after `play()`, avoiding self-interrupted playback in KakaoTalk and mobile WebViews.
+- Treats a resolved-false Dock crossfade as a terminal outcome instead of leaving two players and a permanent crossfading shell state.
+- Releases the legacy player, crossfade marker, and external play-button state on every success, cancellation, or failure path.
+- Keeps thrown crossfade failures recoverable through the active Dock player without reviving a stale source.
+- Removes a duplicate mastered-source availability guard and preserves the historical app line budget.
+- Adds dedicated crossfade readiness and settlement regression coverage, raising the configured target to 400 checks.
+
+# v1.6.52 - Post-Master Playback Readiness Recovery
+
+- Stops the completed-master Dock from force-replacing a correctly committed player after the 100% render has already exposed it.
+- Verifies track, mode, and Blob URL ownership before any post-master repair and fences the one deferred repair by generation.
+- Routes every Dock play request through the owner of the active audio element instead of the first crossfade child.
+- Warms mastered and highlight Blob media, extends recoverable readiness to 2.2 seconds, rewinds ended media, and surfaces source errors without disabling the control.
+- Restores audible target volume when a play fade or crossfade is cancelled before completion.
+- Adds dedicated post-master playback regression coverage, raising the configured target to 399 checks.
+
+# v1.6.51 - Stability, Input Safety, and Shared Download Conversion
+
+- Makes the Kakao centered notice consume its first touch so the dismissal gesture cannot also activate controls behind the overlay.
+- Adds singleton and orphan-DOM guards for duplicate script execution, plus immediate page-exit timer and event cleanup.
+- Shares identical overlapping MP3/WAV conversion work by mastered source Blob and requested quality.
+- Gives each conversion subscriber independent cancellation and aborts the internal decode/encode job only when no subscribers remain.
+- Pins each job to an immutable source snapshot so master replacement cannot cross-contaminate the one-entry conversion cache.
+- Adds dedicated concurrency and cancellation regression coverage, raising the configured target to 397 checks.
+
 # v1.6.50 - Kakao Centered Entry Notice
 
 - Shows a large centered compatibility notice whenever FoxBear starts inside the KakaoTalk in-app browser.

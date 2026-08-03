@@ -1,3 +1,53 @@
+# FoxBear AI Mastering Studio Pro v1.6.56
+
+## v1.6.56 playback Blob source resilience
+
+- Invalidated Blob audio sources are rebuilt from the retained original File or mastered/highlight Blob.
+- Source recovery keeps the current playback position and resumes only when the latest transport intent still requests playback.
+- Previous mastered Object URLs are retired only after connected players release them.
+- Lifecycle return restores stale near-zero player volume when no active fade is running.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.56 cache generation.
+
+## v1.6.55 mobile focus resume reconciliation
+
+- Mobile/background return now attempts one bounded Dock playback recovery when the last captured transport state was playing.
+- A blocked automatic resume clears stale play intent so the next user tap starts playback instead of being misread as pause.
+- Unexpected visible audio-focus pauses from route, headset, or Bluetooth changes reconcile the Dock button and Media Session immediately.
+- Interrupted crossfade shells are collapsed to the active player before lifecycle recovery, preventing duplicate players after return.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.55 cache generation.
+
+# FoxBear AI Mastering Studio Pro v1.6.53
+
+## v1.6.53 playback crossfade settlement guard
+
+- User-gesture original/master switching now calls `play()` without a competing readiness `load()` that can interrupt the same request.
+- Crossfades that finish as cancelled or stale are fully settled instead of leaving two Dock players and an `is-crossfading` state behind.
+- Thrown transition failures clean up the old player before retrying only through the currently active Dock source.
+- Existing post-master readiness, volume recovery, and active-player ownership rules remain in place.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.53 cache generation.
+
+# FoxBear AI Mastering Studio Pro v1.6.52
+
+## v1.6.52 post-master playback readiness recovery
+
+- The 100% completion render is now the single source commit for the Dock; a second forced player replacement no longer races an immediate user tap.
+- Post-master repair checks the selected track, mastered mode, active Blob URL, and player ownership before rebuilding anything.
+- Dock play controls target the active audio element's owning player, including during crossfade cleanup.
+- Mastered and highlight Blob sources preload media data and use a longer recoverable readiness window for mobile and in-app browsers.
+- Cancelled fades restore their audible target volume so a playing element cannot remain effectively muted.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.52 cache generation.
+
+# FoxBear AI Mastering Studio Pro v1.6.51
+
+## v1.6.51 stability, input safety, and shared download conversion
+
+- The centered Kakao notice now consumes the first dismissal gesture so a hidden upload, mastering, or download control cannot activate at the same time.
+- Duplicate notice script execution reuses the existing singleton, removes orphaned notice DOM, and releases timers/listeners immediately on page exit.
+- Identical overlapping alternate-format downloads now share one decode and one encode operation.
+- Each caller keeps independent cancellation: one closed dialog does not cancel another active request, while the worker stops when the final subscriber cancels.
+- A conversion is pinned to the mastered source Blob captured at job start, preventing a replaced master file from receiving stale cached output.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.51 cache generation.
+
 # FoxBear AI Mastering Studio Pro v1.6.50
 
 ## v1.6.50 Kakao browser entry guidance

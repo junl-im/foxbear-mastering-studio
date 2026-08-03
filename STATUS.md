@@ -1,3 +1,102 @@
+# FoxBear Status - v1.6.56
+
+## Current release
+
+- Product version: `1.6.56`
+- Build ID: `playback-blob-source-resilience`
+- Asset version: `1.6.56-playback-blob-source-resilience`
+- Service worker cache: `foxbear-shell-v1.6.56-playback-blob-source-resilience`
+- Configured static/regression target: 405 checks.
+
+## Current focus
+
+- Recreate invalidated original, mastered, and highlight Blob URLs from retained File/Blob data.
+- Preserve playback position and the latest user play intent during source recovery.
+- Delay previous mastered URL revocation until connected players release the source.
+- Restore stale near-zero output volume after lifecycle or route recovery when no fade is active.
+
+## Verified
+
+- Official configured static and behavioral checks: **405/405 passed** in bounded slices (`135/135`, `135/135`, and `135/135`).
+- Dedicated Blob source resilience regression passed with historical post-master, crossfade, rapid transport, and mobile focus coverage.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Full release and overwrite archives contain **715 entries each** and pass compressed-data integrity and executable-payload checks.
+
+## Production deployment required
+
+- Deploy the synchronized v1.6.56 assets so the service-worker cache replaces v1.6.55.
+- On Android and iOS, verify playback after memory pressure, background return, and long idle periods.
+- Verify repeated re-mastering does not interrupt a currently owned mastered source.
+- Verify installed PWA and KakaoTalk WebView source recovery and next-tap behavior.
+
+# FoxBear Status - v1.6.52
+
+## Current release
+
+- Product version: `1.6.52`
+- Build ID: `post-master-playback-readiness-recovery`
+- Asset version: `1.6.52-post-master-playback-readiness-recovery`
+- Service worker cache: `foxbear-shell-v1.6.52-post-master-playback-readiness-recovery`
+- Configured static/regression target: 399 checks.
+
+## Current focus
+
+- Keep the completed-master Dock player stable after the 100% render instead of force-replacing it during the user's first tap.
+- Route play through the owner of the currently active audio element during crossfade and cleanup transitions.
+- Recover delayed Blob readiness, detached players, ended media, and source errors without leaving the play control inert.
+- Restore an audible target volume when a fade or crossfade is cancelled.
+
+## Verified
+
+- Official configured static and behavioral checks: **399/399 passed** in bounded slices (`133/133`, `133/133`, and `133/133`).
+- Dedicated post-master playback readiness and strengthened playback-transition regressions passed with historical Dock, mobile return, preview ownership, download, PWA, service-worker, and security coverage.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Real Android/iOS immediate post-completion tapping, background return, and KakaoTalk WebView playback remain external device gates.
+- Full release and overwrite archives contain **705 entries each** and pass compressed-data integrity and executable-payload checks.
+
+## Production deployment required
+
+- Deploy the synchronized v1.6.52 assets so the service-worker cache replaces v1.6.51.
+- On Android and iOS, tap Play immediately when mastering reaches 100% and verify the button is not replaced or ignored.
+- Verify pause/resume after background return and verify a completed or errored Blob can recover on the next user gesture.
+- Verify the active mastered player remains audible through rapid original/mastered switching.
+
+# FoxBear Status - v1.6.51
+
+## Current release
+
+- Product version: `1.6.51`
+- Build ID: `stability-concurrency-input-guard`
+- Asset version: `1.6.51-stability-concurrency-input-guard`
+- Service worker cache: `foxbear-shell-v1.6.51-stability-concurrency-input-guard`
+- Configured static/regression target: 397 checks.
+
+## Current focus
+
+- Prevent the Kakao notice dismissal gesture from activating controls behind it.
+- Keep the notice singleton and release its DOM, timers, and listeners across retries and navigation.
+- Share identical overlapping download conversions without coupling caller cancellation.
+- Keep completed conversion cache entries bound to the exact mastered source Blob.
+
+## Verified
+
+- Official configured static and behavioral checks: **397/397 passed** in bounded slices (`133/133`, `132/132`, and `132/132`).
+- Dedicated Kakao input-safety and shared download conversion regressions passed with historical download, cancellation, cache, PWA, service-worker, and security checks.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Installed Playwright browser execution could not start because `@playwright/test` and Chromium are unavailable in this environment; real KakaoTalk Android/iOS verification remains external.
+- Full release and overwrite archives contain **702 entries each** and pass compressed-data integrity and executable-payload checks.
+
+## Production deployment required
+
+- Deploy the synchronized v1.6.51 assets so the service-worker cache replaces v1.6.50.
+- Verify first-touch dismissal over upload and download controls in KakaoTalk Android/iOS.
+- Verify two overlapping identical format requests perform one conversion and that cancelling one caller does not stop the other.
+
 # FoxBear Status - v1.6.50
 
 ## Current release
@@ -485,10 +584,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.50`
-- Build ID: `kakao-centered-entry-notice`
-- Asset version: `1.6.50-kakao-centered-entry-notice`
-- Service worker cache: `foxbear-shell-v1.6.50-kakao-centered-entry-notice`
+- Product version: `1.6.56`
+- Build ID: `playback-blob-source-resilience`
+- Asset version: `1.6.56-playback-blob-source-resilience`
+- Service worker cache: `foxbear-shell-v1.6.56-playback-blob-source-resilience`
 
 # FoxBear Status - v1.6.32
 

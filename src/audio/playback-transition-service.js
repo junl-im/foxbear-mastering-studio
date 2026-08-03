@@ -2,10 +2,11 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.50-kakao-centered-entry-notice';
+    const SERVICE_VERSION = '1.6.56-playback-blob-source-resilience';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;
+    const MIN_AUDIBLE_VOLUME = 0.02;
 
     const clamp = global.FoxBearCoreUtils?.clamp || ((value, min, max) => Math.min(max, Math.max(min, Number(value) || 0)));
 
@@ -36,15 +37,48 @@
         return Boolean(audio && requestId > 0 && Number(audio._foxbearPlaybackRequestId || 0) === Number(requestId));
     }
 
+    function setPlaybackIntent(audio, playing, reason = 'transport') {
+        if (!audio) return false;
+        audio._foxbearDesiredPlaying = Boolean(playing);
+        audio._foxbearPlaybackIntentReason = String(reason || 'transport');
+        audio._foxbearPlaybackIntentAt = Date.now();
+        return audio._foxbearDesiredPlaying;
+    }
+
+    function isPlaybackIntended(audio) {
+        if (!audio || audio.ended) return false;
+        if (typeof audio._foxbearDesiredPlaying === 'boolean') return audio._foxbearDesiredPlaying;
+        return !audio.paused;
+    }
+
+    function reconcileExternalPause(audio, reason = 'external-pause') {
+        if (!audio || !isPlaybackIntended(audio)) return false;
+        audio._foxbearPlaybackRequestId = Number(audio._foxbearPlaybackRequestId || 0) + 1;
+        audio._foxbearPlaybackRequestType = String(reason || 'external-pause');
+        setPlaybackIntent(audio, false, reason || 'external-pause');
+        cancelFade(audio);
+        audio.volume = rememberTargetVolume(audio);
+        return true;
+    }
+
+    function settleSupersededPlayback(audio, targetVolume = 1) {
+        if (!audio || isPlaybackIntended(audio)) return false;
+        cancelFade(audio);
+        if (!audio.paused) try { audio.pause?.(); } catch (error) {}
+        audio.volume = clamp(Number(targetVolume || 1), 0.02, 1);
+        return true;
+    }
+
     function isAudioConnected(audio) {
         return typeof audio?.isConnected === 'boolean' ? audio.isConnected : true;
     }
 
     function cancelPlaybackRequest(audio, options = {}) {
         if (!audio) return false;
-        const hadRequest = Boolean(audio._foxbearPlaybackRequestId || audio._foxbearFadeState || audio._foxbearFadeRaf);
+        const hadRequest = Boolean(audio._foxbearPlaybackRequestId || audio._foxbearFadeState || audio._foxbearFadeRaf || isPlaybackIntended(audio));
         audio._foxbearPlaybackRequestId = Number(audio._foxbearPlaybackRequestId || 0) + 1;
         audio._foxbearPlaybackRequestType = String(options.reason || 'cancelled');
+        if (options.preserveIntent !== true) setPlaybackIntent(audio, false, options.reason || 'cancelled');
         cancelFade(audio);
         if (options.pause !== false) {
             try { audio.pause?.(); } catch (error) {}
@@ -52,9 +86,10 @@
         return hadRequest;
     }
 
-    function waitForMediaReady(audio, timeoutMs = 900) {
+    function waitForMediaReady(audio, timeoutMs = 900, options = {}) {
         if (!audio) return Promise.resolve(false);
         if (audio.readyState >= 2) return Promise.resolve(true);
+        const shouldLoad = options.load !== false;
         return new Promise(resolve => {
             let settled = false;
             const done = value => {
@@ -72,7 +107,9 @@
             audio.addEventListener('canplay', onReady, { once: true });
             audio.addEventListener('loadeddata', onReady, { once: true });
             audio.addEventListener('error', onError, { once: true });
-            try { audio.load?.(); } catch (error) {}
+            if (shouldLoad) {
+                try { audio.load?.(); } catch (error) {}
+            }
         });
     }
 
@@ -117,9 +154,54 @@
         });
     }
 
+    async function resumeAfterInterruption(audio, options = {}) {
+        if (!audio || !isAudioConnected(audio) || audio.ended && options.rewindEnded === false) return false;
+        if (!isPlaybackIntended(audio) && options.force !== true) return false;
+        if (audio.ended) {
+            try { audio.currentTime = 0; } catch (error) {}
+        }
+        const target = rememberTargetVolume(audio);
+        if (!audio.paused && !audio.ended) {
+            audio.volume = target;
+            await resumeAudioGraphForGesture(audio).catch(() => {});
+            reconcileAudibleVolume(audio, options.reason || 'resume-already-playing');
+            return true;
+        }
+        setPlaybackIntent(audio, true, options.reason || 'resume-after-interruption');
+        const requestId = beginPlaybackRequest(audio, 'resume-after-interruption');
+        cancelFade(audio);
+        const resumePromise = resumeAudioGraphForGesture(audio);
+        await Promise.resolve(resumePromise).catch(() => {});
+        if (!ownsPlaybackRequest(audio, requestId) || !isAudioConnected(audio)) return false;
+        if (audio.readyState < 2) await waitForMediaReady(audio, options.readyTimeoutMs || 2200, { load: options.load !== false });
+        if (!ownsPlaybackRequest(audio, requestId) || !isAudioConnected(audio)) return false;
+        let playPromise;
+        try { playPromise = typeof audio.play === 'function' ? audio.play() : Promise.resolve(false); }
+        catch (error) { playPromise = Promise.reject(error); }
+        try {
+            const started = await retryInterruptedPlay(audio, requestId, playPromise, resumePromise, options);
+            if (started === false || !ownsPlaybackRequest(audio, requestId) || !isAudioConnected(audio)) {
+                settleSupersededPlayback(audio, target);
+                return false;
+            }
+            audio.volume = target;
+            reconcileAudibleVolume(audio, options.reason || 'resume-after-interruption');
+            return Boolean(!audio.paused && isPlaybackIntended(audio));
+        } catch (error) {
+            if (ownsPlaybackRequest(audio, requestId)) {
+                setPlaybackIntent(audio, false, options.failureReason || 'resume-after-interruption-blocked');
+                cancelFade(audio);
+                try { audio.pause?.(); } catch (pauseError) {}
+                audio.volume = target;
+            }
+            return false;
+        }
+    }
+
     function playSynchronizedPair(context, audioElements, reason = 'synchronized-play') {
         const manager = global.FoxBearAudioContextManager;
         const resumePromise = context && manager?.resume ? manager.resume(context, reason) : Promise.resolve(true);
+        (audioElements || []).forEach(audio => setPlaybackIntent(audio, true, reason));
         return Promise.all([resumePromise, ...(audioElements || []).map(audio => audio?.play?.() || Promise.resolve())]);
     }
 
@@ -130,6 +212,17 @@
             audio.dataset.foxbearTargetVolume = String(current || 1);
         }
         return clamp(Number(audio.dataset.foxbearTargetVolume || current || 1), 0.02, 1);
+    }
+
+    function reconcileAudibleVolume(audio, reason = 'audible-volume-reconcile') {
+        if (!audio || audio.muted || audio.paused || audio.ended || audio._foxbearFadeState) return false;
+        const target = rememberTargetVolume(audio);
+        const current = clamp(Number(audio.volume || 0), 0, 1);
+        if (current >= Math.min(target, MIN_AUDIBLE_VOLUME)) return false;
+        audio.volume = target;
+        audio._foxbearVolumeRecoveryReason = String(reason || 'audible-volume-reconcile');
+        audio._foxbearVolumeRecoveryAt = Date.now();
+        return true;
     }
 
     function cancelFade(audio) {
@@ -193,6 +286,7 @@
 
     function playWithFadeIn(audio, options = {}) {
         if (!audio) return Promise.resolve(false);
+        setPlaybackIntent(audio, true, options.reason || 'play');
         const requestId = beginPlaybackRequest(audio, 'play');
         cancelFade(audio);
         const resumePromise = resumeAudioGraphForGesture(audio);
@@ -205,7 +299,10 @@
         return retryInterruptedPlay(audio, requestId, playPromise, resumePromise, options)
             .then(started => {
                 if (started === false) return false;
-                if (!ownsPlaybackRequest(audio, requestId)) return false;
+                if (!ownsPlaybackRequest(audio, requestId)) {
+                    settleSupersededPlayback(audio, target);
+                    return false;
+                }
                 if (!isAudioConnected(audio)) {
                     try { audio.pause?.(); } catch (error) {}
                     audio.volume = target;
@@ -213,9 +310,18 @@
                 }
                 return fadeVolume(audio, target, duration);
             })
-            .then(completed => Boolean(completed && ownsPlaybackRequest(audio, requestId) && isAudioConnected(audio)))
+            .then(completed => {
+                const ownsRequest = ownsPlaybackRequest(audio, requestId);
+                const connected = isAudioConnected(audio);
+                if (!completed && ownsRequest && connected) audio.volume = target;
+                if (!ownsRequest) settleSupersededPlayback(audio, target);
+                return Boolean(completed && ownsRequest && connected && isPlaybackIntended(audio));
+            })
             .catch(error => {
-                if (!ownsPlaybackRequest(audio, requestId)) return false;
+                if (!ownsPlaybackRequest(audio, requestId)) {
+                    settleSupersededPlayback(audio, target);
+                    return false;
+                }
                 cancelFade(audio);
                 audio.volume = target;
                 throw error;
@@ -224,10 +330,12 @@
 
     function pauseWithFadeOut(audio, options = {}) {
         if (!audio) return Promise.resolve(false);
+        setPlaybackIntent(audio, false, options.reason || 'pause');
         const requestId = beginPlaybackRequest(audio, 'pause');
         const target = rememberTargetVolume(audio);
         if (audio.paused || audio.ended) {
             cancelFade(audio);
+            try { audio.pause?.(); } catch (error) {}
             audio.volume = target;
             return Promise.resolve(ownsPlaybackRequest(audio, requestId));
         }
@@ -236,13 +344,15 @@
             if (!ownsPlaybackRequest(audio, requestId)) return false;
             try { audio.pause(); } catch (error) {}
             audio.volume = target;
-            return true;
+            return !isPlaybackIntended(audio);
         });
     }
 
     function crossfadePair(oldAudio, nextAudio, options = {}) {
         const duration = Number(options.ms || DEFAULT_FADE_MS);
         if (oldAudio && nextAudio && oldAudio === nextAudio) return playWithFadeIn(nextAudio, { ms: duration, fromZero: false });
+        if (oldAudio) setPlaybackIntent(oldAudio, false, options.reason || 'crossfade-out');
+        if (nextAudio) setPlaybackIntent(nextAudio, true, options.reason || 'crossfade-in');
         const oldRequestId = oldAudio ? beginPlaybackRequest(oldAudio, 'crossfade-out') : 0;
         const nextRequestId = nextAudio ? beginPlaybackRequest(nextAudio, 'crossfade-in') : 0;
         if (oldAudio) cancelFade(oldAudio);
@@ -260,7 +370,7 @@
         if (options.userGesture && nextAudio && typeof nextAudio.play === 'function') {
             try { immediatePlay = nextAudio.play(); } catch (error) { immediatePlay = Promise.reject(error); }
         }
-        const readyPromise = nextAudio ? waitForMediaReady(nextAudio, options.readyTimeoutMs || 900) : Promise.resolve(false);
+        const readyPromise = nextAudio ? waitForMediaReady(nextAudio, options.readyTimeoutMs || 900, { load: !immediatePlay }) : Promise.resolve(false);
         const playPromise = immediatePlay || readyPromise.then(() => {
             if (!ownsPair() || !isAudioConnected(nextAudio)) return false;
             return nextAudio && typeof nextAudio.play === 'function' ? nextAudio.play() : Promise.resolve();
@@ -268,7 +378,11 @@
         const recoveredPlay = nextAudio ? retryInterruptedPlay(nextAudio, nextRequestId, playPromise, resumePromise, options) : playPromise;
         return Promise.all([Promise.resolve(recoveredPlay), readyPromise])
             .then(() => {
-                if (!ownsPair()) return false;
+                if (!ownsPair()) {
+                    settleSupersededPlayback(oldAudio, oldTarget);
+                    settleSupersededPlayback(nextAudio, nextTarget);
+                    return false;
+                }
                 if (nextAudio && !isAudioConnected(nextAudio)) {
                     try { nextAudio.pause?.(); } catch (error) {}
                     nextAudio.volume = nextTarget;
@@ -280,8 +394,16 @@
                 return Promise.all(fades);
             })
             .then(results => {
-                if (results === false || !ownsPair()) return false;
-                if (results.some(completed => completed === false)) return false;
+                if (results === false || !ownsPair()) {
+                    settleSupersededPlayback(oldAudio, oldTarget);
+                    settleSupersededPlayback(nextAudio, nextTarget);
+                    return false;
+                }
+                if (results.some(completed => completed === false)) {
+                    if (oldAudio) oldAudio.volume = oldTarget;
+                    if (nextAudio) nextAudio.volume = nextTarget;
+                    return false;
+                }
                 if (oldAudio) {
                     try { oldAudio.pause(); } catch (error) {}
                     oldAudio.volume = oldTarget;
@@ -291,7 +413,11 @@
                 return true;
             })
             .catch(error => {
-                if (!ownsPair()) return false;
+                if (!ownsPair()) {
+                    settleSupersededPlayback(oldAudio, oldTarget);
+                    settleSupersededPlayback(nextAudio, nextTarget);
+                    return false;
+                }
                 cancelFade(nextAudio);
                 if (nextAudio) nextAudio.volume = nextTarget;
                 if (oldAudio) oldAudio.volume = oldTarget;
@@ -303,9 +429,15 @@
         version: SERVICE_VERSION,
         DEFAULT_FADE_MS,
         FADE_MIN_VOLUME,
+        MIN_AUDIBLE_VOLUME,
         rememberTargetVolume,
+        reconcileAudibleVolume,
         beginPlaybackRequest,
         ownsPlaybackRequest,
+        setPlaybackIntent,
+        isPlaybackIntended,
+        reconcileExternalPause,
+        settleSupersededPlayback,
         cancelPlaybackRequest,
         cancelFade,
         fadeVolume,
@@ -315,6 +447,7 @@
         resumeAudioGraphForGesture,
         isRecoverablePlaybackInterruption,
         retryInterruptedPlay,
+        resumeAfterInterruption,
         playSynchronizedPair,
         playWithFadeIn,
         pauseWithFadeOut,

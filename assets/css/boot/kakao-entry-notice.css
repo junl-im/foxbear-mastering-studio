@@ -13,7 +13,12 @@
     max(16px, env(safe-area-inset-left));
   background: rgba(3, 8, 18, 0.42);
   opacity: 0;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  overscroll-behavior: contain;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   transition: opacity 0.34s ease;
   -webkit-backdrop-filter: blur(5px) saturate(1.06);
   backdrop-filter: blur(5px) saturate(1.06);

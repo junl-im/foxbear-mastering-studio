@@ -8,12 +8,13 @@ const vm = require('vm');
 const source = fs.readFileSync('src/audio/playback-transition-service.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.6.50');
+assert.strictEqual(pkg.version, '1.6.56');
 assert(pkg.qaChecks.includes('node qa/v1578_playback_transition_race_recovery_smoke.js'));
 assert(source.includes('audio._foxbearFadeState'));
 assert(source.includes('fadeState.resolve(false)'));
 assert(source.includes('if (!completed) return false;'));
-assert(source.includes('if (results.some(completed => completed === false)) return false;'));
+assert(source.includes('if (results.some(completed => completed === false)) {'));
+assert(source.includes('if (!completed && ownsRequest && connected) audio.volume = target;'));
 
 let clock = 0;
 let nextFrameId = 1;
@@ -104,6 +105,15 @@ function createAudio() {
   assert.strictEqual(raceAudio.playCalls, 1, 'replacement play was not issued exactly once');
   assert.strictEqual(raceAudio.paused, false, 'audio ended paused after rapid pause/play transition');
 
+  const cancelledPlayAudio = createAudio();
+  cancelledPlayAudio.paused = true;
+  const cancelledPlay = service.playWithFadeIn(cancelledPlayAudio, { ms: 100 });
+  await Promise.resolve();
+  await Promise.resolve();
+  service.cancelFade(cancelledPlayAudio);
+  assert.strictEqual(await cancelledPlay, false, 'externally cancelled play fade should report cancellation');
+  assert.strictEqual(cancelledPlayAudio.volume, 1, 'cancelled play fade should restore the remembered audible volume');
+
   const oldAudio = createAudio();
   const nextAudio = createAudio();
   nextAudio.paused = true;
@@ -116,6 +126,8 @@ function createAudio() {
   flushFrames(200);
   assert.strictEqual(await crossfade, false, 'cancelled crossfade did not report stale completion');
   assert.strictEqual(oldAudio.pauseCalls, 0, 'cancelled crossfade paused the previous source after a newer transition');
+  assert.strictEqual(oldAudio.volume, 1, 'cancelled crossfade should restore the previous source volume');
+  assert.strictEqual(nextAudio.volume, 1, 'cancelled crossfade should restore the next source volume');
 
   console.log('PASS v1.5.78 playback fade cancellation, rapid pause/play, and stale crossfade recovery');
 })().catch(error => {
