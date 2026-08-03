@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.49 (download-variant-cache-reuse).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.50 (kakao-centered-entry-notice).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.49"
+  "version": "1.6.50"
 }

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.49",
-  "buildId": "download-variant-cache-reuse",
+  "productVersion": "1.6.50",
+  "buildId": "kakao-centered-entry-notice",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -142,7 +142,11 @@
     "qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js",
     "docs/V1.6.45_WINDOWS_RELEASE_GATE_SPARK_HOSTING_NO_APP_CHECK.md",
     "qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js",
-    "docs/V1.6.47_EXTERNAL_HOST_ADMIN_AUTH_OPAQUE_ERROR_RECOVERY.md"
+    "docs/V1.6.47_EXTERNAL_HOST_ADMIN_AUTH_OPAQUE_ERROR_RECOVERY.md",
+    "src/boot/kakao-entry-notice.js",
+    "assets/css/boot/kakao-entry-notice.css",
+    "qa/v1650_kakao_center_entry_notice_smoke.js",
+    "docs/V1.6.50_KAKAO_CENTERED_ENTRY_NOTICE.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -201,6 +205,8 @@
     "src/audio/audio-context-manager.js",
     "src/boot/ui-shell-recovery-service.js",
     "assets/css/boot/ui-shell-recovery.css",
-    "src/ui/admin-access-controller.js"
+    "src/ui/admin-access-controller.js",
+    "src/boot/kakao-entry-notice.js",
+    "assets/css/boot/kakao-entry-notice.css"
   ]
 }

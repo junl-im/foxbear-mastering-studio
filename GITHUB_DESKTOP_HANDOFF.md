@@ -1,3 +1,28 @@
+# GitHub Desktop Handoff - v1.6.50
+
+## Apply
+
+1. Fetch origin before applying the overwrite ZIP.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Run the release gates, review changes, commit, and Push origin.
+4. Run `npm run deploy:spark` so Hosting receives the same cache generation.
+
+## Release focus
+
+- Large centered KakaoTalk in-app compatibility notice
+- Mastered-file download warning before long processing begins
+- External/default browser and PWA installation guidance
+- First-touch/Escape smooth dismissal and eight-second auto-close
+- Normal-browser and standalone-PWA suppression
+
+## Production verification
+
+- Open FoxBear from a KakaoTalk chat on Android and iOS.
+- Confirm the notice is centered, readable, and above the studio.
+- Touch the screen once and confirm the notice slides/fades away.
+- Reload without touching and confirm it closes after eight seconds.
+- Open the same URL in Chrome/Safari and from an installed PWA and confirm no Kakao notice appears.
+
 # GitHub Desktop Handoff - v1.6.49
 
 ## Apply

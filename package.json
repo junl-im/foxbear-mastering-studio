@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.49",
+  "version": "1.6.50",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with bounded reuse of download-time converted variants, precise lossy-source warnings, and existing post-master format selection.",
+  "description": "FoxBear AI Mastering Studio Pro with a centered Kakao in-app download warning, touch-to-dismiss fade, timed dismissal, and PWA guidance.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.49-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.49-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.50-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.50-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -87,6 +87,7 @@
     "node --check src/ui/admin-incident-monitor-view.js",
     "node --check src/security/trusted-types-bootstrap.js",
     "node --check src/security/site-guards.js",
+    "node --check src/boot/kakao-entry-notice.js",
     "node --check src/boot/runtime-health.js",
     "node --check src/boot/incident-route-policy.js",
     "node --check src/boot/incident-mail-sync-service.js",
@@ -431,15 +432,16 @@
     "node qa/v1644_google_auth_gapi_module_trusted_types_recovery_smoke.js",
     "node qa/v1645_windows_release_gate_spark_hosting_no_app_check_smoke.js",
     "node qa/v1646_google_auth_same_origin_network_recovery_smoke.js",
-    "node qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js"
+    "node qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js",
+    "node qa/v1650_kakao_center_entry_notice_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "download-variant-cache-reuse",
-    "assetVersion": "1.6.49-download-variant-cache-reuse",
-    "cacheName": "foxbear-shell-v1.6.49-download-variant-cache-reuse",
-    "bootRevision": "boot-sri-v1649-download-cache",
-    "updateSafetyRevision": "update-safety-v1649-download-cache",
-    "serviceWorkerRevision": "sw-v1649-download-cache"
+    "buildId": "kakao-centered-entry-notice",
+    "assetVersion": "1.6.50-kakao-centered-entry-notice",
+    "cacheName": "foxbear-shell-v1.6.50-kakao-centered-entry-notice",
+    "bootRevision": "boot-sri-v1650-kakao-notice",
+    "updateSafetyRevision": "update-safety-v1650-kakao-notice",
+    "serviceWorkerRevision": "sw-v1650-kakao-notice"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

@@ -1,3 +1,28 @@
+# Handoff - v1.6.50
+
+- Build: `kakao-centered-entry-notice`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep Kakao detection ahead of the notice boot module.
+- Keep the warning non-modal and do not prevent the studio from loading underneath it.
+- Preserve first-touch/Escape dismissal, the eight-second timeout, and listener/timer cleanup.
+- Do not show the notice in normal browsers, standalone PWA mode, or the explicit external-guide redirect.
+- Keep the Kakao download warning, external/default browser guidance, and PWA installation message together.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.50`
+- Build ID: `kakao-centered-entry-notice`
+- Asset version: `1.6.50-kakao-centered-entry-notice`
+- Service worker cache: `foxbear-shell-v1.6.50-kakao-centered-entry-notice`
+- Configured static/regression target: 396 checks.
+- Final configured checks: `396/396` passed in bounded slices (`132/132`, `132/132`, and `132/132`).
+- Dedicated Kakao notice regression and historical Kakao/PWA/download/toast/service-worker regressions passed.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real KakaoTalk Android/iOS visual and menu-wording verification remains an external environment gate.
+- Final full and overwrite archives contain `700` entries each and pass compressed-data integrity and executable-payload checks.
+
 # Handoff - v1.6.49
 
 - Build: `download-variant-cache-reuse`.

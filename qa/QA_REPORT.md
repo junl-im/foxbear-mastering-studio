@@ -1,3 +1,29 @@
+# FoxBear QA Report - v1.6.50
+
+## Configured target
+
+- Static and behavioral checks: 396
+- New syntax target: `src/boot/kakao-entry-notice.js`
+- New regression: `qa/v1650_kakao_center_entry_notice_smoke.js`
+
+## Focus
+
+- Kakao-only centered entry notice
+- Mastered-file download compatibility warning
+- External/default browser and PWA installation guidance
+- First-touch/Escape smooth dismissal and eight-second timeout
+- Normal browser, standalone PWA, and external-guide suppression
+
+## Final result
+
+- Official configured static and behavioral checks: `396/396` passed in bounded slices (`132/132`, `132/132`, and `132/132`).
+- Dedicated v1.6.50 interaction regression and historical Kakao entry, external-browser, PWA, download, toast, service-worker, and security regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this environment.
+- Real KakaoTalk Android/iOS visual size, safe-area placement, touch dismissal, and menu wording remain external verification gates.
+- Final release and overwrite archives contain `700` entries each and pass compressed-data integrity and executable-payload checks.
+
 # FoxBear QA Report - v1.6.49
 
 ## Configured target

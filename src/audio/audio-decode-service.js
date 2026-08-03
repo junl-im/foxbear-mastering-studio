@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.49
+// FoxBear audio decode service - v1.6.50
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.49-download-variant-cache-reuse';
+    const SERVICE_VERSION = '1.6.50-kakao-centered-entry-notice';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

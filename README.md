@@ -1,3 +1,14 @@
+# FoxBear AI Mastering Studio Pro v1.6.50
+
+## v1.6.50 Kakao browser entry guidance
+
+- KakaoTalk in-app launches now show a large notice in the exact center of the screen before users begin a long mastering workflow.
+- The notice explains that completed-file downloads may be unreliable inside KakaoTalk and recommends opening FoxBear in Chrome, Safari, or the device default browser.
+- PWA home-screen installation is presented as an app-like alternative.
+- Touch anywhere on the screen or press Escape to dismiss it with a smooth transition; otherwise it closes automatically after eight seconds.
+- Normal browsers and installed PWA launches do not show the Kakao warning.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.50 cache generation.
+
 # FoxBear AI Mastering Studio Pro v1.6.49
 
 ## v1.6.49 repeated download conversion reuse

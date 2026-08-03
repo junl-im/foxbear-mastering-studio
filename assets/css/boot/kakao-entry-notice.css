@@ -1,0 +1,199 @@
+/* FoxBear KakaoTalk entry notice: centered guidance without blocking the studio. */
+.foxbear-kakao-entry-notice {
+  position: fixed;
+  inset: 0;
+  z-index: 28600;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  padding:
+    max(22px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(22px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  background: rgba(3, 8, 18, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.34s ease;
+  -webkit-backdrop-filter: blur(5px) saturate(1.06);
+  backdrop-filter: blur(5px) saturate(1.06);
+}
+
+.foxbear-kakao-entry-notice.is-visible {
+  opacity: 1;
+}
+
+.foxbear-kakao-entry-notice.is-leaving {
+  opacity: 0;
+}
+
+.foxbear-kakao-entry-notice-card {
+  position: relative;
+  width: min(620px, calc(100vw - 32px));
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: clamp(24px, 5vw, 38px);
+  border: 1px solid rgba(141, 245, 232, 0.34);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(141, 245, 232, 0.19), transparent 34%),
+    radial-gradient(circle at 8% 100%, rgba(102, 169, 255, 0.16), transparent 38%),
+    rgba(10, 18, 34, 0.975);
+  box-shadow:
+    0 32px 100px rgba(0, 0, 0, 0.62),
+    0 0 58px rgba(91, 226, 220, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #f5fbff;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(24px) scale(0.955);
+  transition:
+    opacity 0.36s ease,
+    transform 0.48s cubic-bezier(0.18, 0.84, 0.24, 1);
+  pointer-events: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.foxbear-kakao-entry-notice.is-visible .foxbear-kakao-entry-notice-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.foxbear-kakao-entry-notice.is-leaving .foxbear-kakao-entry-notice-card {
+  opacity: 0;
+  transform: translateY(-22px) scale(0.965);
+  transition-duration: 0.34s;
+}
+
+.foxbear-kakao-entry-notice-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  margin-bottom: 13px;
+  padding: 4px 11px;
+  border: 1px solid rgba(141, 245, 232, 0.34);
+  border-radius: 999px;
+  background: rgba(141, 245, 232, 0.1);
+  color: #a8fff2;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.foxbear-kakao-entry-notice-title {
+  margin: 0 0 16px;
+  color: #ffffff;
+  font-size: clamp(1.48rem, 5vw, 2.15rem);
+  font-weight: 950;
+  line-height: 1.18;
+  letter-spacing: -0.035em;
+}
+
+.foxbear-kakao-entry-notice-warning,
+.foxbear-kakao-entry-notice-guide,
+.foxbear-kakao-entry-notice-pwa {
+  margin: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.foxbear-kakao-entry-notice-warning {
+  color: #fff2bc;
+  font-size: clamp(1rem, 3.5vw, 1.22rem);
+  font-weight: 900;
+  line-height: 1.55;
+}
+
+.foxbear-kakao-entry-notice-guide {
+  margin-top: 12px;
+  color: #e7f2ff;
+  font-size: clamp(0.91rem, 3vw, 1.04rem);
+  font-weight: 760;
+  line-height: 1.62;
+}
+
+.foxbear-kakao-entry-notice-pwa {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(102, 169, 255, 0.24);
+  border-radius: 16px;
+  background: rgba(102, 169, 255, 0.09);
+  color: #bfe0ff;
+  font-size: clamp(0.85rem, 2.8vw, 0.98rem);
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.foxbear-kakao-entry-notice-footer {
+  margin-top: 19px;
+  color: rgba(224, 237, 248, 0.68);
+  font-size: clamp(0.7rem, 2.5vw, 0.82rem);
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.foxbear-kakao-entry-notice-timer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 5px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.foxbear-kakao-entry-notice-timer::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #8df5e8, #70b9ff);
+  transform-origin: left center;
+  animation: foxbear-kakao-notice-timer 8s linear forwards;
+}
+
+@keyframes foxbear-kakao-notice-timer {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+
+@media (max-width: 520px) {
+  .foxbear-kakao-entry-notice {
+    padding-inline: 13px;
+  }
+
+  .foxbear-kakao-entry-notice-card {
+    width: min(94vw, 520px);
+    padding: 25px 20px 27px;
+    border-radius: 24px;
+  }
+
+  .foxbear-kakao-entry-notice-badge {
+    min-height: 25px;
+    margin-bottom: 11px;
+    font-size: 0.61rem;
+  }
+
+  .foxbear-kakao-entry-notice-title {
+    margin-bottom: 13px;
+  }
+
+  .foxbear-kakao-entry-notice-pwa {
+    padding: 10px 11px;
+    border-radius: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foxbear-kakao-entry-notice,
+  .foxbear-kakao-entry-notice-card {
+    transition-duration: 0.01ms !important;
+  }
+
+  .foxbear-kakao-entry-notice-timer::after {
+    animation: none;
+  }
+}

@@ -1,3 +1,36 @@
+# FoxBear Status - v1.6.50
+
+## Current release
+
+- Product version: `1.6.50`
+- Build ID: `kakao-centered-entry-notice`
+- Asset version: `1.6.50-kakao-centered-entry-notice`
+- Service worker cache: `foxbear-shell-v1.6.50-kakao-centered-entry-notice`
+- Configured static/regression target: 396 checks.
+
+## Current focus
+
+- Warn KakaoTalk users about mastered-file download limitations before they invest time in a full master.
+- Keep the warning large, centered, readable, and non-blocking.
+- Support first-touch and Escape dismissal with a smooth exit plus an eight-second timeout.
+- Promote external/default browsers and PWA installation without showing the notice in those environments.
+
+## Verified
+
+- Official configured static and behavioral checks: **396/396 passed** in three bounded slices (`132/132`, `132/132`, and `132/132`).
+- Dedicated Kakao notice regression and historical Kakao entry, external-browser, PWA, download, toast, service-worker, and security regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Installed browser execution remains unavailable because Playwright/Chromium is not installed; real KakaoTalk Android/iOS visual verification remains an external environment gate.
+- Full release and overwrite archives contain **700 entries each** and pass compressed-data integrity and executable-payload checks.
+
+## Production deployment required
+
+- Deploy the synchronized v1.6.50 assets so the new service-worker cache replaces v1.6.49.
+- Verify the centered notice in KakaoTalk on Android and iOS.
+- Confirm a first screen touch dismisses it and no interaction closes it after eight seconds.
+- Confirm normal browser and installed PWA launches do not show the notice.
+
 # FoxBear Status - v1.6.49
 
 ## Current release
@@ -452,10 +485,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.49`
-- Build ID: `download-variant-cache-reuse`
-- Asset version: `1.6.49-download-variant-cache-reuse`
-- Service worker cache: `foxbear-shell-v1.6.49-download-variant-cache-reuse`
+- Product version: `1.6.50`
+- Build ID: `kakao-centered-entry-notice`
+- Asset version: `1.6.50-kakao-centered-entry-notice`
+- Service worker cache: `foxbear-shell-v1.6.50-kakao-centered-entry-notice`
 
 # FoxBear Status - v1.6.32
 

@@ -1,3 +1,12 @@
+# v1.6.50 - Kakao Centered Entry Notice
+
+- Shows a large centered compatibility notice whenever FoxBear starts inside the KakaoTalk in-app browser.
+- Warns that mastered-file downloads may be unreliable and directs users to Chrome, Safari, or the default browser through Kakao's upper-right menu.
+- Adds PWA home-screen installation guidance for an app-like workflow.
+- Dismisses smoothly on the first screen touch or Escape key and automatically closes after eight seconds.
+- Keeps the notice out of normal browsers, standalone PWA launches, and the explicit external-browser redirect path.
+- Adds syntax and dedicated interaction regression coverage, raising the configured target to 396 checks.
+
 # v1.6.49 - Download Variant Cache Reuse
 
 - Reuses the most recently converted alternate download format for the same mastered source instead of decoding and encoding it again.
