@@ -1,3 +1,21 @@
+# v1.6.49 - Download Variant Cache Reuse
+
+- Reuses the most recently converted alternate download format for the same mastered source instead of decoding and encoding it again.
+- Bounds the cache to one alternate variant per source and 64 MB so repeated downloads are faster without retaining every generated WAV/MP3 file.
+- Shows cached variants as immediately reusable in the download dialog and reports their exact file size.
+- Keeps cache entries tied to the mastered source Blob, so replacing or releasing that output naturally retires the cached variant.
+- Corrects lossy-source guidance so MP3-to-MP3 re-encoding and MP3-to-WAV conversion display different, accurate warnings.
+- Adds dedicated regression coverage, raising the configured target to 394 checks.
+
+# v1.6.48 - Post-Master Download Format and Quality Selection
+
+- Keeps MP3 and WAV extension choices available after mastering even when the completed PCM buffer has been released by the memory guard.
+- Re-decodes the completed mastered output and converts it to MP3 128/192/256/320 kbps or WAV 16/24/32-bit float on demand.
+- Adds an always-visible quality selector in the download dialog while retaining the compact MP3/WAV context menu.
+- Makes an MP3/WAV family click immediately select the remembered/default quality so the extension change is effective before download.
+- Shows file-size estimates, conversion source, and a clear warning that MP3-to-WAV conversion cannot restore lost quality.
+- Adds dedicated regression coverage, raising the configured target to 393 checks.
+
 # v1.6.47 - External-Host Admin Auth and Opaque Script-Error Recovery
 
 - Keeps GitHub Pages on popup authentication and stops calling redirect-result recovery on non-Firebase Hosting origins.

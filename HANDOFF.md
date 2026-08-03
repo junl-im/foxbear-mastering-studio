@@ -1,3 +1,51 @@
+# Handoff - v1.6.49
+
+- Build: `download-variant-cache-reuse`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep the converted-variant cache bounded to one entry and 64 MB per mastered source.
+- Do not cache encoder fallback output under a different requested format.
+- Keep cached file names derived at use time rather than stored in the cache.
+- Preserve separate MP3-to-MP3 and MP3-to-WAV quality warnings.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.49`
+- Build ID: `download-variant-cache-reuse`
+- Asset version: `1.6.49-download-variant-cache-reuse`
+- Service worker cache: `foxbear-shell-v1.6.49-download-variant-cache-reuse`
+- Configured static/regression target: 394 checks.
+- Final configured checks: `394/394` passed in bounded slices (`130/130`, `130/130`, and `134/134`).
+- Dedicated cache-reuse regression and historical download, Blob validation, codec, cancellation, and memory regressions passed.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real-device repeated download/share verification remains an external environment gate.
+- Final full and overwrite archives contain `696` entries each and pass compressed-data integrity and executable-payload checks.
+
+# Handoff - v1.6.48
+
+- Build: `post-master-download-format-quality`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Do not remove the completed-output transcode fallback; it is what keeps alternate formats available after the memory guard releases PCM.
+- Keep the current-format Blob reuse path first so no unnecessary decode/encode occurs.
+- Keep the MP3-to-WAV quality warning because container conversion does not restore lossy detail.
+- Keep the always-visible quality selector and the MP3/WAV context menu synchronized.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.48`
+- Build ID: `post-master-download-format-quality`
+- Asset version: `1.6.48-post-master-download-format-quality`
+- Service worker cache: `foxbear-shell-v1.6.48-post-master-download-format-quality`
+- Configured static/regression target: 393 checks.
+- Official configured static and behavioral checks: `393/393` passed.
+- Dedicated download-format regression and related historical download/memory regressions passed.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 4 expected missing-install warnings.
+- Playwright/Chromium is not installed in this sandbox; real-device and restricted in-app browser download verification remains an external environment gate.
+- Final full and overwrite archives contain `694` entries each and pass package integrity and executable-payload checks.
+
 # Handoff - v1.6.47
 
 - Build: `external-host-admin-auth-opaque-error-recovery`.

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.47-external-host-admin-auth-opaque-error-recovery';
+const version = '1.6.49-download-variant-cache-reuse';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

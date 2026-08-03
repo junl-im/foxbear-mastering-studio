@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery';
+  const VIEW_VERSION = '1.6.49-download-variant-cache-reuse';
   const DEFAULT_BINS = 96;
 
   function getService() {

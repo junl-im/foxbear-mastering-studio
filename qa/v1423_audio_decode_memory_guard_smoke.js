@@ -24,13 +24,13 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.6.47', 'package version should be 1.6.47');
+assert(pkg.version === '1.6.49', 'package version should be 1.6.49');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-assert(index.includes('data-build="1.6.47"'), 'index build marker should be 1.6.47');
-assert(config.includes("ASSET_VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery'"), 'runtime asset key should be v1.6.47');
-assert(sw.includes('foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery'), 'service worker cache should use v1.6.47 key');
+assert(index.includes('data-build="1.6.49"'), 'index build marker should be 1.6.49');
+assert(config.includes("ASSET_VERSION = '1.6.49-download-variant-cache-reuse'"), 'runtime asset key should be v1.6.49');
+assert(sw.includes('foxbear-shell-v1.6.49-download-variant-cache-reuse'), 'service worker cache should use v1.6.49 key');
 
-assert(decode.includes("SERVICE_VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery'"), 'decode service should be bumped');
+assert(decode.includes("SERVICE_VERSION = '1.6.49-download-variant-cache-reuse'"), 'decode service should be bumped');
 assert(decode.includes('const MAX_DECODE_EVENTS'), 'decode diagnostics event cap should exist');
 assert(decode.includes('activeDecodes'), 'decode diagnostics should track active decodes');
 assert(decode.includes('function getDecodedBufferSummary'), 'decode service should summarize decoded buffers');
@@ -45,11 +45,11 @@ assert(runtime.includes('FoxBearAudioDecodeService.getDiagnostics'), 'runtime he
 assert(perf.includes('audioDecode = safeCall'), 'performance diagnostics should collect decode diagnostics');
 assert(perf.includes('audio-decode-active'), 'performance summary should warn while decode is active');
 assert(perf.includes('audioDecode:'), 'performance summary should expose audio decode status');
-assert(index.includes('src/audio/audio-decode-service.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'), 'index should load versioned decode service');
-assert(sw.includes('./src/audio/audio-decode-service.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'), 'service worker should precache decode service');
-assert(pkg.qaChecks.includes('node qa/v1423_audio_decode_memory_guard_smoke.js'), 'package QA should include v1.6.47 smoke');
-assert(matrix.includes('Audio Decode Memory Guard'), 'matrix should document v1.6.47 audio decode guard scope');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.6.47 final QA');
-assert(changelog.includes('v1.6.47'), 'changelog should mention v1.6.47');
+assert(index.includes('src/audio/audio-decode-service.js?v=1.6.49-download-variant-cache-reuse'), 'index should load versioned decode service');
+assert(sw.includes('./src/audio/audio-decode-service.js?v=1.6.49-download-variant-cache-reuse'), 'service worker should precache decode service');
+assert(pkg.qaChecks.includes('node qa/v1423_audio_decode_memory_guard_smoke.js'), 'package QA should include v1.6.49 smoke');
+assert(matrix.includes('Audio Decode Memory Guard'), 'matrix should document v1.6.49 audio decode guard scope');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.6.49 final QA');
+assert(changelog.includes('v1.6.49'), 'changelog should mention v1.6.49');
 
 console.log('PASS v1.4.26 audio decode diagnostics and memory guard smoke');

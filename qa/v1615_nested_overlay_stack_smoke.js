@@ -14,7 +14,7 @@ const downloadDialog = read('src/ui/download-dialog-view.js');
 const downloadService = read('src/download/download-service.js');
 const css = read('assets/css/components/floating-overlays.css');
 
-assert.strictEqual(pkg.version, '1.6.47');
+assert.strictEqual(pkg.version, '1.6.49');
 assert(controller.includes('const layerStack = [];'), 'shared overlay stack missing');
 assert(controller.includes('function setExternalLayerOpen'), 'external overlay registration API missing');
 assert(controller.includes('function getTopExternalLayer'), 'top overlay lookup missing');

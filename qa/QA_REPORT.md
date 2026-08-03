@@ -1,3 +1,55 @@
+# FoxBear QA Report - v1.6.49
+
+## Configured target
+
+- Static and behavioral checks: 394
+- New syntax targets: `src/download/download-service.js`, `src/ui/download-dialog-view.js`
+- New regression: `qa/v1649_download_variant_cache_reuse_smoke.js`
+
+## Focus
+
+- One-entry, 64 MB bounded alternate-format download cache
+- Repeated download/share reuse without a second decode or encode
+- Exact cached file-size reporting and immediate-reuse UI copy
+- Source Blob scoped retirement and newest-variant eviction
+- Separate MP3-to-MP3 and MP3-to-WAV quality warnings
+
+## Final result
+
+- Official configured static and behavioral checks: `394/394` passed in bounded slices (`130/130`, `130/130`, and `134/134`).
+- Dedicated v1.6.49 cache regression and historical download, Blob validation, codec, cancellation, and PCM/ZIP memory regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this environment.
+- Real-device and restricted in-app browser repeated download/share reuse remains an external environment verification gate.
+- Final release and overwrite archives contain `696` entries each and pass compressed-data integrity and executable-payload checks.
+
+# FoxBear QA Report - v1.6.48
+
+## Configured target
+
+- Static and behavioral checks: 393
+- New syntax targets: `src/download/download-service.js`, `src/ui/download-dialog-view.js`, `src/app.js`
+- New regression: `qa/v1648_download_post_master_format_quality_smoke.js`
+
+## Focus
+
+- Download-time MP3/WAV extension selection after mastering
+- MP3 bitrate and WAV bit-depth selection with an always-visible control
+- Completed-output decode and re-encode fallback after PCM memory release
+- Current-format Blob reuse and temporary decoded-buffer release
+- MP3-to-WAV quality limitation warning
+
+## Final result
+
+- Official configured static and behavioral checks: `393/393` passed.
+- Dedicated v1.6.48 regression and related download menu, size estimate, Blob validation, and PCM/ZIP memory regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 4 expected missing-install warnings.
+- Installed browser execution could not start because Playwright/Chromium is unavailable in this environment.
+- Real-device and restricted in-app browser format conversion remains an external environment verification gate.
+- Final release and overwrite archives contain `694` entries each and pass compressed-data integrity and executable-payload checks.
+
 # FoxBear QA Report - v1.6.47
 
 ## Configured target

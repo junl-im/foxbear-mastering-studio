@@ -1,8 +1,8 @@
-// FoxBear worker recovery coordinator v1.6.47 - safe high-level retries after stalled Worker cancellation
+// FoxBear worker recovery coordinator v1.6.49 - safe high-level retries after stalled Worker cancellation
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery';
+    const VERSION = '1.6.49-download-variant-cache-reuse';
     const handlers = [];
 
     function normalizeJob(job) {

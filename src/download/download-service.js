@@ -13,8 +13,11 @@
 
     const noop = () => {};
     const MAX_DOWNLOAD_DIAGNOSTIC_EVENTS = 16;
+    const MAX_CACHED_VARIANTS_PER_SOURCE = 1;
+    const MAX_CACHED_VARIANT_BYTES = 64 * 1024 * 1024;
     const downloadDiagnosticEvents = [];
     const verifiedBlobInspections = typeof WeakMap === 'function' ? new WeakMap() : null;
+    const downloadVariantCache = typeof WeakMap === 'function' ? new WeakMap() : null;
     const downloadUrlTimers = new Map();
     const downloadUrlContexts = new Map();
 
@@ -66,6 +69,67 @@
             : { ok: true, kind: 'binary', size: Number(blob.size || 0), mime: blob.type || '' };
         try { verifiedBlobInspections.set(blob, safeInspection); } catch (error) {}
         return safeInspection;
+    };
+
+    const getCachedDownloadVariant = (track, format, options = {}) => {
+        if (!downloadVariantCache || !track?.outBlob) return null;
+        const requestedFormat = String(format || '').trim();
+        if (!requestedFormat || requestedFormat === track.outFormat) return null;
+        let variants = null;
+        try { variants = downloadVariantCache.get(track.outBlob) || null; }
+        catch (error) { return null; }
+        const entry = variants?.get?.(requestedFormat) || null;
+        if (!entry?.blob || entry.blob.size <= 44 || entry.sourceFormat !== String(track.outFormat || '')) {
+            try { variants?.delete?.(requestedFormat); } catch (error) {}
+            return null;
+        }
+        if (options.touch !== false) entry.lastUsedAt = Date.now();
+        return entry;
+    };
+
+    const cacheDownloadVariant = (track, requestedFormat, result) => {
+        if (!downloadVariantCache || !track?.outBlob || !result?.blob) return false;
+        const normalizedFormat = String(requestedFormat || '').trim();
+        const actualFormat = String(result.format || '').trim();
+        const sizeBytes = Number(result.blob.size || 0);
+        if (!normalizedFormat || actualFormat !== normalizedFormat || sizeBytes <= 44) return false;
+        if (sizeBytes > MAX_CACHED_VARIANT_BYTES) {
+            recordDownloadEvent('variant-cache-skipped-large', { format: normalizedFormat, sizeBytes, limitBytes: MAX_CACHED_VARIANT_BYTES });
+            return false;
+        }
+        let variants = null;
+        try {
+            variants = downloadVariantCache.get(track.outBlob);
+            if (!variants) {
+                variants = new Map();
+                downloadVariantCache.set(track.outBlob, variants);
+            }
+        } catch (error) {
+            return false;
+        }
+        variants.set(normalizedFormat, {
+            blob: result.blob,
+            format: actualFormat,
+            sourceFormat: String(track.outFormat || ''),
+            conversionSource: result.conversionSource || 'mastered-file',
+            qualityWarning: result.qualityWarning || '',
+            sizeBytes,
+            createdAt: Date.now(),
+            lastUsedAt: Date.now()
+        });
+        while (variants.size > MAX_CACHED_VARIANTS_PER_SOURCE) {
+            const oldest = [...variants.entries()].sort((left, right) => Number(left[1]?.lastUsedAt || 0) - Number(right[1]?.lastUsedAt || 0))[0];
+            if (!oldest) break;
+            variants.delete(oldest[0]);
+        }
+        recordDownloadEvent('variant-cache-store', { format: normalizedFormat, sizeBytes, cachedCount: variants.size });
+        return true;
+    };
+
+    const clearDownloadVariantCache = sourceBlob => {
+        if (!downloadVariantCache || !sourceBlob) return false;
+        try { return downloadVariantCache.delete(sourceBlob); }
+        catch (error) { return false; }
     };
 
     const inspectDownloadBlob = blob => {
@@ -124,15 +188,66 @@
         downloadUrlContexts.delete(url);
     };
 
+    const canDecodeCompletedOutput = track => Boolean(
+        track?.outBlob &&
+        global.FoxBearAudioDecodeService &&
+        typeof global.FoxBearAudioDecodeService.decodeAudioFile === 'function'
+    );
+
+
+    const decodeMasteredOutputForDownload = async (track, options = {}) => {
+        if (!track?.outBlob) throw new Error('다시 읽을 완성 마스터 파일이 없습니다.');
+        const service = global.FoxBearAudioDecodeService;
+        if (!service || typeof service.decodeAudioFile !== 'function') throw new Error('완성 파일 디코더를 불러오지 못했습니다.');
+        const format = track.outFormat || 'wav24';
+        const extension = /^mp3_/.test(format) ? 'mp3' : 'wav';
+        const fileName = track.outName || `foxbear-mastered.${extension}`;
+        const mime = track.outBlob.type || (extension === 'mp3' ? 'audio/mpeg' : 'audio/wav');
+        const sourceFile = typeof global.File === 'function'
+            ? new global.File([track.outBlob], fileName, { type: mime, lastModified: Date.now() })
+            : track.outBlob;
+        emitDownloadProgress(options, { percent: 6, stage: '완성 파일 읽기', detail: '마스터링 결과의 오디오 데이터를 확인합니다.' });
+        const decoded = await service.decodeAudioFile(sourceFile, {
+            signal: options.signal || null,
+            latencyHint: 'playback'
+        });
+        emitDownloadProgress(options, { percent: 18, stage: '완성 파일 읽기', detail: '오디오 데이터를 포맷 변환용으로 준비했습니다.' });
+        return decoded;
+    };
+
     const getDownloadFormatOptions = (track = null) => DEFAULT_FORMAT_OPTIONS.map(option => {
         const current = Boolean(track && option.format === track.outFormat);
+        const cachedVariant = track ? getCachedDownloadVariant(track, option.format, { touch: false }) : null;
         const canReencode = Boolean(track?.masteredBuffer);
-        const available = !track || current || canReencode;
+        const canTranscodeOutput = canDecodeCompletedOutput(track);
+        const available = !track || current || Boolean(cachedVariant) || canReencode || canTranscodeOutput;
+        const conversionMode = current
+            ? 'reuse-current'
+            : cachedVariant
+                ? 'cached-download-variant'
+            : canReencode
+                ? 'mastered-pcm-reencode'
+                : canTranscodeOutput
+                    ? 'mastered-file-transcode'
+                    : 'remaster-required';
+        const lossySource = Boolean(track && /^mp3_/.test(String(track.outFormat || '')));
+        const targetLossless = /^wav/.test(option.format);
+        const qualityWarning = conversionMode === 'mastered-file-transcode' && lossySource && targetLossless
+            ? '현재 MP3 마스터 파일을 기준으로 변환합니다. WAV를 선택해도 손실된 음질이 복원되지는 않습니다.'
+            : conversionMode === 'mastered-file-transcode' && lossySource
+                ? '현재 MP3 마스터 파일을 다시 인코딩합니다. 더 높은 비트레이트를 선택해도 손실된 음질이 복원되지는 않습니다.'
+            : conversionMode === 'cached-download-variant'
+                ? (cachedVariant.qualityWarning || '이전에 만든 동일 포맷 파일을 즉시 재사용합니다.')
+            : conversionMode === 'mastered-file-transcode'
+                ? '완성된 마스터 파일을 다시 읽어 선택 형식으로 변환합니다.'
+                : '';
         return {
             ...option,
             current,
             available,
-            unavailableReason: available ? '' : '완료 PCM이 메모리 안정화를 위해 해제되어 다른 포맷은 재마스터링이 필요합니다.'
+            conversionMode,
+            qualityWarning,
+            unavailableReason: available ? '' : '완료 파일을 다시 읽을 수 없는 환경입니다. 출력 포맷을 변경한 뒤 다시 마스터링해 주세요.'
         };
     });
 
@@ -157,6 +272,11 @@
     const getDownloadSizeEstimate = (track, format) => {
         const requestedFormat = String(format || track?.outFormat || '').trim();
         if (!requestedFormat) return null;
+        const cachedVariant = getCachedDownloadVariant(track, requestedFormat, { touch: false });
+        if (cachedVariant?.blob?.size > 0) {
+            const bytes = Number(cachedVariant.blob.size);
+            return Object.freeze({ bytes, label: formatEstimatedFileSize(bytes), exact: true, source: 'cached-download-variant', format: requestedFormat });
+        }
         if (requestedFormat === track?.outFormat && Number(track?.outBlob?.size || 0) > 0) {
             const bytes = Number(track.outBlob.size);
             return Object.freeze({ bytes, label: formatEstimatedFileSize(bytes), exact: true, source: 'current-blob', format: requestedFormat });
@@ -215,26 +335,89 @@
             emitDownloadProgress(options, { percent: 100, stage: '파일 준비 완료', detail: '저장 또는 공유를 시작할 수 있습니다.' });
             return { blob: track.outBlob, fileName, format: outputFormat, reused: true };
         }
-        if (!track.masteredBuffer) {
-            const error = new Error('메모리 안정화를 위해 완료 PCM이 해제되었습니다. 다른 포맷은 출력 포맷을 변경한 뒤 다시 마스터링해 주세요.');
-            error.code = 'FORMAT_REQUIRES_REMASTER';
-            error.currentFormat = track.outFormat || '';
-            error.requestedFormat = requestedFormat;
-            throw error;
+        const cachedVariant = getCachedDownloadVariant(track, requestedFormat);
+        if (cachedVariant) {
+            emitDownloadProgress(options, { percent: 100, stage: '변환 파일 재사용', detail: '이전에 만든 동일 확장자와 음질의 파일을 즉시 준비했습니다.' });
+            recordDownloadEvent('variant-cache-hit', { format: requestedFormat, sizeBytes: Number(cachedVariant.blob.size || 0) });
+            return {
+                blob: cachedVariant.blob,
+                fileName: getFallbackMasteredFileName(track, deps, {
+                    format: cachedVariant.format,
+                    extension: /^mp3_/.test(cachedVariant.format) ? 'mp3' : 'wav'
+                }),
+                format: cachedVariant.format,
+                reused: true,
+                cached: true,
+                conversionSource: 'download-variant-cache',
+                qualityWarning: cachedVariant.qualityWarning || ''
+            };
+        }
+        let sourceBuffer = track.masteredBuffer || null;
+        let conversionSource = sourceBuffer ? 'mastered-pcm' : 'mastered-file';
+        if (!sourceBuffer) {
+            const decodeOutput = typeof deps.decodeMasteredOutputAsync === 'function'
+                ? deps.decodeMasteredOutputAsync
+                : (canDecodeCompletedOutput(track) ? decodeMasteredOutputForDownload : null);
+            if (!decodeOutput) {
+                const error = new Error('완료 PCM이 해제되었고 완성 파일을 다시 읽을 수 없습니다. 출력 포맷을 변경한 뒤 다시 마스터링해 주세요.');
+                error.code = 'FORMAT_REQUIRES_REMASTER';
+                error.currentFormat = track.outFormat || '';
+                error.requestedFormat = requestedFormat;
+                throw error;
+            }
+            emitDownloadProgress(options, { percent: 3, stage: '완성 파일 읽기', detail: '마스터링 결과를 다시 읽어 포맷 변환을 준비합니다.' });
+            sourceBuffer = await decodeOutput(track, {
+                signal: options.signal || null,
+                jobId: options.jobId || '',
+                onProgress: typeof options.onProgress === 'function' ? options.onProgress : null
+            });
+            throwIfDownloadAborted(options.signal);
+            if (!sourceBuffer || !Number(sourceBuffer.length || 0)) throw new Error('완성된 마스터 파일을 다시 읽지 못했습니다.');
+            emitDownloadProgress(options, { percent: 20, stage: '완성 파일 읽기 완료', detail: '선택한 확장자와 음질로 변환합니다.' });
         }
         if (typeof deps.encodeMasterOutputAsync !== 'function') throw new Error('선택한 포맷을 인코딩할 수 없습니다.');
-        const encoded = await deps.encodeMasterOutputAsync(track.masteredBuffer, requestedFormat, {
-            signal: options.signal || null,
-            jobId: options.jobId || '',
-            onProgress: typeof options.onProgress === 'function' ? options.onProgress : null
-        });
-        if (!encoded.blob || encoded.blob.size <= 44) throw new Error('선택한 포맷 파일을 만들지 못했습니다.');
+        const forwardEncodeProgress = progress => {
+            if (conversionSource !== 'mastered-file') {
+                emitDownloadProgress(options, progress);
+                return;
+            }
+            const rawPercent = Math.max(0, Math.min(100, Number(progress?.percent) || 0));
+            emitDownloadProgress(options, {
+                ...progress,
+                percent: Math.min(98, 20 + rawPercent * 0.78),
+                stage: progress?.stage || '포맷 변환'
+            });
+        };
+        let encoded = null;
+        try {
+            encoded = await deps.encodeMasterOutputAsync(sourceBuffer, requestedFormat, {
+                signal: options.signal || null,
+                jobId: options.jobId || '',
+                onProgress: typeof options.onProgress === 'function' ? forwardEncodeProgress : null
+            });
+        } finally {
+            if (conversionSource === 'mastered-file') sourceBuffer = null;
+        }
+        if (!encoded?.blob || encoded.blob.size <= 44) throw new Error('선택한 포맷 파일을 만들지 못했습니다.');
         emitDownloadProgress(options, { percent: 99, stage: '파일 검증', detail: '생성된 오디오 헤더와 파일 크기를 확인합니다.' });
         await assertDownloadBlob(encoded.blob);
         throwIfDownloadAborted(options.signal);
-        emitDownloadProgress(options, { percent: 100, stage: '파일 준비 완료', detail: '선택한 포맷의 파일 생성이 완료됐습니다.' });
+        emitDownloadProgress(options, { percent: 100, stage: '파일 준비 완료', detail: '선택한 확장자와 음질의 파일 생성이 완료됐습니다.' });
         const fileName = getFallbackMasteredFileName(track, deps, encoded);
-        return { blob: encoded.blob, fileName, format: encoded.format || requestedFormat, reused: false };
+        const result = {
+            blob: encoded.blob,
+            fileName,
+            format: encoded.format || requestedFormat,
+            reused: false,
+            conversionSource,
+            qualityWarning: conversionSource === 'mastered-file' && /^mp3_/.test(String(track.outFormat || '')) && /^wav/.test(requestedFormat)
+                ? 'MP3 마스터 파일 기반 변환이므로 WAV로 바꿔도 손실 음질은 복원되지 않습니다.'
+                : conversionSource === 'mastered-file' && /^mp3_/.test(String(track.outFormat || ''))
+                    ? 'MP3 마스터 파일을 다시 인코딩하므로 더 높은 비트레이트를 선택해도 손실 음질은 복원되지 않습니다.'
+                : ''
+        };
+        cacheDownloadVariant(track, requestedFormat, result);
+        return result;
     };
 
     const canShareTinyAudioProbe = () => {
@@ -355,7 +538,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.6.47',
+                version: '1.6.49',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -375,7 +558,7 @@
             };
         }
         return {
-            version: '1.6.47',
+            version: '1.6.49',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -439,7 +622,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.6.47',
+            version: '1.6.49',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -477,7 +660,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.6.47',
+            version: '1.6.49',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -505,7 +688,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.6.47',
+            version: '1.6.49',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -536,7 +719,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.6.47',
+            version: '1.6.49',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -561,7 +744,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.6.47',
+            version: '1.6.49',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -630,7 +813,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.6.47',
+            version: '1.6.49',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -857,7 +1040,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.6.47 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.6.49 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         recordDownloadEvent('assist-open', { fileName, mimeType, sizeBytes: Number(blob?.size || 0), hasUrl: Boolean(url) });
@@ -1178,6 +1361,8 @@
         inspectDownloadBlob,
         assertDownloadBlob,
         markDownloadBlobVerified,
+        getCachedDownloadVariant,
+        clearDownloadVariantCache,
         getImmediateTrackDownloadBlob,
         prepareTrackDownloadBlob,
         downloadBlob,

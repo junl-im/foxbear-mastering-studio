@@ -19,12 +19,12 @@ const index = read('index.html');
 const sw = read('sw.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.47');
+assert.strictEqual(pkg.version, '1.6.49');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
-assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'));
-assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'));
-assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'));
-assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'));
+assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.6.49-download-variant-cache-reuse'));
+assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.6.49-download-variant-cache-reuse'));
+assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.6.49-download-variant-cache-reuse'));
+assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.6.49-download-variant-cache-reuse'));
 assert(workerSource.includes('function cancelStalledJob(identifier, options = {})'));
 assert(workerSource.includes("healthLevel, activeCount: jobs.length"));
 assert(workerSource.includes('watchThresholdMs: WATCH_THRESHOLD_MS'));
@@ -40,7 +40,7 @@ assert(diagnosticsSource.includes('cancelSingleStalledWorker(item)'));
 assert(diagnosticsSource.includes("return 'danger'"));
 assert(diagnosticsCss.includes('.foxbear-perf-worker-list'));
 assert(diagnosticsCss.includes('.foxbear-perf-health-badge'));
-assert(handoff.startsWith('# Handoff - v1.6.47'));
+assert(handoff.startsWith('# Handoff - v1.6.49'));
 
 let clock = 1_000_000;
 const workerSandbox = { console, ArrayBuffer, Date: { now: () => clock }, setTimeout, clearTimeout };

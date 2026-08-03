@@ -1,9 +1,9 @@
-// FoxBear external-browser session handoff service v1.6.47.
+// FoxBear external-browser session handoff service v1.6.49.
 'use strict';
 
 (function attachFoxBearSessionHandoffService(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.47-external-host-admin-auth-opaque-error-recovery';
+    const VERSION = BUILD_INFO.assetVersion || '1.6.49-download-variant-cache-reuse';
     const PARAM = 'foxbearHandoff';
     const MAX_TOKEN_LENGTH = 7200;
     const MAX_AGE_MS = 20 * 60 * 1000;

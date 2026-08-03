@@ -1,3 +1,25 @@
+# FoxBear AI Mastering Studio Pro v1.6.49
+
+## v1.6.49 repeated download conversion reuse
+
+- The most recently converted alternate MP3/WAV download is reused when the same quality is selected again.
+- Reopening the download dialog or moving from download to share no longer repeats the same full decode/encode work.
+- The cache keeps only one alternate file per mastered source and skips files larger than 64 MB to protect browser memory.
+- Cached options show an exact file size and an immediate-reuse label.
+- MP3-to-MP3 bitrate conversion now warns about lossy re-encoding, while MP3-to-WAV keeps the separate no-restoration warning.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.49 cache generation.
+
+# FoxBear AI Mastering Studio Pro v1.6.48
+
+## v1.6.48 post-master download format and quality selection
+
+- Choose MP3 or WAV again from the download dialog after mastering is complete.
+- Select MP3 128/192/256/320 kbps or WAV 16/24/32-bit float at download time.
+- When the memory guard has released the completed PCM buffer, FoxBear reopens the completed master file and converts it without requiring a full remaster.
+- The current mastered format still downloads immediately without unnecessary conversion.
+- MP3-to-WAV conversion is clearly marked as a container/format conversion and does not claim to restore lost detail.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.48 cache generation.
+
 # FoxBear AI Mastering Studio Pro v1.6.47
 
 ## v1.6.47 GitHub Pages administrator authentication recovery

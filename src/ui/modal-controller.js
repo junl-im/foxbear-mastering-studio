@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.47
+// FoxBear Modal State Machine Controller v1.6.49
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.47-external-host-admin-auth-opaque-error-recovery',
+            version: '1.6.49-download-variant-cache-reuse',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,

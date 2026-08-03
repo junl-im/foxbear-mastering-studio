@@ -1,4 +1,28 @@
-# GitHub Desktop Handoff - v1.6.47
+# GitHub Desktop Handoff - v1.6.49
+
+## Apply
+
+1. Fetch origin before applying the overwrite ZIP.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Run the release gates, review changes, commit, and Push origin.
+4. Run `npm run deploy:spark` so Firebase Hosting receives the same release.
+
+## Release focus
+
+- One-entry, 64 MB bounded converted-download cache
+- Repeated alternate-format download/share reuse
+- Exact cached file-size display and immediate-reuse status
+- Correct MP3-to-MP3 versus MP3-to-WAV quality guidance
+- Existing post-master MP3/WAV quality selection and completed-output transcode fallback
+
+## Production verification
+
+- Convert a completed WAV master to MP3 320 kbps, close the dialog, and request MP3 320 kbps again.
+- Confirm the second request prepares immediately without a new conversion progress cycle.
+- Select another alternate format and confirm only the newest converted variant is reused.
+- Verify MP3-source warnings separately for MP3 and WAV targets.
+
+# GitHub Desktop Handoff - v1.6.48
 
 ## Apply
 

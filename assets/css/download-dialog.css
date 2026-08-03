@@ -1239,3 +1239,52 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
     .download-format-quality-menu { animation: none; }
     .download-format-family-chevron { transition: none; }
 }
+
+/* v1.6.48: always-visible extension/quality selector and post-master format conversion status. */
+.download-format-quick-select {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 7px 10px;
+    padding: 9px 10px;
+    border: 1px solid rgba(141,245,232,.18);
+    border-radius: 14px;
+    background: rgba(141,245,232,.055);
+}
+.download-format-quick-select > span {
+    color: rgba(229,247,252,.84);
+    font-size: .62rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+.download-format-quick-select select {
+    min-width: 0;
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 30px 7px 10px;
+    border: 1px solid rgba(255,255,255,.16);
+    border-radius: 11px;
+    background: rgba(10,14,24,.84);
+    color: rgba(246,251,255,.94);
+    font-size: .68rem;
+    font-weight: 850;
+    font-variant-numeric: tabular-nums;
+}
+.download-format-quick-select select:focus-visible {
+    outline: 2px solid rgba(141,245,232,.42);
+    outline-offset: 1px;
+}
+.download-format-quick-select-hint {
+    grid-column: 1 / -1;
+    color: rgba(203,229,238,.68);
+    font-size: .53rem;
+    line-height: 1.38;
+}
+@media (max-width: 420px) {
+    .download-format-quick-select {
+        grid-template-columns: 1fr;
+    }
+    .download-format-quick-select-hint {
+        grid-column: 1;
+    }
+}

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.47",
+  "version": "1.6.49",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro with GitHub Pages popup authentication recovery, Firebase Hosting secure administrator fallback, and opaque external script-error isolation.",
+  "description": "FoxBear AI Mastering Studio Pro with bounded reuse of download-time converted variants, precise lossy-source warnings, and existing post-master format selection.",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.47-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.47-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.49-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.49-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -384,6 +384,8 @@
     "node qa/v1612_mastering_tone_loudness_fastpath_smoke.js",
     "node qa/v1613_download_format_context_menu_smoke.js",
     "node qa/v1614_download_quality_memory_size_position_smoke.js",
+    "node qa/v1648_download_post_master_format_quality_smoke.js",
+    "node qa/v1649_download_variant_cache_reuse_smoke.js",
     "node qa/v1614_incident_callable_endpoint_diagnostics_smoke.js",
     "node qa/v1615_nested_overlay_stack_smoke.js",
     "node qa/v1615_incident_auto_recovery_smoke.js",
@@ -432,12 +434,12 @@
     "node qa/v1647_external_host_admin_auth_opaque_error_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "external-host-admin-auth-opaque-error-recovery",
-    "assetVersion": "1.6.47-external-host-admin-auth-opaque-error-recovery",
-    "cacheName": "foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery",
-    "bootRevision": "boot-sri-v1647-admin-auth",
-    "updateSafetyRevision": "update-safety-v1647-admin-auth",
-    "serviceWorkerRevision": "sw-v1647-admin-auth"
+    "buildId": "download-variant-cache-reuse",
+    "assetVersion": "1.6.49-download-variant-cache-reuse",
+    "cacheName": "foxbear-shell-v1.6.49-download-variant-cache-reuse",
+    "bootRevision": "boot-sri-v1649-download-cache",
+    "updateSafetyRevision": "update-safety-v1649-download-cache",
+    "serviceWorkerRevision": "sw-v1649-download-cache"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

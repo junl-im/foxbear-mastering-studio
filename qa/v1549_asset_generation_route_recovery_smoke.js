@@ -25,8 +25,8 @@ assert(page404.includes('foxbear-root.json') && page404.includes('getRegistratio
 assert(prepare.includes('required_files=(index.html 404.html foxbear-root.json manifest.webmanifest sw.js)'), 'Pages artifact does not require the root marker');
 assert(overwrite.includes('copy_path "foxbear-root.json"'), 'overwrite package omits the root marker');
 assert(!read('firebase.json').includes('"destination": "/index.html"'), 'Firebase must not serve index.html at an invalid relative-asset URL');
-assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'), 'service worker recovery module is not loaded');
-assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.47-external-host-admin-auth-opaque-error-recovery'), 'service worker recovery module is not cached');
+assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.49-download-variant-cache-reuse'), 'service worker recovery module is not loaded');
+assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.49-download-variant-cache-reuse'), 'service worker recovery module is not cached');
 
 function runtimeHardRefreshUsesScriptRoot() {
   const scripts=[{src:'https://user.github.io/foxbear-mastering-studio/src/boot/runtime-health.js?v=test'}];
@@ -53,7 +53,7 @@ async function exerciseServiceWorkerGenerationIsolation() {
   });
   const cachesApi={
     async open(name){return name.includes('1.5.30') ? makeCache(legacyEntries) : makeCache(currentEntries);},
-    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery'];},
+    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.49-download-variant-cache-reuse'];},
     async delete(){return true;}
   };
   const context={console,URL,Request,Response,Set,Map,Promise,Math,Date,indexedDB:{},caches:cachesApi,fetch:async request=>{fetched.push(String(request.url||request));return new Response('missing',{status:404});},self:{location:{origin:'https://user.github.io'},registration:{scope:'https://user.github.io/foxbear-mastering-studio/',navigationPreload:null},clients:{async claim(){}},async skipWaiting(){},addEventListener(type,handler){listeners.set(type,handler);}}};

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.47 - viewport-contained MP3/WAV quality menu and size estimates
+// FoxBear AI Mastering Studio Pro v1.6.49 - viewport-contained MP3/WAV quality menu and size estimates
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -90,7 +90,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.6.47',
+                version: '1.6.49',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -192,7 +192,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.6.47 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.6.49 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -201,7 +201,7 @@
 
         const listLabel = document.createElement('span');
         listLabel.className = 'download-options-section-label';
-        listLabel.textContent = '파일 형식';
+        listLabel.textContent = '파일 확장자 및 음질';
 
         const formatPicker = document.createElement('div');
         formatPicker.className = 'download-format-picker';
@@ -221,6 +221,16 @@
         list.setAttribute('role', 'none');
         qualityMenu.append(qualityLabel, list);
         formatPicker.append(familyTabs);
+        const quickQualityRow = document.createElement('label');
+        quickQualityRow.className = 'download-format-quick-select';
+        const quickQualityLabel = document.createElement('span');
+        quickQualityLabel.textContent = '음질';
+        const quickQualitySelect = document.createElement('select');
+        quickQualitySelect.setAttribute('aria-label', '다운로드 음질 바로 선택');
+        const quickQualityHint = document.createElement('small');
+        quickQualityHint.className = 'download-format-quick-select-hint';
+        quickQualityRow.append(quickQualityLabel, quickQualitySelect, quickQualityHint);
+        formatPicker.append(quickQualityRow);
         const options = getDownloadFormatOptions(track);
         const visibleOptions = env.restricted ? options.filter(option => option.available !== false) : options;
         let qualityPreferences = loadDownloadQualityPreferences();
@@ -357,6 +367,14 @@
             };
             return hints[option?.format] || option?.label || '';
         };
+        const getPreparationHint = option => {
+            if (!option) return '';
+            if (option.current || option.conversionMode === 'reuse-current') return '즉시 저장';
+            if (option.conversionMode === 'cached-download-variant') return '변환 파일 즉시 재사용';
+            if (option.conversionMode === 'mastered-pcm-reencode') return '완료 PCM 재인코딩';
+            if (option.conversionMode === 'mastered-file-transcode') return '완성 파일 변환';
+            return '재마스터링 필요';
+        };
         const getOptionSizeEstimate = option => {
             if (!option || typeof getDownloadSizeEstimate !== 'function') return null;
             try { return getDownloadSizeEstimate(track, option.format) || null; }
@@ -370,7 +388,8 @@
         const updateSelectedSummary = () => {
             const selected = getSelectedOption();
             const sizeText = getOptionSizeText(selected);
-            selectedSummary.textContent = `${selected.label} · ${selected.detail}${sizeText ? ` · ${sizeText}` : ''}`;
+            const preparation = getPreparationHint(selected);
+            selectedSummary.textContent = `${selected.label} · ${selected.detail}${sizeText ? ` · ${sizeText}` : ''}${preparation ? ` · ${preparation}` : ''}`;
         };
         const syncFamilyButtons = () => {
             const selectedFamily = getFormatFamily(selectedFormat);
@@ -463,12 +482,12 @@
             if (restoreFocus && qualityMenuReturnFocus?.isConnected) qualityMenuReturnFocus.focus();
         };
 
-        const setSelected = format => {
+        const setSelected = (format, behavior = {}) => {
             const next = options.find(option => option.format === format);
             if (!next || next.available === false) {
                 warning.classList.add('show');
                 warning.textContent = next?.unavailableReason || '이 포맷은 현재 완성 파일에서 만들 수 없습니다.';
-                return;
+                return false;
             }
             selectedFormat = format;
             activeFormatFamily = getFormatFamily(format);
@@ -483,19 +502,50 @@
                 button.classList.toggle('current', active);
                 button.setAttribute('aria-checked', String(active));
             });
+            if (quickQualitySelect.value !== selectedFormat) quickQualitySelect.value = selectedFormat;
+            quickQualityHint.textContent = `${getPreparationHint(next)}${next.qualityWarning ? ` · ${next.qualityWarning}` : ''}`;
             updateSelectedSummary();
             syncFamilyButtons();
             const selected = options.find(option => option.format === selectedFormat);
             const sizeText = getOptionSizeText(selected);
+            const preparation = getPreparationHint(selected);
+            const warningText = selected?.qualityWarning || (selected
+                ? `${selected.label} ${selected.detail} 선택${sizeText ? ` · ${sizeText}` : ''}${preparation ? ` · ${preparation}` : ''}`
+                : '형식 선택');
             warning.classList.add('show');
-            warning.textContent = selected ? `${selected.label} ${selected.detail} 선택${sizeText ? ` · ${sizeText}` : ''}` : '형식 선택';
-            renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail}${sizeText ? ` · ${sizeText}` : ''} 준비됨` : '형식 선택됨');
-            closeQualityMenu({ restoreFocus: true });
+            warning.textContent = warningText;
+            if (behavior.receipt !== false) {
+                renderReceipt(primaryAction, null, selected ? `${selected.label} ${selected.detail}${sizeText ? ` · ${sizeText}` : ''} 준비됨` : '형식 선택됨');
+            }
+            if (behavior.closeMenu !== false) closeQualityMenu({ restoreFocus: behavior.restoreFocus !== false });
+            return true;
         };
 
         const getFamilyOptions = family => visibleOptions.filter(option => family === 'mp3'
             ? String(option.format || '').startsWith('mp3')
             : String(option.format || '').startsWith('wav'));
+
+        const renderQuickQualitySelect = () => {
+            const familyOptions = getFamilyOptions(activeFormatFamily);
+            quickQualityLabel.textContent = activeFormatFamily === 'mp3' ? 'MP3 음질' : 'WAV 음질';
+            quickQualitySelect.replaceChildren();
+            familyOptions.forEach(option => {
+                const item = document.createElement('option');
+                item.value = option.format;
+                item.disabled = option.available === false;
+                const sizeText = getOptionSizeText(option);
+                item.textContent = `${option.detail} · ${getQualityHint(option)}${sizeText ? ` · ${sizeText}` : ''}`;
+                quickQualitySelect.appendChild(item);
+            });
+            const selectedInFamily = familyOptions.find(option => option.format === selectedFormat);
+            const fallback = selectedInFamily || getFamilySelection(activeFormatFamily) || familyOptions.find(option => option.available !== false) || familyOptions[0];
+            quickQualitySelect.disabled = !fallback;
+            if (fallback) quickQualitySelect.value = fallback.format;
+            quickQualityHint.textContent = fallback
+                ? `${getPreparationHint(fallback)}${fallback.qualityWarning ? ` · ${fallback.qualityWarning}` : ''}`
+                : '선택 가능한 음질이 없습니다.';
+        };
+        quickQualitySelect.addEventListener('change', () => setSelected(quickQualitySelect.value, { restoreFocus: false }));
 
         const renderFormatFamilies = () => {
             familyTabs.replaceChildren();
@@ -531,6 +581,10 @@
                         return;
                     }
                     activeFormatFamily = family.id;
+                    const familyDefault = getFamilySelection(family.id) || familyOptions.find(option => option.available !== false) || familyOptions[0];
+                    if (familyDefault && getFormatFamily(selectedFormat) !== family.id) {
+                        setSelected(familyDefault.format, { closeMenu: false, restoreFocus: false });
+                    }
                     panel.dataset.formatFamily = activeFormatFamily;
                     renderFormatOptions();
                     qualityMenuOpen = true;
@@ -596,7 +650,7 @@
                 const unit = document.createElement('b');
                 unit.textContent = option.available === false
                     ? `${getQualityHint(option)} · 재마스터링 필요`
-                    : getQualityHint(option);
+                    : `${getQualityHint(option)} · ${getPreparationHint(option)}`;
                 const size = document.createElement('small');
                 size.className = 'download-format-option-size';
                 const estimate = getOptionSizeEstimate(option);
@@ -613,6 +667,7 @@
                 empty.textContent = `${family.label} 형식을 사용할 수 없습니다.`;
                 list.appendChild(empty);
             }
+            renderQuickQualitySelect();
         };
         qualityMenu.addEventListener('keydown', event => {
             const buttons = Array.from(list.querySelectorAll('.download-format-option:not(:disabled)'));
@@ -1072,7 +1127,7 @@
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        // v1.6.47 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
+        // v1.6.49 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
         panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, actions);
         backdrop.append(panel, qualityMenu);
         document.body.appendChild(backdrop);

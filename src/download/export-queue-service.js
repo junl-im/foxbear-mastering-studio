@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.6.47 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.6.49 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.6.47-external-host-admin-auth-opaque-error-recovery';
+    const VERSION = 'v1.6.49-download-variant-cache-reuse';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;

@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.47 (external-host-admin-auth-opaque-error-recovery).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.49 (download-variant-cache-reuse).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.47"
+  "version": "1.6.49"
 }

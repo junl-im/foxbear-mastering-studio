@@ -1,3 +1,67 @@
+# FoxBear Status - v1.6.49
+
+## Current release
+
+- Product version: `1.6.49`
+- Build ID: `download-variant-cache-reuse`
+- Asset version: `1.6.49-download-variant-cache-reuse`
+- Service worker cache: `foxbear-shell-v1.6.49-download-variant-cache-reuse`
+- Configured static/regression target: 394 checks.
+
+## Current focus
+
+- Avoid repeating the same completed-output decode and encode for repeated alternate-format downloads.
+- Keep the reuse cache bounded to one variant and 64 MB per mastered source.
+- Expose cached reuse and exact file size in the download dialog.
+- Keep lossy MP3 conversion guidance accurate for the selected target family.
+
+## Verified
+
+- Official configured static and behavioral checks: **394/394 passed** in bounded slices (`130/130`, `130/130`, and `134/134`).
+- Dedicated cache-reuse regression and the existing download, Blob validation, codec, cancellation, and PCM/ZIP memory regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Installed browser execution remains unavailable because Playwright/Chromium is not installed; real-device repeated download/share verification remains an external environment gate.
+- Full release and overwrite archives contain **696 entries each** and pass package integrity and executable-payload checks.
+
+## Production deployment required
+
+- Deploy the synchronized v1.6.49 assets so the new service-worker cache replaces v1.6.48.
+- Verify repeated alternate-format download and share flows on desktop and mobile.
+- Run `npm run check:release` before production deployment.
+
+# FoxBear Status - v1.6.48
+
+## Current release
+
+- Product version: `1.6.48`
+- Build ID: `post-master-download-format-quality`
+- Asset version: `1.6.48-post-master-download-format-quality`
+- Service worker cache: `foxbear-shell-v1.6.48-post-master-download-format-quality`
+- Configured static/regression target: 393 checks.
+
+## Current focus
+
+- Keep download-time MP3/WAV extension and quality selection available after mastering.
+- Convert from the completed mastered file when memory policy has released the PCM buffer.
+- Preserve memory safety while avoiding a forced remaster for ordinary format changes.
+- Keep MP3-to-WAV quality limitations explicit.
+
+## Verified
+
+- Official configured static and behavioral checks: **393/393 passed**.
+- Dedicated post-master download format/quality regression and the existing download context-menu, size-estimate, Blob validation, and PCM/ZIP memory regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 4 expected missing-install warnings.
+- Installed browser execution remains unavailable because Playwright/Chromium is not installed; device and restricted in-app browser verification remains an external environment gate.
+- Full release and overwrite archives contain **694 entries each** and pass package integrity and executable-payload checks.
+
+## Production deployment required
+
+- Deploy the synchronized v1.6.48 assets so the new service-worker cache replaces v1.6.47.
+- Verify MP3 and WAV downloads on desktop, iOS/Android, and at least one restricted in-app browser.
+- Run `npm run check:release` before production deployment.
+
 # FoxBear Status - v1.6.47
 
 ## Current release
@@ -388,10 +452,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.47`
-- Build ID: `external-host-admin-auth-opaque-error-recovery`
-- Asset version: `1.6.47-external-host-admin-auth-opaque-error-recovery`
-- Service worker cache: `foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery`
+- Product version: `1.6.49`
+- Build ID: `download-variant-cache-reuse`
+- Asset version: `1.6.49-download-variant-cache-reuse`
+- Service worker cache: `foxbear-shell-v1.6.49-download-variant-cache-reuse`
 
 # FoxBear Status - v1.6.32
 

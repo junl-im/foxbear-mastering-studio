@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.47
+// FoxBear audio decode service - v1.6.49
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.47-external-host-admin-auth-opaque-error-recovery';
+    const SERVICE_VERSION = '1.6.49-download-variant-cache-reuse';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;
