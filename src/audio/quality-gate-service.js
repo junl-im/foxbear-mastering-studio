@@ -1,4 +1,4 @@
-// FoxBear QualityGate v2.2 service v1.6.56 - dynamics, spectral preservation, phase, pumping, and True Peak checks
+// FoxBear QualityGate v2.2 service v1.6.58 - dynamics, spectral preservation, phase, pumping, and True Peak checks
 'use strict';
 
 (function attachFoxBearQualityGateService(global) {
@@ -131,6 +131,8 @@
 
         const limiterReduction = Math.abs(toNumber(finalizeInfo?.limiterReductionDb ?? finalizer?.limiterReductionDb, 0));
         addItem(items, 'Limiter 과보정', statusByThreshold(limiterReduction, rules.limiterWarnDb, rules.limiterFailDb), `${formatDb(limiterReduction)} · ${finalizeInfo?.limiterMode || finalizer?.limiterMode || 'lookahead'}`, { limiterReductionDb: limiterReduction });
+        const melodicGlassRisk = clamp(toNumber(finalizeInfo?.melodicTransientGlassRisk ?? finalizer?.melodicTransientGlassRisk ?? track?.analysis?.sharedDspProfileApplied?.finalizer?.melodicTransientGlassRisk, 0), 0, 1);
+        if (melodicGlassRisk > 0.20) addItem(items, '피아노/멜로디 어택 보호', melodicGlassRisk > 0.62 && limiterReduction >= rules.limiterWarnDb ? 'warn' : 'pass', `유리질 위험 ${Math.round(melodicGlassRisk * 100)}% · 단일 True-Peak 경로`, { melodicTransientGlassRisk: melodicGlassRisk });
 
         const deEsserReduction = Math.abs(toNumber(finalizeInfo?.dynamicDeEsserReductionDb ?? finalizer?.dynamicDeEsserReductionDb, 0));
         const deEsserRisk = toNumber(finalizeInfo?.dynamicDeEsserRisk ?? finalizer?.dynamicDeEsserRisk, 0);
@@ -172,7 +174,7 @@
 
         const audit = report?.qualityAudit;
         if (audit?.flags?.length) {
-            const labels = { DYNAMIC_COLLAPSE: '과도한 리미팅', HIGH_LOSS: '고역 손실', LOW_PUMPING: '저역 펌핑', PHASE_RISK: '스테레오 위상', INVALID_OUTPUT: '출력 샘플 무결성' };
+            const labels = { DYNAMIC_COLLAPSE: '과도한 리미팅', HIGH_LOSS: '고역 손실', HIGH_GLARE: '고역 찢어짐/유리질', LOW_PUMPING: '저역 펌핑', PHASE_RISK: '스테레오 위상', INVALID_OUTPUT: '출력 샘플 무결성' };
             audit.flags.forEach(flag => addItem(items, labels[flag.code] || flag.code, flag.severity === 'fail' ? 'fail' : 'warn', flag.detail, { code: flag.code }));
         } else if (audit) addItem(items, '전후 품질 회귀', 'pass', `최대 ${audit.boundedSamples || 0} 샘플 경량 검사 통과`);
 
@@ -188,7 +190,7 @@
     }
 
     global.FoxBearQualityGateService = Object.freeze({
-        version: '1.6.56-engine-quality-regression', legacyVersion: '1.5.0-engine-quality-gate',
+        version: '1.6.58-engine-quality-regression', legacyVersion: '1.5.0-engine-quality-gate',
         rules: DEFAULT_RULES,
         createReport
     });

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.56 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.6.58 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -22,7 +22,7 @@ const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 let adminAccessController = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.56';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.58';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -66,14 +66,14 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.56-playback-blob-source-resilience'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1656-playback-source'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.58-piano-transient-integrity'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1658-piano-transient'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const ANALYSIS_ENGINE_CACHE_VERSION = 'analysis-engine-v1.4-stable';
-const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine';
+const SHARED_DSP_PROFILE_VERSION = 'v1.6.58-piano-transient-integrity';
 const PLAYBACK_CROSSFADE_MS = 140;
 const SAFE_IMPORT_ANALYSIS_CONCURRENCY = Math.max(1, Math.min(2, Number(IMPORT_ANALYSIS_CONCURRENCY) || 1));
 const SAFE_LARGE_IMPORT_BATCH_THRESHOLD = Math.max(4, Number(LARGE_IMPORT_BATCH_THRESHOLD) || 12);
@@ -3192,7 +3192,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.56-playback-blob-source-resilience') · navigator.serviceWorker.register('./sw.js?v=1.6.56-playback-blob-source-resilience&h=sw-v1656-playback-source')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.58-piano-transient-integrity') · navigator.serviceWorker.register('./sw.js?v=1.6.58-piano-transient-integrity&h=sw-v1658-piano-transient')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -4032,7 +4032,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.56-playback-blob-source-resilience', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.58-piano-transient-integrity', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4346,7 +4346,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.6.56-playback-blob-source-resilience',
+        version: '1.6.58-piano-transient-integrity',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4387,10 +4387,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.6.56-playback-blob-source-resilience',
+    version: '1.6.58-piano-transient-integrity',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.56-playback-blob-source-resilience', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.58-piano-transient-integrity', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4415,12 +4415,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.56-playback-blob-source-resilience', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.58-piano-transient-integrity', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.56-playback-blob-source-resilience', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.58-piano-transient-integrity', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4435,12 +4435,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.6.56-playback-blob-source-resilience',
+    version: 'v1.6.58-piano-transient-integrity',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.56-playback-blob-source-resilience', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.58-piano-transient-integrity', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5566,7 +5566,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.6.56-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.6.58-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -6508,7 +6508,7 @@ async function renderMasterBuffer(sourceBuffer, settings, preset, analysis, albu
     node = createTranslationGuardNode(context, node, effectiveSettings, analysis, intensity);
     node = createCompressionNode(context, node, effectiveSettings.dynamicPunch, intensity);
     node = createAlbumMatchNode(context, node, analysis, albumProfile);
-    node = createLoudnessLiftNode(context, node, effectiveSettings, analysis, intensity);
+    node = createLoudnessLiftNode(context, node, effectiveSettings, analysis, preset, intensity);
     node = createLimiterNode(context, node, intensity);
     node.connect(context.destination);
     source.start(0);
@@ -6560,6 +6560,8 @@ function makeEffectiveMasterSettings(settings, analysis, preset) {
         out.dynamicPunch = clamp(Math.round(Number(out.dynamicPunch || 35) - vocalMetalRisk * 4), 4, 88);
         out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) - vocalMetalRisk * 4), 0, 24);
     }
+    const melodicGlassRisk = estimateMelodicTransientGlassRisk(analysis, out, preset, getMasteringIntensity(out));
+    if (melodicGlassRisk > 0.20) { const guard = clamp((melodicGlassRisk - 0.18) / 0.82, 0, 1); out.clarity = clamp(Math.round(Number(out.clarity || 50) - guard * 12), 5, 84); out.dynamicPunch = clamp(Math.round(Number(out.dynamicPunch || 35) - guard * 9), 4, 82); out.analogGroove = clamp(Math.round(Number(out.analogGroove || 0) - guard * 8), 0, 72); out.stereoGroove = clamp(Math.round(Number(out.stereoGroove || 0) - guard * 5), 0, 22); if (melodicGlassRisk > 0.46) out.intensity = clampToStep(Number(out.intensity || 100) - guard * 15, 50, 200, 5); }
     const mobileRisk = estimateMobileSpeakerRisk(analysis, out, getMasteringIntensity(out));
     if (mobileRisk.risk > 0.30) {
         out.warmth = clamp(Math.round(Number(out.warmth || 55) - mobileRisk.box * 8 - mobileRisk.boom * 5), 10, 84);
@@ -6626,6 +6628,7 @@ function createSharedDspProfile(settings, analysis, preset, options = {}) {
             presenceRatio: Number(finalizerAnalysis.presenceRatio || 0),
             airRatio: Number(finalizerAnalysis.airRatio || 0),
             dynamicDeEsserRisk: estimateDynamicDeEsserNeed(finalizerAnalysis, effectiveSettings, preset, intensity).risk,
+            melodicTransientGlassRisk: estimateMelodicTransientGlassRisk(analysis, effectiveSettings, preset, intensity),
             mobileSpeakerRisk: Number(finalizerAnalysis.mobileSpeakerRisk || 0),
             spatialExcessRisk: Number(finalizerAnalysis.spatialExcessRisk || 0)
         }
@@ -6637,8 +6640,8 @@ function createSharedRealtimePreviewParams(settings, analysis = {}, intensity = 
     const metallicHint = clamp01(Number(analysis.metallicHint ?? 0.35));
     const bass = clamp01(Number(analysis.bassRatio ?? 0.28));
     const punch = clamp(Number(settings.dynamicPunch || 50), 0, 100);
-    const safeSpatial = spatialBudget || getPhaseSafeSpatialBudget(settings, analysis, intensity, 0.72, 1.38);
-    const outputGainDb = clamp(map(intensity.raw, 50, 200, -1.8, 2.8), -2.2, 3.0);
+    const glassRisk = estimateMelodicTransientGlassRisk(analysis, settings, null, intensity), glassScale = clamp(1 - glassRisk * 0.72, 0.38, 1);
+    const safeSpatial = spatialBudget || getPhaseSafeSpatialBudget(settings, analysis, intensity, 0.72, 1.38), outputGainDb = clamp(map(intensity.raw, 50, 200, -1.8, 1.8) - glassRisk * 0.8, -2.2, 2.0);
     return {
         inputGain: intensity.raw >= 160 ? 0.82 : 0.90,
         highPass: {
@@ -6657,16 +6660,16 @@ function createSharedRealtimePreviewParams(settings, analysis = {}, intensity = 
         presence: {
             frequency: 3000,
             q: 0.95,
-            gain: clamp(map(settings.clarity, 0, 100, -1.4, 1.8) * clamp(intensity.amount, .65, 1.95) - metallicHint * .22, -3.3, 3.6)
+            gain: clamp(map(settings.clarity, 0, 100, -1.4, 1.8) * clamp(intensity.amount, .65, 1.95) * glassScale - metallicHint * .22 - glassRisk * 0.42, -3.3, 3.1)
         },
         highShelf: {
             frequency: 7600,
-            gain: clamp(map(settings.clarity, 0, 100, -2.0, 2.4) * clamp(intensity.amount, .65, 2.0) - Math.max(0, brightness - .68) * 1.6, -4.3, 4.8)
+            gain: clamp(map(settings.clarity, 0, 100, -2.0, 2.4) * clamp(intensity.amount, .65, 2.0) * glassScale - Math.max(0, brightness - .68) * 1.6 - glassRisk * 0.58, -4.3, 3.8)
         },
         metallic: {
             frequency: clamp(Number(analysis.targetDynamicFreq || 5200), 2600, 8200),
-            q: intensity.raw >= 150 ? 5.8 : 4.2,
-            gain: clamp(map(settings.metallicRemoval, 0, 100, 0, -3.8) * clamp(intensity.amount, .7, 1.8), -6.4, 0)
+            q: (intensity.raw >= 150 ? 5.8 : 4.2) * clamp(1 - glassRisk * 0.34, 0.62, 1),
+            gain: clamp(map(settings.metallicRemoval, 0, 100, 0, -3.8) * clamp(intensity.amount, .7, 1.8) * clamp(1 - glassRisk * 0.28, 0.66, 1), -5.4, 0)
         },
         compressor: {
             threshold: clamp(map(punch, 0, 100, -14, -27) - Math.max(0, intensity.raw - 120) * .05, -34, -10),
@@ -6677,11 +6680,11 @@ function createSharedRealtimePreviewParams(settings, analysis = {}, intensity = 
         },
         widthFactor: safeSpatial.widthFactor,
         limiter: {
-            threshold: intensity.raw >= 155 ? -5.0 : -3.2,
-            knee: 1.2,
-            ratio: 16,
-            attack: .002,
-            release: .065
+            threshold: intensity.raw >= 175 ? -2.4 : -0.9,
+            knee: 2.5,
+            ratio: intensity.raw >= 175 ? 8 : 4,
+            attack: .005,
+            release: .095
         },
         outputGainDb,
         outputGain: dbToAmp(outputGainDb)
@@ -6752,6 +6755,14 @@ function estimateVocalMetallicRisk(analysis, settings = {}, preset = null, inten
     const intensityRisk = Math.max(0, rawIntensity - 112) / 115;
     const harshBandRisk = targetFreq >= 3600 && targetFreq <= 8200 ? 0.08 : 0;
     return clamp01(vocalBase + vocalPresence + airFizz + brightRisk + metalRisk + clarityRisk + intensityRisk + harshBandRisk);
+}
+function estimateMelodicTransientGlassRisk(analysis, settings = {}, preset = null, intensity = getMasteringIntensity(settings || {})) {
+    if (!analysis) return 0;
+    const bands = analysis.spectrumBands || {}, melodic = new Set(['pop','kpop','kballad','rnb','ballad','acoustic','citypop','globalpop','rock','cinematic']).has(String(preset || ''));
+    const transient = clamp01(Number(analysis.transientDensity ?? 0.35)), brightness = clamp01(Number(analysis.brightness ?? 0.45)), metallic = clamp01(Number(analysis.metallicHint ?? 0.35)), presence = clamp01(Number(analysis.presenceRatio ?? bands.presence ?? 0.16)), high = clamp01(Number(analysis.highRatio ?? bands.high ?? 0.22)), air = clamp01(Number(analysis.airRatio ?? bands.air ?? 0.10)), mid = clamp01(Number(analysis.midRatio ?? bands.mid ?? 0.28));
+    const clarity = clamp(Number(settings?.clarity ?? 50), 0, 100), punch = clamp(Number(settings?.dynamicPunch ?? 35), 0, 100), analog = clamp(Number(settings?.analogGroove ?? 0), 0, 100), raw = clamp(Number(intensity?.raw ?? settings?.intensity ?? 100), 50, 200);
+    const attack = Math.max(0, transient - 0.38) * 1.55, glass = Math.max(0, presence - 0.15) * 1.35 + Math.max(0, high - 0.27) * 1.10 + Math.max(0, air - 0.10) * 0.85, tone = Math.max(0, brightness - 0.52) * 1.20 + Math.max(0, metallic - 0.38) * 1.30, drive = Math.max(0, clarity - 54) / 95 + Math.max(0, punch - 52) / 120 + Math.max(0, analog - 8) / 150 + Math.max(0, raw - 108) / 130;
+    return clamp01((melodic || mid > 0.30 ? 0.08 : 0) + attack * 0.38 + glass * 0.24 + tone * 0.28 + drive * 0.22 + (transient > 0.48 && (presence > 0.18 || metallic > 0.48) ? 0.12 : 0));
 }
 function sumProfileBins(profile, indices) {
     if (!Array.isArray(profile) || !profile.length) return 0;
@@ -6915,11 +6926,12 @@ function createAdaptiveResonanceSmootherNode(context, input, settings, analysis,
     const need = metallic > 0.42 || brightness > 0.62 || high > 0.34 || removal > 58 || intensity.raw > 145;
     if (!need) return input;
     const target = clamp(Number(analysis?.targetDynamicFreq || 5200), 2600, 8800);
-    const amount = clamp((metallic * 0.75 + brightness * 0.35 + high * 0.35 + removal / 180) * clamp(intensity.amount, 0.65, 1.65), 0.18, 1.65);
+    const glassRisk = estimateMelodicTransientGlassRisk(analysis, settings, null, intensity);
+    const amount = clamp((metallic * 0.75 + brightness * 0.35 + high * 0.35 + removal / 180) * clamp(intensity.amount, 0.65, 1.65) * clamp(1 - glassRisk * 0.24, 0.68, 1), 0.18, 1.65);
     const dynamicNotch = context.createBiquadFilter();
     dynamicNotch.type = 'peaking';
     dynamicNotch.frequency.value = target;
-    dynamicNotch.Q.value = clamp(3.2 + amount * 1.7, 3.0, 6.8);
+    dynamicNotch.Q.value = clamp((3.2 + amount * 1.7) * clamp(1 - glassRisk * 0.35, 0.58, 1), 2.2, 6.2);
     dynamicNotch.gain.value = clamp(-0.28 * amount, -1.25, -0.08);
     const glassGuard = context.createBiquadFilter();
     glassGuard.type = 'peaking';
@@ -7593,10 +7605,8 @@ function createPerceptualPolishNode(context, input, settings, analysis, intensit
     return silkShelf;
 }
 function createToneChain(context, input, settings, analysis, preset, intensity = getMasteringIntensity(settings)) {
-    const vocalMetalRisk = estimateVocalMetallicRisk(analysis, settings, preset, intensity);
-    const toneScale = clamp(intensity.amount * clamp(1 - vocalMetalRisk * 0.26, 0.72, 1), 0.65, 2.05);
-    const highAggressionBase = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.55) * 0.9 : 1;
-    const highAggression = clamp(highAggressionBase * (1 - vocalMetalRisk * 0.48), 0.72, highAggressionBase);
+    const vocalMetalRisk = estimateVocalMetallicRisk(analysis, settings, preset, intensity), melodicGlassRisk = estimateMelodicTransientGlassRisk(analysis, settings, preset, intensity);
+    const toneScale = clamp(intensity.amount * clamp(1 - vocalMetalRisk * 0.26 - melodicGlassRisk * 0.18, 0.62, 1), 0.62, 2.0), highAggressionBase = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.55) * 0.9 : 1, highAggression = clamp(highAggressionBase * (1 - vocalMetalRisk * 0.48 - melodicGlassRisk * 0.68), 0.48, highAggressionBase);
     const lowShelf = context.createBiquadFilter();
     lowShelf.type = 'lowshelf';
     lowShelf.frequency.value = 170;
@@ -7610,36 +7620,37 @@ function createToneChain(context, input, settings, analysis, preset, intensity =
     presence.type = 'peaking';
     presence.frequency.value = 3100;
     presence.Q.value = intensity.raw >= 150 ? 1.15 : 0.92;
-    presence.gain.value = clamp(map(settings.clarity, 0, 100, -1.5, 1.8) * toneScale * highAggression - vocalMetalRisk * 0.55, -4.0, 4.2);
+    presence.gain.value = clamp(map(settings.clarity, 0, 100, -1.5, 1.8) * toneScale * highAggression - vocalMetalRisk * 0.55 - melodicGlassRisk * 0.48, -4.0, 3.5);
     const highShelf = context.createBiquadFilter();
     highShelf.type = 'highshelf';
     highShelf.frequency.value = 7200;
-    highShelf.gain.value = clamp(map(settings.clarity, 0, 100, -2.2, 2.5) * toneScale * highAggression - vocalMetalRisk * 0.82, -5.0, 4.4);
+    highShelf.gain.value = clamp(map(settings.clarity, 0, 100, -2.2, 2.5) * toneScale * highAggression - vocalMetalRisk * 0.82 - melodicGlassRisk * 0.72, -5.0, 3.6);
     input.connect(lowShelf).connect(lowMid).connect(presence).connect(highShelf);
     return highShelf;
 }
 function createMetallicRemovalNode(context, input, amount, analysis, intensity = getMasteringIntensity({ intensity: 100 })) {
     const vocalRisk = estimateVocalMetallicRisk(analysis, { clarity: 50, metallicRemoval: amount, intensity: intensity.raw }, null, intensity);
+    const glassRisk = estimateMelodicTransientGlassRisk(analysis, { clarity: 50, metallicRemoval: amount, intensity: intensity.raw }, null, intensity);
     const aggressiveBase = intensity.raw >= 140 ? 1 + Math.pow((intensity.raw - 140) / 60, 1.45) * 0.9 : 1;
-    const aggressive = aggressiveBase * clamp(1 - vocalRisk * 0.32, 0.68, 1);
-    const effectiveAmount = clamp(amount * clamp(intensity.amount, 0.65, 2.15) * aggressive, 0, vocalRisk > 0.42 ? 176 : 220);
+    const aggressive = aggressiveBase * clamp(1 - vocalRisk * 0.32 - glassRisk * 0.26, 0.58, 1);
+    const effectiveAmount = clamp(amount * clamp(intensity.amount, 0.65, 2.15) * aggressive, 0, glassRisk > 0.42 ? 150 : vocalRisk > 0.42 ? 176 : 220);
     const depth = effectiveAmount / 100;
     if (depth < 0.03) return input;
     const targetDynamicF = (analysis && analysis.targetDynamicFreq) ? analysis.targetDynamicFreq : 5200;
     const ringCut = context.createBiquadFilter();
     ringCut.type = 'peaking';
     ringCut.frequency.value = 2700;
-    ringCut.Q.value = (intensity.raw >= 150 ? 4.3 : 3.5) * clamp(1 - vocalRisk * 0.20, 0.78, 1);
+    ringCut.Q.value = (intensity.raw >= 150 ? 4.3 : 3.5) * clamp(1 - vocalRisk * 0.20 - glassRisk * 0.34, 0.56, 1);
     ringCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -5.2), -6.0, 0);
     const dynamicCut = context.createBiquadFilter();
     dynamicCut.type = 'peaking';
     dynamicCut.frequency.value = targetDynamicF;
-    dynamicCut.Q.value = (intensity.raw >= 150 ? 6.5 : 5.0) * clamp(1 - vocalRisk * 0.28, 0.72, 1);
-    dynamicCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -8.5) * clamp(1 - vocalRisk * 0.22, 0.72, 1), vocalRisk > 0.42 ? -6.8 : -9.5, 0);
+    dynamicCut.Q.value = (intensity.raw >= 150 ? 6.5 : 5.0) * clamp(1 - vocalRisk * 0.28 - glassRisk * 0.40, 0.48, 1);
+    dynamicCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -8.5) * clamp(1 - vocalRisk * 0.22 - glassRisk * 0.24, 0.58, 1), glassRisk > 0.42 ? -5.2 : vocalRisk > 0.42 ? -6.8 : -9.5, 0);
     const fizzCut = context.createBiquadFilter();
     fizzCut.type = 'peaking';
     fizzCut.frequency.value = 8200;
-    fizzCut.Q.value = (intensity.raw >= 150 ? 6.2 : 5.2) * clamp(1 - vocalRisk * 0.24, 0.74, 1);
+    fizzCut.Q.value = (intensity.raw >= 150 ? 6.2 : 5.2) * clamp(1 - vocalRisk * 0.24 - glassRisk * 0.36, 0.52, 1);
     fizzCut.gain.value = clamp(map(effectiveAmount, 0, 200, 0, -6.2), -7.0, 0);
     const airTamer = context.createBiquadFilter();
     airTamer.type = 'highshelf';
@@ -7651,10 +7662,11 @@ function createMetallicRemovalNode(context, input, amount, analysis, intensity =
 function createHighFrequencyExciterNode(context, input, settings, analysis, preset, intensity = getMasteringIntensity(settings)) {
     const clarity = clamp(Number(settings.clarity || 0), 0, 100) / 100;
     const vocalMetalRisk = estimateVocalMetallicRisk(analysis, settings, preset, intensity);
+    const melodicGlassRisk = estimateMelodicTransientGlassRisk(analysis, settings, preset, intensity);
     const vocalLikely = isVocalLikeAnalysis(analysis, preset);
-    const safeDriveScale = clamp(1 - vocalMetalRisk * 0.82 - (vocalLikely ? 0.18 : 0), 0.18, 1);
-    const exciterDrive = Math.max(0, (intensity.raw - 92) / 118) * (0.26 + clarity * 0.62) * safeDriveScale;
-    if (exciterDrive < 0.035 || vocalMetalRisk > 0.72) return input;
+    const safeDriveScale = clamp(1 - vocalMetalRisk * 0.82 - melodicGlassRisk * 1.05 - (vocalLikely ? 0.18 : 0), 0.08, 1);
+    const exciterDrive = Math.max(0, (intensity.raw - 96) / 122) * (0.22 + clarity * 0.54) * safeDriveScale;
+    if (exciterDrive < 0.035 || vocalMetalRisk > 0.72 || melodicGlassRisk > 0.46) return input;
     const output = context.createGain();
     const dry = context.createGain();
     const highPass = context.createBiquadFilter();
@@ -7669,7 +7681,7 @@ function createHighFrequencyExciterNode(context, input, settings, analysis, pres
     airShelf.type = 'highshelf';
     airShelf.frequency.value = 9400;
     airShelf.gain.value = clamp(exciterDrive * 3.4 * clamp(intensity.amount, 0.8, 1.45) * clamp(1 - vocalMetalRisk * 0.65, 0.28, 1), 0, vocalLikely ? 2.2 : 4.2);
-    wet.gain.value = clamp(0.018 + exciterDrive * 0.075, 0.012, vocalLikely ? 0.085 : 0.15);
+    wet.gain.value = clamp((0.014 + exciterDrive * 0.060) * clamp(1 - melodicGlassRisk * 0.88, 0.16, 1), 0.006, vocalLikely ? 0.072 : 0.11);
     dry.gain.value = 1 - wet.gain.value * 0.10;
     input.connect(dry).connect(output);
     input.connect(highPass).connect(shaper).connect(airShelf).connect(wet).connect(output);
@@ -7714,16 +7726,11 @@ function createEarFatigueGuardNode(context, input, settings, analysis, intensity
     input.connect(glare).connect(edge).connect(airFuse);
     return airFuse;
 }
-function createLoudnessLiftNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
-    const output = context.createGain();
-    const loudnessHint = analysis && Number.isFinite(analysis.loudnessHint) ? analysis.loudnessHint : -18;
-    const targetRms = map(intensity.raw, 50, 200, -20.5, -10.0);
-    const baseLift = clamp((targetRms - loudnessHint) * 0.34, -1.5, 7.2);
-    const extraDrive = intensity.raw > 120 ? Math.pow((intensity.raw - 120) / 80, 1.35) * 1.6 : 0;
-    const gainDb = clamp(baseLift + extraDrive, -2.0, intensity.raw >= 160 ? 8.5 : 6.0);
-    output.gain.value = dbToAmp(gainDb);
-    input.connect(output);
-    return output;
+function createLoudnessLiftNode(context, input, settings, analysis, preset = null, intensity = getMasteringIntensity(settings)) {
+    const output = context.createGain(), loudnessHint = analysis && Number.isFinite(analysis.loudnessHint) ? analysis.loudnessHint : -18, glassRisk = estimateMelodicTransientGlassRisk(analysis, settings, preset, intensity);
+    // The finalizer owns LUFS normalization; this is bounded staging only.
+    const targetRms = map(intensity.raw, 50, 200, -21.0, -14.5), baseLift = clamp((targetRms - loudnessHint) * 0.16, -1.8, 2.0), extraDrive = intensity.raw > 150 ? Math.pow((intensity.raw - 150) / 50, 1.2) * 0.35 : 0;
+    output.gain.value = dbToAmp(clamp(baseLift + extraDrive - glassRisk * 0.75, -2.2, glassRisk > 0.34 ? 0.9 : 2.2)); input.connect(output); return output;
 }
 function createTransientRefineNode(context, input, settings, analysis, intensity = getMasteringIntensity(settings)) {
     if (state.featureFlags.transientRefine === false) return input;
@@ -7765,14 +7772,9 @@ function createCompressionNode(context, input, punch, intensity = getMasteringIn
     return compressor;
 }
 function createLimiterNode(context, input, intensity = getMasteringIntensity({ intensity: 100 })) {
-    const limiter = context.createDynamicsCompressor();
-    limiter.threshold.value = intensity.raw >= 150 ? -1.6 : -0.9;
-    limiter.knee.value = 0;
-    limiter.ratio.value = intensity.raw >= 150 ? 20 : 15;
-    limiter.attack.value = 0.001;
-    limiter.release.value = intensity.raw >= 150 ? 0.055 : 0.07;
-    input.connect(limiter);
-    return limiter;
+    // Worker finalizer owns lookahead/True-Peak limiting; this is emergency-only.
+    if (Number(intensity.raw || 100) < 180) return input;
+    const limiter = context.createDynamicsCompressor(); limiter.threshold.value = -2.4; limiter.knee.value = 4; limiter.ratio.value = 8; limiter.attack.value = 0.005; limiter.release.value = 0.10; input.connect(limiter); return limiter;
 }
 function createSaturationNode(context, input, analogGroove, warmth, intensity = getMasteringIntensity({ intensity: 100 })) {
     if (analogGroove < 8 && warmth < 68 && intensity.raw < 125) return input;
@@ -8294,15 +8296,6 @@ function blackmanWindow(x) {
     const phase = Math.PI * ax;
     return 0.42 + 0.5 * Math.cos(phase) + 0.08 * Math.cos(2 * phase);
 }
-function softCeilingSample(value, ceiling) {
-    const sign = Math.sign(value);
-    const abs = Math.abs(value);
-    const knee = ceiling * 0.985;
-    if (abs <= knee) return value;
-    const room = Math.max(0.000001, ceiling - knee);
-    const limited = knee + Math.tanh((abs - knee) / room) * room * 0.98;
-    return sign * Math.min(ceiling, limited);
-}
 function sanitizeAudioBuffer(buffer, label = 'audio') {
     if (!buffer || !buffer.numberOfChannels || !buffer.length) return { repaired: 0, clipped: 0, peakBefore: 0, peakAfter: 0 };
     let repaired = 0;
@@ -8357,18 +8350,16 @@ function removeDcOffsetAudioBuffer(buffer) {
     }
     return { applied: true, offsets, maxOffset, maxOffsetDb: ampToDb(maxOffset) };
 }
-function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true, qualityMode = 'balanced') {
+function applyTransparentLimiterGuard(buffer, targetDbTP = -1.0, truePeak = true, qualityMode = 'balanced', analysis = {}) {
     const ceiling = Math.pow(10, Number(targetDbTP || -1) / 20);
     const oversample = truePeak ? 4 : 1;
     const peakBefore = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
     if (peakBefore < 0.000001) {
         return { mode: truePeak ? 'lookaheadFirTruePeakLimiter4x' : 'lookaheadSamplePeakLimiter', targetDbTP, peakBefore, peakAfter: peakBefore, gain: 1, limiterReductionDb: 0, lookaheadMs: getLimiterLookaheadMs(qualityMode) };
     }
-    const limiterInfo = applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode);
-    for (let ch = 0; ch < buffer.numberOfChannels; ch += 1) {
-        const data = buffer.getChannelData(ch);
-        for (let i = 0; i < data.length; i += 1) data[i] = softCeilingSample(data[i], ceiling);
-    }
+    const limiterInfo = applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode, analysis);
+    // Do not waveshape every near-ceiling piano transient. Any residual
+    // inter-sample overshoot is corrected transparently by one global gain below.
     removeDcOffsetAudioBuffer(buffer);
     let peakAfter = truePeak ? measureInterpolatedPeak(buffer, oversample) : measureSamplePeak(buffer);
     let finalGain = 1;
@@ -8410,6 +8401,7 @@ function createFinalizerAnalysisPayload(analysis) {
         targetDynamicFreq: normalized.targetDynamicFreq,
         vocalMetallicRisk: estimateVocalMetallicRisk(analysis, {}, null, { raw: 100, amount: 1 }),
         dynamicDeEsserRisk: estimateDynamicDeEsserNeed(normalized, {}, null, { raw: 100, amount: 1 }).risk,
+        melodicTransientGlassRisk: estimateMelodicTransientGlassRisk(analysis, {}, null, { raw: 100, amount: 1 }),
         spectrumBands: analysis?.spectrumBands || null
     };
 }
@@ -8680,10 +8672,10 @@ function createGenericLowShelfFilter(sampleRate, frequency, q, gainDb) {
 function getLimiterLookaheadMs(qualityMode) {
     return qualityMode === 'max' ? 5 : qualityMode === 'fast' ? 1.5 : 3;
 }
-function applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode = 'balanced') {
+function applyLookaheadEnvelopeLimiter(buffer, ceiling, qualityMode = 'balanced', analysis = {}) {
     const sampleRate = Math.max(3000, Number(buffer.sampleRate || 44100));
-    const safeCeiling = Math.max(1e-9, ceiling);
-    const releaseMs = qualityMode === 'max' ? 105 : qualityMode === 'fast' ? 42 : 68;
+    const safeCeiling = Math.max(1e-9, ceiling), glassRisk = clamp01(Number(analysis?.melodicTransientGlassRisk || 0));
+    const releaseMs = (qualityMode === 'max' ? 105 : qualityMode === 'fast' ? 42 : 68) + glassRisk * 28;
     const release = Math.exp(-1 / Math.max(1, sampleRate * releaseMs / 1000));
     const lookaheadMs = getLimiterLookaheadMs(qualityMode);
     const lookaheadSamples = Math.max(1, Math.round(sampleRate * lookaheadMs / 1000));
@@ -8817,6 +8809,7 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
             dynamicDeEsserRisk: Number(finalizeInfo?.dynamicDeEsserRisk || 0),
             dynamicDeEsserReductionDb: Number(finalizeInfo?.dynamicDeEsserReductionDb || 0),
             dynamicDeEsserBands: finalizeInfo?.dynamicDeEsserBands || null,
+            melodicTransientGlassRisk: Number(finalizeInfo?.melodicTransientGlassRisk ?? track?.analysis?.sharedDspProfileApplied?.finalizer?.melodicTransientGlassRisk ?? 0),
             loudnessStandard: finalizeInfo?.loudnessStandard || '',
             sharedDspProfileVersion: finalizeInfo?.sharedDspProfileVersion || track?.analysis?.sharedDspProfileApplied?.version || '',
             sharedDspProfile: getSharedDspSummaryForReport(finalizeInfo?.sharedDspProfile || track?.analysis?.sharedDspProfileApplied),
@@ -8899,7 +8892,7 @@ async function finalizeMasterBufferAsync(buffer, options = {}) {
         const loudnessBefore = measureApproxGatedLoudness(working);
         const loudnessGainDb = clamp(targetLufs - loudnessBefore, -8, maxGainDb);
         applyBufferGain(working, Math.pow(10, loudnessGainDb / 20));
-        const peakInfo = applyTransparentLimiterGuard(working, targetDb, options.truePeak !== false, qualityMode);
+        const peakInfo = applyTransparentLimiterGuard(working, targetDb, options.truePeak !== false, qualityMode, options.analysis || {});
         sanitizeAudioBuffer(working, 'finalizer-fallback-output');
         const finalLoudness = measureKWeightedLoudnessBundleAudioBuffer(working);
         const loudnessAfter = finalLoudness.integrated;
@@ -9983,7 +9976,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.6.56-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.6.58-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13072,7 +13065,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.6.56',
+        app: 'FoxBear AI Mastering Studio Pro v1.6.58',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

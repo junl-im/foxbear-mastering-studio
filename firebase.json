@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": ".",
+    "public": "dist/hosting",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -150,6 +150,9 @@
           "region": "asia-northeast3"
         }
       }
+    ],
+    "predeploy": [
+      "npm run hosting:check"
     ]
   },
   "firestore": {

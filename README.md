@@ -1,4 +1,22 @@
-# FoxBear AI Mastering Studio Pro v1.6.56
+# FoxBear AI Mastering Studio Pro v1.6.58
+
+## v1.6.58 piano transient integrity
+
+- Piano-like transient and upper-harmonic risk now reduces high-frequency excitation, narrow metallic notches, clarity drive, and excessive pre-finalizer gain.
+- Normal mastering uses one authoritative worker lookahead/True-Peak limiter instead of serial Web Audio and worker limiting.
+- Near-ceiling `tanh` waveshaping was removed; residual True-Peak overshoot is corrected with transparent global gain.
+- The quality gate now detects newly created high-frequency glare and reports melodic-transient risk.
+- Run the original and mastered WAV24 at matched loudness for the final real-audio acceptance test.
+
+# FoxBear AI Mastering Studio Pro v1.6.57
+
+## v1.6.57 Firebase Hosting payload boundary
+
+- Firebase Hosting now publishes only a generated `dist/hosting` directory instead of the repository root.
+- The staging allowlist contains the public pages plus `assets/`, `src/`, and `vendor/`; `.git`, Functions, QA, tools, documentation, and local configuration cannot enter the deploy payload.
+- `firebase deploy` runs `npm run hosting:check` through the Hosting predeploy hook even when the wrapper scripts are bypassed.
+- Hidden, executable, secret-like, and symbolic-link entries inside public trees fail the deployment preflight.
+- Run `npm run check:release` before deployment and publish the synchronized v1.6.57 cache generation.
 
 ## v1.6.56 playback Blob source resilience
 

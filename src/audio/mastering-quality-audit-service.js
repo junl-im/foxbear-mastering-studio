@@ -1,4 +1,4 @@
-// FoxBear v1.6.56 bounded before/after mastering quality audit.
+// FoxBear v1.6.58 bounded before/after mastering quality audit.
 'use strict';
 
 (function attachFoxBearMasteringQualityAudit(global) {
@@ -107,6 +107,10 @@
         const flags = [];
         if (delta.crestDb < -4.5 || after.rms < before.rms * 0.15) flags.push({ code: 'DYNAMIC_COLLAPSE', severity: (delta.crestDb < -7 || after.rms < before.rms * 0.08) ? 'fail' : 'warn', detail: `Crest ${delta.crestDb.toFixed(1)} dB` });
         if (delta.highProxyDb < -4) flags.push({ code: 'HIGH_LOSS', severity: delta.highProxyDb < -7 ? 'fail' : 'warn', detail: `High ${delta.highProxyDb.toFixed(1)} dB` });
+        if (delta.highProxyDb > 4.2 && (delta.crestDb < -1.8 || delta.envelopeMotionDb > 2.6)) {
+            const severe = delta.highProxyDb > 7 || delta.crestDb < -4.5;
+            flags.push({ code: 'HIGH_GLARE', severity: severe ? 'fail' : 'warn', detail: `High +${delta.highProxyDb.toFixed(1)} dB / Crest ${delta.crestDb.toFixed(1)} dB` });
+        }
         if (delta.lowProxyDb > 4.5 && delta.envelopeMotionDb > 3.5) {
             const severe = delta.lowProxyDb > 7 || delta.envelopeMotionDb > 6;
             flags.push({ code: 'LOW_PUMPING', severity: severe ? 'fail' : 'warn', detail: `Low ${delta.lowProxyDb.toFixed(1)} dB / motion ${delta.envelopeMotionDb.toFixed(1)} dB` });
@@ -116,7 +120,7 @@
             flags.push({ code: 'PHASE_RISK', severity: severe ? 'fail' : 'warn', detail: `Correlation ${after.stereoCorrelation.toFixed(2)} / Side ${delta.sideToMidDb >= 0 ? '+' : ''}${delta.sideToMidDb.toFixed(1)} dB` });
         }
         if (after.invalid > 0) flags.push({ code: 'INVALID_OUTPUT', severity: 'fail', detail: `${after.invalid} invalid samples` });
-        return Object.freeze({ version: 'quality-audit-v1548', before, after, delta, flags: Object.freeze(flags), boundedSamples: MAX_SAMPLES });
+        return Object.freeze({ version: 'quality-audit-v1658-piano-transient', before, after, delta, flags: Object.freeze(flags), boundedSamples: MAX_SAMPLES });
     }
 
     global.FoxBearMasteringQualityAudit = Object.freeze({ MAX_SAMPLES, inspect, compare });

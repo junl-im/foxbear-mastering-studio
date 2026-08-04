@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.56",
+  "version": "1.6.58",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.56 - playback Blob source resilience",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.58 - piano transient integrity and transparent limiter ownership",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.56-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.56-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.58-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.58-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -35,7 +35,8 @@
     "qa:browser:retry:verify": "node qa/browser/verify-retry-recovery.js",
     "qa:python:clean": "node qa/python-bytecode-hygiene.js",
     "deploy:spark": "npm run hosting:check && firebase deploy --only hosting,firestore:rules,firestore:indexes",
-    "hosting:check": "node tools/check-hosting-payload.js"
+    "hosting:check": "node tools/check-hosting-payload.js",
+    "hosting:stage": "node tools/stage-hosting-payload.js"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -112,6 +113,7 @@
     "node qa/shared_dsp_profile_smoke.js",
     "node qa/dock_waveform_smoke.js",
     "node qa/engine_qa_bench.js",
+    "node qa/v1658_piano_transient_integrity_smoke.js",
     "node qa/strength_profiles_smoke.js",
     "node qa/preview_translation_smoke.js",
     "node qa/module_split_stage2_smoke.js",
@@ -442,15 +444,16 @@
     "node qa/v1653_playback_crossfade_settlement_smoke.js",
     "node qa/v1654_playback_intent_arbitration_smoke.js",
     "node qa/v1655_mobile_playback_focus_resume_smoke.js",
-    "node qa/v1656_playback_blob_source_resilience_smoke.js"
+    "node qa/v1656_playback_blob_source_resilience_smoke.js",
+    "node qa/v1657_hosting_payload_boundary_hardening_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "playback-blob-source-resilience",
-    "assetVersion": "1.6.56-playback-blob-source-resilience",
-    "cacheName": "foxbear-shell-v1.6.56-playback-blob-source-resilience",
-    "bootRevision": "boot-sri-v1656-playback-source",
-    "updateSafetyRevision": "update-safety-v1656-playback-source",
-    "serviceWorkerRevision": "sw-v1656-playback-source"
+    "buildId": "piano-transient-integrity",
+    "assetVersion": "1.6.58-piano-transient-integrity",
+    "cacheName": "foxbear-shell-v1.6.58-piano-transient-integrity",
+    "bootRevision": "boot-sri-v1658-piano-transient",
+    "updateSafetyRevision": "update-safety-v1658-piano-transient",
+    "serviceWorkerRevision": "sw-v1658-piano-transient"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

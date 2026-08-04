@@ -1,3 +1,27 @@
+# GitHub Desktop Handoff - v1.6.58
+
+## Apply
+
+1. Fetch origin before applying the overwrite ZIP.
+2. Extract the overwrite ZIP into the repository root and replace matching files.
+3. Confirm `.firebase/hosting..cache` is deleted, then run the release gates, review changes, commit, and Push origin.
+4. Deploy the synchronized v1.6.58 cache generation only after an original/mastered WAV24 spot check.
+
+## Release focus
+
+- Piano and melodic-transient glass-risk analysis
+- Risk-scaled high-frequency exciter, metallic notches, tone, preview, and limiter release
+- One authoritative worker lookahead/True-Peak limiter in the normal mastering path
+- Removal of redundant pre-finalizer drive and near-ceiling non-linear waveshaping
+- Positive high-frequency glare detection and quality-gate reporting
+
+## Production verification
+
+- Compare the same 15-30 second piano passage in the original and v1.6.58 WAV24 at matched loudness.
+- Keep pitch/BPM changes and added instrument layers disabled for the first comparison.
+- Confirm the exported WAV in an external player/DAW, wired headphones, mono, and a phone speaker.
+- Verify deployment logs still report the bounded Firebase Hosting payload and that the v1.6.58 service-worker cache is active.
+
 # GitHub Desktop Handoff - v1.6.56
 
 ## Apply

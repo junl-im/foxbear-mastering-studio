@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.6.56 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.6.58 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.6.56-playback-blob-source-resilience';
+    const VERSION = 'v1.6.58-piano-transient-integrity';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;

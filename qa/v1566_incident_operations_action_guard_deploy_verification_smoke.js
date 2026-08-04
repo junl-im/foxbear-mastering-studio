@@ -22,14 +22,14 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.66_INCIDENT_OPERATIONS_ACTION_GUARD_DEPLOY_VERIFICATION.md');
 
-assert.strictEqual(pkg.version, '1.6.56');
-assert.strictEqual(meta.assetVersion, '1.6.56-playback-blob-source-resilience');
+assert.strictEqual(pkg.version, '1.6.58');
+assert.strictEqual(meta.assetVersion, '1.6.58-piano-transient-integrity');
 for (const name of ['testIncidentAlertChannelRequest', 'verifyIncidentDeploymentRequest']) {
   assert(pkg.scripts['deploy:incident'].includes(`functions:${name}`), `deploy script missing ${name}`);
 }
 
 for (const token of [
-  "const PRODUCT_VERSION = '1.6.56'",
+  "const PRODUCT_VERSION = '1.6.58'",
   'const OPERATIONS_SCHEMA_VERSION =',
   "const ADMIN_ACTION_STATE_COLLECTION = 'incidentAdminActionState'",
   'recommendedActionForIssue',
@@ -46,7 +46,7 @@ for (const token of [
   "document: 'incidentDeploymentVerificationRequests/{requestId}'",
   'recommendedActions: reasonCodes.map(recommendedActionForIssue)',
   'productVersion: PRODUCT_VERSION'
-]) assert(functionsSource.includes(token), `v1.6.56 function contract missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.6.58 function contract missing ${token}`);
 
 for (const token of [
   'normalizeIncidentDeployment',
@@ -57,14 +57,14 @@ for (const token of [
   "getDoc(doc(bridgeState.db, 'incidentOperations', 'deployment'))",
   'recommendedActions',
   'setDoc'
-]) assert(firebaseSource.includes(token), `v1.6.56 Firebase bridge contract missing ${token}`);
+]) assert(firebaseSource.includes(token), `v1.6.58 Firebase bridge contract missing ${token}`);
 
 for (const id of [
   'adminIncidentTestWebhook', 'adminIncidentVerifyDeployment', 'adminIncidentDeploymentStatus',
   'adminIncidentHistoryDetails', 'adminIncidentHistoryRows'
 ]) {
-  assert(indexSource.includes(`id="${id}"`), `v1.6.56 HTML missing ${id}`);
-  assert(appSource.includes(`'${id}'`), `v1.6.56 app element cache missing ${id}`);
+  assert(indexSource.includes(`id="${id}"`), `v1.6.58 HTML missing ${id}`);
+  assert(appSource.includes(`'${id}'`), `v1.6.58 app element cache missing ${id}`);
 }
 
 for (const token of [
@@ -75,7 +75,7 @@ for (const token of [
   'renderHistory',
   'collectRecommendations',
   'formatDeploymentStatus'
-]) assert(monitorSource.includes(token), `v1.6.56 monitor contract missing ${token}`);
+]) assert(monitorSource.includes(token), `v1.6.58 monitor contract missing ${token}`);
 
 assert(cssSource.includes('.admin-incident-history-details'));
 assert(cssSource.includes('.admin-incident-action-recommendation'));
@@ -85,7 +85,7 @@ for (const token of [
   'validIncidentDeploymentVerificationRequest',
   'match /incidentDeploymentVerificationRequests/{requestId}',
   'match /incidentAdminActionState/{document=**}'
-]) assert(rules.includes(token), `v1.6.56 Firestore rule missing ${token}`);
+]) assert(rules.includes(token), `v1.6.58 Firestore rule missing ${token}`);
 assert(handoff.includes('## v1.5.66 인수인계'));
 assert(handoff.includes('진행된 내용`, `배포 파일 2종`, `다음 예상 내용'));
 assert(status.includes('## v1.5.66 current focus'));

@@ -1,4 +1,4 @@
-# FoxBear Firebase 설정 가이드 - v1.6.47
+# FoxBear Firebase 설정 가이드 - v1.6.57
 
 ## Spark 무료 요금제 관리자 모니터링
 
@@ -50,7 +50,7 @@ npm run check:release
 npm run deploy:spark
 ```
 
-`cmd.exe`는 프로젝트 파일이 아닙니다. 기존 폴더에 남아 있어도 v1.6.45의 Hosting ignore가 업로드에서 제외하지만, 혼동 방지를 위해 삭제합니다. `npm run deploy:spark`는 실행 전 `npm run hosting:check`를 자동 실행합니다.
+`cmd.exe`는 프로젝트 파일이 아닙니다. 혼동 방지를 위해 삭제합니다. v1.6.57부터 `npm run hosting:check`가 공개 파일만 `dist/hosting`에 staging하고, Firebase Hosting predeploy에서도 같은 검사를 다시 실행합니다. 저장소 루트, `.git`, Functions, QA, 도구, 문서는 Hosting 공개 대상이 아닙니다.
 
 `deploy:spark`는 Hosting, Firestore Rules, Firestore Indexes만 배포합니다. Cloud Functions나 Secret Manager를 요청하지 않으므로 Blaze 업그레이드가 필요하지 않습니다.
 

@@ -1,3 +1,17 @@
+# FoxBear v1.6.57 release checklist
+
+- [x] Firebase Hosting public root is `dist/hosting`, not the repository root.
+- [x] Hosting predeploy runs `npm run hosting:check` for direct CLI deployments.
+- [x] Staging copies only approved root files plus `assets/`, `src/`, and `vendor/`.
+- [x] Hidden, secret-like, executable, and symbolic-link payload entries are rejected.
+- [x] `.firebase/` is ignored and the tracked Hosting cache is removed.
+- [x] Dedicated synthetic and actual-payload regression passes.
+- [x] Run all 406 configured static/regression checks and verify both release archives.
+- [x] Run metadata, SRI, handoff, dependency, Hosting, browser-fixture preflight, and Functions syntax checks.
+- [ ] Run browser automation after installing `@playwright/test` and Chromium.
+- [ ] Re-run the aggregate `npm run check:release` wrapper in an environment without the sandbox process limit.
+- [ ] Deploy to Firebase and verify private repository paths return 404.
+
 # v1.6.47 release checklist
 
 - [x] Non-Firebase Hosting origins do not call `getRedirectResult()`.

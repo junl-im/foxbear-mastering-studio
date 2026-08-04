@@ -1,3 +1,11 @@
+# v1.6.57 project notes
+
+- Firebase Hosting must never publish from repository root again; `dist/hosting` is the deployment boundary.
+- Add new public root pages explicitly to `PUBLIC_ROOT_FILES`; do not broaden the allowlist to docs, QA, tools, Functions, or package metadata.
+- Keep the Hosting predeploy hook even though deployment scripts already run `hosting:check`; it protects direct Firebase CLI use.
+- Firebase CLI cache files are local state and must remain untracked under `.firebase/`.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP delivery contract.
+
 # v1.6.47 project notes
 
 - GitHub Pages is an external host: use popup first and never run Firebase redirect-result recovery there.

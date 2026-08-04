@@ -13,7 +13,7 @@ const perf = read('src/boot/performance-diagnostics.js');
 const app = read('src/app.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.56');
+assert.strictEqual(pkg.version, '1.6.58');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(perf.includes('function migrateLegacyAutoOpenPreference()'), 'legacy persisted auto-open migration is required');
 assert(perf.includes("if (readStorage() !== 'on') return false;"), 'legacy on preference must be detected');
@@ -26,7 +26,7 @@ assert(perf.includes("setPanelVisible(false, { restoreFocus: false, reason: 'aut
 assert(perf.includes("state.openSource = 'user-interaction'"), 'user interaction must convert an automatic panel into a manual panel');
 assert(perf.includes('setEnabled(true, { persist: false, silent: true })'), 'opening the panel must not persist future auto-open');
 assert(app.includes("source: 'settings'"), 'settings-opened diagnostics must be marked manual');
-assert(handoff.startsWith('# Handoff - v1.6.56'), 'handoff must lead with current release');
+assert(handoff.startsWith('# Handoff - v1.6.58'), 'handoff must lead with current release');
 
 function createSandbox({ href = 'https://foxbear.test/', stored = 'off', readyState = 'complete' } = {}) {
   const writes = [];

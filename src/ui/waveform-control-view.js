@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.56-playback-blob-source-resilience';
+  const VIEW_VERSION = '1.6.58-piano-transient-integrity';
   const DEFAULT_BINS = 96;
 
   function getService() {

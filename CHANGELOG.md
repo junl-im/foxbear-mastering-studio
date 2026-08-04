@@ -1,3 +1,19 @@
+# v1.6.58 - Piano Transient Integrity
+
+- Adds a melodic-transient glass-risk model for piano-like harmonic attacks.
+- Risk-scales or bypasses high-frequency excitation and broadens aggressive metallic-removal notches.
+- Removes duplicate normal limiting and near-ceiling per-sample waveshaping; the worker finalizer now owns transparent True-Peak limiting.
+- Replaces strong pre-finalizer loudness drive with bounded staging and adds program-dependent limiter release.
+- Adds `HIGH_GLARE` quality detection, master-report telemetry, and a synthetic piano transient regression, raising the configured target to 407 checks.
+
+# v1.6.57 - Firebase Hosting Payload Boundary
+
+- Replaces repository-root Firebase Hosting publication with a generated `dist/hosting` payload.
+- Copies only the approved root pages plus `assets/`, `src/`, and `vendor/` into the deployable directory.
+- Runs the payload check as a Firebase Hosting predeploy hook, so direct CLI deployment cannot bypass staging.
+- Rejects hidden files, private directories, executable payloads, secret-like files, and symbolic links inside public source trees.
+- Stops tracking the Firebase CLI cache and adds dedicated allowlist/isolation regression coverage, raising the configured target to 406 checks.
+
 # v1.6.56 - Playback Blob Source Resilience
 
 - Rebuilds expired or invalid original, mastered, and highlight Blob URLs from their retained File/Blob backing data.

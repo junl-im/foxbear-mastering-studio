@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.56-playback-blob-source-resilience';
+const version = '1.6.58-piano-transient-integrity';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

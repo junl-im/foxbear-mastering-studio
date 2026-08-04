@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.56",
-  "buildId": "playback-blob-source-resilience",
+  "productVersion": "1.6.58",
+  "buildId": "piano-transient-integrity",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -146,7 +146,13 @@
     "src/boot/kakao-entry-notice.js",
     "assets/css/boot/kakao-entry-notice.css",
     "qa/v1650_kakao_center_entry_notice_smoke.js",
-    "docs/V1.6.50_KAKAO_CENTERED_ENTRY_NOTICE.md"
+    "docs/V1.6.50_KAKAO_CENTERED_ENTRY_NOTICE.md",
+    "firebase.json",
+    "tools/stage-hosting-payload.js",
+    "qa/v1657_hosting_payload_boundary_hardening_smoke.js",
+    "docs/V1.6.57_FIREBASE_HOSTING_PAYLOAD_BOUNDARY.md",
+    "qa/v1658_piano_transient_integrity_smoke.js",
+    "docs/V1.6.58_PIANO_TRANSIENT_INTEGRITY.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -176,7 +182,8 @@
   "deletePaths": [
     "qa/__pycache__",
     "tools/__pycache__",
-    "cmd.exe"
+    "cmd.exe",
+    ".firebase/hosting..cache"
   ],
   "requiredRuntimeAssets": [
     "src/boot/service-worker-recovery-service.js",

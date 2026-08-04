@@ -1,3 +1,72 @@
+# FoxBear Status - v1.6.58
+
+## Current release
+
+- Product version: `1.6.58`
+- Build ID: `piano-transient-integrity`
+- Asset version: `1.6.58-piano-transient-integrity`
+- Service worker cache: `foxbear-shell-v1.6.58-piano-transient-integrity`
+- Configured static/regression target: 407 checks.
+
+## Current focus
+
+- Prevent piano and melodic attacks from becoming glassy, bell-like, or torn after mastering.
+- Make the worker finalizer the single normal limiter and LUFS owner.
+- Avoid non-linear near-ceiling sample shaping and high-Q transient ringing.
+- Detect positive high-frequency glare in before/after quality audits.
+
+## Verified
+
+- Official configured static and behavioral checks: **407/407 passed** in bounded slices (`136/136`, `136/136`, and `135/135`).
+- Dedicated synthetic piano transient integrity regression passed: attack/body loss `0.00 dB`, high-difference delta `-0.03 dB`, sample peak `-2.30 dBFS`.
+- Existing engine bench, golden-audio pack, engine quality gate, and performance/quality regression passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- Final release and overwrite archives contain **720 entries each** and pass archive integrity and payload-boundary checks.
+- Real original/mastered audio comparison remains the decisive file-specific acceptance gate.
+
+## External acceptance required
+
+- Compare the exact original and mastered piano passage as WAV24 at matched loudness.
+- Repeat with pitch/BPM and instrument layers disabled.
+- Verify in an external player/DAW, wired headphones, mono, and phone speaker.
+
+# FoxBear Status - v1.6.57
+
+## Current release
+
+- Product version: `1.6.57`
+- Build ID: `firebase-hosting-payload-boundary`
+- Asset version: `1.6.57-firebase-hosting-payload-boundary`
+- Service worker cache: `foxbear-shell-v1.6.57-firebase-hosting-payload-boundary`
+- Configured static/regression target: 406 checks.
+
+## Current focus
+
+- Publish Firebase Hosting from a generated allowlist directory rather than the repository root.
+- Keep `.git`, Firebase CLI state, Functions, QA, tools, docs, and local configuration outside the deploy boundary.
+- Make the same payload validation mandatory for direct Firebase CLI deployments.
+- Record a deterministic file/hash manifest for deployment review.
+
+## Verified
+
+- Official configured static and behavioral checks: **406/406 passed**.
+- Dedicated Hosting payload boundary regression passes against synthetic private files and the actual staged project.
+- Actual staged payload contains 150 allowlisted files totaling approximately 4.38 MB and excludes repository/private paths.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- The aggregate `check:release` wrapper did not finish within the sandbox process limit; its static components were executed and passed independently.
+- Final release and overwrite archives contain **718 entries each** and pass compressed-data integrity and executable-payload checks.
+- Real Firebase production deployment remains an external environment gate.
+
+## Production deployment required
+
+- Apply the overwrite ZIP so `firebase.json`, `.gitignore`, and staging tools are synchronized.
+- Confirm the old tracked `.firebase/hosting..cache` is deleted before commit.
+- Deploy and verify the Hosting predeploy logs the bounded `dist/hosting` payload.
+
 # FoxBear Status - v1.6.56
 
 ## Current release
@@ -584,10 +653,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.56`
-- Build ID: `playback-blob-source-resilience`
-- Asset version: `1.6.56-playback-blob-source-resilience`
-- Service worker cache: `foxbear-shell-v1.6.56-playback-blob-source-resilience`
+- Product version: `1.6.58`
+- Build ID: `piano-transient-integrity`
+- Asset version: `1.6.58-piano-transient-integrity`
+- Service worker cache: `foxbear-shell-v1.6.58-piano-transient-integrity`
 
 # FoxBear Status - v1.6.32
 

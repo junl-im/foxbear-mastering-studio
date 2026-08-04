@@ -31,3 +31,6 @@ __pycache__/
 *.msi
 *.scr
 *.ps1
+
+# Firebase CLI local deployment state
+.firebase/

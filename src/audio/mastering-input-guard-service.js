@@ -1,4 +1,4 @@
-// FoxBear Mastering Input Guard v1.6.56 - rejects silent, corrupt, or unusably short decoded audio before DSP.
+// FoxBear Mastering Input Guard v1.6.58 - rejects silent, corrupt, or unusably short decoded audio before DSP.
 'use strict';
 
 (function attachFoxBearMasteringInputGuard(global) {
@@ -43,7 +43,8 @@
             harshPeakHz: Math.min(16000, Math.max(1800, finiteNumber(source.harshPeakHz ?? source.targetDynamicFreq, 6200))),
             targetDynamicFreq: Math.min(16000, Math.max(1800, finiteNumber(source.targetDynamicFreq ?? source.harshPeakHz, 6200))),
             vocalMetallicRisk: unit(source.vocalMetallicRisk, 0),
-            dynamicDeEsserRisk: unit(source.dynamicDeEsserRisk, 0)
+            dynamicDeEsserRisk: unit(source.dynamicDeEsserRisk, 0),
+            melodicTransientGlassRisk: unit(source.melodicTransientGlassRisk, 0)
         });
     }
 
@@ -118,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.6.56-playback-blob-source-resilience',
+        version: '1.6.58-piano-transient-integrity',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

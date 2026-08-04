@@ -1,3 +1,58 @@
+# Handoff - v1.6.58
+
+- Build: `piano-transient-integrity`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep the worker finalizer as the single normal lookahead/True-Peak limiter.
+- Do not restore pre-finalizer gain above the bounded staging caps.
+- Do not restore per-sample near-ceiling `tanh` waveshaping.
+- Keep melodic-transient risk scaling on the exciter, metallic notches, tone chain, preview, and limiter release.
+- Keep `HIGH_GLARE` in the before/after quality audit and quality gate.
+- File-specific confirmation still requires the exact original/mastered audio pair.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.58`
+- Build ID: `piano-transient-integrity`
+- Asset version: `1.6.58-piano-transient-integrity`
+- Service worker cache: `foxbear-shell-v1.6.58-piano-transient-integrity`
+- Configured static/regression target: 407 checks.
+- Final configured checks: `407/407` passed in bounded slices (`136/136`, `136/136`, and `135/135`).
+- Dedicated synthetic piano transient regression and historical engine/golden-audio regressions passed.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Browser automation remains unavailable because `@playwright/test` and Chromium are not installed.
+- Final full and overwrite archives contain `720` entries each and pass archive integrity and payload-boundary checks.
+- Real original/mastered WAV24 A/B remains an external audio acceptance gate.
+
+# Handoff - v1.6.57
+
+- Build: `firebase-hosting-payload-boundary`.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep Firebase Hosting `public` fixed to `dist/hosting`; do not restore repository-root publication.
+- Keep the staging allowlist limited to the approved root pages plus `assets/`, `src/`, and `vendor/`.
+- Do not weaken hidden-file, secret-like file, executable, or symbolic-link rejection.
+- Keep `npm run hosting:check` in the Hosting predeploy hook so direct Firebase CLI deployment is fenced.
+- Remove the tracked `.firebase/hosting..cache`; future Firebase CLI state remains local and ignored.
+- Required result structure remains stored in `DELIVERY_RULES.md`.
+
+## Current release
+
+- Product version: `1.6.57`
+- Build ID: `firebase-hosting-payload-boundary`
+- Asset version: `1.6.57-firebase-hosting-payload-boundary`
+- Service worker cache: `foxbear-shell-v1.6.57-firebase-hosting-payload-boundary`
+- Configured static/regression target: 406 checks.
+- Final configured checks: `406/406` passed.
+- Dedicated Hosting allowlist, private-file isolation, and direct-deploy preflight regression passed.
+- Actual Hosting stage contains 150 allowlisted files totaling approximately 4.38 MB and no repository metadata, Functions, QA, tools, or docs.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- The aggregate `check:release` wrapper exceeded the sandbox process limit; all static components were executed and passed independently.
+- Final full and overwrite archives contain `718` entries each and pass compressed-data integrity and executable-payload checks.
+- Real Firebase deployment remains an external production gate.
+
 # Handoff - v1.6.56
 
 - Build: `playback-blob-source-resilience`.

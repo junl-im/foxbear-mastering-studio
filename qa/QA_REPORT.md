@@ -1,3 +1,49 @@
+# FoxBear QA Report - v1.6.58
+
+## Configured target
+
+- Static and behavioral checks: 407
+- New regression: `qa/v1658_piano_transient_integrity_smoke.js`
+
+## Final result
+
+- Official configured checks: `407/407` passed in bounded slices (`136/136`, `136/136`, and `135/135`).
+- Dedicated synthetic piano transient QA passed: attack/body loss `0.00 dB`, high-difference delta `-0.03 dB`, sample peak `-2.30 dBFS`.
+- Engine bench, golden-audio pack, historical quality gates, and performance/quality regression passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not run because `@playwright/test` and Chromium are unavailable in this environment.
+- Final release and overwrite archives contain `720` entries each and pass archive integrity and payload-boundary checks.
+- File-specific audible confirmation still requires the user's exact original/mastered pair.
+
+# FoxBear QA Report - v1.6.57
+
+## Configured target
+
+- Static and behavioral checks: 406
+- Updated syntax targets: `tools/stage-hosting-payload.js`, `tools/check-hosting-payload.js`
+- New regression: `qa/v1657_hosting_payload_boundary_hardening_smoke.js`
+
+## Focus
+
+- Dedicated Firebase Hosting output boundary
+- Allowlist-only public file staging
+- Direct-deploy preflight enforcement
+- Private, hidden, secret-like, executable, and symbolic-link isolation
+- Existing playback, download, PWA, security, and incident-operation compatibility
+
+## Final result
+
+- Official configured static and behavioral checks: `406/406` passed.
+- Dedicated v1.6.57 Hosting payload regression passed against synthetic private files and the actual project.
+- Actual stage contains 150 allowlisted files totaling approximately 4.38 MB.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, and Firebase Functions syntax passed.
+- Dependency metadata: 0 errors and 5 expected missing-install warnings.
+- Browser automation could not start because `@playwright/test` and Chromium are unavailable in this environment.
+- The aggregate `check:release` wrapper exceeded the sandbox process limit; its static components were executed and passed independently.
+- Final release and overwrite archives contain `718` entries each and pass compressed-data integrity and executable-payload checks.
+- Real Firebase production deployment remains external verification.
+
 # FoxBear QA Report - v1.6.56
 
 ## Configured target

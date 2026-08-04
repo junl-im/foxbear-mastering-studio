@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.56 - channel-specialized tone dynamics and fused safety scans.
+// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.58 - piano transient integrity and single-stage transparent limiting.
 'use strict';
 
 self.onmessage = event => {
@@ -69,8 +69,9 @@ self.onmessage = event => {
         // Reusing the already measured peak avoids a second full oversampled scan.
         const preLimiterPeak = peakBefore * Math.abs(gain);
         postProgress(jobId, 72, '리미터 처리', '룩어헤드 리미터와 출력 ceiling을 적용합니다.');
-        const limiterInfo = applyLookaheadLimiter(data, length, ceiling, sampleRate, qualityMode);
-        applySoftCeiling(data, length, ceiling);
+        const limiterInfo = applyLookaheadLimiter(data, length, ceiling, sampleRate, qualityMode, analysis);
+        // Preserve harmonic attack shape; the final True-Peak scan applies one
+        // transparent global safety gain instead of per-sample waveshaping.
         removeDcOffsetAndSanitize(data, length);
         markStage('gainLimiter');
 
@@ -140,7 +141,8 @@ self.onmessage = event => {
                 loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
                 performance: { processingMs, audioDurationMs, realtimeFactor, stageMs: stageTimings },
                 qualityFingerprint,
-                inputHealth
+                inputHealth,
+                melodicTransientGlassRisk: analysis.melodicTransientGlassRisk
             }
         }, transfers);
     } catch (error) {
@@ -598,7 +600,8 @@ function normalizeAnalysis(analysis) {
         harshPeakHz: clamp(finite(source.harshPeakHz ?? source.targetDynamicFreq, 6200), 1800, 16000),
         targetDynamicFreq: clamp(finite(source.targetDynamicFreq ?? source.harshPeakHz, 6200), 1800, 16000),
         vocalMetallicRisk: unit(source.vocalMetallicRisk, 0),
-        dynamicDeEsserRisk: unit(source.dynamicDeEsserRisk, 0)
+        dynamicDeEsserRisk: unit(source.dynamicDeEsserRisk, 0),
+        melodicTransientGlassRisk: unit(source.melodicTransientGlassRisk, 0)
     };
 }
 
@@ -1018,9 +1021,9 @@ function getLimiterLookaheadMs(qualityMode) {
     return qualityMode === 'max' ? 5 : qualityMode === 'fast' ? 1.5 : 3;
 }
 
-function applyLookaheadLimiter(buffers, length, ceiling, sampleRate, qualityMode) {
+function applyLookaheadLimiter(buffers, length, ceiling, sampleRate, qualityMode, analysis = {}) {
     const safeCeiling = Math.max(1e-9, ceiling);
-    const releaseMs = qualityMode === 'max' ? 105 : qualityMode === 'fast' ? 42 : 68;
+    const releaseMs = (qualityMode === 'max' ? 105 : qualityMode === 'fast' ? 42 : 68) + clamp(Number(analysis.melodicTransientGlassRisk || 0), 0, 1) * 28;
     const release = Math.exp(-1 / Math.max(1, sampleRate * releaseMs / 1000));
     const lookaheadMs = getLimiterLookaheadMs(qualityMode);
     const lookaheadSamples = Math.max(1, Math.round(sampleRate * lookaheadMs / 1000));
@@ -1079,22 +1082,6 @@ function applyLookaheadLimiter(buffers, length, ceiling, sampleRate, qualityMode
         gainMovement: gainMovement / Math.max(1, length),
         reductionDb: minGain < 1 ? 20 * Math.log10(Math.max(1e-9, minGain)) : 0
     };
-}
-
-function applySoftCeiling(buffers, length, ceiling) {
-    const knee = ceiling * 0.985;
-    const room = Math.max(1e-9, ceiling - knee);
-    for (const data of buffers) {
-        for (let i = 0; i < length; i += 1) {
-            const value = data[i] || 0;
-            const sign = Math.sign(value);
-            const abs = Math.abs(value);
-            if (abs > knee) {
-                const limited = knee + Math.tanh((abs - knee) / room) * room * 0.98;
-                data[i] = sign * Math.min(ceiling, limited);
-            }
-        }
-    }
 }
 
 function dbRatio(after, before) { return 20 * Math.log10(Math.max(1e-9, after) / Math.max(1e-9, before)); }

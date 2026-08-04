@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.56 (playback-blob-source-resilience).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.58 (piano-transient-integrity).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.56"
+  "version": "1.6.58"
 }

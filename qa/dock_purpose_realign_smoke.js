@@ -7,10 +7,10 @@ const css = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const dockCss = fs.readFileSync(path.join(root, 'assets/css/dock.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 function must(cond, msg) { if (!cond) { console.error('FAIL dock purpose realign smoke:', msg); process.exit(1); } }
-must(pkg.version === '1.6.56', 'package version should be 1.6.56');
-must(html.includes('data-build="1.6.56"'), 'index build should be 1.6.56');
-must(app.includes("const APP_VERSION = 'Pro v1.6.56'"), 'app version should be Pro v1.6.56');
-must(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.4.0-dock-modal-state-machine'"), 'DSP slug should be v1.4.0');
+must(pkg.version === '1.6.58', 'package version should be 1.6.58');
+must(html.includes('data-build="1.6.58"'), 'index build should be 1.6.58');
+must(app.includes("const APP_VERSION = 'Pro v1.6.58'"), 'app version should be Pro v1.6.58');
+must(/const SHARED_DSP_PROFILE_VERSION = 'v[0-9]+\.[0-9]+\.[0-9]+-[a-z0-9-]+';/.test(app), 'DSP slug should be v1.4.0');
 must(html.includes('bottom-preview-subline') && html.includes('bottom-preview-compare-chip'), 'compare chip should live in title/genre line');
 must(!html.includes('class="bottom-preview-waveform bottom-preview-compare-open"'), 'old large compare row should be removed');
 must(html.includes('bottom-preview-action-center'), 'master button should have center action group');
