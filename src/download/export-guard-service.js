@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.6.58 - ZIP working-set limits and STORE-only audio packaging
+// FoxBear export guard service v1.6.59 - ZIP working-set limits and STORE-only audio packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.6.58-piano-transient-integrity';
+    const VERSION = 'v1.6.59-readiness-corp-security-hardening';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

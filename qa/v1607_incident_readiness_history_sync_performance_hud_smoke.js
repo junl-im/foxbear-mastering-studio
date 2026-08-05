@@ -65,7 +65,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.58' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.59' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -74,7 +74,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.58', assetVersion: '1.6.58-piano-transient-integrity' }
+  FoxBearBuildInfo: { productVersion: '1.6.59', assetVersion: '1.6.59-readiness-corp-security-hardening' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -84,7 +84,7 @@ reporterSandbox.FoxBearFirebase = {
   checkIncidentDeploymentReadiness: async () => ({
     ok: true,
     checkedAt: new Date().toISOString(),
-    service: { productVersion: '1.6.58', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
+    service: { productVersion: '1.6.59', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },
@@ -169,9 +169,13 @@ assert(readinessCallable && typeof readinessCallable.handler === 'function');
 
   const serverReadiness = await readinessCallable.handler({ auth: { uid: 'guest-1' }, app: null });
   assert.strictEqual(serverReadiness.ok, true);
+  assert.strictEqual(serverReadiness.scope, 'public');
+  assert.strictEqual(serverReadiness.sensitiveChecksRestricted, true);
   assert.strictEqual(serverReadiness.checks.firestore.ok, true);
   assert.strictEqual(serverReadiness.checks.smtpSecret.ok, true);
+  assert.strictEqual(serverReadiness.checks.smtpSecret.restricted, true);
   assert.strictEqual(serverReadiness.checks.smtpConnection.ok, true);
+  assert.strictEqual(serverReadiness.checks.smtpConnection.restricted, true);
   assert(serverReadiness.service.serviceSchemaVersion >= 5);
 
   const listeners = new Map();

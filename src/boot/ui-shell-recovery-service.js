@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.58 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.59 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.58-piano-transient-integrity';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.59-readiness-corp-security-hardening';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

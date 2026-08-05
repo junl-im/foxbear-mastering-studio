@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const app=read('src/app.js'); const html=read('index.html'); const pkg=JSON.parse(read('package.json'));
-must(app.includes("const APP_VERSION = 'Pro v1.6.58'"),'version');
-must(html.includes('data-build="1.6.58"'),'build');
+must(app.includes("const APP_VERSION = 'Pro v1.6.59'"),'version');
+must(html.includes('data-build="1.6.59"'),'build');
 must(app.includes('function runInitStep'),'init helper');
 must(app.indexOf("runInitStep('파일 불러오기'") < app.indexOf("runInitStep('슬라이더 UI'"),'upload before ui');
 must(html.includes('브라우저 확인 코덱만 표시'),'codec label');

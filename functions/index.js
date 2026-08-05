@@ -65,8 +65,8 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.58';
-const INCIDENT_SERVICE_SCHEMA_VERSION = 6;
+const PRODUCT_VERSION = '1.6.59';
+const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
 const INCIDENT_READINESS_COLLECTION = 'incidentDeploymentReadiness';
@@ -200,6 +200,8 @@ function incidentServiceMetadata(request = {}) {
     appCheckEnforced: false,
     appCheckTokenPresent: false,
     readinessCheck: 'checkIncidentDeploymentReadiness',
+    readinessScopes: ['public', 'admin'],
+    smtpReadinessRequiresAdmin: true,
     readinessCooldownSeconds: Math.ceil(INCIDENT_READINESS_COOLDOWN_MS / 1000),
     checkedAt: new Date().toISOString()
   };
@@ -355,7 +357,39 @@ async function getActiveAdmin(uid) {
   const data = snapshot.exists ? (snapshot.data() || {}) : {};
   const expiresAt = timestampMillis(data.expiresAt);
   const active = snapshot.exists && data.active === true && (!expiresAt || expiresAt > Date.now());
-  return { active, uid: safeUid, role: active ? cleanText(data.role || 'admin', 40) : '', expiresAt };
+  return {
+    active,
+    uid: safeUid,
+    role: active ? cleanText(data.role || 'admin', 40) : '',
+    email: active ? cleanText(data.email || '', 180).toLowerCase() : '',
+    authProvider: active ? cleanText(data.authProvider || '', 60) : '',
+    expiresAt
+  };
+}
+
+function verifiedGoogleCallableIdentity(request = {}) {
+  const uid = cleanText(request.auth?.uid || '', 128);
+  const token = request.auth?.token && typeof request.auth.token === 'object' ? request.auth.token : {};
+  const provider = cleanText(token.firebase?.sign_in_provider || '', 60);
+  const email = cleanText(token.email || '', 180).toLowerCase();
+  const emailVerified = token.email_verified === true;
+  const valid = Boolean(uid && provider === 'google.com' && email && emailVerified);
+  return Object.freeze({ valid, uid, provider, email, emailVerified });
+}
+
+async function resolveCallableAdminAccess(request = {}) {
+  const identity = verifiedGoogleCallableIdentity(request);
+  if (!identity.valid) return Object.freeze({ active: false, scope: 'public', identity });
+  try {
+    const admin = await getActiveAdmin(identity.uid);
+    const emailMatches = !admin.email || admin.email === identity.email;
+    const providerMatches = !admin.authProvider || admin.authProvider === 'google.com';
+    const active = admin.active === true && emailMatches && providerMatches;
+    return Object.freeze({ ...admin, active, scope: active ? 'admin' : 'public', identity });
+  } catch (error) {
+    console.warn('FoxBear readiness administrator lookup failed closed', cleanText(error?.message || error, 180));
+    return Object.freeze({ active: false, scope: 'public', identity });
+  }
 }
 
 async function claimAdminAction(uid, action, options = {}) {
@@ -1961,6 +1995,7 @@ exports.getIncidentServiceStatus = onCall({
 });
 
 const INCIDENT_READINESS_CHECK_KEYS = Object.freeze(['functions', 'firestore', 'smtpSecret', 'smtpConnection']);
+const incidentReadinessChecksInFlight = new Map();
 
 function isIncidentReadinessResultComplete(value = {}) {
   const checks = value?.checks && typeof value.checks === 'object' ? value.checks : {};
@@ -1972,12 +2007,17 @@ function isIncidentReadinessResultComplete(value = {}) {
   );
 }
 
-async function inspectIncidentDeploymentReadiness(request = {}) {
+async function inspectIncidentDeploymentReadiness(request = {}, options = {}) {
+  const includeSensitiveChecks = options.includeSensitiveChecks === true;
   const checks = {
     functions: { ok: true, status: 'ready', message: `Callable Functions v${PRODUCT_VERSION} 응답 정상` },
     firestore: { ok: false, status: 'checking', message: 'Firestore 연결 확인 중' },
-    smtpSecret: { ok: false, status: 'checking', message: 'Gmail Secret 확인 중' },
-    smtpConnection: { ok: false, status: 'checking', message: 'Gmail SMTP 연결 확인 중' }
+    smtpSecret: includeSensitiveChecks
+      ? { ok: false, status: 'checking', message: 'Gmail Secret 확인 중' }
+      : { ok: true, status: 'restricted', restricted: true, code: 'FOXBEAR_ADMIN_CHECK_REQUIRED', message: '관리자 로그인 후 Gmail Secret 심층 점검을 실행할 수 있습니다.' },
+    smtpConnection: includeSensitiveChecks
+      ? { ok: false, status: 'checking', message: 'Gmail SMTP 연결 확인 중' }
+      : { ok: true, status: 'restricted', restricted: true, code: 'FOXBEAR_ADMIN_CHECK_REQUIRED', message: '관리자 로그인 후 Gmail SMTP 실연결 점검을 실행할 수 있습니다.' }
   };
   try {
     await db.collection('incidentOperations').doc(OPERATIONS_HEALTH_DOC_ID).get();
@@ -1985,40 +2025,52 @@ async function inspectIncidentDeploymentReadiness(request = {}) {
   } catch (error) {
     checks.firestore = { ok: false, status: 'error', code: cleanText(error?.code || error?.name || 'firestore-check-failed', 80), message: cleanText(error?.message || error, 220) };
   }
-  let transport = null;
-  try {
-    normalizedGmailAppPassword();
-    checks.smtpSecret = { ok: true, status: 'ready', message: 'Gmail 앱 비밀번호 Secret 형식 정상' };
-    transport = createTransport();
-    if (typeof transport.verify === 'function') await transport.verify();
-    checks.smtpConnection = { ok: true, status: 'ready', message: 'Gmail SMTP 인증·연결 정상' };
-  } catch (error) {
-    const classified = classifySmtpError(error);
-    if (!checks.smtpSecret.ok && classified.reason === 'secret-invalid') {
-      checks.smtpSecret = { ok: false, status: 'error', code: classified.code, message: 'Gmail 앱 비밀번호 Secret이 없거나 형식이 올바르지 않습니다.' };
-      checks.smtpConnection = { ok: false, status: 'blocked', code: classified.code, message: 'Secret 오류로 SMTP 연결 검사를 건너뛰었습니다.' };
-    } else {
-      if (!checks.smtpSecret.ok) checks.smtpSecret = { ok: true, status: 'ready', message: 'Gmail 앱 비밀번호 Secret 형식 정상' };
-      checks.smtpConnection = { ok: false, status: 'error', code: classified.code, reason: classified.reason, message: classified.message };
+  if (includeSensitiveChecks) {
+    let transport = null;
+    try {
+      normalizedGmailAppPassword();
+      checks.smtpSecret = { ok: true, status: 'ready', message: 'Gmail 앱 비밀번호 Secret 형식 정상' };
+      transport = createTransport();
+      if (typeof transport.verify === 'function') await transport.verify();
+      checks.smtpConnection = { ok: true, status: 'ready', message: 'Gmail SMTP 인증·연결 정상' };
+    } catch (error) {
+      const classified = classifySmtpError(error);
+      if (!checks.smtpSecret.ok && classified.reason === 'secret-invalid') {
+        checks.smtpSecret = { ok: false, status: 'error', code: classified.code, message: 'Gmail 앱 비밀번호 Secret이 없거나 형식이 올바르지 않습니다.' };
+        checks.smtpConnection = { ok: false, status: 'blocked', code: classified.code, message: 'Secret 오류로 SMTP 연결 검사를 건너뛰었습니다.' };
+      } else {
+        if (!checks.smtpSecret.ok) checks.smtpSecret = { ok: true, status: 'ready', message: 'Gmail 앱 비밀번호 Secret 형식 정상' };
+        checks.smtpConnection = { ok: false, status: 'error', code: classified.code, reason: classified.reason, message: classified.message };
+      }
+    } finally {
+      try { transport?.close?.(); } catch (error) {}
     }
-  } finally {
-    try { transport?.close?.(); } catch (error) {}
   }
   const ok = Object.values(checks).every(item => item.ok === true);
-  return { ok, checks, service: incidentServiceMetadata(request), checkedAt: new Date().toISOString() };
+  return {
+    ok,
+    scope: includeSensitiveChecks ? 'admin' : 'public',
+    sensitiveChecksRestricted: !includeSensitiveChecks,
+    checks,
+    service: incidentServiceMetadata(request),
+    checkedAt: new Date().toISOString()
+  };
 }
 
 exports.checkIncidentDeploymentReadiness = onCall({
   region: REGION,
   timeoutSeconds: 35,
   memory: '256MiB',
+  maxInstances: 2,
   secrets: [GMAIL_APP_PASSWORD],
   enforceAppCheck: false
 }, async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
+  const access = await resolveCallableAdminAccess(request);
+  const scope = access.active ? 'admin' : 'public';
   const now = Date.now();
-  const checkRef = db.collection(INCIDENT_READINESS_COLLECTION).doc(safeKey(uid, 'anonymous'));
+  const checkRef = db.collection(INCIDENT_READINESS_COLLECTION).doc(scope);
   let previous = null;
   try {
     const snapshot = await checkRef.get();
@@ -2035,27 +2087,42 @@ exports.checkIncidentDeploymentReadiness = onCall({
       nextCheckAt: new Date(nextCheckAtMs).toISOString()
     };
   }
-  const result = await inspectIncidentDeploymentReadiness(request);
-  const checkedAt = Timestamp.fromMillis(now);
-  const lastHealthyAt = result.ok ? checkedAt : previous?.lastHealthyAt || null;
+  if (incidentReadinessChecksInFlight.has(scope)) return incidentReadinessChecksInFlight.get(scope);
+  const task = (async () => {
+    const result = await inspectIncidentDeploymentReadiness(request, { includeSensitiveChecks: access.active === true });
+    const checkedAt = Timestamp.fromMillis(now);
+    const lastHealthyAt = result.ok ? checkedAt : previous?.lastHealthyAt || null;
+    try {
+      await checkRef.set({
+        scope,
+        checkedAt,
+        lastHealthyAt,
+        expiresAt: Timestamp.fromMillis(now + INCIDENT_READINESS_TTL_MS),
+        result: {
+          ok: result.ok,
+          scope: result.scope,
+          sensitiveChecksRestricted: result.sensitiveChecksRestricted,
+          checks: result.checks,
+          service: result.service
+        }
+      }, { merge: true });
+    } catch (error) {
+      console.warn('FoxBear readiness cache write failed', cleanText(error?.message || error, 180));
+    }
+    return {
+      ...result,
+      cached: false,
+      checkedAt: new Date(now).toISOString(),
+      lastHealthyAt: timestampToIso(lastHealthyAt),
+      nextCheckAt: new Date(now + INCIDENT_READINESS_COOLDOWN_MS).toISOString()
+    };
+  })();
+  incidentReadinessChecksInFlight.set(scope, task);
   try {
-    await checkRef.set({
-      uid,
-      checkedAt,
-      lastHealthyAt,
-      expiresAt: Timestamp.fromMillis(now + INCIDENT_READINESS_TTL_MS),
-      result: { ok: result.ok, checks: result.checks, service: result.service }
-    }, { merge: true });
-  } catch (error) {
-    console.warn('FoxBear readiness cache write failed', cleanText(error?.message || error, 180));
+    return await task;
+  } finally {
+    if (incidentReadinessChecksInFlight.get(scope) === task) incidentReadinessChecksInFlight.delete(scope);
   }
-  return {
-    ...result,
-    cached: false,
-    checkedAt: new Date(now).toISOString(),
-    lastHealthyAt: timestampToIso(lastHealthyAt),
-    nextCheckAt: new Date(now + INCIDENT_READINESS_COOLDOWN_MS).toISOString()
-  };
 });
 
 exports.retryOwnIncidentReport = onCall({

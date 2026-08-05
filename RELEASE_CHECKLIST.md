@@ -1,3 +1,19 @@
+# FoxBear v1.6.59 release checklist
+
+- [x] COOP remains `same-origin-allow-popups` for Google popup authentication.
+- [x] CORP is the valid restrictive value `same-origin`.
+- [x] Public readiness never reads the Gmail Secret or creates an SMTP transport.
+- [x] SMTP deep checks require verified Google auth and active `siteAdmins/{uid}` authorization.
+- [x] Readiness cooldown documents are fixed to `public` and `admin`, not UID.
+- [x] Same-instance checks are coalesced and Callable instances are bounded to two.
+- [x] Public restricted rows render as warnings and the summary says `기본 정상`.
+- [x] Dedicated v1.6.59 plus historical v1.6.7/v1.6.8 regressions pass.
+- [x] Complete all 408 configured checks in bounded slices (`136/136` three times).
+- [x] Run metadata, SRI, handoff, dependency, Hosting, browser preflight, Python hygiene, and Functions checks.
+- [x] Build and verify both 722-entry release archives.
+- [ ] Deploy and verify real anonymous and Google-administrator paths.
+- [ ] Run full Playwright browser automation where Chromium is installed.
+
 # FoxBear v1.6.57 release checklist
 
 - [x] Firebase Hosting public root is `dist/hosting`, not the repository root.

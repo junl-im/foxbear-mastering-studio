@@ -1,3 +1,11 @@
+# v1.6.59 - Readiness Scope Cache and CORP Security Hardening
+
+- Corrects Firebase Hosting CORP from the invalid `same-origin-allow-popups` value to `same-origin` while preserving popup-compatible COOP.
+- Prevents anonymous/public deployment checks from reading the Gmail Secret or opening an SMTP connection.
+- Requires verified Google authentication plus active `siteAdmins/{uid}` authorization for SMTP deep checks.
+- Replaces per-UID readiness cooldown documents with shared `public` and `admin` scope caches and bounds Callable instances.
+- Adds restricted-state client rendering and dedicated regression coverage, raising the configured target to 408 checks.
+
 # v1.6.58 - Piano Transient Integrity
 
 - Adds a melodic-transient glass-risk model for piano-like harmonic attacks.

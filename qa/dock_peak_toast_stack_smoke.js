@@ -11,10 +11,10 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const failures = [];
 function expect(condition, message) { if (!condition) failures.push(message); }
 
-expect(index.includes('v1.6.58'), 'index should show v1.6.58');
-expect(index.includes('1.6.58-piano-transient-integrity'), 'index asset query should use stage12.2 cache-bust key');
-expect(pkg.version === '1.6.58', 'package version should be 1.6.58');
-expect(app.includes("const APP_VERSION = 'Pro v1.6.58'"), 'app version constant should be v1.4.0');
+expect(index.includes('v1.6.59'), 'index should show v1.6.59');
+expect(index.includes('1.6.59-readiness-corp-security-hardening'), 'index asset query should use stage12.2 cache-bust key');
+expect(pkg.version === '1.6.59', 'package version should be 1.6.59');
+expect(app.includes("const APP_VERSION = 'Pro v1.6.59'"), 'app version constant should be v1.4.0');
 expect(app.includes('function createDockIntegratedWaveformPlayer'), 'Dock should use integrated waveform player');
 expect(app.includes("attachWaveformSeekHandlers(bars, targetMode, role)"), 'Dock integrated waveform should bind seek handlers');
 expect(/function onBottomWaveformButtonClick\(event\)\s*{\s*event\?\.preventDefault\?\.\(\);\s*event\?\.stopPropagation\?\.\(\);\s*openWaveformCompareDialog\(\);\s*}/s.test(app), 'Dock compare button should always open compare popup');

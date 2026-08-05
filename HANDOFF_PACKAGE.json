@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.58",
-  "buildId": "piano-transient-integrity",
+  "productVersion": "1.6.59",
+  "buildId": "readiness-corp-security-hardening",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -152,7 +152,9 @@
     "qa/v1657_hosting_payload_boundary_hardening_smoke.js",
     "docs/V1.6.57_FIREBASE_HOSTING_PAYLOAD_BOUNDARY.md",
     "qa/v1658_piano_transient_integrity_smoke.js",
-    "docs/V1.6.58_PIANO_TRANSIENT_INTEGRITY.md"
+    "docs/V1.6.58_PIANO_TRANSIENT_INTEGRITY.md",
+    "qa/v1659_readiness_corp_security_hardening_smoke.js",
+    "docs/V1.6.59_READINESS_CORP_SECURITY_HARDENING.md"
   ],
   "requiredPrefixes": [
     "assets/",

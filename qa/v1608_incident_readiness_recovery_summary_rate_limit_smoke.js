@@ -27,7 +27,7 @@ const functionsSource = read('functions/index.js');
 const appSource = read('src/app.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.58');
+assert.strictEqual(pkg.version, '1.6.59');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build id must remain valid kebab-case');
 assert(pkg.qaChecks.length >= 331, 'v1.6.8 readiness contract must remain in the cumulative QA set');
 assert(html.includes('id="incidentDeploymentMeta"'));
@@ -43,9 +43,9 @@ assert(functionsSource.includes("const INCIDENT_READINESS_COLLECTION = 'incident
 assert(functionsSource.includes('const INCIDENT_READINESS_COOLDOWN_MS = 60 * 1000'));
 assert(functionsSource.includes('cached: true'));
 assert(functionsSource.includes('lastHealthyAt: timestampToIso'));
-assert(functionsSource.includes('const INCIDENT_SERVICE_SCHEMA_VERSION = 6'));
+assert(functionsSource.includes('const INCIDENT_SERVICE_SCHEMA_VERSION = 7'));
 assert(appSource.includes("getSettingsSummary?.().label"));
-assert(handoff.startsWith('# Handoff - v1.6.58'));
+assert(handoff.startsWith('# Handoff - v1.6.59'));
 
 const memory = new Map();
 let readinessCalls = 0;
@@ -57,7 +57,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.58' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.59' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => `connect-src 'self' ${origin}` };
@@ -66,7 +66,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.58', assetVersion: '1.6.58-piano-transient-integrity' }
+  FoxBearBuildInfo: { productVersion: '1.6.59', assetVersion: '1.6.59-readiness-corp-security-hardening' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -77,14 +77,14 @@ reporterSandbox.FoxBearFirebase = {
     readinessCalls += 1;
     const checkedAt = new Date().toISOString();
     return {
-      ok: true, cached: false, checkedAt, lastHealthyAt: checkedAt,
+      ok: true, cached: false, scope: 'public', sensitiveChecksRestricted: true, checkedAt, lastHealthyAt: checkedAt,
       nextCheckAt: new Date(Date.now() + 60000).toISOString(),
-      service: { status: 'ready', productVersion: '1.6.58', functionsOrigin: origin },
+      service: { status: 'ready', productVersion: '1.6.59', functionsOrigin: origin },
       checks: {
         functions: { ok: true, status: 'ready', message: 'functions ok' },
         firestore: { ok: true, status: 'ready', message: 'firestore ok' },
-        smtpSecret: { ok: true, status: 'ready', message: 'secret ok' },
-        smtpConnection: { ok: true, status: 'ready', message: 'smtp ok' }
+        smtpSecret: { ok: true, status: 'restricted', restricted: true, message: 'admin only' },
+        smtpConnection: { ok: true, status: 'restricted', restricted: true, message: 'admin only' }
       }
     };
   }
@@ -155,7 +155,7 @@ assert(readinessCallable && typeof readinessCallable.handler === 'function');
   assert.strictEqual(second.localCached, true);
   assert.strictEqual(readinessCalls, 1);
   assert.strictEqual(reporter.loadDeploymentReadiness().ok, true);
-  assert.strictEqual(reporter.getSettingsSummary().label, '정상');
+  assert.strictEqual(reporter.getSettingsSummary().label, '기본 정상');
   reporter.saveDeploymentReadiness({ ...first, checkedAt: new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString(), nextCheckAt: '' });
   assert.strictEqual(reporter.getSettingsSummary().label, '재확인');
   reporter.saveDeploymentReadiness(first);
@@ -164,17 +164,23 @@ assert(readinessCallable && typeof readinessCallable.handler === 'function');
   reporter.saveDeploymentReadiness({ ok: false, checkedAt: new Date().toISOString(), nextCheckAt: new Date(Date.now() + 60000).toISOString(), checks: {} });
   assert.strictEqual(reporter.getSettingsSummary().label, '확인 필요');
 
-  const request = { auth: { uid: 'guest-1608' }, app: null, data: {} };
-  const serverFirst = await readinessCallable.handler(request);
-  const serverSecond = await readinessCallable.handler(request);
+  const serverFirst = await readinessCallable.handler({ auth: { uid: 'guest-1608-a', token: { firebase: { sign_in_provider: 'anonymous' } } }, app: null, data: {} });
+  const serverSecond = await readinessCallable.handler({ auth: { uid: 'guest-1608-b', token: { firebase: { sign_in_provider: 'anonymous' } } }, app: null, data: {} });
   assert.strictEqual(serverFirst.cached, false);
   assert.strictEqual(serverSecond.cached, true);
   assert.strictEqual(serverFirst.ok, true);
   assert.strictEqual(serverSecond.ok, true);
-  assert.strictEqual(smtpVerifyCount, 1);
+  assert.strictEqual(serverFirst.scope, 'public');
+  assert.strictEqual(serverFirst.sensitiveChecksRestricted, true);
+  assert.strictEqual(serverFirst.checks.smtpSecret.restricted, true);
+  assert.strictEqual(serverFirst.checks.smtpConnection.restricted, true);
+  assert.strictEqual(smtpVerifyCount, 0);
+  assert(firestoreDocs.has('incidentDeploymentReadiness/public'));
+  assert(!firestoreDocs.has('incidentDeploymentReadiness/guest-1608-a'));
+  assert(!firestoreDocs.has('incidentDeploymentReadiness/guest-1608-b'));
   assert(serverFirst.lastHealthyAt);
   assert(serverFirst.nextCheckAt);
-  assert.strictEqual(serverFirst.service.serviceSchemaVersion, 6);
+  assert.strictEqual(serverFirst.service.serviceSchemaVersion, 7);
   console.log('PASS v1.6.8 incident readiness recovery guidance, cached rate limit, last healthy state, and settings summary');
 })().catch(error => {
   console.error(error);

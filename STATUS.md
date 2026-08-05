@@ -1,3 +1,37 @@
+# FoxBear Status - v1.6.59
+
+## Current release
+
+- Product version: `1.6.59`
+- Build ID: `readiness-corp-security-hardening`
+- Asset version: `1.6.59-readiness-corp-security-hardening`
+- Service worker cache: `foxbear-shell-v1.6.59-readiness-corp-security-hardening`
+- Configured static/regression target: 408 checks.
+
+## Current focus
+
+- Keep sensitive Gmail Secret and SMTP readiness checks administrator-only.
+- Prevent anonymous UID rotation from bypassing readiness cooldowns.
+- Preserve public basic diagnostics without displaying restricted SMTP checks as fully verified.
+- Send valid, restrictive Firebase Hosting CORP while retaining Google popup-compatible COOP.
+
+## Verified
+
+- Official configured static and behavioral checks: **408/408 passed** in bounded slices (`136/136`, `136/136`, and `136/136`).
+- Dedicated v1.6.59 scope-cache/CORP security regression and historical readiness regressions passed.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, Python hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Browser automation remains unavailable because `@playwright/test` and Chromium are not installed.
+- Final release and overwrite archives contain **722 entries each** and pass archive verification.
+- Firebase Hosting staging contains 150 allowlisted files.
+
+## Production acceptance required
+
+- Deploy Hosting and the incident Callable Function.
+- Confirm effective COOP is `same-origin-allow-popups` and CORP is `same-origin`.
+- Confirm an anonymous user sees restricted SMTP rows with no SMTP verification call.
+- Confirm a verified active Google administrator receives full SMTP checks.
+
 # FoxBear Status - v1.6.58
 
 ## Current release
@@ -653,10 +687,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.58`
-- Build ID: `piano-transient-integrity`
-- Asset version: `1.6.58-piano-transient-integrity`
-- Service worker cache: `foxbear-shell-v1.6.58-piano-transient-integrity`
+- Product version: `1.6.59`
+- Build ID: `readiness-corp-security-hardening`
+- Asset version: `1.6.59-readiness-corp-security-hardening`
+- Service worker cache: `foxbear-shell-v1.6.59-readiness-corp-security-hardening`
 
 # FoxBear Status - v1.6.32
 

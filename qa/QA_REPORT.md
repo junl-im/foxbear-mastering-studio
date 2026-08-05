@@ -1,3 +1,23 @@
+# FoxBear QA Report - v1.6.59
+
+## Configured target
+
+- Static and behavioral checks: 408
+- New regression: `qa/v1659_readiness_corp_security_hardening_smoke.js`
+
+## Final result
+
+- Official configured checks: `408/408` passed in bounded slices (`136/136`, `136/136`, and `136/136`).
+- Dedicated v1.6.59 public/admin scope, shared-cache, concurrent coalescing, fail-closed authorization, SMTP isolation, and CORP regression passed.
+- Historical v1.6.7 and v1.6.8 readiness regressions passed after the schema-v7 contract extension.
+- Release metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, Python hygiene, and Firebase Functions syntax passed.
+- Dependency metadata reported 0 errors and 5 expected missing-install warnings.
+- Package installation and vulnerability endpoint checks could not complete because the available internal npm mirror omitted locked packages and its audit endpoint returned 404.
+- Browser automation could not run because `@playwright/test` and Chromium are unavailable in this environment.
+- Firebase Hosting staging contains 150 allowlisted files.
+- Final release and overwrite archives contain `722` entries each and pass archive integrity, transient-file, executable-file, symlink, and payload-boundary checks.
+- Real Firebase deployment, effective response headers, Google administrator authorization, Secret access, and Gmail SMTP remain production acceptance items.
+
 # FoxBear QA Report - v1.6.58
 
 ## Configured target

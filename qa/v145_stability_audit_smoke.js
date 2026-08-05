@@ -16,10 +16,10 @@ const sw = read('sw.js');
 const pkg = JSON.parse(read('package.json'));
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 
-must(pkg.version === '1.6.58', 'package version should be 1.6.58');
-must(html.includes('data-build="1.6.58"'), 'index build marker should be 1.6.58');
-must(html.includes('1.6.58-piano-transient-integrity'), 'index should use v1.6.58 cache key');
-must(sw.includes('foxbear-shell-v1.6.58-piano-transient-integrity'), 'service worker cache should use v1.6.58 key');
+must(pkg.version === '1.6.59', 'package version should be 1.6.59');
+must(html.includes('data-build="1.6.59"'), 'index build marker should be 1.6.59');
+must(html.includes('1.6.59-readiness-corp-security-hardening'), 'index should use v1.6.59 cache key');
+must(sw.includes('foxbear-shell-v1.6.59-readiness-corp-security-hardening'), 'service worker cache should use v1.6.59 key');
 
 must(spectrum.includes('externalAnalyserNodes'), 'spectrum visualizer should track external analyser nodes');
 must(spectrum.includes('function registerExternalAnalyser'), 'spectrum visualizer should expose external analyser registration');

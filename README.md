@@ -1,3 +1,13 @@
+# FoxBear AI Mastering Studio Pro v1.6.59
+
+## v1.6.59 readiness and Hosting-header security hardening
+
+- Public deployment self-checks now validate Functions, Firestore, CSP, and version state without touching Gmail credentials or SMTP.
+- Verified Google administrators registered in `siteAdmins/{uid}` receive the full Gmail Secret and SMTP connection checks.
+- Public and administrator cooldowns use fixed scope caches, preventing anonymous UID rotation from bypassing the rate limit.
+- Firebase Hosting keeps popup-compatible COOP and now sends the valid restrictive CORP value `same-origin`.
+- Apply the overwrite ZIP at repository root, run the release gates, then deploy Hosting and the incident Functions.
+
 # FoxBear AI Mastering Studio Pro v1.6.58
 
 ## v1.6.58 piano transient integrity

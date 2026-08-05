@@ -1,3 +1,14 @@
+# v1.6.59 project notes
+
+- `same-origin-allow-popups` belongs only to COOP in this project; CORP must remain `same-origin`.
+- Public incident readiness must never reveal or actively test Gmail credentials.
+- Keep public/admin cache scope IDs stable so changing anonymous UID cannot reset the cooldown.
+- A restricted check is not a tested check; preserve `restricted`, `scope`, and `sensitiveChecksRestricted` through normalization, history, UI, and diagnostics.
+- Administrator SMTP readiness requires verified Google authentication and active `siteAdmins/{uid}` authorization.
+- App Check remains intentionally disabled; do not describe it as enforced.
+- Preserve `DELIVERY_RULES.md`, the full ZIP, and the overwrite ZIP handoff contract.
+- Next hardening target: Firestore transaction lease for cross-instance coalescing and resumable bounded QA execution.
+
 # v1.6.57 project notes
 
 - Firebase Hosting must never publish from repository root again; `dist/hosting` is the deployment boundary.

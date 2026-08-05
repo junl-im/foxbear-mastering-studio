@@ -1,3 +1,28 @@
+# GitHub Desktop Handoff - v1.6.59
+
+## Apply
+
+1. In GitHub Desktop, use **Fetch origin** before applying files.
+2. Extract `foxbear-mastering-studio-v1.6.59-overwrite.zip` directly into the repository root and replace matching files.
+3. Delete `.firebase/hosting..cache` if it exists; it is local Firebase CLI state and must not be committed.
+4. Review the changed files, commit, and **Push origin**.
+5. Deploy with `npm run deploy:incident` after the release checks pass.
+
+## Release focus
+
+- Valid Hosting CORP with popup-compatible COOP retained
+- Public/basic versus administrator/SMTP readiness scopes
+- Shared scope cooldown caches instead of UID-keyed caches
+- Verified Google administrator authorization for sensitive checks
+- Explicit restricted-state UI and handoff diagnostics
+
+## Production verification
+
+- Inspect the deployed response headers for COOP and CORP.
+- Run deployment self-check while anonymous; SMTP rows must say administrator-only.
+- Sign in with a verified active Google administrator and re-run after the cooldown; SMTP rows must show the real result.
+- Check Functions logs for unexpected readiness volume and confirm no secret value appears in output.
+
 # GitHub Desktop Handoff - v1.6.58
 
 ## Apply

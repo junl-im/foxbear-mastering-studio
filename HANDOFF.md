@@ -1,3 +1,31 @@
+# Handoff - v1.6.59
+
+- Build: `readiness-corp-security-hardening`.
+- Input archive SHA-256: `742f1381385a826fc7b60fc22822ce5e4e6a84852e337fa127692b4ecbbdc8c3`.
+- Baseline: `main` at `25007615`, product v1.6.58.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep COOP `same-origin-allow-popups`; keep CORP `same-origin`.
+- Never restore SMTP Secret/connection inspection for anonymous or ordinary authenticated users.
+- Full SMTP readiness requires verified `google.com` auth plus an active, non-expired `siteAdmins/{uid}` record.
+- Keep readiness cache document IDs fixed to `public` and `admin`; do not return to UID-keyed cooldowns.
+- Public restricted rows must remain explicit warnings and must not claim the SMTP path was tested.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP GitHub Desktop workflow.
+- Detailed audit decisions, exceptions, and 30 challenge checks are in `docs/V1.6.59_READINESS_CORP_SECURITY_HARDENING.md`.
+
+## Current release
+
+- Product version: `1.6.59`
+- Build ID: `readiness-corp-security-hardening`
+- Asset version: `1.6.59-readiness-corp-security-hardening`
+- Service worker cache: `foxbear-shell-v1.6.59-readiness-corp-security-hardening`
+- Configured static/regression target: 408 checks.
+- Final configured checks: `408/408` passed in bounded slices (`136/136`, `136/136`, and `136/136`).
+- Dedicated v1.6.59 and historical readiness regressions passed, including concurrent coalescing and fail-closed administrator lookup.
+- Metadata, SRI, handoff, browser fixture preflight, Hosting payload validation, Python hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings; full install/audit requires a registry containing every locked package.
+- Browser automation remains unavailable because `@playwright/test` and Chromium are not installed.
+- Final full and overwrite archives contain `722` entries each and pass archive integrity and payload-boundary checks.
+
 # Handoff - v1.6.58
 
 - Build: `piano-transient-integrity`.

@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.58
+// FoxBear automatic incident reporter - v1.6.59
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.58-piano-transient-integrity';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.58').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.59-readiness-corp-security-hardening';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.59').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -204,7 +204,9 @@
             const checkedAt = Date.parse(String(readiness.checkedAt || ''));
             const fresh = Number.isFinite(checkedAt) && Date.now() - checkedAt <= READINESS_SUMMARY_FRESH_MS;
             const serverOld = compareVersions(readiness?.service?.productVersion, CLIENT_PRODUCT_VERSION) === -1;
-            return Object.freeze(serverOld ? { label: '업데이트', tone: 'danger' } : fresh ? { label: '정상', tone: 'ok' } : { label: '재확인', tone: 'neutral' });
+            if (serverOld) return Object.freeze({ label: '업데이트', tone: 'danger' });
+            if (readiness.sensitiveChecksRestricted === true) return Object.freeze(fresh ? { label: '기본 정상', tone: 'neutral' } : { label: '재확인', tone: 'neutral' });
+            return Object.freeze(fresh ? { label: '정상', tone: 'ok' } : { label: '재확인', tone: 'neutral' });
         }
         if (readiness && readiness.ok === false) return Object.freeze({ label: '확인 필요', tone: 'danger' });
         if (state.serviceStatus?.status === 'ready') return Object.freeze({ label: '연결됨', tone: 'ok' });
@@ -526,7 +528,7 @@
         Object.entries(mapping).forEach(([key, checkKey]) => {
             const item = checks[checkKey];
             if (!item) return;
-            const stateName = item.ok === true ? 'ok' : item.status === 'checking' ? 'active' : item.status === 'blocked' ? 'warning' : 'error';
+            const stateName = item.restricted === true || item.status === 'restricted' ? 'warning' : item.ok === true ? 'ok' : item.status === 'checking' ? 'active' : item.status === 'blocked' ? 'warning' : 'error';
             setDeploymentCheckState(key, stateName, item.message || item.code || item.status || '확인 결과 없음', item);
         });
         const meta = document.getElementById('incidentDeploymentMeta');
@@ -535,9 +537,9 @@
             const healthy = formatCheckTime(result?.lastHealthyAt);
             const checkedMs = Date.parse(String(result?.checkedAt || ''));
             const stale = Number.isFinite(checkedMs) && Date.now() - checkedMs > READINESS_SUMMARY_FRESH_MS;
-            const parts = [checked ? `최근 점검 ${checked}` : '최근 점검 기록 없음', healthy ? `마지막 정상 ${healthy}` : '', result?.cached ? '서버 캐시 사용' : '', stale ? '24시간 경과 · 재점검 필요' : ''];
+            const parts = [checked ? `최근 점검 ${checked}` : '최근 점검 기록 없음', healthy ? `마지막 정상 ${healthy}` : '', result?.cached ? '서버 캐시 사용' : '', result?.sensitiveChecksRestricted ? 'SMTP 심층 점검은 관리자 전용' : '', stale ? '24시간 경과 · 재점검 필요' : ''];
             meta.textContent = parts.filter(Boolean).join(' · ');
-            meta.dataset.tone = result?.ok === true && !stale ? 'ok' : result ? 'warning' : 'neutral';
+            meta.dataset.tone = result?.ok === true && !stale && result?.sensitiveChecksRestricted !== true ? 'ok' : result ? 'warning' : 'neutral';
         }
         syncSettingsSummary();
     }
@@ -559,17 +561,17 @@
         const names = { csp: '웹 CSP', functions: '서버 API', firestore: 'Firestore', smtpSecret: 'Gmail Secret', smtpConnection: 'SMTP 연결' };
         history.forEach(item => {
             const row = document.createElement('li');
-            row.dataset.state = item.ok ? 'ok' : 'error';
+            row.dataset.state = item.ok ? (item.restricted ? 'warning' : 'ok') : 'error';
             const head = document.createElement('div');
             const label = document.createElement('strong');
             const time = document.createElement('time');
-            label.textContent = item.ok ? '전체 정상' : '확인 필요';
+            label.textContent = item.ok ? (item.restricted ? '기본 정상' : '전체 정상') : '확인 필요';
             time.dateTime = cleanText(item.checkedAt || '', 40);
             time.textContent = formatCheckTime(item.checkedAt) || '시간 미확인';
             head.append(label, time);
             const detail = document.createElement('span');
             const failures = (item.failed || []).map(key => names[key] || key).filter(Boolean);
-            detail.textContent = item.ok ? `서버 v${item.serverVersion || CLIENT_PRODUCT_VERSION}${item.cached ? ' · 캐시 결과' : ''}` : `${failures.join(' · ') || '점검 실패'}${item.cached ? ' · 캐시 결과' : ''}`;
+            detail.textContent = item.ok ? `서버 v${item.serverVersion || CLIENT_PRODUCT_VERSION}${item.restricted ? ' · SMTP 관리자 점검 제외' : ''}${item.cached ? ' · 캐시 결과' : ''}` : `${failures.join(' · ') || '점검 실패'}${item.cached ? ' · 캐시 결과' : ''}`;
             row.append(head, detail);
             list.appendChild(row);
         });
@@ -1089,7 +1091,7 @@
         }));
         const checks = Object.fromEntries(DEPLOYMENT_CHECK_KEYS.map(key => {
             const item = readiness?.checks?.[key] || {};
-            return [key, { ok: item.ok === true, status: cleanText(item.status || '', 24), code: cleanText(item.code || '', 80) }];
+            return [key, { ok: item.ok === true, restricted: item.restricted === true, status: cleanText(item.status || '', 24), code: cleanText(item.code || '', 80) }];
         }));
         return Object.freeze({
             generatedAt: new Date().toISOString(),
@@ -1562,7 +1564,7 @@
                 renderControls('웹·서버·Firestore·Gmail SMTP 배포 상태를 점검합니다…');
                 try {
                     const result = await runDeploymentSelfCheck();
-                    renderControls(result.ok ? '배포 상태 자체 점검 완료 · 모든 항목 정상' : '배포 상태 자체 점검에서 확인이 필요한 항목이 있습니다.');
+                    renderControls(result.ok ? (result.sensitiveChecksRestricted ? '기본 배포 점검 완료 · SMTP 심층 점검은 관리자 로그인 후 가능' : '배포 상태 자체 점검 완료 · 모든 항목 정상') : '배포 상태 자체 점검에서 확인이 필요한 항목이 있습니다.');
                     renderRecoveryGuidance(result.ok ? '' : 'server-api-internal', '', result.ok ? '' : '점검 결과의 오류 항목을 확인하세요.');
                 } catch (error) {
                     const code = cleanText(error?.code || error?.name || '', 80);

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.58 - highlight compare inspector
+// FoxBear AI Mastering Studio Pro v1.6.59 - highlight compare inspector
 // Stage19: keeps original/master-preview highlight windows aligned and provides light diagnostics.
 'use strict';
 

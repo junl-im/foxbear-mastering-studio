@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.58-piano-transient-integrity';
+  const VIEW_VERSION = '1.6.59-readiness-corp-security-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

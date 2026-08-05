@@ -1,4 +1,4 @@
-// FoxBear incident local state storage and normalization - v1.6.58
+// FoxBear incident local state storage and normalization - v1.6.59
 (function attachFoxBearIncidentState(global) {
     'use strict';
 
@@ -71,6 +71,7 @@
     function normalizeDeploymentCheck(value = {}) {
         return Object.freeze({
             ok: value?.ok === true,
+            restricted: value?.restricted === true || value?.status === 'restricted',
             status: cleanText(value?.status || (value?.ok ? 'ready' : 'unknown'), 24),
             code: cleanText(value?.code || '', 80),
             reason: cleanText(value?.reason || '', 80),
@@ -109,6 +110,8 @@
             ok: value.ok === true && contractValid && DEPLOYMENT_CHECK_KEYS.every(key => frozenChecks[key].ok === true),
             cached: value.cached === true || value.localCached === true,
             localCached: value.localCached === true,
+            scope: cleanText(value.scope || (value.sensitiveChecksRestricted === true ? 'public' : ''), 20),
+            sensitiveChecksRestricted: value.sensitiveChecksRestricted === true || DEPLOYMENT_CHECK_KEYS.some(key => frozenChecks[key].restricted === true),
             checkedAt,
             lastHealthyAt: safeIso(value.lastHealthyAt),
             nextCheckAt: safeIso(value.nextCheckAt),
@@ -135,6 +138,7 @@
             checkedAt,
             ok: value.ok === true,
             cached: value.cached === true,
+            restricted: value.restricted === true,
             failed: Array.isArray(value.failed)
                 ? value.failed.map(key => cleanText(key, 32)).filter(key => DEPLOYMENT_CHECK_KEY_SET.has(key)).slice(0, DEPLOYMENT_CHECK_KEYS.length)
                 : [],
@@ -173,6 +177,7 @@
             checkedAt,
             ok: value?.ok === true,
             cached: value?.cached === true || value?.localCached === true,
+            restricted: value?.sensitiveChecksRestricted === true,
             failed: readinessFailureKeys(value),
             serverVersion: cleanText(value?.service?.productVersion || '', 24),
             lastHealthyAt: safeIso(value?.lastHealthyAt)
@@ -195,7 +200,7 @@
     }
 
     global.FoxBearIncidentState = Object.freeze({
-        version: '1.6.58',
+        version: '1.6.59',
         deploymentCheckKeys: DEPLOYMENT_CHECK_KEYS,
         normalizeTestHistoryEntry,
         loadTestHistory,
