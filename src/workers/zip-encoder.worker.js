@@ -1,11 +1,11 @@
-// FoxBear ZIP encoder worker v1.6.59 - low-copy cancellable STORE packaging off the main thread
+// FoxBear ZIP encoder worker v1.6.61 - low-copy cancellable STORE packaging off the main thread
 'use strict';
 
-importScripts('../../vendor/jszip/jszip.min.js?v=1.6.59-readiness-corp-security-hardening&lib=3.10.1');
+importScripts('../download/file-name-policy-service.js?v=1.6.61-human-readable-download-filenames');
+importScripts('../../vendor/jszip/jszip.min.js?v=1.6.61-human-readable-download-filenames&lib=3.10.1');
 
 const MAX_FILES = 200;
 const MAX_TOTAL_BYTES = 1500 * 1024 * 1024;
-const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i;
 
 self.onmessage = async event => {
     const raw = event.data || {};
@@ -46,38 +46,16 @@ async function normalizeFiles(input, jobId) {
         if (!probe || probe.byteLength <= 0) throw new Error(`${index + 1}번째 ZIP 파일을 읽지 못했습니다.`);
         const blobSupported = self.JSZip?.support?.blob !== false && typeof self.FileReaderSync === 'function';
         const payload = blobSupported ? blob : new Uint8Array(await blob.arrayBuffer());
-        files.push(Object.freeze({ fileName: makeUniqueName(entry?.fileName || `mastered_${index + 1}.wav`, usedNames), blob: payload }));
+        files.push(Object.freeze({ fileName: makeUniqueName(entry?.fileName || `mastered ${index + 1}.wav`, usedNames), blob: payload }));
         postProgress(jobId, 1 + ((index + 1) / input.length) * 10, blobSupported ? 'ZIP 입력 확인' : 'ZIP 호환 입력 변환', `${index + 1} / ${input.length}`);
     }
     return files;
 }
 
-function sanitizeName(name) {
-    let value = String(name || 'mastered.wav');
-    try { value = value.normalize('NFC'); } catch (error) {}
-    value = value.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]+/g, '_').replace(/\s+/g, ' ').trim().replace(/[. ]+$/g, '');
-    if (!value) value = 'mastered.wav';
-    if (WINDOWS_RESERVED.test(value)) value = `_${value}`;
-    const dot = value.lastIndexOf('.');
-    const ext = dot > 0 ? value.slice(dot, dot + 17) : '';
-    const base = dot > 0 ? value.slice(0, dot) : value;
-    value = `${base.slice(0, Math.max(1, 180 - ext.length))}${ext}`;
-    return value || 'mastered.wav';
-}
-
 function makeUniqueName(name, usedNames) {
-    const safe = sanitizeName(name);
-    const dot = safe.lastIndexOf('.');
-    const base = dot > 0 ? safe.slice(0, dot) : safe;
-    const ext = dot > 0 ? safe.slice(dot) : '';
-    let candidate = safe;
-    let index = 2;
-    while (usedNames.has(candidate.toLocaleLowerCase('en-US'))) {
-        candidate = `${base.slice(0, Math.max(1, 170 - String(index).length - ext.length))}_${index}${ext}`;
-        index += 1;
-    }
-    usedNames.add(candidate.toLocaleLowerCase('en-US'));
-    return candidate;
+    const policy = self.FoxBearFileNamePolicyService;
+    if (!policy?.makeUniqueName) throw new Error('파일명 정책 모듈을 불러오지 못했습니다.');
+    return policy.makeUniqueName(name, usedNames, { fallback: 'mastered.wav' });
 }
 
 function postProgress(jobId, percent, stage, detail = '') {

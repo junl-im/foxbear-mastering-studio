@@ -1,3 +1,58 @@
+# Handoff - v1.6.61
+
+- Build: `human-readable-download-filenames`.
+- Input archive SHA-256: `7d4f19e8a2df5ae116e84f4a00498eb37fe80246d83f1598c466c42c288031e2`.
+- Baseline: delivered FoxBear v1.6.60 release package.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Keep `src/download/file-name-policy-service.js` loaded before every download/export service.
+- All mastered audio names must be generated through `FoxBearFileNamePolicyService.buildMasteredFileName`.
+- Keep Unicode NFC normalization, forbidden/control-character removal, Windows reserved-name protection, and the 240-byte UTF-8 limit.
+- Do not restore broad allowlists that remove Korean, spaces, parentheses, apostrophes, or other safe title characters.
+- ZIP planning and the ZIP worker must share `makeUniqueName`; duplicate entries use ` (2)` style suffixes.
+- Preserve legacy generated-suffix cleanup so re-imported FoxBear outputs do not become `... mastered ... mastered ...`.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP GitHub Desktop workflow.
+- Detailed decisions and acceptance checks are in `docs/V1.6.61_HUMAN_READABLE_DOWNLOAD_FILENAMES.md`.
+
+## Current release
+
+- Product version: `1.6.61`
+- Build ID: `human-readable-download-filenames`
+- Asset version: `1.6.61-human-readable-download-filenames`
+- Service worker cache: `foxbear-shell-v1.6.61-human-readable-download-filenames`
+- Configured static/regression target: 411 checks.
+- Dedicated human-readable filename regression added.
+- Final configured checks: `411/411` passed in bounded slices (`137/137` three times).
+- The real ZIP Worker fixture re-opened the generated archive and confirmed the requested Korean/English filename unchanged.
+- Metadata, handoff, SRI, Hosting payload, browser fixture preflight, Python hygiene, and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Full Playwright execution remains unavailable because `@playwright/test` and Chromium are not installed.
+- Final full and overwrite archives contain `727` entries each and pass archive verification.
+
+# Handoff - v1.6.60
+
+- Build: `bulk-zip-hud-navigation`.
+- Input archive SHA-256: `065816dfcce21e1c5ca1935be514268b09410d09b99b2dfda2ce9fc7ddb634ac`.
+- Baseline: `main` at `5c3d3349`, product v1.6.59.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- ZIP export must remain a one-archive operation; never route it into `FoxBearExportQueueService`.
+- Preserve the worker hard limits of 200 files and 1,500 MB source data.
+- Treat working-set pressure as a warning below those hard limits.
+- Preserve worker file-count, size, and `.zip` delivery-name validation.
+- HUD current-row navigation must re-resolve the latest DOM and record completion only after layout succeeds.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP GitHub Desktop workflow.
+- Pre-existing local modifications to `.firebaserc`, `.firebase/hosting..cache`, and `qa/static-audit.txt` were not used as release changes and remain excluded from the archives.
+- Detailed decisions and external acceptance are in `docs/V1.6.60_BULK_ZIP_HUD_NAVIGATION.md`.
+
+## Current release
+
+- Product version: `1.6.60`
+- Build ID: `bulk-zip-hud-navigation`
+- Asset version: `1.6.60-bulk-zip-hud-navigation`
+- Service worker cache: `foxbear-shell-v1.6.60-bulk-zip-hud-navigation`
+- Configured static/regression target: 409 checks.
+- Dedicated ZIP single-archive and HUD navigation regression added.
+- Final test counts and archive entry counts are recorded after packaging.
+
 # Handoff - v1.6.59
 
 - Build: `readiness-corp-security-hardening`.

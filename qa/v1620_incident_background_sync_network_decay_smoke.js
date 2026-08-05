@@ -5,7 +5,7 @@ const vm = require('vm');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const pkg = require(path.join(root, 'package.json'));
-assert.strictEqual(pkg.version, '1.6.59');
+assert.strictEqual(pkg.version, '1.6.61');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9][a-z0-9-]*$/);
 assert.strictEqual(pkg.foxbearRelease.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 

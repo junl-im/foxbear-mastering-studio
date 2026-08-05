@@ -1,3 +1,23 @@
+# FoxBear AI Mastering Studio Pro v1.6.61
+
+## v1.6.61 readable download filenames
+
+- A source named `천 개의 파랑 (A Thousand Blues).wav` now downloads as `천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav`.
+- Korean, English, spaces, and parentheses are preserved; only operating-system-forbidden characters are replaced.
+- Single-track downloads, converted formats, per-track sequential export, and ZIP entries all use the same filename policy.
+- Re-importing an older `_mastered_15LUFS_...` file removes the old generated suffix before creating the next name.
+- Duplicate ZIP names use ` (2)` rather than `_2`, and long names retain the mastering metadata and extension.
+
+# FoxBear AI Mastering Studio Pro v1.6.60
+
+## v1.6.60 single ZIP export and active HUD navigation
+
+- `ZIP 다운로드 · 1개 파일` always stays in the single-archive flow and never starts the separate per-track queue automatically.
+- Large mobile or memory-heavy exports show a warning but still attempt one STORE ZIP below the worker's 200-file / 1,500 MB hard limits.
+- ZIP completion verifies archive file count, Blob size metadata, and the final `.zip` filename.
+- During multi-track mastering, the HUD re-finds and centers the row marked `현재 진행` after every track transition.
+- Apply the overwrite ZIP at the repository root, run the release gates, then verify one real large-batch ZIP before deployment.
+
 # FoxBear AI Mastering Studio Pro v1.6.59
 
 ## v1.6.59 readiness and Hosting-header security hardening

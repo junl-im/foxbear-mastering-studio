@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.59",
-  "buildId": "readiness-corp-security-hardening",
+  "productVersion": "1.6.61",
+  "buildId": "human-readable-download-filenames",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -154,7 +154,12 @@
     "qa/v1658_piano_transient_integrity_smoke.js",
     "docs/V1.6.58_PIANO_TRANSIENT_INTEGRITY.md",
     "qa/v1659_readiness_corp_security_hardening_smoke.js",
-    "docs/V1.6.59_READINESS_CORP_SECURITY_HARDENING.md"
+    "docs/V1.6.59_READINESS_CORP_SECURITY_HARDENING.md",
+    "qa/v1660_bulk_zip_hud_navigation_smoke.js",
+    "docs/V1.6.60_BULK_ZIP_HUD_NAVIGATION.md",
+    "src/download/file-name-policy-service.js",
+    "qa/v1661_human_readable_download_filename_smoke.js",
+    "docs/V1.6.61_HUMAN_READABLE_DOWNLOAD_FILENAMES.md"
   ],
   "requiredPrefixes": [
     "assets/",

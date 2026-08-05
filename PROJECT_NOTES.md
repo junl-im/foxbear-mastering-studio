@@ -1,3 +1,23 @@
+# v1.6.61 project notes
+
+- `FoxBearFileNamePolicyService` is the sole filename policy for mastered audio and ZIP entries.
+- Preserve Unicode NFC, Korean/Latin text, spaces, parentheses, and safe punctuation; remove only control/invisible and filesystem-forbidden characters.
+- The 240-byte limit is UTF-8 byte based, not JavaScript character-count based, so Korean names remain cross-platform safe.
+- Keep metadata tokens at the end of the filename and truncate only the title portion when space is limited.
+- Old underscore-style FoxBear exports must have their generated mastering suffix removed before a new suffix is added.
+- ZIP duplicate suffixes remain human-readable ` (2)`, ` (3)`, and so on.
+- Preserve `DELIVERY_RULES.md`, the full ZIP, and the overwrite ZIP handoff contract.
+
+# v1.6.60 project notes
+
+- A click on the ZIP button is a single-archive intent. Never call or imply the individual export queue from the ZIP service.
+- Keep the 200-file and 1,500 MB limits synchronized with `zip-encoder.worker.js`.
+- Memory estimates are advisory because Blob STORE packaging does not eagerly copy every mastered file twice.
+- Mark HUD navigation complete only after the latest connected row has measurable layout and receives a scroll operation.
+- Re-resolve the row after rerender; never trust a stale row reference across animation frames.
+- Preserve `DELIVERY_RULES.md`, the full ZIP, and the overwrite ZIP handoff contract.
+- Next target: real-device large-archive telemetry and a user-visible archive manifest/count after download.
+
 # v1.6.59 project notes
 
 - `same-origin-allow-popups` belongs only to COOP in this project; CORP must remain `same-origin`.

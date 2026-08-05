@@ -15,7 +15,12 @@ async function runZipWorkerRuntime() {
   const done = new Promise(resolve => { finish = resolve; });
   const context = { Blob, Uint8Array, Number, String, Object, Array, Math, Date, console, setTimeout, clearTimeout };
   context.self = context;
-  context.importScripts = () => { context.JSZip = JSZip; };
+  context.importScripts = (...urls) => {
+    for (const url of urls) {
+      if (String(url).includes('file-name-policy-service.js')) vm.runInContext(read('src/download/file-name-policy-service.js'), context, { filename: 'file-name-policy-service.js' });
+      else if (String(url).includes('jszip.min.js')) context.JSZip = JSZip;
+    }
+  };
   context.postMessage = message => {
     messages.push(message);
     if (message && (message.ok === true || message.ok === false)) finish(message);
@@ -27,7 +32,8 @@ async function runZipWorkerRuntime() {
     files: [
       { fileName: 'CON.wav', blob: new Blob([new Uint8Array([1, 2, 3, 4])]) },
       { fileName: 'Song.wav', blob: new Blob([new Uint8Array([5, 6, 7, 8])]) },
-      { fileName: 'song.wav', blob: new Blob([new Uint8Array([9, 10, 11, 12])]) }
+      { fileName: 'song.wav', blob: new Blob([new Uint8Array([9, 10, 11, 12])]) },
+      { fileName: '천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav', blob: new Blob([new Uint8Array([13, 14, 15, 16])]) }
     ]
   } });
   const result = await Promise.race([done, new Promise((_, reject) => setTimeout(() => reject(new Error('ZIP worker runtime timeout')), 5000))]);
@@ -35,6 +41,11 @@ async function runZipWorkerRuntime() {
   assert(result.blob instanceof Blob && result.blob.size > 128, 'ZIP worker did not produce a valid Blob');
   const signature = new Uint8Array(await result.blob.slice(0, 4).arrayBuffer());
   assert(signature[0] === 0x50 && signature[1] === 0x4b, 'ZIP worker output lacks PK signature');
+  const archive = await JSZip.loadAsync(await result.blob.arrayBuffer());
+  const names = Object.keys(archive.files);
+  assert(names.includes('_CON.wav'), 'ZIP worker did not protect a Windows reserved filename');
+  assert(names.includes('Song.wav') && names.includes('song (2).wav'), 'ZIP worker did not apply readable case-insensitive duplicate naming');
+  assert(names.includes('천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav'), 'ZIP worker did not preserve the readable Korean/English filename');
   assert(messages.some(message => message.type === 'progress' && message.__foxbearJobId === 'zip-qa'), 'ZIP worker progress missing');
 }
 
@@ -50,6 +61,7 @@ function runArchiveNameRuntime() {
   };
   context.window.window = context.window;
   vm.createContext(context);
+  vm.runInContext(read('src/download/file-name-policy-service.js'), context, { filename: 'file-name-policy-service.js' });
   vm.runInContext(source, context, { filename: 'export-guard-service.js' });
   const blob = new Blob([new Uint8Array(256)]);
   const plan = context.window.FoxBearExportGuardService.prepareZipExportPlan([
@@ -79,11 +91,11 @@ async function main() {
   assert((app.includes('getZipExportService()?.start') || app.includes('zipService.start({')) && app.includes('workerUrl: ZIP_ENCODER_WORKER_URL'), 'downloadZip is not delegated to the ZIP service');
   assert(zipService.includes('state.controller') && zipService.includes("cancel('pagehide')") && zipService.includes('getSnapshot().active'), 'duplicate ZIP or pagehide cancellation guard missing');
   assert(app.includes("showToast('ZIP 내보내기를 먼저 취소하거나 완료해 주세요.')"), 'queue clearing is not blocked during ZIP export');
-  assert(index.includes('id="exportProgressCancel"') && index.includes('src/download/zip-export-service.js?v=1.6.59-readiness-corp-security-hardening'), 'ZIP cancel UI/service asset missing');
+  assert(index.includes('id="exportProgressCancel"') && index.includes('src/download/zip-export-service.js?v=1.6.61-human-readable-download-filenames'), 'ZIP cancel UI/service asset missing');
   assert(progress.includes("foxbear:zip-export-cancel") && progress.includes("state: 'cancelled'"), 'ZIP cancel view contract missing');
   assert(update.includes('FoxBearZipExport') && update.includes('exporting:'), 'service-worker update activity does not include ZIP export');
-  assert(sw.includes("'./src/workers/zip-encoder.worker.js'") && sw.includes("'./src/workers/zip-encoder.worker.js?v=1.6.59-readiness-corp-security-hardening'"), 'versioned ZIP worker is not cached by the service worker');
-  assert(pkg.qaChecks.includes('node --check src/download/zip-export-service.js') && pkg.qaChecks.includes('node qa/v1542_zip_worker_cancellation_smoke.js'), 'v1.6.59 QA is not registered');
+  assert(sw.includes("'./src/workers/zip-encoder.worker.js'") && sw.includes("'./src/workers/zip-encoder.worker.js?v=1.6.61-human-readable-download-filenames'"), 'versioned ZIP worker is not cached by the service worker');
+  assert(pkg.qaChecks.includes('node --check src/download/zip-export-service.js') && pkg.qaChecks.includes('node qa/v1542_zip_worker_cancellation_smoke.js'), 'v1.6.61 QA is not registered');
 
   runArchiveNameRuntime();
   await runZipWorkerRuntime();

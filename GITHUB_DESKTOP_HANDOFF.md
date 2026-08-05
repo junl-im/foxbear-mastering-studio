@@ -1,3 +1,52 @@
+# GitHub Desktop Handoff - v1.6.61
+
+## Apply
+
+1. In GitHub Desktop, use **Fetch origin**.
+2. Extract `foxbear-mastering-studio-v1.6.61-overwrite.zip` directly into the repository root and replace matching files.
+3. Review the new filename policy module plus the app, download, export guard, ZIP worker, service worker, and metadata changes.
+4. Commit and **Push origin** after the release checks pass.
+5. Deploy only after a real Korean/English filename and multi-track ZIP spot check.
+
+## Release focus
+
+- Readable spaces instead of generated underscore separators.
+- Korean, English, parentheses, and safe punctuation preserved.
+- One filename policy across direct download, conversion, sequential export, and ZIP.
+- Cross-platform forbidden-character, reserved-name, length, and duplicate-name handling.
+- Legacy `_mastered_...` suffix cleanup on re-import.
+
+## Production verification
+
+- Master `천 개의 파랑 (A Thousand Blues).wav` and confirm the output is `천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav`.
+- Test one title containing `/ : * ? " < > |`; those characters should become spaces without changing the rest of the title.
+- Put two tracks with the same title in one ZIP and confirm the second entry ends in ` (2)`.
+- Re-import an old FoxBear underscore-style export and confirm the mastering label appears only once.
+
+# GitHub Desktop Handoff - v1.6.60
+
+## Apply
+
+1. In GitHub Desktop, use **Fetch origin**.
+2. Extract `foxbear-mastering-studio-v1.6.60-overwrite.zip` directly into the repository root and replace matching files.
+3. Delete `.firebase/hosting..cache` if it exists; do not commit `.firebaserc` or generated QA logs.
+4. Review the changes, commit, and **Push origin**.
+5. Run `npm run check:release`, then deploy only after a real large-batch ZIP spot check.
+
+## Release focus
+
+- One ZIP button action produces one ZIP and never starts individual export automatically.
+- Memory pressure below worker hard limits is advisory, not a strategy switch.
+- Archive file-count, size, and filename integrity checks.
+- HUD active-row navigation that survives rerender and delayed layout.
+
+## Production verification
+
+- Master a large batch and confirm exactly one ZIP download begins.
+- Open the ZIP and compare its entry count with the completed-track count.
+- Repeat in a restricted in-app browser and confirm the save/share assistant receives one ZIP.
+- Watch the HUD move to every row labeled `현재 진행`.
+
 # GitHub Desktop Handoff - v1.6.59
 
 ## Apply

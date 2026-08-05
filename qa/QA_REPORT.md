@@ -1,3 +1,31 @@
+# FoxBear QA Report - v1.6.61
+
+## Configured target
+
+- Static and behavioral checks: 411
+- New syntax target: `src/download/file-name-policy-service.js`
+- New regression: `qa/v1661_human_readable_download_filename_smoke.js`
+
+## Focus
+
+- Readable Unicode mastered filenames
+- Shared direct-download and ZIP naming policy
+- Legacy generated-suffix cleanup
+- Cross-platform forbidden characters, reserved names, byte limits, and duplicate ZIP entries
+
+## Final result
+
+- Official configured checks: `411/411` passed in bounded slices (`137/137`, `137/137`, and `137/137`).
+- The exact Korean/English example, legacy suffix cleanup, forbidden characters, Windows reserved names, emoji joiners, UTF-8 byte limits, and duplicate ZIP naming passed.
+- The real ZIP Worker runtime produced and re-opened an archive containing `천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav` unchanged.
+- Historical ZIP cancellation and low-copy pipeline regressions passed after their fixtures loaded the new shared filename policy.
+- Release metadata, handoff, SRI, Firebase Hosting payload boundary, browser fixture preflight, Python hygiene, and Firebase Functions syntax passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Full Playwright browser automation could not run because `@playwright/test` and Chromium are not installed in this environment.
+- Firebase Hosting staging contains 151 allowlisted files.
+- Final release and overwrite archives contain `727` entries each and pass archive integrity, executable-file, symbolic-link, transient-file, and payload-boundary checks.
+- Real Windows, macOS, Android, iOS, cloud-sync, and in-app-browser filename behavior remains production acceptance.
+
 # FoxBear QA Report - v1.6.59
 
 ## Configured target

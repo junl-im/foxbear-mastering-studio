@@ -1,3 +1,22 @@
+# v1.6.61 - Human-Readable Cross-Platform Download Filenames
+
+- Replaces underscore-heavy mastered filenames with readable spaces while preserving Korean, Latin text, and parentheses.
+- Adds one shared filename policy for normal downloads, alternate-format downloads, sequential export, ZIP planning, and ZIP worker entries.
+- Removes only filesystem-forbidden/control characters, normalizes Unicode to NFC, protects Windows reserved names, and trims unsafe trailing dots/spaces.
+- Keeps generated filenames within a conservative 240-byte UTF-8 budget without cutting the mastering metadata or extension.
+- Removes legacy FoxBear `_mastered_...` suffixes when old exported files are re-imported, preventing duplicated mastering labels.
+- Resolves duplicate ZIP entry names with ` (2)`, ` (3)`, and later suffixes instead of underscore numbering.
+- Adds dedicated filename-policy regression coverage, raising the configured target to 411 checks.
+
+# v1.6.60 - Bulk ZIP Single-Archive Integrity and HUD Navigation
+
+- Keeps a ZIP button request as one ZIP operation and removes automatic individual-download fallback semantics.
+- Converts conservative working-set overflow from a hard strategy switch into a visible risk warning while preserving the worker's 200-file and 1,500 MB hard limits.
+- Verifies worker file count, worker/Blob size agreement, and `.zip` delivery naming before reporting success.
+- Rebuilds bulk HUD active-row navigation with stale-callback cancellation, DOM re-resolution, bounded layout retries, and success-only completion tracking.
+- Restores the all-results filter when a new active row would otherwise be hidden and adds a short navigation highlight.
+- Adds dedicated regression coverage, raising the configured target to 409 checks.
+
 # v1.6.59 - Readiness Scope Cache and CORP Security Hardening
 
 - Corrects Firebase Hosting CORP from the invalid `same-origin-allow-popups` value to `same-origin` while preserving popup-compatible COOP.

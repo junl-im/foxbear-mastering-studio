@@ -18,7 +18,7 @@ const overlayCss = read('assets/css/components/floating-overlays.css');
 const siteGuards = read('src/security/site-guards.js');
 const settingsCss = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.59');
+assert.strictEqual(pkg.version, '1.6.61');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9][a-z0-9-]*$/);
 assert.strictEqual(pkg.foxbearRelease.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 

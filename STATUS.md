@@ -1,3 +1,64 @@
+# FoxBear Status - v1.6.61
+
+## Current release
+
+- Product version: `1.6.61`
+- Build ID: `human-readable-download-filenames`
+- Asset version: `1.6.61-human-readable-download-filenames`
+- Service worker cache: `foxbear-shell-v1.6.61-human-readable-download-filenames`
+- Configured static/regression target: 411 checks.
+
+## Current focus
+
+- Preserve the original song title instead of converting spaces and parentheses to underscores.
+- Use one policy for browser downloads, alternate formats, sequential exports, ZIP planning, and ZIP worker entries.
+- Keep filenames safe on Windows, macOS, Android, iOS, and common ZIP extractors without over-sanitizing Unicode.
+- Prevent duplicate mastering suffixes when previously exported FoxBear files are imported again.
+
+## Verified
+
+- Official configured static and behavioral checks: **411/411 passed** in three bounded slices of 137 checks.
+- The exact requested filename is preserved in direct policy output and inside a generated/re-opened ZIP archive.
+- Legacy ZIP cancellation, low-copy packaging, export integrity, download conversion, and v1.6.60 single-ZIP regressions passed.
+- Release metadata, handoff, SRI, Hosting payload, browser fixture preflight, Python hygiene, and Functions syntax passed.
+- Dependency health: 0 errors and 5 expected warnings for packages not installed in this workspace.
+- Final release and overwrite archives contain **727 entries each** and pass archive verification.
+- Full Playwright execution remains unavailable because Playwright and Chromium are not installed.
+
+## Production verification required
+
+- Download the example Korean/English title on Windows, macOS, Android, and iOS.
+- Open a multi-track ZIP and confirm every entry keeps readable spaces and parentheses.
+- Confirm duplicate titles receive ` (2)` without replacing the original title.
+
+# FoxBear Status - v1.6.60
+
+## Current release
+
+- Product version: `1.6.60`
+- Build ID: `bulk-zip-hud-navigation`
+- Asset version: `1.6.60-bulk-zip-hud-navigation`
+- Service worker cache: `foxbear-shell-v1.6.60-bulk-zip-hud-navigation`
+- Configured static/regression target: 409 checks.
+
+## Current focus
+
+- Keep ZIP export and per-track sequential export as separate, explicit user actions.
+- Attempt one STORE ZIP below worker hard limits even when memory pressure is advisory-high.
+- Verify archive count, size metadata, and final extension before completion.
+- Keep the active bulk-mastering row visible through rerenders, filter changes, and delayed layout.
+
+## Verified
+
+- Source-level implementation and dedicated regression coverage are present.
+- Final release-gate and archive verification results are filled after execution.
+
+## Production verification required
+
+- Run a real large mastered batch and inspect the downloaded ZIP contents.
+- Repeat on desktop, Android Chrome, Safari, and KakaoTalk save/share flow.
+- Observe several track transitions and confirm the HUD follows every `현재 진행` row.
+
 # FoxBear Status - v1.6.59
 
 ## Current release
@@ -687,10 +748,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.59`
-- Build ID: `readiness-corp-security-hardening`
-- Asset version: `1.6.59-readiness-corp-security-hardening`
-- Service worker cache: `foxbear-shell-v1.6.59-readiness-corp-security-hardening`
+- Product version: `1.6.61`
+- Build ID: `human-readable-download-filenames`
+- Asset version: `1.6.61-human-readable-download-filenames`
+- Service worker cache: `foxbear-shell-v1.6.61-human-readable-download-filenames`
 
 # FoxBear Status - v1.6.32
 

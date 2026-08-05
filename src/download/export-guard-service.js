@@ -1,13 +1,16 @@
-// FoxBear export guard service v1.6.59 - ZIP working-set limits and STORE-only audio packaging
+// FoxBear export guard service v1.6.61 - ZIP working-set limits and STORE-only audio packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.6.59-readiness-corp-security-hardening';
+    const VERSION = 'v1.6.61-human-readable-download-filenames';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;
+    const MAX_SINGLE_ZIP_INPUT_BYTES = 1500 * MB;
+    const MAX_SINGLE_ZIP_FILES = 200;
     const MAX_DIAGNOSTICS = 20;
     const diagnostics = [];
+    const getFileNamePolicy = () => global.FoxBearFileNamePolicyService || null;
 
     function toNumber(value, fallback = 0) {
         const n = Number(value);
@@ -45,9 +48,11 @@
     const WINDOWS_RESERVED_NAME = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i;
 
     function sanitizeName(name) {
+        const policy = getFileNamePolicy();
+        if (policy?.sanitizeFileName) return policy.sanitizeFileName(name, { fallback: 'mastered.wav' });
         let safeName = String(name || 'mastered.wav');
         try { safeName = safeName.normalize('NFC'); } catch (error) {}
-        safeName = safeName.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]+/g, '_').replace(/\s+/g, ' ').trim().replace(/[. ]+$/g, '');
+        safeName = safeName.replace(/[\\/:*?"<>|\u0000-\u001f\u007f]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/[. ]+$/g, '');
         if (!safeName) safeName = 'mastered.wav';
         if (WINDOWS_RESERVED_NAME.test(safeName)) safeName = `_${safeName}`;
         const dot = safeName.lastIndexOf('.');
@@ -57,6 +62,8 @@
     }
 
     function makeUniqueName(fileName, usedNames) {
+        const policy = getFileNamePolicy();
+        if (policy?.makeUniqueName) return policy.makeUniqueName(fileName, usedNames, { fallback: 'mastered.wav' });
         const safeName = sanitizeName(fileName);
         const dot = safeName.lastIndexOf('.');
         const base = dot > 0 ? safeName.slice(0, dot) : safeName;
@@ -65,7 +72,7 @@
         let candidate = safeName;
         let key = candidate.toLocaleLowerCase('en-US');
         while (usedNames.has(key)) {
-            candidate = `${base.slice(0, Math.max(1, 170 - String(index).length - ext.length))}_${index}${ext}`;
+            candidate = `${base.slice(0, Math.max(1, 170 - String(index).length - ext.length))} (${index})${ext}`;
             key = candidate.toLocaleLowerCase('en-US');
             index += 1;
         }
@@ -89,7 +96,11 @@
         const retainedPcmBytes = toNumber(memorySnapshot?.masteredBufferBytes, 0);
         const previewBlobBytes = toNumber(memorySnapshot?.previewBlobBytes, 0);
         const jsZipOverhead = Math.max(32 * MB, fileCount * 512 * 1024);
-        return Math.round(outputBytes * 2.05 + retainedPcmBytes + previewBlobBytes + jsZipOverhead);
+        // STORE packaging keeps source files as Blob references and transfers the
+        // final Blob back from the dedicated worker without copying every track
+        // twice. Keep a conservative reserve, but do not treat this estimate as
+        // a reason to silently replace the user's single-ZIP request.
+        return Math.round(outputBytes * 1.35 + retainedPcmBytes + previewBlobBytes + jsZipOverhead);
     }
 
     function getZipWorkingSetLimit(options = {}) {
@@ -105,7 +116,7 @@
         const outputMb = outputBytes / MB;
         const advice = [];
         if (level === 'high') {
-            advice.push('저메모리 경고: ZIP 생성 전 완료 PCM을 자동 정리하며, 안전 한도를 넘으면 곡별 다운로드로 전환합니다.');
+            advice.push('저메모리 경고: ZIP 생성 전 완료 PCM을 자동 정리하며, ZIP 요청을 곡별 저장으로 자동 전환하지 않습니다.');
             advice.push('모바일/인앱 브라우저에서는 대량 ZIP보다 PC Chrome/Edge 또는 곡별 저장이 더 안전합니다.');
         } else if (level === 'medium') {
             advice.push('메모리 주의: 대량 ZIP 생성 중 브라우저가 잠시 느려질 수 있습니다.');
@@ -117,20 +128,28 @@
     function decideZipStrategy({ outputBytes, estimatedWorkingSetBytes, completedCount, memoryPressure, options = {} }) {
         const env = getEnvironment(options);
         const workingSetLimitBytes = getZipWorkingSetLimit(options);
-        const absoluteOutputLimit = 1500 * MB;
         let blockReason = '';
-        if (outputBytes > absoluteOutputLimit) {
-            blockReason = '완성 파일 합계가 브라우저 ZIP 안전 상한을 넘었습니다. 곡별 다운로드를 사용하세요.';
+        let riskReason = '';
+        if (completedCount > MAX_SINGLE_ZIP_FILES) {
+            blockReason = `ZIP 파일 수가 단일 압축 안전 상한(${MAX_SINGLE_ZIP_FILES}개)을 넘었습니다.`;
+        } else if (outputBytes > MAX_SINGLE_ZIP_INPUT_BYTES) {
+            blockReason = `완성 파일 합계가 단일 ZIP 안전 상한(${Math.round(MAX_SINGLE_ZIP_INPUT_BYTES / MB)} MB)을 넘었습니다.`;
         } else if (estimatedWorkingSetBytes > workingSetLimitBytes) {
-            blockReason = `예상 ZIP 작업 메모리가 안전 한도(${Math.round(workingSetLimitBytes / MB)} MB)를 넘습니다. 곡별 다운로드를 사용하세요.`;
-        } else if (memoryPressure === 'high' && env.mobile && completedCount >= 16) {
-            blockReason = '모바일 저메모리 환경에서 대량 ZIP은 중단 위험이 높습니다. 곡별 다운로드를 사용하세요.';
+            riskReason = `예상 ZIP 작업 메모리가 권장 한도(${Math.round(workingSetLimitBytes / MB)} MB)를 넘습니다. 다른 앱을 닫고 ZIP 완료까지 화면을 유지하세요.`;
+        } else if (memoryPressure === 'high' && env.mobile) {
+            riskReason = '모바일 저메모리 환경의 대량 ZIP입니다. 생성 중 앱 전환을 피하고 실패 시 PC 브라우저에서 다시 시도하세요.';
         }
         return Object.freeze({
-            strategy: blockReason ? 'individual' : 'zip-store',
+            strategy: blockReason ? 'blocked-single-zip' : (riskReason ? 'zip-store-risk' : 'zip-store'),
             canCreateZip: !blockReason,
-            requiresIndividualDownload: Boolean(blockReason),
+            requiresIndividualDownload: false,
+            automaticIndividualFallback: false,
+            singleArchiveRequired: true,
+            softRisk: Boolean(riskReason),
             blockReason,
+            riskReason,
+            hardLimitBytes: MAX_SINGLE_ZIP_INPUT_BYTES,
+            hardFileLimit: MAX_SINGLE_ZIP_FILES,
             workingSetLimitBytes,
             mobile: env.mobile,
             deviceMemoryGb: env.deviceMemoryGb
@@ -143,7 +162,7 @@
         const missingBlobCount = list.filter(track => track && track.status === 'done' && !track.outBlob).length;
         const usedNames = new Set();
         const files = completed.map(track => {
-            const fallback = `${String(track.name || 'track').replace(/\.[^.]+$/, '')}_mastered.wav`;
+            const fallback = getFileNamePolicy()?.buildMasteredFileName?.({ sourceName: track.name || 'track', format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' }) || `${String(track.name || 'track').replace(/\.[^.]+$/, '')} mastered.wav`;
             const proposed = typeof options.fileNameForTrack === 'function' ? options.fileNameForTrack(track) : (track.outName || fallback);
             const fileName = typeof options.makeUniqueName === 'function' ? options.makeUniqueName(proposed, usedNames) : makeUniqueName(proposed, usedNames);
             return Object.freeze({ id: track.id || '', name: track.name || '', fileName, size: getBlobBytes(track.outBlob), blob: track.outBlob, compression: 'STORE' });
@@ -157,6 +176,7 @@
         if (missingBlobCount) warnings.push(`${missingBlobCount}개 완료 트랙은 내보낼 Blob이 없습니다.`);
         if (zeroByteFiles.length) warnings.push(`${zeroByteFiles.length}개 파일 크기가 비정상적으로 작습니다.`);
         if (strategy.blockReason) warnings.push(strategy.blockReason);
+        else if (strategy.riskReason) warnings.push(strategy.riskReason);
         warnings.push(...memory.advice);
         const ok = files.length > 0 && zeroByteFiles.length === 0;
         const plan = Object.freeze({
@@ -175,7 +195,13 @@
             strategy: strategy.strategy,
             canCreateZip: strategy.canCreateZip,
             requiresIndividualDownload: strategy.requiresIndividualDownload,
+            automaticIndividualFallback: strategy.automaticIndividualFallback,
+            singleArchiveRequired: strategy.singleArchiveRequired,
+            softRisk: strategy.softRisk,
             blockReason: strategy.blockReason,
+            riskReason: strategy.riskReason,
+            hardLimitBytes: strategy.hardLimitBytes,
+            hardFileLimit: strategy.hardFileLimit,
             mobile: strategy.mobile,
             deviceMemoryGb: strategy.deviceMemoryGb,
             warnings,
@@ -192,6 +218,9 @@
             workingSetLimitBytes: plan.workingSetLimitBytes,
             memoryPressure: plan.memoryPressure,
             strategy: plan.strategy,
+            automaticIndividualFallback: plan.automaticIndividualFallback,
+            singleArchiveRequired: plan.singleArchiveRequired,
+            softRisk: plan.softRisk,
             warnings: plan.warnings
         });
         return plan;
@@ -230,6 +259,9 @@
             memoryPressure: plan.memoryPressure,
             strategy: plan.strategy,
             requiresIndividualDownload: plan.requiresIndividualDownload,
+            automaticIndividualFallback: plan.automaticIndividualFallback,
+            singleArchiveRequired: plan.singleArchiveRequired,
+            softRisk: plan.softRisk,
             warnings: plan.warnings
         });
     }

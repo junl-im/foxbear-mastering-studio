@@ -53,7 +53,7 @@ const handoff = read('HANDOFF.md');
 const qaReport = read('qa/QA_REPORT.md');
 
 assert(pkg.version === currentRelease.productVersion, 'package version should match current release metadata');
-assert(pkg.qaChecks.includes('node qa/v158_pcm_zip_memory_hardening_smoke.js'), 'v1.6.59 smoke missing from package QA');
+assert(pkg.qaChecks.includes('node qa/v158_pcm_zip_memory_hardening_smoke.js'), 'v1.6.61 smoke missing from package QA');
 assert(memorySource.includes('release-after-encode') && memorySource.includes('maxRetainedBuffers: retainCompletedPcm ? maxRetainedBuffers : 0'), 'release-after-encode policy missing');
 assert(exportSource.includes("compression: 'STORE'") && exportSource.includes('estimatedWorkingSetBytes') && exportSource.includes('requiresIndividualDownload'), 'ZIP STORE/working-set strategy missing');
 assert(downloadSource.includes('FORMAT_REQUIRES_REMASTER'), 'alternate-format remaster error missing');
@@ -61,7 +61,7 @@ assert(dialogSource.includes('option.available === false') && dialogSource.inclu
 assert(app.includes("applyCompletedMasteringMemoryPolicy('zip-preflight-release'"), 'ZIP preflight PCM release missing');
 assert(progressSource.includes('예상 작업 메모리') && progressSource.includes('workingSetLimitBytes'), 'export progress should expose ZIP working-set budget');
 assert(exportSource.includes("compression: 'STORE'") && zipServiceSource.includes('plan?.files'), 'ZIP export should preserve the STORE-only plan in the delegated service');
-assert(zipServiceSource.includes('plan?.requiresIndividualDownload'), 'delegated ZIP individual fallback gate missing');
+assert(zipServiceSource.includes('fallbackStarted: false') && zipServiceSource.includes('plan?.canCreateZip === false'), 'delegated ZIP must fail closed without automatic individual fallback');
 const statusDoneIndex = app.indexOf("track.status = 'done';", app.indexOf('track.masteredBuffer = finalBuffer;'));
 const policyIndex = app.indexOf('applyCompletedMasteringMemoryPolicy(calledFromBatch', app.indexOf('track.masteredBuffer = finalBuffer;'));
 assert(statusDoneIndex > 0 && policyIndex > statusDoneIndex, 'newly completed track must become done before PCM release policy runs');
@@ -99,10 +99,14 @@ const smallPlan = guard.prepareZipExportPlan([
 ], { mobile: false, deviceMemoryGb: 8, memorySnapshot: { pressure: 'normal', masteredBufferBytes: 0, previewBlobBytes: 0 } });
 assert(smallPlan.ok && smallPlan.canCreateZip && smallPlan.strategy === 'zip-store', 'small desktop export should use ZIP STORE');
 assert(smallPlan.compression === 'STORE' && smallPlan.streamFiles === true, 'ZIP plan should require STORE + streamFiles');
-const blockedPlan = guard.prepareZipExportPlan([
+const riskPlan = guard.prepareZipExportPlan([
     { id: 'a', status: 'done', name: 'a.wav', outBlob: { size: 260 * 1024 * 1024 }, outName: 'a.wav' }
 ], { mobile: true, deviceMemoryGb: 2, memorySnapshot: { pressure: 'normal', masteredBufferBytes: 0, previewBlobBytes: 0, policy: { lowMemory: true } } });
-assert(blockedPlan.requiresIndividualDownload && !blockedPlan.canCreateZip, 'large low-memory mobile export should be blocked to individual downloads');
+assert(riskPlan.canCreateZip && riskPlan.warnings.length > 0 && riskPlan.requiresIndividualDownload === false, 'large low-memory mobile export should remain a single ZIP request with a risk warning');
+const blockedPlan = guard.prepareZipExportPlan([
+    { id: 'too-large', status: 'done', name: 'huge.wav', outBlob: { size: 1501 * 1024 * 1024 }, outName: 'huge.wav' }
+], { mobile: false, deviceMemoryGb: 8, memorySnapshot: { pressure: 'normal', masteredBufferBytes: 0, previewBlobBytes: 0 } });
+assert(!blockedPlan.canCreateZip && blockedPlan.strategy === 'blocked-single-zip' && blockedPlan.requiresIndividualDownload === false, 'hard ZIP limit should block without starting individual downloads');
 
 const downloadContext = loadBrowserModule('src/download/download-service.js');
 const download = downloadContext.FoxBearDownloadService;

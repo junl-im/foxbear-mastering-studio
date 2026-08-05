@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.59 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.6.61 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -22,7 +22,7 @@ const FoxBearSessionHandoff = window.FoxBearSessionHandoff || null;
 let externalBrowserHandoffBridge = null;
 let adminAccessController = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.59';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.61';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -66,14 +66,14 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.59-readiness-corp-security-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1659-readiness-corp'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.61-human-readable-download-filenames'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1661-readable-filenames'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const ANALYSIS_ENGINE_CACHE_VERSION = 'analysis-engine-v1.4-stable';
-const SHARED_DSP_PROFILE_VERSION = 'v1.6.59-readiness-corp-security-hardening';
+const SHARED_DSP_PROFILE_VERSION = 'v1.6.61-human-readable-download-filenames';
 const PLAYBACK_CROSSFADE_MS = 140;
 const SAFE_IMPORT_ANALYSIS_CONCURRENCY = Math.max(1, Math.min(2, Number(IMPORT_ANALYSIS_CONCURRENCY) || 1));
 const SAFE_LARGE_IMPORT_BATCH_THRESHOLD = Math.max(4, Number(LARGE_IMPORT_BATCH_THRESHOLD) || 12);
@@ -1803,7 +1803,7 @@ const ACTION_HELP_TEXTS = {
     aiApplyBtn: '분석 결과 기준으로 장르와 추천값을 다시 적용합니다.',
     masterSelectedBtn: '선택한 트랙만 현재 설정으로 마스터링합니다.',
     masterAllBtn: '대기열의 모든 트랙을 순서대로 마스터링합니다.',
-    zipBtn: '완료된 결과물을 ZIP 파일로 묶어 다운로드합니다.',
+    zipBtn: '완료된 결과물을 반드시 한 개의 ZIP 파일로 묶어 다운로드합니다. 곡별 저장으로 자동 전환하지 않습니다.',
     clearBtn: '작업 대기열과 미리듣기 결과를 초기화합니다.',
     clearCacheBtn: '저장된 분석 캐시를 즉시 비웁니다.',
     genreLockBtn: 'AI 추천값을 다시 적용해도 현재 장르 프리셋을 유지합니다.',
@@ -3192,7 +3192,7 @@ async function registerFoxBearServiceWorker(options = {}) {
         return;
     }
     try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.59-readiness-corp-security-hardening') · navigator.serviceWorker.register('./sw.js?v=1.6.59-readiness-corp-security-hardening&h=sw-v1659-readiness-corp')
+        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.61-human-readable-download-filenames') · navigator.serviceWorker.register('./sw.js?v=1.6.61-human-readable-download-filenames&h=sw-v1661-readable-filenames')
         const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
         window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
         const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
@@ -4032,7 +4032,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.59-readiness-corp-security-hardening', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.61-human-readable-download-filenames', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4346,7 +4346,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.6.59-readiness-corp-security-hardening',
+        version: '1.6.61-human-readable-download-filenames',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4387,10 +4387,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.6.59-readiness-corp-security-hardening',
+    version: '1.6.61-human-readable-download-filenames',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.59-readiness-corp-security-hardening', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.61-human-readable-download-filenames', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4415,12 +4415,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.59-readiness-corp-security-hardening', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.61-human-readable-download-filenames', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.59-readiness-corp-security-hardening', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.61-human-readable-download-filenames', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4435,12 +4435,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.6.59-readiness-corp-security-hardening',
+    version: 'v1.6.61-human-readable-download-filenames',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.59-readiness-corp-security-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.61-human-readable-download-filenames', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5566,7 +5566,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.6.59-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.6.61-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -9120,7 +9120,9 @@ async function downloadZip() { if (isExportQueueActive()) { showToast('곡별 �
     applyCompletedMasteringMemoryPolicy('zip-preflight-release', { retainCompletedPcm: false, forceReleaseAll: true, keepSelected: false, keepRecent: 0, maxRetainedBuffers: 0, maxMasteredBufferBytes: 0 });
     const zipPlan = exportGuard?.prepareZipExportPlan?.(completed, {
         memorySnapshot: getMemoryGuardSnapshot(),
-        fileNameForTrack: track => track.outName || `${safeBaseName(track.name)}_mastered.wav`
+        fileNameForTrack: track => track.outName || buildMasteredFileName(track, { format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' }),
+        singleArchiveRequired: true,
+        automaticIndividualFallback: false
     }) || null;
     return zipService.start({
         completed,
@@ -9131,7 +9133,9 @@ async function downloadZip() { if (isExportQueueActive()) { showToast('곡별 �
         progressView: window.FoxBearExportProgressView,
         validateZipBlob: (blob, plan) => exportGuard?.validateZipBlob?.(blob, plan) || { ok: Boolean(blob), size: blob?.size || 0 },
         downloadBlob,
-        fileName: `foxbear_mastered_${timestampForFile()}.zip`,
+        fileName: `FoxBear mastered ${timestampForFile()}.zip`,
+        singleArchiveRequired: true,
+        automaticIndividualFallback: false,
         focusTrack: focusCompletedTrackDownload,
         showToast,
         getErrorMessage,
@@ -9146,8 +9150,8 @@ async function startSequentialExport() { const completed = state.tracks.filter(t
     if (!completed.length) return Object.freeze({ ok: false, empty: true }); if (!queueService?.start) { showToast('곡별 순차 저장 모듈을 불러오지 못했습니다. 캐시를 새로고침한 뒤 다시 시도하세요.'); try { window.FoxBearRuntimeHealth?.check?.({ silent: false }); } catch (error) {} return Object.freeze({ ok: false, moduleUnavailable: true }); }
     if (isZipExportActive()) { showToast('ZIP 내보내기를 먼저 취소하거나 완료해 주세요.'); return Object.freeze({ ok: false, conflictingExport: true }); }
     applyCompletedMasteringMemoryPolicy('individual-export-preflight-release', { retainCompletedPcm: false, forceReleaseAll: true, keepSelected: false, keepRecent: 0, maxRetainedBuffers: 0, maxMasteredBufferBytes: 0 });
-    const plan = getExportGuardService()?.prepareZipExportPlan?.(completed, { memorySnapshot: getMemoryGuardSnapshot(), fileNameForTrack: track => track.outName || `${safeBaseName(track.name)}_mastered.wav` });
-    const files = (plan?.files || completed.map(track => ({ id: track.id, fileName: track.outName || `${safeBaseName(track.name)}_mastered.wav`, blob: track.outBlob }))).map((file, index) => ({ id: file.id || completed[index]?.id || `track-${index + 1}`, trackId: file.id || completed[index]?.id || '', fileName: file.fileName, blob: file.blob }));
+    const plan = getExportGuardService()?.prepareZipExportPlan?.(completed, { memorySnapshot: getMemoryGuardSnapshot(), fileNameForTrack: track => track.outName || buildMasteredFileName(track, { format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' }) });
+    const files = (plan?.files || completed.map(track => ({ id: track.id, fileName: track.outName || buildMasteredFileName(track, { format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' }), blob: track.outBlob }))).map((file, index) => ({ id: file.id || completed[index]?.id || `track-${index + 1}`, trackId: file.id || completed[index]?.id || '', fileName: file.fileName, blob: file.blob }));
     return queueService.start({ files, environment: getDownloadEnvironmentInfo(), progressView: window.FoxBearExportProgressView, validateFile: blob => getDownloadService().assertDownloadBlob(blob), canShareFile: supportsWebShareFiles, shareFile: shareDownloadFile, supportsPicker: supportsFileSystemSave(), saveWithPicker: saveBlobWithPicker, downloadFile: downloadBlob, showToast, onStateChange: () => renderAll({ keepDetailAudio: true }), onFinally: () => { applyCompletedMasteringMemoryPolicy('individual-export-finally-release', { forceReleaseAll: true }); renderAll({ keepDetailAudio: true }); } });
 }
 function downloadTrack(track) { if (!track || !track.outBlob) return;
@@ -9204,6 +9208,11 @@ function showDownloadOptionsDialog(track) {
         renderAll,
         getErrorMessage
     });
+}
+function getFileNamePolicyService() {
+    const service = window.FoxBearFileNamePolicyService;
+    if (!service) throw new Error('파일명 정책 모듈을 불러오지 못했습니다.');
+    return service;
 }
 function getDownloadService() {
     const service = window.FoxBearDownloadService;
@@ -9751,7 +9760,7 @@ function getPlatformPresetLabel(value = state.platformPreset) {
 function getPlatformFileSuffix() {
     const value = state.platformPreset || 'custom';
     if (!value || value === 'custom') return '';
-    return '_' + value.replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+    return value.replace(/[^a-z0-9]+/gi, ' ').trim().toLowerCase();
 }
 function getPerformanceModeLabel(value = state.performanceMode) {
     if (value === 'mobile') return 'Mobile Safe';
@@ -9976,7 +9985,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.6.59-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.6.61-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -10106,8 +10115,8 @@ function renderButtons() {
     el.masterSelectedBtn.disabled = !canProcessSelected;
     el.masterAllBtn.disabled = !canProcessAll;
     el.zipBtn.disabled = !hasCompleted || state.busy || isAnyExportActive();
-    el.zipBtn.textContent = isZipExportActive() ? 'ZIP 생성 중...' : 'ZIP 다운로드';
-    if (el.individualExportBtn) { el.individualExportBtn.disabled = !hasCompleted || state.busy || isAnyExportActive(); el.individualExportBtn.textContent = isExportQueueActive() ? '순차 저장 진행 중...' : '곡별 순차 저장'; }
+    el.zipBtn.textContent = isZipExportActive() ? 'ZIP 생성 중...' : 'ZIP 다운로드 · 1개 파일';
+    if (el.individualExportBtn) { el.individualExportBtn.disabled = !hasCompleted || state.busy || isAnyExportActive(); el.individualExportBtn.textContent = isExportQueueActive() ? '순차 저장 진행 중...' : '곡별 순차 저장 · 별도'; }
     const unsafeClearBusy = Boolean(isAnyExportActive() || state.masterPreviewRenderingTrackId || masteringQueueState.activeIds.size || state.tracks.some(track => track.status === 'processing'));
     el.clearBtn.disabled = !hasTracks || unsafeClearBusy;
     if (el.masterSelectedBtn) {
@@ -12629,11 +12638,14 @@ function renderABStudioPanel(track) {
 }
 function buildMasteredFileName(track, encoded) {
     const lufs = Number(track?.finalizeInfo?.targetLufs ?? track?.masterReport?.target?.lufs ?? state.targetLufs);
-    const lufsPart = Number.isFinite(lufs) ? `${Math.abs(Math.round(lufs))}LUFS` : 'target';
-    const style = String(state.masterStyle || 'master').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
-    const format = String(encoded?.format || state.outputFormat || 'wav24').replace(/[^a-z0-9]+/gi, '').toLowerCase();
-    const platform = getPlatformFileSuffix();
-    return `${safeBaseName(track.name)}_mastered_${lufsPart}_${style}_${format}${platform}.${encoded?.extension || 'wav'}`;
+    return getFileNamePolicyService().buildMasteredFileName({
+        sourceName: track?.name || 'track',
+        targetLufs: lufs,
+        style: state.masterStyle || 'master',
+        format: encoded?.format || state.outputFormat || 'wav24',
+        platform: getPlatformFileSuffix(),
+        extension: encoded?.extension || 'wav'
+    });
 }
 function renderMasterReportPanel(track) {
     return getDetailPanelsView().renderMasterReportPanel(track, getDetailPanelsViewDeps());
@@ -13065,7 +13077,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.6.59',
+        app: 'FoxBear AI Mastering Studio Pro v1.6.61',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,
@@ -13234,8 +13246,12 @@ function formatTime(seconds) {
     return `${minutes}:${rest}`;
 }
 function safeBaseName(fileName) {
-    const withoutExt = fileName.replace(/\.[^.]+$/, '');
-    return withoutExt.replace(/[^a-zA-Z0-9가-힣._-]+/g, '_').slice(0, 80) || 'track';
+    return getFileNamePolicyService().sanitizeTitle(fileName || 'track', {
+        fallback: 'track',
+        humanizeUnderscores: true,
+        stripGeneratedSuffix: true,
+        maxBytes: 180
+    });
 }
 function timestampForFile() {
     const date = new Date();

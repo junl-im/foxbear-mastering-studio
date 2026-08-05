@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.6.59 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.6.61 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.6.59-readiness-corp-security-hardening';
+    const VERSION = 'v1.6.61-human-readable-download-filenames';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;
@@ -221,7 +221,7 @@
             return {
                 id: String(file.id || `export-${index + 1}`),
                 trackId: String(file.trackId || file.id || ''),
-                fileName: String(file.fileName || `mastered_${index + 1}.wav`),
+                fileName: String(file.fileName || `mastered ${index + 1}.wav`),
                 blob: file.blob,
                 size: file.blob.size,
                 status: 'pending',

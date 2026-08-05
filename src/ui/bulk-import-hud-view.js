@@ -2,13 +2,17 @@
 (function initBulkImportHudView(global) {
     'use strict';
 
-    const VIEW_VERSION = '1.6.59-performance-recovery-stage-hud';
-    // v1.6.59 compatibility QA anchor: const VIEW_VERSION = '1.6.59-readiness-corp-security-hardening'
-    // compatibility anchor: const VIEW_VERSION = '1.6.59-bulk-control-eta-result-filter'
+    const VIEW_VERSION = '1.6.61-performance-recovery-stage-hud';
+    // v1.6.61 compatibility QA anchor: const VIEW_VERSION = '1.6.61-human-readable-download-filenames'
+    // compatibility anchor: const VIEW_VERSION = '1.6.61-bulk-control-eta-result-filter'
     // Legacy copy contract retained for regression discovery: 대량 마스터링 HUD
     const defaultDeps = Object.freeze({});
     let deps = defaultDeps;
     let eventsBound = false;
+    let currentTrackNavigationFrame = 0;
+    let currentTrackNavigationTimer = 0;
+    let currentTrackNavigationToken = 0;
+    let currentTrackNavigationPendingId = '';
     const hudState = {
         batchId: '',
         phase: 'import',
@@ -94,7 +98,15 @@
         }
         if (resultFilter) {
             resultFilter.addEventListener('change', () => {
-                hudState.resultFilter = normalizeResultFilter(resultFilter.value);
+                const requestedFilter = normalizeResultFilter(resultFilter.value);
+                const summary = getSummary();
+                if (summary.phase === 'mastering' && summary.currentTrack && !trackMatchesFilter(summary.currentTrack, requestedFilter)) {
+                    hudState.resultFilter = 'all';
+                    resultFilter.value = 'all';
+                    try { deps.showToast?.('현재 진행 중인 곡을 계속 표시하기 위해 전체 보기를 유지합니다.'); } catch (error) {}
+                } else {
+                    hudState.resultFilter = requestedFilter;
+                }
                 update();
             });
         }
@@ -128,6 +140,7 @@
         hudState.dismissedBatchId = '';
         hudState.expanded = true;
         hudState.autoAdvancedBatchId = '';
+        cancelCurrentTrackNavigation();
         hudState.lastAutoScrolledTrackId = '';
         hudState.resultFilter = 'all';
         hudState.cancelRequested = false;
@@ -161,6 +174,7 @@
         hudState.completedAt = 0;
         hudState.dismissedBatchId = '';
         hudState.expanded = true;
+        cancelCurrentTrackNavigation();
         hudState.lastAutoScrolledTrackId = '';
         hudState.resultFilter = 'all';
         hudState.cancelRequested = false;
@@ -222,7 +236,7 @@
         return false;
     }
 
-    // v1.6.59 compatibility: ['all', 'active', 'completed', 'failed', 'cancelled', 'pending']
+    // v1.6.61 compatibility: ['all', 'active', 'completed', 'failed', 'cancelled', 'pending']
     function normalizeResultFilter(value) {
         const filter = String(value || 'all');
         return ['all', 'active', 'completed', 'failed', 'skipped', 'cancelled', 'pending'].includes(filter) ? filter : 'all';
@@ -282,6 +296,10 @@
         track.bulkMasteringCancelReason = '';
         track.bulkMasteringAttempt = Math.max(1, Number(track.bulkMasteringAttempt || 0) + 1);
         hudState.cancelRequested = false;
+        hudState.expanded = true;
+        if (!trackMatchesFilter(track, normalizeResultFilter(hudState.resultFilter))) hudState.resultFilter = 'all';
+        cancelCurrentTrackNavigation();
+        hudState.lastAutoScrolledTrackId = '';
         update();
         return true;
     }
@@ -875,6 +893,90 @@
         return '';
     }
 
+    function cancelCurrentTrackNavigation() {
+        currentTrackNavigationToken += 1;
+        currentTrackNavigationPendingId = '';
+        if (currentTrackNavigationFrame) {
+            try { global.cancelAnimationFrame?.(currentTrackNavigationFrame); } catch (error) {}
+            currentTrackNavigationFrame = 0;
+        }
+        if (currentTrackNavigationTimer) {
+            try { global.clearTimeout?.(currentTrackNavigationTimer); } catch (error) {}
+            currentTrackNavigationTimer = 0;
+        }
+    }
+
+    function findCurrentTrackRow(list, trackId, fallbackRow = null) {
+        if (!list || !trackId) return null;
+        if (fallbackRow && fallbackRow.isConnected !== false && String(fallbackRow.dataset?.trackId || '') === String(trackId)) return fallbackRow;
+        const rows = Array.from(list.querySelectorAll?.('[data-track-id]') || []);
+        return rows.find(row => String(row.dataset?.trackId || '') === String(trackId)) || null;
+    }
+
+    function scheduleCurrentTrackNavigation(list, row, summary = {}) {
+        const trackId = String(summary.currentTrackId || '');
+        if (!trackId || !list || !row) {
+            if (!trackId) cancelCurrentTrackNavigation();
+            return false;
+        }
+        if (hudState.lastAutoScrolledTrackId === trackId && String(list.dataset?.autoNavigatedTrackId || '') === trackId) return true;
+        if (currentTrackNavigationPendingId === trackId) return true;
+        cancelCurrentTrackNavigation();
+        currentTrackNavigationPendingId = trackId;
+        const token = currentTrackNavigationToken;
+        const reducedMotion = Boolean(global.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+        const run = attempt => {
+            currentTrackNavigationFrame = 0;
+            currentTrackNavigationTimer = 0;
+            if (token !== currentTrackNavigationToken) return;
+            const latestSummary = getSummary();
+            if (String(latestSummary.currentTrackId || '') !== trackId) {
+                if (token === currentTrackNavigationToken) currentTrackNavigationPendingId = '';
+                return;
+            }
+            const latestList = getEl('bulkImportHudList') || list;
+            const latestRow = findCurrentTrackRow(latestList, trackId, row);
+            const listHeight = Number(latestList?.clientHeight || 0);
+            const rowHeight = Number(latestRow?.offsetHeight || 0);
+            const layoutReady = latestList?.isConnected !== false && latestRow?.isConnected !== false && listHeight > 0 && rowHeight > 0;
+            if (!layoutReady) {
+                if (attempt >= 5) {
+                    if (token === currentTrackNavigationToken) currentTrackNavigationPendingId = '';
+                    return;
+                }
+                const delay = [24, 48, 96, 160, 240, 360][attempt] || 360;
+                currentTrackNavigationTimer = global.setTimeout?.(() => run(attempt + 1), delay) || 0;
+                return;
+            }
+            const rowTop = Number(latestRow.offsetTop || 0);
+            const maxScrollTop = Math.max(0, Number(latestList.scrollHeight || 0) - listHeight);
+            const targetTop = clampValue(rowTop - Math.max(12, (listHeight - rowHeight) * 0.42), 0, maxScrollTop || rowTop);
+            try {
+                if (typeof latestList.scrollTo === 'function') latestList.scrollTo({ top: targetTop, behavior: reducedMotion ? 'auto' : 'smooth' });
+                else latestList.scrollTop = targetTop;
+            } catch (error) {
+                try { latestList.scrollTop = targetTop; }
+                catch (nested) { latestRow.scrollIntoView?.({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'center', inline: 'nearest' }); }
+            }
+            currentTrackNavigationPendingId = '';
+            hudState.lastAutoScrolledTrackId = trackId;
+            if (latestList.dataset) latestList.dataset.autoNavigatedTrackId = trackId;
+            if (latestRow.dataset) latestRow.dataset.autoNavigated = 'true';
+            latestRow.classList?.add?.('is-auto-navigated');
+            global.setTimeout?.(() => {
+                if (latestRow?.isConnected !== false) latestRow.classList?.remove?.('is-auto-navigated');
+            }, reducedMotion ? 0 : 1400);
+        };
+        if (typeof global.requestAnimationFrame === 'function') {
+            currentTrackNavigationFrame = global.requestAnimationFrame(() => {
+                currentTrackNavigationFrame = global.requestAnimationFrame(() => run(0));
+            });
+        } else {
+            currentTrackNavigationTimer = global.setTimeout?.(() => run(0), 0) || 0;
+        }
+        return true;
+    }
+
     function renderList(list, summary) {
         list.textContent = '';
         const allTracks = summary.tracks.slice(0, Math.max(summary.total, summary.tracks.length));
@@ -951,15 +1053,7 @@
             list.appendChild(row);
             if (isCurrent) currentRow = row;
         });
-        if (currentRow && summary.currentTrackId && hudState.lastAutoScrolledTrackId !== summary.currentTrackId) {
-            hudState.lastAutoScrolledTrackId = summary.currentTrackId;
-            const reducedMotion = Boolean(global.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
-            global.requestAnimationFrame?.(() => {
-                const targetTop = Math.max(0, currentRow.offsetTop - Math.max(12, (list.clientHeight - currentRow.offsetHeight) * 0.36));
-                try { list.scrollTo({ top: targetTop, behavior: reducedMotion ? 'auto' : 'smooth' }); }
-                catch (error) { list.scrollTop = targetTop; }
-            });
-        }
+        if (currentRow && summary.currentTrackId) scheduleCurrentTrackNavigation(list, currentRow, summary);
     }
 
     function syncStack() {

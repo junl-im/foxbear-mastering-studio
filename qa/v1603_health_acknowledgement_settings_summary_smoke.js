@@ -16,7 +16,7 @@ const perfCss = read('assets/css/boot/performance-diagnostics.css');
 const mobileCss = read('assets/css/mobile-native.css');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.59');
+assert.strictEqual(pkg.version, '1.6.61');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(perf.includes('const NOTICE_DISMISS_TTL_MS = 30 * 60 * 1000'), 'same warning dismissal must have a bounded repeat interval');
 assert(perf.includes('const AMBIENT_WATCH_CONFIRM_SAMPLES = 2'), 'watch badge must require consecutive samples');
@@ -28,7 +28,7 @@ assert(app.includes('refreshSettingsHealthSummary?.()'), 'Settings creation must
 assert(app.includes("ambientHealth] || '정상'"), 'routine Settings refresh must preserve the current health level');
 assert(mobileCss.includes('.mobile-native-health-summary'), 'Settings health reason must be styled');
 assert(perfCss.includes('var(--foxbear-health-toast-offset, 0px)'), 'health notice must reserve visible toast height');
-assert(handoff.startsWith('# Handoff - v1.6.59'), 'handoff must lead with the current release');
+assert(handoff.startsWith('# Handoff - v1.6.61'), 'handoff must lead with the current release');
 
 class FakeStyle {
   constructor() { this.values = new Map(); }

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.59-readiness-corp-security-hardening';
+    const SERVICE_VERSION = '1.6.61-human-readable-download-filenames';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
     const barElementsCache = typeof WeakMap === 'function' ? new WeakMap() : null;

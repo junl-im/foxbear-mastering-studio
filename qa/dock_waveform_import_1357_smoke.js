@@ -14,8 +14,8 @@ const dockWaveformCss = fs.readFileSync('assets/css/dock-waveform.css', 'utf8');
 const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const manifest = fs.readFileSync('manifest.webmanifest', 'utf8');
 
-must(app.includes("const APP_VERSION = 'Pro v1.6.59'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.6.59"'), 'index build should be v1.6.59');
+must(app.includes("const APP_VERSION = 'Pro v1.6.61'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.61"'), 'index build should be v1.6.61');
 must(app.includes('function mapAudioPercentToWaveformVisualPercent'), 'visual playhead mapping helper missing');
 must(app.includes('function mapWaveformPointerToAudioPercent'), 'pointer-to-bar mapping helper missing');
 must(app.includes('bars.addEventListener(\'pointerdown\', onWaveformBarsPointerSeek)'), 'touch pointer seek handler missing');

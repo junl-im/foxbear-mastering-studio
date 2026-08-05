@@ -507,3 +507,19 @@ body.bottom-preview-active .bulk-import-hud {
     .bulk-import-row-percent { grid-column: 4; grid-row: 1; }
     .bulk-import-hud-summary { padding: 8px 9px; }
 }
+
+/* v1.6.60: make the active-row navigation visually obvious after each track handoff. */
+.bulk-import-row.is-current {
+    scroll-margin-block: 34%;
+}
+.bulk-import-row.is-current.is-auto-navigated {
+    animation: foxbear-bulk-row-arrival 1.35s ease-out 1;
+}
+@keyframes foxbear-bulk-row-arrival {
+    0% { box-shadow: 0 0 0 0 rgba(127,255,212,.0), inset 3px 0 0 rgba(127,255,212,.82); }
+    38% { box-shadow: 0 0 0 5px rgba(127,255,212,.20), 0 10px 34px rgba(54,211,153,.18), inset 3px 0 0 rgba(127,255,212,.96); }
+    100% { box-shadow: 0 0 0 2px rgba(127,255,212,.10), inset 3px 0 0 rgba(127,255,212,.82); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .bulk-import-row.is-current.is-auto-navigated { animation: none; }
+}

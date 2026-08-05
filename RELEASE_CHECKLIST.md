@@ -1,3 +1,26 @@
+# FoxBear v1.6.61 release checklist
+
+- [x] Shared filename policy module added and loaded before download/export modules.
+- [x] Korean, English, spaces, and parentheses are preserved in mastered filenames.
+- [x] Direct download, alternate-format conversion, sequential export, ZIP planning, and ZIP worker use the shared policy.
+- [x] Forbidden/control characters, Windows reserved names, trailing dots/spaces, UTF-8 byte length, and duplicate ZIP names are guarded.
+- [x] Legacy underscore-style generated suffixes are removed before rebuilding a filename.
+- [x] Dedicated v1.6.61 regression is configured.
+- [x] Run all 411 configured checks in three bounded 137-check slices.
+- [x] Run handoff, metadata, SRI, Hosting, Functions, browser preflight, and both 727-entry archive verifications.
+- [ ] Complete real Windows/macOS/Android/iOS filename and ZIP acceptance.
+
+# FoxBear v1.6.60 release checklist
+
+- [x] ZIP request remains a single archive and never starts the individual queue automatically.
+- [x] Soft memory risk remains a warning below 200 files / 1,500 MB.
+- [x] ZIP worker file count, size metadata, and `.zip` delivery name are validated.
+- [x] HUD current-row navigation re-resolves the DOM and retries unmeasurable layout.
+- [x] Dedicated v1.6.60 regression is configured.
+- [ ] Run all 409 configured checks.
+- [ ] Run handoff, metadata, SRI, Hosting, and archive verification.
+- [ ] Complete real desktop/mobile/Kakao large-batch acceptance.
+
 # FoxBear v1.6.59 release checklist
 
 - [x] COOP remains `same-origin-allow-popups` for Google popup authentication.
