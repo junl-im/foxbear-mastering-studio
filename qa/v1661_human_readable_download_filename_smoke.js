@@ -60,7 +60,9 @@ assert(policy.utf8Length(longName) <= policy.maxFileNameBytes, 'generated names 
 assert(longName.endsWith(' mastered 14LUFS streaming wav24.wav'), 'length truncation should preserve mastering metadata and extension');
 
 const appSource = read('src/app.js');
-assert(appSource.includes('getFileNamePolicyService().buildMasteredFileName'), 'app mastering output should use the shared filename policy');
+const workflowSource = read('src/download/file-name-workflow-service.js');
+assert(appSource.includes('getFileNameWorkflowService().buildMasteredFileName'), 'app mastering output should use the shared filename workflow');
+assert(workflowSource.includes('fileNamePolicy?.buildMasteredFileName'), 'filename workflow should delegate to the shared filename policy');
 assert(appSource.includes('fileName: `FoxBear mastered ${timestampForFile()}.zip`'), 'bulk ZIP archive name should also be human-readable');
 assert(!appSource.includes('_mastered_${lufsPart}_'), 'legacy underscore-based mastered filename builder should be removed');
 
@@ -69,7 +71,7 @@ assert(downloadSource.includes("policy?.sanitizeFileName"), 'download delivery s
 const guardSource = read('src/download/export-guard-service.js');
 assert(guardSource.includes('policy?.makeUniqueName'), 'ZIP planning should use the shared unique-name policy');
 const workerSource = read('src/workers/zip-encoder.worker.js');
-assert(workerSource.includes("importScripts('../download/file-name-policy-service.js?v=1.6.61-human-readable-download-filenames')"), 'ZIP worker should import the same filename policy');
+assert(workerSource.includes("importScripts('../download/file-name-policy-service.js?v=1.6.63-download-filename-review-hardening')"), 'ZIP worker should import the same filename policy');
 assert(workerSource.includes('policy.makeUniqueName'), 'ZIP worker entries should use the shared unique-name policy');
 
 console.log('PASS v1.6.61 human-readable download filename policy smoke');

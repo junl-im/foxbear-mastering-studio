@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.6.61 - ZIP working-set limits and STORE-only audio packaging
+// FoxBear export guard service v1.6.63 - ZIP filename collision preflight and STORE-only packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.6.61-human-readable-download-filenames';
+    const VERSION = 'v1.6.63-download-filename-review-hardening';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;
@@ -161,12 +161,31 @@
         const completed = list.filter(track => track && track.outBlob);
         const missingBlobCount = list.filter(track => track && track.status === 'done' && !track.outBlob).length;
         const usedNames = new Set();
+        const nameAdjustments = [];
         const files = completed.map(track => {
-            const fallback = getFileNamePolicy()?.buildMasteredFileName?.({ sourceName: track.name || 'track', format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' }) || `${String(track.name || 'track').replace(/\.[^.]+$/, '')} mastered.wav`;
+            const fallback = getFileNamePolicy()?.buildMasteredFileName?.({ sourceName: track.sourceFileName || track.name || 'track', format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' }) || `${String(track.name || 'track').replace(/\.[^.]+$/, '')} mastered.wav`;
             const proposed = typeof options.fileNameForTrack === 'function' ? options.fileNameForTrack(track) : (track.outName || fallback);
+            const sanitized = sanitizeName(proposed);
             const fileName = typeof options.makeUniqueName === 'function' ? options.makeUniqueName(proposed, usedNames) : makeUniqueName(proposed, usedNames);
+            const proposedText = String(proposed || '');
+            const policy = getFileNamePolicy();
+            const proposedBytes = Number(policy?.utf8Length?.(proposedText) || proposedText.length || 0);
+            const maxFileNameBytes = Number(policy?.maxFileNameBytes || 240);
+            if (fileName !== proposedText || fileName !== sanitized) {
+                nameAdjustments.push(Object.freeze({
+                    id: track.id || '',
+                    sourceName: track.sourceFileName || track.name || '',
+                    proposed: proposedText,
+                    sanitized,
+                    fileName,
+                    collision: fileName !== sanitized,
+                    sanitizedChanged: sanitized !== proposedText,
+                    truncated: proposedBytes > maxFileNameBytes
+                }));
+            }
             return Object.freeze({ id: track.id || '', name: track.name || '', fileName, size: getBlobBytes(track.outBlob), blob: track.outBlob, compression: 'STORE' });
         });
+        const collisionCount = nameAdjustments.filter(item => item.collision).length;
         const zeroByteFiles = files.filter(file => file.size <= 44);
         const outputBytes = files.reduce((sum, file) => sum + file.size, 0);
         const memory = getLowMemoryAdvice(options.memorySnapshot, files.length, outputBytes, options);
@@ -206,6 +225,9 @@
             deviceMemoryGb: strategy.deviceMemoryGb,
             warnings,
             warningMessage: warnings[0] || '',
+            collisionCount,
+            adjustedNameCount: nameAdjustments.length,
+            nameAdjustments: Object.freeze(nameAdjustments.slice()),
             files,
             createdAt: new Date().toISOString()
         });
@@ -221,6 +243,8 @@
             automaticIndividualFallback: plan.automaticIndividualFallback,
             singleArchiveRequired: plan.singleArchiveRequired,
             softRisk: plan.softRisk,
+            collisionCount: plan.collisionCount,
+            adjustedNameCount: plan.adjustedNameCount,
             warnings: plan.warnings
         });
         return plan;

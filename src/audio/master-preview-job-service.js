@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.6.61 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.6.63 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.6.61-human-readable-download-filenames';
+    const VERSION = '1.6.63-download-filename-review-hardening';
     let sequence = 0;
 
     function createFallbackAbortController() {

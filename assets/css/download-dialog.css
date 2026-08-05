@@ -1288,3 +1288,222 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
         grid-column: 1;
     }
 }
+
+/* v1.6.62: live filename preview, global metadata controls, and long-name containment. */
+.download-filename-card {
+    display: grid;
+    gap: 7px;
+    margin-top: 9px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 15px;
+    background:
+        linear-gradient(135deg, rgba(141,245,232,.075), rgba(255,255,255,.035));
+    min-width: 0;
+}
+.download-filename-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+}
+.download-filename-head > strong {
+    color: rgba(240,251,255,.94);
+    font-size: .66rem;
+    font-weight: 950;
+    letter-spacing: -.01em;
+}
+.download-filename-settings-toggle,
+.download-filename-reset {
+    min-height: 32px;
+    padding: 6px 9px;
+    border: 1px solid rgba(141,245,232,.22);
+    border-radius: 10px;
+    background: rgba(10,14,24,.54);
+    color: rgba(215,249,246,.9);
+    font-size: .56rem;
+    font-weight: 900;
+    line-height: 1.15;
+}
+.download-filename-settings-toggle:focus-visible,
+.download-filename-reset:focus-visible,
+.download-filename-option input:focus-visible {
+    outline: 2px solid rgba(141,245,232,.48);
+    outline-offset: 2px;
+}
+.download-filename-preview {
+    display: block;
+    width: 100%;
+    max-height: 5.2em;
+    overflow: auto;
+    padding: 8px 9px;
+    border: 1px solid rgba(141,245,232,.16);
+    border-radius: 11px;
+    background: rgba(5,8,16,.62);
+    color: rgba(245,252,255,.94);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .61rem;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+}
+.download-filename-card > small {
+    color: rgba(203,225,235,.62);
+    font-size: .52rem;
+    line-height: 1.4;
+}
+.download-filename-settings {
+    display: grid;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,.09);
+}
+.download-filename-settings[hidden] { display: none; }
+.download-filename-settings > p {
+    margin: 0;
+    color: rgba(218,235,243,.72);
+    font-size: .55rem;
+    line-height: 1.45;
+}
+.download-filename-option-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+}
+.download-filename-option {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    min-height: 34px;
+    padding: 6px 8px;
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px;
+    background: rgba(255,255,255,.035);
+    color: rgba(231,243,249,.84);
+    cursor: pointer;
+}
+.download-filename-option input {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #8df5e8;
+}
+.download-filename-option span {
+    min-width: 0;
+    font-size: .56rem;
+    font-weight: 800;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+.download-filename-option.is-checked {
+    border-color: rgba(141,245,232,.23);
+    background: rgba(141,245,232,.065);
+}
+.download-filename-reset {
+    justify-self: start;
+}
+.download-options-panel.working .download-filename-card {
+    opacity: .72;
+}
+@media (max-width: 420px) {
+    .download-filename-card {
+        padding: 9px;
+        border-radius: 13px;
+    }
+    .download-filename-head {
+        align-items: stretch;
+    }
+    .download-filename-settings-toggle,
+    .download-filename-reset {
+        min-height: 40px;
+        font-size: .59rem;
+    }
+    .download-filename-preview {
+        max-height: 6.6em;
+        font-size: .58rem;
+    }
+    .download-filename-option-grid {
+        grid-template-columns: 1fr;
+    }
+    .download-filename-option {
+        min-height: 40px;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .download-filename-card * { scroll-behavior: auto; }
+}
+
+/* v1.6.63: filename copy action, touch-safe header wrapping, and accessibility polish. */
+.download-filename-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+}
+.download-filename-copy {
+    min-height: 32px;
+    padding: 6px 9px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 10px;
+    background: rgba(255,255,255,.045);
+    color: rgba(235,248,252,.88);
+    font-size: .56rem;
+    font-weight: 900;
+    line-height: 1.15;
+}
+.download-filename-copy:hover:not(:disabled),
+.download-filename-settings-toggle:hover:not(:disabled),
+.download-filename-reset:hover:not(:disabled) {
+    border-color: rgba(141,245,232,.38);
+    background: rgba(141,245,232,.09);
+}
+.download-filename-copy:focus-visible {
+    outline: 2px solid rgba(141,245,232,.52);
+    outline-offset: 2px;
+}
+.download-filename-copy-status {
+    min-height: 1.25em;
+    color: rgba(166,245,232,.82) !important;
+    font-weight: 800;
+}
+.download-filename-copy-status:empty {
+    display: none;
+}
+.download-options-panel.working .download-filename-copy {
+    cursor: wait;
+}
+@media (max-width: 420px) {
+    .download-filename-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .download-filename-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+    .download-filename-copy,
+    .download-filename-settings-toggle {
+        width: 100%;
+        min-height: 44px;
+        font-size: .61rem;
+    }
+}
+@media (forced-colors: active) {
+    .download-filename-card,
+    .download-filename-preview,
+    .download-filename-option,
+    .download-filename-copy,
+    .download-filename-settings-toggle,
+    .download-filename-reset {
+        border: 1px solid CanvasText;
+    }
+}

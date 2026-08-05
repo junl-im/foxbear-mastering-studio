@@ -1,12 +1,26 @@
-# v1.6.61 project notes
+# v1.6.63 project notes
 
-- `FoxBearFileNamePolicyService` is the sole filename policy for mastered audio and ZIP entries.
-- Preserve Unicode NFC, Korean/Latin text, spaces, parentheses, and safe punctuation; remove only control/invisible and filesystem-forbidden characters.
-- The 240-byte limit is UTF-8 byte based, not JavaScript character-count based, so Korean names remain cross-platform safe.
-- Keep metadata tokens at the end of the filename and truncate only the title portion when space is limited.
-- Old underscore-style FoxBear exports must have their generated mastering suffix removed before a new suffix is added.
-- ZIP duplicate suffixes remain human-readable ` (2)`, ` (3)`, and so on.
+- Source-name provenance is data, not a display guess: retain `sourceFileName` at import and freeze `outputNameMeta.sourceName` at mastering completion.
+- Bulk filename summaries must invalidate from every completed track; count plus last row is insufficient.
+- Never render an unbounded 1,000-row filename preview in the main console. Show a bounded sample and copy the complete manifest on demand.
+- UTF-8 limits must operate on grapheme clusters when supported; do not cut joined emoji, combining marks, or variation selectors mid-sequence.
+- Keep automatic filename adjustments observable as collision, sanitization, and truncation diagnostics.
+- Clipboard failure is recoverable UI state, not an export failure.
+- Keep mobile filename actions at least 44 px and preserve forced-colors borders.
 - Preserve `DELIVERY_RULES.md`, the full ZIP, and the overwrite ZIP handoff contract.
+- Next target: editable filename token order/separators and explicit artist/album/track metadata, followed by real-device ZIP-manifest comparison.
+
+# v1.6.62 project notes
+
+- Treat output naming as a view of immutable mastering metadata plus current filename-display preferences.
+- Never infer an existing master's style/platform solely from current global controls.
+- Keep preferences global across all download entry points; a dialog-only preview that disagrees with ZIP output is a release blocker.
+- localStorage is optional. Persist when possible, but keep the latest choice in session memory when storage is blocked.
+- Keep the preview exact, not illustrative; format changes must update its extension and quality token immediately.
+- Preserve readable Unicode and deterministic collisions while retaining the 240-byte and reserved-name guards from v1.6.61.
+- Avoid CSS `:has()` for required selected-state rendering in embedded and older in-app browsers.
+- Preserve `DELIVERY_RULES.md`, the full ZIP, and the overwrite ZIP handoff contract.
+- Next target: user-defined filename token order/separator templates, optional artist/album/track metadata, and a copy-name action after real-device acceptance.
 
 # v1.6.60 project notes
 

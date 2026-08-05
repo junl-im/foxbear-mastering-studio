@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.61",
+  "version": "1.6.63",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.61 - human-readable cross-platform download filenames",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.63 - filename provenance, grapheme-safe truncation, full export review, copy controls, and responsive polish",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.61-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.61-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.63-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.63-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -449,15 +449,17 @@
     "node qa/v1656_playback_blob_source_resilience_smoke.js",
     "node qa/v1657_hosting_payload_boundary_hardening_smoke.js",
     "node qa/v1660_bulk_zip_hud_navigation_smoke.js",
-    "node qa/v1661_human_readable_download_filename_smoke.js"
+    "node qa/v1661_human_readable_download_filename_smoke.js",
+    "node qa/v1662_download_filename_preview_controls_smoke.js",
+    "node qa/v1663_filename_provenance_export_review_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "human-readable-download-filenames",
-    "assetVersion": "1.6.61-human-readable-download-filenames",
-    "cacheName": "foxbear-shell-v1.6.61-human-readable-download-filenames",
-    "bootRevision": "boot-sri-v1661-readable-filenames",
-    "updateSafetyRevision": "update-safety-v1661-readable-filenames",
-    "serviceWorkerRevision": "sw-v1661-readable-filenames"
+    "buildId": "download-filename-review-hardening",
+    "assetVersion": "1.6.63-download-filename-review-hardening",
+    "cacheName": "foxbear-shell-v1.6.63-download-filename-review-hardening",
+    "bootRevision": "boot-sri-v1663-filename-review",
+    "updateSafetyRevision": "update-safety-v1663-filename-review",
+    "serviceWorkerRevision": "sw-v1663-filename-review"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

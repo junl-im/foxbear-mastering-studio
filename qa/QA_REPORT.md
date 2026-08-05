@@ -1,30 +1,56 @@
-# FoxBear QA Report - v1.6.61
+# FoxBear QA Report - v1.6.63
 
 ## Configured target
 
-- Static and behavioral checks: 411
-- New syntax target: `src/download/file-name-policy-service.js`
-- New regression: `qa/v1661_human_readable_download_filename_smoke.js`
+- Static and behavioral checks: 413
+- New regression: `qa/v1663_filename_provenance_export_review_smoke.js`
 
-## Focus
+## Verification scope
 
-- Readable Unicode mastered filenames
-- Shared direct-download and ZIP naming policy
-- Legacy generated-suffix cleanup
-- Cross-platform forbidden characters, reserved names, byte limits, and duplicate ZIP entries
+- Exact imported filename retention and immutable mastering-time source-name provenance.
+- Grapheme-safe UTF-8 byte truncation for joined emoji, combining marks, variation selectors, Korean, and Latin text.
+- Bulk-summary invalidation when a non-final completed track changes while count and last row remain unchanged.
+- Bounded filename review, complete-list clipboard action, collision/sanitization/truncation diagnostics, and no 1,000-row DOM expansion.
+- Download-dialog copy feedback, mobile action wrapping, forced-colors visibility, and horizontal-overflow checks at 360, 430, and 1280 px.
 
 ## Final result
 
-- Official configured checks: `411/411` passed in bounded slices (`137/137`, `137/137`, and `137/137`).
-- The exact Korean/English example, legacy suffix cleanup, forbidden characters, Windows reserved names, emoji joiners, UTF-8 byte limits, and duplicate ZIP naming passed.
-- The real ZIP Worker runtime produced and re-opened an archive containing `천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav` unchanged.
-- Historical ZIP cancellation and low-copy pipeline regressions passed after their fixtures loaded the new shared filename policy.
-- Release metadata, handoff, SRI, Firebase Hosting payload boundary, browser fixture preflight, Python hygiene, and Firebase Functions syntax passed.
+- Official configured checks: **413/413 passed** in bounded slices (`138/138`, `138/138`, and `137/137`).
+- Dedicated v1.6.63 provenance/grapheme/review/layout regression and historical v1.6.60-v1.6.62 download/ZIP regressions passed.
+- Release metadata, SRI, browser fixture preflight, Firebase Hosting payload boundary, Python hygiene, and Firebase Functions syntax passed.
 - Dependency health reported 0 errors and 5 expected missing-install warnings.
-- Full Playwright browser automation could not run because `@playwright/test` and Chromium are not installed in this environment.
-- Firebase Hosting staging contains 151 allowlisted files.
-- Final release and overwrite archives contain `727` entries each and pass archive integrity, executable-file, symbolic-link, transient-file, and payload-boundary checks.
-- Real Windows, macOS, Android, iOS, cloud-sync, and in-app-browser filename behavior remains production acceptance.
+- Firebase Hosting staging contains 152 allowlisted files.
+- `src/app.js` remains below the 13,300-line architecture budget at 13,297 lines.
+- Chromium DevTools Protocol fixtures were injected with `Page.setDocumentContent` because local/file navigation is blocked by container policy; 360x800, 430x932, and 1280x900 all had viewport-equal scroll width with no horizontal overflow.
+- Final release and overwrite archives contain **732 entries each** and pass archive integrity, transient-file, executable-file, symlink, payload-boundary, and handoff verification.
+- Full Playwright and real-device acceptance remain external because `@playwright/test` and device browsers are not installed in this environment.
+
+# FoxBear QA Report - v1.6.62
+
+## Configured target
+
+- Static and behavioral checks: 412
+- New regression: `qa/v1662_download_filename_preview_controls_smoke.js`
+
+## Verification scope
+
+- Filename preference defaults, selective token removal, title-only mode, reset, and blocked-localStorage session fallback.
+- Mastering-time metadata capture and protection against later style/platform drift.
+- Same-format, alternate-format, share, sequential-save, and ZIP naming-policy reuse.
+- Partial legacy-suffix cleanup, Unicode preservation, duplicate-name preflight, and deterministic ` (2)` handling.
+- Download-dialog structure, long-name wrapping, mobile one-column layout, and compatibility without CSS `:has()`.
+
+## Final result
+
+- Official configured checks: **412/412 passed** in bounded slices (`138/138`, `137/137`, and `137/137`).
+- Dedicated v1.6.62 preference/preview/collision/storage/layout regression and historical v1.6.60/v1.6.61 ZIP/filename regressions passed.
+- Five historical app-size gates initially rejected additional app orchestration; filename workflow logic was extracted to `src/download/file-name-workflow-service.js`, returning `src/app.js` below the 13,300-line architecture budget.
+- One historical v1.6.61 source-location assertion was updated to verify delegation through the extracted workflow service rather than requiring policy code inside `app.js`.
+- Release metadata, handoff, SRI, browser fixture preflight, Firebase Hosting payload boundary, Python hygiene, and Firebase Functions syntax passed.
+- Firebase Hosting staging contains 152 allowlisted files.
+- Final release and overwrite archives contain **730 entries each** and pass archive integrity, transient-file, executable-file, symlink, and handoff verification.
+- Dependency health reported 0 errors and 5 expected missing-install warnings.
+- Actual Playwright screenshots could not run because `@playwright/test` is not installed; direct system Chromium headless capture also failed to settle in this container. Static responsive contracts and browser preflight passed, but real desktop/mobile visual acceptance remains external.
 
 # FoxBear QA Report - v1.6.59
 

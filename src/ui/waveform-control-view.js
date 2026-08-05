@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.61-human-readable-download-filenames';
+  const VIEW_VERSION = '1.6.63-download-filename-review-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

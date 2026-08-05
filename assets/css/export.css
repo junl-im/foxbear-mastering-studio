@@ -118,3 +118,185 @@ body.export-interaction-locked .output-format-box {
 /* v1.5.45 export queue pause and recovery */
 .export-progress-panel.is-queue.is-paused { border-color: rgba(255, 205, 118, 0.52); }
 .export-progress-panel.is-queue.is-paused .export-progress-meter span { filter: saturate(0.72); }
+
+/* v1.6.62: export filename preflight summary and collision visibility. */
+.export-name-summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 9px;
+    margin-top: 9px;
+    padding: 9px 10px;
+    border: 1px solid rgba(141,245,232,.16);
+    border-radius: 13px;
+    background: linear-gradient(135deg, rgba(141,245,232,.055), rgba(255,255,255,.025));
+    min-width: 0;
+}
+.export-name-summary[hidden] { display: none; }
+.export-name-summary > strong {
+    color: rgba(235,250,253,.93);
+    font-size: .61rem;
+    font-weight: 950;
+}
+.export-name-summary > span {
+    min-width: 0;
+    color: rgba(215,234,241,.72);
+    font-size: .57rem;
+    line-height: 1.35;
+    text-align: right;
+}
+.export-name-summary > code {
+    grid-column: 1 / -1;
+    display: block;
+    max-height: 4.5em;
+    overflow: auto;
+    padding: 7px 8px;
+    border-radius: 9px;
+    background: rgba(5,8,16,.48);
+    color: rgba(240,250,253,.88);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .54rem;
+    line-height: 1.42;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    scrollbar-width: thin;
+}
+.export-name-summary > small {
+    grid-column: 1 / -1;
+    color: rgba(197,219,227,.58);
+    font-size: .5rem;
+    line-height: 1.4;
+}
+@media (max-width: 520px) {
+    .export-name-summary {
+        grid-template-columns: 1fr;
+    }
+    .export-name-summary > span {
+        text-align: left;
+    }
+    .export-name-summary > code,
+    .export-name-summary > small {
+        grid-column: 1;
+    }
+}
+
+/* v1.6.63: detailed export filename review without widening the action panel. */
+.export-name-summary-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 7px 9px;
+    min-width: 0;
+}
+.export-name-review {
+    min-width: 0;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 10px;
+    background: rgba(0,0,0,.13);
+    overflow: clip;
+}
+.export-name-review > summary {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    padding: 7px 9px;
+    color: rgba(225,244,248,.84);
+    font-size: .56rem;
+    font-weight: 900;
+    cursor: pointer;
+    user-select: none;
+}
+.export-name-review > summary:focus-visible,
+.export-name-copy:focus-visible {
+    outline: 2px solid rgba(141,245,232,.5);
+    outline-offset: 2px;
+}
+.export-name-review-status {
+    margin: 0;
+    padding: 0 9px 7px;
+    color: rgba(202,224,231,.64);
+    font-size: .51rem;
+    line-height: 1.4;
+}
+.export-name-review-list {
+    display: grid;
+    gap: 5px;
+    max-height: min(34vh, 250px);
+    margin: 0;
+    padding: 0 9px 9px 30px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+.export-name-review-list li {
+    min-width: 0;
+    color: rgba(202,223,230,.65);
+    font-size: .5rem;
+}
+.export-name-review-list code {
+    display: block;
+    min-width: 0;
+    padding: 5px 6px;
+    border-radius: 7px;
+    background: rgba(5,8,16,.42);
+    color: rgba(239,249,252,.86);
+    font-size: .52rem;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.export-name-review-more {
+    padding-top: 3px;
+    line-height: 1.45;
+}
+.export-name-copy {
+    min-height: 36px;
+    padding: 7px 10px;
+    border: 1px solid rgba(141,245,232,.22);
+    border-radius: 10px;
+    background: rgba(10,14,24,.5);
+    color: rgba(217,249,245,.9);
+    font-size: .55rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+.export-name-copy:disabled {
+    opacity: .66;
+    cursor: wait;
+}
+.export-name-copy-status {
+    grid-column: 1 / -1;
+    min-height: 1.2em;
+    color: rgba(166,245,232,.8);
+    font-size: .5rem;
+    line-height: 1.35;
+}
+.export-name-copy-status:empty {
+    display: none;
+}
+@media (max-width: 520px) {
+    .export-name-summary-actions {
+        grid-template-columns: 1fr;
+    }
+    .export-name-copy {
+        width: 100%;
+        min-height: 44px;
+        white-space: normal;
+    }
+    .export-name-review > summary {
+        min-height: 44px;
+        font-size: .59rem;
+    }
+    .export-name-review-list {
+        max-height: min(40vh, 280px);
+    }
+}
+@media (forced-colors: active) {
+    .export-name-review,
+    .export-name-copy,
+    .export-name-review-list code {
+        border: 1px solid CanvasText;
+    }
+}

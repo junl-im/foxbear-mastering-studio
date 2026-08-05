@@ -1,12 +1,30 @@
-# v1.6.61 - Human-Readable Cross-Platform Download Filenames
+# v1.6.63 - Filename Provenance, Export Review, and Responsive Copy Controls
 
-- Replaces underscore-heavy mastered filenames with readable spaces while preserving Korean, Latin text, and parentheses.
-- Adds one shared filename policy for normal downloads, alternate-format downloads, sequential export, ZIP planning, and ZIP worker entries.
-- Removes only filesystem-forbidden/control characters, normalizes Unicode to NFC, protects Windows reserved names, and trims unsafe trailing dots/spaces.
-- Keeps generated filenames within a conservative 240-byte UTF-8 budget without cutting the mastering metadata or extension.
-- Removes legacy FoxBear `_mastered_...` suffixes when old exported files are re-imported, preventing duplicated mastering labels.
-- Resolves duplicate ZIP entry names with ` (2)`, ` (3)`, and later suffixes instead of underscore numbering.
-- Adds dedicated filename-policy regression coverage, raising the configured target to 411 checks.
+- Freezes the exact source filename with each completed master so later mutable track labels cannot silently rewrite exported names.
+- Rebuilds the bulk filename-summary cache key from every completed track, fixing stale previews when only a middle track changes.
+- Adds a bounded 12-row final-name review and one-click copy of the complete ZIP filename list without rendering 1,000 rows into the console.
+- Adds direct filename copy feedback to the download dialog and keeps every action touch-safe on 360-430 px layouts.
+- Makes UTF-8 truncation grapheme-aware so long emoji/combining sequences are not left with dangling joiners or variation selectors.
+- Extends ZIP preflight diagnostics to distinguish collision, sanitization, and byte-length truncation adjustments.
+- Adds forced-colors and narrow-layout styling plus dedicated regression coverage, raising the configured target to 413 checks.
+
+# v1.6.62 - Download Filename Preview, Metadata Controls, and Collision Preflight
+
+- Adds a live, copyable filename preview to the post-master download dialog.
+- Adds persisted global switches for `mastered`, LUFS, mastering style, quality/format, and platform tokens.
+- Freezes the actual mastering-time LUFS/style/platform/format metadata so later control changes cannot mislabel an existing master.
+- Rebuilds names consistently for same-format downloads, alternate formats, sequential saves, sharing, and ZIP entries.
+- Shows bulk-export duplicate-name preflight and preserves deterministic ` (2)`, ` (3)` disambiguation.
+- Keeps the selected preferences in session memory when localStorage is blocked and removes the CSS `:has()` dependency for wider embedded-browser compatibility.
+- Adds long multilingual-name containment and a narrow mobile layout, with dedicated regression coverage raising the configured target to 412 checks.
+
+# v1.6.61 - Human-Readable Download Filenames
+
+- Preserves original Unicode titles, spaces, parentheses, and safe emoji instead of converting them to underscores.
+- Removes only filesystem-forbidden and directional-control characters, protects Windows reserved names, and caps filenames at 240 UTF-8 bytes.
+- Applies one naming policy to single downloads, transformed variants, sequential saves, ZIP planning, and ZIP worker entries.
+- Prevents generated suffix duplication when a previous FoxBear output is imported again and uses readable ` (2)` collision suffixes.
+- Adds dedicated regression coverage, raising the configured target to 411 checks.
 
 # v1.6.60 - Bulk ZIP Single-Archive Integrity and HUD Navigation
 

@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.61 (human-readable-download-filenames).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.63 (download-filename-review-hardening).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.61"
+  "version": "1.6.63"
 }

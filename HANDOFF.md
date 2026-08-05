@@ -1,32 +1,60 @@
-# Handoff - v1.6.61
+# Handoff - v1.6.63
 
-- Build: `human-readable-download-filenames`.
-- Input archive SHA-256: `7d4f19e8a2df5ae116e84f4a00498eb37fe80246d83f1598c466c42c288031e2`.
-- Baseline: delivered FoxBear v1.6.60 release package.
+- Build: `download-filename-review-hardening`.
+- Input archive SHA-256: `fed0b881d511525762731db133c5b88b2c0bc9dea952162304182fab2f1422f2`.
+- Baseline: `main` at `5c3d3349`, continuing the v1.6.60-v1.6.62 temporary-chat delivery state.
 - Apply the overwrite ZIP at repository root or use the full release ZIP.
-- Keep `src/download/file-name-policy-service.js` loaded before every download/export service.
-- All mastered audio names must be generated through `FoxBearFileNamePolicyService.buildMasteredFileName`.
-- Keep Unicode NFC normalization, forbidden/control-character removal, Windows reserved-name protection, and the 240-byte UTF-8 limit.
-- Do not restore broad allowlists that remove Korean, spaces, parentheses, apostrophes, or other safe title characters.
-- ZIP planning and the ZIP worker must share `makeUniqueName`; duplicate entries use ` (2)` style suffixes.
-- Preserve legacy generated-suffix cleanup so re-imported FoxBear outputs do not become `... mastered ... mastered ...`.
+- Preserve `track.sourceFileName` and `track.outputNameMeta.sourceName`; together they keep the imported and mastering-time title provenance explicit.
+- Do not reduce the bulk-summary cache key back to count/last-track only. Every completed track must participate.
+- Keep the visible review bounded to 12 rows; the complete final-name manifest belongs in the copy action, not a 1,000-node list.
+- Keep grapheme-aware UTF-8 truncation and the 240-byte limit synchronized across direct downloads and ZIP entries.
+- Keep collision, sanitization, and truncation diagnostics separate enough for the review UI to explain automatic changes.
+- Preserve accessible live copy status, 44 px narrow-screen actions, forced-colors borders, and no CSS `:has()` dependency.
 - Preserve `DELIVERY_RULES.md` and the two-ZIP GitHub Desktop workflow.
-- Detailed decisions and acceptance checks are in `docs/V1.6.61_HUMAN_READABLE_DOWNLOAD_FILENAMES.md`.
+- Detailed decisions, exception audit, challenge questions, and design checks are in `docs/V1.6.63_FILENAME_PROVENANCE_EXPORT_REVIEW_DESIGN_AUDIT.md`.
 
 ## Current release
 
-- Product version: `1.6.61`
-- Build ID: `human-readable-download-filenames`
-- Asset version: `1.6.61-human-readable-download-filenames`
-- Service worker cache: `foxbear-shell-v1.6.61-human-readable-download-filenames`
-- Configured static/regression target: 411 checks.
-- Dedicated human-readable filename regression added.
-- Final configured checks: `411/411` passed in bounded slices (`137/137` three times).
-- The real ZIP Worker fixture re-opened the generated archive and confirmed the requested Korean/English filename unchanged.
-- Metadata, handoff, SRI, Hosting payload, browser fixture preflight, Python hygiene, and Functions syntax passed.
-- Dependency health: 0 errors and 5 expected missing-install warnings.
-- Full Playwright execution remains unavailable because `@playwright/test` and Chromium are not installed.
-- Final full and overwrite archives contain `727` entries each and pass archive verification.
+- Product version: `1.6.63`
+- Build ID: `download-filename-review-hardening`
+- Asset version: `1.6.63-download-filename-review-hardening`
+- Service worker cache: `foxbear-shell-v1.6.63-download-filename-review-hardening`
+- Configured static/regression target: 413 checks.
+- Dedicated filename provenance, grapheme truncation, summary invalidation, export review, copy, and responsive-layout regression added.
+- Final configured checks: `413/413` passed in bounded slices (`138/138`, `138/138`, and `137/137`).
+- `src/app.js` remains below the historical 13,300-line architecture budget at 13,297 lines.
+- Metadata, SRI, Hosting, browser-preflight, Python hygiene, Functions syntax, and dependency metadata gates passed.
+- Chromium CDP fixtures at 360x800, 430x932, and 1280x900 reported no horizontal overflow.
+- Final release and overwrite archives contain `732` entries each and pass archive integrity, transient-file, executable-file, symlink, payload-boundary, and handoff verification.
+
+# Handoff - v1.6.62
+
+- Build: `download-filename-preview-controls`.
+- Input archive SHA-256: `2fd1b55c83666e1ee65adf11044ca77601711e344593eb7fc24874f1c3de6ab0`.
+- Baseline: `main` at `5c3d3349`, continuing the uncommitted v1.6.60/v1.6.61 delivery state supplied in this temporary chat.
+- Apply the overwrite ZIP at repository root or use the full release ZIP.
+- Preserve `track.outputNameMeta`: it is the immutable record of the LUFS/style/platform/format that actually created a completed master.
+- Do not return to `track.outName`-first download behavior; every save path must rebuild the name through `FoxBearFileNamePolicyService`.
+- Filename switches are global and must affect direct, transformed, sequential, share, and ZIP paths consistently.
+- Keep runtime-memory preference fallback for environments where localStorage throws or is blocked.
+- Keep duplicate names deterministic with ` (2)`, ` (3)` and expose collision count before bulk export.
+- Keep filename preview text wrapping and the mobile one-column controls; do not use CSS `:has()` for required state styling.
+- Preserve `DELIVERY_RULES.md` and the two-ZIP GitHub Desktop workflow.
+- Detailed decisions, exception audit, and challenge checks are in `docs/V1.6.62_DOWNLOAD_FILENAME_PREVIEW_CONTROLS.md`.
+
+## Current release
+
+- Product version: `1.6.62`
+- Build ID: `download-filename-preview-controls`
+- Asset version: `1.6.62-download-filename-preview-controls`
+- Service worker cache: `foxbear-shell-v1.6.62-download-filename-preview-controls`
+- Configured static/regression target: 412 checks.
+- Dedicated filename preview, token controls, collision preflight, storage fallback, and layout regression added.
+- Final configured checks: `412/412` passed in bounded slices (`138/138`, `137/137`, and `137/137`).
+- Filename orchestration lives in `src/download/file-name-workflow-service.js`; keep `src/app.js` below the historical 13,300-line budget.
+- Metadata, SRI, handoff, Hosting, browser-preflight, Python hygiene, Functions syntax, and dependency metadata gates passed.
+- Actual Playwright/system-Chromium visual capture remains unavailable in this container; real-device layout acceptance is still required.
+- Final full and overwrite archives contain `730` entries each and pass archive integrity and handoff verification.
 
 # Handoff - v1.6.60
 

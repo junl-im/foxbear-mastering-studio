@@ -1,14 +1,35 @@
-# FoxBear v1.6.61 release checklist
+# FoxBear v1.6.63 release checklist
 
-- [x] Shared filename policy module added and loaded before download/export modules.
-- [x] Korean, English, spaces, and parentheses are preserved in mastered filenames.
-- [x] Direct download, alternate-format conversion, sequential export, ZIP planning, and ZIP worker use the shared policy.
-- [x] Forbidden/control characters, Windows reserved names, trailing dots/spaces, UTF-8 byte length, and duplicate ZIP names are guarded.
-- [x] Legacy underscore-style generated suffixes are removed before rebuilding a filename.
-- [x] Dedicated v1.6.61 regression is configured.
-- [x] Run all 411 configured checks in three bounded 137-check slices.
-- [x] Run handoff, metadata, SRI, Hosting, Functions, browser preflight, and both 727-entry archive verifications.
-- [ ] Complete real Windows/macOS/Android/iOS filename and ZIP acceptance.
+- [x] Track model retains exact imported `sourceFileName`.
+- [x] Completed output freezes `outputNameMeta.sourceName` with actual mastering metadata.
+- [x] Bulk summary key includes every completed track and changes when a middle row changes.
+- [x] Export review shows at most 12 names and copies the complete final-name manifest.
+- [x] ZIP preflight exposes collision, sanitization, and UTF-8 truncation adjustments.
+- [x] UTF-8 truncation preserves complete grapheme clusters and removes dangling joiners/marks.
+- [x] Download dialog provides filename copy with accessible success/failure feedback.
+- [x] Mobile copy/settings controls are 44 px and forced-colors borders are present.
+- [x] Chromium CDP fixtures render at 360x800, 430x932, and 1280x900 without horizontal overflow.
+- [x] Dedicated v1.6.63 regression is configured.
+- [x] Run all 413 configured checks in bounded slices (`138/138`, `138/138`, `137/137`).
+- [x] Run metadata, SRI, Hosting, dependency, browser-preflight, Python hygiene, and Functions checks; handoff is verified with the final archives.
+- [x] Build and verify both 732-entry v1.6.63 archives.
+- [ ] Complete real desktop/mobile/Kakao clipboard and ZIP-manifest acceptance.
+
+# FoxBear v1.6.62 release checklist
+
+- [x] Download dialog shows the exact selected-format filename before saving.
+- [x] Global switches independently control mastered, LUFS, style, format, and platform tokens.
+- [x] Completed masters retain immutable mastering-time filename metadata.
+- [x] Same-format, transformed, share, sequential, and ZIP paths rebuild names through one policy.
+- [x] Bulk action area reports duplicate-name collisions before export.
+- [x] localStorage failure falls back to current-session memory.
+- [x] Long multilingual names wrap and narrow mobile controls collapse to one column.
+- [x] Required selected-state styling does not depend on CSS `:has()`.
+- [x] Dedicated v1.6.62 regression is configured.
+- [x] Run all 412 configured checks in bounded slices (`138/138`, `137/137`, `137/137`).
+- [x] Run handoff, metadata, SRI, Hosting, dependency, browser-preflight, Python hygiene, and Functions checks.
+- [x] Build and verify both 730-entry release archives.
+- [ ] Complete real desktop/mobile/Kakao filename and layout acceptance.
 
 # FoxBear v1.6.60 release checklist
 

@@ -1,3 +1,75 @@
+# FoxBear Status - v1.6.63
+
+## Current release
+
+- Product version: `1.6.63`
+- Build ID: `download-filename-review-hardening`
+- Asset version: `1.6.63-download-filename-review-hardening`
+- Service worker cache: `foxbear-shell-v1.6.63-download-filename-review-hardening`
+- Configured static/regression target: 413 checks.
+
+## Current focus
+
+- Keep exported titles tied to the exact source name captured at mastering completion.
+- Prevent stale bulk filename summaries when any completed row changes.
+- Let users inspect representative final ZIP names and copy the complete final-name manifest without expanding huge DOM lists.
+- Preserve grapheme clusters under the 240-byte cross-platform filename limit.
+- Keep copy/settings controls usable at 360-430 px, high contrast, and forced-colors environments.
+
+## Verified
+
+- Official configured static and behavioral checks: **413/413 passed** in bounded slices (`138/138`, `138/138`, and `137/137`).
+- Dedicated v1.6.63 provenance/grapheme/review/layout regression and historical v1.6.60-v1.6.62 ZIP/filename regressions passed.
+- `src/app.js` remains below the historical architecture gate at 13,297 lines.
+- Release metadata, SRI, browser fixture preflight, Hosting payload boundary, Python hygiene, and Firebase Functions syntax passed.
+- Dependency health: 0 errors and 5 expected missing-install warnings.
+- Firebase Hosting staging contains 152 allowlisted files.
+- Actual Chromium component fixtures were rendered through CDP at 360x800, 430x932, and 1280x900 with viewport-equal scroll width and no horizontal overflow.
+- Final release and overwrite archives contain **732 entries each** and pass archive integrity, transient-file, executable-file, symlink, payload-boundary, and handoff verification.
+
+## Production verification required
+
+- Copy a complete 100+ track final-name list and compare it with the downloaded ZIP entries.
+- Rename or mutate a visible track label after mastering and confirm the saved file retains the mastering-time source title.
+- Test a very long Korean/emoji title on Windows, macOS, Android, iOS, and a common ZIP extractor.
+- Repeat filename copy and review in KakaoTalk/WebView where clipboard policy may be restricted.
+
+# FoxBear Status - v1.6.62
+
+## Current release
+
+- Product version: `1.6.62`
+- Build ID: `download-filename-preview-controls`
+- Asset version: `1.6.62-download-filename-preview-controls`
+- Service worker cache: `foxbear-shell-v1.6.62-download-filename-preview-controls`
+- Configured static/regression target: 412 checks.
+
+## Current focus
+
+- Show the exact output name before any download begins.
+- Let users globally include or hide mastered/LUFS/style/quality/platform tokens without weakening filename safety.
+- Preserve the metadata that actually produced a completed master instead of reading later UI state.
+- Surface duplicate-name handling before large ZIP/sequential exports.
+- Keep long multilingual filenames and controls stable on narrow mobile and embedded-browser layouts.
+
+## Verified
+
+- Official configured static and behavioral checks: **412/412 passed** in bounded slices (`138/138`, `137/137`, and `137/137`).
+- Filename workflow was extracted from `app.js` after historical architecture budgets detected orchestration growth; `app.js` is now 13,296 lines, below the 13,300-line gate.
+- Dedicated v1.6.62 and historical v1.6.60/v1.6.61 download/ZIP regressions passed.
+- Release metadata, handoff, SRI, browser fixture preflight, Hosting payload validation, Python hygiene, and Functions syntax passed.
+- Dependency health: 0 errors, 5 expected missing-install warnings.
+- Firebase Hosting staging contains 152 allowlisted files.
+- Final release and overwrite archives contain **730 entries each** and pass archive verification.
+- Actual Playwright/system-Chromium screenshot capture is unavailable in this container; responsive source contracts passed and real-device visual acceptance remains external.
+
+## Production verification required
+
+- Save one title with every token enabled and one title-only output.
+- Change the current mastering style after completion and confirm the existing output retains its original style label.
+- Test localStorage-restricted/private browsing and confirm preferences remain active for the current session.
+- Check the download dialog and bulk export summary on desktop, Android/iOS widths, and KakaoTalk/WebView where available.
+
 # FoxBear Status - v1.6.61
 
 ## Current release
@@ -15,15 +87,10 @@
 - Keep filenames safe on Windows, macOS, Android, iOS, and common ZIP extractors without over-sanitizing Unicode.
 - Prevent duplicate mastering suffixes when previously exported FoxBear files are imported again.
 
-## Verified
+## Verification state
 
-- Official configured static and behavioral checks: **411/411 passed** in three bounded slices of 137 checks.
-- The exact requested filename is preserved in direct policy output and inside a generated/re-opened ZIP archive.
-- Legacy ZIP cancellation, low-copy packaging, export integrity, download conversion, and v1.6.60 single-ZIP regressions passed.
-- Release metadata, handoff, SRI, Hosting payload, browser fixture preflight, Python hygiene, and Functions syntax passed.
-- Dependency health: 0 errors and 5 expected warnings for packages not installed in this workspace.
-- Final release and overwrite archives contain **727 entries each** and pass archive verification.
-- Full Playwright execution remains unavailable because Playwright and Chromium are not installed.
+- Dedicated filename-policy regression is configured.
+- Full static, release, archive, and real-browser results are recorded after execution.
 
 ## Production verification required
 
@@ -748,10 +815,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.61`
-- Build ID: `human-readable-download-filenames`
-- Asset version: `1.6.61-human-readable-download-filenames`
-- Service worker cache: `foxbear-shell-v1.6.61-human-readable-download-filenames`
+- Product version: `1.6.63`
+- Build ID: `download-filename-review-hardening`
+- Asset version: `1.6.63-download-filename-review-hardening`
+- Service worker cache: `foxbear-shell-v1.6.63-download-filename-review-hardening`
 
 # FoxBear Status - v1.6.32
 

@@ -30,7 +30,7 @@ function createSandbox(url = 'https://example.test/index.html?foxbearExternal=1'
     history: { state: null, replaceState: (...args) => historyCalls.push(args) },
     btoa: value => Buffer.from(value, 'binary').toString('base64'),
     atob: value => Buffer.from(value, 'base64').toString('binary'),
-    FoxBearBuildInfo: { assetVersion: '1.6.61-human-readable-download-filenames' }
+    FoxBearBuildInfo: { assetVersion: '1.6.63-download-filename-review-hardening' }
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;

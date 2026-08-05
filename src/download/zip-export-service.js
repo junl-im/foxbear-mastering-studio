@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.6.61 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.6.63 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.6.61-human-readable-download-filenames';
+    const VERSION = 'v1.6.63-download-filename-review-hardening';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
     const getFileNamePolicy = () => global.FoxBearFileNamePolicyService || null;
 
@@ -106,7 +106,7 @@
             const files = (plan?.files || completed.map(track => {
                 const policy = getFileNamePolicy();
                 const fileName = track.outName || (policy?.buildMasteredFileName
-                    ? policy.buildMasteredFileName({ sourceName: track.name || 'track', format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' })
+                    ? policy.buildMasteredFileName({ sourceName: track.sourceFileName || track.name || 'track', format: track.outFormat || 'wav24', extension: /mp3/i.test(track.outFormat || '') ? 'mp3' : 'wav' })
                     : `${String(track.name || 'track').replace(/\.[^.]+$/, '')} mastered.wav`);
                 return { fileName, blob: track.outBlob };
             })).map(file => ({ fileName: file.fileName, blob: file.blob }));

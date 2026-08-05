@@ -1,9 +1,9 @@
-// FoxBear mastering memory diagnostics and adaptive governor service v1.6.61.
+// FoxBear mastering memory diagnostics and adaptive governor service v1.6.63.
 'use strict';
 
 (function attachFoxBearMasteringMemoryDiagnosticsService(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.61-kakao-adaptive-memory-governor';
+    const VERSION = BUILD_INFO.assetVersion || '1.6.63-kakao-adaptive-memory-governor';
     const MB = 1024 * 1024;
     const MAX_SAMPLES = 18;
 

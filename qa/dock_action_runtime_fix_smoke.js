@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const app=read('src/app.js'); const html=read('index.html');
-must(app.includes("const APP_VERSION = 'Pro v1.6.61'"),'version');
-must(html.includes('data-build="1.6.61"'),'build');
+must(app.includes("const APP_VERSION = 'Pro v1.6.63'"),'version');
+must(html.includes('data-build="1.6.63"'),'build');
 must(app.includes('function getDockActionTrack()'),'dock action track resolver');
 must(app.includes('function preparePrimaryActionTrack(track)'),'primary action sync');
 must(app.includes('async function runDockRemoteMasterPreview(event = null)'),'preview handler');

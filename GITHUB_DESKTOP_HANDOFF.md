@@ -1,27 +1,54 @@
-# GitHub Desktop Handoff - v1.6.61
+# GitHub Desktop Handoff - v1.6.63
 
 ## Apply
 
 1. In GitHub Desktop, use **Fetch origin**.
-2. Extract `foxbear-mastering-studio-v1.6.61-overwrite.zip` directly into the repository root and replace matching files.
-3. Review the new filename policy module plus the app, download, export guard, ZIP worker, service worker, and metadata changes.
-4. Commit and **Push origin** after the release checks pass.
-5. Deploy only after a real Korean/English filename and multi-track ZIP spot check.
+2. Extract `foxbear-mastering-studio-v1.6.63-overwrite.zip` directly into the repository root and replace matching files.
+3. Do not commit `.firebaserc`, `.firebase/hosting..cache`, generated screenshots, temporary visual-audit HTML, or generated QA logs.
+4. Review the changes, commit, and **Push origin**.
+5. Run `npm run check:release`, then perform the filename-manifest acceptance checks before deployment.
 
 ## Release focus
 
-- Readable spaces instead of generated underscore separators.
-- Korean, English, parentheses, and safe punctuation preserved.
-- One filename policy across direct download, conversion, sequential export, and ZIP.
-- Cross-platform forbidden-character, reserved-name, length, and duplicate-name handling.
-- Legacy `_mastered_...` suffix cleanup on re-import.
+- Imported and mastering-time source filename provenance.
+- Correct bulk-summary refresh when any completed row changes.
+- Bounded final-name review plus complete filename-manifest copy.
+- Grapheme-aware Unicode truncation and explicit truncation diagnostics.
+- Download-dialog copy action, 360-430 px touch targets, forced-colors visibility, and long-name containment.
 
 ## Production verification
 
-- Master `천 개의 파랑 (A Thousand Blues).wav` and confirm the output is `천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav`.
-- Test one title containing `/ : * ? " < > |`; those characters should become spaces without changing the rest of the title.
-- Put two tracks with the same title in one ZIP and confirm the second entry ends in ` (2)`.
-- Re-import an old FoxBear underscore-style export and confirm the mastering label appears only once.
+- Master `천 개의 파랑 (A Thousand Blues).wav`, copy its preview, and compare preview, copied name, direct download, and ZIP entry.
+- Change only the second completed track name/format and confirm the bulk summary changes without adding/removing tracks.
+- Export duplicate and overlong titles; confirm ` (2)` resolution and review warnings match the ZIP.
+- Test 360 px, 430 px, and desktop widths with browser zoom at 125% and 150%.
+- Test clipboard failure in an in-app browser and confirm the failure message appears without blocking download.
+
+# GitHub Desktop Handoff - v1.6.62
+
+## Apply
+
+1. In GitHub Desktop, use **Fetch origin**.
+2. Extract `foxbear-mastering-studio-v1.6.62-overwrite.zip` directly into the repository root and replace matching files.
+3. Do not commit `.firebaserc`, `.firebase/hosting..cache`, generated screenshots, or generated QA logs.
+4. Review the changes, commit, and **Push origin**.
+5. Run `npm run check:release`, then perform the filename acceptance checks before deployment.
+
+## Release focus
+
+- Exact live filename preview before saving.
+- Global switches for mastered, LUFS, style, quality/format, and platform tokens.
+- Immutable mastering-time output metadata and dynamic naming across every download path.
+- Duplicate-name count before bulk export with readable ` (2)`, ` (3)` resolution.
+- Long-name containment, narrow mobile layout, blocked-storage session fallback, and embedded-browser-compatible selected-state styling.
+
+## Production verification
+
+- Master `천 개의 파랑 (A Thousand Blues).wav` and confirm the preview and downloaded name match exactly.
+- Disable several filename tokens, save in the current format and a converted format, then inspect a multi-track ZIP.
+- Change the current mastering style after completion; the existing track must keep the style that created it.
+- Test two identical titles and verify the bulk summary plus ` (2)` ZIP entry.
+- Check the dialog at desktop width, 420 px, and 360 px without horizontal overflow or clipped actions.
 
 # GitHub Desktop Handoff - v1.6.60
 

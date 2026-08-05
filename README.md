@@ -1,12 +1,33 @@
+# FoxBear AI Mastering Studio Pro v1.6.63
+
+## v1.6.63 filename provenance, full export review, and design hardening
+
+- Every completed master now stores the exact source filename that created it; later UI label changes do not alter the historical export title.
+- The bulk action area can review the first 12 final ZIP names and copy the complete final-name list, including ` (2)`, ` (3)` collision results.
+- Filename summary invalidation includes every completed track, so changing only a middle row cannot leave a stale preview.
+- Very long Unicode names are truncated by grapheme cluster, protecting joined emoji and combining characters while retaining the 240-byte limit.
+- The download dialog adds a direct **파일명 복사** action with accessible status feedback and 44 px mobile controls.
+- Apply the overwrite ZIP at the repository root, run the release gates, and verify one real desktop/mobile export before deployment.
+
+# FoxBear AI Mastering Studio Pro v1.6.62
+
+## v1.6.62 filename preview, controls, and export preflight
+
+- Open the post-master download dialog to see the exact filename before saving.
+- Expand **파일명 설정** to include or hide `mastered`, LUFS, style, quality, and platform tokens; the choice applies globally to single saves, alternate formats, sequential exports, and ZIP entries.
+- Completed masters retain their real mastering-time metadata even when the current style/platform controls are changed later.
+- The bulk export action area reports duplicate filename collisions before ZIP creation and resolves them as ` (2)`, ` (3)`.
+- Long Korean/English/emoji titles wrap inside the dialog, and the settings collapse to one column on narrow mobile screens.
+- Apply the overwrite ZIP at the repository root, run the release gates, and verify one desktop and one mobile save before deployment.
+
 # FoxBear AI Mastering Studio Pro v1.6.61
 
-## v1.6.61 readable download filenames
+## v1.6.61 human-readable download filenames
 
-- A source named `천 개의 파랑 (A Thousand Blues).wav` now downloads as `천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav`.
-- Korean, English, spaces, and parentheses are preserved; only operating-system-forbidden characters are replaced.
-- Single-track downloads, converted formats, per-track sequential export, and ZIP entries all use the same filename policy.
-- Re-importing an older `_mastered_15LUFS_...` file removes the old generated suffix before creating the next name.
-- Duplicate ZIP names use ` (2)` rather than `_2`, and long names retain the mastering metadata and extension.
+- Original Korean/English titles retain spaces, parentheses, and safe Unicode characters.
+- Only operating-system forbidden characters are normalized, while Windows reserved names and overlong UTF-8 names are guarded.
+- Every download and ZIP path uses the same readable policy, and duplicate titles become ` (2)`, ` (3)`.
+- Previously exported FoxBear names can be imported again without duplicating generated mastering metadata.
 
 # FoxBear AI Mastering Studio Pro v1.6.60
 

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.61-human-readable-download-filenames';
+const version = '1.6.63-download-filename-review-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

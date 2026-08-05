@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.61 - viewport-contained MP3/WAV quality menu and size estimates
+// FoxBear AI Mastering Studio Pro v1.6.63 - download filename preview and controls
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -58,6 +58,8 @@
             getDownloadCompactRecoveryPlan,
             getDownloadDialogCompactHint,
             getDownloadDialogDisplayProfile,
+            buildMasteredFileName,
+            onFileNamePreferencesChange,
             foxBearHaptic = () => undefined,
             clearNativeBadgeIfDone = () => undefined,
             renderAll = () => undefined,
@@ -90,7 +92,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.6.61',
+                version: '1.6.63',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -192,7 +194,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.6.61 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.6.63 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -250,6 +252,82 @@
 
         const selectedSummary = document.createElement('div');
         selectedSummary.className = 'download-options-selected-summary';
+
+        const fileNamePolicy = global.FoxBearFileNamePolicyService || null;
+        let fileNamePreferences = fileNamePolicy?.loadFileNamePreferences?.() || {
+            includeMastered: true,
+            includeLoudness: true,
+            includeStyle: true,
+            includeFormat: true,
+            includePlatform: true
+        };
+        const fileNameCard = document.createElement('section');
+        fileNameCard.className = 'download-filename-card';
+        fileNameCard.setAttribute('aria-label', '다운로드 파일명 미리보기');
+        const fileNameHead = document.createElement('div');
+        fileNameHead.className = 'download-filename-head';
+        const fileNameLabel = document.createElement('strong');
+        fileNameLabel.textContent = '저장될 파일명';
+        const fileNameActions = document.createElement('div');
+        fileNameActions.className = 'download-filename-actions';
+        const fileNameCopy = document.createElement('button');
+        fileNameCopy.type = 'button';
+        fileNameCopy.className = 'download-filename-copy';
+        fileNameCopy.textContent = '파일명 복사';
+        const fileNameSettingsToggle = document.createElement('button');
+        fileNameSettingsToggle.type = 'button';
+        fileNameSettingsToggle.className = 'download-filename-settings-toggle';
+        fileNameSettingsToggle.textContent = '파일명 설정';
+        fileNameSettingsToggle.setAttribute('aria-expanded', 'false');
+        fileNameActions.append(fileNameCopy, fileNameSettingsToggle);
+        fileNameHead.append(fileNameLabel, fileNameActions);
+        const fileNamePreview = document.createElement('code');
+        fileNamePreview.className = 'download-filename-preview';
+        fileNamePreview.setAttribute('aria-live', 'polite');
+        fileNamePreview.setAttribute('dir', 'auto');
+        const fileNameHint = document.createElement('small');
+        fileNameHint.textContent = '한글·공백·괄호는 유지하고 운영체제 금지 문자만 정리합니다.';
+        const fileNameCopyStatus = document.createElement('small');
+        fileNameCopyStatus.className = 'download-filename-copy-status';
+        fileNameCopyStatus.setAttribute('role', 'status');
+        fileNameCopyStatus.setAttribute('aria-live', 'polite');
+        const fileNameSettings = document.createElement('div');
+        fileNameSettings.className = 'download-filename-settings';
+        fileNameSettings.hidden = true;
+        const fileNameSettingsId = `download-filename-settings-${String(track.id || Date.now()).replace(/[^a-z0-9_-]+/gi, '-')}`;
+        fileNameSettings.id = fileNameSettingsId;
+        fileNameSettingsToggle.setAttribute('aria-controls', fileNameSettingsId);
+        const fileNameSettingsIntro = document.createElement('p');
+        fileNameSettingsIntro.textContent = '아래 정보는 모든 단일 다운로드·곡별 저장·ZIP 내부 파일명에 함께 적용됩니다.';
+        const fileNameOptionGrid = document.createElement('div');
+        fileNameOptionGrid.className = 'download-filename-option-grid';
+        const fileNameOptionInputs = [];
+        [
+            ['includeMastered', 'mastered 표시'],
+            ['includeLoudness', 'LUFS 표시'],
+            ['includeStyle', '스타일 표시'],
+            ['includeFormat', '음질 표시'],
+            ['includePlatform', '플랫폼 표시']
+        ].forEach(([key, labelText]) => {
+            const label = document.createElement('label');
+            label.className = 'download-filename-option';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = fileNamePreferences[key] !== false;
+            label.classList.toggle('is-checked', input.checked);
+            input.dataset.filenamePreference = key;
+            const copy = document.createElement('span');
+            copy.textContent = labelText;
+            label.append(input, copy);
+            fileNameOptionInputs.push(input);
+            fileNameOptionGrid.appendChild(label);
+        });
+        const fileNameReset = document.createElement('button');
+        fileNameReset.type = 'button';
+        fileNameReset.className = 'download-filename-reset';
+        fileNameReset.textContent = '기본 파일명으로 초기화';
+        fileNameSettings.append(fileNameSettingsIntro, fileNameOptionGrid, fileNameReset);
+        fileNameCard.append(fileNameHead, fileNamePreview, fileNameHint, fileNameCopyStatus, fileNameSettings);
 
         const progressCard = document.createElement('div');
         progressCard.className = 'download-options-worker-progress';
@@ -349,6 +427,45 @@
 
         const getFormatFamily = format => String(format || '').startsWith('mp3') ? 'mp3' : 'wav';
         const getSelectedOption = () => options.find(option => option.format === selectedFormat) || defaultOption;
+        const buildSelectedFileName = () => {
+            const selected = getSelectedOption();
+            const format = selected?.format || selectedFormat || track.outFormat || 'wav24';
+            const extension = String(format).startsWith('mp3') ? 'mp3' : 'wav';
+            try {
+                if (typeof buildMasteredFileName === 'function') {
+                    return buildMasteredFileName(track, { format, extension, preferences: fileNamePreferences }) || track.outName || track.name || `FoxBear mastered.${extension}`;
+                }
+                if (fileNamePolicy?.buildMasteredFileName) {
+                    return fileNamePolicy.buildMasteredFileName({
+                        sourceName: track.sourceFileName || track.name || 'track',
+                        targetLufs: track?.outputNameMeta?.targetLufs ?? track?.finalizeInfo?.targetLufs,
+                        style: track?.outputNameMeta?.style || track?.masterReport?.target?.masterStyle || 'master',
+                        platform: track?.outputNameMeta?.platform || '',
+                        format,
+                        extension,
+                        preferences: fileNamePreferences
+                    });
+                }
+            } catch (error) {}
+            return track.outName || track.name || `FoxBear mastered.${extension}`;
+        };
+        const updateFileNamePreview = () => {
+            const nextName = buildSelectedFileName();
+            fileNamePreview.textContent = nextName;
+            fileNamePreview.title = nextName;
+            fileNameCopyStatus.textContent = '';
+        };
+        const persistFileNamePreferences = nextValue => {
+            fileNamePreferences = fileNamePolicy?.saveFileNamePreferences?.(nextValue) || nextValue;
+            fileNameOptionInputs.forEach(input => {
+                const key = input.dataset.filenamePreference;
+                input.checked = fileNamePreferences[key] !== false;
+                input.closest('.download-filename-option')?.classList.toggle('is-checked', input.checked);
+            });
+            try { onFileNamePreferencesChange?.(fileNamePreferences); } catch (error) {}
+            updateFileNamePreview();
+            return fileNamePreferences;
+        };
         const getFamilySelection = family => {
             const selected = getSelectedOption();
             if (getFormatFamily(selected?.format) === family) return selected;
@@ -390,7 +507,51 @@
             const sizeText = getOptionSizeText(selected);
             const preparation = getPreparationHint(selected);
             selectedSummary.textContent = `${selected.label} · ${selected.detail}${sizeText ? ` · ${sizeText}` : ''}${preparation ? ` · ${preparation}` : ''}`;
+            updateFileNamePreview();
         };
+
+        fileNameCopy.addEventListener('click', async () => {
+            const value = buildSelectedFileName();
+            fileNameCopy.disabled = true;
+            let copied = false;
+            try {
+                copied = await global.FoxBearFileNameWorkflowService?.copyText?.(value, document) === true;
+            } catch (error) {}
+            fileNameCopyStatus.textContent = copied ? '파일명을 복사했습니다.' : '복사하지 못했습니다. 브라우저 권한을 확인하세요.';
+            fileNameCopy.textContent = copied ? '복사 완료' : '다시 복사';
+            global.setTimeout?.(() => {
+                if (!fileNameCopy.isConnected || actionInFlight) return;
+                fileNameCopy.disabled = false;
+                fileNameCopy.textContent = '파일명 복사';
+            }, 1400);
+        });
+
+        fileNameSettingsToggle.addEventListener('click', () => {
+            const expanded = fileNameSettings.hidden;
+            fileNameSettings.hidden = !expanded;
+            fileNameSettingsToggle.setAttribute('aria-expanded', String(expanded));
+            fileNameSettingsToggle.textContent = expanded ? '설정 닫기' : '파일명 설정';
+            if (expanded) fileNameOptionInputs[0]?.focus?.({ preventScroll: true });
+        });
+        fileNameOptionInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                const next = { ...fileNamePreferences };
+                fileNameOptionInputs.forEach(optionInput => {
+                    next[optionInput.dataset.filenamePreference] = optionInput.checked;
+                });
+                persistFileNamePreferences(next);
+            });
+        });
+        fileNameReset.addEventListener('click', () => {
+            const reset = fileNamePolicy?.resetFileNamePreferences?.() || {
+                includeMastered: true,
+                includeLoudness: true,
+                includeStyle: true,
+                includeFormat: true,
+                includePlatform: true
+            };
+            persistFileNamePreferences(reset);
+        });
         const syncFamilyButtons = () => {
             const selectedFamily = getFormatFamily(selectedFormat);
             Array.from(familyTabs.querySelectorAll('.download-format-family')).forEach(button => {
@@ -906,6 +1067,10 @@
             progressCard.hidden = !showProgress;
             panel.classList.toggle('working', showProgress);
             qualityMenu.classList.toggle('working', showProgress);
+            fileNameOptionInputs.forEach(input => { input.disabled = active; });
+            fileNameSettingsToggle.disabled = active;
+            fileNameCopy.disabled = active;
+            fileNameReset.disabled = active;
             if (!active) stopProgressClock();
         };
 
@@ -1127,8 +1292,8 @@
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        // v1.6.61 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
-        panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, actions);
+        // v1.6.63 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
+        panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, fileNameCard, progressCard, actions);
         backdrop.append(panel, qualityMenu);
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');

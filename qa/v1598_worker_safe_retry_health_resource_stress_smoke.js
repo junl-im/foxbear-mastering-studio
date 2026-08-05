@@ -19,12 +19,12 @@ const index = read('index.html');
 const sw = read('sw.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.61');
+assert.strictEqual(pkg.version, '1.6.63');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
-assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.6.61-human-readable-download-filenames'));
-assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.6.61-human-readable-download-filenames'));
-assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.6.61-human-readable-download-filenames'));
-assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.6.61-human-readable-download-filenames'));
+assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.6.63-download-filename-review-hardening'));
+assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.6.63-download-filename-review-hardening'));
+assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.6.63-download-filename-review-hardening'));
+assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.6.63-download-filename-review-hardening'));
 assert(workerSource.includes('function cancelStalledJob(identifier, options = {})'));
 assert(workerSource.includes("healthLevel, activeCount: jobs.length"));
 assert(workerSource.includes('watchThresholdMs: WATCH_THRESHOLD_MS'));
@@ -40,7 +40,7 @@ assert(diagnosticsSource.includes('cancelSingleStalledWorker(item)'));
 assert(diagnosticsSource.includes("return 'danger'"));
 assert(diagnosticsCss.includes('.foxbear-perf-worker-list'));
 assert(diagnosticsCss.includes('.foxbear-perf-health-badge'));
-assert(handoff.startsWith('# Handoff - v1.6.61'));
+assert(handoff.startsWith('# Handoff - v1.6.63'));
 
 let clock = 1_000_000;
 const workerSandbox = { console, ArrayBuffer, Date: { now: () => clock }, setTimeout, clearTimeout };

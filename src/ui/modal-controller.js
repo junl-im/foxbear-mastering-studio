@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.61
+// FoxBear Modal State Machine Controller v1.6.63
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.61-human-readable-download-filenames',
+            version: '1.6.63-download-filename-review-hardening',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,

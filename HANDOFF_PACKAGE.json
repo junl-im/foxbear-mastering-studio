@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.61",
-  "buildId": "human-readable-download-filenames",
+  "productVersion": "1.6.63",
+  "buildId": "download-filename-review-hardening",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -159,7 +159,12 @@
     "docs/V1.6.60_BULK_ZIP_HUD_NAVIGATION.md",
     "src/download/file-name-policy-service.js",
     "qa/v1661_human_readable_download_filename_smoke.js",
-    "docs/V1.6.61_HUMAN_READABLE_DOWNLOAD_FILENAMES.md"
+    "docs/V1.6.61_HUMAN_READABLE_DOWNLOAD_FILENAMES.md",
+    "src/download/file-name-workflow-service.js",
+    "qa/v1662_download_filename_preview_controls_smoke.js",
+    "docs/V1.6.62_DOWNLOAD_FILENAME_PREVIEW_CONTROLS.md",
+    "qa/v1663_filename_provenance_export_review_smoke.js",
+    "docs/V1.6.63_FILENAME_PROVENANCE_EXPORT_REVIEW_DESIGN_AUDIT.md"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -221,6 +226,8 @@
     "assets/css/boot/ui-shell-recovery.css",
     "src/ui/admin-access-controller.js",
     "src/boot/kakao-entry-notice.js",
-    "assets/css/boot/kakao-entry-notice.css"
+    "assets/css/boot/kakao-entry-notice.css",
+    "src/download/file-name-policy-service.js",
+    "src/download/file-name-workflow-service.js"
   ]
 }
