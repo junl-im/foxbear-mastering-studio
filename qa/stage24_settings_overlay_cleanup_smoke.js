@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+const version = '1.6.72-ci-safe-hygiene-self-repair';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

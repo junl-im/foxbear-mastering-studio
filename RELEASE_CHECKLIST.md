@@ -1,3 +1,16 @@
+# FoxBear v1.6.72 release checklist
+
+- [x] Reproduce the exact three GitHub Actions source-hygiene errors in a tracked Git fixture.
+- [x] Add `ci-safe` mode with narrow allowlisted cleanup followed by strict verification.
+- [x] Convert allowlisted CI cleanup annotations from errors to warnings.
+- [x] Keep `.env*` and unknown unsafe files as non-repairable failures.
+- [x] Preserve explicit non-mutating strict audit mode.
+- [x] Update both GitHub Pages workflows before dependency installation and inside the static release gate.
+- [x] Add dedicated v1.6.72 regression coverage.
+- [x] Pass all 427 configured checks and the 156-file Hosting boundary.
+- [x] Build the 735-file full ZIP and the 293-file patch plus manifest and 7 delete paths.
+- [x] Apply the final patch over v1.6.71 and reproduce v1.6.72 exactly (`735/735`).
+
 # FoxBear v1.6.71 release checklist
 
 - [x] Add atomic IndexedDB lease ownership for each PWA share ID.

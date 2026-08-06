@@ -1,27 +1,22 @@
-# FoxBear Status - v1.6.71
+# FoxBear Status - v1.6.72
 
 ## Current release
 
-- Product version: `1.6.71`
-- Build ID: `pwa-share-lease-handoff-deploy-policy-e2e`
-- Asset version: `1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
-- Service worker cache: `foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
-- Configured static/regression target: **426 checks**.
+- Product version: `1.6.72`
+- Build ID: `ci-safe-hygiene-self-repair`
+- Asset version: `1.6.72-ci-safe-hygiene-self-repair`
+- Service worker cache: `foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair`
+- Configured static/regression target: **427 checks**.
 
 ## Release status
 
-- PWA shares use atomic IndexedDB leases, heartbeat renewal, owner-checked completion, and retry-safe release.
-- A second tab cannot import the same shared payload; it exits with `claimed-by-other-tab` while the owner continues.
-- Quota recovery preserves active claims, prunes stale records, recreates deleted storage, and retries one failed write.
-- Service-worker activation recovers expired claims before claiming clients and publishes a handoff-ready message.
-- Android boundary policy is centralized at 12 files, 220 MiB per file, and 512 MiB per share.
-- App Check client and Functions contracts share policy version 2 and have local plus deployed comparison gates.
-- PWA registration/share orchestration moved to `src/boot/pwa-runtime-bridge.js`; `src/app.js` is **13,242 lines**.
-- Static/regression QA passed **426/426**; actual Chromium PWA scenarios passed.
-- Functions syntax, browser preflight, version, SRI, handoff, source hygiene, App Check policy, and the **156-file** Hosting boundary passed.
-- Root official npm production audit reported 0 vulnerabilities; Functions audit remained blocked by DNS `EAI_AGAIN`.
-- Deployed Firebase App Check comparison must be rerun after v1.6.71 is deployed.
-- Verified full archive: **733 files**. Patch archive: **304 declared files plus manifest**, with **7 delete paths**; v1.6.70 replay matched `733/733`.
+- Normal Pages workflows use `ci-safe` source hygiene before dependency installation and during the static release gate.
+- The three reported local/generated paths are removed only from the ephemeral checkout and produce warning annotations.
+- Strict tracked-file verification runs immediately after cleanup.
+- Secret-like and unknown unsafe files remain blocking errors and are never auto-deleted.
+- Explicit strict audit mode remains available.
+- Static and behavioral checks passed **427/427**; Hosting boundary passed with **156 files**.
+- Full archive contains **735 files**; patch declares **293 files plus manifest** and **7 delete paths**. v1.6.71 replay matched `735/735`.
 
 # FoxBear Status - v1.6.67
 
@@ -97,10 +92,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.71`
-- Build ID: `pwa-share-lease-handoff-deploy-policy-e2e`
-- Asset version: `1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
-- Service worker cache: `foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
+- Product version: `1.6.72`
+- Build ID: `ci-safe-hygiene-self-repair`
+- Asset version: `1.6.72-ci-safe-hygiene-self-repair`
+- Service worker cache: `foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair`
 
 # FoxBear Status - v1.6.64
 

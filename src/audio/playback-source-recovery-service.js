@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.6.71 - playback Blob source resilience
+// FoxBear AI Mastering Studio Pro v1.6.72 - playback Blob source resilience
 (function attachFoxBearPlaybackSourceRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+    const SERVICE_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
     const DEFAULT_READY_TIMEOUT_MS = 2600;
     const RETIRE_RECHECK_MS = 1800;
     const RETIRE_MAX_WAIT_MS = 45000;

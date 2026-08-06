@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+    const FALLBACK_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

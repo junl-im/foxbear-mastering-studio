@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+    const SERVICE_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
     const barElementsCache = typeof WeakMap === 'function' ? new WeakMap() : null;

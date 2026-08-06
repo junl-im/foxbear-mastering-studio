@@ -1,3 +1,11 @@
+# v1.6.72 project notes
+
+- Extract-overwrite archives cannot delete pre-existing tracked files; the normal release path must tolerate the fixed, non-secret cleanup allowlist.
+- CI cleanup is limited to the ephemeral checkout and must always be followed by the strict tracked-file check.
+- Never add `.env*`, credentials, tokens, or unknown paths to the repair allowlist.
+- Keep explicit strict mode for audits even though normal Pages delivery uses `ci-safe` mode.
+- Local deletion commits remain preferred repository hygiene, but missing them must not block the normal release.
+
 # v1.6.71 Project Notes
 
 - Treat a share record as a leased handoff. Only the current owner may renew, finish, release, or delete it.

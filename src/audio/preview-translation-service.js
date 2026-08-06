@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+    const SERVICE_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;

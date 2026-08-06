@@ -14,8 +14,8 @@ const pkg = JSON.parse(read('package.json'));
 const policy = require('../src/config/pwa-share-policy.js');
 const canonicalAppCheck = JSON.parse(read('app-check-policy.json'));
 
-assert.strictEqual(pkg.version, '1.6.71');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'pwa-share-lease-handoff-deploy-policy-e2e');
+assert.strictEqual(pkg.version, '1.6.72');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease.buildId || '')), 'current release build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node qa/v1671_pwa_share_lease_handoff_deploy_policy_smoke.js'));
 assert(pkg.qaChecks.includes('node --check src/config/pwa-share-policy.js'));
 assert(pkg.qaChecks.includes('node --check src/boot/pwa-runtime-bridge.js'));

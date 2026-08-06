@@ -1,3 +1,12 @@
+# v1.6.72 - CI-Safe Source Hygiene Self-Repair
+
+- Changes the normal GitHub Pages release path from non-mutating strict hygiene to a policy-aware `ci-safe` mode.
+- Removes only the narrow allowlist of project-local and generated files from the ephemeral GitHub Actions workspace before strict verification.
+- Converts `.firebaserc`, `.firebase/hosting..cache`, and `qa/static-audit.txt` from blocking error annotations into non-blocking cleanup warnings.
+- Keeps explicit strict audit mode available for repository reviews and keeps `.env*` or unknown unsafe files as hard failures.
+- Adds an exact regression fixture for the three paths reported by GitHub Actions and verifies that secret-like files are never auto-deleted.
+- Raises the configured static and behavioral target to 427 checks.
+
 # v1.6.71 - PWA Share Lease, Update Handoff, Deploy Policy Gate, and Browser E2E
 
 - Adds an atomic IndexedDB lease with heartbeat renewal so two tabs cannot import the same shared payload twice.

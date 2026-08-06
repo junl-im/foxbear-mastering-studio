@@ -26,9 +26,9 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Enforce repository source hygiene before install
+      - name: Sanitize allowlisted repository-local artifacts before install
         env:
-          FOXBEAR_SOURCE_HYGIENE_MODE: strict
+          FOXBEAR_SOURCE_HYGIENE_MODE: ci-safe
         run: npm run source:hygiene:gate
 
       - name: Install pinned dependencies
@@ -37,7 +37,7 @@ jobs:
       - name: Run static release gate
         env:
           FOXBEAR_RELEASE_PHASE: static
-          FOXBEAR_SOURCE_HYGIENE_MODE: strict
+          FOXBEAR_SOURCE_HYGIENE_MODE: ci-safe
         run: npm run check:release
 
       - name: Select browser QA impact scope

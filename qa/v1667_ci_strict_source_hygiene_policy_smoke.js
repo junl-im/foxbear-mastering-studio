@@ -44,13 +44,13 @@ const fallback = read('.github/workflows/pages-branch-fallback.yml');
 assert(pkg.scripts?.['source:hygiene:gate'] === 'node tools/run-source-hygiene-gate.js', 'source hygiene gate script missing');
 assert(releaseGate.includes("static: ['source:hygiene:gate',"), 'static release gate must use policy-aware hygiene gate');
 assert(releaseGate.includes("full: ['source:hygiene:gate',"), 'full release gate must use policy-aware hygiene gate');
-assert(!releaseGate.includes("static: ['source:hygiene:repair'"), 'static release gate must not force repair in CI');
-assert(repair.includes("repair is disabled in GitHub Actions"), 'direct CI repair refusal missing');
+assert(!releaseGate.includes("static: ['source:hygiene:repair'"), 'static release gate must use the policy-aware gate instead of direct repair');
+assert(repair.includes("policy-aware ci-safe gate explicitly enables"), 'direct CI repair guard missing');
 for (const [name, workflow] of [['pages', pages], ['fallback', fallback]]) {
-  const hygieneIndex = workflow.indexOf('Enforce repository source hygiene before install');
+  const hygieneIndex = workflow.indexOf('Sanitize allowlisted repository-local artifacts before install');
   const installIndex = workflow.indexOf('Install pinned dependencies');
   assert(hygieneIndex >= 0 && installIndex >= 0 && hygieneIndex < installIndex, `${name} workflow must check hygiene before dependency installation`);
-  assert(workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: strict'), `${name} workflow strict hygiene mode missing`);
+  assert(workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: ci-safe'), `${name} workflow ci-safe hygiene mode missing`);
 }
 
 const strictFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-hygiene-strict-'));
@@ -110,4 +110,4 @@ try {
   fs.rmSync(secretFixture, { recursive: true, force: true });
 }
 
-console.log('PASS v1.6.67 CI strict source hygiene policy regression');
+console.log('PASS v1.6.67 strict mode remains available while workflows use later policy-aware mode');

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+  const VIEW_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
   const DEFAULT_BINS = 96;
 
   function getService() {

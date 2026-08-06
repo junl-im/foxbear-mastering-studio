@@ -1,3 +1,7 @@
+# FoxBear AI Mastering Studio Pro v1.6.72
+
+This release prevents the recurring Static release gate failure caused by extract-overwrite leftovers. GitHub Actions now removes only the approved local/generated paths from its temporary checkout, emits warning annotations, and immediately runs the same strict hygiene validation. Secret-like files and unknown unsafe artifacts still fail the release.
+
 # FoxBear AI Mastering Studio Pro v1.6.71
 
 This release completes the PWA share hardening roadmap: atomic multi-tab leases, quota and deleted-storage recovery, service-worker update handoff, exact Android payload boundaries, canonical/deployed App Check policy comparison, actual Chromium E2E coverage, and a smaller main application module.

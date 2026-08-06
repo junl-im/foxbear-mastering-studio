@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.71
+// FoxBear audio decode service - v1.6.72
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+    const SERVICE_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

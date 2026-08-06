@@ -1,3 +1,7 @@
+# v1.6.72 GitHub Actions source hygiene note
+
+The normal GitHub Pages release now removes `.firebaserc`, `.firebase/`, and generated QA audit text only from the temporary Actions checkout before strict verification. This does not change Firebase deployment configuration or App Check enforcement. Run `npm run source:hygiene:repair` locally when you want GitHub Desktop to record the actual repository deletions.
+
 # v1.6.71 App Check deployment parity
 
 After deploying Hosting and Functions together, run `npm run appcheck:deploy:verify`. The command compares `/app-check-policy.json` with authenticated Callable status metadata. v1.6.71 keeps enforcement disabled and treats any version, mode, reason, or enforcement mismatch as a deployment failure.

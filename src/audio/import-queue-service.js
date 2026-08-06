@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+                version: '1.6.72-ci-safe-hygiene-self-repair',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+        version: '1.6.72-ci-safe-hygiene-self-repair',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

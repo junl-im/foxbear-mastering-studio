@@ -1,36 +1,31 @@
-# Handoff - v1.6.71
+# Handoff - v1.6.72
 
 ## Current release
 
-- Product version: `1.6.71`
-- Build ID: `pwa-share-lease-handoff-deploy-policy-e2e`
-- Asset version: `1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
-- Service worker cache: `foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
-- Configured static/regression target: 426 checks.
+- Product version: `1.6.72`
+- Build ID: `ci-safe-hygiene-self-repair`
+- Asset version: `1.6.72-ci-safe-hygiene-self-repair`
+- Service worker cache: `foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair`
+- Configured static/regression target: 427 checks.
 
 ## Current focus
 
-- Atomic multi-tab ownership for one PWA share ID with renewable IndexedDB leases.
-- Retry-safe import completion and quota recovery without deleting active handoffs.
-- Service-worker activation handoff that releases only expired claims.
-- Canonical client/Functions App Check policy plus postdeploy comparison.
-- Actual Chromium coverage for success, failure/reload, two-tab race, storage recreation, Android limits, and service-worker update.
-- Smaller main module through `pwa-runtime-bridge.js` extraction.
+- Make the normal GitHub Pages release self-repair the exact three recurring tracked leftovers.
+- Preserve strict follow-up verification and hard failure for secrets or unknown paths.
+- Keep local cleanup recommended without making it a prerequisite for successful CI.
 
 ## Required GitHub Desktop step
 
-Extract the v1.6.71 patch over a v1.6.70 repository, run `npm run source:hygiene:repair`, commit every code change and displayed deletion together, then push. Deploy Hosting and Functions together so the public App Check contract and server metadata can be compared by the postdeploy gate.
+Extract the v1.6.72 patch over v1.6.71, commit, and push. Running `npm run source:hygiene:repair` locally is recommended to remove the files from repository history going forward, but the normal Actions release path no longer fails when that manual deletion was missed.
 
 ## Verified
 
-- Configured static/regression checks: **426/426 passed**.
-- Actual system Chromium acceptance passed for the six PWA share/update scenarios.
-- Metadata, SRI, handoff, App Check policy, source hygiene, dependency structure, browser preflight, Functions syntax, and the **156-file** Hosting boundary passed.
-- Root official-registry production audit reported **0 vulnerabilities**.
-- Functions official-registry audit remained unavailable because DNS resolution returned `EAI_AGAIN`.
-- `src/app.js` is **13,242 lines**, below the 13,300-line gate.
-- Deployed App Check comparison remains a post-v1.6.71 deployment acceptance item.
-- Verified full archive: **733 files**. Patch archive: **304 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**. Applying it over v1.6.70 reproduced the v1.6.71 tree exactly (`733/733`).
+- Exact three-path CI fixture passes in `ci-safe` mode and emits warnings instead of errors.
+- Secret-like `.env.production` remains present and fails with an error annotation.
+- Explicit strict mode remains non-mutating and fails the same allowlisted fixture for audit use.
+- Static and behavioral checks passed **427/427**.
+- Version, handoff, App Check policy, source hygiene, Functions syntax, browser preflight, dependency structure, and the **156-file** Hosting boundary passed.
+- Full archive: **735 files**. Patch: **293 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**. Applying the patch over v1.6.71 reproduced v1.6.72 exactly (`735/735`).
 
 # Handoff - v1.6.67
 

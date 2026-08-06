@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.72
+
+## Configured target
+
+- Static and behavioral checks: **427**.
+- New regression: `qa/v1672_ci_hygiene_self_repair_smoke.js`.
+
+## Verification scope
+
+- Exact reproduction of `.firebaserc`, `.firebase/hosting..cache`, and `qa/static-audit.txt` committed in a Git checkout.
+- GitHub Actions `ci-safe` cleanup followed by strict tracked-file verification.
+- Non-blocking warning annotations for allowlisted generated/project-local paths.
+- Continued hard failure and non-deletion for `.env.production` and other secret-like files.
+- Explicit strict audit mode remains non-mutating and available.
+
+## Final result
+
+- Static and behavioral checks: **427/427 passed** in four bounded slices (`107/107`, `107/107`, `107/107`, `106/106`).
+- The exact three reported paths were removed from a simulated GitHub Actions checkout and the strict follow-up check passed.
+- Allowlisted cleanup produced warning annotations and no error annotations.
+- `.env.production` remained on disk and failed with an error annotation.
+- Version, SRI, handoff, App Check policy, source hygiene, Functions syntax, browser preflight, dependency structure, and the **156-file** Hosting boundary passed.
+- Dependency health reported 0 structural errors and 5 expected missing-install warnings.
+- The verified full ZIP contains **735 files**. The patch declares **293 files plus `PATCH_MANIFEST.json`** and **7 delete paths**.
+- Applying the final patch over v1.6.71 reproduced v1.6.72 exactly (`735/735`, no missing, extra, or changed files).
 # FoxBear QA Report - v1.6.71
 
 ## Configured target

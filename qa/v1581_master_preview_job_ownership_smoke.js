@@ -14,12 +14,12 @@ const downloadSource = fs.readFileSync('src/download/download-service.js', 'utf8
 const indexSource = fs.readFileSync('index.html', 'utf8');
 const swSource = fs.readFileSync('sw.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.71');
+assert.strictEqual(pkg.version, '1.6.72');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert(pkg.qaChecks.includes('node --check src/audio/master-preview-job-service.js'));
 assert(pkg.qaChecks.includes('node qa/v1581_master_preview_job_ownership_smoke.js'));
-assert(indexSource.includes('src/audio/master-preview-job-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e'));
-assert(swSource.includes('./src/audio/master-preview-job-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e'));
+assert(indexSource.includes('src/audio/master-preview-job-service.js?v=1.6.72-ci-safe-hygiene-self-repair'));
+assert(swSource.includes('./src/audio/master-preview-job-service.js?v=1.6.72-ci-safe-hygiene-self-repair'));
 assert(indexSource.indexOf('src/audio/master-preview-job-service.js') < indexSource.indexOf('src/app.js'));
 assert(stateSource.includes("masterPreviewRenderingJobId: ''"));
 assert(lifecycleSource.includes('masterPreviewAbortController: null'));

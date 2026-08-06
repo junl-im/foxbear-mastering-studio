@@ -1,27 +1,23 @@
-# GitHub Desktop Handoff - v1.6.71
+# GitHub Desktop Handoff - v1.6.72
 
 ## Apply
 
-1. Extract `foxbear-mastering-studio-v1.6.71-patch.zip` into the v1.6.70 repository root and replace matching files.
-2. Run `npm run source:hygiene:repair`.
-3. Review the PWA lease, service-worker handoff, App Check policy, workflow, QA, and documentation changes together.
-4. Commit code changes and every displayed deletion, then **Push origin**.
-5. Deploy Hosting and Functions together, then run `npm run appcheck:deploy:verify`.
+1. Extract `foxbear-mastering-studio-v1.6.72-patch.zip` into the v1.6.71 repository root and replace matching files.
+2. Commit the v1.6.72 code and workflow changes, then **Push origin**.
+3. Local cleanup is recommended but no longer required for the normal Pages release gate: run `npm run source:hygiene:repair` and commit displayed deletions when convenient.
 
 ## Release focus
 
-- Atomic one-owner PWA share import across multiple tabs.
-- Quota-safe and update-safe IndexedDB handoff recovery.
-- Actual Chromium coverage for all automated 1–8 acceptance scenarios.
-- Canonical local/deployed App Check policy comparison.
-- PWA runtime bridge extraction and reduced main-module size.
+- Prevent recurring Static release gate failures from previously committed `.firebaserc`, `.firebase/hosting..cache`, and `qa/static-audit.txt`.
+- Repair only a narrow allowlist in the ephemeral CI workspace, then run strict verification.
+- Keep secret-like and unknown unsafe files as hard release failures.
+- Keep explicit strict non-mutating audit mode available.
 
-## Production verification
+## Expected GitHub Actions result
 
-- Use a physical Android device to share 1, 12, and over-limit audio selections.
-- Deploy v1.6.71 and confirm `npm run appcheck:deploy:verify` reports client/server parity.
-- Retry `npm run functions:audit:official` on a network with stable registry DNS.
-- Confirm GitHub Actions runs Static gate before browser installation and passes the new Chromium spec.
+- Known generated/project-local leftovers appear as warning annotations, not errors.
+- Static release gate continues to version, handoff, dependency, and regression checks.
+- `.env*` or unknown violations still stop the workflow.
 
 ## v1.6.67 strict CI hygiene
 
