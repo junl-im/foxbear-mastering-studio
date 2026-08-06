@@ -1,31 +1,32 @@
-# FoxBear QA Report - v1.6.70
+# FoxBear QA Report - v1.6.71
 
 ## Configured target
 
-- Static and behavioral checks: **421**.
-- New regression: `qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js`.
-- Updated syntax target: `src/boot/pwa-share-target-service.js`.
+- Static and behavioral checks: **426**.
+- New regression: `qa/v1671_pwa_share_lease_handoff_deploy_policy_smoke.js`.
+- New browser E2E: `qa/browser/pwa-share-lease-handoff-playwright.spec.js`.
+- New syntax targets: share policy, PWA runtime bridge, and App Check comparison tools.
 
 ## Verification scope
 
-- Awaited PWA share import completion and retry preservation after transient failures.
-- Aggregate IndexedDB share-storage budget and metadata caps.
-- Client/server App Check policy drift diagnostics.
-- Static-before-Chromium fallback workflow ordering.
-- Version-only browser-impact normalization for full/patch verifier paths.
-- Existing audio, export, PWA cache, Firebase, CI hygiene, and delivery regressions.
+- Atomic multi-tab share claim, heartbeat, owner-checked completion, failure release, and stale-claim takeover.
+- Quota estimate, active-claim-safe cleanup, one-write retry, database deletion recreation, TTL/count/byte retention.
+- Android 12-file, 220 MiB per-file, and 512 MiB batch boundaries.
+- Service-worker activation handoff and expired claim recovery.
+- Canonical and deployed App Check client/Functions policy comparison.
+- PWA bridge module split and delivery artifact reproduction.
 
 ## Final result
 
-- Official static and behavioral checks: **421/421 passed** in bounded slices (`106/106`, `105/105`, `105/105`, `105/105`).
-- Atomic share import, transient retry preservation, aggregate storage budget, metadata caps, App Check policy drift warning, fallback static-first ordering, and version-only browser-impact normalization passed.
-- `src/app.js` is 13,251 lines and remains below the 13,300-line structural gate.
-- Release metadata, SRI, handoff state, source hygiene, browser preflight, Functions syntax, and the 153-file Hosting boundary passed.
-- Dependency health reported 0 errors and 5 expected missing-install warnings because Playwright and Functions packages are not installed in this environment.
-- Installed Chromium/PWA share invocation and deployed Firebase acceptance remain external. Root and Functions online vulnerability audits could not run because the configured npm mirror returned HTTP 404 for the audit endpoint.
-- The verified full ZIP contains **723 files**.
-- The patch contains **285 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- Applying the patch over the supplied v1.6.69 full tree reproduced the v1.6.70 source tree exactly (`723/723`, no missing, extra, or changed files).
+- Official static and behavioral checks: **426/426 passed**.
+- Actual system Chromium passed share success, transient failure/reload retry, two-tab single import, forced IndexedDB deletion/recreation, Android boundary, and service-worker update handoff.
+- `src/app.js` is **13,242 lines**, below the 13,300-line structural gate.
+- Release metadata, SRI, handoff, App Check policy, source hygiene, browser preflight, Functions syntax, and the **156-file** Hosting boundary passed.
+- Dependency health reported 0 structural errors and 5 missing-install warnings.
+- Root production audit against the official npm endpoint reported 0 vulnerabilities.
+- Functions official audit could not complete because registry DNS resolution returned `EAI_AGAIN`.
+- The deployed App Check comparison could not complete before v1.6.71 deployment; the local and mocked deployed-policy gates passed.
+- The verified full ZIP contains **733 files**. The patch declares **304 files plus `PATCH_MANIFEST.json`** and **7 delete paths**. Applying it over v1.6.70 reproduced v1.6.71 exactly (`733/733`).
 
 # FoxBear QA Report - v1.6.69
 

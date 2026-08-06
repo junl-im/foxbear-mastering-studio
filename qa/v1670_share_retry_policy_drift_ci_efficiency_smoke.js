@@ -10,8 +10,8 @@ const ROOT = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.70');
-assert.strictEqual(pkg.foxbearRelease.buildId, 'share-retry-policy-drift-ci-efficiency');
+assert.strictEqual(pkg.version, '1.6.71');
+assert(pkg.foxbearRelease.assetVersion.startsWith(`${pkg.version}-`), 'current release metadata must remain synchronized');
 assert(pkg.qaChecks.includes('node qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js'));
 
 const fallbackWorkflow = read('.github/workflows/pages-branch-fallback.yml');
@@ -24,29 +24,29 @@ assert(staticGateIndex < chromiumIndex, 'fallback must not install Chromium befo
 const selector = require('./browser/select-browser-scope');
 const beforePackage = {
   name: 'foxbear-mastering-studio',
-  version: '1.6.70',
+  version: '1.6.71',
   private: true,
   scripts: {
-    'package:verify:full': 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.70-full.zip',
-    'package:verify:patch': 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.70-patch.zip'
+    'package:verify:full': 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.71-full.zip',
+    'package:verify:patch': 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.71-patch.zip'
   },
   foxbearRelease: {
     buildId: 'old-build',
-    assetVersion: '1.6.70-old-build',
-    cacheName: 'foxbear-shell-v1.6.70-old-build',
+    assetVersion: '1.6.71-old-build',
+    cacheName: 'foxbear-shell-v1.6.71-old-build',
     bootRevision: 'boot-sri-v1669-old',
     updateSafetyRevision: 'update-safety-v1669-old',
     serviceWorkerRevision: 'sw-v1669-old'
   }
 };
 const afterPackage = JSON.parse(JSON.stringify(beforePackage));
-afterPackage.version = '1.6.70';
-afterPackage.scripts['package:verify:full'] = 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.70-full.zip';
-afterPackage.scripts['package:verify:patch'] = 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.70-patch.zip';
+afterPackage.version = '1.6.71';
+afterPackage.scripts['package:verify:full'] = 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.71-full.zip';
+afterPackage.scripts['package:verify:patch'] = 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.71-patch.zip';
 afterPackage.foxbearRelease = {
   buildId: 'new-build',
-  assetVersion: '1.6.70-new-build',
-  cacheName: 'foxbear-shell-v1.6.70-new-build',
+  assetVersion: '1.6.71-new-build',
+  cacheName: 'foxbear-shell-v1.6.71-new-build',
   bootRevision: 'boot-sri-v1670-new',
   updateSafetyRevision: 'update-safety-v1670-new',
   serviceWorkerRevision: 'sw-v1670-new'
@@ -150,13 +150,13 @@ function createIndexedDb(records) {
           }, 0);
           return request;
         },
+        put(value) {
+          records.set(value.id, value);
+          return { result: value, error: null, onsuccess: null, onerror: null };
+        },
         delete(id) {
           const request = { error: null, onsuccess: null, onerror: null };
-          setTimeout(() => {
-            records.delete(id);
-            request.onsuccess?.();
-            complete();
-          }, 0);
+          records.delete(id);
           return request;
         }
       };
@@ -196,6 +196,8 @@ async function runShareScenario({ id, handleFiles, expectRemoved, expectHistory 
     Error,
     setTimeout,
     clearTimeout,
+    setInterval,
+    clearInterval,
     indexedDB: createIndexedDb(records),
     location: {
       href: `https://example.test/app/?foxbearSharedAudio=${id}&shareCount=1`,

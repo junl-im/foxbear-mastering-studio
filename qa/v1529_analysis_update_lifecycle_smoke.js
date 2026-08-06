@@ -9,6 +9,7 @@ const read = file => fs.readFileSync(file, 'utf8');
 const queueSource = read('src/audio/import-queue-service.js');
 const decodeSource = read('src/audio/audio-decode-service.js');
 const appSource = read('src/app.js');
+const pwaRuntimeBridgeSource = read('src/boot/pwa-runtime-bridge.js');
 const updateSource = read('src/boot/service-worker-update-service.js');
 const index = read('index.html');
 const sw = read('sw.js');
@@ -25,7 +26,7 @@ assert(appSource.includes('assertAnalysisTaskActive(track, task'), 'app analysis
 assert(appSource.includes("cancelAll?.('queue-cleared')"), 'queue clear must cancel active analysis');
 assert(appSource.includes("cancelTrack?.(id, 'track-removed')"), 'track removal must cancel its active analysis');
 assert(appSource.includes('const unsafeClearBusy =') && appSource.includes('el.clearBtn.disabled = !hasTracks || unsafeClearBusy'), 'clear control must remain available during cancellable analysis');
-assert(appSource.includes("window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration"), 'service worker registration must use the update coordinator');
+assert(appSource.includes('FoxBearPwaRuntimeBridge') && pwaRuntimeBridgeSource.includes('updateService?.coordinate?.(registration'), 'service worker registration must use the update coordinator');
 assert(index.includes('src/boot/service-worker-update-service.js'), 'update coordinator must be loaded by index.html');
 assert(updateSource.includes('stableIdleMs'), 'update coordinator must require a stable idle window');
 for (const activity of ['analysis', 'mastering', 'decoding', 'rendering', 'playback']) {

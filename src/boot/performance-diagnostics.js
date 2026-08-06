@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.70
+// FoxBear performance diagnostics - v1.6.71
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
+    const DIAGNOSTICS_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

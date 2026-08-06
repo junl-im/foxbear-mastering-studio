@@ -1,4 +1,4 @@
-// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.70 - piano transient integrity and single-stage transparent limiting.
+// FoxBear Pro finalizer worker v1.5.0 quality-gate carry-forward / v1.6.71 - piano transient integrity and single-stage transparent limiting.
 'use strict';
 
 self.onmessage = event => {

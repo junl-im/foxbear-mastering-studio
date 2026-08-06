@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.70-share-retry-policy-drift-ci-efficiency';
+const version = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

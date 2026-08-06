@@ -1,9 +1,32 @@
-// FoxBear AI Mastering Studio Pro v1.6.70 service worker · share-retry-policy-drift-ci-efficiency
+// FoxBear AI Mastering Studio Pro v1.6.71 service worker · pwa-share-lease-handoff-deploy-policy-e2e
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency';
-const CURRENT_ASSET_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.50-kakao-centered-entry-notice', 'foxbear-shell-v1.6.51-stability-concurrency-input-guard', 'foxbear-shell-v1.6.52-post-master-playback-readiness-recovery', 'foxbear-shell-v1.6.53-playback-crossfade-settlement-guard', 'foxbear-shell-v1.6.54-playback-intent-arbitration', 'foxbear-shell-v1.6.55-mobile-focus-resume-reconciliation', 'foxbear-shell-v1.6.56-playback-blob-source-resilience', 'foxbear-shell-v1.6.57-firebase-hosting-payload-boundary', 'foxbear-shell-v1.6.58-piano-transient-integrity', 'foxbear-shell-v1.6.59-readiness-corp-security-hardening', 'foxbear-shell-v1.6.60-bulk-zip-hud-navigation', 'foxbear-shell-v1.6.61-human-readable-download-filenames', 'foxbear-shell-v1.6.62-download-filename-preview-controls', 'foxbear-shell-v1.6.63-download-filename-review-hardening', 'foxbear-shell-v1.6.64-github-desktop-delivery-contract', 'foxbear-shell-v1.6.65-firestore-write-fencing', 'foxbear-shell-v1.6.66-static-gate-hygiene-repair', 'foxbear-shell-v1.6.67-ci-strict-hygiene-policy', 'foxbear-shell-v1.6.68-public-shell-cache-integrity', 'foxbear-shell-v1.6.69-ci-appcheck-share-target-hardening'];
+function loadSharePolicy() {
+  try {
+    if (typeof importScripts === 'function') importScripts('./src/config/pwa-share-policy.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e');
+  } catch (error) {
+    console.warn('share policy import fallback:', error?.message || error);
+  }
+  if (self.FoxBearPwaSharePolicy) return self.FoxBearPwaSharePolicy;
+  const defaults = Object.freeze({ schemaVersion: 2, maxFiles: 12, maxFileBytes: 220 * 1024 * 1024, maxBatchBytes: 512 * 1024 * 1024, maxStoreBytes: 768 * 1024 * 1024, recordLimit: 8, recordTtlMs: 24 * 60 * 60 * 1000, claimLeaseMs: 2 * 60 * 1000, claimHeartbeatMs: 30 * 1000 });
+  const bytes = record => Number(record?.totalBytes || 0) || (Array.isArray(record?.files) ? record.files.reduce((sum, file) => sum + Math.max(0, Number(file?.size || 0)), 0) : 0);
+  const timestamp = record => Number(record?.createdAt || 0) || Number.parseInt(String(record?.key || record?.id || '').split('-', 1)[0], 10) || 0;
+  const active = (record, now) => Boolean(record?.claimOwner && Number(record?.claimExpiresAt || 0) > now);
+  return Object.freeze({
+    version: 'inline-fallback', DEFAULTS: defaults, createPolicy: () => defaults,
+    isSupportedFile(file, policy = defaults) { const size = Number(file?.size || 0); const type = String(file?.type || '').toLowerCase(); const name = String(file?.name || '').toLowerCase(); return size > 0 && size <= policy.maxFileBytes && (type.startsWith('audio/') || ['video/mp4', 'video/quicktime'].includes(type) || /\.(wav|wave|mp3|mpeg|mpga|aif|aiff|aifc|m4a|aac|flac|ogg|oga|opus|webm|weba|mp4|m4v|mov)$/.test(name)); },
+    selectFiles(values = [], policy = defaults) { const files = []; let totalBytes = 0; let rejected = 0; for (const value of values) { if (files.length >= policy.maxFiles || !this.isSupportedFile(value, policy) || totalBytes + Number(value.size || 0) > policy.maxBatchBytes) { rejected += 1; continue; } files.push(value); totalBytes += Number(value.size || 0); } return Object.freeze({ files: Object.freeze(files), totalBytes, rejected }); },
+    recordTimestamp: timestamp, recordBytes: bytes, activeClaim: active,
+    planRetention(records = [], now = Date.now(), incomingBytes = 0, policy = defaults) { const normalized = records.map(record => ({ key: String(record?.key || record?.id || ''), createdAt: timestamp(record), totalBytes: bytes(record), activeClaim: active(record, now) })).filter(record => record.key); const availableBytes = Math.max(0, policy.maxStoreBytes - incomingBytes); const protectedRecords = normalized.filter(record => record.activeClaim); const protectedBytes = protectedRecords.reduce((sum, record) => sum + record.totalBytes, 0); const retainKeys = protectedRecords.map(record => record.key); let retainedBytes = protectedBytes; const canAccept = incomingBytes <= policy.maxBatchBytes && protectedBytes <= availableBytes && protectedRecords.length <= policy.recordLimit - 1; if (canAccept) for (const record of normalized.filter(record => !record.activeClaim && now - record.createdAt <= policy.recordTtlMs).sort((a, b) => b.createdAt - a.createdAt)) { if (retainKeys.length >= policy.recordLimit - 1) break; if (retainedBytes + record.totalBytes > availableBytes) continue; retainKeys.push(record.key); retainedBytes += record.totalBytes; } const retained = new Set(retainKeys); return Object.freeze({ canAccept, reason: canAccept ? 'ok' : 'store-budget-exceeded', retainKeys: Object.freeze(retainKeys), deleteKeys: Object.freeze(normalized.filter(record => !record.activeClaim && !retained.has(record.key)).map(record => record.key)), retainedBytes, protectedBytes, availableBytes }); },
+    isQuotaExceededError(error) { return String(error?.name || '') === 'QuotaExceededError' || /quota|storage.*full|disk.*full/i.test(`${error?.name || ''} ${error?.message || ''}`); }
+  });
+}
+const SHARE_POLICY_API = loadSharePolicy();
+const SHARE_POLICY = SHARE_POLICY_API.createPolicy();
+
+const CACHE_NAME = 'foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+const CURRENT_ASSET_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.51-stability-concurrency-input-guard', 'foxbear-shell-v1.6.52-post-master-playback-readiness-recovery', 'foxbear-shell-v1.6.53-playback-crossfade-settlement-guard', 'foxbear-shell-v1.6.54-playback-intent-arbitration', 'foxbear-shell-v1.6.55-mobile-focus-resume-reconciliation', 'foxbear-shell-v1.6.56-playback-blob-source-resilience', 'foxbear-shell-v1.6.57-firebase-hosting-payload-boundary', 'foxbear-shell-v1.6.58-piano-transient-integrity', 'foxbear-shell-v1.6.59-readiness-corp-security-hardening', 'foxbear-shell-v1.6.60-bulk-zip-hud-navigation', 'foxbear-shell-v1.6.61-human-readable-download-filenames', 'foxbear-shell-v1.6.62-download-filename-preview-controls', 'foxbear-shell-v1.6.63-download-filename-review-hardening', 'foxbear-shell-v1.6.64-github-desktop-delivery-contract', 'foxbear-shell-v1.6.65-firestore-write-fencing', 'foxbear-shell-v1.6.66-static-gate-hygiene-repair', 'foxbear-shell-v1.6.67-ci-strict-hygiene-policy', 'foxbear-shell-v1.6.68-public-shell-cache-integrity', 'foxbear-shell-v1.6.69-ci-appcheck-share-target-hardening', 'foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency'];
 const RETAINED_LEGACY_SHELL_COUNT = 2;
 const CLIENT_SHELL_PROBE_TIMEOUT_MS = 400;
 const CLIENT_SHELL_CLEANUP_COOLDOWN_MS = 2500;
@@ -32,17 +55,17 @@ const CORE_ASSETS = [
   './404.html',
   './foxbear-root.json',
   './external-browser.html',
-  './assets/css/external-browser.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/external-browser.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
   './design-preview.html',
-  './assets/css/design-preview.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/design-preview.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
   './src/security/trusted-types-bootstrap.js',
   './src/boot/kakao-entry-guard.js',
   './src/boot/kakao-entry-notice.js',
   './assets/css/boot/kakao-entry-notice.css',
-  './src/security/trusted-types-bootstrap.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/kakao-entry-guard.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/kakao-entry-notice.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/kakao-external-browser.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/security/trusted-types-bootstrap.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/kakao-entry-guard.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/kakao-entry-notice.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/kakao-external-browser.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
   './manifest.webmanifest',
   './sw.js',
   './src/workers/wav-encoder.worker.js',
@@ -51,140 +74,142 @@ const CORE_ASSETS = [
   './src/workers/master-finalizer.worker.js',
   './src/workers/pitch-wsola.worker.js',
   './src/workers/zip-encoder.worker.js',
-  './src/workers/wav-encoder.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/workers/mp3-encoder.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/workers/analysis.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/workers/master-finalizer.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/workers/pitch-wsola.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/workers/zip-encoder.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/workers/wav-encoder.worker.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/workers/mp3-encoder.worker.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/workers/analysis.worker.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/workers/master-finalizer.worker.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/workers/pitch-wsola.worker.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/workers/zip-encoder.worker.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
   './src/engines/pitch-engine-adapter.js',
-  './assets/icons/foxbear-icon-48.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-72.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-96.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-128.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-144.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-152.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-180.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-192.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-384.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-512.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-16.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-icon-32.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/apple-touch-icon.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './manifest.webmanifest?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/boot/performance-diagnostics.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/boot/runtime-health.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/boot/ui-shell-recovery.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/boot/kakao-entry-notice.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/theme.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/layout.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/base-components.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/forms.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/cards.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/preview-system.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/playback-link.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/studio.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/admin-incident-monitor.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/dock.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/dock-waveform.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/waveform-compare.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/spectrum-visualizer.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/export.css?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/bulk-import-hud.css?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/dock-ui-repair.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/floating-overlays.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/header-command-bar.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/support-settings.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/css/components/modal-close-system.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './vendor/jszip/jszip.min.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&lib=3.10.1',
-  './src/config/build-info.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/release-presentation-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/session-handoff-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-route-policy.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-submission-identity-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/firebase-bootstrap.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-support-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-state-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-mail-sync-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-lifecycle-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-recovery-sweep-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-service-recovery-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-recovery-policy.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-local-queue-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-queue-coordination-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-service-diagnostics.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-diagnostics-view-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-controls-view-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/incident-reporter.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/config/mastering-presets.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/config/genre-presets.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/config/reference-targets.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/config/app-runtime-config.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/state/app-state.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/settings/settings-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/utils/core-utils.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/utils/worker-job-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/recommendation/recommendation-engine.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/mastering-inspector.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/highlight-compare-inspector.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/playback-link-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/playback-transition-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/playback-source-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/playback-lifecycle-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/post-master-playback-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/audio-context-manager.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/preview-translation-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/audio-import-capability-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/audio-decode-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/inapp-mastering-safety-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/import-preflight-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/import-queue-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/analysis-cache-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/memory-guard-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/reference-profile-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/loudness-measurement-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/mastering-input-guard-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/mastering-quality-audit-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/quality-gate-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/mastering-orchestrator-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/master-preview-job-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/state/track-lifecycle-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/audio/waveform-control-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/waveform-control-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/spectrum-visualizer.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/modal-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/dock-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/mobile-native-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=bulk-hud-restore-v153',
-  './src/ui/admin-access-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/download/file-name-policy-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/download/file-name-workflow-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/download/download-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/download/export-guard-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=export-v156',
-  './src/download/export-progress-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=export-progress-v156',
-  './src/download/zip-export-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/download/export-queue-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/download-dialog-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/bulk-import-hud-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/detail-panels-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/detail-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/ui/admin-incident-monitor-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/security/site-guards.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/runtime-health.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=boot-sri-v1670-share-retry',
-  './src/boot/ui-shell-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/update-safety-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=update-safety-v1670-share-retry',
-  './src/boot/service-worker-update-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/service-worker-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/worker-recovery-coordinator.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/performance-diagnostics.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=boot-sri-v1670-share-retry',
-  './src/boot/render-scheduler.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/boot/pwa-share-target-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './src/app.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=boot-sri-v1670-share-retry',
-  './src/boot/worker-recovery-app-bridge.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
-  './assets/icons/foxbear-music.png?v=1.6.70-share-retry-policy-drift-ci-efficiency'
+  './assets/icons/foxbear-icon-48.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-72.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-96.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-128.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-144.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-152.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-180.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-192.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-384.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-512.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-16.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-icon-32.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/apple-touch-icon.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './manifest.webmanifest?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/boot/performance-diagnostics.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/boot/runtime-health.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/boot/ui-shell-recovery.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/boot/kakao-entry-notice.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/theme.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/layout.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/base-components.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/forms.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/cards.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/preview-system.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/playback-link.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/studio.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/admin-incident-monitor.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/dock.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/dock-waveform.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/waveform-compare.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/spectrum-visualizer.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/export.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/bulk-import-hud.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/dock-ui-repair.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/floating-overlays.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/header-command-bar.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/support-settings.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/css/components/modal-close-system.css?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './vendor/jszip/jszip.min.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&lib=3.10.1',
+  './src/config/build-info.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/release-presentation-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/session-handoff-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-route-policy.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-submission-identity-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/firebase-bootstrap.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-support-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-state-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-mail-sync-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-lifecycle-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-recovery-sweep-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-service-recovery-controller.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-recovery-policy.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-local-queue-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-queue-coordination-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-service-diagnostics.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-diagnostics-view-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-controls-view-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/incident-reporter.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/config/mastering-presets.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/config/genre-presets.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/config/reference-targets.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/config/app-runtime-config.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/config/pwa-share-policy.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/state/app-state.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/settings/settings-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/utils/core-utils.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/utils/worker-job-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/recommendation/recommendation-engine.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/mastering-inspector.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/highlight-compare-inspector.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/playback-link-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/playback-transition-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/playback-source-recovery-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/playback-lifecycle-recovery-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/post-master-playback-recovery-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/audio-context-manager.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/preview-translation-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/audio-import-capability-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/audio-decode-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/inapp-mastering-safety-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/import-preflight-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/import-queue-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/analysis-cache-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/memory-guard-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/reference-profile-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/loudness-measurement-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/mastering-input-guard-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/mastering-quality-audit-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/quality-gate-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/mastering-orchestrator-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/master-preview-job-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/state/track-lifecycle-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/audio/waveform-control-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/waveform-control-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/spectrum-visualizer.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/modal-controller.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/dock-controller.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/mobile-native-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=bulk-hud-restore-v153',
+  './src/ui/admin-access-controller.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/download/file-name-policy-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/download/file-name-workflow-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/download/download-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/download/export-guard-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=export-v156',
+  './src/download/export-progress-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=export-progress-v156',
+  './src/download/zip-export-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/download/export-queue-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/download-dialog-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/bulk-import-hud-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/detail-panels-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/detail-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/ui/admin-incident-monitor-view.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/security/site-guards.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/runtime-health.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=boot-sri-v1671-share-lease',
+  './src/boot/ui-shell-recovery-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/update-safety-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=update-safety-v1671-share-lease',
+  './src/boot/service-worker-update-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/service-worker-recovery-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/worker-recovery-coordinator.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/performance-diagnostics.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=boot-sri-v1671-share-lease',
+  './src/boot/render-scheduler.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/pwa-share-target-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/boot/pwa-runtime-bridge.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './src/app.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=boot-sri-v1671-share-lease',
+  './src/boot/worker-recovery-app-bridge.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
+  './assets/icons/foxbear-music.png?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e'
 ];
 
 const INSTALL_ASSETS = [
@@ -422,7 +447,9 @@ self.addEventListener('activate', event => {
     if (self.registration?.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); } catch (error) {}
     }
+    const shareHandoff = await recoverSharedFileRecords().catch(error => ({ error: error?.message || String(error), recoveredClaims: 0, remaining: 0 }));
     await self.clients.claim();
+    await broadcastShareHandoff(shareHandoff).catch(() => undefined);
     await purgeLegacyShellCaches({ probeClients: true, reason: 'activate-post-claim' });
   })());
 });
@@ -453,6 +480,18 @@ self.addEventListener('message', event => {
       const payload = { type: 'FOXBEAR_WARM_CACHE_DONE', cacheName: CACHE_NAME, ...result };
       try { event.ports?.[0]?.postMessage?.(payload); } catch (error) {}
       try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}
+    }));
+  }
+
+  if (event.data && event.data.type === 'FOXBEAR_RECOVER_SHARE_STORAGE') {
+    event.waitUntil(recoverSharedFileRecords().then(result => {
+      const payload = { type: 'FOXBEAR_SHARE_STORAGE_RECOVERED', cacheName: CACHE_NAME, ...result };
+      try { event.ports?.[0]?.postMessage?.(payload); } catch (error) {}
+      try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (error) {}
+    }).catch(error => {
+      const payload = { type: 'FOXBEAR_SHARE_STORAGE_RECOVERED', cacheName: CACHE_NAME, error: error?.message || String(error) };
+      try { event.ports?.[0]?.postMessage?.(payload); } catch (postError) {}
+      try { if (!event.ports?.[0]) event.source?.postMessage?.(payload); } catch (postError) {}
     }));
   }
   if (event.data && event.data.type === 'FOXBEAR_PURGE_CACHES') {
@@ -641,21 +680,67 @@ function openShareDb() {
       const db = request.result;
       if (!db.objectStoreNames.contains(SHARE_STORE)) db.createObjectStore(SHARE_STORE, { keyPath: 'id' });
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => {
+      const db = request.result;
+      db.onversionchange = () => db.close();
+      resolve(db);
+    };
     request.onerror = () => reject(request.error || new Error('share db open failed'));
+    request.onblocked = () => reject(new Error('share db open blocked'));
   });
 }
 
+function writeSharedRecord(db, record) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SHARE_STORE, 'readwrite');
+    tx.objectStore(SHARE_STORE).put(record);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('share db write failed'));
+    tx.onabort = () => reject(tx.error || new Error('share db write aborted'));
+  });
+}
+
+async function assertShareStorageCapacity(incomingBytes = 0) {
+  const estimate = await self.navigator?.storage?.estimate?.().catch?.(() => null) || null;
+  const quota = Number(estimate?.quota || 0);
+  const usage = Number(estimate?.usage || 0);
+  const reserve = 16 * 1024 * 1024;
+  if (quota > 0 && usage + Math.max(0, Number(incomingBytes || 0)) + reserve > quota) {
+    const error = new Error('share-storage-quota');
+    error.name = 'QuotaExceededError';
+    error.code = 'share-storage-quota';
+    throw error;
+  }
+  return Object.freeze({ quota, usage, available: quota > 0 ? Math.max(0, quota - usage) : 0 });
+}
+
 async function putSharedFiles(record) {
-  const db = await openShareDb();
+  await assertShareStorageCapacity(Number(record?.totalBytes || 0));
+  let db = await openShareDb();
   try {
-    await pruneSharedFileRecords(db, Number(record?.createdAt || Date.now()), Number(record?.totalBytes || 0));
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction(SHARE_STORE, 'readwrite');
-      tx.objectStore(SHARE_STORE).put(record);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error || new Error('share db write failed'));
-    });
+    const initialCleanup = await pruneSharedFileRecords(db, Number(record?.createdAt || Date.now()), Number(record?.totalBytes || 0));
+    if (initialCleanup.canAccept === false) {
+      const error = new Error(initialCleanup.reason || 'share-storage-busy');
+      error.code = 'share-storage-busy';
+      throw error;
+    }
+    try {
+      await writeSharedRecord(db, record);
+      return Object.freeze({ recoveredFromQuota: false, cleanup: initialCleanup });
+    } catch (error) {
+      if (!SHARE_POLICY_API.isQuotaExceededError(error)) throw error;
+      db.close();
+      db = await openShareDb();
+      const aggressiveCleanup = await pruneSharedFileRecords(db, Number(record?.createdAt || Date.now()), Number(record?.totalBytes || 0), { aggressive: true });
+      if (aggressiveCleanup.canAccept === false) {
+        const quotaError = new Error('share-storage-quota');
+        quotaError.name = 'QuotaExceededError';
+        quotaError.code = 'share-storage-quota';
+        throw quotaError;
+      }
+      await writeSharedRecord(db, record);
+      return Object.freeze({ recoveredFromQuota: true, cleanup: aggressiveCleanup });
+    }
   } finally {
     db.close();
   }
@@ -668,73 +753,23 @@ function sharedFileExtension(name = '') {
 }
 
 function isSupportedSharedAudioFile(file) {
-  if (!file || typeof file !== 'object' || !('name' in file)) return false;
-  const size = Number(file.size || 0);
-  if (!Number.isFinite(size) || size <= 0 || size > SHARE_MAX_FILE_BYTES) return false;
-  const type = String(file.type || '').trim().toLowerCase();
-  if (type.startsWith('audio/') || SHARE_VIDEO_AUDIO_TYPES.has(type)) return true;
-  return SHARE_AUDIO_EXTENSIONS.has(sharedFileExtension(file.name));
+  return SHARE_POLICY_API.isSupportedFile(file, SHARE_POLICY);
 }
 
 function selectSharedAudioFiles(values = []) {
-  const files = [];
-  let totalBytes = 0;
-  let rejected = 0;
-  for (const value of values) {
-    if (files.length >= SHARE_MAX_FILES) {
-      rejected += 1;
-      continue;
-    }
-    if (!isSupportedSharedAudioFile(value)) {
-      rejected += 1;
-      continue;
-    }
-    const nextBytes = totalBytes + Number(value.size || 0);
-    if (nextBytes > SHARE_MAX_TOTAL_BYTES) {
-      rejected += 1;
-      continue;
-    }
-    files.push(value);
-    totalBytes = nextBytes;
-  }
-  return Object.freeze({ files, totalBytes, rejected });
+  return SHARE_POLICY_API.selectFiles(values, SHARE_POLICY);
 }
 
 function shareRecordTimestamp(key = '') {
-  const value = Number.parseInt(String(key || '').split('-', 1)[0], 10);
-  return Number.isFinite(value) && value > 0 ? value : 0;
+  return SHARE_POLICY_API.recordTimestamp({ key });
 }
 
 function shareRecordBytes(record = {}) {
-  const declared = Number(record?.totalBytes || 0);
-  if (Number.isFinite(declared) && declared > 0) return Math.floor(declared);
-  return (Array.isArray(record?.files) ? record.files : []).reduce((sum, file) => {
-    const size = Number(file?.size || 0);
-    return sum + (Number.isFinite(size) && size > 0 ? size : 0);
-  }, 0);
+  return SHARE_POLICY_API.recordBytes(record);
 }
 
 function planSharedRecordRetention(records = [], now = Date.now(), incomingBytes = 0) {
-  const availableBytes = Math.max(0, SHARE_STORE_MAX_BYTES - Math.max(0, Number(incomingBytes || 0)));
-  const fresh = records
-    .map(record => ({
-      key: String(record?.key || record?.id || ''),
-      createdAt: Number(record?.createdAt || shareRecordTimestamp(record?.key || record?.id)),
-      totalBytes: Math.max(0, shareRecordBytes(record?.value || record))
-    }))
-    .filter(record => record.key && record.createdAt > 0 && now - record.createdAt <= SHARE_RECORD_TTL_MS)
-    .sort((a, b) => b.createdAt - a.createdAt);
-  const retainKeys = [];
-  let retainedBytes = 0;
-  for (const record of fresh) {
-    if (retainKeys.length >= Math.max(0, SHARE_RECORD_LIMIT - 1)) break;
-    if (retainedBytes + record.totalBytes > availableBytes) continue;
-    retainKeys.push(record.key);
-    retainedBytes += record.totalBytes;
-  }
-  const retained = new Set(retainKeys);
-  const deleteKeys = records.map(record => String(record?.key || record?.id || '')).filter(key => key && !retained.has(key));
-  return Object.freeze({ retainKeys: Object.freeze(retainKeys), deleteKeys: Object.freeze(deleteKeys), retainedBytes, availableBytes });
+  return SHARE_POLICY_API.planRetention(records, now, incomingBytes, SHARE_POLICY);
 }
 
 async function listSharedRecordMetadata(db) {
@@ -749,7 +784,9 @@ async function listSharedRecordMetadata(db) {
       records.push({
         key: String(cursor.primaryKey || value.id || ''),
         createdAt: Number(value.createdAt || shareRecordTimestamp(cursor.primaryKey)),
-        totalBytes: shareRecordBytes(value)
+        totalBytes: shareRecordBytes(value),
+        claimOwner: String(value.claimOwner || ''),
+        claimExpiresAt: Number(value.claimExpiresAt || 0)
       });
       cursor.continue();
     };
@@ -760,19 +797,84 @@ async function listSharedRecordMetadata(db) {
   });
 }
 
-async function pruneSharedFileRecords(db, now = Date.now(), incomingBytes = 0) {
+async function pruneSharedFileRecords(db, now = Date.now(), incomingBytes = 0, options = {}) {
   const records = await listSharedRecordMetadata(db);
-  const plan = planSharedRecordRetention(records, now, incomingBytes);
-  if (!plan.deleteKeys.length) return Object.freeze({ deleted: 0, retained: plan.retainKeys.length, retainedBytes: plan.retainedBytes });
-  await new Promise((resolve, reject) => {
-    const tx = db.transaction(SHARE_STORE, 'readwrite');
-    const store = tx.objectStore(SHARE_STORE);
-    plan.deleteKeys.forEach(key => store.delete(key));
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error || new Error('share db cleanup failed'));
-    tx.onabort = () => reject(tx.error || new Error('share db cleanup aborted'));
+  let plan = planSharedRecordRetention(records, now, incomingBytes);
+  if (options.aggressive === true && plan.canAccept) {
+    const protectedKeys = new Set(records
+      .filter(record => SHARE_POLICY_API.activeClaim(record, now))
+      .map(record => record.key));
+    const deleteKeys = records.filter(record => !protectedKeys.has(record.key)).map(record => record.key);
+    plan = Object.freeze({ ...plan, retainKeys: Object.freeze([...protectedKeys]), deleteKeys: Object.freeze(deleteKeys), retainedBytes: plan.protectedBytes });
+  }
+  if (plan.deleteKeys.length) {
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(SHARE_STORE, 'readwrite');
+      const store = tx.objectStore(SHARE_STORE);
+      plan.deleteKeys.forEach(key => store.delete(key));
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error || new Error('share db cleanup failed'));
+      tx.onabort = () => reject(tx.error || new Error('share db cleanup aborted'));
+    });
+  }
+  return Object.freeze({
+    deleted: plan.deleteKeys.length,
+    retained: plan.retainKeys.length,
+    retainedBytes: plan.retainedBytes,
+    canAccept: plan.canAccept,
+    reason: plan.reason,
+    protectedBytes: plan.protectedBytes
   });
-  return Object.freeze({ deleted: plan.deleteKeys.length, retained: plan.retainKeys.length, retainedBytes: plan.retainedBytes });
+}
+
+async function recoverSharedFileRecords(now = Date.now()) {
+  const db = await openShareDb();
+  try {
+    const records = await listSharedRecordMetadata(db);
+    const staleClaims = records.filter(record => record.claimOwner && Number(record.claimExpiresAt || 0) <= now);
+    if (staleClaims.length) {
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(SHARE_STORE, 'readwrite');
+        const store = tx.objectStore(SHARE_STORE);
+        let pending = staleClaims.length;
+        for (const metadata of staleClaims) {
+          const request = store.get(metadata.key);
+          request.onsuccess = () => {
+            const value = request.result;
+            if (value && Number(value.claimExpiresAt || 0) <= now) {
+              delete value.claimOwner;
+              delete value.claimAcquiredAt;
+              delete value.claimExpiresAt;
+              store.put(value);
+            }
+            pending -= 1;
+          };
+          request.onerror = () => { pending -= 1; };
+        }
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error || new Error('share claim recovery failed'));
+        tx.onabort = () => reject(tx.error || new Error('share claim recovery aborted'));
+      });
+    }
+    const cleanup = await pruneSharedFileRecords(db, now, 0);
+    const remaining = await listSharedRecordMetadata(db);
+    return Object.freeze({ recoveredClaims: staleClaims.length, remaining: remaining.length, cleanup });
+  } finally {
+    db.close();
+  }
+}
+
+async function broadcastShareHandoff(result = {}) {
+  const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  const payload = Object.freeze({
+    type: 'FOXBEAR_SHARE_HANDOFF_READY',
+    assetVersion: CURRENT_ASSET_VERSION,
+    schemaVersion: SHARE_POLICY.schemaVersion,
+    recoveredClaims: Number(result.recoveredClaims || 0),
+    remaining: Number(result.remaining || 0)
+  });
+  clients.forEach(client => client.postMessage(payload));
+  return payload;
 }
 
 function createShareRecordId(now = Date.now()) {
@@ -808,7 +910,8 @@ async function handleShareTarget(request) {
       url: String(formData.get('url') || '').slice(0, 2048),
       files: selected.files,
       totalBytes: selected.totalBytes,
-      rejectedCount: selected.rejected
+      rejectedCount: selected.rejected,
+      schemaVersion: SHARE_POLICY.schemaVersion
     });
     const redirectUrl = new URL('./', self.registration.scope);
     redirectUrl.searchParams.set(SHARE_QUERY, id);
@@ -816,7 +919,14 @@ async function handleShareTarget(request) {
     return Response.redirect(redirectUrl.href, 303);
   } catch (error) {
     const fallback = new URL('./', self.registration.scope);
-    fallback.searchParams.set(SHARE_ERROR_QUERY, error?.message === 'no-supported-share-files' ? 'unsupported' : 'storage');
+    const errorCode = error?.message === 'no-supported-share-files'
+      ? 'unsupported'
+      : (error?.code === 'share-storage-quota' || SHARE_POLICY_API.isQuotaExceededError(error))
+        ? 'quota'
+        : error?.code === 'share-storage-busy'
+          ? 'busy'
+          : 'storage';
+    fallback.searchParams.set(SHARE_ERROR_QUERY, errorCode);
     return Response.redirect(fallback.href, 303);
   }
 }

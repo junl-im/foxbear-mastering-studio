@@ -1,3 +1,7 @@
+# v1.6.71 App Check deployment parity
+
+After deploying Hosting and Functions together, run `npm run appcheck:deploy:verify`. The command compares `/app-check-policy.json` with authenticated Callable status metadata. v1.6.71 keeps enforcement disabled and treats any version, mode, reason, or enforcement mismatch as a deployment failure.
+
 # FoxBear Firebase 설정 가이드 - v1.6.57
 
 ## Spark 무료 요금제 관리자 모니터링

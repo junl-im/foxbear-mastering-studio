@@ -1,3 +1,13 @@
+# v1.6.71 - PWA Share Lease, Update Handoff, Deploy Policy Gate, and Browser E2E
+
+- Adds an atomic IndexedDB lease with heartbeat renewal so two tabs cannot import the same shared payload twice.
+- Preserves active share records during quota cleanup and service-worker activation, while releasing expired claims before clients are claimed.
+- Adds storage-estimate preflight, QuotaExceededError cleanup/retry, forced database deletion recovery, and specific quota/busy launch guidance.
+- Adds real Chromium Playwright coverage for success, retry-after-reload, two-tab racing, Android 12-file/512 MiB boundaries, and service-worker handoff.
+- Adds a canonical App Check policy artifact plus local and deployed client/Functions comparison gates.
+- Verifies the root production dependency lock against the official npm audit endpoint and records Functions audit availability separately.
+- Splits service-worker registration and share-launch orchestration from src/app.js into pwa-runtime-bridge.js.
+
 # v1.6.70 - Atomic Share Retry, Policy Drift Diagnostics, and CI Efficiency
 
 - Waits for the real PWA import pipeline before declaring a shared-file launch successful or deleting its IndexedDB handoff record.

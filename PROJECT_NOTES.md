@@ -1,3 +1,15 @@
+# v1.6.71 Project Notes
+
+- Treat a share record as a leased handoff. Only the current owner may renew, finish, release, or delete it.
+- Use short renewable leases rather than permanent flags so tab crashes and service-worker updates recover automatically.
+- Never prune an active claim to make room; reject or retry the new write before destroying an in-progress import.
+- Storage recovery must distinguish estimate pressure, quota exceptions, deleted databases, blocked upgrades, and terminal unsupported payloads.
+- Keep Android file-count and byte boundaries in one shared policy used by the service worker, page importer, and tests.
+- App Check rollout needs one canonical artifact and a postdeploy client/server comparison, not duplicated literals.
+- Browser E2E must prove cross-tab and update-lifecycle behavior that static string checks cannot establish.
+- Continue extracting PWA orchestration from `src/app.js` without touching the audio engine.
+- Next target: deployed App Check acceptance, successful Functions audit, real Android share sheet acceptance, and lease telemetry.
+
 # v1.6.70 Project Notes
 
 - A share-target record is a retry token, not disposable input: delete it only after the real asynchronous import pipeline reports success.

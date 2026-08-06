@@ -52,7 +52,8 @@ assert(sw.includes('cache.addAll(INSTALL_ASSETS)') && !sw.includes('cache.addAll
 assert(sw.includes("event.data.type === 'FOXBEAR_WARM_CACHE'") && sw.includes('warmFoxBearCoreCache()'), 'service worker warm-cache message contract is missing');
 
 const app = read('src/app.js');
-assert(app.includes('navigator.serviceWorker.ready.catch(() => null)') && app.includes("activeWorker.postMessage({ type: 'FOXBEAR_WARM_CACHE' })"), 'app does not wait for active service worker and request background cache warming');
+const pwaRuntimeBridge = read('src/boot/pwa-runtime-bridge.js');
+assert(app.includes('FoxBearPwaRuntimeBridge') && pwaRuntimeBridge.includes('navigatorRef.serviceWorker.ready.catch(() => null)') && pwaRuntimeBridge.includes("activeWorker.postMessage({ type: 'FOXBEAR_WARM_CACHE' })"), 'app does not wait for active service worker and request background cache warming');
 
 const releasePack = read('tools/create-release-zip.sh');
 const overwritePack = read('tools/create-overwrite-zip.sh');

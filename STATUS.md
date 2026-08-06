@@ -1,28 +1,27 @@
-# FoxBear Status - v1.6.70
+# FoxBear Status - v1.6.71
 
 ## Current release
 
-- Product version: `1.6.70`
-- Build ID: `share-retry-policy-drift-ci-efficiency`
-- Asset version: `1.6.70-share-retry-policy-drift-ci-efficiency`
-- Service worker cache: `foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency`
-- Configured static/regression target: 421 checks.
+- Product version: `1.6.71`
+- Build ID: `pwa-share-lease-handoff-deploy-policy-e2e`
+- Asset version: `1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
+- Service worker cache: `foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
+- Configured static/regression target: **426 checks**.
 
 ## Release status
 
-- PWA share launch now awaits the real asynchronous import pipeline before reporting success or deleting the IndexedDB handoff record.
-- Transient import failures preserve both the share record and launch query so a reload can retry instead of losing the shared files.
-- Share-target IndexedDB retention is bounded by 24 hours, eight records, and a 768 MiB aggregate storage budget before accepting a new share.
-- Shared title, text, and URL metadata are length-capped to avoid unbounded auxiliary payload growth.
-- Incident diagnostics warn when deployed Functions App Check policy version, mode, or reason differs from the client contract.
-- The fallback Pages workflow completes Static release gate before browser scope selection or Chromium installation.
-- Version-only changes to full/patch verifier paths are normalized as release metadata and no longer force unnecessary full browser QA.
-- Static/regression QA passed **421/421** in bounded slices (`106/106`, `105/105`, `105/105`, `105/105`).
-- Version, SRI, handoff, source hygiene, Functions syntax, browser preflight, dependency structure, and the 153-file Hosting boundary passed.
-- Dependency metadata reported 0 errors and 5 expected missing-install warnings.
-- `src/app.js` remains 13,251 lines, below the 13,300-line structural gate.
-- Installed Chromium/PWA share acceptance, deployed Firebase acceptance, and the online Functions vulnerability audit remain external.
-- Verified full archive: 723 files. Patch archive: 285 declared files plus `PATCH_MANIFEST.json`, with 7 delete paths. Applying the patch over v1.6.69 reproduced the v1.6.70 tree exactly (`723/723`, no missing, extra, or changed files).
+- PWA shares use atomic IndexedDB leases, heartbeat renewal, owner-checked completion, and retry-safe release.
+- A second tab cannot import the same shared payload; it exits with `claimed-by-other-tab` while the owner continues.
+- Quota recovery preserves active claims, prunes stale records, recreates deleted storage, and retries one failed write.
+- Service-worker activation recovers expired claims before claiming clients and publishes a handoff-ready message.
+- Android boundary policy is centralized at 12 files, 220 MiB per file, and 512 MiB per share.
+- App Check client and Functions contracts share policy version 2 and have local plus deployed comparison gates.
+- PWA registration/share orchestration moved to `src/boot/pwa-runtime-bridge.js`; `src/app.js` is **13,242 lines**.
+- Static/regression QA passed **426/426**; actual Chromium PWA scenarios passed.
+- Functions syntax, browser preflight, version, SRI, handoff, source hygiene, App Check policy, and the **156-file** Hosting boundary passed.
+- Root official npm production audit reported 0 vulnerabilities; Functions audit remained blocked by DNS `EAI_AGAIN`.
+- Deployed Firebase App Check comparison must be rerun after v1.6.71 is deployed.
+- Verified full archive: **733 files**. Patch archive: **304 declared files plus manifest**, with **7 delete paths**; v1.6.70 replay matched `733/733`.
 
 # FoxBear Status - v1.6.67
 
@@ -98,10 +97,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.70`
-- Build ID: `share-retry-policy-drift-ci-efficiency`
-- Asset version: `1.6.70-share-retry-policy-drift-ci-efficiency`
-- Service worker cache: `foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency`
+- Product version: `1.6.71`
+- Build ID: `pwa-share-lease-handoff-deploy-policy-e2e`
+- Asset version: `1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
+- Service worker cache: `foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
 
 # FoxBear Status - v1.6.64
 

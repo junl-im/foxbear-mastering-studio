@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><title>FoxBear PWA Share Harness</title></head>
+<body>
+<main id="status">ready</main>
+<script src="/src/config/build-info.js"></script>
+<script src="/src/config/pwa-share-policy.js"></script>
+<script src="/src/config/app-runtime-config.js"></script>
+<script src="/src/boot/pwa-share-target-service.js"></script>
+<script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const status = document.getElementById('status');
+  const state = {};
+  const messages = [];
+  const failKey = `foxbear-harness-failed-${params.get('foxbearSharedAudio') || 'none'}`;
+  const delayMs = Math.max(0, Number(params.get('delay') || 80));
+  const result = await window.FoxBearPwaShareTargetService.processLaunch({
+    state,
+    validateAudioFile: file => ({ ok: Boolean(file && /audio|wav|mp3/i.test(`${file.type || ''} ${file.name || ''}`)) }),
+    handleFiles: async files => {
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+      if (params.get('failOnce') === '1' && !sessionStorage.getItem(failKey)) {
+        sessionStorage.setItem(failKey, '1');
+        throw new Error('forced-import-failure');
+      }
+      const count = Number(localStorage.getItem('foxbear-harness-import-count') || 0) + 1;
+      localStorage.setItem('foxbear-harness-import-count', String(count));
+      localStorage.setItem('foxbear-harness-last-files', String(files.length));
+      return { added: files.length };
+    },
+    showToast: message => messages.push(String(message || ''))
+  });
+  window.__FOXBEAR_SHARE_HARNESS_RESULT__ = { result, messages, href: location.href };
+  status.textContent = JSON.stringify(window.__FOXBEAR_SHARE_HARNESS_RESULT__);
+  document.body.dataset.done = 'true';
+})().catch(error => {
+  window.__FOXBEAR_SHARE_HARNESS_RESULT__ = { error: String(error && error.stack || error) };
+  document.body.dataset.done = 'error';
+});
+</script>
+</body>
+</html>

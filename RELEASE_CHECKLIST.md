@@ -1,3 +1,24 @@
+# FoxBear v1.6.71 release checklist
+
+- [x] Add atomic IndexedDB lease ownership for each PWA share ID.
+- [x] Renew the lease while import is active and validate ownership before deletion.
+- [x] Preserve failed shares for reload retry and prevent duplicate two-tab import.
+- [x] Recover expired claims during service-worker activation without deleting active claims.
+- [x] Add storage estimate checks, quota cleanup, one-write retry, and deleted-database recreation.
+- [x] Centralize Android limits at 12 files, 220 MiB per file, and 512 MiB total.
+- [x] Add canonical App Check JSON, Functions contract, local parity gate, and postdeploy verifier.
+- [x] Split service-worker registration and share launch into `pwa-runtime-bridge.js`.
+- [x] Run actual Chromium success, retry, race, forced deletion, boundary, and handoff scenarios.
+- [x] Run all **426/426** configured static and behavioral checks.
+- [x] Run Functions syntax, browser preflight, version, SRI, source hygiene, handoff, App Check, dependency, and Hosting checks.
+- [x] Verify the **156-file** Firebase Hosting boundary.
+- [x] Verify root official npm production audit with 0 vulnerabilities.
+- [x] Build and verify the 733-file full archive and 304-file patch plus manifest.
+- [x] Apply the patch over v1.6.70 and reproduce v1.6.71 exactly (`733/733`).
+- [ ] Retry Functions official audit when registry DNS is available.
+- [ ] Run the deployed App Check comparison after v1.6.71 Hosting and Functions deployment.
+- [ ] Complete a physical Android share-sheet acceptance pass.
+
 # FoxBear v1.6.70 release checklist
 
 - [x] Share launch waits for the actual asynchronous import pipeline.

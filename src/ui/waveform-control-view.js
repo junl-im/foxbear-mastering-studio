@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
+  const VIEW_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
   const DEFAULT_BINS = 96;
 
   function getService() {

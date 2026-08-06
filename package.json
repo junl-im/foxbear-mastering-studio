@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.70",
+  "version": "1.6.71",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.69 - CI ordering, App Check policy drift guards, and PWA share-target storage hardening",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.71 - PWA share leases, update handoff recovery, deployed App Check policy verification, and real browser E2E coverage",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.70-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.70-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.71-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.71-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,10 +39,14 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.70-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.70-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.71-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.71-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
-    "source:hygiene:gate": "node tools/run-source-hygiene-gate.js"
+    "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
+    "appcheck:policy:check": "node tools/check-app-check-policy.js",
+    "appcheck:deploy:verify": "node tools/verify-deployed-app-check-policy.js",
+    "audit:prod:official": "npm audit --omit=dev --registry=https://registry.npmjs.org",
+    "functions:audit:official": "npm --prefix functions audit --omit=dev --registry=https://registry.npmjs.org"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -465,15 +469,20 @@
     "node qa/v1668_public_shell_cache_integrity_smoke.js",
     "node --check src/boot/pwa-share-target-service.js",
     "node qa/v1669_ci_app_check_share_target_hardening_smoke.js",
-    "node qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js"
+    "node qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js",
+    "node --check src/config/pwa-share-policy.js",
+    "node --check src/boot/pwa-runtime-bridge.js",
+    "node --check tools/check-app-check-policy.js",
+    "node --check tools/verify-deployed-app-check-policy.js",
+    "node qa/v1671_pwa_share_lease_handoff_deploy_policy_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "share-retry-policy-drift-ci-efficiency",
-    "assetVersion": "1.6.70-share-retry-policy-drift-ci-efficiency",
-    "cacheName": "foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency",
-    "bootRevision": "boot-sri-v1670-share-retry",
-    "updateSafetyRevision": "update-safety-v1670-share-retry",
-    "serviceWorkerRevision": "sw-v1670-share-retry"
+    "buildId": "pwa-share-lease-handoff-deploy-policy-e2e",
+    "assetVersion": "1.6.71-pwa-share-lease-handoff-deploy-policy-e2e",
+    "cacheName": "foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e",
+    "bootRevision": "boot-sri-v1671-share-lease",
+    "updateSafetyRevision": "update-safety-v1671-share-lease",
+    "serviceWorkerRevision": "sw-v1671-share-lease"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

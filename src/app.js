@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.70 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.6.71 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -23,7 +23,7 @@ const FoxBearPwaShareTargetService = window.FoxBearPwaShareTargetService || null
 let externalBrowserHandoffBridge = null;
 let adminAccessController = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.70';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.71';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -64,14 +64,14 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.70-share-retry-policy-drift-ci-efficiency'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1670-share-retry'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1671-share-lease'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const ANALYSIS_ENGINE_CACHE_VERSION = 'analysis-engine-v1.4-stable';
-const SHARED_DSP_PROFILE_VERSION = 'v1.6.70-share-retry-policy-drift-ci-efficiency';
+const SHARED_DSP_PROFILE_VERSION = 'v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
 const PLAYBACK_CROSSFADE_MS = 140;
 const SAFE_IMPORT_ANALYSIS_CONCURRENCY = Math.max(1, Math.min(2, Number(IMPORT_ANALYSIS_CONCURRENCY) || 1));
 const SAFE_LARGE_IMPORT_BATCH_THRESHOLD = Math.max(4, Number(LARGE_IMPORT_BATCH_THRESHOLD) || 12);
@@ -3181,37 +3181,28 @@ function getPlaybackLifecycleRecoveryController() {
 function handleMobileVisibilityChange() { return getPlaybackLifecycleRecoveryController()?.handleVisibilityChange?.() || false; } // compatibility: reason: 'visibility-hidden', ttlMs: 12 * 60 * 60 * 1000 · mobile.lastDockRestoreAt
 function handleMobilePageShow() { return getPlaybackLifecycleRecoveryController()?.handlePageShow?.() || false; }
 function restoreDockTransportAfterReturn(forceNotice = false) { return getPlaybackLifecycleRecoveryController()?.restore?.(forceNotice) || false; }
+let pwaRuntimeBridge = null;
+function getPwaRuntimeBridge() {
+    if (pwaRuntimeBridge) return pwaRuntimeBridge;
+    pwaRuntimeBridge = window.FoxBearPwaRuntimeBridge?.createBridge?.({
+        navigator,
+        location,
+        serviceWorkerUrl: SERVICE_WORKER_URL,
+        resolveScriptUrl: resolveFoxBearScriptUrl,
+        ensureMobileState: ensureMobileNativeState,
+        updateMobileUi: updateMobileNativeUi,
+        recoveryService: window.FoxBearServiceWorkerRecoveryService,
+        updateService: window.FoxBearServiceWorkerUpdateService,
+        shareService: window.FoxBearPwaShareTargetService
+    }) || null;
+    return pwaRuntimeBridge;
+}
 async function registerFoxBearServiceWorker(options = {}) {
-    const mobile = ensureMobileNativeState(); if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-    const bypassOnce = !options.ignoreRecoveryBypass && await window.FoxBearServiceWorkerRecoveryService?.consumeOneShotBypass?.();
-    if (bypassOnce) {
-        mobile.serviceWorkerReady = false;
-        updateMobileNativeUi(); globalThis.setTimeout?.(() => registerFoxBearServiceWorker({ ignoreRecoveryBypass: true }), 12000);
-        return;
-    }
-    try {
-        // compatibility anchors: navigator.serviceWorker.register('./sw.js?v=1.6.70-share-retry-policy-drift-ci-efficiency') · navigator.serviceWorker.register('./sw.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=sw-v1670-share-retry')
-        const registration = await navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL));
-        window.FoxBearServiceWorkerUpdateService?.coordinate?.(registration, { stableIdleMs: 1800, pollMs: 500 });
-        const readyRegistration = await Promise.race([navigator.serviceWorker.ready.catch(() => null), new Promise(resolve => setTimeout(() => resolve(null), 15000))]);
-        const activeWorker = readyRegistration?.active || registration?.active || null;
-        mobile.serviceWorkerReady = Boolean(activeWorker);
-        if (activeWorker && !window.__FOXBEAR_E2E__) activeWorker.postMessage({ type: 'FOXBEAR_WARM_CACHE' });
-        updateMobileNativeUi();
-    } catch (error) {
-        mobile.serviceWorkerReady = false;
-        updateMobileNativeUi();
-        console.warn('Service worker registration skipped:', error);
-    }
+    // compatibility anchors: navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)) · navigator.serviceWorker.register('./sw.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e') · navigator.serviceWorker.register('./sw.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e&h=sw-v1671-share-lease')
+    return getPwaRuntimeBridge()?.registerServiceWorker?.(options);
 }
 async function processPwaShareTargetLaunch() {
-    if (!FoxBearPwaShareTargetService?.processLaunch) return;
-    return FoxBearPwaShareTargetService.processLaunch({
-        state: ensureMobileNativeState(),
-        validateAudioFile,
-        handleFiles,
-        showToast
-    });
+    return getPwaRuntimeBridge()?.processShareLaunch?.({ validateAudioFile, handleFiles, showToast });
 }
 function setNativeBadge(count = 0) {
     const mobile = ensureMobileNativeState();
@@ -3986,7 +3977,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.70-share-retry-policy-drift-ci-efficiency', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4300,7 +4291,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.6.70-share-retry-policy-drift-ci-efficiency',
+        version: '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4341,10 +4332,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.6.70-share-retry-policy-drift-ci-efficiency',
+    version: '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.70-share-retry-policy-drift-ci-efficiency', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4369,12 +4360,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.70-share-retry-policy-drift-ci-efficiency', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.70-share-retry-policy-drift-ci-efficiency', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4389,12 +4380,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.6.70-share-retry-policy-drift-ci-efficiency',
+    version: 'v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.70-share-retry-policy-drift-ci-efficiency', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5520,7 +5511,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.6.70-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.6.71-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -9947,7 +9938,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.6.70-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.6.71-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -13032,7 +13023,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.6.70',
+        app: 'FoxBear AI Mastering Studio Pro v1.6.71',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

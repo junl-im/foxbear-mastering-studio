@@ -25,9 +25,10 @@ const incidentSubmissionIdentitySource = read('src/boot/incident-submission-iden
 const incidentControlsViewSource = read('src/boot/incident-controls-view-service.js');
 const functionsSource = read('functions/index.js');
 const appCheckPolicySource = read('functions/app-check-policy.js');
+const appCheckPolicyContract = JSON.parse(read('functions/app-check-policy-contract.json'));
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(pkg.version, '1.6.71');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentServiceStatus'));
 assert(html.includes('id="incidentReportingPipeline"'));
@@ -48,9 +49,11 @@ assert(reporterSource.includes("onProgress('queue', 'active'"));
 assert(reporterSource.includes("onProgress('mail', 'active'"));
 assert(functionsSource.includes('exports.getIncidentServiceStatus = onCall'));
 assert(functionsSource.includes('...incidentAppCheckMetadata(request)'));
-assert(appCheckPolicySource.includes("mode: 'disabled'"));
+assert.strictEqual(appCheckPolicyContract.mode, 'disabled');
+assert.strictEqual(appCheckPolicyContract.enforced, false);
+assert(appCheckPolicySource.includes("require('./app-check-policy-contract.json')"));
 assert(appCheckPolicySource.includes('appCheckTokenPresent: Boolean(request?.app)'));
-assert(handoff.startsWith('# Handoff - v1.6.70'));
+assert(handoff.startsWith('# Handoff - v1.6.71'));
 
 const stageItems = {};
 const elements = {};
@@ -70,7 +73,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.70' } },
+    body: { dataset: { build: '1.6.71' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -79,7 +82,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.70', assetVersion: '1.6.70-share-retry-policy-drift-ci-efficiency' }
+  FoxBearBuildInfo: { productVersion: '1.6.71', assetVersion: '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -143,7 +146,7 @@ const functionSandbox = {
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: { appId: 'verified' } });
-assert.strictEqual(metadata.productVersion, '1.6.70');
+assert.strictEqual(metadata.productVersion, '1.6.71');
 assert.strictEqual(metadata.status, 'ready');
 assert.strictEqual(metadata.appCheckMode, 'disabled');
 assert.strictEqual(metadata.appCheckEnforced, false);
@@ -151,7 +154,7 @@ assert.strictEqual(metadata.appCheckTokenPresent, true);
 const serviceStatus = moduleRecord.exports.getIncidentServiceStatus;
 assert.strictEqual(serviceStatus.options.enforceAppCheck, false);
 serviceStatus.handler({ auth: { uid: 'guest-1' }, app: null }).then(result => {
-  assert.strictEqual(result.productVersion, '1.6.70');
+  assert.strictEqual(result.productVersion, '1.6.71');
   assert.strictEqual(result.appCheckTokenPresent, false);
   return serviceStatus.handler({ auth: null, app: null }).then(
     () => assert.fail('unauthenticated request should fail'),

@@ -17,7 +17,7 @@ const supportSource = read('src/boot/incident-support-service.js');
 const policySource = read('src/boot/incident-recovery-policy.js');
 const css = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(pkg.version, '1.6.71');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 for (const file of ['src/boot/incident-support-service.js', 'src/boot/incident-recovery-policy.js']) {
   assert(handoff.requiredFiles.includes(file), `${file} missing from requiredFiles`);

@@ -19,6 +19,7 @@ const trustedTypes = read('src/security/trusted-types-bootstrap.js');
 const adminView = read('src/ui/admin-incident-monitor-view.js');
 const functions = read('functions/index.js');
 const appCheckPolicy = read('functions/app-check-policy.js');
+const appCheckPolicyContract = JSON.parse(read('functions/app-check-policy-contract.json'));
 const index = read('index.html');
 
 assert(Number(pkg.version.split('.').join('')) >= 1645);
@@ -60,8 +61,9 @@ assert(!trustedTypes.includes('GOOGLE_RECAPTCHA'));
 assert(firebase.includes('FIREBASE_APP_CHECK_POLICY'));
 assert(firebase.includes('appCheckPolicySnapshot'));
 assert(functions.includes('incidentCallableOptions'));
-assert(appCheckPolicy.includes("mode: 'disabled'"));
-assert(appCheckPolicy.includes('enforced: false'));
+assert.strictEqual(appCheckPolicyContract.mode, 'disabled');
+assert.strictEqual(appCheckPolicyContract.enforced, false);
+assert(appCheckPolicy.includes("require('./app-check-policy-contract.json')"));
 assert(adminView.includes("appendSummaryCard('App Check', '미사용 정책'"));
 assert(!adminView.includes('단계적으로 강제 적용하세요'));
 

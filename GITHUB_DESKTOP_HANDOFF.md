@@ -1,27 +1,27 @@
-# GitHub Desktop Handoff - v1.6.70
+# GitHub Desktop Handoff - v1.6.71
 
-## v1.6.70 atomic share retry and policy drift diagnostics
+## Apply
 
-1. Extract `foxbear-mastering-studio-v1.6.70-patch.zip` into the v1.6.69 repository root and replace matching files.
-2. Run `npm run source:hygiene:repair` so generated local state and the patch manifest are removed safely.
-3. In GitHub Desktop, review the PWA share service, service worker retention policy, incident diagnostics, workflow, browser-impact selector, QA, and documentation changes together.
+1. Extract `foxbear-mastering-studio-v1.6.71-patch.zip` into the v1.6.70 repository root and replace matching files.
+2. Run `npm run source:hygiene:repair`.
+3. Review the PWA lease, service-worker handoff, App Check policy, workflow, QA, and documentation changes together.
 4. Commit code changes and every displayed deletion, then **Push origin**.
-5. Confirm Static release gate succeeds before fallback browser setup begins.
+5. Deploy Hosting and Functions together, then run `npm run appcheck:deploy:verify`.
 
 ## Release focus
 
-- Awaited and retry-safe PWA share import.
-- 768 MiB aggregate temporary share-storage budget.
-- Client/server App Check policy drift warning.
-- Static-first fallback deployment and metadata-only browser scope efficiency.
+- Atomic one-owner PWA share import across multiple tabs.
+- Quota-safe and update-safe IndexedDB handoff recovery.
+- Actual Chromium coverage for all automated 1–8 acceptance scenarios.
+- Canonical local/deployed App Check policy comparison.
+- PWA runtime bridge extraction and reduced main-module size.
 
 ## Production verification
 
-- Share a supported audio file and confirm it is removed from temporary storage only after it appears in the track list.
-- Inject or reproduce a transient import failure, reload, and confirm the same share can retry.
-- Fill browser storage near quota and confirm old share records are pruned without affecting current files.
-- Compare client and deployed Functions App Check policy metadata in administrator diagnostics.
-- Trigger a fallback static failure and confirm Chromium installation is skipped.
+- Use a physical Android device to share 1, 12, and over-limit audio selections.
+- Deploy v1.6.71 and confirm `npm run appcheck:deploy:verify` reports client/server parity.
+- Retry `npm run functions:audit:official` on a network with stable registry DNS.
+- Confirm GitHub Actions runs Static gate before browser installation and passes the new Chromium spec.
 
 ## v1.6.67 strict CI hygiene
 

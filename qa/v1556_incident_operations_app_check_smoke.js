@@ -15,12 +15,13 @@ const firebase = read('src/firebase-bootstrap.js');
 const rules = read('firestore.rules');
 const functions = read('functions/index.js');
 const appCheckPolicy = read('functions/app-check-policy.js');
+const appCheckPolicyContract = JSON.parse(read('functions/app-check-policy-contract.json'));
 const firebaseJson = JSON.parse(read('firebase.json'));
 const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css');
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
-assert.strictEqual(pkg.version, '1.6.70');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.70-share-retry-policy-drift-ci-efficiency');
+assert.strictEqual(pkg.version, '1.6.71');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e');
 assert(!index.includes('name="foxbear-app-check-site-key"'), 'App Check site key must not be shipped');
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));
@@ -78,7 +79,9 @@ for (const origin of [
   'https://firebaseappcheck.googleapis.com'
 ]) assert(!csp.includes(origin), `App Check CSP origin must be absent: ${origin}`);
 assert(functions.includes('...incidentAppCheckMetadata(request)'));
-assert(appCheckPolicy.includes("mode: 'disabled'"));
+assert.strictEqual(appCheckPolicyContract.mode, 'disabled');
+assert.strictEqual(appCheckPolicyContract.enforced, false);
+assert(appCheckPolicy.includes("require('./app-check-policy-contract.json')"));
 assert(appCheckPolicy.includes('appCheckTokenPresent: Boolean(request?.app)'));
 
 assert(index.includes('assets/css/components/admin-incident-monitor.css'), 'admin incident monitor stylesheet should be loaded');

@@ -1,34 +1,36 @@
-# Handoff - v1.6.70
+# Handoff - v1.6.71
 
 ## Current release
 
-- Product version: `1.6.70`
-- Build ID: `share-retry-policy-drift-ci-efficiency`
-- Asset version: `1.6.70-share-retry-policy-drift-ci-efficiency`
-- Service worker cache: `foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency`
-- Configured static/regression target: 421 checks.
+- Product version: `1.6.71`
+- Build ID: `pwa-share-lease-handoff-deploy-policy-e2e`
+- Asset version: `1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
+- Service worker cache: `foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e`
+- Configured static/regression target: 426 checks.
 
 ## Current focus
 
-- Make PWA share handoff atomic: import first, delete only after confirmed success.
-- Preserve transiently failed shares for reload retry while clearing terminal success, expiry, unsupported, and device-limit outcomes.
-- Bound abandoned share storage by age, count, and aggregate bytes instead of record count alone.
-- Surface client/server App Check policy drift before staged enforcement work begins.
-- Avoid Chromium installation and full browser selection when static or version-only changes do not require them.
+- Atomic multi-tab ownership for one PWA share ID with renewable IndexedDB leases.
+- Retry-safe import completion and quota recovery without deleting active handoffs.
+- Service-worker activation handoff that releases only expired claims.
+- Canonical client/Functions App Check policy plus postdeploy comparison.
+- Actual Chromium coverage for success, failure/reload, two-tab race, storage recreation, Android limits, and service-worker update.
+- Smaller main module through `pwa-runtime-bridge.js` extraction.
 
 ## Required GitHub Desktop step
 
-Extract the v1.6.70 patch over a v1.6.69 repository, run `npm run source:hygiene:repair`, then commit every code change and displayed deletion together. Push and confirm Static release gate succeeds before any fallback Chromium installation begins.
+Extract the v1.6.71 patch over a v1.6.70 repository, run `npm run source:hygiene:repair`, commit every code change and displayed deletion together, then push. Deploy Hosting and Functions together so the public App Check contract and server metadata can be compared by the postdeploy gate.
 
 ## Verified
 
-- Configured static/regression checks: **421/421 passed** (`106/106`, `105/105`, `105/105`, `105/105`).
-- Atomic share import completion, transient retry preservation, aggregate storage budgeting, App Check drift diagnostics, fallback CI ordering, and version-only browser-impact normalization passed.
-- `src/app.js` is 13,251 lines, below the 13,300-line gate.
-- Metadata, SRI, handoff, source hygiene, dependency structure, browser preflight, Functions syntax, and the 153-file Hosting boundary passed.
-- Dependency checks reported 0 errors and 5 missing-install warnings.
-- Installed Chromium/device acceptance, deployed Firebase acceptance, and the online Functions vulnerability audit remain external.
-- Full ZIP contains 723 files; patch ZIP declares 285 files plus its manifest and 7 delete paths. Applying the patch over v1.6.69 reproduced the v1.6.70 tree exactly (`723/723`, no missing, extra, or changed files).
+- Configured static/regression checks: **426/426 passed**.
+- Actual system Chromium acceptance passed for the six PWA share/update scenarios.
+- Metadata, SRI, handoff, App Check policy, source hygiene, dependency structure, browser preflight, Functions syntax, and the **156-file** Hosting boundary passed.
+- Root official-registry production audit reported **0 vulnerabilities**.
+- Functions official-registry audit remained unavailable because DNS resolution returned `EAI_AGAIN`.
+- `src/app.js` is **13,242 lines**, below the 13,300-line gate.
+- Deployed App Check comparison remains a post-v1.6.71 deployment acceptance item.
+- Verified full archive: **733 files**. Patch archive: **304 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**. Applying it over v1.6.70 reproduced the v1.6.71 tree exactly (`733/733`).
 
 # Handoff - v1.6.67
 

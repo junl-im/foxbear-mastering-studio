@@ -10,10 +10,11 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const swSource = read('sw.js');
 const appSource = read('src/app.js');
+const pwaRuntimeBridgeSource = read('src/boot/pwa-runtime-bridge.js');
 const helpersSource = read('qa/browser/helpers/foxbear-e2e-helpers.js');
 const pwaSpecSource = read('qa/browser/pwa-back-wakelock-sw-playwright.spec.js');
 
-assert(appSource.includes("activeWorker && !window.__FOXBEAR_E2E__"), 'browser QA must skip automatic full cache warming');
+assert(appSource.includes('FoxBearPwaRuntimeBridge') && pwaRuntimeBridgeSource.includes("activeWorker && !global.__FOXBEAR_E2E__"), 'browser QA must skip automatic full cache warming');
 assert(helpersSource.includes('async function warmServiceWorkerCache'), 'browser helpers must expose an explicit service-worker warm command');
 assert(pwaSpecSource.includes('const repeated = await warmServiceWorkerCache(page)'), 'browser QA must verify repeated cache warming is idempotent');
 assert(pwaSpecSource.includes('expect(repeated.cached).toBe(0)'), 'second cache warm must perform no downloads');

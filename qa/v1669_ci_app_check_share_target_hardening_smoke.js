@@ -10,7 +10,7 @@ const ROOT = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(pkg.version, '1.6.71');
 assert(String(pkg.foxbearRelease.buildId || '').trim(), 'current release buildId must remain configured');
 assert(pkg.qaChecks.includes('node qa/v1669_ci_app_check_share_target_hardening_smoke.js'));
 
@@ -20,15 +20,9 @@ assert(browserJob.includes('needs: static-qa'), 'browser QA must not consume run
 assert(pages.includes('needs: [static-qa, browser-qa]'), 'Pages build must retain both release gates');
 
 const policy = require('../functions/app-check-policy');
-assert.deepStrictEqual(policy.INCIDENT_APP_CHECK_POLICY, {
-  contractVersion: 1,
-  mode: 'disabled',
-  disabled: true,
-  configured: false,
-  enforced: false,
-  tokenRequired: false,
-  reason: 'spark-hosting-no-app-check'
-});
+const canonicalPolicy = JSON.parse(read('app-check-policy.json'));
+assert.deepStrictEqual(policy.INCIDENT_APP_CHECK_POLICY, canonicalPolicy);
+assert(Number(policy.INCIDENT_APP_CHECK_POLICY.contractVersion) >= 1);
 assert.strictEqual(policy.incidentCallableOptions({ enforceAppCheck: true }).enforceAppCheck, false, 'callers must not bypass the release policy');
 assert.strictEqual(policy.incidentAppCheckMetadata({ app: null }).appCheckTokenPresent, false);
 assert.strictEqual(policy.incidentAppCheckMetadata({ app: { appId: 'observed' } }).appCheckTokenPresent, true, 'monitoring metadata must report a presented token even when enforcement is disabled');
@@ -41,7 +35,7 @@ assert(functionsSource.includes('...incidentAppCheckMetadata(request)'));
 const runtimeConfigSource = read('src/config/app-runtime-config.js');
 const runtimeSandbox = { console };
 runtimeSandbox.window = runtimeSandbox;
-runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.70', assetVersion: pkg.foxbearRelease.assetVersion };
+runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.71', assetVersion: pkg.foxbearRelease.assetVersion };
 vm.createContext(runtimeSandbox);
 vm.runInContext(runtimeConfigSource, runtimeSandbox, { filename: 'app-runtime-config.js' });
 const clientPolicy = runtimeSandbox.FoxBearRuntimeConfig.APP_CHECK_POLICY;
@@ -129,9 +123,9 @@ assert(swSource.includes('SHARE_RECORD_LIMIT = 8'));
 
 const appSource = read('src/app.js');
 const shareTargetServiceSource = read('src/boot/pwa-share-target-service.js');
-assert(appSource.includes('FoxBearPwaShareTargetService.processLaunch'));
+assert(appSource.includes('FoxBearPwaRuntimeBridge?.createBridge') || appSource.includes('FoxBearPwaShareTargetService.processLaunch'));
 assert(shareTargetServiceSource.includes('clearLaunchQuery'));
-assert(shareTargetServiceSource.includes("shareError === 'unsupported'"));
+assert(shareTargetServiceSource.includes("code === 'unsupported'") || shareTargetServiceSource.includes("shareError === 'unsupported'"));
 assert(shareTargetServiceSource.includes('MOBILE_NATIVE_SHARE_MAX_AGE_MS'));
 assert(shareTargetServiceSource.includes("url.searchParams.delete('shareCount')"));
 assert(read('index.html').includes(`src/boot/pwa-share-target-service.js?v=${pkg.foxbearRelease.assetVersion}`));

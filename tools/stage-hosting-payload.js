@@ -11,6 +11,7 @@ const DEFAULT_MANIFEST = path.join(DEFAULT_ROOT, 'dist', 'hosting-manifest.json'
 
 const PUBLIC_ROOT_FILES = Object.freeze([
   '404.html',
+  'app-check-policy.json',
   'design-preview.html',
   'external-browser.html',
   'foxbear-root.json',

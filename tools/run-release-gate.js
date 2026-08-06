@@ -7,9 +7,9 @@ const { spawnSync } = require('node:child_process');
 
 const phase = String(process.env.FOXBEAR_RELEASE_PHASE || 'full').trim().toLowerCase();
 const phases = {
-  static: ['source:hygiene:gate', 'version:check', 'handoff:check', 'dependencies:check', 'check:static'],
+  static: ['source:hygiene:gate', 'version:check', 'appcheck:policy:check', 'handoff:check', 'dependencies:check', 'check:static'],
   browser: ['qa:browser'],
-  full: ['source:hygiene:gate', 'version:check', 'handoff:check', 'dependencies:check', 'check:static', 'qa:browser']
+  full: ['source:hygiene:gate', 'version:check', 'appcheck:policy:check', 'handoff:check', 'dependencies:check', 'check:static', 'qa:browser']
 };
 
 if (!Object.prototype.hasOwnProperty.call(phases, phase)) {

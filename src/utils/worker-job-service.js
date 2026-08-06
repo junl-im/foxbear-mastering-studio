@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.6.70 - cancellable jobs, health levels, recovery controls, and stale-result isolation
+// FoxBear worker job service v1.6.71 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
+    const VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

@@ -121,6 +121,15 @@
         ]
       },
       {
+        "source": "/app-check-policy.json",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
         "source": "/src/**",
         "headers": [
           {
@@ -189,6 +198,9 @@
     ],
     "predeploy": [
       "npm run hosting:check"
+    ],
+    "postdeploy": [
+      "npm run appcheck:deploy:verify"
     ]
   },
   "firestore": {
@@ -207,6 +219,9 @@
         "*.local",
         ".env",
         ".env.*"
+      ],
+      "postdeploy": [
+        "npm run appcheck:deploy:verify"
       ]
     }
   ]

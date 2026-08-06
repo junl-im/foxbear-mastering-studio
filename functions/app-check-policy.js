@@ -1,14 +1,8 @@
 'use strict';
 
-const INCIDENT_APP_CHECK_POLICY = Object.freeze({
-  contractVersion: 1,
-  mode: 'disabled',
-  disabled: true,
-  configured: false,
-  enforced: false,
-  tokenRequired: false,
-  reason: 'spark-hosting-no-app-check'
-});
+const contract = require('./app-check-policy-contract.json');
+
+const INCIDENT_APP_CHECK_POLICY = Object.freeze({ ...contract });
 
 function incidentCallableOptions(options = {}) {
   return Object.freeze({

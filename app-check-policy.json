@@ -1,0 +1,9 @@
+{
+  "contractVersion": 2,
+  "mode": "disabled",
+  "disabled": true,
+  "configured": false,
+  "enforced": false,
+  "tokenRequired": false,
+  "reason": "spark-hosting-no-app-check"
+}

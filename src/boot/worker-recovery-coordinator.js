@@ -1,8 +1,8 @@
-// FoxBear worker recovery coordinator v1.6.70 - safe high-level retries after stalled Worker cancellation
+// FoxBear worker recovery coordinator v1.6.71 - safe high-level retries after stalled Worker cancellation
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
+    const VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
     const handlers = [];
 
     function normalizeJob(job) {

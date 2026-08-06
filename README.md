@@ -1,6 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.70
+# FoxBear AI Mastering Studio Pro v1.6.71
 
-This release makes PWA share handoff transactional and retry-safe. Shared files are removed only after the actual import pipeline succeeds, aggregate temporary storage is bounded, deployed App Check policy drift is surfaced, and fallback/version-only CI paths avoid unnecessary browser installation or full-suite execution.
+This release completes the PWA share hardening roadmap: atomic multi-tab leases, quota and deleted-storage recovery, service-worker update handoff, exact Android payload boundaries, canonical/deployed App Check policy comparison, actual Chromium E2E coverage, and a smaller main application module.
+
+Key commands: `npm run appcheck:policy:check`, `npm run appcheck:deploy:verify`, `npm run audit:prod:official`, `npm run functions:audit:official`, and `npm run package:delivery`.
 
 # FoxBear AI Mastering Studio Pro v1.6.69
 

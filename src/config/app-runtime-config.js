@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.6.70 - runtime constants
+// FoxBear AI Mastering Studio Pro v1.6.71 - runtime constants
 'use strict';
 
 (function attachFoxBearRuntimeConfig(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const ASSET_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
+    const ASSET_VERSION = '1.6.71-pwa-share-lease-handoff-deploy-policy-e2e';
     if (BUILD_INFO.assetVersion && BUILD_INFO.assetVersion !== ASSET_VERSION) console.warn('[FoxBear] asset metadata mismatch', { runtime: ASSET_VERSION, build: BUILD_INFO.assetVersion });
     const assetUrl = path => `${path}?v=${ASSET_VERSION}`;
     const WAV_ENCODER_WORKER_URL = assetUrl('src/workers/wav-encoder.worker.js');
@@ -18,7 +18,7 @@
     const EXPERIMENTAL_AUDIO_EXTENSIONS = ['.m4a', '.aac', '.flac', '.ogg', '.oga', '.opus', '.webm', '.weba'];
     const AUDIO_EXTENSIONS = [...CORE_AUDIO_EXTENSIONS, ...CONTAINER_AUDIO_EXTENSIONS, ...EXPERIMENTAL_AUDIO_EXTENSIONS];
     const APP_CHECK_POLICY = Object.freeze({
-        contractVersion: 1,
+        contractVersion: 2,
         mode: 'disabled',
         disabled: true,
         configured: false,
@@ -30,7 +30,7 @@
     });
 
     global.FoxBearRuntimeConfig = Object.freeze({
-        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.6.70',
+        APP_VERSION: BUILD_INFO.appVersion || 'Pro v1.6.71',
         ASSET_VERSION,
         APP_CHECK_POLICY,
         WAV_ENCODER_WORKER_URL,
@@ -99,6 +99,8 @@
         MOBILE_NATIVE_SHARE_QUERY: 'foxbearSharedAudio',
         MOBILE_NATIVE_SHARE_ERROR_QUERY: 'share-error',
         MOBILE_NATIVE_SHARE_MAX_AGE_MS: 24 * 60 * 60 * 1000,
+        MOBILE_NATIVE_SHARE_CLAIM_LEASE_MS: 2 * 60 * 1000,
+        MOBILE_NATIVE_SHARE_CLAIM_HEARTBEAT_MS: 30 * 1000,
         MOBILE_NATIVE_HAPTIC_PATTERNS: Object.freeze({
             tap: 8,
             switch: 14,

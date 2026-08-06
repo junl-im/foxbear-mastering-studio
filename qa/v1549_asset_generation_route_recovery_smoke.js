@@ -7,6 +7,7 @@ const read = file => fs.readFileSync(file, 'utf8');
 const sw = read('sw.js');
 const runtime = read('src/boot/runtime-health.js');
 const app = read('src/app.js');
+const pwaRuntimeBridge = read('src/boot/pwa-runtime-bridge.js');
 const recovery = read('src/boot/service-worker-recovery-service.js');
 const page404 = read('404.html');
 const index = read('index.html');
@@ -20,13 +21,13 @@ assert(sw.includes('isCanonicalShellRequest(url)') && sw.includes('Response.redi
 assert(runtime.includes("new URL('../../', RUNTIME_SCRIPT_URL)"), 'runtime recovery does not derive the canonical app root from its script URL');
 assert(runtime.includes('probeDeployedGeneration') && runtime.includes('recoverStaleGeneration'), 'runtime generation mismatch recovery probe is missing');
 assert(recovery.includes('consumeOneShotBypass') && recovery.includes('global.caches.keys()'), 'one-shot service worker/cache cleanup is incomplete');
-assert(app.includes('FoxBearServiceWorkerRecoveryService?.consumeOneShotBypass'), 'app does not consume the recovery service');
+assert(app.includes('FoxBearServiceWorkerRecoveryService') && pwaRuntimeBridge.includes('recoveryService?.consumeOneShotBypass'), 'app does not consume the recovery service');
 assert(page404.includes('foxbear-root.json') && page404.includes('getRegistrations') && page404.includes('location.replace(target.href)'), '404 recovery does not locate root and purge stale runtime state');
 assert(prepare.includes('required_files=(index.html 404.html foxbear-root.json manifest.webmanifest sw.js)'), 'Pages artifact does not require the root marker');
 assert(overwrite.includes('copy_path "foxbear-root.json"'), 'overwrite package omits the root marker');
 assert(!read('firebase.json').includes('"destination": "/index.html"'), 'Firebase must not serve index.html at an invalid relative-asset URL');
-assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency'), 'service worker recovery module is not loaded');
-assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency'), 'service worker recovery module is not cached');
+assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e'), 'service worker recovery module is not loaded');
+assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.71-pwa-share-lease-handoff-deploy-policy-e2e'), 'service worker recovery module is not cached');
 
 function runtimeHardRefreshUsesScriptRoot() {
   const scripts=[{src:'https://user.github.io/foxbear-mastering-studio/src/boot/runtime-health.js?v=test'}];
@@ -53,7 +54,7 @@ async function exerciseServiceWorkerGenerationIsolation() {
   });
   const cachesApi={
     async open(name){return name.includes('1.5.30') ? makeCache(legacyEntries) : makeCache(currentEntries);},
-    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency'];},
+    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.71-pwa-share-lease-handoff-deploy-policy-e2e'];},
     async delete(){return true;}
   };
   const context={console,URL,Request,Response,Set,Map,Promise,Math,Date,indexedDB:{},caches:cachesApi,fetch:async request=>{fetched.push(String(request.url||request));return new Response('missing',{status:404});},self:{location:{origin:'https://user.github.io'},registration:{scope:'https://user.github.io/foxbear-mastering-studio/',navigationPreload:null},clients:{async claim(){}},async skipWaiting(){},addEventListener(type,handler){listeners.set(type,handler);}}};
