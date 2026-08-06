@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.64-github-desktop-delivery-contract';
+const version = '1.6.65-firestore-write-fencing';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

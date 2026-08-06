@@ -1,3 +1,7 @@
+# FoxBear AI Mastering Studio Pro v1.6.65
+
+This release hardens Firestore client-write boundaries. Daily visit logs use deterministic `UID_YYYY-MM-DD` IDs, repeat writes are treated as idempotent success, and incident report IDs must match the normalized submission key in both Firestore Rules and Callable Functions.
+
 # FoxBear AI Mastering Studio Pro v1.6.64
 
 This release hardens GitHub Desktop delivery. Use `npm run package:delivery` to create the verified full-project ZIP and changed-file extract-overwrite patch ZIP. Local Git metadata, Firebase CLI state, real `.firebaserc`, dependency folders, secret environment files, caches, and generated QA output are excluded.

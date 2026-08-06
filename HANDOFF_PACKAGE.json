@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.64",
-  "buildId": "github-desktop-delivery-contract",
+  "productVersion": "1.6.65",
+  "buildId": "firestore-write-fencing",
   "requiredFiles": [
     "404.html",
     ".gitignore",

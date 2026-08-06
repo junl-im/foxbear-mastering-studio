@@ -1,7 +1,7 @@
 {
   "name": "FoxBear AI Mastering Studio",
   "short_name": "FoxBear",
-  "description": "FoxBear AI Mastering Studio Pro v1.6.64 (github-desktop-delivery-contract).",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.65 (firestore-write-fencing).",
   "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
@@ -156,5 +156,5 @@
       ]
     }
   },
-  "version": "1.6.64"
+  "version": "1.6.65"
 }

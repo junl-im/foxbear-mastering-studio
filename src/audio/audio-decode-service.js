@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.64
+// FoxBear audio decode service - v1.6.65
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.64-github-desktop-delivery-contract';
+    const SERVICE_VERSION = '1.6.65-firestore-write-fencing';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

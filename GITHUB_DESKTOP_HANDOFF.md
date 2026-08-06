@@ -1,23 +1,31 @@
-# GitHub Desktop Handoff - v1.6.64
+# GitHub Desktop Handoff - v1.6.65
 
 ## Apply
 
 1. In GitHub Desktop, use **Fetch origin**.
-2. Extract `foxbear-mastering-studio-v1.6.64-patch.zip` directly into the repository root and replace matching files.
-3. Delete any existing paths listed in `DELETE_PATHS.txt`; these are local/generated files that an overwrite ZIP cannot remove.
+2. Extract `foxbear-mastering-studio-v1.6.65-patch.zip` directly into the v1.6.64 repository root and replace matching files.
+3. Delete every path listed in `DELETE_PATHS.txt`, including the generated `PATCH_MANIFEST.json` after reviewing it.
 4. Review the changes, commit, and **Push origin**.
-5. Run `npm run source:hygiene`, `npm run check:release`, and `npm run package:delivery` before deployment or external handoff.
+5. Deploy Firestore Rules and Callable Functions together after `npm run check:release` passes.
 
 ## Delivery files
 
-- `foxbear-mastering-studio-v1.6.64-full.zip`: complete GitHub Desktop project handoff without `.git`, dependencies, local Firebase state, caches, or secrets.
-- `foxbear-mastering-studio-v1.6.64-patch.zip`: cumulative repository-root overwrite package including patch and deletion notes.
+- `foxbear-mastering-studio-v1.6.65-full.zip`: complete project handoff without `.git`, dependencies, local Firebase state, caches, or secrets.
+- `foxbear-mastering-studio-v1.6.65-patch.zip`: changed-file overwrite package for a v1.6.64 repository, with an exact base commit, file manifest, and deletion list.
+
+## Release focus
+
+- One deterministic `siteVisits/{UID_YYYY-MM-DD}` document per anonymous identity and date.
+- Idempotent success for same-day duplicate visit attempts.
+- Exact Firestore document-ID contracts for visits and incident reports.
+- Canonical Callable incident IDs with mismatched caller input rejected.
 
 ## Production verification
 
-- Open both ZIPs and confirm `.git`, `.firebase`, `.firebaserc`, `node_modules`, `.env`, and generated QA text are absent.
-- Extract the patch into a clean clone, delete listed paths, and confirm GitHub Desktop shows only intended source changes.
-- Run the static release gate and a real Chromium acceptance pass before deployment.
+- Deploy `firestore.rules` and the incident Callable Functions in the same release window.
+- Reload the site more than once on the same date and confirm only one visit document exists for the anonymous UID.
+- Submit a manual incident test and confirm the stored document ID equals `UID_submissionKey`.
+- Run a real Chromium acceptance pass before production deployment.
 
 # GitHub Desktop Handoff - v1.6.63
 

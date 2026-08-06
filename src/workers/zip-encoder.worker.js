@@ -1,8 +1,8 @@
-// FoxBear ZIP encoder worker v1.6.64 - low-copy cancellable STORE packaging off the main thread
+// FoxBear ZIP encoder worker v1.6.65 - low-copy cancellable STORE packaging off the main thread
 'use strict';
 
-importScripts('../download/file-name-policy-service.js?v=1.6.64-github-desktop-delivery-contract');
-importScripts('../../vendor/jszip/jszip.min.js?v=1.6.64-github-desktop-delivery-contract&lib=3.10.1');
+importScripts('../download/file-name-policy-service.js?v=1.6.65-firestore-write-fencing');
+importScripts('../../vendor/jszip/jszip.min.js?v=1.6.65-firestore-write-fencing&lib=3.10.1');
 
 const MAX_FILES = 200;
 const MAX_TOTAL_BYTES = 1500 * 1024 * 1024;

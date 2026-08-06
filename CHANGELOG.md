@@ -1,3 +1,11 @@
+# v1.6.65 - Firestore Write Fencing and Daily Visit Deduplication
+
+- Replaces random `siteVisits` document IDs with deterministic `UID_YYYY-MM-DD` IDs, limiting each anonymous identity to one visit document per day.
+- Treats repeat same-day visit writes as idempotent success instead of surfacing a permission error after reloads.
+- Enforces exact visit and incident document ID contracts in Firestore Rules, including date-key and submission-key format validation.
+- Makes the incident Callable derive one canonical report ID and reject caller-supplied IDs that do not match the normalized submission key.
+- Adds dedicated regression coverage, raising the configured target to 415 checks.
+
 # v1.6.64 - GitHub Desktop Full/Patch Delivery Contract
 
 - Adds one-command generation of the two user-facing delivery files: `-full.zip` and `-patch.zip`.

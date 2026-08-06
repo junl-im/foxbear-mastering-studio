@@ -1,8 +1,8 @@
-// FoxBear playback lifecycle recovery service - v1.6.64
+// FoxBear playback lifecycle recovery service - v1.6.65
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.64-github-desktop-delivery-contract';
+    const SERVICE_VERSION = '1.6.65-firestore-write-fencing';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

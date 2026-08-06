@@ -1,4 +1,4 @@
-// FoxBear incident failure classification and recovery policy - v1.6.64
+// FoxBear incident failure classification and recovery policy - v1.6.65
 (function attachFoxBearIncidentRecoveryPolicy(global) {
     'use strict';
 
@@ -50,7 +50,7 @@
     }
 
     global.FoxBearIncidentRecoveryPolicy = Object.freeze({
-        version: '1.6.64',
+        version: '1.6.65',
         actionLabels: ACTION_LABELS,
         classify,
         getActionPlan

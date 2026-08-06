@@ -125,35 +125,35 @@ assert(fs.existsSync(historyWritten.markdownOutputPath));
 
 const beforePackage = {
   name: 'foxbear-mastering-studio',
-  version: '1.6.64',
+  version: '1.6.65',
   description: 'old release',
-  scripts: { check: 'node qa/run_all_checks.js', 'package:verify:release': 'node verify v1.6.64' },
+  scripts: { check: 'node qa/run_all_checks.js', 'package:verify:release': 'node verify v1.6.65' },
   foxbearRelease: {
     buildId: 'old-build',
-    assetVersion: '1.6.64-old-build',
-    cacheName: 'foxbear-shell-v1.6.64-old-build',
-    bootRevision: 'boot-sri-v1664-delivery-contract',
-    updateSafetyRevision: 'update-safety-v1664-delivery-contract',
-    serviceWorkerRevision: 'sw-v1664-delivery-contract'
+    assetVersion: '1.6.65-old-build',
+    cacheName: 'foxbear-shell-v1.6.65-old-build',
+    bootRevision: 'boot-sri-v1665-write-fencing',
+    updateSafetyRevision: 'update-safety-v1665-write-fencing',
+    serviceWorkerRevision: 'sw-v1665-write-fencing'
   }
 };
 const afterPackage = JSON.parse(JSON.stringify(beforePackage));
-afterPackage.version = '1.6.64';
+afterPackage.version = '1.6.65';
 afterPackage.description = 'new release';
-afterPackage.scripts['package:verify:release'] = 'node verify v1.6.64';
+afterPackage.scripts['package:verify:release'] = 'node verify v1.6.65';
 afterPackage.foxbearRelease = {
   buildId: 'new-build',
-  assetVersion: '1.6.64-new-build',
-  cacheName: 'foxbear-shell-v1.6.64-new-build',
-  bootRevision: 'boot-sri-v1664-delivery-contract',
-  updateSafetyRevision: 'update-safety-v1664-delivery-contract',
-  serviceWorkerRevision: 'sw-v1664-delivery-contract'
+  assetVersion: '1.6.65-new-build',
+  cacheName: 'foxbear-shell-v1.6.65-new-build',
+  bootRevision: 'boot-sri-v1665-write-fencing',
+  updateSafetyRevision: 'update-safety-v1665-write-fencing',
+  serviceWorkerRevision: 'sw-v1665-write-fencing'
 };
 const beforeMetadata = releaseMetadataFromPackage(beforePackage);
 const afterMetadata = releaseMetadataFromPackage(afterPackage);
 assert.strictEqual(isReleaseMetadataOnlyChange('package.json', JSON.stringify(beforePackage), JSON.stringify(afterPackage), beforeMetadata, afterMetadata), true);
-assert.strictEqual(isReleaseMetadataOnlyChange('src/app.js', "const version = '1.6.64-old-build';\nrun();\n", "const version = '1.6.64-new-build';\nrun();\n", beforeMetadata, afterMetadata), true);
-assert.strictEqual(isReleaseMetadataOnlyChange('src/app.js', "const version = '1.6.64-old-build';\nrun();\n", "const version = '1.6.64-new-build';\nrunSafely();\n", beforeMetadata, afterMetadata), false);
+assert.strictEqual(isReleaseMetadataOnlyChange('src/app.js', "const version = '1.6.65-old-build';\nrun();\n", "const version = '1.6.65-new-build';\nrun();\n", beforeMetadata, afterMetadata), true);
+assert.strictEqual(isReleaseMetadataOnlyChange('src/app.js', "const version = '1.6.65-old-build';\nrun();\n", "const version = '1.6.65-new-build';\nrunSafely();\n", beforeMetadata, afterMetadata), false);
 
 const selected = selectBrowserScope([
   'package.json',
@@ -178,14 +178,14 @@ assert.strictEqual(git(['config', 'user.email', 'qa@example.com']).status, 0);
 assert.strictEqual(git(['config', 'user.name', 'FoxBear QA']).status, 0);
 fs.writeFileSync(path.join(gitDir, 'package.json'), `${JSON.stringify(beforePackage, null, 2)}\n`);
 fs.mkdirSync(path.join(gitDir, 'src'), { recursive: true });
-fs.writeFileSync(path.join(gitDir, 'src/app.js'), "const build = '1.6.64-old-build';\n");
-fs.writeFileSync(path.join(gitDir, 'index.html'), '<script src="src/app.js?v=1.6.64-old-build" integrity="sha384-OLD"></script>\n');
+fs.writeFileSync(path.join(gitDir, 'src/app.js'), "const build = '1.6.65-old-build';\n");
+fs.writeFileSync(path.join(gitDir, 'index.html'), '<script src="src/app.js?v=1.6.65-old-build" integrity="sha384-OLD"></script>\n');
 assert.strictEqual(git(['add', '.']).status, 0);
 assert.strictEqual(git(['commit', '-qm', 'base']).status, 0);
 const base = git(['rev-parse', 'HEAD']).stdout.trim();
 fs.writeFileSync(path.join(gitDir, 'package.json'), `${JSON.stringify(afterPackage, null, 2)}\n`);
-fs.writeFileSync(path.join(gitDir, 'src/app.js'), "const build = '1.6.64-new-build';\n");
-fs.writeFileSync(path.join(gitDir, 'index.html'), '<script src="src/app.js?v=1.6.64-new-build" integrity="sha384-NEW"></script>\n');
+fs.writeFileSync(path.join(gitDir, 'src/app.js'), "const build = '1.6.65-new-build';\n");
+fs.writeFileSync(path.join(gitDir, 'index.html'), '<script src="src/app.js?v=1.6.65-new-build" integrity="sha384-NEW"></script>\n');
 assert.strictEqual(git(['add', '.']).status, 0);
 assert.strictEqual(git(['commit', '-qm', 'metadata']).status, 0);
 const head = git(['rev-parse', 'HEAD']).stdout.trim();
@@ -205,7 +205,7 @@ for (const source of [workflow, fallback]) {
 }
 
 const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'));
-assert.strictEqual(pkg.version, '1.6.64');
+assert.strictEqual(pkg.version, '1.6.65');
 assert.strictEqual(pkg.scripts['qa:browser:retry:verify'], 'node qa/browser/verify-retry-recovery.js');
 assert.strictEqual(pkg.scripts['sri:update'], 'python3 -B tools/update-sri.py');
 assert(pkg.qaChecks.includes('python3 -B qa/verify_sri.py'));

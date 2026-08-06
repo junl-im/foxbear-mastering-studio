@@ -15,7 +15,7 @@ const reporterSource = read('src/boot/incident-reporter.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.64');
+assert.strictEqual(pkg.version, '1.6.65');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.scripts['deploy:incident'].includes('functions:submitIncidentReport'));
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentDeliveryStatus'));
@@ -34,7 +34,7 @@ assert(functionsSource.includes("if (!uid) throw new HttpsError('unauthenticated
 assert(functionsSource.includes('await reportRef.create({'));
 assert(functionsSource.includes("if (!reportId || !reportId.startsWith(`${uid}_`))"));
 assert(reporterSource.includes("'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다."));
-assert(handoff.startsWith('# Handoff - v1.6.64'));
+assert(handoff.startsWith('# Handoff - v1.6.65'));
 
 const sandbox = {
   console,
@@ -95,9 +95,14 @@ assert.strictEqual(normalized.category, 'manual-test');
 assert.strictEqual(normalized.severity, 'warning');
 assert.strictEqual(normalized.memoryGb, 64);
 assert.strictEqual(normalized.cpuCores, 0);
-assert.strictEqual(functionTest.callableReportId('uid123', 'uid123_bucket_manual', normalized), 'uid123_bucket_manual');
-const generatedId = functionTest.callableReportId('uid123', 'other-user-report', { fingerprint: 'manual-test-1' });
-assert(generatedId.startsWith('uid123_'));
+const canonicalId = `uid123_${normalized.submissionKey}`;
+assert.strictEqual(functionTest.callableReportId('uid123', canonicalId, normalized), canonicalId);
+assert.throws(
+  () => functionTest.callableReportId('uid123', 'uid123_bucket_manual', normalized),
+  error => error?.code === 'invalid-argument'
+);
+const generatedId = functionTest.callableReportId('uid123', '', { fingerprint: 'manual-test-1', clientAt: '2026-08-06T02:00:00.000Z' });
+assert(generatedId.startsWith('uid123_inc_'));
 const serialized = functionTest.serializeIncidentDelivery({ exists: true, data: () => ({ delivery: { status: 'emailed', attemptCount: 1, acceptedCount: 1 } }) });
 assert.strictEqual(serialized.status, 'emailed');
 assert.strictEqual(serialized.acceptedCount, 1);

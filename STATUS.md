@@ -1,3 +1,42 @@
+# FoxBear Status - v1.6.65
+
+## Current release
+
+- Product version: `1.6.65`
+- Build ID: `firestore-write-fencing`
+- Asset version: `1.6.65-firestore-write-fencing`
+- Service worker cache: `foxbear-shell-v1.6.65-firestore-write-fencing`
+- Configured static/regression target: 415 checks.
+
+## Current focus
+
+- Limit each anonymous Firebase UID to one `siteVisits` document per calendar date.
+- Make duplicate same-day visit attempts idempotent across reloads and tabs.
+- Require exact document-ID agreement with visit dates and incident submission keys.
+- Reject caller-selected incident IDs that diverge from the server-normalized canonical ID.
+
+## Verification state
+
+- Static and behavioral checks: **415/415 passed** in bounded slices (`104/104`, `104/104`, `104/104`, `103/103`).
+- Source hygiene, release metadata, handoff state, browser preflight, Functions syntax, and the 152-file Hosting boundary passed.
+- Dependency metadata reported 0 errors and 5 expected missing-install warnings.
+- Full ZIP verification passed with 708 files; the patch manifest contains 281 source files and 7 delete paths.
+- Applying the patch over the supplied v1.6.64 full tree reproduced the v1.6.65 source content exactly.
+- Installed Playwright and real-device browser acceptance remain external.
+
+## Production verification required
+
+- Deploy Firestore Rules and Callable Functions together.
+- Confirm one same-day visit document per anonymous UID in Firebase Console.
+- Run a real browser incident submission and verify the stored report ID equals `UID_submissionKey`.
+
+## Release metadata
+
+- Product version: `1.6.65`
+- Build ID: `firestore-write-fencing`
+- Asset version: `1.6.65-firestore-write-fencing`
+- Service worker cache: `foxbear-shell-v1.6.65-firestore-write-fencing`
+
 # FoxBear Status - v1.6.64
 
 ## Current release

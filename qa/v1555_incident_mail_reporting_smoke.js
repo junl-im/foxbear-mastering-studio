@@ -38,7 +38,8 @@ assert(!read('src/firebase-bootstrap.js').includes('nodemailer'), 'client must n
 assert(firebase.includes('getIncidentDelivery'));
 assert(firebase.includes('deduplicated: true'));
 assert(rules.includes('match /incidentReports/{reportId}'));
-assert(rules.includes('allow create: if validIncidentCreate()'));
+assert(rules.includes('allow create: if validIncidentCreate(reportId)'));
+assert(rules.includes("reportId == request.auth.uid + '_' + request.resource.data.submissionKey"));
 assert(rules.includes('resource.data.uid == request.auth.uid'));
 assert(rules.includes('allow list: if isAdmin()'));
 assert(rules.includes('match /incidentMailState/{document=**}'));

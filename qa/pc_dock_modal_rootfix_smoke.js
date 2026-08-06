@@ -4,9 +4,9 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const app=read('src/app.js'); const html=read('index.html'); const dockCss=read('assets/css/dock.css'); const pkg=JSON.parse(read('package.json'));
-must(pkg.version==='1.6.64','package version');
-must(html.includes('data-build="1.6.64"'),'build');
-must(app.includes("const APP_VERSION = 'Pro v1.6.64'"),'app version');
+must(pkg.version==='1.6.65','package version');
+must(html.includes('data-build="1.6.65"'),'build');
+must(app.includes("const APP_VERSION = 'Pro v1.6.65'"),'app version');
 must(html.includes('id="bottomPreviewPlayBtn"'),'PC dock external play button');
 must(app.includes('bottom-preview-play-glyph'),'clear play glyph');
 must(app.includes('function toggleBottomPreviewExternalPlayback'),'external play toggle');

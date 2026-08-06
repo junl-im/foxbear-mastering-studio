@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.64-github-desktop-delivery-contract';
+  const VIEW_VERSION = '1.6.65-firestore-write-fencing';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -1,8 +1,8 @@
-// FoxBear individual export queue v1.6.64 - pause, recovery, failure diagnostics and advisory ETA
+// FoxBear individual export queue v1.6.65 - pause, recovery, failure diagnostics and advisory ETA
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.6.64-github-desktop-delivery-contract';
+    const VERSION = 'v1.6.65-firestore-write-fencing';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;

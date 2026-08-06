@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.64",
+  "version": "1.6.65",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.64 - GitHub Desktop full/patch delivery artifacts, source hygiene, and local-state cleanup",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.65 - Firestore write fencing, deterministic daily visit deduplication, and canonical incident IDs",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.64-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.64-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.65-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.65-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.64-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.64-patch.zip"
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.65-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.65-patch.zip"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -456,15 +456,16 @@
     "node qa/v1661_human_readable_download_filename_smoke.js",
     "node qa/v1662_download_filename_preview_controls_smoke.js",
     "node qa/v1663_filename_provenance_export_review_smoke.js",
-    "node qa/v1664_github_desktop_delivery_artifact_contract_smoke.js"
+    "node qa/v1664_github_desktop_delivery_artifact_contract_smoke.js",
+    "node qa/v1665_firestore_write_fencing_visit_dedup_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "github-desktop-delivery-contract",
-    "assetVersion": "1.6.64-github-desktop-delivery-contract",
-    "cacheName": "foxbear-shell-v1.6.64-github-desktop-delivery-contract",
-    "bootRevision": "boot-sri-v1664-delivery-contract",
-    "updateSafetyRevision": "update-safety-v1664-delivery-contract",
-    "serviceWorkerRevision": "sw-v1664-delivery-contract"
+    "buildId": "firestore-write-fencing",
+    "assetVersion": "1.6.65-firestore-write-fencing",
+    "cacheName": "foxbear-shell-v1.6.65-firestore-write-fencing",
+    "bootRevision": "boot-sri-v1665-write-fencing",
+    "updateSafetyRevision": "update-safety-v1665-write-fencing",
+    "serviceWorkerRevision": "sw-v1665-write-fencing"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

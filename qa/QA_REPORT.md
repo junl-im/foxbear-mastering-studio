@@ -1,3 +1,29 @@
+# FoxBear QA Report - v1.6.65
+
+## Configured target
+
+- Static and behavioral checks: 415
+- New regression: `qa/v1665_firestore_write_fencing_visit_dedup_smoke.js`
+
+## Verification scope
+
+- Deterministic daily visit document IDs and duplicate-write success behavior.
+- Firestore Rules date-key, submission-key, and exact document-ID contracts.
+- Callable canonical incident ID derivation and mismatched-ID rejection.
+- Compatibility with existing incident delivery and administrator operations.
+
+## Final result
+
+- Official configured static and behavioral checks: **415/415 passed** in four bounded slices (`104/104`, `104/104`, `104/104`, `103/103`).
+- Dedicated v1.6.65 deterministic-visit, duplicate-success, Firestore ID-fence, and Callable mismatch-rejection regression passed.
+- Historical incident mail, no-App-Check policy, submission fencing, Spark Hosting, audio, download, PWA, and administrator regressions remained green.
+- Source hygiene, release metadata, handoff state, browser fixture preflight, Firebase Functions syntax, and the 152-file Hosting boundary passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings because Playwright and Firebase Functions packages are not installed in this environment.
+- The verified full ZIP contains 708 files.
+- The patch manifest contains 281 changed/required source files plus `PATCH_MANIFEST.json`, with 7 delete paths.
+- Applying the patch over the supplied v1.6.64 full tree and deleting listed paths reproduced the v1.6.65 source content exactly.
+- Real Playwright/device browser and deployed Firebase acceptance remain external.
+
 # FoxBear QA Report - v1.6.64
 
 ## Configured target

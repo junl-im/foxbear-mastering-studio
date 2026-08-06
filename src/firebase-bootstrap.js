@@ -515,17 +515,34 @@ async function signOutAdminAccess() {
     });
 }
 
+function visitDocumentId(uid, dateKey) {
+    const safeUid = limitText(uid, 128);
+    const safeDateKey = /^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || '')) ? String(dateKey) : getDateKey();
+    if (!safeUid) throw new Error('Firebase 방문자 UID가 준비되지 않았습니다.');
+    return `${safeUid}_${safeDateKey}`;
+}
+
 async function logVisit(payload = {}) {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
     const user = await signInGuest();
     const visit = normalizeVisitPayload(payload);
-    await addDoc(collection(bridgeState.db, 'siteVisits'), {
-        ...visit,
-        uid: user.uid,
-        visitorId: user.uid,
-        createdAt: serverTimestamp()
-    });
-    return true;
+    const visitId = visitDocumentId(user.uid, visit.dateKey);
+    const visitRef = doc(bridgeState.db, 'siteVisits', visitId);
+    try {
+        await setDoc(visitRef, {
+            ...visit,
+            uid: user.uid,
+            visitorId: user.uid,
+            createdAt: serverTimestamp()
+        });
+        return Object.freeze({ logged: true, deduplicated: false, visitId });
+    } catch (error) {
+        const duplicate = await getDoc(visitRef).catch(() => null);
+        if (duplicate?.exists?.() && duplicate.data()?.uid === user.uid) {
+            return Object.freeze({ logged: true, deduplicated: true, visitId });
+        }
+        throw error;
+    }
 }
 
 

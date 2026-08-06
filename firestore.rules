@@ -34,7 +34,7 @@ service cloud.firestore {
       return field is string && field.size() <= maxSize;
     }
 
-    function validVisitCreate() {
+    function validVisitCreate(visitId) {
       return signedIn()
         && request.resource.data.keys().hasOnly([
           'uid',
@@ -57,6 +57,8 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && validShortString(request.resource.data.clientAt, 40)
         && validShortString(request.resource.data.dateKey, 10)
+        && request.resource.data.dateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && visitId == request.auth.uid + '_' + request.resource.data.dateKey
         && validShortString(request.resource.data.referrer, 160)
         && validShortString(request.resource.data.page, 180)
         && validShortString(request.resource.data.path, 160)
@@ -69,14 +71,14 @@ service cloud.firestore {
     }
 
     match /siteVisits/{visitId} {
-      allow create: if validVisitCreate();
+      allow create: if validVisitCreate(visitId);
       allow get: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
       allow list: if isAdmin();
       allow update, delete: if false;
     }
 
 
-    function validIncidentCreate() {
+    function validIncidentCreate(reportId) {
       return signedIn()
         && request.resource.data.keys().hasOnly([
           'uid',
@@ -130,7 +132,8 @@ service cloud.firestore {
         && validShortString(request.resource.data.stack, 1400)
         && validShortString(request.resource.data.fingerprint, 64)
         && validShortString(request.resource.data.submissionKey, 64)
-        && request.resource.data.submissionKey.size() >= 8
+        && request.resource.data.submissionKey.matches('^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$')
+        && reportId == request.auth.uid + '_' + request.resource.data.submissionKey
         && validShortString(request.resource.data.source, 80)
         && validShortString(request.resource.data.pagePath, 160)
         && validShortString(request.resource.data.browser, 40)
@@ -166,7 +169,7 @@ service cloud.firestore {
     }
 
     match /incidentReports/{reportId} {
-      allow create: if validIncidentCreate();
+      allow create: if validIncidentCreate(reportId);
       allow get: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
       allow list: if isAdmin();
       allow update, delete: if false;

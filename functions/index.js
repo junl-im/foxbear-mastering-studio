@@ -65,7 +65,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.64';
+const PRODUCT_VERSION = '1.6.65';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -121,7 +121,7 @@ function clampIncidentNumber(value, min, max) {
 function normalizeCallableIncident(payload = {}) {
   const severity = CALLABLE_INCIDENT_SEVERITIES.has(payload.severity) ? payload.severity : 'error';
   const category = CALLABLE_INCIDENT_CATEGORIES.has(payload.category) ? payload.category : 'unknown';
-  return {
+  const incident = {
     schemaVersion: 1,
     clientAt: cleanText(payload.clientAt || new Date().toISOString(), 40),
     appVersion: cleanText(payload.appVersion || PRODUCT_VERSION, 24),
@@ -152,6 +152,8 @@ function normalizeCallableIncident(payload = {}) {
     automatic: payload.automatic !== false,
     context: cleanText(payload.context || '', 700)
   };
+  incident.submissionKey = incidentSubmissionKey(incident);
+  return incident;
 }
 
 function incidentSubmissionKey(incident = {}) {
@@ -172,10 +174,14 @@ function incidentSubmissionKey(incident = {}) {
 }
 
 function callableReportId(uid, requestedId, incident) {
-  const cleanUid = safeKey(uid, 'anonymous');
+  const cleanUid = cleanText(uid || '', 128);
+  if (!cleanUid || cleanUid.includes('/')) throw new HttpsError('unauthenticated', '유효한 Firebase UID가 필요합니다.');
+  const expected = `${cleanUid}_${incidentSubmissionKey(incident)}`.slice(0, 180);
   const requested = cleanText(requestedId || '', 180);
-  if (requested.startsWith(`${uid}_`) && /^[A-Za-z0-9_-]+$/.test(requested)) return requested;
-  return `${cleanUid}_${incidentSubmissionKey(incident)}`.slice(0, 180);
+  if (requested && requested !== expected) {
+    throw new HttpsError('invalid-argument', '문제 신고 문서 ID가 제출 키와 일치하지 않습니다.');
+  }
+  return expected;
 }
 
 function timestampToIso(value) {
