@@ -1,0 +1,6 @@
+.firebaserc
+.firebase/
+.audit-results/
+qa/static-audit.txt
+qa/browser-check.txt
+qa/static-check.txt

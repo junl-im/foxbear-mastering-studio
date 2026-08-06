@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.64
+
+## Configured target
+
+- Static and behavioral checks: 414
+- New regression: `qa/v1664_github_desktop_delivery_artifact_contract_smoke.js`
+
+## Verification scope
+
+- Full and patch alias naming and one-command delivery generation.
+- Git-tracked source hygiene and archive-time exclusion of local/generated/secret-like files.
+- Inclusion of patch notes and explicit deletion paths.
+- Release-gate ordering and handoff-format contract.
+
+## Final result
+
+- Official configured static and behavioral checks: **414/414 passed** in three bounded slices (`138/138`, `138/138`, `138/138`).
+- Source hygiene, release metadata, handoff state, browser fixture preflight, Firebase Functions syntax, and Firebase Hosting payload boundary passed.
+- Firebase Hosting staging contains **152 allowlisted files**.
+- Dependency health reported 0 errors and 5 expected missing-install warnings because Playwright and Firebase Functions packages are not installed in this audit environment.
+- The user-facing full ZIP passed release archive verification.
+- The changed-file patch ZIP contains **289 changed/added files** plus `PATCH_MANIFEST.json` and **6 delete paths**.
+- Applying the patch over a clean v1.6.63 Git archive and then deleting `DELETE_PATHS.txt` entries reproduced the v1.6.64 source tree exactly.
+- Full Playwright/device browser acceptance remains external because browser binaries and installed npm dependencies are unavailable in this environment.
+
 # FoxBear QA Report - v1.6.63
 
 ## Configured target

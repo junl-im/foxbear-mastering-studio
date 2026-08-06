@@ -1,6 +1,6 @@
 {
   "name": "foxbear-incident-mailer",
-  "version": "1.6.63",
+  "version": "1.6.64",
   "private": true,
   "description": "Optional Blaze-plan incident delivery functions. Spark administrator access is handled by Firebase Google Auth and Firestore Rules without Cloud Functions.",
   "main": "index.js",

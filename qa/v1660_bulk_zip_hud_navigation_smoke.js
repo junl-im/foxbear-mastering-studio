@@ -15,7 +15,7 @@ const appSource = read('src/app.js');
 const hudSource = read('src/ui/bulk-import-hud-view.js');
 const hudCss = read('assets/css/bulk-import-hud.css');
 
-assert(pkg.qaChecks.includes('node qa/v1660_bulk_zip_hud_navigation_smoke.js'), 'v1.6.63 QA entry missing');
+assert(pkg.qaChecks.includes('node qa/v1660_bulk_zip_hud_navigation_smoke.js'), 'v1.6.64 QA entry missing');
 assert(guardSource.includes('automaticIndividualFallback: false'), 'ZIP guard must disable automatic individual fallback');
 assert(guardSource.includes("strategy: blockReason ? 'blocked-single-zip'"), 'ZIP guard must distinguish hard block from soft risk');
 assert(zipSource.includes('fallbackStarted: false'), 'ZIP service must report that no fallback was started');

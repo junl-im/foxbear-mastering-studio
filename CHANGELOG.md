@@ -1,3 +1,13 @@
+# v1.6.64 - GitHub Desktop Full/Patch Delivery Contract
+
+- Adds one-command generation of the two user-facing delivery files: `-full.zip` and `-patch.zip`.
+- Keeps the existing verified release/overwrite archive flow as the internal source for backward compatibility.
+- Adds source-hygiene enforcement for tracked `.firebaserc`, `.firebase`, audit scratch, generated QA output, dependency folders, and secret-like environment files.
+- Removes tracked local Firebase CLI state and generated static-audit output from the release source.
+- Includes `PATCH_NOTES.md` and `DELETE_PATHS.txt` in cumulative overwrite packages so extract-and-replace handoff also identifies stale local files that require deletion.
+- Aligns the final delivery report contract to `1. 적용 내역`, `2. 다음 패치 예정`, and `3. 다운로드 파일 2종`.
+- Adds dedicated regression coverage, raising the configured target to 414 checks.
+
 # v1.6.63 - Filename Provenance, Export Review, and Responsive Copy Controls
 
 - Freezes the exact source filename with each completed master so later mutable track labels cannot silently rewrite exported names.

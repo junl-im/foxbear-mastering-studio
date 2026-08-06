@@ -139,6 +139,8 @@ function sync() {
   pkg.scripts = pkg.scripts || {};
   pkg.scripts['package:verify:overwrite'] = `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`;
   pkg.scripts['package:verify:release'] = `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`;
+  pkg.scripts['package:verify:full'] = `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-full.zip`;
+  pkg.scripts['package:verify:patch'] = `node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-patch.zip`;
   write('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
 
   const rootLock = synchronizeLockfileVersion(JSON.parse(read('package-lock.json')), meta.productVersion);
@@ -251,6 +253,7 @@ function sync() {
 const EXCLUDED_SYNC_PATHS = [
   '.git',
   '.firebase',
+  '.audit-results',
   'dist',
   'node_modules',
   'functions/node_modules',
@@ -456,7 +459,7 @@ function validate() {
   expect(handoffCurrentRelease.includes(`- Service worker cache: \`${meta.cacheName}\``), 'HANDOFF Current release cache name is not synchronized');
   expect(handoffCurrentRelease.includes(`- Configured static/regression target: ${Array.isArray(pkg.qaChecks) ? pkg.qaChecks.length : 0} checks.`), 'HANDOFF Current release QA target is not synchronized');
   expect(desktopHandoff.startsWith(`# GitHub Desktop Handoff - v${meta.productVersion}`), 'GITHUB_DESKTOP_HANDOFF title does not match package version');
-  for (const heading of ['## 1. 작업한 내역', '## 2. 다운로드 파일 2종', '## 3. 다음 예정 내역']) {
+  for (const heading of ['## 1. 적용 내역', '## 2. 다음 패치 예정', '## 3. 다운로드 파일 2종']) {
     expect(deliveryRules.includes(heading), `DELIVERY_RULES.md is missing required heading: ${heading}`);
   }
   expect(status.startsWith(`# FoxBear Status - v${meta.productVersion}`), 'STATUS title does not match package version');
@@ -473,6 +476,8 @@ function validate() {
   expect(qaReport.startsWith(`# FoxBear QA Report - v${meta.productVersion}`), 'qa/QA_REPORT.md latest entry does not match package version');
   expect(pkg.scripts?.['package:verify:overwrite'] === `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`, 'package:verify:overwrite script is not synchronized');
   expect(pkg.scripts?.['package:verify:release'] === `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`, 'package:verify:release script is not synchronized');
+  expect(pkg.scripts?.['package:verify:full'] === `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-full.zip`, 'package:verify:full script is not synchronized');
+  expect(pkg.scripts?.['package:verify:patch'] === `node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-patch.zip`, 'package:verify:patch script is not synchronized');
 
   if (failures.length) {
     const error = new Error(failures.map(message => `FAIL ${message}`).join('\n'));

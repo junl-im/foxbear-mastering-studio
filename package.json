@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.63",
+  "version": "1.6.64",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.63 - filename provenance, grapheme-safe truncation, full export review, copy controls, and responsive polish",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.64 - GitHub Desktop full/patch delivery artifacts, source hygiene, and local-state cleanup",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.63-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.63-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.64-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.64-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -36,7 +36,11 @@
     "qa:python:clean": "node qa/python-bytecode-hygiene.js",
     "deploy:spark": "npm run hosting:check && firebase deploy --only hosting,firestore:rules,firestore:indexes",
     "hosting:check": "node tools/check-hosting-payload.js",
-    "hosting:stage": "node tools/stage-hosting-payload.js"
+    "hosting:stage": "node tools/stage-hosting-payload.js",
+    "source:hygiene": "node tools/check-source-hygiene.js",
+    "package:delivery": "node tools/create-delivery-zips.js",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.64-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.64-patch.zip"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -451,15 +455,16 @@
     "node qa/v1660_bulk_zip_hud_navigation_smoke.js",
     "node qa/v1661_human_readable_download_filename_smoke.js",
     "node qa/v1662_download_filename_preview_controls_smoke.js",
-    "node qa/v1663_filename_provenance_export_review_smoke.js"
+    "node qa/v1663_filename_provenance_export_review_smoke.js",
+    "node qa/v1664_github_desktop_delivery_artifact_contract_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "download-filename-review-hardening",
-    "assetVersion": "1.6.63-download-filename-review-hardening",
-    "cacheName": "foxbear-shell-v1.6.63-download-filename-review-hardening",
-    "bootRevision": "boot-sri-v1663-filename-review",
-    "updateSafetyRevision": "update-safety-v1663-filename-review",
-    "serviceWorkerRevision": "sw-v1663-filename-review"
+    "buildId": "github-desktop-delivery-contract",
+    "assetVersion": "1.6.64-github-desktop-delivery-contract",
+    "cacheName": "foxbear-shell-v1.6.64-github-desktop-delivery-contract",
+    "bootRevision": "boot-sri-v1664-delivery-contract",
+    "updateSafetyRevision": "update-safety-v1664-delivery-contract",
+    "serviceWorkerRevision": "sw-v1664-delivery-contract"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.63
+// FoxBear performance diagnostics - v1.6.64
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.63-download-filename-review-hardening';
+    const DIAGNOSTICS_VERSION = '1.6.64-github-desktop-delivery-contract';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

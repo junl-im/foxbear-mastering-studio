@@ -155,6 +155,10 @@ if (!releaseGateCommand.includes('handoff:check') && !releaseGateRunner.includes
   fail('check:release must run handoff:check', failures);
 }
 if (!scripts['handoff:check']) fail('package.json is missing handoff:check', failures);
+if (!scripts['source:hygiene']) fail('package.json is missing source:hygiene', failures);
+if (!releaseGateCommand.includes('source:hygiene') && !releaseGateRunner.includes("'source:hygiene'")) {
+  fail('check:release must run source:hygiene', failures);
+}
 
 const handoff = fs.readFileSync(path.join(root, 'HANDOFF.md'), 'utf8');
 const desktopGuide = fs.readFileSync(path.join(root, 'GITHUB_DESKTOP_HANDOFF.md'), 'utf8');
@@ -169,7 +173,7 @@ if (!handoffCurrentRelease.includes(`- Configured static/regression target: ${Ar
 if (!/GitHub Desktop/i.test(handoff)) fail('HANDOFF.md does not record the GitHub Desktop workflow', failures);
 if (!desktopGuide.startsWith(`# GitHub Desktop Handoff - v${pkg.version}`)) fail('GitHub Desktop guide title does not match package version', failures);
 if (!/Fetch origin/i.test(desktopGuide) || !/Push origin/i.test(desktopGuide)) fail('GitHub Desktop guide is missing fetch/push workflow', failures);
-for (const heading of ['## 1. 작업한 내역', '## 2. 다운로드 파일 2종', '## 3. 다음 예정 내역']) {
+for (const heading of ['## 1. 적용 내역', '## 2. 다음 패치 예정', '## 3. 다운로드 파일 2종']) {
   if (!deliveryRules.includes(heading)) fail(`DELIVERY_RULES.md is missing required heading: ${heading}`, failures);
 }
 

@@ -1,4 +1,4 @@
-// FoxBear incident settings controls rendering and binding helpers - v1.6.63
+// FoxBear incident settings controls rendering and binding helpers - v1.6.64
 (function attachFoxBearIncidentControlsView(global) {
     'use strict';
 
@@ -102,7 +102,7 @@
     }
 
     global.FoxBearIncidentControlsView = Object.freeze({
-        version: '1.6.63',
+        version: '1.6.64',
         ids: IDS,
         collect,
         recoveryStatusModel,

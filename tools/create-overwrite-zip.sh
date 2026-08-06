@@ -58,6 +58,8 @@ copy_path "HANDOFF_PACKAGE.json"
 copy_path "RELEASE_CHECKLIST.md"
 copy_path "VERSIONING.md"
 copy_path "STATUS.md"
+copy_path "PATCH_NOTES.md"
+copy_path "DELETE_PATHS.txt"
 
 # Cumulative runtime source and style layers.
 copy_path "src"

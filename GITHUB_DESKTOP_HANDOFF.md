@@ -1,3 +1,24 @@
+# GitHub Desktop Handoff - v1.6.64
+
+## Apply
+
+1. In GitHub Desktop, use **Fetch origin**.
+2. Extract `foxbear-mastering-studio-v1.6.64-patch.zip` directly into the repository root and replace matching files.
+3. Delete any existing paths listed in `DELETE_PATHS.txt`; these are local/generated files that an overwrite ZIP cannot remove.
+4. Review the changes, commit, and **Push origin**.
+5. Run `npm run source:hygiene`, `npm run check:release`, and `npm run package:delivery` before deployment or external handoff.
+
+## Delivery files
+
+- `foxbear-mastering-studio-v1.6.64-full.zip`: complete GitHub Desktop project handoff without `.git`, dependencies, local Firebase state, caches, or secrets.
+- `foxbear-mastering-studio-v1.6.64-patch.zip`: cumulative repository-root overwrite package including patch and deletion notes.
+
+## Production verification
+
+- Open both ZIPs and confirm `.git`, `.firebase`, `.firebaserc`, `node_modules`, `.env`, and generated QA text are absent.
+- Extract the patch into a clean clone, delete listed paths, and confirm GitHub Desktop shows only intended source changes.
+- Run the static release gate and a real Chromium acceptance pass before deployment.
+
 # GitHub Desktop Handoff - v1.6.63
 
 ## Apply
@@ -552,7 +573,7 @@ FoxBear 패치는 **GitHub Desktop을 기본 Git 클라이언트로 사용하는
 
 ## 작업 결과 보고 규칙
 
-작업 완료 보고는 `작업한 내역`, `다운로드 파일 2종`, `다음 예정 내역`의 세 구역만 사용합니다. `다운로드 파일 2종`에는 전체 프로젝트 통파일 ZIP과 저장소 루트에 붙여넣어 덮어쓰는 누적 패치 ZIP을 항상 함께 전달합니다. 과거 문서의 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용`은 이전 명칭입니다.
+작업 완료 보고는 `작업한 내역`, `다운로드 파일 2종`, `다음 예정 내역`의 세 구역만 사용합니다. `다운로드 파일 2종`에는 전체 프로젝트 통파일 ZIP과 저장소 루트에 붙여넣어 덮어쓰는 변경분 패치 ZIP을 항상 함께 전달합니다. 과거 문서의 `진행된 내용 / 배포 파일 2종 / 다음 예상 내용`은 이전 명칭입니다.
 
 ## v1.6.17 적용 확인
 

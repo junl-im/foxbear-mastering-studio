@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.63",
-  "buildId": "download-filename-review-hardening",
+  "productVersion": "1.6.64",
+  "buildId": "github-desktop-delivery-contract",
   "requiredFiles": [
     "404.html",
     ".gitignore",
@@ -164,7 +164,14 @@
     "qa/v1662_download_filename_preview_controls_smoke.js",
     "docs/V1.6.62_DOWNLOAD_FILENAME_PREVIEW_CONTROLS.md",
     "qa/v1663_filename_provenance_export_review_smoke.js",
-    "docs/V1.6.63_FILENAME_PROVENANCE_EXPORT_REVIEW_DESIGN_AUDIT.md"
+    "docs/V1.6.63_FILENAME_PROVENANCE_EXPORT_REVIEW_DESIGN_AUDIT.md",
+    "tools/check-source-hygiene.js",
+    "tools/create-delivery-zips.js",
+    "PATCH_NOTES.md",
+    "DELETE_PATHS.txt",
+    "qa/v1664_github_desktop_delivery_artifact_contract_smoke.js",
+    "docs/V1.6.64_GITHUB_DESKTOP_DELIVERY_ARTIFACT_CONTRACT.md",
+    "tools/verify-patch-zip.js"
   ],
   "requiredPrefixes": [
     "assets/",
@@ -183,19 +190,28 @@
     "playwright-report/",
     "qa/browser-results/",
     "test-results/",
-    "functions/node_modules/"
+    "functions/node_modules/",
+    ".audit-results/"
   ],
   "forbiddenArchiveFiles": [
     ".firebaserc",
     "check.log",
     "qa/static-audit.txt",
-    "cmd.exe"
+    "cmd.exe",
+    ".env",
+    ".env.local",
+    "firebase-debug.log",
+    "npm-debug.log"
   ],
   "deletePaths": [
     "qa/__pycache__",
     "tools/__pycache__",
     "cmd.exe",
-    ".firebase/hosting..cache"
+    ".firebase/hosting..cache",
+    ".firebaserc",
+    ".firebase",
+    ".audit-results",
+    "qa/static-audit.txt"
   ],
   "requiredRuntimeAssets": [
     "src/boot/service-worker-recovery-service.js",

@@ -1,3 +1,35 @@
+# Handoff - v1.6.64
+
+## Current release
+
+- Product version: `1.6.64`
+- Build ID: `github-desktop-delivery-contract`
+- Asset version: `1.6.64-github-desktop-delivery-contract`
+- Service worker cache: `foxbear-shell-v1.6.64-github-desktop-delivery-contract`
+- Configured static/regression target: 414 checks.
+
+## Current focus
+
+- Generate the exact two user-facing artifacts with `npm run package:delivery`.
+- Reject tracked or archived local Firebase state, generated QA output, and secret-like environment files.
+- Keep the patch package limited to files changed from the v1.6.63 base and intended for direct extraction over that repository.
+- Carry explicit deletion guidance for files that archive extraction cannot remove.
+
+## Verified
+
+- Configured static/regression checks: **414/414 passed**.
+- Source hygiene, metadata, handoff, browser preflight, Functions syntax, and 152-file Hosting boundary passed.
+- The changed-file patch contains 289 source files and 6 delete paths and reproduces the v1.6.64 tree over the v1.6.63 base.
+- Real Playwright/device browser acceptance remains external.
+
+## Apply with GitHub Desktop
+
+1. Fetch origin.
+2. Extract `foxbear-mastering-studio-v1.6.64-patch.zip` into the repository root and replace matching files.
+3. Delete paths listed in `DELETE_PATHS.txt` when present.
+4. Review changes, commit, and Push origin.
+5. Run `npm run check:release` before deployment.
+
 # Handoff - v1.6.63
 
 - Build: `download-filename-review-hardening`.
@@ -581,7 +613,7 @@
 ## Mandatory result format
 
 1. 작업한 내역
-2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 변경분 패치 ZIP
 3. 다음 예정 내역
 
 상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
@@ -608,7 +640,7 @@
 ## Mandatory result format
 
 1. 작업한 내역
-2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 변경분 패치 ZIP
 3. 다음 예정 내역
 
 상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
@@ -645,7 +677,7 @@
 ## Mandatory result format
 
 1. 작업한 내역
-2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 변경분 패치 ZIP
 3. 다음 예정 내역
 
 상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
@@ -673,7 +705,7 @@
 ## Mandatory result format
 
 1. 작업한 내역
-2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 변경분 패치 ZIP
 3. 다음 예정 내역
 
 상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
@@ -701,7 +733,7 @@
 ## Mandatory result format
 
 1. 작업한 내역
-2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 누적 패치 ZIP
+2. 다운로드 가능한 전체 프로젝트 ZIP과 붙여넣기용 변경분 패치 ZIP
 3. 다음 예정 내역
 
 상세 규칙은 `DELIVERY_RULES.md`를 단일 기준으로 사용하며 패키지 검증에서 필수 확인한다.
@@ -753,7 +785,7 @@
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
-`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `변경분 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
 
 ## v1.6.17 current focus
 
@@ -775,7 +807,7 @@
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
-`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `변경분 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
 
 ## v1.6.16 current focus
 
@@ -801,7 +833,7 @@
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
-`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `변경분 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
 
 ## v1.6.15 current focus
 
@@ -824,7 +856,7 @@
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
-`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `변경분 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
 
 ## v1.6.14 current focus
 
@@ -847,7 +879,7 @@
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
-`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `변경분 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
 
 ## v1.6.13 current focus
 
@@ -869,7 +901,7 @@
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
-`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `변경분 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다.
 
 ## v1.6.12 current focus
 
@@ -902,7 +934,7 @@
 2. 다운로드 파일 2종
 3. 다음 예정 내역
 
-`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `누적 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다. 과거 문서의 `진행된 내용 / 배포 파일 2종 / 다음 패치 예정 라인업`은 이전 명칭으로만 유지한다.
+`다운로드 파일 2종`에는 반드시 다운로드 가능한 `전체 프로젝트 통파일 ZIP`과 저장소 루트에 그대로 붙여넣어 덮어쓸 수 있는 `변경분 패치 ZIP`을 함께 제공한다. 검증 결과와 제한 사항은 `작업한 내역` 안에 포함한다. 과거 문서의 `진행된 내용 / 배포 파일 2종 / 다음 패치 예정 라인업`은 이전 명칭으로만 유지한다.
 
 ## v1.6.10 current focus
 

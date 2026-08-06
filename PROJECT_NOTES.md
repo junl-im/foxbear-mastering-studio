@@ -1,3 +1,10 @@
+# v1.6.64 Project Notes
+
+- Delivery artifacts are now generated with `npm run package:delivery`.
+- User-facing names are fixed to `foxbear-mastering-studio-v1.6.64-full.zip` and `foxbear-mastering-studio-v1.6.64-patch.zip`.
+- The patch is cumulative and includes `PATCH_NOTES.md` plus `DELETE_PATHS.txt`.
+- Local `.firebaserc`, `.firebase`, `.audit-results`, generated QA text, dependencies, caches, and secret environment files must never be committed or shipped.
+
 # v1.6.63 project notes
 
 - Source-name provenance is data, not a display guess: retain `sourceFileName` at import and freeze `outputNameMeta.sourceName` at mastering completion.

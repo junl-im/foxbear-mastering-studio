@@ -34,3 +34,13 @@ __pycache__/
 
 # Firebase CLI local deployment state
 .firebase/
+
+# Local project selection and audit scratch
+.firebaserc
+.audit-results/
+
+# Local environment secrets; examples remain tracked
+.env
+.env.*
+!.env.example
+!**/.env.example

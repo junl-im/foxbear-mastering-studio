@@ -1,3 +1,7 @@
+# FoxBear AI Mastering Studio Pro v1.6.64
+
+This release hardens GitHub Desktop delivery. Use `npm run package:delivery` to create the verified full-project ZIP and changed-file extract-overwrite patch ZIP. Local Git metadata, Firebase CLI state, real `.firebaserc`, dependency folders, secret environment files, caches, and generated QA output are excluded.
+
 # FoxBear AI Mastering Studio Pro v1.6.63
 
 ## v1.6.63 filename provenance, full export review, and design hardening

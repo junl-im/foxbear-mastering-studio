@@ -1,3 +1,38 @@
+# FoxBear Status - v1.6.64
+
+## Current release
+
+- Product version: `1.6.64`
+- Build ID: `github-desktop-delivery-contract`
+- Asset version: `1.6.64-github-desktop-delivery-contract`
+- Service worker cache: `foxbear-shell-v1.6.64-github-desktop-delivery-contract`
+- Configured static/regression target: 414 checks.
+
+## Current focus
+
+- Deterministic full and changed-file patch artifact generation for GitHub Desktop.
+- Source and archive hygiene enforcement for local Firebase state, generated results, dependencies, and secret-like files.
+- Explicit deletion guidance for stale paths that cannot be removed by archive extraction.
+
+## Verification state
+
+- Static and behavioral checks: **414/414 passed**.
+- Source hygiene, version synchronization, handoff verification, browser preflight, Functions syntax, and Hosting payload boundary passed.
+- Changed-file patch application over the v1.6.63 base reproduced the v1.6.64 source tree exactly.
+- Installed Playwright and real-device browser acceptance remain external.
+
+## Production verification required
+
+- Apply the patch to a fresh GitHub Desktop clone and review the exact file list.
+- Run a real browser acceptance pass and Firebase deployment check in the production account.
+
+## Release metadata
+
+- Product version: `1.6.64`
+- Build ID: `github-desktop-delivery-contract`
+- Asset version: `1.6.64-github-desktop-delivery-contract`
+- Service worker cache: `foxbear-shell-v1.6.64-github-desktop-delivery-contract`
+
 # FoxBear Status - v1.6.63
 
 ## Current release

@@ -15,6 +15,8 @@ cd "${ROOT_DIR}"
 
 SYMLINKS="$(find . -type l \
   -not -path './.git/*' \
+  -not -path './.firebase/*' \
+  -not -path './.audit-results/*' \
   -not -path './node_modules/*' \
   -not -path '*/node_modules/*' \
   -not -path './dist/*' \
@@ -31,6 +33,8 @@ fi
 zip -qr "${OUTPUT_FILE}" . \
   -x '.git/*' \
   -x '.firebase/*' \
+  -x '.audit-results/*' \
+  -x '.audit-results' \
   -x '.firebaserc' \
   -x 'node_modules/*' \
   -x '*/node_modules/*' \
