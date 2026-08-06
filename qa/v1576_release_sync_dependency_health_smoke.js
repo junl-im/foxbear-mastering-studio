@@ -15,7 +15,7 @@ const syncSource = fs.readFileSync('tools/sync-release-metadata.js', 'utf8');
 const gateSource = fs.readFileSync('tools/run-release-gate.js', 'utf8');
 const dependencySource = fs.readFileSync('tools/check-dependency-health.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.66');
+assert.strictEqual(pkg.version, '1.6.70');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain valid kebab-case');
 assert.strictEqual(pkg.scripts['version:dry-run'], 'node tools/sync-release-metadata.js --dry-run');
 assert.strictEqual(pkg.scripts['dependencies:check'], 'node tools/check-dependency-health.js');

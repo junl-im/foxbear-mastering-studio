@@ -1,3 +1,52 @@
+# FoxBear v1.6.70 release checklist
+
+- [x] Share launch waits for the actual asynchronous import pipeline.
+- [x] Shared records are deleted only after confirmed import success or a terminal non-retryable outcome.
+- [x] Transient import exceptions preserve the record and launch query for reload retry.
+- [x] Share records remain bounded by 24-hour TTL, eight-record cap, and 768 MiB aggregate budget.
+- [x] Shared title, text, and URL metadata are length-capped.
+- [x] App Check diagnostics warn on deployed client/server policy version, mode, or reason drift.
+- [x] Fallback Pages deployment runs Static release gate before browser scope and Chromium installation.
+- [x] Version-only full/patch verifier path changes are treated as release metadata.
+- [x] Dedicated v1.6.70 regression and share-service syntax check are configured.
+- [x] Run all 421 configured checks in bounded slices (`106/106`, `105/105`, `105/105`, `105/105`).
+- [x] Run metadata, SRI, source hygiene, handoff, Hosting, dependency, browser-preflight, and Functions checks.
+- [x] Build and verify the 723-file full archive and 285-file changed-file patch plus manifest.
+- [x] Apply the patch over v1.6.69 and reproduce v1.6.70 exactly (`723/723`).
+- [ ] Complete real Chromium/PWA share-target, storage-quota, and deployed Firebase acceptance.
+
+# FoxBear v1.6.69 release checklist
+
+- [x] Browser release gate depends on a successful Static release gate.
+- [x] All public Callable Functions use the centralized immutable App Check policy helper.
+- [x] Client and Functions policy metadata agree on mode, enforcement, contract version, and reason.
+- [x] Actual App Check token presence is observable without falsely claiming enforcement.
+- [x] PWA share target validates type, 220 MiB per-file limit, 512 MiB total limit, and 12-file limit before storage.
+- [x] Share records expire after 24 hours and retain at most eight IndexedDB records.
+- [x] Share launch/error query parameters are cleared after all terminal outcomes.
+- [x] Share launch logic is split into a dedicated boot service and `src/app.js` remains below 13,300 lines.
+- [x] Dedicated v1.6.69 regression and share-service syntax check are configured.
+- [x] Run all 420 configured checks in bounded slices (`105/105` four times).
+- [x] Run metadata, SRI, source hygiene, handoff, Hosting, dependency, browser-preflight, and Functions checks.
+- [x] Build and verify the 721-file full archive and 288-file changed-file patch plus manifest.
+- [x] Apply the patch over v1.6.68 and reproduce v1.6.69 exactly (`721/721`).
+- [ ] Complete real Chromium/PWA share-target and deployed Firebase acceptance.
+
+# FoxBear v1.6.68 release checklist
+
+- [x] External-browser and design-preview local assets use the current release generation.
+- [x] PWA manifest and shortcut icons use versioned URLs.
+- [x] SRI updater and verifier cover all three public HTML code-asset shells.
+- [x] Service worker preserves allowlisted auxiliary HTML navigation and canonical offline fallback.
+- [x] Root recovery and metadata documents use no-cache/no-store Hosting headers.
+- [x] Generated `dist/` output is locally repairable before archive-mode packaging.
+- [x] Dedicated v1.6.68 regression is configured.
+- [x] Run all 418 configured checks in bounded slices (`105/105`, `105/105`, `105/105`, `103/103`).
+- [x] Run metadata, SRI, source hygiene, handoff, Hosting, dependency, browser-preflight, and Functions checks.
+- [x] Build and verify the 717-file full archive and 288-file changed-file patch plus manifest.
+- [x] Apply the patch over v1.6.67 and reproduce v1.6.68 exactly (`717/717`).
+- [ ] Complete real desktop/mobile/Kakao auxiliary-navigation acceptance with installed Chromium.
+
 # FoxBear v1.6.63 release checklist
 
 - [x] Track model retains exact imported `sourceFileName`.

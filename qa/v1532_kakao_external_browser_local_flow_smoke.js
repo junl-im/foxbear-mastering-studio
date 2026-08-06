@@ -13,6 +13,8 @@ const guardSource = fs.readFileSync(path.join(root, 'src/boot/kakao-entry-guard.
 const landingSource = fs.readFileSync(path.join(root, 'src/boot/kakao-external-browser.js'), 'utf8');
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 const overwriteTool = fs.readFileSync(path.join(root, 'tools/create-overwrite-zip.sh'), 'utf8');
+const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+const assetVersion = pkg.foxbearRelease.assetVersion;
 
 function runGuard(href, userAgent) {
   let replaced = '';
@@ -62,6 +64,9 @@ function expectedSri(relativePath) {
 }
 assert(gateHtml.includes(`integrity="${expectedSri('assets/css/external-browser.css')}"`), 'landing CSS SRI must match');
 assert(gateHtml.includes(`integrity="${expectedSri('src/boot/kakao-external-browser.js')}"`), 'landing launcher SRI must match');
+for (const asset of ['assets/css/external-browser.css', 'src/boot/kakao-external-browser.js', 'assets/icons/foxbear-icon-192.png', 'assets/icons/foxbear-icon-96.png']) {
+  assert(gateHtml.includes(`${asset}?v=${assetVersion}`), `landing asset must use current cache generation: ${asset}`);
+}
 assert(landingSource.includes('kakaotalk://web/openExternal?url='), 'landing must include Kakao external-browser scheme');
 assert(landingSource.includes('intent://'), 'landing must include Android intent fallback');
 assert(landingSource.includes('parsed.origin !== global.location.origin'), 'landing target must reject cross-origin open redirects');

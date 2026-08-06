@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.66-static-gate-hygiene-repair';
+    const FALLBACK_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

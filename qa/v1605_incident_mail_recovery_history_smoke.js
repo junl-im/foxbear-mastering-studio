@@ -26,7 +26,7 @@ const firebaseSource = read('src/firebase-bootstrap.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.66');
+assert.strictEqual(pkg.version, '1.6.70');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'release build ID must remain valid kebab-case');
 assert(html.includes('id="incidentServiceRetry"'));
 assert(html.includes('id="incidentDeployCopy"'));
@@ -43,7 +43,7 @@ assert(/const INCIDENT_SERVICE_SCHEMA_VERSION = [3-9][0-9]*;/.test(functionsSour
 assert(functionsSource.includes("smtpProvider: 'gmail'"));
 assert(functionsSource.includes("smtpCredential: 'firebase-secret'"));
 assert(functionsSource.includes('const classifiedError = classifySmtpError(outcome.error);'));
-assert(handoff.startsWith('# Handoff - v1.6.66'));
+assert(handoff.startsWith('# Handoff - v1.6.70'));
 
 const memory = new Map();
 const localStorage = {
@@ -63,14 +63,14 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.66' } },
+    body: { dataset: { build: '1.6.70' } },
     visibilityState: 'visible',
     getElementById: () => null,
     addEventListener() {},
     createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {}, localStorage,
-  FoxBearBuildInfo: { productVersion: '1.6.66', assetVersion: '1.6.66-static-gate-hygiene-repair' }
+  FoxBearBuildInfo: { productVersion: '1.6.70', assetVersion: '1.6.70-share-retry-policy-drift-ci-efficiency' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -121,6 +121,7 @@ const functionSandbox = {
     if (request === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) }, Timestamp: { fromMillis: value => ({ toMillis: () => value }) }, getFirestore: () => ({ collection: () => ({}) }) };
     if (request === 'nodemailer') return { createTransport: () => ({ verify: async () => true, sendMail: async () => ({}), close() {} }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };

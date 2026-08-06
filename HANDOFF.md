@@ -1,3 +1,65 @@
+# Handoff - v1.6.70
+
+## Current release
+
+- Product version: `1.6.70`
+- Build ID: `share-retry-policy-drift-ci-efficiency`
+- Asset version: `1.6.70-share-retry-policy-drift-ci-efficiency`
+- Service worker cache: `foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency`
+- Configured static/regression target: 421 checks.
+
+## Current focus
+
+- Make PWA share handoff atomic: import first, delete only after confirmed success.
+- Preserve transiently failed shares for reload retry while clearing terminal success, expiry, unsupported, and device-limit outcomes.
+- Bound abandoned share storage by age, count, and aggregate bytes instead of record count alone.
+- Surface client/server App Check policy drift before staged enforcement work begins.
+- Avoid Chromium installation and full browser selection when static or version-only changes do not require them.
+
+## Required GitHub Desktop step
+
+Extract the v1.6.70 patch over a v1.6.69 repository, run `npm run source:hygiene:repair`, then commit every code change and displayed deletion together. Push and confirm Static release gate succeeds before any fallback Chromium installation begins.
+
+## Verified
+
+- Configured static/regression checks: **421/421 passed** (`106/106`, `105/105`, `105/105`, `105/105`).
+- Atomic share import completion, transient retry preservation, aggregate storage budgeting, App Check drift diagnostics, fallback CI ordering, and version-only browser-impact normalization passed.
+- `src/app.js` is 13,251 lines, below the 13,300-line gate.
+- Metadata, SRI, handoff, source hygiene, dependency structure, browser preflight, Functions syntax, and the 153-file Hosting boundary passed.
+- Dependency checks reported 0 errors and 5 missing-install warnings.
+- Installed Chromium/device acceptance, deployed Firebase acceptance, and the online Functions vulnerability audit remain external.
+- Full ZIP contains 723 files; patch ZIP declares 285 files plus its manifest and 7 delete paths. Applying the patch over v1.6.69 reproduced the v1.6.70 tree exactly (`723/723`, no missing, extra, or changed files).
+
+# Handoff - v1.6.67
+
+## Current release
+
+- Product version: `1.6.67`
+- Build ID: `ci-strict-hygiene-policy`
+- Asset version: `1.6.67-ci-strict-hygiene-policy`
+- Service worker cache: `foxbear-shell-v1.6.67-ci-strict-hygiene-policy`
+- Configured static/regression target: 417 checks.
+
+## Current focus
+
+- Prevent GitHub Actions from deleting committed source-hygiene violations before validation.
+- Keep local extract-overwrite recovery convenient without weakening CI.
+- Validate repository hygiene before `npm ci`.
+- Produce actionable GitHub annotations and local repair commands.
+
+## Required GitHub Desktop step
+
+After extracting the patch, run `npm run source:hygiene:repair`, then commit every displayed deletion together with the v1.6.67 changes. CI intentionally fails until tracked local/generated files are removed from the repository.
+
+## Verified
+
+- Configured static/regression checks: **417/417 passed** (`105/105`, `105/105`, `105/105`, `102/102`).
+- Strict CI mode preserved the offending fixture and failed with a GitHub annotation.
+- Local mode repaired only the allowlist; secret-like files remained blocked.
+- Metadata, handoff, dependency structure, browser preflight, Functions syntax, and Hosting boundary checks passed.
+- Full ZIP contains 715 files; patch ZIP declares 286 files plus its manifest and 7 delete paths.
+- Applying the patch over v1.6.66 reproduced the v1.6.67 tree exactly (`715/715`).
+
 # Handoff - v1.6.66
 
 ## Current release

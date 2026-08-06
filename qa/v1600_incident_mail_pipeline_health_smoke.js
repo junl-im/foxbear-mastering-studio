@@ -24,9 +24,10 @@ const incidentDiagnosticsViewSource = read('src/boot/incident-diagnostics-view-s
 const incidentSubmissionIdentitySource = read('src/boot/incident-submission-identity-service.js');
 const incidentControlsViewSource = read('src/boot/incident-controls-view-service.js');
 const functionsSource = read('functions/index.js');
+const appCheckPolicySource = read('functions/app-check-policy.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.66');
+assert.strictEqual(pkg.version, '1.6.70');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentServiceStatus'));
 assert(html.includes('id="incidentReportingPipeline"'));
@@ -46,9 +47,10 @@ assert(reporterSource.includes('compareVersions'));
 assert(reporterSource.includes("onProgress('queue', 'active'"));
 assert(reporterSource.includes("onProgress('mail', 'active'"));
 assert(functionsSource.includes('exports.getIncidentServiceStatus = onCall'));
-assert(functionsSource.includes("appCheckMode: 'disabled'"));
-assert(functionsSource.includes('appCheckTokenPresent: false'));
-assert(handoff.startsWith('# Handoff - v1.6.66'));
+assert(functionsSource.includes('...incidentAppCheckMetadata(request)'));
+assert(appCheckPolicySource.includes("mode: 'disabled'"));
+assert(appCheckPolicySource.includes('appCheckTokenPresent: Boolean(request?.app)'));
+assert(handoff.startsWith('# Handoff - v1.6.70'));
 
 const stageItems = {};
 const elements = {};
@@ -68,7 +70,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.66' } },
+    body: { dataset: { build: '1.6.70' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -77,7 +79,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.66', assetVersion: '1.6.66-static-gate-hygiene-repair' }
+  FoxBearBuildInfo: { productVersion: '1.6.70', assetVersion: '1.6.70-share-retry-policy-drift-ci-efficiency' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -135,20 +137,21 @@ const functionSandbox = {
     if (request === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) }, Timestamp: { fromMillis: value => ({ toMillis: () => value }) }, getFirestore: () => ({ collection: () => ({}) }) };
     if (request === 'nodemailer') return { createTransport: () => ({ verify: async () => true, sendMail: async () => ({}), close() {} }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: { appId: 'verified' } });
-assert.strictEqual(metadata.productVersion, '1.6.66');
+assert.strictEqual(metadata.productVersion, '1.6.70');
 assert.strictEqual(metadata.status, 'ready');
 assert.strictEqual(metadata.appCheckMode, 'disabled');
 assert.strictEqual(metadata.appCheckEnforced, false);
-assert.strictEqual(metadata.appCheckTokenPresent, false);
+assert.strictEqual(metadata.appCheckTokenPresent, true);
 const serviceStatus = moduleRecord.exports.getIncidentServiceStatus;
 assert.strictEqual(serviceStatus.options.enforceAppCheck, false);
 serviceStatus.handler({ auth: { uid: 'guest-1' }, app: null }).then(result => {
-  assert.strictEqual(result.productVersion, '1.6.66');
+  assert.strictEqual(result.productVersion, '1.6.70');
   assert.strictEqual(result.appCheckTokenPresent, false);
   return serviceStatus.handler({ auth: null, app: null }).then(
     () => assert.fail('unauthenticated request should fail'),

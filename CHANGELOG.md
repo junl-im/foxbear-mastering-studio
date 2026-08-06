@@ -1,3 +1,44 @@
+# v1.6.70 - Atomic Share Retry, Policy Drift Diagnostics, and CI Efficiency
+
+- Waits for the real PWA import pipeline before declaring a shared-file launch successful or deleting its IndexedDB handoff record.
+- Keeps the share record and launch query after transient import failures so a reload can retry instead of losing the shared files.
+- Adds a 768 MiB aggregate IndexedDB budget and prunes expired, excess, or oversized historical share records before storing a new share.
+- Caps shared title, text, and URL metadata to prevent unbounded auxiliary payload growth.
+- Warns when deployed Functions App Check policy metadata differs from the client policy contract.
+- Runs the fallback static release gate before browser scope selection and Chromium installation.
+- Treats versioned full/patch verifier script paths as release metadata so version-only changes do not force unnecessary full browser QA.
+- Adds dedicated regression coverage, raising the configured target to 421 checks.
+
+# v1.6.69 - CI, App Check Policy, and Share Target Hardening
+
+- Makes the browser release job wait for the static release gate, avoiding unnecessary Playwright installation and runner work when static QA already failed.
+- Centralizes Callable App Check enforcement options in one immutable Functions policy module and prevents individual callables from overriding the release policy.
+- Reports observed App Check token presence accurately even while enforcement remains disabled, and improves administrator diagnostics for enforced-without-token drift.
+- Centralizes the client-side no-App-Check policy metadata used by Firebase status and incident diagnostics.
+- Validates PWA share-target files before IndexedDB storage, enforcing supported audio types, per-file limits, a total-size budget, and a bounded record count.
+- Prunes expired or excess share-target records, uses cryptographic record identifiers when available, and clears share launch/error query parameters after handling.
+- Adds dedicated regression coverage, raising the configured target to 420 checks.
+
+# v1.6.68 - Public Shell Cache Integrity and SRI Coverage
+
+- Adds current release cache-busting queries to every local CSS, script, manifest, and icon reference in the deployed public HTML shells.
+- Extends release metadata synchronization beyond `index.html` to `external-browser.html` and `design-preview.html`.
+- Extends automated SHA-384 SRI update and validation to the public external-browser and design-preview pages.
+- Allows known auxiliary HTML pages through the service-worker navigation router instead of incorrectly redirecting them to the main app root.
+- Aligns PWA manifest icons and auxiliary offline cache entries with the current immutable asset generation.
+- Repairs generated `dist/` output before archive-mode source hygiene so Hosting validation can safely precede delivery packaging.
+- Adds explicit no-cache/no-store Hosting headers for 404 recovery, external-browser guidance, design preview, and the root marker JSON.
+- Adds dedicated regression coverage, raising the configured target to 418 checks.
+
+# v1.6.67 - CI Strict Source Hygiene Policy
+
+- Separates local source-hygiene repair from GitHub Actions validation so CI cannot hide committed local/generated files by deleting them in the workspace.
+- Adds a policy-aware hygiene gate: local release checks repair the narrow allowlist, while CI strict mode validates without mutation.
+- Runs strict repository hygiene before `npm ci` in both Pages deployment workflows.
+- Refuses direct source-hygiene repair inside GitHub Actions unless an explicit emergency override is provided.
+- Adds GitHub file annotations and exact local remediation commands for failed hygiene checks.
+- Adds dedicated regression coverage, raising the configured target to 417 checks.
+
 # v1.6.66 - Static Gate Source Hygiene Repair
 
 - Adds a narrowly scoped source-hygiene repair step for stale local Firebase state and generated QA output left behind by extract-overwrite patch application.

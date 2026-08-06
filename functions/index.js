@@ -8,6 +8,10 @@ const { initializeApp } = require('firebase-admin/app');
 const { FieldValue, Timestamp, getFirestore } = require('firebase-admin/firestore');
 const nodemailer = require('nodemailer');
 const { randomUUID } = require('node:crypto');
+const {
+  incidentCallableOptions,
+  incidentAppCheckMetadata
+} = require('./app-check-policy');
 
 initializeApp();
 
@@ -65,7 +69,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.66';
+const PRODUCT_VERSION = '1.6.70';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -202,9 +206,7 @@ function incidentServiceMetadata(request = {}) {
     mailTrigger: 'sendIncidentEmail',
     smtpProvider: 'gmail',
     smtpCredential: 'firebase-secret',
-    appCheckMode: 'disabled',
-    appCheckEnforced: false,
-    appCheckTokenPresent: false,
+    ...incidentAppCheckMetadata(request),
     readinessCheck: 'checkIncidentDeploymentReadiness',
     readinessScopes: ['public', 'admin'],
     smtpReadinessRequiresAdmin: true,
@@ -1945,12 +1947,11 @@ async function runIncidentRecoveryBatch(options = {}) {
   return totals;
 }
 
-exports.submitIncidentReport = onCall({
+exports.submitIncidentReport = onCall(incidentCallableOptions({
   region: REGION,
   timeoutSeconds: 30,
-  memory: '256MiB',
-  enforceAppCheck: false
-}, async request => {
+  memory: '256MiB'
+}), async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
   const incident = normalizeCallableIncident(request.data?.incident || {});
@@ -1973,12 +1974,11 @@ exports.submitIncidentReport = onCall({
   }
 });
 
-exports.getIncidentDeliveryStatus = onCall({
+exports.getIncidentDeliveryStatus = onCall(incidentCallableOptions({
   region: REGION,
   timeoutSeconds: 20,
-  memory: '256MiB',
-  enforceAppCheck: false
-}, async request => {
+  memory: '256MiB'
+}), async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
   const reportId = cleanText(request.data?.reportId || '', 180);
@@ -1989,12 +1989,11 @@ exports.getIncidentDeliveryStatus = onCall({
   return { ...serializeIncidentDelivery(snapshot), service: incidentServiceMetadata(request) };
 });
 
-exports.getIncidentServiceStatus = onCall({
+exports.getIncidentServiceStatus = onCall(incidentCallableOptions({
   region: REGION,
   timeoutSeconds: 15,
-  memory: '256MiB',
-  enforceAppCheck: false
-}, async request => {
+  memory: '256MiB'
+}), async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
   return incidentServiceMetadata(request);
@@ -2063,14 +2062,13 @@ async function inspectIncidentDeploymentReadiness(request = {}, options = {}) {
   };
 }
 
-exports.checkIncidentDeploymentReadiness = onCall({
+exports.checkIncidentDeploymentReadiness = onCall(incidentCallableOptions({
   region: REGION,
   timeoutSeconds: 35,
   memory: '256MiB',
   maxInstances: 2,
-  secrets: [GMAIL_APP_PASSWORD],
-  enforceAppCheck: false
-}, async request => {
+  secrets: [GMAIL_APP_PASSWORD]
+}), async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
   const access = await resolveCallableAdminAccess(request);
@@ -2131,13 +2129,12 @@ exports.checkIncidentDeploymentReadiness = onCall({
   }
 });
 
-exports.retryOwnIncidentReport = onCall({
+exports.retryOwnIncidentReport = onCall(incidentCallableOptions({
   region: REGION,
   timeoutSeconds: 90,
   memory: '256MiB',
-  secrets: [GMAIL_APP_PASSWORD],
-  enforceAppCheck: false
-}, async request => {
+  secrets: [GMAIL_APP_PASSWORD]
+}), async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
   const reportId = cleanText(request.data?.reportId || '', 180);

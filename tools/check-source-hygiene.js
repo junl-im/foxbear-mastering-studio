@@ -82,8 +82,20 @@ try {
     : walkFiles(ROOT);
   if (failures.length) {
     console.error('FAIL source hygiene found local, generated, or secret-like files that must not ship:');
-    failures.slice(0, 50).forEach(file => console.error(`  - ${file}`));
+    failures.slice(0, 50).forEach(file => {
+      console.error(`  - ${file}`);
+      if (process.env.GITHUB_ACTIONS === 'true') {
+        const annotationFile = file.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+        console.error(`::error file=${annotationFile},title=Source hygiene violation::Remove this tracked local/generated/secret-like path and commit the deletion.`);
+      }
+    });
     if (failures.length > 50) console.error(`  - ... ${failures.length - 50} more`);
+    console.error('Repair locally, review the deletions, then commit and push:');
+    console.error('  npm run source:hygiene:repair');
+    console.error('  npm run source:hygiene');
+    console.error('Git-only alternative:');
+    const quoted = failures.slice(0, 20).map(file => JSON.stringify(file.replace(/\/$/, ''))).join(' ');
+    console.error(`  git rm -r --cached --ignore-unmatch -- ${quoted}`);
     process.exit(1);
   }
   console.log(`PASS source hygiene verified${tracked ? ' for Git-tracked files' : ' for archive files'}`);

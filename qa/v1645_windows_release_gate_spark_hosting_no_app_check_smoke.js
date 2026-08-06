@@ -18,6 +18,7 @@ const firebase = read('src/firebase-bootstrap.js');
 const trustedTypes = read('src/security/trusted-types-bootstrap.js');
 const adminView = read('src/ui/admin-incident-monitor-view.js');
 const functions = read('functions/index.js');
+const appCheckPolicy = read('functions/app-check-policy.js');
 const index = read('index.html');
 
 assert(Number(pkg.version.split('.').join('')) >= 1645);
@@ -56,9 +57,11 @@ for (const forbidden of [
   assert(!`${firebase}\n${index}`.includes(forbidden), `App Check runtime/config must be absent: ${forbidden}`);
 }
 assert(!trustedTypes.includes('GOOGLE_RECAPTCHA'));
-assert(firebase.includes("mode: 'disabled'"));
-assert(functions.includes("appCheckMode: 'disabled'"));
-assert(functions.includes('appCheckTokenPresent: false'));
+assert(firebase.includes('FIREBASE_APP_CHECK_POLICY'));
+assert(firebase.includes('appCheckPolicySnapshot'));
+assert(functions.includes('incidentCallableOptions'));
+assert(appCheckPolicy.includes("mode: 'disabled'"));
+assert(appCheckPolicy.includes('enforced: false'));
 assert(adminView.includes("appendSummaryCard('App Check', '미사용 정책'"));
 assert(!adminView.includes('단계적으로 강제 적용하세요'));
 

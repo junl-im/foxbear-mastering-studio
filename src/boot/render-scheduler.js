@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.66-static-gate-hygiene-repair';
+    const SERVICE_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

@@ -1,4 +1,4 @@
-// FoxBear incident service diagnostics classification and UI view-model - v1.6.66
+// FoxBear incident service diagnostics classification and UI view-model - v1.6.70
 (function attachFoxBearIncidentServiceDiagnostics(global) {
     'use strict';
 
@@ -106,7 +106,30 @@
             direct = item('직접 HTTP 도달성: 오류 발생 시 자동 확인', 'neutral');
         }
 
-        const appCheck = item('App Check: 미사용 정책 · Firebase Auth/Rules 사용', 'neutral');
+        const appCheckEnforced = service?.appCheckEnforced === true;
+        const appCheckTokenPresent = service?.appCheckTokenPresent === true;
+        const clientAppCheck = service?.clientAppCheck && typeof service.clientAppCheck === 'object' ? service.clientAppCheck : {};
+        const serverPolicyVersion = Math.max(0, Number(service?.appCheckPolicyVersion || 0));
+        const clientPolicyVersion = Math.max(0, Number(clientAppCheck.contractVersion || 0));
+        const serverPolicyMode = cleanText(service?.appCheckMode || '', 20);
+        const clientPolicyMode = cleanText(clientAppCheck.mode || '', 20);
+        const serverPolicyReason = cleanText(service?.appCheckPolicyReason || '', 80);
+        const clientPolicyReason = cleanText(clientAppCheck.reason || '', 80);
+        const policyComparable = service?.status === 'ready' && clientPolicyVersion > 0;
+        const appCheckPolicyMismatch = policyComparable && (
+            serverPolicyVersion !== clientPolicyVersion
+            || serverPolicyMode !== clientPolicyMode
+            || serverPolicyReason !== clientPolicyReason
+        );
+        const appCheck = appCheckPolicyMismatch
+            ? item(`App Check 정책 불일치 · client v${clientPolicyVersion}/${clientPolicyMode || 'unknown'} · server v${serverPolicyVersion}/${serverPolicyMode || 'unknown'}`, 'warning')
+            : appCheckEnforced
+                ? appCheckTokenPresent
+                    ? item('App Check: 강제 적용 · 토큰 확인', 'ok')
+                    : item('App Check: 강제 적용 · 토큰 미확인', 'warning')
+                : appCheckTokenPresent
+                    ? item('App Check: 미사용 정책 · 비강제 토큰 감지', 'neutral')
+                    : item('App Check: 미사용 정책 · Firebase Auth/Rules 사용', 'neutral');
 
         return Object.freeze({
             functionName,
@@ -125,7 +148,7 @@
     }
 
     global.FoxBearIncidentServiceDiagnostics = Object.freeze({
-        version: '1.6.66',
+        version: '1.6.70',
         classifyFailure,
         buildViewModel
     });

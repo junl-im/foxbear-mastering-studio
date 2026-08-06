@@ -1,3 +1,32 @@
+# v1.6.70 Project Notes
+
+- A share-target record is a retry token, not disposable input: delete it only after the real asynchronous import pipeline reports success.
+- Terminal unsupported, expired, or device-limit outcomes should clear the launch query; transient exceptions should preserve both query and record for reload retry.
+- Count limits do not bound storage when records contain large Blobs. Enforce an aggregate byte budget and prune oldest records before a new write.
+- App Check rollout requires client/server policy parity; diagnostics should flag version, mode, and reason drift before enforcement changes.
+- Manual fallback workflows must preserve static-first cost control just like the primary Pages workflow.
+- Release-metadata-only script path changes must not force the browser full suite.
+- Next target: installed Chromium share-target E2E, storage-quota failure injection, Functions audit, and further `src/app.js` extraction.
+
+# v1.6.69 Project Notes
+
+- Browser automation is downstream of static correctness; do not install Chromium when the static release gate has failed.
+- App Check enforcement is a release-wide policy contract, not a per-Callable literal. Keep server options, client diagnostics, and operational metadata synchronized.
+- A disabled enforcement policy and an observed token are independent facts; diagnostics must report both accurately.
+- Validate PWA share payloads before IndexedDB storage and bound temporary records by file size, total size, count, age, and retained-record count.
+- Remove one-time share query parameters after success or failure so reload cannot repeat stale behavior.
+- Keep `src/app.js` below its structural gate by extracting self-contained launch and storage workflows into boot services.
+- Next target: installed Functions audit, real Chromium share-target E2E, staged App Check monitoring, and further `src/app.js` extraction.
+
+# v1.6.68 Project Notes
+
+- Every public HTML entry that references immutable Hosting assets must use the current `assetVersion`, not a historical or unversioned path.
+- SRI coverage is a public-shell contract, not an `index.html`-only contract.
+- Service-worker route recovery must distinguish known auxiliary HTML from broken nested routes.
+- Manifest icons and offline cache keys must use the same release generation as the HTML that references them.
+- `dist/` is generated output and may be removed by local repair before delivery packaging; secret-like files remain non-repairable hard failures.
+- Next target: installed-dependency audit, real Chromium auxiliary-navigation coverage, and controlled `src/app.js` module extraction.
+
 # v1.6.64 Project Notes
 
 - Delivery artifacts are now generated with `npm run package:delivery`.

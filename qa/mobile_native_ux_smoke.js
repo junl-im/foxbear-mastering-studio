@@ -5,6 +5,7 @@ const html = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('assets/css/mobile-native.css', 'utf8');
 const manifest = fs.readFileSync('manifest.webmanifest', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
+const shareTargetService = fs.readFileSync('src/boot/pwa-share-target-service.js', 'utf8');
 const pkg = fs.readFileSync('package.json', 'utf8');
 function must(condition, message) {
   if (!condition) {
@@ -12,12 +13,13 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.6.66'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.6.66"'), 'index build should be v1.6.66');
+must(app.includes("const APP_VERSION = 'Pro v1.6.70'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.70"'), 'index build should be v1.6.70');
 must(html.includes('manifest.webmanifest') && html.includes('assets/css/mobile-native.css'), 'manifest/mobile CSS links missing');
 must(app.includes('function initMobileNativeUx') && app.includes('Screen Wake') === false, 'mobile native init missing');
 must(app.includes('navigator.wakeLock.request') && app.includes('foxBearHaptic') && app.includes('navigator.mediaSession'), 'wake lock, haptic, or media session code missing');
-must(app.includes('processPwaShareTargetLaunch') && app.includes('MOBILE_NATIVE_SHARE_QUERY'), 'share target launch importer missing');
+must(app.includes('processPwaShareTargetLaunch') && app.includes('FoxBearPwaShareTargetService.processLaunch'), 'share target launch bridge missing');
+must(shareTargetService.includes('MOBILE_NATIVE_SHARE_QUERY') && shareTargetService.includes('takeSharedAudio'), 'share target launch importer missing');
 must(app.includes('maybeRequestPersistentStorage') && app.includes('navigator.storage.persist'), 'persistent storage support missing');
 must(app.includes('setNativeBadge') && app.includes('navigator.setAppBadge'), 'badging support missing');
 must(app.includes('waveform-jump-chip') && app.includes('jumpDockToImportantPeak'), 'peak jump quick action missing');

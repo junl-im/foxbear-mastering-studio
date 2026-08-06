@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.6.66 service worker · static-gate-hygiene-repair
+// FoxBear AI Mastering Studio Pro v1.6.70 service worker · share-retry-policy-drift-ci-efficiency
 'use strict';
 
-const CACHE_NAME = 'foxbear-shell-v1.6.66-static-gate-hygiene-repair';
-const CURRENT_ASSET_VERSION = '1.6.66-static-gate-hygiene-repair';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.46-google-auth-same-origin-network-recovery', 'foxbear-shell-v1.6.47-external-host-admin-auth-opaque-error-recovery', 'foxbear-shell-v1.6.48-post-master-download-format-quality', 'foxbear-shell-v1.6.49-download-variant-cache-reuse', 'foxbear-shell-v1.6.50-kakao-centered-entry-notice', 'foxbear-shell-v1.6.51-stability-concurrency-input-guard', 'foxbear-shell-v1.6.52-post-master-playback-readiness-recovery', 'foxbear-shell-v1.6.53-playback-crossfade-settlement-guard', 'foxbear-shell-v1.6.54-playback-intent-arbitration', 'foxbear-shell-v1.6.55-mobile-focus-resume-reconciliation', 'foxbear-shell-v1.6.56-playback-blob-source-resilience', 'foxbear-shell-v1.6.57-firebase-hosting-payload-boundary', 'foxbear-shell-v1.6.58-piano-transient-integrity', 'foxbear-shell-v1.6.59-readiness-corp-security-hardening', 'foxbear-shell-v1.6.60-bulk-zip-hud-navigation', 'foxbear-shell-v1.6.61-human-readable-download-filenames', 'foxbear-shell-v1.6.62-download-filename-preview-controls', 'foxbear-shell-v1.6.63-download-filename-review-hardening', 'foxbear-shell-v1.6.64-github-desktop-delivery-contract', 'foxbear-shell-v1.6.65-firestore-write-fencing'];
+const CACHE_NAME = 'foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency';
+const CURRENT_ASSET_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.50-kakao-centered-entry-notice', 'foxbear-shell-v1.6.51-stability-concurrency-input-guard', 'foxbear-shell-v1.6.52-post-master-playback-readiness-recovery', 'foxbear-shell-v1.6.53-playback-crossfade-settlement-guard', 'foxbear-shell-v1.6.54-playback-intent-arbitration', 'foxbear-shell-v1.6.55-mobile-focus-resume-reconciliation', 'foxbear-shell-v1.6.56-playback-blob-source-resilience', 'foxbear-shell-v1.6.57-firebase-hosting-payload-boundary', 'foxbear-shell-v1.6.58-piano-transient-integrity', 'foxbear-shell-v1.6.59-readiness-corp-security-hardening', 'foxbear-shell-v1.6.60-bulk-zip-hud-navigation', 'foxbear-shell-v1.6.61-human-readable-download-filenames', 'foxbear-shell-v1.6.62-download-filename-preview-controls', 'foxbear-shell-v1.6.63-download-filename-review-hardening', 'foxbear-shell-v1.6.64-github-desktop-delivery-contract', 'foxbear-shell-v1.6.65-firestore-write-fencing', 'foxbear-shell-v1.6.66-static-gate-hygiene-repair', 'foxbear-shell-v1.6.67-ci-strict-hygiene-policy', 'foxbear-shell-v1.6.68-public-shell-cache-integrity', 'foxbear-shell-v1.6.69-ci-appcheck-share-target-hardening'];
 const RETAINED_LEGACY_SHELL_COUNT = 2;
 const CLIENT_SHELL_PROBE_TIMEOUT_MS = 400;
 const CLIENT_SHELL_CLEANUP_COOLDOWN_MS = 2500;
@@ -12,21 +12,37 @@ const CLIENT_SHELL_PROBE_RETRY_MS = 120;
 const SHARE_DB = 'foxbear-mobile-native-share-v1';
 const SHARE_STORE = 'sharedFiles';
 const SHARE_QUERY = 'foxbearSharedAudio';
+const SHARE_ERROR_QUERY = 'share-error';
+const SHARE_MAX_FILES = 12;
+const SHARE_MAX_FILE_BYTES = 220 * 1024 * 1024;
+const SHARE_MAX_TOTAL_BYTES = 512 * 1024 * 1024;
+const SHARE_RECORD_TTL_MS = 24 * 60 * 60 * 1000;
+const SHARE_RECORD_LIMIT = 8;
+const SHARE_STORE_MAX_BYTES = 768 * 1024 * 1024;
+const SHARE_AUDIO_EXTENSIONS = Object.freeze(new Set([
+  '.wav', '.wave', '.mp3', '.mpeg', '.mpga', '.aif', '.aiff', '.aifc',
+  '.m4a', '.aac', '.flac', '.ogg', '.oga', '.opus', '.webm', '.weba',
+  '.mp4', '.m4v', '.mov'
+]));
+const SHARE_VIDEO_AUDIO_TYPES = Object.freeze(new Set(['video/mp4', 'video/quicktime']));
+const PUBLIC_AUXILIARY_HTML = new Set(['404.html', 'external-browser.html', 'design-preview.html']);
 const CORE_ASSETS = [
   './',
   './index.html',
   './404.html',
   './foxbear-root.json',
   './external-browser.html',
-  './assets/css/external-browser.css',
+  './assets/css/external-browser.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './design-preview.html',
+  './assets/css/design-preview.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
   './src/security/trusted-types-bootstrap.js',
   './src/boot/kakao-entry-guard.js',
   './src/boot/kakao-entry-notice.js',
   './assets/css/boot/kakao-entry-notice.css',
-  './src/security/trusted-types-bootstrap.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/kakao-entry-guard.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/kakao-entry-notice.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/kakao-external-browser.js',
+  './src/security/trusted-types-bootstrap.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/kakao-entry-guard.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/kakao-entry-notice.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/kakao-external-browser.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
   './manifest.webmanifest',
   './sw.js',
   './src/workers/wav-encoder.worker.js',
@@ -35,141 +51,140 @@ const CORE_ASSETS = [
   './src/workers/master-finalizer.worker.js',
   './src/workers/pitch-wsola.worker.js',
   './src/workers/zip-encoder.worker.js',
-  './src/workers/wav-encoder.worker.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/workers/mp3-encoder.worker.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/workers/analysis.worker.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/workers/master-finalizer.worker.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/workers/pitch-wsola.worker.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/workers/zip-encoder.worker.js?v=1.6.66-static-gate-hygiene-repair',
+  './src/workers/wav-encoder.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/workers/mp3-encoder.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/workers/analysis.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/workers/master-finalizer.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/workers/pitch-wsola.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/workers/zip-encoder.worker.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
   './src/engines/pitch-engine-adapter.js',
-  './assets/icons/foxbear-icon-48.png',
-  './assets/icons/foxbear-icon-72.png',
-  './assets/icons/foxbear-icon-96.png',
-  './assets/icons/foxbear-icon-128.png',
-  './assets/icons/foxbear-icon-144.png',
-  './assets/icons/foxbear-icon-152.png',
-  './assets/icons/foxbear-icon-180.png',
-  './assets/icons/foxbear-icon-192.png',
-  './assets/icons/foxbear-icon-384.png',
-  './assets/icons/foxbear-icon-512.png',
-  './assets/icons/foxbear-icon-16.png?v=1.6.66-static-gate-hygiene-repair',
-  './assets/icons/foxbear-icon-32.png?v=1.6.66-static-gate-hygiene-repair',
-  './assets/icons/foxbear-icon-192.png?v=1.6.66-static-gate-hygiene-repair',
-  './assets/icons/foxbear-icon-512.png?v=1.6.66-static-gate-hygiene-repair',
-  './assets/icons/apple-touch-icon.png?v=1.6.66-static-gate-hygiene-repair',
-  './manifest.webmanifest?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/boot/performance-diagnostics.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/boot/runtime-health.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/boot/ui-shell-recovery.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/boot/kakao-entry-notice.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/theme.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/layout.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/base-components.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/forms.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/cards.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/preview-system.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/playback-link.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/studio.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/admin-incident-monitor.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/dock.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/dock-waveform.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/waveform-compare.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/spectrum-visualizer.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/export.css?v=1.6.66-static-gate-hygiene-repair&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/bulk-import-hud.css?v=1.6.66-static-gate-hygiene-repair&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/dock-ui-repair.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/floating-overlays.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/header-command-bar.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/support-settings.css?v=1.6.66-static-gate-hygiene-repair',
-  './assets/css/components/modal-close-system.css?v=1.6.66-static-gate-hygiene-repair',
-  './vendor/jszip/jszip.min.js?v=1.6.66-static-gate-hygiene-repair&lib=3.10.1',
-  './src/config/build-info.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/release-presentation-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/session-handoff-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-route-policy.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-submission-identity-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/firebase-bootstrap.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-support-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-state-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-mail-sync-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-lifecycle-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-recovery-sweep-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-service-recovery-controller.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-recovery-policy.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-local-queue-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-queue-coordination-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-service-diagnostics.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-diagnostics-view-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-controls-view-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/incident-reporter.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/config/mastering-presets.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/config/genre-presets.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/config/reference-targets.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/config/app-runtime-config.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/state/app-state.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/settings/settings-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/utils/core-utils.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/utils/worker-job-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/recommendation/recommendation-engine.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/mastering-inspector.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/highlight-compare-inspector.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/playback-link-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/playback-transition-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/playback-source-recovery-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/playback-lifecycle-recovery-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/post-master-playback-recovery-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/audio-context-manager.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/preview-translation-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/audio-import-capability-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/audio-decode-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/inapp-mastering-safety-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/import-preflight-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/import-queue-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/analysis-cache-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/memory-guard-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/reference-profile-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/loudness-measurement-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/mastering-input-guard-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/mastering-quality-audit-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/quality-gate-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/mastering-orchestrator-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/master-preview-job-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/state/track-lifecycle-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/audio/waveform-control-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/waveform-control-view.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/spectrum-visualizer.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/modal-controller.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/dock-controller.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/mobile-native-view.js?v=1.6.66-static-gate-hygiene-repair&h=bulk-hud-restore-v153',
-  './src/ui/admin-access-controller.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/download/file-name-policy-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/download/file-name-workflow-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/download/download-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/download/export-guard-service.js?v=1.6.66-static-gate-hygiene-repair&h=export-v156',
-  './src/download/export-progress-view.js?v=1.6.66-static-gate-hygiene-repair&h=export-progress-v156',
-  './src/download/zip-export-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/download/export-queue-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/download-dialog-view.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/bulk-import-hud-view.js?v=1.6.66-static-gate-hygiene-repair&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/detail-panels-view.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/detail-view.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/ui/admin-incident-monitor-view.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/security/site-guards.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/runtime-health.js?v=1.6.66-static-gate-hygiene-repair&h=boot-sri-v1666-hygiene-repair',
-  './src/boot/ui-shell-recovery-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/update-safety-service.js?v=1.6.66-static-gate-hygiene-repair&h=update-safety-v1666-hygiene-repair',
-  './src/boot/service-worker-update-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/service-worker-recovery-service.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/worker-recovery-coordinator.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/boot/performance-diagnostics.js?v=1.6.66-static-gate-hygiene-repair&h=boot-sri-v1666-hygiene-repair',
-  './src/boot/render-scheduler.js?v=1.6.66-static-gate-hygiene-repair',
-  './src/app.js?v=1.6.66-static-gate-hygiene-repair&h=boot-sri-v1666-hygiene-repair',
-  './src/boot/worker-recovery-app-bridge.js?v=1.6.66-static-gate-hygiene-repair',
-  './assets/icons/foxbear-music.png?v=1.6.66-static-gate-hygiene-repair'
+  './assets/icons/foxbear-icon-48.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-72.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-96.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-128.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-144.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-152.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-180.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-192.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-384.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-512.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-16.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-icon-32.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/apple-touch-icon.png?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './manifest.webmanifest?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/boot/performance-diagnostics.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/boot/runtime-health.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/boot/ui-shell-recovery.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/boot/kakao-entry-notice.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/theme.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/layout.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/base-components.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/forms.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/cards.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/preview-system.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/playback-link.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/studio.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/admin-incident-monitor.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/dock.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/dock-waveform.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/waveform-compare.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/spectrum-visualizer.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/export.css?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/bulk-import-hud.css?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/dock-ui-repair.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/floating-overlays.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/header-command-bar.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/support-settings.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/css/components/modal-close-system.css?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './vendor/jszip/jszip.min.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&lib=3.10.1',
+  './src/config/build-info.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/release-presentation-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/session-handoff-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-route-policy.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-submission-identity-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/firebase-bootstrap.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-support-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-state-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-mail-sync-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-lifecycle-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-recovery-sweep-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-service-recovery-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-recovery-policy.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-local-queue-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-queue-coordination-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-service-diagnostics.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-diagnostics-view-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-controls-view-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/incident-reporter.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/config/mastering-presets.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/config/genre-presets.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/config/reference-targets.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/config/app-runtime-config.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/state/app-state.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/settings/settings-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/utils/core-utils.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/utils/worker-job-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/recommendation/recommendation-engine.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/mastering-inspector.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/highlight-compare-inspector.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/playback-link-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/playback-transition-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/playback-source-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/playback-lifecycle-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/post-master-playback-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/audio-context-manager.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/preview-translation-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/audio-import-capability-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/audio-decode-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/inapp-mastering-safety-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/import-preflight-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/import-queue-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/analysis-cache-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/memory-guard-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/reference-profile-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/loudness-measurement-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/mastering-input-guard-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/mastering-quality-audit-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/quality-gate-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/mastering-orchestrator-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/master-preview-job-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/state/track-lifecycle-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/audio/waveform-control-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/waveform-control-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/spectrum-visualizer.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/modal-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/dock-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/mobile-native-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=bulk-hud-restore-v153',
+  './src/ui/admin-access-controller.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/download/file-name-policy-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/download/file-name-workflow-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/download/download-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/download/export-guard-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=export-v156',
+  './src/download/export-progress-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=export-progress-v156',
+  './src/download/zip-export-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/download/export-queue-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/download-dialog-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/bulk-import-hud-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/detail-panels-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/detail-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/ui/admin-incident-monitor-view.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/security/site-guards.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/runtime-health.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=boot-sri-v1670-share-retry',
+  './src/boot/ui-shell-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/update-safety-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=update-safety-v1670-share-retry',
+  './src/boot/service-worker-update-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/service-worker-recovery-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/worker-recovery-coordinator.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/performance-diagnostics.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=boot-sri-v1670-share-retry',
+  './src/boot/render-scheduler.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/boot/pwa-share-target-service.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './src/app.js?v=1.6.70-share-retry-policy-drift-ci-efficiency&h=boot-sri-v1670-share-retry',
+  './src/boot/worker-recovery-app-bridge.js?v=1.6.70-share-retry-policy-drift-ci-efficiency',
+  './assets/icons/foxbear-music.png?v=1.6.70-share-retry-policy-drift-ci-efficiency'
 ];
 
 const INSTALL_ASSETS = [
@@ -462,7 +477,9 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
-    event.respondWith(networkFirstNavigation(request, event.preloadResponse));
+    event.respondWith(isPublicAuxiliaryHtmlRequest(url)
+      ? networkFirstAuxiliaryNavigation(request)
+      : networkFirstNavigation(request, event.preloadResponse));
     return;
   }
   if (['script', 'style', 'worker'].includes(request.destination) || /\.(?:js|css)(?:$|\?)/.test(url.pathname + url.search)) {
@@ -487,6 +504,46 @@ function getCanonicalAppRootUrl() {
   const root = new URL('./', self.registration.scope);
   root.searchParams.set('foxbearRouteRecovery', 'sw');
   return root;
+}
+
+function publicAuxiliaryHtmlName(url) {
+  const root = new URL('./', self.registration.scope);
+  if (url.origin !== root.origin || !url.pathname.startsWith(root.pathname)) return '';
+  const relative = decodeURIComponent(url.pathname.slice(root.pathname.length));
+  return PUBLIC_AUXILIARY_HTML.has(relative) ? relative : '';
+}
+
+function isPublicAuxiliaryHtmlRequest(url) {
+  return Boolean(publicAuxiliaryHtmlName(url));
+}
+
+function cloneNavigationResponse(response) {
+  if (!response) return null;
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers
+  });
+}
+
+async function networkFirstAuxiliaryNavigation(request) {
+  const requestUrl = new URL(request.url);
+  const relative = publicAuxiliaryHtmlName(requestUrl);
+  if (!relative) return Response.error();
+  const canonicalUrl = new URL(relative, self.registration.scope);
+  const cache = await caches.open(CACHE_NAME);
+  try {
+    const fresh = await fetch(request, { cache: 'no-store', redirect: 'follow' });
+    if (fresh && fresh.ok) {
+      cache.put(canonicalUrl.href, fresh.clone()).catch(() => undefined);
+      return fresh;
+    }
+    const cached = await cache.match(canonicalUrl.href);
+    return cloneNavigationResponse(cached) || fresh || Response.error();
+  } catch (error) {
+    const cached = await cache.match(canonicalUrl.href);
+    return cloneNavigationResponse(cached) || Response.error();
+  }
 }
 
 function isCanonicalShellRequest(url) {
@@ -592,6 +649,7 @@ function openShareDb() {
 async function putSharedFiles(record) {
   const db = await openShareDb();
   try {
+    await pruneSharedFileRecords(db, Number(record?.createdAt || Date.now()), Number(record?.totalBytes || 0));
     await new Promise((resolve, reject) => {
       const tx = db.transaction(SHARE_STORE, 'readwrite');
       tx.objectStore(SHARE_STORE).put(record);
@@ -601,6 +659,127 @@ async function putSharedFiles(record) {
   } finally {
     db.close();
   }
+}
+
+function sharedFileExtension(name = '') {
+  const value = String(name || '').trim().toLowerCase();
+  const dot = value.lastIndexOf('.');
+  return dot >= 0 ? value.slice(dot) : '';
+}
+
+function isSupportedSharedAudioFile(file) {
+  if (!file || typeof file !== 'object' || !('name' in file)) return false;
+  const size = Number(file.size || 0);
+  if (!Number.isFinite(size) || size <= 0 || size > SHARE_MAX_FILE_BYTES) return false;
+  const type = String(file.type || '').trim().toLowerCase();
+  if (type.startsWith('audio/') || SHARE_VIDEO_AUDIO_TYPES.has(type)) return true;
+  return SHARE_AUDIO_EXTENSIONS.has(sharedFileExtension(file.name));
+}
+
+function selectSharedAudioFiles(values = []) {
+  const files = [];
+  let totalBytes = 0;
+  let rejected = 0;
+  for (const value of values) {
+    if (files.length >= SHARE_MAX_FILES) {
+      rejected += 1;
+      continue;
+    }
+    if (!isSupportedSharedAudioFile(value)) {
+      rejected += 1;
+      continue;
+    }
+    const nextBytes = totalBytes + Number(value.size || 0);
+    if (nextBytes > SHARE_MAX_TOTAL_BYTES) {
+      rejected += 1;
+      continue;
+    }
+    files.push(value);
+    totalBytes = nextBytes;
+  }
+  return Object.freeze({ files, totalBytes, rejected });
+}
+
+function shareRecordTimestamp(key = '') {
+  const value = Number.parseInt(String(key || '').split('-', 1)[0], 10);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function shareRecordBytes(record = {}) {
+  const declared = Number(record?.totalBytes || 0);
+  if (Number.isFinite(declared) && declared > 0) return Math.floor(declared);
+  return (Array.isArray(record?.files) ? record.files : []).reduce((sum, file) => {
+    const size = Number(file?.size || 0);
+    return sum + (Number.isFinite(size) && size > 0 ? size : 0);
+  }, 0);
+}
+
+function planSharedRecordRetention(records = [], now = Date.now(), incomingBytes = 0) {
+  const availableBytes = Math.max(0, SHARE_STORE_MAX_BYTES - Math.max(0, Number(incomingBytes || 0)));
+  const fresh = records
+    .map(record => ({
+      key: String(record?.key || record?.id || ''),
+      createdAt: Number(record?.createdAt || shareRecordTimestamp(record?.key || record?.id)),
+      totalBytes: Math.max(0, shareRecordBytes(record?.value || record))
+    }))
+    .filter(record => record.key && record.createdAt > 0 && now - record.createdAt <= SHARE_RECORD_TTL_MS)
+    .sort((a, b) => b.createdAt - a.createdAt);
+  const retainKeys = [];
+  let retainedBytes = 0;
+  for (const record of fresh) {
+    if (retainKeys.length >= Math.max(0, SHARE_RECORD_LIMIT - 1)) break;
+    if (retainedBytes + record.totalBytes > availableBytes) continue;
+    retainKeys.push(record.key);
+    retainedBytes += record.totalBytes;
+  }
+  const retained = new Set(retainKeys);
+  const deleteKeys = records.map(record => String(record?.key || record?.id || '')).filter(key => key && !retained.has(key));
+  return Object.freeze({ retainKeys: Object.freeze(retainKeys), deleteKeys: Object.freeze(deleteKeys), retainedBytes, availableBytes });
+}
+
+async function listSharedRecordMetadata(db) {
+  return await new Promise((resolve, reject) => {
+    const records = [];
+    const tx = db.transaction(SHARE_STORE, 'readonly');
+    const request = tx.objectStore(SHARE_STORE).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) return;
+      const value = cursor.value || {};
+      records.push({
+        key: String(cursor.primaryKey || value.id || ''),
+        createdAt: Number(value.createdAt || shareRecordTimestamp(cursor.primaryKey)),
+        totalBytes: shareRecordBytes(value)
+      });
+      cursor.continue();
+    };
+    request.onerror = () => reject(request.error || new Error('share db metadata scan failed'));
+    tx.oncomplete = () => resolve(records);
+    tx.onerror = () => reject(tx.error || new Error('share db metadata scan failed'));
+    tx.onabort = () => reject(tx.error || new Error('share db metadata scan aborted'));
+  });
+}
+
+async function pruneSharedFileRecords(db, now = Date.now(), incomingBytes = 0) {
+  const records = await listSharedRecordMetadata(db);
+  const plan = planSharedRecordRetention(records, now, incomingBytes);
+  if (!plan.deleteKeys.length) return Object.freeze({ deleted: 0, retained: plan.retainKeys.length, retainedBytes: plan.retainedBytes });
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(SHARE_STORE, 'readwrite');
+    const store = tx.objectStore(SHARE_STORE);
+    plan.deleteKeys.forEach(key => store.delete(key));
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error || new Error('share db cleanup failed'));
+    tx.onabort = () => reject(tx.error || new Error('share db cleanup aborted'));
+  });
+  return Object.freeze({ deleted: plan.deleteKeys.length, retained: plan.retainKeys.length, retainedBytes: plan.retainedBytes });
+}
+
+function createShareRecordId(now = Date.now()) {
+  const randomId = typeof self.crypto?.randomUUID === 'function'
+    ? self.crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
+  return `${Math.max(1, Number(now || Date.now()))}-${randomId}`;
 }
 
 async function handleShareTarget(request) {
@@ -618,20 +797,26 @@ async function handleShareTarget(request) {
         if (value && typeof value === 'object' && 'name' in value && value.size > 0) entries.push(value);
       });
     }
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const selected = selectSharedAudioFiles(entries);
+    if (!selected.files.length) throw new Error('no-supported-share-files');
+    const id = createShareRecordId();
     await putSharedFiles({
       id,
       createdAt: Date.now(),
-      title: String(formData.get('title') || ''),
-      text: String(formData.get('text') || ''),
-      url: String(formData.get('url') || ''),
-      files: entries.slice(0, 12)
+      title: String(formData.get('title') || '').slice(0, 200),
+      text: String(formData.get('text') || '').slice(0, 2000),
+      url: String(formData.get('url') || '').slice(0, 2048),
+      files: selected.files,
+      totalBytes: selected.totalBytes,
+      rejectedCount: selected.rejected
     });
     const redirectUrl = new URL('./', self.registration.scope);
     redirectUrl.searchParams.set(SHARE_QUERY, id);
+    redirectUrl.searchParams.set('shareCount', String(selected.files.length));
     return Response.redirect(redirectUrl.href, 303);
   } catch (error) {
-    const fallback = new URL('./?share-error=1', self.registration.scope);
+    const fallback = new URL('./', self.registration.scope);
+    fallback.searchParams.set(SHARE_ERROR_QUERY, error?.message === 'no-supported-share-files' ? 'unsupported' : 'storage');
     return Response.redirect(fallback.href, 303);
   }
 }

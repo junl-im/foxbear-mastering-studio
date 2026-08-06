@@ -211,6 +211,8 @@ function normalizeJsonMetadata(file, text) {
     if (clone.scripts) {
       delete clone.scripts['package:verify:overwrite'];
       delete clone.scripts['package:verify:release'];
+      delete clone.scripts['package:verify:full'];
+      delete clone.scripts['package:verify:patch'];
     }
   } else if (file === 'package-lock.json' || file === 'functions/package-lock.json') {
     delete clone.version;

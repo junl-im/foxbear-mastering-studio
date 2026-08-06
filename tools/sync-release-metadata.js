@@ -156,6 +156,8 @@ function sync() {
   const runtimeTargets = [
     ...filesUnder('src', '.js'),
     path.join(ROOT, 'index.html'),
+    path.join(ROOT, 'external-browser.html'),
+    path.join(ROOT, 'design-preview.html'),
     path.join(ROOT, 'functions/index.js')
   ];
   const qaTargets = filesUnder('qa', '.js');
@@ -201,7 +203,18 @@ function sync() {
   const manifest = JSON.parse(read('manifest.webmanifest'));
   manifest.version = meta.productVersion;
   manifest.description = `FoxBear AI Mastering Studio Pro v${meta.productVersion} (${meta.buildId}).`;
-  write('manifest.webmanifest', `${JSON.stringify(manifest, null, 2)}\n`);
+  const versionManifestAsset = value => {
+    const raw = String(value || '').trim();
+    if (!raw) return raw;
+    const [base] = raw.split(/[?#]/, 1);
+    return `${base}?v=${meta.assetVersion}`;
+  };
+  for (const icon of manifest.icons || []) icon.src = versionManifestAsset(icon.src);
+  for (const shortcut of manifest.shortcuts || []) {
+    for (const icon of shortcut.icons || []) icon.src = versionManifestAsset(icon.src);
+  }
+  write('manifest.webmanifest', `${JSON.stringify(manifest, null, 2)}
+`);
 
   const handoffPackage = JSON.parse(read('HANDOFF_PACKAGE.json'));
   handoffPackage.productVersion = meta.productVersion;
@@ -393,6 +406,8 @@ function validate() {
   const rootMarker = JSON.parse(read('foxbear-root.json'));
   const buildInfo = read('src/config/build-info.js');
   const index = read('index.html');
+  const externalBrowser = read('external-browser.html');
+  const designPreview = read('design-preview.html');
   const sw = read('sw.js');
   const app = read('src/app.js');
   const updateSafety = read('src/boot/update-safety-service.js');
@@ -415,6 +430,14 @@ function validate() {
   expect(handoffPackage.targetClient === 'GitHub Desktop', 'HANDOFF_PACKAGE.json target client is not GitHub Desktop');
   expect(rootMarker.foxbearAppRoot === true && rootMarker.productVersion === meta.productVersion && rootMarker.assetVersion === meta.assetVersion, 'foxbear-root.json is not synchronized');
   expect(manifest.description.includes(`v${meta.productVersion}`) && manifest.description.includes(meta.buildId), 'manifest.webmanifest description is not synchronized');
+  const manifestAssetUrls = [
+    ...(manifest.icons || []).map(icon => icon.src),
+    ...(manifest.shortcuts || []).flatMap(shortcut => (shortcut.icons || []).map(icon => icon.src))
+  ];
+  expect(manifestAssetUrls.length > 0, 'manifest.webmanifest must expose icon assets');
+  for (const assetUrl of manifestAssetUrls) {
+    expect(String(assetUrl).includes(`?v=${meta.assetVersion}`), `manifest icon is missing the current cache-busting query: ${assetUrl}`);
+  }
   expect(index.includes(`<title>FoxBear Mastering PRO v${meta.productVersion}</title>`), 'index title is not synchronized');
   expect(index.includes(`data-build="${meta.productVersion}"`), 'index data-build is not synchronized');
   expect(index.includes(`src/config/build-info.js?v=${meta.assetVersion}`), 'build-info script is not loaded with current asset version');
@@ -428,10 +451,17 @@ function validate() {
   expect(index.indexOf(runtimeHealthUrl) < index.indexOf('src/app.js'), 'runtime health must load before app.js');
   expect(sw.includes(`./${runtimeHealthUrl}`), 'service worker does not precache current runtime health');
   expect(sw.includes(`./${recoveryServiceUrl}`), 'service worker does not precache current recovery service');
-  const localRuntimeAssetTags = [...index.matchAll(/<(?:script|link)\b[^>]+(?:src|href)="((?:src|assets|manifest\.webmanifest)[^"]+)"[^>]*>/g)]
-    .map(match => match[1]);
-  for (const assetPath of localRuntimeAssetTags) {
-    expect(assetPath.includes(`?v=${meta.assetVersion}`), `local runtime asset is missing the current cache-busting query: ${assetPath}`);
+  const publicRuntimeHtml = [
+    ['index.html', index],
+    ['external-browser.html', externalBrowser],
+    ['design-preview.html', designPreview]
+  ];
+  for (const [htmlName, html] of publicRuntimeHtml) {
+    const localRuntimeAssetTags = [...html.matchAll(/<(?:script|link|img)\b[^>]+(?:src|href)="((?:src|assets|manifest\.webmanifest)[^"]+)"[^>]*>/g)]
+      .map(match => match[1]);
+    for (const assetPath of localRuntimeAssetTags) {
+      expect(assetPath.includes(`?v=${meta.assetVersion}`), `${htmlName} local runtime asset is missing the current cache-busting query: ${assetPath}`);
+    }
   }
   const staleLocalGenerations = [...index.matchAll(/\?v=(\d+\.\d+\.\d+-[a-z0-9][a-z0-9-]*)/g)]
     .map(match => match[1])

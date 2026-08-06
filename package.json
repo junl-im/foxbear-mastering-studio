@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.66",
+  "version": "1.6.70",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.66 - static release gate source hygiene auto-repair with strict secret blocking",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.69 - CI ordering, App Check policy drift guards, and PWA share-target storage hardening",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.66-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.66-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.70-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.70-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,9 +39,10 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.66-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.66-patch.zip",
-    "source:hygiene:repair": "node tools/repair-source-hygiene.js"
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.70-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.70-patch.zip",
+    "source:hygiene:repair": "node tools/repair-source-hygiene.js",
+    "source:hygiene:gate": "node tools/run-source-hygiene-gate.js"
   },
   "qaChecks": [
     "node --check src/firebase-bootstrap.js",
@@ -459,15 +460,20 @@
     "node qa/v1663_filename_provenance_export_review_smoke.js",
     "node qa/v1664_github_desktop_delivery_artifact_contract_smoke.js",
     "node qa/v1665_firestore_write_fencing_visit_dedup_smoke.js",
-    "node qa/v1666_static_gate_source_hygiene_repair_smoke.js"
+    "node qa/v1666_static_gate_source_hygiene_repair_smoke.js",
+    "node qa/v1667_ci_strict_source_hygiene_policy_smoke.js",
+    "node qa/v1668_public_shell_cache_integrity_smoke.js",
+    "node --check src/boot/pwa-share-target-service.js",
+    "node qa/v1669_ci_app_check_share_target_hardening_smoke.js",
+    "node qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "static-gate-hygiene-repair",
-    "assetVersion": "1.6.66-static-gate-hygiene-repair",
-    "cacheName": "foxbear-shell-v1.6.66-static-gate-hygiene-repair",
-    "bootRevision": "boot-sri-v1666-hygiene-repair",
-    "updateSafetyRevision": "update-safety-v1666-hygiene-repair",
-    "serviceWorkerRevision": "sw-v1666-hygiene-repair"
+    "buildId": "share-retry-policy-drift-ci-efficiency",
+    "assetVersion": "1.6.70-share-retry-policy-drift-ci-efficiency",
+    "cacheName": "foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency",
+    "bootRevision": "boot-sri-v1670-share-retry",
+    "updateSafetyRevision": "update-safety-v1670-share-retry",
+    "serviceWorkerRevision": "sw-v1670-share-retry"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

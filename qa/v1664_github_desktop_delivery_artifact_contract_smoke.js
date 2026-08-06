@@ -42,7 +42,7 @@ for (const token of ["'.git'", "'.firebase'", "'.audit-results'"]) {
 }
 assert(hygiene.includes("name === '.firebaserc'"), 'archive hygiene must reject .firebaserc');
 assert(sourceHygiene.includes("'.firebaserc'") && sourceHygiene.includes("'.firebase/'") && sourceHygiene.includes("'.audit-results/'"), 'source hygiene forbidden set incomplete');
-assert(gate.includes("'source:hygiene'"), 'release gate must run source:hygiene');
+assert(gate.includes("'source:hygiene'") || gate.includes("'source:hygiene:gate'"), 'release gate must run a source hygiene gate');
 assert(gitignore.includes('.firebaserc') && gitignore.includes('.audit-results/'), 'local Firebase/audit paths must be ignored');
 for (const item of ['.firebaserc', '.firebase/', '.audit-results/', 'qa/static-audit.txt']) {
   assert(deletePaths.includes(item), `DELETE_PATHS.txt missing ${item}`);

@@ -16,8 +16,8 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.63_INCIDENT_MAIL_QUOTA_SUMMARY_RECOVERY.md');
 
-assert.strictEqual(pkg.version, '1.6.66');
-assert.strictEqual(meta.assetVersion, '1.6.66-static-gate-hygiene-repair');
+assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(meta.assetVersion, '1.6.70-share-retry-policy-drift-ci-efficiency');
 
 for (const token of [
   'dailyKst_${dayKey}',
@@ -43,7 +43,7 @@ for (const token of [
   ".orderBy('createdAt', 'desc')",
   'manualResetCount: Math.max(0, Number(delivery.manualResetCount || 0)) + (forceTerminal ? 1 : 0)',
   "status: 'stale-completion'"
-]) assert(functionsSource.includes(token), `v1.6.66 mail recovery missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.6.70 mail recovery missing ${token}`);
 
 assert(!functionsSource.includes('function utcDateKey'), 'UTC quota helper must not remain in the mail path');
 assert(!functionsSource.includes("const rateStatus = options.retry ? 'failed' : 'suppressed-rate-limit'"), 'new incidents can still be permanently suppressed at the daily limit');
@@ -90,6 +90,7 @@ const sandbox = {
     }
     if (request === 'nodemailer') return { createTransport: () => ({ sendMail: async () => ({}) }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };

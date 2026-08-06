@@ -20,8 +20,8 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.64_INCIDENT_OPERATIONS_HEALTH_SELF_DIAGNOSTICS.md');
 
-assert.strictEqual(pkg.version, '1.6.66');
-assert.strictEqual(meta.assetVersion, '1.6.66-static-gate-hygiene-repair');
+assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(meta.assetVersion, '1.6.70-share-retry-policy-drift-ci-efficiency');
 assert(pkg.scripts['deploy:incident'].includes('functions:auditIncidentMailOperations'));
 
 for (const token of [
@@ -46,7 +46,7 @@ for (const token of [
   "code: 'quota-reservation-leak'",
   "reason: 'smtp-unavailable'",
   "kind: 'recovery'"
-]) assert(functionsSource.includes(token), `v1.6.66 operations health missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.6.70 operations health missing ${token}`);
 
 for (const token of [
   "getDoc(doc(bridgeState.db, 'incidentOperations', 'mail'))",
@@ -54,7 +54,7 @@ for (const token of [
   'getKstDayRange',
   "where('createdAt', '>=', kstRange.start)",
   'operations: normalizeIncidentOperations(operationsSnapshot)'
-]) assert(firebaseSource.includes(token), `v1.6.66 admin bridge missing ${token}`);
+]) assert(firebaseSource.includes(token), `v1.6.70 admin bridge missing ${token}`);
 
 for (const token of [
   "appendSummaryCard('메일 운영'",
@@ -62,7 +62,7 @@ for (const token of [
   "appendSummaryCard('SMTP/Secret'",
   'formatOperationsStatus',
   '운영 점검은 15분마다 실행됩니다'
-]) assert(monitorSource.includes(token), `v1.6.66 monitor UI missing ${token}`);
+]) assert(monitorSource.includes(token), `v1.6.70 monitor UI missing ${token}`);
 
 assert(rules.includes('match /incidentOperations/{documentId}'));
 assert(rules.includes('allow get: if isAdmin();'));
@@ -107,6 +107,7 @@ const sandbox = {
     }
     if (request === 'nodemailer') return { createTransport: () => ({ verify: async () => true, sendMail: async () => ({}), close() {} }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };

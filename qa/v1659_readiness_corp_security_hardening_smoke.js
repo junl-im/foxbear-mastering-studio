@@ -99,6 +99,7 @@ const sandbox = {
       }
     };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };

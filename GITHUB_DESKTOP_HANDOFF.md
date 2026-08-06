@@ -1,3 +1,43 @@
+# GitHub Desktop Handoff - v1.6.70
+
+## v1.6.70 atomic share retry and policy drift diagnostics
+
+1. Extract `foxbear-mastering-studio-v1.6.70-patch.zip` into the v1.6.69 repository root and replace matching files.
+2. Run `npm run source:hygiene:repair` so generated local state and the patch manifest are removed safely.
+3. In GitHub Desktop, review the PWA share service, service worker retention policy, incident diagnostics, workflow, browser-impact selector, QA, and documentation changes together.
+4. Commit code changes and every displayed deletion, then **Push origin**.
+5. Confirm Static release gate succeeds before fallback browser setup begins.
+
+## Release focus
+
+- Awaited and retry-safe PWA share import.
+- 768 MiB aggregate temporary share-storage budget.
+- Client/server App Check policy drift warning.
+- Static-first fallback deployment and metadata-only browser scope efficiency.
+
+## Production verification
+
+- Share a supported audio file and confirm it is removed from temporary storage only after it appears in the track list.
+- Inject or reproduce a transient import failure, reload, and confirm the same share can retry.
+- Fill browser storage near quota and confirm old share records are pruned without affecting current files.
+- Compare client and deployed Functions App Check policy metadata in administrator diagnostics.
+- Trigger a fallback static failure and confirm Chromium installation is skipped.
+
+## v1.6.67 strict CI hygiene
+
+1. Extract the v1.6.67 patch into the v1.6.66 repository root.
+2. Run `npm run source:hygiene:repair` locally.
+3. In GitHub Desktop, confirm that stale `.firebaserc`, `.firebase/`, generated QA logs, and `PATCH_MANIFEST.json` appear as deletions when present.
+4. Commit the code changes and deletions together, then push.
+5. CI no longer auto-deletes committed violations; it reports them with file annotations and fails until the repository is clean.
+
+## Release focus
+
+- Strict, non-mutating GitHub Actions source hygiene.
+- Local-only allowlisted repair for extract-overwrite workflows.
+- Hygiene validation before dependency installation.
+- Actionable remediation output without weakening secret-file blocking.
+
 # GitHub Desktop Handoff - v1.6.66
 
 ## v1.6.66 static gate hotfix

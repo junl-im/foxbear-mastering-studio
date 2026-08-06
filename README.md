@@ -1,6 +1,18 @@
-# FoxBear AI Mastering Studio Pro v1.6.66
+# FoxBear AI Mastering Studio Pro v1.6.70
 
-This hotfix repairs the static release gate when stale local/generated files from an extract-overwrite patch remain in Git. The gate now removes only approved cleanup paths, reruns the strict hygiene check, and continues to block secret-like environment files.
+This release makes PWA share handoff transactional and retry-safe. Shared files are removed only after the actual import pipeline succeeds, aggregate temporary storage is bounded, deployed App Check policy drift is surfaced, and fallback/version-only CI paths avoid unnecessary browser installation or full-suite execution.
+
+# FoxBear AI Mastering Studio Pro v1.6.69
+
+This release tightens release ordering and two intentionally disabled/optional surfaces. Browser QA now starts only after static QA succeeds, all Callable Functions share one explicit App Check policy contract with accurate token-observation diagnostics, and Android/PWA share-target files are validated, size-bounded, expired, and cleaned before they can accumulate in IndexedDB.
+
+# FoxBear AI Mastering Studio Pro v1.6.68
+
+This release closes stale immutable-asset paths outside the main studio shell. Every deployed public HTML entry now uses the current asset generation, all public CSS/JavaScript SRI is updated and verified, auxiliary pages remain reachable under an active service worker, PWA icons use the current generation, and root shell documents opt out of long-lived browser caching.
+
+# FoxBear AI Mastering Studio Pro v1.6.67
+
+This release separates local cleanup from CI enforcement. GitHub Actions validates source hygiene without deleting committed violations, while local release and delivery commands may repair only the approved generated/local paths before running the same strict check.
 
 # FoxBear AI Mastering Studio Pro v1.6.64
 

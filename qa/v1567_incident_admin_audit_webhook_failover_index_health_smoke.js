@@ -22,26 +22,26 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 const docs = read('docs/V1.5.67_INCIDENT_ADMIN_AUDIT_WEBHOOK_FAILOVER_INDEX_HEALTH.md');
 
-assert.strictEqual(pkg.version, '1.6.66');
-assert.strictEqual(meta.assetVersion, '1.6.66-static-gate-hygiene-repair');
+assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(meta.assetVersion, '1.6.70-share-retry-policy-drift-ci-efficiency');
 assert(pkg.scripts['deploy:incident'].includes('functions:verifyIncidentPostDeployHealth'));
 for (const token of [
-  "const PRODUCT_VERSION = '1.6.66'", 'const OPERATIONS_SCHEMA_VERSION =',
+  "const PRODUCT_VERSION = '1.6.70'", 'const OPERATIONS_SCHEMA_VERSION =',
   "const ADMIN_AUDIT_COLLECTION = 'incidentAdminAuditLog'", 'writeAdminAuditEvent',
   'OPERATIONS_WEBHOOK_FALLBACK_ENV_NAME', 'OPERATIONS_WEBHOOK_RETRY_DELAYS_MS',
   'inspectOperationsWebhookChannels', 'deliverOperationsWebhook', 'failover: true',
   'probeFirestoreIndexes', 'inspectPostDeployHealth', 'exports.verifyIncidentPostDeployHealth'
-]) assert(functionsSource.includes(token), `v1.6.66 function contract missing ${token}`);
+]) assert(functionsSource.includes(token), `v1.6.70 function contract missing ${token}`);
 
 for (const token of ['getIncidentOperationsHistory', 'getIncidentAdminAuditLog', 'parseHistoryFilter', 'historyNextCursor', 'auditLog']) {
-  assert(firebaseSource.includes(token), `v1.6.66 Firebase bridge contract missing ${token}`);
+  assert(firebaseSource.includes(token), `v1.6.70 Firebase bridge contract missing ${token}`);
 }
 for (const id of ['adminIncidentHistoryFilter', 'adminIncidentHistoryMore', 'adminIncidentHistoryStatus', 'adminIncidentAuditDetails', 'adminIncidentAuditRows']) {
-  assert(indexSource.includes(`id="${id}"`), `v1.6.66 HTML missing ${id}`);
-  assert(appSource.includes(`'${id}'`), `v1.6.66 app element cache missing ${id}`);
+  assert(indexSource.includes(`id="${id}"`), `v1.6.70 HTML missing ${id}`);
+  assert(appSource.includes(`'${id}'`), `v1.6.70 app element cache missing ${id}`);
 }
 for (const token of ['loadHistoryPage', 'renderAuditLog', 'updateHistoryControls', '이중화']) {
-  assert(monitorSource.includes(token), `v1.6.66 monitor contract missing ${token}`);
+  assert(monitorSource.includes(token), `v1.6.70 monitor contract missing ${token}`);
 }
 assert(rules.includes('match /incidentAdminAuditLog/{auditId}'));
 assert(indexes.includes('incidentOperationsHistory'));
@@ -67,6 +67,7 @@ const sandbox = {
     if (request === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) }, Timestamp, getFirestore: () => ({ collection: () => ({}) }) };
     if (request === 'nodemailer') return { createTransport: () => ({ verify: async () => true, sendMail: async () => ({}), close() {} }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };

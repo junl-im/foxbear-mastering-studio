@@ -42,6 +42,21 @@ const FIREBASE_HOSTING_AUTH_DOMAINS = Object.freeze(new Set([
 ]));
 const ADMIN_GOOGLE_REDIRECT_MARKER = 'foxbear.admin.google.redirect';
 const ADMIN_GOOGLE_REDIRECT_ATTEMPTS = 'foxbear.admin.google.redirectAttempts';
+const FIREBASE_APP_CHECK_POLICY = Object.freeze({
+    contractVersion: Number(window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.contractVersion || 1),
+    mode: String(window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.mode || 'disabled'),
+    disabled: window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.disabled !== false,
+    configured: window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.configured === true,
+    ready: window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.ready === true,
+    enforced: window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.enforced === true,
+    tokenRequired: window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.tokenRequired === true,
+    reason: String(window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.reason || 'spark-hosting-no-app-check'),
+    error: String(window.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.error || '')
+});
+
+function appCheckPolicySnapshot(overrides = {}) {
+    return Object.freeze({ ...FIREBASE_APP_CHECK_POLICY, ...overrides });
+}
 
 function resolveFirebaseAuthDomain() {
     const currentHost = String(globalThis.location?.hostname || '').trim().toLowerCase();
@@ -196,13 +211,7 @@ function makePublicBridge(extra = {}) {
         incidentStatusFunctionName: INCIDENT_STATUS_FUNCTION_NAME,
         incidentSameOriginStatusPath: INCIDENT_SAME_ORIGIN_PATHS[INCIDENT_STATUS_FUNCTION_NAME],
         incidentRouteHealth: incidentRoutePolicy.getHealth(),
-        appCheck: Object.freeze({
-            mode: 'disabled',
-            disabled: true,
-            configured: false,
-            ready: false,
-            error: ''
-        }),
+        appCheck: appCheckPolicySnapshot(),
         adminAuth: Object.freeze({
             mode: isFirebaseHostingAdminOrigin() ? 'firebase-hosting' : 'external-popup',
             secureOrigin: FIREBASE_SECURE_ADMIN_ORIGIN,
@@ -316,7 +325,7 @@ function normalizeFirestoreVisit(snapshot) {
 
 
 async function refreshAppCheckToken() {
-    return Object.freeze({ mode: 'disabled', disabled: true, configured: false, ready: false, error: '' });
+    return appCheckPolicySnapshot();
 }
 
 async function signInGuest() {
@@ -854,7 +863,7 @@ async function invokeIncidentCallable(name, data) {
 }
 
 function normalizeIncidentServiceStatus(value = {}) {
-    const localAppCheck = { mode: 'disabled', disabled: true, configured: false, ready: false, error: '' };
+    const localAppCheck = appCheckPolicySnapshot();
     return Object.freeze({
         productVersion: limitText(value.productVersion || '', 24),
         serviceSchemaVersion: safeIncidentNumber(value.serviceSchemaVersion, 0, 99),
@@ -865,9 +874,11 @@ function normalizeIncidentServiceStatus(value = {}) {
         mailTrigger: limitText(value.mailTrigger || '', 80),
         smtpProvider: limitText(value.smtpProvider || '', 30),
         smtpCredential: limitText(value.smtpCredential || '', 40),
-        appCheckMode: limitText(value.appCheckMode || 'disabled', 20),
+        appCheckMode: limitText(value.appCheckMode || localAppCheck.mode, 20),
         appCheckEnforced: value.appCheckEnforced === true,
         appCheckTokenPresent: value.appCheckTokenPresent === true,
+        appCheckPolicyVersion: safeIncidentNumber(value.appCheckPolicyVersion, 0, 99),
+        appCheckPolicyReason: limitText(value.appCheckPolicyReason || localAppCheck.reason, 80),
         readinessCheck: limitText(value.readinessCheck || '', 80),
         checkedAt: limitText(value.checkedAt || '', 40),
         clientProductVersion: limitText(window.FoxBearBuildInfo?.productVersion || document.body?.dataset?.build || '', 24),
@@ -1566,7 +1577,7 @@ async function getAdminIncidents(options = {}) {
         auditLogHasMore: auditLog.hasMore === true,
         auditLogNextCursor: safeIncidentNumber(auditLog.nextCursor, 0, Number.MAX_SAFE_INTEGER),
         dateKey: kstRange.dateKey,
-        appCheck: { mode: 'disabled', disabled: true, configured: false, ready: false, error: '' }
+        appCheck: appCheckPolicySnapshot()
     };
 }
 

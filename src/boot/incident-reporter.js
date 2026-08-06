@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.66
+// FoxBear automatic incident reporter - v1.6.70
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.66-static-gate-hygiene-repair';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.66').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.70-share-retry-policy-drift-ci-efficiency';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.70').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -1115,7 +1115,13 @@
                 attempts: Number(state.directProbe.attempts || 0)
             } : null,
             csp: { ok: csp.ok === true, code: cleanText(csp.code || '', 80) },
-            appCheck: { mode: 'disabled', configured: false, ready: false, enforced: false },
+            appCheck: Object.freeze({
+                ...(global.FoxBearRuntimeConfig?.APP_CHECK_POLICY || {}),
+                mode: cleanText(global.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.mode || 'disabled', 20),
+                configured: global.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.configured === true,
+                ready: global.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.ready === true,
+                enforced: global.FoxBearRuntimeConfig?.APP_CHECK_POLICY?.enforced === true
+            }),
             localQueueCount: incidentQueue.count(),
             localQueue: incidentQueue.getState(),
             queueCoordination: incidentQueue.getState(),

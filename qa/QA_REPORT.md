@@ -1,3 +1,107 @@
+# FoxBear QA Report - v1.6.70
+
+## Configured target
+
+- Static and behavioral checks: **421**.
+- New regression: `qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js`.
+- Updated syntax target: `src/boot/pwa-share-target-service.js`.
+
+## Verification scope
+
+- Awaited PWA share import completion and retry preservation after transient failures.
+- Aggregate IndexedDB share-storage budget and metadata caps.
+- Client/server App Check policy drift diagnostics.
+- Static-before-Chromium fallback workflow ordering.
+- Version-only browser-impact normalization for full/patch verifier paths.
+- Existing audio, export, PWA cache, Firebase, CI hygiene, and delivery regressions.
+
+## Final result
+
+- Official static and behavioral checks: **421/421 passed** in bounded slices (`106/106`, `105/105`, `105/105`, `105/105`).
+- Atomic share import, transient retry preservation, aggregate storage budget, metadata caps, App Check policy drift warning, fallback static-first ordering, and version-only browser-impact normalization passed.
+- `src/app.js` is 13,251 lines and remains below the 13,300-line structural gate.
+- Release metadata, SRI, handoff state, source hygiene, browser preflight, Functions syntax, and the 153-file Hosting boundary passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings because Playwright and Functions packages are not installed in this environment.
+- Installed Chromium/PWA share invocation and deployed Firebase acceptance remain external. Root and Functions online vulnerability audits could not run because the configured npm mirror returned HTTP 404 for the audit endpoint.
+- The verified full ZIP contains **723 files**.
+- The patch contains **285 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Applying the patch over the supplied v1.6.69 full tree reproduced the v1.6.70 source tree exactly (`723/723`, no missing, extra, or changed files).
+
+# FoxBear QA Report - v1.6.69
+
+## Configured target
+
+- Static and behavioral checks: **420**.
+- New regression: `qa/v1669_ci_app_check_share_target_hardening_smoke.js`.
+- New syntax target: `src/boot/pwa-share-target-service.js`.
+
+## Verification scope
+
+- Static-before-browser GitHub Actions dependency ordering.
+- Shared Functions App Check policy and non-overridable Callable options.
+- Accurate disabled-policy token-observation metadata and administrator diagnostics.
+- PWA share-target audio validation, per-file/total quotas, record expiry, bounded retention, and launch-query cleanup.
+- Dedicated share-target boot-module delegation and `src/app.js` structural budget.
+- Existing audio, export, PWA cache, Firebase, CI hygiene, and delivery regressions.
+
+## Final result
+
+- Official static and behavioral checks: **420/420 passed** in four bounded `105/105` slices.
+- CI ordering, App Check policy drift guards, token-observation diagnostics, share payload limits, retention, and query cleanup passed.
+- `src/app.js` is 13,251 lines and remains below the 13,300-line structural gate.
+- Release metadata, SRI, handoff state, source hygiene, browser preflight, Functions syntax, and the 153-file Hosting boundary passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings because Playwright and Functions packages are not installed in this environment.
+- Root production lockfile audit reported 0 vulnerabilities; the Functions online audit could not complete because registry DNS access failed.
+- Installed Chromium, real PWA share invocation, and deployed Firebase acceptance remain external.
+- The verified full ZIP contains **721 files**.
+- The patch contains **288 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Applying the patch over the supplied v1.6.68 full tree reproduced the v1.6.69 source tree exactly (`721/721`, no missing, extra, or changed files).
+
+# FoxBear QA Report - v1.6.68
+
+## Configured target
+
+- Static and behavioral checks: **418**.
+- New regression: `qa/v1668_public_shell_cache_integrity_smoke.js`.
+
+## Verification scope
+
+- Current-generation query coverage for local assets in `index.html`, `external-browser.html`, and `design-preview.html`.
+- SHA-384 SRI update and validation across all public HTML code assets.
+- Explicit no-cache/no-store policy for public root shell and recovery documents.
+- Existing audio, export, PWA, Firebase, CI hygiene, and delivery regressions.
+
+## Final result
+
+- Official static and behavioral checks: **418/418 passed** in bounded slices (`105/105`, `105/105`, `105/105`, `103/103`).
+- Public HTML cache-generation, SRI, manifest-icon, auxiliary-navigation, and archive-mode `dist/` repair regressions passed.
+- Release metadata, handoff state, source hygiene, browser preflight, Functions syntax, and the 152-file Hosting boundary passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings because Playwright and Functions packages are not installed in this environment.
+- The verified full ZIP contains **717 files**.
+- The patch contains **288 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Applying the patch over the supplied v1.6.67 full tree reproduced the v1.6.68 source tree exactly (`717/717`, no missing, extra, or changed files).
+- Installed Chromium and deployed Firebase acceptance remain external.
+
+# FoxBear QA Report - v1.6.67
+
+## Configured target
+
+- Static and behavioral checks: **417**.
+- New regression: `qa/v1667_ci_strict_source_hygiene_policy_smoke.js`.
+
+## Final result
+
+- Official static and behavioral checks: **417/417 passed** in bounded slices (`105/105`, `105/105`, `105/105`, `102/102`).
+- CI strict mode failed a committed `.firebaserc` fixture without deleting it and emitted a GitHub file annotation plus local remediation commands.
+- Local repair mode removed only allowlisted generated/local state and then passed strict validation.
+- `.env.production` remained untouched and correctly failed the gate.
+- Release metadata, handoff state, dependency metadata, browser preflight, Functions syntax, and the 152-file Hosting boundary passed.
+- Dependency health reported 0 errors and 5 expected missing-install warnings because Playwright and Functions packages are not installed in this environment.
+- Installed Chromium and deployed Firebase acceptance remain external.
+- The verified full ZIP contains **715 files**.
+- The patch contains **286 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Applying the patch over the supplied v1.6.66 full tree reproduced the v1.6.67 source tree exactly (`715/715`, no missing, extra, or changed files).
+
 # FoxBear QA Report - v1.6.66
 
 ## Configured target

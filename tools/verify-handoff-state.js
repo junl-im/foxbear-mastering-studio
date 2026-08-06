@@ -156,9 +156,11 @@ if (!releaseGateCommand.includes('handoff:check') && !releaseGateRunner.includes
 }
 if (!scripts['handoff:check']) fail('package.json is missing handoff:check', failures);
 if (!scripts['source:hygiene']) fail('package.json is missing source:hygiene', failures);
-if (!releaseGateCommand.includes('source:hygiene') && !releaseGateRunner.includes("'source:hygiene'")) {
-  fail('check:release must run source:hygiene', failures);
-}
+if (!scripts['source:hygiene:gate']) fail('package.json is missing source:hygiene:gate', failures);
+const releaseHasHygiene = releaseGateCommand.includes('source:hygiene')
+  || releaseGateRunner.includes("'source:hygiene'")
+  || releaseGateRunner.includes("'source:hygiene:gate'");
+if (!releaseHasHygiene) fail('check:release must run a source hygiene gate', failures);
 
 const handoff = fs.readFileSync(path.join(root, 'HANDOFF.md'), 'utf8');
 const desktopGuide = fs.readFileSync(path.join(root, 'GITHUB_DESKTOP_HANDOFF.md'), 'utf8');

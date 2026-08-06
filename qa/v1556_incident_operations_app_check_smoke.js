@@ -14,12 +14,13 @@ const state = read('src/state/app-state.js');
 const firebase = read('src/firebase-bootstrap.js');
 const rules = read('firestore.rules');
 const functions = read('functions/index.js');
+const appCheckPolicy = read('functions/app-check-policy.js');
 const firebaseJson = JSON.parse(read('firebase.json'));
 const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css');
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
-assert.strictEqual(pkg.version, '1.6.66');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.66-static-gate-hygiene-repair');
+assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.70-share-retry-policy-drift-ci-efficiency');
 assert(!index.includes('name="foxbear-app-check-site-key"'), 'App Check site key must not be shipped');
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));
@@ -28,7 +29,8 @@ assert(index.includes('Operations Monitor'));
 
 for (const token of [
   'refreshAppCheckToken',
-  "mode: 'disabled'",
+  'FIREBASE_APP_CHECK_POLICY',
+  'appCheckPolicySnapshot',
   'getAdminIncidents',
   'requestIncidentRetry',
   'getIncidentRetryRequest'
@@ -75,8 +77,9 @@ for (const origin of [
   'https://recaptcha.google.com/recaptcha/',
   'https://firebaseappcheck.googleapis.com'
 ]) assert(!csp.includes(origin), `App Check CSP origin must be absent: ${origin}`);
-assert(functions.includes("appCheckMode: 'disabled'"));
-assert(functions.includes('appCheckTokenPresent: false'));
+assert(functions.includes('...incidentAppCheckMetadata(request)'));
+assert(appCheckPolicy.includes("mode: 'disabled'"));
+assert(appCheckPolicy.includes('appCheckTokenPresent: Boolean(request?.app)'));
 
 assert(index.includes('assets/css/components/admin-incident-monitor.css'), 'admin incident monitor stylesheet should be loaded');
 assert(adminIncidentCss.includes('.admin-monitor-tabs'), 'admin incident monitor stylesheet should include monitor tabs');

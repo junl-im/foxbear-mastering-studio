@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.66-static-gate-hygiene-repair';
+  const VIEW_VERSION = '1.6.70-share-retry-policy-drift-ci-efficiency';
   const DEFAULT_BINS = 96;
 
   function getService() {

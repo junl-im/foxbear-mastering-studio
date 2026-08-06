@@ -1,3 +1,50 @@
+# FoxBear Status - v1.6.70
+
+## Current release
+
+- Product version: `1.6.70`
+- Build ID: `share-retry-policy-drift-ci-efficiency`
+- Asset version: `1.6.70-share-retry-policy-drift-ci-efficiency`
+- Service worker cache: `foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency`
+- Configured static/regression target: 421 checks.
+
+## Release status
+
+- PWA share launch now awaits the real asynchronous import pipeline before reporting success or deleting the IndexedDB handoff record.
+- Transient import failures preserve both the share record and launch query so a reload can retry instead of losing the shared files.
+- Share-target IndexedDB retention is bounded by 24 hours, eight records, and a 768 MiB aggregate storage budget before accepting a new share.
+- Shared title, text, and URL metadata are length-capped to avoid unbounded auxiliary payload growth.
+- Incident diagnostics warn when deployed Functions App Check policy version, mode, or reason differs from the client contract.
+- The fallback Pages workflow completes Static release gate before browser scope selection or Chromium installation.
+- Version-only changes to full/patch verifier paths are normalized as release metadata and no longer force unnecessary full browser QA.
+- Static/regression QA passed **421/421** in bounded slices (`106/106`, `105/105`, `105/105`, `105/105`).
+- Version, SRI, handoff, source hygiene, Functions syntax, browser preflight, dependency structure, and the 153-file Hosting boundary passed.
+- Dependency metadata reported 0 errors and 5 expected missing-install warnings.
+- `src/app.js` remains 13,251 lines, below the 13,300-line structural gate.
+- Installed Chromium/PWA share acceptance, deployed Firebase acceptance, and the online Functions vulnerability audit remain external.
+- Verified full archive: 723 files. Patch archive: 285 declared files plus `PATCH_MANIFEST.json`, with 7 delete paths. Applying the patch over v1.6.69 reproduced the v1.6.70 tree exactly (`723/723`, no missing, extra, or changed files).
+
+# FoxBear Status - v1.6.67
+
+## Current release
+
+- Product version: `1.6.67`
+- Build ID: `ci-strict-hygiene-policy`
+- Asset version: `1.6.67-ci-strict-hygiene-policy`
+- Service worker cache: `foxbear-shell-v1.6.67-ci-strict-hygiene-policy`
+
+## Release status
+
+- CI source hygiene is strict and non-mutating.
+- Local release and package commands retain narrow generated-file repair followed by strict validation.
+- Both Pages workflows validate repository hygiene before dependency installation.
+- Failed CI checks provide file annotations and exact remediation commands.
+- Static/regression QA passed **417/417** in four bounded slices (`105/105`, `105/105`, `105/105`, `102/102`).
+- Functions syntax, browser preflight, dependency metadata, and the 152-file Hosting boundary passed.
+- Configured static/regression target: 417 checks.
+- Verified full archive: 715 files. Patch archive: 286 declared files plus manifest, with 7 delete paths.
+- Applying the patch over the supplied v1.6.66 full tree reproduced the v1.6.67 source tree exactly (`715/715`).
+
 # FoxBear Status - v1.6.66
 
 ## Current release
@@ -51,10 +98,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.66`
-- Build ID: `static-gate-hygiene-repair`
-- Asset version: `1.6.66-static-gate-hygiene-repair`
-- Service worker cache: `foxbear-shell-v1.6.66-static-gate-hygiene-repair`
+- Product version: `1.6.70`
+- Build ID: `share-retry-policy-drift-ci-efficiency`
+- Asset version: `1.6.70-share-retry-policy-drift-ci-efficiency`
+- Service worker cache: `foxbear-shell-v1.6.70-share-retry-policy-drift-ci-efficiency`
 
 # FoxBear Status - v1.6.64
 

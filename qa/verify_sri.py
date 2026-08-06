@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate local JS/CSS SHA-384 SRI coverage and tag shape in index.html."""
+"""Validate local JS/CSS SHA-384 SRI coverage and tag shape in public HTML files."""
 from __future__ import annotations
 
 import base64
@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / 'index.html'
+HTML_FILES = (ROOT / 'index.html', ROOT / 'external-browser.html', ROOT / 'design-preview.html')
 TAG_RE = re.compile(r'<(?:script|link)\b[^>]*(?:src|href)="[^"]+"[^>]*>', re.IGNORECASE)
 ASSET_RE = re.compile(r'(?:src|href)="([^"]+)"', re.IGNORECASE)
 INTEGRITY_ATTR_RE = re.compile(r'integrity="([^"]*)"', re.IGNORECASE)
@@ -66,13 +67,21 @@ def validate_html(html: str, root: Path = ROOT) -> list[str]:
 
 
 def main() -> int:
-    failures = validate_html(INDEX.read_text(encoding='utf-8'))
+    failures: list[str] = []
+    inspected = 0
+    for html_file in HTML_FILES:
+        if not html_file.is_file():
+            failures.append(f'{html_file.name}: missing public HTML file')
+            continue
+        file_failures = validate_html(html_file.read_text(encoding='utf-8'))
+        inspected += 1
+        failures.extend(f'{html_file.name}: {failure}' for failure in file_failures if 'no local JavaScript or CSS assets were inspected' not in failure)
     if failures:
         print('FAIL SRI validation')
         for failure in failures:
             print('-', failure)
         return 1
-    print('PASS SRI validation')
+    print(f'PASS SRI validation for {inspected} public HTML files')
     return 0
 
 

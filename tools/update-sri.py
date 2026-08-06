@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Update SHA-384 SRI hashes in index.html for local script/link assets."""
+"""Update SHA-384 SRI hashes in public HTML files for local script/link assets."""
 from __future__ import annotations
 
 import base64
@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML_FILES = (ROOT / 'index.html', ROOT / 'external-browser.html')
+HTML_FILES = (ROOT / 'index.html', ROOT / 'external-browser.html', ROOT / 'design-preview.html')
 TAG_RE = re.compile(r'<(?:script|link)\b[^>]*(?:src|href)="[^"]+"[^>]*>')
 ASSET_RE = re.compile(r'(?:src|href)="([^"]+)"')
 INTEGRITY_ATTR_RE = re.compile(r'\s+integrity="[^"]*"', re.IGNORECASE)

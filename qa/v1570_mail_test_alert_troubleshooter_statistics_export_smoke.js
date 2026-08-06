@@ -15,8 +15,8 @@ const cssSource = read('assets/css/components/admin-incident-monitor.css');
 const indexes = read('firestore.indexes.json');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.70_MAIL_TEST_ALERT_TROUBLESHOOTING_STATISTICS_EXPORT.md');
-assert.strictEqual(pkg.version, '1.6.66');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.66-static-gate-hygiene-repair');
+assert.strictEqual(pkg.version, '1.6.70');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.70-share-retry-policy-drift-ci-efficiency');
 for (const token of [
   'MAIL_RECEIPT_OVERDUE_MS', 'MAIL_TEST_HISTORY_SCAN_LIMIT', 'inspectMailTestVerification(',
   "code: 'mail-test-never-run'", "code: 'mail-test-verification-stale'", "code: 'mail-receipt-unconfirmed'",
@@ -53,6 +53,7 @@ const sandbox = {
     if (request === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) }, Timestamp, getFirestore: () => ({ collection: () => ({}) }) };
     if (request === 'nodemailer') return { createTransport: () => ({ verify: async () => true, sendMail: async () => ({}), close() {} }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };

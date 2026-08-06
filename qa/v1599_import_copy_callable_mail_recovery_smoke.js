@@ -15,7 +15,7 @@ const reporterSource = read('src/boot/incident-reporter.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.66');
+assert.strictEqual(pkg.version, '1.6.70');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.scripts['deploy:incident'].includes('functions:submitIncidentReport'));
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentDeliveryStatus'));
@@ -34,7 +34,7 @@ assert(functionsSource.includes("if (!uid) throw new HttpsError('unauthenticated
 assert(functionsSource.includes('await reportRef.create({'));
 assert(functionsSource.includes("if (!reportId || !reportId.startsWith(`${uid}_`))"));
 assert(reporterSource.includes("'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다."));
-assert(handoff.startsWith('# Handoff - v1.6.66'));
+assert(handoff.startsWith('# Handoff - v1.6.70'));
 
 const sandbox = {
   console,
@@ -85,6 +85,7 @@ const functionsSandbox = {
     if (request === 'firebase-admin/firestore') return { FieldValue: { serverTimestamp: () => ({}), delete: () => ({}) }, Timestamp: { fromMillis: value => ({ toMillis: () => value }) }, getFirestore: () => ({ collection: () => ({}) }) };
     if (request === 'nodemailer') return { createTransport: () => ({ verify: async () => true, sendMail: async () => ({}), close() {} }) };
     if (request === 'node:crypto') return { randomUUID: () => '00000000-0000-4000-8000-000000000000' };
+    if (request === './app-check-policy') return require(path.join(root, 'functions/app-check-policy.js'));
     throw new Error(`unexpected require: ${request}`);
   }
 };
