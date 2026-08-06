@@ -1,3 +1,36 @@
+# Handoff - v1.6.66
+
+## Current release
+
+- Product version: `1.6.66`
+- Build ID: `static-gate-hygiene-repair`
+- Asset version: `1.6.66-static-gate-hygiene-repair`
+- Service worker cache: `foxbear-shell-v1.6.66-static-gate-hygiene-repair`
+- Configured static/regression target: 416 checks.
+
+## Current focus
+
+- Repair the v1.6.65 static release gate failure caused by stale tracked `.firebaserc`, `.firebase/hosting..cache`, and `qa/static-audit.txt`.
+- Delete only approved generated/local paths before the strict hygiene check.
+- Continue to block `.env*` and other secret-like files without automatic deletion.
+- Let GitHub Desktop users run `npm run source:hygiene:repair` to stage real repository deletions.
+
+## Verified
+
+- Configured static/regression checks: **416/416 passed** (`104/104` in each of four bounded slices).
+- The exact v1.6.65 CI failure fixture was auto-repaired before the strict release gate continued.
+- Source hygiene, metadata, handoff, browser preflight, Functions syntax, and the 152-file Hosting boundary passed.
+- The full archive contains 712 files; the patch declares 283 source files plus its manifest and 7 delete paths.
+- Applying the patch over v1.6.65 with stale local/generated files present reproduced the v1.6.66 source tree exactly.
+- Real Playwright/device browser and deployed Firebase acceptance remain external.
+
+## Apply with GitHub Desktop
+
+1. Fetch origin.
+2. Extract `foxbear-mastering-studio-v1.6.66-patch.zip` into the repository root and replace matching files.
+3. Commit and push. The CI static gate now repairs the known stale generated paths before validation.
+4. To permanently remove those tracked files from the repository, run `npm run source:hygiene:repair`, review the deletions in GitHub Desktop, commit, and push once more.
+
 # Handoff - v1.6.65
 
 ## Current release

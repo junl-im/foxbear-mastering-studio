@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.6.65 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.6.66 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.6.65-firestore-write-fencing';
+    const VERSION = 'v1.6.66-static-gate-hygiene-repair';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
     const getFileNamePolicy = () => global.FoxBearFileNamePolicyService || null;
 

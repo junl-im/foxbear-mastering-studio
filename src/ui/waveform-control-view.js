@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.65-firestore-write-fencing';
+  const VIEW_VERSION = '1.6.66-static-gate-hygiene-repair';
   const DEFAULT_BINS = 96;
 
   function getService() {

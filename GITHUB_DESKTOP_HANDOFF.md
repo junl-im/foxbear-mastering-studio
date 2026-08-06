@@ -1,4 +1,11 @@
-# GitHub Desktop Handoff - v1.6.65
+# GitHub Desktop Handoff - v1.6.66
+
+## v1.6.66 static gate hotfix
+
+- v1.6.65 패치 후 삭제가 누락된 `.firebaserc`, `.firebase/hosting..cache`, `qa/static-audit.txt`는 CI 작업 공간에서 제한적으로 자동 정리됩니다.
+- 저장소 자체를 깨끗하게 만들려면 `npm run source:hygiene:repair` 실행 후 GitHub Desktop의 삭제 변경을 커밋하세요.
+- `.env*` 비밀 가능 파일은 자동 삭제되지 않으며 계속 실패합니다.
+
 
 ## Apply
 

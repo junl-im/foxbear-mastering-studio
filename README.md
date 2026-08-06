@@ -1,6 +1,6 @@
-# FoxBear AI Mastering Studio Pro v1.6.65
+# FoxBear AI Mastering Studio Pro v1.6.66
 
-This release hardens Firestore client-write boundaries. Daily visit logs use deterministic `UID_YYYY-MM-DD` IDs, repeat writes are treated as idempotent success, and incident report IDs must match the normalized submission key in both Firestore Rules and Callable Functions.
+This hotfix repairs the static release gate when stale local/generated files from an extract-overwrite patch remain in Git. The gate now removes only approved cleanup paths, reruns the strict hygiene check, and continues to block secret-like environment files.
 
 # FoxBear AI Mastering Studio Pro v1.6.64
 

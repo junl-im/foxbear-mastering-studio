@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.65-firestore-write-fencing';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.66-static-gate-hygiene-repair';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

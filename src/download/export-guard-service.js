@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.6.65 - ZIP filename collision preflight and STORE-only packaging
+// FoxBear export guard service v1.6.66 - ZIP filename collision preflight and STORE-only packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.6.65-firestore-write-fencing';
+    const VERSION = 'v1.6.66-static-gate-hygiene-repair';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.65 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.66 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.65-firestore-write-fencing';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.66-static-gate-hygiene-repair';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

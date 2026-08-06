@@ -1,3 +1,11 @@
+# v1.6.66 - Static Gate Source Hygiene Repair
+
+- Adds a narrowly scoped source-hygiene repair step for stale local Firebase state and generated QA output left behind by extract-overwrite patch application.
+- Runs the strict source hygiene check immediately after repair, preserving hard failures for secret-like environment files and unknown unsafe artifacts.
+- Adds `npm run source:hygiene:repair` plus a shell helper so GitHub Desktop users can commit the actual deletions locally.
+- Makes static/full release gates and delivery packaging self-heal the known v1.6.65 stale-file failure while preserving the strict follow-up check.
+- Adds dedicated regression coverage, raising the configured target to 416 checks.
+
 # v1.6.65 - Firestore Write Fencing and Daily Visit Deduplication
 
 - Replaces random `siteVisits` document IDs with deterministic `UID_YYYY-MM-DD` IDs, limiting each anonymous identity to one visit document per day.

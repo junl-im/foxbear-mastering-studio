@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.65-firestore-write-fencing';
+const version = '1.6.66-static-gate-hygiene-repair';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

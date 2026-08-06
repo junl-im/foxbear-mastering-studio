@@ -1,3 +1,22 @@
+# FoxBear Status - v1.6.66
+
+## Current release
+
+- Product version: `1.6.66`
+- Build ID: `static-gate-hygiene-repair`
+- Asset version: `1.6.66-static-gate-hygiene-repair`
+- Service worker cache: `foxbear-shell-v1.6.66-static-gate-hygiene-repair`
+
+## Release status
+
+- Fixes the GitHub Actions static release gate failure caused by stale tracked local/generated files.
+- Static/full release gates run safe repair before strict source hygiene validation.
+- Secret-like environment files remain hard failures and are not auto-deleted.
+- Static/regression QA passed **416/416** in four `104/104` slices.
+- Functions syntax, browser preflight, and the 152-file Hosting boundary passed.
+- Full archive: 712 files. Patch: 283 declared source files plus manifest, with 7 delete paths.
+- Patch application over a stale v1.6.65 fixture reproduced the v1.6.66 source tree exactly.
+
 # FoxBear Status - v1.6.65
 
 ## Current release
@@ -32,10 +51,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.65`
-- Build ID: `firestore-write-fencing`
-- Asset version: `1.6.65-firestore-write-fencing`
-- Service worker cache: `foxbear-shell-v1.6.65-firestore-write-fencing`
+- Product version: `1.6.66`
+- Build ID: `static-gate-hygiene-repair`
+- Asset version: `1.6.66-static-gate-hygiene-repair`
+- Service worker cache: `foxbear-shell-v1.6.66-static-gate-hygiene-repair`
 
 # FoxBear Status - v1.6.64
 

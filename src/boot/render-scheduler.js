@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.65-firestore-write-fencing';
+    const SERVICE_VERSION = '1.6.66-static-gate-hygiene-repair';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

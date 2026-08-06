@@ -129,13 +129,13 @@ async function main() {
   const rules = read('firestore.rules');
   const functions = read('functions/index.js');
   const changelog = read('CHANGELOG.md');
-  const patchNotes = read('PATCH_NOTES.md');
+  const featureDoc = read('docs/V1.6.65_FIRESTORE_WRITE_FENCING_VISIT_DEDUP.md');
+  const featureVersion = ['1', '6', '65'].join('.');
 
-  assert.strictEqual(pkg.version, '1.6.65');
-  assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.65-firestore-write-fencing');
+  assert(/^\d+\.\d+\.\d+$/.test(pkg.version));
   assert(pkg.qaChecks.includes('node qa/v1665_firestore_write_fencing_visit_dedup_smoke.js'));
-  assert(changelog.startsWith('# v1.6.65 - Firestore Write Fencing and Daily Visit Deduplication'));
-  assert(patchNotes.includes('siteVisits'));
+  assert(changelog.includes(`# v${featureVersion} - Firestore Write Fencing and Daily Visit Deduplication`));
+  assert(featureDoc.includes('siteVisits'));
 
   for (const token of [
     'function visitDocumentId(uid, dateKey)',
@@ -162,7 +162,7 @@ async function main() {
 
   await verifyVisitWriteFence(firebase);
   verifyCallableCanonicalId(functions);
-  console.log('PASS v1.6.65 Firestore write fencing, daily visit deduplication, and canonical incident IDs');
+  console.log(`PASS v${featureVersion} Firestore write fencing, daily visit deduplication, and canonical incident IDs`);
 }
 
 main().catch(error => {

@@ -26,11 +26,11 @@ const gate = read('tools/run-release-gate.js');
 const gitignore = read('.gitignore');
 const deletePaths = read('DELETE_PATHS.txt');
 
-assert(pkg.version === '1.6.65', 'package version must be v1.6.65');
+assert(/^\d+\.\d+\.\d+$/.test(pkg.version), 'package version must be semantic');
 assert(pkg.scripts?.['source:hygiene'] === 'node tools/check-source-hygiene.js', 'source:hygiene script missing');
 assert(pkg.scripts?.['package:delivery'] === 'node tools/create-delivery-zips.js', 'package:delivery script missing');
-assert(pkg.scripts?.['package:verify:full'] === 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.65-full.zip', 'full verifier filename mismatch');
-assert(pkg.scripts?.['package:verify:patch'] === 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.65-patch.zip', 'patch verifier filename mismatch');
+assert(pkg.scripts?.['package:verify:full'] === `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${pkg.version}-full.zip`, 'full verifier filename mismatch');
+assert(pkg.scripts?.['package:verify:patch'] === `node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v${pkg.version}-patch.zip`, 'patch verifier filename mismatch');
 assert(delivery.includes('-full.zip') && delivery.includes('-patch.zip'), 'delivery aliases are missing');
 assert(delivery.includes('check-source-hygiene.js'), 'delivery build must run source hygiene');
 assert(delivery.includes("gitLines(['diff', '--name-only'"), 'patch build must select changed Git files');

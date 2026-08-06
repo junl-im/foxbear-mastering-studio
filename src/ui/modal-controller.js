@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.65
+// FoxBear Modal State Machine Controller v1.6.66
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.65-firestore-write-fencing',
+            version: '1.6.66-static-gate-hygiene-repair',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,
