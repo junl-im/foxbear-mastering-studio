@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.72
+// FoxBear audio decode service - v1.6.73
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
+    const SERVICE_VERSION = '1.6.73-csp-memory-admission-runtime-config';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;
@@ -490,8 +490,29 @@
             sampleRate: Number(audioBuffer.sampleRate || 0),
             channels: Number(audioBuffer.numberOfChannels || 0),
             frames: Number(audioBuffer.length || 0),
+            decodedPcmBytes: pcmBytes,
             decodedPcmMB: round(pcmBytes / 1048576, 2)
         });
+    }
+
+    function assertDecodedMemoryWithinLimits(audioBuffer, fileBytes, options = {}) {
+        const decodedPcmBytes = estimateDecodedPcmBytes(audioBuffer);
+        const residentBytes = Math.max(0, Number(fileBytes || 0)) + decodedPcmBytes;
+        const maxDecodedPcmBytes = Math.max(0, Number(options.maxDecodedPcmBytes || 0));
+        const maxDecodePeakBytes = Math.max(0, Number(options.maxDecodePeakBytes || 0));
+        const exceedsDecoded = maxDecodedPcmBytes > 0 && decodedPcmBytes > maxDecodedPcmBytes;
+        const exceedsResident = maxDecodePeakBytes > 0 && residentBytes > maxDecodePeakBytes;
+        if (!exceedsDecoded && !exceedsResident) {
+            return Object.freeze({ decodedPcmBytes, residentBytes });
+        }
+        const error = new Error(`디코딩된 오디오가 현재 기기 메모리 안전 한도를 넘습니다. PCM ${(decodedPcmBytes / 1048576).toFixed(1)}MB · 현재 보유량 ${(residentBytes / 1048576).toFixed(1)}MB입니다. 더 짧은 파일이나 낮은 샘플레이트/채널 파일을 사용해주세요.`);
+        error.name = 'AudioDecodeMemoryLimitError';
+        error.code = 'FOXBEAR_DECODE_MEMORY_LIMIT';
+        error.decodedPcmBytes = decodedPcmBytes;
+        error.residentBytes = residentBytes;
+        error.maxDecodedPcmBytes = maxDecodedPcmBytes;
+        error.maxDecodePeakBytes = maxDecodePeakBytes;
+        throw error;
     }
 
     function getDiagnostics() {
@@ -577,6 +598,7 @@
                 decoded = decodeAiffPcm(audioContext, arrayBuffer);
             }
             throwIfAborted(signal);
+            const memoryCheck = assertDecodedMemoryWithinLimits(decoded, arrayBuffer?.byteLength || file?.size || 0, options);
             const summary = getDecodedBufferSummary(decoded) || {};
             state.completedCount += 1;
             state.lastCompletedAt = Date.now();
@@ -587,6 +609,7 @@
                 fileName: state.lastFileName,
                 durationSec: state.lastDurationSec,
                 decodedPcmMB: state.lastDecodedPcmMB,
+                residentMB: round(Number(memoryCheck?.residentBytes || 0) / 1048576, 2),
                 elapsedMs: round(nowMs() - startedMs, 1),
                 container: detectAudioContainer(arrayBuffer, file).id,
                 decodeMode: state.lastDecodeMode
@@ -598,7 +621,7 @@
                 throw makeAbortError(signal);
             }
             let finalError = error;
-            if (!String(error?.message || '').includes('선택한 파일을 읽지 못했습니다') && !String(error?.message || '').includes('비어 있거나')) {
+            if (error?.code !== 'FOXBEAR_DECODE_MEMORY_LIMIT' && !String(error?.message || '').includes('선택한 파일을 읽지 못했습니다') && !String(error?.message || '').includes('비어 있거나')) {
                 const mediaCheck = await verifyMediaElementCanLoad(file, options.metadataTimeoutMs, signal).catch(() => null);
                 if (signal?.aborted || mediaCheck?.aborted) {
                     pushEvent('decode-cancelled', { fileName: state.lastFileName, elapsedMs: round(nowMs() - startedMs, 1) });
@@ -636,6 +659,7 @@
         getAudioImportDecodeHint,
         estimateDecodedPcmBytes,
         getDecodedBufferSummary,
+        assertDecodedMemoryWithinLimits,
         getDiagnostics
     });
 })(window);

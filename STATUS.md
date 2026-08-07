@@ -1,22 +1,23 @@
-# FoxBear Status - v1.6.72
+# FoxBear Status - v1.6.73
 
 ## Current release
 
-- Product version: `1.6.72`
-- Build ID: `ci-safe-hygiene-self-repair`
-- Asset version: `1.6.72-ci-safe-hygiene-self-repair`
-- Service worker cache: `foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair`
-- Configured static/regression target: **427 checks**.
+- Product version: `1.6.73`
+- Build ID: `csp-memory-admission-runtime-config`
+- Asset version: `1.6.73-csp-memory-admission-runtime-config`
+- Service worker cache: `foxbear-shell-v1.6.73-csp-memory-admission-runtime-config`
+- Configured static/regression target: **428 checks**.
 
 ## Release status
 
-- Normal Pages workflows use `ci-safe` source hygiene before dependency installation and during the static release gate.
-- The three reported local/generated paths are removed only from the ephemeral checkout and produce warning annotations.
-- Strict tracked-file verification runs immediately after cleanup.
-- Secret-like and unknown unsafe files remain blocking errors and are never auto-deleted.
-- Explicit strict audit mode remains available.
-- Static and behavioral checks passed **427/427**; Hosting boundary passed with **156 files**.
-- Full archive contains **735 files**; patch declares **293 files plus manifest** and **7 delete paths**. v1.6.71 replay matched `735/735`.
+- 404 route recovery is CSP-safe: no inline script/style and no `unsafe-inline` relaxation.
+- Version synchronization now includes `404.html`, preventing stale route-recovery asset generations on future releases.
+- Large unknown-memory imports fail closed above 48 MiB on low-memory devices and 128 MiB on standard devices.
+- Decoded PCM and resident bytes are checked again immediately after decode before analysis/DSP proceeds.
+- Incident mail sender/recipient support environment overrides while retaining the existing production fallback.
+- Tracked Firebase local state/generated QA artifacts are removed from the source handoff.
+- Static and behavioral checks passed **428/428**; Hosting boundary passed with **158 files**.
+- Full archive contains **738 files**; patch declares **292 files plus manifest** and **7 delete paths**.
 
 # FoxBear Status - v1.6.67
 
@@ -92,10 +93,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.72`
-- Build ID: `ci-safe-hygiene-self-repair`
-- Asset version: `1.6.72-ci-safe-hygiene-self-repair`
-- Service worker cache: `foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair`
+- Product version: `1.6.73`
+- Build ID: `csp-memory-admission-runtime-config`
+- Asset version: `1.6.73-csp-memory-admission-runtime-config`
+- Service worker cache: `foxbear-shell-v1.6.73-csp-memory-admission-runtime-config`
 
 # FoxBear Status - v1.6.64
 

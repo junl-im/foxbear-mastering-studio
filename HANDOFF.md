@@ -1,31 +1,35 @@
-# Handoff - v1.6.72
+# Handoff - v1.6.73
 
 ## Current release
 
-- Product version: `1.6.72`
-- Build ID: `ci-safe-hygiene-self-repair`
-- Asset version: `1.6.72-ci-safe-hygiene-self-repair`
-- Service worker cache: `foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair`
-- Configured static/regression target: 427 checks.
+- Product version: `1.6.73`
+- Build ID: `csp-memory-admission-runtime-config`
+- Asset version: `1.6.73-csp-memory-admission-runtime-config`
+- Service worker cache: `foxbear-shell-v1.6.73-csp-memory-admission-runtime-config`
+- Configured static/regression target: 428 checks.
 
 ## Current focus
 
-- Make the normal GitHub Pages release self-repair the exact three recurring tracked leftovers.
-- Preserve strict follow-up verification and hard failure for secrets or unknown paths.
-- Keep local cleanup recommended without making it a prerequisite for successful CI.
+- Keep Firebase Hosting's strict CSP while making the 404 route-recovery path executable without inline code.
+- Reject large imports when decoded-memory metadata cannot be established and re-check exact PCM/resident bytes immediately after decode.
+- Allow environment-specific incident mail routing without moving secrets into source.
+- Deliver a GitHub Desktop-friendly source tree with tracked Firebase local/generated artifacts removed.
 
 ## Required GitHub Desktop step
 
-Extract the v1.6.72 patch over v1.6.71, commit, and push. Running `npm run source:hygiene:repair` locally is recommended to remove the files from repository history going forward, but the normal Actions release path no longer fails when that manual deletion was missed.
+1. Extract `foxbear-mastering-studio-v1.6.73-patch.zip` into the v1.6.72 repository root and replace matching files.
+2. Delete every path listed in `DELETE_PATHS.txt` if it still exists. In particular, GitHub Desktop should show `.firebaserc`, `.firebase/hosting..cache`, `qa/static-audit.txt`, and stale `PATCH_MANIFEST.json` as deletions when they were present.
+3. Review all modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
+4. The full ZIP may instead be extracted into a clean folder when replacing the project wholesale.
 
 ## Verified
 
-- Exact three-path CI fixture passes in `ci-safe` mode and emits warnings instead of errors.
-- Secret-like `.env.production` remains present and fails with an error annotation.
-- Explicit strict mode remains non-mutating and fails the same allowlisted fixture for audit use.
-- Static and behavioral checks passed **427/427**.
-- Version, handoff, App Check policy, source hygiene, Functions syntax, browser preflight, dependency structure, and the **156-file** Hosting boundary passed.
-- Full archive: **735 files**. Patch: **293 declared files plus `PATCH_MANIFEST.json`**, with **7 delete paths**. Applying the patch over v1.6.71 reproduced v1.6.72 exactly (`735/735`).
+- Static and behavioral checks passed **428/428** in four bounded slices (`107/107` each).
+- Dedicated v1.6.73 CSP/memory/runtime-config regression passed, including unknown large-file rejection and exact post-decode memory-limit behavior.
+- Source hygiene, version synchronization, Functions syntax, browser preflight coverage, and Firebase Hosting staging passed.
+- Firebase Hosting boundary: **158 allowlisted files**.
+- Full archive: **738 files**. Patch: **292 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Real-device Kakao/WebView memory acceptance and deployed Firebase mail-routing acceptance remain production checks.
 
 # Handoff - v1.6.67
 

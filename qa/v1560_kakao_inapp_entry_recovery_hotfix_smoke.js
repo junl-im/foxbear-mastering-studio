@@ -9,6 +9,7 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const guardSource = read('src/boot/kakao-entry-guard.js');
 const recoveryHtml = read('404.html');
+const recoverySource = read('src/boot/route-recovery.js');
 
 function runGuard(href, userAgent) {
   let replaced = '';
@@ -45,9 +46,9 @@ const guide = runGuard('https://example.test/app/index.html?foxbearGuide=1', 'Mo
 assert(guide.replaced.includes('/app/external-browser.html?'), 'explicit guide must still reach the external-browser landing');
 assert.strictEqual(guide.entry.mode, 'external-guide', 'explicit guide mode must be reported');
 
-assert(recoveryHtml.includes("new URL(base+'index.html',location.origin)"), '404 recovery must target index.html directly');
-assert(recoveryHtml.includes("target.searchParams.set('foxbearInApp','1')"), 'Kakao route recovery must carry the legacy in-app bypass marker');
-assert(!recoveryHtml.includes('기본 브라우저 안내 화면으로 이동합니다'), '404 recovery must not announce a forced external-browser redirect');
-assert(recoveryHtml.includes('카카오톡 안의 FoxBear 작업 화면으로 이동합니다'), '404 recovery must explain that Kakao in-app entry will resume');
+assert(recoveryHtml.includes('src/boot/route-recovery.js') && recoverySource.includes('index.html'), '404 recovery must target index.html directly');
+assert(recoverySource.includes("target.searchParams.set('foxbearInApp', '1')"), 'Kakao route recovery must carry the legacy in-app bypass marker');
+assert(!recoverySource.includes('기본 브라우저 안내 화면으로 이동합니다'), '404 recovery must not announce a forced external-browser redirect');
+assert(recoverySource.includes('카카오톡 안의 FoxBear 작업 화면으로 이동합니다'), '404 recovery must explain that Kakao in-app entry will resume');
 
 console.log('PASS v1.5.60 Kakao in-app entry recovery hotfix smoke');

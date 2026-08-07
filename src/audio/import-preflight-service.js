@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.6.72 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.6.73 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.6.72-ci-safe-hygiene-self-repair';
+    const VERSION = '1.6.73-csp-memory-admission-runtime-config';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));
@@ -36,6 +36,7 @@
         const lowMemory = Boolean(policy.lowMemory);
         const maxDecodedPcmBytes = Number(lowMemory ? options.lowMemoryMaxDecodedPcmBytes : options.standardMaxDecodedPcmBytes) || Number.MAX_SAFE_INTEGER;
         const maxDecodePeakBytes = Number(lowMemory ? options.lowMemoryMaxDecodePeakBytes : options.standardMaxDecodePeakBytes) || Number.MAX_SAFE_INTEGER;
+        const maxUnknownProbeFileBytes = Number(lowMemory ? options.lowMemoryMaxUnknownProbeFileBytes : options.standardMaxUnknownProbeFileBytes) || Number.MAX_SAFE_INTEGER;
         options.onStatus?.(`${accepted.length}개 파일의 재생 길이와 예상 메모리를 확인 중`, 'active');
         const inspected = await mapWithConcurrency(accepted, options.concurrency || 3, async entry => {
             try {
@@ -54,7 +55,14 @@
         const decodedMemoryRejected = [];
         inspected.forEach(entry => {
             const probe = entry.memoryProbe;
-            if (probe?.known && (Number(probe.decodedPcmBytes || 0) > maxDecodedPcmBytes || Number(probe.estimatedPeakBytes || 0) > maxDecodePeakBytes)) {
+            const fileBytes = Math.max(0, Number(entry?.file?.size || probe?.fileBytes || 0));
+            if (!probe?.known && fileBytes > maxUnknownProbeFileBytes) {
+                decodedMemoryRejected.push({
+                    file: entry.file,
+                    probe,
+                    reason: `재생 길이와 디코딩 메모리를 안전하게 확인하지 못한 ${formatBytes(fileBytes)} 파일이라 현재 기기에서 제외했습니다. 더 짧은 파일이나 WAV/AIFF로 변환해 다시 시도해주세요.`
+                });
+            } else if (probe?.known && (Number(probe.decodedPcmBytes || 0) > maxDecodedPcmBytes || Number(probe.estimatedPeakBytes || 0) > maxDecodePeakBytes)) {
                 decodedMemoryRejected.push({
                     file: entry.file,
                     probe,

@@ -46,7 +46,9 @@ assert(rules.includes('match /incidentMailState/{document=**}'));
 
 for (const token of [
   "defineSecret('FOXBEAR_GMAIL_APP_PASSWORD')",
-  "ALERT_RECIPIENT = 'mcwoogi@gmail.com'",
+  "DEFAULT_ALERT_EMAIL = 'mcwoogi@gmail.com'",
+  "resolveOperationalEmail('FOXBEAR_ALERT_RECIPIENT'",
+  "resolveOperationalEmail('FOXBEAR_ALERT_SENDER'",
   "document: 'incidentReports/{reportId}'",
   'retry: false',
   'DUPLICATE_WINDOW_MS',

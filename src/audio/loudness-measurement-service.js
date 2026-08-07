@@ -1,4 +1,4 @@
-// FoxBear K-weighted loudness measurement service v1.6.72.
+// FoxBear K-weighted loudness measurement service v1.6.73.
 'use strict';
 
 (function exposeFoxBearLoudnessMeasurementService(global) {
@@ -116,7 +116,7 @@
     }
 
     global.FoxBearLoudnessMeasurementService = Object.freeze({
-        version: '1.6.72-k-weighted-power-fastpath',
+        version: '1.6.73-k-weighted-power-fastpath',
         measureBundle,
         measureIntegrated(buffer) { return measureBundle(buffer).integrated; },
         measureShortTerm(buffer, options = {}) { return measureBundle(buffer, options).shortTerm; }

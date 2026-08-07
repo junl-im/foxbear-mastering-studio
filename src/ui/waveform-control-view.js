@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
+  const VIEW_VERSION = '1.6.73-csp-memory-admission-runtime-config';
   const DEFAULT_BINS = 96;
 
   function getService() {

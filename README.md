@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.6.72
+# FoxBear AI Mastering Studio Pro v1.6.73
 
 This release prevents the recurring Static release gate failure caused by extract-overwrite leftovers. GitHub Actions now removes only the approved local/generated paths from its temporary checkout, emits warning annotations, and immediately runs the same strict hygiene validation. Secret-like files and unknown unsafe artifacts still fail the release.
 

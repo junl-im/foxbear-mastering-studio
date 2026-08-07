@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.73
+
+## Configured target
+
+- Static and behavioral checks: **428**.
+- New regression: `qa/v1673_csp_memory_admission_runtime_config_smoke.js`.
+
+## Verification scope
+
+- Firebase Hosting CSP compatibility of the 404 route-recovery page without `unsafe-inline`.
+- Service-worker precache coverage for the new recovery CSS/JavaScript assets.
+- Unknown-metadata large-file admission behavior on low-memory and standard devices.
+- Exact post-decode PCM/resident-memory rejection before downstream analysis.
+- Optional Functions alert sender/recipient environment overrides and validation.
+- Source hygiene deletion of tracked Firebase local state and generated QA output.
+
+## Final result
+
+- Static and behavioral checks: **428/428 passed** in four bounded slices (`107/107`, `107/107`, `107/107`, `107/107`).
+- The dedicated v1.6.73 regression verified strict Firebase CSP compatibility, versioned recovery assets, service-worker precache coverage, unknown-memory admission, exact post-decode memory rejection, mail routing overrides, and source-hygiene deletions.
+- Historical route-recovery/mail regressions were migrated from inline-HTML/direct-constant assumptions to the new external-module/environment-override contracts and passed.
+- Source hygiene, version synchronization, Functions syntax, browser preflight coverage, and the **158-file** Firebase Hosting boundary passed.
+- The verified full ZIP contains **738 files**. The patch declares **292 overwrite files plus `PATCH_MANIFEST.json`** and **7 delete paths**.
+- Real Kakao/WebView long-audio memory behavior and deployed Firebase mail-routing behavior remain external production acceptance checks.
+
 # FoxBear QA Report - v1.6.72
 
 ## Configured target

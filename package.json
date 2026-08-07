@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.72",
+  "version": "1.6.73",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.71 - PWA share leases, update handoff recovery, deployed App Check policy verification, and real browser E2E coverage",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.73 - CSP-safe route recovery, decoded-memory admission hardening, runtime mail routing overrides, and source hygiene cleanup",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.72-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.72-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.73-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.73-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.72-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.72-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.73-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.73-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -475,15 +475,16 @@
     "node --check tools/check-app-check-policy.js",
     "node --check tools/verify-deployed-app-check-policy.js",
     "node qa/v1671_pwa_share_lease_handoff_deploy_policy_smoke.js",
-    "node qa/v1672_ci_hygiene_self_repair_smoke.js"
+    "node qa/v1672_ci_hygiene_self_repair_smoke.js",
+    "node qa/v1673_csp_memory_admission_runtime_config_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "ci-safe-hygiene-self-repair",
-    "assetVersion": "1.6.72-ci-safe-hygiene-self-repair",
-    "cacheName": "foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair",
-    "bootRevision": "boot-sri-v1672-ci-hygiene",
-    "updateSafetyRevision": "update-safety-v1672-ci-hygiene",
-    "serviceWorkerRevision": "sw-v1672-ci-hygiene"
+    "buildId": "csp-memory-admission-runtime-config",
+    "assetVersion": "1.6.73-csp-memory-admission-runtime-config",
+    "cacheName": "foxbear-shell-v1.6.73-csp-memory-admission-runtime-config",
+    "bootRevision": "boot-sri-v1673-csp-memory",
+    "updateSafetyRevision": "update-safety-v1673-csp-memory",
+    "serviceWorkerRevision": "sw-v1673-csp-memory"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

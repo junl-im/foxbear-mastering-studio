@@ -73,6 +73,7 @@ assert(safetySource.includes('카카오 브라우저의 처리 메모리 제한'
 assert(!/\/decode\|decoding\|unsupported\|not supported\|audio\//.test(safetySource), 'generic audio token must not classify every AudioContext error as source corruption');
 
 const html404 = read('404.html');
-assert(html404.includes('음원 오류가 아니라 WebView 메모리 또는 경로 복구일 수 있습니다'), 'Kakao route recovery must explain that the source file may be valid');
+const routeRecovery = read('src/boot/route-recovery.js');
+assert(html404.includes('src/boot/route-recovery.js') && routeRecovery.includes('음원 오류가 아니라 WebView 메모리 또는 경로 복구일 수 있습니다'), 'Kakao route recovery must explain that the source file may be valid');
 
 console.log('PASS v1.5.58 Kakao mastering runtime recovery smoke');

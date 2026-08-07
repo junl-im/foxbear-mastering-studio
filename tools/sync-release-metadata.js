@@ -156,6 +156,7 @@ function sync() {
   const runtimeTargets = [
     ...filesUnder('src', '.js'),
     path.join(ROOT, 'index.html'),
+    path.join(ROOT, '404.html'),
     path.join(ROOT, 'external-browser.html'),
     path.join(ROOT, 'design-preview.html'),
     path.join(ROOT, 'functions/index.js')
@@ -406,6 +407,7 @@ function validate() {
   const rootMarker = JSON.parse(read('foxbear-root.json'));
   const buildInfo = read('src/config/build-info.js');
   const index = read('index.html');
+  const recovery404 = read('404.html');
   const externalBrowser = read('external-browser.html');
   const designPreview = read('design-preview.html');
   const sw = read('sw.js');
@@ -453,6 +455,7 @@ function validate() {
   expect(sw.includes(`./${recoveryServiceUrl}`), 'service worker does not precache current recovery service');
   const publicRuntimeHtml = [
     ['index.html', index],
+    ['404.html', recovery404],
     ['external-browser.html', externalBrowser],
     ['design-preview.html', designPreview]
   ];

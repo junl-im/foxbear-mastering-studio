@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.72-ci-safe-hygiene-self-repair';
+    const FALLBACK_VERSION = '1.6.73-csp-memory-admission-runtime-config';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

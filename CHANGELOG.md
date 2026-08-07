@@ -1,3 +1,12 @@
+# v1.6.73 - CSP-safe route recovery and decoded-memory admission hardening
+
+- Replaced inline CSS/JavaScript in `404.html` with versioned same-origin recovery assets so Firebase Hosting's strict CSP can execute the recovery path without `unsafe-inline`.
+- Added the recovery CSS/JavaScript to the service-worker shell cache and dedicated regression coverage for the Firebase CSP contract.
+- Added fail-closed admission for large audio files whose duration/memory probe cannot be established, with separate low-memory and standard-device thresholds.
+- Added a post-decode exact PCM/resident-memory guard before analysis continues, preventing underestimated metadata from silently entering downstream DSP.
+- Added optional `FOXBEAR_ALERT_RECIPIENT` and `FOXBEAR_ALERT_SENDER` Functions environment overrides while preserving the current production fallback.
+- Removed tracked Firebase local state/generated QA artifacts from the release source and delivery tree.
+
 # v1.6.72 - CI-Safe Source Hygiene Self-Repair
 
 - Changes the normal GitHub Pages release path from non-mutating strict hygiene to a policy-aware `ci-safe` mode.

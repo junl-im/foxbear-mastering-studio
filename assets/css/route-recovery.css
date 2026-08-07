@@ -1,0 +1,26 @@
+/* FoxBear route recovery page */
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #07111c;
+  color: #eef6ff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+}
+
+main {
+  box-sizing: border-box;
+  width: min(100%, 36rem);
+  padding: 2rem;
+  text-align: center;
+}
+
+a {
+  color: #7bdff2;
+}

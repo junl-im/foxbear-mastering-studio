@@ -1,23 +1,27 @@
-# GitHub Desktop Handoff - v1.6.72
+# GitHub Desktop Handoff - v1.6.73
 
 ## Apply
 
-1. Extract `foxbear-mastering-studio-v1.6.72-patch.zip` into the v1.6.71 repository root and replace matching files.
-2. Commit the v1.6.72 code and workflow changes, then **Push origin**.
-3. Local cleanup is recommended but no longer required for the normal Pages release gate: run `npm run source:hygiene:repair` and commit displayed deletions when convenient.
+1. **Fetch origin** in GitHub Desktop.
+2. Extract `foxbear-mastering-studio-v1.6.73-patch.zip` directly into the v1.6.72 repository root and replace matching files.
+3. Open `DELETE_PATHS.txt` and remove every listed path that still exists. ZIP extraction cannot delete an old tracked file by itself.
+4. Confirm GitHub Desktop shows the expected modified/new/deleted files, then commit and **Push origin**.
+5. If you prefer a clean replacement, use `foxbear-mastering-studio-v1.6.73-full.zip` in a new/emptied folder; it intentionally excludes `.git`, dependencies, Firebase CLI local state, caches, secrets, and generated test output.
 
 ## Release focus
 
-- Prevent recurring Static release gate failures from previously committed `.firebaserc`, `.firebase/hosting..cache`, and `qa/static-audit.txt`.
-- Repair only a narrow allowlist in the ephemeral CI workspace, then run strict verification.
-- Keep secret-like and unknown unsafe files as hard release failures.
-- Keep explicit strict non-mutating audit mode available.
+- CSP-safe 404 route recovery without weakening `script-src`/`style-src`.
+- Fail-closed handling for large files with unknown decoded-memory metadata.
+- Exact post-decode PCM/resident-memory gate before analysis and mastering.
+- Environment-specific Functions mail routing through `FOXBEAR_ALERT_RECIPIENT` and `FOXBEAR_ALERT_SENDER`.
+- Real deletion of stale `.firebaserc`, `.firebase/hosting..cache`, generated QA output, and stale patch manifest from the source handoff.
 
-## Expected GitHub Actions result
+## Expected verification result
 
-- Known generated/project-local leftovers appear as warning annotations, not errors.
-- Static release gate continues to version, handoff, dependency, and regression checks.
-- `.env*` or unknown violations still stop the workflow.
+- Static/regression: **428/428 passed** (`107/107` × 4 slices).
+- Firebase Hosting staged payload: **158 allowlisted files**.
+- Full ZIP: **738 files**.
+- Patch ZIP: **292 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
 
 ## v1.6.67 strict CI hygiene
 

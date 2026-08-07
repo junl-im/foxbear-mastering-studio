@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.6.72',
-    appVersion: 'Pro v1.6.72',
-    buildId: 'ci-safe-hygiene-self-repair',
-    assetVersion: '1.6.72-ci-safe-hygiene-self-repair',
-    cacheName: 'foxbear-shell-v1.6.72-ci-safe-hygiene-self-repair',
-    bootRevision: 'boot-sri-v1672-ci-hygiene',
-    updateSafetyRevision: 'update-safety-v1672-ci-hygiene',
-    serviceWorkerRevision: 'sw-v1672-ci-hygiene'
+    productVersion: '1.6.73',
+    appVersion: 'Pro v1.6.73',
+    buildId: 'csp-memory-admission-runtime-config',
+    assetVersion: '1.6.73-csp-memory-admission-runtime-config',
+    cacheName: 'foxbear-shell-v1.6.73-csp-memory-admission-runtime-config',
+    bootRevision: 'boot-sri-v1673-csp-memory',
+    updateSafetyRevision: 'update-safety-v1673-csp-memory',
+    serviceWorkerRevision: 'sw-v1673-csp-memory'
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

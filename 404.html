@@ -5,71 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex" />
 <title>FoxBear 경로 복구</title>
-<style>body{margin:0;background:#07111c;color:#eef6ff;font-family:system-ui,sans-serif;display:grid;min-height:100vh;place-items:center}main{max-width:32rem;padding:2rem;text-align:center}a{color:#7bdff2}</style>
+<link rel="stylesheet" href="assets/css/route-recovery.css?v=1.6.73-csp-memory-admission-runtime-config" />
 </head>
 <body>
 <main><h1>FoxBear 작업 화면을 복구하고 있습니다</h1><p id="status">오래된 캐시와 잘못된 주소를 정리하는 중입니다.</p><a id="rootLink" href="/">작업 화면 열기</a></main>
-<script>
-(async function(){
-  var status=document.getElementById('status');
-  var link=document.getElementById('rootLink');
-  var isKakao=/KAKAOTALK|KakaoTalk/i.test(String(navigator.userAgent||''));
-  if(isKakao) status.textContent='카카오 브라우저가 작업 중 페이지를 다시 불러왔습니다. 음원 오류가 아니라 WebView 메모리 또는 경로 복구일 수 있습니다.';
-  function candidates(){
-    var parts=location.pathname.split('/').filter(Boolean), out=[];
-    for(var i=parts.length;i>=0;i--) out.push('/'+parts.slice(0,i).join('/')+(i?'/':''));
-    if(/\.github\.io$/i.test(location.hostname)&&parts.length){
-      var project='/'+parts[0]+'/'; if(out.indexOf(project)<0) out.unshift(project);
-    }
-    return out.filter(function(v,i,a){return a.indexOf(v)===i;});
-  }
-  async function findRoot(){
-    var list=candidates();
-    for(var i=0;i<list.length;i++){
-      try{
-        var marker=new URL(list[i]+'foxbear-root.json',location.origin);
-        marker.searchParams.set('t',Date.now());
-        var response=await fetch(marker.href,{cache:'no-store',redirect:'follow'});
-        if(!response.ok) continue;
-        var data=await response.json();
-        if(data&&data.foxbearAppRoot===true) return list[i];
-      }catch(error){}
-    }
-    if(/\.github\.io$/i.test(location.hostname)&&location.pathname.split('/').filter(Boolean).length){
-      return '/'+location.pathname.split('/').filter(Boolean)[0]+'/';
-    }
-    return '/';
-  }
-  async function clearOldRuntime(){
-    try{
-      if('caches' in window){
-        var names=await caches.keys();
-        await Promise.all(names.filter(function(name){return /^(foxbear-|workbox-|precache-)/i.test(name);}).map(function(name){return caches.delete(name);}));
-      }
-      if('serviceWorker' in navigator){
-        try{navigator.serviceWorker.controller&&navigator.serviceWorker.controller.postMessage({type:'FOXBEAR_PURGE_CACHES'});}catch(error){}
-        var regs=await navigator.serviceWorker.getRegistrations();
-        await Promise.all(regs.map(function(reg){return reg.unregister().catch(function(){return false;});}));
-      }
-      try{sessionStorage.setItem('foxbearBypassSwOnce','1');}catch(error){}
-    }catch(error){}
-  }
-  var base=await findRoot();
-  var target=new URL(base+'index.html',location.origin);
-  target.searchParams.set('foxbearRouteRecovery','1');
-  if(isKakao){
-    target.searchParams.set('foxbearInApp','1');
-    target.searchParams.delete('foxbearExternal');
-    target.searchParams.delete('foxbearGuide');
-  }
-  target.searchParams.set('foxbearReload',String(Date.now()));
-  link.href=target.href;
-  await clearOldRuntime();
-  status.textContent=isKakao?'복구가 완료되었습니다. 카카오톡 안의 FoxBear 작업 화면으로 이동합니다.':'복구가 완료되어 작업 화면으로 이동합니다.';
-  if(location.href!==target.href){
-    try{location.replace(target.href);}catch(error){location.href=target.href;}
-  }
-})();
-</script>
+<script src="src/boot/route-recovery.js?v=1.6.73-csp-memory-admission-runtime-config"></script>
 </body>
 </html>

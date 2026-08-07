@@ -17,8 +17,19 @@ initializeApp();
 
 const db = getFirestore();
 const GMAIL_APP_PASSWORD = defineSecret('FOXBEAR_GMAIL_APP_PASSWORD');
-const ALERT_RECIPIENT = 'mcwoogi@gmail.com';
-const ALERT_SENDER = 'mcwoogi@gmail.com';
+const DEFAULT_ALERT_EMAIL = 'mcwoogi@gmail.com';
+
+function resolveOperationalEmail(envName, fallback) {
+  const value = String(process.env[envName] || '').trim();
+  if (!value) return fallback;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    throw new Error(`${envName} must be a valid email address.`);
+  }
+  return value;
+}
+
+const ALERT_RECIPIENT = resolveOperationalEmail('FOXBEAR_ALERT_RECIPIENT', DEFAULT_ALERT_EMAIL);
+const ALERT_SENDER = resolveOperationalEmail('FOXBEAR_ALERT_SENDER', DEFAULT_ALERT_EMAIL);
 const MAIL_FROM_NAME = 'AI마스터링 스튜디오';
 const MAIL_SUBJECT_PREFIX = '[AI마스터링 스튜디오]';
 const REGION = 'asia-northeast3';
@@ -69,7 +80,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.72';
+const PRODUCT_VERSION = '1.6.73';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
