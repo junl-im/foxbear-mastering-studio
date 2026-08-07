@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.78-release-generation-assist-url-playback-invalidation';
+const version = '1.6.79-manifestless-patch-playback-retirement';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

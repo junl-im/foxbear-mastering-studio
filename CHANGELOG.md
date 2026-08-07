@@ -1,3 +1,11 @@
+# v1.6.79 - Manifestless patch delivery and bounded playback URL retirement
+
+- Removes generated `PATCH_MANIFEST.json` from changed-file delivery ZIPs so extracting a patch no longer creates a source-hygiene artifact in the repository root.
+- Keeps `PATCH_MANIFEST.json` in `DELETE_PATHS.txt` and the hygiene forbidden set to clean up legacy patch generations already committed or extracted.
+- Verifies manifestless patch contents against the expected Git diff when repository metadata is available, while retaining archive safety and release-generation checks.
+- Uses the existing 45-second retired playback URL deadline: stale paused/ended media references can no longer retain obsolete Blob URLs indefinitely, while actively playing media stays protected until playback stops.
+- Adds dedicated v1.6.79 regression coverage for patch-delivery hygiene and bounded playback retirement.
+
 # v1.6.78 - Release generation integrity, assist URL lifetime, playback-safe invalidation
 
 - Release metadata is now verified in the built full ZIP, not only in the working tree.

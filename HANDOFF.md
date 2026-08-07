@@ -1,34 +1,34 @@
-# Handoff - v1.6.78
+# Handoff - v1.6.79
 
 ## Current release
 
-- Product version: `1.6.78`
-- Build ID: `release-generation-assist-url-playback-invalidation`
-- Asset version: `1.6.78-release-generation-assist-url-playback-invalidation`
-- Service worker cache: `foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation`
-- Configured static/regression target: 433 checks.
+- Product version: `1.6.79`
+- Build ID: `manifestless-patch-playback-retirement`
+- Asset version: `1.6.79-manifestless-patch-playback-retirement`
+- Service worker cache: `foxbear-shell-v1.6.79-manifestless-patch-playback-retirement`
+- Configured static/regression target: 434 checks.
 
 ## Current focus
 
-- Eliminate mixed release generations between package metadata and public HTML/cache-busting URLs.
-- Reject full delivery archives that are not metadata-synchronized after extraction.
-- Preserve download-assist ObjectURL validity while the assist UI owns the file.
-- Avoid immediate revocation of mastered audio URLs that may still be referenced by playback elements.
+- Stop GitHub Desktop overwrite ZIPs from extracting generated `PATCH_MANIFEST.json` into the repository root.
+- Keep legacy manifests as deletion-only hygiene cleanup so existing repositories converge to a clean state.
+- Enforce the existing 45-second playback retirement ceiling for inactive stale media references while never revoking an actively playing source.
+- Preserve archive-level release-generation verification added in v1.6.78.
 
 ## Required GitHub Desktop step
 
-1. Extract `foxbear-mastering-studio-v1.6.78-patch.zip` into the **v1.6.77 repository root** and replace matching files.
-2. Delete every path listed in `DELETE_PATHS.txt` if it still exists.
-3. Review all modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
-4. For a clean replacement, preserve `.git` and extract the v1.6.78 full ZIP into the repository folder.
+1. Extract `foxbear-mastering-studio-v1.6.79-patch.zip` into the **v1.6.78 repository root** and replace matching files.
+2. Delete every path listed in `DELETE_PATHS.txt` if it still exists. In particular, delete any legacy root `PATCH_MANIFEST.json`.
+3. Review modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
+4. For a clean replacement, preserve `.git` and extract the v1.6.79 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks passed **433/433** (`109/109`, `109/109`, `109/109`, `106/106`).
-- Version synchronization, Functions syntax, source hygiene, App Check policy, handoff, browser preflight, and Firebase Hosting staging passed.
+- Static and behavioral checks passed **434/434** (`109/109`, `109/109`, `109/109`, `107/107`).
+- Version synchronization, Functions syntax, source hygiene, App Check policy, handoff, browser preflight, dependency structure, and Firebase Hosting staging passed.
 - Firebase Hosting boundary: **159 allowlisted files**.
-- Full archive: **748 files**. Patch: **295 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- Full archive verification now reruns the release metadata checker inside the extracted ZIP.
+- Full archive: **750 files**. Patch: **296 overwrite files**, no generated patch manifest, with **7 delete paths**.
+- Full archive verification reruns the release metadata checker inside the extracted ZIP.
 
 
 # Handoff - v1.6.67

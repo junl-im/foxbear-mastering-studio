@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.78
+// FoxBear Modal State Machine Controller v1.6.79
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.78-release-generation-assist-url-playback-invalidation',
+            version: '1.6.79-manifestless-patch-playback-retirement',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,

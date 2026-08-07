@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.78
+# FoxBear AI Mastering Studio Pro v1.6.79
 
-> Current release: v1.6.78 · release-generation-assist-url-playback-invalidation
+> Current release: v1.6.79 · manifestless-patch-playback-retirement
 
-This release keeps mobile download encoding progress visible across browser chrome and on-screen keyboard viewport changes. It also adds privacy-safe, memory-only counters for selected recoverable fallback failures so repeated silent recovery can be diagnosed without retaining exception messages, stacks, filenames, or user data.
+This release removes generated patch manifests from GitHub Desktop overwrite ZIPs, keeps legacy manifests as deletion-only cleanup, and bounds retired playback ObjectURL lifetime so stale paused media elements cannot pin obsolete mastered audio indefinitely while active playback remains protected.
 
 # FoxBear AI Mastering Studio Pro v1.6.75
 

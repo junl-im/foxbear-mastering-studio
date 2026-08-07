@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.6.78 - playback Blob source resilience
+// FoxBear AI Mastering Studio Pro v1.6.79 - bounded playback Blob source retirement
 (function attachFoxBearPlaybackSourceRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
+    const SERVICE_VERSION = '1.6.79-manifestless-patch-playback-retirement';
     const DEFAULT_READY_TIMEOUT_MS = 2600;
     const RETIRE_RECHECK_MS = 1800;
     const RETIRE_MAX_WAIT_MS = 45000;
@@ -44,6 +44,15 @@
         return Array.from(documentRef.querySelectorAll('audio')).some(audio => {
             if (!audio || audio._foxbearSourceRecoveryDisposed) return false;
             return String(audio.currentSrc || audio.src || audio.getAttribute?.('src') || '') === String(url);
+        });
+    }
+
+    function isUrlActivelyPlaying(url, documentRef = global.document) {
+        if (!url || !documentRef?.querySelectorAll) return false;
+        return Array.from(documentRef.querySelectorAll('audio')).some(audio => {
+            if (!audio || audio._foxbearSourceRecoveryDisposed) return false;
+            const sourceMatches = String(audio.currentSrc || audio.src || audio.getAttribute?.('src') || '') === String(url);
+            return sourceMatches && audio.paused === false && audio.ended !== true;
         });
     }
 
@@ -102,7 +111,10 @@
         let revoked = 0;
         Array.from(record.urls.entries()).forEach(([url, entry]) => {
             const inUse = isUrlInUse(url, documentRef);
-            if (!inUse || options.force === true) {
+            const maxWaitMs = Math.max(1000, Number(options.maxWaitMs || RETIRE_MAX_WAIT_MS));
+            const expired = now - Number(entry.createdAt || now) >= maxWaitMs;
+            const activelyPlaying = expired && isUrlActivelyPlaying(url, documentRef);
+            if (!inUse || options.force === true || (expired && !activelyPlaying)) {
                 revokeUrl(record, url, revokeObjectURL);
                 revoked += 1;
             } else {
@@ -281,6 +293,7 @@
         declaredSource,
         isBlobUrl,
         isUrlInUse,
+        isUrlActivelyPlaying,
         retireObjectUrl,
         flushRetiredUrls,
         releaseTrack,

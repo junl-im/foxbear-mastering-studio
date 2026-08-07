@@ -77,16 +77,6 @@ const baseCommit = gitLines(['rev-parse', 'HEAD'])[0] || '';
 const patchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-patch-build-'));
 try {
   files.forEach(relative => copyPatchFile(relative, patchRoot));
-  const manifest = {
-    schemaVersion: 1,
-    productVersion: version,
-    buildId: String(pkg.foxbearRelease?.buildId || ''),
-    baseCommit,
-    applyMode: 'extract-into-repository-root-and-overwrite-then-delete-listed-paths',
-    files,
-    deletePaths
-  };
-  fs.writeFileSync(path.join(patchRoot, 'PATCH_MANIFEST.json'), `${JSON.stringify(manifest, null, 2)}\n`);
   fs.rmSync(patchZip, { force: true });
   run('zip', ['-qr', patchZip, '.'], { cwd: patchRoot });
 } finally {
@@ -99,3 +89,5 @@ run(process.execPath, [path.join(ROOT, 'tools/verify-patch-zip.js'), patchZip]);
 console.log('FoxBear GitHub Desktop delivery artifacts');
 console.log(`  FULL : ${fullZip}`);
 console.log(`  PATCH: ${patchZip}`);
+console.log(`  BASE : ${baseCommit}`);
+console.log(`  FILES: ${files.length} overwrite files / ${deletePaths.length} delete paths / no generated patch manifest`);

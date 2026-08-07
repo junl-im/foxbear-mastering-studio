@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.78', 'package version must be v1.6.78');
+assert.strictEqual(pkg.version, '1.6.79', 'package version must be v1.6.79');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build id must remain valid kebab-case');
 
 const css = read('assets/css/download-dialog.css');
@@ -40,8 +40,8 @@ assert(snapshot.entries.every(item => !('message' in item) && !('stack' in item)
 
 const index = read('index.html');
 const sw = read('sw.js');
-assert(index.includes('src/boot/runtime-fault-counters.js?v=1.6.78-release-generation-assist-url-playback-invalidation'), 'runtime fault counters must load from index');
-assert(sw.includes('./src/boot/runtime-fault-counters.js?v=1.6.78-release-generation-assist-url-playback-invalidation'), 'runtime fault counters must be precached');
+assert(index.includes('src/boot/runtime-fault-counters.js?v=1.6.79-manifestless-patch-playback-retirement'), 'runtime fault counters must load from index');
+assert(sw.includes('./src/boot/runtime-fault-counters.js?v=1.6.79-manifestless-patch-playback-retirement'), 'runtime fault counters must be precached');
 
 const perf = read('src/boot/performance-diagnostics.js');
 assert(perf.includes('runtimeFaults = safeCall'), 'performance diagnostics must collect runtime fault counters');
@@ -55,5 +55,5 @@ assert(downloadService.includes('recoverableFaults: global.FoxBearRuntimeFaultCo
 assert(incidentSupport.includes("record?.('incident-storage', 'read-failed')") && incidentSupport.includes("record?.('incident-storage', 'write-failed')"), 'incident storage fallback failures must be counted');
 assert(swUpdate.includes("record?.('service-worker', 'client-state-post-failed')"), 'service worker client state failures must be counted');
 
-assert(pkg.qaChecks.includes('node qa/v1676_download_viewport_runtime_fault_diagnostics_smoke.js'), 'v1.6.78 smoke must be registered');
+assert(pkg.qaChecks.includes('node qa/v1676_download_viewport_runtime_fault_diagnostics_smoke.js'), 'v1.6.79 smoke must be registered');
 console.log('PASS v1.6.76 visual viewport download progress and runtime fault diagnostics smoke');

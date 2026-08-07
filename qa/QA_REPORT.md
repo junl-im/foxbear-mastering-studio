@@ -1,3 +1,25 @@
+# FoxBear QA Report - v1.6.79
+
+## Configured target
+
+- Static and behavioral checks: **434**.
+- New regression: `qa/v1679_manifestless_patch_playback_retirement_smoke.js`.
+
+## Verification scope
+
+- Manifestless GitHub Desktop patch delivery with legacy `PATCH_MANIFEST.json` cleanup-only handling.
+- Source-hygiene rejection of stale generated patch manifests.
+- Git-aware patch ZIP file-set verification without extracting generated metadata into the repository.
+- Bounded retired playback ObjectURL lifetime that preserves actively playing sources and retires expired paused stale sources.
+
+## Final result
+
+- Static and behavioral checks: **434/434 passed** in bounded slices (`109/109`, `109/109`, `109/109`, `107/107`).
+- Dedicated v1.6.79 regression reproduced strict rejection and ci-safe cleanup of a legacy root patch manifest, then verified manifestless delivery and bounded inactive playback retirement.
+- Version synchronization, Functions syntax, App Check policy, GitHub Desktop handoff, browser preflight, source hygiene, dependency structure, and Firebase Hosting staging passed.
+- Firebase Hosting boundary: **159 allowlisted files**.
+- Verified full ZIP: **750 files**. Patch ZIP: **296 overwrite files**, no generated `PATCH_MANIFEST.json`, with **7 delete paths**.
+
 # FoxBear QA Report - v1.6.78
 
 ## Configured target

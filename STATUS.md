@@ -1,29 +1,29 @@
-# FoxBear Status - v1.6.78
+# FoxBear Status - v1.6.79
 
 ## Current release
 
-- Product version: `1.6.78`
-- Build ID: `release-generation-assist-url-playback-invalidation`
-- Asset version: `1.6.78-release-generation-assist-url-playback-invalidation`
-- Service worker cache: `foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation`
-- Configured static/regression target: **433 checks**.
+- Product version: `1.6.79`
+- Build ID: `manifestless-patch-playback-retirement`
+- Asset version: `1.6.79-manifestless-patch-playback-retirement`
+- Service worker cache: `foxbear-shell-v1.6.79-manifestless-patch-playback-retirement`
+- Configured static/regression target: **434 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.78`
-- Build ID: `release-generation-assist-url-playback-invalidation`
-- Asset version: `1.6.78-release-generation-assist-url-playback-invalidation`
-- Service worker cache: `foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation`
+- Product version: `1.6.79`
+- Build ID: `manifestless-patch-playback-retirement`
+- Asset version: `1.6.79-manifestless-patch-playback-retirement`
+- Service worker cache: `foxbear-shell-v1.6.79-manifestless-patch-playback-retirement`
 
 ## Release status
 
-- Mixed v1.6.77/v1.6.76 public asset generations discovered during audit are corrected.
-- Delivery verification extracts the full ZIP and reruns release metadata validation inside the archive.
-- Download-assist ObjectURL revocation is deferred while the owning assist panel remains open and refreshed on BFCache restore.
-- Mastered output invalidation retires playback URLs before revocation when a media element may still reference them.
-- Static and behavioral checks passed **433/433**.
+- GitHub Desktop changed-file patch archives no longer extract generated `PATCH_MANIFEST.json` into the repository.
+- Legacy root manifests are explicitly forbidden by source hygiene and remain in `DELETE_PATHS.txt` for one-way cleanup.
+- CI-safe cleanup behavior for the legacy manifest is regression-tested; the cleanup warning itself is non-fatal.
+- Retired playback Blob URLs have a bounded inactive lifetime; active playback remains protected until it stops.
+- Static and behavioral checks passed **434/434**.
 - Firebase Hosting boundary passed with **159 files**.
-- Full archive contains **748 files**; patch declares **295 overwrite files plus manifest** and **7 delete paths**.
+- Full archive contains **750 files**; patch contains **296 overwrite files**, no generated manifest, and **7 delete paths**.
 
 
 # FoxBear Status - v1.6.67

@@ -1,3 +1,31 @@
+# v1.6.79 patch notes
+
+## 적용 내역
+
+- GitHub Actions에서 보인 `Source hygiene auto-repair: PATCH_MANIFEST.json` 사례를 재현했습니다. 이 annotation은 `ci-safe`가 legacy generated file을 제거했다는 warning이며 그 자체가 fatal exit는 아닙니다.
+- 앞으로 GitHub Desktop 덮어쓰기 패치 ZIP에는 `PATCH_MANIFEST.json`을 넣지 않습니다. 패치를 풀어도 저장소 루트에 generated manifest가 새로 생기지 않습니다.
+- `DELETE_PATHS.txt`에는 `PATCH_MANIFEST.json`을 유지해 이전 패치 세대에서 남은 파일을 삭제하도록 했고, strict source hygiene도 이 파일을 명시적으로 금지합니다.
+- Git 메타데이터가 있는 패키징 환경에서는 manifest 없이도 patch ZIP 파일 집합이 실제 Git diff와 정확히 일치하는지 검증합니다.
+- playback source retirement의 기존 45초 최대 대기값을 실제로 적용합니다. 오래된 paused/ended media reference는 무기한 Blob URL을 붙잡지 못하며, 실제 재생 중인 source는 계속 보호됩니다.
+
+## 다음 예정
+
+- 사용자가 보고한 Static release gate의 실제 fatal check 이름을 GitHub Actions 상세 로그에서 확인하면 해당 경로를 추가로 재현합니다. 이번 패치는 annotation 원인인 generated manifest 재생성을 제거합니다.
+- 서비스워커 업데이트와 재생/다운로드가 겹치는 generation crossing, 장시간 background/resume, media element disposal을 계속 스트레스 점검합니다.
+
+## GitHub Desktop 적용
+
+- 패치 ZIP은 **v1.6.78 저장소 루트**에 풀어 모두 덮어쓴 뒤 `DELETE_PATHS.txt`의 경로를 삭제합니다.
+- 특히 기존 `PATCH_MANIFEST.json`이 있으면 이번에 삭제 변경으로 잡혀야 합니다.
+- GitHub Desktop에서 변경사항을 확인하고 Commit → **Push origin** 합니다.
+
+## 검증 결과
+
+- 정적·행동 회귀 **434/434 통과** (`109/109`, `109/109`, `109/109`, `107/107`).
+- Version sync / Functions syntax / App Check policy / source hygiene / handoff / browser preflight / Hosting 경계 통과.
+- Firebase Hosting 공개 경계 **159개 파일**.
+- 전체 ZIP **750개 파일**, 패치 ZIP **296개 덮어쓰기 파일**, generated manifest 없음, 삭제 경로 **7개**.
+
 # v1.6.78 patch notes
 
 ## 적용 내역

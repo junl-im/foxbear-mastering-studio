@@ -12,7 +12,8 @@ const FORBIDDEN_EXACT = new Set([
   '.firebaserc',
   'qa/static-audit.txt',
   'firebase-debug.log',
-  'npm-debug.log'
+  'npm-debug.log',
+  'PATCH_MANIFEST.json'
 ]);
 const FORBIDDEN_PREFIXES = [
   '.firebase/',

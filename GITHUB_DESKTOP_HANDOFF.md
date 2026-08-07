@@ -1,25 +1,25 @@
-# GitHub Desktop Handoff - v1.6.78
+# GitHub Desktop Handoff - v1.6.79
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.77**, then extract `foxbear-mastering-studio-v1.6.78-patch.zip` directly into the repository root and replace matching files.
-3. Open `DELETE_PATHS.txt` and remove every listed path that still exists. ZIP extraction cannot delete an old tracked file by itself.
+2. Confirm the working copy is **v1.6.78**, then extract `foxbear-mastering-studio-v1.6.79-patch.zip` directly into the repository root and replace matching files.
+3. Open `DELETE_PATHS.txt` and remove every listed path that still exists. This cleans legacy `PATCH_MANIFEST.json` from older patch generations.
 4. Confirm GitHub Desktop shows the expected modified/new/deleted files, then commit and **Push origin**.
-5. For a clean replacement, use `foxbear-mastering-studio-v1.6.78-full.zip`. Preserve `.git` if reusing the current repository folder.
+5. For a clean replacement, use `foxbear-mastering-studio-v1.6.79-full.zip`. Preserve `.git` if reusing the current repository folder.
 
 ## Release focus
 
-- Repair mixed release-generation metadata discovered in the v1.6.77 delivery tree.
-- Verify metadata again from inside the built full ZIP so stale cache-busting generations cannot ship silently.
-- Keep download-assist ObjectURLs valid while their owner panel is open, including BFCache restoration.
-- Retire mastered playback URLs safely when output is invalidated instead of immediately revoking an in-use source.
+- Patch ZIPs are now manifestless: extracting the patch no longer creates generated `PATCH_MANIFEST.json` in the repository root.
+- The legacy manifest remains forbidden source state and a deletion target for upgrades from older patch generations.
+- `ci-safe` auto-repair of a legacy manifest is verified to be a warning/cleanup path, not a fatal condition by itself.
+- Playback Blob retirement now enforces the 45-second maximum for inactive stale references while protecting active playback.
 
 ## Expected verification result
 
-- Static/regression: **433/433 passed** (`109/109`, `109/109`, `109/109`, `106/106`).
+- Static/regression: **434/434 passed** (`109/109`, `109/109`, `109/109`, `107/107`).
 - Firebase Hosting staged payload: **159 allowlisted files**.
-- Full ZIP: **748 files**. Patch ZIP: **295 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Full ZIP: **750 files**. Patch ZIP: **296 overwrite files**, **no `PATCH_MANIFEST.json`**, with **7 delete paths**.
 - The full ZIP itself must pass `tools/sync-release-metadata.js --check` after extraction.
 
 

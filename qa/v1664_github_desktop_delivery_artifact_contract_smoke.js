@@ -34,17 +34,17 @@ assert(pkg.scripts?.['package:verify:patch'] === `node tools/verify-patch-zip.js
 assert(delivery.includes('-full.zip') && delivery.includes('-patch.zip'), 'delivery aliases are missing');
 assert(delivery.includes('check-source-hygiene.js'), 'delivery build must run source hygiene');
 assert(delivery.includes("gitLines(['diff', '--name-only'"), 'patch build must select changed Git files');
-assert(delivery.includes('PATCH_MANIFEST.json'), 'patch build must generate PATCH_MANIFEST.json');
-assert(patchVerifier.includes('undeclared files') && patchVerifier.includes('DELETE_PATHS.txt'), 'changed-file patch verifier contract incomplete');
+assert(!delivery.includes("fs.writeFileSync(path.join(patchRoot, 'PATCH_MANIFEST.json')"), 'patch build must not emit PATCH_MANIFEST.json into the repository root');
+assert(patchVerifier.includes('legacy generated artifact') && patchVerifier.includes('DELETE_PATHS.txt') && patchVerifier.includes('expected Git patch'), 'manifestless changed-file patch verifier contract incomplete');
 assert(overwrite.includes('copy_path "PATCH_NOTES.md"') && overwrite.includes('copy_path "DELETE_PATHS.txt"'), 'patch guidance files are not copied');
 for (const token of ["'.git'", "'.firebase'", "'.audit-results'"]) {
   assert(hygiene.includes(token), `archive hygiene missing ${token}`);
 }
 assert(hygiene.includes("name === '.firebaserc'"), 'archive hygiene must reject .firebaserc');
-assert(sourceHygiene.includes("'.firebaserc'") && sourceHygiene.includes("'.firebase/'") && sourceHygiene.includes("'.audit-results/'"), 'source hygiene forbidden set incomplete');
+assert(sourceHygiene.includes("'.firebaserc'") && sourceHygiene.includes("'.firebase/'") && sourceHygiene.includes("'.audit-results/'") && sourceHygiene.includes("'PATCH_MANIFEST.json'"), 'source hygiene forbidden set incomplete');
 assert(gate.includes("'source:hygiene'") || gate.includes("'source:hygiene:gate'"), 'release gate must run a source hygiene gate');
 assert(gitignore.includes('.firebaserc') && gitignore.includes('.audit-results/'), 'local Firebase/audit paths must be ignored');
-for (const item of ['.firebaserc', '.firebase/', '.audit-results/', 'qa/static-audit.txt']) {
+for (const item of ['.firebaserc', '.firebase/', '.audit-results/', 'qa/static-audit.txt', 'PATCH_MANIFEST.json']) {
   assert(deletePaths.includes(item), `DELETE_PATHS.txt missing ${item}`);
 }
 for (const file of ['tools/check-source-hygiene.js', 'tools/create-delivery-zips.js', 'tools/verify-patch-zip.js', 'PATCH_NOTES.md', 'DELETE_PATHS.txt', 'qa/v1664_github_desktop_delivery_artifact_contract_smoke.js', 'docs/V1.6.64_GITHUB_DESKTOP_DELIVERY_ARTIFACT_CONTRACT.md']) {
