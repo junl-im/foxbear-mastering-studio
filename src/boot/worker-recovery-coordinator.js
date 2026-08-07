@@ -1,8 +1,8 @@
-// FoxBear worker recovery coordinator v1.6.74 - safe high-level retries after stalled Worker cancellation
+// FoxBear worker recovery coordinator v1.6.75 - safe high-level retries after stalled Worker cancellation
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.6.74-incident-admission-spark-retention-download-memory';
+    const VERSION = '1.6.75-download-progress-admission-fallback-closure';
     const handlers = [];
 
     function normalizeJob(job) {

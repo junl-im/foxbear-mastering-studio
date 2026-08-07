@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.74-incident-admission-spark-retention-download-memory';
+const version = '1.6.75-download-progress-admission-fallback-closure';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

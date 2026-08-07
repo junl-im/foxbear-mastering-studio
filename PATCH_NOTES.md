@@ -1,3 +1,34 @@
+# v1.6.75 patch notes
+
+## 적용 내역
+
+- 다운로드/저장 팝업의 데스크톱 최대 높이를 늘리고 모바일 시트를 `98dvh` 범위까지 사용하도록 조정해 세로 공간을 조금 더 확보했습니다.
+- 파일 변환/인코딩 진행 카드를 파일명 설정보다 위에 배치하고, 변환 시작 시 진행 영역이 팝업 안에서 자동으로 보이도록 스크롤 보정했습니다.
+- 모바일 하단 고정 다운로드 버튼에 진행률이 가려지지 않도록 진행 카드 scroll margin과 시트 bottom scroll padding을 추가했습니다.
+- Callable의 `resource-exhausted` 또는 incident emergency `disabled` 응답을 명시적인 admission 거절로 분류해 Firestore direct fallback으로 우회하지 못하게 했습니다.
+- 같은 admission 거절을 신규 로컬 retry queue 항목으로 저장하지 않아 rate-limit 상황에서 재시도 큐가 불필요하게 쌓이지 않도록 했습니다.
+- same-origin Callable 오류의 `details.reason` / `retryAfterSeconds`를 보존해 브라우저 경로가 달라도 서버 admission 의도를 유지합니다.
+
+## 다음 예정
+
+- 실제 카카오/Android/iOS에서 긴 MP3/WAV 변환 중 팝업 진행률 가시성 및 키보드/주소창 높이 변화 acceptance.
+- auth / Firestore / service worker / incident queue / download decode 중 핵심 silent catch만 선별해 저소음 diagnostics counter로 연결.
+- Firebase 실배포에서 admission `enabled/degraded/disabled`, TTL 삭제, SMTP 수신, rate-limit UX를 통합 검증.
+
+## GitHub Desktop 적용
+
+- 전체 ZIP은 새 폴더 또는 `.git`만 남긴 기존 작업 폴더에 풀어 교체할 수 있습니다.
+- 패치 ZIP은 **v1.6.74 저장소 루트**에 그대로 풀어 모두 덮어쓴 뒤 `DELETE_PATHS.txt` 경로가 남아 있으면 삭제합니다.
+- GitHub Desktop에서 수정/추가/삭제를 확인한 뒤 Commit → **Push origin** 순서로 적용합니다.
+
+## 검증 결과
+
+- 정적·행동 회귀 **430/430 통과** (`108/108`, `108/108`, `108/108`, `106/106`).
+- Functions syntax / App Check policy / handoff / dependency structure / browser preflight / version sync 통과.
+- Firebase Hosting 공개 경계 **158개 파일**.
+- 전체 ZIP **742개 파일**, 패치 ZIP **290개 덮어쓰기 파일 + `PATCH_MANIFEST.json`**, 삭제 경로 **7개**.
+- 실제 v1.6.74 전체 트리에 패치를 덮어쓰고 삭제 목록을 적용한 결과가 v1.6.75 전체 트리와 완전히 동일했습니다 (`missing 0 / extra 0 / changed 0`).
+
 # v1.6.74 patch notes
 
 ## 적용 내역

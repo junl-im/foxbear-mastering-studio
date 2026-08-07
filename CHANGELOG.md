@@ -1,3 +1,11 @@
+# v1.6.75 - Download progress visibility and incident admission fallback closure
+
+- Enlarges the download/save dialog vertically on desktop and mobile so worker encoding progress is less likely to remain below the visible fold.
+- Moves the encoding progress card ahead of filename controls while it is active and automatically scrolls it into view without hiding it behind the sticky mobile action footer.
+- Preserves structured same-origin Callable error details so incident admission decisions survive transport fallback handling.
+- Prevents `resource-exhausted` admission limits and the emergency `disabled` mode from being bypassed through direct Firestore incident fallback.
+- Treats deliberate server admission rejections as suppressed, non-queued client outcomes instead of filling the local retry queue.
+
 # v1.6.74 - Incident admission, Spark retention, and download memory closure
 
 - Added server-side incident admission budgets with per-UID minute/hour/KST-day limits, a stricter manual-test daily limit, and global minute/hour caps to reduce anonymous-UID churn abuse while App Check remains disabled by policy.

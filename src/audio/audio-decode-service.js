@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.74
+// FoxBear audio decode service - v1.6.75
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.74-incident-admission-spark-retention-download-memory';
+    const SERVICE_VERSION = '1.6.75-download-progress-admission-fallback-closure';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

@@ -1,3 +1,15 @@
+# v1.6.75 release checklist
+
+- [x] Download dialog taller viewport contract.
+- [x] Worker encoding progress mounted above filename controls.
+- [x] Progress auto-reveal with sticky-footer safe scroll clearance.
+- [x] Incident admission rejection blocks Firestore fallback bypass.
+- [x] Admission rejection does not create a new local retry item.
+- [x] 430/430 static/behavioral regression pass.
+- [x] Functions/App Check/handoff/browser preflight/dependency/Hosting gates pass.
+- [ ] Physical Kakao/Android/iOS viewport acceptance after deployment.
+- [ ] Firebase admission/TTL/SMTP production acceptance after deployment.
+
 # FoxBear v1.6.74 release checklist
 
 - [x] Add deterministic duplicate-before-admission ordering for Callable incident reports.

@@ -1,35 +1,34 @@
-# Handoff - v1.6.74
+# Handoff - v1.6.75
 
 ## Current release
 
-- Product version: `1.6.74`
-- Build ID: `incident-admission-spark-retention-download-memory`
-- Asset version: `1.6.74-incident-admission-spark-retention-download-memory`
-- Service worker cache: `foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory`
-- Configured static/regression target: 429 checks.
+- Product version: `1.6.75`
+- Build ID: `download-progress-admission-fallback-closure`
+- Asset version: `1.6.75-download-progress-admission-fallback-closure`
+- Service worker cache: `foxbear-shell-v1.6.75-download-progress-admission-fallback-closure`
+- Configured static/regression target: 430 checks.
 
 ## Current focus
 
-- Bound public incident creation before Firestore report creation with per-UID and service-wide admission budgets while keeping App Check disabled by policy.
-- Give Spark-only Firestore fallback reports immediate TTL/provenance and distinguish stored-without-mail-service from ordinary SMTP processing.
-- Carry decoded-memory limits into post-master alternate-format re-decode paths.
-- Align automatic incident daily quota rollover with KST.
+- Keep download conversion/encoding progress visible by increasing dialog height, moving the progress card above filename controls, and auto-revealing it inside the scroll container.
+- Preserve server incident admission rejection semantics across Callable and same-origin transports so rate limits and emergency disable cannot be bypassed through direct Firestore fallback.
+- Suppress new local retry entries for deliberate server admission rejection while retaining normal network/deployment fallback behavior.
 
 ## Required GitHub Desktop step
 
-1. Extract `foxbear-mastering-studio-v1.6.74-patch.zip` into the **v1.6.73 repository root** and replace matching files.
+1. Extract `foxbear-mastering-studio-v1.6.75-patch.zip` into the **v1.6.74 repository root** and replace matching files.
 2. Delete every path listed in `DELETE_PATHS.txt` if it still exists. ZIP extraction cannot remove stale tracked files.
 3. Review all modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
 4. The full ZIP may instead be extracted into a clean folder; preserve the existing `.git` folder if reusing the same repository directory.
 
 ## Verified
 
-- Static and behavioral checks passed **429/429** in bounded slices (`108/108`, `108/108`, `108/108`, `105/105`).
-- Dedicated v1.6.74 admission/Spark-retention/download-memory/KST regression passed.
-- Source hygiene, version synchronization, Functions syntax, App Check policy, handoff, dependency structure, browser preflight, and Firebase Hosting staging passed.
+- Static and behavioral checks passed **430/430** in bounded slices (`108/108`, `108/108`, `108/108`, `106/106`).
+- Dedicated v1.6.75 download-progress/admission-fallback regression passed.
+- Version synchronization, Functions syntax, App Check policy, handoff, dependency structure, browser preflight, and Firebase Hosting staging passed.
 - Firebase Hosting boundary: **158 allowlisted files**.
-- Full archive: **740 files**. Patch: **290 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- Firebase deployed admission-control toggling, TTL deletion timing, and SMTP delivery remain production acceptance checks.
+- Full archive: **742 files**. Patch: **290 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Applying the patch over the supplied v1.6.74 full tree reproduced the v1.6.75 full tree exactly (`missing 0 / extra 0 / changed 0`).
 
 # Handoff - v1.6.67
 

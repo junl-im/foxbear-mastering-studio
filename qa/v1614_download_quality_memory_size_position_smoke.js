@@ -15,7 +15,7 @@ const css = read('assets/css/download-dialog.css');
 const app = read('src/app.js');
 const runtime = read('src/boot/runtime-health.js');
 
-assert.strictEqual(pkg.version, '1.6.74');
+assert.strictEqual(pkg.version, '1.6.75');
 assert(dialog.includes("foxbear:download-quality-preferences:v1"), 'quality preference storage key missing');
 assert(dialog.includes('loadDownloadQualityPreferences') && dialog.includes('saveDownloadQualityPreferences'), 'safe quality preference persistence missing');
 assert(dialog.includes('qualityPreferences.lastFormat'), 'last selected format is not restored');
@@ -29,7 +29,7 @@ assert(dialog.includes("qualityMenu.style.maxHeight"), 'adaptive menu height mis
 assert(dialog.includes("global.visualViewport?.addEventListener?.('resize'"), 'visual viewport resize handling missing');
 assert(dialog.includes('qualityMenu.remove()'), 'portalled menu cleanup missing');
 assert(css.includes('position: fixed;') && css.includes('z-index: 27020;'), 'quality popup must use a top-level fixed overlay');
-assert(css.includes('height: min(96dvh, 860px);'), 'mobile download sheet should use the taller viewport-contained height');
+assert(css.includes('height: min(98dvh, 920px);'), 'mobile download sheet should use the taller viewport-contained height');
 assert(css.includes('overflow-y: auto;'), 'mobile sheet/menu internal scrolling missing');
 assert(css.includes('.download-format-quality-menu[data-viewport-clamped="true"]::before'), 'clamped arrow hiding rule missing');
 assert(css.includes('.download-format-option-size'), 'size label styling missing');

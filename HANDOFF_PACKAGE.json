@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.74",
-  "buildId": "incident-admission-spark-retention-download-memory",
+  "productVersion": "1.6.75",
+  "buildId": "download-progress-admission-fallback-closure",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

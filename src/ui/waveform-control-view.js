@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.74-incident-admission-spark-retention-download-memory';
+  const VIEW_VERSION = '1.6.75-download-progress-admission-fallback-closure';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -27,7 +27,7 @@ const functionsSource = read('functions/index.js');
 const appSource = read('src/app.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.74');
+assert.strictEqual(pkg.version, '1.6.75');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build id must remain valid kebab-case');
 assert(pkg.qaChecks.length >= 331, 'v1.6.8 readiness contract must remain in the cumulative QA set');
 assert(html.includes('id="incidentDeploymentMeta"'));
@@ -45,7 +45,7 @@ assert(functionsSource.includes('cached: true'));
 assert(functionsSource.includes('lastHealthyAt: timestampToIso'));
 assert(functionsSource.includes('const INCIDENT_SERVICE_SCHEMA_VERSION = 7'));
 assert(appSource.includes("getSettingsSummary?.().label"));
-assert(handoff.startsWith('# Handoff - v1.6.74'));
+assert(handoff.startsWith('# Handoff - v1.6.75'));
 
 const memory = new Map();
 let readinessCalls = 0;
@@ -57,7 +57,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.74' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.75' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => `connect-src 'self' ${origin}` };
@@ -66,7 +66,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.74', assetVersion: '1.6.74-incident-admission-spark-retention-download-memory' }
+  FoxBearBuildInfo: { productVersion: '1.6.75', assetVersion: '1.6.75-download-progress-admission-fallback-closure' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -79,7 +79,7 @@ reporterSandbox.FoxBearFirebase = {
     return {
       ok: true, cached: false, scope: 'public', sensitiveChecksRestricted: true, checkedAt, lastHealthyAt: checkedAt,
       nextCheckAt: new Date(Date.now() + 60000).toISOString(),
-      service: { status: 'ready', productVersion: '1.6.74', functionsOrigin: origin },
+      service: { status: 'ready', productVersion: '1.6.75', functionsOrigin: origin },
       checks: {
         functions: { ok: true, status: 'ready', message: 'functions ok' },
         firestore: { ok: true, status: 'ready', message: 'firestore ok' },

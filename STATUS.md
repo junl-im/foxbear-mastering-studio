@@ -1,23 +1,23 @@
-# FoxBear Status - v1.6.74
+# FoxBear Status - v1.6.75
 
 ## Current release
 
-- Product version: `1.6.74`
-- Build ID: `incident-admission-spark-retention-download-memory`
-- Asset version: `1.6.74-incident-admission-spark-retention-download-memory`
-- Service worker cache: `foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory`
-- Configured static/regression target: **429 checks**.
+- Product version: `1.6.75`
+- Build ID: `download-progress-admission-fallback-closure`
+- Asset version: `1.6.75-download-progress-admission-fallback-closure`
+- Service worker cache: `foxbear-shell-v1.6.75-download-progress-admission-fallback-closure`
+- Configured static/regression target: **430 checks**.
 
 ## Release status
 
-- Callable incident submission is deduplicated before budget consumption and protected by per-UID plus global rolling admission caps.
-- Server emergency control supports `enabled`, `degraded`, and `disabled`; public submission Callable is capped at four instances.
-- Spark direct-Firestore fallback reports are TTL-eligible immediately and expose `stored-no-mail-service` when Functions are unavailable.
-- Alternate-format download re-decode now uses the shared decoded PCM/resident-memory limits.
-- Browser automatic incident daily limits roll over at KST midnight.
-- Static and behavioral checks passed **429/429**; Hosting boundary passed with **158 files**.
-- Full archive contains **740 files**; patch declares **290 overwrite files plus manifest** and **7 delete paths**.
-- Production acceptance remains for deployed Firebase TTL timing, admission-control toggling, SMTP delivery, and real mobile/WebView memory behavior.
+- Download/save dialog vertical capacity is increased on desktop and mobile so encoding progress remains visible without being buried below filename controls.
+- Active encoding progress is placed above filename controls and scrolls into view inside the dialog when conversion begins.
+- Callable incident `resource-exhausted` and emergency-disabled rejections are preserved as deliberate admission outcomes instead of falling through to direct Firestore writes.
+- Deliberate admission rejection no longer creates a new local retry-queue item; normal deployment/network failures retain the existing Firestore fallback behavior.
+- Static and behavioral checks passed **430/430**; Firebase Hosting boundary passed with **158 files**.
+- Full archive contains **742 files**; patch declares **290 overwrite files plus manifest** and **7 delete paths**.
+- Applying the v1.6.75 patch over the supplied v1.6.74 full tree reproduced the final full archive exactly.
+- Production acceptance remains for physical Kakao/Android/iOS viewport behavior, deployed admission modes/TTL/SMTP, and selected runtime diagnostics.
 
 # FoxBear Status - v1.6.67
 
@@ -93,10 +93,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.74`
-- Build ID: `incident-admission-spark-retention-download-memory`
-- Asset version: `1.6.74-incident-admission-spark-retention-download-memory`
-- Service worker cache: `foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory`
+- Product version: `1.6.75`
+- Build ID: `download-progress-admission-fallback-closure`
+- Asset version: `1.6.75-download-progress-admission-fallback-closure`
+- Service worker cache: `foxbear-shell-v1.6.75-download-progress-admission-fallback-closure`
 
 # FoxBear Status - v1.6.64
 

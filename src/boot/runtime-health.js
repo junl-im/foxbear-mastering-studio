@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.74-incident-admission-spark-retention-download-memory';
+    const FALLBACK_VERSION = '1.6.75-download-progress-admission-fallback-closure';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

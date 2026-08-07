@@ -1,3 +1,7 @@
+# FoxBear AI Mastering Studio Pro v1.6.75
+
+This release makes download encoding status easier to see by slightly extending the download sheet and surfacing worker progress above filename controls. It also closes an incident-admission bypass: server rate-limit or emergency-disabled responses can no longer fall through to direct Firestore storage or be re-added as new local retry items.
+
 # FoxBear AI Mastering Studio Pro v1.6.74
 
 This release hardens the incident intake boundary while preserving the project's no-App-Check policy. Callable submissions now use deterministic pre-deduplication, per-UID and global admission budgets, an emergency server control mode, and a Functions instance ceiling. Spark-only Firestore fallback reports receive an immediate 30-day TTL and explicit storage provenance, while alternate download transcoding now reuses the same decoded-memory safety limits as initial import.

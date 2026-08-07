@@ -18,10 +18,10 @@ const sw = read('sw.js');
 const index = read('index.html');
 const pkg = JSON.parse(read('package.json'));
 
-assert(pkg.version === '1.6.74', 'package version should be 1.6.74');
-assert(index.includes('data-build="1.6.74"'), 'index data-build should be 1.6.74');
-assert(index.includes('1.6.74-incident-admission-spark-retention-download-memory'), 'index assets should use v1.6.74 cache key');
-assert(sw.includes('foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory'), 'service worker cache should use v1.6.74 key');
+assert(pkg.version === '1.6.75', 'package version should be 1.6.75');
+assert(index.includes('data-build="1.6.75"'), 'index data-build should be 1.6.75');
+assert(index.includes('1.6.75-download-progress-admission-fallback-closure'), 'index assets should use v1.6.75 cache key');
+assert(sw.includes('foxbear-shell-v1.6.75-download-progress-admission-fallback-closure'), 'service worker cache should use v1.6.75 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');
@@ -46,7 +46,7 @@ assert(app.includes('copyDownloadTroubleshootingGuide'), 'app should pass troubl
 assert(app.includes('copyDownloadDiagnostics'), 'app should pass diagnostics dependency to dialog');
 
 assert(css.includes('.download-options-panel-v4'), 'CSS should style enlarged options panel');
-assert(css.includes('max-height: min(88dvh, 760px)'), 'options panel should be taller to avoid clipped content');
+assert(css.includes('max-height: min(92dvh, 840px)'), 'options panel should be taller to avoid clipped content');
 assert(css.includes('.download-assist.download-assist-v2'), 'CSS should style enlarged assist panel');
 assert(css.includes('grid-template-columns: repeat(3, minmax(0, 1fr))'), 'assist actions should support multi-column layout');
 assert(css.includes('.download-assist-support'), 'assist panel should show capability badges');

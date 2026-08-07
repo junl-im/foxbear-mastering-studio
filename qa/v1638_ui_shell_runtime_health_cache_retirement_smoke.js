@@ -188,7 +188,7 @@ assert(updateSandbox.FoxBearServiceWorkerUpdateService.getSnapshot().clientShell
     cacheName,
     'foxbear-shell-v1.6.35-history-terminal-race-sw-activation-lease',
     'foxbear-shell-v1.6.36-sw-activation-generation-fencing-resource-stress',
-    'foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory'
+    'foxbear-shell-v1.6.75-download-progress-admission-fallback-closure'
   ]);
   const deleted = [];
   const client = {
@@ -227,7 +227,7 @@ assert(updateSandbox.FoxBearServiceWorkerUpdateService.getSnapshot().clientShell
   await vm.runInContext("purgeLegacyShellCaches({ probeClients: true, reason: 'qa' })", swSandbox);
   assert(deleted.includes('foxbear-shell-v1.6.35-history-terminal-race-sw-activation-lease'), 'obsolete shell cache should be removed');
   assert(deleted.includes('foxbear-shell-v1.6.36-sw-activation-generation-fencing-resource-stress'), 'inactive optional retained shell should retire after complete client probe');
-  assert(!deleted.includes('foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory'), 'latest rollback shell must remain available');
+  assert(!deleted.includes('foxbear-shell-v1.6.75-download-progress-admission-fallback-closure'), 'latest rollback shell must remain available');
   assert(!deleted.includes(cacheName), 'current shell cache must remain available');
   console.log('PASS v1.6.38 UI shell, runtime health, and client-aware cache retirement');
 })().catch(error => {

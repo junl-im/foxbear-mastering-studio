@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.75
+
+## Configured target
+
+- Static and behavioral checks: **430**.
+- New regression: `qa/v1675_download_progress_admission_fallback_closure_smoke.js`.
+
+## Verification scope
+
+- Taller desktop/mobile download dialog boundaries and safe-area scroll clearance.
+- Encoding progress placement above filename controls and automatic visibility when conversion starts.
+- Structured incident admission error propagation across Callable/same-origin transport.
+- Server admission rejection fencing before direct Firestore fallback.
+- Non-queued client handling for deliberate rate-limit/emergency-disabled rejections.
+
+## Final result
+
+- Static and behavioral checks: **430/430 passed** in four bounded slices (`108/108`, `108/108`, `108/108`, `106/106`).
+- The dedicated v1.6.75 regression verified download progress visibility, taller mobile/desktop viewport contracts, structured admission errors, Firestore fallback fencing, and non-queued admission suppression.
+- Historical download-layout regressions were updated to accept the intentionally taller sheet while preserving sticky actions and viewport containment.
+- Functions syntax, App Check policy, handoff, dependency structure, browser preflight, version synchronization, and the **158-file** Firebase Hosting boundary passed.
+- Dependency structure reported **0 errors** and 5 expected missing-install warnings because release ZIPs intentionally exclude `node_modules`.
+- The verified full ZIP contains **742 files**. The patch declares **290 overwrite files plus `PATCH_MANIFEST.json`** and **7 delete paths**.
+- Applying the v1.6.75 patch over the supplied v1.6.74 full tree and deleting `DELETE_PATHS.txt` paths reproduced the v1.6.75 full tree exactly (`missing 0 / extra 0 / changed 0`).
+
 # FoxBear QA Report - v1.6.74
 
 ## Configured target

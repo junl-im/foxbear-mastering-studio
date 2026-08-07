@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.74
+// FoxBear automatic incident reporter - v1.6.75
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.74-incident-admission-spark-retention-download-memory';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.74').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.75-download-progress-admission-fallback-closure';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.75').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -1303,6 +1303,28 @@
         }
     }
 
+
+    function classifyAdmissionRejection(error) {
+        const seen = new Set();
+        const visit = candidate => {
+            if (!candidate || typeof candidate !== 'object' || seen.has(candidate)) return null;
+            seen.add(candidate);
+            if (candidate.foxbearAdmission?.kind) return candidate.foxbearAdmission;
+            const code = cleanText(candidate.code || candidate.name || '', 80).toLowerCase();
+            const reason = cleanText(candidate?.details?.reason || '', 80).toLowerCase();
+            const message = cleanText(candidate.message || '', 240);
+            const retryAfterSeconds = Math.max(0, Math.min(24 * 60 * 60, Number(candidate?.details?.retryAfterSeconds || 0)));
+            if (code.includes('resource-exhausted') || reason.includes('incident-admission-rate')) {
+                return Object.freeze({ kind: 'rate-limit', reason: reason || 'server-rate-limit', retryAfterSeconds });
+            }
+            if (reason === 'incident-admission-disabled' || /문제 신고 접수가 운영 설정에서 일시 중지/.test(message)) {
+                return Object.freeze({ kind: 'disabled', reason: 'server-disabled', retryAfterSeconds });
+            }
+            return visit(candidate.primaryError) || visit(candidate.fallbackError) || visit(candidate.cause);
+        };
+        return visit(error);
+    }
+
     async function report(input = {}, options = {}) {
         const payload = buildPayload(input, options);
         const suppression = shouldSuppress(payload, options);
@@ -1324,8 +1346,21 @@
             }
             return Object.freeze({ ok: true, fingerprint: payload.fingerprint, result: result || null });
         } catch (error) {
-            state.failed += 1;
+            const admission = classifyAdmissionRejection(error);
             state.lastError = cleanText(error?.message || error, 300);
+            if (admission) {
+                state.suppressed += 1;
+                return Object.freeze({
+                    ok: false,
+                    queued: false,
+                    suppressed: true,
+                    fingerprint: payload.fingerprint,
+                    code: cleanText(error?.code || error?.name || 'FOXBEAR_INCIDENT_ADMISSION_REJECTED', 80),
+                    reason: admission.kind === 'disabled' ? 'server-disabled' : 'server-rate-limit',
+                    retryAfterSeconds: Math.max(0, Number(admission.retryAfterSeconds || 0))
+                });
+            }
+            state.failed += 1;
             queueIncident(payload);
             return Object.freeze({ ok: false, queued: true, fingerprint: payload.fingerprint, code: cleanText(error?.code || error?.name || 'FOXBEAR_INCIDENT_DELIVERY_FAILED', 80), reason: state.lastError });
         }

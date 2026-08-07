@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.74",
+  "version": "1.6.75",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.74 - incident admission budgets, Spark retention provenance, download re-decode memory closure, and KST incident quota alignment",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.75 - taller download encoding progress visibility and incident admission fallback closure",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.74-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.74-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.75-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.75-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.74-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.74-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.75-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.75-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -477,15 +477,16 @@
     "node qa/v1671_pwa_share_lease_handoff_deploy_policy_smoke.js",
     "node qa/v1672_ci_hygiene_self_repair_smoke.js",
     "node qa/v1673_csp_memory_admission_runtime_config_smoke.js",
-    "node qa/v1674_incident_admission_spark_retention_download_memory_smoke.js"
+    "node qa/v1674_incident_admission_spark_retention_download_memory_smoke.js",
+    "node qa/v1675_download_progress_admission_fallback_closure_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-admission-spark-retention-download-memory",
-    "assetVersion": "1.6.74-incident-admission-spark-retention-download-memory",
-    "cacheName": "foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory",
-    "bootRevision": "boot-sri-v1674",
-    "updateSafetyRevision": "update-safety-v1674",
-    "serviceWorkerRevision": "sw-v1674"
+    "buildId": "download-progress-admission-fallback-closure",
+    "assetVersion": "1.6.75-download-progress-admission-fallback-closure",
+    "cacheName": "foxbear-shell-v1.6.75-download-progress-admission-fallback-closure",
+    "bootRevision": "boot-sri-v1675",
+    "updateSafetyRevision": "update-safety-v1675",
+    "serviceWorkerRevision": "sw-v1675"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

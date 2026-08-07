@@ -619,6 +619,26 @@ function callableErrorMessage(error) {
     return limitText(error?.message || error || 'Callable request failed', 240);
 }
 
+function getIncidentAdmissionRejection(error) {
+    const seen = new Set();
+    const visit = candidate => {
+        if (!candidate || typeof candidate !== 'object' || seen.has(candidate)) return null;
+        seen.add(candidate);
+        const code = callableErrorCode(candidate).toLowerCase();
+        const message = callableErrorMessage(candidate);
+        const reason = limitText(candidate?.details?.reason || '', 80).toLowerCase();
+        const retryAfterSeconds = safeIncidentNumber(candidate?.details?.retryAfterSeconds, 0, 24 * 60 * 60);
+        if (code.includes('resource-exhausted') || reason.includes('incident-admission-rate')) {
+            return Object.freeze({ kind: 'rate-limit', code, reason: reason || 'incident-admission-rate-limit', retryAfterSeconds });
+        }
+        if (reason === 'incident-admission-disabled' || /문제 신고 접수가 운영 설정에서 일시 중지/.test(message)) {
+            return Object.freeze({ kind: 'disabled', code, reason: reason || 'incident-admission-disabled', retryAfterSeconds });
+        }
+        return visit(candidate.primaryError) || visit(candidate.fallbackError) || visit(candidate.cause);
+    };
+    return visit(error);
+}
+
 function normalizeIncidentCallableError(error, name) {
     const originalCode = callableErrorCode(error);
     const originalMessage = callableErrorMessage(error);
@@ -747,6 +767,7 @@ function normalizeCallableHttpError(payload = {}, response = null, name = '') {
     error.httpStatus = Number(response?.status || 0);
     error.functionName = name;
     error.endpoint = INCIDENT_SAME_ORIGIN_PATHS[name] || '';
+    if (source?.details && typeof source.details === 'object') error.details = { ...source.details };
     return error;
 }
 
@@ -858,6 +879,7 @@ async function invokeIncidentCallable(name, data) {
         combined.endpoint = `${FIREBASE_FUNCTIONS_ORIGIN}/${name}`;
         combined.sameOriginEndpoint = INCIDENT_SAME_ORIGIN_PATHS[name] || '';
         combined.adaptiveRouteSkipped = primaryError?.adaptiveRouteSkipped === true;
+        combined.details = fallbackError?.details || primaryError?.details || null;
         throw combined;
     }
 }
@@ -980,6 +1002,11 @@ async function logIncident(payload = {}) {
         return await submitIncidentViaCallable(reportId, incident);
     } catch (error) {
         callableFailure = error;
+        const admissionRejection = getIncidentAdmissionRejection(error);
+        if (admissionRejection) {
+            error.foxbearAdmission = admissionRejection;
+            throw error;
+        }
         console.warn('FoxBear incident callable fallback:', callableErrorCode(error), callableErrorMessage(error));
     }
 

@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.6.74",
-  "assetVersion": "1.6.74-incident-admission-spark-retention-download-memory"
+  "productVersion": "1.6.75",
+  "assetVersion": "1.6.75-download-progress-admission-fallback-closure"
 }
