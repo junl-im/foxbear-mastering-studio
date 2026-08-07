@@ -1,3 +1,24 @@
+# FoxBear QA Report - v1.6.80
+
+## Configured target
+
+- Static and behavioral checks: **435**.
+- New regression: `qa/v1680_ai_mastering_expert_workspace_smoke.js`.
+
+## Verification scope
+
+- First-entry AI Mastering / Expert mode chooser and session restore.
+- AI mode single-column import → queue → analysis presentation using the existing shared DOM/state.
+- Mode switching preserves mastering, Dock, download, and analysis state by avoiding duplicated runtime stores.
+
+## Verification status
+
+- Focused v1.6.80 smoke: **PASS**.
+- Full configured suite: **435/435 PASS** in bounded slices (`109/109`, `109/109`, `109/109`, `108/108`).
+- Version synchronization, Functions syntax, App Check policy, source hygiene, GitHub Desktop handoff, browser preflight, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Verified delivery: **754-file** full ZIP and **296-file** manifestless overwrite patch with **7 delete paths**.
+
 # FoxBear QA Report - v1.6.79
 
 ## Configured target

@@ -24,7 +24,7 @@ assert(compareCss.includes('padding-bottom: calc(var(--bottom-preview-panel-bott
 assert(compareCss.includes('--waveform-playhead-pct') && compareCss.includes('--waveform-progress-pct'), 'compare CSS should own popup timeline variables');
 assert(compareCss.includes('터치 이동') && compareCss.includes('timeline model'), 'compare CSS should preserve popup seek hint text');
 assert(compareCss.includes('width: 1px !important') && compareCss.includes('width: 6px !important'), 'compare CSS should keep thin line plus small cap playhead');
-assert(/stage(?:[789]|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.79-manifestless-patch-playback-retirement'), 'service worker cache name should be bumped to stage7 or later');
+assert(/stage(?:[789]|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.80-ai-mastering-expert-workspace'), 'service worker cache name should be bumped to stage7 or later');
 assert(changelog.includes('Stage7') && handoff.includes('Stage7'), 'handoff docs should mention Stage7');
 
 console.log('PASS waveform compare stage7 CSS cleanup smoke');

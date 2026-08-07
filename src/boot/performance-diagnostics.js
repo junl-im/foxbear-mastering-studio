@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.79
+// FoxBear performance diagnostics - v1.6.80
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.79-manifestless-patch-playback-retirement';
+    const DIAGNOSTICS_VERSION = '1.6.80-ai-mastering-expert-workspace';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

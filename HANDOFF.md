@@ -1,3 +1,33 @@
+# Handoff - v1.6.80
+
+## Current release
+
+- Product version: `1.6.80`
+- Build ID: `ai-mastering-expert-workspace`
+- Asset version: `1.6.80-ai-mastering-expert-workspace`
+- Service worker cache: `foxbear-shell-v1.6.80-ai-mastering-expert-workspace`
+- Configured static/regression target: 435 checks.
+
+## Current focus
+
+- First-entry `AI 마스터링` / `전문가 모드` choice.
+- AI mode uses the same import, queue, analysis, mastering, download and Dock state while presenting a single-column mobile-first workspace.
+- Expert mode preserves the full existing studio.
+
+## Required GitHub Desktop step
+
+1. Extract `foxbear-mastering-studio-v1.6.80-patch.zip` into the **v1.6.79 repository root** and replace matching files.
+2. Delete every path listed in `DELETE_PATHS.txt` if it still exists.
+3. Review modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
+4. For a clean replacement, preserve `.git` and extract the v1.6.80 full ZIP into the repository folder.
+
+## Verified
+
+- Static and behavioral checks passed **435/435** (`109/109`, `109/109`, `109/109`, `108/108`).
+- Version synchronization, Functions syntax, source hygiene, App Check policy, handoff, browser preflight, and Firebase Hosting staging passed.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Full archive: **754 files**. Patch: **296 overwrite files**, no generated patch manifest, with **7 delete paths**.
+
 # Handoff - v1.6.79
 
 ## Current release

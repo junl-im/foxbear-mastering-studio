@@ -1,3 +1,28 @@
+# FoxBear Status - v1.6.80
+
+## Current release
+
+- Product version: `1.6.80`
+- Build ID: `ai-mastering-expert-workspace`
+- Asset version: `1.6.80-ai-mastering-expert-workspace`
+- Service worker cache: `foxbear-shell-v1.6.80-ai-mastering-expert-workspace`
+- Configured static/regression target: **435 checks**.
+
+## Release focus
+
+- Required first-entry AI Mastering / Expert workspace selection.
+- Mobile-first AI workspace: import → queue → analysis in one column with the existing Dock unchanged.
+- Shared DOM/runtime state across both modes so mode switching does not reset audio work.
+
+## Release status
+
+- First-entry chooser is visible from the initial document paint; same-session reloads restore the previous choice before the workspace is exposed.
+- AI mode reuses the existing import, queue, analysis, mastering, download, and Dock runtime rather than duplicating state.
+- New UI assets are included in the Service Worker atomic install graph.
+- Static and behavioral checks passed **435/435** (`109/109`, `109/109`, `109/109`, `108/108`).
+- Firebase Hosting boundary passed with **161 files**.
+- Full archive: **754 files**; patch: **296 overwrite files**, no generated manifest, with **7 delete paths**.
+
 # FoxBear Status - v1.6.79
 
 ## Current release
@@ -10,10 +35,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.79`
-- Build ID: `manifestless-patch-playback-retirement`
-- Asset version: `1.6.79-manifestless-patch-playback-retirement`
-- Service worker cache: `foxbear-shell-v1.6.79-manifestless-patch-playback-retirement`
+- Product version: `1.6.80`
+- Build ID: `ai-mastering-expert-workspace`
+- Asset version: `1.6.80-ai-mastering-expert-workspace`
+- Service worker cache: `foxbear-shell-v1.6.80-ai-mastering-expert-workspace`
 
 ## Release status
 

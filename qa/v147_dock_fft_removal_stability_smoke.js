@@ -25,12 +25,12 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const changelog = read('CHANGELOG.md');
 
-must(pkg.version === '1.6.79', 'package version should be 1.6.79');
-must(pkg.name === 'foxbear-mastering-studio', 'package name should be updated for v1.6.79');
-must(index.includes('data-build="1.6.79"'), 'index build marker should be 1.6.79');
-must(app.includes("const APP_VERSION = 'Pro v1.6.79'"), 'app version should be Pro v1.6.79');
-must(index.includes('1.6.79-manifestless-patch-playback-retirement'), 'index should use v1.6.79 cache key');
-must(sw.includes('foxbear-shell-v1.6.79-manifestless-patch-playback-retirement'), 'service worker should use v1.6.79 cache key');
+must(pkg.version === '1.6.80', 'package version should be 1.6.80');
+must(pkg.name === 'foxbear-mastering-studio', 'package name should be updated for v1.6.80');
+must(index.includes('data-build="1.6.80"'), 'index build marker should be 1.6.80');
+must(app.includes("const APP_VERSION = 'Pro v1.6.80'"), 'app version should be Pro v1.6.80');
+must(index.includes('1.6.80-ai-mastering-expert-workspace'), 'index should use v1.6.80 cache key');
+must(sw.includes('foxbear-shell-v1.6.80-ai-mastering-expert-workspace'), 'service worker should use v1.6.80 cache key');
 
 must(!index.includes('id="bottomPreviewSpectrum"'), 'Dock mini FFT host should be removed from index');
 must(!app.includes('bottomPreviewSpectrum'), 'Dock mini FFT element should not be cached in app refs');
@@ -52,7 +52,7 @@ must(mobileCss.includes('@media (min-width: 721px)') && mobileCss.includes('env(
 must(matrix.includes('#bottomPreviewSpectrum') && matrix.includes('should not exist'), 'QA matrix should document Dock FFT removal');
 must(handoff.includes('Dock FFT removal') && handoff.includes('settings gear'), 'handoff should mention Dock FFT removal and settings gear');
 must(notes.includes('Dock mini FFT was removed'), 'project notes should record Dock FFT removal decision');
-must(changelog.includes('v1.6.79') && changelog.includes('Dock FFT removal'), 'changelog should include v1.6.79 Dock FFT removal entry');
-must(pkg.qaChecks.includes('node qa/v147_dock_fft_removal_stability_smoke.js'), 'v1.6.79 smoke should run in npm check');
+must(changelog.includes('v1.6.80') && changelog.includes('Dock FFT removal'), 'changelog should include v1.6.80 Dock FFT removal entry');
+must(pkg.qaChecks.includes('node qa/v147_dock_fft_removal_stability_smoke.js'), 'v1.6.80 smoke should run in npm check');
 
 console.log('PASS v1.4.26 Dock FFT removal stability smoke');

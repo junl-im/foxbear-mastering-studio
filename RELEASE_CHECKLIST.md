@@ -1,3 +1,17 @@
+# v1.6.80 release checklist
+
+- [x] Add required first-entry `AI 마스터링` / `전문가 모드` chooser.
+- [x] Keep the choice non-dismissible until one workspace is selected.
+- [x] Reuse the same track/analysis/mastering/download/Dock runtime state in both modes.
+- [x] Present AI mode as one column: import → queue → analysis.
+- [x] Keep file/folder import controls side by side on mobile.
+- [x] Add a header workspace switch without clearing current work.
+- [x] Preserve Expert mode full studio layout and controls.
+- [x] Add dedicated v1.6.80 regression coverage.
+- [x] Pass all **435/435** configured checks in bounded slices (`109/109`, `109/109`, `109/109`, `108/108`).
+- [x] Pass version, Functions syntax, App Check policy, source hygiene, handoff, browser-preflight, and **161-file** Hosting boundary gates.
+- [x] Build/verify the **754-file** full ZIP and **296-file** manifestless patch, then replay over v1.6.79 exactly.
+
 # v1.6.75 release checklist
 
 - [x] Download dialog taller viewport contract.

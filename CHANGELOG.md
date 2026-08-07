@@ -1,3 +1,12 @@
+# v1.6.80 - AI mastering and expert workspace
+
+- Adds a first-entry workspace chooser with **AI 마스터링** and **전문가 모드**.
+- Adds a mobile-first AI Mastering layout that reuses the existing DOM/state and presents only **불러오기 → 작업 대기열 → 분석** in one column.
+- Keeps the existing Dock, track-card mastering/download actions, analysis results, workers, and mastering engine shared across both modes.
+- Adds an always-available **작업 방식** switch in the header; changing modes preserves queue, analysis, mastering results, downloads, and playback state.
+- Stores the workspace choice only for the current browsing session so a new session receives the first-entry choice again without making refreshes disruptive.
+- Adds dedicated v1.6.80 regression coverage for required first choice, session restore, mode switching, focus return, and the single-column layout contract.
+
 # v1.6.79 - Manifestless patch delivery and bounded playback URL retirement
 
 - Removes generated `PATCH_MANIFEST.json` from changed-file delivery ZIPs so extracting a patch no longer creates a source-hygiene artifact in the repository root.

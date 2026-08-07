@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.79-manifestless-patch-playback-retirement';
+  const VIEW_VERSION = '1.6.80-ai-mastering-expert-workspace';
   const DEFAULT_BINS = 96;
 
   function getService() {

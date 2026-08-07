@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.79
+# FoxBear AI Mastering Studio Pro v1.6.80
 
-> Current release: v1.6.79 · manifestless-patch-playback-retirement
+> Current release: v1.6.80 · ai-mastering-expert-workspace
 
-This release removes generated patch manifests from GitHub Desktop overwrite ZIPs, keeps legacy manifests as deletion-only cleanup, and bounds retired playback ObjectURL lifetime so stale paused media elements cannot pin obsolete mastered audio indefinitely while active playback remains protected.
+This release adds a first-entry **AI 마스터링 / 전문가 모드** workspace choice. AI Mastering presents the existing import, queue, analysis and Dock workflow as a mobile-first single column while Expert mode preserves the full studio controls; both modes share the same audio/mastering state.
 
 # FoxBear AI Mastering Studio Pro v1.6.75
 

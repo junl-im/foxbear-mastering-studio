@@ -1,8 +1,8 @@
-// FoxBear playback lifecycle recovery service - v1.6.79
+// FoxBear playback lifecycle recovery service - v1.6.80
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.79-manifestless-patch-playback-retirement';
+    const SERVICE_VERSION = '1.6.80-ai-mastering-expert-workspace';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

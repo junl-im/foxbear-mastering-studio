@@ -1,3 +1,26 @@
+# GitHub Desktop Handoff - v1.6.80
+
+## Apply
+
+1. **Fetch origin** in GitHub Desktop.
+2. Confirm the working copy is **v1.6.79**, then extract `foxbear-mastering-studio-v1.6.80-patch.zip` into the repository root and replace matching files.
+3. Remove every path listed in `DELETE_PATHS.txt` if it exists.
+4. Review the UI-mode additions and all generated release metadata changes in GitHub Desktop, commit, then **Push origin**.
+5. For a clean replacement, preserve `.git` and use the v1.6.80 full ZIP.
+
+## Release focus
+
+- `AI 마스터링` / `전문가 모드` first-entry chooser.
+- AI single-column import → queue → analysis workspace with shared Dock and mastering state.
+- Expert mode remains the existing full studio.
+
+## Expected verification result
+
+- Static/regression: **435/435 passed** (`109/109`, `109/109`, `109/109`, `108/108`).
+- Firebase Hosting staged payload: **161 allowlisted files**.
+- Full ZIP: **754 files**. Patch ZIP: **296 overwrite files**, **no `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- New `ui-mode.css` and `ui-mode-service.js` are part of the Service Worker atomic install graph.
+
 # GitHub Desktop Handoff - v1.6.79
 
 ## Apply

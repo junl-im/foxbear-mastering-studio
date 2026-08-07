@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.79-manifestless-patch-playback-retirement';
+const version = '1.6.80-ai-mastering-expert-workspace';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

@@ -53,7 +53,7 @@ const handoff = read('HANDOFF.md');
 const qaReport = read('qa/QA_REPORT.md');
 
 assert(pkg.version === currentRelease.productVersion, 'package version should match current release metadata');
-assert(pkg.qaChecks.includes('node qa/v158_pcm_zip_memory_hardening_smoke.js'), 'v1.6.79 smoke missing from package QA');
+assert(pkg.qaChecks.includes('node qa/v158_pcm_zip_memory_hardening_smoke.js'), 'v1.6.80 smoke missing from package QA');
 assert(memorySource.includes('release-after-encode') && memorySource.includes('maxRetainedBuffers: retainCompletedPcm ? maxRetainedBuffers : 0'), 'release-after-encode policy missing');
 assert(exportSource.includes("compression: 'STORE'") && exportSource.includes('estimatedWorkingSetBytes') && exportSource.includes('requiresIndividualDownload'), 'ZIP STORE/working-set strategy missing');
 assert(downloadSource.includes('FORMAT_REQUIRES_REMASTER'), 'alternate-format remaster error missing');

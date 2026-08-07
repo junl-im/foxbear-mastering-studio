@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.79-manifestless-patch-playback-retirement';
+    const FALLBACK_VERSION = '1.6.80-ai-mastering-expert-workspace';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
