@@ -1,8 +1,8 @@
-// FoxBear worker recovery coordinator v1.6.76 - safe high-level retries after stalled Worker cancellation
+// FoxBear worker recovery coordinator v1.6.78 - safe high-level retries after stalled Worker cancellation
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
+    const VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
     const handlers = [];
 
     function normalizeJob(job) {

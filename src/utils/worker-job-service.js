@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.6.76 - cancellable jobs, health levels, recovery controls, and stale-result isolation
+// FoxBear worker job service v1.6.78 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
+    const VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

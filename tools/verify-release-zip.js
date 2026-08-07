@@ -45,6 +45,15 @@ try {
     console.error(error?.message || error);
     process.exit(1);
   }
+  const versionCheck = spawnSync(process.execPath, [path.join(tempDir, 'tools/sync-release-metadata.js'), '--check'], {
+    cwd: tempDir,
+    encoding: 'utf8',
+    env: process.env
+  });
+  process.stdout.write(versionCheck.stdout || '');
+  process.stderr.write(versionCheck.stderr || '');
+  if (versionCheck.status !== 0) process.exit(versionCheck.status || 1);
+
   const verify = spawnSync(process.execPath, [path.join(tempDir, 'tools/verify-handoff-state.js'), '--root', tempDir, '--archive'], {
     encoding: 'utf8',
     env: process.env

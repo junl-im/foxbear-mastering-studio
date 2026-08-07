@@ -125,6 +125,7 @@
         track.masterPreviewAbortController = null;
         track.masterPreviewJobId = '';
         try { global.FoxBearPlaybackSourceRecoveryService?.releaseTrack?.(track, { revokeObjectURL }); } catch (error) {}
+        try { global.FoxBearDownloadService?.clearDownloadVariantCache?.(track.outBlob); } catch (error) {}
         if (revokeUrl(track.originalUrl, revokeObjectURL)) revoked += 1;
         if (revokeUrl(track.masteredUrl, revokeObjectURL)) revoked += 1;
         if (revokeUrl(track.masterPreviewUrl, revokeObjectURL)) revoked += 1;

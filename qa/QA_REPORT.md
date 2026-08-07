@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.78
+
+## Configured target
+
+- Static and behavioral checks: **433**.
+- New regression: `qa/v1678_release_generation_assist_url_playback_invalidation_smoke.js`.
+
+## Verification scope
+
+- Release generation consistency across `package.json`, `index.html`, service worker cache, 404, external browser, manifest, README/CHANGELOG, and build metadata.
+- Full archive verification by extracting the ZIP and rerunning the release metadata checker inside the archive.
+- Patch archive rejection when a shipped `index.html` carries a stale product/asset generation.
+- Download-assist ObjectURL ownership while the panel remains open and BFCache restoration lifetime refresh.
+- Playback-safe mastered-output invalidation through retired URL ownership rather than immediate revoke.
+- Historical QA compatibility across future build IDs.
+
+## Final result
+
+- Static and behavioral checks: **433/433 passed** in bounded slices (`109/109`, `109/109`, `109/109`, `106/106`).
+- Dedicated v1.6.78 regression verified package-generation gates, archive verification, assist URL ownership, BFCache refresh, and playback-safe invalidation.
+- Version synchronization, Functions syntax, App Check policy, GitHub Desktop handoff, browser preflight, source hygiene, and Firebase Hosting staging passed.
+- Firebase Hosting boundary: **159 allowlisted files**.
+- Verified full ZIP: **748 files**. Patch ZIP: **295 overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- v1.6.77 was found to contain a mixed v1.6.77/v1.6.76 release generation; v1.6.78 corrects it and adds archive-level prevention.
+
 # FoxBear QA Report - v1.6.76
 
 ## Configured target

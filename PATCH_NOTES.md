@@ -1,3 +1,66 @@
+# v1.6.78 patch notes
+
+## 적용 내역
+
+- v1.6.77에서 `package.json`/`sw.js`와 `index.html`/404/외부 브라우저/문서 일부가 서로 다른 asset generation을 가질 수 있던 릴리스 동기화 누락을 교정했습니다.
+- 전체 ZIP 검증 시 압축을 실제로 풀고 그 안에서 `tools/sync-release-metadata.js --check`를 실행하도록 강화해, 작업 트리만 정상이고 배포 ZIP이 혼합 세대인 상황을 차단합니다.
+- GitHub Desktop delivery 생성도 패키징 전/소스 정리 후/전체 ZIP 생성 후 release metadata를 반복 검증하도록 강화했습니다.
+- 패치 ZIP에 `index.html`이 포함되면 `package.json`의 product/asset version과 일치하는지 검증합니다.
+- 다운로드 저장 도움창이 열린 동안 10분 ObjectURL 타이머가 파일 URL을 먼저 revoke하지 않도록 수명 소유권을 보강하고, BFCache 복귀 시 타이머를 갱신합니다.
+- 마스터 출력 무효화 시 재생 중일 수 있는 `masteredUrl`을 즉시 revoke하지 않고 playback source recovery의 retirement 경로를 거쳐 안전하게 회수합니다.
+- 과거 릴리스 QA가 현재 build ID를 옛 값으로 고정해 정상 버전업을 막는 역사 테스트 드리프트를 바로잡았습니다.
+
+## 다음 예정
+
+- 실제 모바일/카카오 환경에서 저장 도움창을 장시간 열어둔 뒤 파일 열기/공유가 유지되는지 확인합니다.
+- 재생 중 설정 변경 → 출력 무효화 → 재마스터링 동안 Dock 재생 연속성과 retired URL 회수를 실기기에서 확인합니다.
+- 장시간 세션에서 playback retired URL, download assist URL, variant cache를 함께 스트레스 테스트합니다.
+
+## GitHub Desktop 적용
+
+- 패치 ZIP은 **v1.6.77 저장소 루트**에 풀어 모두 덮어쓴 뒤 `DELETE_PATHS.txt` 경로가 남아 있으면 삭제합니다.
+- GitHub Desktop에서 수정/추가/삭제를 확인하고 Commit → **Push origin** 합니다.
+- 전체 ZIP으로 교체할 때는 기존 `.git` 폴더를 보존합니다.
+
+## 검증 결과
+
+- 정적·행동 회귀 **433/433 통과** (`109/109`, `109/109`, `109/109`, `106/106`).
+- Version sync / Functions syntax / App Check policy / source hygiene / handoff / browser preflight / Hosting 경계 통과.
+- Firebase Hosting 공개 경계 **159개 파일**.
+- 전체 ZIP **748개 파일**, 패치 ZIP **295개 덮어쓰기 파일 + `PATCH_MANIFEST.json`**, 삭제 경로 **7개**.
+- 전체 ZIP 내부에서도 release metadata 검사를 다시 수행하도록 패키지 검증이 강화되었습니다.
+
+# v1.6.77 patch notes
+
+## 적용 내역
+
+- MP3/WAV 파생 변환 캐시를 곡별 제한뿐 아니라 전체 작업공간 기준으로도 제한합니다. 저메모리/모바일은 64 MiB·2개, 일반 환경은 192 MiB·5개를 넘으면 오래된 변환본부터 제거합니다.
+- 캐시 계측은 `WeakRef`를 사용해 계측 자체가 원본 Blob을 붙잡지 않게 했고, 트랙 제거/마스터 출력 무효화 시 해당 파생 캐시를 명시적으로 비웁니다.
+- 서로 다른 경미한 복구 오류 3건이 우연히 모였다고 반복 장애로 경고하지 않도록 runtime fault burst 판정을 정밀화했습니다. 동일 오류 3회 또는 전체 6회 수준에서 진단 경고를 올립니다.
+- 성능 진단에 다운로드 variant cache 사용량/상한을 포함하고 85% 이상이면 cache-pressure 경고를 표시합니다.
+- incident 분/시간/KST 일일 제한의 `retryAfterSeconds`를 실제 다음 버킷 경계까지의 시간으로 계산합니다.
+- 모바일 화면 회전 및 BFCache/page restore 후 다운로드 시트의 visual viewport를 다시 동기화하고, 자동 다운로드 실패 안내가 두 번 뜨던 중복 토스트를 제거했습니다.
+
+## 다음 예정
+
+- 실제 카카오/Android/iOS에서 장시간 MP3↔WAV 반복 변환 후 Blob/AudioBuffer/variant cache 사용량을 관찰합니다.
+- Firebase 배포 환경에서 admission 제한의 실제 retry 안내와 KST 자정 경계를 확인합니다.
+- runtime fault 반복키가 실제 운영 장애 분류에 충분한지 보고 필요한 카테고리만 추가합니다.
+
+## GitHub Desktop 적용
+
+- 패치 ZIP은 **v1.6.76 저장소 루트**에 풀어 모두 덮어쓴 뒤 `DELETE_PATHS.txt`의 경로가 남아 있으면 삭제합니다.
+- GitHub Desktop에서 수정/추가/삭제를 확인하고 Commit → **Push origin** 합니다.
+- 전체 ZIP으로 교체할 때는 기존 `.git` 폴더를 보존합니다.
+
+## 검증 결과
+
+- 정적·행동 회귀 **432/432 통과** (`108/108` × 4).
+- Functions syntax / App Check policy / handoff / browser preflight / dependency structure / Hosting 경계 / version sync 통과.
+- Firebase Hosting 공개 경계 **159개 파일**.
+- 전체 ZIP **747개 파일**, 패치 ZIP **293개 덮어쓰기 파일 + `PATCH_MANIFEST.json`**, 삭제 경로 **7개**.
+- 실제 v1.6.76 전체 트리에 패치를 덮어쓰고 삭제 목록을 적용한 결과가 v1.6.77 전체 트리와 완전히 동일했습니다 (`missing 0 / extra 0 / changed 0`).
+
 # v1.6.75 patch notes
 
 ## 적용 내역

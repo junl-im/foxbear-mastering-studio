@@ -1,4 +1,6 @@
-# FoxBear AI Mastering Studio Pro v1.6.76
+# FoxBear AI Mastering Studio Pro v1.6.78
+
+> Current release: v1.6.78 · release-generation-assist-url-playback-invalidation
 
 This release keeps mobile download encoding progress visible across browser chrome and on-screen keyboard viewport changes. It also adds privacy-safe, memory-only counters for selected recoverable fallback failures so repeated silent recovery can be diagnosed without retaining exception messages, stacks, filenames, or user data.
 

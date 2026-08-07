@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.76 - Spark-compatible Google administrator access controller
+// FoxBear AI Mastering Studio Pro v1.6.78 - Spark-compatible Google administrator access controller
 'use strict';
 
 (function attachFoxBearAdminAccessController(global) {
@@ -415,5 +415,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.6.76-download-viewport-runtime-fault-diagnostics', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.6.78-release-generation-assist-url-playback-invalidation', create });
 })(typeof window !== 'undefined' ? window : globalThis);

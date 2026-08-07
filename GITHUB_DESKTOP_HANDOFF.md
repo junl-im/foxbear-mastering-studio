@@ -1,25 +1,27 @@
-# GitHub Desktop Handoff - v1.6.76
+# GitHub Desktop Handoff - v1.6.78
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is v1.6.75, then extract `foxbear-mastering-studio-v1.6.76-patch.zip` directly into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.77**, then extract `foxbear-mastering-studio-v1.6.78-patch.zip` directly into the repository root and replace matching files.
 3. Open `DELETE_PATHS.txt` and remove every listed path that still exists. ZIP extraction cannot delete an old tracked file by itself.
 4. Confirm GitHub Desktop shows the expected modified/new/deleted files, then commit and **Push origin**.
-5. For a clean replacement, use `foxbear-mastering-studio-v1.6.76-full.zip`. Preserve `.git` if reusing the current repository folder.
+5. For a clean replacement, use `foxbear-mastering-studio-v1.6.78-full.zip`. Preserve `.git` if reusing the current repository folder.
 
 ## Release focus
 
-- visualViewport-aware mobile download sheet sizing across keyboard and browser-chrome changes.
-- Encoding progress visibility without a sticky action bar covering the progress card.
-- Privacy-safe recoverable runtime fault counters connected to performance/download/incident diagnostics.
+- Repair mixed release-generation metadata discovered in the v1.6.77 delivery tree.
+- Verify metadata again from inside the built full ZIP so stale cache-busting generations cannot ship silently.
+- Keep download-assist ObjectURLs valid while their owner panel is open, including BFCache restoration.
+- Retire mastered playback URLs safely when output is invalidated instead of immediately revoking an in-use source.
 
 ## Expected verification result
 
-- Static/regression: **431/431 passed** (`108/108`, `108/108`, `108/108`, `107/107`).
+- Static/regression: **433/433 passed** (`109/109`, `109/109`, `109/109`, `106/106`).
 - Firebase Hosting staged payload: **159 allowlisted files**.
-- Full ZIP: **745 files**. Patch ZIP: **293 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- v1.6.75 patch application reproduces the v1.6.76 full tree exactly.
+- Full ZIP: **748 files**. Patch ZIP: **295 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- The full ZIP itself must pass `tools/sync-release-metadata.js --check` after extraction.
+
 
 ## v1.6.67 strict CI hygiene
 

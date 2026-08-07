@@ -1,24 +1,30 @@
-# FoxBear Status - v1.6.76
+# FoxBear Status - v1.6.78
 
 ## Current release
 
-- Product version: `1.6.76`
-- Build ID: `download-viewport-runtime-fault-diagnostics`
-- Asset version: `1.6.76-download-viewport-runtime-fault-diagnostics`
-- Service worker cache: `foxbear-shell-v1.6.76-download-viewport-runtime-fault-diagnostics`
-- Configured static/regression target: **431 checks**.
+- Product version: `1.6.78`
+- Build ID: `release-generation-assist-url-playback-invalidation`
+- Asset version: `1.6.78-release-generation-assist-url-playback-invalidation`
+- Service worker cache: `foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation`
+- Configured static/regression target: **433 checks**.
+
+## Release metadata
+
+- Product version: `1.6.78`
+- Build ID: `release-generation-assist-url-playback-invalidation`
+- Asset version: `1.6.78-release-generation-assist-url-playback-invalidation`
+- Service worker cache: `foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation`
 
 ## Release status
 
-- Mobile download/save sheets now follow `visualViewport.height` and keyboard/browser-chrome bottom insets instead of relying only on layout viewport `dvh`.
-- The v1.6.75 minimum-height edge case is closed: a shrunken visual viewport can no longer be overridden by the older 76dvh sheet minimum.
-- While encoding is active, primary download actions stop being sticky so they cannot overlay the worker progress card; viewport changes re-reveal active progress.
-- Selected silent recoveries now feed a bounded, memory-only category/code counter with no exception messages, stacks, filenames, or user content.
-- Performance, download, and incident diagnostics expose these recoverable-fault counters; three or more recent occurrences surface a diagnostic warning.
-- Static and behavioral checks passed **431/431**; Firebase Hosting boundary passed with **159 files**.
-- Full archive contains **745 files**; patch declares **293 overwrite files plus manifest** and **7 delete paths**.
-- Applying the v1.6.76 patch over the supplied v1.6.75 full tree reproduced the final full archive exactly.
-- Production acceptance remains for physical Kakao/Android/iOS keyboard/address-bar transitions and long-running encoding memory behavior.
+- Mixed v1.6.77/v1.6.76 public asset generations discovered during audit are corrected.
+- Delivery verification extracts the full ZIP and reruns release metadata validation inside the archive.
+- Download-assist ObjectURL revocation is deferred while the owning assist panel remains open and refreshed on BFCache restore.
+- Mastered output invalidation retires playback URLs before revocation when a media element may still reference them.
+- Static and behavioral checks passed **433/433**.
+- Firebase Hosting boundary passed with **159 files**.
+- Full archive contains **748 files**; patch declares **295 overwrite files plus manifest** and **7 delete paths**.
+
 
 # FoxBear Status - v1.6.67
 
@@ -94,10 +100,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.76`
-- Build ID: `download-viewport-runtime-fault-diagnostics`
-- Asset version: `1.6.76-download-viewport-runtime-fault-diagnostics`
-- Service worker cache: `foxbear-shell-v1.6.76-download-viewport-runtime-fault-diagnostics`
+- Product version: `1.6.78`
+- Build ID: `release-generation-assist-url-playback-invalidation`
+- Asset version: `1.6.78-release-generation-assist-url-playback-invalidation`
+- Service worker cache: `foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation`
 
 # FoxBear Status - v1.6.64
 

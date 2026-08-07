@@ -1,3 +1,9 @@
+# v1.6.78 - Release generation integrity, assist URL lifetime, playback-safe invalidation
+
+- Release metadata is now verified in the built full ZIP, not only in the working tree.
+- Download assist Object URLs remain valid while the assist panel is open and refresh across BFCache restore.
+- Mastered output invalidation retires playback URLs before revocation to avoid interrupting an in-use source.
+
 # v1.6.76 - Download Viewport and Runtime Fault Diagnostics
 
 - 모바일 다운로드 시트가 visualViewport 높이와 키보드/브라우저 UI 하단 점유를 반영하도록 보강했습니다.

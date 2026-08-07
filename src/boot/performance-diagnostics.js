@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.76
+// FoxBear performance diagnostics - v1.6.78
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
+    const DIAGNOSTICS_VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -268,7 +268,9 @@
         if (snapshot.audio.audible > 1) warnings.push('multiple-audible-audio');
         if (snapshot.dom.canvases > 6) warnings.push('many-canvas-nodes');
         if (snapshot.runtime && !snapshot.runtime.ok) warnings.push('runtime-health-check');
-        if ((snapshot.runtimeFaults?.recentCount || 0) >= 3) warnings.push('recoverable-runtime-faults');
+        const runtimeFaultRecentCount = Number(snapshot.runtimeFaults?.recentCount || 0);
+        const runtimeFaultMaxRepeated = Number(snapshot.runtimeFaults?.maxRecentKeyCount || 0);
+        if (runtimeFaultMaxRepeated >= 3 || runtimeFaultRecentCount >= 6) warnings.push('recoverable-runtime-faults');
         if ((snapshot.importQueue?.active || 0) + (snapshot.importQueue?.pending || 0) > 0) activities.push('bulk-import-active');
         if (snapshot.bulkImportHud && snapshot.bulkImportHud.total >= 2 && !snapshot.bulkImportHud.complete) activities.push('bulk-import-hud-active');
         if ((snapshot.audioDecode?.activeDecodes || 0) > 0) activities.push('audio-decode-active');
@@ -277,6 +279,7 @@
         if (hasRecentDecodeFailure(snapshot.audioDecode, nowAt)) warnings.push('audio-decode-last-error');
         if ((snapshot.masteringQueue?.active || 0) > 0) activities.push('mastering-active');
         if (hasRetainedPcmPressure(snapshot.memoryGuard)) warnings.push('mastered-buffer-retention');
+        if (Number(snapshot.downloadVariantCache?.maxBytes || 0) > 0 && Number(snapshot.downloadVariantCache?.bytes || 0) >= Number(snapshot.downloadVariantCache.maxBytes) * 0.85) warnings.push('download-variant-cache-pressure');
         if ((snapshot.workerJobs?.stalledCount || 0) > 0) warnings.push('worker-job-stalled');
         if ((snapshot.workerJobs?.activeTransferBytes || 0) > 128 * 1024 * 1024) warnings.push('worker-transfer-memory-high');
         if (snapshot.wakeLock?.active && snapshot.wakeLock?.mode === 'auto') activities.push('wake-lock-auto-active');
@@ -301,8 +304,9 @@
             audioContexts: snapshot.audioContexts ? { active: snapshot.audioContexts.activeCount || 0, running: snapshot.audioContexts.runningCount || 0, suspended: snapshot.audioContexts.suspendedCount || 0, byPurpose: snapshot.audioContexts.byPurpose || {} } : null,
             masteringQueue: snapshot.masteringQueue ? { active: snapshot.masteringQueue.active || 0, completedCount: snapshot.masteringQueue.completedCount || 0, failedCount: snapshot.masteringQueue.failedCount || 0 } : null,
             memoryGuard: snapshot.memoryGuard ? { completedCount: snapshot.memoryGuard.completedCount || 0, masteredBufferCount: snapshot.memoryGuard.masteredBufferCount || 0, masteredBufferBytes: snapshot.memoryGuard.masteredBufferBytes || 0, outBlobBytes: snapshot.memoryGuard.outBlobBytes || 0 } : null,
+            downloadVariantCache: snapshot.downloadVariantCache ? { entryCount: snapshot.downloadVariantCache.entryCount || 0, bytes: snapshot.downloadVariantCache.bytes || 0, maxEntries: snapshot.downloadVariantCache.maxEntries || 0, maxBytes: snapshot.downloadVariantCache.maxBytes || 0, lowMemory: Boolean(snapshot.downloadVariantCache.lowMemory) } : null,
             wakeLock: snapshot.wakeLock ? { active: Boolean(snapshot.wakeLock.active), mode: snapshot.wakeLock.mode || 'off', settingLabel: snapshot.wakeLock.settingLabel || 'OFF', userEnabled: Boolean(snapshot.wakeLock.userEnabled) } : null,
-            runtimeFaults: snapshot.runtimeFaults ? { totalCount: snapshot.runtimeFaults.totalCount || 0, uniqueCount: snapshot.runtimeFaults.uniqueCount || 0, recentCount: snapshot.runtimeFaults.recentCount || 0, entries: snapshot.runtimeFaults.entries || [] } : null,
+            runtimeFaults: snapshot.runtimeFaults ? { totalCount: snapshot.runtimeFaults.totalCount || 0, uniqueCount: snapshot.runtimeFaults.uniqueCount || 0, recentCount: snapshot.runtimeFaults.recentCount || 0, maxRecentKeyCount: snapshot.runtimeFaults.maxRecentKeyCount || 0, repeatedKeys: snapshot.runtimeFaults.repeatedKeys || [], entries: snapshot.runtimeFaults.entries || [] } : null,
             renderQueuePending: Boolean(snapshot.renderScheduler?.pending),
             visibility: snapshot.visibility,
             hint: snapshot.frameBudgetHint
@@ -331,6 +335,7 @@
         const masteringPerformance = safeCall(() => global.FoxBearMasteringDiagnostics?.getSnapshot?.(), null);
         const wakeLock = safeCall(() => global.FoxBearWakeLockController?.getSnapshot?.(), null);
         const memoryGuard = safeCall(() => global.FoxBearMemoryGuard?.getSnapshot?.(), null);
+        const downloadVariantCache = safeCall(() => global.FoxBearDownloadService?.getDownloadVariantCacheDiagnostics?.(), null);
         const workerJobs = safeCall(() => global.FoxBearWorkerJobService?.getDiagnostics?.(), null);
         const sessionHandoff = safeCall(() => global.FoxBearSessionHandoff?.getSnapshot?.(), null);
         const serviceWorkerUpdate = safeCall(() => global.FoxBearServiceWorkerUpdateService?.getSnapshot?.(), null);
@@ -364,6 +369,7 @@
             masteringQueue,
             masteringPerformance,
             memoryGuard,
+            downloadVariantCache,
             workerJobs,
             sessionHandoff,
             serviceWorkerUpdate,

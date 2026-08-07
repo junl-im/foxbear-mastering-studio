@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
+    const SERVICE_VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

@@ -80,7 +80,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.76';
+const PRODUCT_VERSION = '1.6.78';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -1988,6 +1988,17 @@ function incidentAdmissionBucketKeys(now = Date.now()) {
   });
 }
 
+function incidentAdmissionRetryAfterSeconds(scope = 'minute', now = Date.now()) {
+  const millis = Math.max(0, Number(now || Date.now()));
+  let boundary = millis + 60000;
+  if (scope === 'hour') boundary = (Math.floor(millis / 3600000) + 1) * 3600000;
+  else if (scope === 'day') {
+    const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+    boundary = (Math.floor((millis + KST_OFFSET_MS) / 86400000) + 1) * 86400000 - KST_OFFSET_MS;
+  } else boundary = (Math.floor(millis / 60000) + 1) * 60000;
+  return Math.max(1, Math.ceil((boundary - millis) / 1000));
+}
+
 async function getIncidentAdmissionControl(now = Date.now()) {
   const millis = Math.max(0, Number(now || Date.now()));
   if (incidentAdmissionControlCache.checkedAt && millis - incidentAdmissionControlCache.checkedAt < INCIDENT_ADMISSION_CONTROL_CACHE_MS) {
@@ -2025,12 +2036,12 @@ async function reserveIncidentAdmission(uid, incident = {}, options = {}) {
     const globalHourCount = globalState.hourKey === keys.hour ? Math.max(0, Number(globalState.hourCount || 0)) : 0;
     const globalMinuteLimit = mode === 'degraded' ? Math.floor(INCIDENT_ADMISSION_GLOBAL_MINUTE_LIMIT / 2) : INCIDENT_ADMISSION_GLOBAL_MINUTE_LIMIT;
     const globalHourLimit = mode === 'degraded' ? Math.floor(INCIDENT_ADMISSION_GLOBAL_HOUR_LIMIT / 2) : INCIDENT_ADMISSION_GLOBAL_HOUR_LIMIT;
-    if (globalMinuteCount >= globalMinuteLimit) return { allowed: false, reason: 'global-minute-limit', retryAfterSeconds: 60, limits, keys };
-    if (globalHourCount >= globalHourLimit) return { allowed: false, reason: 'global-hour-limit', retryAfterSeconds: 3600, limits, keys };
-    if (minuteCount >= limits.minute) return { allowed: false, reason: 'minute-limit', retryAfterSeconds: 60, limits, keys };
-    if (hourCount >= limits.hour) return { allowed: false, reason: 'hour-limit', retryAfterSeconds: 3600, limits, keys };
-    if (dayCount >= limits.day) return { allowed: false, reason: 'day-limit', retryAfterSeconds: 3600, limits, keys };
-    if (manualTest && manualDayCount >= limits.manualDay) return { allowed: false, reason: 'manual-day-limit', retryAfterSeconds: 3600, limits, keys };
+    if (globalMinuteCount >= globalMinuteLimit) return { allowed: false, reason: 'global-minute-limit', retryAfterSeconds: incidentAdmissionRetryAfterSeconds('minute', now), limits, keys };
+    if (globalHourCount >= globalHourLimit) return { allowed: false, reason: 'global-hour-limit', retryAfterSeconds: incidentAdmissionRetryAfterSeconds('hour', now), limits, keys };
+    if (minuteCount >= limits.minute) return { allowed: false, reason: 'minute-limit', retryAfterSeconds: incidentAdmissionRetryAfterSeconds('minute', now), limits, keys };
+    if (hourCount >= limits.hour) return { allowed: false, reason: 'hour-limit', retryAfterSeconds: incidentAdmissionRetryAfterSeconds('hour', now), limits, keys };
+    if (dayCount >= limits.day) return { allowed: false, reason: 'day-limit', retryAfterSeconds: incidentAdmissionRetryAfterSeconds('day', now), limits, keys };
+    if (manualTest && manualDayCount >= limits.manualDay) return { allowed: false, reason: 'manual-day-limit', retryAfterSeconds: incidentAdmissionRetryAfterSeconds('day', now), limits, keys };
     transaction.set(stateRef, {
       uid,
       mode,

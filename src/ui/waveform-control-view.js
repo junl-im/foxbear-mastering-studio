@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
+  const VIEW_VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -64,6 +64,15 @@ try {
   }
   const pkg = JSON.parse(fs.readFileSync(path.join(tempDir, 'package.json'), 'utf8'));
   if (pkg.version !== manifest.productVersion) throw new Error('Patch manifest version does not match package.json.');
+  const assetVersion = String(pkg.foxbearRelease?.assetVersion || '');
+  if (!assetVersion || !assetVersion.startsWith(`${pkg.version}-`)) throw new Error('Patch package assetVersion is invalid.');
+  const indexPath = path.join(tempDir, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    const index = fs.readFileSync(indexPath, 'utf8');
+    if (!index.includes(`data-build=\"${pkg.version}\"`) || !index.includes(`?v=${assetVersion}`)) {
+      throw new Error('Patch index.html does not match package release generation.');
+    }
+  }
 
   const deleteFile = fs.readFileSync(path.join(tempDir, 'DELETE_PATHS.txt'), 'utf8')
     .split(/\r?\n/).map(line => normalize(line.trim())).filter(Boolean);

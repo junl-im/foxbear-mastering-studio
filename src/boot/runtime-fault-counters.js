@@ -1,9 +1,9 @@
-// FoxBear recoverable runtime fault counters - v1.6.76
+// FoxBear recoverable runtime fault counters - v1.6.78
 // Privacy-safe: only bounded category/code/count/timestamps are kept in memory.
 (function attachFoxBearRuntimeFaultCounters(global) {
     'use strict';
 
-    const VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
+    const VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
     const MAX_KEYS = 48;
     const RECENT_WINDOW_MS = 5 * 60 * 1000;
     const MAX_RECENT_EVENTS = 96;
@@ -41,7 +41,7 @@
             lastAt: now
         });
         counters.set(key, next);
-        recentEvents.push(now);
+        recentEvents.push(Object.freeze({ at: now, key }));
         while (recentEvents.length > MAX_RECENT_EVENTS) recentEvents.shift();
         return next;
     }
@@ -52,13 +52,23 @@
             .map(entry => Object.freeze({ ...entry }));
         const totalCount = entries.reduce((sum, item) => sum + Number(item.count || 0), 0);
         const recentCutoff = Number(now) - RECENT_WINDOW_MS;
-        while (recentEvents.length && Number(recentEvents[0] || 0) < recentCutoff) recentEvents.shift();
+        while (recentEvents.length && Number(recentEvents[0]?.at || 0) < recentCutoff) recentEvents.shift();
         const recentCount = recentEvents.length;
+        const recentByKey = new Map();
+        recentEvents.forEach(event => recentByKey.set(event.key, (recentByKey.get(event.key) || 0) + 1));
+        const repeatedKeys = [...recentByKey.entries()]
+            .filter(([, count]) => count >= 2)
+            .sort((left, right) => right[1] - left[1])
+            .slice(0, 8)
+            .map(([key, count]) => Object.freeze({ key, count }));
+        const maxRecentKeyCount = repeatedKeys.length ? Number(repeatedKeys[0].count || 0) : (recentCount ? 1 : 0);
         return Object.freeze({
             version: VERSION,
             totalCount,
             uniqueCount: entries.length,
             recentCount,
+            maxRecentKeyCount,
+            repeatedKeys: Object.freeze(repeatedKeys),
             recentWindowMs: RECENT_WINDOW_MS,
             entries: Object.freeze(entries.slice(0, MAX_KEYS))
         });

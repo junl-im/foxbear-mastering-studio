@@ -15,13 +15,84 @@
     const MAX_DOWNLOAD_DIAGNOSTIC_EVENTS = 16;
     const MAX_CACHED_VARIANTS_PER_SOURCE = 1;
     const MAX_CACHED_VARIANT_BYTES = 64 * 1024 * 1024;
+    const LOW_MEMORY_VARIANT_CACHE_BUDGET_BYTES = 64 * 1024 * 1024;
+    const STANDARD_VARIANT_CACHE_BUDGET_BYTES = 192 * 1024 * 1024;
+    const LOW_MEMORY_VARIANT_CACHE_MAX_ENTRIES = 2;
+    const STANDARD_VARIANT_CACHE_MAX_ENTRIES = 5;
     const downloadDiagnosticEvents = [];
     const verifiedBlobInspections = typeof WeakMap === 'function' ? new WeakMap() : null;
     const downloadVariantCache = typeof WeakMap === 'function' ? new WeakMap() : null;
     const downloadVariantJobs = typeof WeakMap === 'function' ? new WeakMap() : null;
+    const downloadVariantCacheRegistry = new Map();
+    let downloadVariantCacheSequence = 0;
     const downloadUrlTimers = new Map();
     const downloadUrlContexts = new Map();
     const getFileNamePolicy = () => global.FoxBearFileNamePolicyService || null;
+    const isLowMemoryDownloadEnvironment = () => {
+        const deviceMemoryGb = Math.max(0, Number(global.navigator?.deviceMemory || 0));
+        const coarsePointer = Boolean(global.matchMedia?.('(pointer: coarse)')?.matches);
+        const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(String(global.navigator?.userAgent || ''));
+        return (deviceMemoryGb > 0 && deviceMemoryGb <= 4) || coarsePointer || mobileUa;
+    };
+    const getDownloadVariantCachePolicy = () => {
+        const lowMemory = isLowMemoryDownloadEnvironment();
+        return Object.freeze({
+            lowMemory,
+            maxBytes: lowMemory ? LOW_MEMORY_VARIANT_CACHE_BUDGET_BYTES : STANDARD_VARIANT_CACHE_BUDGET_BYTES,
+            maxEntries: lowMemory ? LOW_MEMORY_VARIANT_CACHE_MAX_ENTRIES : STANDARD_VARIANT_CACHE_MAX_ENTRIES,
+            supported: typeof global.WeakRef === 'function'
+        });
+    };
+    const unregisterDownloadVariantCacheEntry = entry => {
+        const token = String(entry?.cacheToken || '');
+        if (token) downloadVariantCacheRegistry.delete(token);
+    };
+    const pruneDownloadVariantCacheRegistry = () => {
+        for (const [token, entry] of downloadVariantCacheRegistry.entries()) {
+            let sourceBlob = null;
+            try { sourceBlob = entry?.sourceRef?.deref?.() || null; } catch (error) {}
+            if (!sourceBlob) downloadVariantCacheRegistry.delete(token);
+        }
+    };
+    const getDownloadVariantCacheDiagnostics = () => {
+        pruneDownloadVariantCacheRegistry();
+        const policy = getDownloadVariantCachePolicy();
+        const entries = [...downloadVariantCacheRegistry.values()];
+        return Object.freeze({
+            supported: policy.supported,
+            lowMemory: policy.lowMemory,
+            entryCount: entries.length,
+            bytes: entries.reduce((sum, entry) => sum + Math.max(0, Number(entry?.sizeBytes || 0)), 0),
+            maxEntries: policy.maxEntries,
+            maxBytes: policy.maxBytes
+        });
+    };
+    const enforceDownloadVariantCacheBudget = () => {
+        pruneDownloadVariantCacheRegistry();
+        const policy = getDownloadVariantCachePolicy();
+        if (!policy.supported) return getDownloadVariantCacheDiagnostics();
+        const totalBytes = () => [...downloadVariantCacheRegistry.values()].reduce((sum, entry) => sum + Math.max(0, Number(entry?.sizeBytes || 0)), 0);
+        let bytes = totalBytes();
+        while (downloadVariantCacheRegistry.size > policy.maxEntries || bytes > policy.maxBytes) {
+            const oldestPair = [...downloadVariantCacheRegistry.entries()].sort((left, right) => Number(left[1]?.lastUsedAt || 0) - Number(right[1]?.lastUsedAt || 0))[0];
+            if (!oldestPair) break;
+            const [token, entry] = oldestPair;
+            let sourceBlob = null;
+            try { sourceBlob = entry?.sourceRef?.deref?.() || null; } catch (error) {}
+            if (sourceBlob) {
+                try {
+                    const variants = downloadVariantCache?.get?.(sourceBlob) || null;
+                    const cached = variants?.get?.(entry.format) || null;
+                    if (cached?.cacheToken === token) variants.delete(entry.format);
+                    if (variants && !variants.size) downloadVariantCache?.delete?.(sourceBlob);
+                } catch (error) {}
+            }
+            downloadVariantCacheRegistry.delete(token);
+            recordDownloadEvent('variant-cache-evict-budget', { format: entry?.format || '', sizeBytes: Number(entry?.sizeBytes || 0), maxBytes: policy.maxBytes, maxEntries: policy.maxEntries });
+            bytes = totalBytes();
+        }
+        return getDownloadVariantCacheDiagnostics();
+    };
 
     const clonePlain = value => {
         try { return JSON.parse(JSON.stringify(value)); }
@@ -83,9 +154,14 @@
         const entry = variants?.get?.(requestedFormat) || null;
         if (!entry?.blob || entry.blob.size <= 44 || entry.sourceFormat !== String(track.outFormat || '')) {
             try { variants?.delete?.(requestedFormat); } catch (error) {}
+            unregisterDownloadVariantCacheEntry(entry);
             return null;
         }
-        if (options.touch !== false) entry.lastUsedAt = Date.now();
+        if (options.touch !== false) {
+            entry.lastUsedAt = Date.now();
+            const registryEntry = downloadVariantCacheRegistry.get(String(entry.cacheToken || ''));
+            if (registryEntry) registryEntry.lastUsedAt = entry.lastUsedAt;
+        }
         return entry;
     };
 
@@ -95,8 +171,14 @@
         const actualFormat = String(result.format || '').trim();
         const sizeBytes = Number(result.blob.size || 0);
         if (!normalizedFormat || actualFormat !== normalizedFormat || sizeBytes <= 44) return false;
-        if (sizeBytes > MAX_CACHED_VARIANT_BYTES) {
-            recordDownloadEvent('variant-cache-skipped-large', { format: normalizedFormat, sizeBytes, limitBytes: MAX_CACHED_VARIANT_BYTES });
+        const cachePolicy = getDownloadVariantCachePolicy();
+        if (!cachePolicy.supported) {
+            recordDownloadEvent('variant-cache-skipped-weakref-unavailable', { format: normalizedFormat, sizeBytes });
+            return false;
+        }
+        const entryLimitBytes = Math.min(MAX_CACHED_VARIANT_BYTES, cachePolicy.maxBytes);
+        if (sizeBytes > entryLimitBytes) {
+            recordDownloadEvent('variant-cache-skipped-large', { format: normalizedFormat, sizeBytes, limitBytes: entryLimitBytes });
             return false;
         }
         let variants = null;
@@ -109,29 +191,50 @@
         } catch (error) {
             return false;
         }
-        variants.set(normalizedFormat, {
+        const previousEntry = variants.get(normalizedFormat) || null;
+        unregisterDownloadVariantCacheEntry(previousEntry);
+        const now = Date.now();
+        const cacheToken = `variant-${(++downloadVariantCacheSequence).toString(36)}-${now.toString(36)}`;
+        const cacheEntry = {
             blob: result.blob,
             format: actualFormat,
             sourceFormat: String(track.outFormat || ''),
             conversionSource: result.conversionSource || 'mastered-file',
             qualityWarning: result.qualityWarning || '',
             sizeBytes,
-            createdAt: Date.now(),
-            lastUsedAt: Date.now()
+            createdAt: now,
+            lastUsedAt: now,
+            cacheToken
+        };
+        variants.set(normalizedFormat, cacheEntry);
+        downloadVariantCacheRegistry.set(cacheToken, {
+            sourceRef: new global.WeakRef(track.outBlob),
+            format: normalizedFormat,
+            sizeBytes,
+            createdAt: now,
+            lastUsedAt: now
         });
         while (variants.size > MAX_CACHED_VARIANTS_PER_SOURCE) {
             const oldest = [...variants.entries()].sort((left, right) => Number(left[1]?.lastUsedAt || 0) - Number(right[1]?.lastUsedAt || 0))[0];
             if (!oldest) break;
+            unregisterDownloadVariantCacheEntry(oldest[1]);
             variants.delete(oldest[0]);
         }
-        recordDownloadEvent('variant-cache-store', { format: normalizedFormat, sizeBytes, cachedCount: variants.size });
-        return true;
+        const cacheDiagnostics = enforceDownloadVariantCacheBudget();
+        const retained = variants.get(normalizedFormat) === cacheEntry;
+        recordDownloadEvent('variant-cache-store', { format: normalizedFormat, sizeBytes, cachedCount: variants.size, retained, globalCachedBytes: cacheDiagnostics.bytes, globalCachedCount: cacheDiagnostics.entryCount });
+        return retained;
     };
 
     const clearDownloadVariantCache = sourceBlob => {
         if (!downloadVariantCache || !sourceBlob) return false;
-        try { return downloadVariantCache.delete(sourceBlob); }
-        catch (error) { return false; }
+        try {
+            const variants = downloadVariantCache.get(sourceBlob) || null;
+            variants?.forEach?.(entry => unregisterDownloadVariantCacheEntry(entry));
+            const cleared = downloadVariantCache.delete(sourceBlob);
+            pruneDownloadVariantCacheRegistry();
+            return cleared;
+        } catch (error) { return false; }
     };
 
     const inspectDownloadBlob = blob => {
@@ -198,10 +301,7 @@
 
     const getDownloadDecodeMemoryPolicy = () => {
         const config = global.FoxBearRuntimeConfig || {};
-        const deviceMemoryGb = Math.max(0, Number(global.navigator?.deviceMemory || 0));
-        const coarsePointer = Boolean(global.matchMedia?.('(pointer: coarse)')?.matches);
-        const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(String(global.navigator?.userAgent || ''));
-        const lowMemory = (deviceMemoryGb > 0 && deviceMemoryGb <= 4) || coarsePointer || mobileUa;
+        const lowMemory = isLowMemoryDownloadEnvironment();
         return Object.freeze({
             lowMemory,
             maxDecodedPcmBytes: Number(lowMemory ? config.LOW_MEMORY_MAX_DECODED_PCM_BYTES : config.STANDARD_MAX_DECODED_PCM_BYTES) || 0,
@@ -737,7 +837,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.6.76',
+                version: '1.6.78',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -757,7 +857,7 @@
             };
         }
         return {
-            version: '1.6.76',
+            version: '1.6.78',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -821,7 +921,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.6.76',
+            version: '1.6.78',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -859,7 +959,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.6.76',
+            version: '1.6.78',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -887,7 +987,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.6.76',
+            version: '1.6.78',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -918,7 +1018,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.6.76',
+            version: '1.6.78',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -943,7 +1043,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.6.76',
+            version: '1.6.78',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -1012,7 +1112,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.6.76',
+            version: '1.6.78',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -1037,6 +1137,7 @@
                 userAgent: env.ua
             },
             recentEvents: getDownloadDiagnosticEvents(),
+            variantCache: getDownloadVariantCacheDiagnostics(),
             recoverableFaults: global.FoxBearRuntimeFaultCounters?.getSnapshot?.() || null
         };
     };
@@ -1204,6 +1305,12 @@
 
     const getActiveDownloadUrlCount = () => new Set([...downloadUrlContexts.keys(), ...downloadUrlTimers.keys()]).size;
 
+    const isDownloadAssistUrlInUse = url => {
+        if (!url || !global.document?.getElementById) return false;
+        const panel = global.document.getElementById('downloadAssist');
+        return Boolean(panel?.isConnected && panel.dataset?.downloadUrl === url && !panel.dataset?.closing);
+    };
+
     const scheduleDownloadUrlRevoke = (url, deps = {}, delayMs = 10 * 60 * 1000) => {
         if (!url) return 0;
         const previous = downloadUrlTimers.get(url);
@@ -1211,6 +1318,11 @@
         const delay = Math.max(1000, Number(delayMs) || 10 * 60 * 1000);
         const timer = setTimeout(() => {
             downloadUrlTimers.delete(url);
+            if (isDownloadAssistUrlInUse(url)) {
+                recordDownloadEvent('object-url-revoke-deferred-assist', { delayMs: delay });
+                scheduleDownloadUrlRevoke(url, deps, Math.min(delay, 2 * 60 * 1000));
+                return;
+            }
             revokeDownloadUrl(url, deps);
         }, delay);
         downloadUrlTimers.set(url, timer);
@@ -1219,6 +1331,12 @@
 
     global.addEventListener?.('pagehide', event => {
         if (!event?.persisted) revokeAllDownloadUrls('pagehide');
+    });
+    global.addEventListener?.('pageshow', event => {
+        if (!event?.persisted) return;
+        const panel = global.document?.getElementById?.('downloadAssist');
+        const url = String(panel?.dataset?.downloadUrl || '');
+        if (url && downloadUrlContexts.has(url)) scheduleDownloadUrlRevoke(url, downloadUrlContexts.get(url) || {}, 10 * 60 * 1000);
     });
 
     const appendGuideSteps = (container, env) => {
@@ -1243,7 +1361,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.6.76 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.6.78 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         recordDownloadEvent('assist-open', { fileName, mimeType, sizeBytes: Number(blob?.size || 0), hasUrl: Boolean(url) });
@@ -1351,6 +1469,7 @@
         const closePanel = () => {
             if (panelClosed) return false;
             panelClosed = true;
+            panel.dataset.closing = 'true';
             panelActionGeneration += 1;
             releasePanelListeners();
             panel.classList.remove('show');
@@ -1364,6 +1483,7 @@
         };
         panel.__foxbearCleanup = () => {
             panelClosed = true;
+            panel.dataset.closing = 'true';
             global.FoxBearModalStateMachine?.setExternalLayerOpen?.(panel, false);
             panelActionGeneration += 1;
             releasePanelListeners();
@@ -1567,6 +1687,7 @@
         markDownloadBlobVerified,
         getCachedDownloadVariant,
         clearDownloadVariantCache,
+        getDownloadVariantCacheDiagnostics,
         getImmediateTrackDownloadBlob,
         prepareTrackDownloadBlob,
         downloadBlob,

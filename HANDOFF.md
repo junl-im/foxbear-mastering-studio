@@ -1,34 +1,35 @@
-# Handoff - v1.6.76
+# Handoff - v1.6.78
 
 ## Current release
 
-- Product version: `1.6.76`
-- Build ID: `download-viewport-runtime-fault-diagnostics`
-- Asset version: `1.6.76-download-viewport-runtime-fault-diagnostics`
-- Service worker cache: `foxbear-shell-v1.6.76-download-viewport-runtime-fault-diagnostics`
-- Configured static/regression target: 431 checks.
+- Product version: `1.6.78`
+- Build ID: `release-generation-assist-url-playback-invalidation`
+- Asset version: `1.6.78-release-generation-assist-url-playback-invalidation`
+- Service worker cache: `foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation`
+- Configured static/regression target: 433 checks.
 
 ## Current focus
 
-- Keep download conversion progress inside the *actually visible* mobile viewport when browser chrome or the on-screen keyboard shrinks `visualViewport`.
-- Prevent the older mobile sheet `min-height` and sticky primary actions from covering the active encoding card.
-- Count selected recoverable silent-fallback failures by bounded category/code only, and surface repeated failures in performance/download/incident diagnostics without retaining exception text or user data.
+- Eliminate mixed release generations between package metadata and public HTML/cache-busting URLs.
+- Reject full delivery archives that are not metadata-synchronized after extraction.
+- Preserve download-assist ObjectURL validity while the assist UI owns the file.
+- Avoid immediate revocation of mastered audio URLs that may still be referenced by playback elements.
 
 ## Required GitHub Desktop step
 
-1. Extract `foxbear-mastering-studio-v1.6.76-patch.zip` into the **v1.6.75 repository root** and replace matching files.
-2. Delete every path listed in `DELETE_PATHS.txt` if it still exists. ZIP extraction cannot remove stale tracked files.
+1. Extract `foxbear-mastering-studio-v1.6.78-patch.zip` into the **v1.6.77 repository root** and replace matching files.
+2. Delete every path listed in `DELETE_PATHS.txt` if it still exists.
 3. Review all modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
-4. The full ZIP may instead be extracted into a clean folder; preserve the existing `.git` folder if reusing the same repository directory.
+4. For a clean replacement, preserve `.git` and extract the v1.6.78 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks passed **431/431** in bounded slices (`108/108`, `108/108`, `108/108`, `107/107`).
-- Dedicated v1.6.76 mobile viewport/runtime-fault regression passed.
-- Version synchronization, Functions syntax, source hygiene, App Check policy, handoff, dependency structure, browser preflight, and Firebase Hosting staging passed.
+- Static and behavioral checks passed **433/433** (`109/109`, `109/109`, `109/109`, `106/106`).
+- Version synchronization, Functions syntax, source hygiene, App Check policy, handoff, browser preflight, and Firebase Hosting staging passed.
 - Firebase Hosting boundary: **159 allowlisted files**.
-- Full archive: **745 files**. Patch: **293 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- Applying the patch over the supplied v1.6.75 full tree reproduced the v1.6.76 full tree exactly (`missing 0 / extra 0 / changed 0`).
+- Full archive: **748 files**. Patch: **295 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Full archive verification now reruns the release metadata checker inside the extracted ZIP.
+
 
 # Handoff - v1.6.67
 

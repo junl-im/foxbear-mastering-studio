@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
+    const FALLBACK_VERSION = '1.6.78-release-generation-assist-url-playback-invalidation';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

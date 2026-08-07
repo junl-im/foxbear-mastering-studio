@@ -50,9 +50,12 @@ function copyPatchFile(relative, patchRoot) {
   fs.chmodSync(target, stat.mode);
 }
 
+run(process.execPath, [path.join(ROOT, 'tools/sync-release-metadata.js'), '--check']);
 run(process.execPath, [path.join(ROOT, 'tools/repair-source-hygiene.js')]);
 run(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js')]);
+run(process.execPath, [path.join(ROOT, 'tools/sync-release-metadata.js'), '--check']);
 run('bash', [path.join(ROOT, 'tools/create-release-zip.sh')]);
+run(process.execPath, [path.join(ROOT, 'tools/sync-release-metadata.js'), '--check']);
 
 fs.mkdirSync(dist, { recursive: true });
 fs.copyFileSync(legacyFull, fullZip);
