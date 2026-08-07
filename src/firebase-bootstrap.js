@@ -990,8 +990,10 @@ async function logIncident(payload = {}) {
         await setDoc(reportRef, {
             ...incident,
             uid: user.uid,
+            submissionTransport: 'firestore-fallback',
             delivery: { status: 'pending', attemptCount: 0 },
-            createdAt: serverTimestamp()
+            createdAt: serverTimestamp(),
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
         });
     } catch (error) {
         const duplicate = await getDoc(reportRef).catch(() => null);
@@ -1021,13 +1023,16 @@ async function getIncidentDelivery(reportId) {
         if (!snapshot.exists()) return { exists: false, status: 'missing', transport: 'firestore' };
         const data = snapshot.data() || {};
         const delivery = data.delivery || {};
+        const submissionTransport = limitText(data.submissionTransport || '', 40);
+        const fallbackWithoutCallable = submissionTransport === 'firestore-fallback' && Boolean(callableFailure) && String(delivery.status || 'pending') === 'pending';
         return {
             exists: true,
-            status: limitText(delivery.status || 'pending', 40),
-            reason: limitText(delivery.reason || '', 100),
+            status: fallbackWithoutCallable ? 'stored-no-mail-service' : limitText(delivery.status || 'pending', 40),
+            reason: fallbackWithoutCallable ? 'firestore-fallback-no-callable' : limitText(delivery.reason || '', 100),
             code: limitText(delivery.code || '', 80),
             message: limitText(delivery.message || '', 300),
             attemptCount: safeIncidentNumber(delivery.attemptCount, 0, 20),
+            submissionTransport,
             terminal: delivery.terminal === true,
             messageId: limitText(delivery.messageId || '', 240),
             subject: limitText(delivery.subject || '', 180),

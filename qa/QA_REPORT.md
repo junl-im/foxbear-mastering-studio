@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.74
+
+## Configured target
+
+- Static and behavioral checks: **429**.
+- New regression: `qa/v1674_incident_admission_spark_retention_download_memory_smoke.js`.
+
+## Verification scope
+
+- Callable incident admission with per-UID minute/hour/KST-day budgets, manual-test budget, global UID-churn caps, duplicate-before-budget ordering, emergency control modes, and `maxInstances` ceiling.
+- Spark-only Firestore fallback provenance and 30-day TTL validation under Firestore Rules.
+- Explicit `stored-no-mail-service` state when a fallback report is stored but Callable delivery is unavailable.
+- Download output re-decode memory policy on standard and low-memory/mobile environments.
+- Browser automatic-incident day rollover aligned to KST.
+
+## Final result
+
+- Static and behavioral checks: **429/429 passed** in four bounded slices (`108/108`, `108/108`, `108/108`, `105/105`).
+- The dedicated v1.6.74 regression verified UID/global admission contracts, duplicate-before-budget ordering, Spark fallback TTL/provenance, stored-without-mail-service status, download re-decode budgets, and KST rollover.
+- Source hygiene, version synchronization, Functions syntax, App Check policy, handoff, dependency structure, browser preflight, and the **158-file** Firebase Hosting boundary passed.
+- Dependency structure reported **0 errors** and 5 expected missing-install warnings because release ZIPs intentionally exclude `node_modules`.
+- The verified full ZIP contains **740 files**. The patch declares **290 overwrite files plus `PATCH_MANIFEST.json`** and **7 delete paths**.
+- Applying the v1.6.74 patch over the supplied v1.6.73 full tree and deleting `DELETE_PATHS.txt` paths reproduced the v1.6.74 full tree exactly.
+- Real Firebase Console TTL activation, emergency-mode toggling, deployed Functions/SMTP behavior, and physical mobile/WebView long-audio acceptance remain production checks.
+
 # FoxBear QA Report - v1.6.73
 
 ## Configured target

@@ -14,7 +14,7 @@ const css = read('assets/css/download-dialog.css');
 const service = read('src/download/download-service.js');
 const index = read('index.html');
 
-assert(/^1\.6\.(?:1[3-9]|[2-9]\d)$/.test(pkg.version), 'package version should preserve the v1.6.73+ menu contract');
+assert(/^1\.6\.(?:1[3-9]|[2-9]\d)$/.test(pkg.version), 'package version should preserve the v1.6.74+ menu contract');
 assert(dialog.includes("formatPicker.append(familyTabs)"), 'only the MP3/WAV family row should remain permanently visible');
 assert(dialog.includes("qualityMenu.className = 'download-format-quality-menu download-format-quality-menu-portal'"), 'context-style quality menu container missing');
 assert(dialog.includes("qualityMenu.hidden = true"), 'quality menu must start closed');

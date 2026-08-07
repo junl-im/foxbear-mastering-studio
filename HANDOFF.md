@@ -1,35 +1,35 @@
-# Handoff - v1.6.73
+# Handoff - v1.6.74
 
 ## Current release
 
-- Product version: `1.6.73`
-- Build ID: `csp-memory-admission-runtime-config`
-- Asset version: `1.6.73-csp-memory-admission-runtime-config`
-- Service worker cache: `foxbear-shell-v1.6.73-csp-memory-admission-runtime-config`
-- Configured static/regression target: 428 checks.
+- Product version: `1.6.74`
+- Build ID: `incident-admission-spark-retention-download-memory`
+- Asset version: `1.6.74-incident-admission-spark-retention-download-memory`
+- Service worker cache: `foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory`
+- Configured static/regression target: 429 checks.
 
 ## Current focus
 
-- Keep Firebase Hosting's strict CSP while making the 404 route-recovery path executable without inline code.
-- Reject large imports when decoded-memory metadata cannot be established and re-check exact PCM/resident bytes immediately after decode.
-- Allow environment-specific incident mail routing without moving secrets into source.
-- Deliver a GitHub Desktop-friendly source tree with tracked Firebase local/generated artifacts removed.
+- Bound public incident creation before Firestore report creation with per-UID and service-wide admission budgets while keeping App Check disabled by policy.
+- Give Spark-only Firestore fallback reports immediate TTL/provenance and distinguish stored-without-mail-service from ordinary SMTP processing.
+- Carry decoded-memory limits into post-master alternate-format re-decode paths.
+- Align automatic incident daily quota rollover with KST.
 
 ## Required GitHub Desktop step
 
-1. Extract `foxbear-mastering-studio-v1.6.73-patch.zip` into the v1.6.72 repository root and replace matching files.
-2. Delete every path listed in `DELETE_PATHS.txt` if it still exists. In particular, GitHub Desktop should show `.firebaserc`, `.firebase/hosting..cache`, `qa/static-audit.txt`, and stale `PATCH_MANIFEST.json` as deletions when they were present.
+1. Extract `foxbear-mastering-studio-v1.6.74-patch.zip` into the **v1.6.73 repository root** and replace matching files.
+2. Delete every path listed in `DELETE_PATHS.txt` if it still exists. ZIP extraction cannot remove stale tracked files.
 3. Review all modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
-4. The full ZIP may instead be extracted into a clean folder when replacing the project wholesale.
+4. The full ZIP may instead be extracted into a clean folder; preserve the existing `.git` folder if reusing the same repository directory.
 
 ## Verified
 
-- Static and behavioral checks passed **428/428** in four bounded slices (`107/107` each).
-- Dedicated v1.6.73 CSP/memory/runtime-config regression passed, including unknown large-file rejection and exact post-decode memory-limit behavior.
-- Source hygiene, version synchronization, Functions syntax, browser preflight coverage, and Firebase Hosting staging passed.
+- Static and behavioral checks passed **429/429** in bounded slices (`108/108`, `108/108`, `108/108`, `105/105`).
+- Dedicated v1.6.74 admission/Spark-retention/download-memory/KST regression passed.
+- Source hygiene, version synchronization, Functions syntax, App Check policy, handoff, dependency structure, browser preflight, and Firebase Hosting staging passed.
 - Firebase Hosting boundary: **158 allowlisted files**.
-- Full archive: **738 files**. Patch: **292 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- Real-device Kakao/WebView memory acceptance and deployed Firebase mail-routing acceptance remain production checks.
+- Full archive: **740 files**. Patch: **290 declared overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Firebase deployed admission-control toggling, TTL deletion timing, and SMTP delivery remain production acceptance checks.
 
 # Handoff - v1.6.67
 

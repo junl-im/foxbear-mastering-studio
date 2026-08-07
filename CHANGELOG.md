@@ -1,3 +1,13 @@
+# v1.6.74 - Incident admission, Spark retention, and download memory closure
+
+- Added server-side incident admission budgets with per-UID minute/hour/KST-day limits, a stricter manual-test daily limit, and global minute/hour caps to reduce anonymous-UID churn abuse while App Check remains disabled by policy.
+- Added a cached server emergency admission control at `incidentMailState/admissionControl` with `enabled`, `degraded`, and `disabled` modes, plus a `maxInstances` ceiling on the public submission Callable.
+- Deduplicates an existing deterministic report ID before consuming submission budget, so normal retry/recovery does not burn admission quota.
+- Adds `expiresAt` and `submissionTransport` at incident creation time. Spark direct-Firestore fallback reports are immediately TTL-eligible and are surfaced as `stored-no-mail-service` when Callable delivery is unavailable.
+- Closes the alternate-download transcode memory gap by applying the same low-memory/standard decoded-PCM and resident-memory limits when a completed output Blob must be decoded again.
+- Aligns the browser automatic-incident daily counter with the existing KST server quota boundary instead of UTC midnight.
+- Adds dedicated v1.6.74 regression coverage and documents the new admission control and Spark retention behavior.
+
 # v1.6.73 - CSP-safe route recovery and decoded-memory admission hardening
 
 - Replaced inline CSS/JavaScript in `404.html` with versioned same-origin recovery assets so Firebase Hosting's strict CSP can execute the recovery path without `unsafe-inline`.

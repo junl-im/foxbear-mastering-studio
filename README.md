@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.74
+
+This release hardens the incident intake boundary while preserving the project's no-App-Check policy. Callable submissions now use deterministic pre-deduplication, per-UID and global admission budgets, an emergency server control mode, and a Functions instance ceiling. Spark-only Firestore fallback reports receive an immediate 30-day TTL and explicit storage provenance, while alternate download transcoding now reuses the same decoded-memory safety limits as initial import.
+
+Operational controls: set `incidentMailState/admissionControl.mode` to `enabled`, `degraded`, or `disabled` from the Firebase Console. Keep Firestore TTL enabled for both `incidentReports.expiresAt` and `incidentMailState.expiresAt`.
+
 # FoxBear AI Mastering Studio Pro v1.6.73
 
 This release prevents the recurring Static release gate failure caused by extract-overwrite leftovers. GitHub Actions now removes only the approved local/generated paths from its temporary checkout, emits warning annotations, and immediately runs the same strict hygiene validation. Secret-like files and unknown unsafe artifacts still fail the release.

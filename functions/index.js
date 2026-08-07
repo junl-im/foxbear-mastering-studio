@@ -80,10 +80,21 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.73';
+const PRODUCT_VERSION = '1.6.74';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
+const INCIDENT_ADMISSION_STATE_PREFIX = 'admission_';
+const INCIDENT_ADMISSION_CONTROL_DOC_ID = 'admissionControl';
+const INCIDENT_ADMISSION_CONTROL_CACHE_MS = 30 * 1000;
+const INCIDENT_ADMISSION_TTL_MS = 2 * 24 * 60 * 60 * 1000;
+const INCIDENT_ADMISSION_MINUTE_LIMIT = 8;
+const INCIDENT_ADMISSION_HOUR_LIMIT = 30;
+const INCIDENT_ADMISSION_DAY_LIMIT = 60;
+const INCIDENT_ADMISSION_MANUAL_DAY_LIMIT = 12;
+const INCIDENT_ADMISSION_GLOBAL_MINUTE_LIMIT = 120;
+const INCIDENT_ADMISSION_GLOBAL_HOUR_LIMIT = 600;
+let incidentAdmissionControlCache = { mode: 'enabled', checkedAt: 0 };
 const INCIDENT_READINESS_COLLECTION = 'incidentDeploymentReadiness';
 const INCIDENT_READINESS_COOLDOWN_MS = 60 * 1000;
 const INCIDENT_READINESS_TTL_MS = 24 * 60 * 60 * 1000;
@@ -1958,27 +1969,135 @@ async function runIncidentRecoveryBatch(options = {}) {
   return totals;
 }
 
+function incidentAdmissionLimits(mode = 'enabled') {
+  const degraded = mode === 'degraded';
+  return Object.freeze({
+    minute: degraded ? Math.max(2, Math.floor(INCIDENT_ADMISSION_MINUTE_LIMIT / 2)) : INCIDENT_ADMISSION_MINUTE_LIMIT,
+    hour: degraded ? Math.max(6, Math.floor(INCIDENT_ADMISSION_HOUR_LIMIT / 2)) : INCIDENT_ADMISSION_HOUR_LIMIT,
+    day: degraded ? Math.max(12, Math.floor(INCIDENT_ADMISSION_DAY_LIMIT / 2)) : INCIDENT_ADMISSION_DAY_LIMIT,
+    manualDay: degraded ? Math.max(4, Math.floor(INCIDENT_ADMISSION_MANUAL_DAY_LIMIT / 2)) : INCIDENT_ADMISSION_MANUAL_DAY_LIMIT
+  });
+}
+
+function incidentAdmissionBucketKeys(now = Date.now()) {
+  const millis = Math.max(0, Number(now || Date.now()));
+  return Object.freeze({
+    minute: String(Math.floor(millis / 60000)),
+    hour: String(Math.floor(millis / 3600000)),
+    day: kstDateKey(new Date(millis))
+  });
+}
+
+async function getIncidentAdmissionControl(now = Date.now()) {
+  const millis = Math.max(0, Number(now || Date.now()));
+  if (incidentAdmissionControlCache.checkedAt && millis - incidentAdmissionControlCache.checkedAt < INCIDENT_ADMISSION_CONTROL_CACHE_MS) {
+    return incidentAdmissionControlCache.mode;
+  }
+  let mode = 'enabled';
+  try {
+    const snapshot = await db.collection('incidentMailState').doc(INCIDENT_ADMISSION_CONTROL_DOC_ID).get();
+    const requested = cleanText(snapshot.data()?.mode || 'enabled', 20).toLowerCase();
+    if (requested === 'disabled' || requested === 'degraded' || requested === 'enabled') mode = requested;
+  } catch (error) {
+    console.warn('FoxBear incident admission control read failed', { error: cleanText(error?.message || error, 220) });
+  }
+  incidentAdmissionControlCache = { mode, checkedAt: millis };
+  return mode;
+}
+
+async function reserveIncidentAdmission(uid, incident = {}, options = {}) {
+  const now = Math.max(0, Number(options.now || Date.now()));
+  const mode = cleanText(options.mode || 'enabled', 20).toLowerCase();
+  const limits = incidentAdmissionLimits(mode);
+  const keys = incidentAdmissionBucketKeys(now);
+  const manualTest = incident.category === 'manual-test';
+  const stateRef = db.collection('incidentMailState').doc(`${INCIDENT_ADMISSION_STATE_PREFIX}${safeKey(uid, 'guest')}`);
+  const globalRef = db.collection('incidentMailState').doc(`${INCIDENT_ADMISSION_STATE_PREFIX}global`);
+  return db.runTransaction(async transaction => {
+    const [snapshot, globalSnapshot] = await Promise.all([transaction.get(stateRef), transaction.get(globalRef)]);
+    const state = snapshot.data() || {};
+    const globalState = globalSnapshot.data() || {};
+    const minuteCount = state.minuteKey === keys.minute ? Math.max(0, Number(state.minuteCount || 0)) : 0;
+    const hourCount = state.hourKey === keys.hour ? Math.max(0, Number(state.hourCount || 0)) : 0;
+    const dayCount = state.dayKey === keys.day ? Math.max(0, Number(state.dayCount || 0)) : 0;
+    const manualDayCount = state.manualDayKey === keys.day ? Math.max(0, Number(state.manualDayCount || 0)) : 0;
+    const globalMinuteCount = globalState.minuteKey === keys.minute ? Math.max(0, Number(globalState.minuteCount || 0)) : 0;
+    const globalHourCount = globalState.hourKey === keys.hour ? Math.max(0, Number(globalState.hourCount || 0)) : 0;
+    const globalMinuteLimit = mode === 'degraded' ? Math.floor(INCIDENT_ADMISSION_GLOBAL_MINUTE_LIMIT / 2) : INCIDENT_ADMISSION_GLOBAL_MINUTE_LIMIT;
+    const globalHourLimit = mode === 'degraded' ? Math.floor(INCIDENT_ADMISSION_GLOBAL_HOUR_LIMIT / 2) : INCIDENT_ADMISSION_GLOBAL_HOUR_LIMIT;
+    if (globalMinuteCount >= globalMinuteLimit) return { allowed: false, reason: 'global-minute-limit', retryAfterSeconds: 60, limits, keys };
+    if (globalHourCount >= globalHourLimit) return { allowed: false, reason: 'global-hour-limit', retryAfterSeconds: 3600, limits, keys };
+    if (minuteCount >= limits.minute) return { allowed: false, reason: 'minute-limit', retryAfterSeconds: 60, limits, keys };
+    if (hourCount >= limits.hour) return { allowed: false, reason: 'hour-limit', retryAfterSeconds: 3600, limits, keys };
+    if (dayCount >= limits.day) return { allowed: false, reason: 'day-limit', retryAfterSeconds: 3600, limits, keys };
+    if (manualTest && manualDayCount >= limits.manualDay) return { allowed: false, reason: 'manual-day-limit', retryAfterSeconds: 3600, limits, keys };
+    transaction.set(stateRef, {
+      uid,
+      mode,
+      minuteKey: keys.minute,
+      minuteCount: minuteCount + 1,
+      hourKey: keys.hour,
+      hourCount: hourCount + 1,
+      dayKey: keys.day,
+      dayCount: dayCount + 1,
+      manualDayKey: keys.day,
+      manualDayCount: manualDayCount + (manualTest ? 1 : 0),
+      lastAcceptedAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(now + INCIDENT_ADMISSION_TTL_MS)
+    }, { merge: true });
+    transaction.set(globalRef, {
+      mode,
+      minuteKey: keys.minute,
+      minuteCount: globalMinuteCount + 1,
+      hourKey: keys.hour,
+      hourCount: globalHourCount + 1,
+      lastAcceptedAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(now + INCIDENT_ADMISSION_TTL_MS)
+    }, { merge: true });
+    return { allowed: true, reason: '', retryAfterSeconds: 0, limits, keys };
+  });
+}
+
 exports.submitIncidentReport = onCall(incidentCallableOptions({
   region: REGION,
   timeoutSeconds: 30,
-  memory: '256MiB'
+  memory: '256MiB',
+  maxInstances: 4
 }), async request => {
   const uid = cleanText(request.auth?.uid || '', 128);
   if (!uid) throw new HttpsError('unauthenticated', '익명 인증이 완료되지 않았습니다.');
   const incident = normalizeCallableIncident(request.data?.incident || {});
   const reportId = callableReportId(uid, request.data?.reportId, incident);
   const reportRef = db.collection('incidentReports').doc(reportId);
+  const existing = await reportRef.get();
+  if (existing.exists) {
+    return { queued: true, deduplicated: true, reportId, submissionKey: incident.submissionKey || incidentSubmissionKey(incident), service: incidentServiceMetadata(request) };
+  }
+  const admissionMode = await getIncidentAdmissionControl();
+  if (admissionMode === 'disabled') {
+    throw new HttpsError('unavailable', '문제 신고 접수가 운영 설정에서 일시 중지되었습니다.', { reason: 'incident-admission-disabled' });
+  }
+  const admission = await reserveIncidentAdmission(uid, incident, { mode: admissionMode });
+  if (!admission.allowed) {
+    throw new HttpsError('resource-exhausted', '문제 신고 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.', {
+      reason: admission.reason,
+      retryAfterSeconds: admission.retryAfterSeconds,
+      mode: admissionMode
+    });
+  }
   try {
     await reportRef.create({
       ...incident,
       uid,
+      submissionTransport: 'callable',
       delivery: { status: 'pending', attemptCount: 0 },
-      createdAt: FieldValue.serverTimestamp()
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt: Timestamp.fromMillis(Date.now() + REPORT_TTL_DAYS * 86400000)
     });
-    return { queued: true, deduplicated: false, reportId, submissionKey: incident.submissionKey || incidentSubmissionKey(incident), service: incidentServiceMetadata(request) };
+    return { queued: true, deduplicated: false, reportId, submissionKey: incident.submissionKey || incidentSubmissionKey(incident), service: incidentServiceMetadata(request), admissionMode };
   } catch (error) {
     if (Number(error?.code) === 6 || /already.?exists/i.test(String(error?.code || error?.message || ''))) {
-      return { queued: true, deduplicated: true, reportId, submissionKey: incident.submissionKey || incidentSubmissionKey(incident), service: incidentServiceMetadata(request) };
+      return { queued: true, deduplicated: true, reportId, submissionKey: incident.submissionKey || incidentSubmissionKey(incident), service: incidentServiceMetadata(request), admissionMode };
     }
     console.error('FoxBear callable incident submit failed', { reportId, error: cleanText(error?.message || error, 300) });
     throw new HttpsError('internal', '문제 신고를 서버 대기열에 저장하지 못했습니다.');
@@ -2697,6 +2816,7 @@ exports.__test = Object.freeze({
   cleanText, escapeHtml, safeKey, mailFromHeader, kstTimestampLabel, incidentSeverityLabel, incidentCategoryLabel,
   buildIncidentSubject, buildMail, buildDailySummaryMail, buildBrandedEmailHtml, emailTable, incidentMessageId, summaryMessageId,
   normalizeCallableIncident, callableReportId, serializeIncidentDelivery, incidentServiceMetadata,
+  incidentAdmissionLimits, incidentAdmissionBucketKeys, reserveIncidentAdmission, getIncidentAdmissionControl,
   kstDayRange, kstDateKey, nextKstDayRetryAt, retryDelayMs,
   isIncidentDeliveryDue, incidentDueAt, isLongUndelivered,
   normalizedGmailAppPassword, assertSmtpAccepted, classifySmtpError,

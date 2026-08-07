@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.73 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.74 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.73-csp-memory-admission-runtime-config';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.74-incident-admission-spark-retention-download-memory';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

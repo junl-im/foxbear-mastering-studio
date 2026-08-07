@@ -1,3 +1,33 @@
+# v1.6.74 patch notes
+
+## 적용 내역
+
+- `submitIncidentReport`에 deterministic report ID 선중복 확인 후 UID별 1분/1시간/KST 일일 접수 예산을 적용하고, 익명 UID 교체 폭주를 완화하는 전역 1분/1시간 예산을 추가했습니다.
+- `incidentMailState/admissionControl.mode`의 `enabled` / `degraded` / `disabled` 서버 비상 제어와 Callable `maxInstances: 4` 상한을 추가했습니다.
+- Spark 전용 Firestore fallback 신고는 생성 즉시 `submissionTransport: firestore-fallback`과 약 30일 `expiresAt`을 기록하며, Callable이 없으면 `stored-no-mail-service` 상태로 구분합니다.
+- 완성 마스터 Blob을 다른 다운로드 형식으로 다시 디코딩할 때도 초기 import와 동일한 low-memory/standard PCM·상주 메모리 한도를 전달하도록 보강했습니다.
+- 브라우저 자동 오류신고의 일일 카운터 기준을 UTC 자정에서 KST 자정으로 통일했습니다.
+
+## 다음 예정
+
+- 실제 Firebase 배포에서 admission `enabled/degraded/disabled` 전환, TTL 삭제, 익명 UID churn 부하를 실환경 검증.
+- 핵심 silent catch를 auth / Firestore / service worker / incident queue / download decode 진단 카운터로 선별 연결.
+- 카카오/Android/iOS 실기기에서 긴 MP3/AAC/FLAC 재다운로드·포맷변환 메모리 acceptance 수행.
+
+## GitHub Desktop 적용
+
+- 전체 ZIP은 새 폴더 또는 `.git`을 제외하고 비운 기존 작업 폴더에 풀어 교체할 수 있습니다.
+- 패치 ZIP은 **v1.6.73 저장소 루트**에 그대로 풀어 모두 덮어쓴 뒤 `DELETE_PATHS.txt`의 경로가 남아 있으면 삭제합니다.
+- GitHub Desktop에서 수정/추가/삭제를 확인해 한 번에 Commit 후 **Push origin** 합니다.
+
+## 검증 결과
+
+- 정적·행동 회귀 **429/429 통과** (`108/108`, `108/108`, `108/108`, `105/105`).
+- source hygiene / version sync / Functions syntax / App Check policy / handoff / dependency structure / browser preflight / Hosting 경계 검증 통과.
+- Firebase Hosting 공개 경계 **158개 파일**.
+- 전체 ZIP **740개 파일**, 패치 ZIP **290개 덮어쓰기 파일 + `PATCH_MANIFEST.json`**, 삭제 경로 **7개**.
+- 실제 Firebase Console TTL/admission-control 전환 및 SMTP 발송은 배포 후 운영 acceptance 대상입니다.
+
 # v1.6.73 patch notes
 
 ## 적용 내역

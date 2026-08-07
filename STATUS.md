@@ -1,23 +1,23 @@
-# FoxBear Status - v1.6.73
+# FoxBear Status - v1.6.74
 
 ## Current release
 
-- Product version: `1.6.73`
-- Build ID: `csp-memory-admission-runtime-config`
-- Asset version: `1.6.73-csp-memory-admission-runtime-config`
-- Service worker cache: `foxbear-shell-v1.6.73-csp-memory-admission-runtime-config`
-- Configured static/regression target: **428 checks**.
+- Product version: `1.6.74`
+- Build ID: `incident-admission-spark-retention-download-memory`
+- Asset version: `1.6.74-incident-admission-spark-retention-download-memory`
+- Service worker cache: `foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory`
+- Configured static/regression target: **429 checks**.
 
 ## Release status
 
-- 404 route recovery is CSP-safe: no inline script/style and no `unsafe-inline` relaxation.
-- Version synchronization now includes `404.html`, preventing stale route-recovery asset generations on future releases.
-- Large unknown-memory imports fail closed above 48 MiB on low-memory devices and 128 MiB on standard devices.
-- Decoded PCM and resident bytes are checked again immediately after decode before analysis/DSP proceeds.
-- Incident mail sender/recipient support environment overrides while retaining the existing production fallback.
-- Tracked Firebase local state/generated QA artifacts are removed from the source handoff.
-- Static and behavioral checks passed **428/428**; Hosting boundary passed with **158 files**.
-- Full archive contains **738 files**; patch declares **292 files plus manifest** and **7 delete paths**.
+- Callable incident submission is deduplicated before budget consumption and protected by per-UID plus global rolling admission caps.
+- Server emergency control supports `enabled`, `degraded`, and `disabled`; public submission Callable is capped at four instances.
+- Spark direct-Firestore fallback reports are TTL-eligible immediately and expose `stored-no-mail-service` when Functions are unavailable.
+- Alternate-format download re-decode now uses the shared decoded PCM/resident-memory limits.
+- Browser automatic incident daily limits roll over at KST midnight.
+- Static and behavioral checks passed **429/429**; Hosting boundary passed with **158 files**.
+- Full archive contains **740 files**; patch declares **290 overwrite files plus manifest** and **7 delete paths**.
+- Production acceptance remains for deployed Firebase TTL timing, admission-control toggling, SMTP delivery, and real mobile/WebView memory behavior.
 
 # FoxBear Status - v1.6.67
 
@@ -93,10 +93,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.73`
-- Build ID: `csp-memory-admission-runtime-config`
-- Asset version: `1.6.73-csp-memory-admission-runtime-config`
-- Service worker cache: `foxbear-shell-v1.6.73-csp-memory-admission-runtime-config`
+- Product version: `1.6.74`
+- Build ID: `incident-admission-spark-retention-download-memory`
+- Asset version: `1.6.74-incident-admission-spark-retention-download-memory`
+- Service worker cache: `foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory`
 
 # FoxBear Status - v1.6.64
 

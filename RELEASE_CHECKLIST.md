@@ -1,3 +1,19 @@
+# FoxBear v1.6.74 release checklist
+
+- [x] Add deterministic duplicate-before-admission ordering for Callable incident reports.
+- [x] Add UID minute/hour/KST-day budgets and a separate manual-test daily budget.
+- [x] Add global minute/hour admission caps to reduce anonymous UID churn bursts.
+- [x] Add `incidentMailState/admissionControl` `enabled/degraded/disabled` server emergency modes and Callable `maxInstances` ceiling.
+- [x] Add immediate 30-day TTL and `firestore-fallback` provenance to Spark direct Firestore reports.
+- [x] Distinguish Spark stored/no-mail-service state in incident delivery diagnostics.
+- [x] Apply decoded-memory limits to post-master alternate-download re-decode.
+- [x] Align browser automatic incident daily rollover to KST.
+- [x] Add dedicated v1.6.74 regression coverage.
+- [x] Run all **429/429** configured checks in bounded slices (`108/108`, `108/108`, `108/108`, `105/105`).
+- [x] Run source hygiene, version, Functions syntax, App Check policy, handoff, dependency, browser-preflight, and Hosting checks.
+- [x] Build and verify the **740-file** full ZIP and **290-file** patch plus manifest and 7 delete paths.
+- [ ] Verify deployed Firebase admission-control modes, TTL deletion, SMTP delivery, and physical mobile/WebView memory behavior.
+
 # FoxBear v1.6.72 release checklist
 
 - [x] Reproduce the exact three GitHub Actions source-hygiene errors in a tracked Git fixture.

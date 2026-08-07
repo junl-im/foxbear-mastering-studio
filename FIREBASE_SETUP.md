@@ -169,9 +169,13 @@ firebase deploy --only hosting
 Firestore TTL 정책에서 다음 두 컬렉션의 `expiresAt` 필드를 등록합니다.
 
 - `incidentReports`: 약 30일 보존
-- `incidentMailState`: 약 2일 보존
+- `incidentMailState`: 약 2일 보존 (`admission_{uid}` 제출 예산 상태 포함)
 
-정책을 켜지 않으면 `expiresAt` 값은 기록되지만 문서는 자동 삭제되지 않습니다.
+정책을 켜지 않으면 `expiresAt` 값은 기록되지만 문서는 자동 삭제되지 않습니다. Spark 전용 배포의 Firestore fallback 신고도 생성 시점부터 `incidentReports.expiresAt`을 기록하므로 Functions가 없어도 약 30일 TTL 대상이 됩니다.
+
+### Incident 서버 접수 제어
+
+Functions가 배포된 환경에서는 `incidentMailState/admissionControl` 문서의 `mode`를 Firebase Console에서 `enabled`, `degraded`, `disabled` 중 하나로 설정할 수 있습니다. 문서가 없거나 읽기에 실패하면 `enabled`로 동작합니다. `degraded`는 UID별 접수 예산을 절반 수준으로 낮추고, `disabled`는 Callable 문제 신고 생성을 서버에서 중지합니다. 클라이언트 Remote Config 스위치와 별개인 서버 비상 제어입니다.
 
 ## 7. Remote Config 선택값
 

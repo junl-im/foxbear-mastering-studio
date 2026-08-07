@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.73-csp-memory-admission-runtime-config';
+const version = '1.6.74-incident-admission-spark-retention-download-memory';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.73-csp-memory-admission-runtime-config';
+    const SERVICE_VERSION = '1.6.74-incident-admission-spark-retention-download-memory';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

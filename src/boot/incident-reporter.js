@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.73
+// FoxBear automatic incident reporter - v1.6.74
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.73-csp-memory-admission-runtime-config';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.73').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.74-incident-admission-spark-retention-download-memory';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.74').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -781,8 +781,13 @@
         return model;
     }
 
+    function getKstDateKey(now = new Date()) {
+        const source = now instanceof Date ? now : new Date(now);
+        return new Date(source.getTime() + (9 * 60 * 60 * 1000)).toISOString().slice(0, 10);
+    }
+
     function getDailyState() {
-        const today = new Date().toISOString().slice(0, 10);
+        const today = getKstDateKey();
         try {
             const parsed = JSON.parse(storageGet(DAILY_KEY, '{}')) || {};
             if (parsed.date === today) return { date: today, count: Math.max(0, Number(parsed.count || 0)) };
@@ -1443,7 +1448,7 @@
             try {
                 const delivery = await bridge.getIncidentDelivery(reportId);
                 lastCheckError = null;
-                if (['emailed', 'failed', 'dead-letter', 'suppressed-duplicate', 'suppressed-rate-limit'].includes(delivery.status)) return delivery;
+                if (['emailed', 'failed', 'dead-letter', 'suppressed-duplicate', 'suppressed-rate-limit', 'stored-no-mail-service'].includes(delivery.status)) return delivery;
             } catch (error) {
                 lastCheckError = error;
             }
@@ -1477,9 +1482,9 @@
         onProgress('mail', 'active', 'SMTP 처리 결과 확인 중');
         const delivery = await waitForDelivery(reportId);
         const classified = classifyMailTestFailure(delivery?.status || '', delivery?.code || '', `${delivery?.reason || ''} ${delivery?.message || ''}`);
-        const mailTone = delivery?.status === 'emailed' ? 'ok' : ['pending', 'submitted'].includes(delivery?.status) ? 'warning' : 'error';
+        const mailTone = delivery?.status === 'emailed' ? 'ok' : ['pending', 'submitted', 'stored-no-mail-service'].includes(delivery?.status) ? 'warning' : 'error';
         const mailLabels = {
-            emailed: 'SMTP 접수 완료', pending: '처리 지연', 'status-check-failed': '상태 조회 실패',
+            emailed: 'SMTP 접수 완료', pending: '처리 지연', 'stored-no-mail-service': 'Firestore 저장 완료 · 메일 서비스 미배포', 'status-check-failed': '상태 조회 실패',
             'smtp-secret-invalid': 'SMTP Secret 오류', 'smtp-auth-failed': 'Gmail 인증 실패',
             'smtp-recipient-rejected': '수신 거부', 'smtp-rate-limited': '발송 한도',
             'smtp-network-failed': 'SMTP 연결 실패', failed: '발송 실패', 'dead-letter': '최종 실패'

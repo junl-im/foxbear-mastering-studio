@@ -196,6 +196,18 @@
         typeof global.FoxBearAudioDecodeService.decodeAudioFile === 'function'
     );
 
+    const getDownloadDecodeMemoryPolicy = () => {
+        const config = global.FoxBearRuntimeConfig || {};
+        const deviceMemoryGb = Math.max(0, Number(global.navigator?.deviceMemory || 0));
+        const coarsePointer = Boolean(global.matchMedia?.('(pointer: coarse)')?.matches);
+        const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(String(global.navigator?.userAgent || ''));
+        const lowMemory = (deviceMemoryGb > 0 && deviceMemoryGb <= 4) || coarsePointer || mobileUa;
+        return Object.freeze({
+            lowMemory,
+            maxDecodedPcmBytes: Number(lowMemory ? config.LOW_MEMORY_MAX_DECODED_PCM_BYTES : config.STANDARD_MAX_DECODED_PCM_BYTES) || 0,
+            maxDecodePeakBytes: Number(lowMemory ? config.LOW_MEMORY_MAX_DECODE_PEAK_BYTES : config.STANDARD_MAX_DECODE_PEAK_BYTES) || 0
+        });
+    };
 
     const decodeMasteredOutputForDownload = async (track, options = {}) => {
         const sourceBlob = options.sourceBlob || track?.outBlob || null;
@@ -210,9 +222,12 @@
             ? new global.File([sourceBlob], fileName, { type: mime, lastModified: Date.now() })
             : sourceBlob;
         emitDownloadProgress(options, { percent: 6, stage: '완성 파일 읽기', detail: '마스터링 결과의 오디오 데이터를 확인합니다.' });
+        const memoryPolicy = getDownloadDecodeMemoryPolicy();
         const decoded = await service.decodeAudioFile(sourceFile, {
             signal: options.signal || null,
-            latencyHint: 'playback'
+            latencyHint: 'playback',
+            maxDecodedPcmBytes: memoryPolicy.maxDecodedPcmBytes,
+            maxDecodePeakBytes: memoryPolicy.maxDecodePeakBytes
         });
         emitDownloadProgress(options, { percent: 18, stage: '완성 파일 읽기', detail: '오디오 데이터를 포맷 변환용으로 준비했습니다.' });
         return decoded;
@@ -722,7 +737,7 @@
         ];
         if (env.restricted) {
             return {
-                version: '1.6.73',
+                version: '1.6.74',
                 restricted: true,
                 primaryAction: shareReady ? 'share' : 'assist',
                 primaryLabel: shareReady ? '공유/저장' : '저장 도움',
@@ -742,7 +757,7 @@
             };
         }
         return {
-            version: '1.6.73',
+            version: '1.6.74',
             restricted: false,
             primaryAction: 'download',
             primaryLabel: '다운로드',
@@ -806,7 +821,7 @@
         };
         const receipt = receiptMap[normalizedAction] || receiptMap.download;
         return {
-            version: '1.6.73',
+            version: '1.6.74',
             action: normalizedAction,
             title: receipt.title,
             detail: receipt.detail,
@@ -844,7 +859,7 @@
                 { key: 'assist', label: '3. 저장 도움', detail: '자동 저장이 안 보이면 파일 열기 또는 직접 저장을 사용합니다.' }
             ];
         return {
-            version: '1.6.73',
+            version: '1.6.74',
             lastAction: normalizedLastAction,
             headline,
             summary,
@@ -872,7 +887,7 @@
             ? (checklist.steps || []).find(step => step.key === 'diagnostics') || null
             : (checklist.steps || []).find(step => step.key === 'assist') || null;
         return {
-            version: '1.6.73',
+            version: '1.6.74',
             mode: restricted ? 'restricted-compact' : 'standard-compact',
             lastAction: checklist.lastAction,
             headline: restricted ? '저장은 이 순서로만 해보세요' : '저장이 안 보이면 이것만 확인하세요',
@@ -903,7 +918,7 @@
         const primaryLabel = restricted ? (plan.primaryAction === 'assist' ? '저장 도움' : '공유/저장') : '다운로드';
         const fallbackLabel = restricted ? '파일 열기' : '저장 도움';
         return {
-            version: '1.6.73',
+            version: '1.6.74',
             mode: restricted ? 'restricted-micro' : 'standard-micro',
             lastAction: plan.lastAction,
             headline: restricted ? '카카오에서는 이 두 가지만 먼저' : '먼저 다운로드만 확인',
@@ -928,7 +943,7 @@
         const env = hint.environment || getDownloadEnvironmentInfo();
         const restricted = Boolean(env.restricted);
         return {
-            version: '1.6.73',
+            version: '1.6.74',
             mode: restricted ? 'restricted-declutter' : 'standard-declutter',
             headline: restricted ? '첫 화면은 공유/저장만 먼저' : '첫 화면은 다운로드만 먼저',
             detail: restricted
@@ -997,7 +1012,7 @@
         const env = getDownloadEnvironmentInfo();
         const safeName = fileName ? sanitizeDownloadFileName(normalizeDownloadFileNameForBlob(fileName, blob)) : '';
         return {
-            version: '1.6.73',
+            version: '1.6.74',
             generatedAt: new Date().toISOString(),
             file: {
                 name: safeName || fileName || '',
@@ -1226,7 +1241,7 @@
         container.appendChild(list);
     };
 
-    // Legacy QA wording anchor only; the visible v1.6.73 assist copy is intentionally shorter.
+    // Legacy QA wording anchor only; the visible v1.6.74 assist copy is intentionally shorter.
     // 카카오톡 안에서는 자동 다운로드가 조용히 실패할 수 있습니다
     const showDownloadAssist = (url, fileName, mimeType, blob = null, deps = {}) => {
         recordDownloadEvent('assist-open', { fileName, mimeType, sizeBytes: Number(blob?.size || 0), hasUrl: Boolean(url) });
@@ -1543,6 +1558,7 @@
 
     global.FoxBearDownloadService = Object.freeze({
         getDownloadFormatOptions,
+        getDownloadDecodeMemoryPolicy,
         getDownloadSizeEstimate,
         inspectDownloadBlob,
         assertDownloadBlob,

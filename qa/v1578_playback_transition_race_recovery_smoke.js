@@ -8,7 +8,7 @@ const vm = require('vm');
 const source = fs.readFileSync('src/audio/playback-transition-service.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.6.73');
+assert.strictEqual(pkg.version, '1.6.74');
 assert(pkg.qaChecks.includes('node qa/v1578_playback_transition_race_recovery_smoke.js'));
 assert(source.includes('audio._foxbearFadeState'));
 assert(source.includes('fadeState.resolve(false)'));

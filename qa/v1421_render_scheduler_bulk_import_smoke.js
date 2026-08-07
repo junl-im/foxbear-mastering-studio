@@ -25,11 +25,11 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.6.73', 'package version should be 1.6.73');
+assert(pkg.version === '1.6.74', 'package version should be 1.6.74');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-assert(index.includes('data-build="1.6.73"'), 'index build marker should be 1.6.73');
-assert(config.includes("ASSET_VERSION = '1.6.73-csp-memory-admission-runtime-config'"), 'runtime asset key should be v1.6.73');
-assert(sw.includes('foxbear-shell-v1.6.73-csp-memory-admission-runtime-config'), 'service worker cache should use v1.6.73 key');
+assert(index.includes('data-build="1.6.74"'), 'index build marker should be 1.6.74');
+assert(config.includes("ASSET_VERSION = '1.6.74-incident-admission-spark-retention-download-memory'"), 'runtime asset key should be v1.6.74');
+assert(sw.includes('foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory'), 'service worker cache should use v1.6.74 key');
 
 assert(app.includes('function scheduleRenderAll'), 'app should define render scheduler');
 assert(app.includes('window.FoxBearRenderScheduler'), 'render scheduler diagnostics should be exposed');
@@ -56,10 +56,10 @@ assert(runtime.includes('FoxBearPlaybackTransitionService.waitForMediaReady'), '
 assert(decode.includes('FoxBearAudioDecodeService'), 'audio decode service should exist');
 assert(decode.includes('decodeAudioFile'), 'audio decode service should expose decodeAudioFile');
 assert(app.includes('FoxBearAudioDecodeService'), 'app decode path should delegate to audio decode service');
-assert(index.includes('src/boot/render-scheduler.js?v=1.6.73-csp-memory-admission-runtime-config'), 'index should load render scheduler service');
-assert(index.includes('src/audio/audio-decode-service.js?v=1.6.73-csp-memory-admission-runtime-config'), 'index should load audio decode service');
-assert(sw.includes('./src/boot/render-scheduler.js?v=1.6.73-csp-memory-admission-runtime-config'), 'service worker should precache render scheduler');
-assert(sw.includes('./src/audio/audio-decode-service.js?v=1.6.73-csp-memory-admission-runtime-config'), 'service worker should precache audio decode service');
+assert(index.includes('src/boot/render-scheduler.js?v=1.6.74-incident-admission-spark-retention-download-memory'), 'index should load render scheduler service');
+assert(index.includes('src/audio/audio-decode-service.js?v=1.6.74-incident-admission-spark-retention-download-memory'), 'index should load audio decode service');
+assert(sw.includes('./src/boot/render-scheduler.js?v=1.6.74-incident-admission-spark-retention-download-memory'), 'service worker should precache render scheduler');
+assert(sw.includes('./src/audio/audio-decode-service.js?v=1.6.74-incident-admission-spark-retention-download-memory'), 'service worker should precache audio decode service');
 assert(runtime.includes('FoxBearAudioDecodeService.decodeAudioFile'), 'runtime health should require audio decode service');
 assert(pkg.qaChecks.includes('node --check src/boot/render-scheduler.js'), 'package QA should syntax-check render scheduler service');
 assert(pkg.qaChecks.includes('node --check src/audio/audio-decode-service.js'), 'package QA should syntax-check audio decode service');
@@ -69,8 +69,8 @@ assert(perf.includes('renderScheduler = safeCall'), 'performance diagnostics sho
 assert(perf.includes('bulk-import-active'), 'performance summary should warn while bulk import is active');
 assert(runtime.includes('FoxBearRenderScheduler.getSnapshot'), 'runtime health should require render scheduler');
 
-assert(matrix.includes('v1.4.26 Render Scheduler + Bulk Import UI Throttle'), 'matrix should document v1.6.73 scope');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.6.73 final QA');
-assert(changelog.includes('v1.6.73'), 'changelog should mention v1.6.73');
+assert(matrix.includes('v1.4.26 Render Scheduler + Bulk Import UI Throttle'), 'matrix should document v1.6.74 scope');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention v1.6.74 final QA');
+assert(changelog.includes('v1.6.74'), 'changelog should mention v1.6.74');
 
 console.log('PASS v1.4.26 carry-forward: render scheduler, silent wake lock, cache, decode, crossfade smoke');

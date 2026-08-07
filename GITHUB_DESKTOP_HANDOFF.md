@@ -1,27 +1,25 @@
-# GitHub Desktop Handoff - v1.6.73
+# GitHub Desktop Handoff - v1.6.74
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Extract `foxbear-mastering-studio-v1.6.73-patch.zip` directly into the v1.6.72 repository root and replace matching files.
+2. Confirm the working copy is v1.6.73, then extract `foxbear-mastering-studio-v1.6.74-patch.zip` directly into the repository root and replace matching files.
 3. Open `DELETE_PATHS.txt` and remove every listed path that still exists. ZIP extraction cannot delete an old tracked file by itself.
 4. Confirm GitHub Desktop shows the expected modified/new/deleted files, then commit and **Push origin**.
-5. If you prefer a clean replacement, use `foxbear-mastering-studio-v1.6.73-full.zip` in a new/emptied folder; it intentionally excludes `.git`, dependencies, Firebase CLI local state, caches, secrets, and generated test output.
+5. For a clean replacement, use `foxbear-mastering-studio-v1.6.74-full.zip`. Preserve `.git` if reusing the current repository folder.
 
 ## Release focus
 
-- CSP-safe 404 route recovery without weakening `script-src`/`style-src`.
-- Fail-closed handling for large files with unknown decoded-memory metadata.
-- Exact post-decode PCM/resident-memory gate before analysis and mastering.
-- Environment-specific Functions mail routing through `FOXBEAR_ALERT_RECIPIENT` and `FOXBEAR_ALERT_SENDER`.
-- Real deletion of stale `.firebaserc`, `.firebase/hosting..cache`, generated QA output, and stale patch manifest from the source handoff.
+- Callable incident admission: UID minute/hour/KST-day budgets, manual-test budget, global burst caps, emergency server mode, and instance ceiling.
+- Spark-only fallback: immediate 30-day TTL, explicit `firestore-fallback` provenance, and `stored-no-mail-service` status.
+- Alternate download transcode: low-memory/standard decoded PCM and peak resident-memory limits.
+- Client automatic incident daily rollover aligned to KST.
 
 ## Expected verification result
 
-- Static/regression: **428/428 passed** (`107/107` × 4 slices).
+- Static/regression: **429/429 passed** (`108/108`, `108/108`, `108/108`, `105/105`).
 - Firebase Hosting staged payload: **158 allowlisted files**.
-- Full ZIP: **738 files**.
-- Patch ZIP: **292 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Full ZIP: **740 files**. Patch ZIP: **290 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
 
 ## v1.6.67 strict CI hygiene
 

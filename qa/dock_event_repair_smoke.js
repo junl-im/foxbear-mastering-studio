@@ -4,11 +4,11 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const app=read('src/app.js'); const dockCss=read('assets/css/dock.css'); const html=read('index.html'); const pkg=JSON.parse(read('package.json')); const sw=read('sw.js');
-must(app.includes("const APP_VERSION = 'Pro v1.6.73'"),'version');
-must(html.includes('data-build="1.6.73"'),'build');
-must(pkg.version==='1.6.73','package version');
-must(sw.includes('foxbear-shell-v1.6.73-csp-memory-admission-runtime-config'),'sw cache');
-must(html.includes('src/ui/dock-controller.js?v=1.6.73-csp-memory-admission-runtime-config'),'dock controller loaded');
+must(app.includes("const APP_VERSION = 'Pro v1.6.74'"),'version');
+must(html.includes('data-build="1.6.74"'),'build');
+must(pkg.version==='1.6.74','package version');
+must(sw.includes('foxbear-shell-v1.6.74-incident-admission-spark-retention-download-memory'),'sw cache');
+must(html.includes('src/ui/dock-controller.js?v=1.6.74-incident-admission-spark-retention-download-memory'),'dock controller loaded');
 must(app.includes("runDockRemoteSourceMode('original', event)"),'original dispatcher');
 must(app.includes("runDockRemoteSourceMode('mastered', event)"),'mastered dispatcher');
 must(app.includes('function runDockRemoteTranslationMode'),'translation dispatcher');
