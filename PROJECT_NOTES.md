@@ -776,4 +776,6 @@ Stage7, Stage8, Stage9, Stage9.1, Stage10, Stage11, Stage11.1, Stage12, Stage27,
 ## v1.5.23 audit note
 
 The v1.5.22 browser failure was caused by a test-fixture race: single-file analysis could open the AI recommendation modal between media readiness and the Dock play-button click. The preview-routing scenario now opts into targeted automatic-dialog isolation and validates click ownership before playback.
+## v1.6.76 current focus
+- Validate mobile keyboard/address-bar viewport transitions and repeated recoverable-fault diagnostic behavior.
 

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.75 - download filename preview and controls
+// FoxBear AI Mastering Studio Pro v1.6.76 - download filename preview and controls
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -23,13 +23,15 @@
         try {
             return normalizeDownloadQualityPreferences(JSON.parse(global.localStorage?.getItem?.(DOWNLOAD_QUALITY_PREFERENCES_KEY) || 'null'));
         } catch (error) {
+            global.FoxBearRuntimeFaultCounters?.record?.('download-preferences', 'read-failed');
             return normalizeDownloadQualityPreferences(null);
         }
     };
 
     const saveDownloadQualityPreferences = value => {
         const normalized = normalizeDownloadQualityPreferences(value);
-        try { global.localStorage?.setItem?.(DOWNLOAD_QUALITY_PREFERENCES_KEY, JSON.stringify(normalized)); } catch (error) {}
+        try { global.localStorage?.setItem?.(DOWNLOAD_QUALITY_PREFERENCES_KEY, JSON.stringify(normalized)); }
+        catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('download-preferences', 'write-failed'); }
         return normalized;
     };
 
@@ -92,7 +94,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.6.75',
+                version: '1.6.76',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -194,7 +196,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.6.75 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.6.76 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -1241,7 +1243,25 @@
             progressLastAt = Date.now();
             updateProgressTiming();
         };
+        const syncDownloadVisualViewport = ({ revealProgress = false } = {}) => {
+            const visualViewport = global.visualViewport || null;
+            const layoutHeight = Math.max(240, Number(global.innerHeight || document.documentElement?.clientHeight || 720));
+            const visualHeight = Math.max(240, Number(visualViewport?.height || layoutHeight));
+            const visualOffsetTop = Math.max(0, Number(visualViewport?.offsetTop || 0));
+            const bottomInset = Math.max(0, layoutHeight - (visualOffsetTop + visualHeight));
+            panel.style.setProperty('--foxbear-download-visual-height', `${Math.round(visualHeight)}px`);
+            backdrop.style.setProperty('--foxbear-download-visual-bottom-inset', `${Math.round(bottomInset)}px`);
+            if (revealProgress && actionInFlight && !progressCard.hidden) {
+                global.requestAnimationFrame?.(() => {
+                    if (!progressCard.isConnected || progressCard.hidden) return;
+                    try { progressCard.scrollIntoView({ block: 'center', inline: 'nearest' }); }
+                    catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('download-dialog', 'progress-reveal-failed'); }
+                });
+            }
+            return { layoutHeight, visualHeight, visualOffsetTop, bottomInset };
+        };
         const handleQualityMenuViewportChange = () => {
+            syncDownloadVisualViewport({ revealProgress: true });
             if (qualityMenuOpen) scheduleQualityMenuPosition();
         };
         const handleQualityMenuOutsidePointer = event => {
@@ -1298,9 +1318,10 @@
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        // v1.6.75 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
+        // v1.6.76 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
         panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, fileNameCard, actions);
         backdrop.append(panel, qualityMenu);
+        syncDownloadVisualViewport();
         document.body.appendChild(backdrop);
         document.body.classList.add('download-options-open');
         global.FoxBearModalStateMachine?.setExternalLayerOpen?.(backdrop, true, {
@@ -1309,7 +1330,7 @@
             opener: backdrop.__foxbearReturnFocus,
             lockScroll: true,
             onRequestClose: () => { if (!actionInFlight) closeDownloadOptionsDialog(backdrop); },
-            onViewportChange: () => scheduleQualityMenuPosition()
+            onViewportChange: () => { syncDownloadVisualViewport({ revealProgress: true }); scheduleQualityMenuPosition(); }
         });
         requestAnimationFrame(() => panel.focus());
     }

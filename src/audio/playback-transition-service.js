@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.75-download-progress-admission-fallback-closure';
+    const SERVICE_VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

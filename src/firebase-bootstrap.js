@@ -449,7 +449,7 @@ async function beginAdminGoogleRedirect(provider, sourceError) {
     try {
         sessionStorage.setItem(ADMIN_GOOGLE_REDIRECT_MARKER, normalizeAdminAuthCode(sourceError));
         sessionStorage.setItem(ADMIN_GOOGLE_REDIRECT_ATTEMPTS, String(attempts + 1));
-    } catch (storageError) {}
+    } catch (storageError) { globalThis.FoxBearRuntimeFaultCounters?.record?.('firebase-auth-storage', 'redirect-write-failed'); }
     recordAdminAuthDiagnostics(sourceError, { redirectAttempted: true });
     await signInWithRedirect(bridgeState.auth, provider);
     return Object.freeze({ redirecting: true, providerId: 'google.com' });

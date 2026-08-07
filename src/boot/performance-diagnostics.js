@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.75
+// FoxBear performance diagnostics - v1.6.76
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.75-download-progress-admission-fallback-closure';
+    const DIAGNOSTICS_VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -215,7 +215,8 @@
         'heavy-long-task': '최근 1분 안에 화면이 오래 멈춘 구간이 감지됐습니다. 다른 앱을 닫거나 현재 작업량을 줄여 주세요.',
         'watch-long-task': '최근 1분 안에 화면 응답이 느린 구간이 있었습니다. 현재 작업이 끝날 때까지 추가 조작을 줄여 주세요.',
         'audio-decode-last-error': '최근 오디오 디코딩이 실패했습니다. 파일 형식이나 손상 여부를 확인해 주세요.',
-        'wake-lock-last-error': '화면 꺼짐 방지를 사용할 수 없습니다. 브라우저 권한과 절전 설정을 확인해 주세요.'
+        'wake-lock-last-error': '화면 꺼짐 방지를 사용할 수 없습니다. 브라우저 권한과 절전 설정을 확인해 주세요.',
+        'recoverable-runtime-faults': '최근 자동 복구된 내부 오류가 반복되었습니다. 진단 복사 후 같은 작업에서 계속 반복되는지 확인해 주세요.'
     });
 
     const ACTIVITY_GUIDANCE = Object.freeze({
@@ -267,6 +268,7 @@
         if (snapshot.audio.audible > 1) warnings.push('multiple-audible-audio');
         if (snapshot.dom.canvases > 6) warnings.push('many-canvas-nodes');
         if (snapshot.runtime && !snapshot.runtime.ok) warnings.push('runtime-health-check');
+        if ((snapshot.runtimeFaults?.recentCount || 0) >= 3) warnings.push('recoverable-runtime-faults');
         if ((snapshot.importQueue?.active || 0) + (snapshot.importQueue?.pending || 0) > 0) activities.push('bulk-import-active');
         if (snapshot.bulkImportHud && snapshot.bulkImportHud.total >= 2 && !snapshot.bulkImportHud.complete) activities.push('bulk-import-hud-active');
         if ((snapshot.audioDecode?.activeDecodes || 0) > 0) activities.push('audio-decode-active');
@@ -300,6 +302,7 @@
             masteringQueue: snapshot.masteringQueue ? { active: snapshot.masteringQueue.active || 0, completedCount: snapshot.masteringQueue.completedCount || 0, failedCount: snapshot.masteringQueue.failedCount || 0 } : null,
             memoryGuard: snapshot.memoryGuard ? { completedCount: snapshot.memoryGuard.completedCount || 0, masteredBufferCount: snapshot.memoryGuard.masteredBufferCount || 0, masteredBufferBytes: snapshot.memoryGuard.masteredBufferBytes || 0, outBlobBytes: snapshot.memoryGuard.outBlobBytes || 0 } : null,
             wakeLock: snapshot.wakeLock ? { active: Boolean(snapshot.wakeLock.active), mode: snapshot.wakeLock.mode || 'off', settingLabel: snapshot.wakeLock.settingLabel || 'OFF', userEnabled: Boolean(snapshot.wakeLock.userEnabled) } : null,
+            runtimeFaults: snapshot.runtimeFaults ? { totalCount: snapshot.runtimeFaults.totalCount || 0, uniqueCount: snapshot.runtimeFaults.uniqueCount || 0, recentCount: snapshot.runtimeFaults.recentCount || 0, entries: snapshot.runtimeFaults.entries || [] } : null,
             renderQueuePending: Boolean(snapshot.renderScheduler?.pending),
             visibility: snapshot.visibility,
             hint: snapshot.frameBudgetHint
@@ -314,6 +317,7 @@
 
     function collectSnapshot(reason = 'manual') {
         const runtimeReport = safeCall(() => global.FoxBearRuntimeHealth?.getReport?.(), null);
+        const runtimeFaults = safeCall(() => global.FoxBearRuntimeFaultCounters?.getSnapshot?.(), null);
         const spectrum = safeCall(() => global.FoxBearSpectrumVisualizer?.getDiagnostics?.(), null);
         const navigationGuard = safeCall(() => global.FoxBearSiteGuards?.getNavigationExitGuardState?.(), null);
         const overlayHistory = safeCall(() => global.FoxBearModalStateMachine?.getHistoryDiagnostics?.(), null);
@@ -341,6 +345,7 @@
             memory: readMemory(),
             audio: getAudioSnapshot(),
             dom: getDomSnapshot(),
+            runtimeFaults,
             runtime: runtimeReport ? {
                 ok: Boolean(runtimeReport.ok),
                 appReady: Boolean(runtimeReport.appReady),

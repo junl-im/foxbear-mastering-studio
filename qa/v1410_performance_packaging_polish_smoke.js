@@ -25,19 +25,19 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const readme = read('README.md');
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
-const version = '1.6.75';
-const assetVersion = '1.6.75-download-progress-admission-fallback-closure';
+const version = '1.6.76';
+const assetVersion = '1.6.76-download-viewport-runtime-fault-diagnostics';
 
-must(pkg.version === version, 'package version should be 1.6.75');
-must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1.6.75');
-must(manifest.version === version, 'manifest version should be 1.6.75');
-must(index.includes('data-build="1.6.75"'), 'index build marker should be v1.6.75');
+must(pkg.version === version, 'package version should be 1.6.76');
+must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1.6.76');
+must(manifest.version === version, 'manifest version should be 1.6.76');
+must(index.includes('data-build="1.6.76"'), 'index build marker should be v1.6.76');
 must(index.includes(`src/boot/performance-diagnostics.js?v=${assetVersion}`), 'index should load diagnostics with new cache key');
-must(sw.includes(`foxbear-shell-v${assetVersion}`), 'service worker should use v1.6.75 cache key');
+must(sw.includes(`foxbear-shell-v${assetVersion}`), 'service worker should use v1.6.76 cache key');
 must(sw.includes(`./src/boot/performance-diagnostics.js?v=${assetVersion}`), 'service worker should precache diagnostics JS');
 must(sw.includes(`./assets/css/boot/performance-diagnostics.css?v=${assetVersion}`), 'service worker should precache diagnostics CSS');
 
-must(perf.includes('const DIAGNOSTICS_VERSION = \'1.6.75-download-progress-admission-fallback-closure\''), 'diagnostics version should be v1.6.75');
+must(perf.includes('const DIAGNOSTICS_VERSION = \'1.6.76-download-viewport-runtime-fault-diagnostics\''), 'diagnostics version should be v1.6.76');
 must(perf.includes('PANEL_HIDDEN_REFRESH_MS'), 'diagnostics should throttle hidden-tab refresh');
 must(perf.includes('global.setTimeout'), 'diagnostics panel should use adaptive timeout scheduling');
 must(!perf.includes('setInterval(() => refreshPanel'), 'diagnostics panel should not use fixed interval refresh');
@@ -54,11 +54,11 @@ must(perfCss.includes('.foxbear-perf-panel-actions'), 'diagnostics CSS should st
 must(perfCss.includes('.foxbear-perf-panel-button'), 'diagnostics CSS should style panel buttons');
 
 must(overwriteTool.includes('package.json') && overwriteTool.includes("'v' + (p.version || 'dev')"), 'overwrite package default should derive from package.json');
-must(pkg.qaChecks.includes('node qa/v1410_performance_packaging_polish_smoke.js'), 'package should run v1.6.75 smoke');
-must(changelog.includes('v1.6.75') && changelog.includes('Packaging'), 'changelog should document v1.6.75 packaging polish');
-must(handoff.includes('v1.6.75') && handoff.includes('getSummary'), 'handoff should document diagnostics summary');
+must(pkg.qaChecks.includes('node qa/v1410_performance_packaging_polish_smoke.js'), 'package should run v1.6.76 smoke');
+must(changelog.includes('v1.6.76') && changelog.includes('Packaging'), 'changelog should document v1.6.76 packaging polish');
+must(handoff.includes('v1.6.76') && handoff.includes('getSummary'), 'handoff should document diagnostics summary');
 must(notes.includes('adaptive'), 'project notes should preserve adaptive diagnostics refresh guidance');
-must(readme.includes('v1.6.75') && readme.includes('복사'), 'README should mention diagnostics copy action');
-must(matrix.includes('v1.4.26') && matrix.includes('Performance diagnostics'), 'QA matrix should document v1.6.75');
+must(readme.includes('v1.6.76') && readme.includes('복사'), 'README should mention diagnostics copy action');
+must(matrix.includes('v1.4.26') && matrix.includes('Performance diagnostics'), 'QA matrix should document v1.6.76');
 
 console.log('PASS v1.4.26 performance packaging polish smoke');

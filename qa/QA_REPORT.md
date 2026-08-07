@@ -1,3 +1,30 @@
+# FoxBear QA Report - v1.6.76
+
+## Configured target
+
+- Static and behavioral checks: **431**.
+- New regression: `qa/v1676_download_viewport_runtime_fault_diagnostics_smoke.js`.
+
+## Verification scope
+
+- Mobile download sheet sizing against `visualViewport.height` and keyboard/browser-chrome bottom insets.
+- Encoding progress visibility when the viewport resizes or scrolls during an active conversion.
+- Mobile `min-height` fencing so a reduced visual viewport cannot be overridden by the older full-height sheet minimum.
+- Removal of the sticky primary-action overlay while encoding is active.
+- Privacy-safe bounded runtime fault counters for selected recoverable storage, service-worker, auth, and download cleanup paths.
+- Performance/download/incident diagnostic integration without free-form exception messages or stacks.
+
+## Final result
+
+- Static and behavioral checks: **431/431 passed** in bounded slices (`108/108`, `108/108`, `108/108`, `107/107`).
+- The dedicated v1.6.76 regression verified visualViewport sizing, keyboard/browser-chrome bottom inset handling, progress re-reveal, non-sticky working actions, bounded fault aggregation, and privacy-safe diagnostics.
+- Version synchronization, Functions syntax, source hygiene, App Check policy, GitHub Desktop handoff, browser preflight, dependency structure, and Firebase Hosting staging passed.
+- Dependency structure reported **0 errors** and 5 expected missing-install warnings because delivery ZIPs intentionally exclude `node_modules`.
+- Firebase Hosting boundary: **159 allowlisted files**.
+- Verified full ZIP: **745 files**. Patch ZIP: **293 overwrite files plus `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- Applying the v1.6.76 patch over the supplied v1.6.75 full tree and deleting `DELETE_PATHS.txt` paths reproduced the v1.6.76 full tree exactly.
+- Physical-device acceptance remains for Kakao/Android/iOS keyboard/address-bar transitions and long-running encode memory behavior.
+
 # FoxBear QA Report - v1.6.75
 
 ## Configured target

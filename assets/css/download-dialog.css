@@ -1527,3 +1527,27 @@ body.bottom-preview-active .download-assist.download-assist-v2 {
         scroll-padding-bottom: calc(118px + env(safe-area-inset-bottom));
     }
 }
+
+
+/* v1.6.76: visualViewport-safe mobile download progress. */
+@media (max-width: 640px) {
+    .download-options-backdrop {
+        padding-bottom: var(--foxbear-download-visual-bottom-inset, 0px);
+    }
+    .download-options-panel-v1574 {
+        height: min(98dvh, 920px, calc(var(--foxbear-download-visual-height, 100dvh) - max(4px, env(safe-area-inset-top))));
+        min-height: min(76dvh, 680px, calc(var(--foxbear-download-visual-height, 100dvh) - max(4px, env(safe-area-inset-top))));
+        max-height: min(calc(100dvh - max(4px, env(safe-area-inset-top))), calc(var(--foxbear-download-visual-height, 100dvh) - max(4px, env(safe-area-inset-top))));
+    }
+    .download-options-panel-v1574.working .download-options-actions-primary {
+        position: static;
+        bottom: auto;
+        margin: 8px 0 0;
+        padding: 10px 0 0;
+        background: transparent;
+        backdrop-filter: none;
+    }
+    .download-options-panel-v1574.working .download-options-worker-progress {
+        scroll-margin-block: 18px 24px;
+    }
+}

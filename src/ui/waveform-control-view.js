@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.75-download-progress-admission-fallback-closure';
+  const VIEW_VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -19,9 +19,9 @@ const dialog = read('src/ui/download-dialog-view.js');
 const downloadCss = read('assets/css/download-dialog.css');
 const browserSpec = read('qa/browser/v1574-mobile-download-batch-controls-visual.spec.js');
 
-assert.strictEqual(pkg.version, '1.6.75', 'package version should be v1.6.75');
+assert.strictEqual(pkg.version, '1.6.76', 'package version should be v1.6.76');
 for (const id of ['bulkImportHudPause', 'bulkImportHudSkip', 'bulkImportHudSummary']) {
-  assert(index.includes(`id="${id}"`), `v1.6.75 bulk control missing: ${id}`);
+  assert(index.includes(`id="${id}"`), `v1.6.76 bulk control missing: ${id}`);
 }
 assert(index.includes('<option value="skipped">건너뜀</option>'), 'skipped result filter missing');
 assert(app.includes('pauseActiveMasteringBatch') && app.includes('resumeActiveMasteringBatch'), 'pause/resume app bridge missing');
@@ -34,7 +34,7 @@ assert(hud.includes('renderBatchSummary') && hud.includes('bulk-import-row-order
 assert(hudCss.includes('.bulk-import-hud-pause') && hudCss.includes('.bulk-import-hud-skip'), 'pause/skip styles missing');
 assert(hudCss.includes('.bulk-import-row-order-actions') && hudCss.includes('.bulk-import-hud-summary'), 'queue/summary styles missing');
 assert(dialog.includes('download-format-families') && dialog.includes('MP3 품질 선택') && dialog.includes('WAV 품질 선택'), 'two-stage format picker missing');
-assert(dialog.includes('download-options-panel-v1574') && dialog.includes('formatPicker'), 'v1.6.75 download panel contract missing');
+assert(dialog.includes('download-options-panel-v1574') && dialog.includes('formatPicker'), 'v1.6.76 download panel contract missing');
 assert(/height: min\((?:94dvh, 820px|96dvh, 860px|98dvh, 920px)\)/.test(downloadCss) && downloadCss.includes('position: sticky') && downloadCss.includes('overflow-y: auto'), 'mobile viewport-contained/sticky action layout missing');
 assert(browserSpec.includes('375') && browserSpec.includes('screenshot') && browserSpec.includes('download-format-family'), 'mobile visual regression contract missing');
 

@@ -127,3 +127,7 @@ npm run package:delivery
 npm run package:verify:full
 npm run package:verify:patch
 ```
+## v1.6.76
+- Mobile download progress follows visualViewport and stays unobscured during encoding.
+- Added bounded recoverable runtime fault diagnostics for selected silent fallback paths.
+

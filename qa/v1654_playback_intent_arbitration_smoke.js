@@ -10,7 +10,7 @@ const transitionSource = fs.readFileSync('src/audio/playback-transition-service.
 const linkSource = fs.readFileSync('src/audio/playback-link-service.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.6.75');
+assert.strictEqual(pkg.version, '1.6.76');
 assert(pkg.qaChecks.includes('node qa/v1654_playback_intent_arbitration_smoke.js'));
 assert(transitionSource.includes('function setPlaybackIntent(audio, playing, reason = \'transport\')'));
 assert(transitionSource.includes('function isPlaybackIntended(audio)'));

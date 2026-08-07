@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.6.75 - generation-fenced activation claim and BFCache controller reconciliation
+// FoxBear service worker update coordinator v1.6.76 - generation-fenced activation claim and BFCache controller reconciliation
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.6.75-download-progress-admission-fallback-closure';
+  const VERSION = '1.6.76-download-viewport-runtime-fault-diagnostics';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;
@@ -89,6 +89,7 @@
       else state.clientShellInactiveCount += 1;
       return true;
     } catch (error) {
+      global.FoxBearRuntimeFaultCounters?.record?.('service-worker', 'client-state-post-failed');
       return false;
     }
   }
@@ -192,7 +193,7 @@
     try {
       const current = readStoredActivationLease();
       if (leaseMatches(current, TAB_ID, expectedGeneration)) global.localStorage?.removeItem?.(ACTIVATION_LEASE_KEY);
-    } catch (error) {}
+    } catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('service-worker', 'lease-release-storage-failed'); }
     state.activationLeaseToken = '';
     state.activationLeaseGeneration = 0;
     state.activationLeasePersistent = false;
@@ -286,7 +287,7 @@
         if (!key || !key.startsWith(STORAGE_PREFIX) || key === peerStorageKey()) continue;
         try { rememberPeer(JSON.parse(global.localStorage.getItem(key) || 'null')); } catch (error) {}
       }
-    } catch (error) {}
+    } catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('service-worker', 'peer-storage-read-failed'); }
   }
 
   function prunePeers() {
@@ -322,8 +323,8 @@
       visibility: global.document?.visibilityState || 'unknown',
       activity: getActivitySnapshot()
     };
-    try { channel?.postMessage?.(payload); } catch (error) {}
-    try { global.localStorage?.setItem?.(peerStorageKey(), JSON.stringify(payload)); } catch (error) {}
+    try { channel?.postMessage?.(payload); } catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('service-worker', 'peer-channel-post-failed'); }
+    try { global.localStorage?.setItem?.(peerStorageKey(), JSON.stringify(payload)); } catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('service-worker', 'peer-storage-write-failed'); }
   }
 
   function handlePeerStorage(event) {

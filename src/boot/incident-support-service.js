@@ -1,4 +1,4 @@
-// FoxBear incident support utilities and privacy-safe transport metrics - v1.6.75
+// FoxBear incident support utilities and privacy-safe transport metrics - v1.6.76
 (function attachFoxBearIncidentSupport(global) {
     'use strict';
 
@@ -16,12 +16,12 @@
 
     function storageGet(key, fallback = '') {
         try { return global.localStorage?.getItem?.(key) ?? fallback; }
-        catch (error) { return fallback; }
+        catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('incident-storage', 'read-failed'); return fallback; }
     }
 
     function storageSet(key, value) {
         try { global.localStorage?.setItem?.(key, value); return true; }
-        catch (error) { return false; }
+        catch (error) { global.FoxBearRuntimeFaultCounters?.record?.('incident-storage', 'write-failed'); return false; }
     }
 
     function redactSensitiveText(value, maxLength = 1200) {
@@ -209,7 +209,7 @@
     }
 
     global.FoxBearIncidentSupport = Object.freeze({
-        version: '1.6.75',
+        version: '1.6.76',
         cleanText,
         storageGet,
         storageSet,

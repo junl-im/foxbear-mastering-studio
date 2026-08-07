@@ -1,26 +1,25 @@
-# GitHub Desktop Handoff - v1.6.75
+# GitHub Desktop Handoff - v1.6.76
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is v1.6.74, then extract `foxbear-mastering-studio-v1.6.75-patch.zip` directly into the repository root and replace matching files.
+2. Confirm the working copy is v1.6.75, then extract `foxbear-mastering-studio-v1.6.76-patch.zip` directly into the repository root and replace matching files.
 3. Open `DELETE_PATHS.txt` and remove every listed path that still exists. ZIP extraction cannot delete an old tracked file by itself.
 4. Confirm GitHub Desktop shows the expected modified/new/deleted files, then commit and **Push origin**.
-5. For a clean replacement, use `foxbear-mastering-studio-v1.6.75-full.zip`. Preserve `.git` if reusing the current repository folder.
+5. For a clean replacement, use `foxbear-mastering-studio-v1.6.76-full.zip`. Preserve `.git` if reusing the current repository folder.
 
 ## Release focus
 
-- Taller desktop/mobile download dialog and progress card placement/auto-scroll so encoding status stays visible.
-- Structured preservation of server incident admission rejection across Callable/same-origin paths.
-- No Firestore fallback or new local retry-queue insertion for deliberate rate-limit/emergency-disabled rejection.
-- Existing normal network/deployment fallback behavior remains available.
+- visualViewport-aware mobile download sheet sizing across keyboard and browser-chrome changes.
+- Encoding progress visibility without a sticky action bar covering the progress card.
+- Privacy-safe recoverable runtime fault counters connected to performance/download/incident diagnostics.
 
 ## Expected verification result
 
-- Static/regression: **430/430 passed** (`108/108`, `108/108`, `108/108`, `106/106`).
-- Firebase Hosting staged payload: **158 allowlisted files**.
-- Full ZIP: **742 files**. Patch ZIP: **290 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- v1.6.74 patch application reproduces the v1.6.75 full tree exactly.
+- Static/regression: **431/431 passed** (`108/108`, `108/108`, `108/108`, `107/107`).
+- Firebase Hosting staged payload: **159 allowlisted files**.
+- Full ZIP: **745 files**. Patch ZIP: **293 overwrite files + `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- v1.6.75 patch application reproduces the v1.6.76 full tree exactly.
 
 ## v1.6.67 strict CI hygiene
 

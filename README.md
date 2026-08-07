@@ -1,3 +1,7 @@
+# FoxBear AI Mastering Studio Pro v1.6.76
+
+This release keeps mobile download encoding progress visible across browser chrome and on-screen keyboard viewport changes. It also adds privacy-safe, memory-only counters for selected recoverable fallback failures so repeated silent recovery can be diagnosed without retaining exception messages, stacks, filenames, or user data.
+
 # FoxBear AI Mastering Studio Pro v1.6.75
 
 This release makes download encoding status easier to see by slightly extending the download sheet and surfacing worker progress above filename controls. It also closes an incident-admission bypass: server rate-limit or emergency-disabled responses can no longer fall through to direct Firestore storage or be re-added as new local retry items.

@@ -1,23 +1,24 @@
-# FoxBear Status - v1.6.75
+# FoxBear Status - v1.6.76
 
 ## Current release
 
-- Product version: `1.6.75`
-- Build ID: `download-progress-admission-fallback-closure`
-- Asset version: `1.6.75-download-progress-admission-fallback-closure`
-- Service worker cache: `foxbear-shell-v1.6.75-download-progress-admission-fallback-closure`
-- Configured static/regression target: **430 checks**.
+- Product version: `1.6.76`
+- Build ID: `download-viewport-runtime-fault-diagnostics`
+- Asset version: `1.6.76-download-viewport-runtime-fault-diagnostics`
+- Service worker cache: `foxbear-shell-v1.6.76-download-viewport-runtime-fault-diagnostics`
+- Configured static/regression target: **431 checks**.
 
 ## Release status
 
-- Download/save dialog vertical capacity is increased on desktop and mobile so encoding progress remains visible without being buried below filename controls.
-- Active encoding progress is placed above filename controls and scrolls into view inside the dialog when conversion begins.
-- Callable incident `resource-exhausted` and emergency-disabled rejections are preserved as deliberate admission outcomes instead of falling through to direct Firestore writes.
-- Deliberate admission rejection no longer creates a new local retry-queue item; normal deployment/network failures retain the existing Firestore fallback behavior.
-- Static and behavioral checks passed **430/430**; Firebase Hosting boundary passed with **158 files**.
-- Full archive contains **742 files**; patch declares **290 overwrite files plus manifest** and **7 delete paths**.
-- Applying the v1.6.75 patch over the supplied v1.6.74 full tree reproduced the final full archive exactly.
-- Production acceptance remains for physical Kakao/Android/iOS viewport behavior, deployed admission modes/TTL/SMTP, and selected runtime diagnostics.
+- Mobile download/save sheets now follow `visualViewport.height` and keyboard/browser-chrome bottom insets instead of relying only on layout viewport `dvh`.
+- The v1.6.75 minimum-height edge case is closed: a shrunken visual viewport can no longer be overridden by the older 76dvh sheet minimum.
+- While encoding is active, primary download actions stop being sticky so they cannot overlay the worker progress card; viewport changes re-reveal active progress.
+- Selected silent recoveries now feed a bounded, memory-only category/code counter with no exception messages, stacks, filenames, or user content.
+- Performance, download, and incident diagnostics expose these recoverable-fault counters; three or more recent occurrences surface a diagnostic warning.
+- Static and behavioral checks passed **431/431**; Firebase Hosting boundary passed with **159 files**.
+- Full archive contains **745 files**; patch declares **293 overwrite files plus manifest** and **7 delete paths**.
+- Applying the v1.6.76 patch over the supplied v1.6.75 full tree reproduced the final full archive exactly.
+- Production acceptance remains for physical Kakao/Android/iOS keyboard/address-bar transitions and long-running encoding memory behavior.
 
 # FoxBear Status - v1.6.67
 
@@ -93,10 +94,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.75`
-- Build ID: `download-progress-admission-fallback-closure`
-- Asset version: `1.6.75-download-progress-admission-fallback-closure`
-- Service worker cache: `foxbear-shell-v1.6.75-download-progress-admission-fallback-closure`
+- Product version: `1.6.76`
+- Build ID: `download-viewport-runtime-fault-diagnostics`
+- Asset version: `1.6.76-download-viewport-runtime-fault-diagnostics`
+- Service worker cache: `foxbear-shell-v1.6.76-download-viewport-runtime-fault-diagnostics`
 
 # FoxBear Status - v1.6.64
 

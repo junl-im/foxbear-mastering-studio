@@ -1,3 +1,10 @@
+# v1.6.76 - Download Viewport and Runtime Fault Diagnostics
+
+- 모바일 다운로드 시트가 visualViewport 높이와 키보드/브라우저 UI 하단 점유를 반영하도록 보강했습니다.
+- 인코딩 중 하단 sticky 액션이 진행 카드를 덮지 않도록 working 상태에서는 일반 흐름으로 전환합니다.
+- 핵심 silent fallback 경로를 개인정보 없는 bounded runtime fault counter로 관측합니다.
+- 성능/다운로드/incident 진단에 recoverable fault 요약을 연결했습니다.
+
 # v1.6.75 - Download progress visibility and incident admission fallback closure
 
 - Enlarges the download/save dialog vertically on desktop and mobile so worker encoding progress is less likely to remain below the visible fold.

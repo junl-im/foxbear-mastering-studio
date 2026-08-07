@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.75-download-progress-admission-fallback-closure';
+const version = '1.6.76-download-viewport-runtime-fault-diagnostics';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

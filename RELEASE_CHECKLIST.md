@@ -674,3 +674,9 @@ The overwrite command also runs this verification internally through `tools/veri
 - [ ] 관리자 간소화 보기, 미확인 테스트 보존형 정리, 감사 로그 검색·CSV
 - [ ] 720px 이하 메일 테스트·감사 로그 카드형 상세 화면
 - [ ] `cleanupIncidentMailTestsRequest` 포함 Functions·Rules·Indexes 동시 배포
+## v1.6.76 checks
+- [x] Mobile encoding progress remains visible with visual viewport changes under the static/behavioral contract.
+- [x] Runtime fault counters remain metadata-only and bounded.
+- [x] Full 431-check regression set and release-side static gates pass.
+- [ ] Physical Kakao/Android/iOS keyboard/address-bar acceptance remains a deployment/device check.
+

@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.75-download-progress-admission-fallback-closure',
+                version: '1.6.76-download-viewport-runtime-fault-diagnostics',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.75-download-progress-admission-fallback-closure',
+        version: '1.6.76-download-viewport-runtime-fault-diagnostics',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,
