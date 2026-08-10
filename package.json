@@ -1,6 +1,6 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.84",
+  "version": "1.6.85",
   "private": true,
   "description": "FoxBear AI Mastering Studio Pro v1.6.84 - tracked Windows cleanup and static gate recovery",
   "scripts": {
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.84-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.84-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.85-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.85-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.84-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.84-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.85-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.85-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -487,15 +487,16 @@
     "node qa/v1681_ai_workspace_polish_navigation_accessibility_smoke.js",
     "node qa/v1682_overlay_focus_ancestor_hardening_smoke.js",
     "node qa/v1683_browser_gate_ui_mode_fixture_source_hygiene_smoke.js",
-    "node qa/v1684_git_tracked_cleanup_static_gate_smoke.js"
+    "node qa/v1684_git_tracked_cleanup_static_gate_smoke.js",
+    "node qa/v1685_browser_sentinel_ui_mode_header_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "tracked-windows-cleanup-static-gate-recovery",
-    "assetVersion": "1.6.84-tracked-windows-cleanup-static-gate-recovery",
-    "cacheName": "foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery",
-    "bootRevision": "boot-sri-v1684",
-    "updateSafetyRevision": "update-safety-v1684",
-    "serviceWorkerRevision": "sw-v1684"
+    "buildId": "browser-sentinel-ui-mode-header-recovery",
+    "assetVersion": "1.6.85-browser-sentinel-ui-mode-header-recovery",
+    "cacheName": "foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery",
+    "bootRevision": "boot-sri-v1685",
+    "updateSafetyRevision": "update-safety-v1685",
+    "serviceWorkerRevision": "sw-v1685"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

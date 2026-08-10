@@ -95,12 +95,13 @@ class FakeAudioContext {
       navigationCalls.push({ url, options });
       return { ok: () => true, status: () => 200, statusText: () => 'OK' };
     },
-    async waitForFunction() { navigationCalls.push({ ready: true }); }
+    async waitForFunction(fn, arg, options) { navigationCalls.push({ wait: true, source: String(fn), arg, options }); }
   };
   await navigateToApp(fakePage, { url: 'http://127.0.0.1:4173/', timeout: 12345 });
   assert.strictEqual(navigationCalls[0].options.waitUntil, 'domcontentloaded');
   assert.strictEqual(navigationCalls[0].options.timeout, 12345);
-  assert.strictEqual(navigationCalls.length, 2);
+  assert.strictEqual(navigationCalls.length, 3);
+  assert.strictEqual(navigationCalls[2].arg, 'expert', 'navigation helper must verify the requested E2E UI mode after DOM readiness');
 
   console.log('PASS v1.5.11 AudioContext lifecycle and CI navigation stability');
 })().catch(error => {

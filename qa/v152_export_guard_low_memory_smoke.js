@@ -22,10 +22,10 @@ const changelog = read('CHANGELOG.md');
 
 assert(pkg.qaChecks.includes('node --check src/download/export-guard-service.js'), 'export guard syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v152_export_guard_low_memory_smoke.js'), 'v1.5.2 smoke missing from package QA');
-assert(index.includes('src/download/export-guard-service.js?v=1.6.84-tracked-windows-cleanup-static-gate-recovery'), 'export guard not loaded in index');
+assert(index.includes('src/download/export-guard-service.js?v=1.6.85-browser-sentinel-ui-mode-header-recovery'), 'export guard not loaded in index');
 assert(index.indexOf('src/download/download-service.js') < index.indexOf('src/download/export-guard-service.js'), 'export guard should load after download service');
 assert(index.indexOf('src/download/export-guard-service.js') < index.indexOf('src/ui/download-dialog-view.js'), 'export guard should load before dialog/app dependencies');
-assert(sw.includes('./src/download/export-guard-service.js?v=1.6.84-tracked-windows-cleanup-static-gate-recovery'), 'export guard not precached');
+assert(sw.includes('./src/download/export-guard-service.js?v=1.6.85-browser-sentinel-ui-mode-header-recovery'), 'export guard not precached');
 assert(guard.includes('v1.5.2-export-guard-low-memory-ux'), 'export guard version missing');
 assert(guard.includes('prepareZipExportPlan'), 'zip export plan helper missing');
 assert(guard.includes('validateZipBlob'), 'zip blob validation helper missing');

@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.84
+# FoxBear AI Mastering Studio Pro v1.6.85
 
-> Current release: v1.6.84 · tracked-windows-cleanup-static-gate-recovery
+> Current release: v1.6.85 · browser-sentinel-ui-mode-header-recovery
 
-This release fixes the v1.6.83 CI-only static gate failure: the Windows patch cleanup helper existed in delivery ZIPs but Git ignored it because of the broad `*.cmd` safety rule. The repository now unignores exactly `APPLY_PATCH_CLEANUP.cmd`, requires it in the GitHub Desktop handoff contract, and keeps all other command files ignored.
+This release hardens the Runtime Health browser sentinel after the workspace-mode rollout: E2E mode establishment no longer depends only on sessionStorage, the compact command header yields its redundant studio token before clipping, and repeated browser failures now surface exact project/spec annotations in GitHub Actions.
 
 # FoxBear AI Mastering Studio Pro v1.6.81
 

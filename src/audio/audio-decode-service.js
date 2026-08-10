@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.84
+// FoxBear audio decode service - v1.6.85
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.84-tracked-windows-cleanup-static-gate-recovery';
+    const SERVICE_VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

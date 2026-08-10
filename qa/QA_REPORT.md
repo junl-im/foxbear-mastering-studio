@@ -1,3 +1,29 @@
+# FoxBear QA Report - v1.6.85
+
+## Configured target
+
+- Static and behavioral checks: **440**.
+- New regression: `qa/v1685_browser_sentinel_ui_mode_header_recovery_smoke.js`.
+
+## Verification scope
+
+- Gives Runtime Health browser QA a test-only UI-mode fallback that does not depend solely on sessionStorage.
+- Preserves the 40px mobile workspace switch while hiding the redundant studio command token at 430px and below to eliminate compact-header clipping.
+- Updates Runtime Health geometry assertions to measure the mode switch and responsive-hidden elements explicitly.
+- Emits exact GitHub error annotations for repeated browser retry cases instead of aggregate-only counts.
+- Keeps `PATCH_MANIFEST.json` in the cleanup deletion contract.
+
+## Verification status
+
+- Focused v1.6.85 regression: **PASS**.
+- Full configured suite: **440/440 PASS** in bounded execution. A long aggregate command hit the environment's outer time limit, so the exact remaining ranges were resumed and all configured checks completed successfully.
+- Source hygiene, version synchronization, Functions syntax, App Check policy, handoff, browser preflight, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Dependency health: **0 errors / 5 warnings** because installed `node_modules` is intentionally absent from the delivery tree.
+- Local Chromium CSS geometry probe at 1440/430/393/375/320px: **0 left overflow / 0 row overlap** at every viewport; the mobile workspace switch remains 40px high.
+- Full Playwright navigation cannot run in this environment because browser navigation is blocked by policy. GitHub Actions remains the authoritative browser execution environment.
+- Delivery verification: **764-file full ZIP**, **307-file manifestless overwrite patch**, **7 delete paths**. Replay over v1.6.84 with a simulated legacy `PATCH_MANIFEST.json` matched exactly (`764/764`, missing 0, extra 0, changed 0).
+
 # FoxBear QA Report - v1.6.84
 
 ## Configured target

@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.6.84 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.6.85 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.6.84-tracked-windows-cleanup-static-gate-recovery';
+    const VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
     let sequence = 0;
 
     function createFallbackAbortController() {

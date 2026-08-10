@@ -1,34 +1,36 @@
-# FoxBear Status - v1.6.84
+# FoxBear Status - v1.6.85
 
 ## Current release
 
-- Product version: `1.6.84`
-- Build ID: `tracked-windows-cleanup-static-gate-recovery`
-- Asset version: `1.6.84-tracked-windows-cleanup-static-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery`
-- Configured static/regression target: **439 checks**.
+- Product version: `1.6.85`
+- Build ID: `browser-sentinel-ui-mode-header-recovery`
+- Asset version: `1.6.85-browser-sentinel-ui-mode-header-recovery`
+- Service worker cache: `foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery`
+- Configured static/regression target: **440 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.84`
-- Build ID: `tracked-windows-cleanup-static-gate-recovery`
-- Asset version: `1.6.84-tracked-windows-cleanup-static-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery`
+- Product version: `1.6.85`
+- Build ID: `browser-sentinel-ui-mode-header-recovery`
+- Asset version: `1.6.85-browser-sentinel-ui-mode-header-recovery`
+- Service worker cache: `foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery`
 
 ## Release focus
 
-- `APPLY_PATCH_CLEANUP.cmd` is now the only `.cmd` file explicitly unignored by Git, so GitHub Desktop can commit the Windows cleanup helper without weakening executable-file hygiene.
-- `HANDOFF_PACKAGE.json` requires the Windows helper and declares legacy `PATCH_MANIFEST.json` as a deletion target.
-- Existing v1.6.83 browser fixture isolation remains intact.
+- Harden Runtime Health startup so the E2E-only workspace mode survives sessionStorage restrictions without changing production first-entry behavior.
+- Remove the real compact-header clipping introduced after the workspace switch was added, while preserving the 40px mobile switch target.
+- Make repeated browser failures self-identifying in GitHub Annotations with project/spec/title/error details.
+- Keep legacy `PATCH_MANIFEST.json` as an explicit cleanup/deletion target; its deletion must be committed from the user's Git working tree.
 
 ## Release status
 
-- Static and behavioral checks: **439/439 PASS**.
+- Static and behavioral checks: **440/440 PASS** in bounded execution.
 - Source hygiene, version synchronization, Functions syntax, App Check policy, handoff, browser preflight, and Hosting gates: **PASS**.
-- Dependency health: **0 errors / 5 warnings** (handoff tree has no installed `node_modules`).
+- Dependency health: **0 errors / 5 warnings** because the delivery tree intentionally excludes installed `node_modules`.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Delivery: **762-file** full ZIP and **302-file** manifestless patch with **7 delete paths**; replay over v1.6.83 matched exactly.
-- The v1.6.83 CI static failure is reproduced by removing the ignored `.cmd` helper; v1.6.84 fixes that Git tracking boundary directly.
+- Local Chromium CSS geometry probe: 1440/430/393/375/320px all have **0 left overflow / 0 row overlap**; the 40px workspace switch remains intact.
+- Full Playwright navigation cannot run in this environment because local browser navigation is blocked by policy; GitHub Actions remains the final browser execution authority.
+- Delivery: **764-file** full ZIP and **307-file** manifestless patch with **7 delete paths**; replay over v1.6.84, including a simulated legacy `PATCH_MANIFEST.json`, matched exactly (`764/764`, missing 0, extra 0, changed 0).
 
 # FoxBear Status - v1.6.79
 

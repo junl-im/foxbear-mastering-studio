@@ -1,26 +1,28 @@
-# GitHub Desktop Handoff - v1.6.84
+# GitHub Desktop Handoff - v1.6.85
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.83**, then extract the v1.6.84 patch ZIP into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.84**, then extract the v1.6.85 patch ZIP into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Confirm **`APPLY_PATCH_CLEANUP.cmd` appears as a new tracked file** and **`PATCH_MANIFEST.json` appears as deleted**.
-5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.84 full ZIP.
+4. Confirm **`PATCH_MANIFEST.json` appears as deleted** in GitHub Desktop. This deletion is required to remove the recurring Source hygiene auto-repair warning.
+5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.85 full ZIP.
 
 ## Release focus
 
-- `.gitignore` still blocks arbitrary `.cmd` files but explicitly unignores only `APPLY_PATCH_CLEANUP.cmd`.
-- The handoff contract now requires that helper and carries `PATCH_MANIFEST.json` in its deletion contract.
-- This directly fixes the v1.6.83 CI checkout mismatch that caused the Static release gate to fail.
+- Runtime Health no longer depends solely on sessionStorage to establish its test-only Expert workspace mode.
+- At 430px and below, the redundant studio label yields space to the workspace switch; the 40px mobile touch target remains unchanged.
+- Runtime Health now measures the workspace switch directly and understands responsive-hidden header elements.
+- Retry recovery emits one GitHub error Annotation per repeatedly failing browser case, so a remaining failure identifies its exact project/spec/title.
 
 ## Expected verification result
 
-- Static/regression: **439/439 PASS**.
+- Static/regression: **440/440 PASS**.
 - Source hygiene / Version / App Check / Handoff / Functions / browser preflight / Hosting: **PASS**.
 - Firebase Hosting staged payload: **161 allowlisted files**.
-- Full ZIP: **762 files**. Patch ZIP: **302 overwrite files** plus **7 delete paths**, with no generated `PATCH_MANIFEST.json`.
-- Patch replay over v1.6.83 must match the v1.6.84 full tree exactly.
+- Local Chromium layout probe: 1440/430/393/375/320px all report 0 left overflow and 0 row overlap.
+- Full Playwright navigation remains a GitHub Actions verification because this local environment blocks browser navigation.
+- Full ZIP: **764 files**. Patch ZIP: **307 overwrite files** plus **7 delete paths**, with no generated `PATCH_MANIFEST.json`. Patch + cleanup replay over v1.6.84 matches the full tree exactly.
 
 # GitHub Desktop Handoff - v1.6.79
 

@@ -65,9 +65,10 @@ test.describe('FoxBear browser runtime health', () => {
       const studio = document.querySelector('.brand-command-studio');
       const designer = document.querySelector('.brand-right-actions .designer-mini');
       const actions = document.querySelector('.brand-right-actions');
+      const modeSwitch = document.getElementById('uiModeSwitchBtn');
       const host = document.getElementById('headerSettingsHost');
       const toggle = document.getElementById('mobileNativeQuickToggle');
-      if (!topLine || !kicker || !build || !device || !deviceIcons || !screenIcon || !phoneIcon || !studio || !designer || !actions || !host || !toggle) return null;
+      if (!topLine || !kicker || !build || !device || !deviceIcons || !screenIcon || !phoneIcon || !studio || !designer || !actions || !modeSwitch || !host || !toggle) return null;
       const rect = node => node.getBoundingClientRect();
       const topLineRect = rect(topLine);
       const kickerRect = rect(kicker);
@@ -79,6 +80,7 @@ test.describe('FoxBear browser runtime health', () => {
       const studioRect = rect(studio);
       const actionsRect = rect(actions);
       const designerRect = rect(designer);
+      const modeSwitchRect = rect(modeSwitch);
       const toggleRect = rect(toggle);
       const topLineStyle = getComputedStyle(topLine);
       const designerStyle = getComputedStyle(designer);
@@ -86,7 +88,9 @@ test.describe('FoxBear browser runtime health', () => {
       const deviceIconsStyle = getComputedStyle(deviceIcons);
       const toggleStyle = getComputedStyle(toggle);
       const afterStyle = getComputedStyle(toggle, '::after');
-      const centers = [buildRect, deviceRect, studioRect, designerRect, toggleRect].map(box => (box.top + box.bottom) / 2);
+      const centers = [buildRect, deviceRect, studioRect, designerRect, modeSwitchRect, toggleRect]
+        .filter(box => box.width > 0 && box.height > 0)
+        .map(box => (box.top + box.bottom) / 2);
       return {
         hostParentClass: host.parentElement?.className || '',
         placement: toggle.parentElement?.dataset?.placement || '',
@@ -106,8 +110,13 @@ test.describe('FoxBear browser runtime health', () => {
         deviceIconsDisplay: deviceIconsStyle.display,
         studioLeft: studioRect.left,
         studioRight: studioRect.right,
+        studioDisplay: getComputedStyle(studio).display,
         actionsLeft: actionsRect.left,
         designerRight: designerRect.right,
+        modeSwitchLeft: modeSwitchRect.left,
+        modeSwitchRight: modeSwitchRect.right,
+        modeSwitchWidth: modeSwitchRect.width,
+        modeSwitchHeight: modeSwitchRect.height,
         toggleLeft: toggleRect.left,
         toggleRight: toggleRect.right,
         toggleWidth: toggleRect.width,
@@ -143,15 +152,23 @@ test.describe('FoxBear browser runtime health', () => {
     expect(headerSettings.buildRight).toBeLessThanOrEqual(headerSettings.deviceLeft + 1);
     expect(headerSettings.deviceRight).toBeLessThanOrEqual(headerSettings.studioLeft + 1);
     expect(headerSettings.studioRight).toBeLessThanOrEqual(headerSettings.actionsLeft + 1);
-    expect(headerSettings.toggleLeft).toBeGreaterThanOrEqual(headerSettings.designerRight - 2);
+    expect(headerSettings.modeSwitchLeft).toBeGreaterThanOrEqual(headerSettings.designerRight - 2);
+    expect(headerSettings.toggleLeft).toBeGreaterThanOrEqual(headerSettings.modeSwitchRight - 2);
     expect(headerSettings.toggleRight).toBeLessThanOrEqual(headerSettings.viewportWidth + 1);
     expect(headerSettings.toggleWidth).toBeLessThanOrEqual(30);
-    expect(headerSettings.topLineHeight).toBeLessThanOrEqual(headerSettings.compact ? 38 : 42);
+    expect(headerSettings.modeSwitchWidth).toBeGreaterThan(48);
+    expect(headerSettings.modeSwitchHeight).toBeLessThanOrEqual(42);
+    expect(headerSettings.topLineHeight).toBeLessThanOrEqual(42);
     expect(headerSettings.topLineBorderBottom).toBe('0px');
     expect(headerSettings.centerSpread).toBeLessThanOrEqual(8);
     expect(headerSettings.kickerOverflow).toBeLessThanOrEqual(2);
     expect(headerSettings.rowOverlap).toBeLessThanOrEqual(1);
-    expect(headerSettings.studioVisibleWidth).toBeGreaterThan(12);
+    if (headerSettings.viewportWidth <= 430) {
+      expect(headerSettings.studioDisplay).toBe('none');
+      expect(headerSettings.studioVisibleWidth).toBe(0);
+    } else {
+      expect(headerSettings.studioVisibleWidth).toBeGreaterThan(12);
+    }
     expect(headerSettings.designerBorder).toEqual(['0px', '0px', '0px', '0px']);
     expect(headerSettings.designerBackground).toBe('rgba(0, 0, 0, 0)');
     expect(headerSettings.buildBackground).toBe('rgba(0, 0, 0, 0)');

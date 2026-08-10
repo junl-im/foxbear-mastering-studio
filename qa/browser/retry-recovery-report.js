@@ -186,6 +186,32 @@ function writeRetryRecoveryArtifacts(options = {}) {
   return { summary, markdown, jsonOutputPath, markdownOutputPath, flakyHistory };
 }
 
+function escapeWorkflowCommandProperty(value) {
+  return String(value || '')
+    .replace(/%/g, '%25')
+    .replace(/\r/g, '%0D')
+    .replace(/\n/g, '%0A')
+    .replace(/:/g, '%3A')
+    .replace(/,/g, '%2C');
+}
+
+function escapeWorkflowCommandData(value) {
+  return String(value || '')
+    .replace(/%/g, '%25')
+    .replace(/\r/g, '%0D')
+    .replace(/\n/g, '%0A');
+}
+
+function printRepeatedCaseAnnotations(summary, limit = 10) {
+  const repeated = Array.isArray(summary?.repeated) ? summary.repeated : [];
+  repeated.slice(0, Math.max(0, Number(limit || 0))).forEach(item => {
+    const fileName = path.basename(String(item.file || 'browser-case'));
+    const title = escapeWorkflowCommandProperty(`Browser repeated: ${item.projectName || 'default'} · ${fileName}`);
+    const detail = escapeWorkflowCommandData(`${item.title || fileName} · ${item.retryError || item.primaryError || 'failed again'}`);
+    console.log(`::error title=${title}::${detail}`);
+  });
+}
+
 function printConsoleSummary(summary) {
   const counts = summary.counts;
   console.log(`Browser retry recovery: primary=${counts.primaryFailures}, recovered=${counts.recovered}, repeated=${counts.repeated}, skipped=${counts.skippedRetryResults || 0}, missing=${counts.missingRetryResults}`);
@@ -193,6 +219,7 @@ function printConsoleSummary(summary) {
     console.log(`::warning title=Browser flaky recovery::${counts.recovered} browser case(s) passed only after the failed-only retry. Review qa/browser-results/retry-recovery-summary.md.`);
   }
   if (counts.repeated > 0 || counts.skippedRetryResults > 0 || counts.missingRetryResults > 0) {
+    printRepeatedCaseAnnotations(summary);
     console.log(`::error title=Browser retry incomplete::${counts.repeated} case(s) failed again, ${counts.skippedRetryResults || 0} were skipped, and ${counts.missingRetryResults} lacked retry results.`);
   }
 }
@@ -221,7 +248,10 @@ module.exports = {
   appendGitHubStepSummary,
   buildRetryRecoverySummary,
   collectTestOutcomes,
+  escapeWorkflowCommandData,
+  escapeWorkflowCommandProperty,
   printConsoleSummary,
+  printRepeatedCaseAnnotations,
   renderRetryRecoveryMarkdown,
   writeRetryRecoveryArtifacts
 };

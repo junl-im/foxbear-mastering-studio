@@ -12,7 +12,7 @@ const index = fs.readFileSync('index.html', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.6.84');
+assert.strictEqual(pkg.version, '1.6.85');
 assert(pkg.qaChecks.includes('node --check src/audio/playback-lifecycle-recovery-service.js'));
 assert(pkg.qaChecks.includes('node qa/v1655_mobile_playback_focus_resume_smoke.js'));
 assert(transitionSource.includes('function reconcileExternalPause(audio, reason = \'external-pause\')'));
@@ -20,8 +20,8 @@ assert(transitionSource.includes('async function resumeAfterInterruption(audio, 
 assert(lifecycleSource.includes("collapseInterruptedCrossfade('lifecycle-return-crossfade')"));
 assert(lifecycleSource.includes("showToast('브라우저가 자동 재생 복구를 막았습니다. Dock 재생 버튼을 눌러주세요.')"));
 assert(app.includes("handleUnexpectedPause?.(audio, 'dock-visible-native-pause')"));
-assert(index.includes('src/audio/playback-lifecycle-recovery-service.js?v=1.6.84-tracked-windows-cleanup-static-gate-recovery'));
-assert(sw.includes("'./src/audio/playback-lifecycle-recovery-service.js?v=1.6.84-tracked-windows-cleanup-static-gate-recovery'"));
+assert(index.includes('src/audio/playback-lifecycle-recovery-service.js?v=1.6.85-browser-sentinel-ui-mode-header-recovery'));
+assert(sw.includes("'./src/audio/playback-lifecycle-recovery-service.js?v=1.6.85-browser-sentinel-ui-mode-header-recovery'"));
 assert(app.split(/\r?\n/).length < 13300, 'app line budget should remain intact');
 
 const fakeDocument = { visibilityState: 'visible' };

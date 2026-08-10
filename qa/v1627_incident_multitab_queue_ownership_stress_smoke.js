@@ -114,7 +114,7 @@ function payload(index, tab = 'a', extra = {}) {
 
 async function main() {
     const pkg = JSON.parse(read('package.json'));
-    assert.strictEqual(pkg.version, '1.6.84');
+    assert.strictEqual(pkg.version, '1.6.85');
     assert(pkg.foxbearRelease && typeof pkg.foxbearRelease.buildId === 'string' && pkg.foxbearRelease.buildId.length > 0);
     assert(pkg.qaChecks.includes('node --check src/boot/incident-queue-coordination-service.js'));
     assert(pkg.qaChecks.includes('node qa/v1627_incident_multitab_queue_ownership_stress_smoke.js'));
@@ -122,7 +122,7 @@ async function main() {
     const storage = new SharedStorage();
     const tabA = createTab(storage, 'tab-a');
     const tabB = createTab(storage, 'tab-b');
-    assert.strictEqual(tabA.context.FoxBearIncidentQueueCoordination.version, '1.6.84');
+    assert.strictEqual(tabA.context.FoxBearIncidentQueueCoordination.version, '1.6.85');
 
     let peerSyncEvents = 0;
     tabB.coordinator.subscribe(detail => { if (detail.source === 'peer') peerSyncEvents += 1; });

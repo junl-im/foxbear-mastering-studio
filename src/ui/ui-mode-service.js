@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.84 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.6.85 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });
@@ -21,8 +21,17 @@
         catch (error) { return false; }
     }
 
+    function safeReadE2eMode() {
+        if (global.__FOXBEAR_E2E__ !== true) return '';
+        return normalizeMode(global.__FOXBEAR_E2E_UI_MODE__);
+    }
+
+    function readInitialMode(storage) {
+        return safeReadSession(storage) || safeReadE2eMode();
+    }
+
     function publishPrepaintMode() {
-        const restored = safeReadSession(global.sessionStorage);
+        const restored = readInitialMode(global.sessionStorage);
         try { global.document?.documentElement?.setAttribute('data-ui-mode-pref', restored || 'unselected'); }
         catch (error) {}
         return restored;
@@ -249,7 +258,7 @@
         function init() {
             if (initialized) return getSnapshot();
             initialized = true;
-            const restored = safeReadSession(storage);
+            const restored = readInitialMode(storage);
             const root = body();
             if (restored) {
                 apply(restored, { persist: false });
@@ -284,7 +293,7 @@
         }
 
         function getSnapshot() {
-            return Object.freeze({ mode, chooserOpen, chooserRequired, initialized, overlayRegistered, restored: Boolean(safeReadSession(storage)) });
+            return Object.freeze({ mode, chooserOpen, chooserRequired, initialized, overlayRegistered, restored: Boolean(readInitialMode(storage)) });
         }
 
         return Object.freeze({ init, apply, openChooser: open, closeChooser: close, select, getSnapshot, normalizeMode });

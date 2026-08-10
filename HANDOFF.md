@@ -1,34 +1,36 @@
-# Handoff - v1.6.84
+# Handoff - v1.6.85
 
 ## Current release
 
-- Product version: `1.6.84`
-- Build ID: `tracked-windows-cleanup-static-gate-recovery`
-- Asset version: `1.6.84-tracked-windows-cleanup-static-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery`
-- Configured static/regression target: 439 checks.
+- Product version: `1.6.85`
+- Build ID: `browser-sentinel-ui-mode-header-recovery`
+- Asset version: `1.6.85-browser-sentinel-ui-mode-header-recovery`
+- Service worker cache: `foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery`
+- Configured static/regression target: 440 checks.
 
 ## Current focus
 
-- Make `APPLY_PATCH_CLEANUP.cmd` commit-visible despite the broad `*.cmd` ignore rule, while leaving every other `.cmd` ignored by default.
-- Require the Windows cleanup helper in the delivery contract.
-- Commit deletion of legacy `PATCH_MANIFEST.json` so CI no longer needs to auto-repair it.
+- Give Runtime Health an E2E-only workspace-mode fallback when sessionStorage is unavailable or cleared.
+- Eliminate compact-header clipping at 430px and below by hiding the redundant studio label, not by shrinking the 40px workspace switch target.
+- Report repeated browser retry failures per project/spec/title in GitHub Annotations.
+- Remove and commit the legacy tracked `PATCH_MANIFEST.json` so CI source-hygiene no longer needs to auto-repair it.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.84 patch ZIP** into the **v1.6.83 repository root** and replace matching files.
+1. Extract the **v1.6.85 patch ZIP** into the **v1.6.84 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-3. Confirm GitHub Desktop shows **`APPLY_PATCH_CLEANUP.cmd` as added** and **`PATCH_MANIFEST.json` as deleted**.
-4. Commit both changes with the rest of v1.6.84 and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.84 full ZIP into the repository folder.
+3. Confirm GitHub Desktop shows **`PATCH_MANIFEST.json` as deleted**. If it is still listed in the repository, do not omit that deletion from the commit.
+4. Commit all modified/new/deleted files and **Push origin**.
+5. For a clean replacement, preserve `.git` and extract the v1.6.85 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **439/439 PASS**.
-- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, dependency structure, and Hosting staging passed.
+- Static and behavioral checks: **440/440 PASS**.
+- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, dependency structure, and Hosting staging: **PASS**.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Full ZIP: **762 files**. Patch ZIP: **302 overwrite files**, **7 delete paths**, no generated patch manifest.
-- Patch replay over the v1.6.83 baseline reproduced the full tree exactly (`762/762`, missing 0, extra 0, changed 0).
+- Local Chromium CSS geometry at 1440/430/393/375/320px: no command-left clipping and no row overlap.
+- Full Playwright navigation is environment-blocked here; GitHub Actions is the final browser acceptance run.
+- Full ZIP: **764 files**. Patch ZIP: **307 overwrite files**, **7 delete paths**, no generated `PATCH_MANIFEST.json`. Replay over v1.6.84 with a simulated legacy manifest reproduced the full tree exactly (`764/764`, missing 0, extra 0, changed 0).
 
 # Handoff - v1.6.79
 

@@ -15,7 +15,7 @@ const perf = read('src/boot/performance-diagnostics.js');
 const perfCss = read('assets/css/boot/performance-diagnostics.css');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.84');
+assert.strictEqual(pkg.version, '1.6.85');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 
 assert(modal.includes('const FOCUSABLE_SELECTOR'), 'modal controller must own the shared focusable selector');
@@ -53,7 +53,7 @@ assert(perfCss.includes('.foxbear-perf-summary-grid'), 'diagnostics summary grid
 assert(perfCss.includes('.foxbear-perf-card'), 'diagnostics card styles are required');
 assert(perfCss.includes(".foxbear-perf-summary-lead[data-tone='warn']"), 'diagnostics warning state must be visible');
 assert(perfCss.includes('body.foxbear-modal-layer-open'), 'shared modal scroll state must have CSS protection');
-assert(handoff.startsWith('# Handoff - v1.6.84'), 'handoff must lead with the current release');
+assert(handoff.startsWith('# Handoff - v1.6.85'), 'handoff must lead with the current release');
 assert(handoff.includes('# 필수 결과 보고 형식'), 'three-section report contract must remain persistent');
 
 function classList(initial = []) {

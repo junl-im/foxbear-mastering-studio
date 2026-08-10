@@ -1,3 +1,11 @@
+# v1.6.85 - Browser sentinel UI-mode and compact-header recovery
+
+- Gives browser E2E a test-only UI-mode fallback that remains deterministic even when sessionStorage cannot be used during pre-paint startup.
+- Keeps the 40px mobile workspace switch target while hiding the redundant studio command token at 430px and below so the command bar no longer clips on Pixel-class widths.
+- Updates Runtime Health to measure the workspace switch and responsive-hidden header elements according to the post-v1.6.80 layout contract.
+- Emits exact repeated browser project/spec/error annotations after failed-only retry, removing the previous aggregate-only diagnostic blind spot.
+- Keeps `PATCH_MANIFEST.json` as a delete-path-only legacy artifact; repository deletion must be committed to remove the remaining CI hygiene warning.
+
 # v1.6.84 - Tracked Windows cleanup and static gate recovery
 
 - Fixes the v1.6.83 Static release gate failure caused by `APPLY_PATCH_CLEANUP.cmd` being excluded by the repository-wide `*.cmd` ignore rule.

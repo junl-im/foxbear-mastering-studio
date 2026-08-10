@@ -1,3 +1,15 @@
+# v1.6.85 release checklist
+
+- [x] Confirm the browser job uses Runtime Health as the sentinel and skips heavier scenarios when it fails.
+- [x] Add E2E-only UI-mode fallback independent of sessionStorage availability.
+- [x] Verify the requested E2E mode is established after navigation.
+- [x] Remove compact-header clipping by hiding the redundant studio token at 430px and below while preserving the 40px mode-switch target.
+- [x] Update Runtime Health geometry coverage for the workspace switch and responsive-hidden elements.
+- [x] Emit exact repeated browser case annotations after retry.
+- [ ] Commit deletion of tracked `PATCH_MANIFEST.json` in the GitHub working tree.
+- [x] Run all **440/440** static/regression checks and pass source hygiene, version, Functions syntax, App Check, handoff, browser-preflight, dependency-health structure, and **161-file** Hosting boundary gates.
+- [x] Build/verify the **764-file** full ZIP and **307-file** manifestless patch with **7 delete paths**; replay over v1.6.84 with a simulated legacy manifest matched exactly (`764/764`, missing 0, extra 0, changed 0).
+
 # v1.6.84 release checklist
 
 - [x] Reproduce the v1.6.83 CI failure with `APPLY_PATCH_CLEANUP.cmd` absent from the Git checkout.

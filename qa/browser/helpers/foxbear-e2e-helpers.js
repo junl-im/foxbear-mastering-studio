@@ -143,6 +143,13 @@ async function navigateToApp(page, options = {}) {
     throw new Error(`FoxBear E2E navigation failed: ${response.status()} ${response.statusText()} ${url}`);
   }
   await page.waitForFunction(() => document.readyState !== 'loading', null, { timeout: Math.min(timeout, 5000) });
+  if (uiMode) {
+    await page.waitForFunction(expectedMode => {
+      const prepaintMode = document.documentElement?.getAttribute?.('data-ui-mode-pref') || '';
+      const bodyMode = document.body?.dataset?.uiMode || '';
+      return prepaintMode === expectedMode || bodyMode === expectedMode;
+    }, uiMode, { timeout: Math.min(timeout, 5000) });
+  }
   return response;
 }
 

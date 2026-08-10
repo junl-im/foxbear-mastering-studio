@@ -309,7 +309,7 @@
     }
 
     .brand-command-studio {
-        max-width: 31vw;
+        display: none !important;
     }
 
     .brand-command-bar .designer-mini span {

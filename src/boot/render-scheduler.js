@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.84-tracked-windows-cleanup-static-gate-recovery';
+    const SERVICE_VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

@@ -1,3 +1,26 @@
+# v1.6.85 patch notes
+
+## 적용 내역
+
+- Browser Runtime Health 선행 sentinel이 workspace chooser 이후에도 안정적으로 전문가 모드로 시작하도록, E2E 전용 UI mode 값을 sessionStorage 외의 이미 격리된 `__FOXBEAR_E2E_UI_MODE__` 경로에서도 복원합니다.
+- 430px 이하에서는 헤더의 중복 `AI MUSIC MASTERING STUDIO` 토큰을 숨겨 작업 방식 버튼이 추가된 뒤 발생한 command-left clipping을 제거합니다.
+- v1.6.81에서 의도적으로 키운 40px 모바일 작업 방식 터치 타깃은 유지하고 Runtime Health의 헤더 높이 계약을 현재 UI에 맞게 갱신했습니다.
+- Runtime Health가 작업 방식 버튼 자체의 좌우 경계를 검증하고, 반응형으로 숨겨진 요소는 centerline 계산에서 제외합니다.
+- 브라우저 재시도 실패 시 GitHub Annotation에 project/spec/title/error를 케이스별로 직접 출력하도록 보강했습니다.
+- `PATCH_MANIFEST.json`은 계속 삭제 경로입니다. cleanup 실행 후 GitHub Desktop에서 삭제 변경을 반드시 함께 커밋해야 경고가 사라집니다.
+
+## 검증 결과
+
+- v1.6.85 신규 회귀: **PASS**.
+- 전체 정적·행동 회귀: **440/440 PASS** (실행 환경의 단일 명령 시간 제한 때문에 경계 구간을 이어 실행해 전 항목을 완료했습니다).
+- Source hygiene / Version / Functions syntax / App Check / Handoff / browser preflight / Hosting: **PASS**.
+- Dependency health: **0 errors / 5 warnings** (`node_modules` 미포함 전달 트리의 예상 경고).
+- Firebase Hosting 공개 경계: **161개 파일**.
+- 실제 CSS를 Chromium으로 렌더링한 1440/430/393/375/320px에서 command-left overflow와 row overlap이 모두 0이며 40px 작업 방식 버튼은 유지됩니다.
+- 실제 Playwright network navigation은 현재 실행 환경 정책상 제한되어, GitHub Actions Browser release gate가 최종 실제 브라우저 기준입니다.
+- Full ZIP **764개 파일**, patch ZIP **307개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음.
+- v1.6.84 기준 트리에 legacy `PATCH_MANIFEST.json`을 일부러 추가한 뒤 patch + cleanup을 재적용해 v1.6.85 full과 **764/764 완전 동일** (`missing 0 / extra 0 / changed 0`)을 확인했습니다.
+
 # v1.6.84 patch notes
 
 ## 적용 내역

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.84-tracked-windows-cleanup-static-gate-recovery';
+  const VIEW_VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

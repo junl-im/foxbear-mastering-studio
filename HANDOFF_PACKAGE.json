@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.84",
-  "buildId": "tracked-windows-cleanup-static-gate-recovery",
+  "productVersion": "1.6.85",
+  "buildId": "browser-sentinel-ui-mode-header-recovery",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.6.84 - bounded playback Blob source retirement
+// FoxBear AI Mastering Studio Pro v1.6.85 - bounded playback Blob source retirement
 (function attachFoxBearPlaybackSourceRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.84-tracked-windows-cleanup-static-gate-recovery';
+    const SERVICE_VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
     const DEFAULT_READY_TIMEOUT_MS = 2600;
     const RETIRE_RECHECK_MS = 1800;
     const RETIRE_MAX_WAIT_MS = 45000;
