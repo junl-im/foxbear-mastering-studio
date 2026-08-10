@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.80 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.82 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.80-ai-mastering-expert-workspace';
+    const VERSION = '1.6.82-overlay-focus-ancestor-hardening';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

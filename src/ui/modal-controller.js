@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.80
+// FoxBear Modal State Machine Controller v1.6.82
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.80-ai-mastering-expert-workspace',
+            version: '1.6.82-overlay-focus-ancestor-hardening',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,
@@ -168,15 +168,27 @@
         return dialog?.ownerDocument || global.document || null;
     }
 
+    function isFocusCandidateAvailable(element, boundary) {
+        if (!isElement(element) || element.disabled) return false;
+        if (element.getAttribute?.('aria-disabled') === 'true' || element.getAttribute?.('tabindex') === '-1') return false;
+        let current = element;
+        while (isElement(current)) {
+            if (current.hidden || current.inert === true || current.getAttribute?.('aria-hidden') === 'true' || current.hasAttribute?.('inert')) return false;
+            if (typeof global.getComputedStyle === 'function') {
+                try {
+                    const style = global.getComputedStyle(current);
+                    if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse' || style.contentVisibility === 'hidden') return false;
+                } catch (_) {}
+            }
+            if (current === boundary) break;
+            current = current.parentElement;
+        }
+        return true;
+    }
+
     function getFocusable(dialog) {
         if (!isElement(dialog) || typeof dialog.querySelectorAll !== 'function') return [];
-        return Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR)).filter(element => {
-            if (!isElement(element) || element.hidden || element.getAttribute('aria-hidden') === 'true') return false;
-            if (element.disabled || element.getAttribute('aria-disabled') === 'true') return false;
-            if (typeof global.getComputedStyle !== 'function') return true;
-            const style = global.getComputedStyle(element);
-            return style.display !== 'none' && style.visibility !== 'hidden';
-        });
+        return Array.from(dialog.querySelectorAll(FOCUSABLE_SELECTOR)).filter(element => isFocusCandidateAvailable(element, dialog));
     }
 
     function focusFirst(dialog) {

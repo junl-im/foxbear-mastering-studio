@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.80-ai-mastering-expert-workspace';
+const version = '1.6.82-overlay-focus-ancestor-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

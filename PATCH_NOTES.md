@@ -1,3 +1,62 @@
+# v1.6.82 patch notes
+
+## 적용 내역
+
+- 공용 모달과 작업 방식 선택창의 키보드 포커스 필터를 DOM 계층 기준으로 보강했습니다.
+- `tabindex="-1"`, `aria-disabled="true"`, 숨겨진 부모, `inert` 부모, `aria-hidden` 부모 아래의 컨트롤이 Tab/Shift+Tab 순환에 잘못 포함되지 않도록 수정했습니다.
+- 작업 방식 선택창은 공용 모달의 동일한 포커스 판정을 우선 재사용하고, 복구 경로에서는 동일 규칙의 로컬 fallback을 사용합니다.
+- 해당 경계를 검증하는 v1.6.82 전용 회귀 테스트를 추가했습니다.
+
+## 검증 결과
+
+- v1.6.82 전용 회귀와 v1.6.81 작업공간 회귀: **PASS**.
+- 전체 정적·행동 회귀 **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
+- Version / Functions syntax / App Check / source hygiene / handoff / browser preflight / dependency structure / Hosting 경계를 통과했습니다.
+- 전체 ZIP **757개 파일**, 패치 ZIP **296개 덮어쓰기 파일**, generated manifest 없음, 삭제 경로 **7개**를 검증했습니다.
+- v1.6.81 기준 트리에 패치를 실제 적용한 결과 v1.6.82 전체 ZIP과 **757/757 완전 동일**했습니다 (`missing 0 / extra 0 / changed 0`).
+
+## 다음 예정
+
+- 실제 Kakao/Android/iOS에서 화면 회전, 소프트 키보드, 브라우저 Back과 중첩 모달의 키보드 포커스를 실기기 점검합니다.
+
+## GitHub Desktop 적용
+
+- 패치 ZIP은 **v1.6.81 저장소 루트**에 풀어 모두 덮어쓴 뒤 `DELETE_PATHS.txt`의 경로를 삭제합니다.
+- GitHub Desktop에서 수정/추가/삭제를 확인하고 Commit → **Push origin** 합니다.
+- 전체 ZIP으로 교체할 때는 기존 `.git` 폴더를 보존합니다.
+
+# v1.6.81 patch notes
+
+## 적용 내역
+
+- AI 마스터링에서 장식용 hero 문구, waveform, knobs를 숨겨 `불러오기 → 작업 대기열 → 분석` 흐름이 실제 작업면처럼 더 컴팩트하게 보이도록 다듬었습니다.
+- 모바일 AI 모드에서는 비핵심 command-bar badge를 숨겨 Build, 작업 방식 전환, 설정 버튼의 터치 공간을 확보했습니다.
+- 작업 중 다시 여는 작업 방식 선택창을 기존 공용 overlay/history manager에 편입했습니다. 선택적 팝업은 브라우저 Back으로 닫히고, 첫 필수 선택은 history에 넣지 않아 Back으로 우회할 수 없습니다.
+- 선택창이 열려 있는 동안 `.app-shell`을 inert 처리하고 닫을 때 이전 상태를 복원합니다.
+- 포커스 탐색이 computed style을 확인하도록 보강해 CSS로 숨긴 필수 선택창의 닫기 버튼이 Shift+Tab 순환에 들어가지 않습니다.
+- 모바일 선택창의 글자 크기, 닫기/작업 방식 버튼 터치 영역, visual viewport 기반 최대 높이를 보강했습니다.
+
+## 검증 결과
+
+- v1.6.81 전용 접근성/overlay 회귀: **PASS**.
+- 전체 정적·행동 회귀 **436/436 PASS** (`109/109`, `109/109`, `109/109`, `109/109`).
+- Overlay/history v1.6.15, v1.6.16, v1.6.30~35 회귀 **PASS**.
+- Version sync / Functions syntax / App Check policy / source hygiene / handoff / browser preflight / dependency structure / Hosting 경계 통과.
+- Firebase Hosting 공개 경계 **161개 파일**.
+- 전체 ZIP **756개 파일**, 패치 ZIP **297개 덮어쓰기 파일**, generated manifest 없음, 삭제 경로 **7개**.
+- v1.6.80에 패치를 실제 적용한 결과 최종 트리와 **756/756 완전 동일** (`missing 0 / extra 0 / changed 0`)했습니다.
+
+## 다음 예정
+
+- 실제 Kakao/Android/iOS에서 키보드, 주소창, 회전, Back navigation, 긴 queue를 acceptance 합니다.
+- 마스터링/다운로드 진행 중 AI ↔ 전문가 모드 반복 전환과 Service Worker generation transition을 장시간 스트레스 점검합니다.
+
+## GitHub Desktop 적용
+
+- 패치 ZIP은 **v1.6.80 저장소 루트**에 풀어 모두 덮어쓴 뒤 `DELETE_PATHS.txt`의 경로를 삭제합니다.
+- GitHub Desktop에서 수정/추가/삭제를 확인하고 Commit → **Push origin** 합니다.
+- 전체 ZIP으로 교체할 때는 기존 `.git` 폴더를 보존합니다.
+
 # v1.6.80 patch notes
 
 ## 적용 내역

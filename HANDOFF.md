@@ -1,32 +1,33 @@
-# Handoff - v1.6.80
+# Handoff - v1.6.82
 
 ## Current release
 
-- Product version: `1.6.80`
-- Build ID: `ai-mastering-expert-workspace`
-- Asset version: `1.6.80-ai-mastering-expert-workspace`
-- Service worker cache: `foxbear-shell-v1.6.80-ai-mastering-expert-workspace`
-- Configured static/regression target: 435 checks.
+- Product version: `1.6.82`
+- Build ID: `overlay-focus-ancestor-hardening`
+- Asset version: `1.6.82-overlay-focus-ancestor-hardening`
+- Service worker cache: `foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening`
+- Configured static/regression target: 437 checks.
 
 ## Current focus
 
-- First-entry `AI 마스터링` / `전문가 모드` choice.
-- AI mode uses the same import, queue, analysis, mastering, download and Dock state while presenting a single-column mobile-first workspace.
-- Expert mode preserves the full existing studio.
+- Harden shared modal and workspace-chooser keyboard focus containment against hidden/inert ancestor leakage.
+- Respect explicit `tabindex="-1"` and `aria-disabled="true"` exclusions during Tab/Shift+Tab rotation.
+- Keep workspace chooser behavior aligned with the shared modal focus filter while retaining a dependency-light fallback.
 
 ## Required GitHub Desktop step
 
-1. Extract `foxbear-mastering-studio-v1.6.80-patch.zip` into the **v1.6.79 repository root** and replace matching files.
+1. Extract the v1.6.82 patch ZIP into the **v1.6.81 repository root** and replace matching files.
 2. Delete every path listed in `DELETE_PATHS.txt` if it still exists.
-3. Review modifications/additions/deletions in GitHub Desktop, commit, and **Push origin**.
-4. For a clean replacement, preserve `.git` and extract the v1.6.80 full ZIP into the repository folder.
+3. Review changes in GitHub Desktop, commit, and **Push origin**.
+4. For a clean replacement, preserve `.git` and extract the v1.6.82 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks passed **435/435** (`109/109`, `109/109`, `109/109`, `108/108`).
-- Version synchronization, Functions syntax, source hygiene, App Check policy, handoff, browser preflight, and Firebase Hosting staging passed.
-- Firebase Hosting boundary: **161 allowlisted files**.
-- Full archive: **754 files**. Patch: **296 overwrite files**, no generated patch manifest, with **7 delete paths**.
+- Static and behavioral checks: **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
+- v1.6.81 workspace regression remains PASS after removing its release-specific build-ID pin.
+- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, dependency structure, and Hosting staging passed.
+- Delivery package: **757-file** full ZIP / **296-file** manifestless patch / **7 delete paths**.
+- Patch replay over v1.6.81 reproduced the final tree exactly: **757/757**, missing 0, extra 0, changed 0.
 
 # Handoff - v1.6.79
 

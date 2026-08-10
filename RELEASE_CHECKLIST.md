@@ -1,3 +1,27 @@
+# v1.6.82 release checklist
+
+- [x] Exclude `tabindex="-1"` and `aria-disabled` controls from shared modal focus rotation.
+- [x] Exclude controls under hidden, inert, `aria-hidden`, and content-visibility-hidden ancestors.
+- [x] Reuse the shared focusability filter in the workspace chooser with a safe local fallback.
+- [x] Add dedicated v1.6.82 regression coverage.
+- [x] Run all **437/437** configured static/behavioral checks (`110/110`, `110/110`, `110/110`, `107/107`) and release gates.
+- [x] Build/verify the **757-file** full ZIP and **296-file** manifestless patch with **7 delete paths**.
+- [x] Replay the final patch over v1.6.81 and reproduce v1.6.82 exactly (`757/757`, missing 0, extra 0, changed 0).
+
+# v1.6.81 release checklist
+
+- [x] Compact AI Mastering header to a command surface and remove decorative hero content from AI mode only.
+- [x] Preserve Expert mode full studio DOM and all shared mastering/download/Dock state.
+- [x] Register optional workspace chooser with the shared overlay/history manager.
+- [x] Keep the required first-entry chooser outside browser Back history.
+- [x] Make the background app shell inert while workspace choice is open and restore prior inert state on close.
+- [x] Exclude CSS-hidden chooser controls from keyboard focus rotation.
+- [x] Increase mobile chooser readability/touch sizing and bind panel height to the visual viewport.
+- [x] Add dedicated v1.6.81 regression coverage.
+- [x] Run all **436/436** configured checks (`109/109` x4) and release gates.
+- [x] Build/verify the **756-file** full ZIP and **297-file** manifestless patch with **7 delete paths**.
+- [x] Replay the final patch over v1.6.80 and reproduce v1.6.81 exactly (`756/756`, missing 0, extra 0, changed 0).
+
 # v1.6.80 release checklist
 
 - [x] Add required first-entry `AI 마스터링` / `전문가 모드` chooser.

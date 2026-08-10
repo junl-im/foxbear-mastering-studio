@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.6.82
+
+> Current release: v1.6.82 · overlay-focus-ancestor-hardening
+
+This release hardens keyboard focus containment across shared overlays and the workspace chooser. Focus rotation now respects explicit tab-order removal and ancestor visibility/inert state, preventing hidden or intentionally non-tabbable controls from being pulled back into modal Tab/Shift+Tab navigation.
+
+# FoxBear AI Mastering Studio Pro v1.6.81
+
+> Current release: v1.6.81 · ai-workspace-compact-overlay-accessibility
+
+This release polishes the new AI Mastering workspace: the AI surface is visually reduced to the command bar plus import, queue, analysis, and the existing Dock; the mode chooser now participates in the shared overlay/history system after first selection, protects background focus with `inert`, and uses larger mobile typography and visual-viewport-safe sizing.
+
 # FoxBear AI Mastering Studio Pro v1.6.80
 
 > Current release: v1.6.80 · ai-mastering-expert-workspace

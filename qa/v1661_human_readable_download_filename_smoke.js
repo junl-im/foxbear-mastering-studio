@@ -71,7 +71,7 @@ assert(downloadSource.includes("policy?.sanitizeFileName"), 'download delivery s
 const guardSource = read('src/download/export-guard-service.js');
 assert(guardSource.includes('policy?.makeUniqueName'), 'ZIP planning should use the shared unique-name policy');
 const workerSource = read('src/workers/zip-encoder.worker.js');
-assert(workerSource.includes("importScripts('../download/file-name-policy-service.js?v=1.6.80-ai-mastering-expert-workspace')"), 'ZIP worker should import the same filename policy');
+assert(workerSource.includes("importScripts('../download/file-name-policy-service.js?v=1.6.82-overlay-focus-ancestor-hardening')"), 'ZIP worker should import the same filename policy');
 assert(workerSource.includes('policy.makeUniqueName'), 'ZIP worker entries should use the shared unique-name policy');
 
 console.log('PASS v1.6.61 human-readable download filename policy smoke');

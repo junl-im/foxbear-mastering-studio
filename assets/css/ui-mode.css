@@ -16,6 +16,8 @@ html[data-ui-mode-pref="expert"] .ui-mode-chooser:not(.show) { display: none !im
 }
 .ui-mode-chooser.show { display: flex !important; }
 .ui-mode-choice-open { overflow: hidden !important; }
+.ui-mode-choice-open .brand-panel-unified::after,
+.ui-mode-choice-open .mini-wave i { animation-play-state: paused !important; }
 .ui-mode-chooser-panel {
     position: relative;
     width: min(760px, 100%);
@@ -211,6 +213,33 @@ html[data-ui-mode-pref="expert"] .ui-mode-chooser:not(.show) { display: none !im
 .ui-mode-switch-btn[data-mode="expert"] { border-color: rgba(146, 174, 236, .28) !important; background: rgba(133, 160, 222, .075) !important; }
 
 /* AI mastering reuses the exact same DOM/state. Only the expert-only regions are hidden. */
+body[data-ui-mode="ai"] .studio-hero {
+    display: block !important;
+    margin-bottom: 8px !important;
+}
+body[data-ui-mode="ai"] .brand-panel-unified {
+    min-height: 0 !important;
+    padding: 10px 12px !important;
+    border-radius: 16px !important;
+}
+body[data-ui-mode="ai"] .brand-panel-unified::after {
+    animation: none !important;
+    opacity: .34 !important;
+}
+body[data-ui-mode="ai"] .brand-topline.brand-command-bar {
+    min-height: 34px !important;
+    margin-bottom: 0 !important;
+    align-items: center !important;
+}
+body[data-ui-mode="ai"] .brand-topline .brand-kicker,
+body[data-ui-mode="ai"] .brand-right-actions {
+    align-items: center !important;
+}
+body[data-ui-mode="ai"] .hero-mainline,
+body[data-ui-mode="ai"] .mini-wave,
+body[data-ui-mode="ai"] .hero-knobs {
+    display: none !important;
+}
 body[data-ui-mode="ai"] .app-shell {
     width: min(980px, calc(100% - 18px)) !important;
 }
@@ -277,53 +306,59 @@ body[data-ui-mode="ai"] .detail-box {
     max-height: none !important;
     overflow: visible !important;
 }
-body[data-ui-mode="ai"] .studio-hero { margin-bottom: 10px !important; }
+
 body[data-ui-mode="ai"] .bottom-preview-dock { display: block; }
 
 @media (max-width: 720px) {
     .ui-mode-chooser { align-items: flex-end; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }
     .ui-mode-chooser-panel {
         width: 100%;
-        max-height: min(96dvh, 860px);
+        max-height: min(calc(var(--foxbear-visual-viewport-height, 100dvh) - 16px), 860px);
         padding: 20px 13px 15px;
         border-radius: 24px 24px 18px 18px;
     }
     .ui-mode-chooser-heading { margin-bottom: 14px; padding-inline: 8px; }
     .ui-mode-chooser-heading h2 { font-size: 1.25rem; }
-    .ui-mode-chooser-heading p { margin-top: 8px; font-size: .64rem; line-height: 1.45; }
+    .ui-mode-chooser-heading p { margin-top: 8px; font-size: .72rem; line-height: 1.48; }
     .ui-mode-choice-grid { grid-template-columns: 1fr; gap: 8px; }
     .ui-mode-choice-card {
         min-height: 0;
         grid-template-columns: 40px minmax(0, 1fr) auto;
         gap: 3px 9px;
-        padding: 14px 12px;
+        padding: 15px 13px;
         border-radius: 17px;
     }
     .ui-mode-choice-icon { grid-row: 1 / span 3; width: 40px; height: 40px; border-radius: 13px; font-size: 1.05rem; }
-    .ui-mode-choice-card > strong { grid-column: 2 / 3; align-self: end; font-size: .82rem; }
-    .ui-mode-choice-copy { grid-column: 2 / 3; font-size: .56rem; }
-    .ui-mode-choice-card > small { grid-column: 2 / -1; min-height: 0; margin-top: 5px; font-size: .54rem; line-height: 1.38; }
+    .ui-mode-choice-card > strong { grid-column: 2 / 3; align-self: end; font-size: .92rem; }
+    .ui-mode-choice-copy { grid-column: 2 / 3; font-size: .66rem; }
+    .ui-mode-choice-card > small { grid-column: 2 / -1; min-height: 0; margin-top: 5px; font-size: .62rem; line-height: 1.45; }
     .ui-mode-choice-action {
         grid-column: 3 / 4;
         grid-row: 1 / 3;
         align-self: center;
-        min-height: 32px;
+        min-height: 38px;
         margin: 0;
         padding: 6px 8px;
-        font-size: .49rem;
+        font-size: .58rem;
         white-space: nowrap;
     }
-    .ui-mode-choice-badge { top: 8px; right: 8px; transform: translateY(-52%); font-size: .43rem; }
-    .ui-mode-chooser-footnote { margin-top: 10px; font-size: .50rem; }
+    .ui-mode-choice-badge { top: 8px; right: 8px; transform: translateY(-52%); font-size: .50rem; }
+    .ui-mode-chooser-footnote { margin-top: 10px; font-size: .58rem; line-height: 1.5; }
     .ui-mode-switch-btn {
-        min-width: 82px;
-        min-height: 34px;
+        min-width: 92px;
+        min-height: 40px;
         padding: 5px 7px !important;
         border-radius: 11px !important;
     }
-    .ui-mode-switch-kicker { font-size: .36rem; }
-    .ui-mode-switch-btn strong { font-size: .50rem; }
-    body[data-ui-mode="ai"] .app-shell { width: min(100% - 8px, 980px) !important; padding-top: 8px !important; }
+    .ui-mode-switch-kicker { font-size: .41rem; }
+    .ui-mode-switch-btn strong { font-size: .58rem; }
+    body[data-ui-mode="ai"] .app-shell { width: min(100% - 8px, 980px) !important; padding-top: 6px !important; }
+    body[data-ui-mode="ai"] .brand-panel-unified { padding: 7px 8px !important; border-radius: 14px !important; }
+    body[data-ui-mode="ai"] .brand-command-device,
+    body[data-ui-mode="ai"] .brand-command-studio,
+    body[data-ui-mode="ai"] .brand-command-bar .designer-mini { display: none !important; }
+    body[data-ui-mode="ai"] .brand-command-bar .brand-right-actions { gap: 6px !important; }
+    .ui-mode-chooser-close { width: 40px; height: 40px; }
     body[data-ui-mode="ai"] .studio-grid { gap: 7px !important; }
     body[data-ui-mode="ai"] .console-panel > .control-zone-load { padding: 10px !important; border-radius: 17px !important; }
     body[data-ui-mode="ai"] .control-zone-load .upload-stage { gap: 6px !important; }
@@ -338,12 +373,12 @@ body[data-ui-mode="ai"] .bottom-preview-dock { display: block; }
         grid-column: 2 / 3;
         grid-row: auto;
         justify-self: start;
-        min-height: 27px;
+        min-height: 34px;
         margin-top: 5px;
         padding-inline: 9px;
     }
     .ui-mode-choice-card > small { grid-column: 2 / 3; }
     .ui-mode-choice-badge { transform: none; }
-    .ui-mode-switch-btn { min-width: 76px; }
+    .ui-mode-switch-btn { min-width: 86px; }
     body[data-ui-mode="ai"] .control-zone-load .upload-tile { min-height: 70px !important; }
 }

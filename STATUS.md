@@ -1,27 +1,32 @@
-# FoxBear Status - v1.6.80
+# FoxBear Status - v1.6.82
 
 ## Current release
 
-- Product version: `1.6.80`
-- Build ID: `ai-mastering-expert-workspace`
-- Asset version: `1.6.80-ai-mastering-expert-workspace`
-- Service worker cache: `foxbear-shell-v1.6.80-ai-mastering-expert-workspace`
-- Configured static/regression target: **435 checks**.
+- Product version: `1.6.82`
+- Build ID: `overlay-focus-ancestor-hardening`
+- Asset version: `1.6.82-overlay-focus-ancestor-hardening`
+- Service worker cache: `foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening`
+- Configured static/regression target: **437 checks**.
+
+## Release metadata
+
+- Product version: `1.6.82`
+- Build ID: `overlay-focus-ancestor-hardening`
+- Asset version: `1.6.82-overlay-focus-ancestor-hardening`
+- Service worker cache: `foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening`
 
 ## Release focus
 
-- Required first-entry AI Mastering / Expert workspace selection.
-- Mobile-first AI workspace: import → queue → analysis in one column with the existing Dock unchanged.
-- Shared DOM/runtime state across both modes so mode switching does not reset audio work.
+- Shared modal focus loops reject controls removed from sequential navigation with `tabindex="-1"` or `aria-disabled="true"`.
+- Focusable descendants under hidden, inert, `aria-hidden`, or content-visibility-hidden ancestors are excluded.
+- Workspace chooser uses the same shared focusability rules with an equivalent fallback.
 
 ## Release status
 
-- First-entry chooser is visible from the initial document paint; same-session reloads restore the previous choice before the workspace is exposed.
-- AI mode reuses the existing import, queue, analysis, mastering, download, and Dock runtime rather than duplicating state.
-- New UI assets are included in the Service Worker atomic install graph.
-- Static and behavioral checks passed **435/435** (`109/109`, `109/109`, `109/109`, `108/108`).
-- Firebase Hosting boundary passed with **161 files**.
-- Full archive: **754 files**; patch: **296 overwrite files**, no generated manifest, with **7 delete paths**.
+- Static and behavioral checks: **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
+- Version, Functions syntax, App Check, source hygiene, handoff, browser preflight, dependency structure, overlay/history, and Hosting gates passed.
+- Delivery package: **757-file** full ZIP / **296-file** manifestless patch / **7 delete paths**.
+- Patch replay over v1.6.81 reproduced the final tree exactly: **757/757**, missing 0, extra 0, changed 0.
 
 # FoxBear Status - v1.6.79
 

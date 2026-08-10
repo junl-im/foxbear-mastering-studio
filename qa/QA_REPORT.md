@@ -1,3 +1,47 @@
+# FoxBear QA Report - v1.6.82
+
+## Configured target
+
+- Static and behavioral checks: **437**.
+- New regression: `qa/v1682_overlay_focus_ancestor_hardening_smoke.js`.
+
+## Verification scope
+
+- Shared modal focus rotation excludes `tabindex="-1"` and `aria-disabled` controls.
+- Hidden, inert, `aria-hidden`, and content-visibility-hidden ancestor chains cannot leak descendants into the focus loop.
+- Workspace chooser reuses the shared modal focus filter and keeps a dependency-light equivalent fallback.
+
+## Verification status
+
+- Focused v1.6.82 regression: **PASS**.
+- v1.6.81 workspace/overlay regression after release-metadata advancement: **PASS**.
+- Full configured suite: **437/437 PASS** in bounded slices (`110/110`, `110/110`, `110/110`, `107/107`).
+- Version synchronization, Functions syntax, App Check policy, source hygiene, GitHub Desktop handoff, browser preflight, dependency structure, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Verified delivery: **757-file** full ZIP and **296-file** manifestless overwrite patch with **7 delete paths**. Applying the patch over v1.6.81 reproduced the final v1.6.82 tree exactly (`757/757`, missing 0, extra 0, changed 0).
+
+# FoxBear QA Report - v1.6.81
+
+## Configured target
+
+- Static and behavioral checks: **436**.
+- New regression: `qa/v1681_ai_workspace_polish_navigation_accessibility_smoke.js`.
+
+## Verification scope
+
+- Compact AI Mastering command surface with the decorative hero removed while preserving import, queue, analysis, mastering actions, and Dock state.
+- Required first-entry chooser stays outside browser Back history; optional reopened chooser participates in shared overlay history.
+- Background shell inert ownership, hidden-close focus filtering, session mode root synchronization, and visual-viewport-safe mobile sizing.
+
+## Verification status
+
+- Focused v1.6.81 regression: **PASS**.
+- Full configured suite: **436/436 PASS** in bounded slices (`109/109`, `109/109`, `109/109`, `109/109`).
+- Overlay/history regressions v1.6.15, v1.6.16, and v1.6.30-v1.6.35: **PASS**.
+- Version synchronization, Functions syntax, App Check policy, source hygiene, GitHub Desktop handoff, browser preflight, dependency structure, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Verified delivery: **756-file** full ZIP and **297-file** manifestless overwrite patch with **7 delete paths**. Applying the patch over v1.6.80 reproduced the final tree exactly (`756/756`, missing 0, extra 0, changed 0).
+
 # FoxBear QA Report - v1.6.80
 
 ## Configured target

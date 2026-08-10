@@ -12,8 +12,9 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const stateSource = fs.readFileSync('src/state/app-state.js', 'utf8');
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.80');
-assert.strictEqual(pkg.foxbearRelease?.buildId, 'ai-mastering-expert-workspace');
+assert.strictEqual(pkg.version, '1.6.82');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')));
+assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease?.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1680_ai_mastering_expert_workspace_smoke.js'));
 assert(html.includes('id="uiModeChooser"'));
 assert(html.includes('id="uiModeAiBtn"'));

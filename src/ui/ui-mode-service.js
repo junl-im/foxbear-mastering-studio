@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.80 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.6.82 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });
@@ -51,9 +51,12 @@
         let chooserRequired = false;
         let lastFocused = null;
         let pageshowBound = false;
+        let overlayRegistered = false;
+        let backgroundInertPrevious = null;
 
         const get = key => documentRef?.getElementById?.(ids[key]) || null;
         const body = () => documentRef?.body || null;
+        const appShell = () => documentRef?.querySelector?.('.app-shell') || null;
         const modeLabel = value => value === MODES.AI ? 'AI 마스터링' : '전문가 모드';
 
         function updateControls() {
@@ -89,6 +92,7 @@
             mode = normalized;
             const root = body();
             if (root) root.dataset.uiMode = mode;
+            try { documentRef?.documentElement?.setAttribute?.('data-ui-mode-pref', mode); } catch (error) {}
             if (applyOptions.persist !== false) safeWriteSession(storage, mode);
             updateControls();
             onModeChange(mode, previous);
@@ -97,11 +101,72 @@
             return mode;
         }
 
+        function isFocusCandidateAvailable(node, panel) {
+            if (!node || node.disabled || node.getAttribute?.('aria-disabled') === 'true' || node.getAttribute?.('tabindex') === '-1') return false;
+            let current = node;
+            while (current) {
+                if (current.hidden || current.inert === true || current.getAttribute?.('aria-hidden') === 'true' || current.hasAttribute?.('inert')) return false;
+                if (typeof global.getComputedStyle === 'function') {
+                    try {
+                        const style = global.getComputedStyle(current);
+                        if (style?.display === 'none' || style?.visibility === 'hidden' || style?.visibility === 'collapse' || style?.contentVisibility === 'hidden') return false;
+                    } catch (error) {}
+                }
+                if (current === panel) break;
+                current = current.parentElement || null;
+            }
+            return true;
+        }
+
         function getFocusable() {
             const panel = get('panel');
             if (!panel?.querySelectorAll) return [];
-            return Array.from(panel.querySelectorAll('button:not([disabled]):not([hidden]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'))
-                .filter(node => !node.hidden && node.getAttribute?.('aria-hidden') !== 'true');
+            const sharedFocusable = global.FoxBearModalStateMachine?.getFocusable;
+            if (typeof sharedFocusable === 'function') {
+                try { return sharedFocusable(panel); } catch (error) {}
+            }
+            return Array.from(panel.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]'))
+                .filter(node => isFocusCandidateAvailable(node, panel));
+        }
+
+        function setBackgroundInert(active) {
+            const shell = appShell();
+            if (!shell || !('inert' in shell)) return false;
+            if (active) {
+                if (backgroundInertPrevious === null) backgroundInertPrevious = Boolean(shell.inert);
+                shell.inert = true;
+                return true;
+            }
+            if (backgroundInertPrevious !== null) {
+                shell.inert = backgroundInertPrevious;
+                backgroundInertPrevious = null;
+            }
+            return true;
+        }
+
+        function syncOverlayRegistration(openState) {
+            const chooser = get('chooser');
+            const panel = get('panel');
+            const manager = global.FoxBearModalStateMachine;
+            if (!chooser || !manager?.setExternalLayerOpen) return false;
+            if (openState) {
+                manager.setExternalLayerOpen(chooser, true, {
+                    mode: 'dialog',
+                    panel,
+                    opener: lastFocused,
+                    lockScroll: true,
+                    history: !chooserRequired,
+                    onRequestClose: () => {
+                        if (chooserRequired && !mode) return false;
+                        return close({ restoreFocus: true, fromOverlay: true });
+                    }
+                });
+                overlayRegistered = true;
+                return true;
+            }
+            if (overlayRegistered) manager.setExternalLayerOpen(chooser, false);
+            overlayRegistered = false;
+            return true;
         }
 
         function open(openOptions = {}) {
@@ -116,6 +181,8 @@
             chooser.dataset.required = chooserRequired ? 'true' : 'false';
             chooser.setAttribute('aria-hidden', 'false');
             body()?.classList?.add('ui-mode-choice-open');
+            setBackgroundInert(true);
+            syncOverlayRegistration(true);
             updateControls();
             const preferred = mode === MODES.EXPERT ? get('expert') : get('ai');
             const focusTarget = preferred || getFocusable()[0] || panel;
@@ -134,6 +201,8 @@
             chooser.hidden = true;
             chooser.dataset.required = 'false';
             chooser.setAttribute('aria-hidden', 'true');
+            syncOverlayRegistration(false);
+            setBackgroundInert(false);
             body()?.classList?.remove('ui-mode-choice-open');
             if (closeOptions.restoreFocus !== false && lastFocused && documentRef?.contains?.(lastFocused)) focusSafe(lastFocused);
             lastFocused = null;
@@ -202,7 +271,7 @@
                 pageshowBound = true;
                 global.addEventListener('pageshow', () => {
                     if (mode) apply(mode, { persist: false });
-                    if (chooserOpen) updateControls();
+                    if (chooserOpen) { syncOverlayRegistration(true); updateControls(); }
                 });
             }
             updateControls();
@@ -215,7 +284,7 @@
         }
 
         function getSnapshot() {
-            return Object.freeze({ mode, chooserOpen, chooserRequired, initialized, restored: Boolean(safeReadSession(storage)) });
+            return Object.freeze({ mode, chooserOpen, chooserRequired, initialized, overlayRegistered, restored: Boolean(safeReadSession(storage)) });
         }
 
         return Object.freeze({ init, apply, openChooser: open, closeChooser: close, select, getSnapshot, normalizeMode });

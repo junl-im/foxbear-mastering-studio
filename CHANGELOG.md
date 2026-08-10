@@ -1,3 +1,19 @@
+# v1.6.82 - Overlay focus ancestor hardening
+
+- Makes shared modal and workspace-chooser focus traps follow effective DOM visibility instead of checking only the focusable node itself.
+- Excludes controls nested under hidden, inert, or `aria-hidden` ancestors and respects `aria-disabled` plus explicit `tabindex="-1"` removal from sequential keyboard navigation.
+- Reuses the shared modal focus filter in the workspace chooser while retaining a dependency-light fallback for recovery paths.
+- Adds dedicated v1.6.82 regression coverage for hidden/inert ancestor and tab-order exclusion behavior.
+
+# v1.6.81 - AI workspace polish, overlay navigation, and accessibility
+
+- Compacts AI Mastering into a true work surface by collapsing the decorative hero while preserving the command bar, import, queue, analysis, Dock, and mastering actions.
+- Integrates the workspace chooser with the shared overlay/history manager so an optional chooser opened during work closes on browser Back instead of navigating away.
+- Keeps the required first-entry chooser outside browser history, preventing Back from bypassing the required workspace choice.
+- Makes the background app shell inert while the chooser is open and excludes CSS-hidden controls from the focus loop.
+- Enlarges mobile chooser text and mode-switch targets, and uses the shared visual-viewport height for keyboard/address-bar constrained screens.
+- Adds dedicated v1.6.81 regression coverage for overlay registration, Back behavior, inert ownership, hidden-focus filtering, and compact AI layout.
+
 # v1.6.80 - AI mastering and expert workspace
 
 - Adds a first-entry workspace chooser with **AI 마스터링** and **전문가 모드**.

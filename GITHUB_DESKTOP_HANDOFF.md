@@ -1,25 +1,26 @@
-# GitHub Desktop Handoff - v1.6.80
+# GitHub Desktop Handoff - v1.6.82
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.79**, then extract `foxbear-mastering-studio-v1.6.80-patch.zip` into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.81**, then extract the v1.6.82 patch ZIP into the repository root and replace matching files.
 3. Remove every path listed in `DELETE_PATHS.txt` if it exists.
-4. Review the UI-mode additions and all generated release metadata changes in GitHub Desktop, commit, then **Push origin**.
-5. For a clean replacement, preserve `.git` and use the v1.6.80 full ZIP.
+4. Review modified/new/deleted files, commit, then **Push origin**.
+5. For a clean replacement, preserve `.git` and use the v1.6.82 full ZIP.
 
 ## Release focus
 
-- `AI 마스터링` / `전문가 모드` first-entry chooser.
-- AI single-column import → queue → analysis workspace with shared Dock and mastering state.
-- Expert mode remains the existing full studio.
+- Shared modal and workspace chooser focus traps now follow effective ancestor visibility/inert state.
+- Explicit `tabindex="-1"` and `aria-disabled="true"` controls stay out of Tab/Shift+Tab rotation.
+- v1.6.81 historical regression no longer pins the old build ID, so normal release metadata advancement remains testable.
 
 ## Expected verification result
 
-- Static/regression: **435/435 passed** (`109/109`, `109/109`, `109/109`, `108/108`).
+- Static/regression: **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
 - Firebase Hosting staged payload: **161 allowlisted files**.
-- Full ZIP: **754 files**. Patch ZIP: **296 overwrite files**, **no `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- New `ui-mode.css` and `ui-mode-service.js` are part of the Service Worker atomic install graph.
+- Full ZIP: **757 files**. Patch ZIP: **296 overwrite files**, **no `PATCH_MANIFEST.json`**, with **7 delete paths**.
+- v1.6.81 replay must match v1.6.82 exactly: **757/757**, missing 0, extra 0, changed 0.
+- The full ZIP itself must pass release-metadata verification after extraction.
 
 # GitHub Desktop Handoff - v1.6.79
 
