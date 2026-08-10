@@ -1,36 +1,35 @@
-# FoxBear Status - v1.6.85
+# FoxBear Status - v1.6.86
 
 ## Current release
 
-- Product version: `1.6.85`
-- Build ID: `browser-sentinel-ui-mode-header-recovery`
-- Asset version: `1.6.85-browser-sentinel-ui-mode-header-recovery`
-- Service worker cache: `foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery`
-- Configured static/regression target: **440 checks**.
+- Product version: `1.6.86`
+- Build ID: `header-order-mobile-overflow-browser-gate-recovery`
+- Asset version: `1.6.86-header-order-mobile-overflow-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery`
+- Configured static/regression target: **441 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.85`
-- Build ID: `browser-sentinel-ui-mode-header-recovery`
-- Asset version: `1.6.85-browser-sentinel-ui-mode-header-recovery`
-- Service worker cache: `foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery`
+- Product version: `1.6.86`
+- Build ID: `header-order-mobile-overflow-browser-gate-recovery`
+- Asset version: `1.6.86-header-order-mobile-overflow-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery`
 
 ## Release focus
 
-- Harden Runtime Health startup so the E2E-only workspace mode survives sessionStorage restrictions without changing production first-entry behavior.
-- Remove the real compact-header clipping introduced after the workspace switch was added, while preserving the 40px mobile switch target.
-- Make repeated browser failures self-identifying in GitHub Annotations with project/spec/title/error details.
-- Keep legacy `PATCH_MANIFEST.json` as an explicit cleanup/deletion target; its deletion must be committed from the user's Git working tree.
+- Restore desktop header visual order by neutralizing the stale creator-link flex order introduced before the workspace switch existed.
+- Remove Pixel 5 header overlap by yielding the nonessential creator token at 430px and below while preserving workspace/settings controls.
+- Keep Runtime Health geometry assertions strict rather than relaxing the browser gate.
+- Remove and commit the legacy tracked `PATCH_MANIFEST.json` so CI source-hygiene no longer needs to auto-repair it.
 
 ## Release status
 
-- Static and behavioral checks: **440/440 PASS** in bounded execution.
-- Source hygiene, version synchronization, Functions syntax, App Check policy, handoff, browser preflight, and Hosting gates: **PASS**.
-- Dependency health: **0 errors / 5 warnings** because the delivery tree intentionally excludes installed `node_modules`.
+- Static and behavioral checks: **441/441 PASS** in bounded execution.
+- Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Hosting gates: **PASS**.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Local Chromium CSS geometry probe: 1440/430/393/375/320px all have **0 left overflow / 0 row overlap**; the 40px workspace switch remains intact.
-- Full Playwright navigation cannot run in this environment because local browser navigation is blocked by policy; GitHub Actions remains the final browser execution authority.
-- Delivery: **764-file** full ZIP and **307-file** manifestless patch with **7 delete paths**; replay over v1.6.84, including a simulated legacy `PATCH_MANIFEST.json`, matched exactly (`764/764`, missing 0, extra 0, changed 0).
+- Deployed App Check verification and full Playwright navigation require external network/browser access; GitHub Actions remains the final browser execution authority.
+- Delivery: **766-file** full ZIP and **304-file** manifestless patch with **7 delete paths**; replay over v1.6.85, including a simulated legacy `PATCH_MANIFEST.json`, matched exactly (`766/766`, missing 0, extra 0, changed 0).
+
 
 # FoxBear Status - v1.6.79
 

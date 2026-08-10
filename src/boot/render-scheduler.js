@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
+    const SERVICE_VERSION = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

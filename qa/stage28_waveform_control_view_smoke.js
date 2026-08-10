@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.85-browser-sentinel-ui-mode-header-recovery';
+const version = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

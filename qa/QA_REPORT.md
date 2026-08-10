@@ -1,3 +1,26 @@
+# FoxBear QA Report - v1.6.86
+
+## Configured target
+
+- Static and behavioral checks: **441**.
+- New regression: `qa/v1686_header_order_mobile_overflow_browser_gate_smoke.js`.
+
+## Verification scope
+
+- Resets the stale creator-link flex order so desktop visual order matches the Runtime Health DOM contract.
+- Retires the nonessential creator token at 430px and below to protect Pixel-class header width.
+- Preserves the workspace mode switch and settings control at compact widths.
+- Keeps the 320px overflow sentinel and source-hygiene cleanup contract.
+
+## Verification status
+
+- Focused v1.6.86 regression: **PASS**.
+- Full configured suite: **441/441 PASS** in bounded execution.
+- Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Deployed App Check verification and full Playwright browser execution require external network/browser access; GitHub Actions remains authoritative.
+- Delivery verification: **766-file full ZIP**, **304-file manifestless patch**, **7 delete paths**; replay over v1.6.85 with a simulated legacy `PATCH_MANIFEST.json` matched exactly (`766/766`, missing 0, extra 0, changed 0).
+
 # FoxBear QA Report - v1.6.85
 
 ## Configured target

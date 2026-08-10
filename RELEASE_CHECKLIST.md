@@ -1,3 +1,15 @@
+# v1.6.86 release checklist
+
+- [x] Map the desktop Runtime Health failure to stale `.designer-mini { order: 2; }` visual reordering.
+- [x] Reset creator-link order in the final command-bar stylesheet without relaxing the browser assertion.
+- [x] Map the Pixel 5 `135.28125px` row overlap to compact right-action pressure.
+- [x] Hide only the nonessential creator token at 430px and below while keeping the workspace switch/settings controls.
+- [x] Preserve the 40px mobile workspace switch target and 320px overflow guard.
+- [x] Add dedicated v1.6.86 regression coverage.
+- [x] Run all **441/441** static/regression checks and pass source hygiene, version, Functions syntax, local App Check, handoff, browser-preflight, and **161-file** Hosting boundary gates.
+- [ ] Commit deletion of tracked `PATCH_MANIFEST.json` in the GitHub working tree.
+- [x] Build/verify the **766-file** full ZIP and **304-file** manifestless patch with **7 delete paths**; replay over v1.6.85 with a simulated legacy manifest matched exactly (`766/766`, missing 0, extra 0, changed 0).
+
 # v1.6.85 release checklist
 
 - [x] Confirm the browser job uses Runtime Health as the sentinel and skips heavier scenarios when it fails.

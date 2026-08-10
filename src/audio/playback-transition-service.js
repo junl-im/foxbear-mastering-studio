@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
+    const SERVICE_VERSION = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

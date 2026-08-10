@@ -1,3 +1,24 @@
+# v1.6.86 patch notes
+
+## 적용 내역
+
+- GitHub Actions v1.6.85 Runtime Health의 두 반복 실패를 정확히 수정했습니다: desktop `modeSwitchLeft 1112.8125 < designerRight-2 1356`, mobile `rowOverlap 135.28125 > 1`.
+- `studio.css`에 남아 있던 과거 `.designer-mini { order: 2; }`를 최종 command-bar CSS에서 `order: 0 !important`로 무효화해 DOM과 시각 순서를 `제작자 → 작업 방식 → 설정`으로 일치시켰습니다.
+- 430px 이하에서는 비필수 제작자 토큰을 숨겨 Pixel 5 폭에서 BUILD/기기 상태와 작업 방식/설정 컨트롤이 서로 침범하지 않게 했습니다.
+- 작업 방식 버튼의 모바일 40px 터치 타깃과 320px overflow sentinel은 유지합니다.
+- v1.6.86 전용 회귀를 추가해 두 CSS 계약과 Runtime Health assertion을 고정했습니다.
+- `PATCH_MANIFEST.json`은 계속 삭제 경로입니다. cleanup 후 GitHub Desktop에서 삭제 변경을 커밋해야 hygiene warning이 사라집니다.
+
+## 검증 결과
+
+- v1.6.86 신규 회귀: **PASS**.
+- 전체 정적·행동 회귀: **441/441 PASS**.
+- Source hygiene / Version / Functions syntax / local App Check policy / Handoff / browser preflight / Hosting: **PASS**.
+- Firebase Hosting 공개 경계: **161개 파일**.
+- 배포된 App Check 원격 검증과 전체 Playwright 브라우저 실행은 현재 실행 환경의 외부 네트워크/브라우저 제약으로 수행하지 못했으며 다음 GitHub Actions가 최종 브라우저 기준입니다.
+- Full ZIP **766개 파일**, patch ZIP **304개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음.
+- v1.6.85 full 기준 트리에 legacy `PATCH_MANIFEST.json`을 일부러 추가한 뒤 patch + cleanup을 재적용해 v1.6.86 full과 **766/766 완전 동일** (`missing 0 / extra 0 / changed 0`)을 확인했습니다.
+
 # v1.6.85 patch notes
 
 ## 적용 내역

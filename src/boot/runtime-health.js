@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.85-browser-sentinel-ui-mode-header-recovery';
+    const FALLBACK_VERSION = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

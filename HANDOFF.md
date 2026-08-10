@@ -1,23 +1,24 @@
-# Handoff - v1.6.85
+# Handoff - v1.6.86
 
 ## Current release
 
-- Product version: `1.6.85`
-- Build ID: `browser-sentinel-ui-mode-header-recovery`
-- Asset version: `1.6.85-browser-sentinel-ui-mode-header-recovery`
-- Service worker cache: `foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery`
-- Configured static/regression target: 440 checks.
+- Product version: `1.6.86`
+- Build ID: `header-order-mobile-overflow-browser-gate-recovery`
+- Asset version: `1.6.86-header-order-mobile-overflow-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery`
+- Configured static/regression target: 441 checks.
 
 ## Current focus
 
-- Give Runtime Health an E2E-only workspace-mode fallback when sessionStorage is unavailable or cleared.
-- Eliminate compact-header clipping at 430px and below by hiding the redundant studio label, not by shrinking the 40px workspace switch target.
-- Report repeated browser retry failures per project/spec/title in GitHub Annotations.
-- Remove and commit the legacy tracked `PATCH_MANIFEST.json` so CI source-hygiene no longer needs to auto-repair it.
+- Fix the exact v1.6.85 Runtime Health geometry failures without weakening assertions.
+- Restore desktop creator/workspace/settings visual order.
+- Remove Pixel-class command-bar overlap by hiding only the nonessential creator token at 430px and below.
+- Remove and commit the legacy tracked `PATCH_MANIFEST.json` so the source-hygiene warning disappears.
+- Verified delivery: 766-file full ZIP; 304-file patch + 7 delete paths; v1.6.85 replay matched exactly.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.85 patch ZIP** into the **v1.6.84 repository root** and replace matching files.
+1. Extract the **v1.6.86 patch ZIP** into the **v1.6.85 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
 3. Confirm GitHub Desktop shows **`PATCH_MANIFEST.json` as deleted**. If it is still listed in the repository, do not omit that deletion from the commit.
 4. Commit all modified/new/deleted files and **Push origin**.

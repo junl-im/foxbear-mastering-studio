@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.85
+# FoxBear AI Mastering Studio Pro v1.6.86
 
-> Current release: v1.6.85 · browser-sentinel-ui-mode-header-recovery
+> Current release: v1.6.86 · header-order-mobile-overflow-browser-gate-recovery
 
-This release hardens the Runtime Health browser sentinel after the workspace-mode rollout: E2E mode establishment no longer depends only on sessionStorage, the compact command header yields its redundant studio token before clipping, and repeated browser failures now surface exact project/spec annotations in GitHub Actions.
+This release fixes the two exact Runtime Health geometry failures reported by GitHub Actions: desktop creator/mode visual ordering and Pixel-class header overlap, while preserving the essential workspace and settings controls.
 
 # FoxBear AI Mastering Studio Pro v1.6.81
 

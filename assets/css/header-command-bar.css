@@ -150,6 +150,7 @@
 
 .brand-command-bar .designer-mini {
     display: inline-flex !important;
+    order: 0 !important;
     align-items: baseline !important;
     justify-content: flex-end !important;
     gap: 6px !important;
@@ -309,6 +310,13 @@
     }
 
     .brand-command-studio {
+        display: none !important;
+    }
+
+    /* Preserve the essential mode/settings controls without squeezing the
+       left status tokens on Pixel-class viewports. The creator link remains
+       available in the wider header and elsewhere in the product. */
+    .brand-command-bar .designer-mini {
         display: none !important;
     }
 

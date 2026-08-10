@@ -1,3 +1,11 @@
+# v1.6.86 - Header order and mobile overflow browser gate recovery
+
+- Neutralizes the legacy `order: 2` rule on the compact header creator link so desktop visual order matches the DOM contract: creator → workspace mode → settings.
+- Hides the nonessential creator token at 430px and below so the Pixel 5 runtime sentinel keeps enough width for build/device status plus the essential workspace/settings controls.
+- Preserves the 40px mobile workspace switch target and the existing 320px overflow guard.
+- Adds a regression guard for both exact browser-gate failures observed in v1.6.85.
+- Keeps `PATCH_MANIFEST.json` as a delete-path-only legacy artifact; its tracked deletion still must be committed to remove the CI hygiene warning.
+
 # v1.6.85 - Browser sentinel UI-mode and compact-header recovery
 
 - Gives browser E2E a test-only UI-mode fallback that remains deterministic even when sessionStorage cannot be used during pre-paint startup.

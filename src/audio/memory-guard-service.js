@@ -1,8 +1,8 @@
-// FoxBear memory guard service v1.6.85 - release-after-encode PCM retention policy and diagnostics
+// FoxBear memory guard service v1.6.86 - release-after-encode PCM retention policy and diagnostics
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const VERSION = 'v1.6.85-browser-sentinel-ui-mode-header-recovery';
+    const VERSION = 'v1.6.86-header-order-mobile-overflow-browser-gate-recovery';
     const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 
