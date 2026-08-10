@@ -1,3 +1,10 @@
+# v1.6.84 - Tracked Windows cleanup and static gate recovery
+
+- Fixes the v1.6.83 Static release gate failure caused by `APPLY_PATCH_CLEANUP.cmd` being excluded by the repository-wide `*.cmd` ignore rule.
+- Keeps broad Windows executable hygiene while adding one exact Git exception: `!APPLY_PATCH_CLEANUP.cmd`.
+- Promotes the Windows cleanup helper to a required GitHub Desktop handoff file and explicitly carries `PATCH_MANIFEST.json` in the handoff deletion contract.
+- Adds a regression that proves the approved cleanup helper is Git-trackable while arbitrary `.cmd` files remain ignored.
+
 # v1.6.83 - Browser gate UI-mode fixture recovery and patch cleanup
 
 - Stabilizes existing browser E2E scenarios after the v1.6.80 first-entry workspace chooser by giving the shared `navigateToApp()` fixture an explicit default `expert` session mode before application scripts run.

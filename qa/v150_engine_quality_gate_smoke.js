@@ -22,9 +22,9 @@ const changelog = read('CHANGELOG.md');
 
 assert(pkg.qaChecks.includes('node --check src/audio/reference-profile-service.js'), 'reference profile syntax check missing');
 assert(pkg.qaChecks.includes('node qa/v150_engine_quality_gate_smoke.js'), 'v1.5.0 smoke missing from package QA');
-assert(index.includes('src/audio/reference-profile-service.js?v=1.6.83-browser-ui-mode-fixture-source-hygiene-recovery'), 'reference profile service not loaded in index');
+assert(index.includes('src/audio/reference-profile-service.js?v=1.6.84-tracked-windows-cleanup-static-gate-recovery'), 'reference profile service not loaded in index');
 assert(index.indexOf('src/audio/reference-profile-service.js') < index.indexOf('src/audio/quality-gate-service.js'), 'reference profile service should load before quality gate');
-assert(sw.includes('./src/audio/reference-profile-service.js?v=1.6.83-browser-ui-mode-fixture-source-hygiene-recovery'), 'reference profile service not precached');
+assert(sw.includes('./src/audio/reference-profile-service.js?v=1.6.84-tracked-windows-cleanup-static-gate-recovery'), 'reference profile service not precached');
 
 assert(gate.includes('QualityGate v2.2'), 'QualityGate v2.2 label missing');
 assert(gate.includes('shortTermOverTargetWarnDb'), 'short-term LUFS rules missing');
@@ -32,7 +32,7 @@ assert(gate.includes('Limiter 과보정'), 'limiter overdose check missing');
 assert(gate.includes('De-esser 과보정'), 'de-esser overdose check missing');
 assert(gate.includes('모바일 번역 보정량'), 'mobile translation amount check missing');
 assert(gate.includes('riskFlags'), 'risk flag summary missing');
-assert(gate.includes('1.6.83-engine-quality-regression'), 'quality gate service version missing');
+assert(gate.includes('1.6.84-engine-quality-regression'), 'quality gate service version missing');
 
 assert(app.includes('measureShortTermLufsStats'), 'short-term LUFS stats helper missing from app');
 assert(app.includes('shortTermBefore'), 'master report shortTermBefore missing');

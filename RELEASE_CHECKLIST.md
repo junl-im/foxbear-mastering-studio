@@ -1,3 +1,15 @@
+# v1.6.84 release checklist
+
+- [x] Reproduce the v1.6.83 CI failure with `APPLY_PATCH_CLEANUP.cmd` absent from the Git checkout.
+- [x] Keep `*.cmd` globally ignored and add the exact `!APPLY_PATCH_CLEANUP.cmd` Git exception.
+- [x] Require the Windows cleanup helper in `HANDOFF_PACKAGE.json`.
+- [x] Add `PATCH_MANIFEST.json` to the handoff deletion contract and keep it in `DELETE_PATHS.txt`.
+- [x] Add a Git-backed v1.6.84 regression proving the approved helper is trackable and arbitrary `.cmd` files remain ignored.
+- [x] Run all **439/439** configured static/behavioral checks.
+- [x] Pass source hygiene, version, Functions syntax, App Check, handoff, browser-preflight, dependency-health structure, and **161-file** Hosting boundary checks.
+- [x] Build/verify the **762-file** full ZIP and **302-file** manifestless patch with **7 delete paths**.
+- [x] Replay the patch over the v1.6.83 baseline and match v1.6.84 exactly (`762/762`, missing 0, extra 0, changed 0).
+
 # v1.6.82 release checklist
 
 - [x] Exclude `tabindex="-1"` and `aria-disabled` controls from shared modal focus rotation.

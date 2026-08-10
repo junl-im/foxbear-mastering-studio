@@ -1,3 +1,26 @@
+# FoxBear QA Report - v1.6.84
+
+## Configured target
+
+- Static and behavioral checks: **439**.
+- New regression: `qa/v1684_git_tracked_cleanup_static_gate_smoke.js`.
+
+## Verification scope
+
+- Reproduces the GitHub v1.6.83 checkout by removing the ignored Windows cleanup helper and confirms the historical v1.6.83 regression exits non-zero.
+- Keeps `*.cmd` ignored globally while allowing exactly `APPLY_PATCH_CLEANUP.cmd` to be tracked and committed.
+- Requires the Windows cleanup helper in `HANDOFF_PACKAGE.json` and keeps `PATCH_MANIFEST.json` in both handoff and patch deletion contracts.
+
+## Verification status
+
+- Focused v1.6.84 regression: **PASS**.
+- Full configured suite: **439/439 PASS** in bounded execution; one long slice hit the outer runner timeout only after its completed checks had all passed, and the remaining checks were resumed from the exact next index.
+- Static release prerequisites (source hygiene, version sync, App Check policy, handoff, dependency structure) and Functions syntax: **PASS**.
+- Browser fixture preflight and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Dependency health reports **0 errors / 5 warnings** because `node_modules` is intentionally absent from the handoff tree.
+- Delivery verification: **762-file full ZIP**, **302-file manifestless overwrite patch**, **7 delete paths**; replay over the v1.6.83 baseline matched exactly (`762/762`, missing 0, extra 0, changed 0).
+
 # FoxBear QA Report - v1.6.83
 
 ## Configured target

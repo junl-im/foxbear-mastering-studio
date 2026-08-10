@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.83
+// FoxBear automatic incident reporter - v1.6.84
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.83').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.84-tracked-windows-cleanup-static-gate-recovery';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.84').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;

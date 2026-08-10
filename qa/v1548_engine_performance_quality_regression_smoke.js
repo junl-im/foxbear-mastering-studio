@@ -171,6 +171,6 @@ assert(app.includes('처리 속도 ${speedFactor.toFixed(2)}x'), 'performance UI
 
 const pkg = JSON.parse(read('package.json'));
 assert(pkg.qaChecks.includes('node --check src/audio/mastering-quality-audit-service.js'), 'quality audit syntax check is not registered');
-assert(pkg.qaChecks.includes('node qa/v1548_engine_performance_quality_regression_smoke.js'), 'v1.6.83 QA is not registered');
+assert(pkg.qaChecks.includes('node qa/v1548_engine_performance_quality_regression_smoke.js'), 'v1.6.84 QA is not registered');
 
 console.log(`PASS v1.5.48 engine performance/quality regression: limiter ${limiter.meanReductionDb.toFixed(2)} dB · audit ${badAudit.flags.map(flag => flag.code).join('/')} · gate ${badGate.status}`);

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.83",
-  "buildId": "browser-ui-mode-fixture-source-hygiene-recovery",
+  "productVersion": "1.6.84",
+  "buildId": "tracked-windows-cleanup-static-gate-recovery",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",
@@ -11,6 +11,7 @@
     ".gitignore",
     "404.html",
     "APPLY_PATCH_CLEANUP.sh",
+    "APPLY_PATCH_CLEANUP.cmd",
     "CHANGELOG.md",
     "DELETE_PATHS.txt",
     "DELIVERY_RULES.md",
@@ -236,7 +237,8 @@
     ".firebaserc",
     ".firebase",
     ".audit-results",
-    "qa/static-audit.txt"
+    "qa/static-audit.txt",
+    "PATCH_MANIFEST.json"
   ],
   "requiredRuntimeAssets": [
     "src/boot/service-worker-recovery-service.js",

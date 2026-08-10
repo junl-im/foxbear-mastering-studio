@@ -20,7 +20,7 @@ const handoff = read('HANDOFF.md');
 const status = read('STATUS.md');
 
 assert(pkg.version === meta.productVersion, 'package version should match release metadata');
-assert(pkg.qaChecks.includes('node qa/v1510_header_settings_relocation_smoke.js'), 'v1.6.83 smoke missing from package QA');
+assert(pkg.qaChecks.includes('node qa/v1510_header_settings_relocation_smoke.js'), 'v1.6.84 smoke missing from package QA');
 
 const designerIndex = index.indexOf('class="designer-mini designer-mini-link"');
 const hostIndex = index.indexOf('id="headerSettingsHost"');

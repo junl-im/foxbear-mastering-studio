@@ -1,33 +1,34 @@
-# Handoff - v1.6.83
+# Handoff - v1.6.84
 
 ## Current release
 
-- Product version: `1.6.83`
-- Build ID: `browser-ui-mode-fixture-source-hygiene-recovery`
-- Asset version: `1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
-- Service worker cache: `foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
-- Configured static/regression target: 438 checks.
+- Product version: `1.6.84`
+- Build ID: `tracked-windows-cleanup-static-gate-recovery`
+- Asset version: `1.6.84-tracked-windows-cleanup-static-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery`
+- Configured static/regression target: 439 checks.
 
 ## Current focus
 
-- Isolate existing browser E2E scenarios from the mandatory first-entry workspace chooser by preloading an explicit Expert session in the shared navigation fixture.
-- Preserve real first-entry chooser coverage through the `uiMode: false` opt-out.
-- Make legacy `PATCH_MANIFEST.json` deletion practical on GitHub Desktop by shipping both Windows and shell cleanup helpers in every patch ZIP.
+- Make `APPLY_PATCH_CLEANUP.cmd` commit-visible despite the broad `*.cmd` ignore rule, while leaving every other `.cmd` ignored by default.
+- Require the Windows cleanup helper in the delivery contract.
+- Commit deletion of legacy `PATCH_MANIFEST.json` so CI no longer needs to auto-repair it.
 
 ## Required GitHub Desktop step
 
-1. Extract the v1.6.83 patch ZIP into the **v1.6.82 repository root** and replace matching files.
+1. Extract the **v1.6.84 patch ZIP** into the **v1.6.83 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-3. Confirm GitHub Desktop shows legacy `PATCH_MANIFEST.json` as deleted if it existed.
-4. Review all modified/new/deleted files, commit, and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.83 full ZIP into the repository folder.
+3. Confirm GitHub Desktop shows **`APPLY_PATCH_CLEANUP.cmd` as added** and **`PATCH_MANIFEST.json` as deleted**.
+4. Commit both changes with the rest of v1.6.84 and **Push origin**.
+5. For a clean replacement, preserve `.git` and extract the v1.6.84 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **438/438 PASS** (`110/110`, `110/110`, `110/110`, `108/108`).
-- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, and Hosting staging passed.
+- Static and behavioral checks: **439/439 PASS**.
+- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, dependency structure, and Hosting staging passed.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Local Playwright execution remains unavailable in this container; GitHub Actions is the final browser gate.
+- Full ZIP: **762 files**. Patch ZIP: **302 overwrite files**, **7 delete paths**, no generated patch manifest.
+- Patch replay over the v1.6.83 baseline reproduced the full tree exactly (`762/762`, missing 0, extra 0, changed 0).
 
 # Handoff - v1.6.79
 

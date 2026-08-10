@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery';
+    const FALLBACK_VERSION = '1.6.84-tracked-windows-cleanup-static-gate-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

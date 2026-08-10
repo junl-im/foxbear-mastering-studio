@@ -14,8 +14,8 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.6.83'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.6.83"'), 'index build should be v1.6.83');
+must(app.includes("const APP_VERSION = 'Pro v1.6.84'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.84"'), 'index build should be v1.6.84');
 must(html.includes('manifest.webmanifest') && html.includes('assets/css/mobile-native.css'), 'manifest/mobile CSS links missing');
 must(app.includes('function initMobileNativeUx') && app.includes('Screen Wake') === false, 'mobile native init missing');
 must(app.includes('navigator.wakeLock.request') && app.includes('foxBearHaptic') && app.includes('navigator.mediaSession'), 'wake lock, haptic, or media session code missing');

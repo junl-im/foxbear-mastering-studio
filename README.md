@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.83
+# FoxBear AI Mastering Studio Pro v1.6.84
 
-> Current release: v1.6.83 · browser-ui-mode-fixture-source-hygiene-recovery
+> Current release: v1.6.84 · tracked-windows-cleanup-static-gate-recovery
 
-This release repairs the browser release gate introduced when the first-entry workspace chooser landed. Existing end-to-end scenarios now start in an explicit Expert workspace through the test fixture, while first-entry chooser coverage can opt out and exercise the real selection flow. Patch delivery also carries Windows and shell cleanup helpers so legacy `PATCH_MANIFEST.json` deletions are committed instead of merely repaired inside CI.
+This release fixes the v1.6.83 CI-only static gate failure: the Windows patch cleanup helper existed in delivery ZIPs but Git ignored it because of the broad `*.cmd` safety rule. The repository now unignores exactly `APPLY_PATCH_CLEANUP.cmd`, requires it in the GitHub Desktop handoff contract, and keeps all other command files ignored.
 
 # FoxBear AI Mastering Studio Pro v1.6.81
 

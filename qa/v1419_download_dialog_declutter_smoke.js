@@ -24,11 +24,11 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-assert(pkg.version === '1.6.83', 'package version should be 1.6.83');
-assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.6.83');
-assert(index.includes('data-build="1.6.83"'), 'index build marker should be 1.6.83');
-assert(index.includes('1.6.83-browser-ui-mode-fixture-source-hygiene-recovery'), 'index should use declutter asset key');
-assert(sw.includes('foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery'), 'service worker should use v1.6.83 cache key');
+assert(pkg.version === '1.6.84', 'package version should be 1.6.84');
+assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.6.84');
+assert(index.includes('data-build="1.6.84"'), 'index build marker should be 1.6.84');
+assert(index.includes('1.6.84-tracked-windows-cleanup-static-gate-recovery'), 'index should use declutter asset key');
+assert(sw.includes('foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery'), 'service worker should use v1.6.84 cache key');
 
 assert(service.includes('getDownloadDialogDisplayProfile'), 'download service should expose display profile helper');
 assert(service.includes("mode: restricted ? 'restricted-declutter' : 'standard-declutter'"), 'display profile should distinguish restricted and standard modes');
@@ -50,9 +50,9 @@ assert(css.includes('Download dialog first-screen declutter'), 'CSS should docum
 assert(css.includes('.download-options-panel-v5[data-download-display-mode$="declutter"]'), 'CSS should style declutter mode');
 assert(css.includes('.download-options-checklist.is-empty'), 'CSS should hide empty checklist');
 
-assert(pkg.qaChecks.includes('node qa/v1419_download_dialog_declutter_smoke.js'), 'package QA should include v1.6.83 smoke');
-assert(matrix.includes('v1.4.26 Download dialog first-screen declutter'), 'matrix should document v1.6.83 scope');
-assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention final v1.6.83 pass count');
+assert(pkg.qaChecks.includes('node qa/v1419_download_dialog_declutter_smoke.js'), 'package QA should include v1.6.84 smoke');
+assert(matrix.includes('v1.4.26 Download dialog first-screen declutter'), 'matrix should document v1.6.84 scope');
+assert(/\b(\d+)\/\1 PASS\b/.test(qaReport), 'QA report should mention final v1.6.84 pass count');
 assert(changelog.includes('getDownloadDialogDisplayProfile'), 'changelog should mention display profile helper');
 
 console.log('PASS v1.4.26 download dialog declutter smoke');

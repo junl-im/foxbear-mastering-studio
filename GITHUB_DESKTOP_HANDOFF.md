@@ -1,24 +1,26 @@
-# GitHub Desktop Handoff - v1.6.83
+# GitHub Desktop Handoff - v1.6.84
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.82**, then extract the v1.6.83 patch ZIP into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.83**, then extract the v1.6.84 patch ZIP into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Confirm `PATCH_MANIFEST.json` is shown as a deletion if it existed, then review all modified/new/deleted files.
-5. Commit and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.83 full ZIP.
+4. Confirm **`APPLY_PATCH_CLEANUP.cmd` appears as a new tracked file** and **`PATCH_MANIFEST.json` appears as deleted**.
+5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.84 full ZIP.
 
 ## Release focus
 
-- Existing Playwright scenarios now start from an explicit Expert workspace fixture, so the v1.6.80 mandatory first-entry chooser does not intercept unrelated legacy interactions.
-- First-entry chooser behavior remains available to browser tests with `uiMode: false`.
-- Every patch ZIP carries both cleanup scripts, making legacy generated-file deletion part of the normal GitHub Desktop handoff.
+- `.gitignore` still blocks arbitrary `.cmd` files but explicitly unignores only `APPLY_PATCH_CLEANUP.cmd`.
+- The handoff contract now requires that helper and carries `PATCH_MANIFEST.json` in its deletion contract.
+- This directly fixes the v1.6.83 CI checkout mismatch that caused the Static release gate to fail.
 
 ## Expected verification result
 
-- Static/regression: **438/438 PASS** (`110/110`, `110/110`, `110/110`, `108/108`).
+- Static/regression: **439/439 PASS**.
+- Source hygiene / Version / App Check / Handoff / Functions / browser preflight / Hosting: **PASS**.
 - Firebase Hosting staged payload: **161 allowlisted files**.
-- The next GitHub Actions Browser release gate is the authoritative Playwright verification for the two previously repeated cases.
+- Full ZIP: **762 files**. Patch ZIP: **302 overwrite files** plus **7 delete paths**, with no generated `PATCH_MANIFEST.json`.
+- Patch replay over v1.6.83 must match the v1.6.84 full tree exactly.
 
 # GitHub Desktop Handoff - v1.6.79
 

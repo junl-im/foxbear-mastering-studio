@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery';
+const version = '1.6.84-tracked-windows-cleanup-static-gate-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

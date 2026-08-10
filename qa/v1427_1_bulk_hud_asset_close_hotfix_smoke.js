@@ -15,10 +15,10 @@ const sw = read('sw.js');
 
 assert(pkg.qaChecks.includes('node qa/v1427_1_bulk_hud_asset_close_hotfix_smoke.js'), 'package QA should include this hotfix smoke');
 assert(fs.existsSync(path.join(root, 'assets/css/bulk-import-hud.css')), 'bulk HUD CSS asset must be packaged');
-assert(html.includes('assets/css/bulk-import-hud.css?v=1.6.83-browser-ui-mode-fixture-source-hygiene-recovery&h=bulk-hud-close-hotfix'), 'index must load bulk HUD CSS with a targeted stale-cache bust key');
+assert(html.includes('assets/css/bulk-import-hud.css?v=1.6.84-tracked-windows-cleanup-static-gate-recovery&h=bulk-hud-close-hotfix'), 'index must load bulk HUD CSS with a targeted stale-cache bust key');
 assert(html.includes('data-cache-hotfix="bulk-hud-close"'), 'bulk HUD CSS link should document the targeted cache hotfix');
 assert(/bulk-import-hud\.css[^>]+integrity="sha384-/.test(html), 'bulk HUD CSS should keep SRI after the targeted cache bust');
-assert(sw.includes('./assets/css/bulk-import-hud.css?v=1.6.83-browser-ui-mode-fixture-source-hygiene-recovery&h=bulk-hud-close-hotfix'), 'service worker should precache the cache-busted bulk HUD CSS');
+assert(sw.includes('./assets/css/bulk-import-hud.css?v=1.6.84-tracked-windows-cleanup-static-gate-recovery&h=bulk-hud-close-hotfix'), 'service worker should precache the cache-busted bulk HUD CSS');
 
 assert(html.includes('id="bulkImportHudClose"') && html.includes('aria-label="대량 작업 HUD 숨기기"'), 'bulk HUD close button should have an accessible label');
 assert(html.includes('aria-label="대량 작업 HUD 숨기기">×</button>'), 'bulk HUD close button should use the common centered x glyph');

@@ -1,3 +1,27 @@
+# v1.6.84 patch notes
+
+## 적용 내역
+
+- v1.6.83에서 `APPLY_PATCH_CLEANUP.cmd`를 패치 ZIP에 넣었지만 `.gitignore`의 `*.cmd` 규칙 때문에 GitHub Desktop/Actions 저장소에는 커밋되지 않던 문제를 수정했습니다.
+- `.gitignore`에 정확히 `!APPLY_PATCH_CLEANUP.cmd`만 예외로 추가해 다른 `.cmd` 실행 파일은 계속 차단합니다.
+- `HANDOFF_PACKAGE.json` 필수 파일에 Windows cleanup helper를 추가하고 `PATCH_MANIFEST.json`을 삭제 계약에도 명시했습니다.
+- v1.6.84 회귀는 허용된 cleanup helper는 Git add 가능하고 임의 `.cmd`는 계속 ignore되는지 실제 임시 Git 저장소로 검증합니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀 **439/439 PASS**.
+- Source hygiene / Version / Functions syntax / App Check / Handoff / browser preflight / Hosting **PASS**.
+- Firebase Hosting 공개 경계 **161개 파일**.
+- Full ZIP **762개 파일**, patch ZIP **302개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음.
+- v1.6.83 기준 패치 재적용 결과 v1.6.84 full과 **762/762 완전 동일** (`missing 0 / extra 0 / changed 0`).
+
+## GitHub Desktop 적용
+
+- v1.6.83 저장소 루트에 v1.6.84 patch ZIP을 풀어 덮어씁니다.
+- **Windows:** `APPLY_PATCH_CLEANUP.cmd`를 실행합니다.
+- **macOS/Linux:** `bash APPLY_PATCH_CLEANUP.sh`를 실행합니다.
+- GitHub Desktop에서 `PATCH_MANIFEST.json` 삭제와 `APPLY_PATCH_CLEANUP.cmd` 추가가 모두 보이는지 확인한 뒤 함께 커밋합니다.
+
 # v1.6.83 patch notes
 
 ## 적용 내역

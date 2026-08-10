@@ -1,32 +1,34 @@
-# FoxBear Status - v1.6.83
+# FoxBear Status - v1.6.84
 
 ## Current release
 
-- Product version: `1.6.83`
-- Build ID: `browser-ui-mode-fixture-source-hygiene-recovery`
-- Asset version: `1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
-- Service worker cache: `foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
-- Configured static/regression target: **438 checks**.
+- Product version: `1.6.84`
+- Build ID: `tracked-windows-cleanup-static-gate-recovery`
+- Asset version: `1.6.84-tracked-windows-cleanup-static-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery`
+- Configured static/regression target: **439 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.83`
-- Build ID: `browser-ui-mode-fixture-source-hygiene-recovery`
-- Asset version: `1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
-- Service worker cache: `foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
+- Product version: `1.6.84`
+- Build ID: `tracked-windows-cleanup-static-gate-recovery`
+- Asset version: `1.6.84-tracked-windows-cleanup-static-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery`
 
 ## Release focus
 
-- Browser E2E navigation starts in a deterministic Expert workspace unless a scenario explicitly requests AI or first-entry/unselected mode.
-- The production workspace chooser remains mandatory for real new sessions; only test-fixture setup is isolated.
-- Patch delivery always includes cross-platform cleanup helpers and retains legacy `PATCH_MANIFEST.json` as a deletion target.
+- `APPLY_PATCH_CLEANUP.cmd` is now the only `.cmd` file explicitly unignored by Git, so GitHub Desktop can commit the Windows cleanup helper without weakening executable-file hygiene.
+- `HANDOFF_PACKAGE.json` requires the Windows helper and declares legacy `PATCH_MANIFEST.json` as a deletion target.
+- Existing v1.6.83 browser fixture isolation remains intact.
 
 ## Release status
 
-- Static and behavioral checks: **438/438 PASS** (`110/110`, `110/110`, `110/110`, `108/108`).
-- Version, Functions syntax, App Check, source hygiene, handoff, browser preflight, and Hosting gates passed.
+- Static and behavioral checks: **439/439 PASS**.
+- Source hygiene, version synchronization, Functions syntax, App Check policy, handoff, browser preflight, and Hosting gates: **PASS**.
+- Dependency health: **0 errors / 5 warnings** (handoff tree has no installed `node_modules`).
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Browser Playwright must be confirmed by GitHub Actions because this container cannot install/run the project browser dependency stack.
+- Delivery: **762-file** full ZIP and **302-file** manifestless patch with **7 delete paths**; replay over v1.6.83 matched exactly.
+- The v1.6.83 CI static failure is reproduced by removing the ignored `.cmd` helper; v1.6.84 fixes that Git tracking boundary directly.
 
 # FoxBear Status - v1.6.79
 
