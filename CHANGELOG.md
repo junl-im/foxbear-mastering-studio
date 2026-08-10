@@ -1,9 +1,10 @@
-# v1.6.82 - Overlay focus ancestor hardening
+# v1.6.83 - Browser gate UI-mode fixture recovery and patch cleanup
 
-- Makes shared modal and workspace-chooser focus traps follow effective DOM visibility instead of checking only the focusable node itself.
-- Excludes controls nested under hidden, inert, or `aria-hidden` ancestors and respects `aria-disabled` plus explicit `tabindex="-1"` removal from sequential keyboard navigation.
-- Reuses the shared modal focus filter in the workspace chooser while retaining a dependency-light fallback for recovery paths.
-- Adds dedicated v1.6.82 regression coverage for hidden/inert ancestor and tab-order exclusion behavior.
+- Stabilizes existing browser E2E scenarios after the v1.6.80 first-entry workspace chooser by giving the shared `navigateToApp()` fixture an explicit default `expert` session mode before application scripts run.
+- Keeps first-entry workspace behavior testable with `navigateToApp(page, { uiMode: false })`, rather than disabling or weakening the production chooser.
+- Exposes the E2E UI-mode fixture state for diagnostics and keeps `ai` / `expert` selection explicit and deterministic.
+- Adds a Windows `APPLY_PATCH_CLEANUP.cmd` companion and forces both cleanup scripts into changed-file patch ZIPs so legacy `PATCH_MANIFEST.json` can be removed before committing.
+- Adds a v1.6.83 regression guard for browser fixture mode isolation and cross-platform source-hygiene delivery.
 
 # v1.6.81 - AI workspace polish, overlay navigation, and accessibility
 

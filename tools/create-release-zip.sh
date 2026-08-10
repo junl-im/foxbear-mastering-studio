@@ -72,6 +72,12 @@ zip -qr "${OUTPUT_FILE}" . \
   -x '.last-run.json' \
   -x '.DS_Store'
 
+# The Windows cleanup helper is the sole allowlisted .cmd artifact. Keep the
+# broad executable-script exclusion above, then append this exact reviewed file.
+if [ -f "${ROOT_DIR}/APPLY_PATCH_CLEANUP.cmd" ]; then
+  zip -q "${OUTPUT_FILE}" APPLY_PATCH_CLEANUP.cmd
+fi
+
 node "${ROOT_DIR}/tools/verify-release-zip.js" "${OUTPUT_FILE}"
 
 echo "Created ${OUTPUT_FILE}"

@@ -9,6 +9,14 @@ const DEFAULT_PORT = Number(process.env.FOXBEAR_E2E_PORT || 4173);
 const DEFAULT_HOST = process.env.FOXBEAR_E2E_HOST || '127.0.0.1';
 const DEFAULT_BIND_HOST = process.env.FOXBEAR_E2E_BIND_HOST || '127.0.0.1';
 const APP_URL = process.env.FOXBEAR_E2E_URL || `http://${DEFAULT_HOST}:${DEFAULT_PORT}`;
+const UI_MODE_SESSION_KEY = 'foxbear-ui-mode-session-v1';
+const DEFAULT_E2E_UI_MODE = 'expert';
+
+function resolveE2eUiMode(value) {
+  if (value === false || value === null || value === '' || value === 'unselected') return '';
+  const normalized = String(value || DEFAULT_E2E_UI_MODE).trim().toLowerCase();
+  return normalized === 'ai' || normalized === 'expert' ? normalized : DEFAULT_E2E_UI_MODE;
+}
 
 const OPTIONAL_REMOTE_MOCK_PAGES = new WeakSet();
 const FIREBASE_E2E_MODULES = Object.freeze({
@@ -116,13 +124,19 @@ async function navigateToApp(page, options = {}) {
   const timeout = Number(options.timeout || 20000);
   const url = options.url || APP_URL;
   const disableAutoDialogs = options.disableAutoDialogs === true;
+  const uiMode = resolveE2eUiMode(Object.prototype.hasOwnProperty.call(options, 'uiMode') ? options.uiMode : undefined);
   await installOptionalRemoteMocks(page);
   if (typeof page.addInitScript === 'function') {
-    await page.addInitScript(({ disableAutoDialogs }) => {
+    await page.addInitScript(({ disableAutoDialogs, uiMode, uiModeSessionKey }) => {
       window.__FOXBEAR_E2E__ = true;
       window.__FOXBEAR_SKIP_OPTIONAL_REMOTE__ = true;
       window.__FOXBEAR_E2E_DISABLE_AUTO_DIALOGS__ = disableAutoDialogs;
-    }, { disableAutoDialogs });
+      window.__FOXBEAR_E2E_UI_MODE__ = uiMode || 'unselected';
+      try {
+        if (uiMode) window.sessionStorage.setItem(uiModeSessionKey, uiMode);
+        else window.sessionStorage.removeItem(uiModeSessionKey);
+      } catch (_) {}
+    }, { disableAutoDialogs, uiMode, uiModeSessionKey: UI_MODE_SESSION_KEY });
   }
   const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
   if (response && !response.ok()) {
@@ -323,6 +337,8 @@ module.exports = {
   DEFAULT_HOST,
   DEFAULT_PORT,
   FIREBASE_E2E_MODULES,
+  DEFAULT_E2E_UI_MODE,
+  UI_MODE_SESSION_KEY,
   cleanupStaleServerProbes,
   createSyntheticWavFiles,
   expectRuntimeHealthy,
@@ -332,6 +348,7 @@ module.exports = {
   makeTinyWavBuffer,
   navigateToApp,
   removeDirSafe,
+  resolveE2eUiMode,
   startStaticServer,
   waitForRuntimeHealth,
   waitForServiceWorkerReady,

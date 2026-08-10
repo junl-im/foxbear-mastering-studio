@@ -24,6 +24,7 @@ function normalizeRelative(root, full) {
 }
 
 function isTransientFile(relative, name) {
+  if (String(relative || '').replace(/\\/g, '/') === 'APPLY_PATCH_CLEANUP.cmd' && name === 'APPLY_PATCH_CLEANUP.cmd') return false;
   if (name === '.DS_Store' || name === '.last-run.json' || name === '.firebaserc') return true;
   if (name.startsWith('.env') && !/\.example$/i.test(name)) return true;
   if (/^\.foxbear-e2e-probe-.*\.txt$/i.test(name)) return true;

@@ -9,7 +9,7 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.6.82'"), 'app version should be v1.4.0');
+must(app.includes("const APP_VERSION = 'Pro v1.6.83'"), 'app version should be v1.4.0');
 must(html.includes('snapshotRedoBtn'), 'redo button missing');
 must(html.includes('snapshotAiBtn'), 'AI restore button missing');
 must(html.includes('snapshotOriginalBtn'), 'original baseline button missing');

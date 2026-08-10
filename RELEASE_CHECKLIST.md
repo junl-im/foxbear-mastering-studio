@@ -5,8 +5,7 @@
 - [x] Reuse the shared focusability filter in the workspace chooser with a safe local fallback.
 - [x] Add dedicated v1.6.82 regression coverage.
 - [x] Run all **437/437** configured static/behavioral checks (`110/110`, `110/110`, `110/110`, `107/107`) and release gates.
-- [x] Build/verify the **757-file** full ZIP and **296-file** manifestless patch with **7 delete paths**.
-- [x] Replay the final patch over v1.6.81 and reproduce v1.6.82 exactly (`757/757`, missing 0, extra 0, changed 0).
+- [ ] Build and verify full/patch delivery ZIPs and patch replay.
 
 # v1.6.81 release checklist
 

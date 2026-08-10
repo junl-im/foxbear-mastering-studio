@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.82-overlay-focus-ancestor-hardening';
+  const VIEW_VERSION = '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

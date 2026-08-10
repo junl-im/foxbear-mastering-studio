@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.82
+// FoxBear audio decode service - v1.6.83
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.82-overlay-focus-ancestor-hardening';
+    const SERVICE_VERSION = '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

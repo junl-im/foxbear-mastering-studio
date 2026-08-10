@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.82
+# FoxBear AI Mastering Studio Pro v1.6.83
 
-> Current release: v1.6.82 · overlay-focus-ancestor-hardening
+> Current release: v1.6.83 · browser-ui-mode-fixture-source-hygiene-recovery
 
-This release hardens keyboard focus containment across shared overlays and the workspace chooser. Focus rotation now respects explicit tab-order removal and ancestor visibility/inert state, preventing hidden or intentionally non-tabbable controls from being pulled back into modal Tab/Shift+Tab navigation.
+This release repairs the browser release gate introduced when the first-entry workspace chooser landed. Existing end-to-end scenarios now start in an explicit Expert workspace through the test fixture, while first-entry chooser coverage can opt out and exercise the real selection flow. Patch delivery also carries Windows and shell cleanup helpers so legacy `PATCH_MANIFEST.json` deletions are committed instead of merely repaired inside CI.
 
 # FoxBear AI Mastering Studio Pro v1.6.81
 

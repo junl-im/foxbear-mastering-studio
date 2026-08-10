@@ -1,26 +1,24 @@
-# GitHub Desktop Handoff - v1.6.82
+# GitHub Desktop Handoff - v1.6.83
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.81**, then extract the v1.6.82 patch ZIP into the repository root and replace matching files.
-3. Remove every path listed in `DELETE_PATHS.txt` if it exists.
-4. Review modified/new/deleted files, commit, then **Push origin**.
-5. For a clean replacement, preserve `.git` and use the v1.6.82 full ZIP.
+2. Confirm the working copy is **v1.6.82**, then extract the v1.6.83 patch ZIP into the repository root and replace matching files.
+3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
+4. Confirm `PATCH_MANIFEST.json` is shown as a deletion if it existed, then review all modified/new/deleted files.
+5. Commit and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.83 full ZIP.
 
 ## Release focus
 
-- Shared modal and workspace chooser focus traps now follow effective ancestor visibility/inert state.
-- Explicit `tabindex="-1"` and `aria-disabled="true"` controls stay out of Tab/Shift+Tab rotation.
-- v1.6.81 historical regression no longer pins the old build ID, so normal release metadata advancement remains testable.
+- Existing Playwright scenarios now start from an explicit Expert workspace fixture, so the v1.6.80 mandatory first-entry chooser does not intercept unrelated legacy interactions.
+- First-entry chooser behavior remains available to browser tests with `uiMode: false`.
+- Every patch ZIP carries both cleanup scripts, making legacy generated-file deletion part of the normal GitHub Desktop handoff.
 
 ## Expected verification result
 
-- Static/regression: **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
+- Static/regression: **438/438 PASS** (`110/110`, `110/110`, `110/110`, `108/108`).
 - Firebase Hosting staged payload: **161 allowlisted files**.
-- Full ZIP: **757 files**. Patch ZIP: **296 overwrite files**, **no `PATCH_MANIFEST.json`**, with **7 delete paths**.
-- v1.6.81 replay must match v1.6.82 exactly: **757/757**, missing 0, extra 0, changed 0.
-- The full ZIP itself must pass release-metadata verification after extraction.
+- The next GitHub Actions Browser release gate is the authoritative Playwright verification for the two previously repeated cases.
 
 # GitHub Desktop Handoff - v1.6.79
 

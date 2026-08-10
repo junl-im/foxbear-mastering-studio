@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.82-overlay-focus-ancestor-hardening',
+                version: '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.82-overlay-focus-ancestor-hardening',
+        version: '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

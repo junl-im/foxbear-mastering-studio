@@ -1,3 +1,24 @@
+# FoxBear QA Report - v1.6.83
+
+## Configured target
+
+- Static and behavioral checks: **438**.
+- New regression: `qa/v1683_browser_gate_ui_mode_fixture_source_hygiene_smoke.js`.
+
+## Verification scope
+
+- Existing browser E2E navigation receives an explicit Expert-mode session before application scripts initialize, preventing the required first-entry chooser from intercepting unrelated legacy scenarios.
+- First-entry workspace behavior remains testable by opting out with `uiMode: false`.
+- Patch ZIP generation always includes shell and Windows source-hygiene cleanup helpers and keeps `PATCH_MANIFEST.json` in the deletion list.
+
+## Verification status
+
+- Focused v1.6.83 regression: **PASS**.
+- Full configured suite: **438/438 PASS** in bounded slices (`110/110`, `110/110`, `110/110`, `108/108`).
+- Version synchronization, Functions syntax, App Check policy, source hygiene, GitHub Desktop handoff, browser preflight, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Browser Playwright execution cannot be reproduced in this container because the Playwright dependency is unavailable and local Chromium navigation is blocked by environment policy; GitHub Actions remains the authoritative browser execution environment.
+
 # FoxBear QA Report - v1.6.82
 
 ## Configured target
@@ -18,7 +39,7 @@
 - Full configured suite: **437/437 PASS** in bounded slices (`110/110`, `110/110`, `110/110`, `107/107`).
 - Version synchronization, Functions syntax, App Check policy, source hygiene, GitHub Desktop handoff, browser preflight, dependency structure, and Firebase Hosting staging: **PASS**.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Verified delivery: **757-file** full ZIP and **296-file** manifestless overwrite patch with **7 delete paths**. Applying the patch over v1.6.81 reproduced the final v1.6.82 tree exactly (`757/757`, missing 0, extra 0, changed 0).
+- Delivery archive counts are recorded after final package generation.
 
 # FoxBear QA Report - v1.6.81
 

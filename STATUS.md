@@ -1,32 +1,32 @@
-# FoxBear Status - v1.6.82
+# FoxBear Status - v1.6.83
 
 ## Current release
 
-- Product version: `1.6.82`
-- Build ID: `overlay-focus-ancestor-hardening`
-- Asset version: `1.6.82-overlay-focus-ancestor-hardening`
-- Service worker cache: `foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening`
-- Configured static/regression target: **437 checks**.
+- Product version: `1.6.83`
+- Build ID: `browser-ui-mode-fixture-source-hygiene-recovery`
+- Asset version: `1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
+- Service worker cache: `foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
+- Configured static/regression target: **438 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.82`
-- Build ID: `overlay-focus-ancestor-hardening`
-- Asset version: `1.6.82-overlay-focus-ancestor-hardening`
-- Service worker cache: `foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening`
+- Product version: `1.6.83`
+- Build ID: `browser-ui-mode-fixture-source-hygiene-recovery`
+- Asset version: `1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
+- Service worker cache: `foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
 
 ## Release focus
 
-- Shared modal focus loops reject controls removed from sequential navigation with `tabindex="-1"` or `aria-disabled="true"`.
-- Focusable descendants under hidden, inert, `aria-hidden`, or content-visibility-hidden ancestors are excluded.
-- Workspace chooser uses the same shared focusability rules with an equivalent fallback.
+- Browser E2E navigation starts in a deterministic Expert workspace unless a scenario explicitly requests AI or first-entry/unselected mode.
+- The production workspace chooser remains mandatory for real new sessions; only test-fixture setup is isolated.
+- Patch delivery always includes cross-platform cleanup helpers and retains legacy `PATCH_MANIFEST.json` as a deletion target.
 
 ## Release status
 
-- Static and behavioral checks: **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
-- Version, Functions syntax, App Check, source hygiene, handoff, browser preflight, dependency structure, overlay/history, and Hosting gates passed.
-- Delivery package: **757-file** full ZIP / **296-file** manifestless patch / **7 delete paths**.
-- Patch replay over v1.6.81 reproduced the final tree exactly: **757/757**, missing 0, extra 0, changed 0.
+- Static and behavioral checks: **438/438 PASS** (`110/110`, `110/110`, `110/110`, `108/108`).
+- Version, Functions syntax, App Check, source hygiene, handoff, browser preflight, and Hosting gates passed.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Browser Playwright must be confirmed by GitHub Actions because this container cannot install/run the project browser dependency stack.
 
 # FoxBear Status - v1.6.79
 

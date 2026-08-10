@@ -1,5 +1,5 @@
 {
   "foxbearAppRoot": true,
-  "productVersion": "1.6.82",
-  "assetVersion": "1.6.82-overlay-focus-ancestor-hardening"
+  "productVersion": "1.6.83",
+  "assetVersion": "1.6.83-browser-ui-mode-fixture-source-hygiene-recovery"
 }

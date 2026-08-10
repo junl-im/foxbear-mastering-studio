@@ -1,4 +1,4 @@
-// FoxBear PWA share policy contract - v1.6.82
+// FoxBear PWA share policy contract - v1.6.83
 (function exposeFoxBearPwaSharePolicy(global) {
     'use strict';
 
@@ -174,7 +174,7 @@
     }
 
     const api = Object.freeze({
-        version: '1.6.82',
+        version: '1.6.83',
         DEFAULTS,
         AUDIO_EXTENSIONS,
         VIDEO_AUDIO_TYPES,

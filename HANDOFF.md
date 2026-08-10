@@ -1,33 +1,33 @@
-# Handoff - v1.6.82
+# Handoff - v1.6.83
 
 ## Current release
 
-- Product version: `1.6.82`
-- Build ID: `overlay-focus-ancestor-hardening`
-- Asset version: `1.6.82-overlay-focus-ancestor-hardening`
-- Service worker cache: `foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening`
-- Configured static/regression target: 437 checks.
+- Product version: `1.6.83`
+- Build ID: `browser-ui-mode-fixture-source-hygiene-recovery`
+- Asset version: `1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
+- Service worker cache: `foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery`
+- Configured static/regression target: 438 checks.
 
 ## Current focus
 
-- Harden shared modal and workspace-chooser keyboard focus containment against hidden/inert ancestor leakage.
-- Respect explicit `tabindex="-1"` and `aria-disabled="true"` exclusions during Tab/Shift+Tab rotation.
-- Keep workspace chooser behavior aligned with the shared modal focus filter while retaining a dependency-light fallback.
+- Isolate existing browser E2E scenarios from the mandatory first-entry workspace chooser by preloading an explicit Expert session in the shared navigation fixture.
+- Preserve real first-entry chooser coverage through the `uiMode: false` opt-out.
+- Make legacy `PATCH_MANIFEST.json` deletion practical on GitHub Desktop by shipping both Windows and shell cleanup helpers in every patch ZIP.
 
 ## Required GitHub Desktop step
 
-1. Extract the v1.6.82 patch ZIP into the **v1.6.81 repository root** and replace matching files.
-2. Delete every path listed in `DELETE_PATHS.txt` if it still exists.
-3. Review changes in GitHub Desktop, commit, and **Push origin**.
-4. For a clean replacement, preserve `.git` and extract the v1.6.82 full ZIP into the repository folder.
+1. Extract the v1.6.83 patch ZIP into the **v1.6.82 repository root** and replace matching files.
+2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
+3. Confirm GitHub Desktop shows legacy `PATCH_MANIFEST.json` as deleted if it existed.
+4. Review all modified/new/deleted files, commit, and **Push origin**.
+5. For a clean replacement, preserve `.git` and extract the v1.6.83 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
-- v1.6.81 workspace regression remains PASS after removing its release-specific build-ID pin.
-- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, dependency structure, and Hosting staging passed.
-- Delivery package: **757-file** full ZIP / **296-file** manifestless patch / **7 delete paths**.
-- Patch replay over v1.6.81 reproduced the final tree exactly: **757/757**, missing 0, extra 0, changed 0.
+- Static and behavioral checks: **438/438 PASS** (`110/110`, `110/110`, `110/110`, `108/108`).
+- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, and Hosting staging passed.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Local Playwright execution remains unavailable in this container; GitHub Actions is the final browser gate.
 
 # Handoff - v1.6.79
 

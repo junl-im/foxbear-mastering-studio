@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.82-overlay-focus-ancestor-hardening';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

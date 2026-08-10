@@ -47,7 +47,7 @@ try {
   const actual = new Set(listZipEntries(resolved).filter(entry => !entry.endsWith('/')).map(normalize));
   if (actual.has('PATCH_MANIFEST.json')) throw new Error('PATCH_MANIFEST.json is a legacy generated artifact and must not be extracted into the repository.');
 
-  for (const required of ['package.json', 'HANDOFF_PACKAGE.json', 'PATCH_NOTES.md', 'DELETE_PATHS.txt']) {
+  for (const required of ['package.json', 'HANDOFF_PACKAGE.json', 'PATCH_NOTES.md', 'DELETE_PATHS.txt', 'APPLY_PATCH_CLEANUP.sh', 'APPLY_PATCH_CLEANUP.cmd']) {
     if (!actual.has(required)) throw new Error(`Patch ZIP must include ${required}.`);
   }
   const pkg = JSON.parse(fs.readFileSync(path.join(tempDir, 'package.json'), 'utf8'));
@@ -83,6 +83,7 @@ try {
       const name = parts.at(-1);
       if (name === '.DS_Store' || name === '.last-run.json' || name === '.firebaserc') return false;
       if (name.startsWith('.env') && !/\.example$/i.test(name)) return false;
+      if (value === 'APPLY_PATCH_CLEANUP.cmd') return fs.existsSync(path.join(gitRoot, value));
       if (/\.(?:log|zip|tmp|trace|pyc|pyo|exe|dll|bat|cmd|com|msi|scr|ps1)$/i.test(name)) return false;
       if (/(?:^|\/)qa\/(?:static-audit|browser-check|static-check)[^/]*\.txt$/i.test(value)) return false;
       return fs.existsSync(path.join(gitRoot, value));
@@ -90,7 +91,7 @@ try {
     const modified = git(['diff', '--name-only', '--diff-filter=ACMRTUXB', 'HEAD']);
     const untracked = git(['ls-files', '--others', '--exclude-standard']);
     const expected = new Set([...modified, ...untracked].filter(safePatchFile));
-    for (const required of ['package.json', 'HANDOFF_PACKAGE.json', 'PATCH_NOTES.md', 'DELETE_PATHS.txt']) expected.add(required);
+    for (const required of ['package.json', 'HANDOFF_PACKAGE.json', 'PATCH_NOTES.md', 'DELETE_PATHS.txt', 'APPLY_PATCH_CLEANUP.sh', 'APPLY_PATCH_CLEANUP.cmd']) expected.add(required);
     const missing = [...expected].filter(entry => !actual.has(entry));
     const extras = [...actual].filter(entry => !expected.has(entry));
     if (missing.length) throw new Error(`Patch ZIP is missing expected Git files: ${missing.slice(0, 20).join(', ')}`);

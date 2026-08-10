@@ -66,7 +66,7 @@ const files = [...new Set([...modified, ...untracked].map(normalize))]
   .filter(safePatchFile)
   .filter(relative => fs.existsSync(path.join(ROOT, relative)))
   .sort();
-for (const required of ['package.json', 'HANDOFF_PACKAGE.json', 'PATCH_NOTES.md', 'DELETE_PATHS.txt']) {
+for (const required of ['package.json', 'HANDOFF_PACKAGE.json', 'PATCH_NOTES.md', 'DELETE_PATHS.txt', 'APPLY_PATCH_CLEANUP.sh', 'APPLY_PATCH_CLEANUP.cmd']) {
   if (!files.includes(required)) files.push(required);
 }
 files.sort();

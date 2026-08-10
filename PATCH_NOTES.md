@@ -1,3 +1,28 @@
+# v1.6.83 patch notes
+
+## 적용 내역
+
+- v1.6.80 작업 방식 선택창 도입 이후 기존 Playwright 시나리오가 첫 진입 필수 오버레이에 가로막히지 않도록 공용 `navigateToApp()` fixture의 기본 세션 모드를 `expert`로 명시했습니다.
+- 실제 첫 진입 선택창 검증은 `navigateToApp(page, { uiMode: false })`로 그대로 실행할 수 있어 제품 동작을 비활성화하지 않습니다.
+- E2E 선택 모드를 `window.__FOXBEAR_E2E_UI_MODE__`에 노출해 CI 진단 시 fixture 상태를 확인할 수 있게 했습니다.
+- `APPLY_PATCH_CLEANUP.cmd`를 추가하고 `.sh`/`.cmd` 정리 스크립트를 패치 ZIP 필수 파일로 지정했습니다.
+- `PATCH_MANIFEST.json`은 계속 `DELETE_PATHS.txt` 삭제 대상으로 유지됩니다.
+
+## 검증 결과
+
+- v1.6.83 전용 회귀: **PASS**.
+- 전체 정적·행동 회귀 **438/438 PASS** (`110/110`, `110/110`, `110/110`, `108/108`).
+- Version / Functions syntax / App Check / source hygiene / handoff / browser preflight / Hosting 경계 **PASS**.
+- Firebase Hosting 공개 경계 **161개 파일**.
+- 실제 Playwright 브라우저 실행은 현재 컨테이너에서 의존성 설치/Chromium navigation 정책 제약으로 재현하지 못했으며 GitHub Actions에서 최종 확인해야 합니다.
+
+## GitHub Desktop 적용
+
+- v1.6.82 저장소 루트에 v1.6.83 patch ZIP을 풀어 덮어씁니다.
+- **Windows:** `APPLY_PATCH_CLEANUP.cmd`를 실행합니다.
+- **macOS/Linux:** `bash APPLY_PATCH_CLEANUP.sh`를 실행합니다.
+- GitHub Desktop에서 `PATCH_MANIFEST.json`이 삭제로 표시되는지 확인한 후 코드 변경과 함께 Commit → Push origin 합니다.
+
 # v1.6.82 patch notes
 
 ## 적용 내역
@@ -12,8 +37,7 @@
 - v1.6.82 전용 회귀와 v1.6.81 작업공간 회귀: **PASS**.
 - 전체 정적·행동 회귀 **437/437 PASS** (`110/110`, `110/110`, `110/110`, `107/107`).
 - Version / Functions syntax / App Check / source hygiene / handoff / browser preflight / dependency structure / Hosting 경계를 통과했습니다.
-- 전체 ZIP **757개 파일**, 패치 ZIP **296개 덮어쓰기 파일**, generated manifest 없음, 삭제 경로 **7개**를 검증했습니다.
-- v1.6.81 기준 트리에 패치를 실제 적용한 결과 v1.6.82 전체 ZIP과 **757/757 완전 동일**했습니다 (`missing 0 / extra 0 / changed 0`).
+- 최종 ZIP 파일 수와 검증 결과는 패키징 완료 후 반영합니다.
 
 ## 다음 예정
 

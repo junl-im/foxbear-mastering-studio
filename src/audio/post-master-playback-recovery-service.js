@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.6.82 - post-master playback readiness recovery
+// FoxBear AI Mastering Studio Pro v1.6.83 - post-master playback readiness recovery
 (function attachFoxBearPostMasterPlaybackRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.82-overlay-focus-ancestor-hardening';
+    const SERVICE_VERSION = '1.6.83-browser-ui-mode-fixture-source-hygiene-recovery';
     const DEFAULT_READY_TIMEOUT_MS = 2200;
 
     function getExpectedSource(track, mode = 'original') {
