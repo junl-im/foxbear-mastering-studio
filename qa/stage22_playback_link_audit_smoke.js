@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.88-mobile-header-grid-ownership-recovery';
+const version = '1.6.89-mobile-header-flex-ownership-browser-gate-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

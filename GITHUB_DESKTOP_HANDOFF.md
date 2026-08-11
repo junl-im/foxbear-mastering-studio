@@ -1,28 +1,29 @@
-# GitHub Desktop Handoff - v1.6.88
+# GitHub Desktop Handoff - v1.6.89
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.87**, then extract the v1.6.88 patch ZIP into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.88**, then extract the v1.6.89 patch ZIP into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Confirm **`PATCH_MANIFEST.json` appears as deleted** in GitHub Desktop. This deletion is required to remove the recurring Source hygiene auto-repair warning.
-5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.88 full ZIP.
+4. If `PATCH_MANIFEST.json` appears as deleted, include that deletion in the commit. v1.6.89 also quietly retires this one known legacy path in CI so it no longer creates the repetitive warning annotation.
+5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.89 full ZIP.
 
 ## Release focus
 
-- The mobile command header now has explicit grid ownership: left status rail = column 1, workspace/settings actions = column 2.
-- Historical `.brand-kicker { width: 100% !important; }` pressure is neutralized on the actual grid item with `width:auto`, `min-width:0`, and `max-width:100%`.
-- The same ownership is reasserted at 430px and below so Pixel-class and 320px Runtime Health measurements cannot inherit stale layout rules.
-- The strict `rowOverlap <= 1px` assertion remains unchanged; failure annotations now identify whether the initial or 320px viewport failed.
+- Pixel-class (`<=430px`) command header changes from Grid-dependent sizing to a final nowrap Flex contract.
+- Left command/status rail: `flex: 1 1 0`, `width: 0`, `min-width: 0`.
+- Workspace/settings rail: `flex: 0 0 auto`, `margin-left: auto`.
+- The strict Runtime Health `rowOverlap <= 1px` gate is unchanged.
+- Failure diagnostics now identify initial vs 320px overlap and include exact box geometry plus computed layout values.
+- Known legacy `PATCH_MANIFEST.json` is still removed by CI-safe hygiene; only its repetitive warning annotation is suppressed.
 
 ## Expected verification result
 
-- Static/regression: **443/443 PASS**.
+- Static/regression: **444/444 PASS**.
 - Source hygiene / Version / App Check / Handoff / Functions / browser preflight / Hosting: **PASS**.
 - Firebase Hosting staged payload: **161 allowlisted files**.
-- Pixel 5 CSS geometry probe with all loaded styles: 393px and 320px both report **0 row overlap / 0 left overflow**.
-- Full Playwright navigation remains a GitHub Actions verification because this local environment blocks app network navigation.
-- Full ZIP: **769 files**. Patch ZIP: **307 overwrite files** plus **7 delete paths**, no generated `PATCH_MANIFEST.json`; replay over v1.6.87 matches the full tree exactly (`769/769`, missing 0, extra 0, changed 0).
+- Full Playwright app navigation remains a GitHub Actions verification because this local execution environment cannot run the required app navigation path.
+- Full ZIP: **771 files**. Patch ZIP: **306 overwrite files** plus **7 delete paths**, with no generated `PATCH_MANIFEST.json`; replay over v1.6.88 matched the full tree exactly (`771/771`, missing 0, extra 0, changed 0).
 
 # GitHub Desktop Handoff - v1.6.79
 

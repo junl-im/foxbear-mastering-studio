@@ -1,3 +1,15 @@
+# v1.6.89 release checklist
+
+- [x] Replace the `<=430px` command-header Grid sizing dependency with deterministic two-rail nowrap Flex ownership.
+- [x] Keep the strict Runtime Health `rowOverlap <= 1px` threshold unchanged.
+- [x] Emit `FOXBEAR_HEADER_OVERLAP_INITIAL` / `FOXBEAR_HEADER_OVERLAP_320` with exact geometry and computed layout data on failure.
+- [x] Keep legacy `PATCH_MANIFEST.json` auto-removal while suppressing only its repetitive GitHub warning annotation.
+- [x] Add dedicated v1.6.89 regression coverage for Flex ownership, strict browser geometry, diagnostics, and source-hygiene behavior.
+- [x] Run all **444/444** configured static/behavioral checks.
+- [x] Pass source hygiene, version, Functions syntax, local App Check policy, handoff, browser-preflight, dependency-health structure, and **161-file** Hosting boundary checks.
+- [x] Build/verify the **771-file** full ZIP and **306-file** manifestless patch with **7 delete paths**.
+- [ ] Confirm the full Runtime Health Playwright gate in GitHub Actions after push.
+
 # v1.6.88 release checklist
 
 - [x] Confirm v1.6.87 reduced the mobile overlap but left one Runtime Health failure (`91.96875px > 1px`).

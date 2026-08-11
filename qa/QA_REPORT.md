@@ -1,3 +1,26 @@
+# FoxBear QA Report - v1.6.89
+
+## Configured target
+
+- Static and behavioral checks: **444**.
+- New regression: `qa/v1689_mobile_header_flex_ownership_ci_diagnostics_smoke.js`.
+
+## Verification scope
+
+- Converts only the Pixel-class command header to a two-rail nowrap Flexbox ownership contract.
+- Keeps the strict browser overlap threshold while promoting overlap details into explicit thrown diagnostics.
+- Verifies legacy `PATCH_MANIFEST.json` cleanup remains active while only its known repetitive GitHub warning annotation is suppressed.
+
+## Verification status
+
+- Focused v1.6.89 regression: **PASS**.
+- Full configured suite: **444/444 PASS** in bounded slices (`110 + 110 + 110 + 114`).
+- Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Dependency health: **0 errors / 5 warnings** because installed dependencies are intentionally absent from the delivery tree.
+- Full Playwright app navigation remains a GitHub Actions acceptance step in this execution environment.
+- Delivery verification: **771-file full ZIP**, **306-file manifestless patch**, **7 delete paths**; replay over v1.6.88 with a simulated legacy `PATCH_MANIFEST.json` matched exactly (`771/771`, missing 0, extra 0, changed 0) and cleanup removed the manifest.
+
 # FoxBear QA Report - v1.6.88
 
 ## Configured target

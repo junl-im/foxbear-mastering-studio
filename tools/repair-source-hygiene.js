@@ -17,6 +17,8 @@ if (isGitHubActions && !ciRepairAllowed) {
   process.exit(1);
 }
 
+const QUIET_GITHUB_REPAIR_PATHS = new Set(['PATCH_MANIFEST.json']);
+
 const REPAIRABLE_PATHS = Object.freeze([
   '.firebaserc',
   '.firebase',
@@ -52,9 +54,11 @@ function removePath(relative) {
   if (stat.isSymbolicLink()) fs.unlinkSync(target);
   else fs.rmSync(target, { recursive: stat.isDirectory(), force: true });
   console.log(`REMOVE source hygiene path: ${normalized}`);
-  if (isGitHubActions && ciRepairAllowed) {
+  if (isGitHubActions && ciRepairAllowed && !QUIET_GITHUB_REPAIR_PATHS.has(normalized)) {
     const annotationFile = annotationEscape(normalized);
     console.log(`::warning file=${annotationFile},title=Source hygiene auto-repair::Removed an allowlisted local/generated path from the ephemeral CI workspace. Commit its deletion when convenient; the release gate will continue safely.`);
+  } else if (isGitHubActions && ciRepairAllowed && QUIET_GITHUB_REPAIR_PATHS.has(normalized)) {
+    console.log(`INFO source hygiene auto-repair retired known legacy path without annotation: ${normalized}`);
   }
   return true;
 }

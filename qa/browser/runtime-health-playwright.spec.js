@@ -162,6 +162,9 @@ test.describe('FoxBear browser runtime health', () => {
     expect(headerSettings.topLineBorderBottom).toBe('0px');
     expect(headerSettings.centerSpread).toBeLessThanOrEqual(8);
     expect(headerSettings.kickerOverflow).toBeLessThanOrEqual(2);
+    if (headerSettings.rowOverlap > 1) {
+      throw new Error(`FOXBEAR_HEADER_OVERLAP_INITIAL ${JSON.stringify(headerSettings)}`);
+    }
     expect(headerSettings.rowOverlap, `initial header overlap · viewport=${headerSettings.viewportWidth} left/action collision=${headerSettings.rowOverlap}px`).toBeLessThanOrEqual(1);
     if (headerSettings.viewportWidth <= 430) {
       expect(headerSettings.studioDisplay).toBe('none');
@@ -200,10 +203,18 @@ test.describe('FoxBear browser runtime health', () => {
         studioDisplay: getComputedStyle(studio).display,
         iconsWidth: iconsRect.width,
         toggleRight: toggleRect.right,
-        viewportWidth: innerWidth
+        viewportWidth: innerWidth,
+        leftRect: { left: leftRect.left, right: leftRect.right, width: leftRect.width },
+        actionsRect: { left: actionsRect.left, right: actionsRect.right, width: actionsRect.width },
+        topDisplay: getComputedStyle(document.querySelector('.brand-command-bar')).display,
+        leftFlex: getComputedStyle(left).flex,
+        actionsFlex: getComputedStyle(actions).flex
       };
     });
     expect(narrowHeader).not.toBeNull();
+    if (narrowHeader.rowOverlap > 1) {
+      throw new Error(`FOXBEAR_HEADER_OVERLAP_320 ${JSON.stringify(narrowHeader)}`);
+    }
     expect(narrowHeader.rowOverlap, `320px header overlap · viewport=${narrowHeader.viewportWidth} left/action collision=${narrowHeader.rowOverlap}px`).toBeLessThanOrEqual(1);
     expect(narrowHeader.leftOverflow).toBeLessThanOrEqual(2);
     expect(narrowHeader.studioDisplay).toBe('none');

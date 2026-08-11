@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.88
+// FoxBear performance diagnostics - v1.6.89
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.88-mobile-header-grid-ownership-recovery';
+    const DIAGNOSTICS_VERSION = '1.6.89-mobile-header-flex-ownership-browser-gate-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

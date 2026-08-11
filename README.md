@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.88
+# FoxBear AI Mastering Studio Pro v1.6.89
 
-> Current release: v1.6.87 · mobile-header-device-label-overlap-recovery
+> Current release: v1.6.89 · mobile-header-flex-ownership-browser-gate-recovery
 
-This release removes the final Pixel-class header overlap by hiding only the redundant compact compatibility text while preserving its device glyphs, accessible DOM text, workspace switch, and settings control.
+This release removes the remaining mobile-only Runtime Health header collision by switching the final Pixel-class command header to a deterministic two-rail Flexbox contract while keeping the strict browser geometry gate and essential workspace/settings controls.
 
 # FoxBear AI Mastering Studio Pro v1.6.81
 

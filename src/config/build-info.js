@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.6.88',
-    appVersion: 'Pro v1.6.88',
-    buildId: 'mobile-header-grid-ownership-recovery',
-    assetVersion: '1.6.88-mobile-header-grid-ownership-recovery',
-    cacheName: 'foxbear-shell-v1.6.88-mobile-header-grid-ownership-recovery',
-    bootRevision: 'boot-sri-v1688',
-    updateSafetyRevision: 'update-safety-v1688',
-    serviceWorkerRevision: 'sw-v1688'
+    productVersion: '1.6.89',
+    appVersion: 'Pro v1.6.89',
+    buildId: 'mobile-header-flex-ownership-browser-gate-recovery',
+    assetVersion: '1.6.89-mobile-header-flex-ownership-browser-gate-recovery',
+    cacheName: 'foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery',
+    bootRevision: 'boot-sri-v1689',
+    updateSafetyRevision: 'update-safety-v1689',
+    serviceWorkerRevision: 'sw-v1689'
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

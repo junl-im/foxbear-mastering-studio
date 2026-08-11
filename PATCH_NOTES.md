@@ -1,3 +1,23 @@
+# v1.6.89 patch notes
+
+## 적용 내역
+
+- v1.6.88 GitHub Actions에서 `chromium-mobile-pwa` Runtime Health가 `rowOverlap=91.96875px`로 반복된 경로를 Grid min-content 계산에서 분리했습니다.
+- 430px 이하 command header는 최종적으로 nowrap Flexbox를 사용하며, left rail은 `flex: 1 1 0 / width: 0`, right rail은 `flex: 0 0 auto / margin-left: auto`로 소유권을 고정합니다.
+- `rowOverlap <= 1px` 기준은 완화하지 않았습니다.
+- 다음 브라우저 실패 시 `FOXBEAR_HEADER_OVERLAP_INITIAL` 또는 `FOXBEAR_HEADER_OVERLAP_320` 오류가 실제 좌표, 폭, display/flex computed 값을 함께 보고합니다.
+- CI-safe source hygiene는 legacy `PATCH_MANIFEST.json`을 계속 제거합니다. 단, 이 알려진 레거시 경로 하나에 대해서만 반복 GitHub warning annotation을 생략하며 다른 hygiene 경고/오류는 그대로 유지합니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **444/444 PASS**.
+- Source hygiene / Version / Functions syntax / local App Check / Handoff / browser preflight / Hosting: **PASS**.
+- Firebase Hosting 공개 경계: **161개 파일**.
+- Dependency health: **0 errors / 5 warnings** (`node_modules` 미포함 전달 트리의 예상 경고).
+- 실제 전체 Playwright 앱 navigation은 이 실행 환경에서 제한되어 다음 GitHub Actions가 최종 브라우저 판정입니다.
+- Full ZIP **771개 파일**, patch ZIP **306개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음.
+- v1.6.88 full에 legacy `PATCH_MANIFEST.json`을 일부러 추가한 뒤 patch + cleanup을 재적용해 v1.6.89 full과 **771/771 완전 동일** (`missing 0 / extra 0 / changed 0`)을 확인했고 manifest도 제거됐습니다.
+
 # v1.6.88 patch notes
 
 ## 적용 내역

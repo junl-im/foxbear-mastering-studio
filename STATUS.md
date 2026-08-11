@@ -1,3 +1,35 @@
+# FoxBear Status - v1.6.89
+
+## Current release
+
+- Product version: `1.6.89`
+- Build ID: `mobile-header-flex-ownership-browser-gate-recovery`
+- Asset version: `1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
+- Configured static/regression target: **444 checks**.
+
+## Release metadata
+
+- Product version: `1.6.89`
+- Build ID: `mobile-header-flex-ownership-browser-gate-recovery`
+- Asset version: `1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
+
+## Release focus
+
+- Replace the remaining Pixel-class command-header Grid sizing dependency with deterministic two-rail Flexbox ownership.
+- Keep the strict browser `rowOverlap <= 1px` contract unchanged and report exact geometry/computed layout when it fails.
+- Continue removing legacy `PATCH_MANIFEST.json` during CI-safe hygiene while suppressing only that known repetitive warning annotation.
+
+## Release status
+
+- Static and behavioral checks: **444/444 PASS** in bounded slices.
+- Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Hosting staging: **PASS**.
+- Dependency health: **0 errors / 5 expected warnings** because delivery archives intentionally omit installed `node_modules`.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Full Playwright app navigation remains a GitHub Actions acceptance step because this execution environment blocks the required local browser navigation path.
+- Delivery verification: **771-file** full ZIP and **306-file** manifestless patch with **7 delete paths**; replay over v1.6.88 matched exactly (`771/771`, missing 0, extra 0, changed 0) and removed a simulated legacy `PATCH_MANIFEST.json`.
+
 # FoxBear Status - v1.6.88
 
 ## Current release

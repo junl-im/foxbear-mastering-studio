@@ -1,4 +1,4 @@
-// FoxBear incident service auto-recovery controller - v1.6.88
+// FoxBear incident service auto-recovery controller - v1.6.89
 (function attachFoxBearIncidentServiceRecovery(global) {
     'use strict';
 
@@ -433,7 +433,7 @@
     }
 
     global.FoxBearIncidentServiceRecovery = Object.freeze({
-        version: '1.6.88',
+        version: '1.6.89',
         defaultDelaysMs: DEFAULT_DELAYS_MS,
         defaultPhaseTimeoutsMs: DEFAULT_PHASE_TIMEOUTS_MS,
         defaultSlowPhaseMs: DEFAULT_SLOW_PHASE_MS,

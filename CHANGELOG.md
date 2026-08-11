@@ -1,3 +1,10 @@
+# v1.6.89 - Mobile header flex ownership browser gate recovery
+
+- Replaces the final Pixel-class header grid ownership layer with a nowrap two-rail Flexbox contract so left status and right workspace/settings bounding boxes cannot overlap.
+- Uses `flex: 1 1 0` + `width: 0` on the left rail and `flex: 0 0 auto` + `margin-left:auto` on the right rail.
+- Preserves the strict Runtime Health `rowOverlap <= 1px` browser contract and adds geometry-rich thrown errors for initial and 320px failures.
+- Silences only the repetitive `PATCH_MANIFEST.json` auto-repair annotation while continuing to remove the legacy file and keeping warnings for other repaired paths.
+
 # v1.6.88 - Mobile header grid ownership recovery
 
 - Locks the compact command header into explicit grid ownership: status rail in column 1 and workspace/settings actions in column 2.

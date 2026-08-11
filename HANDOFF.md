@@ -1,37 +1,37 @@
-# Handoff - v1.6.88
+# Handoff - v1.6.89
 
 ## Current release
 
-- Product version: `1.6.88`
-- Build ID: `mobile-header-grid-ownership-recovery`
-- Asset version: `1.6.88-mobile-header-grid-ownership-recovery`
-- Service worker cache: `foxbear-shell-v1.6.88-mobile-header-grid-ownership-recovery`
-- Configured static/regression target: 443 checks.
+- Product version: `1.6.89`
+- Build ID: `mobile-header-flex-ownership-browser-gate-recovery`
+- Asset version: `1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
+- Service worker cache: `foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
+- Configured static/regression target: 444 checks.
 
 ## Current focus
 
 - Eliminate the remaining mobile-only Runtime Health overlap without weakening the strict `rowOverlap <= 1px` browser contract.
-- Give `.brand-command-left` and `.brand-right-actions` explicit CSS Grid column ownership so historical width/order rules cannot make their bounding boxes collide.
-- Preserve the compact device glyphs, workspace switch, settings control, and desktop creator/workspace/settings order.
-- Remove and commit the legacy tracked `PATCH_MANIFEST.json` so the source-hygiene warning disappears.
+- At 430px and below, make `.brand-command-left` a shrinking left Flex rail and `.brand-right-actions` a non-shrinking right rail so historical Grid/min-content rules cannot make their bounding boxes overlap.
+- Preserve the workspace switch, settings control, mobile touch target, and desktop creator/workspace/settings order.
+- Keep CI cleanup for legacy `PATCH_MANIFEST.json`; v1.6.89 suppresses only its repetitive warning annotation while leaving all other source-hygiene diagnostics intact.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.88 patch ZIP** into the **v1.6.87 repository root** and replace matching files.
+1. Extract the **v1.6.89 patch ZIP** into the **v1.6.88 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-3. Confirm GitHub Desktop shows **`PATCH_MANIFEST.json` as deleted**. Include that deletion in the commit.
+3. If GitHub Desktop shows `PATCH_MANIFEST.json` as deleted, include that deletion so the repository itself becomes clean. If it is accidentally left tracked, v1.6.89 CI still retires this known legacy path without the repetitive warning annotation.
 4. Commit all modified/new/deleted files and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.88 full ZIP into the repository folder.
+5. For a clean replacement, preserve `.git` and extract the v1.6.89 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **443/443 PASS** in bounded chunks.
+- Static and behavioral checks: **444/444 PASS** in bounded slices.
 - Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Hosting staging: **PASS**.
-- Dependency health: **0 errors / 5 warnings** because delivery archives intentionally omit installed `node_modules`.
+- Dependency health: **0 errors / 5 expected warnings** because delivery archives intentionally omit installed `node_modules`.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Local Chromium using the **Pixel 5 Playwright device descriptor** and all **27 loaded CSS files**: `rowOverlap=0` and `leftOverflow=0` at both 393px and 320px; desktop 1440px also reports zero overlap.
-- Full Playwright network navigation remains a GitHub Actions verification in this environment.
-- Delivery: **769-file** full ZIP and **307-file** manifestless patch with **7 delete paths**. Replay over v1.6.87 with a simulated legacy `PATCH_MANIFEST.json` matched exactly (`769/769`, missing 0, extra 0, changed 0), and cleanup removed the legacy manifest.
+- The browser overlap threshold remains strict; if GitHub Actions still sees a mobile failure, the Runtime Health error now identifies initial vs 320px measurement and includes exact geometry/computed Flex data.
+- Full Playwright app navigation remains a GitHub Actions verification in this environment.
+- Delivery: **771-file** full ZIP and **306-file** manifestless patch with **7 delete paths**. Replay over v1.6.88 with a simulated legacy `PATCH_MANIFEST.json` matched exactly (`771/771`, missing 0, extra 0, changed 0), and cleanup removed the manifest.
 
 # Handoff - v1.6.79
 
