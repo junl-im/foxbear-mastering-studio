@@ -313,6 +313,12 @@
         display: none !important;
     }
 
+    /* Pixel-class phones keep the compatibility glyphs but drop the redundant
+       text label so the status rail cannot intrude into mode/settings actions. */
+    .brand-command-device-text {
+        display: none !important;
+    }
+
     /* Preserve the essential mode/settings controls without squeezing the
        left status tokens on Pixel-class viewports. The creator link remains
        available in the wider header and elsewhere in the product. */

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
+  const VIEW_VERSION = '1.6.87-mobile-header-device-label-overlap-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

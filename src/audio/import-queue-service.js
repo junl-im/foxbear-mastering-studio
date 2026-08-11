@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.86-header-order-mobile-overflow-browser-gate-recovery',
+                version: '1.6.87-mobile-header-device-label-overlap-recovery',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.86-header-order-mobile-overflow-browser-gate-recovery',
+        version: '1.6.87-mobile-header-device-label-overlap-recovery',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

@@ -23,12 +23,12 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const report = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 
-must(pkg.version === '1.6.86', 'package version should be 1.6.86');
+must(pkg.version === '1.6.87', 'package version should be 1.6.87');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1-4-26');
-must(pkg.qaChecks.includes('node qa/v1426_wake_lock_state_sync_smoke.js'), 'package QA should run v1.6.86 smoke');
-must(index.includes('data-build="1.6.86"'), 'index build marker should be 1.6.86');
-must(index.includes('1.6.86-header-order-mobile-overflow-browser-gate-recovery'), 'index cache key should use v1.6.86 wake key');
-must(sw.includes('foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery'), 'service worker cache should use v1.6.86 wake key');
+must(pkg.qaChecks.includes('node qa/v1426_wake_lock_state_sync_smoke.js'), 'package QA should run v1.6.87 smoke');
+must(index.includes('data-build="1.6.87"'), 'index build marker should be 1.6.87');
+must(index.includes('1.6.87-mobile-header-device-label-overlap-recovery'), 'index cache key should use v1.6.87 wake key');
+must(sw.includes('foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery'), 'service worker cache should use v1.6.87 wake key');
 
 [
   'wakeLockAutoActive',
@@ -62,7 +62,7 @@ must(!app.includes("requestFoxBearWakeLock('작업 보호 중', { toast: false, 
 ].forEach(token => must(css.includes(token), `mobile CSS should include ${token}`));
 
 must(runtime.includes('FoxBearWakeLockController.getSnapshot'), 'runtime health should require wake lock diagnostics');
-must(runtime.includes('1.6.86-header-order-mobile-overflow-browser-gate-recovery'), 'runtime health fallback version should be v1.6.86');
+must(runtime.includes('1.6.87-mobile-header-device-label-overlap-recovery'), 'runtime health fallback version should be v1.6.87');
 must(perf.includes('wakeLock = safeCall'), 'performance diagnostics should collect wake lock snapshot');
 must(perf.includes('wake-lock-auto-active'), 'performance diagnostics should warn on auto wake lock');
 must(perf.includes('wake-lock-last-error'), 'performance diagnostics should surface wake lock errors');
@@ -70,7 +70,7 @@ must(perf.includes('wakeLock: snapshot.wakeLock'), 'performance summary should i
 
 must(matrix.includes('v1.4.26 Wake Lock State Sync'), 'matrix should document wake lock state sync');
 must(matrix.includes('AUTO') && matrix.includes('automatic acquisition remains silent'), 'matrix should cover silent auto mode');
-must(report.includes('148/148 PASS') || report.includes('v1.6.86'), 'QA report should mention v1.6.86 or 148/148 PASS');
-must(changelog.includes('v1.6.86') && changelog.includes('Wake Lock'), 'changelog should mention v1.6.86 Wake Lock');
+must(report.includes('148/148 PASS') || report.includes('v1.6.87'), 'QA report should mention v1.6.87 or 148/148 PASS');
+must(changelog.includes('v1.6.87') && changelog.includes('Wake Lock'), 'changelog should mention v1.6.87 Wake Lock');
 
 console.log('PASS v1.4.26 wake lock state sync smoke');

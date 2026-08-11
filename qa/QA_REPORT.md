@@ -1,3 +1,20 @@
+# FoxBear QA Report - v1.6.87
+
+## Configured target
+
+- Static and behavioral checks: **442**.
+- New regression: `qa/v1687_mobile_header_device_label_overlap_recovery_smoke.js`.
+
+## Verification scope
+
+- Removes the final compact-header width pressure from the redundant device text at 430px and below.
+- Preserves device glyphs, DOM/accessibility text, workspace switch, settings control, and strict browser overlap assertions.
+
+## Verification status
+
+- Focused v1.6.87 regression: **PASS**.
+- Full configured suite and release gates are revalidated before delivery.
+
 # FoxBear QA Report - v1.6.86
 
 ## Configured target

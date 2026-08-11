@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.87-mobile-header-device-label-overlap-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

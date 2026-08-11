@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.86
+# FoxBear AI Mastering Studio Pro v1.6.87
 
-> Current release: v1.6.86 · header-order-mobile-overflow-browser-gate-recovery
+> Current release: v1.6.87 · mobile-header-device-label-overlap-recovery
 
-This release fixes the two exact Runtime Health geometry failures reported by GitHub Actions: desktop creator/mode visual ordering and Pixel-class header overlap, while preserving the essential workspace and settings controls.
+This release removes the final Pixel-class header overlap by hiding only the redundant compact compatibility text while preserving its device glyphs, accessible DOM text, workspace switch, and settings control.
 
 # FoxBear AI Mastering Studio Pro v1.6.81
 

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
+const version = '1.6.87-mobile-header-device-label-overlap-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

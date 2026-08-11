@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.6.86 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.6.87 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
+    const VERSION = '1.6.87-mobile-header-device-label-overlap-recovery';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

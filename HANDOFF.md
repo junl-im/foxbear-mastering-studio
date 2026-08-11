@@ -1,12 +1,12 @@
-# Handoff - v1.6.86
+# Handoff - v1.6.87
 
 ## Current release
 
-- Product version: `1.6.86`
-- Build ID: `header-order-mobile-overflow-browser-gate-recovery`
-- Asset version: `1.6.86-header-order-mobile-overflow-browser-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery`
-- Configured static/regression target: 441 checks.
+- Product version: `1.6.87`
+- Build ID: `mobile-header-device-label-overlap-recovery`
+- Asset version: `1.6.87-mobile-header-device-label-overlap-recovery`
+- Service worker cache: `foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery`
+- Configured static/regression target: 442 checks.
 
 ## Current focus
 

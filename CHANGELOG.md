@@ -1,3 +1,10 @@
+# v1.6.87 - Mobile header device label overlap recovery
+
+- Hides only the redundant compact device text at 430px and below while preserving the PC/phone glyphs and DOM/accessibility text.
+- Keeps the workspace switch, settings control, and strict Runtime Health `rowOverlap <= 1` contract unchanged.
+- Adds a focused regression for the exact mobile-only browser gate failure that remained after v1.6.86.
+- Keeps `PATCH_MANIFEST.json` as a delete-path-only legacy artifact.
+
 # v1.6.86 - Header order and mobile overflow browser gate recovery
 
 - Neutralizes the legacy `order: 2` rule on the compact header creator link so desktop visual order matches the DOM contract: creator → workspace mode → settings.

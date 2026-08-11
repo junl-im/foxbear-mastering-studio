@@ -8,8 +8,8 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const state = fs.readFileSync(path.join(root, 'src/state/app-state.js'), 'utf8');
 const pkg = fs.readFileSync(path.join(root, 'package.json'), 'utf8');
 function must(cond, msg) { if (!cond) throw new Error(msg); }
-must(app.includes("const APP_VERSION = 'Pro v1.6.86'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.6.86"'), 'index data-build should be v1.6.86');
+must(app.includes("const APP_VERSION = 'Pro v1.6.87'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.87"'), 'index data-build should be v1.6.87');
 must(html.includes('referenceStrengthSelect'), 'reference strength select missing');
 must(!html.includes('id="adaptiveLufsToggle"'), 'adaptive LUFS checkbox should stay hidden from loudness target UI');
 must(html.includes('src/audio/mastering-inspector.js'), 'mastering inspector module missing');

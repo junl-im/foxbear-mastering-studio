@@ -25,14 +25,14 @@ const handoff = read('HANDOFF.md');
 const notes = read('PROJECT_NOTES.md');
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 
-must(pkg.version === '1.6.86', 'package version should be 1.6.86');
+must(pkg.version === '1.6.87', 'package version should be 1.6.87');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1-4-26');
-must(pkg.qaChecks.includes('node qa/v1425_exit_guard_fallback_smoke.js'), 'package should run v1.6.86 smoke');
-must(index.includes('data-build="1.6.86"'), 'index build marker should be 1.6.86');
-must(index.includes('src/security/site-guards.js?v=1.6.86-header-order-mobile-overflow-browser-gate-recovery'), 'site guard cache key should be updated');
-must(index.includes('assets/css/studio.css?v=1.6.86-header-order-mobile-overflow-browser-gate-recovery'), 'studio CSS cache key should be updated');
-must(app.includes("const APP_VERSION = 'Pro v1.6.86'"), 'app version should be Pro v1.6.86');
-must(sw.includes('foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery'), 'service worker cache should use v1.6.86 key');
+must(pkg.qaChecks.includes('node qa/v1425_exit_guard_fallback_smoke.js'), 'package should run v1.6.87 smoke');
+must(index.includes('data-build="1.6.87"'), 'index build marker should be 1.6.87');
+must(index.includes('src/security/site-guards.js?v=1.6.87-mobile-header-device-label-overlap-recovery'), 'site guard cache key should be updated');
+must(index.includes('assets/css/studio.css?v=1.6.87-mobile-header-device-label-overlap-recovery'), 'studio CSS cache key should be updated');
+must(app.includes("const APP_VERSION = 'Pro v1.6.87'"), 'app version should be Pro v1.6.87');
+must(sw.includes('foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery'), 'service worker cache should use v1.6.87 key');
 
 [
   'EXIT_FALLBACK_DELAY_MS',
@@ -74,9 +74,9 @@ must(perf.includes('navigationGuard'), 'performance diagnostics should still col
   'flex-direction: column'
 ].forEach(token => must(studioCss.includes(token), `studio CSS should include ${token}`));
 
-must(changelog.includes('v1.6.86') && changelog.includes('Exit Guard'), 'changelog should mention v1.6.86 Exit Guard');
-must(handoff.includes('v1.6.86') && handoff.includes('뒤로가기'), 'handoff should mention v1.6.86 back navigation');
+must(changelog.includes('v1.6.87') && changelog.includes('Exit Guard'), 'changelog should mention v1.6.87 Exit Guard');
+must(handoff.includes('v1.6.87') && handoff.includes('뒤로가기'), 'handoff should mention v1.6.87 back navigation');
 must(notes.includes('fallback'), 'project notes should preserve exit fallback guidance');
-must(matrix.includes('v1.4.26') && matrix.includes('exit fallback'), 'matrix should cover v1.6.86 exit fallback');
+must(matrix.includes('v1.4.26') && matrix.includes('exit fallback'), 'matrix should cover v1.6.87 exit fallback');
 
 console.log('PASS v1.4.26 exit guard fallback smoke');

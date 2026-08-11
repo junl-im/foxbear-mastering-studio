@@ -1,19 +1,19 @@
-# FoxBear Status - v1.6.86
+# FoxBear Status - v1.6.87
 
 ## Current release
 
-- Product version: `1.6.86`
-- Build ID: `header-order-mobile-overflow-browser-gate-recovery`
-- Asset version: `1.6.86-header-order-mobile-overflow-browser-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery`
+- Product version: `1.6.87`
+- Build ID: `mobile-header-device-label-overlap-recovery`
+- Asset version: `1.6.87-mobile-header-device-label-overlap-recovery`
+- Service worker cache: `foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery`
 - Configured static/regression target: **441 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.86`
-- Build ID: `header-order-mobile-overflow-browser-gate-recovery`
-- Asset version: `1.6.86-header-order-mobile-overflow-browser-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery`
+- Product version: `1.6.87`
+- Build ID: `mobile-header-device-label-overlap-recovery`
+- Asset version: `1.6.87-mobile-header-device-label-overlap-recovery`
+- Service worker cache: `foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery`
 
 ## Release focus
 

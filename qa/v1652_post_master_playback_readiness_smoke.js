@@ -12,7 +12,7 @@ const sw = fs.readFileSync('sw.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const version = pkg.foxbearRelease.assetVersion;
 
-assert.strictEqual(pkg.version, '1.6.86');
+assert.strictEqual(pkg.version, '1.6.87');
 assert(pkg.qaChecks.includes('node --check src/audio/post-master-playback-recovery-service.js'));
 assert(pkg.qaChecks.includes('node qa/v1652_post_master_playback_readiness_smoke.js'));
 assert(index.includes(`src/audio/post-master-playback-recovery-service.js?v=${version}`), 'recovery service should load in index');

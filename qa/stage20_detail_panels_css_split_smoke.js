@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.86-header-order-mobile-overflow-browser-gate-recovery';
+const version = '1.6.87-mobile-header-device-label-overlap-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
@@ -34,7 +34,7 @@ assert(index.indexOf('src/ui/detail-view.js') < index.indexOf('src/app.js'), 'de
 assert(sw.includes(`./assets/css/components/forms.css?v=${version}`), 'service worker should precache forms.css');
 assert(sw.includes(`./assets/css/components/cards.css?v=${version}`), 'service worker should precache cards.css');
 assert(sw.includes(`./src/ui/detail-panels-view.js?v=${version}`), 'service worker should precache detail-panels-view.js');
-assert(sw.includes('foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery'), 'service worker cache should use Stage20 key');
+assert(sw.includes('foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery'), 'service worker cache should use Stage20 key');
 
 assert(panelsView.includes('FoxBearDetailPanelsView'), 'detail panels module should export FoxBearDetailPanelsView');
 [

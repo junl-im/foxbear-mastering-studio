@@ -6,7 +6,7 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const pkg = require(path.join(root, 'package.json'));
 function load(relative, context) { vm.runInNewContext(fs.readFileSync(path.join(root, relative), 'utf8'), context, { filename: relative }); }
-assert.strictEqual(pkg.version, '1.6.86');
+assert.strictEqual(pkg.version, '1.6.87');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 const store = new Map();
 let now = Date.now();
