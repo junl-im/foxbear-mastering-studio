@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.87",
-  "buildId": "mobile-header-device-label-overlap-recovery",
+  "productVersion": "1.6.88",
+  "buildId": "mobile-header-grid-ownership-recovery",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

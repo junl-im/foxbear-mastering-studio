@@ -162,7 +162,7 @@ test.describe('FoxBear browser runtime health', () => {
     expect(headerSettings.topLineBorderBottom).toBe('0px');
     expect(headerSettings.centerSpread).toBeLessThanOrEqual(8);
     expect(headerSettings.kickerOverflow).toBeLessThanOrEqual(2);
-    expect(headerSettings.rowOverlap).toBeLessThanOrEqual(1);
+    expect(headerSettings.rowOverlap, `initial header overlap · viewport=${headerSettings.viewportWidth} left/action collision=${headerSettings.rowOverlap}px`).toBeLessThanOrEqual(1);
     if (headerSettings.viewportWidth <= 430) {
       expect(headerSettings.studioDisplay).toBe('none');
       expect(headerSettings.studioVisibleWidth).toBe(0);
@@ -204,7 +204,7 @@ test.describe('FoxBear browser runtime health', () => {
       };
     });
     expect(narrowHeader).not.toBeNull();
-    expect(narrowHeader.rowOverlap).toBeLessThanOrEqual(1);
+    expect(narrowHeader.rowOverlap, `320px header overlap · viewport=${narrowHeader.viewportWidth} left/action collision=${narrowHeader.rowOverlap}px`).toBeLessThanOrEqual(1);
     expect(narrowHeader.leftOverflow).toBeLessThanOrEqual(2);
     expect(narrowHeader.studioDisplay).toBe('none');
     expect(narrowHeader.iconsWidth).toBeGreaterThan(8);

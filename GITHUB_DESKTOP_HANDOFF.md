@@ -1,28 +1,28 @@
-# GitHub Desktop Handoff - v1.6.87
+# GitHub Desktop Handoff - v1.6.88
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.84**, then extract the v1.6.85 patch ZIP into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.87**, then extract the v1.6.88 patch ZIP into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
 4. Confirm **`PATCH_MANIFEST.json` appears as deleted** in GitHub Desktop. This deletion is required to remove the recurring Source hygiene auto-repair warning.
-5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.85 full ZIP.
+5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.88 full ZIP.
 
 ## Release focus
 
-- Runtime Health no longer depends solely on sessionStorage to establish its test-only Expert workspace mode.
-- At 430px and below, the redundant studio label yields space to the workspace switch; the 40px mobile touch target remains unchanged.
-- Runtime Health now measures the workspace switch directly and understands responsive-hidden header elements.
-- Retry recovery emits one GitHub error Annotation per repeatedly failing browser case, so a remaining failure identifies its exact project/spec/title.
+- The mobile command header now has explicit grid ownership: left status rail = column 1, workspace/settings actions = column 2.
+- Historical `.brand-kicker { width: 100% !important; }` pressure is neutralized on the actual grid item with `width:auto`, `min-width:0`, and `max-width:100%`.
+- The same ownership is reasserted at 430px and below so Pixel-class and 320px Runtime Health measurements cannot inherit stale layout rules.
+- The strict `rowOverlap <= 1px` assertion remains unchanged; failure annotations now identify whether the initial or 320px viewport failed.
 
 ## Expected verification result
 
-- Static/regression: **440/440 PASS**.
+- Static/regression: **443/443 PASS**.
 - Source hygiene / Version / App Check / Handoff / Functions / browser preflight / Hosting: **PASS**.
 - Firebase Hosting staged payload: **161 allowlisted files**.
-- Local Chromium layout probe: 1440/430/393/375/320px all report 0 left overflow and 0 row overlap.
-- Full Playwright navigation remains a GitHub Actions verification because this local environment blocks browser navigation.
-- Full ZIP: **764 files**. Patch ZIP: **307 overwrite files** plus **7 delete paths**, with no generated `PATCH_MANIFEST.json`. Patch + cleanup replay over v1.6.84 matches the full tree exactly.
+- Pixel 5 CSS geometry probe with all loaded styles: 393px and 320px both report **0 row overlap / 0 left overflow**.
+- Full Playwright navigation remains a GitHub Actions verification because this local environment blocks app network navigation.
+- Full ZIP: **769 files**. Patch ZIP: **307 overwrite files** plus **7 delete paths**, no generated `PATCH_MANIFEST.json`; replay over v1.6.87 matches the full tree exactly (`769/769`, missing 0, extra 0, changed 0).
 
 # GitHub Desktop Handoff - v1.6.79
 

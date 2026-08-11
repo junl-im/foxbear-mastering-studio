@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.88
+
+## Configured target
+
+- Static and behavioral checks: **443**.
+- New regression: `qa/v1688_mobile_header_grid_ownership_recovery_smoke.js`.
+
+## Verification scope
+
+- Gives the left and right command-header rails explicit CSS Grid column ownership.
+- Neutralizes legacy `width: 100% !important` pressure on `.brand-kicker` when it is also the command-left grid item.
+- Preserves the 430px device/studio/creator reductions and the workspace/settings controls.
+- Keeps both initial and 320px browser overlap assertions strict while making the failing viewport explicit.
+
+## Verification status
+
+- Focused v1.6.88 regression: **PASS**.
+- Full configured suite: **443/443 PASS** in bounded chunks.
+- Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Firebase Hosting staging: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Pixel 5 Playwright-device geometry using all 27 loaded CSS files: `rowOverlap=0`, `leftOverflow=0` at 393px and 320px; desktop 1440px also reports zero overlap.
+- Dependency health: **0 errors / 5 warnings** because installed dependencies are intentionally absent from the delivery tree.
+- Full Playwright network navigation remains a GitHub Actions acceptance step in this environment.
+- Delivery verification: **769-file full ZIP**, **307-file manifestless patch**, **7 delete paths**; replay over v1.6.87 with a simulated legacy `PATCH_MANIFEST.json` matched exactly (`769/769`, missing 0, extra 0, changed 0) and cleanup removed the manifest.
+
 # FoxBear QA Report - v1.6.87
 
 ## Configured target

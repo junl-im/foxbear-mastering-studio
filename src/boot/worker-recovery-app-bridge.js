@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.87 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.88 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.87-mobile-header-device-label-overlap-recovery';
+    const VERSION = '1.6.88-mobile-header-grid-ownership-recovery';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

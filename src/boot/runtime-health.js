@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.87-mobile-header-device-label-overlap-recovery';
+    const FALLBACK_VERSION = '1.6.88-mobile-header-grid-ownership-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

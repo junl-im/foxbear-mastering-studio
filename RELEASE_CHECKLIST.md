@@ -1,3 +1,16 @@
+# v1.6.88 release checklist
+
+- [x] Confirm v1.6.87 reduced the mobile overlap but left one Runtime Health failure (`91.96875px > 1px`).
+- [x] Lock command-left to CSS Grid column 1 and command actions to column 2.
+- [x] Neutralize historical `.brand-kicker { width: 100% !important; }` on the actual command-left grid item.
+- [x] Reassert grid ownership at 430px and below without relaxing the browser overlap assertion.
+- [x] Add viewport-specific Runtime Health overlap diagnostics.
+- [x] Verify Pixel 5 393px and 320px geometry with all 27 loaded CSS files: 0 overlap / 0 left overflow.
+- [x] Run all **443/443** static/regression checks.
+- [x] Pass source hygiene, version, Functions syntax, local App Check, handoff, browser-preflight, and **161-file** Hosting boundary gates.
+- [ ] Commit deletion of tracked `PATCH_MANIFEST.json` in the GitHub working tree.
+- [x] Build/verify the **769-file** full ZIP and **307-file** manifestless patch with **7 delete paths**; replay v1.6.87 → v1.6.88 matched exactly (`769/769`, missing 0, extra 0, changed 0) and removed simulated legacy `PATCH_MANIFEST.json`.
+
 # v1.6.86 release checklist
 
 - [x] Map the desktop Runtime Health failure to stale `.designer-mini { order: 2; }` visual reordering.

@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.87 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.88 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.87-mobile-header-device-label-overlap-recovery';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.88-mobile-header-grid-ownership-recovery';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

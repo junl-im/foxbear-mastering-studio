@@ -1,35 +1,36 @@
-# FoxBear Status - v1.6.87
+# FoxBear Status - v1.6.88
 
 ## Current release
 
-- Product version: `1.6.87`
-- Build ID: `mobile-header-device-label-overlap-recovery`
-- Asset version: `1.6.87-mobile-header-device-label-overlap-recovery`
-- Service worker cache: `foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery`
-- Configured static/regression target: **441 checks**.
+- Product version: `1.6.88`
+- Build ID: `mobile-header-grid-ownership-recovery`
+- Asset version: `1.6.88-mobile-header-grid-ownership-recovery`
+- Service worker cache: `foxbear-shell-v1.6.88-mobile-header-grid-ownership-recovery`
+- Configured static/regression target: **443 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.87`
-- Build ID: `mobile-header-device-label-overlap-recovery`
-- Asset version: `1.6.87-mobile-header-device-label-overlap-recovery`
-- Service worker cache: `foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery`
+- Product version: `1.6.88`
+- Build ID: `mobile-header-grid-ownership-recovery`
+- Asset version: `1.6.88-mobile-header-grid-ownership-recovery`
+- Service worker cache: `foxbear-shell-v1.6.88-mobile-header-grid-ownership-recovery`
 
 ## Release focus
 
-- Restore desktop header visual order by neutralizing the stale creator-link flex order introduced before the workspace switch existed.
-- Remove Pixel 5 header overlap by yielding the nonessential creator token at 430px and below while preserving workspace/settings controls.
-- Keep Runtime Health geometry assertions strict rather than relaxing the browser gate.
-- Remove and commit the legacy tracked `PATCH_MANIFEST.json` so CI source-hygiene no longer needs to auto-repair it.
+- Resolve the remaining mobile-only Runtime Health header overlap by making CSS Grid ownership explicit rather than hiding progressively more content.
+- Neutralize historical command-left width rules while retaining Pixel-class device glyphs, workspace switch, and settings control.
+- Preserve the strict browser geometry gate and improve its failure diagnostics.
+- Remove and commit legacy tracked `PATCH_MANIFEST.json` to eliminate the recurring hygiene warning.
 
 ## Release status
 
-- Static and behavioral checks: **441/441 PASS** in bounded execution.
+- Static and behavioral checks: **443/443 PASS** in bounded execution.
 - Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Hosting gates: **PASS**.
+- Dependency health: **0 errors / 5 expected warnings** from absent installed packages in the delivery tree.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Deployed App Check verification and full Playwright navigation require external network/browser access; GitHub Actions remains the final browser execution authority.
-- Delivery: **766-file** full ZIP and **304-file** manifestless patch with **7 delete paths**; replay over v1.6.85, including a simulated legacy `PATCH_MANIFEST.json`, matched exactly (`766/766`, missing 0, extra 0, changed 0).
-
+- Pixel 5 Playwright-device CSS probe with all 27 loaded styles: **0 row overlap / 0 left overflow** at 393px and 320px; desktop 1440px also reports zero overlap.
+- Full Playwright network navigation requires GitHub Actions in this environment.
+- Delivery: **769-file** full ZIP and **307-file** manifestless patch with **7 delete paths**; replay over v1.6.87 matched exactly (`769/769`, missing 0, extra 0, changed 0) and removed the simulated legacy manifest.
 
 # FoxBear Status - v1.6.79
 

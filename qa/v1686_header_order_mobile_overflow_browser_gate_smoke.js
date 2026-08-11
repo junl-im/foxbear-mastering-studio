@@ -13,7 +13,7 @@ assert(/@media \(max-width:\s*430px\)[\s\S]*?\.brand-command-bar \.designer-mini
   'Pixel-class header must retire the nonessential creator token before it compresses the left status group');
 assert(runtime.includes('expect(headerSettings.modeSwitchLeft).toBeGreaterThanOrEqual(headerSettings.designerRight - 2);'),
   'runtime browser sentinel must keep checking desktop visual order');
-assert(runtime.includes('expect(headerSettings.rowOverlap).toBeLessThanOrEqual(1);'),
+assert(/expect\(headerSettings\.rowOverlap[\s\S]*?\)\.toBeLessThanOrEqual\(1\);/.test(runtime),
   'runtime browser sentinel must keep checking mobile header overlap');
 assert(runtime.includes('expect(narrowHeader.leftOverflow).toBeLessThanOrEqual(2);'),
   'runtime browser sentinel must keep checking 320px overflow');

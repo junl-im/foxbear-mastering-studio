@@ -9,7 +9,7 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const source = fs.readFileSync('src/audio/playback-transition-service.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.6.87');
+assert.strictEqual(pkg.version, '1.6.88');
 assert(pkg.qaChecks.includes('node qa/v1653_playback_crossfade_settlement_smoke.js'));
 assert(source.includes('function waitForMediaReady(audio, timeoutMs = 900, options = {})'));
 assert(source.includes('{ load: !immediatePlay }'), 'user-gesture crossfade readiness must not reload after play()');

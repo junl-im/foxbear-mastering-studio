@@ -1,3 +1,26 @@
+# v1.6.88 patch notes
+
+## 적용 내역
+
+- GitHub Actions v1.6.87에서 남은 `chromium-mobile-pwa` Runtime Health 겹침(`91.96875px > 1px`)을 구조적으로 막기 위해 command header의 grid ownership을 명시했습니다.
+- `.brand-command-left`를 grid 1열에 고정하고 과거 `.brand-kicker { width: 100% !important; }` 영향을 `width: auto !important`로 무효화합니다.
+- `.brand-right-actions`는 grid 2열 + `justify-self:end`로 고정해 좌우 rail의 bounding box가 같은 열을 점유하지 못하게 합니다.
+- 430px 이하에서도 동일 계약을 재선언하며 기존의 device text / studio token / creator token compact 정책은 유지합니다.
+- Runtime Health의 `rowOverlap <= 1` 기준은 완화하지 않고 initial / 320px 어느 단계가 실패했는지 annotation에서 바로 보이게 진단 메시지를 추가했습니다.
+- `PATCH_MANIFEST.json`은 계속 삭제 경로입니다.
+
+## 검증 결과
+
+- v1.6.88 집중 회귀: **PASS**.
+- 전체 정적·행동 회귀: **443/443 PASS**.
+- Source hygiene / Version / Functions syntax / local App Check / Handoff / browser preflight / Hosting: **PASS**.
+- Firebase Hosting 공개 경계: **161개 파일**.
+- Pixel 5 Playwright device + 실제 로드 순서 27개 CSS로 393px/320px를 측정해 `rowOverlap=0`, `leftOverflow=0`을 확인했습니다. 데스크톱 1440px도 overlap 0입니다.
+- Dependency health: **0 errors / 5 warnings** (`node_modules` 미포함 전달 트리의 예상 경고).
+- 전체 Playwright 네트워크 navigation은 이 실행 환경에서 제한되어 다음 GitHub Actions가 최종 브라우저 기준입니다.
+- Full ZIP **769개 파일**, patch ZIP **307개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음.
+- v1.6.87 full에 legacy `PATCH_MANIFEST.json`을 일부러 추가한 뒤 patch + cleanup을 재적용해 v1.6.88 full과 **769/769 완전 동일** (`missing 0 / extra 0 / changed 0`)을 확인했고 manifest도 제거됐습니다.
+
 # v1.6.86 patch notes
 
 ## 적용 내역

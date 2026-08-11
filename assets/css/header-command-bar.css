@@ -14,10 +14,16 @@
 
 .brand-command-left {
     display: flex !important;
+    grid-column: 1 / 2 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+    justify-self: stretch !important;
     align-items: center !important;
     flex-wrap: nowrap !important;
     gap: clamp(7px, 1vw, 13px) !important;
+    width: auto !important;
     min-width: 0 !important;
+    max-width: 100% !important;
     overflow: hidden !important;
 }
 
@@ -140,11 +146,17 @@
 
 .brand-command-bar .brand-right-actions {
     display: inline-flex !important;
+    grid-column: 2 / 3 !important;
+    grid-row: 1 !important;
+    align-self: center !important;
+    justify-self: end !important;
     align-items: center !important;
     justify-content: flex-end !important;
     flex-wrap: nowrap !important;
     gap: 9px !important;
+    width: auto !important;
     min-width: 0 !important;
+    max-width: 100% !important;
     min-height: 24px !important;
 }
 
@@ -286,7 +298,21 @@
     }
 
     .brand-command-left {
+        grid-column: 1 / 2 !important;
+        grid-row: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
         gap: 4px !important;
+    }
+
+    .brand-command-bar .brand-right-actions {
+        grid-column: 2 / 3 !important;
+        grid-row: 1 !important;
+        justify-self: end !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
     }
 
     .brand-command-label,

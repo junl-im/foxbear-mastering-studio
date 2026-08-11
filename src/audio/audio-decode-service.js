@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.87
+// FoxBear audio decode service - v1.6.88
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.87-mobile-header-device-label-overlap-recovery';
+    const SERVICE_VERSION = '1.6.88-mobile-header-grid-ownership-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

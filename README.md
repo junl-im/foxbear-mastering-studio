@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.6.87
+# FoxBear AI Mastering Studio Pro v1.6.88
 
 > Current release: v1.6.87 · mobile-header-device-label-overlap-recovery
 

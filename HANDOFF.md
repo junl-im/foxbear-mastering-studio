@@ -1,37 +1,37 @@
-# Handoff - v1.6.87
+# Handoff - v1.6.88
 
 ## Current release
 
-- Product version: `1.6.87`
-- Build ID: `mobile-header-device-label-overlap-recovery`
-- Asset version: `1.6.87-mobile-header-device-label-overlap-recovery`
-- Service worker cache: `foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery`
-- Configured static/regression target: 442 checks.
+- Product version: `1.6.88`
+- Build ID: `mobile-header-grid-ownership-recovery`
+- Asset version: `1.6.88-mobile-header-grid-ownership-recovery`
+- Service worker cache: `foxbear-shell-v1.6.88-mobile-header-grid-ownership-recovery`
+- Configured static/regression target: 443 checks.
 
 ## Current focus
 
-- Fix the exact v1.6.85 Runtime Health geometry failures without weakening assertions.
-- Restore desktop creator/workspace/settings visual order.
-- Remove Pixel-class command-bar overlap by hiding only the nonessential creator token at 430px and below.
+- Eliminate the remaining mobile-only Runtime Health overlap without weakening the strict `rowOverlap <= 1px` browser contract.
+- Give `.brand-command-left` and `.brand-right-actions` explicit CSS Grid column ownership so historical width/order rules cannot make their bounding boxes collide.
+- Preserve the compact device glyphs, workspace switch, settings control, and desktop creator/workspace/settings order.
 - Remove and commit the legacy tracked `PATCH_MANIFEST.json` so the source-hygiene warning disappears.
-- Verified delivery: 766-file full ZIP; 304-file patch + 7 delete paths; v1.6.85 replay matched exactly.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.86 patch ZIP** into the **v1.6.85 repository root** and replace matching files.
+1. Extract the **v1.6.88 patch ZIP** into the **v1.6.87 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-3. Confirm GitHub Desktop shows **`PATCH_MANIFEST.json` as deleted**. If it is still listed in the repository, do not omit that deletion from the commit.
+3. Confirm GitHub Desktop shows **`PATCH_MANIFEST.json` as deleted**. Include that deletion in the commit.
 4. Commit all modified/new/deleted files and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.85 full ZIP into the repository folder.
+5. For a clean replacement, preserve `.git` and extract the v1.6.88 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **440/440 PASS**.
-- Version synchronization, Functions syntax, App Check policy, source hygiene, handoff, browser preflight, dependency structure, and Hosting staging: **PASS**.
+- Static and behavioral checks: **443/443 PASS** in bounded chunks.
+- Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Hosting staging: **PASS**.
+- Dependency health: **0 errors / 5 warnings** because delivery archives intentionally omit installed `node_modules`.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Local Chromium CSS geometry at 1440/430/393/375/320px: no command-left clipping and no row overlap.
-- Full Playwright navigation is environment-blocked here; GitHub Actions is the final browser acceptance run.
-- Full ZIP: **764 files**. Patch ZIP: **307 overwrite files**, **7 delete paths**, no generated `PATCH_MANIFEST.json`. Replay over v1.6.84 with a simulated legacy manifest reproduced the full tree exactly (`764/764`, missing 0, extra 0, changed 0).
+- Local Chromium using the **Pixel 5 Playwright device descriptor** and all **27 loaded CSS files**: `rowOverlap=0` and `leftOverflow=0` at both 393px and 320px; desktop 1440px also reports zero overlap.
+- Full Playwright network navigation remains a GitHub Actions verification in this environment.
+- Delivery: **769-file** full ZIP and **307-file** manifestless patch with **7 delete paths**. Replay over v1.6.87 with a simulated legacy `PATCH_MANIFEST.json` matched exactly (`769/769`, missing 0, extra 0, changed 0), and cleanup removed the legacy manifest.
 
 # Handoff - v1.6.79
 

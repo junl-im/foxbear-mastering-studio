@@ -1,3 +1,11 @@
+# v1.6.88 - Mobile header grid ownership recovery
+
+- Locks the compact command header into explicit grid ownership: status rail in column 1 and workspace/settings actions in column 2.
+- Neutralizes historical `brand-kicker` width rules with `width:auto`, `min-width:0`, and `max-width:100%` on the actual grid item.
+- Reasserts the same ownership below 430px so Pixel-class and 320px Runtime Health measurements cannot inherit stale width/order behavior.
+- Keeps the strict browser `rowOverlap <= 1px` gate and adds viewport-specific failure diagnostics instead of weakening the assertion.
+- Keeps `PATCH_MANIFEST.json` as a delete-path-only legacy artifact.
+
 # v1.6.87 - Mobile header device label overlap recovery
 
 - Hides only the redundant compact device text at 430px and below while preserving the PC/phone glyphs and DOM/accessibility text.
