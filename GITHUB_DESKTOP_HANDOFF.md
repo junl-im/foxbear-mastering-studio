@@ -1,30 +1,28 @@
-# GitHub Desktop Handoff - v1.6.90
+# GitHub Desktop Handoff - v1.6.91
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.89**, then extract the v1.6.90 patch ZIP into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.90**, then extract the v1.6.91 patch ZIP into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Include the tracked deletion of legacy `PATCH_MANIFEST.json` in the commit.
-5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.90 full ZIP.
+4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.91 full ZIP.
 
 ## Release focus
 
-- Mastering Goal / Style / Strength / Platform picker overlays no longer own browser history or body-level mobile touch locks.
-- Picker selection closes the overlay before the native change event and yields one frame before setting handlers run.
-- Engine setting refreshes use the render scheduler, while DSP/quality profiles remain unchanged.
-- Performance diagnostics expose `engineControls` state and handler timing for future freeze reports.
-- Runtime Health still requires `rowOverlap <= 1px`, and now also proves the current `flex-two-rail-v1690` header stylesheet contract loaded.
-- Legacy `PATCH_MANIFEST.json` is deleted from tracked source.
+- Fixes the false mobile Runtime Health failure behind `Expected: <= 1` / `Received: 91.96875`.
+- The value was a visible device token coordinate being compared against `studioLeft=0` after the Studio token was intentionally hidden, not a measured `rowOverlap`.
+- Compact Runtime Health now compares the last visible left token directly with `.brand-right-actions`.
+- The strict `rowOverlap <= 1px` gate and v1.6.90 production header CSS remain unchanged.
+- v1.6.90 Mastering Engine picker freeze isolation remains carried forward unchanged.
 
 ## Expected verification result
 
-- Static/regression: **446/446 PASS** in bounded slices (`112 + 112 + 112 + 110`).
-- Source hygiene / Version / SRI / browser preflight: **PASS**.
-- Full Playwright navigation: final acceptance in GitHub Actions.
+- Static/regression: **447/447 PASS**.
+- Source hygiene / Version / SRI / browser preflight / Functions / local App Check / handoff: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery: **774-file full ZIP**, **306-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
-
+- Delivery: **776-file full ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`.
+- Pixel 5 reconstruction: **0px overlap** at 393px and 320px.
+- Full Playwright navigation: final acceptance in GitHub Actions.
 # GitHub Desktop Handoff - v1.6.79
 
 ## Apply

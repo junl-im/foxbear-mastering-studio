@@ -1,3 +1,27 @@
+# FoxBear QA Report - v1.6.91
+
+## Configured target
+
+- Static and behavioral checks: **447**.
+- New regression: `qa/v1691_runtime_health_hidden_geometry_contract_recovery_smoke.js`.
+
+## Verification scope
+
+- Reproduces the exact annotation semantics behind `Expected: <= 1` / `Received: 91.96875`.
+- Prevents visible `deviceRight` geometry from being compared with the zero DOMRect of a compact `display:none` Studio token.
+- Keeps `rowOverlap <= 1px`, the v1.6.90 header CSS contract marker, and the Mastering Engine picker isolation unchanged.
+- Adds relation-specific assertion messages for build→device, device→studio, studio→actions, and compact device→actions geometry.
+
+## Verification status
+
+- Focused v1.6.91 regression: **PASS**.
+- Full configured suite: **447/447 PASS** across bounded continuation ranges.
+- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, and handoff checks: **PASS**.
+- Firebase Hosting boundary: **162 allowlisted files**.
+- Pixel-class static browser reconstruction with all 27 loaded CSS files: actual left/right rail overlap remains **0px** at 393px and 320px.
+- Delivery verification: **776-file full ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+- Full Playwright app navigation remains a GitHub Actions acceptance step because this execution environment blocks the required app navigation path.
+
 # FoxBear QA Report - v1.6.90
 
 ## Configured target

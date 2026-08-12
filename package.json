@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.90",
+  "version": "1.6.91",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.90 - engine control overlay isolation and header contract recovery",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.91 - Runtime Health hidden-element geometry contract recovery",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.90-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.90-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.91-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.91-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.90-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.90-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.91-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.91-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -494,15 +494,16 @@
     "node qa/v1687_mobile_header_device_label_overlap_recovery_smoke.js",
     "node qa/v1688_mobile_header_grid_ownership_recovery_smoke.js",
     "node qa/v1689_mobile_header_flex_ownership_ci_diagnostics_smoke.js",
-    "node qa/v1690_engine_control_overlay_header_contract_recovery_smoke.js"
+    "node qa/v1690_engine_control_overlay_header_contract_recovery_smoke.js",
+    "node qa/v1691_runtime_health_hidden_geometry_contract_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "engine-control-overlay-isolation-header-contract-recovery",
-    "assetVersion": "1.6.90-engine-control-overlay-isolation-header-contract-recovery",
-    "cacheName": "foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery",
-    "bootRevision": "boot-sri-v1690",
-    "updateSafetyRevision": "update-safety-v1690",
-    "serviceWorkerRevision": "sw-v1690"
+    "buildId": "runtime-health-hidden-geometry-contract-recovery",
+    "assetVersion": "1.6.91-runtime-health-hidden-geometry-contract-recovery",
+    "cacheName": "foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery",
+    "bootRevision": "boot-sri-v1691",
+    "updateSafetyRevision": "update-safety-v1691",
+    "serviceWorkerRevision": "sw-v1691"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.91
+
+> Current release: v1.6.91 · runtime-health-hidden-geometry-contract-recovery
+
+This release fixes the mobile Runtime Health false failure caused by measuring a hidden Studio header token as if it still had visible geometry. The production header CSS, strict overlap threshold, and v1.6.90 Mastering Engine picker isolation remain unchanged.
+
 # FoxBear AI Mastering Studio Pro v1.6.90
 
 > Current release: v1.6.90 · engine-control-overlay-isolation-header-contract-recovery

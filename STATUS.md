@@ -1,37 +1,35 @@
-# FoxBear Status - v1.6.90
+# FoxBear Status - v1.6.91
 
 ## Current release
 
-- Product version: `1.6.90`
-- Build ID: `engine-control-overlay-isolation-header-contract-recovery`
-- Asset version: `1.6.90-engine-control-overlay-isolation-header-contract-recovery`
-- Service worker cache: `foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery`
-- Configured static/regression target: **446 checks**.
+- Product version: `1.6.91`
+- Build ID: `runtime-health-hidden-geometry-contract-recovery`
+- Asset version: `1.6.91-runtime-health-hidden-geometry-contract-recovery`
+- Service worker cache: `foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery`
+- Configured static/regression target: **447 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.90`
-- Build ID: `engine-control-overlay-isolation-header-contract-recovery`
-- Asset version: `1.6.90-engine-control-overlay-isolation-header-contract-recovery`
-- Service worker cache: `foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery`
+- Product version: `1.6.91`
+- Build ID: `runtime-health-hidden-geometry-contract-recovery`
+- Asset version: `1.6.91-runtime-health-hidden-geometry-contract-recovery`
+- Service worker cache: `foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery`
 
 ## Release focus
 
-- Isolate Mastering Engine picker overlays from history sentinel and global body touch/scroll ownership on mobile PWA.
-- Close/yield before engine setting handlers and schedule the resulting UI refresh.
-- Add engine-control support diagnostics without changing mastering DSP profiles.
-- Keep the strict browser header overlap threshold and add a stylesheet-generation contract marker to diagnose stale CSS separately.
-- Delete the legacy tracked `PATCH_MANIFEST.json` artifact.
+- Repair the Runtime Health test contract for responsive-hidden header tokens without changing production layout.
+- Treat `display:none` Studio geometry as absent instead of comparing a visible device coordinate with a zero DOMRect.
+- Keep strict `rowOverlap <= 1px`, header CSS contract generation, and all v1.6.90 Mastering Engine freeze fixes unchanged.
+- Improve browser annotations with explicit geometry-relation labels.
 
 ## Release status
 
-- Static and behavioral checks: **446/446 PASS** in bounded slices (`112 + 112 + 112 + 110`).
-- Engine QA bench, golden audio pack, and piano transient integrity: **PASS**.
-- Source hygiene, SRI, version synchronization, and browser preflight: **PASS**.
-- Full Playwright app navigation remains a GitHub Actions acceptance step because this execution environment blocks the required local browser navigation path.
+- Static and behavioral checks: **447/447 PASS** across bounded continuation ranges.
+- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, and handoff checks: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery packaging: **774-file full ZIP**, **306-file manifestless overwrite patch**, **7 delete paths**; package verification: **PASS**.
-
+- Delivery: **776-file full ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+- Pixel-class reconstruction with all 27 loaded CSS files: **0px row overlap** at 393px and 320px.
+- Full Playwright app navigation remains the GitHub Actions acceptance step because local navigation is blocked by this execution environment.
 # FoxBear Status - v1.6.88
 
 ## Current release

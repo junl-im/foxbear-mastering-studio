@@ -9,7 +9,7 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const modalSource = fs.readFileSync('src/ui/modal-controller.js', 'utf8');
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.90');
+assert.strictEqual(pkg.version, '1.6.91');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID must remain valid kebab-case');
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1682_overlay_focus_ancestor_hardening_smoke.js'));

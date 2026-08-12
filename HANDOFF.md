@@ -1,38 +1,38 @@
-# Handoff - v1.6.90
+# Handoff - v1.6.91
 
 ## Current release
 
-- Product version: `1.6.90`
-- Build ID: `engine-control-overlay-isolation-header-contract-recovery`
-- Asset version: `1.6.90-engine-control-overlay-isolation-header-contract-recovery`
-- Service worker cache: `foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery`
-- Configured static/regression target: 446 checks.
+- Product version: `1.6.91`
+- Build ID: `runtime-health-hidden-geometry-contract-recovery`
+- Asset version: `1.6.91-runtime-health-hidden-geometry-contract-recovery`
+- Service worker cache: `foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery`
+- Configured static/regression target: 447 checks.
 
 ## Current focus
 
-- Prevent the four Mastering Engine option pickers from entering browser-history sentinel release cycles or applying body-level touch/scroll locks on mobile PWA.
-- Close the picker before dispatching its setting change, yield one animation frame, and route goal/style/strength/platform UI refresh through the render scheduler.
-- Capture `engineControls` in performance diagnostics so a future freeze report identifies the active control, body-lock state, pending change age, and change-handler duration.
-- Keep the strict mobile header `rowOverlap <= 1px` browser gate unchanged, but verify `--foxbear-header-contract: flex-two-rail-v1690` first so stale/missing CSS is distinguishable from a real geometry failure.
-- Remove the legacy tracked `PATCH_MANIFEST.json` from the source tree.
+- Correct the Runtime Health compact-header geometry contract: `.brand-command-studio` is intentionally `display:none` at Pixel-class widths and therefore has a zero DOMRect.
+- Never compare visible `deviceRight` against hidden `studioLeft=0`; compare `deviceRight` directly with the right action rail when Studio is hidden.
+- Keep the production header CSS, `--foxbear-header-contract: flex-two-rail-v1690`, and strict `rowOverlap <= 1px` acceptance threshold unchanged.
+- Keep the v1.6.90 Mastering Engine picker history/body-lock isolation and engine diagnostics unchanged.
+- Emit relation-specific browser assertion messages so future geometry failures identify the exact pair being compared.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.90 patch ZIP** into the **v1.6.89 repository root** and replace matching files.
+1. Extract the **v1.6.91 patch ZIP** into the **v1.6.90 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-3. Confirm GitHub Desktop shows `PATCH_MANIFEST.json` as deleted and include that deletion in the commit.
-4. Commit all modified/new/deleted files and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.90 full ZIP into the repository folder.
+3. Review all modified/new/deleted files in GitHub Desktop.
+4. Commit all changes and **Push origin**.
+5. For a clean replacement, preserve `.git` and extract the v1.6.91 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **446/446 PASS** in bounded slices (`112 + 112 + 112 + 110`).
-- Focused engine overlay/header contract regression, engine QA bench, golden audio pack, and piano transient integrity: **PASS**.
-- Source hygiene, SRI, version synchronization, and browser preflight: **PASS**.
-- Full Playwright app navigation remains a GitHub Actions acceptance step because this execution environment blocks the required app navigation path.
+- Static and behavioral checks: **447/447 PASS** across bounded continuation ranges.
+- Exact v1.6.91 hidden-element geometry regression plus v1.6.85-v1.6.90 carry-forward header/engine regressions: **PASS**.
+- Pixel-class reconstruction using all 27 loaded CSS files: actual left/right rail overlap is **0px** at 393px and 320px.
+- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, and handoff checks: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery packaging: **774-file full ZIP**, **306-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
-
+- Delivery packaging: **776-file full ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+- Full Playwright network navigation remains a GitHub Actions acceptance step because this execution environment blocks local app navigation.
 # Handoff - v1.6.79
 
 ## Current release

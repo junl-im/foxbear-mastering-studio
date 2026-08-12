@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.90-engine-control-overlay-isolation-header-contract-recovery';
+  const VIEW_VERSION = '1.6.91-runtime-health-hidden-geometry-contract-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

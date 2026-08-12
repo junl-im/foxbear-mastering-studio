@@ -154,9 +154,18 @@ test.describe('FoxBear browser runtime health', () => {
     expect(headerSettings.designerText).toBe('DESIGNED BY 곰같은여우');
     expect(headerSettings.toggleText).toBe('⚙');
     expect(['none', 'normal', '""']).toContain(headerSettings.toggleAfter);
-    expect(headerSettings.buildRight).toBeLessThanOrEqual(headerSettings.deviceLeft + 1);
-    expect(headerSettings.deviceRight).toBeLessThanOrEqual(headerSettings.studioLeft + 1);
-    expect(headerSettings.studioRight).toBeLessThanOrEqual(headerSettings.actionsLeft + 1);
+    expect(headerSettings.buildRight, `header order build→device · buildRight=${headerSettings.buildRight} deviceLeft=${headerSettings.deviceLeft}`).toBeLessThanOrEqual(headerSettings.deviceLeft + 1);
+    const studioIsVisible = headerSettings.studioDisplay !== 'none' && headerSettings.studioVisibleWidth > 0;
+    if (studioIsVisible) {
+      expect(headerSettings.deviceRight, `header order device→studio · deviceRight=${headerSettings.deviceRight} studioLeft=${headerSettings.studioLeft}`).toBeLessThanOrEqual(headerSettings.studioLeft + 1);
+      expect(headerSettings.studioRight, `header order studio→actions · studioRight=${headerSettings.studioRight} actionsLeft=${headerSettings.actionsLeft}`).toBeLessThanOrEqual(headerSettings.actionsLeft + 1);
+    } else {
+      // Hidden elements report a zero DOMRect. Comparing deviceRight against
+      // hidden studioLeft would turn a healthy compact header into an
+      // artificial `Expected <= 1` failure. Compare the last visible token
+      // against the right action rail instead.
+      expect(headerSettings.deviceRight, `compact header visible rail device→actions · deviceRight=${headerSettings.deviceRight} actionsLeft=${headerSettings.actionsLeft}`).toBeLessThanOrEqual(headerSettings.actionsLeft + 1);
+    }
     expect(headerSettings.modeSwitchLeft).toBeGreaterThanOrEqual(headerSettings.designerRight - 2);
     expect(headerSettings.toggleLeft).toBeGreaterThanOrEqual(headerSettings.modeSwitchRight - 2);
     expect(headerSettings.toggleRight).toBeLessThanOrEqual(headerSettings.viewportWidth + 1);

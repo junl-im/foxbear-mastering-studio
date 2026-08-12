@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.90-engine-control-overlay-isolation-header-contract-recovery';
+    const SERVICE_VERSION = '1.6.91-runtime-health-hidden-geometry-contract-recovery';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

@@ -1,3 +1,10 @@
+# v1.6.91 - Runtime Health hidden-element geometry contract recovery
+
+- Fixes the recurring mobile browser release-gate false failure that reported `Expected: <= 1` / `Received: 91.96875`.
+- Stops comparing `deviceRight` against the zero DOMRect of `.brand-command-studio` after that studio token is intentionally `display:none` on compact viewports.
+- Keeps the product header CSS and strict `rowOverlap <= 1px` contract unchanged; compact geometry now compares the last visible left token directly with the right action rail.
+- Adds assertion-specific geometry messages so future browser annotations identify the exact relation that failed instead of looking like the overlap gate.
+
 # v1.6.90 - Engine control overlay isolation and header contract recovery
 
 - Isolates Mastering Engine select popups from browser-history sentinels and global mobile body/touch locks.

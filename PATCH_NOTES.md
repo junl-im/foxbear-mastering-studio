@@ -1,3 +1,23 @@
+# v1.6.91 patch notes
+
+## 적용 내역
+
+- 반복되던 `Expected: <= 1 / Received: 91.96875`의 실제 원인을 수정했습니다. 이 값은 `rowOverlap`이 아니라, 430px 이하에서 의도적으로 숨겨진 `.brand-command-studio`의 `left=0` DOMRect에 보이는 device token의 `right≈91.97px`를 비교해서 발생한 Runtime Health 오판이었습니다.
+- Studio가 보이는 화면에서는 기존 `device → studio → actions` 순서를 그대로 검사하고, Studio가 숨겨진 compact 화면에서는 마지막으로 보이는 `device → actions` 경계를 직접 검사합니다.
+- 실제 제품 헤더 CSS와 `--foxbear-header-contract: flex-two-rail-v1690`, `rowOverlap <= 1px` 기준은 변경하지 않았습니다.
+- 브라우저 assertion마다 `build→device`, `device→studio`, `studio→actions`, `compact device→actions` 진단 메시지를 추가했습니다.
+- v1.6.90의 마스터링 목표/스타일/성향/플랫폼 프리셋 팝업 history/body-lock 격리 및 엔진 진단은 그대로 유지합니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **447/447 PASS**.
+- v1.6.85~v1.6.91 헤더/브라우저 집중 회귀: **PASS**.
+- 27개 CSS 로드 순서를 재현한 Pixel-class Chromium 레이아웃: 393px / 320px 모두 실제 `rowOverlap=0`.
+- Engine QA bench / golden audio / piano transient / SRI / Version / Source hygiene / browser preflight / Functions / local App Check / Handoff: **PASS**.
+- Firebase Hosting 공개 경계: **162개 allowlisted files**.
+- Delivery: Full ZIP **776개 파일**, patch ZIP **305개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음: **PASS**.
+- 전체 Playwright 앱 navigation은 현재 실행 환경의 로컬 navigation 제한 때문에 GitHub Actions가 최종 판정입니다.
+
 # v1.6.90 patch notes
 
 ## 적용 내역

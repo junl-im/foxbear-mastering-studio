@@ -36,8 +36,8 @@ assert(css.includes('.mobile-native-setting-grid') && css.includes('.mobile-nati
 assert(css.includes("content: '⚙️'"), 'settings panel heading should use gear visual');
 assert(css.includes('data-state="on"') && css.includes('data-state="off"'), 'CSS should style ON/OFF states');
 
-assert(index.includes('1.6.90-engine-control-overlay-isolation-header-contract-recovery'), 'index asset query should use Stage16 cache key');
-assert(sw.includes('foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery'), 'service worker cache should use Stage16 cache key');
+assert(index.includes('1.6.91-runtime-health-hidden-geometry-contract-recovery'), 'index asset query should use Stage16 cache key');
+assert(sw.includes('foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery'), 'service worker cache should use Stage16 cache key');
 assert(pkg.qaChecks.includes('node qa/stage16_mobile_settings_panel_smoke.js'), 'package QA should include Stage16 settings smoke');
 
 console.log('PASS stage16 mobile settings panel smoke');

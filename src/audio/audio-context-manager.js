@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.90-engine-control-overlay-isolation-header-contract-recovery';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.91-runtime-health-hidden-geometry-contract-recovery';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.90-engine-control-overlay-isolation-header-contract-recovery',
+                version: '1.6.91-runtime-health-hidden-geometry-contract-recovery',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.90-engine-control-overlay-isolation-header-contract-recovery',
+        version: '1.6.91-runtime-health-hidden-geometry-contract-recovery',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,
