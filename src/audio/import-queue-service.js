@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.92-spectrum-panel-mount-lifecycle-recovery',
+                version: '1.6.93-mobile-dock-visibility-integrity-recovery',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.92-spectrum-panel-mount-lifecycle-recovery',
+        version: '1.6.93-mobile-dock-visibility-integrity-recovery',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

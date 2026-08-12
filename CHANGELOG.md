@@ -1,3 +1,10 @@
+# v1.6.93 - Mobile Dock visibility and integrity recovery
+
+- Stops AI mode from forcing a hidden/empty bottom preview Dock visible when the Dock has no active track state.
+- Recovers transient stale active-track selection before Dock rendering so mobile AI and Expert mode layout/lifecycle changes do not clear an otherwise valid Dock.
+- Adds Dock integrity diagnostics and one-frame self-repair after render, layout, visibility, page-show, and UI-mode transitions.
+- Preserves the v1.6.92 AI Spectrum lifecycle recovery and all mastering/DSP behavior.
+
 # v1.6.92 - AI spectrum panel mount lifecycle recovery
 
 - Fixes the AI Spectrum View canvas being discarded before it is mounted into the detail DOM, which left the panel visually blank despite valid 24-band FFT analysis data.

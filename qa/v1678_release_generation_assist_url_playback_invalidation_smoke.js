@@ -17,7 +17,7 @@ const app = read('src/app.js');
 const index = read('index.html');
 const recovery404 = read('404.html');
 
-expect(pkg.version === '1.6.92', 'package version must be v1.6.92');
+expect(pkg.version === '1.6.93', 'package version must be v1.6.93');
 expect(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current buildId must remain valid kebab-case');
 expect(String(pkg.foxbearRelease?.assetVersion || '') === `${pkg.version}-${pkg.foxbearRelease.buildId}`, 'assetVersion must derive from current product version and buildId');
 expect(delivery.includes("sync-release-metadata.js'), '--check'"), 'delivery packaging must gate on release metadata synchronization');

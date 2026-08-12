@@ -17,7 +17,7 @@ const hostingCsp = hosting.hosting.headers
     .find(entry => entry.source === '**')?.headers
     .find(entry => entry.key === 'Content-Security-Policy')?.value || '';
 
-assert(pkg.version === '1.6.92', 'package version must be 1.6.92');
+assert(pkg.version === '1.6.93', 'package version must be 1.6.93');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease?.buildId || ''), 'release build id must remain kebab-case');
 assert(bootstrapSource.includes("FIREBASE_AUTH_GAPI_MODULE_PATH_PREFIX = '/_/scs/apps-static/_/js/'"), 'Trusted Types bootstrap must declare the narrow gapi module path');
 assert(firebaseSource.includes('허용되지 않은 동적 스크립트 URL'), 'Firebase error normalization must recognize FoxBear Trusted Types rejections');

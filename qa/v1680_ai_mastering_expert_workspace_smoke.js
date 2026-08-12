@@ -12,7 +12,7 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const stateSource = fs.readFileSync('src/state/app-state.js', 'utf8');
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.92');
+assert.strictEqual(pkg.version, '1.6.93');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')));
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease?.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1680_ai_mastering_expert_workspace_smoke.js'));
@@ -34,7 +34,10 @@ assert(css.includes('body[data-ui-mode="ai"] .queue-action-stack > .action-panel
 assert(css.includes('body[data-ui-mode="ai"] .workspace-stack > .inspect-panel'));
 assert(css.includes('body[data-ui-mode="ai"] .control-zone-load .upload-stage'));
 assert(css.includes('grid-template-columns: repeat(2, minmax(0, 1fr)) !important;'));
-assert(css.includes('body[data-ui-mode="ai"] .bottom-preview-dock { display: block; }'));
+assert(!css.includes('body[data-ui-mode="ai"] .bottom-preview-dock { display: block; }'), 'AI mode must not force hidden/empty Dock visible');
+assert(css.includes('body[data-ui-mode="ai"] .bottom-preview-dock.show[aria-hidden="false"] { display: block; }'));
+assert(css.includes('body[data-ui-mode="ai"] .bottom-preview-dock[aria-hidden="true"],'));
+assert(css.includes('body[data-ui-mode="ai"] .bottom-preview-dock:not(.show) { display: none !important; }'));
 assert(app.includes("runInitStep('작업 방식 선택', initUiModeExperience, { critical: true })"));
 assert(app.includes('window.FoxBearUiModeController = uiModeController'));
 assert(stateSource.includes("uiMode: ''"));

@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.93
+
+> Current release: v1.6.93 · mobile-dock-visibility-integrity-recovery
+
+This release restores state-driven mobile Dock visibility in both AI and Expert modes. AI mode no longer forces an empty hidden Dock on screen, and transient stale active-track selection is repaired before the Dock can be cleared. v1.6.92 AI Spectrum rendering recovery remains included.
+
 # FoxBear AI Mastering Studio Pro v1.6.92
 
 > Current release: v1.6.92 · spectrum-panel-mount-lifecycle-recovery

@@ -307,7 +307,9 @@ body[data-ui-mode="ai"] .detail-box {
     overflow: visible !important;
 }
 
-body[data-ui-mode="ai"] .bottom-preview-dock { display: block; }
+body[data-ui-mode="ai"] .bottom-preview-dock.show[aria-hidden="false"] { display: block; }
+body[data-ui-mode="ai"] .bottom-preview-dock[aria-hidden="true"],
+body[data-ui-mode="ai"] .bottom-preview-dock:not(.show) { display: none !important; }
 
 @media (max-width: 720px) {
     .ui-mode-chooser { align-items: flex-end; padding: 8px 8px max(8px, env(safe-area-inset-bottom)); }

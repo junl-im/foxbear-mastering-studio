@@ -1,36 +1,38 @@
-# Handoff - v1.6.92
+# Handoff - v1.6.93
 
 ## Current release
 
-- Product version: `1.6.92`
-- Build ID: `spectrum-panel-mount-lifecycle-recovery`
-- Asset version: `1.6.92-spectrum-panel-mount-lifecycle-recovery`
-- Service worker cache: `foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery`
-- Configured static/regression target: 448 checks.
+- Product version: `1.6.93`
+- Build ID: `mobile-dock-visibility-integrity-recovery`
+- Asset version: `1.6.93-mobile-dock-visibility-integrity-recovery`
+- Service worker cache: `foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery`
+- Configured static/regression target: 450 checks.
 
 ## Current focus
 
-- Restore AI Spectrum View rendering by protecting the newly created canvas during the detached pre-mount phase.
-- Defer the first 24-band FFT draw until the canvas is connected to the detail DOM.
-- Keep idle/paused spectrum output static and only enter live FFT while audio is actually playing.
-- Preserve strict Runtime Health header geometry recovery from v1.6.91 and Mastering Engine control isolation from v1.6.90.
+- Remove the AI-mode CSS override that exposed a hidden/empty Dock.
+- Repair transient stale active-track ownership before direct or full Dock rendering.
+- Detect visible-state/player-content mismatches and schedule bounded one-frame Dock recovery after mobile/layout lifecycle changes.
+- Preserve v1.6.92 AI Spectrum rendering, v1.6.91 browser geometry recovery, and v1.6.90 engine-control isolation.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.92 patch ZIP** into the **v1.6.91 repository root** and replace matching files.
+1. Extract the **v1.6.93 patch ZIP** into the **v1.6.92 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
 3. Review all modified/new/deleted files in GitHub Desktop.
 4. Commit all changes and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.92 full ZIP into the repository folder.
+5. For a clean replacement, preserve `.git` and extract the v1.6.93 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **448/448 PASS** (`112 + 112 + 112 + 112`).
-- AI Spectrum detached-canvas lifecycle regression and legacy spectrum/Dock FFT carry-forward regressions: **PASS**.
-- Chromium synthetic 24-band mount: static bars and focus line painted; `lastStaticValueCount=24`, `lastDrawSucceeded=true`.
-- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
-- Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery verification: **778-file full/release ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+- Static and behavioral checks: **450/450 PASS** (`113 + 113 + 113 + 111`).
+- Focused Dock/mobile/Spectrum regressions: **44/44 PASS**.
+- Chromium 393px CSS reconstruction confirms correct AI/Expert hidden and active Dock states.
+- Active-track fallback precedence is behavior-tested.
+- `src/app.js` remains below the structural gate at **13,298 lines**.
+- Version/SRI, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
+- Firebase Hosting boundary: **163 allowlisted files**.
+- Delivery verification: **781-file full/release ZIP**, **307-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
 - Full Playwright network navigation remains a GitHub Actions acceptance step because this execution environment blocks local app navigation.
 
 # Handoff - v1.6.79

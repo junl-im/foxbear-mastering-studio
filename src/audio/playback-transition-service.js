@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
+    const SERVICE_VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

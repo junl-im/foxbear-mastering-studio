@@ -1,26 +1,26 @@
-# GitHub Desktop Handoff - v1.6.92
+# GitHub Desktop Handoff - v1.6.93
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.91**, then extract the **v1.6.92 patch ZIP** into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.92**, then extract the **v1.6.93 patch ZIP** into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.92 full ZIP.
+4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.93 full ZIP.
 
 ## Release focus
 
-- Restores AI Spectrum View canvas rendering after the pre-mount canvas was incorrectly pruned as stale.
-- Shows the analyzed 24-band FFT profile while idle/paused.
-- Uses live FFT only while audio is actually playing and the browser supports the audio route.
-- Adds mount/draw diagnostics plus a direct detached-canvas regression.
-- Carries forward v1.6.91 Runtime Health geometry recovery and v1.6.90 engine-control freeze isolation.
+- Stops AI mode from exposing an `aria-hidden=true` / non-`.show` Dock as an empty fixed panel.
+- Recovers stale active-track selection before Dock rendering can clear a valid mobile transport.
+- Adds Dock integrity diagnostics and bounded recovery after render/layout/UI-mode lifecycle changes.
+- Keeps v1.6.92 AI Spectrum rendering and mastering/DSP behavior unchanged.
 
 ## Expected verification result
 
-- Static/regression: **448/448 PASS**.
+- Static/regression: **450/450 PASS**.
+- Focused Dock/mobile/Spectrum: **44/44 PASS**.
 - Source hygiene / Version / SRI / browser preflight / Functions / local App Check / handoff: **PASS**.
-- Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery: **778-file full/release ZIP**, **305 overwrite files + 7 delete paths** in the manifestless patch; no generated `PATCH_MANIFEST.json`.
+- Firebase Hosting boundary: **163 allowlisted files**.
+- Delivery: **781-file full/release ZIP**, **307 overwrite files + 7 delete paths** in the manifestless patch; no generated `PATCH_MANIFEST.json`.
 - Full Playwright navigation: final acceptance in GitHub Actions.
 
 # GitHub Desktop Handoff - v1.6.79

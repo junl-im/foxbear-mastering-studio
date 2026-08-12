@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
+    const FALLBACK_VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

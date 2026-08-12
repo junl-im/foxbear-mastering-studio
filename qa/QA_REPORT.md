@@ -1,3 +1,30 @@
+# FoxBear QA Report - v1.6.93
+
+## Configured target
+
+- Static and behavioral checks: **450**.
+- New regression: `qa/v1693_mobile_dock_visibility_integrity_recovery_smoke.js`.
+- New service syntax gate: `src/ui/bottom-preview-dock-integrity-service.js`.
+
+## Verification scope
+
+- Requires AI mode Dock visibility to follow `.show` plus `aria-hidden=false` instead of an unconditional mode override.
+- Requires stale active-track selection to recover before Dock rendering can clear a valid mobile Dock.
+- Requires recovery precedence of last Dock owner → valid selection set → first remaining track.
+- Requires Dock integrity diagnostics and scheduled bounded self-repair after render/layout/UI-mode lifecycle changes.
+
+## Verification status
+
+- Full configured suite: **450/450 PASS** across bounded ranges (`113 + 113 + 113 + 111`).
+- Focused Dock/mobile/Spectrum suite: **44/44 PASS**.
+- Chromium 393px CSS reconstruction: AI hidden `display:none/height=0`, AI active `display:block/height=57px`, Expert active `display:block/height=57px`, Expert hidden `display:none/height=0`: **PASS**.
+- Active-selection recovery behavior cases: Dock owner, selection set, first-track fallback, already-valid selection, empty queue: **PASS**.
+- `src/app.js`: **13,298 lines**, below the `<13,300` structural gate.
+- Version/SRI, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
+- Firebase Hosting boundary: **163 allowlisted files**.
+- Delivery verification: **781-file full/release ZIP**, **307-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+- Full Playwright app navigation remains a GitHub Actions acceptance step because this execution environment blocks the required app navigation path.
+
 # FoxBear QA Report - v1.6.92
 
 ## Configured target

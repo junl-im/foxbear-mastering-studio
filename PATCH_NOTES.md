@@ -1,3 +1,25 @@
+# v1.6.93 patch notes
+
+## 적용 내역
+
+- AI 모드에서 `aria-hidden=true`이거나 `.show`가 없는 Dock까지 `display:block`으로 강제하던 CSS를 제거했습니다. 이제 AI/전문가 모드 모두 Dock 상태가 실제 `.show + aria-hidden=false` 계약을 따릅니다.
+- 트랙이 남아 있는데 `selectedId`가 모바일 lifecycle 타이밍에서 일시적으로 stale이면 Dock을 지우기 전에 마지막 Dock 트랙 → 선택 목록 → 첫 트랙 순서로 활성 트랙을 복구합니다.
+- `src/ui/bottom-preview-dock-integrity-service.js`를 추가해 Dock 표시/ARIA/body 상태, player child 수, 실제 높이를 진단하고 render/layout/UI-mode 변경 뒤 한 프레임 단위의 bounded 복구를 수행합니다.
+- Performance Diagnostics에 Dock 무결성 snapshot과 `dock-integrity-failed` 경고를 추가했습니다.
+- `app.js` 구조 예산은 완화하지 않고 새 무결성 로직을 서비스로 분리해 **13,298줄**로 유지했습니다.
+- v1.6.92 AI 스펙트럼 뷰 수정과 마스터링 DSP/음질 프로파일은 변경하지 않았습니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **450/450 PASS** (`113 + 113 + 113 + 111`).
+- Dock/mobile/Spectrum 집중 회귀: **44/44 PASS**.
+- Chromium 393px computed CSS: AI/전문가 active Dock은 표시, hidden Dock은 `display:none`: **PASS**.
+- Version/SRI / Source hygiene / browser preflight / Functions / local App Check / Handoff: **PASS**.
+- Firebase Hosting 공개 경계: **163개 allowlisted files**.
+- Dependency health: **0 errors / 5 expected warnings** (전달 트리에 설치 dependency가 없는 상태).
+- Delivery: Full/Release ZIP **781개 파일**, patch ZIP **307개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음: **PASS**.
+- 전체 Playwright 앱 navigation은 현재 실행 환경의 navigation 제한 때문에 GitHub Actions가 최종 판정입니다.
+
 # v1.6.92 patch notes
 
 ## 적용 내역

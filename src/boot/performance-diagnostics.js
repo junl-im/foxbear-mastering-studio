@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.92
+// FoxBear performance diagnostics - v1.6.93
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
+    const DIAGNOSTICS_VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -218,7 +218,8 @@
         'wake-lock-last-error': '화면 꺼짐 방지를 사용할 수 없습니다. 브라우저 권한과 절전 설정을 확인해 주세요.',
         'recoverable-runtime-faults': '최근 자동 복구된 내부 오류가 반복되었습니다. 진단 복사 후 같은 작업에서 계속 반복되는지 확인해 주세요.',
         'engine-control-body-lock': '엔진 설정 팝업이 열린 동안 전역 터치/스크롤 잠금이 감지됐습니다. 팝업을 닫은 뒤 같은 설정을 다시 시도해 주세요.',
-        'engine-control-change-pending': '엔진 설정 변경 이벤트가 오래 대기 중입니다. 진단 복사 후 페이지를 새로고침하고 다시 시도해 주세요.'
+        'engine-control-change-pending': '엔진 설정 변경 이벤트가 오래 대기 중입니다. 진단 복사 후 페이지를 새로고침하고 다시 시도해 주세요.',
+        'dock-integrity-failed': '하단 Dock이 선택 트랙 상태와 맞지 않습니다. Dock 자동 복구를 실행한 뒤 같은 작업을 다시 확인해 주세요.'
     });
 
     const ACTIVITY_GUIDANCE = Object.freeze({
@@ -272,6 +273,7 @@
         if (snapshot.runtime && !snapshot.runtime.ok) warnings.push('runtime-health-check');
         if (snapshot.engineControls?.activeEngineControl && snapshot.engineControls?.bodyLocked) warnings.push('engine-control-body-lock');
         if (Number(snapshot.engineControls?.pendingChangeCount || 0) > 0 && Number(snapshot.engineControls?.pendingAgeMs || 0) > 5000) warnings.push('engine-control-change-pending');
+        if (snapshot.dock && snapshot.dock.healthy === false) warnings.push('dock-integrity-failed');
         const runtimeFaultRecentCount = Number(snapshot.runtimeFaults?.recentCount || 0);
         const runtimeFaultMaxRepeated = Number(snapshot.runtimeFaults?.maxRecentKeyCount || 0);
         if (runtimeFaultMaxRepeated >= 3 || runtimeFaultRecentCount >= 6) warnings.push('recoverable-runtime-faults');
@@ -312,6 +314,7 @@
             wakeLock: snapshot.wakeLock ? { active: Boolean(snapshot.wakeLock.active), mode: snapshot.wakeLock.mode || 'off', settingLabel: snapshot.wakeLock.settingLabel || 'OFF', userEnabled: Boolean(snapshot.wakeLock.userEnabled) } : null,
             runtimeFaults: snapshot.runtimeFaults ? { totalCount: snapshot.runtimeFaults.totalCount || 0, uniqueCount: snapshot.runtimeFaults.uniqueCount || 0, recentCount: snapshot.runtimeFaults.recentCount || 0, maxRecentKeyCount: snapshot.runtimeFaults.maxRecentKeyCount || 0, repeatedKeys: snapshot.runtimeFaults.repeatedKeys || [], entries: snapshot.runtimeFaults.entries || [] } : null,
             engineControls: snapshot.engineControls ? { activeSelectId: snapshot.engineControls.activeSelectId || '', popupVisible: Boolean(snapshot.engineControls.popupVisible), bodyLocked: Boolean(snapshot.engineControls.bodyLocked), pendingChangeCount: snapshot.engineControls.pendingChangeCount || 0, lastDispatchDurationMs: snapshot.engineControls.lastDispatchDurationMs || 0 } : null,
+            dock: snapshot.dock ? { healthy: Boolean(snapshot.dock.healthy), expectedVisible: Boolean(snapshot.dock.expectedVisible), show: Boolean(snapshot.dock.show), ariaHidden: snapshot.dock.ariaHidden || '', playerChildren: snapshot.dock.playerChildren || 0, audioCount: snapshot.dock.audioCount || 0, height: snapshot.dock.height || 0, repairCount: snapshot.dock.repairCount || 0, lastRepairReason: snapshot.dock.lastRepairReason || '' } : null,
             renderQueuePending: Boolean(snapshot.renderScheduler?.pending),
             visibility: snapshot.visibility,
             hint: snapshot.frameBudgetHint
@@ -331,6 +334,7 @@
         const navigationGuard = safeCall(() => global.FoxBearSiteGuards?.getNavigationExitGuardState?.(), null);
         const overlayHistory = safeCall(() => global.FoxBearModalStateMachine?.getHistoryDiagnostics?.(), null);
         const engineControls = safeCall(() => global.FoxBearEngineControlDiagnostics?.getSnapshot?.(), null);
+        const dock = safeCall(() => global.FoxBearDockDiagnostics?.getSnapshot?.(), null);
         const playback = safeCall(() => global.FoxBearPlaybackLinkService?.getOrchestrationSnapshot?.(), null);
         const importQueue = safeCall(() => global.FoxBearBulkImportGuard?.getSnapshot?.(), null);
         const bulkImportHud = safeCall(() => global.FoxBearBulkImportHud?.getSnapshot?.(), null);
@@ -369,6 +373,7 @@
             navigationGuard,
             overlayHistory,
             engineControls,
+            dock,
             importQueue,
             bulkImportHud,
             audioDecode,

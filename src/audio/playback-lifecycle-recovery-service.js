@@ -1,8 +1,8 @@
-// FoxBear playback lifecycle recovery service - v1.6.92
+// FoxBear playback lifecycle recovery service - v1.6.93
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
+    const SERVICE_VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

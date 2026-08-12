@@ -1,34 +1,36 @@
-# FoxBear Status - v1.6.92
+# FoxBear Status - v1.6.93
 
 ## Current release
 
-- Product version: `1.6.92`
-- Build ID: `spectrum-panel-mount-lifecycle-recovery`
-- Asset version: `1.6.92-spectrum-panel-mount-lifecycle-recovery`
-- Service worker cache: `foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery`
-- Configured static/regression target: **448 checks**.
+- Product version: `1.6.93`
+- Build ID: `mobile-dock-visibility-integrity-recovery`
+- Asset version: `1.6.93-mobile-dock-visibility-integrity-recovery`
+- Service worker cache: `foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery`
+- Configured static/regression target: **450 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.92`
-- Build ID: `spectrum-panel-mount-lifecycle-recovery`
-- Asset version: `1.6.92-spectrum-panel-mount-lifecycle-recovery`
-- Service worker cache: `foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery`
+- Product version: `1.6.93`
+- Build ID: `mobile-dock-visibility-integrity-recovery`
+- Asset version: `1.6.93-mobile-dock-visibility-integrity-recovery`
+- Service worker cache: `foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery`
 
 ## Release focus
 
-- Restore the AI Spectrum View canvas after a pre-mount lifecycle bug discarded the new canvas before the detail panel appended it to the DOM.
-- Render the analyzed 24-band FFT profile whenever playback is idle or paused.
-- Attempt live FFT only for actively playing audio; unsupported live capture paths continue to fall back to static analysis evidence.
-- Preserve v1.6.91 Runtime Health hidden-geometry recovery and v1.6.90 Mastering Engine picker isolation.
+- Restore state-driven mobile Dock visibility in both AI and Expert modes.
+- Prevent AI mode from forcing an empty hidden Dock visible.
+- Recover transient stale active-track ownership before a valid Dock can be cleared.
+- Add bounded Dock integrity diagnostics/self-repair while preserving v1.6.92 Spectrum rendering and all mastering DSP.
 
 ## Release status
 
-- Static and behavioral checks: **448/448 PASS** across four bounded ranges of 112 checks.
-- Chromium synthetic 24-band spectrum mount reconstruction: **PASS** with painted FFT content and `hasPanelCanvas:true`.
-- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
-- Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery: **778-file** full/release ZIP and **305-file** manifestless overwrite patch with **7 delete paths**; generated `PATCH_MANIFEST.json` absent: **PASS**.
+- Static and behavioral checks: **450/450 PASS** (`113 + 113 + 113 + 111`).
+- Focused Dock/mobile/Spectrum regressions: **44/44 PASS**.
+- Chromium 393px Dock state reconstruction: AI/Expert active Dock visible; hidden Dock `display:none`; **PASS**.
+- `src/app.js`: **13,298 lines**, below the `<13,300` structural gate.
+- Version/SRI, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
+- Firebase Hosting boundary: **163 allowlisted files**.
+- Delivery verification: **781-file full/release ZIP**, **307-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
 - Full Playwright app navigation remains the GitHub Actions acceptance step because local app navigation is blocked by this execution environment.
 
 # FoxBear Status - v1.6.88

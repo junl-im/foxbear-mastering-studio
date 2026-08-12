@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
+  const VIEW_VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

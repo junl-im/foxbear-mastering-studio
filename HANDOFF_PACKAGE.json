@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.92",
-  "buildId": "spectrum-panel-mount-lifecycle-recovery",
+  "productVersion": "1.6.93",
+  "buildId": "mobile-dock-visibility-integrity-recovery",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",
