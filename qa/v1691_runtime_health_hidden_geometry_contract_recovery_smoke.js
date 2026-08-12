@@ -18,7 +18,7 @@ assert(runtime.includes('FOXBEAR_HEADER_OVERLAP_INITIAL') && runtime.includes('F
 assert(runtime.includes('.toBeLessThanOrEqual(1);'),
   'strict <=1px overlap contract must remain unchanged');
 assert(headerCss.includes('--foxbear-header-contract: flex-two-rail-v1690'),
-  'v1.6.91 product header CSS contract must remain unchanged by this test-only recovery');
+  'v1.6.92 product header CSS contract must remain unchanged by this test-only recovery');
 
 // Exact CI signature: a visible device coordinate was incorrectly compared with
 // the zero DOMRect of a display:none Studio token. The corrected compact

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.91-runtime-health-hidden-geometry-contract-recovery';
+  const VIEW_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

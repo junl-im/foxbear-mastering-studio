@@ -1,8 +1,8 @@
-// FoxBear engine-control interaction service - v1.6.91
+// FoxBear engine-control interaction service - v1.6.92
 (function attachFoxBearEngineControlInteraction(global) {
     'use strict';
 
-    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.91-runtime-health-hidden-geometry-contract-recovery';
+    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.92-spectrum-panel-mount-lifecycle-recovery';
     const CONTROL_IDS = Object.freeze(['masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect']);
     const CONTROL_ID_SET = new Set(CONTROL_IDS);
     const state = {

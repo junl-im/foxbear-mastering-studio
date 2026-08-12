@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.91-runtime-health-hidden-geometry-contract-recovery';
+    const FALLBACK_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

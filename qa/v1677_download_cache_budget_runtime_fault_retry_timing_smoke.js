@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.91', 'package version must be v1.6.91');
+assert.strictEqual(pkg.version, '1.6.92', 'package version must be v1.6.92');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build id must remain valid kebab-case');
 
 const downloadSource = read('src/download/download-service.js');
@@ -101,6 +101,6 @@ assert(downloadService, 'download service must load');
   assert(dialog.includes("global.addEventListener('orientationchange', handleQualityMenuViewportChange"), 'download sheet must resync on mobile rotation');
   assert(dialog.includes('syncDownloadVisualViewport({ revealProgress: actionInFlight });'), 'pageshow/progress restore must also resync visual viewport');
 
-  assert(pkg.qaChecks.includes('node qa/v1677_download_cache_budget_runtime_fault_retry_timing_smoke.js'), 'v1.6.91 smoke must be registered');
+  assert(pkg.qaChecks.includes('node qa/v1677_download_cache_budget_runtime_fault_retry_timing_smoke.js'), 'v1.6.92 smoke must be registered');
   console.log('PASS v1.6.77 download cache budget, runtime fault precision, and admission retry timing smoke');
 })().catch(error => { console.error(error); process.exit(1); });

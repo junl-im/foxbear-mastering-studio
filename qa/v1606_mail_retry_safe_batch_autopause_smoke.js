@@ -26,7 +26,7 @@ const orchestratorSource = read('src/audio/mastering-orchestrator-service.js');
 const hudSource = read('src/ui/bulk-import-hud-view.js');
 const css = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.91');
+assert.strictEqual(pkg.version, '1.6.92');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'release build ID must remain valid kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:retryOwnIncidentReport'));
 assert(functionsSource.includes('exports.retryOwnIncidentReport = onCall'));
@@ -50,12 +50,12 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.get(key) || null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.91' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.92' } }, visibilityState: 'visible',
     getElementById: () => null, addEventListener() {},
     createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.91', assetVersion: '1.6.91-runtime-health-hidden-geometry-contract-recovery' }
+  FoxBearBuildInfo: { productVersion: '1.6.92', assetVersion: '1.6.92-spectrum-panel-mount-lifecycle-recovery' }
 };
 reporterSandbox.window = reporterSandbox;
 reporterSandbox.globalThis = reporterSandbox;

@@ -1,28 +1,28 @@
-# GitHub Desktop Handoff - v1.6.91
+# GitHub Desktop Handoff - v1.6.92
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.90**, then extract the v1.6.91 patch ZIP into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.91**, then extract the **v1.6.92 patch ZIP** into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.91 full ZIP.
+4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.92 full ZIP.
 
 ## Release focus
 
-- Fixes the false mobile Runtime Health failure behind `Expected: <= 1` / `Received: 91.96875`.
-- The value was a visible device token coordinate being compared against `studioLeft=0` after the Studio token was intentionally hidden, not a measured `rowOverlap`.
-- Compact Runtime Health now compares the last visible left token directly with `.brand-right-actions`.
-- The strict `rowOverlap <= 1px` gate and v1.6.90 production header CSS remain unchanged.
-- v1.6.90 Mastering Engine picker freeze isolation remains carried forward unchanged.
+- Restores AI Spectrum View canvas rendering after the pre-mount canvas was incorrectly pruned as stale.
+- Shows the analyzed 24-band FFT profile while idle/paused.
+- Uses live FFT only while audio is actually playing and the browser supports the audio route.
+- Adds mount/draw diagnostics plus a direct detached-canvas regression.
+- Carries forward v1.6.91 Runtime Health geometry recovery and v1.6.90 engine-control freeze isolation.
 
 ## Expected verification result
 
-- Static/regression: **447/447 PASS**.
+- Static/regression: **448/448 PASS**.
 - Source hygiene / Version / SRI / browser preflight / Functions / local App Check / handoff: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery: **776-file full ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`.
-- Pixel 5 reconstruction: **0px overlap** at 393px and 320px.
+- Delivery: **778-file full/release ZIP**, **305 overwrite files + 7 delete paths** in the manifestless patch; no generated `PATCH_MANIFEST.json`.
 - Full Playwright navigation: final acceptance in GitHub Actions.
+
 # GitHub Desktop Handoff - v1.6.79
 
 ## Apply

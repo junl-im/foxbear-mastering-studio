@@ -1,3 +1,23 @@
+# v1.6.92 patch notes
+
+## 적용 내역
+
+- AI 스펙트럼 뷰가 제목/축만 보이고 그래프가 비어 있던 원인을 수정했습니다. 새 canvas를 상세 DOM에 붙이기 전에 정적 FFT를 그리면서 `isConnected=false`인 정상 pre-mount canvas를 stale canvas로 오인해 `state.canvas=null`로 폐기하던 lifecycle 오류였습니다.
+- 새 canvas는 `canvasPendingMount` 상태로 보호하고, 상세 패널이 DOM에 연결된 다음에 24밴드 분석 FFT를 처음 렌더하도록 변경했습니다.
+- 재생하지 않거나 일시정지 상태에서는 `captureStream()`을 시도하지 않고 분석 시 계산된 24밴드 FFT를 항상 정적으로 표시합니다. 실제 재생 중에만 지원되는 브라우저에서 live FFT로 전환합니다.
+- 진단에 `canvasPendingMount`, `lastStaticValueCount`, `lastDrawMode`, `lastDrawSucceeded`를 추가해 UI 공백과 live analyser 제한을 구분할 수 있습니다.
+- `qa/v1692_spectrum_panel_mount_lifecycle_smoke.js`가 detached canvas → DOM mount → 24밴드 paint 완료를 직접 재현합니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **448/448 PASS** (`112 + 112 + 112 + 112`).
+- Chromium 24밴드 synthetic panel 재현: 수정 전 canvas 유효 픽셀 0 / `hasPanelCanvas:false`, 수정 후 24밴드 bar + focus line 렌더 / `hasPanelCanvas:true` / `lastDrawSucceeded:true`.
+- Engine QA bench / golden audio / piano transient / SRI / Version / Source hygiene / browser preflight / Functions / local App Check / Handoff: **PASS**.
+- Firebase Hosting 공개 경계: **162개 allowlisted files**.
+- Dependency health: **0 errors / 5 expected warnings** (전달 트리에 설치 dependency가 없는 상태).
+- Delivery: Full/Release ZIP **778개 파일**, patch ZIP **305개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음: **PASS**.
+- 전체 Playwright 앱 navigation은 현재 실행 환경의 navigation 제한 때문에 GitHub Actions가 최종 판정입니다.
+
 # v1.6.91 patch notes
 
 ## 적용 내역

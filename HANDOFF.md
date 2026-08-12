@@ -1,38 +1,38 @@
-# Handoff - v1.6.91
+# Handoff - v1.6.92
 
 ## Current release
 
-- Product version: `1.6.91`
-- Build ID: `runtime-health-hidden-geometry-contract-recovery`
-- Asset version: `1.6.91-runtime-health-hidden-geometry-contract-recovery`
-- Service worker cache: `foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery`
-- Configured static/regression target: 447 checks.
+- Product version: `1.6.92`
+- Build ID: `spectrum-panel-mount-lifecycle-recovery`
+- Asset version: `1.6.92-spectrum-panel-mount-lifecycle-recovery`
+- Service worker cache: `foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery`
+- Configured static/regression target: 448 checks.
 
 ## Current focus
 
-- Correct the Runtime Health compact-header geometry contract: `.brand-command-studio` is intentionally `display:none` at Pixel-class widths and therefore has a zero DOMRect.
-- Never compare visible `deviceRight` against hidden `studioLeft=0`; compare `deviceRight` directly with the right action rail when Studio is hidden.
-- Keep the production header CSS, `--foxbear-header-contract: flex-two-rail-v1690`, and strict `rowOverlap <= 1px` acceptance threshold unchanged.
-- Keep the v1.6.90 Mastering Engine picker history/body-lock isolation and engine diagnostics unchanged.
-- Emit relation-specific browser assertion messages so future geometry failures identify the exact pair being compared.
+- Restore AI Spectrum View rendering by protecting the newly created canvas during the detached pre-mount phase.
+- Defer the first 24-band FFT draw until the canvas is connected to the detail DOM.
+- Keep idle/paused spectrum output static and only enter live FFT while audio is actually playing.
+- Preserve strict Runtime Health header geometry recovery from v1.6.91 and Mastering Engine control isolation from v1.6.90.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.91 patch ZIP** into the **v1.6.90 repository root** and replace matching files.
+1. Extract the **v1.6.92 patch ZIP** into the **v1.6.91 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
 3. Review all modified/new/deleted files in GitHub Desktop.
 4. Commit all changes and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.91 full ZIP into the repository folder.
+5. For a clean replacement, preserve `.git` and extract the v1.6.92 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **447/447 PASS** across bounded continuation ranges.
-- Exact v1.6.91 hidden-element geometry regression plus v1.6.85-v1.6.90 carry-forward header/engine regressions: **PASS**.
-- Pixel-class reconstruction using all 27 loaded CSS files: actual left/right rail overlap is **0px** at 393px and 320px.
-- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, and handoff checks: **PASS**.
+- Static and behavioral checks: **448/448 PASS** (`112 + 112 + 112 + 112`).
+- AI Spectrum detached-canvas lifecycle regression and legacy spectrum/Dock FFT carry-forward regressions: **PASS**.
+- Chromium synthetic 24-band mount: static bars and focus line painted; `lastStaticValueCount=24`, `lastDrawSucceeded=true`.
+- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery packaging: **776-file full ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+- Delivery verification: **778-file full/release ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
 - Full Playwright network navigation remains a GitHub Actions acceptance step because this execution environment blocks local app navigation.
+
 # Handoff - v1.6.79
 
 ## Current release

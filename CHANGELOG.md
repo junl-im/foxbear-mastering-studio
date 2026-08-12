@@ -1,3 +1,10 @@
+# v1.6.92 - AI spectrum panel mount lifecycle recovery
+
+- Fixes the AI Spectrum View canvas being discarded before it is mounted into the detail DOM, which left the panel visually blank despite valid 24-band FFT analysis data.
+- Defers the first static FFT draw until the canvas is connected and protects the pending canvas from disconnected-node pruning during the mount handoff.
+- Keeps static 24-band FFT evidence visible while playback is idle and only attempts live Web Audio FFT when an audio element is actually playing.
+- Adds spectrum draw diagnostics and a dedicated regression that reproduces the detached-canvas lifecycle failure.
+
 # v1.6.91 - Runtime Health hidden-element geometry contract recovery
 
 - Fixes the recurring mobile browser release-gate false failure that reported `Expected: <= 1` / `Received: 91.96875`.

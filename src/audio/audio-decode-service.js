@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.91
+// FoxBear audio decode service - v1.6.92
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.91-runtime-health-hidden-geometry-contract-recovery';
+    const SERVICE_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

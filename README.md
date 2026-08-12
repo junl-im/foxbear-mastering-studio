@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.92
+
+> Current release: v1.6.92 · spectrum-panel-mount-lifecycle-recovery
+
+This release restores the AI Spectrum View. The detail canvas now survives its pre-mount lifecycle, renders the analyzed 24-band FFT profile after DOM connection, and switches to live FFT only while audio is actually playing. v1.6.91 Runtime Health geometry recovery and v1.6.90 Mastering Engine picker isolation remain included.
+
 # FoxBear AI Mastering Studio Pro v1.6.91
 
 > Current release: v1.6.91 · runtime-health-hidden-geometry-contract-recovery

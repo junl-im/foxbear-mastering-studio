@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.6.91 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.6.92 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.6.91-runtime-health-hidden-geometry-contract-recovery';
+    const VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
     let sequence = 0;
 
     function createFallbackAbortController() {

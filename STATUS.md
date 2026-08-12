@@ -1,35 +1,36 @@
-# FoxBear Status - v1.6.91
+# FoxBear Status - v1.6.92
 
 ## Current release
 
-- Product version: `1.6.91`
-- Build ID: `runtime-health-hidden-geometry-contract-recovery`
-- Asset version: `1.6.91-runtime-health-hidden-geometry-contract-recovery`
-- Service worker cache: `foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery`
-- Configured static/regression target: **447 checks**.
+- Product version: `1.6.92`
+- Build ID: `spectrum-panel-mount-lifecycle-recovery`
+- Asset version: `1.6.92-spectrum-panel-mount-lifecycle-recovery`
+- Service worker cache: `foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery`
+- Configured static/regression target: **448 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.91`
-- Build ID: `runtime-health-hidden-geometry-contract-recovery`
-- Asset version: `1.6.91-runtime-health-hidden-geometry-contract-recovery`
-- Service worker cache: `foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery`
+- Product version: `1.6.92`
+- Build ID: `spectrum-panel-mount-lifecycle-recovery`
+- Asset version: `1.6.92-spectrum-panel-mount-lifecycle-recovery`
+- Service worker cache: `foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery`
 
 ## Release focus
 
-- Repair the Runtime Health test contract for responsive-hidden header tokens without changing production layout.
-- Treat `display:none` Studio geometry as absent instead of comparing a visible device coordinate with a zero DOMRect.
-- Keep strict `rowOverlap <= 1px`, header CSS contract generation, and all v1.6.90 Mastering Engine freeze fixes unchanged.
-- Improve browser annotations with explicit geometry-relation labels.
+- Restore the AI Spectrum View canvas after a pre-mount lifecycle bug discarded the new canvas before the detail panel appended it to the DOM.
+- Render the analyzed 24-band FFT profile whenever playback is idle or paused.
+- Attempt live FFT only for actively playing audio; unsupported live capture paths continue to fall back to static analysis evidence.
+- Preserve v1.6.91 Runtime Health hidden-geometry recovery and v1.6.90 Mastering Engine picker isolation.
 
 ## Release status
 
-- Static and behavioral checks: **447/447 PASS** across bounded continuation ranges.
-- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, and handoff checks: **PASS**.
+- Static and behavioral checks: **448/448 PASS** across four bounded ranges of 112 checks.
+- Chromium synthetic 24-band spectrum mount reconstruction: **PASS** with painted FFT content and `hasPanelCanvas:true`.
+- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery: **776-file full ZIP**, **305-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
-- Pixel-class reconstruction with all 27 loaded CSS files: **0px row overlap** at 393px and 320px.
-- Full Playwright app navigation remains the GitHub Actions acceptance step because local navigation is blocked by this execution environment.
+- Delivery: **778-file** full/release ZIP and **305-file** manifestless overwrite patch with **7 delete paths**; generated `PATCH_MANIFEST.json` absent: **PASS**.
+- Full Playwright app navigation remains the GitHub Actions acceptance step because local app navigation is blocked by this execution environment.
+
 # FoxBear Status - v1.6.88
 
 ## Current release

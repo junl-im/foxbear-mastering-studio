@@ -10,7 +10,7 @@ const ROOT = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.91');
+assert.strictEqual(pkg.version, '1.6.92');
 assert(pkg.foxbearRelease.assetVersion.startsWith(`${pkg.version}-`), 'current release metadata must remain synchronized');
 assert(pkg.qaChecks.includes('node qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js'));
 
@@ -24,29 +24,29 @@ assert(staticGateIndex < chromiumIndex, 'fallback must not install Chromium befo
 const selector = require('./browser/select-browser-scope');
 const beforePackage = {
   name: 'foxbear-mastering-studio',
-  version: '1.6.91',
+  version: '1.6.92',
   private: true,
   scripts: {
-    'package:verify:full': 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.91-full.zip',
-    'package:verify:patch': 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.91-patch.zip'
+    'package:verify:full': 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.92-full.zip',
+    'package:verify:patch': 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.92-patch.zip'
   },
   foxbearRelease: {
     buildId: 'old-build',
-    assetVersion: '1.6.91-old-build',
-    cacheName: 'foxbear-shell-v1.6.91-old-build',
+    assetVersion: '1.6.92-old-build',
+    cacheName: 'foxbear-shell-v1.6.92-old-build',
     bootRevision: 'boot-sri-v1669-old',
     updateSafetyRevision: 'update-safety-v1669-old',
     serviceWorkerRevision: 'sw-v1669-old'
   }
 };
 const afterPackage = JSON.parse(JSON.stringify(beforePackage));
-afterPackage.version = '1.6.91';
-afterPackage.scripts['package:verify:full'] = 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.91-full.zip';
-afterPackage.scripts['package:verify:patch'] = 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.91-patch.zip';
+afterPackage.version = '1.6.92';
+afterPackage.scripts['package:verify:full'] = 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.92-full.zip';
+afterPackage.scripts['package:verify:patch'] = 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.92-patch.zip';
 afterPackage.foxbearRelease = {
   buildId: 'new-build',
-  assetVersion: '1.6.91-new-build',
-  cacheName: 'foxbear-shell-v1.6.91-new-build',
+  assetVersion: '1.6.92-new-build',
+  cacheName: 'foxbear-shell-v1.6.92-new-build',
   bootRevision: 'boot-sri-v1670-new',
   updateSafetyRevision: 'update-safety-v1670-new',
   serviceWorkerRevision: 'sw-v1670-new'

@@ -3,7 +3,7 @@
 (function initFoxBearSpectrumVisualizer(global) {
     'use strict';
 
-    const VISUALIZER_VERSION = '1.6.91-runtime-health-hidden-geometry-contract-recovery';
+    const VISUALIZER_VERSION = '1.6.92-spectrum-panel-mount-lifecycle-recovery';
     const PROFILE_RANGES = Object.freeze([
         [20, 32], [32, 45], [45, 63], [63, 90], [90, 125], [125, 180],
         [180, 250], [250, 355], [355, 500], [500, 710], [710, 1000], [1000, 1400],
@@ -22,6 +22,7 @@
         analyser: null,
         data: null,
         canvas: null,
+        canvasPendingMount: false,
         statusNode: null,
         metaNode: null,
         track: null,
@@ -30,6 +31,9 @@
         frameFallback: false,
         live: false,
         lastLiveValues: [],
+        lastStaticValueCount: 0,
+        lastDrawMode: 'idle',
+        lastDrawSucceeded: false,
         lastFrameAt: 0,
         lifecycleBound: false,
         lifecycleObserver: null,
@@ -212,6 +216,12 @@
     }
 
     function pruneDisconnectedCanvases() {
+        if (!state.canvas) return;
+        if (state.canvas.isConnected !== false) {
+            state.canvasPendingMount = false;
+            return;
+        }
+        if (state.canvasPendingMount) return;
         if (state.canvas && state.canvas.isConnected === false) state.canvas = null;
     }
 
@@ -252,10 +262,13 @@
     function drawStatic(track = state.track) {
         const analysis = track?.analysis || {};
         const profile = Array.isArray(analysis.spectrumProfile) ? analysis.spectrumProfile : [];
-        drawEveryCanvas(profile, {
+        const drawn = drawEveryCanvas(profile, {
             focusHz: analysis.targetDynamicFreq || analysis.harshPeakHz || 0,
             emptyLabel: track?.analysis ? '스펙트럼 값 없음' : '분석 후 표시'
         });
+        state.lastStaticValueCount = profile.length;
+        state.lastDrawMode = 'static';
+        state.lastDrawSucceeded = Boolean(drawn);
         if (track?.analysis) {
             const centroid = Number(analysis.spectralCentroidHz || 0);
             const bands = analysis.spectrumBands || {};
@@ -265,6 +278,7 @@
             setStatus('트랙 분석이 끝나면 AI가 본 주파수 균형이 표시됩니다.', 'pending');
             setMeta('20Hz ~ 22kHz');
         }
+        return drawn;
     }
 
     function isRestrictedInAppBrowser() {
@@ -437,7 +451,9 @@
             const values = profileFromAnalyser(state.analyser, state.data);
             state.lastLiveValues = values;
             state.lastFrameAt = Number(tickNow || now());
-            drawEveryCanvas(values, { focusHz: state.track?.analysis?.targetDynamicFreq || state.track?.analysis?.harshPeakHz || 0 });
+            const drawn = drawEveryCanvas(values, { focusHz: state.track?.analysis?.targetDynamicFreq || state.track?.analysis?.harshPeakHz || 0 });
+            state.lastDrawMode = 'live';
+            state.lastDrawSucceeded = Boolean(drawn);
             state.raf = scheduleFrame(tick);
         };
         state.raf = scheduleFrame(tick);
@@ -573,7 +589,7 @@
 
     function activateCurrentAudio() {
         const active = getLikelyActiveAudio();
-        if (!active) {
+        if (!active || active.paused || active.ended) {
             drawStatic();
             return false;
         }
@@ -625,18 +641,26 @@
         panel.append(head, canvas, axis, status, meta);
 
         state.canvas = canvas;
+        state.canvasPendingMount = true;
         state.statusNode = status;
         state.metaNode = meta;
         state.track = track;
         state.getActiveAudio = typeof options.getActiveAudio === 'function' ? options.getActiveAudio : null;
         bindVisibilityLifecycle();
-        drawStatic(track);
+        setStatus('AI 스펙트럼 캔버스 연결 중…', 'pending');
+        setMeta(track?.analysis ? '분석 FFT 프로필 준비 중' : '20Hz ~ 22kHz');
         clearActivationTimer();
         state.activateTimer = global.setTimeout?.(() => {
             state.activateTimer = 0;
-            if (state.canvas !== canvas || canvas.isConnected === false) return;
+            if (state.canvas !== canvas) return;
+            if (canvas.isConnected === false) {
+                state.canvasPendingMount = false;
+                pruneDisconnectedCanvases();
+                return;
+            }
+            state.canvasPendingMount = false;
             activateCurrentAudio();
-        }, 40) || 0;
+        }, 0) || 0;
         return panel;
     }
 
@@ -662,6 +686,7 @@
         }
         state.lifecycleBound = false;
         state.canvas = null;
+        state.canvasPendingMount = false;
         state.statusNode = null;
         state.metaNode = null;
         state.track = null;
@@ -680,6 +705,10 @@
             hasAnalyser: Boolean(state.analyser),
             contextState: state.context?.state || '',
             hasPanelCanvas: Boolean(state.canvas && state.canvas.isConnected !== false),
+            canvasPendingMount: Boolean(state.canvasPendingMount),
+            lastStaticValueCount: state.lastStaticValueCount,
+            lastDrawMode: state.lastDrawMode,
+            lastDrawSucceeded: Boolean(state.lastDrawSucceeded),
             activeLabel: active?.dataset?.spectrumLabel || '',
             lastError: state.lastError || '',
             lastLiveValueCount: state.lastLiveValues.length,

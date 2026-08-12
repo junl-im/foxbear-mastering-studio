@@ -29,6 +29,6 @@ assert(/waveform-compare-row[\s\S]*grid-template-columns:\s*var\(--waveform-comp
 assert(/waveform-compare-bars\.has-live-playhead::after[\s\S]*width:\s*1px !important/.test(compareCss), 'compare live playhead was not slimmed to 1px');
 assert(/has-live-playhead::after[\s\S]*width:\s*1px !important/.test(dockWaveformCss), 'dock live playhead was not slimmed to 1px');
 assert(dockCss.includes('text-align: left !important;'), 'mobile left alignment repair is missing');
-assert(/stage(?:[789]|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery'), 'service worker cache name should be bumped for recent stage');
+assert(/stage(?:[789]|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery'), 'service worker cache name should be bumped for recent stage');
 
 console.log('PASS waveform compare stage5 smoke');

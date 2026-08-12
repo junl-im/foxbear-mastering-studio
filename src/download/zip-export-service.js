@@ -1,8 +1,8 @@
-// FoxBear ZIP export service v1.6.91 - cancellable worker orchestration and single-job ownership
+// FoxBear ZIP export service v1.6.92 - cancellable worker orchestration and single-job ownership
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.6.91-runtime-health-hidden-geometry-contract-recovery';
+    const VERSION = 'v1.6.92-spectrum-panel-mount-lifecycle-recovery';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
     const getFileNamePolicy = () => global.FoxBearFileNamePolicyService || null;
 
