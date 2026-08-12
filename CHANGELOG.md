@@ -1,3 +1,10 @@
+# v1.6.90 - Engine control overlay isolation and header contract recovery
+
+- Isolates Mastering Engine select popups from browser-history sentinels and global mobile body/touch locks.
+- Closes the picker before applying its setting, defers the native change event by one frame, and schedules heavy UI refreshes through the render scheduler.
+- Adds engine-control performance diagnostics so future support snapshots show active picker state, pending changes, and handler duration.
+- Adds a CSS generation contract marker to Runtime Health so the recurring mobile header failure can distinguish stale/missing CSS from a real Flex geometry regression without weakening `rowOverlap <= 1px`.
+
 # v1.6.89 - Mobile header flex ownership browser gate recovery
 
 - Replaces the final Pixel-class header grid ownership layer with a nowrap two-rail Flexbox contract so left status and right workspace/settings bounding boxes cannot overlap.

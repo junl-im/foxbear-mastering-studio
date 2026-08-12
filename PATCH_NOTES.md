@@ -1,3 +1,22 @@
+# v1.6.90 patch notes
+
+## 적용 내역
+
+- 마스터링 목표/스타일/성향/플랫폼 프리셋 팝업을 브라우저 history sentinel에서 분리하고 전역 body touch/scroll lock을 사용하지 않도록 변경했습니다.
+- 옵션 선택 시 팝업을 먼저 닫고 한 프레임 뒤 `change`를 적용해, 모바일 PWA에서 설정 UI가 화면을 계속 점유하는 경로를 차단했습니다.
+- 네 가지 엔진 설정의 전체 UI 갱신은 render scheduler를 사용해 클릭 이벤트의 동기 블로킹을 줄였습니다.
+- 성능 진단에 `engineControls`를 추가해 active control, popup/body lock 상태, pending change, change 처리 시간을 확인할 수 있습니다.
+- 모바일 헤더 CSS에 `flex-two-rail-v1690` 계약 마커를 추가하고 Runtime Health가 이를 먼저 검증해 stale/missing CSS와 실제 layout collision을 구분하도록 했습니다. `rowOverlap <= 1px` 기준은 그대로 유지합니다.
+- 업로드 소스에 남아 있던 legacy tracked `PATCH_MANIFEST.json`을 실제 삭제했습니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **446/446 PASS** (`112 + 112 + 112 + 110`).
+- 엔진 QA bench / golden audio / piano transient / SRI / Version / Source hygiene / browser preflight: **PASS**.
+- 전체 Playwright 앱 navigation은 현재 실행 환경 제약으로 GitHub Actions가 최종 브라우저 판정입니다.
+- Functions syntax / local App Check / Handoff / Hosting (**162개 allowlisted files**): **PASS**.
+- Full ZIP **774개 파일**, patch ZIP **306개 덮어쓰기 파일 + 7 delete paths**, generated `PATCH_MANIFEST.json` 없음. `package:delivery`: **PASS**.
+
 # v1.6.89 patch notes
 
 ## 적용 내역

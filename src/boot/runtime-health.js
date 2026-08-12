@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.89-mobile-header-flex-ownership-browser-gate-recovery';
+    const FALLBACK_VERSION = '1.6.90-engine-control-overlay-isolation-header-contract-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -59,6 +59,7 @@
         'FoxBearSpectrumVisualizer.pruneDisconnectedAudio',
         'FoxBearSpectrumVisualizer.getDiagnostics',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
+        'FoxBearEngineControlInteraction.scheduleChange',
         'FoxBearDockController.FoxBearDockController',
         'FoxBearMobileNativeView.createMobileNativeLayer',
         'FoxBearWakeLockController.getSnapshot',

@@ -1,29 +1,29 @@
-# GitHub Desktop Handoff - v1.6.89
+# GitHub Desktop Handoff - v1.6.90
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.88**, then extract the v1.6.89 patch ZIP into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.89**, then extract the v1.6.90 patch ZIP into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. If `PATCH_MANIFEST.json` appears as deleted, include that deletion in the commit. v1.6.89 also quietly retires this one known legacy path in CI so it no longer creates the repetitive warning annotation.
-5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.89 full ZIP.
+4. Include the tracked deletion of legacy `PATCH_MANIFEST.json` in the commit.
+5. Commit all modified/new/deleted files and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.90 full ZIP.
 
 ## Release focus
 
-- Pixel-class (`<=430px`) command header changes from Grid-dependent sizing to a final nowrap Flex contract.
-- Left command/status rail: `flex: 1 1 0`, `width: 0`, `min-width: 0`.
-- Workspace/settings rail: `flex: 0 0 auto`, `margin-left: auto`.
-- The strict Runtime Health `rowOverlap <= 1px` gate is unchanged.
-- Failure diagnostics now identify initial vs 320px overlap and include exact box geometry plus computed layout values.
-- Known legacy `PATCH_MANIFEST.json` is still removed by CI-safe hygiene; only its repetitive warning annotation is suppressed.
+- Mastering Goal / Style / Strength / Platform picker overlays no longer own browser history or body-level mobile touch locks.
+- Picker selection closes the overlay before the native change event and yields one frame before setting handlers run.
+- Engine setting refreshes use the render scheduler, while DSP/quality profiles remain unchanged.
+- Performance diagnostics expose `engineControls` state and handler timing for future freeze reports.
+- Runtime Health still requires `rowOverlap <= 1px`, and now also proves the current `flex-two-rail-v1690` header stylesheet contract loaded.
+- Legacy `PATCH_MANIFEST.json` is deleted from tracked source.
 
 ## Expected verification result
 
-- Static/regression: **444/444 PASS**.
-- Source hygiene / Version / App Check / Handoff / Functions / browser preflight / Hosting: **PASS**.
-- Firebase Hosting staged payload: **161 allowlisted files**.
-- Full Playwright app navigation remains a GitHub Actions verification because this local execution environment cannot run the required app navigation path.
-- Full ZIP: **771 files**. Patch ZIP: **306 overwrite files** plus **7 delete paths**, with no generated `PATCH_MANIFEST.json`; replay over v1.6.88 matched the full tree exactly (`771/771`, missing 0, extra 0, changed 0).
+- Static/regression: **446/446 PASS** in bounded slices (`112 + 112 + 112 + 110`).
+- Source hygiene / Version / SRI / browser preflight: **PASS**.
+- Full Playwright navigation: final acceptance in GitHub Actions.
+- Firebase Hosting boundary: **162 allowlisted files**.
+- Delivery: **774-file full ZIP**, **306-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
 
 # GitHub Desktop Handoff - v1.6.79
 

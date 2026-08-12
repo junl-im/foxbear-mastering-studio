@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.6.89 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.6.90 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -154,7 +154,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.6.89-mobile-header-flex-ownership-browser-gate-recovery',
+            version: '1.6.90-engine-control-overlay-isolation-header-contract-recovery',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -519,7 +519,7 @@
         global.addEventListener?.('foxbear:ambient-health-change', handleAmbientHealthChange);
 
         return Object.freeze({
-            version: '1.6.89-performance-recovery-stage-hud',
+            version: '1.6.90-performance-recovery-stage-hud',
             runBatch,
             cancelActiveBatch,
             pauseActiveBatch,
@@ -532,7 +532,7 @@
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.6.89-mobile-header-flex-ownership-browser-gate-recovery',
+        version: '1.6.90-engine-control-overlay-isolation-header-contract-recovery',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createMasteringBatchRunner

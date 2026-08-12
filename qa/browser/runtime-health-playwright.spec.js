@@ -122,6 +122,10 @@ test.describe('FoxBear browser runtime health', () => {
         toggleWidth: toggleRect.width,
         viewportWidth: window.innerWidth,
         compact: window.innerWidth <= 720,
+        headerContract: getComputedStyle(document.documentElement).getPropertyValue('--foxbear-header-contract').trim(),
+        topDisplay: topLineStyle.display,
+        leftFlex: getComputedStyle(kicker).flex,
+        actionsFlex: getComputedStyle(actions).flex,
         topLineHeight: topLineRect.height,
         topLineBorderBottom: topLineStyle.borderBottomWidth,
         centerSpread: Math.max(...centers) - Math.min(...centers),
@@ -136,6 +140,7 @@ test.describe('FoxBear browser runtime health', () => {
       };
     });
     expect(headerSettings).not.toBeNull();
+    expect(headerSettings.headerContract, `header CSS contract missing/stale · ${JSON.stringify(headerSettings)}`).toBe('flex-two-rail-v1690');
     expect(headerSettings.hostParentClass).toContain('brand-right-actions');
     expect(headerSettings.placement).toBe('header');
     expect(headerSettings.buildText).toBe(`BUILD v${RELEASE.productVersion}`);
@@ -204,6 +209,7 @@ test.describe('FoxBear browser runtime health', () => {
         iconsWidth: iconsRect.width,
         toggleRight: toggleRect.right,
         viewportWidth: innerWidth,
+        headerContract: getComputedStyle(document.documentElement).getPropertyValue('--foxbear-header-contract').trim(),
         leftRect: { left: leftRect.left, right: leftRect.right, width: leftRect.width },
         actionsRect: { left: actionsRect.left, right: actionsRect.right, width: actionsRect.width },
         topDisplay: getComputedStyle(document.querySelector('.brand-command-bar')).display,
@@ -212,6 +218,7 @@ test.describe('FoxBear browser runtime health', () => {
       };
     });
     expect(narrowHeader).not.toBeNull();
+    expect(narrowHeader.headerContract, `320px header CSS contract missing/stale · ${JSON.stringify(narrowHeader)}`).toBe('flex-two-rail-v1690');
     if (narrowHeader.rowOverlap > 1) {
       throw new Error(`FOXBEAR_HEADER_OVERLAP_320 ${JSON.stringify(narrowHeader)}`);
     }

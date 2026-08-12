@@ -1,4 +1,4 @@
-// FoxBear PWA share-target launch, lease, and IndexedDB handoff service - v1.6.89
+// FoxBear PWA share-target launch, lease, and IndexedDB handoff service - v1.6.90
 (function attachFoxBearPwaShareTargetService(global) {
     'use strict';
 
@@ -305,7 +305,7 @@
     observeServiceWorkerHandoff();
 
     global.FoxBearPwaShareTargetService = Object.freeze({
-        version: '1.6.89',
+        version: '1.6.90',
         policy,
         instanceId,
         processLaunch,

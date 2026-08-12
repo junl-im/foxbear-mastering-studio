@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.89-mobile-header-flex-ownership-browser-gate-recovery';
+    const SERVICE_VERSION = '1.6.90-engine-control-overlay-isolation-header-contract-recovery';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
     const barElementsCache = typeof WeakMap === 'function' ? new WeakMap() : null;

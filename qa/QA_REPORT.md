@@ -1,3 +1,27 @@
+# FoxBear QA Report - v1.6.90
+
+## Configured target
+
+- Static and behavioral checks: **446**.
+- New regression: `qa/v1690_engine_control_overlay_header_contract_recovery_smoke.js`.
+
+## Verification scope
+
+- Mastering Engine picker history/body-lock isolation and close-before-change ordering.
+- Deferred setting dispatch plus scheduled render refresh for goal/style/strength/platform controls.
+- Engine-control diagnostics in the performance support snapshot.
+- Header CSS generation marker and Runtime Health source-contract assertions before strict overlap geometry.
+- Legacy tracked `PATCH_MANIFEST.json` deletion.
+
+## Verification status
+
+- Focused v1.6.90 regression: **PASS**.
+- Full configured suite: **446/446 PASS** in bounded slices (`112 + 112 + 112 + 110`).
+- Engine QA bench, golden audio pack, piano transient integrity, SRI, version synchronization, source hygiene, and browser preflight: **PASS**.
+- Full Playwright app navigation remains a GitHub Actions acceptance step because this execution environment blocks the required app navigation path.
+- Functions syntax, local App Check policy, handoff, and Firebase Hosting staging (**162 allowlisted files**): **PASS**.
+- Delivery verification: **774-file full ZIP**, **306-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+
 # FoxBear QA Report - v1.6.89
 
 ## Configured target

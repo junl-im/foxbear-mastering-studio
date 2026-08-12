@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.89",
+  "version": "1.6.90",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.84 - tracked Windows cleanup and static gate recovery",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.90 - engine control overlay isolation and header contract recovery",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.89-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.89-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.90-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.90-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.89-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.89-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.90-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.90-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -87,6 +87,7 @@
     "node --check src/ui/waveform-control-view.js",
     "node --check src/ui/spectrum-visualizer.js",
     "node --check src/ui/modal-controller.js",
+    "node --check src/ui/engine-control-interaction-service.js",
     "node --check src/ui/dock-controller.js",
     "node --check src/ui/mobile-native-view.js",
     "node --check src/ui/admin-access-controller.js",
@@ -492,15 +493,16 @@
     "node qa/v1686_header_order_mobile_overflow_browser_gate_smoke.js",
     "node qa/v1687_mobile_header_device_label_overlap_recovery_smoke.js",
     "node qa/v1688_mobile_header_grid_ownership_recovery_smoke.js",
-    "node qa/v1689_mobile_header_flex_ownership_ci_diagnostics_smoke.js"
+    "node qa/v1689_mobile_header_flex_ownership_ci_diagnostics_smoke.js",
+    "node qa/v1690_engine_control_overlay_header_contract_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "mobile-header-flex-ownership-browser-gate-recovery",
-    "assetVersion": "1.6.89-mobile-header-flex-ownership-browser-gate-recovery",
-    "cacheName": "foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery",
-    "bootRevision": "boot-sri-v1689",
-    "updateSafetyRevision": "update-safety-v1689",
-    "serviceWorkerRevision": "sw-v1689"
+    "buildId": "engine-control-overlay-isolation-header-contract-recovery",
+    "assetVersion": "1.6.90-engine-control-overlay-isolation-header-contract-recovery",
+    "cacheName": "foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery",
+    "bootRevision": "boot-sri-v1690",
+    "updateSafetyRevision": "update-safety-v1690",
+    "serviceWorkerRevision": "sw-v1690"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

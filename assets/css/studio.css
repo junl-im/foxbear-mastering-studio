@@ -840,7 +840,7 @@ select[data-fb-enhanced="true"] {
     pointer-events: none;
     transition: opacity .10s ease;
     overscroll-behavior: contain;
-    touch-action: none;
+    touch-action: manipulation;
 }
 .select-popup-backdrop.show {
     opacity: 1;
@@ -877,6 +877,7 @@ select[data-fb-enhanced="true"] {
     overflow-y: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     padding: 1px 2px 2px 1px;
 }
 .select-popup-compact .select-popup-list {

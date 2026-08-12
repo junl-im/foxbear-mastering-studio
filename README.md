@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.90
+
+> Current release: v1.6.90 · engine-control-overlay-isolation-header-contract-recovery
+
+This release isolates the Mastering Engine option pickers from mobile PWA history/body-lock behavior, yields before applying engine-setting changes, and adds direct diagnostics for stuck controls. The strict mobile header overlap gate remains unchanged and now verifies the exact header CSS contract generation before measuring geometry.
+
 # FoxBear AI Mastering Studio Pro v1.6.89
 
 > Current release: v1.6.89 · mobile-header-flex-ownership-browser-gate-recovery

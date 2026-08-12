@@ -1,8 +1,8 @@
-// FoxBear playback lifecycle recovery service - v1.6.89
+// FoxBear playback lifecycle recovery service - v1.6.90
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.89-mobile-header-flex-ownership-browser-gate-recovery';
+    const SERVICE_VERSION = '1.6.90-engine-control-overlay-isolation-header-contract-recovery';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

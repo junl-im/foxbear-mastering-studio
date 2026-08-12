@@ -1,3 +1,7 @@
+:root {
+    --foxbear-header-contract: flex-two-rail-v1690;
+}
+
 /* v1.5.27: persistent device glyphs, borderless command header, and compact responsive alignment. */
 .brand-topline.brand-command-bar {
     position: relative !important;

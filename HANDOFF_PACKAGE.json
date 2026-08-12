@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.89",
-  "buildId": "mobile-header-flex-ownership-browser-gate-recovery",
+  "productVersion": "1.6.90",
+  "buildId": "engine-control-overlay-isolation-header-contract-recovery",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

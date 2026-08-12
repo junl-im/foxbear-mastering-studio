@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.89
+// FoxBear performance diagnostics - v1.6.90
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.89-mobile-header-flex-ownership-browser-gate-recovery';
+    const DIAGNOSTICS_VERSION = '1.6.90-engine-control-overlay-isolation-header-contract-recovery';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -216,7 +216,9 @@
         'watch-long-task': '최근 1분 안에 화면 응답이 느린 구간이 있었습니다. 현재 작업이 끝날 때까지 추가 조작을 줄여 주세요.',
         'audio-decode-last-error': '최근 오디오 디코딩이 실패했습니다. 파일 형식이나 손상 여부를 확인해 주세요.',
         'wake-lock-last-error': '화면 꺼짐 방지를 사용할 수 없습니다. 브라우저 권한과 절전 설정을 확인해 주세요.',
-        'recoverable-runtime-faults': '최근 자동 복구된 내부 오류가 반복되었습니다. 진단 복사 후 같은 작업에서 계속 반복되는지 확인해 주세요.'
+        'recoverable-runtime-faults': '최근 자동 복구된 내부 오류가 반복되었습니다. 진단 복사 후 같은 작업에서 계속 반복되는지 확인해 주세요.',
+        'engine-control-body-lock': '엔진 설정 팝업이 열린 동안 전역 터치/스크롤 잠금이 감지됐습니다. 팝업을 닫은 뒤 같은 설정을 다시 시도해 주세요.',
+        'engine-control-change-pending': '엔진 설정 변경 이벤트가 오래 대기 중입니다. 진단 복사 후 페이지를 새로고침하고 다시 시도해 주세요.'
     });
 
     const ACTIVITY_GUIDANCE = Object.freeze({
@@ -268,6 +270,8 @@
         if (snapshot.audio.audible > 1) warnings.push('multiple-audible-audio');
         if (snapshot.dom.canvases > 6) warnings.push('many-canvas-nodes');
         if (snapshot.runtime && !snapshot.runtime.ok) warnings.push('runtime-health-check');
+        if (snapshot.engineControls?.activeEngineControl && snapshot.engineControls?.bodyLocked) warnings.push('engine-control-body-lock');
+        if (Number(snapshot.engineControls?.pendingChangeCount || 0) > 0 && Number(snapshot.engineControls?.pendingAgeMs || 0) > 5000) warnings.push('engine-control-change-pending');
         const runtimeFaultRecentCount = Number(snapshot.runtimeFaults?.recentCount || 0);
         const runtimeFaultMaxRepeated = Number(snapshot.runtimeFaults?.maxRecentKeyCount || 0);
         if (runtimeFaultMaxRepeated >= 3 || runtimeFaultRecentCount >= 6) warnings.push('recoverable-runtime-faults');
@@ -307,6 +311,7 @@
             downloadVariantCache: snapshot.downloadVariantCache ? { entryCount: snapshot.downloadVariantCache.entryCount || 0, bytes: snapshot.downloadVariantCache.bytes || 0, maxEntries: snapshot.downloadVariantCache.maxEntries || 0, maxBytes: snapshot.downloadVariantCache.maxBytes || 0, lowMemory: Boolean(snapshot.downloadVariantCache.lowMemory) } : null,
             wakeLock: snapshot.wakeLock ? { active: Boolean(snapshot.wakeLock.active), mode: snapshot.wakeLock.mode || 'off', settingLabel: snapshot.wakeLock.settingLabel || 'OFF', userEnabled: Boolean(snapshot.wakeLock.userEnabled) } : null,
             runtimeFaults: snapshot.runtimeFaults ? { totalCount: snapshot.runtimeFaults.totalCount || 0, uniqueCount: snapshot.runtimeFaults.uniqueCount || 0, recentCount: snapshot.runtimeFaults.recentCount || 0, maxRecentKeyCount: snapshot.runtimeFaults.maxRecentKeyCount || 0, repeatedKeys: snapshot.runtimeFaults.repeatedKeys || [], entries: snapshot.runtimeFaults.entries || [] } : null,
+            engineControls: snapshot.engineControls ? { activeSelectId: snapshot.engineControls.activeSelectId || '', popupVisible: Boolean(snapshot.engineControls.popupVisible), bodyLocked: Boolean(snapshot.engineControls.bodyLocked), pendingChangeCount: snapshot.engineControls.pendingChangeCount || 0, lastDispatchDurationMs: snapshot.engineControls.lastDispatchDurationMs || 0 } : null,
             renderQueuePending: Boolean(snapshot.renderScheduler?.pending),
             visibility: snapshot.visibility,
             hint: snapshot.frameBudgetHint
@@ -325,6 +330,7 @@
         const spectrum = safeCall(() => global.FoxBearSpectrumVisualizer?.getDiagnostics?.(), null);
         const navigationGuard = safeCall(() => global.FoxBearSiteGuards?.getNavigationExitGuardState?.(), null);
         const overlayHistory = safeCall(() => global.FoxBearModalStateMachine?.getHistoryDiagnostics?.(), null);
+        const engineControls = safeCall(() => global.FoxBearEngineControlDiagnostics?.getSnapshot?.(), null);
         const playback = safeCall(() => global.FoxBearPlaybackLinkService?.getOrchestrationSnapshot?.(), null);
         const importQueue = safeCall(() => global.FoxBearBulkImportGuard?.getSnapshot?.(), null);
         const bulkImportHud = safeCall(() => global.FoxBearBulkImportHud?.getSnapshot?.(), null);
@@ -362,6 +368,7 @@
             spectrum,
             navigationGuard,
             overlayHistory,
+            engineControls,
             importQueue,
             bulkImportHud,
             audioDecode,

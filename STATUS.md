@@ -1,34 +1,36 @@
-# FoxBear Status - v1.6.89
+# FoxBear Status - v1.6.90
 
 ## Current release
 
-- Product version: `1.6.89`
-- Build ID: `mobile-header-flex-ownership-browser-gate-recovery`
-- Asset version: `1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
-- Configured static/regression target: **444 checks**.
+- Product version: `1.6.90`
+- Build ID: `engine-control-overlay-isolation-header-contract-recovery`
+- Asset version: `1.6.90-engine-control-overlay-isolation-header-contract-recovery`
+- Service worker cache: `foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery`
+- Configured static/regression target: **446 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.89`
-- Build ID: `mobile-header-flex-ownership-browser-gate-recovery`
-- Asset version: `1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
-- Service worker cache: `foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery`
+- Product version: `1.6.90`
+- Build ID: `engine-control-overlay-isolation-header-contract-recovery`
+- Asset version: `1.6.90-engine-control-overlay-isolation-header-contract-recovery`
+- Service worker cache: `foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery`
 
 ## Release focus
 
-- Replace the remaining Pixel-class command-header Grid sizing dependency with deterministic two-rail Flexbox ownership.
-- Keep the strict browser `rowOverlap <= 1px` contract unchanged and report exact geometry/computed layout when it fails.
-- Continue removing legacy `PATCH_MANIFEST.json` during CI-safe hygiene while suppressing only that known repetitive warning annotation.
+- Isolate Mastering Engine picker overlays from history sentinel and global body touch/scroll ownership on mobile PWA.
+- Close/yield before engine setting handlers and schedule the resulting UI refresh.
+- Add engine-control support diagnostics without changing mastering DSP profiles.
+- Keep the strict browser header overlap threshold and add a stylesheet-generation contract marker to diagnose stale CSS separately.
+- Delete the legacy tracked `PATCH_MANIFEST.json` artifact.
 
 ## Release status
 
-- Static and behavioral checks: **444/444 PASS** in bounded slices.
-- Source hygiene, version synchronization, Functions syntax, local App Check policy, handoff, browser preflight, and Hosting staging: **PASS**.
-- Dependency health: **0 errors / 5 expected warnings** because delivery archives intentionally omit installed `node_modules`.
-- Firebase Hosting boundary: **161 allowlisted files**.
+- Static and behavioral checks: **446/446 PASS** in bounded slices (`112 + 112 + 112 + 110`).
+- Engine QA bench, golden audio pack, and piano transient integrity: **PASS**.
+- Source hygiene, SRI, version synchronization, and browser preflight: **PASS**.
 - Full Playwright app navigation remains a GitHub Actions acceptance step because this execution environment blocks the required local browser navigation path.
-- Delivery verification: **771-file** full ZIP and **306-file** manifestless patch with **7 delete paths**; replay over v1.6.88 matched exactly (`771/771`, missing 0, extra 0, changed 0) and removed a simulated legacy `PATCH_MANIFEST.json`.
+- Firebase Hosting boundary: **162 allowlisted files**.
+- Delivery packaging: **774-file full ZIP**, **306-file manifestless overwrite patch**, **7 delete paths**; package verification: **PASS**.
 
 # FoxBear Status - v1.6.88
 
