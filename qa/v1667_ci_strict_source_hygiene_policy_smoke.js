@@ -47,10 +47,10 @@ assert(releaseGate.includes("full: ['source:hygiene:gate',"), 'full release gate
 assert(!releaseGate.includes("static: ['source:hygiene:repair'"), 'static release gate must use the policy-aware gate instead of direct repair');
 assert(repair.includes("policy-aware ci-safe gate explicitly enables"), 'direct CI repair guard missing');
 for (const [name, workflow] of [['pages', pages], ['fallback', fallback]]) {
-  const hygieneIndex = workflow.indexOf('Sanitize allowlisted repository-local artifacts before install');
+  const hygieneIndex = workflow.indexOf('Verify source hygiene before install');
   const installIndex = workflow.indexOf('Install pinned dependencies');
   assert(hygieneIndex >= 0 && installIndex >= 0 && hygieneIndex < installIndex, `${name} workflow must check hygiene before dependency installation`);
-  assert(workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: ci-safe'), `${name} workflow ci-safe hygiene mode missing`);
+  assert(workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: strict'), `${name} workflow strict hygiene mode missing`);
 }
 
 const strictFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-hygiene-strict-'));

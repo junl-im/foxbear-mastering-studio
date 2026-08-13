@@ -13,7 +13,7 @@ const state = fs.readFileSync('src/state/app-state.js', 'utf8');
 const integrityService = fs.readFileSync('src/ui/bottom-preview-dock-integrity-service.js', 'utf8');
 const diagnostics = fs.readFileSync('src/boot/performance-diagnostics.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.93'); // synchronized to the current release by sync-release-metadata.js
+assert.strictEqual(pkg.version, '1.6.94'); // synchronized to the current release by sync-release-metadata.js
 assert(pkg.qaChecks.includes('node qa/v1693_mobile_dock_visibility_integrity_recovery_smoke.js'));
 
 // Base Dock visibility must remain state-driven in every mode.
@@ -41,7 +41,11 @@ assert(state.includes('bottomPreviewRepairCount: 0'));
 assert(state.includes("bottomPreviewLastRepairReason: ''"));
 assert(integrityService.includes('function getSnapshot()'));
 assert(integrityService.includes('const healthy = expectedVisible'));
-assert(integrityService.includes('renderedVisible && playerChildren > 0'));
+assert(integrityService.includes('renderedVisible && playerChildren > 0 && trackOwnerMatches'));
+assert(integrityService.includes('dockTrackId === selectedTrackId && playerTrackId === selectedTrackId'));
+assert(integrityService.includes('!before.trackOwnerMatches'));
+assert(app.includes('el.bottomPreviewPlayer.dataset.trackId = String(track.id)'));
+assert(app.includes('delete el.bottomPreviewPlayer.dataset.trackId'));
 assert(integrityService.includes("function repair(reason = 'manual')"));
 assert(integrityService.includes('before.playerChildren === 0'));
 assert(integrityService.includes('renderDock({ keepPlaying: true, integrityRepair: true, skipIntegritySchedule: true });'));
@@ -94,5 +98,59 @@ assert.strictEqual(recovered.result.id, 'b');
 assert.deepStrictEqual(recovered.applied, [], 'valid selection must not be rewritten');
 recovered = runRecovery({ tracks: [], selectedId: 'stale', bottomPreviewTrackId: 'b', selectedIds: ['a'] }, 'empty');
 assert.strictEqual(recovered.result, null);
+
+
+// A visually healthy Dock that belongs to another track must be repaired.
+{
+    const stateRef = {
+        tracks: [{ id: 'a' }, { id: 'b' }],
+        selectedId: 'b',
+        selectedIds: new Set(['b']),
+        bottomPreviewTrackId: 'a',
+        bottomPreviewLastRepairReason: '',
+        bottomPreviewRepairCount: 0,
+        bottomPreviewLastIntegrityAt: 0,
+        bottomPreviewIntegrityRaf: 0
+    };
+    const classes = new Set(['show']);
+    const dock = {
+        classList: { contains: name => classes.has(name) },
+        getAttribute: name => name === 'aria-hidden' ? 'false' : '',
+        getBoundingClientRect: () => ({ width: 320, height: 88 })
+    };
+    const audio = { dataset: { trackId: 'a', bottomPreviewActive: 'true' } };
+    const player = {
+        children: [{}],
+        dataset: { trackId: 'a' },
+        querySelector: selector => selector.startsWith('audio') ? audio : null
+    };
+    let renderCount = 0;
+    const fakeWindow = { setTimeout, clearTimeout };
+    vm.runInNewContext(integrityService, { window: fakeWindow, globalThis: fakeWindow, console, Object, String, Array, Set, Date });
+    const controller = fakeWindow.FoxBearBottomPreviewDockIntegrityService.createController({
+        state: stateRef,
+        document: { body: { classList: { contains: name => name === 'bottom-preview-active' } } },
+        getSelectedTrack: () => stateRef.tracks.find(track => track.id === stateRef.selectedId) || null,
+        getDock: () => dock,
+        getPlayer: () => player,
+        getComputedStyle: () => ({ display: 'block', visibility: 'visible', opacity: '1' }),
+        renderDock: () => {
+            renderCount += 1;
+            stateRef.bottomPreviewTrackId = 'b';
+            player.dataset.trackId = 'b';
+            audio.dataset.trackId = 'b';
+        }
+    });
+    const before = controller.getSnapshot();
+    assert.strictEqual(before.healthy, false, 'stale Dock owner must not be reported healthy');
+    assert.strictEqual(before.trackOwnerMatches, false);
+    assert.strictEqual(before.selectedTrackId, 'b');
+    assert.strictEqual(before.dockTrackId, 'a');
+    assert.strictEqual(before.playerTrackId, 'a');
+    const after = controller.repair('stale-owner');
+    assert.strictEqual(renderCount, 1, 'stale Dock owner must force a re-render');
+    assert.strictEqual(after.trackOwnerMatches, true);
+    assert.strictEqual(after.healthy, true);
+}
 
 console.log('PASS v1.6.93 mobile Dock visibility + active-track integrity recovery contract');

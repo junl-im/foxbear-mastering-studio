@@ -1,26 +1,25 @@
-# GitHub Desktop Handoff - v1.6.93
+# GitHub Desktop Handoff - v1.6.94
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.92**, then extract the **v1.6.93 patch ZIP** into the repository root and replace matching files.
+2. Confirm the working copy is **v1.6.93**, then extract the **v1.6.94 patch ZIP** into the repository root and replace matching files.
 3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.93 full ZIP.
+4. Confirm the legacy `PATCH_MANIFEST.json` is deleted, review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.94 full ZIP.
 
 ## Release focus
 
-- Stops AI mode from exposing an `aria-hidden=true` / non-`.show` Dock as an empty fixed panel.
-- Recovers stale active-track selection before Dock rendering can clear a valid mobile transport.
-- Adds Dock integrity diagnostics and bounded recovery after render/layout/UI-mode lifecycle changes.
-- Keeps v1.6.92 AI Spectrum rendering and mastering/DSP behavior unchanged.
+- Makes `external-browser.html` a required GitHub Pages artifact for Kakao external-browser recovery.
+- Detects and repairs a visible Dock whose player belongs to a different track than the current selection.
+- Uses strict, non-mutating source hygiene on normal local/CI release paths.
+- Removes the legacy patch manifest and cuts redundant QA cleanup/timer latency.
 
 ## Expected verification result
 
-- Static/regression: **450/450 PASS**.
-- Focused Dock/mobile/Spectrum: **44/44 PASS**.
+- Static/regression: **450/450 PASS** across bounded full-index ranges.
+- Dock stale-owner reproduction/repair: **PASS**.
 - Source hygiene / Version / SRI / browser preflight / Functions / local App Check / handoff: **PASS**.
 - Firebase Hosting boundary: **163 allowlisted files**.
-- Delivery: **781-file full/release ZIP**, **307 overwrite files + 7 delete paths** in the manifestless patch; no generated `PATCH_MANIFEST.json`.
 - Full Playwright navigation: final acceptance in GitHub Actions.
 
 # GitHub Desktop Handoff - v1.6.79

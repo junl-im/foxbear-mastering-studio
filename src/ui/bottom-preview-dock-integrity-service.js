@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
+    const VERSION = '1.6.94-release-integrity-hardening';
 
     function createController(options = {}) {
         const state = options.state || {};
@@ -56,15 +56,26 @@
             const ariaHidden = dock?.getAttribute?.('aria-hidden') || '';
             const bodyActive = Boolean(documentRef?.body?.classList?.contains('bottom-preview-active'));
             const playerChildren = Number(player?.children?.length || 0);
+            const activeAudio = player?.querySelector?.('audio[data-bottom-preview-active="true"]')
+                || player?.querySelector?.('audio:not([data-crossfade-legacy="true"])')
+                || player?.querySelector?.('audio')
+                || null;
+            const selectedTrackId = String(track?.id || '');
+            const dockTrackId = String(state.bottomPreviewTrackId || '');
+            const playerTrackId = String(activeAudio?.dataset?.trackId || player?.dataset?.trackId || '');
             const expectedVisible = Boolean(track);
             const renderedVisible = Boolean(show && ariaHidden === 'false' && bodyActive && style?.display !== 'none' && style?.visibility !== 'hidden' && Number(rect.height || 0) > 0);
-            const healthy = expectedVisible ? Boolean(renderedVisible && playerChildren > 0) : Boolean(!show && ariaHidden !== 'false' && !bodyActive);
+            const trackOwnerMatches = !expectedVisible || Boolean(selectedTrackId && dockTrackId === selectedTrackId && playerTrackId === selectedTrackId);
+            const healthy = expectedVisible ? Boolean(renderedVisible && playerChildren > 0 && trackOwnerMatches) : Boolean(!show && ariaHidden !== 'false' && !bodyActive);
             return Object.freeze({
                 version: VERSION,
                 trackCount: Number(state.tracks?.length || 0),
                 selectedId: String(state.selectedId || ''),
+                selectedTrackId,
                 selectedValid: Boolean(track),
-                dockTrackId: String(state.bottomPreviewTrackId || ''),
+                dockTrackId,
+                playerTrackId,
+                trackOwnerMatches,
                 expectedVisible,
                 show,
                 ariaHidden,
@@ -99,7 +110,7 @@
                 return getSnapshot();
             }
             const before = getSnapshot();
-            const needsRenderRepair = !before.show || before.ariaHidden !== 'false' || !before.bodyActive || before.playerChildren === 0 || before.display === 'none' || before.visibility === 'hidden' || before.height <= 0;
+            const needsRenderRepair = !before.show || before.ariaHidden !== 'false' || !before.bodyActive || before.playerChildren === 0 || before.display === 'none' || before.visibility === 'hidden' || before.height <= 0 || !before.trackOwnerMatches;
             if (needsRenderRepair) {
                 state.bottomPreviewRepairCount = Number(state.bottomPreviewRepairCount || 0) + 1;
                 state.bottomPreviewLastRepairReason = `render:${reason}`;

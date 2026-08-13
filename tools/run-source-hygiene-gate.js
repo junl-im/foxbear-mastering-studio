@@ -10,7 +10,7 @@ const targetRoot = path.resolve(rootArgIndex >= 0 && process.argv[rootArgIndex +
   ? process.argv[rootArgIndex + 1]
   : ROOT);
 const requestedMode = String(process.env.FOXBEAR_SOURCE_HYGIENE_MODE || '').trim().toLowerCase();
-const mode = requestedMode || (process.env.GITHUB_ACTIONS === 'true' ? 'ci-safe' : 'repair');
+const mode = requestedMode || 'strict';
 const supportedModes = new Set(['strict', 'repair', 'ci-safe']);
 
 if (!supportedModes.has(mode)) {

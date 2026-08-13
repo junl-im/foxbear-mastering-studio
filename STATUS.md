@@ -1,37 +1,36 @@
-# FoxBear Status - v1.6.93
+# FoxBear Status - v1.6.94
 
 ## Current release
 
-- Product version: `1.6.93`
-- Build ID: `mobile-dock-visibility-integrity-recovery`
-- Asset version: `1.6.93-mobile-dock-visibility-integrity-recovery`
-- Service worker cache: `foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery`
+- Product version: `1.6.94`
+- Build ID: `release-integrity-hardening`
+- Asset version: `1.6.94-release-integrity-hardening`
+- Service worker cache: `foxbear-shell-v1.6.94-release-integrity-hardening`
 - Configured static/regression target: **450 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.93`
-- Build ID: `mobile-dock-visibility-integrity-recovery`
-- Asset version: `1.6.93-mobile-dock-visibility-integrity-recovery`
-- Service worker cache: `foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery`
+- Product version: `1.6.94`
+- Build ID: `release-integrity-hardening`
+- Asset version: `1.6.94-release-integrity-hardening`
+- Service worker cache: `foxbear-shell-v1.6.94-release-integrity-hardening`
 
 ## Release focus
 
-- Restore state-driven mobile Dock visibility in both AI and Expert modes.
-- Prevent AI mode from forcing an empty hidden Dock visible.
-- Recover transient stale active-track ownership before a valid Dock can be cleared.
-- Add bounded Dock integrity diagnostics/self-repair while preserving v1.6.92 Spectrum rendering and all mastering DSP.
+- Close the GitHub Pages Kakao recovery-page omission by making `external-browser.html` a required deploy artifact.
+- Extend Dock integrity from visual state to actual track ownership agreement and repair stale player ownership.
+- Make normal release source-hygiene validation strict/non-mutating and remove the legacy tracked patch manifest.
+- Reduce QA runner overhead while preserving all existing mastering/DSP behavior.
 
 ## Release status
 
-- Static and behavioral checks: **450/450 PASS** (`113 + 113 + 113 + 111`).
-- Focused Dock/mobile/Spectrum regressions: **44/44 PASS**.
-- Chromium 393px Dock state reconstruction: AI/Expert active Dock visible; hidden Dock `display:none`; **PASS**.
+- Static and behavioral checks: **450/450 PASS** across bounded full-index ranges.
+- Dock stale-owner integrity recovery: **PASS**.
+- Generated GitHub Pages artifact contains `external-browser.html`: **PASS**.
 - `src/app.js`: **13,298 lines**, below the `<13,300` structural gate.
-- Version/SRI, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
+- Version/SRI, strict source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
 - Firebase Hosting boundary: **163 allowlisted files**.
-- Delivery verification: **781-file full/release ZIP**, **307-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
-- Full Playwright app navigation remains the GitHub Actions acceptance step because local app navigation is blocked by this execution environment.
+- Full Playwright app navigation remains the GitHub Actions acceptance step because the browser runtime is not installed in this execution environment.
 
 # FoxBear Status - v1.6.88
 

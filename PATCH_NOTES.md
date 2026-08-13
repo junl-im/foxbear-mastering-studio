@@ -1,3 +1,22 @@
+# v1.6.94 patch notes
+
+## 적용 내역
+
+- GitHub Pages 산출물의 필수 파일 목록에 `external-browser.html`을 추가해 카카오 인앱 브라우저의 외부 브라우저 전환 경로가 Pages에서 404로 끊기지 않도록 수정했습니다.
+- Dock 무결성 판단을 표시 상태뿐 아니라 `selected track → bottomPreviewTrackId → rendered player/audio data-track-id` 소유권 일치까지 확장했습니다. 다른 곡 플레이어가 남은 stale 상태는 더 이상 healthy로 오판하지 않고 1회 재렌더로 복구합니다.
+- 릴리스/CI의 source hygiene 기본 모드를 `strict`로 변경했습니다. 정상 릴리스 경로는 작업 트리를 자동 삭제하지 않으며, `repair`/`ci-safe`는 명시적으로 요청한 유지보수 경로로만 남겼습니다.
+- 저장소에 남아 있던 legacy `PATCH_MANIFEST.json`을 삭제했습니다.
+- 450개 QA 실행 중 매 체크마다 반복하던 Python bytecode 전체 스캔을 제거하고 suite 시작/종료로 한정했습니다. ZIP/worker QA의 성공 후 남던 5초/3초 실패 타이머도 즉시 해제합니다.
+- 새 Pages 필수 파일 때문에 깨진 과거 문자열 고정 QA를 의미 기반 검사로 교체했습니다.
+
+## 검증 결과
+
+- 구성된 정적·행동 회귀 **450개 전 범위 PASS**. 실행 환경 제한 때문에 장시간 단일 프로세스 대신 bounded 구간으로 나눠 전체 인덱스를 검증했습니다.
+- Dock stale-owner 직접 재현: 수정 전 `healthy=true / render=0`, 수정 후 `healthy=false → render 1회 → healthy=true`: **PASS**.
+- 실제 GitHub Pages `_site/external-browser.html` 생성 확인: **PASS**.
+- Source hygiene 기본 `strict`, Version/SRI, Firebase Hosting, App Check, Functions syntax, Handoff: **PASS**.
+- `src/app.js`: **13,298 lines**, 기존 `<13,300` 구조 게이트 유지.
+
 # v1.6.93 patch notes
 
 ## 적용 내역

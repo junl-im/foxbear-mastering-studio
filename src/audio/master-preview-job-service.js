@@ -1,8 +1,8 @@
-// FoxBear master preview job service v1.6.93 - cancellable preview ownership and stale-result isolation
+// FoxBear master preview job service v1.6.94 - cancellable preview ownership and stale-result isolation
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
+    const VERSION = '1.6.94-release-integrity-hardening';
     let sequence = 0;
 
     function createFallbackAbortController() {

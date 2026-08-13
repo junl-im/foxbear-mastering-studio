@@ -36,7 +36,9 @@ async function runZipWorkerRuntime() {
       { fileName: '천 개의 파랑 (A Thousand Blues) mastered 15LUFS streaming wav24.wav', blob: new Blob([new Uint8Array([13, 14, 15, 16])]) }
     ]
   } });
-  const result = await Promise.race([done, new Promise((_, reject) => setTimeout(() => reject(new Error('ZIP worker runtime timeout')), 5000))]);
+  let timeoutHandle;
+  const timeoutPromise = new Promise((_, reject) => { timeoutHandle = setTimeout(() => reject(new Error('ZIP worker runtime timeout')), 5000); });
+  const result = await Promise.race([done, timeoutPromise]).finally(() => clearTimeout(timeoutHandle));
   assert(result.ok, result.error || 'ZIP worker failed');
   assert(result.blob instanceof Blob && result.blob.size > 128, 'ZIP worker did not produce a valid Blob');
   const signature = new Uint8Array(await result.blob.slice(0, 4).arrayBuffer());
@@ -91,11 +93,11 @@ async function main() {
   assert((app.includes('getZipExportService()?.start') || app.includes('zipService.start({')) && app.includes('workerUrl: ZIP_ENCODER_WORKER_URL'), 'downloadZip is not delegated to the ZIP service');
   assert(zipService.includes('state.controller') && zipService.includes("cancel('pagehide')") && zipService.includes('getSnapshot().active'), 'duplicate ZIP or pagehide cancellation guard missing');
   assert(app.includes("showToast('ZIP 내보내기를 먼저 취소하거나 완료해 주세요.')"), 'queue clearing is not blocked during ZIP export');
-  assert(index.includes('id="exportProgressCancel"') && index.includes('src/download/zip-export-service.js?v=1.6.93-mobile-dock-visibility-integrity-recovery'), 'ZIP cancel UI/service asset missing');
+  assert(index.includes('id="exportProgressCancel"') && index.includes('src/download/zip-export-service.js?v=1.6.94-release-integrity-hardening'), 'ZIP cancel UI/service asset missing');
   assert(progress.includes("foxbear:zip-export-cancel") && progress.includes("state: 'cancelled'"), 'ZIP cancel view contract missing');
   assert(update.includes('FoxBearZipExport') && update.includes('exporting:'), 'service-worker update activity does not include ZIP export');
-  assert(sw.includes("'./src/workers/zip-encoder.worker.js'") && sw.includes("'./src/workers/zip-encoder.worker.js?v=1.6.93-mobile-dock-visibility-integrity-recovery'"), 'versioned ZIP worker is not cached by the service worker');
-  assert(pkg.qaChecks.includes('node --check src/download/zip-export-service.js') && pkg.qaChecks.includes('node qa/v1542_zip_worker_cancellation_smoke.js'), 'v1.6.93 QA is not registered');
+  assert(sw.includes("'./src/workers/zip-encoder.worker.js'") && sw.includes("'./src/workers/zip-encoder.worker.js?v=1.6.94-release-integrity-hardening'"), 'versioned ZIP worker is not cached by the service worker');
+  assert(pkg.qaChecks.includes('node --check src/download/zip-export-service.js') && pkg.qaChecks.includes('node qa/v1542_zip_worker_cancellation_smoke.js'), 'v1.6.94 QA is not registered');
 
   runArchiveNameRuntime();
   await runZipWorkerRuntime();

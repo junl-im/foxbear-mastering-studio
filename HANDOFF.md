@@ -1,39 +1,36 @@
-# Handoff - v1.6.93
+# Handoff - v1.6.94
 
 ## Current release
 
-- Product version: `1.6.93`
-- Build ID: `mobile-dock-visibility-integrity-recovery`
-- Asset version: `1.6.93-mobile-dock-visibility-integrity-recovery`
-- Service worker cache: `foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery`
+- Product version: `1.6.94`
+- Build ID: `release-integrity-hardening`
+- Asset version: `1.6.94-release-integrity-hardening`
+- Service worker cache: `foxbear-shell-v1.6.94-release-integrity-hardening`
 - Configured static/regression target: 450 checks.
 
 ## Current focus
 
-- Remove the AI-mode CSS override that exposed a hidden/empty Dock.
-- Repair transient stale active-track ownership before direct or full Dock rendering.
-- Detect visible-state/player-content mismatches and schedule bounded one-frame Dock recovery after mobile/layout lifecycle changes.
-- Preserve v1.6.92 AI Spectrum rendering, v1.6.91 browser geometry recovery, and v1.6.90 engine-control isolation.
+- Ship `external-browser.html` as a required GitHub Pages artifact so Kakao recovery cannot land on a missing page.
+- Detect stale Dock ownership by requiring the selected track, Dock state owner, and rendered player/audio owner to agree.
+- Make normal release source-hygiene checks strict and non-mutating; keep repair as an explicit maintenance action.
+- Remove the tracked legacy `PATCH_MANIFEST.json` and reduce avoidable QA runner/timer overhead without changing mastering DSP.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.93 patch ZIP** into the **v1.6.92 repository root** and replace matching files.
+1. Extract the **v1.6.94 patch ZIP** into the **v1.6.93 repository root** and replace matching files.
 2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-3. Review all modified/new/deleted files in GitHub Desktop.
-4. Commit all changes and **Push origin**.
-5. For a clean replacement, preserve `.git` and extract the v1.6.93 full ZIP into the repository folder.
+3. Confirm `PATCH_MANIFEST.json` is deleted, review all modified/new/deleted files in GitHub Desktop, commit, and **Push origin**.
+4. For a clean replacement, preserve `.git` and extract the v1.6.94 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **450/450 PASS** (`113 + 113 + 113 + 111`).
-- Focused Dock/mobile/Spectrum regressions: **44/44 PASS**.
-- Chromium 393px CSS reconstruction confirms correct AI/Expert hidden and active Dock states.
-- Active-track fallback precedence is behavior-tested.
+- Static and behavioral checks: **450/450 PASS** across bounded full-index ranges.
+- Dock stale-owner false-negative reproduction and repair: **PASS**.
+- GitHub Pages required `external-browser.html` artifact and generated `_site` presence: **PASS**.
 - `src/app.js` remains below the structural gate at **13,298 lines**.
-- Version/SRI, source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
+- Version/SRI, strict source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
 - Firebase Hosting boundary: **163 allowlisted files**.
-- Delivery verification: **781-file full/release ZIP**, **307-file manifestless overwrite patch**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
-- Full Playwright network navigation remains a GitHub Actions acceptance step because this execution environment blocks local app navigation.
+- Full Playwright network navigation remains a GitHub Actions acceptance step because this execution environment does not provide the installed browser runtime.
 
 # Handoff - v1.6.79
 

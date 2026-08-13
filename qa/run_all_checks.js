@@ -45,7 +45,6 @@ function runAllChecks(checks = configuredChecks, options = {}) {
       results.push({ command, ok, status: result.status, signal: result.signal, elapsed });
       const label = ok ? 'PASS' : 'FAIL';
       console.log(`${label} ${command} (${elapsed}ms${result.signal ? `, signal ${result.signal}` : ''})`);
-      cleanPythonBytecode(cleanupRoot);
     }
   } finally {
     cleanPythonBytecode(cleanupRoot);

@@ -1,3 +1,28 @@
+# FoxBear QA Report - v1.6.94
+
+## Configured target
+
+- Static and behavioral checks: **450**.
+- Hardened regressions: Pages artifact completeness, Dock track ownership, strict release hygiene, and suite-level bytecode cleanup.
+
+## Verification scope
+
+- Requires `external-browser.html` in the GitHub Pages required-file set and artifact verification.
+- Requires selected track, Dock state owner, and rendered player/audio owner to agree before Dock integrity can report healthy.
+- Requires normal release and GitHub Pages CI hygiene paths to run in strict, non-mutating mode.
+- Requires the legacy root `PATCH_MANIFEST.json` to be absent.
+- Requires Python bytecode cleanup at QA suite boundaries rather than after every static check.
+
+## Verification status
+
+- Configured 450-check static/behavioral suite: **450/450 PASS** across bounded full-index ranges.
+- Dock stale-owner reproduction: selected `b`, Dock/audio owner `a` is reported unhealthy, forces one render, then reports healthy on owner `b`: **PASS**.
+- GitHub Pages build: `_site/external-browser.html` exists and is a required artifact: **PASS**.
+- Default source-hygiene gate reports `strict`; legacy `PATCH_MANIFEST.json` is absent: **PASS**.
+- Version/SRI, Firebase Hosting boundary (**163 files**), App Check policy, Functions syntax, browser preflight, and handoff: **PASS**.
+- `src/app.js`: **13,298 lines**, still below the `<13,300` structural gate.
+- QA performance hardening removes per-check bytecode scans; ZIP worker timeout cleanup reduced the focused v1.5.42 runtime from about 5.3s to about 0.3s in this environment.
+
 # FoxBear QA Report - v1.6.93
 
 ## Configured target

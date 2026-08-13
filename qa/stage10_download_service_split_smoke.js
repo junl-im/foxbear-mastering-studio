@@ -40,9 +40,9 @@ assert(app.includes('getDownloadService().prepareTrackDownloadBlob'), 'prepareTr
 assert(app.includes('getDownloadService().downloadBlob'), 'downloadBlob wrapper should delegate to service');
 assert(!app.includes('const shareApi = Boolean(navigator.share && typeof File'), 'download environment implementation should not remain in app.js');
 assert(!app.includes('panel.id = \'downloadAssist\''), 'download assist DOM builder should not remain in app.js');
-assert(app.split(/\r?\n/).length < 13960, 'app.js should stay within the post-v1.6.93 modular size budget');
-assert(sw.includes('./src/download/download-service.js?v=1.6.93-mobile-dock-visibility-integrity-recovery'), 'service worker should precache download service');
-assert(/stage(?:10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery'), 'service worker cache should be bumped to stage10');
+assert(app.split(/\r?\n/).length < 13960, 'app.js should stay within the post-v1.6.94 modular size budget');
+assert(sw.includes('./src/download/download-service.js?v=1.6.94-release-integrity-hardening'), 'service worker should precache download service');
+assert(/stage(?:10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.94-release-integrity-hardening'), 'service worker cache should be bumped to stage10');
 assert(pkg.qaChecks.includes('node --check src/download/download-service.js'), 'package QA should syntax-check download service');
 assert(pkg.qaChecks.includes('node qa/stage10_download_service_split_smoke.js'), 'package QA should include stage10 smoke');
 assert(changelog.includes('Stage10'), 'CHANGELOG.md should mention Stage10');

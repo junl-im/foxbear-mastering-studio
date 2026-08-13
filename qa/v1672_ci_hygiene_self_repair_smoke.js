@@ -47,9 +47,10 @@ assert(repair.includes("'.firebaserc'"), '.firebaserc must remain in the narrow 
 assert(repair.includes("'.firebase'"), '.firebase must remain in the narrow allowlist');
 assert(repair.includes("'qa/static-audit.txt'"), 'qa/static-audit.txt must remain in the narrow allowlist');
 for (const [name, workflow] of [['pages', pages], ['fallback', fallback]]) {
-  assert(workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: ci-safe'), `${name} workflow must use ci-safe hygiene mode`);
-  assert(!workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: strict'), `${name} workflow must not use strict mode for the normal release path`);
+  assert(workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: strict'), `${name} workflow must use strict mode for the normal release path`);
+  assert(!workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: ci-safe'), `${name} workflow must not auto-repair source hygiene during release`);
 }
+assert(gate.includes("const mode = requestedMode || 'strict';"), 'source hygiene gate must default to strict mode');
 
 const exactFailureFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-v1672-ci-safe-'));
 try {

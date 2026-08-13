@@ -1,3 +1,11 @@
+# v1.6.94 - Release integrity hardening
+
+- Ships `external-browser.html` as a required GitHub Pages artifact so Kakao external-browser recovery cannot resolve to a missing page.
+- Extends Dock integrity from visibility-only checks to selected-track / Dock-owner / rendered-player ownership agreement, forcing repair when a stale player belongs to another track.
+- Makes source hygiene strict by default in local release gates and GitHub Pages workflows; automatic cleanup remains an explicit maintenance mode rather than a release-path mutation.
+- Removes the tracked legacy `PATCH_MANIFEST.json` artifact.
+- Removes redundant per-check Python bytecode scans from the 450-check QA runner while retaining suite-boundary cleanup and `PYTHONDONTWRITEBYTECODE=1`.
+
 # v1.6.93 - Mobile Dock visibility and integrity recovery
 
 - Stops AI mode from forcing a hidden/empty bottom preview Dock visible when the Dock has no active track state.

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.93",
+  "version": "1.6.94",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.93 - mobile Dock visibility and integrity recovery",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.94 - release integrity hardening",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.93-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.93-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.94-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.94-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.93-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.93-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.94-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.94-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -501,12 +501,12 @@
     "node qa/v1693_mobile_dock_visibility_integrity_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "mobile-dock-visibility-integrity-recovery",
-    "assetVersion": "1.6.93-mobile-dock-visibility-integrity-recovery",
-    "cacheName": "foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery",
-    "bootRevision": "boot-sri-v1693",
-    "updateSafetyRevision": "update-safety-v1693",
-    "serviceWorkerRevision": "sw-v1693"
+    "buildId": "release-integrity-hardening",
+    "assetVersion": "1.6.94-release-integrity-hardening",
+    "cacheName": "foxbear-shell-v1.6.94-release-integrity-hardening",
+    "bootRevision": "boot-sri-v1694",
+    "updateSafetyRevision": "update-safety-v1694",
+    "serviceWorkerRevision": "sw-v1694"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

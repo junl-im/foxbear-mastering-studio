@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.93",
-  "buildId": "mobile-dock-visibility-integrity-recovery",
+  "productVersion": "1.6.94",
+  "buildId": "release-integrity-hardening",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

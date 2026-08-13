@@ -14,7 +14,7 @@ const runtimeSpec = fs.readFileSync('qa/browser/runtime-health-playwright.spec.j
 const retrySource = fs.readFileSync('qa/browser/retry-recovery-report.js', 'utf8');
 const deletePaths = fs.readFileSync('DELETE_PATHS.txt', 'utf8').split(/\r?\n/).map(value => value.trim()).filter(Boolean);
 
-assert.strictEqual(pkg.version, '1.6.93');
+assert.strictEqual(pkg.version, '1.6.94');
 assert(pkg.qaChecks.includes('node qa/v1685_browser_sentinel_ui_mode_header_recovery_smoke.js'));
 assert(serviceSource.includes('function safeReadE2eMode()'));
 assert(serviceSource.includes("global.__FOXBEAR_E2E__ !== true"));

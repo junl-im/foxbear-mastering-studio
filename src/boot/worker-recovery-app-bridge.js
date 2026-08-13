@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.93 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.94 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.93-mobile-dock-visibility-integrity-recovery';
+    const VERSION = '1.6.94-release-integrity-hardening';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

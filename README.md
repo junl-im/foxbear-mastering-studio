@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.94
+
+> Current release: v1.6.94 · release-integrity-hardening
+
+This hardening release closes a GitHub Pages recovery-page omission, verifies that the visible Dock actually belongs to the selected track, makes release source-hygiene checks non-mutating by default, removes the legacy patch manifest, and trims avoidable QA runner cleanup overhead.
+
 # FoxBear AI Mastering Studio Pro v1.6.93
 
 > Current release: v1.6.93 · mobile-dock-visibility-integrity-recovery
