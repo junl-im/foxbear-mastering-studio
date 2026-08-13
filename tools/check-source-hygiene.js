@@ -54,7 +54,18 @@ function trackedFiles() {
   return result.stdout.split('\0').filter(Boolean).map(normalize);
 }
 
-function walkFiles(dir, output = []) {
+function isWorkspaceForbidden(relative, hasGitRepo) {
+  const value = normalize(relative);
+  // In a Git worktree, dependency folders created by npm ci are expected local
+  // artifacts after the pre-install tracked-file hygiene gate. They are still
+  // forbidden when tracked, and remain forbidden in archive/non-Git checks.
+  if (hasGitRepo && (value === 'node_modules' || value.startsWith('node_modules/') || value === 'functions/node_modules' || value.startsWith('functions/node_modules/'))) {
+    return false;
+  }
+  return isForbidden(value);
+}
+
+function walkFiles(dir, output = [], hasGitRepo = false) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name === '.git') continue;
     const full = path.join(dir, entry.name);
@@ -64,14 +75,17 @@ function walkFiles(dir, output = []) {
       continue;
     }
     if (entry.isDirectory()) {
-      if (isForbidden(`${relative}/`)) {
+      if (isWorkspaceForbidden(`${relative}/`, hasGitRepo)) {
         output.push(`${relative}/`);
         continue;
       }
-      walkFiles(full, output);
+      if (hasGitRepo && (relative === 'node_modules' || relative.startsWith('node_modules/') || relative === 'functions/node_modules' || relative.startsWith('functions/node_modules/'))) {
+        continue;
+      }
+      walkFiles(full, output, hasGitRepo);
       continue;
     }
-    if (isForbidden(relative)) output.push(relative);
+    if (isWorkspaceForbidden(relative, hasGitRepo)) output.push(relative);
   }
   return output;
 }
@@ -81,7 +95,12 @@ try {
   // Strict hygiene is a worktree property, not only a Git-index property.
   // Always scan the physical workspace so ignored/untracked secret files such
   // as .env.production cannot disappear behind gitignore rules.
-  const failures = [...new Set(walkFiles(ROOT))].sort();
+  const trackedFailures = tracked ? tracked.filter(relative => {
+    const value = normalize(relative);
+    return value === 'node_modules' || value.startsWith('node_modules/') || value === 'functions/node_modules' || value.startsWith('functions/node_modules/');
+  }) : [];
+  const workspaceFailures = walkFiles(ROOT, [], Boolean(tracked));
+  const failures = [...new Set([...trackedFailures, ...workspaceFailures])].sort();
   if (failures.length) {
     console.error('FAIL source hygiene found local, generated, or secret-like files that must not ship:');
     failures.slice(0, 50).forEach(file => {

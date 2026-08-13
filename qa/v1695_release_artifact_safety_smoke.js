@@ -53,6 +53,34 @@ assert(releaseZip.includes('cleanup_failed_archive'), 'release ZIP must remove f
   }
 }
 
+// npm ci dependency folders are allowed as untracked worktree artifacts, but never when tracked.
+{
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-v1695-node-modules-'));
+  try {
+    fs.writeFileSync(path.join(temp, '.gitignore'), 'node_modules/\n');
+    fs.writeFileSync(path.join(temp, 'safe.txt'), 'safe\n');
+    let result = run('git', ['init', '-q'], temp);
+    assert.strictEqual(result.status, 0);
+    run('git', ['config', 'user.name', 'FoxBear QA'], temp);
+    run('git', ['config', 'user.email', 'qa@example.invalid'], temp);
+    run('git', ['add', '-A'], temp);
+    run('git', ['commit', '-qm', 'fixture'], temp);
+    fs.mkdirSync(path.join(temp, 'node_modules', 'demo'), { recursive: true });
+    fs.writeFileSync(path.join(temp, 'node_modules', 'demo', 'index.js'), 'module.exports = 1;\n');
+    result = run(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', temp], ROOT);
+    assert.strictEqual(result.status, 0, result.stderr || result.stdout);
+
+    fs.rmSync(path.join(temp, '.gitignore'));
+    run('git', ['add', '-f', 'node_modules/demo/index.js'], temp);
+    run('git', ['commit', '-qm', 'track forbidden dependency'], temp);
+    result = run(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', temp], ROOT);
+    assert.notStrictEqual(result.status, 0, 'tracked node_modules must remain forbidden');
+    assert(`${result.stdout}\n${result.stderr}`.includes('node_modules/'), 'tracked dependency failure must name node_modules');
+  } finally {
+    fs.rmSync(temp, { recursive: true, force: true });
+  }
+}
+
 // Git deletions and rename sources must be represented by DELETE_PATHS.txt.
 {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-v1695-delete-'));
