@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 node "${ROOT_DIR}/tools/sync-release-metadata.js" --check
+node "${ROOT_DIR}/tools/check-source-hygiene.js"
 node "${ROOT_DIR}/tools/verify-handoff-state.js"
 VERSION="$(node -e "const p=require('${ROOT_DIR}/package.json'); console.log(p.version || 'dev')")"
 OUTPUT_DIR="${ROOT_DIR}/dist"
@@ -10,6 +11,16 @@ OUTPUT_FILE="${OUTPUT_DIR}/foxbear-mastering-studio-v${VERSION}-release.zip"
 
 mkdir -p "${OUTPUT_DIR}"
 rm -f "${OUTPUT_FILE}"
+
+cleanup_failed_archive() {
+  status=$?
+  trap - EXIT
+  if [ "${status}" -ne 0 ]; then
+    rm -f "${OUTPUT_FILE}"
+  fi
+  exit "${status}"
+}
+trap cleanup_failed_archive EXIT
 
 cd "${ROOT_DIR}"
 
@@ -36,6 +47,16 @@ zip -qr "${OUTPUT_FILE}" . \
   -x '.audit-results/*' \
   -x '.audit-results' \
   -x '.firebaserc' \
+  -x '.env' \
+  -x '.env.local' \
+  -x '.env.production' \
+  -x '.env.development' \
+  -x '.env.test' \
+  -x '*/.env' \
+  -x '*/.env.local' \
+  -x '*/.env.production' \
+  -x '*/.env.development' \
+  -x '*/.env.test' \
   -x 'node_modules/*' \
   -x '*/node_modules/*' \
   -x 'dist/*' \

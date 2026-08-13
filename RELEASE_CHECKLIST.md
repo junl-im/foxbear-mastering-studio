@@ -1,3 +1,15 @@
+# v1.6.95 release checklist
+
+- [x] Make strict source hygiene scan the physical worktree so Git-ignored `.env*` secrets cannot bypass release checks.
+- [x] Preflight release ZIP creation before opening the archive, explicitly exclude `.env*`, and delete any failed output archive.
+- [x] Keep `package:delivery` non-mutating: no automatic source-hygiene repair on the release path.
+- [x] Detect Git deletions and rename sources automatically and fail packaging when `DELETE_PATHS.txt` does not cover them.
+- [x] Treat a stale `selectedId` with remaining tracks as Dock integrity failure even when the Dock is currently hidden.
+- [x] Add v1.6.95 regression coverage for ignored-secret blocking, failed-archive cleanup contracts, deletion declaration, and hidden-Dock selection integrity.
+- [x] Run all **451/451** configured static/behavioral checks.
+- [x] Verify Version/SRI, strict source hygiene, App Check policy, Handoff, dependency structure, Functions syntax, browser preflight, and **163-file** Hosting boundary.
+- [x] Build/verify the **785-file** full ZIP and **318-file** manifestless patch with **7 delete paths**.
+
 # v1.6.89 release checklist
 
 - [x] Replace the `<=430px` command-header Grid sizing dependency with deterministic two-rail nowrap Flex ownership.

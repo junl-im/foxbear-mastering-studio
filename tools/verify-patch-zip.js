@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { assertNoTransientArtifacts, assertSafeZipStructure, listZipEntries } = require('./archive-hygiene');
+const { assertDeclaredGitDeletions, readGitChangeSet } = require('./git-patch-contract');
 
 const zipPath = process.argv[2];
 if (!zipPath) {
@@ -88,7 +89,9 @@ try {
       if (/(?:^|\/)qa\/(?:static-audit|browser-check|static-check)[^/]*\.txt$/i.test(value)) return false;
       return fs.existsSync(path.join(gitRoot, value));
     };
-    const modified = git(['diff', '--name-only', '--diff-filter=ACMRTUXB', 'HEAD']);
+    const changes = readGitChangeSet(gitRoot);
+    assertDeclaredGitDeletions(changes.deleted, deleteFile);
+    const modified = changes.changed;
     const untracked = git(['ls-files', '--others', '--exclude-standard']);
     const expected = new Set([...modified, ...untracked].filter(safePatchFile));
     for (const required of ['package.json', 'HANDOFF_PACKAGE.json', 'PATCH_NOTES.md', 'DELETE_PATHS.txt', 'APPLY_PATCH_CLEANUP.sh', 'APPLY_PATCH_CLEANUP.cmd']) expected.add(required);

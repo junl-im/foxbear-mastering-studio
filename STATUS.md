@@ -1,36 +1,34 @@
-# FoxBear Status - v1.6.94
+# FoxBear Status - v1.6.95
 
 ## Current release
 
-- Product version: `1.6.94`
-- Build ID: `release-integrity-hardening`
-- Asset version: `1.6.94-release-integrity-hardening`
-- Service worker cache: `foxbear-shell-v1.6.94-release-integrity-hardening`
-- Configured static/regression target: **450 checks**.
+- Product version: `1.6.95`
+- Build ID: `release-artifact-safety`
+- Asset version: `1.6.95-release-artifact-safety`
+- Service worker cache: `foxbear-shell-v1.6.95-release-artifact-safety`
+- Configured static/regression target: **451 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.94`
-- Build ID: `release-integrity-hardening`
-- Asset version: `1.6.94-release-integrity-hardening`
-- Service worker cache: `foxbear-shell-v1.6.94-release-integrity-hardening`
+- Product version: `1.6.95`
+- Build ID: `release-artifact-safety`
+- Asset version: `1.6.95-release-artifact-safety`
+- Service worker cache: `foxbear-shell-v1.6.95-release-artifact-safety`
 
 ## Release focus
 
-- Close the GitHub Pages Kakao recovery-page omission by making `external-browser.html` a required deploy artifact.
-- Extend Dock integrity from visual state to actual track ownership agreement and repair stale player ownership.
-- Make normal release source-hygiene validation strict/non-mutating and remove the legacy tracked patch manifest.
-- Reduce QA runner overhead while preserving all existing mastering/DSP behavior.
+- Scan the physical worktree so ignored `.env*` secrets cannot bypass strict source hygiene.
+- Fail closed before archive creation and remove failed release ZIP outputs.
+- Validate Git deletions and rename sources against `DELETE_PATHS.txt` before patch packaging.
+- Keep delivery non-mutating and make cleanup apply the declared delete contract explicitly.
+- Treat stale active selection as Dock integrity failure even while the Dock is hidden.
 
 ## Release status
 
-- Static and behavioral checks: **450/450 PASS** across bounded full-index ranges.
-- Dock stale-owner integrity recovery: **PASS**.
-- Generated GitHub Pages artifact contains `external-browser.html`: **PASS**.
-- `src/app.js`: **13,298 lines**, below the `<13,300` structural gate.
-- Version/SRI, strict source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
-- Firebase Hosting boundary: **163 allowlisted files**.
-- Full Playwright app navigation remains the GitHub Actions acceptance step because the browser runtime is not installed in this execution environment.
+- Focused v1.6.95 release-artifact safety regression and historical hygiene/Dock regressions: **PASS**.
+- Full configured static/regression suite: **451/451 PASS** across four bounded ranges.
+- Ignored-secret and undeclared-deletion fail-closed packaging reproductions: **PASS**.
+- Delivery verification: **785-file FULL/release ZIP**, **318-file manifestless PATCH**, **7 delete paths**, no generated patch manifest: **PASS**.
 
 # FoxBear Status - v1.6.88
 

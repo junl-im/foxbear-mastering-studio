@@ -1,3 +1,26 @@
+# FoxBear QA Report - v1.6.95
+
+## Configured target
+
+- Static and behavioral checks: **451**.
+- New regression: `qa/v1695_release_artifact_safety_smoke.js`.
+
+## Verification scope
+
+- Blocks Git-ignored `.env*` secrets from strict source hygiene and release packaging.
+- Requires failed release ZIP cleanup and non-mutating delivery packaging.
+- Requires Git deletions and rename sources to be covered by `DELETE_PATHS.txt`.
+- Applies generic patch deletion paths through a path-safety guard.
+- Requires hidden-Dock diagnostics to report stale active selection as unhealthy while tracks remain.
+
+## Verification status
+
+- Focused v1.6.95 release-artifact safety regression: **PASS**.
+- Full configured static/behavioral suite: **451/451 PASS** across four bounded ranges (`113 + 113 + 113 + 112`).
+- Git-ignored `.env.production` package attempt: **blocked before `dist` creation**.
+- Undeclared tracked deletion package attempt: **blocked before `dist` creation**.
+- Delivery verification: **785-file FULL/release ZIP**, **318-file manifestless PATCH**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+
 # FoxBear QA Report - v1.6.94
 
 ## Configured target

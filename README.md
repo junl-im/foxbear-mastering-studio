@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.95
+
+> Current release: v1.6.95 · release-artifact-safety
+
+This release closes release-artifact safety gaps: ignored `.env*` secrets now block packaging, failed ZIPs are removed, Git deletions/rename sources must be declared for patch cleanup, and hidden Dock diagnostics no longer mask a stale active selection.
+
 # FoxBear AI Mastering Studio Pro v1.6.94
 
 > Current release: v1.6.94 · release-integrity-hardening

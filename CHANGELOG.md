@@ -1,3 +1,10 @@
+# v1.6.95 - Release artifact safety
+
+- Blocks Git-ignored `.env*` secrets by scanning the physical release worktree, not only tracked files.
+- Makes release ZIP creation fail closed: strict preflight before archiving, explicit `.env*` exclusions, and automatic removal of failed output archives.
+- Keeps delivery packaging non-mutating and validates that every Git deletion or rename source is declared in `DELETE_PATHS.txt`.
+- Extends Dock integrity diagnostics so a stale selection with remaining tracks is unhealthy even when the Dock is hidden.
+
 # v1.6.94 - Release integrity hardening
 
 - Ships `external-browser.html` as a required GitHub Pages artifact so Kakao external-browser recovery cannot resolve to a missing page.

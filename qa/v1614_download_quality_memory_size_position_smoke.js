@@ -15,7 +15,7 @@ const css = read('assets/css/download-dialog.css');
 const app = read('src/app.js');
 const runtime = read('src/boot/runtime-health.js');
 
-assert.strictEqual(pkg.version, '1.6.94');
+assert.strictEqual(pkg.version, '1.6.95');
 assert(dialog.includes("foxbear:download-quality-preferences:v1"), 'quality preference storage key missing');
 assert(dialog.includes('loadDownloadQualityPreferences') && dialog.includes('saveDownloadQualityPreferences'), 'safe quality preference persistence missing');
 assert(dialog.includes('qualityPreferences.lastFormat'), 'last selected format is not restored');

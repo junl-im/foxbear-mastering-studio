@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.94-release-integrity-hardening';
+    const VERSION = '1.6.95-release-artifact-safety';
 
     function createController(options = {}) {
         const state = options.state || {};
@@ -63,16 +63,18 @@
             const selectedTrackId = String(track?.id || '');
             const dockTrackId = String(state.bottomPreviewTrackId || '');
             const playerTrackId = String(activeAudio?.dataset?.trackId || player?.dataset?.trackId || '');
+            const selectionIntegrity = !Number(state.tracks?.length || 0) || Boolean(track);
             const expectedVisible = Boolean(track);
             const renderedVisible = Boolean(show && ariaHidden === 'false' && bodyActive && style?.display !== 'none' && style?.visibility !== 'hidden' && Number(rect.height || 0) > 0);
             const trackOwnerMatches = !expectedVisible || Boolean(selectedTrackId && dockTrackId === selectedTrackId && playerTrackId === selectedTrackId);
-            const healthy = expectedVisible ? Boolean(renderedVisible && playerChildren > 0 && trackOwnerMatches) : Boolean(!show && ariaHidden !== 'false' && !bodyActive);
+            const healthy = selectionIntegrity && (expectedVisible ? Boolean(renderedVisible && playerChildren > 0 && trackOwnerMatches) : Boolean(!show && ariaHidden !== 'false' && !bodyActive));
             return Object.freeze({
                 version: VERSION,
                 trackCount: Number(state.tracks?.length || 0),
                 selectedId: String(state.selectedId || ''),
                 selectedTrackId,
                 selectedValid: Boolean(track),
+                selectionIntegrity,
                 dockTrackId,
                 playerTrackId,
                 trackOwnerMatches,

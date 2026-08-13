@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { FORBIDDEN_DIRS, isTransientFile } = require('./archive-hygiene');
+const { assertDeclaredGitDeletions, normalize, readGitChangeSet } = require('./git-patch-contract');
 
 const ROOT = path.resolve(__dirname, '..');
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
@@ -25,10 +26,6 @@ function run(command, args, options = {}) {
 function gitLines(args) {
   const result = run('git', args, { encoding: 'utf8', stdio: 'pipe' });
   return String(result.stdout || '').split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-}
-
-function normalize(value) {
-  return String(value || '').replace(/\\/g, '/').replace(/^\.\//, '');
 }
 
 function safePatchFile(relative) {
@@ -51,18 +48,14 @@ function copyPatchFile(relative, patchRoot) {
 }
 
 run(process.execPath, [path.join(ROOT, 'tools/sync-release-metadata.js'), '--check']);
-run(process.execPath, [path.join(ROOT, 'tools/repair-source-hygiene.js')]);
 run(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js')]);
 run(process.execPath, [path.join(ROOT, 'tools/sync-release-metadata.js'), '--check']);
-run('bash', [path.join(ROOT, 'tools/create-release-zip.sh')]);
-run(process.execPath, [path.join(ROOT, 'tools/sync-release-metadata.js'), '--check']);
 
-fs.mkdirSync(dist, { recursive: true });
-fs.copyFileSync(legacyFull, fullZip);
-
-const modified = gitLines(['diff', '--name-only', '--diff-filter=ACMRTUXB', 'HEAD']);
+// Validate the manifestless patch contract before creating any release artifact.
+// A missing delete declaration must fail closed without leaving a misleading ZIP.
+const changes = readGitChangeSet(ROOT);
 const untracked = gitLines(['ls-files', '--others', '--exclude-standard']);
-const files = [...new Set([...modified, ...untracked].map(normalize))]
+const files = [...new Set([...changes.changed, ...untracked].map(normalize))]
   .filter(safePatchFile)
   .filter(relative => fs.existsSync(path.join(ROOT, relative)))
   .sort();
@@ -73,7 +66,19 @@ files.sort();
 
 const deletePaths = fs.readFileSync(path.join(ROOT, 'DELETE_PATHS.txt'), 'utf8')
   .split(/\r?\n/).map(line => normalize(line.trim())).filter(Boolean);
+try {
+  assertDeclaredGitDeletions(changes.deleted, deletePaths);
+} catch (error) {
+  console.error(`FAIL patch deletion contract: ${error?.message || error}`);
+  process.exit(1);
+}
 const baseCommit = gitLines(['rev-parse', 'HEAD'])[0] || '';
+
+run('bash', [path.join(ROOT, 'tools/create-release-zip.sh')]);
+run(process.execPath, [path.join(ROOT, 'tools/sync-release-metadata.js'), '--check']);
+
+fs.mkdirSync(dist, { recursive: true });
+fs.copyFileSync(legacyFull, fullZip);
 const patchRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-patch-build-'));
 try {
   files.forEach(relative => copyPatchFile(relative, patchRoot));

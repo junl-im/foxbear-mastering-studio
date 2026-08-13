@@ -33,7 +33,7 @@ assert(pkg.scripts?.['package:verify:full'] === `node tools/verify-release-zip.j
 assert(pkg.scripts?.['package:verify:patch'] === `node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v${pkg.version}-patch.zip`, 'patch verifier filename mismatch');
 assert(delivery.includes('-full.zip') && delivery.includes('-patch.zip'), 'delivery aliases are missing');
 assert(delivery.includes('check-source-hygiene.js'), 'delivery build must run source hygiene');
-assert(delivery.includes("gitLines(['diff', '--name-only'"), 'patch build must select changed Git files');
+assert(delivery.includes('readGitChangeSet(ROOT)') && delivery.includes('assertDeclaredGitDeletions(changes.deleted, deletePaths)'), 'patch build must select changed Git files and validate deletions');
 assert(!delivery.includes("fs.writeFileSync(path.join(patchRoot, 'PATCH_MANIFEST.json')"), 'patch build must not emit PATCH_MANIFEST.json into the repository root');
 assert(patchVerifier.includes('legacy generated artifact') && patchVerifier.includes('DELETE_PATHS.txt') && patchVerifier.includes('expected Git patch'), 'manifestless changed-file patch verifier contract incomplete');
 assert(overwrite.includes('copy_path "PATCH_NOTES.md"') && overwrite.includes('copy_path "DELETE_PATHS.txt"'), 'patch guidance files are not copied');

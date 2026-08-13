@@ -23,12 +23,12 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 
-must(pkg.version === '1.6.94', 'package version should be 1.6.94');
-must(app.includes("const APP_VERSION = 'Pro v1.6.94'"), 'app version should be Pro v1.6.94');
-must(index.includes('data-build="1.6.94"'), 'index build marker should be 1.6.94');
-must(index.includes('1.6.94-release-integrity-hardening'), 'index should use v1.6.94 cache key');
-must(sw.includes('foxbear-shell-v1.6.94-release-integrity-hardening'), 'service worker cache should use v1.6.94 key');
-must(sw.includes('./src/ui/spectrum-visualizer.js?v=1.6.94-release-integrity-hardening'), 'service worker should precache v1.6.94 spectrum visualizer');
+must(pkg.version === '1.6.95', 'package version should be 1.6.95');
+must(app.includes("const APP_VERSION = 'Pro v1.6.95'"), 'app version should be Pro v1.6.95');
+must(index.includes('data-build="1.6.95"'), 'index build marker should be 1.6.95');
+must(index.includes('1.6.95-release-artifact-safety'), 'index should use v1.6.95 cache key');
+must(sw.includes('foxbear-shell-v1.6.95-release-artifact-safety'), 'service worker cache should use v1.6.95 key');
+must(sw.includes('./src/ui/spectrum-visualizer.js?v=1.6.95-release-artifact-safety'), 'service worker should precache v1.6.95 spectrum visualizer');
 
 must(spectrum.includes('function pruneDisconnectedCanvases'), 'spectrum should prune disconnected spectrum canvases');
 must(spectrum.includes('if (state.canvas && state.canvas.isConnected === false) state.canvas = null'), 'spectrum should release stale full canvas refs');
@@ -45,9 +45,9 @@ must(guards.includes('function getNavigationExitGuardState'), 'exit guard should
 must(runtime.includes('FoxBearSpectrumVisualizer.getDiagnostics'), 'runtime health should require spectrum diagnostics');
 must(runtime.includes('FoxBearSiteGuards.getNavigationExitGuardState'), 'runtime health should require exit guard diagnostics');
 
-must(matrix.includes('v1.4.26') && matrix.includes('confirm') && matrix.includes('Dock mini FFT'), 'QA matrix should mention v1.6.94 Dock FFT/back confirm focus');
-must(changelog.includes('v1.6.94') && changelog.includes('stability'), 'changelog should include v1.6.94 stability entry');
-must(handoff.includes('v1.6.94') && handoff.includes('stability'), 'handoff should include v1.6.94 stability entry');
-must(pkg.qaChecks.includes('node qa/v146_stability_polish_smoke.js'), 'package should run v1.6.94 polish smoke');
+must(matrix.includes('v1.4.26') && matrix.includes('confirm') && matrix.includes('Dock mini FFT'), 'QA matrix should mention v1.6.95 Dock FFT/back confirm focus');
+must(changelog.includes('v1.6.95') && changelog.includes('stability'), 'changelog should include v1.6.95 stability entry');
+must(handoff.includes('v1.6.95') && handoff.includes('stability'), 'handoff should include v1.6.95 stability entry');
+must(pkg.qaChecks.includes('node qa/v146_stability_polish_smoke.js'), 'package should run v1.6.95 polish smoke');
 
 console.log('PASS v1.4.26 stability polish smoke');

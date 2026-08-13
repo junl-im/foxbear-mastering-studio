@@ -18,7 +18,7 @@ function nextTurn() {
 }
 
 async function main() {
-    assert.strictEqual(pkg.version, '1.6.94');
+    assert.strictEqual(pkg.version, '1.6.95');
     assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
     assert(pkg.qaChecks.includes('node qa/v1623_route_decay_lifecycle_handoff_safety_smoke.js'));
 
@@ -38,7 +38,7 @@ async function main() {
     routeContext.globalThis = routeContext;
     load('src/boot/incident-route-policy.js', routeContext);
     const policy = routeContext.FoxBearIncidentRoutePolicy;
-    assert.strictEqual(policy.version, '1.6.94');
+    assert.strictEqual(policy.version, '1.6.95');
 
     for (let index = 0; index < 20; index += 1) policy.recordSuccess('callable', now);
     assert.strictEqual(policy.getHealth(now).routes.callable.successes, 20);
@@ -144,10 +144,10 @@ async function main() {
     const desktop = fs.readFileSync(path.join(root, 'GITHUB_DESKTOP_HANDOFF.md'), 'utf8');
     const deliveryRules = fs.readFileSync(path.join(root, 'DELIVERY_RULES.md'), 'utf8');
     const verifyHandoff = fs.readFileSync(path.join(root, 'tools/verify-handoff-state.js'), 'utf8');
-    assert(handoff.startsWith('# Handoff - v1.6.94'));
-    assert(handoff.includes('- Product version: `1.6.94`'));
+    assert(handoff.startsWith('# Handoff - v1.6.95'));
+    assert(handoff.includes('- Product version: `1.6.95`'));
     assert(handoff.includes(`- Configured static/regression target: ${pkg.qaChecks.length} checks.`));
-    assert(desktop.startsWith('# GitHub Desktop Handoff - v1.6.94'));
+    assert(desktop.startsWith('# GitHub Desktop Handoff - v1.6.95'));
     for (const heading of ['## 1. 적용 내역', '## 2. 다음 패치 예정', '## 3. 다운로드 파일 2종']) assert(deliveryRules.includes(heading));
     assert(verifyHandoff.includes('DELIVERY_RULES.md'));
     assert(verifyHandoff.includes('handoffCurrentRelease'));

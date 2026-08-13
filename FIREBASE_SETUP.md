@@ -1,3 +1,7 @@
+# v1.6.95 release hygiene note
+
+GitHub Pages and local delivery use strict, non-mutating source hygiene. The release path does not auto-delete `.firebaserc`, `.firebase/`, generated audit output, or any secret-like file. Run `npm run source:hygiene:repair` explicitly when you want the narrow allowlisted cleanup, review the deletions, then rerun the strict gate. Git-ignored `.env*` files are detected from the physical worktree and block packaging.
+
 # v1.6.72 GitHub Actions source hygiene note
 
 The normal GitHub Pages release now removes `.firebaserc`, `.firebase/`, and generated QA audit text only from the temporary Actions checkout before strict verification. This does not change Firebase deployment configuration or App Check enforcement. Run `npm run source:hygiene:repair` locally when you want GitHub Desktop to record the actual repository deletions.

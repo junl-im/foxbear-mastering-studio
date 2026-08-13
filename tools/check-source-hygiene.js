@@ -78,16 +78,17 @@ function walkFiles(dir, output = []) {
 
 try {
   const tracked = trackedFiles();
-  const failures = tracked
-    ? tracked.filter(relative => isForbidden(relative) && fs.existsSync(path.join(ROOT, relative)))
-    : walkFiles(ROOT);
+  // Strict hygiene is a worktree property, not only a Git-index property.
+  // Always scan the physical workspace so ignored/untracked secret files such
+  // as .env.production cannot disappear behind gitignore rules.
+  const failures = [...new Set(walkFiles(ROOT))].sort();
   if (failures.length) {
     console.error('FAIL source hygiene found local, generated, or secret-like files that must not ship:');
     failures.slice(0, 50).forEach(file => {
       console.error(`  - ${file}`);
       if (process.env.GITHUB_ACTIONS === 'true') {
         const annotationFile = file.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
-        console.error(`::error file=${annotationFile},title=Source hygiene violation::Remove this tracked local/generated/secret-like path and commit the deletion.`);
+        console.error(`::error file=${annotationFile},title=Source hygiene violation::Remove this local/generated/secret-like path before release; commit tracked-path deletions.`);
       }
     });
     if (failures.length > 50) console.error(`  - ... ${failures.length - 50} more`);
@@ -99,7 +100,7 @@ try {
     console.error(`  git rm -r --cached --ignore-unmatch -- ${quoted}`);
     process.exit(1);
   }
-  console.log(`PASS source hygiene verified${tracked ? ' for Git-tracked files' : ' for archive files'}`);
+  console.log(`PASS source hygiene verified${tracked ? ' for Git-tracked files and local workspace artifacts' : ' for archive files'}`);
 } catch (error) {
   console.error(`FAIL source hygiene check: ${error?.message || error}`);
   process.exit(1);

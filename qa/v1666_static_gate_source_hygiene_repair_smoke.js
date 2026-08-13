@@ -22,7 +22,8 @@ function run(command, args, cwd, env = process.env) {
 const pkg = JSON.parse(read('package.json'));
 const delivery = read('tools/create-delivery-zips.js');
 assert(pkg.scripts?.['source:hygiene:repair'] === 'node tools/repair-source-hygiene.js', 'repair script command missing');
-assert(delivery.indexOf('repair-source-hygiene.js') < delivery.indexOf('check-source-hygiene.js'), 'delivery packaging must repair before checking');
+assert(!delivery.includes("tools/repair-source-hygiene.js"), 'delivery packaging must not auto-repair source state');
+assert(delivery.includes("tools/check-source-hygiene.js"), 'delivery packaging must run strict source hygiene before creating artifacts');
 assert(fs.existsSync(path.join(ROOT, 'APPLY_PATCH_CLEANUP.sh')), 'shell cleanup launcher missing');
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-hygiene-repair-'));

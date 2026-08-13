@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.94-release-integrity-hardening';
+const version = '1.6.95-release-artifact-safety';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

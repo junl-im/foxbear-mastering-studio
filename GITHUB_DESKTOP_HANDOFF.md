@@ -1,26 +1,26 @@
-# GitHub Desktop Handoff - v1.6.94
+# GitHub Desktop Handoff - v1.6.95
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.93**, then extract the **v1.6.94 patch ZIP** into the repository root and replace matching files.
-3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-4. Confirm the legacy `PATCH_MANIFEST.json` is deleted, review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.94 full ZIP.
+2. Confirm the working copy is **v1.6.94**, then extract the **v1.6.95 patch ZIP** into the repository root and replace matching files.
+3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`. This applies every safe `DELETE_PATHS.txt` entry, then runs the narrow maintenance cleanup and strict hygiene check.
+4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.95 full ZIP.
 
 ## Release focus
 
-- Makes `external-browser.html` a required GitHub Pages artifact for Kakao external-browser recovery.
-- Detects and repairs a visible Dock whose player belongs to a different track than the current selection.
-- Uses strict, non-mutating source hygiene on normal local/CI release paths.
-- Removes the legacy patch manifest and cuts redundant QA cleanup/timer latency.
+- Blocks ignored `.env*` secrets from strict source hygiene and release packaging.
+- Removes failed release ZIP outputs and validates patch deletion/rename sources before artifact creation.
+- Keeps `package:delivery` strict and non-mutating.
+- Makes hidden Dock diagnostics fail when tracks remain but the active selection is stale.
 
 ## Expected verification result
 
-- Static/regression: **450/450 PASS** across bounded full-index ranges.
-- Dock stale-owner reproduction/repair: **PASS**.
-- Source hygiene / Version / SRI / browser preflight / Functions / local App Check / handoff: **PASS**.
-- Firebase Hosting boundary: **163 allowlisted files**.
-- Full Playwright navigation: final acceptance in GitHub Actions.
+- Static/regression target: **451 checks**.
+- v1.6.95 focused release-artifact safety regression: **PASS**.
+- Source hygiene / Version / SRI / App Check / handoff / Hosting boundary: **PASS**.
+- Delivery: **785-file FULL**, **318-file PATCH**, **7 delete paths**, no generated patch manifest: **PASS**.
+- Full Playwright navigation remains the GitHub Actions acceptance step when a browser runtime is unavailable locally.
 
 # GitHub Desktop Handoff - v1.6.79
 

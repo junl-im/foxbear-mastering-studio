@@ -1,3 +1,11 @@
+# v1.6.95 Project Notes
+
+- Release packaging is strict and non-mutating. Cleanup remains an explicit maintenance command, never an implicit delivery step.
+- Source hygiene must inspect the physical workspace as well as Git state; ignored `.env*` files are release-blocking secrets.
+- Every tracked deletion or rename source must be covered by `DELETE_PATHS.txt` before a patch can be built.
+- Failed release archives must be removed immediately; a verification failure must never leave a shareable secret-bearing ZIP behind.
+- Dock diagnostics treat stale selection with remaining tracks as unhealthy even if the Dock is hidden, so diagnostics and repair agree.
+
 # v1.6.72 project notes
 
 - Extract-overwrite archives cannot delete pre-existing tracked files; the normal release path must tolerate the fixed, non-secret cleanup allowlist.

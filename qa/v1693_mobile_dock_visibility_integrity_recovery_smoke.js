@@ -13,7 +13,7 @@ const state = fs.readFileSync('src/state/app-state.js', 'utf8');
 const integrityService = fs.readFileSync('src/ui/bottom-preview-dock-integrity-service.js', 'utf8');
 const diagnostics = fs.readFileSync('src/boot/performance-diagnostics.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.94'); // synchronized to the current release by sync-release-metadata.js
+assert.strictEqual(pkg.version, '1.6.95'); // synchronized to the current release by sync-release-metadata.js
 assert(pkg.qaChecks.includes('node qa/v1693_mobile_dock_visibility_integrity_recovery_smoke.js'));
 
 // Base Dock visibility must remain state-driven in every mode.
@@ -40,7 +40,8 @@ assert(state.includes('bottomPreviewIntegrityRaf: 0'));
 assert(state.includes('bottomPreviewRepairCount: 0'));
 assert(state.includes("bottomPreviewLastRepairReason: ''"));
 assert(integrityService.includes('function getSnapshot()'));
-assert(integrityService.includes('const healthy = expectedVisible'));
+assert(integrityService.includes('const selectionIntegrity = !Number(state.tracks?.length || 0) || Boolean(track);'));
+assert(integrityService.includes('const healthy = selectionIntegrity && (expectedVisible'));
 assert(integrityService.includes('renderedVisible && playerChildren > 0 && trackOwnerMatches'));
 assert(integrityService.includes('dockTrackId === selectedTrackId && playerTrackId === selectedTrackId'));
 assert(integrityService.includes('!before.trackOwnerMatches'));

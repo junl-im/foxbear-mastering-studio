@@ -1,3 +1,13 @@
+# v1.6.95 patch notes
+
+## 적용 내역
+
+- Git-ignore된 `.env*`도 실제 워크트리에서 탐지해 release source hygiene를 실패시킵니다.
+- ZIP 생성 전 strict preflight를 수행하고 `.env*`를 명시적으로 제외하며, 검증 실패 시 생성 중인 ZIP을 즉시 삭제합니다.
+- `package:delivery`의 자동 source repair를 제거해 릴리스 경로를 non-mutating으로 유지합니다.
+- Git 삭제/rename source를 자동 탐지하고 `DELETE_PATHS.txt` 누락 시 패치 생성을 실패시킵니다.
+- 트랙이 남아 있는데 `selectedId`가 stale인 hidden Dock 상태를 `healthy:false`로 진단합니다.
+
 # v1.6.94 patch notes
 
 ## 적용 내역

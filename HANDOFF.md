@@ -1,36 +1,35 @@
-# Handoff - v1.6.94
+# Handoff - v1.6.95
 
 ## Current release
 
-- Product version: `1.6.94`
-- Build ID: `release-integrity-hardening`
-- Asset version: `1.6.94-release-integrity-hardening`
-- Service worker cache: `foxbear-shell-v1.6.94-release-integrity-hardening`
-- Configured static/regression target: 450 checks.
+- Product version: `1.6.95`
+- Build ID: `release-artifact-safety`
+- Asset version: `1.6.95-release-artifact-safety`
+- Service worker cache: `foxbear-shell-v1.6.95-release-artifact-safety`
+- Configured static/regression target: 451 checks.
 
 ## Current focus
 
-- Ship `external-browser.html` as a required GitHub Pages artifact so Kakao recovery cannot land on a missing page.
-- Detect stale Dock ownership by requiring the selected track, Dock state owner, and rendered player/audio owner to agree.
-- Make normal release source-hygiene checks strict and non-mutating; keep repair as an explicit maintenance action.
-- Remove the tracked legacy `PATCH_MANIFEST.json` and reduce avoidable QA runner/timer overhead without changing mastering DSP.
+- Block Git-ignored `.env*` secrets by scanning the physical release worktree.
+- Fail closed before release artifact creation when source hygiene or patch deletion contracts are invalid.
+- Require Git deletions and rename sources to be covered by `DELETE_PATHS.txt`, and apply that contract through the cleanup helper.
+- Keep delivery packaging non-mutating while preserving explicit maintenance repair mode.
+- Report stale active selection as unhealthy even when the bottom Dock is hidden.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.94 patch ZIP** into the **v1.6.93 repository root** and replace matching files.
-2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`.
-3. Confirm `PATCH_MANIFEST.json` is deleted, review all modified/new/deleted files in GitHub Desktop, commit, and **Push origin**.
-4. For a clean replacement, preserve `.git` and extract the v1.6.94 full ZIP into the repository folder.
+1. Extract the **v1.6.95 patch ZIP** into the **v1.6.94 repository root** and replace matching files.
+2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`. The helper now applies every safe path in `DELETE_PATHS.txt` before the narrow hygiene repair.
+3. Review all modified/new/deleted files in GitHub Desktop, commit, and **Push origin**.
+4. For a clean replacement, preserve `.git` and extract the v1.6.95 full ZIP into the repository folder.
 
 ## Verified
 
-- Static and behavioral checks: **450/450 PASS** across bounded full-index ranges.
-- Dock stale-owner false-negative reproduction and repair: **PASS**.
-- GitHub Pages required `external-browser.html` artifact and generated `_site` presence: **PASS**.
-- `src/app.js` remains below the structural gate at **13,298 lines**.
-- Version/SRI, strict source hygiene, browser preflight, Functions syntax, local App Check policy, dependency structure, and handoff checks: **PASS**.
-- Firebase Hosting boundary: **163 allowlisted files**.
-- Full Playwright network navigation remains a GitHub Actions acceptance step because this execution environment does not provide the installed browser runtime.
+- v1.6.95 focused release-artifact/deletion/Dock regression: **PASS**.
+- Historical v1.6.66/v1.6.67/v1.6.72 hygiene policy regressions and v1.6.93 Dock ownership regression: **PASS**.
+- Full static/regression suite: **451/451 PASS** across four bounded ranges.
+- Git-ignored secret and undeclared tracked deletion fail-closed reproductions: **PASS**.
+- Delivery verification: **785-file FULL/release ZIP**, **318-file manifestless PATCH**, **7 delete paths**, no generated patch manifest: **PASS**.
 
 # Handoff - v1.6.79
 
