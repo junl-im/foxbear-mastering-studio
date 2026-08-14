@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.100-sw-stereo-ci-cleanup-hardening';
+    const SERVICE_VERSION = '1.6.101-admin-lazyload-repo-cleanup';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

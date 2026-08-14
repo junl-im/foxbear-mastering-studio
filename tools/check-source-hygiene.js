@@ -15,7 +15,10 @@ const FORBIDDEN_EXACT = new Set([
   'npm-debug.log',
   'PATCH_MANIFEST.json',
   'assets/css/spectrum-visualizer.css',
-  'src/ui/spectrum-visualizer.js'
+  'src/ui/spectrum-visualizer.js',
+  'APPLY_SPECTRUM_DELETE_NO_GIT.cmd',
+  'APPLY_SPECTRUM_DELETE_NO_GIT.sh',
+  'README_FIRST.txt'
 ]);
 const FORBIDDEN_PREFIXES = [
   '.firebase/',

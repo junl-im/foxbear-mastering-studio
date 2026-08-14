@@ -1,3 +1,14 @@
+# FoxBear QA Report - v1.6.101
+
+## v1.6.101 admin lazy-load and repository cleanup
+
+- Static and behavioral target: **457 checks**.
+- New regression: `qa/v16101_admin_lazyload_repo_cleanup_smoke.js`.
+- Normal-user boot no longer eagerly parses the 77KB incident monitor module.
+- Dynamic admin script retain exact SHA-384 integrity and Trusted Types URL validation.
+- Temporary Spectrum deletion helper files are cleanup-only paths.
+- Full configured suite: **457/457 PASS**; Hosting: **161 files**; delivery: **644 FULL / 315 PATCH / 12 cleanup**; replay: **MATCH**.
+
 # FoxBear QA Report - v1.6.100
 
 ## v1.6.100 SW/stereo/cleanup hardening

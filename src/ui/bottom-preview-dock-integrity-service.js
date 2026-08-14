@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.100-sw-stereo-ci-cleanup-hardening';
+    const VERSION = '1.6.101-admin-lazyload-repo-cleanup';
 
     function createController(options = {}) {
         const state = options.state || {};

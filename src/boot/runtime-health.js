@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.100-sw-stereo-ci-cleanup-hardening';
+    const FALLBACK_VERSION = '1.6.101-admin-lazyload-repo-cleanup';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

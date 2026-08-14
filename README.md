@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.101
+
+> Current release: v1.6.101 · admin-lazyload-repo-cleanup
+
+This release reduces normal-user boot work by loading the administrator incident operations JavaScript only on demand, while retaining SRI and Trusted Types protections. It also removes temporary Spectrum deletion helpers left by the v1.6.100 CI recovery.
+
 # FoxBear AI Mastering Studio Pro v1.6.100
 
 > Current release: v1.6.100 · sw-stereo-ci-cleanup-hardening

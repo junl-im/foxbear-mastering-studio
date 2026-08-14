@@ -1,3 +1,11 @@
+# v1.6.101 release checklist
+
+- [x] Remove eager admin incident monitor JS from index.html.
+- [x] Generate exact lazy-asset SRI values in build-info.
+- [x] Keep dynamic admin script on the Trusted Types exact allowlist.
+- [x] Add temporary Spectrum helper files to patch cleanup.
+- [x] Run final **457/457** static/regression, Hosting 161-file, packaging, and exact replay gates.
+
 # v1.6.100 release checklist
 
 - [x] Diagnose GitHub Actions run 31774910795: 12 static failures all came from retired Spectrum JS/CSS still existing in the repository.

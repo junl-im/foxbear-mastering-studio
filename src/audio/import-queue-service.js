@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.100-sw-stereo-ci-cleanup-hardening',
+                version: '1.6.101-admin-lazyload-repo-cleanup',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.100-sw-stereo-ci-cleanup-hardening',
+        version: '1.6.101-admin-lazyload-repo-cleanup',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

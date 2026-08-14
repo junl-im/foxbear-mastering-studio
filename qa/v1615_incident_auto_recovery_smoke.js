@@ -14,7 +14,7 @@ const lifecycle = read('src/boot/incident-lifecycle-service.js');
 const html = read('index.html');
 const css = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.100');
+assert.strictEqual(pkg.version, '1.6.101');
 assert(firebase.includes("classification: 'client-offline'"), 'offline endpoint classification missing');
 assert(firebase.includes("const opaqueResponse = await request('no-cors')"), 'opaque reachability fallback missing');
 assert(firebase.includes("classification: 'endpoint-reachable-opaque'"), 'CORS-readable response distinction missing');

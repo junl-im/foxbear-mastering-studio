@@ -1,3 +1,10 @@
+# v1.6.101 - Admin lazy-load and repository cleanup hardening
+
+- Lazy-load the 77KB admin incident monitor JS only when an authenticated administrator opens the incident tab.
+- Preserve SRI and Trusted Types for dynamically loaded admin script using hashes generated into build-info.
+- Keep visit statistics available without loading the incident operations module.
+- Clean temporary Spectrum deletion helper files accidentally committed during the v1.6.100 CI recovery.
+
 # v1.6.100 - SW restart, stereo analysis, and CI cleanup hardening
 
 - Search every FoxBear shell cache for exact stale-generation requests after a Service Worker process restart.

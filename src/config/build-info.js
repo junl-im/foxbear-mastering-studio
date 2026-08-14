@@ -3,14 +3,22 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.6.100',
-    appVersion: 'Pro v1.6.100',
-    buildId: 'sw-stereo-ci-cleanup-hardening',
-    assetVersion: '1.6.100-sw-stereo-ci-cleanup-hardening',
-    cacheName: 'foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening',
-    bootRevision: 'boot-sri-v16100',
-    updateSafetyRevision: 'update-safety-v16100',
-    serviceWorkerRevision: 'sw-v16100'
+    productVersion: '1.6.101',
+    appVersion: 'Pro v1.6.101',
+    buildId: 'admin-lazyload-repo-cleanup',
+    assetVersion: '1.6.101-admin-lazyload-repo-cleanup',
+    cacheName: 'foxbear-shell-v1.6.101-admin-lazyload-repo-cleanup',
+    bootRevision: 'boot-sri-v16101',
+    updateSafetyRevision: 'update-safety-v16101',
+    serviceWorkerRevision: 'sw-v16101',
+    lazyAssets: Object.freeze({
+      adminIncidentMonitor: Object.freeze({
+        scriptPath: 'src/ui/admin-incident-monitor-view.js',
+        stylePath: 'assets/css/components/admin-incident-monitor.css',
+        scriptIntegrity: 'sha384-EkM5I9u62hysHtiNHU8VJCDj3xlbUgOEyZUaj8C7hfdOxAbRrfvV5+wnV4E+q/sp',
+        styleIntegrity: 'sha384-DziwLpc6frFhgGJNfQtBi0I4Ahsc/ENn0LhrJ0+tPSlzvweut81oy+pKLir/B76t'
+      })
+    })
   });
   global.FoxBearBuildInfo = info;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,36 +1,34 @@
-# FoxBear Status - v1.6.100
+# FoxBear Status - v1.6.101
 
 ## Current release
 
-- Product version: `1.6.100`
-- Build ID: `sw-stereo-ci-cleanup-hardening`
-- Asset version: `1.6.100-sw-stereo-ci-cleanup-hardening`
-- Service worker cache: `foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening`
-- Configured static/regression target: **456 checks**.
+- Product version: `1.6.101`
+- Build ID: `admin-lazyload-repo-cleanup`
+- Asset version: `1.6.101-admin-lazyload-repo-cleanup`
+- Service worker cache: `foxbear-shell-v1.6.101-admin-lazyload-repo-cleanup`
+- Configured static/regression target: **457 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.100`
-- Build ID: `sw-stereo-ci-cleanup-hardening`
-- Asset version: `1.6.100-sw-stereo-ci-cleanup-hardening`
-- Service worker cache: `foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening`
+- Product version: `1.6.101`
+- Build ID: `admin-lazyload-repo-cleanup`
+- Asset version: `1.6.101-admin-lazyload-repo-cleanup`
+- Service worker cache: `foxbear-shell-v1.6.101-admin-lazyload-repo-cleanup`
 
 ## Release focus
 
-- Recover exact stale-generation assets from any FoxBear shell cache after Service Worker process restart.
-- Preserve two rollback generations as declared by `RETAINED_LEGACY_SHELL_COUNT`.
-- Keep analysis and final mastering on the same mono/stereo channel semantics.
-- Fail early when retired Spectrum UI assets survive an overwrite-only patch.
-- Cover 320/390/430px AI + ADMIN header states in browser QA.
+- Lazy-load the 77KB administrator incident monitor JavaScript on first incident-tab use.
+- Keep shared administrator monitor CSS eager for stable visit-statistics layout.
+- Preserve generated SHA-384 integrity and exact Trusted Types validation for the lazy script.
+- Retire temporary Spectrum deletion helper files through Source Hygiene + cleanup paths.
 
 ## Release status
 
-- Full configured static/behavioral QA: **456/456 PASS**.
-- Dynamic SW restart + two-generation rollback verification: **PASS**.
-- GitHub Desktop no-Git-CLI hygiene fallback verification: **PASS**.
+- Full configured static/behavioral QA: **457/457 PASS**.
+- Dynamic admin script SRI + Trusted Types verification: **PASS**.
 - Final gates: Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Delivery: **642-file FULL**, **317-file PATCH**, **9 cleanup paths**; patch replay: **REPLAY_MATCH=YES**.
+- Delivery: **644-file FULL**, **315-file PATCH**, **12 cleanup paths**; patch replay: **REPLAY_MATCH=YES**.
 
 ## Current release
 

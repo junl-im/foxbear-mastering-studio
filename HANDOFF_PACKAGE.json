@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.100",
-  "buildId": "sw-stereo-ci-cleanup-hardening",
+  "productVersion": "1.6.101",
+  "buildId": "admin-lazyload-repo-cleanup",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

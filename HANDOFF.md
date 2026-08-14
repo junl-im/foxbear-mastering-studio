@@ -1,36 +1,35 @@
-# Handoff - v1.6.100
+# Handoff - v1.6.101
 
 ## Current release
 
-- Product version: `1.6.100`
-- Build ID: `sw-stereo-ci-cleanup-hardening`
-- Asset version: `1.6.100-sw-stereo-ci-cleanup-hardening`
-- Service worker cache: `foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening`
-- Configured static/regression target: 456 checks.
+- Product version: `1.6.101`
+- Build ID: `admin-lazyload-repo-cleanup`
+- Asset version: `1.6.101-admin-lazyload-repo-cleanup`
+- Service worker cache: `foxbear-shell-v1.6.101-admin-lazyload-repo-cleanup`
+- Configured static/regression target: 457 checks.
 
 ## Current focus
 
-- Recover exact stale-generation assets from any FoxBear shell cache after a Service Worker process restart.
-- Preserve the two rollback generations declared by `RETAINED_LEGACY_SHELL_COUNT`.
-- Analyze no more than two channels so Worker, fallback analysis, and final mastering share the same mono/stereo semantics.
-- Treat retired Spectrum UI JS/CSS as forbidden source state and delete any leftovers during patch cleanup.
-- Cover 320/390/430px AI + ADMIN header geometry in browser QA.
+- Lazy-load the 77KB administrator incident monitor JavaScript only when an authenticated administrator opens the incident tab.
+- Keep shared administrator CSS eager so visit-statistics tabs never flash unstyled.
+- Preserve SHA-384 SRI and the exact Trusted Types script allowlist for the dynamically loaded module.
+- Remove the temporary Spectrum deletion helpers that were committed during the v1.6.100 CI recovery.
 
 ## Required GitHub Desktop step
 
-1. Extract the v1.6.100 patch ZIP into the current repository root and replace matching files.
-2. **Run `APPLY_PATCH_CLEANUP.cmd` once.** This is required if older overwrite-only updates left `src/ui/spectrum-visualizer.js` or `assets/css/spectrum-visualizer.css` behind.
-3. In GitHub Desktop, confirm those files are **Deleted** when present, review the v1.6.100 changes, commit, and Push origin.
-4. The Static release gate should now fail at Source Hygiene immediately if either retired Spectrum path survives.
+1. Extract the v1.6.101 PATCH ZIP into the current repository root and replace matching files.
+2. **Run `APPLY_PATCH_CLEANUP.cmd` once.** It removes any temporary `APPLY_SPECTRUM_DELETE_NO_GIT.*` / `README_FIRST.txt` files left by the deletion hotfix.
+3. In GitHub Desktop, review the deleted temporary helper entries together with the v1.6.101 changes, then commit and Push origin.
+4. A clean replacement can use the v1.6.101 FULL ZIP instead.
 
 ## Verified
 
-- Full configured static/regression suite: **456/456 PASS**.
-- Dynamic SW restart exact-cache recovery and two-generation rollback retention: **PASS**.
-- Git-CLI-missing physical hygiene fallback: **PASS**.
+- Full configured static/regression suite: **457/457 PASS**.
+- Administrator incident JS eager boot load removed; shared admin CSS remains eager: **PASS**.
+- Dynamic admin module SHA-384 + Trusted Types exact allowlist contract: **PASS**.
 - Version/SRI, Source Hygiene, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Delivery: **642-file FULL**, **317-file PATCH**, **9 cleanup paths**; v1.6.99 replay: **REPLAY_MATCH=YES**.
+- Delivery: **644-file FULL**, **315-file PATCH**, **12 cleanup paths**; current-repository replay: **REPLAY_MATCH=YES**.
 
 ## Current release
 

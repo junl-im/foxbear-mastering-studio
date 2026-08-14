@@ -1,16 +1,26 @@
-# GitHub Desktop Handoff - v1.6.100
+# GitHub Desktop Handoff - v1.6.101
 
 ## Apply
 
 1. Fetch origin in GitHub Desktop.
-2. Extract the v1.6.100 patch into the repository root and replace matching files.
-3. **Run `APPLY_PATCH_CLEANUP.cmd` once.** This physically removes the retired `src/ui/spectrum-visualizer.js` and `assets/css/spectrum-visualizer.css` if they survived an older overwrite-only update.
-4. In GitHub Desktop, confirm both Spectrum files appear as **Deleted** when they existed, then commit those deletions together with the v1.6.100 changes.
-5. Push origin and verify the Static release gate. A clean replacement can use the v1.6.100 FULL ZIP instead.
+2. Extract the v1.6.101 PATCH ZIP into the repository root and replace matching files.
+3. **Run `APPLY_PATCH_CLEANUP.cmd` once.** This removes temporary Spectrum deletion helpers (`APPLY_SPECTRUM_DELETE_NO_GIT.cmd/.sh`, `README_FIRST.txt`) if they were committed during the v1.6.100 CI repair.
+4. Confirm those temporary helpers appear as **Deleted** when present, review the remaining v1.6.101 changes, commit, and Push origin.
+5. For a clean replacement, preserve `.git` and use the v1.6.101 FULL ZIP.
 
-## CI failure being closed
+## Release focus
 
-GitHub Actions run `31774910795` reached 442/454 before failing 12 guards because the retired Spectrum files were still physically present in the Git checkout. v1.6.100 keeps those guards and also blocks the two paths at Source Hygiene for a faster, clearer failure.
+- Removes the 77KB administrator incident monitor JavaScript from normal-user eager boot parsing.
+- Loads the module only when an authenticated administrator opens the incident tab.
+- Keeps generated SHA-384 SRI and exact Trusted Types script validation.
+- Keeps shared administrator CSS eager so visit statistics remain fully styled before the incident module loads.
+
+## Verified
+
+- Static/regression: **457/457 PASS**.
+- Firebase Hosting: **161 files**.
+- FULL: **644 files**. PATCH: **315 overwrite files + 12 cleanup paths**.
+- Current-repository replay after cleanup: **REPLAY_MATCH=YES**.
 
 # GitHub Desktop Handoff - v1.6.99
 

@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.100",
+  "version": "1.6.101",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.100 - sw stereo ci cleanup hardening",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.101 - admin lazyload repo cleanup",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.100-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.100-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.101-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.101-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.100-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.100-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.101-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.101-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -504,15 +504,16 @@
     "node qa/v1698_spectrum_retirement_mobile_header_integrity_smoke.js",
     "node qa/v1699_header_role_separation_focus_integrity_smoke.js",
     "node --check qa/browser/mobile-ai-admin-header-matrix-playwright.spec.js",
-    "node qa/v16100_sw_stereo_ci_cleanup_hardening_smoke.js"
+    "node qa/v16100_sw_stereo_ci_cleanup_hardening_smoke.js",
+    "node qa/v16101_admin_lazyload_repo_cleanup_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "sw-stereo-ci-cleanup-hardening",
-    "assetVersion": "1.6.100-sw-stereo-ci-cleanup-hardening",
-    "cacheName": "foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening",
-    "bootRevision": "boot-sri-v16100",
-    "updateSafetyRevision": "update-safety-v16100",
-    "serviceWorkerRevision": "sw-v16100"
+    "buildId": "admin-lazyload-repo-cleanup",
+    "assetVersion": "1.6.101-admin-lazyload-repo-cleanup",
+    "cacheName": "foxbear-shell-v1.6.101-admin-lazyload-repo-cleanup",
+    "bootRevision": "boot-sri-v16101",
+    "updateSafetyRevision": "update-safety-v16101",
+    "serviceWorkerRevision": "sw-v16101"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

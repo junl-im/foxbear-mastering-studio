@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.100 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.6.101 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });

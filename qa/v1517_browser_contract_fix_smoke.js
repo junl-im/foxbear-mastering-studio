@@ -11,7 +11,7 @@ const css = fs.readFileSync(path.join(root, 'assets/css/mobile-native.css'), 'ut
 
 assert(
   app.includes("const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion")
-    && app.includes('SERVICE_WORKER_URL]);'),
+    && /TRUSTED_SCRIPT_PATHS = Object\.freeze\(\[[\s\S]*SERVICE_WORKER_URL/.test(app),
   'service worker URL is not part of the Trusted Types script allowlist'
 );
 assert(
