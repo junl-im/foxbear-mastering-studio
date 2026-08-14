@@ -47,7 +47,7 @@ assert.strictEqual(service.createQualityRecoveryPlan({ gate, alreadyAttempted: t
 assert.strictEqual(service.createQualityRecoveryPlan({ gate: { status: 'pass', riskFlags: [] } }), null, 'passing output must not rerender');
 
 const jsZipUrl = `vendor/jszip/jszip.min.js?v=${assetVersion}&lib=3.10.1`;
-assert(index.includes(jsZipUrl), 'index JSZip URL must use the app asset generation');
+assert(!index.includes(jsZipUrl), 'index must not eagerly load JSZip; ZIP worker owns the library');
 assert(sw.includes(`./${jsZipUrl}`), 'service worker JSZip URL must use the app asset generation');
 assert(worker.includes(`../../${jsZipUrl}`), 'ZIP worker JSZip URL must use the app asset generation');
 assert(syncTool.includes('foxbear-root.json') && syncTool.includes('&lib=3.10.1'), 'release sync must guard the root marker and JSZip generation URL');

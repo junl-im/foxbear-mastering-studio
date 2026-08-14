@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.95-release-artifact-safety';
+  const VIEW_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

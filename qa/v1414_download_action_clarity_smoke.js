@@ -19,13 +19,13 @@ const service = read('src/download/download-service.js');
 const css = read('assets/css/download-dialog.css');
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 
-assert(pkg.version === '1.6.95', 'package version should be 1.6.95');
-assert(pkg.name === 'foxbear-mastering-studio', 'package name should match v1.6.95');
-assert(index.includes('data-build="1.6.95"'), 'index build should be v1.6.95');
-assert(index.includes('1.6.95-release-artifact-safety'), 'index should use v1.6.95 action clarity cache key');
-assert(sw.includes('foxbear-shell-v1.6.95-release-artifact-safety'), 'service worker should use action clarity cache key');
+assert(pkg.version === '1.6.97', 'package version should be 1.6.97');
+assert(pkg.name === 'foxbear-mastering-studio', 'package name should match v1.6.97');
+assert(index.includes('data-build="1.6.97"'), 'index build should be v1.6.97');
+assert(index.includes('1.6.97-boot-payload-delivery-privacy-hardening'), 'index should use v1.6.97 action clarity cache key');
+assert(sw.includes('foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening'), 'service worker should use action clarity cache key');
 
-assert(service.includes("version: '1.6.95'"), 'download diagnostics/flow should report v1.6.95');
+assert(service.includes("version: '1.6.97'"), 'download diagnostics/flow should report v1.6.97');
 assert(service.includes('getRecommendedDownloadFlow'), 'recommended flow helper should remain in download service');
 
 assert(dialog.includes('const actionLabel = action =>'), 'dialog should map action labels explicitly');
@@ -49,7 +49,7 @@ assert(dialog.includes('copyDownloadDiagnostics(track.outBlob || null, track.out
 assert(dialog.includes('openCurrentPageInExternalBrowser(deps)'), 'external browser helper should receive deps');
 
 assert(app.includes('showToast,\n        foxBearHaptic'), 'app should pass showToast into download dialog deps');
-assert(css.includes('.download-options-actions-v1414'), 'CSS should style v1.6.95 action row');
+assert(css.includes('.download-options-actions-v1414'), 'CSS should style v1.6.97 action row');
 assert(css.includes('button.is-recommended::after'), 'CSS should show recommended action badge');
 assert(css.includes('data-download-action="diagnostics"'), 'CSS should include diagnostics action selector');
 

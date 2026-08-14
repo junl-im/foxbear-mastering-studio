@@ -155,9 +155,8 @@ handlers.activate({ waitUntil(promise) { activation = promise; } });
 (async () => {
   await activation;
   assert(cacheMap.has(meta.cacheName), 'current cache was deleted during activation');
-  assert(cacheMap.has(newest) && cacheMap.has(secondNewest), 'an unresponsive legacy client must keep both recent shell generations available');
-  assert(!cacheMap.has(older), 'legacy shells older than the retained safety window must be removed');
-  assert(!deletedCaches.includes(newest) && !deletedCaches.includes(secondNewest) && deletedCaches.includes(older), 'client-safe bounded legacy cache retention is incorrect');
+  assert(cacheMap.has(newest) && cacheMap.has(secondNewest) && cacheMap.has(older), 'an unresponsive legacy client must defer every shell-cache retirement until its generation is known');
+  assert(!deletedCaches.includes(newest) && !deletedCaches.includes(secondNewest) && !deletedCaches.includes(older), 'incomplete client probing must not delete any legacy shell cache');
   assert(cacheMap.has('unrelated-cache'), 'unrelated cache must not be deleted');
 
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-probe-cleanup-'));

@@ -80,7 +80,7 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.95';
+const PRODUCT_VERSION = '1.6.97';
 const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
@@ -253,11 +253,9 @@ function serializeIncidentDelivery(snapshot) {
     messageId: cleanText(delivery.messageId || '', 240),
     subject: cleanText(delivery.subject || '', 180),
     senderName: cleanText(delivery.senderName || '', 80),
-    recipient: cleanText(delivery.recipient || '', 180),
     mailType: cleanText(delivery.mailType || '', 40),
     acceptedCount: clampIncidentNumber(delivery.acceptedCount, 0, 20),
     rejectedCount: clampIncidentNumber(delivery.rejectedCount, 0, 20),
-    smtpResponse: cleanText(delivery.smtpResponse || '', 300),
     smtpAcceptedAt: timestampToIso(delivery.smtpAcceptedAt),
     nextRetryAt: timestampToIso(delivery.nextRetryAt),
     checkedAt: timestampToIso(delivery.checkedAt),
@@ -1676,12 +1674,10 @@ async function finalizeDelivery(reportRef, reservation, outcome = {}) {
         delivery: {
           status: 'emailed', reason: '', message: '', attemptCount, terminal: false,
           messageId: cleanText(outcome.messageId || '', 240),
-          smtpResponse: cleanText(outcome.response || '', 300),
           acceptedCount: Math.max(0, Number(outcome.acceptedCount || 0)),
           rejectedCount: Math.max(0, Number(outcome.rejectedCount || 0)),
           subject: cleanText(outcome.subject || '', 180),
           senderName: cleanText(outcome.senderName || MAIL_FROM_NAME, 80),
-          recipient: cleanText(outcome.recipient || ALERT_RECIPIENT, 180),
           mailType: cleanText(outcome.mailType || 'incident', 40),
           smtpAcceptedAt: Timestamp.fromMillis(now),
           manualResetCount: Math.max(0, Number(currentDelivery.manualResetCount || 0)),

@@ -1,3 +1,36 @@
+# v1.6.97 patch notes
+
+## 적용 내역
+
+- 초기 메인 스레드에서 실제 사용되지 않던 JSZip 로딩을 제거하고 ZIP Worker 전용으로 유지했습니다. Service Worker precache와 Worker import는 그대로 유지합니다.
+- 사용자 읽기 가능한 incident report delivery 상태에 운영 수신 이메일과 raw SMTP response를 더 이상 저장하지 않습니다. 기존 문서 fallback에서도 해당 필드를 UI 응답으로 노출하지 않습니다.
+- 초기 script boot budget을 93개 이하로 고정하는 회귀 검사를 추가했습니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **453/453 PASS**.
+- 초기 script: **94 → 93**, main-thread JSZip 약 98KB 제거.
+- Version/SRI, Handoff, Source Hygiene, Firebase Hosting 163-file boundary, App Check, Functions syntax, browser preflight: **PASS**.
+
+# v1.6.96 patch notes
+
+## 적용 내역
+
+- Service Worker 활성화 시 기존 shell cache를 먼저 삭제하지 않고, `clients.claim()` 후 활성 탭의 실행 세대를 probe한 다음 안전하게 retire합니다. 응답하지 않는 활성 탭이 있으면 캐시 정리를 보류합니다.
+- 설치 단계는 최소 복구 shell만 `cache.addAll(REQUIRED_INSTALL_ASSETS)`로 강제하고 나머지 boot graph는 best-effort로 캐시해, 선택 자산 하나의 일시적 404/네트워크 실패가 새 SW 전체 설치를 거부하지 않게 했습니다.
+- Source Hygiene는 Git에 추적된 금지 경로가 작업폴더에서만 지워진 상태도 실패로 유지하며, 명시적 repair는 tracked 금지 파일을 삭제와 함께 stage합니다.
+- `package.json.description`을 release metadata 동기화/검증 대상에 추가했습니다.
+- 공개 오류신고 UI와 런타임 diagnostics에서 운영 수신 이메일 주소 중복을 제거하고 서버 설정으로만 표시하도록 정리했습니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **452/452 PASS** (`113 + 113 + 113 + 113`).
+- v1.6.92 장기 활성 탭 + v1.6.96 SW 교체 재현: 활성 v1.6.92 cache 보존 **PASS**.
+- 응답 없는 활성 탭 probe 재현: legacy shell cache 삭제 0건 / cleanup deferred **PASS**.
+- tracked `PATCH_MANIFEST.json` worktree-only deletion 재현: Git index 삭제 전 hygiene FAIL, index 삭제 후 PASS **확인**.
+- Version/SRI, Handoff, Firebase Hosting 163-file boundary, App Check, Functions syntax, browser preflight: **PASS**.
+- Clean FULL: **635 files**. v1.6.95 clean base 기준 PATCH: **314 overwrite files + 7 cleanup paths**, base-only deletion 0건.
+
 # v1.6.95 patch notes
 
 ## 적용 내역

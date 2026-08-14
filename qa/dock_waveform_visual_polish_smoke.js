@@ -7,10 +7,10 @@ const dockWaveformCss = fs.readFileSync('assets/css/dock-waveform.css', 'utf8');
 const compareCss = fs.readFileSync('assets/css/waveform-compare.css', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 function must(cond, msg) { if (!cond) { console.error(msg); process.exit(1); } }
-must(html.includes('data-build="1.6.95"'), 'index build should be v1.6.95');
-must(app.includes("const APP_VERSION = 'Pro v1.6.95'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.97"'), 'index build should be v1.6.97');
+must(app.includes("const APP_VERSION = 'Pro v1.6.97'"), 'app version should be v1.4.0');
 must(/const SHARED_DSP_PROFILE_VERSION = 'v[0-9]+\.[0-9]+\.[0-9]+-[a-z0-9-]+';/.test(app), 'DSP slug should be v1.4.0');
-must(pkg.version === '1.6.95', 'package version should be 1.6.95');
+must(pkg.version === '1.6.97', 'package version should be 1.6.97');
 must(app.includes('function getAdaptiveDockWaveformBinCount'), 'adaptive dock waveform bin count helper missing');
 must(app.includes('function updateWaveformProgressBars'), 'waveform progress bar class helper missing');
 must(app.includes("--waveform-progress-pct") && !app.includes("bar.classList.toggle('is-played'"), 'CSS-variable waveform progress optimization missing');

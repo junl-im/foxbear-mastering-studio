@@ -136,6 +136,7 @@ function markdownSection(text, heading) {
 function sync() {
   const previous = detectPrevious();
   const pkg = JSON.parse(read('package.json'));
+  pkg.description = `FoxBear AI Mastering Studio Pro v${meta.productVersion} - ${meta.buildId.replace(/-/g, ' ')}`;
   pkg.scripts = pkg.scripts || {};
   pkg.scripts['package:verify:overwrite'] = `node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-overwrite.zip`;
   pkg.scripts['package:verify:release'] = `node tools/verify-release-zip.js dist/foxbear-mastering-studio-v${meta.productVersion}-release.zip`;
@@ -425,6 +426,7 @@ function validate() {
   const releaseMetadataStatus = markdownSection(status, 'Release metadata');
   const legacyCacheList = sw.match(/const LEGACY_CACHE_NAMES = \[([^\]]*)\];/)?.[1] || '';
 
+  expect(pkg.description === `FoxBear AI Mastering Studio Pro v${meta.productVersion} - ${meta.buildId.replace(/-/g, ' ')}`, 'package.json description is not synchronized');
   expect(buildInfo === renderBuildInfo(meta), 'src/config/build-info.js is not synchronized with package.json');
   expect(manifest.version === meta.productVersion, 'manifest.webmanifest version is not synchronized');
   expect(handoffPackage.productVersion === meta.productVersion, 'HANDOFF_PACKAGE.json version is not synchronized');
@@ -477,7 +479,7 @@ function validate() {
   expect(sw.includes(`./src/config/build-info.js?v=${meta.assetVersion}`), 'service worker does not precache build-info');
   expect(sw.includes(`./src/boot/release-presentation-service.js?v=${meta.assetVersion}`), 'service worker does not precache release presentation service');
   const jsZipUrl = `vendor/jszip/jszip.min.js?v=${meta.assetVersion}&lib=3.10.1`;
-  expect(index.includes(jsZipUrl), 'JSZip boot URL must use the current asset generation');
+  expect(!index.includes(jsZipUrl), 'JSZip must not be loaded on the main thread; ZIP export owns it inside the Worker');
   expect(sw.includes(`./${jsZipUrl}`), 'service worker must precache JSZip with the current asset generation');
   expect(read('src/workers/zip-encoder.worker.js').includes(`../../${jsZipUrl}`), 'ZIP worker JSZip URL must use the current asset generation');
   expect(!legacyCacheList.includes(`'${meta.cacheName}'`), 'current cache name must not appear in legacy cache list');

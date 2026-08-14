@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.95 - extracted configuration module
+// FoxBear AI Mastering Studio Pro v1.6.97 - extracted configuration module
 'use strict';
 
 const PRESET_REFERENCE_TARGETS = {

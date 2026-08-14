@@ -1,9 +1,9 @@
-// FoxBear AI Mastering Studio Pro v1.6.95 service worker · release-artifact-safety
+// FoxBear AI Mastering Studio Pro v1.6.97 service worker · boot-payload-delivery-privacy-hardening
 'use strict';
 
 function loadSharePolicy() {
   try {
-    if (typeof importScripts === 'function') importScripts('./src/config/pwa-share-policy.js?v=1.6.95-release-artifact-safety');
+    if (typeof importScripts === 'function') importScripts('./src/config/pwa-share-policy.js?v=1.6.97-boot-payload-delivery-privacy-hardening');
   } catch (error) {
     console.warn('share policy import fallback:', error?.message || error);
   }
@@ -24,9 +24,9 @@ function loadSharePolicy() {
 const SHARE_POLICY_API = loadSharePolicy();
 const SHARE_POLICY = SHARE_POLICY_API.createPolicy();
 
-const CACHE_NAME = 'foxbear-shell-v1.6.95-release-artifact-safety';
-const CURRENT_ASSET_VERSION = '1.6.95-release-artifact-safety';
-const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.75-download-progress-admission-fallback-closure', 'foxbear-shell-v1.6.76-download-viewport-runtime-fault-diagnostics', 'foxbear-shell-v1.6.77-download-cache-budget-runtime-fault-retry-timing', 'foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation', 'foxbear-shell-v1.6.79-manifestless-patch-playback-retirement', 'foxbear-shell-v1.6.80-ai-mastering-expert-workspace', 'foxbear-shell-v1.6.81-ai-workspace-compact-overlay-accessibility', 'foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening', 'foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery', 'foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery', 'foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery', 'foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery', 'foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery', 'foxbear-shell-v1.6.88-mobile-header-grid-ownership-recovery', 'foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery', 'foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery', 'foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery', 'foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery', 'foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery', 'foxbear-shell-v1.6.94-release-integrity-hardening'];
+const CACHE_NAME = 'foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening';
+const CURRENT_ASSET_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
+const LEGACY_CACHE_NAMES = ['foxbear-shell-v1.5.4-boot-sri-recovery', 'foxbear-shell-v1.5.5-update-safety', 'foxbear-shell-v1.5.6-export-progress-recovery', 'foxbear-shell-v1.6.77-download-cache-budget-runtime-fault-retry-timing', 'foxbear-shell-v1.6.78-release-generation-assist-url-playback-invalidation', 'foxbear-shell-v1.6.79-manifestless-patch-playback-retirement', 'foxbear-shell-v1.6.80-ai-mastering-expert-workspace', 'foxbear-shell-v1.6.81-ai-workspace-compact-overlay-accessibility', 'foxbear-shell-v1.6.82-overlay-focus-ancestor-hardening', 'foxbear-shell-v1.6.83-browser-ui-mode-fixture-source-hygiene-recovery', 'foxbear-shell-v1.6.84-tracked-windows-cleanup-static-gate-recovery', 'foxbear-shell-v1.6.85-browser-sentinel-ui-mode-header-recovery', 'foxbear-shell-v1.6.86-header-order-mobile-overflow-browser-gate-recovery', 'foxbear-shell-v1.6.87-mobile-header-device-label-overlap-recovery', 'foxbear-shell-v1.6.88-mobile-header-grid-ownership-recovery', 'foxbear-shell-v1.6.89-mobile-header-flex-ownership-browser-gate-recovery', 'foxbear-shell-v1.6.90-engine-control-overlay-isolation-header-contract-recovery', 'foxbear-shell-v1.6.91-runtime-health-hidden-geometry-contract-recovery', 'foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery', 'foxbear-shell-v1.6.93-mobile-dock-visibility-integrity-recovery', 'foxbear-shell-v1.6.94-release-integrity-hardening', 'foxbear-shell-v1.6.95-release-artifact-safety', 'foxbear-shell-v1.6.96-update-resilience-hygiene-hardening'];
 const RETAINED_LEGACY_SHELL_COUNT = 2;
 const CLIENT_SHELL_PROBE_TIMEOUT_MS = 400;
 const CLIENT_SHELL_CLEANUP_COOLDOWN_MS = 2500;
@@ -53,21 +53,21 @@ const CORE_ASSETS = [
   './',
   './index.html',
   './404.html',
-  './assets/css/route-recovery.css?v=1.6.95-release-artifact-safety',
-  './src/boot/route-recovery.js?v=1.6.95-release-artifact-safety',
+  './assets/css/route-recovery.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/route-recovery.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
   './foxbear-root.json',
   './external-browser.html',
-  './assets/css/external-browser.css?v=1.6.95-release-artifact-safety',
+  './assets/css/external-browser.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
   './design-preview.html',
-  './assets/css/design-preview.css?v=1.6.95-release-artifact-safety',
+  './assets/css/design-preview.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
   './src/security/trusted-types-bootstrap.js',
   './src/boot/kakao-entry-guard.js',
   './src/boot/kakao-entry-notice.js',
   './assets/css/boot/kakao-entry-notice.css',
-  './src/security/trusted-types-bootstrap.js?v=1.6.95-release-artifact-safety',
-  './src/boot/kakao-entry-guard.js?v=1.6.95-release-artifact-safety',
-  './src/boot/kakao-entry-notice.js?v=1.6.95-release-artifact-safety',
-  './src/boot/kakao-external-browser.js?v=1.6.95-release-artifact-safety',
+  './src/security/trusted-types-bootstrap.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/kakao-entry-guard.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/kakao-entry-notice.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/kakao-external-browser.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
   './manifest.webmanifest',
   './sw.js',
   './src/workers/wav-encoder.worker.js',
@@ -76,147 +76,147 @@ const CORE_ASSETS = [
   './src/workers/master-finalizer.worker.js',
   './src/workers/pitch-wsola.worker.js',
   './src/workers/zip-encoder.worker.js',
-  './src/workers/wav-encoder.worker.js?v=1.6.95-release-artifact-safety',
-  './src/workers/mp3-encoder.worker.js?v=1.6.95-release-artifact-safety',
-  './src/workers/analysis.worker.js?v=1.6.95-release-artifact-safety',
-  './src/workers/master-finalizer.worker.js?v=1.6.95-release-artifact-safety',
-  './src/workers/pitch-wsola.worker.js?v=1.6.95-release-artifact-safety',
-  './src/workers/zip-encoder.worker.js?v=1.6.95-release-artifact-safety',
+  './src/workers/wav-encoder.worker.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/workers/mp3-encoder.worker.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/workers/analysis.worker.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/workers/master-finalizer.worker.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/workers/pitch-wsola.worker.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/workers/zip-encoder.worker.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
   './src/engines/pitch-engine-adapter.js',
-  './assets/icons/foxbear-icon-48.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-72.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-96.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-128.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-144.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-152.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-180.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-192.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-384.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-512.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-16.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-icon-32.png?v=1.6.95-release-artifact-safety',
-  './assets/icons/apple-touch-icon.png?v=1.6.95-release-artifact-safety',
-  './manifest.webmanifest?v=1.6.95-release-artifact-safety',
-  './assets/css/boot/performance-diagnostics.css?v=1.6.95-release-artifact-safety',
-  './assets/css/boot/runtime-health.css?v=1.6.95-release-artifact-safety',
-  './assets/css/boot/ui-shell-recovery.css?v=1.6.95-release-artifact-safety',
-  './assets/css/boot/kakao-entry-notice.css?v=1.6.95-release-artifact-safety',
-  './assets/css/theme.css?v=1.6.95-release-artifact-safety',
-  './assets/css/layout.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/base-components.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/forms.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/cards.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/preview-system.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/playback-link.css?v=1.6.95-release-artifact-safety',
-  './assets/css/studio.css?v=1.6.95-release-artifact-safety',
-  './assets/css/ui-mode.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/admin-incident-monitor.css?v=1.6.95-release-artifact-safety',
-  './assets/css/dock.css?v=1.6.95-release-artifact-safety',
-  './assets/css/dock-waveform.css?v=1.6.95-release-artifact-safety',
-  './assets/css/waveform-compare.css?v=1.6.95-release-artifact-safety',
-  './assets/css/spectrum-visualizer.css?v=1.6.95-release-artifact-safety',
-  './assets/css/export.css?v=1.6.95-release-artifact-safety&h=export-progress-v156',
-  './assets/css/download-dialog.css?v=1.6.95-release-artifact-safety',
-  './assets/css/bulk-import-hud.css?v=1.6.95-release-artifact-safety&h=bulk-hud-close-hotfix&ui=v153',
-  './assets/css/mobile-native.css?v=1.6.95-release-artifact-safety',
-  './assets/css/dock-ui-repair.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/floating-overlays.css?v=1.6.95-release-artifact-safety',
-  './assets/css/header-command-bar.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/support-settings.css?v=1.6.95-release-artifact-safety',
-  './assets/css/components/modal-close-system.css?v=1.6.95-release-artifact-safety',
-  './vendor/jszip/jszip.min.js?v=1.6.95-release-artifact-safety&lib=3.10.1',
-  './src/config/build-info.js?v=1.6.95-release-artifact-safety',
-  './src/boot/release-presentation-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/runtime-fault-counters.js?v=1.6.95-release-artifact-safety',
-  './src/boot/session-handoff-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-route-policy.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-submission-identity-service.js?v=1.6.95-release-artifact-safety',
-  './src/firebase-bootstrap.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-support-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-state-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-mail-sync-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-lifecycle-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-recovery-sweep-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-service-recovery-controller.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-recovery-policy.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-local-queue-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-queue-coordination-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-service-diagnostics.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-diagnostics-view-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-controls-view-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/incident-reporter.js?v=1.6.95-release-artifact-safety',
-  './src/config/mastering-presets.js?v=1.6.95-release-artifact-safety',
-  './src/config/genre-presets.js?v=1.6.95-release-artifact-safety',
-  './src/config/reference-targets.js?v=1.6.95-release-artifact-safety',
-  './src/config/app-runtime-config.js?v=1.6.95-release-artifact-safety',
-  './src/config/pwa-share-policy.js?v=1.6.95-release-artifact-safety',
-  './src/state/app-state.js?v=1.6.95-release-artifact-safety',
-  './src/settings/settings-service.js?v=1.6.95-release-artifact-safety',
-  './src/utils/core-utils.js?v=1.6.95-release-artifact-safety',
-  './src/utils/worker-job-service.js?v=1.6.95-release-artifact-safety',
-  './src/recommendation/recommendation-engine.js?v=1.6.95-release-artifact-safety',
-  './src/audio/mastering-inspector.js?v=1.6.95-release-artifact-safety',
-  './src/audio/highlight-compare-inspector.js?v=1.6.95-release-artifact-safety',
-  './src/audio/playback-link-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/playback-transition-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/playback-source-recovery-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/playback-lifecycle-recovery-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/post-master-playback-recovery-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/audio-context-manager.js?v=1.6.95-release-artifact-safety',
-  './src/audio/preview-translation-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/audio-import-capability-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/audio-decode-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/inapp-mastering-safety-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/import-preflight-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/import-queue-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/analysis-cache-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/memory-guard-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/reference-profile-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/loudness-measurement-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/mastering-input-guard-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/mastering-quality-audit-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/quality-gate-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/mastering-orchestrator-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/master-preview-job-service.js?v=1.6.95-release-artifact-safety',
-  './src/state/track-lifecycle-service.js?v=1.6.95-release-artifact-safety',
-  './src/audio/waveform-control-service.js?v=1.6.95-release-artifact-safety',
-  './src/ui/waveform-control-view.js?v=1.6.95-release-artifact-safety',
-  './src/ui/spectrum-visualizer.js?v=1.6.95-release-artifact-safety',
-  './src/ui/modal-controller.js?v=1.6.95-release-artifact-safety',
-  './src/ui/engine-control-interaction-service.js?v=1.6.95-release-artifact-safety',
-  './src/ui/ui-mode-service.js?v=1.6.95-release-artifact-safety',
-  './src/ui/bottom-preview-dock-integrity-service.js?v=1.6.95-release-artifact-safety',
-  './src/ui/dock-controller.js?v=1.6.95-release-artifact-safety',
-  './src/ui/mobile-native-view.js?v=1.6.95-release-artifact-safety&h=bulk-hud-restore-v153',
-  './src/ui/admin-access-controller.js?v=1.6.95-release-artifact-safety',
-  './src/download/file-name-policy-service.js?v=1.6.95-release-artifact-safety',
-  './src/download/file-name-workflow-service.js?v=1.6.95-release-artifact-safety',
-  './src/download/download-service.js?v=1.6.95-release-artifact-safety',
-  './src/download/export-guard-service.js?v=1.6.95-release-artifact-safety&h=export-v156',
-  './src/download/export-progress-view.js?v=1.6.95-release-artifact-safety&h=export-progress-v156',
-  './src/download/zip-export-service.js?v=1.6.95-release-artifact-safety',
-  './src/download/export-queue-service.js?v=1.6.95-release-artifact-safety',
-  './src/ui/download-dialog-view.js?v=1.6.95-release-artifact-safety',
-  './src/ui/bulk-import-hud-view.js?v=1.6.95-release-artifact-safety&h=bulk-hud-v153',
-  './src/ui/waveform-compare-view.js?v=1.6.95-release-artifact-safety',
-  './src/ui/detail-panels-view.js?v=1.6.95-release-artifact-safety',
-  './src/ui/detail-view.js?v=1.6.95-release-artifact-safety',
-  './src/ui/admin-incident-monitor-view.js?v=1.6.95-release-artifact-safety',
-  './src/security/site-guards.js?v=1.6.95-release-artifact-safety',
-  './src/boot/runtime-health.js?v=1.6.95-release-artifact-safety&h=boot-sri-v1695',
-  './src/boot/ui-shell-recovery-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/update-safety-service.js?v=1.6.95-release-artifact-safety&h=update-safety-v1695',
-  './src/boot/service-worker-update-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/service-worker-recovery-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/worker-recovery-coordinator.js?v=1.6.95-release-artifact-safety',
-  './src/boot/performance-diagnostics.js?v=1.6.95-release-artifact-safety&h=boot-sri-v1695',
-  './src/boot/render-scheduler.js?v=1.6.95-release-artifact-safety',
-  './src/boot/pwa-share-target-service.js?v=1.6.95-release-artifact-safety',
-  './src/boot/pwa-runtime-bridge.js?v=1.6.95-release-artifact-safety',
-  './src/app.js?v=1.6.95-release-artifact-safety&h=boot-sri-v1695',
-  './src/boot/worker-recovery-app-bridge.js?v=1.6.95-release-artifact-safety',
-  './assets/icons/foxbear-music.png?v=1.6.95-release-artifact-safety'
+  './assets/icons/foxbear-icon-48.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-72.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-96.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-128.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-144.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-152.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-180.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-192.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-384.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-512.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-16.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-icon-32.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/apple-touch-icon.png?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './manifest.webmanifest?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/boot/performance-diagnostics.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/boot/runtime-health.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/boot/ui-shell-recovery.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/boot/kakao-entry-notice.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/theme.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/layout.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/base-components.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/forms.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/cards.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/preview-system.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/playback-link.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/studio.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/ui-mode.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/admin-incident-monitor.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/dock.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/dock-waveform.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/waveform-compare.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/spectrum-visualizer.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/export.css?v=1.6.97-boot-payload-delivery-privacy-hardening&h=export-progress-v156',
+  './assets/css/download-dialog.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/bulk-import-hud.css?v=1.6.97-boot-payload-delivery-privacy-hardening&h=bulk-hud-close-hotfix&ui=v153',
+  './assets/css/mobile-native.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/dock-ui-repair.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/floating-overlays.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/header-command-bar.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/support-settings.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/css/components/modal-close-system.css?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './vendor/jszip/jszip.min.js?v=1.6.97-boot-payload-delivery-privacy-hardening&lib=3.10.1',
+  './src/config/build-info.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/release-presentation-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/runtime-fault-counters.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/session-handoff-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-route-policy.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-submission-identity-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/firebase-bootstrap.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-support-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-state-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-mail-sync-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-lifecycle-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-recovery-sweep-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-service-recovery-controller.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-recovery-policy.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-local-queue-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-queue-coordination-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-service-diagnostics.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-diagnostics-view-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-controls-view-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/incident-reporter.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/config/mastering-presets.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/config/genre-presets.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/config/reference-targets.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/config/app-runtime-config.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/config/pwa-share-policy.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/state/app-state.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/settings/settings-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/utils/core-utils.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/utils/worker-job-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/recommendation/recommendation-engine.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/mastering-inspector.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/highlight-compare-inspector.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/playback-link-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/playback-transition-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/playback-source-recovery-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/playback-lifecycle-recovery-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/post-master-playback-recovery-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/audio-context-manager.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/preview-translation-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/audio-import-capability-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/audio-decode-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/inapp-mastering-safety-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/import-preflight-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/import-queue-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/analysis-cache-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/memory-guard-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/mastering-memory-diagnostics-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/reference-profile-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/loudness-measurement-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/mastering-input-guard-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/mastering-quality-audit-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/quality-gate-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/mastering-orchestrator-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/master-preview-job-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/state/track-lifecycle-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/audio/waveform-control-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/waveform-control-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/spectrum-visualizer.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/modal-controller.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/engine-control-interaction-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/ui-mode-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/bottom-preview-dock-integrity-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/dock-controller.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/mobile-native-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=bulk-hud-restore-v153',
+  './src/ui/admin-access-controller.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/download/file-name-policy-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/download/file-name-workflow-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/download/download-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/download/export-guard-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=export-v156',
+  './src/download/export-progress-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=export-progress-v156',
+  './src/download/zip-export-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/download/export-queue-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/download-dialog-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/bulk-import-hud-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=bulk-hud-v153',
+  './src/ui/waveform-compare-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/detail-panels-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/detail-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/ui/admin-incident-monitor-view.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/security/site-guards.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/runtime-health.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=boot-sri-v1697',
+  './src/boot/ui-shell-recovery-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/update-safety-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=update-safety-v1697',
+  './src/boot/service-worker-update-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/service-worker-recovery-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/worker-recovery-coordinator.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/performance-diagnostics.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=boot-sri-v1697',
+  './src/boot/render-scheduler.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/pwa-share-target-service.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/boot/pwa-runtime-bridge.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './src/app.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=boot-sri-v1697',
+  './src/boot/worker-recovery-app-bridge.js?v=1.6.97-boot-payload-delivery-privacy-hardening',
+  './assets/icons/foxbear-music.png?v=1.6.97-boot-payload-delivery-privacy-hardening'
 ];
 
 const INSTALL_ASSETS = [
@@ -228,6 +228,14 @@ const INSTALL_ASSETS = [
   )
 ];
 const INSTALL_ASSET_SET = new Set(INSTALL_ASSETS);
+const REQUIRED_INSTALL_ASSETS = INSTALL_ASSETS.filter(asset =>
+  ['./', './index.html', './404.html', './foxbear-root.json', './manifest.webmanifest', './sw.js'].includes(asset)
+  || /src\/security\/trusted-types-bootstrap\.js\?/.test(asset)
+  || /src\/boot\/route-recovery\.js\?/.test(asset)
+  || /assets\/css\/route-recovery\.css\?/.test(asset)
+);
+const REQUIRED_INSTALL_ASSET_SET = new Set(REQUIRED_INSTALL_ASSETS);
+const OPTIONAL_INSTALL_ASSETS = INSTALL_ASSETS.filter(asset => !REQUIRED_INSTALL_ASSET_SET.has(asset));
 const WARM_ASSETS = CORE_ASSETS.filter(asset => !INSTALL_ASSET_SET.has(asset));
 let warmCachePromise = null;
 let legacyCleanupPromise = null;
@@ -275,15 +283,44 @@ async function warmFoxBearCoreCache(options = {}) {
   }
 }
 
+async function cacheInstallAssetsBestEffort(cache, assets = []) {
+  const failures = [];
+  let cursor = 0;
+  let cached = 0;
+  const worker = async () => {
+    while (cursor < assets.length) {
+      const asset = assets[cursor++];
+      try {
+        const response = await fetch(asset, { cache: 'reload' });
+        if (!response || !response.ok) throw new Error(`HTTP ${response?.status || 0}`);
+        await cache.put(asset, response.clone());
+        cached += 1;
+      } catch (error) {
+        failures.push({ asset, error: error?.message || String(error) });
+      }
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(6, Math.max(1, assets.length)) }, worker));
+  return { total: assets.length, cached, failed: failures.length, failures };
+}
+
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    await cache.addAll(INSTALL_ASSETS);
+    // Only the minimum recovery shell can block installation. A temporary 404
+    // or CDN propagation delay in an optional module must not reject the whole
+    // service-worker generation.
+    await cache.addAll(REQUIRED_INSTALL_ASSETS);
+    await cacheInstallAssetsBestEffort(cache, OPTIONAL_INSTALL_ASSETS);
   })());
 });
 
+function reportedClientShellNames() {
+  return new Set(Array.from(clientShellReports.values()).map(report => String(report?.cacheName || '')).filter(Boolean));
+}
+
 function retainedLegacyShellNames() {
-  return new Set(LEGACY_CACHE_NAMES.slice(-RETAINED_LEGACY_SHELL_COUNT));
+  return new Set([...LEGACY_CACHE_NAMES.slice(-RETAINED_LEGACY_SHELL_COUNT), ...reportedClientShellNames()]);
 }
 
 function cacheNameForAssetVersion(assetVersion) {
@@ -385,25 +422,32 @@ async function queryActiveClientShellVersions() {
 
 async function purgeLegacyShellCaches(options = {}) {
   const names = await caches.keys();
-  const retained = retainedLegacyShellNames();
   const deleted = [];
+  let probe = null;
+
+  if (options.probeClients === true) {
+    // Probe first. If any active window cannot report its shell generation,
+    // keep every legacy shell for now rather than invalidating a long-lived tab.
+    probe = await queryActiveClientShellVersions();
+    if (!probe.complete) {
+      lastLegacyCleanupAt = Date.now();
+      return { deleted, retained: names.filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME), probe, deferred: true };
+    }
+    const latestRollback = LEGACY_CACHE_NAMES[LEGACY_CACHE_NAMES.length - 1] || '';
+    const protectedNames = new Set([CACHE_NAME, latestRollback, ...probe.cacheNames].filter(Boolean));
+    const obsolete = names.filter(name => name.startsWith('foxbear-shell-') && !protectedNames.has(name));
+    await Promise.all(obsolete.map(async name => {
+      if (await caches.delete(name)) deleted.push(name);
+    }));
+    lastLegacyCleanupAt = Date.now();
+    return { deleted, retained: Array.from(protectedNames).filter(name => name !== CACHE_NAME), probe, deferred: false };
+  }
+
+  const retained = retainedLegacyShellNames();
   const obsolete = names.filter(name => name.startsWith('foxbear-shell-') && name !== CACHE_NAME && !retained.has(name));
   await Promise.all(obsolete.map(async name => {
     if (await caches.delete(name)) deleted.push(name);
   }));
-
-  let probe = null;
-  if (options.probeClients === true) {
-    probe = await queryActiveClientShellVersions();
-    if (probe.complete) {
-      const latestRollback = LEGACY_CACHE_NAMES[LEGACY_CACHE_NAMES.length - 1] || '';
-      const protectedNames = new Set([latestRollback, ...probe.cacheNames].filter(Boolean));
-      const optionalRetained = names.filter(name => retained.has(name) && !protectedNames.has(name));
-      await Promise.all(optionalRetained.map(async name => {
-        if (await caches.delete(name)) deleted.push(name);
-      }));
-    }
-  }
   lastLegacyCleanupAt = Date.now();
   return { deleted, retained: Array.from(retained), probe };
 }
@@ -450,13 +494,14 @@ async function isCurrentShellHtml(response) {
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
-    await purgeLegacyShellCaches({ probeClients: false, reason: 'activate-pre-claim' });
     if (self.registration?.navigationPreload) {
       try { await self.registration.navigationPreload.enable(); } catch (error) {}
     }
     const shareHandoff = await recoverSharedFileRecords().catch(error => ({ error: error?.message || String(error), recoveredClaims: 0, remaining: 0 }));
     await self.clients.claim();
     await broadcastShareHandoff(shareHandoff).catch(() => undefined);
+    // Never retire old shell caches before active pages have had a chance to
+    // identify the generation they are still executing.
     await purgeLegacyShellCaches({ probeClients: true, reason: 'activate-post-claim' });
   })());
 });

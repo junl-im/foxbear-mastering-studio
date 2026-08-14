@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.95-release-artifact-safety';
+    const VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
 
     function createController(options = {}) {
         const state = options.state || {};

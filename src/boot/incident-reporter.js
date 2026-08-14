@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.95
+// FoxBear automatic incident reporter - v1.6.97
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.95-release-artifact-safety';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.95').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.97-boot-payload-delivery-privacy-hardening';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.97').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -1713,7 +1713,7 @@
         return Object.freeze({
             version: VERSION,
             enabled: isEnabled(),
-            destination: 'mcwoogi@gmail.com',
+            destination: 'server-configured',
             automaticSentThisSession: state.automaticSentThisSession,
             dailyCount: getDailyState().count,
             queued: loadQueue().length,

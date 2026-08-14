@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.97
+
+> Current release: v1.6.96 · update-resilience-hygiene-hardening
+
+This release hardens PWA updates and release hygiene. Active long-lived tabs keep their exact shell generation until they report safe retirement, optional install assets no longer make Service Worker installation all-or-nothing, pending Git deletions cannot falsely pass local source hygiene, and release description metadata is synchronized automatically.
+
 # FoxBear AI Mastering Studio Pro v1.6.95
 
 > Current release: v1.6.95 · release-artifact-safety

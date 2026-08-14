@@ -1,4 +1,4 @@
-// FoxBear PWA runtime registration and share-launch bridge - v1.6.95
+// FoxBear PWA runtime registration and share-launch bridge - v1.6.97
 (function attachFoxBearPwaRuntimeBridge(global) {
     'use strict';
 
@@ -57,5 +57,5 @@
         return Object.freeze({ registerServiceWorker, processShareLaunch });
     }
 
-    global.FoxBearPwaRuntimeBridge = Object.freeze({ version: '1.6.95', createBridge });
+    global.FoxBearPwaRuntimeBridge = Object.freeze({ version: '1.6.97', createBridge });
 })(typeof window !== 'undefined' ? window : globalThis);

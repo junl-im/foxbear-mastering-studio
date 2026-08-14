@@ -1,35 +1,30 @@
-# Handoff - v1.6.95
+# Handoff - v1.6.97
 
 ## Current release
 
-- Product version: `1.6.95`
-- Build ID: `release-artifact-safety`
-- Asset version: `1.6.95-release-artifact-safety`
-- Service worker cache: `foxbear-shell-v1.6.95-release-artifact-safety`
-- Configured static/regression target: 451 checks.
+- Product version: `1.6.97`
+- Build ID: `boot-payload-delivery-privacy-hardening`
+- Asset version: `1.6.97-boot-payload-delivery-privacy-hardening`
+- Service worker cache: `foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening`
+- Configured static/regression target: 453 checks.
 
 ## Current focus
 
-- Block Git-ignored `.env*` secrets by scanning the physical release worktree.
-- Fail closed before release artifact creation when source hygiene or patch deletion contracts are invalid.
-- Require Git deletions and rename sources to be covered by `DELETE_PATHS.txt`, and apply that contract through the cleanup helper.
-- Keep delivery packaging non-mutating while preserving explicit maintenance repair mode.
-- Report stale active selection as unhealthy even when the bottom Dock is hidden.
+- Remove redundant main-thread JSZip boot parsing; ZIP export remains Worker-owned.
+- Keep operational recipient and raw SMTP response details out of user-readable incident delivery state.
+- Preserve v1.6.96 Service Worker cache-retirement and Source Hygiene hardening.
 
 ## Required GitHub Desktop step
 
-1. Extract the **v1.6.95 patch ZIP** into the **v1.6.94 repository root** and replace matching files.
-2. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`. The helper now applies every safe path in `DELETE_PATHS.txt` before the narrow hygiene repair.
-3. Review all modified/new/deleted files in GitHub Desktop, commit, and **Push origin**.
-4. For a clean replacement, preserve `.git` and extract the v1.6.95 full ZIP into the repository folder.
+1. Extract the v1.6.97 patch ZIP into the v1.6.96 repository root and replace matching files.
+2. Review all modified/new/deleted files in GitHub Desktop, commit, and Push origin.
+3. Run the GitHub Actions static release gate; no cleanup command is required for this patch.
 
 ## Verified
 
-- v1.6.95 focused release-artifact/deletion/Dock regression: **PASS**.
-- Historical v1.6.66/v1.6.67/v1.6.72 hygiene policy regressions and v1.6.93 Dock ownership regression: **PASS**.
-- Full static/regression suite: **451/451 PASS** across four bounded ranges.
-- Git-ignored secret and undeclared tracked deletion fail-closed reproductions: **PASS**.
-- Delivery verification: **785-file FULL/release ZIP**, **318-file manifestless PATCH**, **7 delete paths**, no generated patch manifest: **PASS**.
+- Focused v1.6.97 regression: **PASS**.
+- Full configured static/regression suite: **453/453 PASS**.
+- Version/SRI, Source Hygiene, Hosting boundary, App Check, Functions syntax, browser preflight: **PASS**.
 
 # Handoff - v1.6.79
 

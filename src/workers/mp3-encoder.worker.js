@@ -1,4 +1,4 @@
-// FoxBear MP3 encoder worker v1.6.95 with progress reporting
+// FoxBear MP3 encoder worker v1.6.97 with progress reporting
 // Primary path: bundled lamejs encoder for broad browser support.
 // Fallback path: WebCodecs MP3 AudioEncoder when available.
 'use strict';

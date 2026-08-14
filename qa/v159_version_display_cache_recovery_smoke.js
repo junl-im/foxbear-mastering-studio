@@ -27,7 +27,7 @@ const qaReport = read('qa/QA_REPORT.md');
 
 assert(pkg.version === meta.productVersion, 'package version should match current release metadata');
 assert(pkg.qaChecks.includes('node --check src/boot/release-presentation-service.js'), 'release presentation syntax check missing');
-assert(pkg.qaChecks.includes('node qa/v159_version_display_cache_recovery_smoke.js'), 'v1.6.95 smoke missing from package QA');
+assert(pkg.qaChecks.includes('node qa/v159_version_display_cache_recovery_smoke.js'), 'v1.6.97 smoke missing from package QA');
 assert(manifest.version === meta.productVersion, 'manifest version mismatch');
 assert(manifest.description.includes(`v${meta.productVersion}`) && manifest.description.includes(meta.buildId), 'manifest description must follow release metadata');
 assert(index.includes('data-release-label="version-button"') && index.includes('data-release-label="program-eyebrow"'), 'visible version labels must be centrally bound');
@@ -100,9 +100,9 @@ assert(document.title === `FoxBear Mastering PRO v${meta.productVersion}`, 'docu
 assert(body.dataset.build === meta.productVersion && body.dataset.assetVersion === meta.assetVersion, 'body release markers not repaired');
 assert(description.attrs.content.includes(`v${meta.productVersion}`) && description.attrs.content.includes(meta.buildId), 'runtime description not repaired');
 
-assert(status.includes('FoxBearReleasePresentation') && status.includes('1.6.95-release-artifact-safety'), 'STATUS current release/invariant missing');
-assert(changelog.includes(`# v${historicalVersion} - Version Display and Cache Recovery`), 'CHANGELOG v1.6.95 history missing');
-assert(readme.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'README v1.6.95 history missing');
-assert(handoff.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'HANDOFF v1.6.95 history missing');
-assert(qaReport.includes('185/185 PASS') && qaReport.includes(`## v${historicalVersion} coverage`), 'QA report missing v1.6.95 result/coverage');
+assert(status.includes('FoxBearReleasePresentation') && status.includes('1.6.97-boot-payload-delivery-privacy-hardening'), 'STATUS current release/invariant missing');
+assert(changelog.includes(`# v${historicalVersion} - Version Display and Cache Recovery`), 'CHANGELOG v1.6.97 history missing');
+assert(readme.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'README v1.6.97 history missing');
+assert(handoff.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'HANDOFF v1.6.97 history missing');
+assert(qaReport.includes('185/185 PASS') && qaReport.includes(`## v${historicalVersion} coverage`), 'QA report missing v1.6.97 result/coverage');
 console.log('PASS v1.5.9 version display/cache recovery smoke');

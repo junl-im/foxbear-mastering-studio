@@ -48,7 +48,7 @@ assert(helper.includes('did not reach the active ready state'), 'service worker 
 
 const sw = read('sw.js');
 assert(sw.includes('const INSTALL_ASSETS = [') && sw.includes('...CORE_ASSETS') && sw.includes('const WARM_ASSETS = CORE_ASSETS.filter'), 'service worker atomic install and optional refresh phases are incomplete');
-assert(sw.includes('cache.addAll(INSTALL_ASSETS)') && !sw.includes('cache.addAll(CORE_ASSETS)'), 'service worker activation is still blocked by the full asset pack');
+assert(sw.includes('cache.addAll(REQUIRED_INSTALL_ASSETS)') && sw.includes('cacheInstallAssetsBestEffort(cache, OPTIONAL_INSTALL_ASSETS)') && !sw.includes('cache.addAll(INSTALL_ASSETS)') && !sw.includes('cache.addAll(CORE_ASSETS)'), 'service worker install must hard-fail only on the minimum recovery shell and cache the remaining boot graph best-effort');
 assert(sw.includes("event.data.type === 'FOXBEAR_WARM_CACHE'") && sw.includes('warmFoxBearCoreCache()'), 'service worker warm-cache message contract is missing');
 
 const app = read('src/app.js');

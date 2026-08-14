@@ -10,7 +10,7 @@ const ROOT = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.95');
+assert.strictEqual(pkg.version, '1.6.97');
 assert(String(pkg.foxbearRelease.buildId || '').trim(), 'current release buildId must remain configured');
 assert(pkg.qaChecks.includes('node qa/v1669_ci_app_check_share_target_hardening_smoke.js'));
 
@@ -35,7 +35,7 @@ assert(functionsSource.includes('...incidentAppCheckMetadata(request)'));
 const runtimeConfigSource = read('src/config/app-runtime-config.js');
 const runtimeSandbox = { console };
 runtimeSandbox.window = runtimeSandbox;
-runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.95', assetVersion: pkg.foxbearRelease.assetVersion };
+runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.97', assetVersion: pkg.foxbearRelease.assetVersion };
 vm.createContext(runtimeSandbox);
 vm.runInContext(runtimeConfigSource, runtimeSandbox, { filename: 'app-runtime-config.js' });
 const clientPolicy = runtimeSandbox.FoxBearRuntimeConfig.APP_CHECK_POLICY;

@@ -1,25 +1,24 @@
-# FoxBear QA Report - v1.6.95
+# FoxBear QA Report - v1.6.97
 
 ## Configured target
 
-- Static and behavioral checks: **451**.
-- New regression: `qa/v1695_release_artifact_safety_smoke.js`.
+- Static and behavioral checks: **453**.
+- New regression: `qa/v1697_boot_payload_delivery_privacy_smoke.js`.
 
 ## Verification scope
 
-- Blocks Git-ignored `.env*` secrets from strict source hygiene and release packaging.
-- Requires failed release ZIP cleanup and non-mutating delivery packaging.
-- Requires Git deletions and rename sources to be covered by `DELETE_PATHS.txt`.
-- Applies generic patch deletion paths through a path-safety guard.
-- Requires hidden-Dock diagnostics to report stale active selection as unhealthy while tracks remain.
+- Preserves active old Service Worker shell generations and defers retirement on incomplete client probes.
+- Requires minimum-shell hard-fail installation plus best-effort optional boot caching.
+- Rejects forbidden Git-tracked paths until index deletion is staged/committed.
+- Synchronizes and validates `package.json.description`.
+- Removes redundant main-thread JSZip boot cost and keeps ZIP ownership inside the Worker.
+- Keeps raw SMTP response and operational recipient details out of user-readable incident delivery state.
 
 ## Verification status
 
-- Focused v1.6.95 release-artifact safety regression: **PASS**.
-- Full configured static/behavioral suite: **451/451 PASS** across four bounded ranges (`113 + 113 + 113 + 112`).
-- Git-ignored `.env.production` package attempt: **blocked before `dist` creation**.
-- Undeclared tracked deletion package attempt: **blocked before `dist` creation**.
-- Delivery verification: **785-file FULL/release ZIP**, **318-file manifestless PATCH**, **7 delete paths**, no generated `PATCH_MANIFEST.json`: **PASS**.
+- Focused v1.6.97 regression: **PASS**.
+- Full configured static/behavioral suite: **453/453 PASS** across bounded ranges (`114 + 114 + 114 + 111`, with the single historical-metadata assertion corrected and re-run).
+- Delivery verification: **635-file CLEAN FULL**, **314-file PATCH**, **7 cleanup paths**, base-only deletion 0: **PASS**.
 
 # FoxBear QA Report - v1.6.94
 

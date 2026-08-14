@@ -63,7 +63,11 @@ try {
 
   fs.rmSync(path.join(temp, '.env.production'));
   result = run(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', temp], ROOT);
-  assert(result.status === 0, `clean fixture should pass: ${result.stderr || result.stdout}`);
+  assert(result.status !== 0, 'worktree-only deletion of a tracked secret must keep failing until the Git index records the deletion');
+  result = run('git', ['rm', '--cached', '--ignore-unmatch', '--', '.env.production'], temp);
+  assert(result.status === 0, `tracked secret deletion staging failed: ${result.stderr || result.stdout}`);
+  result = run(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', temp], ROOT);
+  assert(result.status === 0, `fixture should pass after the tracked deletion is staged: ${result.stderr || result.stdout}`);
 } finally {
   fs.rmSync(temp, { recursive: true, force: true });
 }

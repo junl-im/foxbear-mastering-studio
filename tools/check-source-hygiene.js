@@ -95,10 +95,10 @@ try {
   // Strict hygiene is a worktree property, not only a Git-index property.
   // Always scan the physical workspace so ignored/untracked secret files such
   // as .env.production cannot disappear behind gitignore rules.
-  const trackedFailures = tracked ? tracked.filter(relative => {
-    const value = normalize(relative);
-    return value === 'node_modules' || value.startsWith('node_modules/') || value === 'functions/node_modules' || value.startsWith('functions/node_modules/');
-  }) : [];
+  // `git ls-files` still lists a tracked path after it was deleted only in the
+  // worktree. Treat every forbidden tracked path as a failure until the deletion
+  // is committed, so local release checks cannot falsely pass before CI.
+  const trackedFailures = tracked ? tracked.filter(isForbidden) : [];
   const workspaceFailures = walkFiles(ROOT, [], Boolean(tracked));
   const failures = [...new Set([...trackedFailures, ...workspaceFailures])].sort();
   if (failures.length) {

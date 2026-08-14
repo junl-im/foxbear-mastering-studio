@@ -1,34 +1,30 @@
-# FoxBear Status - v1.6.95
+# FoxBear Status - v1.6.97
 
 ## Current release
 
-- Product version: `1.6.95`
-- Build ID: `release-artifact-safety`
-- Asset version: `1.6.95-release-artifact-safety`
-- Service worker cache: `foxbear-shell-v1.6.95-release-artifact-safety`
-- Configured static/regression target: **451 checks**.
+- Product version: `1.6.97`
+- Build ID: `boot-payload-delivery-privacy-hardening`
+- Asset version: `1.6.97-boot-payload-delivery-privacy-hardening`
+- Service worker cache: `foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening`
+- Configured static/regression target: **453 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.95`
-- Build ID: `release-artifact-safety`
-- Asset version: `1.6.95-release-artifact-safety`
-- Service worker cache: `foxbear-shell-v1.6.95-release-artifact-safety`
+- Product version: `1.6.97`
+- Build ID: `boot-payload-delivery-privacy-hardening`
+- Asset version: `1.6.97-boot-payload-delivery-privacy-hardening`
+- Service worker cache: `foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening`
 
 ## Release focus
 
-- Scan the physical worktree so ignored `.env*` secrets cannot bypass strict source hygiene.
-- Fail closed before archive creation and remove failed release ZIP outputs.
-- Validate Git deletions and rename sources against `DELETE_PATHS.txt` before patch packaging.
-- Keep delivery non-mutating and make cleanup apply the declared delete contract explicitly.
-- Treat stale active selection as Dock integrity failure even while the Dock is hidden.
+- Remove redundant main-thread JSZip boot parsing while preserving Worker/offline ZIP behavior.
+- Keep operational recipient and raw SMTP response details out of user-readable incident delivery state.
+- Preserve v1.6.96 Service Worker and Source Hygiene hardening.
 
 ## Release status
 
-- Focused v1.6.95 release-artifact safety regression and historical hygiene/Dock regressions: **PASS**.
-- Full configured static/regression suite: **451/451 PASS** across four bounded ranges.
-- Ignored-secret and undeclared-deletion fail-closed packaging reproductions: **PASS**.
-- Delivery verification: **785-file FULL/release ZIP**, **318-file manifestless PATCH**, **7 delete paths**, no generated patch manifest: **PASS**.
+- Focused v1.6.96 regression and full **452/452** configured QA: **PASS**.
+- Delivery verification: **635-file CLEAN FULL**, **314-file PATCH**, **7 cleanup paths**, base-only deletion 0: **PASS**.
 
 # FoxBear Status - v1.6.88
 

@@ -1,4 +1,4 @@
-# GitHub Desktop Handoff - v1.6.95
+# GitHub Desktop Handoff - v1.6.97
 
 ## Apply
 

@@ -1,3 +1,17 @@
+# v1.6.97 - Boot payload and delivery privacy hardening
+
+- Removed the redundant main-thread JSZip script; ZIP encoding continues in the dedicated Worker.
+- Removed raw SMTP response and operations recipient fields from user-readable incident delivery state.
+- Added v1.6.97 regression coverage for boot payload and delivery privacy.
+
+# v1.6.96 - Update resilience and hygiene hardening
+
+- Probes active client shell generations before retiring legacy Service Worker caches, preserving long-lived tabs and deferring cleanup when a client does not answer.
+- Splits Service Worker installation into a minimum recovery shell that can block install and a best-effort optional boot graph so one transient asset failure cannot reject the whole generation.
+- Treats every forbidden Git-tracked path as a source-hygiene failure until its deletion is staged/committed, closing the local-pass/CI-fail gap seen with legacy generated files.
+- Synchronizes and validates `package.json.description` with release metadata.
+- Removes the operational incident recipient address from public UI/runtime diagnostics; the recipient remains server-configured.
+
 # v1.6.95 - Release artifact safety
 
 - Blocks Git-ignored `.env*` secrets by scanning the physical release worktree, not only tracked files.

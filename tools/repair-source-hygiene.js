@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 
 const rootArgIndex = process.argv.indexOf('--root');
 const ROOT = path.resolve(rootArgIndex >= 0 && process.argv[rootArgIndex + 1]
@@ -50,10 +51,24 @@ function resolveInsideRoot(relative) {
 function removePath(relative) {
   const { normalized, target } = resolveInsideRoot(relative);
   if (!fs.existsSync(target)) return false;
-  const stat = fs.lstatSync(target);
-  if (stat.isSymbolicLink()) fs.unlinkSync(target);
-  else fs.rmSync(target, { recursive: stat.isDirectory(), force: true });
-  console.log(`REMOVE source hygiene path: ${normalized}`);
+  const gitDir = path.join(ROOT, '.git');
+  let removedViaGit = false;
+  if (fs.existsSync(gitDir)) {
+    const tracked = spawnSync('git', ['ls-files', '--error-unmatch', '--', normalized], { cwd: ROOT, encoding: 'utf8' });
+    if (tracked.status === 0) {
+      const removed = spawnSync('git', ['rm', '-r', '--ignore-unmatch', '--', normalized], { cwd: ROOT, encoding: 'utf8' });
+      if (removed.status === 0) {
+        removedViaGit = true;
+        console.log(`REMOVE+STAGE source hygiene path: ${normalized}`);
+      }
+    }
+  }
+  if (!removedViaGit) {
+    const stat = fs.lstatSync(target);
+    if (stat.isSymbolicLink()) fs.unlinkSync(target);
+    else fs.rmSync(target, { recursive: stat.isDirectory(), force: true });
+    console.log(`REMOVE source hygiene path: ${normalized}`);
+  }
   if (isGitHubActions && ciRepairAllowed && !QUIET_GITHUB_REPAIR_PATHS.has(normalized)) {
     const annotationFile = annotationEscape(normalized);
     console.log(`::warning file=${annotationFile},title=Source hygiene auto-repair::Removed an allowlisted local/generated path from the ephemeral CI workspace. Commit its deletion when convenient; the release gate will continue safely.`);
