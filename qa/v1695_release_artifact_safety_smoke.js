@@ -19,7 +19,7 @@ const releaseZip = read('tools/create-release-zip.sh');
 const patchVerifier = read('tools/verify-patch-zip.js');
 const dockService = read('src/ui/bottom-preview-dock-integrity-service.js');
 
-assert.strictEqual(pkg.version, '1.6.99');
+assert.strictEqual(pkg.version, '1.6.100');
 assert(pkg.qaChecks.includes('node qa/v1695_release_artifact_safety_smoke.js'));
 assert(hygiene.includes('Always scan the physical workspace'), 'strict hygiene must scan the worktree, not only Git tracked files');
 assert(!delivery.includes("tools/repair-source-hygiene.js"), 'delivery packaging must be non-mutating');

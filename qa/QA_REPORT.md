@@ -1,3 +1,22 @@
+# FoxBear QA Report - v1.6.100
+
+## v1.6.100 SW/stereo/cleanup hardening
+
+- Static and behavioral target: **456 checks**.
+- New regression: `qa/v16100_sw_stereo_ci_cleanup_hardening_smoke.js`.
+- New browser matrix: `qa/browser/mobile-ai-admin-header-matrix-playwright.spec.js`.
+- CI regression: retired `spectrum-visualizer.js/css` are now first-stage Source Hygiene violations until physically deleted and committed.
+- PWA regression: stale exact versioned requests can recover from any FoxBear shell cache after a Service Worker process restart.
+- Audio regression: analysis is intentionally mono/stereo-only, matching final mastering output semantics.
+
+## Verification status
+
+- Full configured static/behavioral suite: **456/456 PASS**.
+- Final Source Hygiene / Version-SRI / Handoff / App Check / Functions syntax / browser preflight: **PASS**.
+- Firebase Hosting boundary: **161 files**.
+- Delivery: **642-file FULL**, **317-file PATCH**, **9 cleanup paths**.
+- v1.6.99 FULL + v1.6.100 PATCH + cleanup replay: **REPLAY_MATCH=YES**.
+
 # FoxBear QA Report - v1.6.99
 
 ## v1.6.99 header role separation + focus integrity

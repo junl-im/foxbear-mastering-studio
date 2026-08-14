@@ -27,8 +27,8 @@ assert(page404.includes('src/boot/route-recovery.js') && routeRecovery.includes(
 assert(/required_files=\([^\n)]*foxbear-root\.json/.test(prepare), 'Pages artifact does not require the root marker');
 assert(overwrite.includes('copy_path "foxbear-root.json"'), 'overwrite package omits the root marker');
 assert(!read('firebase.json').includes('"destination": "/index.html"'), 'Firebase must not serve index.html at an invalid relative-asset URL');
-assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.99-header-role-focus-integrity'), 'service worker recovery module is not loaded');
-assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.99-header-role-focus-integrity'), 'service worker recovery module is not cached');
+assert(index.includes('src/boot/service-worker-recovery-service.js?v=1.6.100-sw-stereo-ci-cleanup-hardening'), 'service worker recovery module is not loaded');
+assert(sw.includes('./src/boot/service-worker-recovery-service.js?v=1.6.100-sw-stereo-ci-cleanup-hardening'), 'service worker recovery module is not cached');
 
 function runtimeHardRefreshUsesScriptRoot() {
   const scripts=[{src:'https://user.github.io/foxbear-mastering-studio/src/boot/runtime-health.js?v=test'}];
@@ -55,7 +55,7 @@ async function exerciseServiceWorkerGenerationIsolation() {
   });
   const cachesApi={
     async open(name){return name.includes('1.5.30') ? makeCache(legacyEntries) : makeCache(currentEntries);},
-    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.99-header-role-focus-integrity'];},
+    async keys(){return ['foxbear-shell-v1.5.30-inapp-playback-recovery','foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening'];},
     async delete(){return true;}
   };
   const context={console,URL,Request,Response,Set,Map,Promise,Math,Date,indexedDB:{},caches:cachesApi,fetch:async request=>{fetched.push(String(request.url||request));return new Response('missing',{status:404});},self:{location:{origin:'https://user.github.io'},registration:{scope:'https://user.github.io/foxbear-mastering-studio/',navigationPreload:null},clients:{async claim(){}},async skipWaiting(){},addEventListener(type,handler){listeners.set(type,handler);}}};
@@ -71,8 +71,8 @@ async function exerciseServiceWorkerGenerationIsolation() {
   const oldResponse=new Response('old-generation',{status:200});
   legacyEntries.set(oldUrl,oldResponse);
   const stale=await api.networkFirstNoFallbackOnIntegrityAssets(new Request(oldUrl));
-  assert.strictEqual(stale.type,'error','stale HTML generation assets must fail instead of reviving a partial legacy shell');
-  assert.strictEqual(fetched.length,0,'stale generation must not fetch and mix current bytes');
+  assert.strictEqual(await stale.text(),'old-generation','stale exact versioned asset should recover from its matching legacy shell cache');
+  assert.strictEqual(fetched.length,0,'stale generation must never fetch and mix current bytes');
 
   const badNavigation=new Request('https://user.github.io/foxbear-mastering-studio/bad/route',{headers:{accept:'text/html'}});
   const redirected=await api.networkFirstNavigation(badNavigation,Promise.resolve(null));

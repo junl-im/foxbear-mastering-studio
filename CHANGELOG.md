@@ -1,3 +1,12 @@
+# v1.6.100 - SW restart, stereo analysis, and CI cleanup hardening
+
+- Search every FoxBear shell cache for exact stale-generation requests after a Service Worker process restart.
+- Preserve the declared two rollback shell generations during client-aware cache retirement.
+- Cap Worker transfer, Worker analysis, and main-thread analysis fallback to the same mono/stereo channel policy used by final mastering.
+- Reject retired Spectrum visualizer JS/CSS during source hygiene so stale patch leftovers fail early and clearly.
+- Allow physical source-hygiene verification to continue on GitHub Desktop-only Windows machines when `git` is not on PATH, with an explicit Git-index warning.
+- Add 320/390/430px AI-mode + ADMIN header browser matrix coverage.
+
 # v1.6.99 - Header role separation and focus integrity
 
 - Keep the mobile/PC compatibility glyph permanently visible regardless of admin authentication state.

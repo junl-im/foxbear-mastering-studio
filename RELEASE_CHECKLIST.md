@@ -1,3 +1,14 @@
+# v1.6.100 release checklist
+
+- [x] Diagnose GitHub Actions run 31774910795: 12 static failures all came from retired Spectrum JS/CSS still existing in the repository.
+- [x] Promote both retired Spectrum assets to Source Hygiene forbidden paths.
+- [x] Search all FoxBear shell caches for exact stale-generation requests after SW process restart.
+- [x] Preserve the configured two rollback generations during client-aware shell retirement.
+- [x] Align Worker transfer, Worker analysis, and main-thread fallback to a maximum of two channels.
+- [x] Add 320/390/430px mobile AI + ADMIN header geometry coverage.
+- [x] Support physical hygiene verification when GitHub Desktop is present but Git CLI is not on PATH.
+- [x] Run the final **456/456** static/regression suite plus Hosting, App Check, Functions syntax, browser preflight, packaging, and exact patch replay gates.
+
 # v1.6.98 release checklist
 
 - [x] Remove user-facing AI Spectrum View JS/CSS and Detail mount.

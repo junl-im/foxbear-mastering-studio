@@ -1,4 +1,4 @@
-// FoxBear adaptive incident transport route policy - v1.6.99
+// FoxBear adaptive incident transport route policy - v1.6.100
 (function attachFoxBearIncidentRoutePolicy(global) {
     'use strict';
 
@@ -192,7 +192,7 @@
     function observeNetworkChange(now = Date.now()) { return getHealth(now); }
     function clear(now = Date.now()) { const timestamp = resolveNow(now); save(blankState(), timestamp); return getHealth(timestamp); }
     global.FoxBearIncidentRoutePolicy = Object.freeze({
-        version: '1.6.99',
+        version: '1.6.100',
         failureThreshold: FAILURE_THRESHOLD,
         networkDecayFactor: NETWORK_DECAY_FACTOR,
         explorationAttempts: EXPLORATION_ATTEMPTS,

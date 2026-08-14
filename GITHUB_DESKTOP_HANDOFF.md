@@ -1,3 +1,17 @@
+# GitHub Desktop Handoff - v1.6.100
+
+## Apply
+
+1. Fetch origin in GitHub Desktop.
+2. Extract the v1.6.100 patch into the repository root and replace matching files.
+3. **Run `APPLY_PATCH_CLEANUP.cmd` once.** This physically removes the retired `src/ui/spectrum-visualizer.js` and `assets/css/spectrum-visualizer.css` if they survived an older overwrite-only update.
+4. In GitHub Desktop, confirm both Spectrum files appear as **Deleted** when they existed, then commit those deletions together with the v1.6.100 changes.
+5. Push origin and verify the Static release gate. A clean replacement can use the v1.6.100 FULL ZIP instead.
+
+## CI failure being closed
+
+GitHub Actions run `31774910795` reached 442/454 before failing 12 guards because the retired Spectrum files were still physically present in the Git checkout. v1.6.100 keeps those guards and also blocks the two paths at Source Hygiene for a faster, clearer failure.
+
 # GitHub Desktop Handoff - v1.6.99
 
 ## Apply

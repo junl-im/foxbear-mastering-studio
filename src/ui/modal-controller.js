@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.6.99
+// FoxBear Modal State Machine Controller v1.6.100
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.6.99-header-role-focus-integrity',
+            version: '1.6.100-sw-stereo-ci-cleanup-hardening',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,

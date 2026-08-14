@@ -13,7 +13,9 @@ const FORBIDDEN_EXACT = new Set([
   'qa/static-audit.txt',
   'firebase-debug.log',
   'npm-debug.log',
-  'PATCH_MANIFEST.json'
+  'PATCH_MANIFEST.json',
+  'assets/css/spectrum-visualizer.css',
+  'src/ui/spectrum-visualizer.js'
 ]);
 const FORBIDDEN_PREFIXES = [
   '.firebase/',
@@ -45,9 +47,14 @@ function isForbidden(relative) {
   return isSecretEnvFile(value);
 }
 
+let gitIndexInspectionSkipped = false;
 function trackedFiles() {
   if (!fs.existsSync(path.join(ROOT, '.git'))) return null;
   const result = spawnSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' });
+  if (result.error && result.error.code === 'ENOENT') {
+    gitIndexInspectionSkipped = true;
+    return null;
+  }
   if (result.status !== 0) {
     throw new Error(result.stderr || result.stdout || 'Unable to inspect tracked files.');
   }
@@ -119,7 +126,8 @@ try {
     console.error(`  git rm -r --cached --ignore-unmatch -- ${quoted}`);
     process.exit(1);
   }
-  console.log(`PASS source hygiene verified${tracked ? ' for Git-tracked files and local workspace artifacts' : ' for archive files'}`);
+  if (gitIndexInspectionSkipped) console.warn('WARN Git CLI is unavailable; verified the physical workspace only. Confirm Deleted changes in GitHub Desktop before push.');
+  console.log(`PASS source hygiene verified${tracked ? ' for Git-tracked files and local workspace artifacts' : gitIndexInspectionSkipped ? ' for local workspace artifacts (Git index skipped)' : ' for archive files'}`);
 } catch (error) {
   console.error(`FAIL source hygiene check: ${error?.message || error}`);
   process.exit(1);

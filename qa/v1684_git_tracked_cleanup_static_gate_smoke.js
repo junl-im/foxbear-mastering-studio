@@ -17,7 +17,7 @@ const archiveHygiene = read('tools/archive-hygiene.js');
 const patchVerifier = read('tools/verify-patch-zip.js');
 const deletePaths = read('DELETE_PATHS.txt').split(/\r?\n/).map(value => value.trim()).filter(Boolean);
 
-assert.strictEqual(pkg.version, '1.6.99');
+assert.strictEqual(pkg.version, '1.6.100');
 assert(pkg.qaChecks.includes('node qa/v1684_git_tracked_cleanup_static_gate_smoke.js'));
 assert(fs.existsSync(path.join(ROOT, 'APPLY_PATCH_CLEANUP.cmd')), 'Windows cleanup helper must exist in the release tree');
 assert(gitignore.includes('*.cmd'), 'broad Windows executable hygiene must remain enabled');

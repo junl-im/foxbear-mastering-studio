@@ -1,37 +1,36 @@
-# Handoff - v1.6.99
+# Handoff - v1.6.100
 
 ## Current release
 
-- Product version: `1.6.99`
-- Build ID: `header-role-focus-integrity`
-- Asset version: `1.6.99-header-role-focus-integrity`
-- Service worker cache: `foxbear-shell-v1.6.99-header-role-focus-integrity`
-- Configured static/regression target: 454 checks.
+- Product version: `1.6.100`
+- Build ID: `sw-stereo-ci-cleanup-hardening`
+- Asset version: `1.6.100-sw-stereo-ci-cleanup-hardening`
+- Service worker cache: `foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening`
+- Configured static/regression target: 456 checks.
 
 ## Current focus
 
-- Remove the user-facing AI Spectrum View completely without removing mastering FFT/spectral analysis.
-- Remove visualization-only analyser taps from realtime preview, difference listening, and preview translation graphs.
-- Keep mobile AI mode PC/phone compatibility glyphs visible; only redundant compact text may collapse.
-- Preserve v1.6.97 boot/privacy and v1.6.96 Service Worker/source-hygiene protections.
+- Recover exact stale-generation assets from any FoxBear shell cache after a Service Worker process restart.
+- Preserve the two rollback generations declared by `RETAINED_LEGACY_SHELL_COUNT`.
+- Analyze no more than two channels so Worker, fallback analysis, and final mastering share the same mono/stereo semantics.
+- Treat retired Spectrum UI JS/CSS as forbidden source state and delete any leftovers during patch cleanup.
+- Cover 320/390/430px AI + ADMIN header geometry in browser QA.
 
 ## Required GitHub Desktop step
 
-1. Extract the v1.6.98 patch ZIP into the v1.6.97 repository root and replace matching files.
-2. Run `APPLY_PATCH_CLEANUP.cmd` (Windows) or `bash APPLY_PATCH_CLEANUP.sh` (macOS/Linux) so the retired `src/ui/spectrum-visualizer.js` and `assets/css/spectrum-visualizer.css` are removed from older repositories.
-3. Confirm GitHub Desktop shows those two files as **Deleted**, review the remaining modified/new files, commit, and Push origin.
-4. Run the GitHub Actions static release gate.
+1. Extract the v1.6.100 patch ZIP into the current repository root and replace matching files.
+2. **Run `APPLY_PATCH_CLEANUP.cmd` once.** This is required if older overwrite-only updates left `src/ui/spectrum-visualizer.js` or `assets/css/spectrum-visualizer.css` behind.
+3. In GitHub Desktop, confirm those files are **Deleted** when present, review the v1.6.100 changes, commit, and Push origin.
+4. The Static release gate should now fail at Source Hygiene immediately if either retired Spectrum path survives.
 
 ## Verified
 
-- Focused v1.6.98 regression: **PASS**.
-- Full configured static/regression suite: **453/453 PASS**.
+- Full configured static/regression suite: **456/456 PASS**.
+- Dynamic SW restart exact-cache recovery and two-generation rollback retention: **PASS**.
+- Git-CLI-missing physical hygiene fallback: **PASS**.
 - Version/SRI, Source Hygiene, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Delivery: **637-file FULL**, **316-file PATCH**, **9 cleanup paths**.
-- Patch replay over v1.6.97 after all 9 cleanup paths: **REPLAY_MATCH=YES**.
-
-# Handoff - v1.6.79
+- Delivery: **642-file FULL**, **317-file PATCH**, **9 cleanup paths**; v1.6.99 replay: **REPLAY_MATCH=YES**.
 
 ## Current release
 

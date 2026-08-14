@@ -23,6 +23,7 @@ const ALL_BROWSER_SPECS = Object.freeze([
   'qa/browser/pwa-back-wakelock-sw-playwright.spec.js',
   'qa/browser/quality-recovery-profiles-playwright.spec.js',
   'qa/browser/runtime-health-playwright.spec.js',
+  'qa/browser/mobile-ai-admin-header-matrix-playwright.spec.js',
   'qa/browser/v1573-bulk-mastering-controls-visual.spec.js',
   'qa/browser/v1574-mobile-download-batch-controls-visual.spec.js'
 ]);
@@ -89,6 +90,7 @@ const CSS_SELECTOR_RULES = Object.freeze([
     pattern: /runtime-health|brand-command|mobile-native|release-label|boot-status/i,
     specs: [
       'qa/browser/runtime-health-playwright.spec.js',
+      'qa/browser/mobile-ai-admin-header-matrix-playwright.spec.js',
       'qa/browser/pwa-back-wakelock-sw-playwright.spec.js'
     ]
   },
@@ -140,6 +142,7 @@ const SPEC_RULES = Object.freeze([
     pattern: /^(?:src\/ui\/mobile-native-view\.js|assets\/css\/(?:header-command-bar|mobile-native)[^/]*\.css)$/,
     specs: [
       'qa/browser/runtime-health-playwright.spec.js',
+      'qa/browser/mobile-ai-admin-header-matrix-playwright.spec.js',
       'qa/browser/pwa-back-wakelock-sw-playwright.spec.js'
     ]
   },

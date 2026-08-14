@@ -1,36 +1,36 @@
-# FoxBear Status - v1.6.99
+# FoxBear Status - v1.6.100
 
 ## Current release
 
-- Product version: `1.6.99`
-- Build ID: `header-role-focus-integrity`
-- Asset version: `1.6.99-header-role-focus-integrity`
-- Service worker cache: `foxbear-shell-v1.6.99-header-role-focus-integrity`
-- Configured static/regression target: **453 checks**.
+- Product version: `1.6.100`
+- Build ID: `sw-stereo-ci-cleanup-hardening`
+- Asset version: `1.6.100-sw-stereo-ci-cleanup-hardening`
+- Service worker cache: `foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening`
+- Configured static/regression target: **456 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.99`
-- Build ID: `header-role-focus-integrity`
-- Asset version: `1.6.99-header-role-focus-integrity`
-- Service worker cache: `foxbear-shell-v1.6.99-header-role-focus-integrity`
+- Product version: `1.6.100`
+- Build ID: `sw-stereo-ci-cleanup-hardening`
+- Asset version: `1.6.100-sw-stereo-ci-cleanup-hardening`
+- Service worker cache: `foxbear-shell-v1.6.100-sw-stereo-ci-cleanup-hardening`
 
 ## Release focus
 
-- Retire the user-facing AI Spectrum View and all visualization-only Web Audio analyser plumbing.
-- Preserve FFT/spectrum analysis used by mastering decisions and recommendation logic.
-- Keep the PC/phone compatibility glyph visible in mobile AI mode while compact viewports hide only redundant text.
-- Preserve v1.6.97 boot-payload/privacy and v1.6.96 update/hygiene hardening.
+- Recover exact stale-generation assets from any FoxBear shell cache after Service Worker process restart.
+- Preserve two rollback generations as declared by `RETAINED_LEGACY_SHELL_COUNT`.
+- Keep analysis and final mastering on the same mono/stereo channel semantics.
+- Fail early when retired Spectrum UI assets survive an overwrite-only patch.
+- Cover 320/390/430px AI + ADMIN header states in browser QA.
 
 ## Release status
 
-- Focused v1.6.98 regression: **PASS**.
-- Full configured static/behavioral QA: **453/453 PASS**.
+- Full configured static/behavioral QA: **456/456 PASS**.
+- Dynamic SW restart + two-generation rollback verification: **PASS**.
+- GitHub Desktop no-Git-CLI hygiene fallback verification: **PASS**.
 - Final gates: Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **161 allowlisted files**.
-- Delivery verification: **637-file CLEAN FULL**, **316-file PATCH**, **9 cleanup paths**: **PASS**.
-
-# FoxBear Status - v1.6.88
+- Delivery: **642-file FULL**, **317-file PATCH**, **9 cleanup paths**; patch replay: **REPLAY_MATCH=YES**.
 
 ## Current release
 

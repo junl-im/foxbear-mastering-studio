@@ -1,3 +1,23 @@
+# v1.6.100 patch notes
+
+## 적용 내역
+
+- Service Worker 프로세스가 재시작되어 활성 탭 세대 메모리가 초기화돼도 모든 `foxbear-shell-*` 캐시에서 정확한 버전 URL을 찾아 오래 열린 오프라인 탭을 복구합니다.
+- client-aware cache retirement가 선언값대로 최근 2개 rollback generation을 보존합니다.
+- 분석 Worker 전송, Worker 내부 분석, 메인 스레드 fallback 분석을 최대 2채널로 통일해 최종 mastering render와 채널 의미를 맞췄습니다.
+- 삭제된 AI Spectrum UI JS/CSS를 Source Hygiene 금지 경로로 승격해 잔여 파일이 있으면 12개 후속 QA보다 먼저 명확히 실패합니다.
+- Git CLI가 PATH에 없는 GitHub Desktop 환경에서도 물리 워크스페이스 hygiene 검증은 계속하고 Git index 확인만 명시적으로 경고합니다.
+- 320/390/430px 모바일 AI + ADMIN 헤더 상태 매트릭스 browser QA를 추가했습니다.
+
+## 검증 결과
+
+- 전체 정적/행동 회귀: **456/456 PASS**.
+- GitHub Actions run `31774910795`의 12개 실패 원인: Spectrum JS/CSS 삭제 미반영으로 확정.
+- Dynamic SW restart exact-cache recovery + rollback 2세대 보존: **PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, Browser preflight: **PASS**.
+- Firebase Hosting: **161 files**.
+- FULL: **642 files**. PATCH: **317 overwrite + 9 cleanup paths**. Replay: **REPLAY_MATCH=YES**.
+
 # v1.6.98 patch notes
 
 ## 적용 내역

@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.99-header-role-focus-integrity';
+    const VERSION = '1.6.100-sw-stereo-ci-cleanup-hardening';
 
     function createController(options = {}) {
         const state = options.state || {};

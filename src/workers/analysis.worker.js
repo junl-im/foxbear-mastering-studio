@@ -15,7 +15,7 @@ self.onmessage = event => {
 function analyze({ sampleRate, duration, channels, length, channelBuffers }, jobId = '') {
     const totalSamples = Math.max(0, Number(length || 0));
     const safeRate = Math.max(3000, Math.min(384000, Number(sampleRate || 44100)));
-    const usableChannels = Math.max(1, Math.min(Number(channels || 1), Array.isArray(channelBuffers) ? channelBuffers.length : 1));
+    const usableChannels = Math.max(1, Math.min(2, Number(channels || 1), Array.isArray(channelBuffers) ? channelBuffers.length : 1));
     const channelData = Array.from({ length: usableChannels }, (_, ch) => new Float32Array(channelBuffers[ch] || channelBuffers[0] || totalSamples));
     const time = measureTimeDomainFeatures(channelData, safeRate, totalSamples, usableChannels);
     postProgress(jobId, 28, '시간 영역 분석', '피크, RMS, 스테레오 상관도를 계산했습니다.');

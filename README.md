@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.100
+
+> Current release: v1.6.100 · sw-stereo-ci-cleanup-hardening
+
+This release hardens long-lived PWA recovery, makes the declared two-generation rollback policy real, aligns analysis with the stereo mastering pipeline, and turns retired Spectrum UI leftovers into an immediate source-hygiene failure. It also adds a 320/390/430px AI + ADMIN header browser matrix and lets GitHub Desktop-only Windows environments finish physical cleanup checks when the Git CLI is not on PATH.
+
 # FoxBear AI Mastering Studio Pro v1.6.99
 
 > Current release: v1.6.98 · spectrum-retirement-mobile-header-integrity

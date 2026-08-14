@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.99-header-role-focus-integrity';
+    const FALLBACK_VERSION = '1.6.100-sw-stereo-ci-cleanup-hardening';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
