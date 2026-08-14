@@ -1,19 +1,19 @@
-# FoxBear Status - v1.6.98
+# FoxBear Status - v1.6.99
 
 ## Current release
 
-- Product version: `1.6.98`
-- Build ID: `spectrum-retirement-mobile-header-integrity`
-- Asset version: `1.6.98-spectrum-retirement-mobile-header-integrity`
-- Service worker cache: `foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity`
+- Product version: `1.6.99`
+- Build ID: `header-role-focus-integrity`
+- Asset version: `1.6.99-header-role-focus-integrity`
+- Service worker cache: `foxbear-shell-v1.6.99-header-role-focus-integrity`
 - Configured static/regression target: **453 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.98`
-- Build ID: `spectrum-retirement-mobile-header-integrity`
-- Asset version: `1.6.98-spectrum-retirement-mobile-header-integrity`
-- Service worker cache: `foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity`
+- Product version: `1.6.99`
+- Build ID: `header-role-focus-integrity`
+- Asset version: `1.6.99-header-role-focus-integrity`
+- Service worker cache: `foxbear-shell-v1.6.99-header-role-focus-integrity`
 
 ## Release focus
 

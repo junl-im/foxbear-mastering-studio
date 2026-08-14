@@ -34,11 +34,14 @@ def main() -> int:
     compact = css.split('@media (max-width: 430px)', 1)[-1]
     require(re.search(r'\.brand-command-device-icons\s*\{[^}]*display:\s*inline-flex', compact, re.S) is not None,
             'device glyphs must remain visible below 430px')
-    require('renderAdminStatsTriggerContent' in app, 'runtime compatibility badge renderer missing')
-    require("screen.className = 'is-screen'" in app and "phone.className = 'is-phone'" in app,
-            'runtime renderer must rebuild both device glyphs after admin-state refresh')
-    require('el.adminStatsTrigger.textContent = visible ?' not in app,
-            'admin-state refresh must not erase structured device glyph markup')
+    require('id="deviceCompatibilityBadge"' in html and 'role="img"' in html,
+            'compatibility glyph must be a persistent non-interactive status image')
+    require('id="adminStatsTrigger"' in html and 'admin-monitor-trigger' in html,
+            'admin monitor trigger must be separate from the compatibility glyph')
+    require('renderAdminStatsTriggerContent' not in app,
+            'admin-state refresh must not rebuild or replace compatibility glyph markup')
+    require("el.adminStatsTrigger.addEventListener('keydown'" not in app,
+            'native admin button must not keep synthetic keyboard activation handlers')
     require('/ integrity=' not in html, 'malformed SRI slash remains in index.html')
 
     update_sri = load_module('foxbear_update_sri', 'tools/update-sri.py')

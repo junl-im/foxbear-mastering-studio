@@ -1,3 +1,10 @@
+# v1.6.99 - Header role separation and focus integrity
+
+- Keep the mobile/PC compatibility glyph permanently visible regardless of admin authentication state.
+- Separate the administrator monitor action into its own native button so auth refreshes never replace header compatibility markup.
+- Remove synthetic Enter/Space handling from the native admin button and restore focus safely after the admin monitor closes.
+- Add responsive regression coverage for AI mode and Pixel-class mobile header layouts.
+
 # v1.6.98 - Spectrum retirement and mobile header integrity
 
 - Removes the user-facing AI Spectrum View, its CSS/script payload, live visualization analyser taps, runtime-health dependency, and performance-diagnostics panel bookkeeping.

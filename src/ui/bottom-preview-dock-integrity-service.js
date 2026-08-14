@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
+    const VERSION = '1.6.99-header-role-focus-integrity';
 
     function createController(options = {}) {
         const state = options.state || {};

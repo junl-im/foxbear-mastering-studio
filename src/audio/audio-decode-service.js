@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.98
+// FoxBear audio decode service - v1.6.99
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
+    const SERVICE_VERSION = '1.6.99-header-role-focus-integrity';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

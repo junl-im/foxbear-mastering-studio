@@ -34,7 +34,7 @@ assert(!app.includes('function createWaveformCompareTransportControls'), 'app.js
 assert(css.includes('FoxBear Stage7 waveform compare popup layer'), 'dedicated compare CSS banner is missing');
 assert(css.includes('.waveform-compare-transport'), 'compare transport CSS is missing');
 assert(css.includes('.waveform-compare-bars.has-live-playhead::before'), 'compare playhead cap CSS is missing');
-assert(sw.includes('./src/ui/waveform-compare-view.js?v=1.6.98-spectrum-retirement-mobile-header-integrity'), 'service worker does not precache compare view module');
-assert(sw.includes('./assets/css/waveform-compare.css?v=1.6.98-spectrum-retirement-mobile-header-integrity'), 'service worker does not precache compare CSS');
+assert(sw.includes('./src/ui/waveform-compare-view.js?v=1.6.99-header-role-focus-integrity'), 'service worker does not precache compare view module');
+assert(sw.includes('./assets/css/waveform-compare.css?v=1.6.99-header-role-focus-integrity'), 'service worker does not precache compare CSS');
 
 console.log('PASS waveform compare stage6 module smoke');

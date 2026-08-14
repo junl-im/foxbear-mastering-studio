@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.98",
-  "buildId": "spectrum-retirement-mobile-header-integrity",
+  "productVersion": "1.6.99",
+  "buildId": "header-role-focus-integrity",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

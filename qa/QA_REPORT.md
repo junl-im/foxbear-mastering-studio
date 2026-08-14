@@ -1,4 +1,12 @@
-# FoxBear QA Report - v1.6.98
+# FoxBear QA Report - v1.6.99
+
+## v1.6.99 header role separation + focus integrity
+
+- Compatibility PC/mobile glyph is a static status image and cannot be replaced by admin-auth state.
+- Admin monitor is a separate native button with hidden/disabled auth gating and focus restoration.
+- Mobile AI mode and <=430px header rules keep the compatibility glyph visible.
+- Regression: `qa/v1699_header_role_separation_focus_integrity_smoke.js`.
+
 
 ## Configured target
 

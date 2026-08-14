@@ -25,7 +25,7 @@ const sriTool = read('tools/update-sri.py');
 assert(html.includes('brand-topline brand-command-bar'), 'dedicated command bar class missing');
 assert(html.includes('<span class="brand-command-label">BUILD</span>'), 'BUILD label missing');
 assert(html.includes(`class="brand-command-version" data-release-label="version-button">v${meta.productVersion}</strong>`), 'runtime-bound build version missing');
-assert(html.includes('brand-command-device-text">모바일 · PC 호환</span>'), 'mobile/PC compatibility label missing');
+assert(html.includes('brand-command-device-text') && html.includes('모바일 · PC 호환</span>'), 'mobile/PC compatibility label missing');
 assert(html.includes('AI MUSIC MASTERING STUDIO'), 'studio identity label missing');
 assert(html.includes('<span>DESIGNED BY</span>') && html.includes('<strong>곰같은여우</strong>'), 'designer signature should be compact and exact');
 assert(!html.includes('DESIGN BY</span>') && !html.includes('곰같은여우 <em>with AI</em>'), 'legacy designer wording returned');
@@ -39,6 +39,7 @@ assert(css.includes('.mobile-native-quick-toggle::after') && css.includes('conte
 assert(mobileView.includes("text: '⚙'"), 'settings control should use one text-style gear glyph');
 assert(!mobileView.includes("text: '⚙️'"), 'emoji-style settings glyph should not return');
 assert(releasePresentation.includes("setText('[data-release-label=\"version-button\"]', VERSION_LABEL, mismatches)"), 'release presentation should update only the build version token');
-assert(app.includes("'모바일 · PC 호환 안내'") && app.includes("'모바일 · PC 호환'"), 'runtime compatibility text should match the new header order');
+assert(html.includes('id="deviceCompatibilityBadge"') && html.includes('id="adminStatsTrigger"'), 'compatibility status and admin action must remain separate header roles');
+assert(!app.includes('renderAdminStatsTriggerContent'), 'runtime auth refresh must not rebuild compatibility header markup');
 assert(read('tools/sync-release-metadata.js').includes("'foxbear-shell-v1.5.5-update-safety'"), 'foundational update-safety cache must remain pinned');
 console.log('PASS v1.5.26 engraved command header smoke');

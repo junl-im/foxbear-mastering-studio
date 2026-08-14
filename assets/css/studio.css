@@ -7115,14 +7115,6 @@ body.bottom-preview-active .processing-hud {
 }
 
 
-/* v1.3.26 admin UID gate: compatibility badge is passive for non-admin users */
-#adminStatsTrigger[role="presentation"] {
-    cursor: default !important;
-}
-#adminStatsTrigger[role="button"] {
-    cursor: pointer !important;
-}
-
 /* v1.3.34 A/B translation preview and original-selection patch */
 .ai-recommend-preset.manual-original,
 .ai-candidate-chip.manual-original {

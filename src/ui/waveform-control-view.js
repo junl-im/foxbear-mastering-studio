@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
+  const VIEW_VERSION = '1.6.99-header-role-focus-integrity';
   const DEFAULT_BINS = 96;
 
   function getService() {

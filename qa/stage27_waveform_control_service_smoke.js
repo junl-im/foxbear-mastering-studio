@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.98-spectrum-retirement-mobile-header-integrity';
+const version = '1.6.99-header-role-focus-integrity';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

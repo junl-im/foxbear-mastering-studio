@@ -1,4 +1,4 @@
-# FoxBear AI Mastering Studio Pro v1.6.98
+# FoxBear AI Mastering Studio Pro v1.6.99
 
 > Current release: v1.6.98 · spectrum-retirement-mobile-header-integrity
 
