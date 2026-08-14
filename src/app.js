@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.97 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.6.98 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -24,7 +24,7 @@ let externalBrowserHandoffBridge = null;
 let adminAccessController = null;
 let uiModeController = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.97';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.98';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -65,14 +65,14 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.97-boot-payload-delivery-privacy-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1697'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.98-spectrum-retirement-mobile-header-integrity'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v1698'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const ANALYSIS_ENGINE_CACHE_VERSION = 'analysis-engine-v1.4-stable';
-const SHARED_DSP_PROFILE_VERSION = 'v1.6.97-boot-payload-delivery-privacy-hardening';
+const SHARED_DSP_PROFILE_VERSION = 'v1.6.98-spectrum-retirement-mobile-header-integrity';
 const PLAYBACK_CROSSFADE_MS = 140;
 const SAFE_IMPORT_ANALYSIS_CONCURRENCY = Math.max(1, Math.min(2, Number(IMPORT_ANALYSIS_CONCURRENCY) || 1));
 const SAFE_LARGE_IMPORT_BATCH_THRESHOLD = Math.max(4, Number(LARGE_IMPORT_BATCH_THRESHOLD) || 12);
@@ -460,24 +460,8 @@ function installPlaybackLinkStatusBridge() {
     });
     return installed;
 }
-function registerPlaybackLinkedAudio(audio, meta = {}) { if (!audio) return null; try { window.FoxBearSpectrumVisualizer?.registerAudio?.(audio, meta); } catch (error) { console.warn('Spectrum audio registration failed:', error); } if (!FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.registerAudio !== 'function') return null; return FoxBearPlaybackLinkService.registerAudio(audio, meta); }
-function unregisterPlaybackLinkedAudio(audio, reason = 'dispose') { if (!audio) return false; getPlaybackSourceRecoveryController()?.releaseAudio?.(audio); let removed = cancelAudioPlaybackRequest(audio, reason); try { removed = window.FoxBearSpectrumVisualizer?.unregisterAudio?.(audio, reason) || removed; } catch (error) { console.warn('Spectrum audio cleanup failed:', error); } try { removed = FoxBearPlaybackLinkService?.unregisterAudio?.(audio, reason) || removed; } catch (error) { console.warn('Playback link cleanup failed:', error); } return removed; }
-function createSpectrumAnalyserTap(audioContext) {
-    if (!audioContext || typeof audioContext.createAnalyser !== 'function') return null;
-    const analyser = audioContext.createAnalyser();
-    analyser.fftSize = 2048;
-    analyser.smoothingTimeConstant = 0.82;
-    return analyser;
-}
-function registerExternalSpectrumAnalyser(audio, analyser, audioContext, meta = {}) {
-    if (!audio || !analyser) return null;
-    try {
-        window.FoxBearSpectrumVisualizer?.registerExternalAnalyser?.(audio, analyser, audioContext, meta);
-    } catch (error) {
-        console.warn('External spectrum analyser registration failed:', error);
-    }
-    return analyser;
-}
+function registerPlaybackLinkedAudio(audio, meta = {}) { if (!audio || !FoxBearPlaybackLinkService || typeof FoxBearPlaybackLinkService.registerAudio !== 'function') return null; return FoxBearPlaybackLinkService.registerAudio(audio, meta); }
+function unregisterPlaybackLinkedAudio(audio, reason = 'dispose') { if (!audio) return false; getPlaybackSourceRecoveryController()?.releaseAudio?.(audio); let removed = cancelAudioPlaybackRequest(audio, reason); try { removed = FoxBearPlaybackLinkService?.unregisterAudio?.(audio, reason) || removed; } catch (error) { console.warn('Playback link cleanup failed:', error); } return removed; }
 function bindUploadInputEventsOnce() {
     if (el.fileDrop && el.fileInput) bindNativeUploadLabel(el.fileDrop, el.fileInput, 'file');
     if (el.folderDrop && el.folderInput) bindNativeUploadLabel(el.folderDrop, el.folderInput, 'folder');
@@ -1333,12 +1317,6 @@ function setupRealtimePreviewEngine(track, audio, statusEl) {
         const context = FoxBearAudioContexts.create({ purpose: 'realtime-mastering-preview', ownerId: 'realtime-mastering-preview', replaceOwner: true, latencyHint: 'interactive' });
         const source = context.createMediaElementSource(audio);
         const nodes = createRealtimeMasteringNodes(context, source, track);
-        registerExternalSpectrumAnalyser(audio, nodes.spectrumAnalyser, context, {
-            role: 'mastering-settings-preview',
-            trackId: track?.id || '',
-            mode: 'realtime-preview',
-            label: '실시간 마스터링 FFT'
-        });
         audio._foxbearResumeAudioGraph = () => FoxBearAudioContexts.resume(context, 'realtime-preview-user-gesture');
         state.realtimePreview = { context, audio, nodes, statusEl, trackId: track.id };
         updateRealtimePreviewSettings(track);
@@ -1370,7 +1348,6 @@ function createRealtimeMasteringNodes(context, source, track) {
     const width = createRealtimeWidthMatrix(context, Number(track.analysis?.channels || 2) >= 2);
     const limiter = context.createDynamicsCompressor();
     const outputGain = context.createGain();
-    const spectrumAnalyser = createSpectrumAnalyserTap(context);
     highPass.type = 'highpass';
     lowShelf.type = 'lowshelf';
     lowMid.type = 'peaking';
@@ -1379,9 +1356,8 @@ function createRealtimeMasteringNodes(context, source, track) {
     metallic.type = 'peaking';
     source.connect(inputGain).connect(highPass).connect(lowShelf).connect(lowMid).connect(presence).connect(highShelf).connect(metallic).connect(compressor).connect(width.input);
     width.output.connect(limiter).connect(outputGain);
-    if (spectrumAnalyser) outputGain.connect(spectrumAnalyser).connect(context.destination);
-    else outputGain.connect(context.destination);
-    return { inputGain, highPass, lowShelf, lowMid, presence, highShelf, metallic, compressor, width, limiter, outputGain, spectrumAnalyser };
+    outputGain.connect(context.destination);
+    return { inputGain, highPass, lowShelf, lowMid, presence, highShelf, metallic, compressor, width, limiter, outputGain };
 }
 function createRealtimeWidthMatrix(context, enabled) {
     const input = context.createGain();
@@ -2833,7 +2809,7 @@ function foxBearHaptic(pattern = 'tap', options = {}) {
         return false;
     }
 }
-function getDockAudioTrackId(audio) { return String(audio?.dataset?.trackId || audio?.dataset?.spectrumTrackId || ''); }
+function getDockAudioTrackId(audio) { return String(audio?.dataset?.trackId || ''); }
 function syncMediaSessionForDock(audioOverride = null) {
     if (!('mediaSession' in navigator)) return;
     const requestedAudio = audioOverride || (getBottomPreviewAudio ? getBottomPreviewAudio() : null);
@@ -2844,7 +2820,7 @@ function syncMediaSessionForDock(audioOverride = null) {
         ['play', 'pause', 'seekbackward', 'seekforward', 'seekto'].forEach(action => { try { navigator.mediaSession.setActionHandler(action, null); } catch (error) {} });
         try { navigator.mediaSession.setPositionState?.(); } catch (error) {} return;
     }
-    const mode = ownerId === String(state.bottomPreviewTrackId || '') ? (state.bottomPreviewMode || 'original') : (audio.dataset?.spectrumMode || audio.dataset?.waveformMode || 'original');
+    const mode = ownerId === String(state.bottomPreviewTrackId || '') ? (state.bottomPreviewMode || 'original') : (audio.dataset?.waveformMode || 'original');
     const source = mode === 'mastered' ? '마스터링 프리뷰' : (mode === 'masterPreview' ? '하이라이트 듣기' : '원곡 프리뷰');
     try {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -3224,7 +3200,7 @@ function getPwaRuntimeBridge() {
     return pwaRuntimeBridge;
 }
 async function registerFoxBearServiceWorker(options = {}) {
-    // compatibility anchors: navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)) · navigator.serviceWorker.register('./sw.js?v=1.6.97-boot-payload-delivery-privacy-hardening') · navigator.serviceWorker.register('./sw.js?v=1.6.97-boot-payload-delivery-privacy-hardening&h=sw-v1697')
+    // compatibility anchors: navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)) · navigator.serviceWorker.register('./sw.js?v=1.6.98-spectrum-retirement-mobile-header-integrity') · navigator.serviceWorker.register('./sw.js?v=1.6.98-spectrum-retirement-mobile-header-integrity&h=sw-v1698')
     return getPwaRuntimeBridge()?.registerServiceWorker?.(options);
 }
 async function processPwaShareTargetLaunch() {
@@ -3316,25 +3292,11 @@ function createDifferencePreviewPlayer(track, options = {}) {
             protect.attack.value = 0.003;
             protect.release.value = 0.08;
             const output = context.createGain();
-            const spectrumAnalyser = createSpectrumAnalyserTap(context);
-            output.gain.value = 0.62;
+                    output.gain.value = 0.62;
             originalSource.connect(originalInvert).connect(protect);
             compareSource.connect(compareLevel).connect(protect);
             protect.connect(output);
-            if (spectrumAnalyser) output.connect(spectrumAnalyser).connect(context.destination);
-            else output.connect(context.destination);
-            registerExternalSpectrumAnalyser(compareAudio, spectrumAnalyser, context, {
-                role: 'difference-compare',
-                trackId: track?.id || '',
-                mode,
-                label: '차이 듣기 FFT'
-            });
-            registerExternalSpectrumAnalyser(originalAudio, spectrumAnalyser, context, {
-                role: 'difference-original',
-                trackId: track?.id || '',
-                mode: 'original',
-                label: '차이 듣기 FFT'
-            });
+            output.connect(context.destination);
             graphReady = true;
         } catch (error) {
             console.warn('Difference listen graph unavailable:', error);
@@ -4018,7 +3980,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.97-boot-payload-delivery-privacy-hardening', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.98-spectrum-retirement-mobile-header-integrity', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4332,7 +4294,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.6.97-boot-payload-delivery-privacy-hardening',
+        version: '1.6.98-spectrum-retirement-mobile-header-integrity',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4373,10 +4335,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.6.97-boot-payload-delivery-privacy-hardening',
+    version: '1.6.98-spectrum-retirement-mobile-header-integrity',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.97-boot-payload-delivery-privacy-hardening', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.98-spectrum-retirement-mobile-header-integrity', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4401,12 +4363,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.97-boot-payload-delivery-privacy-hardening', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.98-spectrum-retirement-mobile-header-integrity', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.97-boot-payload-delivery-privacy-hardening', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.98-spectrum-retirement-mobile-header-integrity', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4421,12 +4383,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.6.97-boot-payload-delivery-privacy-hardening',
+    version: 'v1.6.98-spectrum-retirement-mobile-header-integrity',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.97-boot-payload-delivery-privacy-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.98-spectrum-retirement-mobile-header-integrity', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5560,7 +5522,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.6.97-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.6.98-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -9990,7 +9952,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.6.97-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.6.98-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -10357,7 +10319,6 @@ function getDetailViewDeps() {
         renderAll,
         renderMasterComparisonPanel,
         renderABStudioPanel,
-        renderSpectrumPanel,
         renderWaveformPanel,
         renderMasterReportPanel,
         renderQualityGatePanel,
@@ -10784,11 +10745,9 @@ function setupPreviewTranslationAudio(audio, options = {}) {
         const controller = window.FoxBearPreviewTranslationService?.attach?.(audio, {
             mode: mode.id,
             persistent: options.persistentTranslation === true,
-            createContext: () => FoxBearAudioContexts.create({ purpose: 'preview-translation', ownerId: `preview-translation:${options.trackId || audio.dataset.spectrumTrackId || 'track'}:${Date.now()}`, latencyHint: 'interactive' }),
-            createAnalyser: createSpectrumAnalyserTap
+            createContext: () => FoxBearAudioContexts.create({ purpose: 'preview-translation', ownerId: `preview-translation:${options.trackId || audio.dataset.trackId || 'track'}:${Date.now()}`, latencyHint: 'interactive' })
         });
         if (!controller) return null;
-        registerExternalSpectrumAnalyser(audio, controller.analyser, controller.context, { role: 'preview-translation', trackId: options.trackId || audio.dataset.spectrumTrackId || '', mode: mode.id, label: `${mode.label || mode.id} FFT` });
         return controller.context;
     } catch (error) {
         console.warn('Preview translation graph unavailable:', error);
@@ -12401,24 +12360,6 @@ function createABSwitchPlayer(track) {
     deck.append(head, controls, waveformDeck, compareTools, hint, originalAudio, masteredAudio);
     return deck;
 }
-function renderSpectrumPanel(track) {
-    const visualizer = window.FoxBearSpectrumVisualizer;
-    if (!track || !track.analysis || !el.trackDetail || !visualizer || typeof visualizer.renderPanel !== 'function') return;
-    const panel = visualizer.renderPanel({
-        document,
-        track,
-        getActiveAudio: () => getActiveSpectrumAudioForTrack(track)
-    });
-    if (panel) el.trackDetail.appendChild(panel);
-}
-function getActiveSpectrumAudioForTrack(track) {
-    const list = Array.from(document.querySelectorAll('audio'));
-    const trackId = String(track?.id || '');
-    return list.find(audio => !audio.paused && !audio.ended && audio.dataset.spectrumTrackId === trackId)
-        || list.find(audio => !audio.paused && !audio.ended)
-        || list.find(audio => audio.dataset.spectrumTrackId === trackId)
-        || null;
-}
 function renderWaveformPanel(track) {
     if (!track || !track.waveformOverview) return;
     const panel = document.createElement('section');
@@ -13079,7 +13020,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.6.97',
+        app: 'FoxBear AI Mastering Studio Pro v1.6.98',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

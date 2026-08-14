@@ -1,30 +1,34 @@
-# FoxBear Status - v1.6.97
+# FoxBear Status - v1.6.98
 
 ## Current release
 
-- Product version: `1.6.97`
-- Build ID: `boot-payload-delivery-privacy-hardening`
-- Asset version: `1.6.97-boot-payload-delivery-privacy-hardening`
-- Service worker cache: `foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening`
+- Product version: `1.6.98`
+- Build ID: `spectrum-retirement-mobile-header-integrity`
+- Asset version: `1.6.98-spectrum-retirement-mobile-header-integrity`
+- Service worker cache: `foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity`
 - Configured static/regression target: **453 checks**.
 
 ## Release metadata
 
-- Product version: `1.6.97`
-- Build ID: `boot-payload-delivery-privacy-hardening`
-- Asset version: `1.6.97-boot-payload-delivery-privacy-hardening`
-- Service worker cache: `foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening`
+- Product version: `1.6.98`
+- Build ID: `spectrum-retirement-mobile-header-integrity`
+- Asset version: `1.6.98-spectrum-retirement-mobile-header-integrity`
+- Service worker cache: `foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity`
 
 ## Release focus
 
-- Remove redundant main-thread JSZip boot parsing while preserving Worker/offline ZIP behavior.
-- Keep operational recipient and raw SMTP response details out of user-readable incident delivery state.
-- Preserve v1.6.96 Service Worker and Source Hygiene hardening.
+- Retire the user-facing AI Spectrum View and all visualization-only Web Audio analyser plumbing.
+- Preserve FFT/spectrum analysis used by mastering decisions and recommendation logic.
+- Keep the PC/phone compatibility glyph visible in mobile AI mode while compact viewports hide only redundant text.
+- Preserve v1.6.97 boot-payload/privacy and v1.6.96 update/hygiene hardening.
 
 ## Release status
 
-- Focused v1.6.96 regression and full **452/452** configured QA: **PASS**.
-- Delivery verification: **635-file CLEAN FULL**, **314-file PATCH**, **7 cleanup paths**, base-only deletion 0: **PASS**.
+- Focused v1.6.98 regression: **PASS**.
+- Full configured static/behavioral QA: **453/453 PASS**.
+- Final gates: Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Delivery verification: **637-file CLEAN FULL**, **316-file PATCH**, **9 cleanup paths**: **PASS**.
 
 # FoxBear Status - v1.6.88
 

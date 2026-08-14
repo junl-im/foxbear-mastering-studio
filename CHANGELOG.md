@@ -1,3 +1,10 @@
+# v1.6.98 - Spectrum retirement and mobile header integrity
+
+- Removes the user-facing AI Spectrum View, its CSS/script payload, live visualization analyser taps, runtime-health dependency, and performance-diagnostics panel bookkeeping.
+- Preserves the actual mastering FFT/spectrum analysis (`spectrumBands`, `spectrumProfile`, spectral features) used by analysis, recommendations, and mastering decisions.
+- Keeps the PC/phone compatibility glyph visible in mobile AI mode; compact viewports may still hide the redundant text label to protect the settings/mode action rail.
+- Adds regression coverage that prevents the retired spectrum UI from returning and protects the mobile AI header device glyph contract.
+
 # v1.6.97 - Boot payload and delivery privacy hardening
 
 - Removed the redundant main-thread JSZip script; ZIP encoding continues in the dedicated Worker.

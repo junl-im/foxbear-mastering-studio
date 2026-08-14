@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.97",
+  "version": "1.6.98",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.97 - boot payload delivery privacy hardening",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.98 - spectrum retirement mobile header integrity",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.97-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.97-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.98-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.98-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.97-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.97-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.98-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.98-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -85,7 +85,6 @@
     "node --check src/state/track-lifecycle-service.js",
     "node --check src/audio/waveform-control-service.js",
     "node --check src/ui/waveform-control-view.js",
-    "node --check src/ui/spectrum-visualizer.js",
     "node --check src/ui/modal-controller.js",
     "node --check src/ui/engine-control-interaction-service.js",
     "node --check src/ui/bottom-preview-dock-integrity-service.js",
@@ -501,15 +500,16 @@
     "node qa/v1693_mobile_dock_visibility_integrity_recovery_smoke.js",
     "node qa/v1695_release_artifact_safety_smoke.js",
     "node qa/v1696_update_resilience_hygiene_smoke.js",
-    "node qa/v1697_boot_payload_delivery_privacy_smoke.js"
+    "node qa/v1697_boot_payload_delivery_privacy_smoke.js",
+    "node qa/v1698_spectrum_retirement_mobile_header_integrity_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "boot-payload-delivery-privacy-hardening",
-    "assetVersion": "1.6.97-boot-payload-delivery-privacy-hardening",
-    "cacheName": "foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening",
-    "bootRevision": "boot-sri-v1697",
-    "updateSafetyRevision": "update-safety-v1697",
-    "serviceWorkerRevision": "sw-v1697"
+    "buildId": "spectrum-retirement-mobile-header-integrity",
+    "assetVersion": "1.6.98-spectrum-retirement-mobile-header-integrity",
+    "cacheName": "foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity",
+    "bootRevision": "boot-sri-v1698",
+    "updateSafetyRevision": "update-safety-v1698",
+    "serviceWorkerRevision": "sw-v1698"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

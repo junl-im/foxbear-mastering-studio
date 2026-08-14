@@ -1,26 +1,28 @@
-# GitHub Desktop Handoff - v1.6.97
+# GitHub Desktop Handoff - v1.6.98
 
 ## Apply
 
 1. **Fetch origin** in GitHub Desktop.
-2. Confirm the working copy is **v1.6.94**, then extract the **v1.6.95 patch ZIP** into the repository root and replace matching files.
-3. Windows: run `APPLY_PATCH_CLEANUP.cmd`. macOS/Linux: run `bash APPLY_PATCH_CLEANUP.sh`. This applies every safe `DELETE_PATHS.txt` entry, then runs the narrow maintenance cleanup and strict hygiene check.
-4. Review modified/new/deleted files, commit, and **Push origin**. For a clean replacement, preserve `.git` and use the v1.6.95 full ZIP.
+2. Confirm the working copy is **v1.6.97**, then extract the **v1.6.98 patch ZIP** into the repository root and replace matching files.
+3. Run `APPLY_PATCH_CLEANUP.cmd` on Windows (or `bash APPLY_PATCH_CLEANUP.sh` on macOS/Linux). The cleanup must remove the retired spectrum visualizer JS/CSS from the previous release.
+4. In GitHub Desktop, confirm `src/ui/spectrum-visualizer.js` and `assets/css/spectrum-visualizer.css` appear as **Deleted**, then review/commit/push the full change set.
+5. For a clean replacement, preserve `.git` and use the v1.6.98 FULL ZIP contents as the working tree.
 
 ## Release focus
 
-- Blocks ignored `.env*` secrets from strict source hygiene and release packaging.
-- Removes failed release ZIP outputs and validates patch deletion/rename sources before artifact creation.
-- Keeps `package:delivery` strict and non-mutating.
-- Makes hidden Dock diagnostics fail when tracks remain but the active selection is stale.
+- Removes the user-facing AI Spectrum View and visualization-only analyser nodes.
+- Preserves the mastering engine's FFT/spectral feature analysis.
+- Restores the mobile AI-mode PC/phone compatibility glyph that was hidden by a compact-mode CSS override.
+- Updates historical QA contracts so the retired spectrum UI cannot silently return.
 
 ## Expected verification result
 
-- Static/regression target: **451 checks**.
-- v1.6.95 focused release-artifact safety regression: **PASS**.
-- Source hygiene / Version / SRI / App Check / handoff / Hosting boundary: **PASS**.
-- Delivery: **785-file FULL**, **318-file PATCH**, **7 delete paths**, no generated patch manifest: **PASS**.
-- Full Playwright navigation remains the GitHub Actions acceptance step when a browser runtime is unavailable locally.
+- Static/regression target: **453 checks**.
+- v1.6.98 focused spectrum/header regression: **PASS**.
+- Source hygiene / Version / SRI / App Check / handoff / browser preflight: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Delivery: **637-file FULL**, **316-file PATCH**, **9 cleanup paths**.
+- Patch replay over v1.6.97 after cleanup: **REPLAY_MATCH=YES**.
 
 # GitHub Desktop Handoff - v1.6.79
 

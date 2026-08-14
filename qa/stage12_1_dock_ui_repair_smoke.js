@@ -16,7 +16,7 @@ const pkg = JSON.parse(read('package.json'));
 
 assert(index.includes('assets/css/dock-ui-repair.css'), 'index should load dock-ui-repair.css as final Dock repair layer');
 assert(sw.includes('assets/css/dock-ui-repair.css'), 'service worker should precache dock-ui-repair.css');
-assert(/stage12(?:\.1|\.2)|stage12\.2-cachefix|stage13|stage14|stage15|stage16|stage17|stage18|stage19|stage20|stage21|stage22|stage23|stage24|stage25|stage26|stage27|stage28/.test(sw) || sw.includes('foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening'), 'service worker cache should be bumped to stage12.1 or later');
+assert(/stage12(?:\.1|\.2)|stage12\.2-cachefix|stage13|stage14|stage15|stage16|stage17|stage18|stage19|stage20|stage21|stage22|stage23|stage24|stage25|stage26|stage27|stage28/.test(sw) || sw.includes('foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity'), 'service worker cache should be bumped to stage12.1 or later');
 assert(repair.includes('grid-template-columns: 32px minmax(0, 1fr) minmax(58px, 72px)'), 'mobile Dock player should keep toggle, full waveform, and compact time columns');
 assert(repair.includes('grid-column: auto !important') && repair.includes('.player-time.dock-integrated-time'), 'Dock runtime label should reset legacy player-time grid placement');
 assert(repair.includes('.bottom-preview-subline') && repair.includes('grid-template-columns: minmax(0, 1fr) auto'), 'file info genre and compare chip should stay on one line');

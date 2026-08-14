@@ -1,3 +1,10 @@
+# v1.6.98 Project Notes
+
+- User-facing visualization is not the same as mastering analysis. Retiring the AI Spectrum View must never remove `spectrumBands`, `spectrumProfile`, or spectral feature extraction used by the engine.
+- Do not add visualization-only `AnalyserNode` taps back into audible preview graphs unless a real product requirement exists and a user-visible feature consumes them.
+- Mobile AI mode may simplify text tokens, but it must preserve the compact PC/phone compatibility glyph and the workspace/settings action rail.
+- Historical regressions for retired features should become absence/integrity contracts instead of being deleted, so accidental feature resurrection is caught.
+
 # v1.6.95 Project Notes
 
 - Release packaging is strict and non-mutating. Cleanup remains an explicit maintenance command, never an implicit delivery step.

@@ -19,7 +19,7 @@ vm.runInContext(read('src/download/export-guard-service.js'), context, { filenam
 const policy = context.FoxBearFileNamePolicyService;
 const workflow = context.FoxBearFileNameWorkflowService;
 const guard = context.FoxBearExportGuardService;
-assert(policy && workflow && guard, 'v1.6.97 filename services should load together');
+assert(policy && workflow && guard, 'v1.6.98 filename services should load together');
 
 const familyEmoji = '👨‍👩‍👧‍👦';
 const exactLimit = policy.utf8Length(`긴 제목 ${familyEmoji}`);

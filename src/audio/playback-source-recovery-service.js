@@ -1,8 +1,8 @@
-// FoxBear AI Mastering Studio Pro v1.6.97 - bounded playback Blob source retirement
+// FoxBear AI Mastering Studio Pro v1.6.98 - bounded playback Blob source retirement
 (function attachFoxBearPlaybackSourceRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
+    const SERVICE_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
     const DEFAULT_READY_TIMEOUT_MS = 2600;
     const RETIRE_RECHECK_MS = 1800;
     const RETIRE_MAX_WAIT_MS = 45000;
@@ -161,7 +161,7 @@
     }
 
     function resolveAudioMode(audio, options = {}) {
-        return normalizeMode(options.mode || audio?.dataset?.spectrumMode || audio?.closest?.('[data-waveform-mode]')?.dataset?.waveformMode || 'original');
+        return normalizeMode(options.mode || audio?.closest?.('[data-waveform-mode]')?.dataset?.waveformMode || 'original');
     }
 
     function createController(deps = {}) {
@@ -175,7 +175,7 @@
 
         function resolveTrack(audio, options = {}) {
             if (options.track) return options.track;
-            const trackId = String(options.trackId || audio?.dataset?.trackId || audio?.dataset?.spectrumTrackId || '');
+            const trackId = String(options.trackId || audio?.dataset?.trackId || '');
             return (trackId && getTrackById(trackId)) || getSelectedTrack() || null;
         }
 

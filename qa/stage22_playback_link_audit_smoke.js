@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.97-boot-payload-delivery-privacy-hardening';
+const version = '1.6.98-spectrum-retirement-mobile-header-integrity';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

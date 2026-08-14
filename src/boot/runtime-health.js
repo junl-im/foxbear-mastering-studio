@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
+    const FALLBACK_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';
@@ -54,10 +54,6 @@
         'FoxBearMasteringInputGuard.assertMasterable',
         'FoxBearWaveformControlService.setPlayhead',
         'FoxBearWaveformControlView.createBars',
-        'FoxBearSpectrumVisualizer.renderPanel',
-        'FoxBearSpectrumVisualizer.unregisterAudio',
-        'FoxBearSpectrumVisualizer.pruneDisconnectedAudio',
-        'FoxBearSpectrumVisualizer.getDiagnostics',
         'FoxBearModalStateMachine.FoxBearModalStateMachine',
         'FoxBearEngineControlInteraction.scheduleChange',
         'FoxBearDockController.FoxBearDockController',

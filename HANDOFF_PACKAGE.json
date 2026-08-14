@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.97",
-  "buildId": "boot-payload-delivery-privacy-hardening",
+  "productVersion": "1.6.98",
+  "buildId": "spectrum-retirement-mobile-header-integrity",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

@@ -356,7 +356,6 @@ body[data-ui-mode="ai"] .bottom-preview-dock:not(.show) { display: none !importa
     .ui-mode-switch-btn strong { font-size: .58rem; }
     body[data-ui-mode="ai"] .app-shell { width: min(100% - 8px, 980px) !important; padding-top: 6px !important; }
     body[data-ui-mode="ai"] .brand-panel-unified { padding: 7px 8px !important; border-radius: 14px !important; }
-    body[data-ui-mode="ai"] .brand-command-device,
     body[data-ui-mode="ai"] .brand-command-studio,
     body[data-ui-mode="ai"] .brand-command-bar .designer-mini { display: none !important; }
     body[data-ui-mode="ai"] .brand-command-bar .brand-right-actions { gap: 6px !important; }

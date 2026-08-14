@@ -1,3 +1,15 @@
+# v1.6.98 release checklist
+
+- [x] Remove user-facing AI Spectrum View JS/CSS and Detail mount.
+- [x] Remove visualization-only realtime/difference/translation analyser taps.
+- [x] Preserve mastering FFT/spectrum analysis data and recommendation inputs.
+- [x] Restore PC/phone compatibility glyph visibility in mobile AI mode.
+- [x] Convert historical spectrum QA to retirement/integrity assertions.
+- [x] Run all **453/453** configured static/behavioral checks.
+- [x] Verify final Version/SRI, Source Hygiene, App Check, Handoff, Functions syntax, browser preflight, and **161-file** Hosting boundary.
+- [x] Build/verify the **637-file** FULL and **316-file** PATCH with **9 cleanup paths**.
+- [x] Replay the final PATCH over v1.6.97 and verify exact FULL equivalence (`REPLAY_MATCH=YES`).
+
 # v1.6.95 release checklist
 
 - [x] Make strict source hygiene scan the physical worktree so Git-ignored `.env*` secrets cannot bypass release checks.

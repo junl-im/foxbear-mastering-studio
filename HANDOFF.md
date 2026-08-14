@@ -1,30 +1,35 @@
-# Handoff - v1.6.97
+# Handoff - v1.6.98
 
 ## Current release
 
-- Product version: `1.6.97`
-- Build ID: `boot-payload-delivery-privacy-hardening`
-- Asset version: `1.6.97-boot-payload-delivery-privacy-hardening`
-- Service worker cache: `foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening`
+- Product version: `1.6.98`
+- Build ID: `spectrum-retirement-mobile-header-integrity`
+- Asset version: `1.6.98-spectrum-retirement-mobile-header-integrity`
+- Service worker cache: `foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity`
 - Configured static/regression target: 453 checks.
 
 ## Current focus
 
-- Remove redundant main-thread JSZip boot parsing; ZIP export remains Worker-owned.
-- Keep operational recipient and raw SMTP response details out of user-readable incident delivery state.
-- Preserve v1.6.96 Service Worker cache-retirement and Source Hygiene hardening.
+- Remove the user-facing AI Spectrum View completely without removing mastering FFT/spectral analysis.
+- Remove visualization-only analyser taps from realtime preview, difference listening, and preview translation graphs.
+- Keep mobile AI mode PC/phone compatibility glyphs visible; only redundant compact text may collapse.
+- Preserve v1.6.97 boot/privacy and v1.6.96 Service Worker/source-hygiene protections.
 
 ## Required GitHub Desktop step
 
-1. Extract the v1.6.97 patch ZIP into the v1.6.96 repository root and replace matching files.
-2. Review all modified/new/deleted files in GitHub Desktop, commit, and Push origin.
-3. Run the GitHub Actions static release gate; no cleanup command is required for this patch.
+1. Extract the v1.6.98 patch ZIP into the v1.6.97 repository root and replace matching files.
+2. Run `APPLY_PATCH_CLEANUP.cmd` (Windows) or `bash APPLY_PATCH_CLEANUP.sh` (macOS/Linux) so the retired `src/ui/spectrum-visualizer.js` and `assets/css/spectrum-visualizer.css` are removed from older repositories.
+3. Confirm GitHub Desktop shows those two files as **Deleted**, review the remaining modified/new files, commit, and Push origin.
+4. Run the GitHub Actions static release gate.
 
 ## Verified
 
-- Focused v1.6.97 regression: **PASS**.
+- Focused v1.6.98 regression: **PASS**.
 - Full configured static/regression suite: **453/453 PASS**.
-- Version/SRI, Source Hygiene, Hosting boundary, App Check, Functions syntax, browser preflight: **PASS**.
+- Version/SRI, Source Hygiene, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **161 allowlisted files**.
+- Delivery: **637-file FULL**, **316-file PATCH**, **9 cleanup paths**.
+- Patch replay over v1.6.97 after all 9 cleanup paths: **REPLAY_MATCH=YES**.
 
 # Handoff - v1.6.79
 

@@ -2,7 +2,7 @@
 (function attachFoxBearPreviewTranslationService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
+    const SERVICE_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
     const MODES = Object.freeze(['studio', 'phone', 'laptop', 'mono']);
     const DEFAULT_FADE_MS = 120;
     const CLEANUP_GRACE_MS = 48;
@@ -120,9 +120,7 @@
         const source = context.createMediaElementSource(audio);
         const masterGain = context.createGain();
         masterGain.gain.value = 1;
-        const analyser = typeof options.createAnalyser === 'function' ? options.createAnalyser(context) : null;
-        if (analyser) masterGain.connect(analyser).connect(context.destination);
-        else masterGain.connect(context.destination);
+        masterGain.connect(context.destination);
 
         const persistent = options.persistent !== false;
         const initialMode = normalizeMode(options.mode);
@@ -215,7 +213,6 @@
             Object.keys(paths).forEach(disconnectPath);
             try { source.disconnect(); } catch (error) {}
             try { masterGain.disconnect(); } catch (error) {}
-            try { analyser?.disconnect?.(); } catch (error) {}
             if (audio._foxbearTranslationController === controller) audio._foxbearTranslationController = null;
             if (audio._foxbearTranslationContext === context) audio._foxbearTranslationContext = null;
             activeControllers.delete(controller);
@@ -225,7 +222,6 @@
             version: SERVICE_VERSION,
             audio,
             context,
-            analyser,
             paths,
             get mode() { return currentMode; },
             get closed() { return closed; },

@@ -15,7 +15,7 @@ const swSource = read('sw.js');
 const hygieneSource = read('tools/check-source-hygiene.js');
 const syncSource = read('tools/sync-release-metadata.js');
 
-assert.strictEqual(pkg.version, '1.6.97');
+assert.strictEqual(pkg.version, '1.6.98');
 assert(/^\d+\.\d+\.\d+$/.test(pkg.version), 'package version must remain semantic');
 assert(pkg.description.includes(`v${pkg.version}`) && pkg.description.includes(String(pkg.foxbearRelease?.buildId || '').replace(/-/g, ' ')), 'package description must follow current release metadata');
 assert(swSource.includes('cache.addAll(REQUIRED_INSTALL_ASSETS)'), 'minimum recovery shell hard-fail install phase missing');
@@ -60,7 +60,9 @@ function makeSwSandbox({ cacheNames, clients }) {
   const currentCache = pkg.foxbearRelease.cacheName;
   const oldActiveCache = 'foxbear-shell-v1.6.92-spectrum-panel-mount-lifecycle-recovery';
   const unrelatedCache = 'foxbear-shell-v1.6.94-release-integrity-hardening';
-  const rollbackCache = 'foxbear-shell-v1.6.96-update-resilience-hygiene-hardening';
+  const legacyNames = [...swSource.matchAll(/'foxbear-shell-v[^']+'/g)].map(match => match[0].slice(1, -1));
+  const rollbackCache = legacyNames.at(-1);
+  assert(rollbackCache && rollbackCache !== currentCache, 'latest rollback cache should be discoverable from current SW metadata');
   let listeners;
   const activeClient = {
     id: 'client-v1692',

@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.97
+// FoxBear performance diagnostics - v1.6.98
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
+    const DIAGNOSTICS_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -171,7 +171,7 @@
             total: audios.length,
             playing: playing.length,
             audible: playing.filter(audio => !audio.muted && Number(audio.volume || 0) > 0.001).length,
-            labels: playing.slice(0, 4).map(audio => audio.dataset?.spectrumLabel || audio.dataset?.playbackRole || audio.getAttribute('aria-label') || 'audio')
+            labels: playing.slice(0, 4).map(audio => audio.dataset?.playbackRole || audio.getAttribute('aria-label') || 'audio')
         });
     }
 
@@ -182,7 +182,6 @@
         return Object.freeze({
             nodes: doc?.getElementsByTagName?.('*')?.length || 0,
             canvases: connectedCanvases.length,
-            spectrumPanels: doc?.querySelectorAll?.('.spectrum-visualizer-panel')?.length || 0,
             dockPresent: Boolean(doc?.getElementById?.('bottomPreviewDock')),
             settingsButtonPresent: Boolean(doc?.querySelector?.('#mobileSettingsBtn, .mobile-settings-trigger, [data-mobile-settings-trigger]'))
         });
@@ -211,7 +210,6 @@
         'mastered-buffer-retention': '완료된 오디오가 메모리에 많이 남아 있습니다. 저장이 끝난 트랙을 정리해 주세요.',
         'worker-job-stalled': '백그라운드 오디오 작업이 15초 이상 멈췄습니다. 아래 복구 버튼으로 정체 작업을 취소한 뒤 다시 시도해 주세요.',
         'worker-transfer-memory-high': 'Worker 전송 메모리가 높습니다. 대량 작업을 잠시 멈추고 완료된 트랙을 정리해 주세요.',
-        'spectrum-live-without-panel': '닫힌 분석 화면의 시각화가 계속 실행 중입니다. 상세 화면을 다시 열었다 닫거나 페이지를 새로고침해 주세요.',
         'heavy-long-task': '최근 1분 안에 화면이 오래 멈춘 구간이 감지됐습니다. 다른 앱을 닫거나 현재 작업량을 줄여 주세요.',
         'watch-long-task': '최근 1분 안에 화면 응답이 느린 구간이 있었습니다. 현재 작업이 끝날 때까지 추가 조작을 줄여 주세요.',
         'audio-decode-last-error': '최근 오디오 디코딩이 실패했습니다. 파일 형식이나 손상 여부를 확인해 주세요.',
@@ -291,7 +289,6 @@
         if (snapshot.wakeLock?.active && snapshot.wakeLock?.mode === 'auto') activities.push('wake-lock-auto-active');
         if (hasRecentWakeLockFailure(snapshot.wakeLock, nowAt)) warnings.push('wake-lock-last-error');
         if (snapshot.renderScheduler?.pending) activities.push('render-queue-pending');
-        if (snapshot.spectrum?.live && snapshot.dom.spectrumPanels < 1) warnings.push('spectrum-live-without-panel');
         if (longTaskMax >= 200) warnings.push('heavy-long-task');
         else if (longTaskMax >= 80) warnings.push('watch-long-task');
         const summary = Object.freeze({
@@ -303,7 +300,6 @@
             audioPlaying: snapshot.audio.playing,
             audibleAudio: snapshot.audio.audible,
             canvases: snapshot.dom.canvases,
-            spectrumPanels: snapshot.dom.spectrumPanels,
             importQueue: snapshot.importQueue ? { active: snapshot.importQueue.active || 0, pending: snapshot.importQueue.pending || 0 } : null,
             bulkImportHud: snapshot.bulkImportHud ? { total: snapshot.bulkImportHud.total || 0, done: snapshot.bulkImportHud.done || 0, percent: snapshot.bulkImportHud.percent || 0, expanded: Boolean(snapshot.bulkImportHud.expanded) } : null,
             audioDecode: snapshot.audioDecode ? { active: snapshot.audioDecode.activeDecodes || 0, completedCount: snapshot.audioDecode.completedCount || 0, failedCount: snapshot.audioDecode.failedCount || 0, lastDecodedPcmMB: snapshot.audioDecode.lastDecodedPcmMB || 0 } : null,
@@ -330,7 +326,6 @@
     function collectSnapshot(reason = 'manual') {
         const runtimeReport = safeCall(() => global.FoxBearRuntimeHealth?.getReport?.(), null);
         const runtimeFaults = safeCall(() => global.FoxBearRuntimeFaultCounters?.getSnapshot?.(), null);
-        const spectrum = safeCall(() => global.FoxBearSpectrumVisualizer?.getDiagnostics?.(), null);
         const navigationGuard = safeCall(() => global.FoxBearSiteGuards?.getNavigationExitGuardState?.(), null);
         const overlayHistory = safeCall(() => global.FoxBearModalStateMachine?.getHistoryDiagnostics?.(), null);
         const engineControls = safeCall(() => global.FoxBearEngineControlDiagnostics?.getSnapshot?.(), null);
@@ -369,7 +364,6 @@
                 runtimeWarnings: runtimeReport.runtimeWarnings?.length || 0,
                 missingGlobals: runtimeReport.missingGlobals?.length || 0
             } : null,
-            spectrum,
             navigationGuard,
             overlayHistory,
             engineControls,
@@ -865,14 +859,12 @@
 
     function formatPanel(snapshot) {
         const memory = snapshot.memory ? `${snapshot.memory.usedMB}/${snapshot.memory.totalMB}MB` : 'n/a';
-        const spectrum = snapshot.spectrum ? `${snapshot.spectrum.live ? 'live' : 'static'} ${snapshot.spectrum.contextState || ''}`.trim() : 'n/a';
         const lines = [
             `version: ${snapshot.version}`,
             `hint: ${snapshot.frameBudgetHint} · visible: ${snapshot.visibility}`,
             `audio: ${snapshot.audio.playing}/${snapshot.audio.total} playing · audible ${snapshot.audio.audible}`,
-            `canvas: ${snapshot.dom.canvases} · spectrum panels ${snapshot.dom.spectrumPanels}`,
+            `canvas: ${snapshot.dom.canvases}`,
             `memory: ${memory}`,
-            `spectrum: ${spectrum}`,
             `runtime: ${snapshot.runtime ? (snapshot.runtime.ok ? 'ok' : 'check') : 'n/a'} · errors ${snapshot.runtime?.runtimeErrors ?? 0} · warnings ${snapshot.runtime?.runtimeWarnings ?? 0}`,
             `nav guard: ${snapshot.navigationGuard?.installed ? 'on' : 'off'} · confirm ${snapshot.navigationGuard?.confirmOpen ? 'open' : 'idle'}`,
             `overlay history: ${snapshot.overlayHistory?.releaseSuspended ? 'suspended' : (snapshot.overlayHistory?.releaseInFlight ? 'release' : 'idle')} · gen ${snapshot.overlayHistory?.sentinelGeneration ?? 0}/${snapshot.overlayHistory?.releaseGeneration ?? 0} · push ${snapshot.overlayHistory?.sentinelPushCount ?? 0} · coalesced ${snapshot.overlayHistory?.coalescedReleaseCount ?? 0} · recovered ${snapshot.overlayHistory?.releaseRecoveredCount ?? 0}/${snapshot.overlayHistory?.releaseHardStallRecoveredCount ?? 0} · mismatch ${snapshot.overlayHistory?.releaseGenerationMismatchCount ?? 0} · user back ${snapshot.overlayHistory?.userBackCloseCount ?? 0}`,

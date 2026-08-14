@@ -1,3 +1,23 @@
+# FoxBear QA Report - v1.6.98
+
+## Configured target
+
+- Static and behavioral checks: **453**.
+- New regression: `qa/v1698_spectrum_retirement_mobile_header_integrity_smoke.js`.
+
+## Verification scope
+
+- Requires the user-facing AI Spectrum View JS/CSS and all runtime mount/analyser dependencies to be absent.
+- Preserves the mastering engine's FFT/spectrum analysis data path used for audio decisions.
+- Requires mobile AI mode to preserve the PC/phone compatibility glyph while allowing only the redundant compact text label to collapse.
+- Rechecks detail rendering, playback/translation graphs, runtime health, Service Worker precache, SRI, and release packaging after the retirement.
+
+## Verification status
+
+- Focused v1.6.98 regression: **PASS**.
+- Full configured static/behavioral suite: **453/453 PASS** across bounded ranges (114 + 114 + 114 + 111; historical spectrum contracts migrated to retirement assertions).
+- Delivery verification: **637-file CLEAN FULL**, **316-file PATCH**, **9 cleanup paths**, including physical retirement of the spectrum JS/CSS: **PASS**.
+
 # FoxBear QA Report - v1.6.97
 
 ## Configured target

@@ -1,3 +1,21 @@
+# v1.6.98 patch notes
+
+## 적용 내역
+
+- 사용자용 `AI 스펙트럼 뷰`를 완전히 제거했습니다. `src/ui/spectrum-visualizer.js`, `assets/css/spectrum-visualizer.css`, Detail mount, Runtime Health 필수 글로벌, Performance Diagnostics 패널 추적을 함께 제거합니다.
+- 실시간 마스터링 미리듣기, 차이 듣기, 재생환경 번역 그래프에서 시각화 전용 Analyser 노드를 제거해 오디오 그래프를 단순화했습니다.
+- 실제 마스터링 판단에 쓰이는 FFT/spectrum 분석(`spectrumBands`, `spectrumProfile`, spectral feature 계산)은 유지합니다.
+- 모바일 AI 모드에서 상단 `모바일 · PC 호환` PC/휴대폰 glyph 전체를 숨기던 CSS를 제거했습니다. 430px급 화면은 공간 보호를 위해 텍스트만 숨기고 아이콘은 유지합니다.
+- 오래된 Spectrum 관련 QA를 삭제하지 않고 `UI 재등장 금지 + 분석 FFT 보존` 계약으로 전환했습니다.
+
+## 검증 결과
+
+- 전체 정적·행동 회귀: **453/453 PASS**.
+- `src/app.js`: **13,239 lines**.
+- 초기 boot tag: **JS 92 / CSS 26**.
+- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, Browser preflight: **PASS**.
+- Firebase Hosting: **161 files**. FULL: **637 files**. PATCH: **316 overwrite + 9 cleanup paths**.
+
 # v1.6.97 patch notes
 
 ## 적용 내역

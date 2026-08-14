@@ -7,7 +7,7 @@ function renderDetail(options = {}, deps = {}) {
     const {
         state, el, PRESET_LABELS, PLATFORM_EXPORT_PRESETS, MASTER_PREVIEW_DURATION_SEC,
         getSelectedTrack, statusLabel, updateConfidenceUI, computeEngineSafetyInfo,
-        renderAll, renderMasterComparisonPanel, renderABStudioPanel, renderSpectrumPanel, renderWaveformPanel,
+        renderAll, renderMasterComparisonPanel, renderABStudioPanel, renderWaveformPanel,
         renderMasterReportPanel, renderQualityGatePanel, renderProcessingFlowPanel,
         renderEngineSafetyPanel, renderLowMonoPanel, addDetailRow, formatBytes,
         getOutputFormatLabel, getMasterGoalLabel, getMasterGoalDescription,
@@ -68,7 +68,6 @@ function renderDetail(options = {}, deps = {}) {
         renderAiMasteringCard(track);
         renderMasterComparisonPanel(track);
         renderABStudioPanel(track);
-        if (typeof renderSpectrumPanel === 'function') renderSpectrumPanel(track);
         renderWaveformPanel(track);
         renderMasterReportPanel(track);
         renderQualityGatePanel(track);

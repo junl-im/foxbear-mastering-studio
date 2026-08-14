@@ -1,8 +1,8 @@
-# FoxBear AI Mastering Studio Pro v1.6.97
+# FoxBear AI Mastering Studio Pro v1.6.98
 
-> Current release: v1.6.96 · update-resilience-hygiene-hardening
+> Current release: v1.6.98 · spectrum-retirement-mobile-header-integrity
 
-This release hardens PWA updates and release hygiene. Active long-lived tabs keep their exact shell generation until they report safe retirement, optional install assets no longer make Service Worker installation all-or-nothing, pending Git deletions cannot falsely pass local source hygiene, and release description metadata is synchronized automatically.
+This release retires the user-facing AI Spectrum View and its live visualization audio taps while preserving the mastering engine's FFT/spectrum analysis data. Mobile AI mode now keeps the PC/phone compatibility glyph visible in the compact header instead of hiding the whole device token.
 
 # FoxBear AI Mastering Studio Pro v1.6.95
 

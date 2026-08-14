@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
+  const VIEW_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
   const DEFAULT_BINS = 96;
 
   function getService() {

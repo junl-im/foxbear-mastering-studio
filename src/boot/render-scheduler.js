@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.97-boot-payload-delivery-privacy-hardening';
+    const SERVICE_VERSION = '1.6.98-spectrum-retirement-mobile-header-integrity';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

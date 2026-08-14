@@ -5,3 +5,5 @@ qa/static-audit.txt
 qa/browser-check.txt
 qa/static-check.txt
 PATCH_MANIFEST.json
+assets/css/spectrum-visualizer.css
+src/ui/spectrum-visualizer.js

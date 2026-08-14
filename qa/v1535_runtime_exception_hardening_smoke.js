@@ -8,7 +8,7 @@ const vm = require('vm');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-const spectrum = read('src/ui/spectrum-visualizer.js');
+const spectrumPath = path.join(root, 'src/ui/spectrum-visualizer.js');
 const decode = read('src/audio/audio-decode-service.js');
 const orchestrator = read('src/audio/mastering-orchestrator-service.js');
 const app = read('src/app.js');
@@ -20,9 +20,8 @@ const mp3Worker = read('src/workers/mp3-encoder.worker.js');
 const wavWorker = read('src/workers/wav-encoder.worker.js');
 const finalizerWorker = read('src/workers/master-finalizer.worker.js');
 
-assert(spectrum.includes('function now()'), 'spectrum frame clock helper is missing');
-assert(spectrum.includes('disposeSourceRecord(audio, record);'), 'closed spectrum graph is not disposed before reconnect');
-assert(!spectrum.includes("throw new Error('기존 WebAudio 컨텍스트가 종료되어 FFT 연결을 재시도할 수 없습니다.')"), 'closed spectrum context still permanently blocks reconnect');
+assert(!fs.existsSync(spectrumPath), 'retired spectrum visualizer must remain deleted');
+assert(!app.includes('FoxBearSpectrumVisualizer'), 'app must not retain retired visualizer exception paths');
 
 for (const key of [
   'bottomPreviewLayoutObserverInstalled',

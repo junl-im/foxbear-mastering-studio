@@ -7,7 +7,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const app = read('src/app.js');
 const transition = read('src/audio/playback-transition-service.js');
 const contexts = read('src/audio/audio-context-manager.js');
-const spectrum = read('src/ui/spectrum-visualizer.js');
+const spectrumPath = path.join(root, 'src/ui/spectrum-visualizer.js');
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -29,9 +29,8 @@ assert(transition.includes('function playSynchronizedPair('), 'synchronized acti
 assert(contexts.includes("global.addEventListener('pagehide', event =>"), 'pagehide lifecycle handler missing');
 assert(contexts.includes("if (!event?.persisted) closeAll('pagehide')"), 'BFCache restore must preserve live contexts');
 
-assert(spectrum.includes('audio.captureStream || audio.mozCaptureStream'), 'non-invasive spectrum capture route missing');
-assert(spectrum.includes('context.createMediaStreamSource(stream)'), 'spectrum MediaStream source missing');
-assert(!spectrum.includes('context.createMediaElementSource(audio)'), 'spectrum must not hijack the audible media element route');
+assert(!fs.existsSync(spectrumPath), 'retired spectrum visualizer must remain deleted');
+assert(!app.includes('createSpectrumAnalyserTap') && !app.includes('registerExternalSpectrumAnalyser'), 'playback graphs must not retain spectrum-only analyser taps');
 
 const events = [];
 const window = {

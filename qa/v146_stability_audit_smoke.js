@@ -1,38 +1,18 @@
+#!/usr/bin/env node
+'use strict';
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const must = (condition, message) => {
-  if (!condition) {
-    console.error(`FAIL v1.4.26 stability audit smoke: ${message}`);
-    process.exit(1);
-  }
-};
+const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
+const exists = rel => fs.existsSync(path.join(root, rel));
+const must = (condition, message) => { if (!condition) { console.error(`FAIL: ${message}`); process.exit(1); } };
 
-const app = read('src/app.js');
-const spectrum = read('src/ui/spectrum-visualizer.js');
-const html = read('index.html');
-const sw = read('sw.js');
-const pkg = JSON.parse(read('package.json'));
-const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
-
-must(pkg.version === '1.6.97', 'package version should be 1.6.97');
-must(html.includes('data-build="1.6.97"'), 'index build marker should be 1.6.97');
-must(html.includes('1.6.97-boot-payload-delivery-privacy-hardening'), 'index should use v1.6.97 cache key');
-must(sw.includes('foxbear-shell-v1.6.97-boot-payload-delivery-privacy-hardening'), 'service worker cache should use v1.6.97 key');
-
-must(spectrum.includes('externalAnalyserNodes'), 'spectrum visualizer should track external analyser nodes');
-must(spectrum.includes('function registerExternalAnalyser'), 'spectrum visualizer should expose external analyser registration');
-must(spectrum.includes('externalAnalyserNodes.get(audio)'), 'live FFT should prefer an external analyser when one exists');
-must(spectrum.includes('updateAudioMeta(audio, meta)'), 'spectrum audio registration should refresh metadata on repeated calls');
-must(spectrum.includes('registerExternalAnalyser,'), 'external analyser API should be exported');
-
-must(app.includes('function createSpectrumAnalyserTap'), 'app should create reusable spectrum analyser taps');
-must(app.includes('function registerExternalSpectrumAnalyser'), 'app should register external spectrum analysers safely');
-must(app.includes('nodes.spectrumAnalyser'), 'realtime mastering preview should expose a spectrum analyser');
-must(app.includes("role: 'preview-translation'"), 'preview translation WebAudio graph should register a spectrum tap');
-must(app.includes("role: 'difference-compare'"), 'difference listen graph should register a spectrum tap');
-must(app.includes('output.connect(spectrumAnalyser).connect(context.destination)'), 'difference/translation graph should place analyser before destination');
-must(matrix.includes('external analyser') || matrix.includes('FFT external analyser'), 'browser matrix should mention external analyser coverage');
-
-console.log('PASS v1.4.26 stability audit smoke');
+const pkg=JSON.parse(read('package.json')); const app=read('src/app.js'); const index=read('index.html'); const sw=read('sw.js'); const translation=read('src/audio/preview-translation-service.js');
+must(pkg.version==='1.6.98','package version');
+must(index.includes('1.6.98-spectrum-retirement-mobile-header-integrity'),'asset version');
+must(sw.includes('foxbear-shell-v1.6.98-spectrum-retirement-mobile-header-integrity'),'cache version');
+must(!exists('src/ui/spectrum-visualizer.js'),'spectrum visualizer must stay deleted');
+must(!app.includes('createSpectrumAnalyserTap') && !app.includes('registerExternalSpectrumAnalyser') && !app.includes('spectrumAnalyser'),'visualizer analyser plumbing must be absent');
+must(translation.includes('masterGain.connect(context.destination);'),'preview translation must connect directly to destination after analyser retirement');
+must(!translation.includes('createAnalyser') && !translation.includes('analyser,'),'preview translation must not retain dead analyser state');
+console.log('PASS stability audit after spectrum analyser retirement');
