@@ -13,9 +13,10 @@ const recoverySource = fs.readFileSync('src/audio/playback-source-recovery-servi
 const deliverySource = fs.readFileSync('tools/create-delivery-zips.js', 'utf8');
 const verifierSource = fs.readFileSync('tools/verify-patch-zip.js', 'utf8');
 const hygieneSource = fs.readFileSync('tools/check-source-hygiene.js', 'utf8');
+const hygienePolicySource = fs.readFileSync('tools/source-hygiene-policy.js', 'utf8');
 const deletePaths = fs.readFileSync('DELETE_PATHS.txt', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.101');
+assert.strictEqual(pkg.version, '1.6.102');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current buildId must remain kebab-case');
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1679_manifestless_patch_playback_retirement_smoke.js'));
@@ -25,7 +26,7 @@ assert(recoverySource.includes('expired && !activelyPlaying'));
 assert(!deliverySource.includes("fs.writeFileSync(path.join(patchRoot, 'PATCH_MANIFEST.json')"));
 assert(verifierSource.includes('PATCH_MANIFEST.json is a legacy generated artifact'));
 assert(verifierSource.includes('expected Git patch'));
-assert(hygieneSource.includes("'PATCH_MANIFEST.json'"));
+assert(hygieneSource.includes("require('./source-hygiene-policy')") && hygienePolicySource.includes("'PATCH_MANIFEST.json'"));
 assert(deletePaths.split(/\r?\n/).includes('PATCH_MANIFEST.json'));
 
 

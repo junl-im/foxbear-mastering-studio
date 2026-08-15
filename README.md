@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.102
+
+> Current release: v1.6.102 · admin-lazyload-sw-hygiene-hardening
+
+This release makes administrator incident loading retry-safe and truly network-on-demand, shortens Service Worker installation to the minimum recovery shell, and centralizes source-hygiene cleanup policy so local repair and CI enforcement cannot drift apart.
+
 # FoxBear AI Mastering Studio Pro v1.6.101
 
 > Current release: v1.6.101 · admin-lazyload-repo-cleanup

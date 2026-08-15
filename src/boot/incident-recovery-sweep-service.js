@@ -1,4 +1,4 @@
-// FoxBear incident lifecycle recovery sweep coordinator - v1.6.101
+// FoxBear incident lifecycle recovery sweep coordinator - v1.6.102
 (function attachFoxBearIncidentRecoverySweep(global) {
     'use strict';
 
@@ -227,7 +227,7 @@
     }
 
     global.FoxBearIncidentRecoverySweep = Object.freeze({
-        version: '1.6.101',
+        version: '1.6.102',
         defaultMaxReasons: DEFAULT_MAX_REASONS,
         defaultMaxErrors: DEFAULT_MAX_ERRORS,
         mergeRequests,

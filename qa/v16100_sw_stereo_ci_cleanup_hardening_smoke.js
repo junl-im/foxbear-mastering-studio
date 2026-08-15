@@ -11,11 +11,12 @@ const sw = read('sw.js');
 const app = read('src/app.js');
 const worker = read('src/workers/analysis.worker.js');
 const hygiene = read('tools/check-source-hygiene.js');
+const hygienePolicy = read('tools/source-hygiene-policy.js');
 const browserSpec = read('qa/browser/mobile-ai-admin-header-matrix-playwright.spec.js');
 
 assert(!fs.existsSync(path.join(root, 'src/ui/spectrum-visualizer.js')), 'retired spectrum JS must be physically absent');
 assert(!fs.existsSync(path.join(root, 'assets/css/spectrum-visualizer.css')), 'retired spectrum CSS must be physically absent');
-assert(hygiene.includes("'src/ui/spectrum-visualizer.js'") && hygiene.includes("'assets/css/spectrum-visualizer.css'"), 'source hygiene must reject retired spectrum assets immediately');
+assert(hygiene.includes("require('./source-hygiene-policy')") && hygienePolicy.includes("'src/ui/spectrum-visualizer.js'") && hygienePolicy.includes("'assets/css/spectrum-visualizer.css'"), 'source hygiene must reject retired spectrum assets immediately');
 assert(sw.includes("LEGACY_CACHE_NAMES.slice(-RETAINED_LEGACY_SHELL_COUNT)"), 'client-aware purge must preserve the declared rollback generation count');
 assert(sw.includes("name.startsWith('foxbear-shell-') && name !== CACHE_NAME"), 'exact stale-generation lookup must search all FoxBear shell caches after SW restart');
 assert(/const channels = Math\.max\(1, Math\.min\(buffer\.numberOfChannels \|\| 1, 2\)\), channelBuffers/.test(app), 'worker analysis transfer must be capped to stereo');

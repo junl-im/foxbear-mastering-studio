@@ -1,3 +1,13 @@
+# v1.6.102 release checklist
+
+- [x] Extract admin incident lazy loader from `app.js`.
+- [x] Remove stale/failed dynamic script nodes and add load timeout/retry recovery.
+- [x] Remove heavy admin incident JS from SW install/warm graphs.
+- [x] Limit SW install blocking to the minimum recovery shell.
+- [x] Centralize Source Hygiene policy across checker/repair/delete contract.
+- [x] Add `README.txt` and one-off NO_GIT helper guards.
+- [x] Run final **458/458** regression plus Hosting **162-file**, browser preflight, packaging, and replay gates.
+
 # v1.6.101 release checklist
 
 - [x] Remove eager admin incident monitor JS from index.html.

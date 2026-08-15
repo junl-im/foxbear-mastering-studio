@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 const { expectRuntimeHealthy, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 const { stageDownloadOptionsFixture } = require('./helpers/visual-fixture-builders');
 
-test.describe('v1.6.101 mobile download and batch controls visual contract', () => {
+test.describe('v1.6.102 mobile download and batch controls visual contract', () => {
   for (const viewport of [{ width: 375, height: 667 }, { width: 430, height: 932 }, { width: 1280, height: 900 }]) {
     test(`download sheet and batch controls fit ${viewport.width}x${viewport.height}`, async ({ page }) => {
       await page.setViewportSize(viewport);

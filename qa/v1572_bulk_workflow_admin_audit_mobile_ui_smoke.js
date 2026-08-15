@@ -20,15 +20,15 @@ const functionsPkg = JSON.parse(read('functions/package.json'));
 const rules = read('firestore.rules');
 const index = read('index.html');
 
-assert(pkg.version === '1.6.101', 'package version should be v1.6.101');
-assert(functionsPkg.version === '1.6.101', 'Functions package version should match the release');
-assert(pkg.qaChecks.includes('node qa/v1572_bulk_workflow_admin_audit_mobile_ui_smoke.js'), 'release QA should include v1.6.101 smoke');
+assert(pkg.version === '1.6.102', 'package version should be v1.6.102');
+assert(functionsPkg.version === '1.6.102', 'Functions package version should match the release');
+assert(pkg.qaChecks.includes('node qa/v1572_bulk_workflow_admin_audit_mobile_ui_smoke.js'), 'release QA should include v1.6.102 smoke');
 
 assert(hud.includes('navigateToMasterAllAfterBulkAnalysis') && hud.includes("getEl('masterAllBtn')"), 'bulk HUD view should own the one-time master-all navigation');
 assert(app.includes("scheduleRender: reason => scheduleRenderAll(reason"), 'app should provide a render bridge without owning bulk navigation UI');
 assert(app.includes('isActiveMasteringTrack') && app.includes("suppressedByBulk = bulkMasteringActive ? 'true' : 'false'"), 'single-track processing HUD should be suppressed during multi-mastering');
 assert(hud.includes('detachTrackFromMasteringBatch') && hud.includes("track.bulkMasteringSource = 'single'"), 'single remaster should detach stale bulk membership');
-assert(hud.includes("const VIEW_VERSION = '1.6.101-bulk-control-eta-result-filter'"), 'bulk HUD should expose v1.6.101 batch-list continuity contract');
+assert(hud.includes("const VIEW_VERSION = '1.6.102-bulk-control-eta-result-filter'"), 'bulk HUD should expose v1.6.102 batch-list continuity contract');
 assert(hud.includes("stateBadge.textContent = isCurrent ? '현재 진행'"), 'active mastering row should be clearly labeled');
 assert(hud.includes("row.setAttribute('aria-current', 'step')"), 'active mastering row should expose accessible current-step state');
 assert(hud.includes('lastAutoScrolledTrackId') && hud.includes('scheduleCurrentTrackNavigation') && hud.includes('latestList.scrollTo'), 'bulk list should follow the current track without repeated scrolling');

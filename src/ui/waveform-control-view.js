@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.101-admin-lazyload-repo-cleanup';
+  const VIEW_VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -18,6 +18,7 @@ const pkg = json('package.json');
 const handoff = json('HANDOFF_PACKAGE.json');
 const hygiene = read('tools/archive-hygiene.js');
 const sourceHygiene = read('tools/check-source-hygiene.js');
+const sourceHygienePolicy = read('tools/source-hygiene-policy.js');
 const delivery = read('tools/create-delivery-zips.js');
 const patchVerifier = read('tools/verify-patch-zip.js');
 const overwrite = read('tools/create-overwrite-zip.sh');
@@ -41,7 +42,7 @@ for (const token of ["'.git'", "'.firebase'", "'.audit-results'"]) {
   assert(hygiene.includes(token), `archive hygiene missing ${token}`);
 }
 assert(hygiene.includes("name === '.firebaserc'"), 'archive hygiene must reject .firebaserc');
-assert(sourceHygiene.includes("'.firebaserc'") && sourceHygiene.includes("'.firebase/'") && sourceHygiene.includes("'.audit-results/'") && sourceHygiene.includes("'PATCH_MANIFEST.json'"), 'source hygiene forbidden set incomplete');
+assert(sourceHygiene.includes("require('./source-hygiene-policy')") && sourceHygienePolicy.includes("'.firebaserc'") && sourceHygienePolicy.includes("'.firebase/'") && sourceHygienePolicy.includes("'.audit-results/'") && sourceHygienePolicy.includes("'PATCH_MANIFEST.json'"), 'source hygiene forbidden set incomplete');
 assert(gate.includes("'source:hygiene'") || gate.includes("'source:hygiene:gate'"), 'release gate must run a source hygiene gate');
 assert(gitignore.includes('.firebaserc') && gitignore.includes('.audit-results/'), 'local Firebase/audit paths must be ignored');
 for (const item of ['.firebaserc', '.firebase/', '.audit-results/', 'qa/static-audit.txt', 'PATCH_MANIFEST.json']) {

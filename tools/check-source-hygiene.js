@@ -8,47 +8,7 @@ const { spawnSync } = require('child_process');
 const rootArgIndex = process.argv.indexOf('--root');
 const ROOT = path.resolve(rootArgIndex >= 0 && process.argv[rootArgIndex + 1] ? process.argv[rootArgIndex + 1] : path.join(__dirname, '..'));
 
-const FORBIDDEN_EXACT = new Set([
-  '.firebaserc',
-  'qa/static-audit.txt',
-  'firebase-debug.log',
-  'npm-debug.log',
-  'PATCH_MANIFEST.json',
-  'assets/css/spectrum-visualizer.css',
-  'src/ui/spectrum-visualizer.js',
-  'APPLY_SPECTRUM_DELETE_NO_GIT.cmd',
-  'APPLY_SPECTRUM_DELETE_NO_GIT.sh',
-  'README_FIRST.txt'
-]);
-const FORBIDDEN_PREFIXES = [
-  '.firebase/',
-  '.audit-results/',
-  'dist/',
-  'node_modules/',
-  'functions/node_modules/',
-  'qa/browser-results/',
-  'qa/browser-history/',
-  'test-results/',
-  'playwright-report/'
-];
-
-function normalize(value) {
-  return String(value || '').replace(/\\/g, '/').replace(/^\.\//, '');
-}
-
-function isSecretEnvFile(relative) {
-  const name = path.posix.basename(relative);
-  if (!name.startsWith('.env')) return false;
-  return !/\.example$/i.test(name);
-}
-
-function isForbidden(relative) {
-  const value = normalize(relative);
-  if (FORBIDDEN_EXACT.has(value)) return true;
-  if (FORBIDDEN_PREFIXES.some(prefix => value === prefix.slice(0, -1) || value.startsWith(prefix))) return true;
-  if (/^qa\/(?:static-audit|browser-check|static-check)[^/]*\.txt$/i.test(value)) return true;
-  return isSecretEnvFile(value);
-}
+const { isForbidden, normalize } = require('./source-hygiene-policy');
 
 let gitIndexInspectionSkipped = false;
 function trackedFiles() {

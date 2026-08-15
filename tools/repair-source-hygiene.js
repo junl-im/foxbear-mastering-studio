@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { REPAIRABLE_PATHS, isRepairable, normalize } = require('./source-hygiene-policy');
 
 const rootArgIndex = process.argv.indexOf('--root');
 const ROOT = path.resolve(rootArgIndex >= 0 && process.argv[rootArgIndex + 1]
@@ -19,17 +20,6 @@ if (isGitHubActions && !ciRepairAllowed) {
 }
 
 const QUIET_GITHUB_REPAIR_PATHS = new Set(['PATCH_MANIFEST.json']);
-
-const REPAIRABLE_PATHS = Object.freeze([
-  '.firebaserc',
-  '.firebase',
-  '.audit-results',
-  'dist',
-  'qa/static-audit.txt',
-  'qa/browser-check.txt',
-  'qa/static-check.txt',
-  'PATCH_MANIFEST.json'
-]);
 
 function annotationEscape(value) {
   return String(value || '')
@@ -78,8 +68,23 @@ function removePath(relative) {
   return true;
 }
 
+function discoverRepairablePaths() {
+  const candidates = new Set(REPAIRABLE_PATHS);
+  for (const entry of fs.readdirSync(ROOT, { withFileTypes: true })) {
+    if (isRepairable(entry.name)) candidates.add(normalize(entry.name));
+  }
+  const qaDir = path.join(ROOT, 'qa');
+  if (fs.existsSync(qaDir)) {
+    for (const entry of fs.readdirSync(qaDir, { withFileTypes: true })) {
+      const relative = normalize(`qa/${entry.name}`);
+      if (isRepairable(relative)) candidates.add(relative);
+    }
+  }
+  return [...candidates];
+}
+
 try {
-  const removed = REPAIRABLE_PATHS.filter(removePath);
+  const removed = discoverRepairablePaths().filter(removePath);
   const detail = removed.length ? `removed ${removed.length} path(s)` : 'found nothing to remove';
   console.log(`PASS source hygiene repair (${repairContext}) ${detail}`);
 } catch (error) {

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.101-admin-lazyload-repo-cleanup';
+const version = '1.6.102-admin-lazyload-sw-hygiene-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

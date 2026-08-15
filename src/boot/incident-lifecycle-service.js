@@ -1,4 +1,4 @@
-// FoxBear incident connectivity and resume lifecycle coordinator - v1.6.101
+// FoxBear incident connectivity and resume lifecycle coordinator - v1.6.102
 (function attachFoxBearIncidentLifecycle(global) {
     'use strict';
 
@@ -164,7 +164,7 @@
     }
 
     global.FoxBearIncidentLifecycle = Object.freeze({
-        version: '1.6.101',
+        version: '1.6.102',
         longBackgroundMs: LONG_BACKGROUND_MS,
         connectionChangeDebounceMs: CONNECTION_CHANGE_DEBOUNCE_MS,
         createController

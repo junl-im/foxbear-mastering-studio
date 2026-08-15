@@ -1,8 +1,8 @@
-// FoxBear worker recovery coordinator v1.6.101 - safe high-level retries after stalled Worker cancellation
+// FoxBear worker recovery coordinator v1.6.102 - safe high-level retries after stalled Worker cancellation
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.6.101-admin-lazyload-repo-cleanup';
+    const VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
     const handlers = [];
 
     function normalizeJob(job) {

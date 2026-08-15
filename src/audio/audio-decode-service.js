@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.101
+// FoxBear audio decode service - v1.6.102
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.101-admin-lazyload-repo-cleanup';
+    const SERVICE_VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

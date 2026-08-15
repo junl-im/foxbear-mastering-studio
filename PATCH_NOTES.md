@@ -1,3 +1,12 @@
+# v1.6.102 patch notes
+
+- 관리자 오류관리 lazy-load가 한 번 실패한 뒤 재시도에서 영구 대기하던 경로를 수정했습니다. 실패/초기화 실패 script는 제거하고 다음 시도에서 새 노드를 만듭니다.
+- lazy loader를 `src/ui/admin-incident-loader-service.js`로 분리해 `app.js`를 **13,235줄**로 줄였습니다.
+- 77KB 관리자 오류관리 JS를 Service Worker install/background warm에서 제외해 관리자 최초 사용 시에만 네트워크로 받고 정상 fetch 경로가 캐시합니다.
+- Service Worker install은 **9개 최소 recovery shell**만 기다리고 일반 core는 활성화 후 background warm합니다.
+- Source Hygiene checker/repair/delete 정책을 `tools/source-hygiene-policy.js`로 통합하고 `README.txt` 및 일회성 `*_NO_GIT.cmd/.sh` 재유입을 차단했습니다.
+- 전체 **458/458 QA PASS**, Hosting **162 files**, FULL **648 files**, PATCH **321 overwrite + 13 cleanup paths**.
+
 # v1.6.101 patch notes
 
 - 일반 사용자 초기 로딩에서 관리자 오류관리 JS를 제거하고, 인증된 관리자가 오류 관리 탭을 열 때만 SRI + Trusted Types 검증 후 로드합니다.

@@ -1,8 +1,8 @@
-// FoxBear playback lifecycle recovery service - v1.6.101
+// FoxBear playback lifecycle recovery service - v1.6.102
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.101-admin-lazyload-repo-cleanup';
+    const SERVICE_VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

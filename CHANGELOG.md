@@ -1,3 +1,11 @@
+# v1.6.102 - Admin lazy-load, SW install, and hygiene policy hardening
+
+- Fix admin incident lazy-load retry deadlock by replacing settled/failed script nodes and adding a bounded timeout.
+- Extract the loader from app.js to restore architecture headroom.
+- Keep the heavy admin incident module out of Service Worker install and background warm graphs for true network-on-demand loading.
+- Make Service Worker install wait only for the minimum recovery shell.
+- Unify Source Hygiene checker/repair/delete policy and retire temporary helper README/NO_GIT artifacts.
+
 # v1.6.101 - Admin lazy-load and repository cleanup hardening
 
 - Lazy-load the 77KB admin incident monitor JS only when an authenticated administrator opens the incident tab.

@@ -37,15 +37,17 @@ function initializeFixture(temp, files) {
 
 const gate = read('tools/run-source-hygiene-gate.js');
 const repair = read('tools/repair-source-hygiene.js');
+const policy = read('tools/source-hygiene-policy.js');
 const pages = read('.github/workflows/pages.yml');
 const fallback = read('.github/workflows/pages-branch-fallback.yml');
 
 assert(gate.includes("'ci-safe'"), 'ci-safe source hygiene mode is missing');
 assert(gate.includes("FOXBEAR_ALLOW_CI_HYGIENE_REPAIR: '1'"), 'ci-safe mode must explicitly authorize allowlisted cleanup');
 assert(repair.includes('Source hygiene auto-repair'), 'GitHub warning annotation for auto-repair is missing');
-assert(repair.includes("'.firebaserc'"), '.firebaserc must remain in the narrow allowlist');
-assert(repair.includes("'.firebase'"), '.firebase must remain in the narrow allowlist');
-assert(repair.includes("'qa/static-audit.txt'"), 'qa/static-audit.txt must remain in the narrow allowlist');
+assert(repair.includes("require('./source-hygiene-policy')"), 'repair must consume the shared source-hygiene policy');
+assert(policy.includes("'.firebaserc'"), '.firebaserc must remain in the narrow allowlist');
+assert(policy.includes("'.firebase/'"), '.firebase must remain in the narrow allowlist');
+assert(policy.includes("'qa/static-audit.txt'"), 'qa/static-audit.txt must remain in the narrow allowlist');
 for (const [name, workflow] of [['pages', pages], ['fallback', fallback]]) {
   assert(workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: strict'), `${name} workflow must use strict mode for the normal release path`);
   assert(!workflow.includes('FOXBEAR_SOURCE_HYGIENE_MODE: ci-safe'), `${name} workflow must not auto-repair source hygiene during release`);

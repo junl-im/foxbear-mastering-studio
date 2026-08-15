@@ -1,3 +1,19 @@
+# GitHub Desktop Handoff - v1.6.102
+
+## Apply
+
+1. Extract the v1.6.102 PATCH ZIP into the repository root and replace matching files.
+2. Run `APPLY_PATCH_CLEANUP.cmd` once. It removes stale Spectrum/helper artifacts including the accidental root `README.txt`.
+3. In GitHub Desktop, review Modified/New/Deleted entries together, then Commit and Push origin.
+4. Verify Static release gate and Browser release gate.
+
+## Release focus
+
+- Retry-safe administrator incident lazy loading with SRI + Trusted Types.
+- Heavy administrator incident JS is fetched only on first incident-tab use.
+- Service Worker install blocks only on the minimum recovery shell.
+- Shared Source Hygiene policy drives checker, repair, and cleanup contract verification.
+
 # GitHub Desktop Handoff - v1.6.101
 
 ## Apply

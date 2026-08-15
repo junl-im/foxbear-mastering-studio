@@ -1,3 +1,22 @@
+# FoxBear Status - v1.6.102
+
+## Current release
+
+- Product version: `1.6.102`
+- Build ID: `admin-lazyload-sw-hygiene-hardening`
+- Asset version: `1.6.102-admin-lazyload-sw-hygiene-hardening`
+- Service worker cache: `foxbear-shell-v1.6.102-admin-lazyload-sw-hygiene-hardening`
+- Configured static/regression target: **458 checks**.
+
+## Release status
+
+- Full configured static/behavioral QA: **458/458 PASS**.
+- Admin lazy-load fail/retry settlement and true network-on-demand contract: **PASS**.
+- Shared Source Hygiene checker/repair/delete policy: **PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **162 allowlisted files**.
+- Delivery target: **648-file FULL**, **321-file PATCH**, **13 cleanup paths**.
+
 # FoxBear Status - v1.6.101
 
 ## Current release
@@ -10,10 +29,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.101`
-- Build ID: `admin-lazyload-repo-cleanup`
-- Asset version: `1.6.101-admin-lazyload-repo-cleanup`
-- Service worker cache: `foxbear-shell-v1.6.101-admin-lazyload-repo-cleanup`
+- Product version: `1.6.102`
+- Build ID: `admin-lazyload-sw-hygiene-hardening`
+- Asset version: `1.6.102-admin-lazyload-sw-hygiene-hardening`
+- Service worker cache: `foxbear-shell-v1.6.102-admin-lazyload-sw-hygiene-hardening`
 
 ## Release focus
 

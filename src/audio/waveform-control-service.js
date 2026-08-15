@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.101-admin-lazyload-repo-cleanup';
+    const SERVICE_VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
     const DEFAULT_BINS = 96;
     const SAFE_END_MARGIN_SEC = 0.08;
     const barElementsCache = typeof WeakMap === 'function' ? new WeakMap() : null;

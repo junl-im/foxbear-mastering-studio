@@ -1,3 +1,27 @@
+# Handoff - v1.6.102
+
+## Current release
+
+- Product version: `1.6.102`
+- Build ID: `admin-lazyload-sw-hygiene-hardening`
+- Asset version: `1.6.102-admin-lazyload-sw-hygiene-hardening`
+- Service worker cache: `foxbear-shell-v1.6.102-admin-lazyload-sw-hygiene-hardening`
+- Configured static/regression target: 458 checks.
+
+## Current focus
+
+- Retry-safe administrator incident lazy loading.
+- Heavy administrator incident JS is fetched only on first incident-tab use.
+- Service Worker install waits only for the minimum recovery shell and warms the normal core after activation.
+- Shared Source Hygiene policy drives checker/repair/delete contract; accidental root `README.txt` is retired.
+
+## Verified
+
+- Full configured static/regression suite: **458/458 PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Delivery target: **648-file FULL**, **321-file PATCH**, **13 cleanup paths**.
+
 # Handoff - v1.6.101
 
 ## Current release

@@ -15,12 +15,12 @@ const swSource = read('sw.js');
 const hygieneSource = read('tools/check-source-hygiene.js');
 const syncSource = read('tools/sync-release-metadata.js');
 
-assert.strictEqual(pkg.version, '1.6.101');
+assert.strictEqual(pkg.version, '1.6.102');
 assert(/^\d+\.\d+\.\d+$/.test(pkg.version), 'package version must remain semantic');
 assert(pkg.description.includes(`v${pkg.version}`) && pkg.description.includes(String(pkg.foxbearRelease?.buildId || '').replace(/-/g, ' ')), 'package description must follow current release metadata');
 assert(swSource.includes('cache.addAll(REQUIRED_INSTALL_ASSETS)'), 'minimum recovery shell hard-fail install phase missing');
-assert(swSource.includes('cacheInstallAssetsBestEffort(cache, OPTIONAL_INSTALL_ASSETS)'), 'best-effort optional install phase missing');
-assert(!swSource.includes('cache.addAll(INSTALL_ASSETS)'), 'full boot graph must not be all-or-nothing');
+assert(swSource.includes('const WARM_ASSETS = CORE_ASSETS.filter(asset => !REQUIRED_INSTALL_ASSET_SET.has(asset))'), 'post-activation warm graph missing');
+assert(!swSource.includes('cacheInstallAssetsBestEffort') && !swSource.includes('OPTIONAL_INSTALL_ASSETS'), 'service worker install must not wait on optional boot assets');
 assert(!swSource.includes('activate-pre-claim'), 'activation must not purge shell caches before client generation probing');
 assert(swSource.indexOf('await self.clients.claim()') < swSource.indexOf("purgeLegacyShellCaches({ probeClients: true, reason: 'activate-post-claim' })"), 'client claim must precede active-generation cache retirement');
 assert(hygieneSource.includes('const trackedFailures = tracked ? tracked.filter(isForbidden) : [];'), 'tracked forbidden paths must fail until their deletions are committed');
