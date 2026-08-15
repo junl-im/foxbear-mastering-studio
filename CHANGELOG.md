@@ -1,3 +1,10 @@
+# v1.6.103 - CI hygiene and mail-routing hardening
+
+- Commit the accidental root `README.txt` deletion so strict Source Hygiene can proceed.
+- Add administrator-only mail-routing readiness visibility without exposing sender/recipient addresses.
+- Keep fallback delivery operational but warn when either routing environment variable is missing.
+- Remove eight dead Service Worker share-policy constants; the shared `SHARE_POLICY` remains authoritative.
+
 # v1.6.102 - Admin lazy-load, SW install, and hygiene policy hardening
 
 - Fix admin incident lazy-load retry deadlock by replacing settled/failed script nodes and adding a bounded timeout.

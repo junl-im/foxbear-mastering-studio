@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.102",
+  "version": "1.6.103",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.102 - admin lazyload sw hygiene hardening",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.103 - ci hygiene mail routing hardening",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.102-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.102-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.103-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.103-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.102-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.102-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.103-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.103-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -506,15 +506,16 @@
     "node --check qa/browser/mobile-ai-admin-header-matrix-playwright.spec.js",
     "node qa/v16100_sw_stereo_ci_cleanup_hardening_smoke.js",
     "node qa/v16101_admin_lazyload_repo_cleanup_smoke.js",
-    "node qa/v16102_admin_lazyload_sw_hygiene_hardening_smoke.js"
+    "node qa/v16102_admin_lazyload_sw_hygiene_hardening_smoke.js",
+    "node qa/v16103_ci_hygiene_mail_routing_hardening_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "admin-lazyload-sw-hygiene-hardening",
-    "assetVersion": "1.6.102-admin-lazyload-sw-hygiene-hardening",
-    "cacheName": "foxbear-shell-v1.6.102-admin-lazyload-sw-hygiene-hardening",
-    "bootRevision": "boot-sri-v16102",
-    "updateSafetyRevision": "update-safety-v16102",
-    "serviceWorkerRevision": "sw-v16102"
+    "buildId": "ci-hygiene-mail-routing-hardening",
+    "assetVersion": "1.6.103-ci-hygiene-mail-routing-hardening",
+    "cacheName": "foxbear-shell-v1.6.103-ci-hygiene-mail-routing-hardening",
+    "bootRevision": "boot-sri-v16103",
+    "updateSafetyRevision": "update-safety-v16103",
+    "serviceWorkerRevision": "sw-v16103"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

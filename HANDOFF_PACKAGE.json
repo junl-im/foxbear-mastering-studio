@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.102",
-  "buildId": "admin-lazyload-sw-hygiene-hardening",
+  "productVersion": "1.6.103",
+  "buildId": "ci-hygiene-mail-routing-hardening",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

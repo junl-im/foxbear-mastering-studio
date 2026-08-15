@@ -1,3 +1,15 @@
+# FoxBear QA Report - v1.6.103
+
+## v1.6.103 CI hygiene and mail-routing hardening
+
+- Static and behavioral target: **459 checks**.
+- New regression: `qa/v16103_ci_hygiene_mail_routing_hardening_smoke.js`.
+- Accidental tracked root `README.txt` is absent from release source and remains repair/cleanup protected.
+- Administrator mail-routing readiness exposes only `env`/`fallback` source state, never operational email addresses.
+- Existing fallback delivery remains operational while incomplete env configuration is shown as a warning.
+- Dead duplicate Service Worker share-policy constants are removed; shared `SHARE_POLICY` remains authoritative.
+- Final full-suite/gate/package counts: pending final verification.
+
 # FoxBear QA Report - v1.6.102
 
 ## v1.6.102 admin lazy-load, SW install, and hygiene hardening

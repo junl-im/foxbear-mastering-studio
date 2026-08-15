@@ -18,7 +18,7 @@ const uiMode = read('assets/css/ui-mode.css');
 const header = read('assets/css/header-command-bar.css');
 const analysisWorker = read('src/workers/analysis.worker.js');
 
-assert.strictEqual(pkg.version, '1.6.102');
+assert.strictEqual(pkg.version, '1.6.103');
 assert(!exists('src/ui/spectrum-visualizer.js'), 'retired AI spectrum visualizer JS must be deleted');
 assert(!exists('assets/css/spectrum-visualizer.css'), 'retired AI spectrum visualizer CSS must be deleted');
 assert(!index.includes('spectrum-visualizer'), 'index must not load retired spectrum UI');

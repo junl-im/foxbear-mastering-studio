@@ -1,3 +1,10 @@
+# v1.6.103 patch notes
+
+- `README.txt`를 실제 tracked deletion으로 포함해 v1.6.102 Source Hygiene CI 차단을 해소합니다.
+- 관리자 배포 점검에 `메일 라우팅` 상태를 추가하고 env/fallback 출처만 표시하며 실제 메일 주소는 노출하지 않습니다.
+- fallback은 이번 버전에서 제거하지 않아 운영 메일 호환성을 유지합니다.
+- Service Worker의 사용되지 않는 Share 정책 상수 8개를 제거하고 공용 `SHARE_POLICY`만 유지합니다.
+
 # v1.6.102 patch notes
 
 - 관리자 오류관리 lazy-load가 한 번 실패한 뒤 재시도에서 영구 대기하던 경로를 수정했습니다. 실패/초기화 실패 script는 제거하고 다음 시도에서 새 노드를 만듭니다.

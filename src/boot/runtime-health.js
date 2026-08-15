@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
+    const FALLBACK_VERSION = '1.6.103-ci-hygiene-mail-routing-hardening';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

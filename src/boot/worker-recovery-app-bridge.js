@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.102 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.103 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
+    const VERSION = '1.6.103-ci-hygiene-mail-routing-hardening';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

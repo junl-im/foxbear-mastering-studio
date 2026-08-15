@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.102 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.103 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.102-admin-lazyload-sw-hygiene-hardening';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.103-ci-hygiene-mail-routing-hardening';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

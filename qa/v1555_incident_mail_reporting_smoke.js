@@ -46,7 +46,8 @@ assert(rules.includes('match /incidentMailState/{document=**}'));
 
 for (const token of [
   "defineSecret('FOXBEAR_GMAIL_APP_PASSWORD')",
-  "DEFAULT_ALERT_EMAIL = 'mcwoogi@gmail.com'",
+  'incidentMailRoutingMetadata',
+  'FOXBEAR_MAIL_ROUTING_FALLBACK',
   "resolveOperationalEmail('FOXBEAR_ALERT_RECIPIENT'",
   "resolveOperationalEmail('FOXBEAR_ALERT_SENDER'",
   "document: 'incidentReports/{reportId}'",

@@ -1,3 +1,27 @@
+# FoxBear Status - v1.6.103
+
+## Current release
+
+- Product version: `1.6.103`
+- Build ID: `ci-hygiene-mail-routing-hardening`
+- Asset version: `1.6.103-ci-hygiene-mail-routing-hardening`
+- Service worker cache: `foxbear-shell-v1.6.103-ci-hygiene-mail-routing-hardening`
+- Configured static/regression target: **459 checks**.
+
+## Release status
+
+- Full configured static/behavioral QA: **459/459 PASS**.
+- Strict Git-tracked Source Hygiene with `README.txt` staged deletion: **PASS**.
+- Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **162 allowlisted files**.
+- Delivery: **650-file FULL**, **317-file PATCH**, **13 cleanup paths**; patch replay: **REPLAY_MATCH=YES**.
+
+## Release focus
+
+- Remove the tracked helper `README.txt` that blocked v1.6.102 strict Source Hygiene.
+- Surface mail-routing env/fallback state to authenticated administrators without exposing addresses.
+- Keep fallback operational for compatibility and remove unused SW share-policy constants.
+
 # FoxBear Status - v1.6.102
 
 ## Current release
@@ -29,10 +53,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.102`
-- Build ID: `admin-lazyload-sw-hygiene-hardening`
-- Asset version: `1.6.102-admin-lazyload-sw-hygiene-hardening`
-- Service worker cache: `foxbear-shell-v1.6.102-admin-lazyload-sw-hygiene-hardening`
+- Product version: `1.6.103`
+- Build ID: `ci-hygiene-mail-routing-hardening`
+- Asset version: `1.6.103-ci-hygiene-mail-routing-hardening`
+- Service worker cache: `foxbear-shell-v1.6.103-ci-hygiene-mail-routing-hardening`
 
 ## Release focus
 

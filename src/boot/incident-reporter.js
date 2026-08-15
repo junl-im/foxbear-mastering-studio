@@ -1,10 +1,10 @@
-// FoxBear automatic incident reporter - v1.6.102
+// FoxBear automatic incident reporter - v1.6.103
 (function attachFoxBearIncidentReporter(global) {
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.6.102-admin-lazyload-sw-hygiene-hardening';
-    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.102').trim();
+    const VERSION = BUILD_INFO.assetVersion || '1.6.103-ci-hygiene-mail-routing-hardening';
+    const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.6.103').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;
     const QUEUE_KEY = `${STORAGE_PREFIX}:queue`;
@@ -185,11 +185,12 @@
     }
 
     function deploymentRecoveryInfo(key = '', item = {}) {
-        if (item?.ok === true) return Object.freeze({ message: '', command: '' });
+        if (item?.ok === true && item?.status !== 'warning') return Object.freeze({ message: '', command: '' });
         const map = {
             csp: ['Hosting CSP를 포함해 전체 오류 신고 배포를 다시 실행하세요.', DEPLOY_COMMAND],
             functions: ['Callable Functions를 최신 웹 버전에 맞게 다시 배포하세요.', DEPLOY_COMMAND],
             firestore: ['Firebase 프로젝트와 Firestore Admin 연결을 확인한 뒤 다시 배포하세요.', DEPLOY_COMMAND],
+            mailRouting: ['Functions 운영 환경에서 FOXBEAR_ALERT_RECIPIENT와 FOXBEAR_ALERT_SENDER를 설정하세요.', 'FIREBASE_SETUP.md'],
             smtpSecret: ['FIREBASE_SETUP.md의 Gmail 앱 비밀번호 Secret 등록 절차를 확인하세요.', 'FIREBASE_SETUP.md'],
             smtpConnection: ['Gmail 2단계 인증·앱 비밀번호·Functions 네트워크 상태를 확인하세요.', 'FIREBASE_SETUP.md']
         };
@@ -524,11 +525,11 @@
 
     function renderDeploymentReadiness(result = null) {
         const checks = result?.checks || {};
-        const mapping = { functions: 'functions', firestore: 'firestore', smtpSecret: 'smtpSecret', smtpConnection: 'smtpConnection', csp: 'csp' };
+        const mapping = { functions: 'functions', firestore: 'firestore', mailRouting: 'mailRouting', smtpSecret: 'smtpSecret', smtpConnection: 'smtpConnection', csp: 'csp' };
         Object.entries(mapping).forEach(([key, checkKey]) => {
             const item = checks[checkKey];
             if (!item) return;
-            const stateName = item.restricted === true || item.status === 'restricted' ? 'warning' : item.ok === true ? 'ok' : item.status === 'checking' ? 'active' : item.status === 'blocked' ? 'warning' : 'error';
+            const stateName = item.restricted === true || item.status === 'restricted' || item.status === 'warning' ? 'warning' : item.ok === true ? 'ok' : item.status === 'checking' ? 'active' : item.status === 'blocked' ? 'warning' : 'error';
             setDeploymentCheckState(key, stateName, item.message || item.code || item.status || '확인 결과 없음', item);
         });
         const meta = document.getElementById('incidentDeploymentMeta');
@@ -537,9 +538,10 @@
             const healthy = formatCheckTime(result?.lastHealthyAt);
             const checkedMs = Date.parse(String(result?.checkedAt || ''));
             const stale = Number.isFinite(checkedMs) && Date.now() - checkedMs > READINESS_SUMMARY_FRESH_MS;
-            const parts = [checked ? `최근 점검 ${checked}` : '최근 점검 기록 없음', healthy ? `마지막 정상 ${healthy}` : '', result?.cached ? '서버 캐시 사용' : '', result?.sensitiveChecksRestricted ? 'SMTP 심층 점검은 관리자 전용' : '', stale ? '24시간 경과 · 재점검 필요' : ''];
+            const hasWarning = Object.values(checks).some(item => item?.status === 'warning' || item?.restricted === true);
+            const parts = [checked ? `최근 점검 ${checked}` : '최근 점검 기록 없음', healthy ? `마지막 정상 ${healthy}` : '', result?.cached ? '서버 캐시 사용' : '', result?.sensitiveChecksRestricted ? 'SMTP 심층 점검은 관리자 전용' : '', hasWarning && !result?.sensitiveChecksRestricted ? '운영 설정 경고 있음' : '', stale ? '24시간 경과 · 재점검 필요' : ''];
             meta.textContent = parts.filter(Boolean).join(' · ');
-            meta.dataset.tone = result?.ok === true && !stale && result?.sensitiveChecksRestricted !== true ? 'ok' : result ? 'warning' : 'neutral';
+            meta.dataset.tone = result?.ok === true && !stale && !hasWarning ? 'ok' : result ? 'warning' : 'neutral';
         }
         syncSettingsSummary();
     }
@@ -558,7 +560,7 @@
             list.appendChild(empty);
             return;
         }
-        const names = { csp: '웹 CSP', functions: '서버 API', firestore: 'Firestore', smtpSecret: 'Gmail Secret', smtpConnection: 'SMTP 연결' };
+        const names = { csp: '웹 CSP', functions: '서버 API', firestore: 'Firestore', mailRouting: '메일 라우팅', smtpSecret: 'Gmail Secret', smtpConnection: 'SMTP 연결' };
         history.forEach(item => {
             const row = document.createElement('li');
             row.dataset.state = item.ok ? (item.restricted ? 'warning' : 'ok') : 'error';
@@ -631,7 +633,7 @@
             renderDeploymentReadiness(localCached);
             return localCached;
         }
-        ['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection'].forEach(key => setDeploymentCheckState(key, 'active', '확인 중…'));
+        ['csp', 'functions', 'firestore', 'mailRouting', 'smtpSecret', 'smtpConnection'].forEach(key => setDeploymentCheckState(key, 'active', '확인 중…'));
         const task = (async () => {
             const bridge = await waitForFirebaseBridge(FIREBASE_READY_TIMEOUT_MS, options.signal);
             throwIfAborted(options.signal, 'deployment');

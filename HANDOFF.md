@@ -1,3 +1,33 @@
+# Handoff - v1.6.103
+
+## Current release
+
+- Product version: `1.6.103`
+- Build ID: `ci-hygiene-mail-routing-hardening`
+- Asset version: `1.6.103-ci-hygiene-mail-routing-hardening`
+- Service worker cache: `foxbear-shell-v1.6.103-ci-hygiene-mail-routing-hardening`
+- Configured static/regression target: 459 checks.
+
+## Current focus
+
+- Commit the accidental root `README.txt` deletion so strict CI hygiene succeeds.
+- Show administrator-only env/fallback mail-routing readiness without revealing addresses.
+- Keep operational fallback compatible for this release and remove dead SW share-policy duplicates.
+
+## Verified
+
+- Full configured static/regression suite: **459/459 PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Delivery: **650-file FULL**, **317-file PATCH**, **13 cleanup paths**; current-GitHub replay: **REPLAY_MATCH=YES**.
+
+## Apply
+
+1. Extract the v1.6.103 PATCH ZIP into the repository root and replace matching files.
+2. **Run `APPLY_PATCH_CLEANUP.cmd` once.** The root `README.txt` must be physically removed.
+3. In GitHub Desktop confirm `README.txt` appears as **Deleted**, then commit Modified/New/Deleted entries together and Push origin.
+4. Verify Static release gate and Browser release gate.
+
 # Handoff - v1.6.102
 
 ## Current release

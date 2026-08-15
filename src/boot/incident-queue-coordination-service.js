@@ -1,4 +1,4 @@
-// FoxBear cross-tab incident queue coordination, generation fencing, and adaptive fallback synchronization - v1.6.102
+// FoxBear cross-tab incident queue coordination, generation fencing, and adaptive fallback synchronization - v1.6.103
 (function attachFoxBearIncidentQueueCoordination(global) {
     'use strict';
 
@@ -765,7 +765,7 @@
             const peerShards = shardKeys.map(readShard).filter(shard => shard.tabId && shard.tabId !== tabId && shard.items.length > 0);
             const lease = readLease();
             return Object.freeze({
-                version: '1.6.102',
+                version: '1.6.103',
                 key,
                 maxItems,
                 maxSerializedBytes,
@@ -831,7 +831,7 @@
     }
 
     global.FoxBearIncidentQueueCoordination = Object.freeze({
-        version: '1.6.102',
+        version: '1.6.103',
         defaultChannelName: DEFAULT_CHANNEL_NAME,
         defaultLeaseTtlMs: DEFAULT_LEASE_TTL_MS,
         defaultTombstoneTtlMs: DEFAULT_TOMBSTONE_TTL_MS,

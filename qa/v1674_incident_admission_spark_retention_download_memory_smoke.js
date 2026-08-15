@@ -9,7 +9,7 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.102', 'package version must be v1.6.102');
+assert.strictEqual(pkg.version, '1.6.103', 'package version must be v1.6.103');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build id must remain valid kebab-case');
 
 const functionsIndex = read('functions/index.js');

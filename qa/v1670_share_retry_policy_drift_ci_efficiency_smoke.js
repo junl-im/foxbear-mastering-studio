@@ -9,8 +9,9 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
+const sharePolicySource = read('src/config/pwa-share-policy.js');
 
-assert.strictEqual(pkg.version, '1.6.102');
+assert.strictEqual(pkg.version, '1.6.103');
 assert(pkg.foxbearRelease.assetVersion.startsWith(`${pkg.version}-`), 'current release metadata must remain synchronized');
 assert(pkg.qaChecks.includes('node qa/v1670_share_retry_policy_drift_ci_efficiency_smoke.js'));
 
@@ -24,29 +25,29 @@ assert(staticGateIndex < chromiumIndex, 'fallback must not install Chromium befo
 const selector = require('./browser/select-browser-scope');
 const beforePackage = {
   name: 'foxbear-mastering-studio',
-  version: '1.6.102',
+  version: '1.6.103',
   private: true,
   scripts: {
-    'package:verify:full': 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.102-full.zip',
-    'package:verify:patch': 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.102-patch.zip'
+    'package:verify:full': 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.103-full.zip',
+    'package:verify:patch': 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.103-patch.zip'
   },
   foxbearRelease: {
     buildId: 'old-build',
-    assetVersion: '1.6.102-old-build',
-    cacheName: 'foxbear-shell-v1.6.102-old-build',
+    assetVersion: '1.6.103-old-build',
+    cacheName: 'foxbear-shell-v1.6.103-old-build',
     bootRevision: 'boot-sri-v1669-old',
     updateSafetyRevision: 'update-safety-v1669-old',
     serviceWorkerRevision: 'sw-v1669-old'
   }
 };
 const afterPackage = JSON.parse(JSON.stringify(beforePackage));
-afterPackage.version = '1.6.102';
-afterPackage.scripts['package:verify:full'] = 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.102-full.zip';
-afterPackage.scripts['package:verify:patch'] = 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.102-patch.zip';
+afterPackage.version = '1.6.103';
+afterPackage.scripts['package:verify:full'] = 'node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.103-full.zip';
+afterPackage.scripts['package:verify:patch'] = 'node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.103-patch.zip';
 afterPackage.foxbearRelease = {
   buildId: 'new-build',
-  assetVersion: '1.6.102-new-build',
-  cacheName: 'foxbear-shell-v1.6.102-new-build',
+  assetVersion: '1.6.103-new-build',
+  cacheName: 'foxbear-shell-v1.6.103-new-build',
   bootRevision: 'boot-sri-v1670-new',
   updateSafetyRevision: 'update-safety-v1670-new',
   serviceWorkerRevision: 'sw-v1670-new'
@@ -129,7 +130,8 @@ const retention = vm.runInContext('planSharedRecordRetention(retentionSamples, 1
 assert.deepStrictEqual(Array.from(retention.retainKeys), ['1700000003000-new']);
 assert.deepStrictEqual(Array.from(retention.deleteKeys), ['1700000002000-mid', '1700000001000-old']);
 assert(retention.retainedBytes + 512 * 1024 * 1024 <= 768 * 1024 * 1024);
-assert(swSource.includes('SHARE_STORE_MAX_BYTES = 768 * 1024 * 1024'));
+assert(sharePolicySource.includes('maxStoreBytes: 768 * 1024 * 1024'));
+assert(!swSource.includes('SHARE_STORE_MAX_BYTES'), 'share store budget must not be duplicated in the service worker');
 assert(swSource.includes('openCursor()'), 'share cleanup must inspect record byte metadata without reading Blob bytes into ArrayBuffers');
 
 function createIndexedDb(records) {

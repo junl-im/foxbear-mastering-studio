@@ -9,8 +9,9 @@ const vm = require('node:vm');
 const ROOT = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
+const sharePolicySource = read('src/config/pwa-share-policy.js');
 
-assert.strictEqual(pkg.version, '1.6.102');
+assert.strictEqual(pkg.version, '1.6.103');
 assert(String(pkg.foxbearRelease.buildId || '').trim(), 'current release buildId must remain configured');
 assert(pkg.qaChecks.includes('node qa/v1669_ci_app_check_share_target_hardening_smoke.js'));
 
@@ -35,7 +36,7 @@ assert(functionsSource.includes('...incidentAppCheckMetadata(request)'));
 const runtimeConfigSource = read('src/config/app-runtime-config.js');
 const runtimeSandbox = { console };
 runtimeSandbox.window = runtimeSandbox;
-runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.102', assetVersion: pkg.foxbearRelease.assetVersion };
+runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.103', assetVersion: pkg.foxbearRelease.assetVersion };
 vm.createContext(runtimeSandbox);
 vm.runInContext(runtimeConfigSource, runtimeSandbox, { filename: 'app-runtime-config.js' });
 const clientPolicy = runtimeSandbox.FoxBearRuntimeConfig.APP_CHECK_POLICY;
@@ -118,8 +119,9 @@ assert(selected.totalBytes <= 512 * 1024 * 1024);
 assert.strictEqual(selected.rejected, 3);
 assert.strictEqual(vm.runInContext("createShareRecordId(1700000000000)", swSandbox), '1700000000000-00000000-0000-4000-8000-000000000069');
 assert(swSource.includes('pruneSharedFileRecords'));
-assert(swSource.includes('SHARE_RECORD_TTL_MS'));
-assert(swSource.includes('SHARE_RECORD_LIMIT = 8'));
+assert(sharePolicySource.includes('recordTtlMs: 24 * 60 * 60 * 1000'));
+assert(sharePolicySource.includes('recordLimit: 8'));
+assert(!swSource.includes('SHARE_RECORD_TTL_MS') && !swSource.includes('SHARE_RECORD_LIMIT = 8'), 'share retention limits must not be duplicated in the service worker');
 
 const appSource = read('src/app.js');
 const shareTargetServiceSource = read('src/boot/pwa-share-target-service.js');

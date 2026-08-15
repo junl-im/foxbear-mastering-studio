@@ -1,8 +1,8 @@
-// FoxBear playback lifecycle recovery service - v1.6.102
+// FoxBear playback lifecycle recovery service - v1.6.103
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.102-admin-lazyload-sw-hygiene-hardening';
+    const SERVICE_VERSION = '1.6.103-ci-hygiene-mail-routing-hardening';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

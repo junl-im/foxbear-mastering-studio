@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.103
+
+> Current release: v1.6.103 · ci-hygiene-mail-routing-hardening
+
+This release closes the tracked helper-README CI failure, adds administrator-only mail-routing configuration visibility without exposing operational addresses, and removes dead duplicate Service Worker share-policy constants.
+
 # FoxBear AI Mastering Studio Pro v1.6.102
 
 > Current release: v1.6.102 · admin-lazyload-sw-hygiene-hardening

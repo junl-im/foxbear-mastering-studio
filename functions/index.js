@@ -28,9 +28,23 @@ function resolveOperationalEmail(envName, fallback) {
   return value;
 }
 
+const ALERT_RECIPIENT_ENV_CONFIGURED = Boolean(String(process.env.FOXBEAR_ALERT_RECIPIENT || '').trim());
+const ALERT_SENDER_ENV_CONFIGURED = Boolean(String(process.env.FOXBEAR_ALERT_SENDER || '').trim());
 const ALERT_RECIPIENT = resolveOperationalEmail('FOXBEAR_ALERT_RECIPIENT', DEFAULT_ALERT_EMAIL);
 const ALERT_SENDER = resolveOperationalEmail('FOXBEAR_ALERT_SENDER', DEFAULT_ALERT_EMAIL);
 const MAIL_FROM_NAME = 'AI마스터링 스튜디오';
+
+function incidentMailRoutingMetadata() {
+  const recipientSource = ALERT_RECIPIENT_ENV_CONFIGURED ? 'env' : 'fallback';
+  const senderSource = ALERT_SENDER_ENV_CONFIGURED ? 'env' : 'fallback';
+  const fallbackActive = recipientSource === 'fallback' || senderSource === 'fallback';
+  return Object.freeze({
+    configured: !fallbackActive,
+    fallbackActive,
+    recipientSource,
+    senderSource
+  });
+}
 const MAIL_SUBJECT_PREFIX = '[AI마스터링 스튜디오]';
 const REGION = 'asia-northeast3';
 const TIME_ZONE = 'Asia/Seoul';
@@ -80,8 +94,8 @@ const MAIL_RECEIPT_OVERDUE_MS = 30 * 60 * 1000;
 const MAIL_TEST_HISTORY_SCAN_LIMIT = 200;
 const MAIL_TEST_CLEANUP_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAIL_TEST_CLEANUP_LIMIT = 50;
-const PRODUCT_VERSION = '1.6.102';
-const INCIDENT_SERVICE_SCHEMA_VERSION = 7;
+const PRODUCT_VERSION = '1.6.103';
+const INCIDENT_SERVICE_SCHEMA_VERSION = 8;
 const USER_MAIL_TEST_RETRY_COOLDOWN_MS = 60 * 1000;
 const USER_MAIL_TEST_RETRY_LIMIT = 2;
 const INCIDENT_ADMISSION_STATE_PREFIX = 'admission_';
@@ -232,6 +246,7 @@ function incidentServiceMetadata(request = {}) {
     readinessCheck: 'checkIncidentDeploymentReadiness',
     readinessScopes: ['public', 'admin'],
     smtpReadinessRequiresAdmin: true,
+    mailRoutingReadinessRequiresAdmin: true,
     readinessCooldownSeconds: Math.ceil(INCIDENT_READINESS_COOLDOWN_MS / 1000),
     checkedAt: new Date().toISOString()
   };
@@ -2136,7 +2151,7 @@ exports.getIncidentServiceStatus = onCall(incidentCallableOptions({
   return incidentServiceMetadata(request);
 });
 
-const INCIDENT_READINESS_CHECK_KEYS = Object.freeze(['functions', 'firestore', 'smtpSecret', 'smtpConnection']);
+const INCIDENT_READINESS_CHECK_KEYS = Object.freeze(['functions', 'firestore', 'mailRouting', 'smtpSecret', 'smtpConnection']);
 const incidentReadinessChecksInFlight = new Map();
 
 function isIncidentReadinessResultComplete(value = {}) {
@@ -2154,6 +2169,14 @@ async function inspectIncidentDeploymentReadiness(request = {}, options = {}) {
   const checks = {
     functions: { ok: true, status: 'ready', message: `Callable Functions v${PRODUCT_VERSION} 응답 정상` },
     firestore: { ok: false, status: 'checking', message: 'Firestore 연결 확인 중' },
+    mailRouting: includeSensitiveChecks
+      ? (() => {
+          const routing = incidentMailRoutingMetadata();
+          return routing.fallbackActive
+            ? { ok: true, status: 'warning', code: 'FOXBEAR_MAIL_ROUTING_FALLBACK', message: '운영 메일 주소 환경변수 일부가 비어 fallback 경로를 사용 중입니다.', ...routing }
+            : { ok: true, status: 'ready', message: '운영 메일 발신·수신 환경변수 설정 정상', ...routing };
+        })()
+      : { ok: true, status: 'restricted', restricted: true, code: 'FOXBEAR_ADMIN_CHECK_REQUIRED', message: '관리자 로그인 후 운영 메일 라우팅 설정 상태를 확인할 수 있습니다.' },
     smtpSecret: includeSensitiveChecks
       ? { ok: false, status: 'checking', message: 'Gmail Secret 확인 중' }
       : { ok: true, status: 'restricted', restricted: true, code: 'FOXBEAR_ADMIN_CHECK_REQUIRED', message: '관리자 로그인 후 Gmail Secret 심층 점검을 실행할 수 있습니다.' },
@@ -2822,7 +2845,7 @@ exports.verifyIncidentPostDeployHealth = onSchedule({
 exports.__test = Object.freeze({
   cleanText, escapeHtml, safeKey, mailFromHeader, kstTimestampLabel, incidentSeverityLabel, incidentCategoryLabel,
   buildIncidentSubject, buildMail, buildDailySummaryMail, buildBrandedEmailHtml, emailTable, incidentMessageId, summaryMessageId,
-  normalizeCallableIncident, callableReportId, serializeIncidentDelivery, incidentServiceMetadata,
+  normalizeCallableIncident, callableReportId, serializeIncidentDelivery, incidentServiceMetadata, incidentMailRoutingMetadata,
   incidentAdmissionLimits, incidentAdmissionBucketKeys, reserveIncidentAdmission, getIncidentAdmissionControl,
   kstDayRange, kstDateKey, nextKstDayRetryAt, retryDelayMs,
   isIncidentDeliveryDue, incidentDueAt, isLongUndelivered,

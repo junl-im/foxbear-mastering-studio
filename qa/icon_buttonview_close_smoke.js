@@ -4,11 +4,11 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const html=read('index.html'); const app=read('src/app.js'); const dockCss=read('assets/css/dock.css'); const sw=read('sw.js'); const manifest=JSON.parse(read('manifest.webmanifest')); const pkg=JSON.parse(read('package.json'));
-must(pkg.version==='1.6.102','package version');
-must(html.includes('data-build="1.6.102"'),'build');
-must(app.includes("const APP_VERSION = 'Pro v1.6.102'"),'app version');
-must(html.includes('assets/icons/foxbear-icon-512.png?v=1.6.102-admin-lazyload-sw-hygiene-hardening'),'512 icon cache key');
-must(html.includes('assets/icons/apple-touch-icon.png?v=1.6.102-admin-lazyload-sw-hygiene-hardening'),'apple icon cache key');
+must(pkg.version==='1.6.103','package version');
+must(html.includes('data-build="1.6.103"'),'build');
+must(app.includes("const APP_VERSION = 'Pro v1.6.103'"),'app version');
+must(html.includes('assets/icons/foxbear-icon-512.png?v=1.6.103-ci-hygiene-mail-routing-hardening'),'512 icon cache key');
+must(html.includes('assets/icons/apple-touch-icon.png?v=1.6.103-ci-hygiene-mail-routing-hardening'),'apple icon cache key');
 must(html.includes('data-feature-dialog-close="true"'),'feature close hook');
 must(app.includes('function closeFeatureDialogFromEvent'),'close helper');
 must(app.includes('function installManagedModalController'),'state machine install');

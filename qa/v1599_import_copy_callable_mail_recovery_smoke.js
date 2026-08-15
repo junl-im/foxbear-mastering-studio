@@ -15,7 +15,7 @@ const reporterSource = read('src/boot/incident-reporter.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.102');
+assert.strictEqual(pkg.version, '1.6.103');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.scripts['deploy:incident'].includes('functions:submitIncidentReport'));
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentDeliveryStatus'));
@@ -34,7 +34,7 @@ assert(functionsSource.includes("if (!uid) throw new HttpsError('unauthenticated
 assert(functionsSource.includes('await reportRef.create({'));
 assert(functionsSource.includes("if (!reportId || !reportId.startsWith(`${uid}_`))"));
 assert(reporterSource.includes("'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다."));
-assert(handoff.startsWith('# Handoff - v1.6.102'));
+assert(handoff.startsWith('# Handoff - v1.6.103'));
 
 const sandbox = {
   console,

@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.103
+
+> Current release: v1.6.103 · ci-hygiene-mail-routing-hardening
+
+This release closes the tracked helper-README CI failure, adds private administrator visibility into operational mail-routing configuration, and removes stale duplicate Service Worker share-policy constants.
+
 # v1.6.98 Project Notes
 
 - User-facing visualization is not the same as mastering analysis. Retiring the AI Spectrum View must never remove `spectrumBands`, `spectrumProfile`, or spectral feature extraction used by the engine.

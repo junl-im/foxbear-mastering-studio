@@ -17,8 +17,8 @@ const loaderSource = read('src/ui/admin-incident-loader-service.js');
 const sw = read('sw.js');
 const policy = require('../tools/source-hygiene-policy');
 
-assert.strictEqual(pkg.version, '1.6.102');
-assert.strictEqual(pkg.foxbearRelease?.buildId, 'admin-lazyload-sw-hygiene-hardening');
+assert(/^1\.6\.\d+$/.test(pkg.version), 'current release must remain v1.6.x');
+assert(pkg.foxbearRelease?.assetVersion?.startsWith(`${pkg.version}-`), 'current asset version must match package version');
 assert(index.includes('src/ui/admin-incident-loader-service.js'), 'small admin lazy loader service must load before app');
 assert(!/admin-incident-monitor-view\.js[^\n]*<\/script>/.test(index), 'heavy admin incident view must remain absent from eager HTML');
 assert(app.includes('FoxBearAdminIncidentLoaderService') && !app.includes('function appendLazyScript('), 'admin lazy loading must be delegated out of app.js');

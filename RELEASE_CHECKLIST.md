@@ -1,3 +1,12 @@
+# v1.6.103 release checklist
+
+- [x] Delete accidental tracked root `README.txt`.
+- [x] Keep `README.txt` in shared forbidden/repair/patch-cleanup policy.
+- [x] Add administrator-only mail-routing readiness state without address disclosure.
+- [x] Preserve fallback mail compatibility while flagging incomplete env configuration.
+- [x] Remove unused duplicate Service Worker share constants.
+- [x] Run final **459/459** static/regression, Hosting **162-file**, packaging, and exact replay gates.
+
 # v1.6.102 release checklist
 
 - [x] Extract admin incident lazy loader from `app.js`.

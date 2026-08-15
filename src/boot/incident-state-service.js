@@ -1,4 +1,4 @@
-// FoxBear incident local state storage and normalization - v1.6.102
+// FoxBear incident local state storage and normalization - v1.6.103
 (function attachFoxBearIncidentState(global) {
     'use strict';
 
@@ -12,7 +12,7 @@
     const DEPLOYMENT_HISTORY_KEY = `${STORAGE_PREFIX}:deployment-history`;
     const MAX_TEST_HISTORY = 5;
     const MAX_DEPLOYMENT_HISTORY = 3;
-    const DEPLOYMENT_CHECK_KEYS = Object.freeze(['csp', 'functions', 'firestore', 'smtpSecret', 'smtpConnection']);
+    const DEPLOYMENT_CHECK_KEYS = Object.freeze(['csp', 'functions', 'firestore', 'mailRouting', 'smtpSecret', 'smtpConnection']);
     const DEPLOYMENT_CHECK_KEY_SET = new Set(DEPLOYMENT_CHECK_KEYS);
 
     function safeCount(value, fallback = 0, max = 999) {
@@ -200,7 +200,7 @@
     }
 
     global.FoxBearIncidentState = Object.freeze({
-        version: '1.6.102',
+        version: '1.6.103',
         deploymentCheckKeys: DEPLOYMENT_CHECK_KEYS,
         normalizeTestHistoryEntry,
         loadTestHistory,

@@ -1,3 +1,26 @@
+# GitHub Desktop Handoff - v1.6.103
+
+## Required apply sequence
+
+1. Extract the v1.6.103 PATCH ZIP into the current repository root.
+2. Run `APPLY_PATCH_CLEANUP.cmd`.
+3. Confirm `README.txt` is shown as **Deleted** in GitHub Desktop.
+4. Commit that deletion together with all v1.6.103 Modified/New files, then Push origin.
+5. A clean replacement can use the v1.6.103 FULL ZIP while preserving `.git`.
+
+## Verified
+
+- **459/459 QA PASS**.
+- Hosting boundary: **162 files**.
+- Delivery: **650 FULL / 317 PATCH / 13 cleanup**.
+- Latest-GitHub replay after cleanup: **REPLAY_MATCH=YES**.
+
+## Release focus
+
+- Close the v1.6.102 strict Source Hygiene failure caused by tracked `README.txt`.
+- Add administrator-only mail-routing configuration health without exposing email addresses.
+- Remove stale duplicate Service Worker share-policy constants.
+
 # GitHub Desktop Handoff - v1.6.102
 
 ## Apply
