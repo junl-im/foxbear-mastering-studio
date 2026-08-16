@@ -23,7 +23,7 @@ assert(index.includes('src/ui/admin-incident-loader-service.js'), 'small admin l
 assert(!/admin-incident-monitor-view\.js[^\n]*<\/script>/.test(index), 'heavy admin incident view must remain absent from eager HTML');
 assert(app.includes('FoxBearAdminIncidentLoaderService') && !app.includes('function appendLazyScript('), 'admin lazy loading must be delegated out of app.js');
 assert(loaderSource.includes('removeNode(stale)') && loaderSource.includes("script.dataset.foxbearLazyState = 'failed'"), 'failed/stale admin script nodes must be retired before retry');
-assert(loaderSource.includes('로드 시간이 초과되었습니다') && loaderSource.includes('activeLoads.delete(LAZY_KEY)'), 'admin loader timeout/retry settlement contract missing');
+assert(loaderSource.includes('\ub85c\ub4dc \uc2dc\uac04\uc774 \ucd08\uacfc\ub418\uc5c8\uc2b5\ub2c8\ub2e4') && loaderSource.includes('activeLoads.delete(LAZY_KEY)'), 'admin loader timeout/retry settlement contract missing');
 assert(loaderSource.includes('options.resolveScriptUrl(options.src)') && loaderSource.includes('script.integrity = String(options.integrity)'), 'dynamic admin script must retain Trusted Types URL resolution and SRI');
 assert(!sw.includes('admin-incident-monitor-view.js'), 'heavy admin incident module must not be preinstalled or background-warmed by the service worker');
 assert(sw.includes('admin-incident-loader-service.js'), 'small eager admin loader service must stay in the normal core graph');
@@ -77,7 +77,7 @@ async function exerciseAdminLoaderRetry() {
   const first = service.load(options);
   assert.strictEqual(appended.length, 1, 'first admin lazy request should append one script');
   appended[0].dispatch('error');
-  await assert.rejects(first, /불러오지 못했습니다/);
+  await assert.rejects(first, /\ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4/);
   assert.strictEqual(appended[0].removed, true, 'failed admin script node must be removed');
 
   const second = service.load(options);
@@ -88,8 +88,18 @@ async function exerciseAdminLoaderRetry() {
   assert.strictEqual(result.ready, true, 'fresh retry should resolve after factory initialization');
 }
 
+function localFixtureEnv() {
+  const env = { ...process.env };
+  delete env.GITHUB_ACTIONS;
+  delete env.FOXBEAR_ALLOW_CI_HYGIENE_REPAIR;
+  delete env.FOXBEAR_SOURCE_HYGIENE_MODE;
+  env.FOXBEAR_HYGIENE_REPAIR_CONTEXT = 'qa-fixture-local';
+  return env;
+}
+
 function exerciseHygieneRepair() {
   const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'foxbear-v16102-hygiene-'));
+  const env = localFixtureEnv();
   try {
     fs.mkdirSync(path.join(fixture, 'src/ui'), { recursive: true });
     fs.mkdirSync(path.join(fixture, 'assets/css'), { recursive: true });
@@ -99,11 +109,11 @@ function exerciseHygieneRepair() {
     fs.writeFileSync(path.join(fixture, 'src/ui/spectrum-visualizer.js'), 'legacy\n');
     fs.writeFileSync(path.join(fixture, 'assets/css/spectrum-visualizer.css'), 'legacy\n');
 
-    let run = spawnSync(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', fixture], { encoding: 'utf8' });
+    let run = spawnSync(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', fixture], { encoding: 'utf8', env });
     assert.notStrictEqual(run.status, 0, 'forbidden temporary helper fixture must fail hygiene');
-    run = spawnSync(process.execPath, [path.join(ROOT, 'tools/repair-source-hygiene.js'), '--root', fixture], { encoding: 'utf8' });
+    run = spawnSync(process.execPath, [path.join(ROOT, 'tools/repair-source-hygiene.js'), '--root', fixture], { encoding: 'utf8', env });
     assert.strictEqual(run.status, 0, run.stderr || run.stdout || 'repair failed');
-    run = spawnSync(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', fixture], { encoding: 'utf8' });
+    run = spawnSync(process.execPath, [path.join(ROOT, 'tools/check-source-hygiene.js'), '--root', fixture], { encoding: 'utf8', env });
     assert.strictEqual(run.status, 0, run.stderr || run.stdout || 'hygiene should pass after shared-policy repair');
     ['README_FIRST.txt','README.txt','APPLY_CUSTOM_CLEANUP_NO_GIT.cmd','src/ui/spectrum-visualizer.js','assets/css/spectrum-visualizer.css']
       .forEach(relative => assert(!fs.existsSync(path.join(fixture, relative)), `repair left forbidden path: ${relative}`));
