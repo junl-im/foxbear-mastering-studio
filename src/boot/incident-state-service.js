@@ -1,4 +1,4 @@
-// FoxBear incident local state storage and normalization - v1.6.105
+// FoxBear incident local state storage and normalization - v1.6.106
 (function attachFoxBearIncidentState(global) {
     'use strict';
 
@@ -200,7 +200,7 @@
     }
 
     global.FoxBearIncidentState = Object.freeze({
-        version: '1.6.105',
+        version: '1.6.106',
         deploymentCheckKeys: DEPLOYMENT_CHECK_KEYS,
         normalizeTestHistoryEntry,
         loadTestHistory,

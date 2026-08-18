@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.105-header-dock-css-ownership-hardening';
+const version = '1.6.106-browser-geometry-history-recovery';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

@@ -1,26 +1,27 @@
-# FoxBear Status - v1.6.105
+# FoxBear Status - v1.6.106
 
 ## Current release
 
-- Product version: `1.6.105`
-- Build ID: `header-dock-css-ownership-hardening`
-- Asset version: `1.6.105-header-dock-css-ownership-hardening`
-- Service worker cache: `foxbear-shell-v1.6.105-header-dock-css-ownership-hardening`
-- Configured static/regression target: **461 checks**.
+- Product version: `1.6.106`
+- Build ID: `browser-geometry-history-recovery`
+- Asset version: `1.6.106-browser-geometry-history-recovery`
+- Service worker cache: `foxbear-shell-v1.6.106-browser-geometry-history-recovery`
+- Configured static/regression target: **462 checks**.
 
 ## Release status
 
-- Full configured static/behavioral QA: **461/461 PASS**.
-- Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
+- Full configured static/behavioral QA: **462/462 PASS**.
+- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Official Playwright browser execution: **PENDING external environment** (`@playwright/test` is not installed in this review container; release gate fails closed at browser bootstrap).
-- Delivery: **654-file FULL**, **322-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
+- v1.6.105 GitHub Browser release gate root cause: deterministic desktop Header center spread `8.0078125px` against an exact `8px` assertion.
+- v1.6.106 local browser execution remains external because Playwright/Chromium are not installed in this review container; the patched assertion/state-machine logic is covered by static behavioral regression.
+- Delivery: **656-file FULL**, **317-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
 
 ## Release focus
 
-- Remove provably shadowed Header/Dock cascade declarations instead of adding another override layer.
-- Keep `header-command-bar.css` as the live Header owner and Dock layout in the Dock owner/repair layers.
-- Enforce CSS complexity budgets so legacy `studio.css` / `mobile-native.css` cannot silently reclaim those responsibilities.
+- Preserve the **8px** Header center-spread design target while tolerating no more than one CSS layout quantum (`1/64px`) of browser sub-pixel measurement excess.
+- Emit named Header center positions in Browser Runtime Health failures.
+- Resolve cached flaky-history entries after a real primary browser PASS without recording every healthy browser case.
 
 # FoxBear Status - v1.6.102
 
@@ -53,10 +54,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.105`
-- Build ID: `header-dock-css-ownership-hardening`
-- Asset version: `1.6.105-header-dock-css-ownership-hardening`
-- Service worker cache: `foxbear-shell-v1.6.105-header-dock-css-ownership-hardening`
+- Product version: `1.6.106`
+- Build ID: `browser-geometry-history-recovery`
+- Asset version: `1.6.106-browser-geometry-history-recovery`
+- Service worker cache: `foxbear-shell-v1.6.106-browser-geometry-history-recovery`
 
 ## Release focus
 

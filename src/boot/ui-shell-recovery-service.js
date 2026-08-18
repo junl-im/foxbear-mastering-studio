@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.6.105 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.6.106 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.105-header-dock-css-ownership-hardening';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.106-browser-geometry-history-recovery';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

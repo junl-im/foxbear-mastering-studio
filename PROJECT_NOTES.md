@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.106
+
+> Current release: v1.6.106 · browser-geometry-history-recovery
+
+Browser geometry contracts distinguish design drift from layout-engine precision. Keep the 8px Header target explicit, allow only one CSS layout quantum of measurement excess, and resolve flaky-history state only from a real matching primary PASS.
+
 # FoxBear AI Mastering Studio Pro v1.6.105
 
 > Current release: v1.6.105 · header-dock-css-ownership-hardening

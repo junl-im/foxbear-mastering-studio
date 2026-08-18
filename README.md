@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.106
+
+> Current release: v1.6.106 · browser-geometry-history-recovery
+
+This release hardens the browser gate around deterministic sub-pixel geometry and clears stale flaky-history failures after a real primary pass. The 8px Header alignment target remains intact; only one CSS layout quantum of measurement precision is tolerated.
+
 # FoxBear AI Mastering Studio Pro v1.6.105
 
 > Current release: v1.6.105 · header-dock-css-ownership-hardening

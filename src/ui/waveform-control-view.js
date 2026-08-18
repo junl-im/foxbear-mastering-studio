@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.105-header-dock-css-ownership-hardening';
+  const VIEW_VERSION = '1.6.106-browser-geometry-history-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

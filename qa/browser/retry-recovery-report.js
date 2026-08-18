@@ -72,6 +72,14 @@ function buildRetryRecoverySummary(primaryReport, retryReport) {
   const primary = collectTestOutcomes(primaryReport);
   const retry = collectTestOutcomes(retryReport);
   const primaryFailures = [...primary.values()].filter(item => !item.passed);
+  const primaryPassed = [...primary.values()]
+    .filter(item => item.passed)
+    .map(item => ({
+      key: item.key,
+      file: item.file,
+      title: item.title,
+      projectName: item.projectName
+    }));
   const recovered = [];
   const repeated = [];
   const skipped = [];
@@ -106,6 +114,7 @@ function buildRetryRecoverySummary(primaryReport, retryReport) {
       skippedRetryResults: skipped.length,
       missingRetryResults: missing.length
     },
+    primaryPassed,
     recovered,
     repeated,
     skipped,

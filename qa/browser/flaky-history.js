@@ -40,6 +40,24 @@ function updateFlakyHistory(history, retrySummary, options = {}) {
     ...(retrySummary?.skipped || []).map(item => normalizedEntry(item, 'skipped', now)),
     ...(retrySummary?.missing || []).map(item => normalizedEntry(item, 'missing', now))
   ];
+  const primaryPassed = (retrySummary?.primaryPassed || [])
+    .map(item => normalizedEntry(item, 'primary-passed', now));
+
+  // A clean primary pass is meaningful only for a case already tracked as flaky.
+  // Do not grow the history with every healthy browser test; use these observations
+  // solely to clear stale unresolved state restored from the cross-run cache.
+  for (const observation of primaryPassed) {
+    const previous = entries[observation.key];
+    if (!previous) continue;
+    previous.file = observation.file || previous.file;
+    previous.title = observation.title || previous.title;
+    previous.projectName = observation.projectName || previous.projectName;
+    previous.lastSeenAt = now;
+    previous.totalEvents += 1;
+    previous.lastOutcome = observation.outcome;
+    previous.consecutiveRecoveries = 0;
+    entries[observation.key] = previous;
+  }
 
   for (const observation of observations) {
     const previous = entries[observation.key] || {

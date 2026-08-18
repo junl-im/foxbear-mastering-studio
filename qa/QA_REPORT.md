@@ -1,3 +1,19 @@
+# FoxBear QA Report - v1.6.106
+
+## v1.6.106 browser geometry and flaky-history recovery
+
+- Static and behavioral target: **462 checks**.
+- New regression: `qa/v16106_browser_geometry_flaky_history_recovery_smoke.js`.
+- Desktop Header design target remains **8px** center spread with at most **1/64px** sub-pixel measurement excess.
+- Browser geometry failures now retain named center positions for build/device/studio/designer/mode/settings tokens.
+- Clean primary browser passes resolve matching previously tracked `repeated` / `skipped` / `missing` history entries.
+- Healthy primary passes do not create new flaky-history records.
+- Full configured suite: **462/462 PASS**.
+- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Delivery: **656-file FULL / 317-file PATCH / 13 cleanup paths**, archive verification **PASS**.
+- Full Playwright v1.6.106 verification is pending the next GitHub Actions run after push.
+
 # FoxBear QA Report - v1.6.105
 
 ## v1.6.105 Header / Dock CSS ownership hardening

@@ -1,3 +1,11 @@
+# v1.6.106 patch notes
+
+- GitHub Browser release gate에서 데스크톱 Header `centerSpread`가 `8.0078125px`로 고정 재현되며 `<= 8px` 정밀 비교에 막히던 문제를 수정했습니다.
+- 디자인 계약은 8px 그대로 유지하고, 브라우저 sub-pixel 계산 오차는 최대 CSS layout quantum 1개(`1/64px`)까지만 허용합니다. 따라서 8.0078125px는 통과하지만 8.02px는 계속 실패합니다.
+- Runtime Health 실패 시 build/device/studio/designer/mode/settings 각각의 center 좌표를 함께 남겨 다음 레이아웃 회귀를 바로 추적할 수 있습니다.
+- retry summary에 실제 primary PASS 결과를 전달하고, 이미 flaky-history에 존재하는 항목만 `primary-passed`로 해제합니다. 정상 테스트 전체를 history에 쌓지는 않습니다.
+- 전체 **462/462 QA PASS**, Static release gate / Browser preflight / Hosting 162 files / Functions syntax **PASS**.
+
 # v1.6.105 patch notes
 
 - 화면을 새 스타일로 덮어쓰지 않고, 뒤쪽 owner CSS가 동일 selector/property로 이미 이기고 있는 죽은 선언만 제거했습니다.

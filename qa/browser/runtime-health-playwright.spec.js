@@ -3,6 +3,8 @@ const { getReleaseMetadata } = require('../../tools/release-metadata');
 const { APP_URL, expectRuntimeHealthy, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 
 const RELEASE = getReleaseMetadata();
+const CSS_LAYOUT_QUANTUM_PX = 1 / 64;
+const HEADER_CENTER_SPREAD_LIMIT_PX = 8;
 
 test.describe('FoxBear browser runtime health', () => {
   test('boots without missing globals, DOM ids, resource failures, or console errors', async ({ page }) => {
@@ -88,9 +90,17 @@ test.describe('FoxBear browser runtime health', () => {
       const deviceIconsStyle = getComputedStyle(deviceIcons);
       const toggleStyle = getComputedStyle(toggle);
       const afterStyle = getComputedStyle(toggle, '::after');
-      const centers = [buildRect, deviceRect, studioRect, designerRect, modeSwitchRect, toggleRect]
-        .filter(box => box.width > 0 && box.height > 0)
-        .map(box => (box.top + box.bottom) / 2);
+      const centerPositions = Object.fromEntries([
+        ['build', buildRect],
+        ['device', deviceRect],
+        ['studio', studioRect],
+        ['designer', designerRect],
+        ['modeSwitch', modeSwitchRect],
+        ['settingsToggle', toggleRect]
+      ]
+        .filter(([, box]) => box.width > 0 && box.height > 0)
+        .map(([name, box]) => [name, (box.top + box.bottom) / 2]));
+      const centers = Object.values(centerPositions);
       return {
         hostParentClass: host.parentElement?.className || '',
         placement: toggle.parentElement?.dataset?.placement || '',
@@ -129,6 +139,7 @@ test.describe('FoxBear browser runtime health', () => {
         topLineHeight: topLineRect.height,
         topLineBorderBottom: topLineStyle.borderBottomWidth,
         centerSpread: Math.max(...centers) - Math.min(...centers),
+        centerPositions,
         kickerOverflow: Math.max(0, kicker.scrollWidth - kicker.clientWidth),
         rowOverlap: Math.max(0, kickerRect.right - actionsRect.left),
         studioVisibleWidth: studioRect.width,
@@ -174,7 +185,11 @@ test.describe('FoxBear browser runtime health', () => {
     expect(headerSettings.modeSwitchHeight).toBeLessThanOrEqual(42);
     expect(headerSettings.topLineHeight).toBeLessThanOrEqual(42);
     expect(headerSettings.topLineBorderBottom).toBe('0px');
-    expect(headerSettings.centerSpread).toBeLessThanOrEqual(8);
+    const centerSpreadExcess = Math.max(0, headerSettings.centerSpread - HEADER_CENTER_SPREAD_LIMIT_PX);
+    expect(
+      centerSpreadExcess,
+      `header center spread exceeded ${HEADER_CENTER_SPREAD_LIMIT_PX}px by more than one CSS layout quantum (${CSS_LAYOUT_QUANTUM_PX}px) · spread=${headerSettings.centerSpread} centers=${JSON.stringify(headerSettings.centerPositions)}`
+    ).toBeLessThanOrEqual(CSS_LAYOUT_QUANTUM_PX);
     expect(headerSettings.kickerOverflow).toBeLessThanOrEqual(2);
     if (headerSettings.rowOverlap > 1) {
       throw new Error(`FOXBEAR_HEADER_OVERLAP_INITIAL ${JSON.stringify(headerSettings)}`);

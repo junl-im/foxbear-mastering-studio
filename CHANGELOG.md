@@ -1,3 +1,10 @@
+# v1.6.106 - Browser geometry and flaky-history recovery
+
+- Keep the 8px desktop Header center-spread design target while allowing only one Chromium CSS layout quantum (1/64px) of sub-pixel measurement excess.
+- Add named Header center diagnostics so future geometry failures identify the drifting token directly.
+- Record clean primary browser passes in retry summaries and use them only to resolve already-tracked flaky-history entries.
+- Prevent stale `unresolved browser history` annotations from surviving after the same browser case passes normally, without bloating history with every healthy test.
+
 # v1.6.105 - Header / Dock CSS ownership hardening
 
 - Remove provably shadowed Header/Dock cascade declarations instead of adding another override layer.

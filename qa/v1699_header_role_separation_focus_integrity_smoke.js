@@ -11,7 +11,7 @@ const app = read('src/app.js');
 const header = read('assets/css/header-command-bar.css');
 const uiMode = read('assets/css/ui-mode.css');
 
-assert.strictEqual(pkg.version, '1.6.105');
+assert.strictEqual(pkg.version, '1.6.106');
 assert(index.includes('id="deviceCompatibilityBadge"') && index.includes('role="img"'), 'device compatibility status must be a dedicated static image role');
 assert(index.includes('brand-command-device-icons') && index.includes('is-screen') && index.includes('is-phone'), 'PC/mobile glyphs must stay in static header markup');
 assert(index.includes('id="adminStatsTrigger"') && index.includes('admin-monitor-trigger'), 'admin monitor must use a separate native button');

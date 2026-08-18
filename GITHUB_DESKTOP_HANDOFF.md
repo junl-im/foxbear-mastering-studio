@@ -1,25 +1,26 @@
-# GitHub Desktop Handoff - v1.6.105
+# GitHub Desktop Handoff - v1.6.106
 
 ## Required apply sequence
 
-1. Extract the v1.6.105 PATCH ZIP into the current repository root.
+1. Extract the v1.6.106 PATCH ZIP into the current repository root.
 2. Run `APPLY_PATCH_CLEANUP.cmd` once.
-3. Review all Modified/New/Deleted files in GitHub Desktop, then commit the v1.6.105 change set and Push origin.
-4. A clean replacement can use the v1.6.105 FULL ZIP while preserving `.git`.
+3. Review all Modified/New/Deleted files in GitHub Desktop, then commit the v1.6.106 change set and Push origin.
+4. A clean replacement can use the v1.6.106 FULL ZIP while preserving `.git`.
 
 ## Verified
 
-- **461/461 QA PASS**.
-- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, dependency contract, browser preflight: **PASS**.
+- **462/462 QA PASS**.
+- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, dependency contract, browser preflight: **PASS**.
 - Hosting boundary: **162 files**.
-- Official Playwright execution is pending in an environment with `npm ci` + Chromium; current release gate fails closed at the missing dependency as designed.
-- Delivery: **654 FULL / 322 PATCH / 13 cleanup**, archive verification **PASS**.
+- Browser precision regression proves `8.0078125px` is accepted only because its excess is within `1/64px`; `8.02px` remains rejected.
+- Full Playwright verification is expected on the next GitHub Actions run after push.
+- Delivery: **656 FULL / 317 PATCH / 13 cleanup**, archive verification **PASS**.
 
 ## Release focus
 
-- Consolidate Header CSS ownership in `header-command-bar.css`.
-- Remove shadowed Dock/Header declarations without changing the winning cascade.
-- Prevent future override growth with owner markers and `!important` budgets.
+- Fix the deterministic v1.6.105 desktop Runtime Health false-negative without relaxing the 8px visual target.
+- Add named Header center diagnostics.
+- Resolve stale cached browser-history failures after a real primary PASS.
 
 # GitHub Desktop Handoff - v1.6.102
 

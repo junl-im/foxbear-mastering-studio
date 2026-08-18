@@ -8,8 +8,8 @@ const exists = rel => fs.existsSync(path.join(root, rel));
 const must = (condition, message) => { if (!condition) { console.error(`FAIL: ${message}`); process.exit(1); } };
 
 const pkg=JSON.parse(read('package.json')); const index=read('index.html'); const sw=read('sw.js'); const guards=read('src/security/site-guards.js'); const runtime=read('src/boot/runtime-health.js');
-must(pkg.version==='1.6.105','package version');
-must(index.includes('data-build="1.6.105"'),'index build');
+must(pkg.version==='1.6.106','package version');
+must(index.includes('data-build="1.6.106"'),'index build');
 must(!exists('src/ui/spectrum-visualizer.js'),'retired spectrum module must stay deleted');
 must(!sw.includes('spectrum-visualizer'),'SW must not precache retired spectrum module');
 ['confirmOpen','setTimeout(tryPushExitGuardState, 0)','function getNavigationExitGuardState'].forEach(t=>must(guards.includes(t),`exit guard stability missing ${t}`));

@@ -1,33 +1,34 @@
-# Handoff - v1.6.105
+# Handoff - v1.6.106
 
 ## Current release
 
-- Product version: `1.6.105`
-- Build ID: `header-dock-css-ownership-hardening`
-- Asset version: `1.6.105-header-dock-css-ownership-hardening`
-- Service worker cache: `foxbear-shell-v1.6.105-header-dock-css-ownership-hardening`
-- Configured static/regression target: 461 checks.
+- Product version: `1.6.106`
+- Build ID: `browser-geometry-history-recovery`
+- Asset version: `1.6.106-browser-geometry-history-recovery`
+- Service worker cache: `foxbear-shell-v1.6.106-browser-geometry-history-recovery`
+- Configured static/regression target: 462 checks.
 
 ## Current focus
 
-- Header layout ownership is consolidated in `assets/css/header-command-bar.css`.
-- Dock cascade removes only declarations already shadowed by later same-selector/property owner rules.
-- CSS complexity budgets protect against `!important`/override growth returning to the cleaned files.
+- Keep the desktop Header center-spread target at 8px while accepting at most one Chromium CSS layout quantum of sub-pixel measurement excess.
+- Include named token center positions in the Runtime Health diagnostic payload.
+- Clear stale browser flaky-history unresolved state when the matching case passes in the next primary browser run.
 
 ## Verified
 
-- Full configured static/regression suite: **461/461 PASS**.
-- Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
+- Full configured static/regression suite: **462/462 PASS**.
+- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **162 files**.
-- Official Playwright browser execution is pending because this review container has no installed Playwright dependency; the release gate correctly fails closed at browser bootstrap.
-- Delivery: **654-file FULL**, **322-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
+- Browser fix logic regression: `8.0078125px` passes the one-quantum precision allowance while `8.02px` still fails.
+- Official Playwright v1.6.106 execution is pending the next GitHub Actions run after this patch is pushed.
+- Delivery: **656-file FULL**, **317-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
 
 ## Apply
 
-1. Extract the v1.6.105 PATCH ZIP into the repository root and replace matching files.
-2. Run `APPLY_PATCH_CLEANUP.cmd` once to apply the existing cleanup allowlist.
-3. Review Modified/New/Deleted entries in GitHub Desktop, then Commit and Push origin.
-4. On a development machine with dependencies installed, run Static release gate and Browser release gate.
+1. Extract the v1.6.106 PATCH ZIP into the repository root and replace matching files.
+2. Run `APPLY_PATCH_CLEANUP.cmd` once.
+3. Review all Modified/New/Deleted files in GitHub Desktop, commit the v1.6.106 change set, and Push origin.
+4. Confirm the GitHub **Browser release gate** reruns and the previous Runtime Health + unresolved-history annotations clear.
 
 # Handoff - v1.6.102
 
