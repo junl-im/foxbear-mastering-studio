@@ -201,7 +201,7 @@
         function getSnapshot() {
             const activeEntries = Array.from(activeTasks.entries());
             return Object.freeze({
-                version: '1.6.103-ci-hygiene-mail-routing-hardening',
+                version: '1.6.104-boot-emergency-visit-privacy-hardening',
                 active: activeEntries.length,
                 pending: queue.length,
                 queuedIds: queuedIds.size,
@@ -413,7 +413,7 @@
     }
 
     global.FoxBearImportQueueService = Object.freeze({
-        version: '1.6.103-ci-hygiene-mail-routing-hardening',
+        version: '1.6.104-boot-emergency-visit-privacy-hardening',
         createImportAnalysisQueue,
         createTrackAnalysisQueue,
         createImportMemoryPolicy,

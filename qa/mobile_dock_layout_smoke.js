@@ -9,8 +9,8 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.6.103'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.6.103"'), 'index build should be v1.6.103');
+must(app.includes("const APP_VERSION = 'Pro v1.6.104'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.104"'), 'index build should be v1.6.104');
 must(app.includes('function installBottomPreviewLayoutObserver()'), 'Dock layout observer installer missing');
 must(app.includes('new ResizeObserver(scheduleBottomPreviewLayoutSync)'), 'ResizeObserver should track Dock size changes');
 must(app.includes('window.visualViewport.addEventListener'), 'visualViewport listeners missing');

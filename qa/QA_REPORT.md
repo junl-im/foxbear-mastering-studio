@@ -1,3 +1,18 @@
+# FoxBear QA Report - v1.6.104
+
+## v1.6.104 boot emergency upload and visit privacy hardening
+
+- Static and behavioral target: **460 checks**.
+- New regression: `qa/v16104_boot_emergency_visit_privacy_hardening_smoke.js`.
+- Required UI-mode chooser emergency release restores overlay, inert, and body-lock state: **PASS**.
+- Emergency fallback avoids duplicate native input change handlers: **PASS**.
+- Visit telemetry stores pathname only and Firebase normalization strips query/hash fragments: **PASS**.
+- Full configured suite: **460/460 PASS**.
+- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency health, Functions syntax: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Official Playwright browser gate is pending external execution because `@playwright/test` is not installed in this review container.
+- Delivery: **652-file FULL / 314-file PATCH / 13 cleanup paths**, archive verification **PASS**.
+
 # FoxBear QA Report - v1.6.103
 
 ## v1.6.103 CI hygiene and mail-routing hardening

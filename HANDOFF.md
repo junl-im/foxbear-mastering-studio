@@ -1,32 +1,33 @@
-# Handoff - v1.6.103
+# Handoff - v1.6.104
 
 ## Current release
 
-- Product version: `1.6.103`
-- Build ID: `ci-hygiene-mail-routing-hardening`
-- Asset version: `1.6.103-ci-hygiene-mail-routing-hardening`
-- Service worker cache: `foxbear-shell-v1.6.103-ci-hygiene-mail-routing-hardening`
-- Configured static/regression target: 459 checks.
+- Product version: `1.6.104`
+- Build ID: `boot-emergency-visit-privacy-hardening`
+- Asset version: `1.6.104-boot-emergency-visit-privacy-hardening`
+- Service worker cache: `foxbear-shell-v1.6.104-boot-emergency-visit-privacy-hardening`
+- Configured static/regression target: 460 checks.
 
 ## Current focus
 
-- Commit the accidental root `README.txt` deletion so strict CI hygiene succeeds.
-- Show administrator-only env/fallback mail-routing readiness without revealing addresses.
-- Keep operational fallback compatible for this release and remove dead SW share-policy duplicates.
+- Keep emergency file import reachable when a critical boot step fails after the required UI-mode chooser opens.
+- Prevent partial normal input binding from being duplicated by the emergency fallback handler.
+- Keep PWA share launch identifiers and other query/hash fragments out of visit telemetry.
 
 ## Verified
 
-- Full configured static/regression suite: **459/459 PASS**.
-- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Full configured static/regression suite: **460/460 PASS**.
+- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency health, Functions syntax: **PASS**.
 - Firebase Hosting boundary: **162 files**.
-- Delivery: **650-file FULL**, **317-file PATCH**, **13 cleanup paths**; current-GitHub replay: **REPLAY_MATCH=YES**.
+- Official Playwright browser gate: **not executed** in the review container because `@playwright/test` is unavailable.
+- Delivery: **652-file FULL**, **314-file PATCH**, **13 cleanup paths**; archive verification: **PASS**.
 
 ## Apply
 
-1. Extract the v1.6.103 PATCH ZIP into the repository root and replace matching files.
-2. **Run `APPLY_PATCH_CLEANUP.cmd` once.** The root `README.txt` must be physically removed.
-3. In GitHub Desktop confirm `README.txt` appears as **Deleted**, then commit Modified/New/Deleted entries together and Push origin.
-4. Verify Static release gate and Browser release gate.
+1. Extract the v1.6.104 PATCH ZIP into the repository root and replace matching files.
+2. Run `APPLY_PATCH_CLEANUP.cmd` once so the shared cleanup contract remains applied.
+3. Review all Modified/New/Deleted entries in GitHub Desktop, then Commit and Push origin.
+4. Verify the Static release gate and run the Browser release gate in an environment with Playwright installed.
 
 # Handoff - v1.6.102
 

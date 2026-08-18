@@ -17,8 +17,9 @@ const sw = read('sw.js');
 const envExample = read('functions/.env.example');
 const policy = require('../tools/source-hygiene-policy');
 
-assert.strictEqual(pkg.version, '1.6.103');
-assert.strictEqual(pkg.foxbearRelease?.buildId, 'ci-hygiene-mail-routing-hardening');
+assert.strictEqual(pkg.version, '1.6.104');
+assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID must remain valid kebab-case');
+assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v16103_ci_hygiene_mail_routing_hardening_smoke.js'));
 assert(!fs.existsSync(path.join(ROOT, 'README.txt')), 'accidental helper README.txt must be physically absent from release source');
 assert(policy.isForbidden('README.txt') && policy.isRepairable('README.txt'), 'README.txt must remain both forbidden and repairable');

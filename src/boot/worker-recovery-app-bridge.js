@@ -1,8 +1,8 @@
-// FoxBear app-level Worker recovery bridge v1.6.103 - rebuilds work from retained track sources
+// FoxBear app-level Worker recovery bridge v1.6.104 - rebuilds work from retained track sources
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.6.103-ci-hygiene-mail-routing-hardening';
+    const VERSION = '1.6.104-boot-emergency-visit-privacy-hardening';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

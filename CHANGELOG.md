@@ -1,3 +1,10 @@
+# v1.6.104 - Boot emergency upload and visit privacy hardening
+
+- Release the required UI-mode chooser, shared overlay registration, body lock, and app-shell inert state when critical initialization falls back to emergency file import.
+- Expose the UI-mode controller before initialization can throw so partial chooser setup can still be unwound safely.
+- Prevent emergency upload fallback from attaching a duplicate change handler when normal input binding already completed.
+- Store visit telemetry as pathname-only data and defensively strip query/hash fragments before Firebase visit writes, keeping PWA share launch identifiers out of visit history.
+
 # v1.6.103 - CI hygiene and mail-routing hardening
 
 - Commit the accidental root `README.txt` deletion so strict Source Hygiene can proceed.

@@ -1,3 +1,10 @@
+# v1.6.104 patch notes
+
+- critical init 실패 시 필수 작업 방식 선택창, 공용 overlay 등록, body scroll lock, `.app-shell` inert를 해제해 비상 파일열기를 실제로 누를 수 있게 복구합니다.
+- UI mode controller를 `init()` 전에 노출해 부분 초기화 중 예외가 나도 chooser 상태를 정상적으로 되돌릴 수 있게 했습니다.
+- 정상 input change 바인딩이 이미 끝난 경우 emergency fallback이 같은 change 핸들러를 중복 추가하지 않도록 막았습니다.
+- 방문 통계의 `page`를 pathname-only로 제한하고 Firebase 입력에서도 query/hash를 제거해 PWA share launch ID가 방문 기록에 남지 않도록 했습니다.
+
 # v1.6.103 patch notes
 
 - `README.txt`를 실제 tracked deletion으로 포함해 v1.6.102 Source Hygiene CI 차단을 해소합니다.

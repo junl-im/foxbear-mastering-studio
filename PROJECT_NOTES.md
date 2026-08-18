@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.104
+
+> Current release: v1.6.104 · boot-emergency-visit-privacy-hardening
+
+This release treats emergency import as a first-class boot contract: a required modal must never block the fallback file picker, fallback binding must remain idempotent, and ephemeral launch query data must not enter visit telemetry.
+
 # FoxBear AI Mastering Studio Pro v1.6.103
 
 > Current release: v1.6.103 · ci-hygiene-mail-routing-hardening

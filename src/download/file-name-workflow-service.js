@@ -1,8 +1,8 @@
-// FoxBear filename workflow service v1.6.103 - provenance-safe naming and export review UI
+// FoxBear filename workflow service v1.6.104 - provenance-safe naming and export review UI
 'use strict';
 
 (function attachFoxBearFileNameWorkflowService(global) {
-    const VERSION = 'v1.6.103-ci-hygiene-mail-routing-hardening';
+    const VERSION = 'v1.6.104-boot-emergency-visit-privacy-hardening';
     const PREFERENCE_KEYS = Object.freeze(['includeMastered', 'includeLoudness', 'includeStyle', 'includeFormat', 'includePlatform']);
     const EXPORT_REVIEW_LIMIT = 12;
 

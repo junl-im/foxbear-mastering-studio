@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.103', 'package version must be v1.6.103');
+assert.strictEqual(pkg.version, '1.6.104', 'package version must be v1.6.104');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build id must remain valid kebab-case');
 
 const css = read('assets/css/download-dialog.css');
@@ -37,6 +37,6 @@ assert(reporter.includes("reason: admission.kind === 'disabled' ? 'server-disabl
 assert(reporter.includes('queued: false'), 'newly rejected incidents must not enter the local retry queue');
 assert(reporter.indexOf('const admission = classifyAdmissionRejection(error);') < reporter.indexOf('queueIncident(payload);', reporter.indexOf('async function report(')), 'admission classification must run before local queueing');
 
-assert(pkg.qaChecks.includes('node qa/v1675_download_progress_admission_fallback_closure_smoke.js'), 'v1.6.103 smoke must be registered');
+assert(pkg.qaChecks.includes('node qa/v1675_download_progress_admission_fallback_closure_smoke.js'), 'v1.6.104 smoke must be registered');
 
 console.log('PASS v1.6.75 download progress visibility and incident admission fallback closure smoke');

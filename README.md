@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.104
+
+> Current release: v1.6.104 · boot-emergency-visit-privacy-hardening
+
+This release hardens critical-boot recovery so emergency file import stays reachable, prevents duplicate fallback input handling, and removes launch query/hash data from visit telemetry.
+
 # FoxBear AI Mastering Studio Pro v1.6.103
 
 > Current release: v1.6.103 · ci-hygiene-mail-routing-hardening

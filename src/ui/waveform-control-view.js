@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.103-ci-hygiene-mail-routing-hardening';
+  const VIEW_VERSION = '1.6.104-boot-emergency-visit-privacy-hardening';
   const DEFAULT_BINS = 96;
 
   function getService() {

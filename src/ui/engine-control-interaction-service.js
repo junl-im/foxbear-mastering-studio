@@ -1,8 +1,8 @@
-// FoxBear engine-control interaction service - v1.6.103
+// FoxBear engine-control interaction service - v1.6.104
 (function attachFoxBearEngineControlInteraction(global) {
     'use strict';
 
-    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.103-ci-hygiene-mail-routing-hardening';
+    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.104-boot-emergency-visit-privacy-hardening';
     const CONTROL_IDS = Object.freeze(['masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect']);
     const CONTROL_ID_SET = new Set(CONTROL_IDS);
     const state = {

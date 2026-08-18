@@ -1,25 +1,26 @@
-# GitHub Desktop Handoff - v1.6.103
+# GitHub Desktop Handoff - v1.6.104
 
 ## Required apply sequence
 
-1. Extract the v1.6.103 PATCH ZIP into the current repository root.
+1. Extract the v1.6.104 PATCH ZIP into the current repository root.
 2. Run `APPLY_PATCH_CLEANUP.cmd`.
-3. Confirm `README.txt` is shown as **Deleted** in GitHub Desktop.
-4. Commit that deletion together with all v1.6.103 Modified/New files, then Push origin.
-5. A clean replacement can use the v1.6.103 FULL ZIP while preserving `.git`.
+3. Review Modified/New/Deleted entries in GitHub Desktop.
+4. Commit all v1.6.104 changes together, then Push origin.
+5. A clean replacement can use the v1.6.104 FULL ZIP while preserving `.git`.
 
 ## Verified
 
-- **459/459 QA PASS**.
+- **460/460 QA PASS**.
+- Static release gate: **PASS**.
 - Hosting boundary: **162 files**.
-- Delivery: **650 FULL / 317 PATCH / 13 cleanup**.
-- Latest-GitHub replay after cleanup: **REPLAY_MATCH=YES**.
+- Browser gate: requires an environment with `@playwright/test` installed; unavailable in this review container.
+- Delivery: **652 FULL / 314 PATCH / 13 cleanup**, both archives verified.
 
 ## Release focus
 
-- Close the v1.6.102 strict Source Hygiene failure caused by tracked `README.txt`.
-- Add administrator-only mail-routing configuration health without exposing email addresses.
-- Remove stale duplicate Service Worker share-policy constants.
+- Critical-boot emergency upload remains reachable even when the required UI-mode chooser was already active.
+- Emergency input fallback cannot duplicate an already-bound normal change listener.
+- Visit telemetry is pathname-only and does not persist PWA share query/hash identifiers.
 
 # GitHub Desktop Handoff - v1.6.102
 

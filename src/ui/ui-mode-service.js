@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.103 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.6.104 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });
@@ -218,6 +218,24 @@
             return true;
         }
 
+        function releaseForEmergency() {
+            const chooser = get('chooser');
+            chooserOpen = false;
+            chooserRequired = false;
+            if (chooser) {
+                chooser.classList.remove('show');
+                chooser.hidden = true;
+                chooser.dataset.required = 'false';
+                chooser.setAttribute('aria-hidden', 'true');
+                try { global.FoxBearModalStateMachine?.setExternalLayerOpen?.(chooser, false); } catch (error) {}
+            }
+            overlayRegistered = false;
+            setBackgroundInert(false);
+            body()?.classList?.remove('ui-mode-choice-open');
+            lastFocused = null;
+            return true;
+        }
+
         function select(nextMode) {
             const selected = apply(nextMode, { persist: true, announce: Boolean(mode) });
             if (!selected) return false;
@@ -296,7 +314,7 @@
             return Object.freeze({ mode, chooserOpen, chooserRequired, initialized, overlayRegistered, restored: Boolean(readInitialMode(storage)) });
         }
 
-        return Object.freeze({ init, apply, openChooser: open, closeChooser: close, select, getSnapshot, normalizeMode });
+        return Object.freeze({ init, apply, openChooser: open, closeChooser: close, releaseForEmergency, select, getSnapshot, normalizeMode });
     }
 
     global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, normalizeMode, createController });

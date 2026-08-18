@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.103-ci-hygiene-mail-routing-hardening';
+const version = '1.6.104-boot-emergency-visit-privacy-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

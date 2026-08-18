@@ -289,8 +289,8 @@ function timestampIso(value) {
 }
 
 function normalizeVisitPayload(payload = {}) {
-    const pageValue = payload.page || `${window.location.pathname || '/'}${window.location.search || ''}`;
     const pathValue = payload.path || window.location.pathname || '/';
+    const pageValue = String(payload.page || pathValue || '/').split(/[?#]/, 1)[0] || '/';
     return {
         dateKey: limitText(payload.dateKey || getDateKey(), 10),
         clientAt: new Date().toISOString(),

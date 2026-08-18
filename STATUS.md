@@ -1,26 +1,27 @@
-# FoxBear Status - v1.6.103
+# FoxBear Status - v1.6.104
 
 ## Current release
 
-- Product version: `1.6.103`
-- Build ID: `ci-hygiene-mail-routing-hardening`
-- Asset version: `1.6.103-ci-hygiene-mail-routing-hardening`
-- Service worker cache: `foxbear-shell-v1.6.103-ci-hygiene-mail-routing-hardening`
-- Configured static/regression target: **459 checks**.
+- Product version: `1.6.104`
+- Build ID: `boot-emergency-visit-privacy-hardening`
+- Asset version: `1.6.104-boot-emergency-visit-privacy-hardening`
+- Service worker cache: `foxbear-shell-v1.6.104-boot-emergency-visit-privacy-hardening`
+- Configured static/regression target: **460 checks**.
 
 ## Release status
 
-- Full configured static/behavioral QA: **459/459 PASS**.
-- Strict Git-tracked Source Hygiene with `README.txt` staged deletion: **PASS**.
-- Version/SRI, Handoff, App Check, Functions syntax, browser preflight: **PASS**.
+- Full configured static/behavioral QA: **460/460 PASS**.
+- Static release gate and strict Source Hygiene: **PASS**.
+- Version/SRI, Handoff, App Check, dependency health, Functions syntax: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Delivery: **650-file FULL**, **317-file PATCH**, **13 cleanup paths**; patch replay: **REPLAY_MATCH=YES**.
+- Official Playwright browser gate: **not executed** in this review container because `@playwright/test` is unavailable.
+- Delivery: **652-file FULL**, **314-file PATCH**, **13 cleanup paths**; archive verification: **PASS**.
 
 ## Release focus
 
-- Remove the tracked helper `README.txt` that blocked v1.6.102 strict Source Hygiene.
-- Surface mail-routing env/fallback state to authenticated administrators without exposing addresses.
-- Keep fallback operational for compatibility and remove unused SW share-policy constants.
+- Release required UI-mode overlay/inert locks when critical boot falls back to emergency file import.
+- Keep emergency file/folder change binding idempotent after partial normal initialization.
+- Remove query/hash data from visit telemetry so PWA share launch identifiers are not persisted.
 
 # FoxBear Status - v1.6.102
 
@@ -53,10 +54,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.103`
-- Build ID: `ci-hygiene-mail-routing-hardening`
-- Asset version: `1.6.103-ci-hygiene-mail-routing-hardening`
-- Service worker cache: `foxbear-shell-v1.6.103-ci-hygiene-mail-routing-hardening`
+- Product version: `1.6.104`
+- Build ID: `boot-emergency-visit-privacy-hardening`
+- Asset version: `1.6.104-boot-emergency-visit-privacy-hardening`
+- Service worker cache: `foxbear-shell-v1.6.104-boot-emergency-visit-privacy-hardening`
 
 ## Release focus
 
