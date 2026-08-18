@@ -1,5 +1,6 @@
 /* v1.3.53 Dock module CSS split - transport and floating overlay anchors */
 :root {
+  --foxbear-dock-contract: dedicated-owner-v16105;
   --foxbear-dock-safe-gap: clamp(14px, 2.5vw, 28px);
 }
 .bottom-preview-dock {
@@ -45,7 +46,6 @@
 .bottom-preview-player .custom-player,
 .bottom-preview-player .custom-player.ab-loop-player {
   display: grid !important;
-  grid-template-columns: 38px minmax(96px, 1fr) 58px !important;
   align-items: center !important;
   gap: 7px !important;
   overflow: hidden !important;
@@ -63,14 +63,12 @@
   z-index: 2;
 }
 .bottom-preview-player .player-seek {
-  grid-column: 2 !important;
   min-width: 0 !important;
   width: 100% !important;
   max-width: 100% !important;
   overflow: hidden !important;
 }
 .bottom-preview-player .player-time {
-  grid-column: 3 !important;
   min-width: 0 !important;
   width: 58px !important;
   max-width: 58px !important;
@@ -123,11 +121,6 @@ body.bottom-preview-active .processing-hud {
 }
 
 @media (max-width: 720px) {
-  .bottom-preview-player .custom-player,
-.bottom-preview-player .custom-player.ab-loop-player {
-    grid-template-columns: 34px minmax(78px, 1fr) 52px !important;
-    gap: 5px !important;
-  }
   .bottom-preview-player .player-toggle {
     width: 32px !important;
     min-width: 32px !important;
@@ -145,9 +138,6 @@ body.bottom-preview-active .processing-hud {
 body.bottom-preview-active .download-assist,
 body.bottom-preview-active .download-help {
     bottom: calc(var(--bottom-preview-floating-bottom, 214px) + env(safe-area-inset-bottom)) !important;
-  }
-  body.bottom-preview-active .processing-hud {
-    bottom: calc(var(--bottom-preview-hud-bottom, 210px) + env(safe-area-inset-bottom)) !important;
   }
   
 }
@@ -173,18 +163,11 @@ body.bottom-preview-active .download-help {
 
 /* v1.3.69 Dock mastering click path and player-under-peak layout */
 .bottom-preview-player {
-  order: 2;
   position: relative;
-  z-index: 1;
   margin-top: 2px;
 }
-.bottom-preview-translation-modes {
-  order: 3;
-}
 .bottom-preview-controls {
-  order: 4;
   position: relative;
-  z-index: 3;
 }
 .bottom-preview-master-btn,
 .bottom-preview-tab {
@@ -203,17 +186,6 @@ body.bottom-preview-active .download-help {
 
 
 /* v1.3.69 Dock action row: keep all four primary buttons on one line */
-.bottom-preview-controls {
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  scrollbar-width: none !important;
-}
-.bottom-preview-controls::-webkit-scrollbar { display: none !important; }
-.bottom-preview-action-left,
-.bottom-preview-action-right {
-  flex-wrap: nowrap !important;
-  min-width: max-content !important;
-}
 .bottom-preview-master-btn,
 .bottom-preview-tab {
   width: auto !important;
@@ -248,9 +220,7 @@ body.bottom-preview-active .download-help {
   grid-column: 3 !important;
 }
 .bottom-preview-controls {
-  display: flex !important;
   flex-wrap: nowrap !important;
-  align-items: center !important;
   justify-content: space-between !important;
   gap: 8px !important;
   overflow-x: auto !important;
@@ -267,7 +237,6 @@ body.bottom-preview-active .download-help {
   flex-wrap: nowrap !important;
 }
 .bottom-preview-action-right {
-  margin-left: auto !important;
   gap: 6px !important;
 }
 .bottom-preview-master-btn,
@@ -370,9 +339,6 @@ body.bottom-preview-active .toast.foxbear-toast-stack {
     width: min(320px, calc(100vw - 16px)) !important;
     max-width: min(320px, calc(100vw - 16px)) !important;
     gap: 6px !important;
-  }
-  body.bottom-preview-active .toast.foxbear-toast-stack {
-    bottom: calc(var(--bottom-preview-height, 190px) + 6px + env(safe-area-inset-bottom)) !important;
   }
   .foxbear-toast-item {
     padding: 8px 10px;
@@ -654,12 +620,6 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   cursor: pointer !important;
 }
 @media (min-width: 721px) {
-  .bottom-preview-dock .bottom-preview-inner {
-    display: grid !important;
-    grid-template-columns: clamp(118px, 13vw, 164px) minmax(0, 1fr) !important;
-    gap: 12px !important;
-    align-items: stretch !important;
-  }
   .bottom-preview-dock .bottom-preview-meta.bottom-preview-transport-meta,
 .bottom-preview-dock .bottom-preview-meta {
     display: flex !important;
@@ -684,10 +644,7 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon,
 .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play,
 .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
-    display: block !important;
-    box-sizing: border-box !important;
     position: relative !important;
-    flex: 0 0 auto !important;
   }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play {
     width: 0 !important;
@@ -697,15 +654,9 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     border-left: 20px solid currentColor !important;
     margin-left: 5px !important;
   }
-  .bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::before,
-.bottom-preview-dock .bottom-preview-play-toggle .player-icon-play::after {
-    content: none !important;
-    display: none !important;
-  }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause {
     width: 24px !important;
     height: 26px !important;
-    border: 0 !important;
     margin: 0 !important;
   }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause::before,
@@ -723,91 +674,28 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause::before { left: 2px !important; }
   .bottom-preview-dock .bottom-preview-play-toggle .player-icon-pause::after { right: 2px !important; }
   .bottom-preview-play-label {
-    display: block !important;
     font-size: .56rem !important;
     font-weight: 950 !important;
     letter-spacing: -.02em !important;
     color: rgba(231,255,255,.95) !important;
-    white-space: nowrap !important;
-  }
-  .bottom-preview-dock .bottom-preview-core {
-    min-width: 0 !important;
-    overflow: hidden !important;
   }
   .bottom-preview-dock .bottom-preview-mobile-meta {
-    display: grid !important;
-    grid-template-columns: minmax(140px, 1fr) minmax(260px, max-content) !important;
-    align-items: center !important;
-    gap: 12px !important;
-    width: 100% !important;
-    min-width: 0 !important;
     overflow: visible !important;
   }
   .bottom-preview-dock #bottomPreviewMobileTitle {
-    justify-self: start !important;
-    min-width: 0 !important;
     max-width: 100% !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
   }
   .bottom-preview-dock .bottom-preview-subline {
-    justify-self: end !important;
-    display: inline-flex !important;
     flex-wrap: nowrap !important;
-    align-items: center !important;
     justify-content: flex-end !important;
-    gap: 8px !important;
-    min-width: 260px !important;
-    max-width: min(52vw, 620px) !important;
-    overflow: visible !important;
   }
   .bottom-preview-dock #bottomPreviewGenre {
     flex: 1 1 auto !important;
-    min-width: 120px !important;
-    max-width: min(42vw, 520px) !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    text-align: right !important;
     font-size: .62rem !important;
   }
-  .bottom-preview-dock #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
-    flex: 0 0 auto !important;
-    min-width: 76px !important;
-    white-space: nowrap !important;
-  }
-  .bottom-preview-dock .dock-integrated-player {
-    grid-template-columns: minmax(0, 1fr) clamp(106px, 10vw, 142px) !important;
-    min-width: 0 !important;
-    width: 100% !important;
-    overflow: hidden !important;
-  }
   .bottom-preview-dock .dock-integrated-info {
-    min-width: 0 !important;
-    width: clamp(106px, 10vw, 142px) !important;
-    max-width: 142px !important;
     box-sizing: border-box !important;
-    overflow: hidden !important;
-    display: grid !important;
-    grid-template-rows: 1fr 1fr !important;
-    justify-items: end !important;
-    align-items: center !important;
-    padding-left: 7px !important;
   }
-  .bottom-preview-dock .dock-integrated-source,
-.bottom-preview-dock .dock-integrated-time {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-    text-align: right !important;
-    writing-mode: horizontal-tb !important;
-    word-break: keep-all !important;
-  }
-  .bottom-preview-dock .dock-integrated-source { font-size: .52rem !important; }
   .bottom-preview-dock .dock-integrated-time { font-size: .48rem !important; }
 }
 @media (max-width: 720px) {
@@ -912,23 +800,16 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     white-space: nowrap !important;
   }
   .bottom-preview-dock .dock-integrated-player {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) clamp(96px, 8.4vw, 126px) !important;
     min-width: 0 !important;
     width: 100% !important;
     overflow: hidden !important;
-    gap: 8px !important;
   }
   .bottom-preview-dock .dock-integrated-info {
-    width: clamp(96px, 8.4vw, 126px) !important;
     min-width: 0 !important;
-    max-width: 126px !important;
     display: grid !important;
     grid-template-rows: 1fr 1fr !important;
     align-items: center !important;
-    justify-items: end !important;
     overflow: hidden !important;
-    padding-left: 6px !important;
   }
   .bottom-preview-dock .dock-integrated-source,
 .bottom-preview-dock .dock-integrated-time {
@@ -992,8 +873,6 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   
   .bottom-preview-dock .bottom-preview-mobile-meta {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 4px !important;
     width: 100% !important;
     min-width: 0 !important;
     overflow: hidden !important;
@@ -1001,41 +880,29 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   .bottom-preview-dock .bottom-preview-subline {
     justify-self: stretch !important;
     width: 100% !important;
-    max-width: 100% !important;
     min-width: 0 !important;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto !important;
     align-items: center !important;
     justify-content: start !important;
-    gap: 6px !important;
     overflow: hidden !important;
   }
   .bottom-preview-dock #bottomPreviewGenre {
     min-width: 0 !important;
     max-width: none !important;
     width: 100% !important;
-    text-align: left !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
   .bottom-preview-dock #bottomPreviewWaveformBtn.bottom-preview-compare-chip {
     justify-self: end !important;
-    min-width: 66px !important;
-    max-width: 108px !important;
   }
   .bottom-preview-dock .dock-integrated-player {
-    grid-template-columns: minmax(0, 1fr) minmax(58px, 72px) !important;
-    gap: 6px !important;
     overflow: hidden !important;
   }
   .bottom-preview-dock .dock-integrated-info {
-    width: auto !important;
-    min-width: 58px !important;
-    max-width: 72px !important;
-    justify-items: start !important;
     align-items: center !important;
-    padding-left: 4px !important;
     overflow: hidden !important;
   }
   .bottom-preview-dock .dock-integrated-source,
@@ -1047,7 +914,6 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
     min-width: 0 !important;
   }
   .bottom-preview-dock .dock-integrated-source {
-    font-size: .46rem !important;
     letter-spacing: -.04em !important;
   }
   .bottom-preview-dock .dock-integrated-time {
@@ -1055,15 +921,6 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   }
 }
 @media (max-width: 420px) {
-  
-  
-  .bottom-preview-dock .dock-integrated-player {
-    grid-template-columns: minmax(0, 1fr) minmax(52px, 64px) !important;
-  }
-  .bottom-preview-dock .dock-integrated-info {
-    min-width: 52px !important;
-    max-width: 64px !important;
-  }
 }
 
 /* v1.3.85 Stage8: compact mobile Dock overlay anchors */
@@ -1072,14 +929,6 @@ body.preview-dialog-open .preview-dialog-backdrop.show:not([hidden]) {
   body.bottom-preview-active .download-assist,
   body.bottom-preview-active .download-help {
     bottom: calc(var(--bottom-preview-height, 190px) + 3px + env(safe-area-inset-bottom)) !important;
-  }
-  body.bottom-preview-active .processing-hud {
-    bottom: calc(var(--bottom-preview-height, 190px) + 3px + env(safe-area-inset-bottom)) !important;
-  }
-  body.bottom-preview-active .toast.foxbear-toast-stack {
-    bottom: calc(var(--bottom-preview-height, 190px) + 3px + env(safe-area-inset-bottom)) !important;
-    right: max(6px, env(safe-area-inset-right)) !important;
-    gap: 4px !important;
   }
   .foxbear-toast-item {
     transform: translateY(4px) scale(.99);

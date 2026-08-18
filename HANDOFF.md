@@ -1,33 +1,33 @@
-# Handoff - v1.6.104
+# Handoff - v1.6.105
 
 ## Current release
 
-- Product version: `1.6.104`
-- Build ID: `boot-emergency-visit-privacy-hardening`
-- Asset version: `1.6.104-boot-emergency-visit-privacy-hardening`
-- Service worker cache: `foxbear-shell-v1.6.104-boot-emergency-visit-privacy-hardening`
-- Configured static/regression target: 460 checks.
+- Product version: `1.6.105`
+- Build ID: `header-dock-css-ownership-hardening`
+- Asset version: `1.6.105-header-dock-css-ownership-hardening`
+- Service worker cache: `foxbear-shell-v1.6.105-header-dock-css-ownership-hardening`
+- Configured static/regression target: 461 checks.
 
 ## Current focus
 
-- Keep emergency file import reachable when a critical boot step fails after the required UI-mode chooser opens.
-- Prevent partial normal input binding from being duplicated by the emergency fallback handler.
-- Keep PWA share launch identifiers and other query/hash fragments out of visit telemetry.
+- Header layout ownership is consolidated in `assets/css/header-command-bar.css`.
+- Dock cascade removes only declarations already shadowed by later same-selector/property owner rules.
+- CSS complexity budgets protect against `!important`/override growth returning to the cleaned files.
 
 ## Verified
 
-- Full configured static/regression suite: **460/460 PASS**.
-- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency health, Functions syntax: **PASS**.
+- Full configured static/regression suite: **461/461 PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **162 files**.
-- Official Playwright browser gate: **not executed** in the review container because `@playwright/test` is unavailable.
-- Delivery: **652-file FULL**, **314-file PATCH**, **13 cleanup paths**; archive verification: **PASS**.
+- Official Playwright browser execution is pending because this review container has no installed Playwright dependency; the release gate correctly fails closed at browser bootstrap.
+- Delivery: **654-file FULL**, **322-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
 
 ## Apply
 
-1. Extract the v1.6.104 PATCH ZIP into the repository root and replace matching files.
-2. Run `APPLY_PATCH_CLEANUP.cmd` once so the shared cleanup contract remains applied.
-3. Review all Modified/New/Deleted entries in GitHub Desktop, then Commit and Push origin.
-4. Verify the Static release gate and run the Browser release gate in an environment with Playwright installed.
+1. Extract the v1.6.105 PATCH ZIP into the repository root and replace matching files.
+2. Run `APPLY_PATCH_CLEANUP.cmd` once to apply the existing cleanup allowlist.
+3. Review Modified/New/Deleted entries in GitHub Desktop, then Commit and Push origin.
+4. On a development machine with dependencies installed, run Static release gate and Browser release gate.
 
 # Handoff - v1.6.102
 

@@ -1,26 +1,25 @@
-# GitHub Desktop Handoff - v1.6.104
+# GitHub Desktop Handoff - v1.6.105
 
 ## Required apply sequence
 
-1. Extract the v1.6.104 PATCH ZIP into the current repository root.
-2. Run `APPLY_PATCH_CLEANUP.cmd`.
-3. Review Modified/New/Deleted entries in GitHub Desktop.
-4. Commit all v1.6.104 changes together, then Push origin.
-5. A clean replacement can use the v1.6.104 FULL ZIP while preserving `.git`.
+1. Extract the v1.6.105 PATCH ZIP into the current repository root.
+2. Run `APPLY_PATCH_CLEANUP.cmd` once.
+3. Review all Modified/New/Deleted files in GitHub Desktop, then commit the v1.6.105 change set and Push origin.
+4. A clean replacement can use the v1.6.105 FULL ZIP while preserving `.git`.
 
 ## Verified
 
-- **460/460 QA PASS**.
-- Static release gate: **PASS**.
+- **461/461 QA PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, dependency contract, browser preflight: **PASS**.
 - Hosting boundary: **162 files**.
-- Browser gate: requires an environment with `@playwright/test` installed; unavailable in this review container.
-- Delivery: **652 FULL / 314 PATCH / 13 cleanup**, both archives verified.
+- Official Playwright execution is pending in an environment with `npm ci` + Chromium; current release gate fails closed at the missing dependency as designed.
+- Delivery: **654 FULL / 322 PATCH / 13 cleanup**, archive verification **PASS**.
 
 ## Release focus
 
-- Critical-boot emergency upload remains reachable even when the required UI-mode chooser was already active.
-- Emergency input fallback cannot duplicate an already-bound normal change listener.
-- Visit telemetry is pathname-only and does not persist PWA share query/hash identifiers.
+- Consolidate Header CSS ownership in `header-command-bar.css`.
+- Remove shadowed Dock/Header declarations without changing the winning cascade.
+- Prevent future override growth with owner markers and `!important` budgets.
 
 # GitHub Desktop Handoff - v1.6.102
 

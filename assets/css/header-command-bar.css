@@ -1,4 +1,5 @@
 :root {
+    --foxbear-header-owner: header-command-bar-v16105;
     --foxbear-header-contract: flex-two-rail-v1690;
 }
 
@@ -327,7 +328,6 @@
 @media (max-width: 430px) {
     .brand-topline.brand-command-bar {
         grid-template-columns: minmax(0, 1fr) auto !important;
-        column-gap: 4px !important;
     }
 
     .brand-command-left {
@@ -343,9 +343,6 @@
         grid-column: 2 / 3 !important;
         grid-row: 1 !important;
         justify-self: end !important;
-        width: auto !important;
-        min-width: 0 !important;
-        max-width: 100% !important;
     }
 
     .brand-command-label,

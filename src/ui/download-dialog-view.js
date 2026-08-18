@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.104 - download filename preview and controls
+// FoxBear AI Mastering Studio Pro v1.6.105 - download filename preview and controls
 'use strict';
 
 (function attachFoxBearDownloadDialogView(global) {
@@ -94,7 +94,7 @@
         const displayProfile = typeof getDownloadDialogDisplayProfile === 'function'
             ? getDownloadDialogDisplayProfile(track.outBlob || null, track.outName || track.name || 'FoxBear mastered file', 'dialog-open')
             : {
-                version: '1.6.104',
+                version: '1.6.105',
                 mode: env.restricted ? 'restricted-declutter-fallback' : 'standard-declutter-fallback',
                 headline: env.restricted ? '공유/저장만 먼저' : '다운로드만 먼저',
                 detail: env.restricted ? '안 되면 저장 도움을 사용하세요.' : '저장이 안 보이면 다운로드 폴더를 확인하세요.',
@@ -196,7 +196,7 @@
         compactHintMore.textContent = compactHint?.advancedLabel || '추가 옵션에서 진단/복사를 사용할 수 있습니다.';
         compactHintBar.append(compactHintTitle, compactHintDetail, compactHintMore);
 
-        // Legacy wording: 공유/저장 먼저. The visible v1.6.104 CTA is 기기에 저장/공유.
+        // Legacy wording: 공유/저장 먼저. The visible v1.6.105 CTA is 기기에 저장/공유.
         const warning = document.createElement('p');
         warning.className = 'download-options-warning show';
         warning.textContent = env.restricted
@@ -1321,7 +1321,7 @@
         backdrop.addEventListener('click', event => { if (event.target === backdrop && !actionInFlight) closeDownloadOptionsDialog(backdrop); });
         panel.classList.add('download-options-panel-simple');
         // Compact-stack compatibility anchor: panel.append(close, title, name, warning, listLabel, list, selectedSummary, actions)
-        // v1.6.104 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
+        // v1.6.105 compact hierarchy: only MP3/WAV stay visible; quality is portalled above the scrollable sheet.
         panel.append(close, title, name, warning, listLabel, formatPicker, selectedSummary, progressCard, fileNameCard, actions);
         backdrop.append(panel, qualityMenu);
         syncDownloadVisualViewport();

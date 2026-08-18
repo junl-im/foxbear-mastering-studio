@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.104-boot-emergency-visit-privacy-hardening';
+    const FALLBACK_VERSION = '1.6.105-header-dock-css-ownership-hardening';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

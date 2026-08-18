@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.104",
-  "buildId": "boot-emergency-visit-privacy-hardening",
+  "productVersion": "1.6.105",
+  "buildId": "header-dock-css-ownership-hardening",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

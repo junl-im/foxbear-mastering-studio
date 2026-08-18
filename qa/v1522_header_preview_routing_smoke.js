@@ -10,7 +10,7 @@ const ROOT = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(ROOT, rel), 'utf8');
 const index = read('index.html');
 const app = read('src/app.js');
-const css = read('assets/css/mobile-native.css');
+const css = read('assets/css/header-command-bar.css');
 const sw = read('sw.js');
 const browserSpec = read('qa/browser/preview-translation-playback-playwright.spec.js');
 
@@ -28,10 +28,10 @@ assert(!app.includes("|dock-clean|${getPreviewTranslationMode().id}|"), 'transla
 assert(app.includes('persistentTranslation: true'), 'Dock player must opt into persistent in-place routing');
 assert(app.includes("mode.id === 'studio' || getInAppAudioCompatibility().restricted"), 'Studio and restricted in-app playback must avoid unnecessary AudioContext graphs');
 assert(app.includes('부드럽게 전환했습니다'), 'translation switch should communicate smooth in-place routing');
-assert(css.includes('compact engraved header signature'), 'header signature polish marker missing');
-assert(css.includes('.designer-mini::before { content: none !important; }'), 'designer signature decoration must be borderless');
+assert(css.includes('--foxbear-header-owner: header-command-bar-v16105;'), 'dedicated header owner contract missing');
+assert(css.includes('.brand-command-bar .designer-mini::before') && css.includes('content: none !important;'), 'designer signature decoration must be borderless');
 assert(css.includes('border: 0 !important;') && css.includes('text-shadow:'), 'engraved header style missing');
-assert(css.includes('width: 32px !important;') && css.includes('border-radius: 50% !important;'), 'settings control must remain compact');
+assert(css.includes('width: 26px !important;') && css.includes('border-radius: 50% !important;'), 'settings control must remain compact');
 assert(css.includes('grid-template-columns: minmax(0, 1fr) auto !important;') && css.includes('flex-wrap: nowrap !important;'), 'header must remain a single engraved row on narrow screens');
 
 class FakeParam {

@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.105
+
+> Current release: v1.6.105 · header-dock-css-ownership-hardening
+
+This release removes dead Header/Dock cascade overrides while preserving the existing visual contract. Header ownership now lives in `header-command-bar.css`, Dock ownership stays in the Dock layers, and regression budgets prevent legacy CSS from reclaiming those responsibilities.
+
 # FoxBear AI Mastering Studio Pro v1.6.104
 
 > Current release: v1.6.104 · boot-emergency-visit-privacy-hardening

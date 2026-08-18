@@ -11,7 +11,7 @@ const analysisWorkerSource = fs.readFileSync('src/workers/analysis.worker.js', '
 const pitchWorkerSource = fs.readFileSync('src/workers/pitch-wsola.worker.js', 'utf8');
 const workerJobServiceSource = fs.readFileSync('src/utils/worker-job-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.104');
+assert.strictEqual(pkg.version, '1.6.105');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.qaChecks.includes('node qa/v1591_cancellable_audio_pipeline_performance_smoke.js'));
 assert(appSource.includes('currentSourceBuffer = await decodeAudio(track.file, masteringTask);'));

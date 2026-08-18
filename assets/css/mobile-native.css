@@ -622,11 +622,6 @@ body > .bulk-import-hud-restore {
 }
 
 @media (max-width: 720px) {
-    .brand-right-actions {
-        align-items: flex-start !important;
-        flex-wrap: nowrap !important;
-        gap: 5px !important;
-    }
     .header-settings-host {
         align-self: flex-start;
     }
@@ -645,12 +640,6 @@ body > .bulk-import-hud-restore {
 }
 
 @media (max-width: 420px) {
-    .brand-right-actions .designer-mini {
-        min-width: 82px !important;
-        max-width: 96px !important;
-        padding-left: 6px !important;
-        padding-right: 6px !important;
-    }
     .mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle {
         width: 32px !important;
         min-width: 32px !important;
@@ -665,23 +654,6 @@ body > .bulk-import-hud-restore {
 }
 
 /* v1.5.22: compact engraved header signature and non-disruptive settings placement. */
-.brand-topline {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    gap: 10px !important;
-    margin-bottom: 8px !important;
-    min-height: 34px;
-}
-.brand-topline .brand-kicker {
-    display: inline-flex !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    gap: 9px !important;
-    overflow: visible;
-    min-width: 0;
-}
 .brand-kicker .badge,
 .version-info-trigger,
 .badge-device {
@@ -708,15 +680,6 @@ body > .bulk-import-hud-restore {
     margin-right: 9px;
     color: rgba(255,255,255,.28);
 }
-.brand-right-actions {
-    display: inline-flex !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    min-width: 0;
-    gap: 8px !important;
-    min-height: 34px;
-}
-.brand-right-actions .designer-mini,
 .designer-mini {
     display: inline-flex !important;
     align-items: baseline !important;
@@ -783,13 +746,10 @@ body > .bulk-import-hud-restore {
     opacity: 1;
 }
 @media (max-width: 720px) {
-    .brand-topline { gap: 6px !important; min-height: 30px; }
-    .brand-topline .brand-kicker { gap: 6px !important; }
     .brand-kicker .badge,
     .version-info-trigger,
     .badge-device { font-size: .52rem !important; }
     .badge-device::before { margin-right: 6px; }
-    .brand-right-actions { gap: 5px !important; min-height: 30px; }
     .designer-mini span { font-size: .38rem !important; }
     .designer-mini strong { font-size: .57rem !important; }
     .mobile-native-layer[data-placement="header"] .mobile-native-quick-toggle {
@@ -800,14 +760,11 @@ body > .bulk-import-hud-restore {
     }
 }
 @media (max-width: 420px) {
-    .brand-topline { grid-template-columns: minmax(0, 1fr) auto !important; column-gap: 4px !important; flex-wrap: nowrap !important; }
-    .brand-topline .brand-kicker { gap: 4px !important; }
     .brand-kicker .badge,
     .version-info-trigger,
     .badge-device { font-size: .46rem !important; letter-spacing: 0 !important; }
     .designer-mini span { display: inline !important; font-size: .31rem !important; letter-spacing: .06em !important; }
     .designer-mini strong { font-size: .49rem !important; }
-    .brand-right-actions .designer-mini { min-width: 0 !important; max-width: none !important; padding: 0 !important; }
 }
 
 /* v1.6.3: compact actionable performance state inside Settings. */

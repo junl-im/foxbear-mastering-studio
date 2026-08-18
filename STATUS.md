@@ -1,27 +1,26 @@
-# FoxBear Status - v1.6.104
+# FoxBear Status - v1.6.105
 
 ## Current release
 
-- Product version: `1.6.104`
-- Build ID: `boot-emergency-visit-privacy-hardening`
-- Asset version: `1.6.104-boot-emergency-visit-privacy-hardening`
-- Service worker cache: `foxbear-shell-v1.6.104-boot-emergency-visit-privacy-hardening`
-- Configured static/regression target: **460 checks**.
+- Product version: `1.6.105`
+- Build ID: `header-dock-css-ownership-hardening`
+- Asset version: `1.6.105-header-dock-css-ownership-hardening`
+- Service worker cache: `foxbear-shell-v1.6.105-header-dock-css-ownership-hardening`
+- Configured static/regression target: **461 checks**.
 
 ## Release status
 
-- Full configured static/behavioral QA: **460/460 PASS**.
-- Static release gate and strict Source Hygiene: **PASS**.
-- Version/SRI, Handoff, App Check, dependency health, Functions syntax: **PASS**.
+- Full configured static/behavioral QA: **461/461 PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- Official Playwright browser gate: **not executed** in this review container because `@playwright/test` is unavailable.
-- Delivery: **652-file FULL**, **314-file PATCH**, **13 cleanup paths**; archive verification: **PASS**.
+- Official Playwright browser execution: **PENDING external environment** (`@playwright/test` is not installed in this review container; release gate fails closed at browser bootstrap).
+- Delivery: **654-file FULL**, **322-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
 
 ## Release focus
 
-- Release required UI-mode overlay/inert locks when critical boot falls back to emergency file import.
-- Keep emergency file/folder change binding idempotent after partial normal initialization.
-- Remove query/hash data from visit telemetry so PWA share launch identifiers are not persisted.
+- Remove provably shadowed Header/Dock cascade declarations instead of adding another override layer.
+- Keep `header-command-bar.css` as the live Header owner and Dock layout in the Dock owner/repair layers.
+- Enforce CSS complexity budgets so legacy `studio.css` / `mobile-native.css` cannot silently reclaim those responsibilities.
 
 # FoxBear Status - v1.6.102
 
@@ -54,10 +53,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.104`
-- Build ID: `boot-emergency-visit-privacy-hardening`
-- Asset version: `1.6.104-boot-emergency-visit-privacy-hardening`
-- Service worker cache: `foxbear-shell-v1.6.104-boot-emergency-visit-privacy-hardening`
+- Product version: `1.6.105`
+- Build ID: `header-dock-css-ownership-hardening`
+- Asset version: `1.6.105-header-dock-css-ownership-hardening`
+- Service worker cache: `foxbear-shell-v1.6.105-header-dock-css-ownership-hardening`
 
 ## Release focus
 

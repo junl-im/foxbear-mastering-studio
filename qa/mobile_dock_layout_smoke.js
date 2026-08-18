@@ -9,8 +9,8 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.6.104'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.6.104"'), 'index build should be v1.6.104');
+must(app.includes("const APP_VERSION = 'Pro v1.6.105'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.105"'), 'index build should be v1.6.105');
 must(app.includes('function installBottomPreviewLayoutObserver()'), 'Dock layout observer installer missing');
 must(app.includes('new ResizeObserver(scheduleBottomPreviewLayoutSync)'), 'ResizeObserver should track Dock size changes');
 must(app.includes('window.visualViewport.addEventListener'), 'visualViewport listeners missing');
@@ -22,5 +22,5 @@ must(css.includes('--bottom-preview-panel-bottom'), 'panel bottom variable not c
 must(css.includes('max-height: min(50dvh, 276px)'), 'mobile Dock max-height guard missing');
 must(css.includes('.bottom-preview-translation-btn') && css.includes('white-space: nowrap !important'), 'button no-wrap guard missing');
 must(css.includes('body.bottom-preview-active .download-options-backdrop'), 'download backdrop Dock offset missing');
-must(css.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 6px minmax(0, 1fr) minmax(0, 1fr)'), 'mobile Dock 4-button layout guard missing');
+must(css.includes('grid-template-columns: minmax(0, 1fr) minmax(100px, auto) minmax(0, 1fr) !important;'), 'mobile Dock three-zone action layout guard missing');
 console.log('PASS mobile dock layout smoke');

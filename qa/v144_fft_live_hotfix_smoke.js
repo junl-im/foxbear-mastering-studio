@@ -8,7 +8,7 @@ const exists = rel => fs.existsSync(path.join(root, rel));
 const must = (condition, message) => { if (!condition) { console.error(`FAIL: ${message}`); process.exit(1); } };
 
 const pkg=JSON.parse(read('package.json')); const index=read('index.html'); const sw=read('sw.js'); const app=read('src/app.js'); const runtime=read('src/boot/runtime-health.js'); const analysis=read('src/workers/analysis.worker.js');
-must(pkg.version==='1.6.104','package version');
+must(pkg.version==='1.6.105','package version');
 must(!exists('src/ui/spectrum-visualizer.js'),'live FFT visualizer module must be deleted');
 must(!index.includes('spectrum-visualizer') && !sw.includes('spectrum-visualizer'),'live FFT visualizer must not load or precache');
 must(!runtime.includes('FoxBearSpectrumVisualizer'),'runtime health must not require retired visualizer');

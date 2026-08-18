@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.104-boot-emergency-visit-privacy-hardening';
+    const VERSION = '1.6.105-header-dock-css-ownership-hardening';
 
     function createController(options = {}) {
         const state = options.state || {};

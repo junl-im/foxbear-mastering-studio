@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.104",
+  "version": "1.6.105",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.104 - boot emergency visit privacy hardening",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.105 - header dock css ownership hardening",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.104-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.104-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.105-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.105-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.104-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.104-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.105-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.105-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -508,15 +508,16 @@
     "node qa/v16101_admin_lazyload_repo_cleanup_smoke.js",
     "node qa/v16102_admin_lazyload_sw_hygiene_hardening_smoke.js",
     "node qa/v16103_ci_hygiene_mail_routing_hardening_smoke.js",
-    "node qa/v16104_boot_emergency_visit_privacy_hardening_smoke.js"
+    "node qa/v16104_boot_emergency_visit_privacy_hardening_smoke.js",
+    "node qa/v16105_header_dock_css_ownership_hardening_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "boot-emergency-visit-privacy-hardening",
-    "assetVersion": "1.6.104-boot-emergency-visit-privacy-hardening",
-    "cacheName": "foxbear-shell-v1.6.104-boot-emergency-visit-privacy-hardening",
-    "bootRevision": "boot-sri-v16104",
-    "updateSafetyRevision": "update-safety-v16104",
-    "serviceWorkerRevision": "sw-v16104"
+    "buildId": "header-dock-css-ownership-hardening",
+    "assetVersion": "1.6.105-header-dock-css-ownership-hardening",
+    "cacheName": "foxbear-shell-v1.6.105-header-dock-css-ownership-hardening",
+    "bootRevision": "boot-sri-v16105",
+    "updateSafetyRevision": "update-safety-v16105",
+    "serviceWorkerRevision": "sw-v16105"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

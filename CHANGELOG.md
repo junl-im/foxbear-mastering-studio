@@ -1,3 +1,10 @@
+# v1.6.105 - Header / Dock CSS ownership hardening
+
+- Remove provably shadowed Header/Dock cascade declarations instead of adding another override layer.
+- Make `header-command-bar.css` the sole live owner for `.brand-topline` / `.brand-right-actions` layout and keep the existing two-rail mobile contract.
+- Reduce `studio.css` by 875 lines and lower its `!important` count from 2,961 to 2,468; total CSS `!important` falls from 4,539 to 3,902.
+- Update historical Header/Dock regression guards to validate current owner contracts and add a CSS complexity budget regression.
+
 # v1.6.104 - Boot emergency upload and visit privacy hardening
 
 - Release the required UI-mode chooser, shared overlay registration, body lock, and app-shell inert state when critical initialization falls back to emergency file import.

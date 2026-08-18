@@ -1,3 +1,19 @@
+# FoxBear QA Report - v1.6.105
+
+## v1.6.105 Header / Dock CSS ownership hardening
+
+- Static and behavioral target: **461 checks**.
+- New regression: `qa/v16105_header_dock_css_ownership_hardening_smoke.js`.
+- Legacy Header ownership removed from `studio.css` / `mobile-native.css`: **PASS**.
+- Dedicated Header/Dock owner markers and responsive contracts: **PASS**.
+- `studio.css`: 9,786 -> 8,911 lines; `!important` 2,961 -> 2,468.
+- Total CSS `!important`: 4,539 -> 3,902.
+- Full configured suite: **461/461 PASS**.
+- Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Official Playwright browser execution is pending external execution because `@playwright/test` is not installed in this review container; the release gate correctly fails closed.
+- Delivery: **654-file FULL / 322-file PATCH / 13 cleanup paths**, archive verification **PASS**.
+
 # FoxBear QA Report - v1.6.104
 
 ## v1.6.104 boot emergency upload and visit privacy hardening

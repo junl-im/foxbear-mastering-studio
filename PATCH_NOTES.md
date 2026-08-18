@@ -1,3 +1,11 @@
+# v1.6.105 patch notes
+
+- 화면을 새 스타일로 덮어쓰지 않고, 뒤쪽 owner CSS가 동일 selector/property로 이미 이기고 있는 죽은 선언만 제거했습니다.
+- `studio.css`와 `mobile-native.css`에서 구형 `.brand-topline` / `.brand-right-actions` 소유권을 제거하고 `header-command-bar.css`를 상단 헤더의 단일 owner로 정리했습니다.
+- `studio.css`는 9,786줄 -> 8,911줄, `!important` 2,961 -> 2,468개로 감소했고 전체 CSS `!important`는 4,539 -> 3,902개로 줄었습니다.
+- 기존 Header/Dock QA는 과거 파일 위치의 문자열이 아니라 현재 owner 계약을 검사하도록 갱신했고, 다시 중복 cascade가 커지는 것을 막는 complexity budget QA를 추가했습니다.
+- 전체 **461/461 QA PASS**, Hosting **162 files**, FULL **654 files**, PATCH **322 overwrite + 13 cleanup paths**이며 archive verification도 PASS입니다.
+
 # v1.6.104 patch notes
 
 - critical init 실패 시 필수 작업 방식 선택창, 공용 overlay 등록, body scroll lock, `.app-shell` inert를 해제해 비상 파일열기를 실제로 누를 수 있게 복구합니다.

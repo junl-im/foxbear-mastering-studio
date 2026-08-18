@@ -142,7 +142,7 @@ function payload(index, tab = 'a') {
 
 async function main() {
     const pkg = JSON.parse(read('package.json'));
-    assert.strictEqual(pkg.version, '1.6.104');
+    assert.strictEqual(pkg.version, '1.6.105');
     assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
     assert(pkg.qaChecks.includes('node --check src/boot/incident-diagnostics-view-service.js'));
     assert(pkg.qaChecks.includes('node qa/v1628_incident_lease_takeover_fallback_ui_smoke.js'));
@@ -150,8 +150,8 @@ async function main() {
     const storage = new SharedStorage();
     const tabA = createTab(storage, 'tab-a');
     const tabB = createTab(storage, 'tab-b');
-    assert.strictEqual(tabA.context.FoxBearIncidentQueueCoordination.version, '1.6.104');
-    assert.strictEqual(tabA.context.FoxBearIncidentDiagnosticsView.version, '1.6.104');
+    assert.strictEqual(tabA.context.FoxBearIncidentQueueCoordination.version, '1.6.105');
+    assert.strictEqual(tabA.context.FoxBearIncidentDiagnosticsView.version, '1.6.105');
     assert.strictEqual(tabB.coordinator.getState().syncMode, 'storage-polling');
 
     let pollingPeerEvents = 0;
