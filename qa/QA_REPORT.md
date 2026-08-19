@@ -1,3 +1,34 @@
+# FoxBear QA Report - v1.6.108
+
+## v1.6.108 mastering progress visibility hardening
+
+- Static and behavioral target: **464 checks**.
+- New regression: `qa/v16108_mastering_progress_visibility_hardening_smoke.js`.
+- Mastering HUD: 1% monotonic display, no premature 100%.
+- Full application render cadence remains 5% and deduplicated while HUD/bulk progress surfaces update lightly.
+- Pitch/finalizer/encoder worker progress maps into 40–54 / 90–94 / 95–99 overall ranges.
+- Decode/master-chain liveness heartbeat remains bounded below the next real stage checkpoint.
+- DSP output path is unchanged.
+- Final configured suite: **464/464 PASS** (three sequential slices using the same QA runner to stay within the review-container wall-time).
+- Version/SRI, Source Hygiene, Handoff, App Check policy, dependency contract, Functions syntax, browser preflight, Firebase Hosting boundary **162 files**: **PASS**.
+- Full Playwright execution is unavailable in this container because `@playwright/test` is not installed; GitHub Actions remains the browser-runtime gate after push.
+- Delivery: **660-file FULL / 314-file PATCH / 13 cleanup paths**, archive verification **PASS**.
+
+# FoxBear QA Report - v1.6.107
+
+## v1.6.107 boot payload phase 1
+
+- Static and behavioral target: **463 checks**.
+- New regression: `qa/v16107_boot_payload_phase1_smoke.js`.
+- Service Worker warm-cache scheduling: idle-aware, Save-Data/2G aware, and blocked during active audio/export work.
+- Warm graph: **156 → 146 entries**, canonical duplicates **9 → 0**, concurrency **6 → 3**, about **141,709 bytes** less uncompressed warm payload.
+- Initial render-blocking stylesheets: **26 → 25**, **20,161 bytes** removed from the public first render.
+- Administrator monitor CSS: excluded from initial HTML/SW warm graph and loaded with SRI only after admin access is verified; heavy incident JS remains incident-tab lazy.
+- Optional filename-summary / Detail render dependencies: fail-soft so the main render cycle can continue.
+- Final configured suite: **463/463 PASS** using the same QA runner in three sequential slices to stay within review-container wall-time.
+- Version/SRI, Source Hygiene, browser preflight, Functions syntax, Firebase Hosting boundary **162 files**: **PASS**.
+- Full Playwright execution is pending GitHub Actions because `@playwright/test` is unavailable in this container.
+
 # FoxBear QA Report - v1.6.106
 
 ## v1.6.106 browser geometry and flaky-history recovery

@@ -1,34 +1,63 @@
-# Handoff - v1.6.106
+# Handoff - v1.6.108
 
 ## Current release
 
-- Product version: `1.6.106`
-- Build ID: `browser-geometry-history-recovery`
-- Asset version: `1.6.106-browser-geometry-history-recovery`
-- Service worker cache: `foxbear-shell-v1.6.106-browser-geometry-history-recovery`
-- Configured static/regression target: 462 checks.
+- Product version: `1.6.108`
+- Build ID: `mastering-progress-visibility-hardening`
+- Asset version: `1.6.108-mastering-progress-visibility-hardening`
+- Service worker cache: `foxbear-shell-v1.6.108-mastering-progress-visibility-hardening`
+- Configured static/regression target: 464 checks.
 
 ## Current focus
 
-- Keep the desktop Header center-spread target at 8px while accepting at most one Chromium CSS layout quantum of sub-pixel measurement excess.
-- Include named token center positions in the Runtime Health diagnostic payload.
-- Clear stale browser flaky-history unresolved state when the matching case passes in the next primary browser run.
+- Make mastering visibly active at 1% resolution while keeping heavy UI rendering batched.
+- Map worker progress into the overall mastering timeline and keep no-native-progress stages visibly alive below their next real checkpoint.
+- Preserve mastering DSP output.
 
 ## Verified
 
-- Full configured static/regression suite: **462/462 PASS**.
-- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
+- Configured static/behavioral QA: **464/464 PASS** using the same runner in three sequential slices.
+- Version/SRI, Source Hygiene, Handoff, App Check policy, dependency contract, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **162 files**.
-- Browser fix logic regression: `8.0078125px` passes the one-quantum precision allowance while `8.02px` still fails.
-- Official Playwright v1.6.106 execution is pending the next GitHub Actions run after this patch is pushed.
-- Delivery: **656-file FULL**, **317-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
+- Full Playwright browser execution remains pending GitHub Actions because `@playwright/test` is unavailable in this container.
+- Delivery: **660-file FULL / 314-file PATCH / 13 cleanup paths**, archive verification **PASS**.
 
 ## Apply
 
-1. Extract the v1.6.106 PATCH ZIP into the repository root and replace matching files.
+1. Extract the v1.6.108 PATCH ZIP into the repository root and replace matching files.
 2. Run `APPLY_PATCH_CLEANUP.cmd` once.
-3. Review all Modified/New/Deleted files in GitHub Desktop, commit the v1.6.106 change set, and Push origin.
-4. Confirm the GitHub **Browser release gate** reruns and the previous Runtime Health + unresolved-history annotations clear.
+3. Review all Modified/New/Deleted files in GitHub Desktop, commit the v1.6.108 change set, and Push origin.
+4. Confirm the Browser release gate on the new v1.6.108 GitHub Actions run.
+
+# Handoff - v1.6.107
+
+## Current release
+
+- Product version: `1.6.107`
+- Build ID: `boot-payload-phase1`
+- Asset version: `1.6.107-boot-payload-phase1`
+- Service worker cache: `foxbear-shell-v1.6.107-boot-payload-phase1`
+- Configured static/regression target: 463 checks.
+
+## Current focus
+
+- Yield Service Worker warm-cache traffic to active audio/export work and constrained network modes.
+- Keep administrator monitor CSS out of the public first-render path while preserving styled Visits UI for verified admins; keep heavy incident JS interaction-lazy.
+- Prevent optional filename/detail render modules from aborting the main render cycle.
+
+## Verified
+
+- Configured static/behavioral QA: **463/463 PASS** (same runner, three sequential slices for container wall-time).
+- Version/SRI, Source Hygiene, Browser preflight, Functions syntax: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Full Playwright browser execution remains pending GitHub Actions because `@playwright/test` is unavailable in this container.
+
+## Apply
+
+1. Extract the v1.6.107 PATCH ZIP into the repository root and replace matching files.
+2. Run `APPLY_PATCH_CLEANUP.cmd` once.
+3. Review all Modified/New/Deleted files in GitHub Desktop, commit the v1.6.107 change set, and Push origin.
+4. Confirm the Browser release gate on the new v1.6.107 GitHub Actions run.
 
 # Handoff - v1.6.102
 

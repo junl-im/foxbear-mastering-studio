@@ -11,11 +11,11 @@ const analysisWorkerSource = fs.readFileSync('src/workers/analysis.worker.js', '
 const pitchWorkerSource = fs.readFileSync('src/workers/pitch-wsola.worker.js', 'utf8');
 const workerJobServiceSource = fs.readFileSync('src/utils/worker-job-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.106');
+assert.strictEqual(pkg.version, '1.6.108');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.qaChecks.includes('node qa/v1591_cancellable_audio_pipeline_performance_smoke.js'));
 assert(appSource.includes('currentSourceBuffer = await decodeAudio(track.file, masteringTask);'));
-assert(appSource.includes('const analysis = await analyzeBufferAsync(currentSourceBuffer, masteringTask);'));
+assert(appSource.includes('analysis = await analyzeBufferAsync(currentSourceBuffer, masteringTask);'));
 assert(appSource.includes("jobId: `${masteringJobId}:pitch`"));
 assert(appSource.includes("jobId: `${previewJob.id}:pitch`"));
 assert(appSource.includes("error.code ||= 'FOXBEAR_PITCH_FALLBACK_TOO_LARGE'"));
@@ -28,7 +28,7 @@ assert(pitchWorkerSource.includes('__foxbearJobId: jobId'));
 assert(analysisWorkerSource.includes("postProgress(jobId, 68, '주파수 분석'"));
 assert(pitchWorkerSource.includes("postProgress(jobId, 72, 'WSOLA 시간 변환'"));
 assert(workerJobServiceSource.includes('if (data?.ok === false)'));
-assert(appSource.includes('track.masteringJobId === masteringJobId && progress.percent >= 35'));
+assert(appSource.includes("applyMappedMasteringProgress(track, masteringJobId, 40, 54"));
 
 function between(source, start, end) {
   const from = source.indexOf(start);

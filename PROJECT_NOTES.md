@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.6.108
+
+> Current release: v1.6.108 · mastering-progress-visibility-hardening
+
+Mastering progress now has a lightweight 1% visibility path. Worker-backed stages use mapped real progress; stages without a browser-native progress signal use bounded liveness heartbeats that never cross the next real checkpoint. Heavy application rendering remains batched at 5% checkpoints.
+
+# FoxBear AI Mastering Studio Pro v1.6.107
+
+> Current release: v1.6.107 · boot-payload-phase1
+
+Boot work must be separated from feature availability. Administrator-only presentation assets should stay out of the public first-render path, heavy incident tooling should remain interaction-lazy, Service Worker warming must yield to active audio work and constrained networks, and a missing optional render module must not terminate the main render cycle.
+
 # FoxBear AI Mastering Studio Pro v1.6.106
 
 > Current release: v1.6.106 · browser-geometry-history-recovery

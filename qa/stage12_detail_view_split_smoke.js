@@ -30,7 +30,7 @@ assert(detail.includes('global.FoxBearDetailView = Object.freeze'), 'detail-view
 
 assert(app.includes('function getDetailView()'), 'app should access detail module through getDetailView');
 assert(app.includes('function getDetailViewDeps()'), 'app should provide explicit detail view dependencies');
-assert(app.includes('return getDetailView().renderDetail(options, getDetailViewDeps())'), 'renderDetail wrapper should delegate to detail-view');
+assert(app.includes('const view = window.FoxBearDetailView') && app.includes('return view.renderDetail(options, getDetailViewDeps())'), 'renderDetail wrapper should delegate to detail-view while allowing the optional view to fail soft');
 assert(!app.includes('const empty = document.createElement(\'div\');\n        empty.className = \'empty\';\n        empty.textContent = \'트랙을 선택하면 정밀 비교와 진행 상태가 표시됩니다.\''), 'large renderDetail DOM body should not remain in app.js');
 
 const detailIndex = index.indexOf('src/ui/detail-view.js');
@@ -39,7 +39,7 @@ assert(detailIndex > -1, 'index should load detail-view.js');
 assert(appIndex > detailIndex, 'detail-view.js should load before app.js');
 assert(index.includes('src/ui/detail-view.js') && index.includes('integrity='), 'detail-view script should be present alongside SRI-managed scripts');
 assert(sw.includes('src/ui/detail-view.js'), 'service worker should precache detail-view.js');
-assert(/stage(?:12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.106-browser-geometry-history-recovery'), 'service worker cache should be bumped to stage12');
+assert(/stage(?:12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.108-mastering-progress-visibility-hardening'), 'service worker cache should be bumped to stage12');
 assert(pkg.qaChecks.includes('node --check src/ui/detail-view.js'), 'package QA should syntax-check detail-view.js');
 assert(pkg.qaChecks.includes('node qa/stage12_detail_view_split_smoke.js'), 'package QA should include stage12 smoke');
 assert(changelog.includes('Stage12') && handoff.includes('Stage12') && notes.includes('Stage12'), 'project docs should mention Stage12');

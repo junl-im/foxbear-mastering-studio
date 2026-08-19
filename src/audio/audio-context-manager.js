@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.106-browser-geometry-history-recovery';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.108-mastering-progress-visibility-hardening';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

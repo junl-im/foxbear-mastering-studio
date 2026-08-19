@@ -1,26 +1,47 @@
-# GitHub Desktop Handoff - v1.6.106
+# GitHub Desktop Handoff - v1.6.108
 
 ## Required apply sequence
 
-1. Extract the v1.6.106 PATCH ZIP into the current repository root.
+1. Extract the v1.6.108 PATCH ZIP into the current repository root.
 2. Run `APPLY_PATCH_CLEANUP.cmd` once.
-3. Review all Modified/New/Deleted files in GitHub Desktop, then commit the v1.6.106 change set and Push origin.
-4. A clean replacement can use the v1.6.106 FULL ZIP while preserving `.git`.
+3. Review all Modified/New/Deleted files in GitHub Desktop, then commit and Push origin.
+4. A clean replacement can use the v1.6.108 FULL ZIP while preserving `.git`.
 
 ## Verified
 
-- **462/462 QA PASS**.
-- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, Functions syntax, dependency contract, browser preflight: **PASS**.
-- Hosting boundary: **162 files**.
-- Browser precision regression proves `8.0078125px` is accepted only because its excess is within `1/64px`; `8.02px` remains rejected.
-- Full Playwright verification is expected on the next GitHub Actions run after push.
-- Delivery: **656 FULL / 317 PATCH / 13 cleanup**, archive verification **PASS**.
+- **464/464 QA PASS**.
+- Version/SRI, Source Hygiene, Handoff, App Check policy, dependency contract, Functions syntax, browser preflight: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Full Playwright execution remains pending GitHub Actions because `@playwright/test` is not installed in this container.
+- Delivery: **660-file FULL / 314-file PATCH / 13 cleanup paths**, archive verification **PASS**.
 
 ## Release focus
 
-- Fix the deterministic v1.6.105 desktop Runtime Health false-negative without relaxing the 8px visual target.
-- Add named Header center diagnostics.
-- Resolve stale cached browser-history failures after a real primary PASS.
+- 1% visible mastering progress with lightweight HUD updates.
+- Real worker progress mapping and bounded liveness heartbeats.
+- No DSP output changes.
+
+# GitHub Desktop Handoff - v1.6.107
+
+## Required apply sequence
+
+1. Extract the v1.6.107 PATCH ZIP into the current repository root.
+2. Run `APPLY_PATCH_CLEANUP.cmd` once.
+3. Review all Modified/New/Deleted files in GitHub Desktop, then commit the v1.6.107 change set and Push origin.
+4. A clean replacement can use the v1.6.107 FULL ZIP while preserving `.git`.
+
+## Verified
+
+- Configured QA: **463/463 PASS** (same runner, three sequential slices).
+- Version/SRI, Source Hygiene, Browser preflight, Functions syntax: **PASS**.
+- Firebase Hosting boundary: **162 files**.
+- Full Playwright execution is left to the new GitHub Actions run because `@playwright/test` is not installed in this container.
+
+## Release focus
+
+- Defer and throttle SW warm-cache traffic around real audio work and constrained networks.
+- Remove administrator monitor CSS from the public first-render path while loading it after verified admin access; keep heavy incident JS lazy until incident-tab use.
+- Keep optional render dependencies from aborting core UI rendering.
 
 # GitHub Desktop Handoff - v1.6.102
 

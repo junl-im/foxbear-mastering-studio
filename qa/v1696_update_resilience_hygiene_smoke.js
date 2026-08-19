@@ -15,7 +15,7 @@ const swSource = read('sw.js');
 const hygieneSource = read('tools/check-source-hygiene.js');
 const syncSource = read('tools/sync-release-metadata.js');
 
-assert.strictEqual(pkg.version, '1.6.106');
+assert.strictEqual(pkg.version, '1.6.108');
 assert(/^\d+\.\d+\.\d+$/.test(pkg.version), 'package version must remain semantic');
 assert(pkg.description.includes(`v${pkg.version}`) && pkg.description.includes(String(pkg.foxbearRelease?.buildId || '').replace(/-/g, ' ')), 'package description must follow current release metadata');
 assert(swSource.includes('cache.addAll(REQUIRED_INSTALL_ASSETS)'), 'minimum recovery shell hard-fail install phase missing');

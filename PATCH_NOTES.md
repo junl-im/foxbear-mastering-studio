@@ -1,3 +1,22 @@
+# v1.6.108 patch notes
+
+- 마스터링 진행률을 5% 단위 표시에서 **1% 단위 표시**로 바꿨습니다. 100%는 실제 완료 전에는 표시하지 않습니다.
+- 1% 갱신마다 전체 화면을 다시 그리지 않고 HUD만 가볍게 갱신하며, 전체 렌더는 5% 체크포인트로 제한합니다.
+- 피치 워커는 전체 진행률 40~54%, 파이널라이저는 90~94%, 인코더는 95~99% 구간에 실제 worker progress를 반영합니다.
+- 디코딩과 OfflineAudioContext 마스터 체인은 native progress callback이 없어서 다음 실제 체크포인트 직전까지만 bounded heartbeat로 진행 중임을 보여줍니다.
+- DSP/라우드니스/리미터/인코더 수학은 변경하지 않았습니다.
+- 최종 검증: **464/464 PASS**, Hosting **162 files**, FULL **660 files**, PATCH **314 overwrite + 13 cleanup paths**입니다.
+
+# v1.6.107 patch notes
+
+- Service Worker의 수 MB warm cache를 등록 직후 바로 실행하지 않고 idle 시점으로 미뤘습니다. Save-Data/2G 또는 import·분석·마스터링·preview render·export 작업 중에는 warm을 실행하지 않습니다.
+- warm-cache 동시 요청 수를 6개에서 3개로 낮추고 versioned/unversioned 동일 경로를 canonical dedupe해 중복 네트워크 작업을 줄였습니다.
+- 관리자 공용 모니터 CSS를 초기 HTML과 SW warm graph에서 제거하고, 관리자 인증이 확인되는 시점에 SRI로 lazy-load합니다. 무거운 incident JS는 오류 탭을 실제로 열 때까지 계속 지연합니다.
+- 파일명 요약/Detail view 모듈이 누락돼도 `renderAll()`의 나머지 Queue·Dock·상태 UI가 계속 렌더링되도록 fail-soft 처리했습니다.
+- 초기 render-blocking stylesheet는 26→25개(-20,161 bytes), SW warm graph는 156→146개(-141,709 bytes), canonical 중복은 9→0, warm 동시성은 6→3으로 줄었습니다. 초기 JS 수 92개는 이번 phase에서 유지했습니다.
+- 최종 configured QA **463/463 PASS**(동일 runner를 3개 구간으로 실행), Version/SRI · Source Hygiene · Browser preflight · Functions · Hosting **162 files PASS**입니다. 실제 Playwright 실행은 현재 컨테이너에 `@playwright/test`가 없어 GitHub Actions 확인 대상으로 남습니다.
+- 마스터링 DSP/분석 알고리즘/다운로드 인코더는 변경하지 않았습니다.
+
 # v1.6.106 patch notes
 
 - GitHub Browser release gate에서 데스크톱 Header `centerSpread`가 `8.0078125px`로 고정 재현되며 `<= 8px` 정밀 비교에 막히던 문제를 수정했습니다.

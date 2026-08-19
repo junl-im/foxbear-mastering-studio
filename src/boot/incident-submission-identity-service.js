@@ -1,4 +1,4 @@
-// FoxBear stable incident submission identity helpers - v1.6.106
+// FoxBear stable incident submission identity helpers - v1.6.108
 (function attachFoxBearIncidentSubmissionIdentity(global) {
     'use strict';
 
@@ -47,7 +47,7 @@
     }
 
     global.FoxBearIncidentSubmissionIdentity = Object.freeze({
-        version: '1.6.106',
+        version: '1.6.108',
         normalizeClientAt,
         createSubmissionKey,
         createReportId

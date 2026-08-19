@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.6.108
+
+> Current release: v1.6.108 · mastering-progress-visibility-hardening
+
+This release makes mastering visibly active at 1% resolution while preserving audio output and avoiding 1%-frequency full UI rerenders.
+
+# FoxBear AI Mastering Studio Pro v1.6.107
+
+> Current release: v1.6.107 · boot-payload-phase1
+
+This release reduces non-essential first-load/background work without changing mastering DSP. Service Worker warming is idle-, activity-, and network-aware; administrator monitor CSS leaves the public first-render path and is loaded only after admin access is verified; optional filename/detail rendering can no longer stop the main render cycle when a view module is unavailable.
+
 # FoxBear AI Mastering Studio Pro v1.6.106
 
 > Current release: v1.6.106 · browser-geometry-history-recovery

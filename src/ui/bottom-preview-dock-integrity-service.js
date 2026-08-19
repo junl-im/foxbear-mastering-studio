@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.106-browser-geometry-history-recovery';
+    const VERSION = '1.6.108-mastering-progress-visibility-hardening';
 
     function createController(options = {}) {
         const state = options.state || {};

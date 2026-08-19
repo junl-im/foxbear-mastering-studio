@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.106-browser-geometry-history-recovery';
+const version = '1.6.108-mastering-progress-visibility-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

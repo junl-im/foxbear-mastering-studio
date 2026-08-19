@@ -1,27 +1,49 @@
-# FoxBear Status - v1.6.106
+# FoxBear Status - v1.6.108
 
 ## Current release
 
-- Product version: `1.6.106`
-- Build ID: `browser-geometry-history-recovery`
-- Asset version: `1.6.106-browser-geometry-history-recovery`
-- Service worker cache: `foxbear-shell-v1.6.106-browser-geometry-history-recovery`
-- Configured static/regression target: **462 checks**.
+- Product version: `1.6.108`
+- Build ID: `mastering-progress-visibility-hardening`
+- Asset version: `1.6.108-mastering-progress-visibility-hardening`
+- Service worker cache: `foxbear-shell-v1.6.108-mastering-progress-visibility-hardening`
+- Configured static/regression target: **464 checks**.
 
 ## Release status
 
-- Full configured static/behavioral QA: **462/462 PASS**.
-- Static release gate, Source Hygiene, Version/SRI, Handoff, App Check, dependency contract, Functions syntax, browser preflight: **PASS**.
+- Full configured static/behavioral QA: **464/464 PASS** using the same runner in three sequential slices.
+- Version/SRI, Source Hygiene, Handoff, App Check policy, dependency contract, Functions syntax, browser preflight: **PASS**.
 - Firebase Hosting boundary: **162 allowlisted files**.
-- v1.6.105 GitHub Browser release gate root cause: deterministic desktop Header center spread `8.0078125px` against an exact `8px` assertion.
-- v1.6.106 local browser execution remains external because Playwright/Chromium are not installed in this review container; the patched assertion/state-machine logic is covered by static behavioral regression.
-- Delivery: **656-file FULL**, **317-file PATCH**, **13 cleanup paths**; archive verification **PASS**.
+- Full Playwright execution is pending GitHub Actions because this container has no installed `@playwright/test`.
+- Delivery: **660-file FULL / 314-file PATCH / 13 cleanup paths**, archive verification **PASS**.
 
 ## Release focus
 
-- Preserve the **8px** Header center-spread design target while tolerating no more than one CSS layout quantum (`1/64px`) of browser sub-pixel measurement excess.
-- Emit named Header center positions in Browser Runtime Health failures.
-- Resolve cached flaky-history entries after a real primary browser PASS without recording every healthy browser case.
+- 1% mastering HUD progress without 1%-frequency full application renders.
+- Worker-backed real progress mapping plus bounded liveness heartbeat for browser APIs without native progress callbacks.
+- No mastering DSP changes.
+
+# FoxBear Status - v1.6.107
+
+## Current release
+
+- Product version: `1.6.107`
+- Build ID: `boot-payload-phase1`
+- Asset version: `1.6.107-boot-payload-phase1`
+- Service worker cache: `foxbear-shell-v1.6.107-boot-payload-phase1`
+- Configured static/regression target: **463 checks**.
+
+## Release status
+
+- Full configured static/behavioral QA: **463/463 PASS** using the same runner in three sequential slices.
+- Version/SRI, Source Hygiene, Browser preflight, Functions syntax: **PASS**.
+- Firebase Hosting boundary: **162 allowlisted files**.
+- Full Playwright execution is pending GitHub Actions because this container has no installed `@playwright/test`.
+
+## Release focus
+
+- Idle/activity/network-aware Service Worker cache warming with concurrency budget 3.
+- Admin monitor CSS leaves the public first-render path and loads after verified admin access; heavy incident JS remains incident-tab lazy.
+- Fail-soft optional filename/detail rendering without DSP changes.
 
 # FoxBear Status - v1.6.102
 
@@ -54,10 +76,10 @@
 
 ## Release metadata
 
-- Product version: `1.6.106`
-- Build ID: `browser-geometry-history-recovery`
-- Asset version: `1.6.106-browser-geometry-history-recovery`
-- Service worker cache: `foxbear-shell-v1.6.106-browser-geometry-history-recovery`
+- Product version: `1.6.108`
+- Build ID: `mastering-progress-visibility-hardening`
+- Asset version: `1.6.108-mastering-progress-visibility-hardening`
+- Service worker cache: `foxbear-shell-v1.6.108-mastering-progress-visibility-hardening`
 
 ## Release focus
 

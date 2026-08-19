@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.6.106
+// FoxBear audio decode service - v1.6.108
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.106-browser-geometry-history-recovery';
+    const SERVICE_VERSION = '1.6.108-mastering-progress-visibility-hardening';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

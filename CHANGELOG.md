@@ -1,3 +1,17 @@
+# v1.6.108 - Mastering progress visibility hardening
+
+- Show mastering progress at 1% resolution instead of 5% visual quantization without allowing premature 100%.
+- Update the lightweight mastering/bulk HUD on each visible tick while keeping broad `renderAll()` work on deduplicated 5% checkpoints.
+- Map pitch/finalizer/encoder worker progress into the overall mastering timeline and add bounded liveness heartbeats for decode/offline-render stages that have no native progress callback.
+- Yield before the post-render synchronous safety scan so the latest progress paint is visible before the scan runs.
+
+# v1.6.107 - Boot payload phase 1
+
+- Defer Service Worker warm-cache work until an idle window and suppress it on Save-Data/2G or while import, analysis, mastering, preview rendering, or export work is active.
+- Reduce background warm-cache concurrency to three requests and canonicalize versioned/unversioned warm URLs to avoid duplicate network work.
+- Move administrator incident-monitor CSS out of the initial render path; preload it only after administrator access is verified, while keeping the heavier incident-monitor JS lazy until the incident tab is opened and retaining SRI.
+- Keep filename-summary and Detail rendering fail-soft when their optional view/workflow modules are unavailable so the rest of `renderAll()` can continue.
+
 # v1.6.106 - Browser geometry and flaky-history recovery
 
 - Keep the 8px desktop Header center-spread design target while allowing only one Chromium CSS layout quantum (1/64px) of sub-pixel measurement excess.

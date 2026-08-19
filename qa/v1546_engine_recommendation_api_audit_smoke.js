@@ -94,7 +94,7 @@ assert(app.includes('track?.finalizeInfo?.targetLufs ?? track?.masterReport?.tar
 assert(app.includes('track.finalizeInfo?.targetLufs ?? track.masterReport?.target?.lufs'), 'export report does not preserve rendered LUFS target');
 assert(app.includes('recommendationApplication'), 'master report does not audit recommended/requested/effective settings');
 assert(app.includes('effectiveSettings: appliedProfile?.effectiveSettings'), 'effective DSP settings are not captured in the master report');
-assert(pkg.qaChecks.includes('node qa/v1546_engine_recommendation_api_audit_smoke.js'), 'v1.6.106 audit test is not registered');
+assert(pkg.qaChecks.includes('node qa/v1546_engine_recommendation_api_audit_smoke.js'), 'v1.6.108 audit test is not registered');
 
 const engine = loadRecommendationEngine();
 const recommendation = engine.safeRecommendPreset('vocal_pop_demo.wav', {

@@ -20,8 +20,8 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css');
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
-assert.strictEqual(pkg.version, '1.6.106');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.106-browser-geometry-history-recovery');
+assert.strictEqual(pkg.version, '1.6.108');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.108-mastering-progress-visibility-hardening');
 assert(!index.includes('name="foxbear-app-check-site-key"'), 'App Check site key must not be shipped');
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));
@@ -84,7 +84,8 @@ assert.strictEqual(appCheckPolicyContract.enforced, false);
 assert(appCheckPolicy.includes("require('./app-check-policy-contract.json')"));
 assert(appCheckPolicy.includes('appCheckTokenPresent: Boolean(request?.app)'));
 
-assert(index.includes('assets/css/components/admin-incident-monitor.css'), 'admin incident monitor stylesheet should be loaded');
+assert(!index.includes('assets/css/components/admin-incident-monitor.css'), 'admin incident monitor stylesheet should stay out of the initial render path');
+assert(app.includes('styleSrc: lazy.stylePath') && app.includes('styleIntegrity: lazy.styleIntegrity'), 'admin incident monitor stylesheet should lazy-load with the incident view');
 assert(adminIncidentCss.includes('.admin-monitor-tabs'), 'admin incident monitor stylesheet should include monitor tabs');
 assert(!index.includes('src/ui/admin-incident-monitor-view.js'), 'admin incident monitor view should be lazy-loaded after administrator opens incidents');
 assert(app.includes('ensureAdminIncidentMonitorAssets') && app.includes('ADMIN_INCIDENT_MONITOR_SCRIPT_URL'), 'app should own the lazy admin incident module loader');

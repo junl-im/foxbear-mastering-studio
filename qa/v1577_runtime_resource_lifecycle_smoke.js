@@ -7,7 +7,7 @@ const mobileSource = fs.readFileSync('src/ui/mobile-native-view.js','utf8');
 const appSource = fs.readFileSync('src/app.js','utf8');
 const runtimeHealthSource = fs.readFileSync('src/boot/runtime-health.js','utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
-assert.strictEqual(pkg.version,'1.6.106');
+assert.strictEqual(pkg.version,'1.6.108');
 assert(fs.existsSync('docs/V1.5.77_RUNTIME_RESOURCE_LIFECYCLE_RECOVERY.md'));
 assert(!fs.existsSync('src/ui/spectrum-visualizer.js'),'retired spectrum resource lifecycle module must stay deleted');
 assert(compareSource.includes('controls._foxbearDispose = () =>'));
