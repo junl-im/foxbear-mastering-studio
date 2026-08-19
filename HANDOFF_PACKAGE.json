@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.108",
-  "buildId": "mastering-progress-visibility-hardening",
+  "productVersion": "1.6.109",
+  "buildId": "mastering-cooperative-pcm-responsiveness",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

@@ -1,3 +1,7 @@
+# v1.6.109 Project Notes
+
+Current focus: reduce real main-thread mastering stalls after v1.6.108 made progress visible. Cooperative PCM/DC safety work and waveform sampling are the first default-path targets; instrument-layer/trim specialized paths remain follow-up candidates if device traces still show long tasks. Final configured QA is 465/465 PASS; Playwright runtime remains GitHub Actions-only in this review container.
+
 # FoxBear AI Mastering Studio Pro v1.6.108
 
 > Current release: v1.6.108 · mastering-progress-visibility-hardening

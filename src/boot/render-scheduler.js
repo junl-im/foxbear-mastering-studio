@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.108-mastering-progress-visibility-hardening';
+    const SERVICE_VERSION = '1.6.109-mastering-cooperative-pcm-responsiveness';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

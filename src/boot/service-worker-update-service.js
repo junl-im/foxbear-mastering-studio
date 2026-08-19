@@ -1,8 +1,8 @@
-// FoxBear service worker update coordinator v1.6.108 - generation-fenced activation claim and BFCache controller reconciliation
+// FoxBear service worker update coordinator v1.6.109 - generation-fenced activation claim and BFCache controller reconciliation
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.6.108-mastering-progress-visibility-hardening';
+  const VERSION = '1.6.109-mastering-cooperative-pcm-responsiveness';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

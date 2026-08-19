@@ -10,7 +10,7 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const firebase = fs.readFileSync('src/firebase-bootstrap.js', 'utf8');
 const uiModeSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.108');
+assert.strictEqual(pkg.version, '1.6.109');
 assert(app.includes('releaseEmergencyUploadBlockers();\n        bindEmergencyUploadOnly();'), 'critical init recovery must release blocking UI before emergency upload binding');
 assert(app.includes("fileInput.dataset.nativeInputChangeBound !== 'true'"), 'file emergency binding must not duplicate the normal change handler');
 assert(app.includes("folderInput.dataset.nativeInputChangeBound !== 'true'"), 'folder emergency binding must not duplicate the normal change handler');

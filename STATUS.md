@@ -1,3 +1,30 @@
+# FoxBear Status - v1.6.109
+
+## Current release
+
+- Product version: `1.6.109`
+- Build ID: `mastering-cooperative-pcm-responsiveness`
+- Asset version: `1.6.109-mastering-cooperative-pcm-responsiveness`
+- Service worker cache: `foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness`
+- Configured static/regression target: 465 checks.
+
+## Release metadata
+
+- Product version: `1.6.109`
+- Build ID: `mastering-cooperative-pcm-responsiveness`
+- Asset version: `1.6.109-mastering-cooperative-pcm-responsiveness`
+- Service worker cache: `foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness`
+- Boot revision: `boot-sri-v16109`
+- Update safety revision: `update-safety-v16109`
+- Service worker revision: `sw-v16109`
+
+## Current focus
+
+- Reduce real main-thread stalls during mastering while preserving output math.
+- Full Playwright browser runtime remains an external GitHub Actions gate when local Playwright is unavailable.
+- Final configured QA: **465/465 PASS**.
+- Delivery verification: **662-file FULL / 315-file PATCH / 13 cleanup paths PASS**.
+
 # FoxBear Status - v1.6.108
 
 ## Current release

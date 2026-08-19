@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.109
+
+> Current release: v1.6.109 · mastering-cooperative-pcm-responsiveness
+
+This release reduces real main-thread stalls during mastering by cooperatively yielding inside long PCM safety/DC scans and waveform overview work while preserving sample output and mastering DSP.
+
 # FoxBear AI Mastering Studio Pro v1.6.108
 
 > Current release: v1.6.108 · mastering-progress-visibility-hardening

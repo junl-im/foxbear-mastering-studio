@@ -1,9 +1,9 @@
-// FoxBear recoverable runtime fault counters - v1.6.108
+// FoxBear recoverable runtime fault counters - v1.6.109
 // Privacy-safe: only bounded category/code/count/timestamps are kept in memory.
 (function attachFoxBearRuntimeFaultCounters(global) {
     'use strict';
 
-    const VERSION = '1.6.108-mastering-progress-visibility-hardening';
+    const VERSION = '1.6.109-mastering-cooperative-pcm-responsiveness';
     const MAX_KEYS = 48;
     const RECENT_WINDOW_MS = 5 * 60 * 1000;
     const MAX_RECENT_EVENTS = 96;

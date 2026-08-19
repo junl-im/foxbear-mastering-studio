@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const { expectRuntimeHealthy, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 const { stageBulkMasteringHudFixture } = require('./helpers/visual-fixture-builders');
 
-test.describe('v1.6.108 bulk mastering controls visual layout', () => {
+test.describe('v1.6.109 bulk mastering controls visual layout', () => {
   for (const viewport of [{ width: 1280, height: 800 }, { width: 375, height: 760 }]) {
     test(`controls and current row remain visible at ${viewport.width}px`, async ({ page }) => {
       await page.setViewportSize(viewport);

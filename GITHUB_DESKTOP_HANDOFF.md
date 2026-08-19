@@ -1,3 +1,20 @@
+# GitHub Desktop Handoff - v1.6.109
+
+## Required apply sequence
+
+1. Fetch origin and confirm the repository is on the intended v1.6.108 base.
+2. Extract the v1.6.109 PATCH ZIP into the current repository root.
+3. Run `APPLY_PATCH_CLEANUP.cmd` once.
+4. Review all Modified/New/Deleted files in GitHub Desktop, commit, then Push origin.
+5. Use the v1.6.109 FULL ZIP only for a clean replacement while preserving `.git`.
+
+## Release focus
+
+- Cooperative DC-offset and PCM safety scans reduce main-thread stalls without changing sample math.
+- Waveform marker generation reuses sampled data and the main post-finalizer waveform pass yields cooperatively.
+- GitHub Actions Browser release gate remains the final browser-runtime verification after push.
+- Verified delivery: 662-file FULL / 315-file PATCH / 13 cleanup paths.
+
 # GitHub Desktop Handoff - v1.6.108
 
 ## Required apply sequence

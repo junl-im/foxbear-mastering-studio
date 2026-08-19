@@ -1,3 +1,19 @@
+# FoxBear QA Report - v1.6.109
+
+## v1.6.109 mastering cooperative PCM responsiveness
+
+- Static and behavioral target: **465 checks**.
+- New regression: `qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js`.
+- DC removal and PCM safety scans yield cooperatively with cancellation checks while retaining legacy sample order and results.
+- Real DC/safety work maps into 30-39% overall progress.
+- Waveform peak markers reuse sampled overview values, eliminating two redundant full-buffer scans; the main A/B overview is cooperative.
+- Mastering DSP coefficients and output targets are unchanged.
+- Final configured suite: **465/465 PASS** (three sequential slices using the same QA runner to stay within the review-container wall-time).
+- Version/SRI, Source Hygiene, Handoff, App Check policy, dependency contract, Functions syntax, browser preflight, Firebase Hosting boundary **162 files**: **PASS**.
+- Dependency check reported only expected missing-install warnings in this archive workspace (`@playwright/test`, Firebase Functions runtime packages); contract errors: **0**.
+- Full Playwright execution is unavailable in this container because `@playwright/test` is not installed; GitHub Actions remains the browser-runtime gate after push.
+- Delivery: **662-file FULL / 315-file PATCH / 13 cleanup paths**, archive verification **PASS**.
+
 # FoxBear QA Report - v1.6.108
 
 ## v1.6.108 mastering progress visibility hardening

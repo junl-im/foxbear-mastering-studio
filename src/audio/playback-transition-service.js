@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackTransitionService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.108-mastering-progress-visibility-hardening';
+    const SERVICE_VERSION = '1.6.109-mastering-cooperative-pcm-responsiveness';
     const DEFAULT_FADE_MS = 140;
     const MIN_FADE_MS = 24;
     const FADE_MIN_VOLUME = 0.0001;

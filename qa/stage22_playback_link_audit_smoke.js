@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.108-mastering-progress-visibility-hardening';
+const version = '1.6.109-mastering-cooperative-pcm-responsiveness';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

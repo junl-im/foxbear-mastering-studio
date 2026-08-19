@@ -1,3 +1,18 @@
+# Handoff - v1.6.109
+
+## Current release
+
+- Product version: `1.6.109`
+- Build ID: `mastering-cooperative-pcm-responsiveness`
+- Asset version: `1.6.109-mastering-cooperative-pcm-responsiveness`
+- Service worker cache: `foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness`
+- Configured static/regression target: 465 checks.
+- Base release: v1.6.108.
+- Scope: cooperative DC/PCM safety scans and cooperative A/B waveform overview; mastering DSP unchanged.
+- GitHub Desktop workflow: apply PATCH at repository root, run `APPLY_PATCH_CLEANUP.cmd`, review, commit, Fetch origin if needed, then Push origin.
+- Final configured QA: 465/465 PASS.
+- Delivery: 662-file FULL / 315-file PATCH / 13 cleanup paths; archive verification PASS.
+
 # Handoff - v1.6.108
 
 ## Current release

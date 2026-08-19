@@ -14,17 +14,17 @@ const qaReport = read('qa/QA_REPORT.md');
 const changelog = read('CHANGELOG.md');
 const handoff = read('HANDOFF.md');
 
-must(pkg.version === '1.6.108', 'package version should be 1.6.108');
+must(pkg.version === '1.6.109', 'package version should be 1.6.109');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
-must(html.includes('data-build="1.6.108"'), 'index build marker should be 1.6.108');
-must(html.includes('1.6.108-mastering-progress-visibility-hardening'), 'index should use v1.6.108 asset key');
-must(sw.includes('foxbear-shell-v1.6.108-mastering-progress-visibility-hardening'), 'service worker cache should use v1.6.108 key');
+must(html.includes('data-build="1.6.109"'), 'index build marker should be 1.6.109');
+must(html.includes('1.6.109-mastering-cooperative-pcm-responsiveness'), 'index should use v1.6.109 asset key');
+must(sw.includes('foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness'), 'service worker cache should use v1.6.109 key');
 
 must(service.includes('getDownloadRecoveryChecklist'), 'download service should expose recovery checklist helper');
 must(service.includes('copyDownloadRecoveryChecklist'), 'download service should expose checklist copy helper');
 must(service.includes('serializeDownloadRecoveryChecklist'), 'download service should serialize checklist text');
 must(service.includes('recovery-checklist-copy'), 'download service should record checklist copy event');
-must(service.includes("version: '1.6.108'"), 'download helpers should report v1.6.108');
+must(service.includes("version: '1.6.109'"), 'download helpers should report v1.6.109');
 must(runtime.includes('FoxBearDownloadService.getDownloadRecoveryChecklist'), 'runtime health should require checklist helper');
 must(runtime.includes('FoxBearDownloadService.copyDownloadRecoveryChecklist'), 'runtime health should require checklist copy helper');
 
@@ -32,13 +32,13 @@ must(dialog.includes('download-options-checklist'), 'dialog should render recove
 must(dialog.includes('renderChecklist(action, exported)'), 'receipt rendering should refresh checklist');
 must(dialog.includes('체크리스트 복사'), 'dialog should include checklist copy action');
 must(dialog.includes('copyDownloadRecoveryChecklist'), 'dialog should call checklist copy helper');
-must(css.includes('Download recovery checklist'), 'CSS should include v1.6.108 checklist comment');
+must(css.includes('Download recovery checklist'), 'CSS should include v1.6.109 checklist comment');
 must(css.includes('.download-assist-checklist'), 'CSS should style assist checklist');
 must(css.includes('.download-options-checklist'), 'CSS should style dialog checklist');
 
-must(pkg.qaChecks.includes('node qa/v1416_download_recovery_checklist_smoke.js'), 'package qaChecks should include v1.6.108 smoke');
-must(fs.existsSync(path.join(root, 'qa/BROWSER_BACK_QA_MATRIX_1.4.26.md')), 'v1.6.108 browser matrix should exist');
-must(qaReport.includes('v1.6.108'), 'QA report should mention v1.6.108');
-must(changelog.includes('v1.6.108'), 'changelog should mention v1.6.108');
-must(handoff.includes('v1.6.108'), 'handoff should mention v1.6.108');
+must(pkg.qaChecks.includes('node qa/v1416_download_recovery_checklist_smoke.js'), 'package qaChecks should include v1.6.109 smoke');
+must(fs.existsSync(path.join(root, 'qa/BROWSER_BACK_QA_MATRIX_1.4.26.md')), 'v1.6.109 browser matrix should exist');
+must(qaReport.includes('v1.6.109'), 'QA report should mention v1.6.109');
+must(changelog.includes('v1.6.109'), 'changelog should mention v1.6.109');
+must(handoff.includes('v1.6.109'), 'handoff should mention v1.6.109');
 console.log('PASS v1.4.26 download recovery checklist smoke');

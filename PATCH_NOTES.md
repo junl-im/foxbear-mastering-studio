@@ -1,3 +1,15 @@
+# v1.6.109 Patch Notes
+
+## Mastering responsiveness
+
+- Long DC-offset and PCM safety scans now yield to the browser in bounded chunks.
+- 30-39% progress now follows real cleanup work.
+- Post-finalizer waveform overview is cooperative and no longer rescans PCM just to derive peak markers.
+- Quality-recovery safety scans use the same responsive path.
+- DSP math and target loudness/ceiling behavior are unchanged.
+- Verification: 465/465 configured QA PASS; Version/SRI, Source Hygiene, Handoff, App Check, Functions, browser preflight, Hosting 162-file boundary, and delivery archives PASS.
+- Delivery: 662-file FULL / 315-file PATCH / 13 cleanup paths.
+
 # v1.6.108 patch notes
 
 - 마스터링 진행률을 5% 단위 표시에서 **1% 단위 표시**로 바꿨습니다. 100%는 실제 완료 전에는 표시하지 않습니다.

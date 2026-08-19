@@ -7,9 +7,9 @@ const css = fs.readFileSync(path.join(root, 'assets/css/studio.css'), 'utf8');
 const dockCss = fs.readFileSync(path.join(root, 'assets/css/dock.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 function must(cond, msg) { if (!cond) { console.error('FAIL dock purpose realign smoke:', msg); process.exit(1); } }
-must(pkg.version === '1.6.108', 'package version should be 1.6.108');
-must(html.includes('data-build="1.6.108"'), 'index build should be 1.6.108');
-must(app.includes("const APP_VERSION = 'Pro v1.6.108'"), 'app version should be Pro v1.6.108');
+must(pkg.version === '1.6.109', 'package version should be 1.6.109');
+must(html.includes('data-build="1.6.109"'), 'index build should be 1.6.109');
+must(app.includes("const APP_VERSION = 'Pro v1.6.109'"), 'app version should be Pro v1.6.109');
 must(/const SHARED_DSP_PROFILE_VERSION = 'v[0-9]+\.[0-9]+\.[0-9]+-[a-z0-9-]+';/.test(app), 'DSP slug should be v1.4.0');
 must(html.includes('bottom-preview-subline') && html.includes('bottom-preview-compare-chip'), 'compare chip should live in title/genre line');
 must(!html.includes('class="bottom-preview-waveform bottom-preview-compare-open"'), 'old large compare row should be removed');

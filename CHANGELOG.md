@@ -1,3 +1,10 @@
+# v1.6.109 - Mastering cooperative PCM responsiveness
+
+- Make long DC-offset and PCM safety scans cooperative so the browser can paint/cancel between bounded chunks without changing sample math.
+- Map real DC/safety work into the 30-39% mastering range instead of jumping from 30% to 40%.
+- Reuse waveform samples for peak markers, removing two redundant full-buffer scans, and make the post-finalizer waveform overview cooperative.
+- Apply the cooperative safety path to the one-shot quality-recovery render as well as the normal mastering path.
+
 # v1.6.108 - Mastering progress visibility hardening
 
 - Show mastering progress at 1% resolution instead of 5% visual quantization without allowing premature 100%.
