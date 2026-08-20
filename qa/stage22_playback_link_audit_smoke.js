@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.111-ui-mode-session-contract-hardening';
+const version = '1.6.112-mastering-lifecycle-race-hardening';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

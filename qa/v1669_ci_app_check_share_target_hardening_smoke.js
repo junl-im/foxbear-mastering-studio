@@ -11,7 +11,7 @@ const read = relative => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 const sharePolicySource = read('src/config/pwa-share-policy.js');
 
-assert.strictEqual(pkg.version, '1.6.111');
+assert.strictEqual(pkg.version, '1.6.112');
 assert(String(pkg.foxbearRelease.buildId || '').trim(), 'current release buildId must remain configured');
 assert(pkg.qaChecks.includes('node qa/v1669_ci_app_check_share_target_hardening_smoke.js'));
 
@@ -36,7 +36,7 @@ assert(functionsSource.includes('...incidentAppCheckMetadata(request)'));
 const runtimeConfigSource = read('src/config/app-runtime-config.js');
 const runtimeSandbox = { console };
 runtimeSandbox.window = runtimeSandbox;
-runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.111', assetVersion: pkg.foxbearRelease.assetVersion };
+runtimeSandbox.FoxBearBuildInfo = { appVersion: 'Pro v1.6.112', assetVersion: pkg.foxbearRelease.assetVersion };
 vm.createContext(runtimeSandbox);
 vm.runInContext(runtimeConfigSource, runtimeSandbox, { filename: 'app-runtime-config.js' });
 const clientPolicy = runtimeSandbox.FoxBearRuntimeConfig.APP_CHECK_POLICY;

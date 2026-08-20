@@ -10,11 +10,13 @@ const root = path.resolve(__dirname, '..');
 const workerPath = path.join(root, 'src/workers/master-finalizer.worker.js');
 const appPath = path.join(root, 'src/app.js');
 const loudnessServicePath = path.join(root, 'src/audio/loudness-measurement-service.js');
+const fallbackServicePath = path.join(root, 'src/audio/master-finalizer-fallback-service.js');
 const workerSource = fs.readFileSync(workerPath, 'utf8');
 const appSource = fs.readFileSync(appPath, 'utf8');
 const loudnessServiceSource = fs.readFileSync(loudnessServicePath, 'utf8');
+const fallbackServiceSource = fs.readFileSync(fallbackServicePath, 'utf8');
 
-assert(workerSource.includes('piano transient integrity and single-stage transparent limiting'), 'v1.6.111 finalizer ownership marker is missing');
+assert(workerSource.includes('piano transient integrity and single-stage transparent limiting'), 'v1.6.112 finalizer ownership marker is missing');
 assert(workerSource.includes('const limiterInfo = applyLookaheadLimiter(data, length, ceiling, sampleRate, qualityMode, analysis);'), 'analysis-aware final limiter ownership is missing');
 assert(!workerSource.includes('applySoftCeiling(data'), 'legacy serial soft-ceiling stage must remain removed');
 assert(workerSource.includes('function filterKWeightedPower('), 'K-weighted power fast path is missing');
@@ -23,7 +25,7 @@ assert(workerSource.includes('function inspectAndSanitizeInputSignal('), 'input 
 assert(workerSource.includes('function removeDcOffsetAndSanitize('), 'final DC removal and sanitization are not fused');
 assert((workerSource.match(/if \(buffers\.length === 1\)/g) || []).length >= 3, 'mono/stereo tone dynamics are not channel-specialized');
 assert(!workerSource.includes('const scratch = buffers.map(() => ({'), 'worker tone dynamics still allocate per-channel scratch objects');
-assert(appSource.includes('const finalLoudness = measureKWeightedLoudnessBundleAudioBuffer(working);'), 'fallback final loudness still performs duplicate K-weighting');
+assert(appSource.includes('const finalLoudness = measureKWeightedLoudnessBundleAudioBuffer(working);') || fallbackServiceSource.includes("measureKWeightedLoudnessBundleAudioBuffer, 'measureLoudnessBundle'"), 'fallback final loudness still performs duplicate K-weighting');
 assert(appSource.includes('FoxBearLoudnessMeasurementService'), 'fallback loudness service bridge is missing');
 assert(loudnessServiceSource.includes('function makePower(') && loudnessServiceSource.includes('Math.fround(processBiquad('), 'fallback K-weighted power fast path is missing');
 
@@ -142,6 +144,6 @@ worker.self.onmessage({ data: {
 assert(result?.ok, `optimized finalizer failed: ${result?.error || 'unknown error'}`);
 assert(Number.isFinite(result.info?.performance?.stageMs?.toneDynamics), 'tone-dynamics timing is missing');
 assert(Number.isFinite(result.info?.performance?.stageMs?.finalMeasurement), 'final-measurement timing is missing');
-assert(result.info.peakAfter <= Math.pow(10, -1 / 20) * 1.012, 'v1.6.111 output exceeded ceiling tolerance');
+assert(result.info.peakAfter <= Math.pow(10, -1 / 20) * 1.012, 'v1.6.112 output exceeded ceiling tolerance');
 
 console.log('PASS v1.6.12 mastering tone/loudness fast path: exact K-weighted metrics · fused safety scans · channel-specialized dynamics · fallback measurement reuse');

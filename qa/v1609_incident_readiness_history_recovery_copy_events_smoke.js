@@ -24,7 +24,7 @@ const incidentSubmissionIdentitySource = read('src/boot/incident-submission-iden
 const incidentControlsViewSource = read('src/boot/incident-controls-view-service.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.111');
+assert.strictEqual(pkg.version, '1.6.112');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 assert(pkg.qaChecks.length >= 332);
 for (const key of ['csp', 'functions', 'firestore', 'mailRouting', 'smtpSecret', 'smtpConnection']) assert(html.includes(`data-deploy-check="${key}"`));
@@ -36,7 +36,7 @@ assert(incidentStateSource.includes('const MAX_DEPLOYMENT_HISTORY = 3'));
 assert(reporterSource.includes("const INCIDENT_STATUS_EVENT = 'foxbear:incident-status-change'"));
 assert(reporterSource.includes('function copyDeploymentRecovery'));
 assert(reporterSource.includes('function renderDeploymentHistory'));
-assert(handoff.startsWith('# Handoff - v1.6.111'));
+assert(handoff.startsWith('# Handoff - v1.6.112'));
 
 const memory = new Map();
 const copied = [];
@@ -52,7 +52,7 @@ const sandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.111' }, appendChild() {} }, visibilityState: 'visible',
+    body: { dataset: { build: '1.6.112' }, appendChild() {} }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => `connect-src 'self' ${origin}` };
@@ -61,7 +61,7 @@ const sandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.6.111', assetVersion: '1.6.111-ui-mode-session-contract-hardening' }
+  FoxBearBuildInfo: { productVersion: '1.6.112', assetVersion: '1.6.112-mastering-lifecycle-race-hardening' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -88,7 +88,7 @@ const reporter = sandbox.FoxBearIncidentReporter;
     checkedAt: new Date(base + index * 1000).toISOString(),
     lastHealthyAt: ok ? new Date(base + index * 1000).toISOString() : new Date(base).toISOString(),
     nextCheckAt: '',
-    service: { productVersion: '1.6.111', functionsOrigin: origin },
+    service: { productVersion: '1.6.112', functionsOrigin: origin },
     checks: {
       csp: { ok: failedKey !== 'csp' }, functions: { ok: failedKey !== 'functions' }, firestore: { ok: failedKey !== 'firestore' },
       mailRouting: { ok: failedKey !== 'mailRouting' },

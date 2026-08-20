@@ -20,15 +20,15 @@ const app = read('src/app.js');
 const runtime = read('src/boot/runtime-health.js');
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 
-assert(pkg.version === '1.6.111', 'package version should be 1.6.111');
-assert(index.includes('data-build="1.6.111"'), 'index build should be 1.6.111');
-assert(index.includes('1.6.111-ui-mode-session-contract-hardening'), 'asset cache key should use v1.6.111 flow polish');
-assert(sw.includes('foxbear-shell-v1.6.111-ui-mode-session-contract-hardening'), 'service worker cache should use v1.6.111 flow polish');
+assert(pkg.version === '1.6.112', 'package version should be 1.6.112');
+assert(index.includes('data-build="1.6.112"'), 'index build should be 1.6.112');
+assert(index.includes('1.6.112-mastering-lifecycle-race-hardening'), 'asset cache key should use v1.6.112 flow polish');
+assert(sw.includes('foxbear-shell-v1.6.112-mastering-lifecycle-race-hardening'), 'service worker cache should use v1.6.112 flow polish');
 
 assert(service.includes('getRecommendedDownloadFlow'), 'download service should expose a recommended flow helper');
 assert(service.includes("primaryAction: shareReady ? 'share' : 'assist'"), 'restricted flow should prefer share or assist');
 assert(service.includes('카카오에서는 공유/저장이 가장 안정적입니다.'), 'restricted flow should explain share/save first');
-assert(service.includes("version: '1.6.111'"), 'download flow/diagnostics should report v1.6.111');
+assert(service.includes("version: '1.6.112'"), 'download flow/diagnostics should report v1.6.112');
 
 assert(dialog.includes('getRecommendedDownloadFlow'), 'dialog should consume recommended flow helper');
 assert(dialog.includes('download-options-flow-card'), 'dialog should render a recommended flow card');
@@ -46,7 +46,7 @@ assert(css.includes('.download-options-more-toggle[aria-expanded="true"]'), 'CSS
 assert(app.includes('function getRecommendedDownloadFlow'), 'app should expose a recommended flow wrapper');
 assert(app.includes('getRecommendedDownloadFlow,'), 'app should pass recommended flow into dialog');
 assert(runtime.includes('FoxBearDownloadService.getRecommendedDownloadFlow'), 'runtime health should require recommended flow helper');
-assert(matrix.includes('v1.4.26 Download flow polish'), 'QA matrix should document v1.6.111 flow polish');
+assert(matrix.includes('v1.4.26 Download flow polish'), 'QA matrix should document v1.6.112 flow polish');
 assert(matrix.includes('Advanced actions are hidden behind'), 'QA matrix should include advanced action collapse scenario');
 
 console.log('PASS v1.4.26 download flow polish smoke');

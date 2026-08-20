@@ -1,3 +1,11 @@
+# v1.6.112 patch notes
+
+- Adds a post-Blob-validation mastering fence before object URL/output commit.
+- Handles analysis cancellation/track removal during mastering preflight without false incident/error state.
+- Restarts ambient performance monitoring on BFCache `pageshow` with listener deduplication.
+- Adds `master-finalizer-fallback-service.js` for bounded-yield, cancellable Worker-failure recovery while retaining the existing fallback DSP functions.
+- Verification: **469/469 QA PASS**, Hosting **163 files**, delivery **669-file FULL / 319-file PATCH / 13 cleanup paths**.
+
 # v1.6.111 patch notes
 
 - Locks the UI-mode session behavior to same-tab refresh restore / fresh browsing-session chooser / manual work-mode reopen.

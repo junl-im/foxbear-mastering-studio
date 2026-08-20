@@ -1,3 +1,10 @@
+# v1.6.112 - Mastering lifecycle race hardening
+
+- Add a final mastering-job fence after asynchronous download-blob validation and before any object-URL/output commit, preventing deleted or cancelled tracks from completing as ghosts.
+- Treat analysis cancellation or track removal during mastering preflight as a normal cancellation path instead of an operational incident/error state.
+- Resume the ambient performance-health timer on BFCache `pageshow` while deduplicating lifecycle listeners.
+- Move the Worker-failure finalizer recovery orchestration into a dedicated service with bounded buffer-copy yields, cooperative DC/sanitize passes, stage-level cancellation checks, and progress reporting while preserving the existing DSP functions.
+
 # v1.6.111 - UI mode session contract hardening
 
 - Preserve the selected AI/Expert mode across same-tab reloads using sessionStorage and expose the restore source in UI-mode diagnostics.

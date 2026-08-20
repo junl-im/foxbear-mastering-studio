@@ -1,8 +1,8 @@
-// FoxBear filename policy service v1.6.111 - configurable human-readable mastered filenames
+// FoxBear filename policy service v1.6.112 - configurable human-readable mastered filenames
 'use strict';
 
 (function attachFoxBearFileNamePolicyService(global) {
-    const VERSION = 'v1.6.111-ui-mode-session-contract-hardening';
+    const VERSION = 'v1.6.112-mastering-lifecycle-race-hardening';
     const DEFAULT_MAX_FILENAME_BYTES = 240;
     const FILE_NAME_PREFERENCES_KEY = 'foxbear:download-filename-preferences:v1';
     const DEFAULT_FILE_NAME_PREFERENCES = Object.freeze({

@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.6.111
+// FoxBear performance diagnostics - v1.6.112
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.6.111-ui-mode-session-contract-hardening';
+    const DIAGNOSTICS_VERSION = '1.6.112-mastering-lifecycle-race-hardening';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';
@@ -54,6 +54,8 @@
         legacyAutoOpenMigrated: false,
         workerSection: null,
         ambientTimer: 0,
+        ambientLifecycleBound: false,
+        ambientMonitorStarted: false,
         ambientHealth: 'normal',
         ambientMeasuredHealth: 'normal',
         ambientWatchSamples: 0,
@@ -1116,13 +1118,24 @@
     }
 
     function startAmbientHealthMonitor() {
-        const start = () => {
-            refreshAmbientHealth('ambient-health-start');
+        const start = reason => {
+            state.ambientMonitorStarted = true;
+            refreshAmbientHealth(reason || 'ambient-health-start');
             scheduleAmbientHealth();
         };
-        global.addEventListener?.('pagehide', stopAmbientTimer, { once: true });
-        if (global.document?.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', start, { once: true });
-        else start();
+        if (!state.ambientLifecycleBound) {
+            state.ambientLifecycleBound = true;
+            global.addEventListener?.('pagehide', () => {
+                stopAmbientTimer();
+                state.ambientMonitorStarted = false;
+            });
+            global.addEventListener?.('pageshow', event => {
+                if (!event?.persisted && state.ambientMonitorStarted && state.ambientTimer) return;
+                start(event?.persisted ? 'ambient-health-bfcache-resume' : 'ambient-health-pageshow');
+            });
+        }
+        if (global.document?.readyState === 'loading') global.document.addEventListener('DOMContentLoaded', () => start('ambient-health-start'), { once: true });
+        else start('ambient-health-start');
     }
 
     function maybeAutoCloseStablePanel(snapshot) {

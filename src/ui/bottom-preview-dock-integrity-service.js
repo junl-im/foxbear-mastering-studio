@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.111-ui-mode-session-contract-hardening';
+    const VERSION = '1.6.112-mastering-lifecycle-race-hardening';
 
     function createController(options = {}) {
         const state = options.state || {};

@@ -19,7 +19,7 @@ const header = name => hostingHeaders.find(item => item.key === name)?.value || 
 const indexCsp = index.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)?.[1] || '';
 const hostingCsp = header('Content-Security-Policy');
 
-assert(pkg.version === '1.6.111', 'package version must be 1.6.111');
+assert(pkg.version === '1.6.112', 'package version must be 1.6.112');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease?.buildId || ''), 'release build id must remain kebab-case');
 assert(index.includes('src/security/trusted-types-bootstrap.js'), 'Trusted Types bootstrap must be loaded by index.html');
 assert(index.indexOf('src/security/trusted-types-bootstrap.js') < index.indexOf('src/firebase-bootstrap.js'), 'Trusted Types bootstrap must run before Firebase Auth');

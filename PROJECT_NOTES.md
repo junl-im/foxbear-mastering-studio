@@ -1,3 +1,7 @@
+# v1.6.112 Project Notes
+
+Current focus: close narrow lifecycle races rather than add features. Mastering completion must revalidate ownership after every asynchronous boundary, analysis cancellation must remain non-error control flow, BFCache restoration must restart background health monitoring, and Worker fallback must yield/cancel between recovery stages without changing normal DSP. Final configured QA is 469/469 PASS; Hosting boundary is 163 files; Playwright runtime remains GitHub Actions-only when the local package is unavailable.
+
 # v1.6.111 Project Notes
 
 Current focus: make UI-mode persistence behavior explicit and regression-tested. Same-tab reloads retain the selected mode through sessionStorage; independent browsing sessions start unselected; the work-mode switch reopens the chooser without turning it into a required first-entry blocker. Final configured QA is 467/467 PASS; Playwright runtime remains GitHub Actions-only when the local package is unavailable.

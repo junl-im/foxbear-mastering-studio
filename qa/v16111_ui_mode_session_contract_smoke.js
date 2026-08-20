@@ -6,7 +6,7 @@ const vm = require('vm');
 const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
 const source = fs.readFileSync('src/ui/ui-mode-service.js','utf8');
 const browser = fs.readFileSync('qa/browser/runtime-health-playwright.spec.js','utf8');
-assert.strictEqual(pkg.version, '1.6.111');
+assert.strictEqual(pkg.version, '1.6.112');
 assert(pkg.qaChecks.includes('node qa/v16111_ui_mode_session_contract_smoke.js'));
 assert(source.includes("sameTabReload: 'restore'"));
 assert(source.includes("freshBrowsingSession: 'require-choice'"));

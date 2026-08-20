@@ -1,3 +1,23 @@
+# GitHub Desktop Handoff - v1.6.112
+
+## Required apply sequence
+
+1. Fetch origin and confirm the repository is on the intended v1.6.111 base.
+2. Extract the v1.6.112 PATCH ZIP into the current repository root.
+3. Run `APPLY_PATCH_CLEANUP.cmd` once.
+4. Review all Modified/New/Deleted files, commit, then Push origin.
+5. Use the FULL ZIP only for a clean replacement while preserving `.git`.
+
+## Release focus
+
+- Prevent cancelled/deleted mastering jobs from committing output after async Blob validation.
+- Treat analysis cancellation as a normal lifecycle outcome.
+- Resume ambient diagnostics after BFCache restoration.
+- Make finalizer Worker fallback stage-cooperative and cancellable.
+- Verified QA: 469/469 PASS; Hosting boundary: 163 files.
+- Delivery: 669-file FULL / 319-file PATCH / 13 cleanup paths; archive verification PASS.
+- GitHub Actions Browser release gate remains the final real-browser runtime verification.
+
 # GitHub Desktop Handoff - v1.6.111
 
 ## Required apply sequence

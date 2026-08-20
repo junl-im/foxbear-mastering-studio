@@ -11,8 +11,8 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(app.includes("const APP_VERSION = 'Pro v1.6.111'"), 'app version should be v1.4.0');
-must(html.includes('data-build="1.6.111"'), 'index build should be v1.6.111');
+must(app.includes("const APP_VERSION = 'Pro v1.6.112'"), 'app version should be v1.4.0');
+must(html.includes('data-build="1.6.112"'), 'index build should be v1.6.112');
 must(app.includes('function setMasteringProgress') && app.includes('quantizeProgressStep'), '5 percent progress helpers missing');
 must(app.includes('function syncDockWaveformPlayhead') && app.includes('has-live-playhead'), 'live waveform playhead sync missing');
 must(dockCss.includes('v1.3.54 Dock Player Polish'), 'dock polish CSS block missing');

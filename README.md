@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.112
+
+> Current release: v1.6.112 · mastering-lifecycle-race-hardening
+
+This release hardens cancellation and lifecycle boundaries around mastering completion, analysis preflight, BFCache restoration, and the rare main-thread finalizer recovery path without changing the normal mastering DSP.
+
 # FoxBear AI Mastering Studio Pro v1.6.111
 
 > Current release: v1.6.111 · ui-mode-session-contract-hardening
