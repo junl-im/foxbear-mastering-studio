@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.109-mastering-cooperative-pcm-responsiveness';
+    const FALLBACK_VERSION = '1.6.110-ui-mode-early-boot-recovery';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

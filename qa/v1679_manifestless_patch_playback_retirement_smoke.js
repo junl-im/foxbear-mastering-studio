@@ -16,7 +16,7 @@ const hygieneSource = fs.readFileSync('tools/check-source-hygiene.js', 'utf8');
 const hygienePolicySource = fs.readFileSync('tools/source-hygiene-policy.js', 'utf8');
 const deletePaths = fs.readFileSync('DELETE_PATHS.txt', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.109');
+assert.strictEqual(pkg.version, '1.6.110');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current buildId must remain kebab-case');
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1679_manifestless_patch_playback_retirement_smoke.js'));

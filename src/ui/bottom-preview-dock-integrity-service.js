@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.109-mastering-cooperative-pcm-responsiveness';
+    const VERSION = '1.6.110-ui-mode-early-boot-recovery';
 
     function createController(options = {}) {
         const state = options.state || {};

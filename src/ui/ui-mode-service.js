@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.109 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.6.110 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });
@@ -26,8 +26,12 @@
         return normalizeMode(global.__FOXBEAR_E2E_UI_MODE__);
     }
 
+    function safeReadPendingMode() {
+        return normalizeMode(global.__FOXBEAR_PENDING_UI_MODE__);
+    }
+
     function readInitialMode(storage) {
-        return safeReadSession(storage) || safeReadE2eMode();
+        return safeReadSession(storage) || safeReadPendingMode() || safeReadE2eMode();
     }
 
     function publishPrepaintMode() {
@@ -38,6 +42,78 @@
     }
 
     publishPrepaintMode();
+
+    function applyEarlyModeSelection(nextMode) {
+        const normalized = normalizeMode(nextMode);
+        if (!normalized) return false;
+        const activeController = global.FoxBearUiModeController;
+        if (activeController && typeof activeController.select === 'function') {
+            try {
+                if (activeController.select(normalized) !== false) return true;
+            } catch (error) {
+                console.warn('FoxBear UI mode controller selection fallback:', error);
+            }
+        }
+
+        global.__FOXBEAR_PENDING_UI_MODE__ = normalized;
+        safeWriteSession(global.sessionStorage, normalized);
+        const documentRef = global.document;
+        const chooser = documentRef?.getElementById?.('uiModeChooser') || null;
+        const shell = documentRef?.querySelector?.('.app-shell') || null;
+        const ai = documentRef?.getElementById?.('uiModeAiBtn') || null;
+        const expert = documentRef?.getElementById?.('uiModeExpertBtn') || null;
+        const switcher = documentRef?.getElementById?.('uiModeSwitchBtn') || null;
+        const switcherLabel = documentRef?.getElementById?.('uiModeSwitchLabel') || null;
+        const label = normalized === MODES.AI ? 'AI 마스터링' : '전문가 모드';
+
+        try { documentRef?.documentElement?.setAttribute?.('data-ui-mode-pref', normalized); } catch (error) {}
+        if (documentRef?.body) {
+            documentRef.body.dataset.uiMode = normalized;
+            documentRef.body.classList?.remove?.('ui-mode-choice-open');
+        }
+        if (chooser) {
+            chooser.classList?.remove?.('show');
+            chooser.hidden = true;
+            chooser.dataset.required = 'false';
+            chooser.setAttribute?.('aria-hidden', 'true');
+            try { global.FoxBearModalStateMachine?.setExternalLayerOpen?.(chooser, false); } catch (error) {}
+        }
+        if (shell && 'inert' in shell) shell.inert = false;
+        if (ai) {
+            ai.dataset.active = normalized === MODES.AI ? 'true' : 'false';
+            ai.setAttribute?.('aria-pressed', String(normalized === MODES.AI));
+        }
+        if (expert) {
+            expert.dataset.active = normalized === MODES.EXPERT ? 'true' : 'false';
+            expert.setAttribute?.('aria-pressed', String(normalized === MODES.EXPERT));
+        }
+        if (switcher) {
+            switcher.dataset.mode = normalized;
+            switcher.setAttribute?.('aria-label', `${label} 사용 중 · 작업 방식 변경`);
+        }
+        if (switcherLabel) switcherLabel.textContent = label;
+        try {
+            global.dispatchEvent?.(new CustomEvent('foxbear:ui-mode-early-selected', { detail: { mode: normalized } }));
+        } catch (error) {}
+        return true;
+    }
+
+    function installEarlyChoiceBridge() {
+        const documentRef = global.document;
+        if (!documentRef?.addEventListener || global.__FOXBEAR_UI_MODE_EARLY_BRIDGE_INSTALLED__ === true) return false;
+        global.__FOXBEAR_UI_MODE_EARLY_BRIDGE_INSTALLED__ = true;
+        documentRef.addEventListener('click', event => {
+            const target = event?.target?.closest?.('#uiModeAiBtn, #uiModeExpertBtn');
+            if (!target) return;
+            const nextMode = target.id === 'uiModeExpertBtn' ? MODES.EXPERT : MODES.AI;
+            if (!applyEarlyModeSelection(nextMode)) return;
+            event.preventDefault?.();
+            event.stopPropagation?.();
+        }, true);
+        return true;
+    }
+
+    installEarlyChoiceBridge();
 
     function createController(options = {}) {
         const documentRef = options.document || global.document;
@@ -99,6 +175,7 @@
             if (!normalized) return '';
             const previous = mode;
             mode = normalized;
+            global.__FOXBEAR_PENDING_UI_MODE__ = mode;
             const root = body();
             if (root) root.dataset.uiMode = mode;
             try { documentRef?.documentElement?.setAttribute?.('data-ui-mode-pref', mode); } catch (error) {}
@@ -317,5 +394,5 @@
         return Object.freeze({ init, apply, openChooser: open, closeChooser: close, releaseForEmergency, select, getSnapshot, normalizeMode });
     }
 
-    global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, normalizeMode, createController });
+    global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
 })(window);

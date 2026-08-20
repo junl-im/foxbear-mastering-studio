@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.110
+
+> Current release: v1.6.110 · ui-mode-early-boot-recovery
+
+This hotfix makes the first AI Mastering / Expert choice independent of `app.js` boot timing, so the required chooser cannot remain as a dead blocking screen when the main application bootstrap is delayed or interrupted.
+
 # FoxBear AI Mastering Studio Pro v1.6.109
 
 > Current release: v1.6.109 · mastering-cooperative-pcm-responsiveness

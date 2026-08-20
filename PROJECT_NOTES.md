@@ -1,3 +1,7 @@
+# v1.6.110 Project Notes
+
+Current focus: remove the first-entry chooser as a single point of boot failure. The mode choice must stay actionable even before the main app controller is available; normal boot then adopts the persisted/pending selection. Final configured QA is 466/466 PASS; Playwright runtime remains GitHub Actions-only in this review container.
+
 # v1.6.109 Project Notes
 
 Current focus: reduce real main-thread mastering stalls after v1.6.108 made progress visible. Cooperative PCM/DC safety work and waveform sampling are the first default-path targets; instrument-layer/trim specialized paths remain follow-up candidates if device traces still show long tasks. Final configured QA is 465/465 PASS; Playwright runtime remains GitHub Actions-only in this review container.

@@ -1,3 +1,10 @@
+# v1.6.110 patch notes
+
+- Fixes the first AI Mastering / Expert selection screen getting stuck when `app.js` has not completed initialization.
+- Adds an early capture bridge in `ui-mode-service.js` that can complete the selection and release the blocking overlay independently.
+- Keeps the normal controller path unchanged once it is available.
+- Verification: **466/466 QA PASS**, Hosting **162 files**, delivery **664-file FULL / 316-file PATCH / 13 cleanup paths**.
+
 # v1.6.109 Patch Notes
 
 ## Mastering responsiveness

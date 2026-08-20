@@ -1,3 +1,10 @@
+# v1.6.110 - UI mode early boot recovery
+
+- Bind the AI Mastering / Expert first-entry choices from the head-loaded UI-mode service instead of waiting for `app.js` initialization.
+- If normal app boot is delayed or fails before controller setup, persist the selected mode, hide the chooser, release the app-shell inert blocker, and let later app initialization adopt the pending selection.
+- Delegate to the normal UI-mode controller when it is already available to avoid split mode ownership.
+- Add a regression that exercises the early click bridge before `app.js` boot and verifies normal controller adoption afterward.
+
 # v1.6.109 - Mastering cooperative PCM responsiveness
 
 - Make long DC-offset and PCM safety scans cooperative so the browser can paint/cancel between bounded chunks without changing sample math.

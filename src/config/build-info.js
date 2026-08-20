@@ -3,14 +3,14 @@
 
 (function exposeFoxBearBuildInfo(global) {
   const info = Object.freeze({
-    productVersion: '1.6.109',
-    appVersion: 'Pro v1.6.109',
-    buildId: 'mastering-cooperative-pcm-responsiveness',
-    assetVersion: '1.6.109-mastering-cooperative-pcm-responsiveness',
-    cacheName: 'foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness',
-    bootRevision: 'boot-sri-v16109',
-    updateSafetyRevision: 'update-safety-v16109',
-    serviceWorkerRevision: 'sw-v16109',
+    productVersion: '1.6.110',
+    appVersion: 'Pro v1.6.110',
+    buildId: 'ui-mode-early-boot-recovery',
+    assetVersion: '1.6.110-ui-mode-early-boot-recovery',
+    cacheName: 'foxbear-shell-v1.6.110-ui-mode-early-boot-recovery',
+    bootRevision: 'boot-sri-v16110',
+    updateSafetyRevision: 'update-safety-v16110',
+    serviceWorkerRevision: 'sw-v16110',
     lazyAssets: Object.freeze({
       adminIncidentMonitor: Object.freeze({
         scriptPath: 'src/ui/admin-incident-monitor-view.js',

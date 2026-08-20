@@ -111,7 +111,7 @@ function payload(index) {
 
 async function main() {
     const pkg = JSON.parse(read('package.json'));
-    assert.strictEqual(pkg.version, '1.6.109');
+    assert.strictEqual(pkg.version, '1.6.110');
     assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9][a-z0-9-]*$/, 'current release build ID must remain valid kebab-case');
     assert(read('CHANGELOG.md').includes('# v1.6.29 - Stable Incident Submission Fencing and Adaptive Polling'), 'v1.6.29 feature history must remain documented');
     assert(pkg.qaChecks.includes('node --check src/boot/incident-submission-identity-service.js'));
@@ -121,7 +121,7 @@ async function main() {
     const storage = new Storage();
     const tab = createContext(storage);
     const identity = tab.context.FoxBearIncidentSubmissionIdentity;
-    assert.strictEqual(identity.version, '1.6.109');
+    assert.strictEqual(identity.version, '1.6.110');
     const clientAt = '2026-07-28T09:31:00.000Z';
     const firstKey = identity.createSubmissionKey({ fingerprint: 'same-error', clientAt });
     const secondKey = identity.createSubmissionKey({ fingerprint: 'same-error', clientAt });
@@ -165,7 +165,7 @@ async function main() {
     assert(quotaTab.coordinator.getState().storageFailures > 0, 'quota failures must remain observable without throwing');
 
     const controls = tab.context.FoxBearIncidentControlsView;
-    assert.strictEqual(controls.version, '1.6.109');
+    assert.strictEqual(controls.version, '1.6.110');
     const nodes = controls.render(tab.document, {
         enabled: true,
         queued: 2,

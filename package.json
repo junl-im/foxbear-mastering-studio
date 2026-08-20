@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.109",
+  "version": "1.6.110",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.109 - mastering cooperative pcm responsiveness",
+  "description": "FoxBear AI Mastering Studio Pro v1.6.110 - ui mode early boot recovery",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.109-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.109-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.110-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.110-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.109-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.109-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.110-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.110-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -513,15 +513,16 @@
     "node qa/v16106_browser_geometry_flaky_history_recovery_smoke.js",
     "node qa/v16107_boot_payload_phase1_smoke.js",
     "node qa/v16108_mastering_progress_visibility_hardening_smoke.js",
-    "node qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js"
+    "node qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js",
+    "node qa/v16110_ui_mode_early_choice_boot_recovery_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "mastering-cooperative-pcm-responsiveness",
-    "assetVersion": "1.6.109-mastering-cooperative-pcm-responsiveness",
-    "cacheName": "foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness",
-    "bootRevision": "boot-sri-v16109",
-    "updateSafetyRevision": "update-safety-v16109",
-    "serviceWorkerRevision": "sw-v16109"
+    "buildId": "ui-mode-early-boot-recovery",
+    "assetVersion": "1.6.110-ui-mode-early-boot-recovery",
+    "cacheName": "foxbear-shell-v1.6.110-ui-mode-early-boot-recovery",
+    "bootRevision": "boot-sri-v16110",
+    "updateSafetyRevision": "update-safety-v16110",
+    "serviceWorkerRevision": "sw-v16110"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

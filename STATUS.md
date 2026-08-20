@@ -1,29 +1,29 @@
-# FoxBear Status - v1.6.109
+# FoxBear Status - v1.6.110
 
 ## Current release
 
-- Product version: `1.6.109`
-- Build ID: `mastering-cooperative-pcm-responsiveness`
-- Asset version: `1.6.109-mastering-cooperative-pcm-responsiveness`
-- Service worker cache: `foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness`
-- Configured static/regression target: 465 checks.
+- Product version: `1.6.110`
+- Build ID: `ui-mode-early-boot-recovery`
+- Asset version: `1.6.110-ui-mode-early-boot-recovery`
+- Service worker cache: `foxbear-shell-v1.6.110-ui-mode-early-boot-recovery`
+- Configured static/regression target: 466 checks.
 
 ## Release metadata
 
-- Product version: `1.6.109`
-- Build ID: `mastering-cooperative-pcm-responsiveness`
-- Asset version: `1.6.109-mastering-cooperative-pcm-responsiveness`
-- Service worker cache: `foxbear-shell-v1.6.109-mastering-cooperative-pcm-responsiveness`
-- Boot revision: `boot-sri-v16109`
-- Update safety revision: `update-safety-v16109`
-- Service worker revision: `sw-v16109`
+- Product version: `1.6.110`
+- Build ID: `ui-mode-early-boot-recovery`
+- Asset version: `1.6.110-ui-mode-early-boot-recovery`
+- Service worker cache: `foxbear-shell-v1.6.110-ui-mode-early-boot-recovery`
+- Boot revision: `boot-sri-v16110`
+- Update safety revision: `update-safety-v16110`
+- Service worker revision: `sw-v16110`
 
 ## Current focus
 
-- Reduce real main-thread stalls during mastering while preserving output math.
+- Keep the required first-entry mode chooser actionable even if the main app bootstrap is delayed or interrupted.
 - Full Playwright browser runtime remains an external GitHub Actions gate when local Playwright is unavailable.
-- Final configured QA: **465/465 PASS**.
-- Delivery verification: **662-file FULL / 315-file PATCH / 13 cleanup paths PASS**.
+- Final configured QA: **466/466 PASS**.
+- Delivery verification: **664-file FULL / 316-file PATCH / 13 cleanup paths PASS**.
 
 # FoxBear Status - v1.6.108
 

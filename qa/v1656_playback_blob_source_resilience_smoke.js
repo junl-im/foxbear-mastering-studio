@@ -14,7 +14,7 @@ const index = fs.readFileSync('index.html', 'utf8');
 const sw = fs.readFileSync('sw.js', 'utf8');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 
-assert.strictEqual(pkg.version, '1.6.109');
+assert.strictEqual(pkg.version, '1.6.110');
 assert(pkg.qaChecks.includes('node --check src/audio/playback-source-recovery-service.js'));
 assert(pkg.qaChecks.includes('node qa/v1656_playback_blob_source_resilience_smoke.js'));
 assert(recoverySource.includes('function backingBlobForMode(track, mode)'));
@@ -26,8 +26,8 @@ assert(trackLifecycleSource.includes('FoxBearPlaybackSourceRecoveryService?.rele
 assert(app.includes("recoverPlaybackSource('dock-source-error')"));
 assert(app.includes("recoverPlaybackSource('dock-source-emptied')"));
 assert(app.includes('retirePlaybackObjectUrl(track, previousMasteredUrl)'));
-assert(index.includes('src/audio/playback-source-recovery-service.js?v=1.6.109-mastering-cooperative-pcm-responsiveness'));
-assert(sw.includes("'./src/audio/playback-source-recovery-service.js?v=1.6.109-mastering-cooperative-pcm-responsiveness'"));
+assert(index.includes('src/audio/playback-source-recovery-service.js?v=1.6.110-ui-mode-early-boot-recovery'));
+assert(sw.includes("'./src/audio/playback-source-recovery-service.js?v=1.6.110-ui-mode-early-boot-recovery'"));
 
 const audios = [];
 const revoked = [];

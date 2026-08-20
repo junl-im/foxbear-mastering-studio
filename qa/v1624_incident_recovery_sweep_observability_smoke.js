@@ -21,7 +21,7 @@ function deferred() {
 }
 
 async function main() {
-    assert.strictEqual(pkg.version, '1.6.109');
+    assert.strictEqual(pkg.version, '1.6.110');
     assert(pkg.qaChecks.includes('node qa/v1624_incident_recovery_sweep_observability_smoke.js'));
     assert(pkg.foxbearRelease.assetVersion.startsWith(`${pkg.version}-`));
 
@@ -30,7 +30,7 @@ async function main() {
     context.globalThis = context;
     load('src/boot/incident-recovery-sweep-service.js', context);
     const service = context.FoxBearIncidentRecoverySweep;
-    assert.strictEqual(service.version, '1.6.109');
+    assert.strictEqual(service.version, '1.6.110');
 
     const firstQueue = deferred();
     const phaseRequests = [];

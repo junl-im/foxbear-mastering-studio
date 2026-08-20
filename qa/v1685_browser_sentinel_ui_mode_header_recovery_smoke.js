@@ -14,11 +14,11 @@ const runtimeSpec = fs.readFileSync('qa/browser/runtime-health-playwright.spec.j
 const retrySource = fs.readFileSync('qa/browser/retry-recovery-report.js', 'utf8');
 const deletePaths = fs.readFileSync('DELETE_PATHS.txt', 'utf8').split(/\r?\n/).map(value => value.trim()).filter(Boolean);
 
-assert.strictEqual(pkg.version, '1.6.109');
+assert.strictEqual(pkg.version, '1.6.110');
 assert(pkg.qaChecks.includes('node qa/v1685_browser_sentinel_ui_mode_header_recovery_smoke.js'));
 assert(serviceSource.includes('function safeReadE2eMode()'));
 assert(serviceSource.includes("global.__FOXBEAR_E2E__ !== true"));
-assert(serviceSource.includes('safeReadSession(storage) || safeReadE2eMode()'));
+assert(serviceSource.includes('safeReadSession(storage) || safeReadPendingMode() || safeReadE2eMode()'));
 assert(helperSource.includes("document.documentElement?.getAttribute?.('data-ui-mode-pref')"));
 assert(helperSource.includes('bodyMode === expectedMode'));
 assert(/@media \(max-width: 430px\)[\s\S]*?\.brand-command-studio \{[\s\S]*?display: none !important;/.test(headerCss), 'compact command header must retire the redundant studio token before it clips');

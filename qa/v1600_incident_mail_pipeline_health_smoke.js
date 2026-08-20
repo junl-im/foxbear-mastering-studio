@@ -28,7 +28,7 @@ const appCheckPolicySource = read('functions/app-check-policy.js');
 const appCheckPolicyContract = JSON.parse(read('functions/app-check-policy-contract.json'));
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.109');
+assert.strictEqual(pkg.version, '1.6.110');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentServiceStatus'));
 assert(html.includes('id="incidentReportingPipeline"'));
@@ -53,7 +53,7 @@ assert.strictEqual(appCheckPolicyContract.mode, 'disabled');
 assert.strictEqual(appCheckPolicyContract.enforced, false);
 assert(appCheckPolicySource.includes("require('./app-check-policy-contract.json')"));
 assert(appCheckPolicySource.includes('appCheckTokenPresent: Boolean(request?.app)'));
-assert(handoff.startsWith('# Handoff - v1.6.109'));
+assert(handoff.startsWith('# Handoff - v1.6.110'));
 
 const stageItems = {};
 const elements = {};
@@ -73,7 +73,7 @@ const sandbox = {
   innerWidth: 1280,
   innerHeight: 720,
   document: {
-    body: { dataset: { build: '1.6.109' } },
+    body: { dataset: { build: '1.6.110' } },
     visibilityState: 'visible',
     getElementById: id => elements[id] || null,
     addEventListener() {}
@@ -82,7 +82,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.6.109', assetVersion: '1.6.109-mastering-cooperative-pcm-responsiveness' }
+  FoxBearBuildInfo: { productVersion: '1.6.110', assetVersion: '1.6.110-ui-mode-early-boot-recovery' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;
@@ -146,7 +146,7 @@ const functionSandbox = {
 };
 vm.runInNewContext(functionsSource, functionSandbox, { filename: 'functions/index.js' });
 const metadata = moduleRecord.exports.__test.incidentServiceMetadata({ app: { appId: 'verified' } });
-assert.strictEqual(metadata.productVersion, '1.6.109');
+assert.strictEqual(metadata.productVersion, '1.6.110');
 assert.strictEqual(metadata.status, 'ready');
 assert.strictEqual(metadata.appCheckMode, 'disabled');
 assert.strictEqual(metadata.appCheckEnforced, false);
@@ -154,7 +154,7 @@ assert.strictEqual(metadata.appCheckTokenPresent, true);
 const serviceStatus = moduleRecord.exports.getIncidentServiceStatus;
 assert.strictEqual(serviceStatus.options.enforceAppCheck, false);
 serviceStatus.handler({ auth: { uid: 'guest-1' }, app: null }).then(result => {
-  assert.strictEqual(result.productVersion, '1.6.109');
+  assert.strictEqual(result.productVersion, '1.6.110');
   assert.strictEqual(result.appCheckTokenPresent, false);
   return serviceStatus.handler({ auth: null, app: null }).then(
     () => assert.fail('unauthenticated request should fail'),

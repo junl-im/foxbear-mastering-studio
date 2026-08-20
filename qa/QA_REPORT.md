@@ -1,3 +1,18 @@
+# FoxBear QA Report - v1.6.110
+
+## v1.6.110 UI mode early boot recovery
+
+- Static and behavioral target: **466 checks**.
+- New regression: `qa/v16110_ui_mode_early_choice_boot_recovery_smoke.js`.
+- First-entry AI/Expert choice is bound directly by the synchronous UI-mode service before `app.js` initialization.
+- Early selection persists/restores mode, hides the chooser, clears the required flag, and releases `.app-shell` inert state.
+- Normal controller boot adopts the early selection and remains the canonical controller after initialization.
+- Final configured suite: **466/466 PASS** (three sequential slices using the same QA runner).
+- Version/SRI, Source Hygiene, Handoff, App Check policy, dependency contract, Functions syntax, browser preflight, Firebase Hosting boundary **162 files**: **PASS**.
+- Dependency check reported only expected missing-install warnings in this archive workspace (`@playwright/test`, Firebase Functions runtime packages); contract errors: **0**.
+- Full Playwright execution is unavailable in this container because `@playwright/test` is not installed; GitHub Actions remains the browser-runtime gate after push.
+- Delivery: **664-file FULL / 316-file PATCH / 13 cleanup paths**, archive verification **PASS**.
+
 # FoxBear QA Report - v1.6.109
 
 ## v1.6.109 mastering cooperative PCM responsiveness

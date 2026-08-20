@@ -15,12 +15,12 @@ function must(condition, message) {
   }
 }
 
-must(pkg.version === '1.6.109', 'package version should be 1.6.109');
-must(html.includes('data-build="1.6.109"'), 'index build should be 1.6.109');
-must(app.includes("const APP_VERSION = 'Pro v1.6.109'"), 'app version should be Pro v1.6.109');
+must(pkg.version === '1.6.110', 'package version should be 1.6.110');
+must(html.includes('data-build="1.6.110"'), 'index build should be 1.6.110');
+must(app.includes("const APP_VERSION = 'Pro v1.6.110'"), 'app version should be Pro v1.6.110');
 must(/const SHARED_DSP_PROFILE_VERSION = 'v[0-9]+\.[0-9]+\.[0-9]+-[a-z0-9-]+';/.test(app), 'DSP slug should be state machine slug');
-must(html.includes('src/ui/modal-controller.js?v=1.6.109-mastering-cooperative-pcm-responsiveness'), 'modal controller script should be loaded');
-must(html.includes('src/ui/dock-controller.js?v=1.6.109-mastering-cooperative-pcm-responsiveness'), 'dock controller script should be loaded');
+must(html.includes('src/ui/modal-controller.js?v=1.6.110-ui-mode-early-boot-recovery'), 'modal controller script should be loaded');
+must(html.includes('src/ui/dock-controller.js?v=1.6.110-ui-mode-early-boot-recovery'), 'dock controller script should be loaded');
 must(modal.includes('class FoxBearModalStateMachine'), 'modal state machine class missing');
 must(modal.includes('setOpen(name, open'), 'modal controller must centralize hard open/close');
 must(modal.includes("document.addEventListener('click'"), 'modal controller should own modal click dispatch');

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.6.109-mastering-cooperative-pcm-responsiveness';
+  const VIEW_VERSION = '1.6.110-ui-mode-early-boot-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {
