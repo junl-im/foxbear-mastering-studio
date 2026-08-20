@@ -125,7 +125,7 @@ assert(contractNames.includes('quality-recovery-diagnostics'));
 assert.strictEqual(scanFixtureContracts().length, 0);
 
 const packageJson = JSON.parse(read('package.json'));
-assert.strictEqual(packageJson.version, '1.6.110');
+assert.strictEqual(packageJson.version, '1.6.111');
 assert.strictEqual(packageJson.scripts['qa:browser'], 'node qa/browser/run-browser-health-first.js');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(packageJson.foxbearRelease.buildId));
 

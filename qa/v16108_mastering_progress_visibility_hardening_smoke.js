@@ -58,5 +58,5 @@ stop();
 sandbox.api.applyMappedMasteringProgress(track, 'job-1', 90, 94, { percent: 50, stage: '파이널라이저' }, '파이널라이저');
 assert.strictEqual(track.progress, 92, 'worker progress should map truthfully into its reserved overall range');
 
-assert(pkg.qaChecks.includes('node qa/v16108_mastering_progress_visibility_hardening_smoke.js') || pkg.version === '1.6.110', 'new QA must be registered before release');
+assert(pkg.qaChecks.includes('node qa/v16108_mastering_progress_visibility_hardening_smoke.js') || pkg.version === '1.6.111', 'new QA must be registered before release');
 console.log('PASS v1.6.108 mastering progress visibility hardening smoke');

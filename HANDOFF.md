@@ -1,3 +1,17 @@
+# Handoff - v1.6.111
+
+## Current release
+
+- Product version: `1.6.111`
+- Build ID: `ui-mode-session-contract-hardening`
+- Asset version: `1.6.111-ui-mode-session-contract-hardening`
+- Service worker cache: `foxbear-shell-v1.6.111-ui-mode-session-contract-hardening`
+- Configured static/regression target: 467 checks.
+- Base release: v1.6.110.
+- Scope: UI-mode session persistence contract and browser regression coverage; mastering DSP unchanged.
+- Final configured QA: 467/467 PASS.
+- Delivery: 666-file FULL / 318-file PATCH / 13 cleanup paths; archive verification PASS.
+
 # Handoff - v1.6.110
 
 ## Current release

@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.111
+
+> Current release: v1.6.111 · ui-mode-session-contract-hardening
+
+This release codifies the UI-mode session contract: same-tab refresh restores the selected mode, a fresh independent browsing session requires a new choice, and the work-mode switch can reopen the chooser at any time.
+
 # FoxBear AI Mastering Studio Pro v1.6.110
 
 > Current release: v1.6.110 · ui-mode-early-boot-recovery

@@ -1,4 +1,4 @@
-// FoxBear incident diagnostics DOM rendering and status event helpers - v1.6.110
+// FoxBear incident diagnostics DOM rendering and status event helpers - v1.6.111
 (function attachFoxBearIncidentDiagnosticsView(global) {
     'use strict';
 
@@ -75,7 +75,7 @@
     }
 
     global.FoxBearIncidentDiagnosticsView = Object.freeze({
-        version: '1.6.110',
+        version: '1.6.111',
         applyItem,
         renderService,
         buildQueueStatus,

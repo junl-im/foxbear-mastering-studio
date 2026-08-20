@@ -17,7 +17,7 @@ const sw = read('sw.js');
 const envExample = read('functions/.env.example');
 const policy = require('../tools/source-hygiene-policy');
 
-assert.strictEqual(pkg.version, '1.6.110');
+assert.strictEqual(pkg.version, '1.6.111');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID must remain valid kebab-case');
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v16103_ci_hygiene_mail_routing_hardening_smoke.js'));

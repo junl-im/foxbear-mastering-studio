@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { getReleaseMetadata } = require('../../tools/release-metadata');
-const { APP_URL, expectRuntimeHealthy, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
+const { APP_URL, UI_MODE_SESSION_KEY, expectRuntimeHealthy, installOptionalRemoteMocks, navigateToApp } = require('./helpers/foxbear-e2e-helpers');
 
 const RELEASE = getReleaseMetadata();
 const CSS_LAYOUT_QUANTUM_PX = 1 / 64;
@@ -256,4 +256,56 @@ test.describe('FoxBear browser runtime health', () => {
     expect(pageErrors, `pageErrors · ${JSON.stringify(pageErrors)}`).toEqual([]);
     expect(consoleErrors, `consoleErrors · ${JSON.stringify(consoleErrors)}`).toEqual([]);
   });
+  test('keeps the selected UI mode across same-tab refresh, reopens on demand, and requires choice in a fresh browsing session', async ({ browser, page }) => {
+    const prepareSessionProbe = async targetPage => {
+      await installOptionalRemoteMocks(targetPage);
+      await targetPage.addInitScript(() => {
+        window.__FOXBEAR_E2E__ = true;
+        window.__FOXBEAR_SKIP_OPTIONAL_REMOTE__ = true;
+        window.__FOXBEAR_E2E_DISABLE_AUTO_DIALOGS__ = true;
+        window.__FOXBEAR_E2E_UI_MODE__ = 'unselected';
+      });
+    };
+
+    await prepareSessionProbe(page);
+    await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
+    await expectRuntimeHealthy(expect, page);
+    await expect(page.locator('#uiModeChooser')).toBeVisible();
+    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'true');
+    await page.locator('#uiModeAiBtn').click();
+    await expect(page.locator('#uiModeChooser')).toBeHidden();
+    await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'ai');
+    expect(await page.evaluate(key => sessionStorage.getItem(key), UI_MODE_SESSION_KEY)).toBe('ai');
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expectRuntimeHealthy(expect, page);
+    await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'ai');
+    await expect(page.locator('#uiModeChooser')).toBeHidden();
+    expect(await page.evaluate(key => sessionStorage.getItem(key), UI_MODE_SESSION_KEY)).toBe('ai');
+    const restoredSnapshot = await page.evaluate(() => window.FoxBearUiModeController?.getSnapshot?.() || null);
+    expect(restoredSnapshot?.restoredSource).toBe('session');
+    expect(restoredSnapshot?.sessionContract?.sameTabReload).toBe('restore');
+
+    await page.locator('#uiModeSwitchBtn').click();
+    await expect(page.locator('#uiModeChooser')).toBeVisible();
+    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
+    await page.locator('#uiModeExpertBtn').click();
+    await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'expert');
+    await expect(page.locator('#uiModeChooser')).toBeHidden();
+
+    const freshContext = await browser.newContext();
+    try {
+      const freshPage = await freshContext.newPage();
+      await prepareSessionProbe(freshPage);
+      await freshPage.goto(APP_URL, { waitUntil: 'domcontentloaded' });
+      await expectRuntimeHealthy(expect, freshPage);
+      await expect(freshPage.locator('body')).toHaveAttribute('data-ui-mode', 'unselected');
+      await expect(freshPage.locator('#uiModeChooser')).toBeVisible();
+      await expect(freshPage.locator('#uiModeChooser')).toHaveAttribute('data-required', 'true');
+      expect(await freshPage.evaluate(key => sessionStorage.getItem(key), UI_MODE_SESSION_KEY)).toBeNull();
+    } finally {
+      await freshContext.close();
+    }
+  });
+
 });

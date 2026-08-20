@@ -8,13 +8,16 @@ const vm = require('vm');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.110');
+assert.strictEqual(pkg.version, '1.6.111');
 assert(pkg.qaChecks.includes('node qa/v16110_ui_mode_early_choice_boot_recovery_smoke.js'));
 assert(serviceSource.includes('function installEarlyChoiceBridge()'));
 assert(serviceSource.includes('function applyEarlyModeSelection(nextMode)'));
 assert(serviceSource.includes("documentRef.addEventListener('click'"));
 assert(serviceSource.includes("global.__FOXBEAR_PENDING_UI_MODE__ = normalized"));
-assert(serviceSource.includes('safeReadSession(storage) || safeReadPendingMode() || safeReadE2eMode()'));
+assert(serviceSource.includes('function readInitialModeState(storage)'));
+assert(serviceSource.includes("source: 'session'"));
+assert(serviceSource.indexOf('const session = safeReadSession(storage)') < serviceSource.indexOf('const pending = safeReadPendingMode()'));
+assert(serviceSource.indexOf('const pending = safeReadPendingMode()') < serviceSource.indexOf('const e2e = safeReadE2eMode()')); 
 
 class FakeClassList {
     constructor(values = []) { this.items = new Set(values); }

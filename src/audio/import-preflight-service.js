@@ -1,8 +1,8 @@
-// FoxBear import preflight service v1.6.110 - decoded PCM and peak-memory admission control
+// FoxBear import preflight service v1.6.111 - decoded PCM and peak-memory admission control
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.6.110-ui-mode-early-boot-recovery';
+    const VERSION = '1.6.111-ui-mode-session-contract-hardening';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

@@ -1,3 +1,10 @@
+# v1.6.111 - UI mode session contract hardening
+
+- Preserve the selected AI/Expert mode across same-tab reloads using sessionStorage and expose the restore source in UI-mode diagnostics.
+- Keep a fresh independent browsing session unselected so the required chooser appears again.
+- Keep the header work-mode switch as an explicit non-required chooser reopen path.
+- Add Runtime Health browser coverage for same-tab reload, manual reopen/switch, and fresh-session isolation.
+
 # v1.6.110 - UI mode early boot recovery
 
 - Bind the AI Mastering / Expert first-entry choices from the head-loaded UI-mode service instead of waiting for `app.js` initialization.

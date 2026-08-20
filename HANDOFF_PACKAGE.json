@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.6.110",
-  "buildId": "ui-mode-early-boot-recovery",
+  "productVersion": "1.6.111",
+  "buildId": "ui-mode-session-contract-hardening",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

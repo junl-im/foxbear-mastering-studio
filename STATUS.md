@@ -1,3 +1,25 @@
+# FoxBear Status - v1.6.111
+
+## Current release
+
+- Product version: `1.6.111`
+- Build ID: `ui-mode-session-contract-hardening`
+- Asset version: `1.6.111-ui-mode-session-contract-hardening`
+- Service worker cache: `foxbear-shell-v1.6.111-ui-mode-session-contract-hardening`
+- Configured static/regression target: 467 checks.
+- Final configured QA: **467/467 PASS**.
+- Delivery verification: **666-file FULL / 318-file PATCH / 13 cleanup paths PASS**.
+
+## Release metadata
+
+- Product version: `1.6.111`
+- Build ID: `ui-mode-session-contract-hardening`
+- Asset version: `1.6.111-ui-mode-session-contract-hardening`
+- Service worker cache: `foxbear-shell-v1.6.111-ui-mode-session-contract-hardening`
+- Boot revision: `boot-sri-v16111`
+- Update safety revision: `update-safety-v16111`
+- Service worker revision: `sw-v16111`
+
 # FoxBear Status - v1.6.110
 
 ## Current release

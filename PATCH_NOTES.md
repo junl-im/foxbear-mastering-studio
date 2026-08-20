@@ -1,3 +1,10 @@
+# v1.6.111 patch notes
+
+- Locks the UI-mode session behavior to same-tab refresh restore / fresh browsing-session chooser / manual work-mode reopen.
+- Adds explicit session contract diagnostics and a Runtime Health Playwright scenario.
+- No mastering DSP, audio output, or download behavior changes.
+- Verification: **467/467 QA PASS**, Hosting **162 files**, delivery **666-file FULL / 318-file PATCH / 13 cleanup paths**.
+
 # v1.6.110 patch notes
 
 - Fixes the first AI Mastering / Expert selection screen getting stuck when `app.js` has not completed initialization.

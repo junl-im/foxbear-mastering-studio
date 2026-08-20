@@ -12,7 +12,7 @@ const sw = read('sw.js');
 const worker = read('src/workers/zip-encoder.worker.js');
 const functionsSource = read('functions/index.js');
 const firebaseSource = read('src/firebase-bootstrap.js');
-assert.strictEqual(pkg.version, '1.6.110');
+assert.strictEqual(pkg.version, '1.6.111');
 const jsZipUrl = `vendor/jszip/jszip.min.js?v=${pkg.foxbearRelease.assetVersion}&lib=3.10.1`;
 assert(!index.includes(jsZipUrl), 'JSZip must not be eagerly loaded on the main thread');
 assert(sw.includes(`./${jsZipUrl}`), 'JSZip must remain available in the SW cache for ZIP worker startup');

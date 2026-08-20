@@ -1,3 +1,7 @@
+# v1.6.111 Project Notes
+
+Current focus: make UI-mode persistence behavior explicit and regression-tested. Same-tab reloads retain the selected mode through sessionStorage; independent browsing sessions start unselected; the work-mode switch reopens the chooser without turning it into a required first-entry blocker. Final configured QA is 467/467 PASS; Playwright runtime remains GitHub Actions-only when the local package is unavailable.
+
 # v1.6.110 Project Notes
 
 Current focus: remove the first-entry chooser as a single point of boot failure. The mode choice must stay actionable even before the main app controller is available; normal boot then adopts the persisted/pending selection. Final configured QA is 466/466 PASS; Playwright runtime remains GitHub Actions-only in this review container.

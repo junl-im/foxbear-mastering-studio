@@ -1,3 +1,16 @@
+# FoxBear QA Report - v1.6.111
+
+## v1.6.111 UI mode session contract hardening
+
+- Static and behavioral target: **467 checks**.
+- New regression: `qa/v16111_ui_mode_session_contract_smoke.js`.
+- Runtime Health browser sentinel now verifies same-tab refresh restore, optional chooser reopen/switch, and fresh BrowserContext isolation.
+- UI-mode snapshots report `restoredSource` and the explicit session contract for diagnostics.
+- Final configured suite: **467/467 PASS** (three sequential slices using the same QA runner).
+- Version/SRI, Source Hygiene, Handoff, App Check policy, Functions syntax, browser preflight, Firebase Hosting boundary **162 files**: **PASS**.
+- Full Playwright execution remains an external GitHub Actions gate when `@playwright/test` is unavailable locally.
+- Delivery: **666-file FULL / 318-file PATCH / 13 cleanup paths**, archive verification **PASS**.
+
 # FoxBear QA Report - v1.6.110
 
 ## v1.6.110 UI mode early boot recovery

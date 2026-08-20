@@ -1,3 +1,21 @@
+# GitHub Desktop Handoff - v1.6.111
+
+## Required apply sequence
+
+1. Fetch origin and confirm the repository is on the intended v1.6.110 base.
+2. Extract the v1.6.111 PATCH ZIP into the current repository root.
+3. Run `APPLY_PATCH_CLEANUP.cmd` once.
+4. Review all Modified/New/Deleted files, commit, then Push origin.
+5. Use the FULL ZIP only for a clean replacement while preserving `.git`.
+
+## Release focus
+
+- Same-tab refresh restores the selected UI mode from sessionStorage.
+- Fresh independent browsing sessions require a new mode choice.
+- The work-mode switch reopens the chooser as an optional dialog.
+- Verified QA: 467/467 PASS; Hosting boundary: 162 files.
+- Delivery: 666-file FULL / 318-file PATCH / 13 cleanup paths; archive verification PASS.
+
 # GitHub Desktop Handoff - v1.6.110
 
 ## Required apply sequence

@@ -1,8 +1,8 @@
-// FoxBear engine-control interaction service - v1.6.110
+// FoxBear engine-control interaction service - v1.6.111
 (function attachFoxBearEngineControlInteraction(global) {
     'use strict';
 
-    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.110-ui-mode-early-boot-recovery';
+    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.111-ui-mode-session-contract-hardening';
     const CONTROL_IDS = Object.freeze(['masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect']);
     const CONTROL_ID_SET = new Set(CONTROL_IDS);
     const state = {

@@ -1,8 +1,14 @@
-// FoxBear AI Mastering Studio Pro v1.6.110 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.6.111 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });
     const SESSION_KEY = 'foxbear-ui-mode-session-v1';
+    const SESSION_CONTRACT = Object.freeze({
+        storage: 'sessionStorage',
+        sameTabReload: 'restore',
+        freshBrowsingSession: 'require-choice',
+        manualSwitch: 'reopen'
+    });
 
     function normalizeMode(value) {
         const mode = String(value || '').trim().toLowerCase();
@@ -30,8 +36,18 @@
         return normalizeMode(global.__FOXBEAR_PENDING_UI_MODE__);
     }
 
+    function readInitialModeState(storage) {
+        const session = safeReadSession(storage);
+        if (session) return Object.freeze({ mode: session, source: 'session' });
+        const pending = safeReadPendingMode();
+        if (pending) return Object.freeze({ mode: pending, source: 'pending' });
+        const e2e = safeReadE2eMode();
+        if (e2e) return Object.freeze({ mode: e2e, source: 'e2e' });
+        return Object.freeze({ mode: '', source: 'unselected' });
+    }
+
     function readInitialMode(storage) {
-        return safeReadSession(storage) || safeReadPendingMode() || safeReadE2eMode();
+        return readInitialModeState(storage).mode;
     }
 
     function publishPrepaintMode() {
@@ -388,11 +404,17 @@
         }
 
         function getSnapshot() {
-            return Object.freeze({ mode, chooserOpen, chooserRequired, initialized, overlayRegistered, restored: Boolean(readInitialMode(storage)) });
+            const initialState = readInitialModeState(storage);
+            return Object.freeze({
+                mode, chooserOpen, chooserRequired, initialized, overlayRegistered,
+                restored: Boolean(initialState.mode),
+                restoredSource: initialState.source,
+                sessionContract: SESSION_CONTRACT
+            });
         }
 
         return Object.freeze({ init, apply, openChooser: open, closeChooser: close, releaseForEmergency, select, getSnapshot, normalizeMode });
     }
 
-    global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
+    global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, SESSION_CONTRACT, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
 })(window);
