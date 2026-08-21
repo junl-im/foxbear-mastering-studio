@@ -1,12 +1,12 @@
-# Handoff - v1.6.112
+# Handoff - v1.6.113
 
 ## Current release
 
-- Product version: `1.6.112`
-- Build ID: `mastering-lifecycle-race-hardening`
-- Asset version: `1.6.112-mastering-lifecycle-race-hardening`
-- Service worker cache: `foxbear-shell-v1.6.112-mastering-lifecycle-race-hardening`
-- Configured static/regression target: 469 checks.
+- Product version: `1.6.113`
+- Build ID: `incident-finalizer-p1-hardening`
+- Asset version: `1.6.113-incident-finalizer-p1-hardening`
+- Service worker cache: `foxbear-shell-v1.6.113-incident-finalizer-p1-hardening`
+- Configured static/regression target: 470 checks.
 - Base release: v1.6.111.
 - Scope: mastering cancellation/commit race hardening, analysis-preflight cancellation semantics, BFCache diagnostics recovery, and finalizer fallback lifecycle safety; normal mastering DSP unchanged.
 - Final configured QA: 469/469 PASS.

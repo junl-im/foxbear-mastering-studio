@@ -55,9 +55,9 @@ assert(studioCss.includes('.upload-stage'), 'studio.css should retain component 
   'assets/css/layout.css',
   'src/ui/download-dialog-view.js'
 ].forEach(asset => {
-  assert(sw.includes(`./${asset}?v=1.6.112-mastering-lifecycle-race-hardening`), `${asset} missing from service worker CORE_ASSETS`);
+  assert(sw.includes(`./${asset}?v=1.6.113-incident-finalizer-p1-hardening`), `${asset} missing from service worker CORE_ASSETS`);
 });
-assert(/stage(?:[4-9]|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.112-mastering-lifecycle-race-hardening'), 'service worker cache name not bumped for stage4 or later');
+assert(/stage(?:[4-9]|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28)/.test(sw) || sw.includes('foxbear-shell-v1.6.113-incident-finalizer-p1-hardening'), 'service worker cache name not bumped for stage4 or later');
 
 const appLines = app.split(/\r?\n/).length;
 assert(appLines < 14000, `app.js should be below 14000 lines after stage4 split, got ${appLines}`);

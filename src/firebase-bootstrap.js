@@ -206,7 +206,7 @@ function makePublicBridge(extra = {}) {
         error: bridgeState.error,
         storageEnabled: false,
         storageReason: bridgeState.storageReason,
-        incidentTransport: bridgeState.functions ? 'callable-primary+hosting-rewrite-fallback' : 'hosting-rewrite+firestore-fallback',
+        incidentTransport: bridgeState.functions ? 'callable-primary+hosting-rewrite-fallback' : 'hosting-rewrite-server-only',
         incidentFunctionsOrigin: FIREBASE_FUNCTIONS_ORIGIN,
         incidentStatusFunctionName: INCIDENT_STATUS_FUNCTION_NAME,
         incidentSameOriginStatusPath: INCIDENT_SAME_ORIGIN_PATHS[INCIDENT_STATUS_FUNCTION_NAME],
@@ -996,44 +996,24 @@ async function logIncident(payload = {}) {
     const user = await signInGuest();
     const incident = normalizeIncidentPayload(payload);
     const reportId = incidentDocumentId(user.uid, incident);
-    let callableFailure = null;
 
     try {
         return await submitIncidentViaCallable(reportId, incident);
     } catch (error) {
-        callableFailure = error;
         const admissionRejection = getIncidentAdmissionRejection(error);
         if (admissionRejection) {
             error.foxbearAdmission = admissionRejection;
             throw error;
         }
-        console.warn('FoxBear incident callable fallback:', callableErrorCode(error), callableErrorMessage(error));
+        // Security boundary: never fall back to a direct client write into incidentReports.
+        // Direct writes bypass the server admission buckets and can amplify Firestore/
+        // trigger cost. invokeIncidentCallable() already tried both Callable and the
+        // same-origin Hosting rewrite, so failure here must remain a server-path failure.
+        console.warn('FoxBear incident server-only submit failed:', callableErrorCode(error), callableErrorMessage(error));
+        error.foxbearServerOnlyIncident = true;
+        throw error;
     }
-
-    const reportRef = doc(bridgeState.db, 'incidentReports', reportId);
-    // Compatibility fallback for deployments that have not published the callable
-    // functions yet. Create first; read only after a duplicate/update denial.
-    try {
-        await setDoc(reportRef, {
-            ...incident,
-            uid: user.uid,
-            submissionTransport: 'firestore-fallback',
-            delivery: { status: 'pending', attemptCount: 0 },
-            createdAt: serverTimestamp(),
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        });
-    } catch (error) {
-        const duplicate = await getDoc(reportRef).catch(() => null);
-        if (!duplicate?.exists?.()) {
-            const combined = new Error(`서버 신고 API와 Firestore 호환 경로가 모두 실패했습니다. API: ${callableErrorMessage(callableFailure)} / Firestore: ${limitText(error?.message || error, 220)}`);
-            combined.code = error?.code || callableErrorCode(callableFailure) || 'FOXBEAR_INCIDENT_SUBMIT_FAILED';
-            throw combined;
-        }
-        return { queued: true, deduplicated: true, reportId, submissionKey: incident.submissionKey, transport: 'firestore' };
-    }
-    return { queued: true, deduplicated: false, reportId, submissionKey: incident.submissionKey, transport: 'firestore' };
 }
-
 async function getIncidentDelivery(reportId) {
     if (!bridgeState.db) throw new Error('Firestore가 초기화되지 않았습니다.');
     const user = await signInGuest();

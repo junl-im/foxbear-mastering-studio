@@ -1,3 +1,12 @@
+# v1.6.113 - Incident server boundary and finalizer parity hardening
+
+- Close direct client creation of `incidentReports`; browser incident submission now stays on Callable / Hosting same-origin server paths so server admission control cannot be bypassed.
+- Align main-thread finalizer fallback loudness gain ceilings with the Worker path: max +9 dB, balanced +7 dB, fast +5 dB.
+- Add limiter activity, mean reduction, and gain-movement telemetry to the main-thread limiter/fallback path so Quality Gate pumping checks remain equivalent after Worker recovery.
+- Correct fallback oversample telemetry to report 1x in sample-peak mode and 4x only for true-peak mode.
+- Add a focused P1 regression guard and migrate historical incident fallback QA to the new server-only security contract.
+- Verification target: **470/470 static/regression checks PASS**.
+
 # v1.6.112 - Mastering lifecycle race hardening
 
 - Add a final mastering-job fence after asynchronous download-blob validation and before any object-URL/output commit, preventing deleted or cancelled tracks from completing as ghosts.

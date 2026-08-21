@@ -21,8 +21,8 @@ const handoff = read('HANDOFF.md');
 const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
-assert.strictEqual(pkg.version, '1.6.112');
-assert.strictEqual(meta.assetVersion, '1.6.112-mastering-lifecycle-race-hardening');
+assert.strictEqual(pkg.version, '1.6.113');
+assert.strictEqual(meta.assetVersion, '1.6.113-incident-finalizer-p1-hardening');
 assert(handoff.includes('## 필수 결과 보고 형식'));
 for (const heading of ['진행된 내용', '배포 파일 2종', '다음 예상 내용']) assert(handoff.includes(heading));
 
@@ -44,15 +44,13 @@ for (const token of [
   'terminal: false'
 ]) assert(functions.includes(token), `functions watchdog missing ${token}`);
 
-assert(firebase.includes("delivery: { status: 'pending', attemptCount: 0 }"), 'client does not initialize the server-owned delivery queue');
+assert(functions.includes("delivery: { status: 'pending', attemptCount: 0 }"), 'server must initialize the incident delivery queue');
+assert(!firebase.slice(firebase.indexOf('async function logIncident'), firebase.indexOf('async function getIncidentDelivery')).includes("delivery: { status: 'pending', attemptCount: 0 }"), 'client must not initialize the server-owned delivery queue');
 assert(firebase.includes('requestIncidentRetry(reportId, options = {})'), 'admin retry options are missing');
 assert(firebase.includes('forceTerminal: options.forceTerminal === true'), 'terminal retry flag is not persisted');
 assert(reporter.includes("'dead-letter'"), 'client test flow does not recognize dead-letter delivery');
 
 for (const token of [
-  "'mastering-memory'",
-  "request.resource.data.delivery.status == 'pending'",
-  'request.resource.data.delivery.attemptCount == 0',
   "'forceTerminal'",
   'request.resource.data.forceTerminal is bool'
 ]) assert(rules.includes(token), `Firestore rules missing ${token}`);

@@ -25,7 +25,7 @@ const closeCss = read('assets/css/components/modal-close-system.css');
 const studioCss = read('assets/css/studio.css');
 const supportCss = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.6.112');
+assert.strictEqual(pkg.version, '1.6.113');
 assert.match(pkg.foxbearRelease.buildId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'current build ID must remain kebab-case');
 
 assert(index.includes('program-info-panel program-info-panel-compact'), 'program info must use the compact layout');
@@ -51,9 +51,10 @@ assert(app.includes("document.addEventListener('pointerdown'") && app.includes('
 const logIncidentStart = firebase.indexOf('async function logIncident');
 const logIncidentEnd = firebase.indexOf('async function getIncidentDelivery', logIncidentStart);
 const logIncident = firebase.slice(logIncidentStart, logIncidentEnd);
-assert(logIncident.includes('await setDoc(reportRef'), 'incident flow must create first');
-assert(!logIncident.includes('const existing = await getDoc(reportRef)'), 'incident flow must not pre-read a missing owner-only document');
-assert(logIncident.indexOf('await setDoc(reportRef') < logIncident.indexOf('await getDoc(reportRef)'), 'duplicate read is allowed only after create/update failure');
+assert(logIncident.includes("submitIncidentViaCallable(reportId, incident)"), 'incident flow must submit through the server path');
+assert(!logIncident.includes('setDoc('), 'incident flow must never direct-write incidentReports');
+assert(!logIncident.includes('getDoc('), 'incident submit path must not use Firestore compatibility reads');
+assert(logIncident.includes('foxbearServerOnlyIncident'), 'server-path failure must remain observable for recovery');
 assert(reporter.includes('testInFlight'), 'real mail test must be single-flight');
 assert(reporter.includes("'permission-denied': '오류 신고 서버가 요청을 허용하지 않았습니다."), 'permission failures must have actionable guidance');
 assert(incidentControls.includes("setAttribute?.('aria-busy'") && reporter.includes('controlsView.render'), 'mail test must expose busy state through the controls view contract');
@@ -79,7 +80,7 @@ assert(closeCss.includes('.support-settings-panel') && closeCss.includes('.foxbe
 assert(!studioCss.includes('.program-info-panel-compact') && !studioCss.includes('.support-settings-backdrop'), 'popup styles must not regrow studio.css');
 assert(supportCss.includes('.program-info-panel-compact') && supportCss.includes('.support-settings-backdrop'), 'dedicated intro and settings dialog styles are required');
 assert(index.includes('assets/css/components/support-settings.css'), 'support settings stylesheet must be loaded');
-assert(sw.includes('./assets/css/components/support-settings.css?v=1.6.112-mastering-lifecycle-race-hardening'), 'support settings stylesheet must be precached');
+assert(sw.includes('./assets/css/components/support-settings.css?v=1.6.113-incident-finalizer-p1-hardening'), 'support settings stylesheet must be precached');
 
 const modalSandbox = { console };
 modalSandbox.window = modalSandbox;

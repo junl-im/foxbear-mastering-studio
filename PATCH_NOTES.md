@@ -1,3 +1,12 @@
+# v1.6.113 patch notes
+
+- Incident report creation is now server-only; direct browser writes to `incidentReports` are denied.
+- Callable and Hosting same-origin recovery remain available, preserving the existing server admission/rate-limit boundary.
+- Finalizer fallback gain ceilings now match Worker values (+9/+7/+5 dB for max/balanced/fast).
+- Fallback limiter telemetry now carries active %, mean reduction, and gain movement; sample-peak mode reports 1x oversample correctly.
+- Adds `qa/p1_incident_finalizer_hardening_smoke.js` and updates historical incident QA contracts.
+- Verification: **470/470 QA PASS**.
+
 # v1.6.112 patch notes
 
 - Adds a post-Blob-validation mastering fence before object URL/output commit.

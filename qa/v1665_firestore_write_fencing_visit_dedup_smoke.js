@@ -149,11 +149,10 @@ async function main() {
     "request.resource.data.dateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')",
     "visitId == request.auth.uid + '_' + request.resource.data.dateKey",
     'allow create: if validVisitCreate(visitId)',
-    'function validIncidentCreate(reportId)',
-    "request.resource.data.submissionKey.matches('^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$')",
-    "reportId == request.auth.uid + '_' + request.resource.data.submissionKey",
-    'allow create: if validIncidentCreate(reportId)'
+    'match /incidentReports/{reportId}',
+    'allow create: if false;' 
   ]) assert(rules.includes(token), `Firestore rule fence missing ${token}`);
+  assert(!rules.includes('function validIncidentCreate(reportId)'), 'incident client-create validator must stay retired');
 
   for (const token of [
     'const expected = `${cleanUid}_${incidentSubmissionKey(incident)}`.slice(0, 180)',

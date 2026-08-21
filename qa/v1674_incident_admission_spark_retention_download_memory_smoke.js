@@ -9,7 +9,7 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.112', 'package version must be v1.6.112');
+assert.strictEqual(pkg.version, '1.6.113', 'package version must be v1.6.113');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build id must remain valid kebab-case');
 
 const functionsIndex = read('functions/index.js');
@@ -34,16 +34,17 @@ assert(functionsIndex.includes("doc(`${INCIDENT_ADMISSION_STATE_PREFIX}global`)"
 assert(functionsIndex.indexOf('const existing = await reportRef.get();') < functionsIndex.indexOf('const admissionMode = await getIncidentAdmissionControl();'), 'duplicate report ids must be deduplicated before consuming admission budget');
 
 const rules = read('firestore.rules');
-assert(rules.includes("'submissionTransport'"), 'Firestore fallback provenance field must be allowed');
-assert(rules.includes("'expiresAt'"), 'Firestore fallback TTL field must be allowed');
-assert(rules.includes("request.resource.data.submissionTransport == 'firestore-fallback'"), 'direct client reports must be marked as Firestore fallback');
-assert(rules.includes("request.resource.data.expiresAt > request.time + duration.value(29, 'd')"), 'fallback TTL lower bound missing');
-assert(rules.includes("request.resource.data.expiresAt <= request.time + duration.value(31, 'd')"), 'fallback TTL upper bound missing');
+assert(rules.includes('match /incidentReports/{reportId}'), 'incident report rules missing');
+assert(rules.includes('allow create: if false;'), 'direct client incident creation must be denied');
+assert(!rules.includes('function validIncidentCreate(reportId)'), 'legacy direct incident create validator must be removed');
 
 const firebaseBootstrap = read('src/firebase-bootstrap.js');
-assert(firebaseBootstrap.includes("submissionTransport: 'firestore-fallback'"), 'Spark fallback must record submission provenance');
-assert(firebaseBootstrap.includes('expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)'), 'Spark fallback must carry a 30-day TTL immediately');
-assert(firebaseBootstrap.includes("status: fallbackWithoutCallable ? 'stored-no-mail-service'"), 'Spark-only fallback status must distinguish storage from mail delivery');
+const logIncidentStart = firebaseBootstrap.indexOf('async function logIncident(payload = {})');
+const logIncidentEnd = firebaseBootstrap.indexOf('async function getIncidentDelivery(reportId)', logIncidentStart);
+const logIncidentSource = firebaseBootstrap.slice(logIncidentStart, logIncidentEnd);
+assert(!logIncidentSource.includes("submissionTransport: 'firestore-fallback'"), 'incident submit must not use direct Firestore fallback');
+assert(!logIncidentSource.includes("setDoc(reportRef"), 'incident submit must not write incidentReports directly');
+assert(logIncidentSource.includes('foxbearServerOnlyIncident'), 'server-only incident failure marker missing');
 
 const incidentReporter = read('src/boot/incident-reporter.js');
 assert(incidentReporter.includes('function getKstDateKey(now = new Date())'), 'client incident daily quota must use a KST date helper');
@@ -104,6 +105,6 @@ assert.strictEqual(mobilePolicy.maxDecodePeakBytes, standardConfig.LOW_MEMORY_MA
 
 const setup = read('FIREBASE_SETUP.md');
 assert(setup.includes('incidentMailState/admissionControl'), 'Firebase setup must document the server admission control document');
-assert(setup.includes('Spark 전용 배포의 Firestore fallback 신고도'), 'Firebase setup must document Spark fallback TTL behavior');
+assert(setup.includes('브라우저의 직접 Firestore fallback은 허용하지 않습니다'), 'Firebase setup must document the server-only incident boundary');
 
 console.log('PASS v1.6.74 incident admission, Spark retention, download memory closure, and KST quota smoke');

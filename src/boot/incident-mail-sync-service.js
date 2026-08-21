@@ -1,4 +1,4 @@
-// FoxBear incident mail history synchronization scheduler - v1.6.112
+// FoxBear incident mail history synchronization scheduler - v1.6.113
 (function attachFoxBearIncidentMailSync(global) {
     'use strict';
 
@@ -88,7 +88,7 @@
     }
 
     global.FoxBearIncidentMailSync = Object.freeze({
-        version: '1.6.112', activeStatuses: ACTIVE_STATUSES, plan, createController,
+        version: '1.6.113', activeStatuses: ACTIVE_STATUSES, plan, createController,
         intervals: Object.freeze({ active: ACTIVE_POLL_MS, idle: IDLE_POLL_MS, hiddenActive: HIDDEN_ACTIVE_POLL_MS, hiddenIdle: HIDDEN_IDLE_POLL_MS })
     });
 })(typeof window !== 'undefined' ? window : globalThis);

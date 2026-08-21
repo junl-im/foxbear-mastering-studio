@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.6.113
+
+> Current release: v1.6.113 · incident-finalizer-p1-hardening
+
+This patch closes the direct Firestore incident-report write path so all new incident creation passes server admission control, and makes Worker-failure finalizer recovery match the normal Worker gain/limiter telemetry contract.
+
 # FoxBear AI Mastering Studio Pro v1.6.112
 
 > Current release: v1.6.112 · mastering-lifecycle-race-hardening

@@ -14,8 +14,8 @@ const indexSource = read('index.html');
 const rules = read('firestore.rules');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.69_MAIL_RECEIPT_CONFIRMATION_HISTORY_BRANDED_TEMPLATE.md');
-assert.strictEqual(pkg.version, '1.6.112');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.112-mastering-lifecycle-race-hardening');
+assert.strictEqual(pkg.version, '1.6.113');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.113-incident-finalizer-p1-hardening');
 for (const token of [
   "const MAIL_TEST_HISTORY_COLLECTION = 'incidentMailTestHistory'",
   "const MAIL_RECEIPT_CONFIRMATION_COLLECTION = 'incidentMailReceiptConfirmationRequests'",
@@ -61,7 +61,7 @@ const sandbox = {
 };
 vm.runInNewContext(functionsSource, sandbox, { filename: 'functions/index.js' });
 const test = moduleRecord.exports.__test;
-const manual = test.buildMail({ category: 'manual-test', severity: 'warning', fingerprint: 'manual-test-v1569', appVersion: '1.6.112' }, 'mail_test_v1569');
+const manual = test.buildMail({ category: 'manual-test', severity: 'warning', fingerprint: 'manual-test-v1569', appVersion: '1.6.113' }, 'mail_test_v1569');
 assert(manual.html.includes('AI MASTERING STUDIO'));
 assert(manual.html.includes('실제 발송 테스트'));
 assert(manual.html.includes('발신자: AI마스터링 스튜디오'));

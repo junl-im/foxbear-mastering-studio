@@ -1,7 +1,7 @@
-// FoxBear main-thread finalizer recovery service v1.6.112
+// FoxBear main-thread finalizer recovery service v1.6.113
 'use strict';
 (function attachFoxBearMasterFinalizerFallbackService(global) {
-    const VERSION = '1.6.112-mastering-lifecycle-race-hardening';
+    const VERSION = '1.6.113-incident-finalizer-p1-hardening';
     function requireFn(value, name) { if (typeof value !== 'function') throw new Error(`파이널라이저 복구 의존성이 없습니다: ${name}`); return value; }
     async function run(buffer, options = {}, deps = {}) {
         const clamp = requireFn(deps.clamp, 'clamp');
@@ -45,7 +45,7 @@
         await checkpoint(62, '러드니스 측정 준비');
         const loudnessBefore = requireFn(deps.measureApproxGatedLoudness, 'measureApproxGatedLoudness')(output);
         throwIfCancelled('finalizer-fallback-loudness-before');
-        const maxGainDb = qualityMode === 'max' ? 8 : qualityMode === 'fast' ? 4.5 : 6;
+        const maxGainDb = qualityMode === 'max' ? 9 : qualityMode === 'fast' ? 5 : 7;
         const loudnessGainDb = clamp(targetLufs - loudnessBefore, -8, maxGainDb);
         requireFn(deps.applyBufferGain, 'applyBufferGain')(output, Math.pow(10, loudnessGainDb / 20));
         await checkpoint(74, 'True Peak 보호 준비');
@@ -59,8 +59,8 @@
         return { buffer: output, info: {
             mode: options.truePeak === false ? 'K-weighted multiband lookahead sample peak fallback' : 'K-weighted multiband + 4x FIR true peak fallback', qualityMode, targetLufs, ceilingDb: targetDb,
             loudnessBefore, loudnessAfter: finalLoudness.integrated, shortTermLufs: finalLoudness.shortTerm, peakBefore: peakInfo.peakBefore, peakAfter: peakInfo.peakAfter,
-            gainDb: loudnessGainDb + 20 * Math.log10(Math.max(1e-9, peakInfo.gain || 1)), limiterReductionDb: peakInfo.limiterReductionDb || 0, dcRemoved: dcInfo,
-            oversample: 4, oversampleMode: options.truePeak === false ? 'sample peak' : '4x windowed-sinc FIR true peak', multibandMode: multibandInfo.mode, multibandReductionDb: multibandInfo.reductionDb, multibandBands: multibandInfo.bands,
+            gainDb: loudnessGainDb + 20 * Math.log10(Math.max(1e-9, peakInfo.gain || 1)), limiterReductionDb: peakInfo.limiterReductionDb || 0, limiterActivePct: peakInfo.limiterActivePct || 0, limiterMeanReductionDb: peakInfo.limiterMeanReductionDb || 0, limiterGainMovement: peakInfo.limiterGainMovement || 0, dcRemoved: dcInfo,
+            oversample: options.truePeak === false ? 1 : 4, oversampleMode: options.truePeak === false ? 'sample peak' : '4x windowed-sinc FIR true peak', multibandMode: multibandInfo.mode, multibandReductionDb: multibandInfo.reductionDb, multibandBands: multibandInfo.bands,
             mobileSpeakerMode: mobileInfo.mode, mobileSpeakerRisk: mobileInfo.risk, mobileSpeakerCuts: mobileInfo.cuts, dynamicDeEsserMode: deEsserInfo.mode, dynamicDeEsserRisk: deEsserInfo.risk,
             dynamicDeEsserReductionDb: deEsserInfo.reductionDb, dynamicDeEsserBands: deEsserInfo.bands, limiterMode: peakInfo.limiterMode, lookaheadMs: peakInfo.lookaheadMs, lookaheadSamples: peakInfo.lookaheadSamples,
             preLimiterPeak: peakInfo.preLimiterPeak, loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', sharedDspProfileVersion: deps.sharedDspProfileVersion || '', sharedDspProfile: getShared(options.dspProfile)

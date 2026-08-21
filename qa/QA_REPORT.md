@@ -1,3 +1,16 @@
+# FoxBear QA Report - v1.6.113
+
+## v1.6.113 Incident server boundary and finalizer parity hardening
+
+- Static and behavioral target: **470 checks**.
+- New regression: `qa/p1_incident_finalizer_hardening_smoke.js`.
+- `incidentReports` client create is denied; new reports are created only through Callable / Hosting same-origin server paths.
+- Server admission control can no longer be bypassed by browser direct Firestore writes.
+- Main-thread finalizer recovery matches Worker positive gain ceilings and limiter telemetry.
+- Sample-peak fallback reports 1x oversampling; true-peak fallback reports 4x.
+- Final configured suite: **470/470 PASS** in three sequential slices.
+- Version/SRI verification will be rerun after release metadata synchronization.
+
 # FoxBear QA Report - v1.6.112
 
 ## v1.6.112 Mastering lifecycle race hardening

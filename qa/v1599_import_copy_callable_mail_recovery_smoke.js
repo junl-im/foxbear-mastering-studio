@@ -15,7 +15,7 @@ const reporterSource = read('src/boot/incident-reporter.js');
 const functionsSource = read('functions/index.js');
 const handoff = read('HANDOFF.md');
 
-assert.strictEqual(pkg.version, '1.6.112');
+assert.strictEqual(pkg.version, '1.6.113');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.scripts['deploy:incident'].includes('functions:submitIncidentReport'));
 assert(pkg.scripts['deploy:incident'].includes('functions:getIncidentDeliveryStatus'));
@@ -26,7 +26,9 @@ assert(firebaseSource.includes("getFunctions(bridgeState.app, FIREBASE_FUNCTIONS
 assert(firebaseSource.includes("invokeIncidentCallable('submitIncidentReport'"));
 assert(firebaseSource.includes("invokeIncidentCallable('getIncidentDeliveryStatus'"));
 assert(firebaseSource.includes("transport: 'callable'"));
-assert(firebaseSource.includes('Compatibility fallback for deployments that have not published the callable'));
+assert(firebaseSource.includes('Security boundary: never fall back to a direct client write into incidentReports'));
+assert(firebaseSource.includes('foxbearServerOnlyIncident = true'));
+assert(!firebaseSource.slice(firebaseSource.indexOf('async function logIncident'), firebaseSource.indexOf('async function getIncidentDelivery')).includes('setDoc('));
 assert(functionsSource.includes("const { onCall, HttpsError } = require('firebase-functions/v2/https')"));
 assert(functionsSource.includes('exports.submitIncidentReport = onCall'));
 assert(functionsSource.includes('exports.getIncidentDeliveryStatus = onCall'));
@@ -34,7 +36,7 @@ assert(functionsSource.includes("if (!uid) throw new HttpsError('unauthenticated
 assert(functionsSource.includes('await reportRef.create({'));
 assert(functionsSource.includes("if (!reportId || !reportId.startsWith(`${uid}_`))"));
 assert(reporterSource.includes("'server-api-not-deployed': '최신 오류 신고 서버 기능이 아직 배포되지 않았습니다."));
-assert(handoff.startsWith('# Handoff - v1.6.112'));
+assert(handoff.startsWith('# Handoff - v1.6.113'));
 
 const sandbox = {
   console,

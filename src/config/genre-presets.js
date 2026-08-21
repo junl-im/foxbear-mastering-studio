@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.112 - extracted configuration module
+// FoxBear AI Mastering Studio Pro v1.6.113 - extracted configuration module
 'use strict';
 
 const FEATURE_DEFINITIONS = {

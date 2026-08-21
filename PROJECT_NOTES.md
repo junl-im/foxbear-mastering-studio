@@ -1,3 +1,12 @@
+# v1.6.113 Project Notes
+
+## Focus
+
+- Treat incident submission as a server-owned boundary: no direct browser create on `incidentReports`.
+- Preserve recovery through Callable and Hosting same-origin endpoints only.
+- Keep finalizer Worker and main-thread recovery contracts aligned for gain limits and limiter diagnostics.
+- Bump asset/cache revisions so the PWA cannot retain the pre-patch finalizer or Firebase bridge under the v1.6.112 cache key.
+
 # v1.6.112 Project Notes
 
 Current focus: close narrow lifecycle races rather than add features. Mastering completion must revalidate ownership after every asynchronous boundary, analysis cancellation must remain non-error control flow, BFCache restoration must restart background health monitoring, and Worker fallback must yield/cancel between recovery stages without changing normal DSP. Final configured QA is 469/469 PASS; Hosting boundary is 163 files; Playwright runtime remains GitHub Actions-only when the local package is unavailable.

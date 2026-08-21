@@ -1,8 +1,8 @@
-// FoxBear engine-control interaction service - v1.6.112
+// FoxBear engine-control interaction service - v1.6.113
 (function attachFoxBearEngineControlInteraction(global) {
     'use strict';
 
-    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.112-mastering-lifecycle-race-hardening';
+    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.6.113-incident-finalizer-p1-hardening';
     const CONTROL_IDS = Object.freeze(['masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect']);
     const CONTROL_ID_SET = new Set(CONTROL_IDS);
     const state = {

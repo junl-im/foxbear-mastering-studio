@@ -13,7 +13,7 @@ const state = fs.readFileSync('src/state/app-state.js', 'utf8');
 const integrityService = fs.readFileSync('src/ui/bottom-preview-dock-integrity-service.js', 'utf8');
 const diagnostics = fs.readFileSync('src/boot/performance-diagnostics.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.6.112'); // synchronized to the current release by sync-release-metadata.js
+assert.strictEqual(pkg.version, '1.6.113'); // synchronized to the current release by sync-release-metadata.js
 assert(pkg.qaChecks.includes('node qa/v1693_mobile_dock_visibility_integrity_recovery_smoke.js'));
 
 // Base Dock visibility must remain state-driven in every mode.

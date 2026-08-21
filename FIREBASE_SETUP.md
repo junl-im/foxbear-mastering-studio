@@ -175,7 +175,7 @@ Firestore TTL 정책에서 다음 두 컬렉션의 `expiresAt` 필드를 등록�
 - `incidentReports`: 약 30일 보존
 - `incidentMailState`: 약 2일 보존 (`admission_{uid}` 제출 예산 상태 포함)
 
-정책을 켜지 않으면 `expiresAt` 값은 기록되지만 문서는 자동 삭제되지 않습니다. Spark 전용 배포의 Firestore fallback 신고도 생성 시점부터 `incidentReports.expiresAt`을 기록하므로 Functions가 없어도 약 30일 TTL 대상이 됩니다.
+정책을 켜지 않으면 `expiresAt` 값은 기록되지만 문서는 자동 삭제되지 않습니다. 운영 `incidentReports` 생성은 서버 전용이며 브라우저의 직접 Firestore fallback은 허용하지 않습니다. 신고는 Callable 또는 Hosting same-origin rewrite를 통해서만 생성되어 서버 admission control을 반드시 거칩니다.
 
 ### Incident 서버 접수 제어
 

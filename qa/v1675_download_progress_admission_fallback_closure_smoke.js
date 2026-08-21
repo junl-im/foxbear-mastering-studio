@@ -8,7 +8,7 @@ const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pkg = JSON.parse(read('package.json'));
 
-assert.strictEqual(pkg.version, '1.6.112', 'package version must be v1.6.112');
+assert.strictEqual(pkg.version, '1.6.113', 'package version must be v1.6.113');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build id must remain valid kebab-case');
 
 const css = read('assets/css/download-dialog.css');
@@ -26,9 +26,13 @@ assert(firebaseBootstrap.includes('function getIncidentAdmissionRejection(error)
 assert(firebaseBootstrap.includes('error.foxbearAdmission = admissionRejection'), 'admission rejection metadata must survive to the reporter');
 assert(firebaseBootstrap.includes('if (admissionRejection) {'), 'admission rejection must be detected before Firestore fallback');
 const logIncidentStart = firebaseBootstrap.indexOf('async function logIncident(payload = {})');
-const rejectIndex = firebaseBootstrap.indexOf('if (admissionRejection) {', logIncidentStart);
-const fallbackIndex = firebaseBootstrap.indexOf("submissionTransport: 'firestore-fallback'", logIncidentStart);
-assert(rejectIndex > logIncidentStart && rejectIndex < fallbackIndex, 'server admission rejection must stop before direct Firestore fallback');
+const logIncidentEnd = firebaseBootstrap.indexOf('async function getIncidentDelivery(reportId)', logIncidentStart);
+const logIncidentSource = firebaseBootstrap.slice(logIncidentStart, logIncidentEnd);
+const rejectIndex = logIncidentSource.indexOf('if (admissionRejection) {');
+assert(rejectIndex >= 0, 'server admission rejection must remain explicit');
+assert(!logIncidentSource.includes("submissionTransport: 'firestore-fallback'"), 'direct Firestore fallback must stay closed');
+assert(!logIncidentSource.includes('setDoc('), 'incidentReports must not be client-written after server failure');
+assert(logIncidentSource.includes('foxbearServerOnlyIncident'), 'server-only failure marker must be preserved for recovery UI');
 assert(firebaseBootstrap.includes("error.details = { ...source.details }"), 'same-origin Callable errors must preserve structured details');
 
 const reporter = read('src/boot/incident-reporter.js');
@@ -37,6 +41,6 @@ assert(reporter.includes("reason: admission.kind === 'disabled' ? 'server-disabl
 assert(reporter.includes('queued: false'), 'newly rejected incidents must not enter the local retry queue');
 assert(reporter.indexOf('const admission = classifyAdmissionRejection(error);') < reporter.indexOf('queueIncident(payload);', reporter.indexOf('async function report(')), 'admission classification must run before local queueing');
 
-assert(pkg.qaChecks.includes('node qa/v1675_download_progress_admission_fallback_closure_smoke.js'), 'v1.6.112 smoke must be registered');
+assert(pkg.qaChecks.includes('node qa/v1675_download_progress_admission_fallback_closure_smoke.js'), 'v1.6.113 smoke must be registered');
 
 console.log('PASS v1.6.75 download progress visibility and incident admission fallback closure smoke');
