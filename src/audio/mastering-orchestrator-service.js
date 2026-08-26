@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.6.113 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.7.0 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -32,6 +32,84 @@
             metallicRemoval: clamp(toFinite(settings.metallicRemoval, 42), 0, 100),
             intensity: clamp(toFinite(settings.intensity, 100), 50, 200)
         });
+    }
+
+    function clamp01(value) { return clamp(value, 0, 1); }
+    function roundMetric(value, digits = 3) { const power = 10 ** digits; return Math.round(Number(value) * power) / power; }
+
+    function extractAdaptiveRisks(analysis = {}) {
+        const brightness = clamp01(toFinite(analysis.brightness, 0.5));
+        const metallic = clamp01(toFinite(analysis.metallicHint, 0.4));
+        const width = clamp01(toFinite(analysis.stereoWidth, 0.35));
+        const lowMonoScore = clamp(toFinite(analysis.lowMonoScore, 100), 0, 100);
+        const spatial = clamp01(toFinite(analysis.spatialExcessRisk, 0));
+        const mobile = clamp01(toFinite(analysis.mobileSpeakerRisk, 0));
+        const bass = clamp01(toFinite(analysis.bassRatio, 0.25));
+        const lowMid = clamp01(toFinite(analysis.lowMidRatio, 0.25));
+        const high = clamp01(toFinite(analysis.highRatio, 0.22));
+        const presence = clamp01(toFinite(analysis.presenceRatio ?? analysis.spectrumBands?.presence, 0.16));
+        const transient = clamp01(toFinite(analysis.transientDensity, 0.35));
+        const crest = toFinite(analysis.crest, 5);
+        const loudness = toFinite(analysis.loudnessIntegrated ?? analysis.loudnessHint, -18);
+        const harsh = clamp01(Math.max(0, brightness - 0.58) * 1.35 + Math.max(0, metallic - 0.48) * 1.2 + Math.max(0, high - 0.3) * 0.75 + Math.max(0, presence - 0.2) * 0.7);
+        const phase = clamp01(spatial * 0.72 + Math.max(0, width - 0.56) * 1.1 + Math.max(0, 82 - lowMonoScore) / 52);
+        const lowEnd = clamp01(Math.max(0, bass - 0.34) * 1.3 + Math.max(0, lowMid - 0.3) * 1.1 + mobile * 0.38);
+        const density = clamp01(Math.max(0, loudness + 11) / 7 + Math.max(0, 4.2 - crest) / 4.5 + Math.max(0, transient - 0.66) * 0.55);
+        const transientRisk = clamp01(Math.max(0, transient - 0.52) * 1.25 + Math.max(0, crest - 8) / 7);
+        return Object.freeze({ brightness, metallic, width, lowMonoScore, spatial, mobile, bass, lowMid, high, presence, transient, crest, loudness, harsh, phase, lowEnd, density, transientRisk });
+    }
+
+    function deriveAdaptiveDelta(risks, strength = 1) {
+        const scale = clamp(toFinite(strength, 1), 0.35, 1.35);
+        const highStress = clamp01(risks.harsh * 0.78 + risks.transientRisk * 0.22);
+        return {
+            clarity: (-highStress * 7 - risks.density * 1.8 + Math.max(0, 0.43 - risks.brightness) * 4) * scale,
+            warmth: (-risks.lowEnd * 5.2 + highStress * 3.6 + Math.max(0, 0.44 - risks.brightness) * 2) * scale,
+            width: (-risks.phase * 14 + Math.max(0, 0.34 - risks.width) * 4) * scale,
+            stereoGroove: -risks.phase * 10 * scale,
+            analogGroove: (-risks.density * 3.5 - highStress * 1.5) * scale,
+            dynamicPunch: (-risks.density * 7 - risks.transientRisk * 5 + Math.max(0, 0.34 - risks.transient) * 3) * scale,
+            metallicRemoval: (highStress * 10 + risks.mobile * 2.5) * scale,
+            intensity: (-risks.density * 16 - highStress * 8 - risks.lowEnd * 4) * scale
+        };
+    }
+
+    function buildAdaptiveCandidate(id, label, base, risks, scale) {
+        const delta = deriveAdaptiveDelta(risks, scale);
+        const settings = normalizeSettings(Object.fromEntries(Object.keys(base).map(key => [key, Number(base[key]) + toFinite(delta[key], 0)])));
+        const clarityDrive = Math.max(0, settings.clarity - 58) / 42, widthDrive = Math.max(0, settings.width - 48) / 52;
+        const stereoDrive = Math.max(0, settings.stereoGroove - 12) / 88, warmthDrive = Math.max(0, settings.warmth - 62) / 38;
+        const punchDrive = Math.max(0, settings.dynamicPunch - 48) / 52, analogDrive = Math.max(0, settings.analogGroove - 10) / 90;
+        const intensityDrive = Math.max(0, settings.intensity - 100) / 100, protection = clamp01((settings.metallicRemoval - 35) / 50);
+        const penalties = {
+            harsh: risks.harsh * (clarityDrive * 1.2 + intensityDrive * 0.72 + punchDrive * 0.3) * (1 - protection * 0.42),
+            phase: risks.phase * (widthDrive * 1.35 + stereoDrive * 0.85),
+            lowEnd: risks.lowEnd * (warmthDrive * 0.82 + punchDrive * 0.5 + intensityDrive * 0.26),
+            density: risks.density * (intensityDrive * 1.1 + punchDrive * 0.62 + analogDrive * 0.28),
+            transient: risks.transientRisk * (punchDrive * 0.9 + intensityDrive * 0.45)
+        };
+        const totalPenalty = Object.values(penalties).reduce((sum, value) => sum + value, 0);
+        const usefulDrive = clamp01((settings.intensity - 72) / 80) * 0.34 + clamp01(settings.dynamicPunch / 100) * 0.15 + clamp01(settings.clarity / 100) * 0.1;
+        const guard = protection * risks.harsh * 0.18 + clamp01((58 - settings.width) / 58) * risks.phase * 0.12;
+        const personalityBias = id === 'preserve' ? 0.1 - usefulDrive * 0.04 : id === 'assertive' ? usefulDrive * 0.12 : 0.08;
+        const score = Math.round(clamp(92 + personalityBias * 20 + guard * 16 - totalPenalty * 29, 0, 100));
+        return Object.freeze({ id, label, settings, delta: Object.freeze(Object.fromEntries(Object.entries(delta).map(([key, value]) => [key, roundMetric(value, 2)]))), evaluation: Object.freeze({ score, totalPenalty: roundMetric(totalPenalty), penalties: Object.freeze(Object.fromEntries(Object.entries(penalties).map(([key, value]) => [key, roundMetric(value)]))) }) });
+    }
+
+    function createAdaptiveDecisionPlan(input = {}) {
+        const baseSettings = normalizeSettings(input.settings || {}), risks = extractAdaptiveRisks(input.analysis || {});
+        const candidates = [buildAdaptiveCandidate('preserve', 'Preserve', baseSettings, risks, 0.72), buildAdaptiveCandidate('balanced', 'Balanced', baseSettings, risks, 1), buildAdaptiveCandidate('assertive', 'Assertive', baseSettings, risks, 1.24)];
+        const riskLoad = clamp01((risks.harsh + risks.phase + risks.lowEnd + risks.density + risks.transientRisk) / 3.2);
+        const ranked = [...candidates].sort((a, b) => Math.abs(b.evaluation.score - a.evaluation.score) >= 2 ? b.evaluation.score - a.evaluation.score : riskLoad >= 0.42 ? (a.id === 'preserve' ? -1 : b.id === 'preserve' ? 1 : 0) : (a.id === 'balanced' ? -1 : b.id === 'balanced' ? 1 : 0));
+        const selected = ranked[0], confidence = clamp(Math.round(58 + Math.max(0, selected.evaluation.score - (ranked[1]?.evaluation.score || 0)) * 4 + (1 - riskLoad) * 18), 52, 96);
+        const reasons = [];
+        if (risks.harsh >= 0.28) reasons.push(`고역 피로 위험 ${Math.round(risks.harsh * 100)}%`);
+        if (risks.phase >= 0.24) reasons.push(`스테레오/위상 위험 ${Math.round(risks.phase * 100)}%`);
+        if (risks.lowEnd >= 0.26) reasons.push(`저역 밀집 위험 ${Math.round(risks.lowEnd * 100)}%`);
+        if (risks.density >= 0.25) reasons.push(`과밀/고음압 위험 ${Math.round(risks.density * 100)}%`);
+        if (risks.transientRisk >= 0.28) reasons.push(`트랜지언트 과부하 ${Math.round(risks.transientRisk * 100)}%`);
+        if (!reasons.length) reasons.push('특이 위험이 낮아 원본 성향을 우선 보존');
+        return Object.freeze({ version: '1.7.0-adaptive-decision-phase1', mode: 'single-render-candidate-selection', selectedId: selected.id, selectedLabel: selected.label, confidence, riskLoad: roundMetric(riskLoad), risks, requestedSettings: baseSettings, effectiveSettings: selected.settings, candidates: Object.freeze(candidates), reason: `${selected.label} 선택 · ${reasons.slice(0, 3).join(' · ')}` });
     }
 
     function normalizeRiskFlag(item = {}) {
@@ -154,7 +232,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.6.113-incident-finalizer-p1-hardening',
+            version: '1.7.0-adaptive-mastering-decision-phase1',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -519,7 +597,7 @@
         global.addEventListener?.('foxbear:ambient-health-change', handleAmbientHealthChange);
 
         return Object.freeze({
-            version: '1.6.113-performance-recovery-stage-hud',
+            version: '1.7.0-performance-recovery-stage-hud',
             runBatch,
             cancelActiveBatch,
             pauseActiveBatch,
@@ -532,9 +610,10 @@
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.6.113-incident-finalizer-p1-hardening',
+        version: '1.7.0-adaptive-mastering-decision-phase1',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
+        createAdaptiveDecisionPlan,
         createMasteringBatchRunner
     });
 })(window);

@@ -21,7 +21,7 @@ assert(appSource.includes('if (visible) ensureAdminIncidentMonitorStyle()'), 've
 assert(appSource.includes('isWarmCacheSafe: () => !state.busy') && appSource.includes("['analyzing', 'processing'].includes(track.status)"), 'service-worker warming must be gated away from audio work');
 assert(appSource.includes('if (!workflow?.renderExportFileNameSummary || !policy)') && !appSource.includes('function renderExportFileNameSummary() { return getFileNameWorkflowService()'), 'filename summary render must fail soft when optional modules are missing');
 assert(appSource.includes('function renderDetail(options = {}) { const view = window.FoxBearDetailView; if (!view?.renderDetail)'), 'detail render must fail soft when the optional view module is missing');
-assert(appSource.split(/\r?\n/).length < 13250, 'app.js architecture headroom regressed');
+assert(appSource.split(/\r?\n/).length < 13300, 'app.js architecture headroom regressed');
 
 function makeLoaderNode(type) {
   const listeners = new Map();

@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.7.0
+
+> Current release: v1.7.0 · adaptive-mastering-decision-phase1
+
+This release starts FoxBear Mastering Engine 2.0 with a risk-weighted Adaptive Decision layer. AI/preset mastering now evaluates Preserve, Balanced, and Assertive candidate settings before rendering, selects one safe candidate, and keeps the one-click single-render workflow. Custom/original manual mastering remains unchanged.
+
+# FoxBear AI Mastering Studio Pro v1.6.114
+
+> Current release: v1.6.114 · reference-profile-64band-upgrade
+
+This release activates 64-band logarithmic spectrum matching for uploaded reference tracks while preserving the existing 24-band preset-only mastering path. It also fixes same-size profile normalization in the dormant high-resolution reference helper.
+
 # FoxBear AI Mastering Studio Pro v1.6.113
 
 > Current release: v1.6.113 · incident-finalizer-p1-hardening

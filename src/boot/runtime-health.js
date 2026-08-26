@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.6.113-incident-finalizer-p1-hardening';
+    const FALLBACK_VERSION = '1.7.0-adaptive-mastering-decision-phase1';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

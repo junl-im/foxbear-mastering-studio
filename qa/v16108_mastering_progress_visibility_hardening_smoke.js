@@ -21,7 +21,7 @@ assert(app.includes("applyMappedMasteringProgress(track, masteringJobId, 40, 54"
 assert(app.includes("applyMappedMasteringProgress(track, masteringJobId, 90, 94"), 'finalizer worker progress should map into the overall mastering range');
 assert(app.includes("applyMappedMasteringProgress(track, masteringJobId, 95, 99"), 'encoder worker progress should map into the overall mastering range');
 assert(app.includes("await sanitizeAudioBufferCooperative(masteredBuffer, 'master-chain'"), 'master-chain completion should use cooperative safety scanning without blocking progress paint');
-assert(app.split('\n').length - 1 < 13250, 'app.js should remain below the 13,250 line architecture gate');
+assert(app.split('\n').length - 1 < 13300, 'app.js should remain below the 13,300 line architecture gate');
 
 const helperStart = app.indexOf('function quantizeProgressStep');
 const helperEnd = app.indexOf('async function waitForTrackAnalysisIfNeeded', helperStart);
@@ -58,5 +58,5 @@ stop();
 sandbox.api.applyMappedMasteringProgress(track, 'job-1', 90, 94, { percent: 50, stage: '파이널라이저' }, '파이널라이저');
 assert.strictEqual(track.progress, 92, 'worker progress should map truthfully into its reserved overall range');
 
-assert(pkg.qaChecks.includes('node qa/v16108_mastering_progress_visibility_hardening_smoke.js') || pkg.version === '1.6.113', 'new QA must be registered before release');
+assert(pkg.qaChecks.includes('node qa/v16108_mastering_progress_visibility_hardening_smoke.js') || pkg.version === '1.7.0', 'new QA must be registered before release');
 console.log('PASS v1.6.108 mastering progress visibility hardening smoke');

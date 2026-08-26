@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.6.113-incident-finalizer-p1-hardening';
+    const VERSION = '1.7.0-adaptive-mastering-decision-phase1';
 
     function createController(options = {}) {
         const state = options.state || {};

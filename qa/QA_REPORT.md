@@ -1,3 +1,24 @@
+# FoxBear QA Report - v1.7.0
+
+## v1.7.0 Adaptive mastering decision engine phase 1
+
+- Static and behavioral target: **473 checks**.
+- New module syntax check: `src/audio/adaptive-mastering-decision-service.js`.
+- New regression: `qa/v170_adaptive_mastering_decision_phase1_smoke.js`.
+- High-risk material must not increase mastering intensity or stereo width and must increase metallic/high-frequency protection where appropriate.
+- Low-risk material retains useful mastering drive and produces a lower aggregate risk load.
+- Custom/original manual selection is explicitly bypassed by the app integration contract.
+
+# FoxBear QA Report - v1.6.114
+
+## v1.6.114 Uploaded reference 64-band profile upgrade
+
+- Static and behavioral target: **471 checks**.
+- New regression: `qa/v16114_reference_profile_64band_upgrade_smoke.js`.
+- Uploaded references use native 64-band log-spectrum matching when both sides provide high-resolution analysis.
+- Preset-only and legacy paths retain the existing 24-band matching behavior.
+- Same-size high-resolution profiles are now sum-normalized.
+
 # FoxBear QA Report - v1.6.113
 
 ## v1.6.113 Incident server boundary and finalizer parity hardening

@@ -13,7 +13,7 @@ const patchVerifierSource = fs.readFileSync('tools/verify-patch-zip.js', 'utf8')
 const releaseZipSource = fs.readFileSync('tools/create-release-zip.sh', 'utf8');
 const deletePaths = fs.readFileSync('DELETE_PATHS.txt', 'utf8').split(/\r?\n/).map(value => value.trim()).filter(Boolean);
 
-assert.strictEqual(pkg.version, '1.6.113');
+assert.strictEqual(pkg.version, '1.7.0');
 assert(pkg.qaChecks.includes('node qa/v1683_browser_gate_ui_mode_fixture_source_hygiene_smoke.js'));
 assert.strictEqual(helpers.UI_MODE_SESSION_KEY, 'foxbear-ui-mode-session-v1');
 assert.strictEqual(helpers.DEFAULT_E2E_UI_MODE, 'expert');

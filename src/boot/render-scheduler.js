@@ -2,7 +2,7 @@
 (function attachFoxBearRenderScheduler(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.6.113-incident-finalizer-p1-hardening';
+    const SERVICE_VERSION = '1.7.0-adaptive-mastering-decision-phase1';
     const DEFAULT_ANALYSIS_DELAY_MS = 90;
     const DEFAULT_BULK_DELAY_MS = 180;
 

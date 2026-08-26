@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.6.113",
+  "version": "1.7.0",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.6.113 - incident finalizer p1 hardening",
+  "description": "FoxBear AI Mastering Studio Pro v1.7.0 - adaptive mastering decision phase1",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.6.113-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.113-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.7.0-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.7.0-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.6.113-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.6.113-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.7.0-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.7.0-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -76,6 +76,7 @@
     "node --check src/audio/memory-guard-service.js",
     "node --check src/audio/mastering-memory-diagnostics-service.js",
     "node --check src/audio/reference-profile-service.js",
+    "node qa/v170_adaptive_mastering_decision_phase1_smoke.js",
     "node --check src/audio/mastering-input-guard-service.js",
     "node --check src/audio/mastering-quality-audit-service.js",
     "node --check src/audio/loudness-measurement-service.js",
@@ -518,15 +519,16 @@
     "node qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js",
     "node qa/v16110_ui_mode_early_choice_boot_recovery_smoke.js",
     "node qa/v16111_ui_mode_session_contract_smoke.js",
-    "node qa/v16112_mastering_lifecycle_race_hardening_smoke.js"
+    "node qa/v16112_mastering_lifecycle_race_hardening_smoke.js",
+    "node qa/v16114_reference_profile_64band_upgrade_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "incident-finalizer-p1-hardening",
-    "assetVersion": "1.6.113-incident-finalizer-p1-hardening",
-    "cacheName": "foxbear-shell-v1.6.113-incident-finalizer-p1-hardening",
-    "bootRevision": "boot-sri-v16113",
-    "updateSafetyRevision": "update-safety-v16113",
-    "serviceWorkerRevision": "sw-v16113"
+    "buildId": "adaptive-mastering-decision-phase1",
+    "assetVersion": "1.7.0-adaptive-mastering-decision-phase1",
+    "cacheName": "foxbear-shell-v1.7.0-adaptive-mastering-decision-phase1",
+    "bootRevision": "boot-sri-v170",
+    "updateSafetyRevision": "update-safety-v170",
+    "serviceWorkerRevision": "sw-v170"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

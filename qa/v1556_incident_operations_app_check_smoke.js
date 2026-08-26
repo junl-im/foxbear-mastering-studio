@@ -20,8 +20,8 @@ const firebaseJson = JSON.parse(read('firebase.json'));
 const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css');
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
-assert.strictEqual(pkg.version, '1.6.113');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.6.113-incident-finalizer-p1-hardening');
+assert.strictEqual(pkg.version, '1.7.0');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.0-adaptive-mastering-decision-phase1');
 assert(!index.includes('name="foxbear-app-check-site-key"'), 'App Check site key must not be shipped');
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));

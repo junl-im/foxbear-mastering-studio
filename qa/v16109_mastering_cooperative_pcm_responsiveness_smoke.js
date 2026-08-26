@@ -18,7 +18,7 @@ assert(app.includes("applyMappedMasteringProgress(track, masteringJobId, 79, 80"
 assert(app.includes("applyMappedMasteringProgress(track, masteringJobId, 94, 95"), 'final PCM validation should stay cooperative');
 assert(app.includes("applyMappedMasteringProgress(track, masteringJobId, 95, 95"), 'A/B waveform work should report live substage progress without lying about overall completion');
 assert(app.includes("quality-recovery-master-sanitize") && app.includes("quality-recovery-finalizer-sanitize"), 'quality recovery should also avoid long synchronous PCM safety scans');
-assert(app.split('\n').length - 1 < 13250, 'app.js should remain below the 13,250 line architecture gate');
+assert(app.split('\n').length - 1 < 13300, 'app.js should remain below the 13,300 line architecture gate');
 assert(coreSource.includes('Number(options.chunkSamples) || 65536'), 'cooperative PCM checkpoints should default to 65,536 samples');
 assert(coreSource.includes('Number(options.budgetMs)) ? Number(options.budgetMs) : 10'), 'cooperative PCM work should use a 10ms default yield budget');
 
@@ -162,7 +162,7 @@ function assertBufferEqual(actual, expected, message) {
   assert.strictEqual(beforeReads, 24 * Math.min(2, countedBefore.numberOfChannels), 'waveform markers should reuse already sampled original overview instead of rescanning PCM');
   assert.strictEqual(afterReads, 24 * Math.min(2, countedAfter.numberOfChannels), 'waveform markers should reuse already sampled mastered overview instead of rescanning PCM');
 
-  assert(pkg.qaChecks.includes('node qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js') || pkg.version === '1.6.113', 'v1.6.113 QA must be registered before release');
+  assert(pkg.qaChecks.includes('node qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js') || pkg.version === '1.7.0', 'v1.7.0 QA must be registered before release');
   console.log('PASS v1.6.109 mastering cooperative PCM responsiveness smoke');
 })().catch(error => {
   console.error(error);

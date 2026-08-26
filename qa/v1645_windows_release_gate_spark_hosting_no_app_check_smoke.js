@@ -22,7 +22,7 @@ const appCheckPolicy = read('functions/app-check-policy.js');
 const appCheckPolicyContract = JSON.parse(read('functions/app-check-policy-contract.json'));
 const index = read('index.html');
 
-assert(Number(pkg.version.split('.').join('')) >= 1645);
+{ const [major, minor, patch] = pkg.version.split('.').map(Number); assert(major > 1 || (major === 1 && (minor > 6 || (minor === 6 && patch >= 45)))); }
 assert(pkg.scripts['deploy:spark'].startsWith('npm run hosting:check && '));
 assert(pkg.scripts['deploy:incident'].startsWith('npm run hosting:check && '));
 assert.strictEqual(pkg.scripts['hosting:check'], 'node tools/check-hosting-payload.js');

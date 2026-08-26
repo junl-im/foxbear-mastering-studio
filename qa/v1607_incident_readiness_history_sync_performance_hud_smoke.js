@@ -29,7 +29,7 @@ const orchestratorSource = read('src/audio/mastering-orchestrator-service.js');
 const hudSource = read('src/ui/bulk-import-hud-view.js');
 const handoff = read('HANDOFF.md');
 
-assert(/^1\.6\.\d+$/.test(pkg.version));
+assert(/^1\.(?:6|[7-9]|[1-9]\d+)\.\d+$/.test(pkg.version));
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(pkg.foxbearRelease.buildId));
 assert(pkg.scripts['deploy:incident'].includes('functions:checkIncidentDeploymentReadiness'));
 assert(pkg.qaChecks.length >= 330);
@@ -65,7 +65,7 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.has(key) ? memory.get(key) : null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.6.113' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.7.0' } }, visibilityState: 'visible',
     getElementById: () => null,
     querySelector(selector) {
       if (selector === 'meta[http-equiv="Content-Security-Policy"]') return { getAttribute: () => cspContent };
@@ -74,7 +74,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.6.113', assetVersion: '1.6.113-incident-finalizer-p1-hardening' }
+  FoxBearBuildInfo: { productVersion: '1.7.0', assetVersion: '1.7.0-adaptive-mastering-decision-phase1' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,
@@ -84,7 +84,7 @@ reporterSandbox.FoxBearFirebase = {
   checkIncidentDeploymentReadiness: async () => ({
     ok: true,
     checkedAt: new Date().toISOString(),
-    service: { productVersion: '1.6.113', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
+    service: { productVersion: '1.7.0', functionsOrigin: 'https://asia-northeast3-foxbear-music.cloudfunctions.net' },
     checks: {
       functions: { ok: true, status: 'ready', message: 'functions ok' },
       firestore: { ok: true, status: 'ready', message: 'firestore ok' },

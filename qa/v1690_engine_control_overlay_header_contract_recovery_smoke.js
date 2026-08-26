@@ -42,7 +42,7 @@ assert(browserSpec.includes("getPropertyValue('--foxbear-header-contract')"), 'R
 assert(browserSpec.includes("toBe('flex-two-rail-v1690')"), 'Runtime Health must fail explicitly when stale/missing header CSS is served');
 assert(browserSpec.includes('leftFlex: getComputedStyle(kicker).flex'), 'initial header failure diagnostics must include left flex ownership');
 assert(browserSpec.includes('actionsFlex: getComputedStyle(actions).flex'), 'initial header failure diagnostics must include action flex ownership');
-assert(fs.readFileSync('index.html', 'utf8').includes('src/ui/engine-control-interaction-service.js?v=1.6.113-incident-finalizer-p1-hardening'), 'engine interaction service must load before app');
-assert(fs.readFileSync('sw.js', 'utf8').includes('./src/ui/engine-control-interaction-service.js?v=1.6.113-incident-finalizer-p1-hardening'), 'engine interaction service must be precached');
+assert(fs.readFileSync('index.html', 'utf8').includes('src/ui/engine-control-interaction-service.js?v=1.7.0-adaptive-mastering-decision-phase1'), 'engine interaction service must load before app');
+assert(fs.readFileSync('sw.js', 'utf8').includes('./src/ui/engine-control-interaction-service.js?v=1.7.0-adaptive-mastering-decision-phase1'), 'engine interaction service must be precached');
 
 console.log('PASS v1.6.90 engine-control overlay isolation + header CSS contract recovery');

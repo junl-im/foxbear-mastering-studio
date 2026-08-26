@@ -50,15 +50,17 @@ function payload(index, extra = {}) {
 
 function main() {
     const pkg = JSON.parse(read('package.json'));
-    assert(Number(pkg.version.split('.').join('')) >= 1626);
+    { const [major, minor, patch] = pkg.version.split('.').map(Number); assert(major > 1 || (major === 1 && (minor > 6 || (minor === 6 && patch >= 26)))); }
     assert(pkg.qaChecks.includes('node qa/v1626_incident_diagnostics_queue_conflict_safety_smoke.js'));
     assert(pkg.qaChecks.includes('node --check src/boot/incident-local-queue-service.js'));
 
     const { context } = createContext();
     const queueModule = context.FoxBearIncidentLocalQueue;
     const diagnostics = context.FoxBearIncidentServiceDiagnostics;
-    assert(Number(queueModule.version.split('.').join('')) >= 1626);
-    assert(Number(diagnostics.version.split('.').join('')) >= 1626);
+    for (const version of [queueModule.version, diagnostics.version]) {
+        const [major, minor, patch] = String(version).split('.').map(Number);
+        assert(major > 1 || (major === 1 && (minor > 6 || (minor === 6 && patch >= 26))));
+    }
 
     const bounded = queueModule.createStore({ key: 'bounded', maxItems: 8, maxSerializedBytes: 4096 });
     for (let index = 0; index < 50; index += 1) bounded.enqueue(payload(index));

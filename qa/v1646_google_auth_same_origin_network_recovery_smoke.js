@@ -14,7 +14,7 @@ const controller = read('src/ui/admin-access-controller.js');
 const index = read('index.html');
 const setup = read('FIREBASE_SETUP.md');
 
-assert(Number(pkg.version.split('.').join('')) >= 1646);
+{ const [major, minor, patch] = pkg.version.split('.').map(Number); assert(major > 1 || (major === 1 && (minor > 6 || (minor === 6 && patch >= 46)))); }
 assert(firebase.includes("const FIREBASE_DEFAULT_AUTH_DOMAIN = 'foxbear-music.firebaseapp.com';"));
 assert(firebase.includes("'foxbear-music.web.app'"));
 assert(firebase.includes('function resolveFirebaseAuthDomain()'));

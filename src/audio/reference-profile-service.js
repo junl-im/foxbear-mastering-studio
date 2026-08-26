@@ -29,8 +29,9 @@
         const input = Array.isArray(values) ? values : [];
         const out = new Array(safeCount).fill(0);
         if (!input.length) return out;
-        if (input.length === safeCount) return input.slice(0, safeCount).map(clamp01);
-        for (let i = 0; i < safeCount; i += 1) {
+        if (input.length === safeCount) {
+            for (let i = 0; i < safeCount; i += 1) out[i] = clamp01(input[i]);
+        } else for (let i = 0; i < safeCount; i += 1) {
             const pos = input.length === 1 ? 0 : i * (input.length - 1) / Math.max(1, safeCount - 1);
             const left = Math.floor(pos);
             const right = Math.min(input.length - 1, left + 1);

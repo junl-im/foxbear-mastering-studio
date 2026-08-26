@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.6.113 - app slim-down orchestration bridge
+// FoxBear AI Mastering Studio Pro v1.7.0 - app slim-down orchestration bridge
 'use strict'; const FoxBearCoreUtils = window.FoxBearCoreUtils || {};
 const {
     clamp,
@@ -27,7 +27,7 @@ let externalBrowserHandoffBridge = null;
 let adminAccessController = null;
 let uiModeController = null;
 const FoxBearMasteringMemoryDiagnostics = window.FoxBearMasteringMemoryDiagnostics || null;
-const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.6.113';
+const FoxBearBuildInfo = window.FoxBearBuildInfo || {}; const APP_VERSION = 'Pro v1.7.0';
 if ((FoxBearRuntimeConfig.APP_VERSION && FoxBearRuntimeConfig.APP_VERSION !== APP_VERSION) || (FoxBearBuildInfo.appVersion && FoxBearBuildInfo.appVersion !== APP_VERSION)) console.warn('[FoxBear] release metadata mismatch', { app: APP_VERSION, runtime: FoxBearRuntimeConfig.APP_VERSION, build: FoxBearBuildInfo.appVersion });
 const {
     WAV_ENCODER_WORKER_URL = 'src/workers/wav-encoder.worker.js',
@@ -68,15 +68,15 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.6.113-incident-finalizer-p1-hardening'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v16113'}`;
-const ADMIN_INCIDENT_MONITOR_SCRIPT_URL = `src/ui/admin-incident-monitor-view.js?v=${FoxBearBuildInfo.assetVersion || '1.6.113-incident-finalizer-p1-hardening'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.7.0-adaptive-mastering-decision-phase1'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v170'}`;
+const ADMIN_INCIDENT_MONITOR_SCRIPT_URL = `src/ui/admin-incident-monitor-view.js?v=${FoxBearBuildInfo.assetVersion || '1.7.0-adaptive-mastering-decision-phase1'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL, ADMIN_INCIDENT_MONITOR_SCRIPT_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const ANALYSIS_ENGINE_CACHE_VERSION = 'analysis-engine-v1.4-stable';
-const SHARED_DSP_PROFILE_VERSION = 'v1.6.113-incident-finalizer-p1-hardening';
+const SHARED_DSP_PROFILE_VERSION = 'v1.7.0-adaptive-mastering-decision-phase1';
 const PLAYBACK_CROSSFADE_MS = 140;
 const SAFE_IMPORT_ANALYSIS_CONCURRENCY = Math.max(1, Math.min(2, Number(IMPORT_ANALYSIS_CONCURRENCY) || 1));
 const SAFE_LARGE_IMPORT_BATCH_THRESHOLD = Math.max(4, Number(LARGE_IMPORT_BATCH_THRESHOLD) || 12);
@@ -170,6 +170,14 @@ function getQualityGateService() {
 }
 function getMasteringOrchestratorService() {
     return window.FoxBearMasteringOrchestratorService || null;
+}
+function createAdaptiveMasteringDecisionForTrack(track, requestedSettings) {
+    const service = getMasteringOrchestratorService(), shouldAdapt = Boolean(service?.createAdaptiveDecisionPlan && track?.analysis && track?.preset !== 'custom' && !track?.originalManualSelected);
+    if (!shouldAdapt) { if (track) track.adaptiveDecisionInfo = null; return requestedSettings; }
+    try {
+        const plan = service.createAdaptiveDecisionPlan({ settings: requestedSettings || track.settings || {}, analysis: track.analysis || {}, preset: track.preset || track.recommendedPreset || 'custom', masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength, referenceReady: state.referenceProfile?.status === 'ready', referenceMatchStrength: getReferenceMatchStrengthAmount() });
+        track.adaptiveDecisionInfo = plan || null; return plan?.effectiveSettings ? cloneSettings(plan.effectiveSettings) : requestedSettings;
+    } catch (error) { console.warn('[FoxBear] adaptive mastering decision fallback', error); track.adaptiveDecisionInfo = Object.freeze({ version: '1.7.0-adaptive-decision-phase1', mode: 'fallback', reason: getErrorMessage(error, 'adaptive decision failed') }); return requestedSettings; }
 }
 function getErrorMessage(error, fallback = '알 수 없는 오류') {
     if (!error) return fallback;
@@ -3215,7 +3223,7 @@ function getPwaRuntimeBridge() {
     return pwaRuntimeBridge;
 }
 async function registerFoxBearServiceWorker(options = {}) {
-    // compatibility anchors: navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)) · navigator.serviceWorker.register('./sw.js?v=1.6.113-incident-finalizer-p1-hardening') · navigator.serviceWorker.register('./sw.js?v=1.6.113-incident-finalizer-p1-hardening&h=sw-v16113')
+    // compatibility anchors: navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)) · navigator.serviceWorker.register('./sw.js?v=1.7.0-adaptive-mastering-decision-phase1') · navigator.serviceWorker.register('./sw.js?v=1.7.0-adaptive-mastering-decision-phase1&h=sw-v170')
     return getPwaRuntimeBridge()?.registerServiceWorker?.(options);
 }
 async function processPwaShareTargetLaunch() {
@@ -3995,7 +4003,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.6.113-incident-finalizer-p1-hardening', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.7.0-adaptive-mastering-decision-phase1', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4309,7 +4317,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.6.113-incident-finalizer-p1-hardening',
+        version: '1.7.0-adaptive-mastering-decision-phase1',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4350,10 +4358,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.6.113-incident-finalizer-p1-hardening',
+    version: '1.7.0-adaptive-mastering-decision-phase1',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.6.113-incident-finalizer-p1-hardening', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.7.0-adaptive-mastering-decision-phase1', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4378,12 +4386,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.6.113-incident-finalizer-p1-hardening', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.7.0-adaptive-mastering-decision-phase1', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.6.113-incident-finalizer-p1-hardening', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.7.0-adaptive-mastering-decision-phase1', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4398,12 +4406,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.6.113-incident-finalizer-p1-hardening',
+    version: 'v1.7.0-adaptive-mastering-decision-phase1',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.6.113-incident-finalizer-p1-hardening', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.7.0-adaptive-mastering-decision-phase1', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -4699,7 +4707,7 @@ function analyzeBuffer(buffer) {
         mobileSpeakerRiskLabel: mobileSpeakerRisk.label,
         mobileSpeakerDetail: { boom: mobileSpeakerRisk.boom, box: mobileSpeakerRisk.box, honk: mobileSpeakerRisk.honk, harsh: mobileSpeakerRisk.harsh, density: mobileSpeakerRisk.density },
         loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates',
-        analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling, 24-band reference profile',
+        analysisMethod: '4096/8192-point FFT, Hann window, 75% overlap frame sampling, 24-band compatibility + 64-band log reference profile',
         targetDynamicFreq: spectrum.valid ? spectrum.harshPeakHz : estimateTargetFrequency(time.zeroCrossRate)
     };
 }
@@ -5537,7 +5545,7 @@ function getMasteringBatchRunner() {
         });
     } else {
         masteringBatchRunner = Object.freeze({
-            version: '1.6.113-bulk-pause-skip-reorder-summary-fallback',
+            version: '1.7.0-bulk-pause-skip-reorder-summary-fallback',
             cancelActiveBatch: () => false, pauseActiveBatch: () => false, resumeActiveBatch: () => false,
             skipCurrentTrack: () => false, movePendingTrack: () => false, getActiveBatchSnapshot: () => null,
             async runBatch(items, batchOptions = {}) {
@@ -5984,8 +5992,12 @@ async function masterTrack(track, calledFromBatch = false, options = {}) {
         }
         await setMasteringProgress(track, 65, '공진 감쇄, 톤 체인, 다이나믹 체인 렌더링 중');
         const albumProfile = getActiveAlbumProfile();
+        const effectiveMasterSettings = createAdaptiveMasteringDecisionForTrack(track, track.settings);
+        if (track.adaptiveDecisionInfo?.selectedLabel) {
+            await setMasteringProgress(track, 67, `Adaptive Decision · ${track.adaptiveDecisionInfo.selectedLabel} 후보 선택 (${track.adaptiveDecisionInfo.confidence || 0}% 신뢰)`);
+        }
         const stopRenderHeartbeat = startMasteringProgressHeartbeat(track, 79, '공진 감쇄 · 톤 · 다이나믹 체인 렌더링 중', { reason: 'master-chain-heartbeat', intervalMs: 280 });
-        try { masteredBuffer = await renderMasterBuffer(preparedBuffer, track.settings, track.preset, track.analysis, albumProfile); } finally { stopRenderHeartbeat(); }
+        try { masteredBuffer = await renderMasterBuffer(preparedBuffer, effectiveMasterSettings, track.preset, track.analysis, albumProfile); } finally { stopRenderHeartbeat(); }
         assertMasteringJobActive('master-render');
         await sanitizeAudioBufferCooperative(masteredBuffer, 'master-chain', { yieldFn: yieldToBrowser, throwIfCancelled: () => assertMasteringJobActive('master-chain-sanitize'), onProgress: progress => applyMappedMasteringProgress(track, masteringJobId, 79, 80, progress, '마스터 출력 안전 점검') });
         markPerformanceStage(track, '마스터 체인', { prepared: preparedBuffer, mastered: masteredBuffer });
@@ -8777,7 +8789,8 @@ function createMasterReport(track, beforeBuffer, finalBuffer, finalizeInfo, enco
     const shortTermBefore = measureShortTermLufsStats(beforeBuffer);
     const shortTermAfter = finalizeInfo?.shortTermLufs || measureShortTermLufsStats(finalBuffer);
     const qualityAudit = window.FoxBearMasteringQualityAudit?.compare?.(beforeBuffer, finalBuffer) || null, spatialBudget = track?.analysis?.spatialBudgetApplied || null, appliedProfile = track?.analysis?.sharedDspProfileApplied || null;
-    const recommendationApplication = { recommendedPreset: track?.recommendedPreset || '', appliedPreset: track?.preset || 'custom', genreLocked: Boolean(track?.genreLocked), confidence: Number(track?.confidence || 0), recommendedSettings: track?.recommendedSettings ? cloneSettings(track.recommendedSettings) : null, requestedSettings: track?.settings ? cloneSettings(track.settings) : null, effectiveSettings: appliedProfile?.effectiveSettings ? cloneSettings(appliedProfile.effectiveSettings) : null, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength };
+    const adaptiveDecision = track?.adaptiveDecisionInfo || null;
+    const recommendationApplication = { recommendedPreset: track?.recommendedPreset || '', appliedPreset: track?.preset || 'custom', genreLocked: Boolean(track?.genreLocked), confidence: Number(track?.confidence || 0), recommendedSettings: track?.recommendedSettings ? cloneSettings(track.recommendedSettings) : null, requestedSettings: track?.settings ? cloneSettings(track.settings) : null, effectiveSettings: appliedProfile?.effectiveSettings ? cloneSettings(appliedProfile.effectiveSettings) : null, adaptiveDecision: adaptiveDecision ? { version: adaptiveDecision.version || '', mode: adaptiveDecision.mode || '', selectedId: adaptiveDecision.selectedId || '', selectedLabel: adaptiveDecision.selectedLabel || '', confidence: Number(adaptiveDecision.confidence || 0), riskLoad: Number(adaptiveDecision.riskLoad || 0), reason: adaptiveDecision.reason || '', risks: adaptiveDecision.risks || null, candidates: Array.isArray(adaptiveDecision.candidates) ? adaptiveDecision.candidates.map(candidate => ({ id: candidate.id, label: candidate.label, score: Number(candidate.evaluation?.score || 0), totalPenalty: Number(candidate.evaluation?.totalPenalty || 0) })) : [] } : null, masterGoal: state.masterGoal, masterStyle: state.masterStyle, masterStrength: state.masterStrength };
     const truePeakAmplitude = Number(finalizeInfo?.peakAfter), truePeakDbTP = Number.isFinite(truePeakAmplitude) && truePeakAmplitude > 0 ? ampToDb(truePeakAmplitude) : NaN;
     return {
         before: { ...before, approxLufs: beforeLufs },
@@ -9472,7 +9485,10 @@ function makeReferenceTargetFromAnalysis(analysis) {
         spectralFlatness: Number(analysis.spectralFlatness || 0),
         spectrumBands: cloneSpectrumBands(analysis.spectrumBands),
         spectrumProfileVersion: 24,
-        spectrumProfile: normalizeReferenceSpectrumProfile(analysis.spectrumProfile, analysis)
+        spectrumProfile: normalizeReferenceSpectrumProfile(analysis.spectrumProfile, analysis),
+        spectrumProfile64Version: 64,
+        spectrumProfile64Source: 'analysis',
+        spectrumProfile64: normalizeReferenceSpectrumProfile64(analysis.spectrumProfile64, analysis)
     };
 }
 function getActiveReferenceTarget(preset) {
@@ -9480,12 +9496,14 @@ function getActiveReferenceTarget(preset) {
     const refTarget = state.referenceProfile?.status === 'ready' ? state.referenceProfile.target : null;
     if (!refTarget) {
         if (!presetTarget) return null;
-        return { ...presetTarget, spectrumProfileVersion: 24, spectrumProfile: makePresetSpectrumProfile24(presetTarget), spectrumBands: cloneSpectrumBands(presetTarget.spectrumBands || presetTarget) };
+        return { ...presetTarget, spectrumProfileVersion: 24, spectrumProfile: makePresetSpectrumProfile24(presetTarget), spectrumProfile64Version: 64, spectrumProfile64Source: 'preset', spectrumProfile64: makePresetSpectrumProfile64(presetTarget), spectrumBands: cloneSpectrumBands(presetTarget.spectrumBands || presetTarget) };
     }
-    if (!presetTarget) return { ...refTarget, spectrumProfileVersion: 24, spectrumProfile: normalizeReferenceSpectrumProfile(refTarget.spectrumProfile, refTarget) };
+    if (!presetTarget) return { ...refTarget, spectrumProfileVersion: 24, spectrumProfile: normalizeReferenceSpectrumProfile(refTarget.spectrumProfile, refTarget), spectrumProfile64Version: 64, spectrumProfile64Source: refTarget.spectrumProfile64Source || 'analysis', spectrumProfile64: normalizeReferenceSpectrumProfile64(refTarget.spectrumProfile64, refTarget) };
     const amount = getReferenceMatchStrengthAmount();
     const presetProfile = makePresetSpectrumProfile24(presetTarget);
     const refProfile = normalizeReferenceSpectrumProfile(refTarget.spectrumProfile, refTarget);
+    const presetProfile64 = makePresetSpectrumProfile64(presetTarget);
+    const refProfile64 = normalizeReferenceSpectrumProfile64(refTarget.spectrumProfile64, refTarget);
     return {
         bass: blend(presetTarget.bass, refTarget.bass, amount),
         lowMid: blend(presetTarget.lowMid, refTarget.lowMid, amount),
@@ -9500,13 +9518,41 @@ function getActiveReferenceTarget(preset) {
         spectralFlatness: refTarget.spectralFlatness,
         spectrumBands: cloneSpectrumBands(refTarget.spectrumBands),
         spectrumProfileVersion: 24,
-        spectrumProfile: presetProfile.map((value, index) => Number(blend(value, Number(refProfile[index] || 0), amount).toFixed(5)))
+        spectrumProfile: presetProfile.map((value, index) => Number(blend(value, Number(refProfile[index] || 0), amount).toFixed(5))),
+        spectrumProfile64Version: 64,
+        spectrumProfile64Source: 'blended-reference',
+        spectrumProfile64: presetProfile64.map((value, index) => Number(blend(value, Number(refProfile64[index] || 0), amount).toFixed(7)))
     };
 }
 function normalizeReferenceSpectrumProfile(profile, fallback = null) {
     if (Array.isArray(profile) && profile.length >= 24) return profile.slice(0, 24).map(value => clamp01(Number(value) || 0));
     if (Array.isArray(profile) && profile.length >= 12) return upsampleSpectrumProfile12To24(profile);
     return makePresetSpectrumProfile24(fallback || { bass: 0.25, lowMid: 0.25, mid: 0.28, high: 0.22, brightness: 0.50 });
+}
+
+function normalizeReferenceSpectrumProfile64(profile, fallback = null) {
+    const service = window.FoxBearReferenceProfileService;
+    if (Array.isArray(profile) && profile.length >= 8) {
+        if (service?.normalizeProfile) return service.normalizeProfile(profile, 64);
+        const input = profile.map(value => Math.max(0, Number(value) || 0));
+        const out = new Array(64).fill(0);
+        for (let i = 0; i < 64; i += 1) {
+            const pos = input.length === 1 ? 0 : i * (input.length - 1) / 63;
+            const left = Math.floor(pos);
+            const right = Math.min(input.length - 1, left + 1);
+            const mix = pos - left;
+            out[i] = input[left] * (1 - mix) + input[right] * mix;
+        }
+        const sum = out.reduce((total, value) => total + value, 0) || 1;
+        return out.map(value => Number((value / sum).toFixed(7)));
+    }
+    return makePresetSpectrumProfile64(fallback || { bass: 0.25, lowMid: 0.25, mid: 0.28, high: 0.22, brightness: 0.50 });
+}
+
+function makePresetSpectrumProfile64(target) {
+    const service = window.FoxBearReferenceProfileService;
+    if (service?.makeProfileFromBands) return service.makeProfileFromBands(target?.spectrumBands || target || {}, 64);
+    return normalizeReferenceSpectrumProfile64(makePresetSpectrumProfile24(target), null);
 }
 function upsampleSpectrumProfile12To24(profile) {
     const source = profile.slice(0, 12).map(value => clamp01(Number(value) || 0));
@@ -9550,6 +9596,39 @@ function sumSpectrumRange(profile, from, to) {
     return sum;
 }
 function getReferenceProfileBandDeltas(ref, analysis) {
+    const ref64 = normalizeReferenceSpectrumProfile64(ref?.spectrumProfile64, ref);
+    const now64 = normalizeReferenceSpectrumProfile64(analysis?.spectrumProfile64, analysis);
+    const bands64 = window.FoxBearReferenceProfileService?.createLogBands?.(64, 20, 20000) || [];
+    const highResolutionReference = ['analysis', 'blended-reference'].includes(String(ref?.spectrumProfile64Source || ''));
+    const highResolutionAnalysis = Array.isArray(analysis?.spectrumProfile64) && analysis.spectrumProfile64.length >= 32;
+    if (highResolutionReference && highResolutionAnalysis && ref64.length === 64 && now64.length === 64 && bands64.length === 64) {
+        const deltaHz = (fromHz, toHz, scale = 40) => {
+            let sum = 0;
+            let count = 0;
+            for (let i = 0; i < bands64.length; i += 1) {
+                const hz = Number(bands64[i]?.centerHz || 0);
+                if (hz < fromHz || hz >= toHz) continue;
+                sum += Number(ref64[i] || 0) - Number(now64[i] || 0);
+                count += 1;
+            }
+            return clamp(sum / Math.max(1, count) * scale, -0.55, 0.55);
+        };
+        const lowTilt = deltaHz(20, 500, 30);
+        const highTilt = deltaHz(4000, 20001, 30);
+        return {
+            sub: deltaHz(20, 60, 46),
+            bass: deltaHz(60, 180, 44),
+            mud: deltaHz(180, 420, 42),
+            body: deltaHz(420, 1200, 40),
+            vocal: deltaHz(1200, 2800, 38),
+            presence: deltaHz(2800, 5000, 36),
+            harsh: deltaHz(4000, 7100, 34),
+            sibilance: deltaHz(5600, 10000, 34),
+            air: deltaHz(10000, 20001, 38),
+            tilt: clamp(highTilt - lowTilt, -0.45, 0.45),
+            resolution: 64
+        };
+    }
     const refProfile = normalizeReferenceSpectrumProfile(ref?.spectrumProfile, ref);
     const nowProfile = normalizeReferenceSpectrumProfile(analysis?.spectrumProfile, analysis);
     const deltaRange = (from, to, scale = 18) => {
@@ -9571,7 +9650,8 @@ function getReferenceProfileBandDeltas(ref, analysis) {
         harsh: deltaRange(15, 17, 16),
         sibilance: deltaRange(17, 19, 16),
         air: deltaRange(20, 23, 18),
-        tilt: clamp((sumSpectrumRange(refProfile, 15, 23) - sumSpectrumRange(nowProfile, 15, 23)) - (sumSpectrumRange(refProfile, 0, 8) - sumSpectrumRange(nowProfile, 0, 8)), -0.45, 0.45)
+        tilt: clamp((sumSpectrumRange(refProfile, 15, 23) - sumSpectrumRange(nowProfile, 15, 23)) - (sumSpectrumRange(refProfile, 0, 8) - sumSpectrumRange(nowProfile, 0, 8)), -0.45, 0.45),
+        resolution: 24
     };
 }
 function cloneSpectrumBands(bands) {
@@ -9916,7 +9996,7 @@ function getMasteringPerformanceSnapshot() {
     }) : null;
     const selected = summarize(getSelectedTrack());
     const recent = state.tracks.filter(track => track?.performanceInfo?.totalMs).slice(-8).map(summarize).filter(Boolean);
-    return Object.freeze({ version: '1.6.113-kakao-adaptive-memory-governor', selected, recent });
+    return Object.freeze({ version: '1.7.0-kakao-adaptive-memory-governor', selected, recent });
 }
 function getHeaviestPerformanceStage(info) {
     if (!info || !Array.isArray(info.stages) || !info.stages.length) return null;
@@ -12982,7 +13062,7 @@ function createDoneReport(track) {
 }
 function createExportReport(track) {
     return {
-        app: 'FoxBear AI Mastering Studio Pro v1.6.113',
+        app: 'FoxBear AI Mastering Studio Pro v1.7.0',
         developer: '곰같은여우 (with AI)',
         youtube: 'https://www.youtube.com/@FoxBearMusic',
         originalFile: track.name,

@@ -1,12 +1,24 @@
-# Handoff - v1.6.113
+# Handoff - v1.7.0
 
 ## Current release
 
-- Product version: `1.6.113`
-- Build ID: `incident-finalizer-p1-hardening`
-- Asset version: `1.6.113-incident-finalizer-p1-hardening`
-- Service worker cache: `foxbear-shell-v1.6.113-incident-finalizer-p1-hardening`
-- Configured static/regression target: 470 checks.
+- Product version: `1.7.0`
+- Build ID: `adaptive-mastering-decision-phase1`
+- Asset version: `1.7.0-adaptive-mastering-decision-phase1`
+- Service worker cache: `foxbear-shell-v1.7.0-adaptive-mastering-decision-phase1`
+- Configured static/regression target: 472 checks.
+- Base release: v1.6.114.
+- Scope: Adaptive Mastering Decision phase 1; three candidate setting plans are risk-scored before a single render, while custom/original manual mastering remains untouched.
+
+# Handoff - v1.6.114
+
+## Current release
+
+- Product version: `1.6.114`
+- Build ID: `reference-profile-64band-upgrade`
+- Asset version: `1.6.114-reference-profile-64band-upgrade`
+- Service worker cache: `foxbear-shell-v1.6.114-reference-profile-64band-upgrade`
+- Configured static/regression target: 471 checks.
 - Base release: v1.6.111.
 - Scope: mastering cancellation/commit race hardening, analysis-preflight cancellation semantics, BFCache diagnostics recovery, and finalizer fallback lifecycle safety; normal mastering DSP unchanged.
 - Final configured QA: 469/469 PASS.

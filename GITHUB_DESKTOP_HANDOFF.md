@@ -1,4 +1,22 @@
-# GitHub Desktop Handoff - v1.6.113
+# GitHub Desktop Handoff - v1.7.0
+
+## Required apply sequence
+
+1. Fetch origin and confirm the repository is on the intended v1.6.114 base.
+2. Extract the v1.7.0 PATCH ZIP into the current repository root.
+3. Run `APPLY_PATCH_CLEANUP.cmd` once.
+4. Review Modified/New/Deleted files, commit, then Push origin.
+5. Use the FULL ZIP only for a clean replacement while preserving `.git`.
+
+## Release focus
+
+- Start FoxBear Mastering Engine 2.0 with a dedicated Adaptive Decision service.
+- Evaluate Preserve / Balanced / Assertive candidate settings before render.
+- Keep one-click performance by rendering only the selected candidate.
+- Preserve custom/original manual mastering without adaptive overrides.
+- Configured QA target: 472 checks.
+
+# GitHub Desktop Handoff - v1.6.114
 
 ## Required apply sequence
 

@@ -15,7 +15,7 @@ const app = read('src/app.js');
 const runtimeHealth = read('src/boot/runtime-health.js');
 const setup = read('FIREBASE_SETUP.md');
 
-assert(Number(pkg.version.split('.').join('')) >= 1647);
+{ const [major, minor, patch] = pkg.version.split('.').map(Number); assert(major > 1 || (major === 1 && (minor > 6 || (minor === 6 && patch >= 47)))); }
 assert(firebase.includes("const FIREBASE_SECURE_ADMIN_ORIGIN = 'https://foxbear-music.web.app';"));
 assert(firebase.includes("mode: isFirebaseHostingAdminOrigin() ? 'firebase-hosting' : 'external-popup'"));
 assert(firebase.includes('getSecureAdminLaunchUrl'));

@@ -1,3 +1,22 @@
+# v1.7.0 - Adaptive mastering decision engine phase 1
+
+- Add a dedicated Adaptive Mastering Decision service that builds Preserve / Balanced / Assertive mastering candidates from the current track analysis.
+- Score candidate settings against harshness, phase, low-end density, overall density, and transient overload risks before the expensive render stage.
+- Select one candidate for the normal single-render path so one-click mastering keeps its current performance profile instead of rendering three full masters.
+- Keep custom/original manual selection untouched; adaptive selection is applied only to AI/preset-driven mastering paths.
+- Store the selected candidate, confidence, risk load, candidate scores, and effective settings in the mastering report for future UI and A/B/C expansion.
+- Add `qa/v170_adaptive_mastering_decision_phase1_smoke.js`.
+- Verification target: **473 static/regression checks**.
+
+# v1.6.114 - Uploaded reference 64-band profile upgrade
+
+- Add a normalized 64-band logarithmic spectrum profile alongside the existing 24-band compatibility profile in the analysis Worker.
+- Use 64-band frequency-addressed deltas only when an uploaded reference and the current track both have native high-resolution analysis.
+- Preserve the existing 24-band behavior for preset-only and legacy analysis paths.
+- Fix same-size normalization in `reference-profile-service.js`.
+- Add `qa/v16114_reference_profile_64band_upgrade_smoke.js`.
+- Verification target: **471 static/regression checks**.
+
 # v1.6.113 - Incident server boundary and finalizer parity hardening
 
 - Close direct client creation of `incidentReports`; browser incident submission now stays on Callable / Hosting same-origin server paths so server admission control cannot be bypassed.

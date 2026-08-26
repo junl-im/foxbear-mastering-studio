@@ -8,7 +8,7 @@ const exists = rel => fs.existsSync(path.join(root, rel));
 const must = (condition, message) => { if (!condition) { console.error(`FAIL: ${message}`); process.exit(1); } };
 
 const pkg=JSON.parse(read('package.json')); const index=read('index.html'); const sw=read('sw.js'); const app=read('src/app.js'); const runtime=read('src/boot/runtime-health.js');
-must(pkg.version==='1.6.113','package version');
+must(pkg.version==='1.7.0','package version');
 must(!index.includes('spectrum-visualizer') && !sw.includes('spectrum-visualizer'),'spectrum assets must remain out of boot/cache graph');
 must(!app.includes('bottomPreviewSpectrum') && !app.includes('renderBottomMiniSpectrum') && !app.includes('renderSpectrumPanel'),'all spectrum UI renderers must remain removed');
 must(!runtime.includes('FoxBearSpectrumVisualizer'),'runtime health must not retain spectrum globals');

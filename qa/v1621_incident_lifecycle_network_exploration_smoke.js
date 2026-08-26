@@ -13,7 +13,7 @@ function load(relative, context) {
 }
 
 async function main() {
-    assert(/^1\.6\.\d+$/.test(pkg.version), 'current product version is invalid');
+    assert(/^1\.(?:6|[7-9]|[1-9]\d+)\.\d+$/.test(pkg.version), 'current product version is invalid');
     assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID is invalid');
 
     const store = new Map();

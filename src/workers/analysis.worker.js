@@ -20,7 +20,7 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }, job
     const time = measureTimeDomainFeatures(channelData, safeRate, totalSamples, usableChannels);
     postProgress(jobId, 28, '시간 영역 분석', '피크, RMS, 스테레오 상관도를 계산했습니다.');
     const spectrum = measureFftSpectrumFeatures(channelData, safeRate, totalSamples, usableChannels);
-    postProgress(jobId, 68, '주파수 분석', 'FFT와 24밴드 스펙트럼을 계산했습니다.');
+    postProgress(jobId, 68, '주파수 분석', 'FFT와 24/64밴드 스펙트럼을 계산했습니다.');
 
     const brightness = spectrum.valid ? clamp01(spectrum.brightness * 0.78 + time.brightness * 0.22) : time.brightness;
     const metallicHint = spectrum.valid ? clamp01(spectrum.metallicHint * 0.74 + time.metallicHint * 0.26) : time.metallicHint;
@@ -47,12 +47,12 @@ function analyze({ sampleRate, duration, channels, length, channelBuffers }, job
         zeroCrossRate: time.zeroCrossRate, bassRatio, lowMidRatio, midRatio, highRatio,
         transientDensity, lowMonoCorrelation: time.lowMonoCorrelation, lowSideRatio: time.lowSideRatio, lowMonoScore, lowMonoRisk, silence,
         spectralCentroidHz: spectrum.spectralCentroidHz, spectralRolloffHz: spectrum.spectralRolloffHz, spectralFlatness: spectrum.spectralFlatness,
-        spectralFlux: spectrum.spectralFlux, spectrumBands: spectrum.spectrumBands, spectrumProfile: spectrum.spectrumProfile,
+        spectralFlux: spectrum.spectralFlux, spectrumBands: spectrum.spectrumBands, spectrumProfile: spectrum.spectrumProfile, spectrumProfile64: spectrum.spectrumProfile64,
         subRatio: spectrum.spectrumBands?.sub || 0, presenceRatio: spectrum.spectrumBands?.presence || 0, airRatio: spectrum.spectrumBands?.air || 0,
         spatialExcessRisk, widthRecommendationLimit: spatialExcessRisk > 0.52 || lowMonoScore < 70 ? 52 : spatialExcessRisk > 0.28 ? 60 : 72,
         mobileSpeakerRisk: mobileSpeaker.risk, mobileSpeakerRiskLabel: mobileSpeaker.label,
         mobileSpeakerDetail: { boom: mobileSpeaker.boom, box: mobileSpeaker.box, honk: mobileSpeaker.honk, harsh: mobileSpeaker.harsh, density: mobileSpeaker.density },
-        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', analysisMethod: '4096-point FFT, Hann window, 75% overlap frame sampling, 24-band reference profile', targetDynamicFreq: estimatedTargetFreq
+        loudnessStandard: 'ITU-R BS.1770 K-weighting + EBU R128 gates', analysisMethod: '4096/8192-point FFT, Hann window, 75% overlap frame sampling, 24-band compatibility + 64-band log reference profile', targetDynamicFreq: estimatedTargetFreq
     };
 }
 
@@ -208,7 +208,8 @@ function measureFftSpectrumFeatures(channelData, sampleRate, totalSamples, chann
     const metallicHint = clamp01(bands.presence * 1.45 + bands.high * 0.95 + flatness * 0.32 + normalizeLogFrequency(harshPeakHz, 2800, 8200) * 0.12);
     const spectralFlux = clamp01((fluxSum / Math.max(1, fluxFrames)) * 9.5);
     const spectrumProfile = makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower);
-    return { valid: true, bassRatio, lowMidRatio, midRatio, highRatio, spectralCentroidHz: Math.round(centroid), spectralRolloffHz: Math.round(rolloff), spectralFlatness: Number(flatness.toFixed(4)), spectralFlux, brightness, metallicHint, spectrumBands: bands, spectrumProfile, harshPeakHz: Math.round(clamp(harshPeakHz, 2600, 8200)) };
+    const spectrumProfile64 = makeLogSpectrumProfile(avgPower, sampleRate, fftSize, totalPower, 64);
+    return { valid: true, bassRatio, lowMidRatio, midRatio, highRatio, spectralCentroidHz: Math.round(centroid), spectralRolloffHz: Math.round(rolloff), spectralFlatness: Number(flatness.toFixed(4)), spectralFlux, brightness, metallicHint, spectrumBands: bands, spectrumProfile, spectrumProfile64, harshPeakHz: Math.round(clamp(harshPeakHz, 2600, 8200)) };
 }
 
 function chooseFftSize(sampleRate, totalSamples) {
@@ -218,7 +219,7 @@ function chooseFftSize(sampleRate, totalSamples) {
 }
 
 function makeEmptySpectrumFeatures() {
-    return { valid: false, bassRatio: 0.25, lowMidRatio: 0.25, midRatio: 0.25, highRatio: 0.25, spectralCentroidHz: 0, spectralRolloffHz: 0, spectralFlatness: 0, spectralFlux: 0, brightness: 0.45, metallicHint: 0.35, spectrumBands: { sub: 0, bass: 0, lowMid: 0, mid: 0, presence: 0, high: 0, air: 0 }, spectrumProfile: [], harshPeakHz: 5200 };
+    return { valid: false, bassRatio: 0.25, lowMidRatio: 0.25, midRatio: 0.25, highRatio: 0.25, spectralCentroidHz: 0, spectralRolloffHz: 0, spectralFlatness: 0, spectralFlux: 0, brightness: 0.45, metallicHint: 0.35, spectrumBands: { sub: 0, bass: 0, lowMid: 0, mid: 0, presence: 0, high: 0, air: 0 }, spectrumProfile: [], spectrumProfile64: [], harshPeakHz: 5200 };
 }
 
 function makeHannWindow(size) {
@@ -304,6 +305,30 @@ function makeCompactSpectrumProfile(avgPower, sampleRate, fftSize, totalPower) {
         for (let bin = start; bin <= end; bin += 1) sum += avgPower[bin];
         return Number(clamp01(sum / denom).toFixed(5));
     });
+}
+
+function makeLogSpectrumProfile(avgPower, sampleRate, fftSize, totalPower, count = 64) {
+    const safeCount = Math.max(8, Math.min(128, Math.round(Number(count) || 64)));
+    const lowHz = 20;
+    const nyquist = Math.max(lowHz * 2, sampleRate * 0.5);
+    const highHz = Math.min(20000, nyquist);
+    const ratio = Math.pow(highHz / lowHz, 1 / safeCount);
+    const denom = Math.max(1e-12, totalPower);
+    const profile = [];
+    let from = lowHz;
+    for (let i = 0; i < safeCount; i += 1) {
+        const to = i === safeCount - 1 ? highHz : from * ratio;
+        let sum = 0;
+        const start = Math.max(1, Math.floor(from * fftSize / sampleRate));
+        const end = Math.min(avgPower.length - 1, Math.ceil(to * fftSize / sampleRate));
+        for (let bin = start; bin <= end; bin += 1) sum += avgPower[bin];
+        profile.push(Number(clamp01(sum / denom).toFixed(7)));
+        from = to;
+    }
+    const profileSum = profile.reduce((sum, value) => sum + value, 0);
+    return profileSum > 1e-12
+        ? profile.map(value => Number((value / profileSum).toFixed(7)))
+        : profile;
 }
 
 

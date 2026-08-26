@@ -19,7 +19,7 @@ const firebase = JSON.parse(read('firebase.json'));
 const gitignore = read('.gitignore');
 const hostingCheckSource = read('tools/check-hosting-payload.js');
 
-assert(Number(pkg.version.split('.').join('')) >= 1657);
+{ const [major, minor, patch] = pkg.version.split('.').map(Number); assert(major > 1 || (major === 1 && (minor > 6 || (minor === 6 && patch >= 57)))); }
 assert.strictEqual(firebase.hosting.public, 'dist/hosting');
 assert(firebase.hosting.predeploy.includes('npm run hosting:check'));
 assert.strictEqual(pkg.scripts['hosting:stage'], 'node tools/stage-hosting-payload.js');

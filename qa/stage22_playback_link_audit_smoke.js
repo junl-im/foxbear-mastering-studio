@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.6.113-incident-finalizer-p1-hardening';
+const version = '1.7.0-adaptive-mastering-decision-phase1';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');
