@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.1-reference-match-2-phase1';
+    const VERSION = '1.7.2-expert-workspace-default-entry';
 
     function createController(options = {}) {
         const state = options.state || {};

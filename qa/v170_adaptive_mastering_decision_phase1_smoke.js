@@ -26,7 +26,7 @@ assert(clean.riskLoad < stressed.riskLoad, 'clean material should have lower ris
 const app = fs.readFileSync('src/app.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 assert(!index.includes('adaptive-mastering-decision-service.js'), 'adaptive decision planning must not add another eager boot script');
-assert(index.includes('src/audio/mastering-orchestrator-service.js?v=1.7.1-reference-match-2-phase1'), 'mastering orchestrator must load in the main shell');
+assert(index.includes('src/audio/mastering-orchestrator-service.js?v=1.7.2-expert-workspace-default-entry'), 'mastering orchestrator must load in the main shell');
 assert(app.includes("track?.preset !== 'custom' && !track?.originalManualSelected"), 'custom/original manual mastering must bypass adaptive selection');
 assert(app.includes('createAdaptiveMasteringDecisionForTrack(track, track.settings)'), 'normal mastering render must request an adaptive decision');
 assert(app.includes('adaptiveDecision: adaptiveDecision ?'), 'master report must retain adaptive decision telemetry');

@@ -1,3 +1,13 @@
+# FoxBear QA Report - v1.7.2
+
+## v1.7.2 Expert workspace default first screen
+
+- Full Expert Studio workspace must be the immediate entry screen on PC and mobile.
+- Startup UI-mode chooser must remain hidden on normal entry and reload.
+- Manual `작업 방식` switching must remain available after entry.
+- Reload after using AI compact mode must return to Expert Studio.
+- Existing mastering, Reference Match 2.0, Adaptive Decision, Dock, and export contracts remain unchanged.
+
 # FoxBear QA Report - v1.7.1
 
 ## v1.7.1 Reference Match 2.0 phase 1

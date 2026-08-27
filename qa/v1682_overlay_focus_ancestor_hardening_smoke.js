@@ -9,7 +9,7 @@ const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const modalSource = fs.readFileSync('src/ui/modal-controller.js', 'utf8');
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.7.1');
+assert.strictEqual(pkg.version, '1.7.2');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID must remain valid kebab-case');
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1682_overlay_focus_ancestor_hardening_smoke.js'));
@@ -135,6 +135,7 @@ fakeWindow.sessionStorage = storage;
 vm.runInNewContext(serviceSource, { window: fakeWindow, console, Object, String, Boolean, Array, Map, Set });
 const controller = fakeWindow.FoxBearUiModeService.createController({ document: documentRef, sessionStorage: storage });
 controller.init();
+controller.openChooser({ required: false });
 const keydown = chooser.listeners.get('keydown')?.[0];
 assert(keydown, 'chooser keydown handler missing');
 documentRef.activeElement = ai;
@@ -143,4 +144,4 @@ keydown({ key: 'Tab', shiftKey: true, preventDefault() { prevented = true; } });
 assert.strictEqual(prevented, true);
 assert.strictEqual(documentRef.activeElement, close, 'shared focus order must skip hidden-ancestor controls');
 
-console.log('PASS v1.6.82 overlay focus filtering excludes tabindex=-1 and hidden/inert ancestor controls');
+console.log('PASS v1.7.2 optional mode overlay focus filtering excludes hidden/inert ancestor controls');

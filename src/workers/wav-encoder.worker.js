@@ -1,4 +1,4 @@
-// FoxBear WAV encoder worker v1.7.1 - progress-aware 16/24-bit PCM and 32-bit float WAV
+// FoxBear WAV encoder worker v1.7.2 - progress-aware 16/24-bit PCM and 32-bit float WAV
 'use strict';
 
 self.onmessage = event => {

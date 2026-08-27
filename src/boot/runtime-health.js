@@ -2,7 +2,7 @@
 (function attachFoxBearRuntimeHealth(global) {
     'use strict';
 
-    const FALLBACK_VERSION = '1.7.1-reference-match-2-phase1';
+    const FALLBACK_VERSION = '1.7.2-expert-workspace-default-entry';
     const RUNTIME_SCRIPT_URL = (() => {
         try {
             const current = document.currentScript?.src || '';

@@ -1,3 +1,11 @@
+# v1.7.2 - Expert workspace default first screen
+
+- Make the full Expert Studio workspace the unconditional first screen on PC and mobile.
+- Remove the required startup UI-mode chooser from normal entry and reload flows.
+- Keep the top `작업 방식` switch available so users can manually enter AI compact mode when desired.
+- Reset page entry to Expert mode even if AI mode was used earlier in the same tab/session.
+- Preserve all mastering, Reference Match 2.0, Adaptive Decision, Dock, and export behavior.
+
 # v1.7.1 - Reference Match 2.0 phase 1
 
 - Add a four-domain Reference Match 2.0 evaluator: Tonal, Dynamics, Stereo, and Character.

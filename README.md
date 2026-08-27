@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.7.2
+
+> Current release: v1.7.2 · expert-workspace-default-entry
+
+This release makes the full Expert Studio workspace the default first screen on both PC and mobile. The startup mode chooser no longer blocks entry; users can still switch to AI compact mode manually from the top `작업 방식` control. Reloads and fresh browsing sessions return to the full Expert Studio entry screen.
+
 # FoxBear AI Mastering Studio Pro v1.7.1
 
 > Current release: v1.7.1 · reference-match-2-phase1

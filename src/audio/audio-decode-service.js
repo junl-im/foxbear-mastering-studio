@@ -1,8 +1,8 @@
-// FoxBear audio decode service - v1.7.1
+// FoxBear audio decode service - v1.7.2
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.1-reference-match-2-phase1';
+    const SERVICE_VERSION = '1.7.2-expert-workspace-default-entry';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

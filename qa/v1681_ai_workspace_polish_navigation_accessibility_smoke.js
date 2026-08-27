@@ -10,7 +10,7 @@ const html = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('assets/css/ui-mode.css', 'utf8');
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.7.1');
+assert.strictEqual(pkg.version, '1.7.2');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID must remain valid kebab-case');
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1681_ai_workspace_polish_navigation_accessibility_smoke.js'));
@@ -109,13 +109,19 @@ vm.runInNewContext(serviceSource, { window: fakeWindow, console, Object, String,
 const service = fakeWindow.FoxBearUiModeService;
 const controller = service.createController({ document: documentRef, sessionStorage: storage });
 let snapshot = controller.init();
+assert.strictEqual(snapshot.chooserOpen, false);
+assert.strictEqual(snapshot.chooserRequired, false);
+assert.strictEqual(snapshot.overlayRegistered, false);
+assert.strictEqual(documentRef.appShell.inert, false, 'background shell must remain interactive on default Expert entry');
+controller.openChooser({ required: true });
+snapshot = controller.getSnapshot();
 assert.strictEqual(snapshot.chooserOpen, true);
 assert.strictEqual(snapshot.chooserRequired, true);
 assert.strictEqual(snapshot.overlayRegistered, true);
 assert.strictEqual(documentRef.appShell.inert, true, 'background shell must be inert while the chooser is open');
 const initialOpen = overlayCalls.find(call => call.open);
-assert(initialOpen, 'mode chooser must register with the shared overlay manager');
-assert.strictEqual(initialOpen.options.history, false, 'required first-entry chooser must not create a browser-back sentinel');
+assert(initialOpen, 'manually opened mode chooser must register with the shared overlay manager');
+assert.strictEqual(initialOpen.options.history, false, 'required chooser probe must not create a browser-back sentinel');
 
 const chooser = documentRef.getElementById('uiModeChooser');
 documentRef.activeElement = documentRef.getElementById('uiModeAiBtn');
@@ -126,8 +132,9 @@ keydown({ key: 'Tab', shiftKey: true, preventDefault() { prevented = true; } });
 assert.strictEqual(prevented, true);
 assert.strictEqual(documentRef.activeElement.id, 'uiModeExpertBtn', 'hidden required close button must not enter the focus loop');
 
-assert.strictEqual(controller.closeChooser(), false);
-assert.strictEqual(documentRef.appShell.inert, true);
+assert.strictEqual(controller.closeChooser(), true);
+assert.strictEqual(documentRef.appShell.inert, false);
+controller.openChooser({ required: true });
 assert.strictEqual(controller.select('ai'), true);
 assert.strictEqual(documentRef.appShell.inert, false);
 assert.strictEqual(documentRef.documentElement.getAttribute('data-ui-mode-pref'), 'ai');
@@ -149,4 +156,4 @@ assert.strictEqual(controller.select('expert'), true);
 assert.strictEqual(documentRef.documentElement.getAttribute('data-ui-mode-pref'), 'expert');
 assert.strictEqual(documentRef.body.dataset.uiMode, 'expert');
 
-console.log('PASS v1.6.81 AI workspace compact header, overlay history, focus filtering, and background inert safety');
+console.log('PASS v1.7.2 Expert default entry with optional mode overlay accessibility safety');

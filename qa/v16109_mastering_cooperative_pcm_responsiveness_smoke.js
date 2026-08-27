@@ -162,7 +162,7 @@ function assertBufferEqual(actual, expected, message) {
   assert.strictEqual(beforeReads, 24 * Math.min(2, countedBefore.numberOfChannels), 'waveform markers should reuse already sampled original overview instead of rescanning PCM');
   assert.strictEqual(afterReads, 24 * Math.min(2, countedAfter.numberOfChannels), 'waveform markers should reuse already sampled mastered overview instead of rescanning PCM');
 
-  assert(pkg.qaChecks.includes('node qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js') || pkg.version === '1.7.1', 'v1.7.1 QA must be registered before release');
+  assert(pkg.qaChecks.includes('node qa/v16109_mastering_cooperative_pcm_responsiveness_smoke.js') || pkg.version === '1.7.2', 'v1.7.2 QA must be registered before release');
   console.log('PASS v1.6.109 mastering cooperative PCM responsiveness smoke');
 })().catch(error => {
   console.error(error);

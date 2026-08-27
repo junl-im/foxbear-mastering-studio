@@ -1,12 +1,12 @@
-// FoxBear AI Mastering Studio Pro v1.7.1 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.7.2 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });
     const SESSION_KEY = 'foxbear-ui-mode-session-v1';
     const SESSION_CONTRACT = Object.freeze({
         storage: 'sessionStorage',
-        sameTabReload: 'restore',
-        freshBrowsingSession: 'require-choice',
+        sameTabReload: 'default-expert',
+        freshBrowsingSession: 'default-expert',
         manualSwitch: 'reopen'
     });
 
@@ -37,13 +37,11 @@
     }
 
     function readInitialModeState(storage) {
-        const session = safeReadSession(storage);
-        if (session) return Object.freeze({ mode: session, source: 'session' });
         const pending = safeReadPendingMode();
         if (pending) return Object.freeze({ mode: pending, source: 'pending' });
         const e2e = safeReadE2eMode();
         if (e2e) return Object.freeze({ mode: e2e, source: 'e2e' });
-        return Object.freeze({ mode: '', source: 'unselected' });
+        return Object.freeze({ mode: MODES.EXPERT, source: 'default-expert' });
     }
 
     function readInitialMode(storage) {
@@ -52,7 +50,7 @@
 
     function publishPrepaintMode() {
         const restored = readInitialMode(global.sessionStorage);
-        try { global.document?.documentElement?.setAttribute('data-ui-mode-pref', restored || 'unselected'); }
+        try { global.document?.documentElement?.setAttribute('data-ui-mode-pref', restored || MODES.EXPERT); }
         catch (error) {}
         return restored;
     }
@@ -154,6 +152,8 @@
         let pageshowBound = false;
         let overlayRegistered = false;
         let backgroundInertPrevious = null;
+        let initialSource = 'uninitialized';
+        let initialRestored = false;
 
         const get = key => documentRef?.getElementById?.(ids[key]) || null;
         const body = () => documentRef?.body || null;
@@ -369,7 +369,10 @@
         function init() {
             if (initialized) return getSnapshot();
             initialized = true;
-            const restored = readInitialMode(storage);
+            const initialState = readInitialModeState(storage);
+            const restored = initialState.mode;
+            initialSource = initialState.source;
+            initialRestored = initialState.source === 'session';
             const root = body();
             if (restored) {
                 apply(restored, { persist: false });
@@ -404,11 +407,11 @@
         }
 
         function getSnapshot() {
-            const initialState = readInitialModeState(storage);
+            const initialState = initialized ? null : readInitialModeState(storage);
             return Object.freeze({
                 mode, chooserOpen, chooserRequired, initialized, overlayRegistered,
-                restored: Boolean(initialState.mode),
-                restoredSource: initialState.source,
+                restored: initialized ? initialRestored : initialState.source === 'session',
+                restoredSource: initialized ? initialSource : initialState.source,
                 sessionContract: SESSION_CONTRACT
             });
         }

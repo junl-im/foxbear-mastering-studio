@@ -26,7 +26,7 @@ const orchestratorSource = read('src/audio/mastering-orchestrator-service.js');
 const hudSource = read('src/ui/bulk-import-hud-view.js');
 const css = read('assets/css/components/support-settings.css');
 
-assert.strictEqual(pkg.version, '1.7.1');
+assert.strictEqual(pkg.version, '1.7.2');
 assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pkg.foxbearRelease.buildId), 'release build ID must remain valid kebab-case');
 assert(pkg.scripts['deploy:incident'].includes('functions:retryOwnIncidentReport'));
 assert(functionsSource.includes('exports.retryOwnIncidentReport = onCall'));
@@ -50,12 +50,12 @@ const reporterSandbox = {
   location: { pathname: '/' }, innerWidth: 1280, innerHeight: 720,
   localStorage: { getItem: key => memory.get(key) || null, setItem: (key, value) => memory.set(key, String(value)) },
   document: {
-    body: { dataset: { build: '1.7.1' } }, visibilityState: 'visible',
+    body: { dataset: { build: '1.7.2' } }, visibilityState: 'visible',
     getElementById: () => null, addEventListener() {},
     createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.7.1', assetVersion: '1.7.1-reference-match-2-phase1' }
+  FoxBearBuildInfo: { productVersion: '1.7.2', assetVersion: '1.7.2-expert-workspace-default-entry' }
 };
 reporterSandbox.window = reporterSandbox;
 reporterSandbox.globalThis = reporterSandbox;

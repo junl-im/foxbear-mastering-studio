@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.7.1 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.7.2 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -114,7 +114,7 @@
         if (risks.transientRisk >= 0.28) reasons.push(`트랜지언트 과부하 ${Math.round(risks.transientRisk * 100)}%`);
         if (referenceMatch?.mismatch >= 0.18) reasons.push(`레퍼런스 차이 ${Math.round(referenceMatch.mismatch * 100)}%`);
         if (!reasons.length) reasons.push('특이 위험이 낮아 원본 성향을 우선 보존');
-        return Object.freeze({ version: '1.7.1-reference-aware-adaptive' , mode: 'single-render-candidate-selection', selectedId: selected.id, selectedLabel: selected.label, confidence, riskLoad: roundMetric(riskLoad), risks, referenceMatch, requestedSettings: baseSettings, effectiveSettings: selected.settings, candidates: Object.freeze(candidates), reason: `${selected.label} 선택 · ${reasons.slice(0, 3).join(' · ')}` });
+        return Object.freeze({ version: '1.7.2-reference-aware-adaptive' , mode: 'single-render-candidate-selection', selectedId: selected.id, selectedLabel: selected.label, confidence, riskLoad: roundMetric(riskLoad), risks, referenceMatch, requestedSettings: baseSettings, effectiveSettings: selected.settings, candidates: Object.freeze(candidates), reason: `${selected.label} 선택 · ${reasons.slice(0, 3).join(' · ')}` });
     }
 
     function normalizeRiskFlag(item = {}) {
@@ -237,7 +237,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.7.1-reference-match-2-phase1',
+            version: '1.7.2-expert-workspace-default-entry',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -602,7 +602,7 @@
         global.addEventListener?.('foxbear:ambient-health-change', handleAmbientHealthChange);
 
         return Object.freeze({
-            version: '1.7.1-performance-recovery-stage-hud',
+            version: '1.7.2-performance-recovery-stage-hud',
             runBatch,
             cancelActiveBatch,
             pauseActiveBatch,
@@ -615,7 +615,7 @@
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.7.1-reference-match-2-phase1',
+        version: '1.7.2-expert-workspace-default-entry',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createAdaptiveDecisionPlan,

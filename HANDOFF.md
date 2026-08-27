@@ -1,11 +1,11 @@
-# Handoff - v1.7.1
+# Handoff - v1.7.2
 
 ## Current release
 
-- Product version: `1.7.1`
-- Build ID: `reference-match-2-phase1`
-- Asset version: `1.7.1-reference-match-2-phase1`
-- Service worker cache: `foxbear-shell-v1.7.1-reference-match-2-phase1`
+- Product version: `1.7.2`
+- Build ID: `expert-workspace-default-entry`
+- Asset version: `1.7.2-expert-workspace-default-entry`
+- Service worker cache: `foxbear-shell-v1.7.2-expert-workspace-default-entry`
 - Configured static/regression target: 473 checks.
 - Base release: v1.6.114.
 - Scope: Adaptive Mastering Decision phase 1; three candidate setting plans are risk-scored before a single render, while custom/original manual mastering remains untouched.

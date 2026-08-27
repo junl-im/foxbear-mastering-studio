@@ -14,13 +14,12 @@ const runtimeSpec = fs.readFileSync('qa/browser/runtime-health-playwright.spec.j
 const retrySource = fs.readFileSync('qa/browser/retry-recovery-report.js', 'utf8');
 const deletePaths = fs.readFileSync('DELETE_PATHS.txt', 'utf8').split(/\r?\n/).map(value => value.trim()).filter(Boolean);
 
-assert.strictEqual(pkg.version, '1.7.1');
+assert.strictEqual(pkg.version, '1.7.2');
 assert(pkg.qaChecks.includes('node qa/v1685_browser_sentinel_ui_mode_header_recovery_smoke.js'));
 assert(serviceSource.includes('function safeReadE2eMode()'));
 assert(serviceSource.includes("global.__FOXBEAR_E2E__ !== true"));
 assert(serviceSource.includes('function readInitialModeState(storage)'));
-assert(serviceSource.includes("source: 'session'"));
-assert(serviceSource.indexOf('const session = safeReadSession(storage)') < serviceSource.indexOf('const pending = safeReadPendingMode()'));
+assert(serviceSource.includes("source: 'default-expert'"));
 assert(serviceSource.indexOf('const pending = safeReadPendingMode()') < serviceSource.indexOf('const e2e = safeReadE2eMode()')); 
 assert(helperSource.includes("document.documentElement?.getAttribute?.('data-ui-mode-pref')"));
 assert(helperSource.includes('bodyMode === expectedMode'));

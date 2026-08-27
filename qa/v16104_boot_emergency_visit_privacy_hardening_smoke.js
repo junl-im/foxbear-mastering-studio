@@ -10,7 +10,7 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const firebase = fs.readFileSync('src/firebase-bootstrap.js', 'utf8');
 const uiModeSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.7.1');
+assert.strictEqual(pkg.version, '1.7.2');
 assert(app.includes('releaseEmergencyUploadBlockers();\n        bindEmergencyUploadOnly();'), 'critical init recovery must release blocking UI before emergency upload binding');
 assert(app.includes("fileInput.dataset.nativeInputChangeBound !== 'true'"), 'file emergency binding must not duplicate the normal change handler');
 assert(app.includes("folderInput.dataset.nativeInputChangeBound !== 'true'"), 'folder emergency binding must not duplicate the normal change handler');
@@ -95,6 +95,8 @@ const fakeWindow = {
 vm.runInNewContext(uiModeSource, { window: fakeWindow, console, Object, String, Boolean, Array, Map, Set });
 const controller = fakeWindow.FoxBearUiModeService.createController({ document: documentRef, sessionStorage: storage });
 let snapshot = controller.init();
+controller.openChooser({ required: true });
+snapshot = controller.getSnapshot();
 const chooser = documentRef.getElementById('uiModeChooser');
 assert.strictEqual(snapshot.chooserOpen, true);
 assert.strictEqual(snapshot.chooserRequired, true);
@@ -112,4 +114,4 @@ assert.strictEqual(documentRef.appShell.inert, false, 'emergency release must re
 assert.strictEqual(documentRef.body.classList.contains('ui-mode-choice-open'), false, 'emergency release must unlock body scrolling');
 assert(overlayCalls.some(call => call.open === false && call.id === 'uiModeChooser'), 'emergency release must unregister the chooser overlay');
 
-console.log('PASS v1.6.104 boot emergency upload and visit privacy hardening');
+console.log('PASS v1.7.2 boot emergency recovery with expert-default entry');
