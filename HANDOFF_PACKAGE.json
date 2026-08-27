@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.7.0",
-  "buildId": "adaptive-mastering-decision-phase1",
+  "productVersion": "1.7.1",
+  "buildId": "reference-match-2-phase1",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

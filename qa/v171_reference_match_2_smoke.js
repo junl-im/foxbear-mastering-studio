@@ -1,0 +1,27 @@
+'use strict';
+const fs = require('fs');
+const vm = require('vm');
+function assert(condition, message) { if (!condition) throw new Error(message); }
+const context = { window: {} };
+vm.createContext(context);
+vm.runInContext(fs.readFileSync('src/audio/reference-profile-service.js', 'utf8'), context);
+vm.runInContext(fs.readFileSync('src/audio/mastering-orchestrator-service.js', 'utf8'), context);
+const ref = context.window.FoxBearReferenceProfileService;
+const orchestrator = context.window.FoxBearMasteringOrchestratorService;
+assert(ref?.buildReferenceMatch2, 'Reference Match 2 API missing');
+const target = { spectrumProfile64: Array.from({length:64}, (_,i)=> i < 20 ? 0.02 : 0.01), loudnessIntegrated:-14, crest:6, transientDensity:0.42, stereoWidth:0.42, lowMonoScore:94, spatialExcessRisk:0.08, brightness:0.5, metallicHint:0.32, spectralFlatness:0.18, spectralCentroidHz:3200 };
+const close = { ...target, spectrumProfile64:[...target.spectrumProfile64], loudnessIntegrated:-14.2, stereoWidth:0.41 };
+const far = { spectrumProfile64:Array.from({length:64}, (_,i)=> i > 42 ? 0.028 : 0.006), loudnessIntegrated:-8.5, crest:2.2, transientDensity:0.82, stereoWidth:0.78, lowMonoScore:58, spatialExcessRisk:0.65, brightness:0.82, metallicHint:0.76, spectralFlatness:0.48, spectralCentroidHz:7200 };
+const closeMatch = ref.buildReferenceMatch2(close, target);
+const farMatch = ref.buildReferenceMatch2(far, target);
+assert(closeMatch.score > farMatch.score, 'closer reference should score higher');
+assert(['tonal','dynamics','stereo','character'].every(key => Number.isFinite(farMatch[key].score)), 'component scores missing');
+assert(Object.keys(farMatch.tonal.regions).length >= 9, 'tonal regions missing');
+const base = { clarity:55,warmth:55,width:40,stereoGroove:8,analogGroove:6,dynamicPunch:40,metallicRemoval:42,intensity:100 };
+const analysis = { brightness:0.46, metallicHint:0.35, stereoWidth:0.36, lowMonoScore:95, spatialExcessRisk:0.04, mobileSpeakerRisk:0.06, bassRatio:0.25, lowMidRatio:0.24, highRatio:0.22, transientDensity:0.38, crest:6, loudnessIntegrated:-17 };
+const noRef = orchestrator.createAdaptiveDecisionPlan({ settings:base, analysis });
+const withRef = orchestrator.createAdaptiveDecisionPlan({ settings:base, analysis, referenceMatch:farMatch });
+assert(withRef.referenceMatch?.version === '2.0-reference-match', 'reference match should be preserved in adaptive plan');
+assert(withRef.candidates.some(c => c.evaluation.referenceBenefit > 0), 'reference mismatch should influence candidate evaluation');
+assert(noRef.candidates.every(c => c.evaluation.referenceBenefit === 0), 'no-reference path must remain unchanged');
+console.log('PASS v1.7.1 Reference Match 2.0 smoke');

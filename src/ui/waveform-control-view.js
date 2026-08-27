@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.0-adaptive-mastering-decision-phase1';
+  const VIEW_VERSION = '1.7.1-reference-match-2-phase1';
   const DEFAULT_BINS = 96;
 
   function getService() {

@@ -1,4 +1,4 @@
-// FoxBear incident support utilities and privacy-safe transport metrics - v1.7.0
+// FoxBear incident support utilities and privacy-safe transport metrics - v1.7.1
 (function attachFoxBearIncidentSupport(global) {
     'use strict';
 
@@ -209,7 +209,7 @@
     }
 
     global.FoxBearIncidentSupport = Object.freeze({
-        version: '1.7.0',
+        version: '1.7.1',
         cleanText,
         storageGet,
         storageSet,

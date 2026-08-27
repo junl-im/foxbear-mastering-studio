@@ -1,4 +1,4 @@
-// FoxBear mastering orchestrator service v1.7.0 - batch flow and risk-specific one-shot quality recovery planning
+// FoxBear mastering orchestrator service v1.7.1 - batch flow and risk-specific one-shot quality recovery planning
 'use strict';
 
 (function attachFoxBearMasteringOrchestratorService(global) {
@@ -74,7 +74,7 @@
         };
     }
 
-    function buildAdaptiveCandidate(id, label, base, risks, scale) {
+    function buildAdaptiveCandidate(id, label, base, risks, scale, referenceMatch = null) {
         const delta = deriveAdaptiveDelta(risks, scale);
         const settings = normalizeSettings(Object.fromEntries(Object.keys(base).map(key => [key, Number(base[key]) + toFinite(delta[key], 0)])));
         const clarityDrive = Math.max(0, settings.clarity - 58) / 42, widthDrive = Math.max(0, settings.width - 48) / 52;
@@ -92,13 +92,17 @@
         const usefulDrive = clamp01((settings.intensity - 72) / 80) * 0.34 + clamp01(settings.dynamicPunch / 100) * 0.15 + clamp01(settings.clarity / 100) * 0.1;
         const guard = protection * risks.harsh * 0.18 + clamp01((58 - settings.width) / 58) * risks.phase * 0.12;
         const personalityBias = id === 'preserve' ? 0.1 - usefulDrive * 0.04 : id === 'assertive' ? usefulDrive * 0.12 : 0.08;
-        const score = Math.round(clamp(92 + personalityBias * 20 + guard * 16 - totalPenalty * 29, 0, 100));
-        return Object.freeze({ id, label, settings, delta: Object.freeze(Object.fromEntries(Object.entries(delta).map(([key, value]) => [key, roundMetric(value, 2)]))), evaluation: Object.freeze({ score, totalPenalty: roundMetric(totalPenalty), penalties: Object.freeze(Object.fromEntries(Object.entries(penalties).map(([key, value]) => [key, roundMetric(value)]))) }) });
+        const referenceMismatch = clamp01(toFinite(referenceMatch?.mismatch, 0));
+        const referenceOpportunity = referenceMismatch * (id === 'assertive' ? 0.18 : id === 'balanced' ? 0.11 : 0.03);
+        const referenceSafety = clamp01(1 - (risks.harsh + risks.phase + risks.lowEnd + risks.density) / 3.2);
+        const referenceBenefit = referenceOpportunity * (0.35 + referenceSafety * 0.65);
+        const score = Math.round(clamp(92 + personalityBias * 20 + guard * 16 + referenceBenefit * 22 - totalPenalty * 29, 0, 100));
+        return Object.freeze({ id, label, settings, delta: Object.freeze(Object.fromEntries(Object.entries(delta).map(([key, value]) => [key, roundMetric(value, 2)]))), evaluation: Object.freeze({ score, totalPenalty: roundMetric(totalPenalty), referenceBenefit: roundMetric(referenceBenefit), penalties: Object.freeze(Object.fromEntries(Object.entries(penalties).map(([key, value]) => [key, roundMetric(value)]))) }) });
     }
 
     function createAdaptiveDecisionPlan(input = {}) {
-        const baseSettings = normalizeSettings(input.settings || {}), risks = extractAdaptiveRisks(input.analysis || {});
-        const candidates = [buildAdaptiveCandidate('preserve', 'Preserve', baseSettings, risks, 0.72), buildAdaptiveCandidate('balanced', 'Balanced', baseSettings, risks, 1), buildAdaptiveCandidate('assertive', 'Assertive', baseSettings, risks, 1.24)];
+        const baseSettings = normalizeSettings(input.settings || {}), risks = extractAdaptiveRisks(input.analysis || {}), referenceMatch = input.referenceMatch || null;
+        const candidates = [buildAdaptiveCandidate('preserve', 'Preserve', baseSettings, risks, 0.72, referenceMatch), buildAdaptiveCandidate('balanced', 'Balanced', baseSettings, risks, 1, referenceMatch), buildAdaptiveCandidate('assertive', 'Assertive', baseSettings, risks, 1.24, referenceMatch)];
         const riskLoad = clamp01((risks.harsh + risks.phase + risks.lowEnd + risks.density + risks.transientRisk) / 3.2);
         const ranked = [...candidates].sort((a, b) => Math.abs(b.evaluation.score - a.evaluation.score) >= 2 ? b.evaluation.score - a.evaluation.score : riskLoad >= 0.42 ? (a.id === 'preserve' ? -1 : b.id === 'preserve' ? 1 : 0) : (a.id === 'balanced' ? -1 : b.id === 'balanced' ? 1 : 0));
         const selected = ranked[0], confidence = clamp(Math.round(58 + Math.max(0, selected.evaluation.score - (ranked[1]?.evaluation.score || 0)) * 4 + (1 - riskLoad) * 18), 52, 96);
@@ -108,8 +112,9 @@
         if (risks.lowEnd >= 0.26) reasons.push(`저역 밀집 위험 ${Math.round(risks.lowEnd * 100)}%`);
         if (risks.density >= 0.25) reasons.push(`과밀/고음압 위험 ${Math.round(risks.density * 100)}%`);
         if (risks.transientRisk >= 0.28) reasons.push(`트랜지언트 과부하 ${Math.round(risks.transientRisk * 100)}%`);
+        if (referenceMatch?.mismatch >= 0.18) reasons.push(`레퍼런스 차이 ${Math.round(referenceMatch.mismatch * 100)}%`);
         if (!reasons.length) reasons.push('특이 위험이 낮아 원본 성향을 우선 보존');
-        return Object.freeze({ version: '1.7.0-adaptive-decision-phase1', mode: 'single-render-candidate-selection', selectedId: selected.id, selectedLabel: selected.label, confidence, riskLoad: roundMetric(riskLoad), risks, requestedSettings: baseSettings, effectiveSettings: selected.settings, candidates: Object.freeze(candidates), reason: `${selected.label} 선택 · ${reasons.slice(0, 3).join(' · ')}` });
+        return Object.freeze({ version: '1.7.1-reference-aware-adaptive' , mode: 'single-render-candidate-selection', selectedId: selected.id, selectedLabel: selected.label, confidence, riskLoad: roundMetric(riskLoad), risks, referenceMatch, requestedSettings: baseSettings, effectiveSettings: selected.settings, candidates: Object.freeze(candidates), reason: `${selected.label} 선택 · ${reasons.slice(0, 3).join(' · ')}` });
     }
 
     function normalizeRiskFlag(item = {}) {
@@ -232,7 +237,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.7.0-adaptive-mastering-decision-phase1',
+            version: '1.7.1-reference-match-2-phase1',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -597,7 +602,7 @@
         global.addEventListener?.('foxbear:ambient-health-change', handleAmbientHealthChange);
 
         return Object.freeze({
-            version: '1.7.0-performance-recovery-stage-hud',
+            version: '1.7.1-performance-recovery-stage-hud',
             runBatch,
             cancelActiveBatch,
             pauseActiveBatch,
@@ -610,7 +615,7 @@
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.7.0-adaptive-mastering-decision-phase1',
+        version: '1.7.1-reference-match-2-phase1',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createAdaptiveDecisionPlan,

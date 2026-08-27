@@ -1,3 +1,14 @@
+# FoxBear QA Report - v1.7.1
+
+## v1.7.1 Reference Match 2.0 phase 1
+
+- Static and behavioral target: **473 checks**.
+- New regression: `qa/v171_reference_match_2_smoke.js`.
+- Closer references must score higher than strongly mismatched references.
+- Tonal, Dynamics, Stereo, and Character domain scores must all be finite and independently exposed.
+- Reference mismatch may influence Adaptive candidate ranking, while the no-reference path retains zero reference benefit.
+- Custom/original manual mastering remains outside Adaptive auto-selection.
+
 # FoxBear QA Report - v1.7.0
 
 ## v1.7.0 Adaptive mastering decision engine phase 1

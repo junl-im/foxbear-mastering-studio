@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.7.0-adaptive-mastering-decision-phase1';
+const version = '1.7.1-reference-match-2-phase1';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

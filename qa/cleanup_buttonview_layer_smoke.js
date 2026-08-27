@@ -11,9 +11,9 @@ function must(condition, message) {
     process.exit(1);
   }
 }
-must(pkg.version === '1.7.0', 'package version should be 1.7.0');
-must(html.includes('data-build="1.7.0"'), 'index build should be 1.7.0');
-must(app.includes("const APP_VERSION = 'Pro v1.7.0'"), 'app version should be Pro v1.7.0');
+must(pkg.version === '1.7.1', 'package version should be 1.7.1');
+must(html.includes('data-build="1.7.1"'), 'index build should be 1.7.1');
+must(app.includes("const APP_VERSION = 'Pro v1.7.1'"), 'app version should be Pro v1.7.1');
 must(/const SHARED_DSP_PROFILE_VERSION = 'v[0-9]+\.[0-9]+\.[0-9]+-[a-z0-9-]+';/.test(app), 'DSP slug should be v1.4.0');
 must(!fs.readdirSync(root).some(name => /^PATCH_NOTES_v.*\.md$/.test(name)), 'individual PATCH_NOTES files should be removed');
 must(fs.existsSync(path.join(root, 'PROJECT_NOTES.md')), 'PROJECT_NOTES.md should exist');

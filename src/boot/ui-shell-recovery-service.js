@@ -1,8 +1,8 @@
-// FoxBear UI shell recovery v1.7.0 - replacement-aware resource retry settlement
+// FoxBear UI shell recovery v1.7.1 - replacement-aware resource retry settlement
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.0-adaptive-mastering-decision-phase1';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.1-reference-match-2-phase1';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

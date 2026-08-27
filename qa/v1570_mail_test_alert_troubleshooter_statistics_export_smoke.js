@@ -15,8 +15,8 @@ const cssSource = read('assets/css/components/admin-incident-monitor.css');
 const indexes = read('firestore.indexes.json');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.70_MAIL_TEST_ALERT_TROUBLESHOOTING_STATISTICS_EXPORT.md');
-assert.strictEqual(pkg.version, '1.7.0');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.0-adaptive-mastering-decision-phase1');
+assert.strictEqual(pkg.version, '1.7.1');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.1-reference-match-2-phase1');
 for (const token of [
   'MAIL_RECEIPT_OVERDUE_MS', 'MAIL_TEST_HISTORY_SCAN_LIMIT', 'inspectMailTestVerification(',
   "code: 'mail-test-never-run'", "code: 'mail-test-verification-stale'", "code: 'mail-receipt-unconfirmed'",

@@ -1,8 +1,8 @@
-// FoxBear export guard service v1.7.0 - ZIP filename collision preflight and STORE-only packaging
+// FoxBear export guard service v1.7.1 - ZIP filename collision preflight and STORE-only packaging
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.7.0-adaptive-mastering-decision-phase1';
+    const VERSION = 'v1.7.1-reference-match-2-phase1';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

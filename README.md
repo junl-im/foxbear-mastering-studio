@@ -1,3 +1,9 @@
+# FoxBear AI Mastering Studio Pro v1.7.1
+
+> Current release: v1.7.1 · reference-match-2-phase1
+
+This release adds Reference Match 2.0 phase 1. Uploaded references are compared across Tonal, Dynamics, Stereo, and Character domains, producing a 0-100 Match Score and reference-aware Adaptive candidate evaluation while retaining the single-render workflow and manual mastering safety boundaries.
+
 # FoxBear AI Mastering Studio Pro v1.7.0
 
 > Current release: v1.7.0 · adaptive-mastering-decision-phase1

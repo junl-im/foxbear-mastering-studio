@@ -1,3 +1,13 @@
+# v1.7.1 - Reference Match 2.0 phase 1
+
+- Add a four-domain Reference Match 2.0 evaluator: Tonal, Dynamics, Stereo, and Character.
+- Produce a 0-100 reference match score, per-domain scores, 64-band tonal-region deltas, and confidence metadata.
+- Extend uploaded reference targets with crest, integrated loudness, low-frequency mono safety, and spatial-risk metrics.
+- Feed reference mismatch into the Adaptive Decision candidate scorer so larger safe mismatches can favor stronger matching while high-risk material remains protected.
+- Preserve the no-reference and custom/original manual mastering paths.
+- Add `qa/v171_reference_match_2_smoke.js`.
+- Verification target: **473 static/regression checks**.
+
 # v1.7.0 - Adaptive mastering decision engine phase 1
 
 - Add a dedicated Adaptive Mastering Decision service that builds Preserve / Balanced / Assertive mastering candidates from the current track analysis.
