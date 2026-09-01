@@ -41,7 +41,7 @@ assert(swSource.includes('CLIENT_SHELL_PROBE_RETRY_MS'), 'surviving client retry
   const cacheNames = new Set([
     cacheName,
     'foxbear-shell-v1.6.37-ui-shell-cross-generation-recovery',
-    'foxbear-shell-v1.7.2-expert-workspace-default-entry'
+    'foxbear-shell-v1.7.4-reload-reentry-mode-chooser'
   ]);
   const sandbox = {
     console, URL, Date, Math, Object, Array, String, Number, Boolean, Set, Map, Promise,

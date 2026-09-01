@@ -256,7 +256,7 @@ test.describe('FoxBear browser runtime health', () => {
     expect(pageErrors, `pageErrors · ${JSON.stringify(pageErrors)}`).toEqual([]);
     expect(consoleErrors, `consoleErrors · ${JSON.stringify(consoleErrors)}`).toEqual([]);
   });
-  test('defaults to expert on entry and reload, while manual switching remains available', async ({ browser, page }) => {
+  test('starts in expert on first entry and shows chooser on reload/re-entry', async ({ browser, page }) => {
     const prepareSessionProbe = async targetPage => {
       await installOptionalRemoteMocks(targetPage);
       await targetPage.addInitScript(() => {
@@ -273,7 +273,8 @@ test.describe('FoxBear browser runtime health', () => {
     await expect(page.locator('#uiModeChooser')).toBeHidden();
     const entrySnapshot = await page.evaluate(() => window.FoxBearUiModeController?.getSnapshot?.() || null);
     expect(entrySnapshot?.restoredSource).toBe('default-expert');
-    expect(entrySnapshot?.sessionContract?.sameTabReload).toBe('default-expert');
+    expect(entrySnapshot?.sessionContract?.sameTabReload).toBe('show-chooser');
+    expect(entrySnapshot?.sessionContract?.sameUrlReentry).toBe('show-chooser');
 
     await page.locator('#uiModeSwitchBtn').click();
     await expect(page.locator('#uiModeChooser')).toBeVisible();
@@ -285,7 +286,16 @@ test.describe('FoxBear browser runtime health', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await expectRuntimeHealthy(expect, page);
     await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'expert');
+    await expect(page.locator('#uiModeChooser')).toBeVisible();
+    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
+    await page.locator('#uiModeChooserClose').click();
     await expect(page.locator('#uiModeChooser')).toBeHidden();
+
+    await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
+    await expectRuntimeHealthy(expect, page);
+    await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'expert');
+    await expect(page.locator('#uiModeChooser')).toBeVisible();
+    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
 
     const freshContext = await browser.newContext();
     try {

@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.2-expert-workspace-default-entry';
+    const VERSION = '1.7.4-reload-reentry-mode-chooser';
 
     function createController(options = {}) {
         const state = options.state || {};

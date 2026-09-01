@@ -1,9 +1,9 @@
-// FoxBear performance diagnostics - v1.7.2
+// FoxBear performance diagnostics - v1.7.4
 // Hidden by default. Open from Settings, with ?perf=1, or Ctrl/Command+Alt+P.
 (function attachFoxBearPerformanceDiagnostics(global) {
     'use strict';
 
-    const DIAGNOSTICS_VERSION = '1.7.2-expert-workspace-default-entry';
+    const DIAGNOSTICS_VERSION = '1.7.4-reload-reentry-mode-chooser';
     const STORAGE_KEY = 'foxbear-perf-diagnostics';
     const TOGGLE_EVENT = 'foxbear:performance-diagnostics-toggle';
     const SNAPSHOT_EVENT = 'foxbear:performance-diagnostics-snapshot';

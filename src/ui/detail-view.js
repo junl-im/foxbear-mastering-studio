@@ -66,6 +66,7 @@ function renderDetail(options = {}, deps = {}) {
 
     if (isOpen) {
         renderAiMasteringCard(track);
+        renderReferenceMatchInspector(track, deps);
         renderMasterComparisonPanel(track);
         renderABStudioPanel(track);
         renderWaveformPanel(track);
@@ -337,6 +338,30 @@ function renderAiMasteringCardView(track, deps = {}) {
 
     panel.append(head, summary, grid, reason, candidates, risk, actions);
     el.trackDetail.appendChild(panel);
+}
+
+
+function renderReferenceMatchInspector(track, deps = {}) {
+    const { state, el } = deps;
+    const match = track?.referenceMatch2;
+    if (state?.referenceProfile?.status !== 'ready' || !match) return;
+    const panel = document.createElement('section'); panel.className = 'reference-match-inspector'; panel.setAttribute('aria-label', 'Reference Match Inspector');
+    const head = document.createElement('div'); head.className = 'reference-match-head';
+    const copy = document.createElement('div'), kicker = document.createElement('span'), title = document.createElement('strong'), desc = document.createElement('small');
+    kicker.className = 'reference-match-kicker'; kicker.textContent = 'REFERENCE MATCH 2.0'; title.textContent = '레퍼런스 매칭 분석'; desc.textContent = `${state.referenceProfile.name || '레퍼런스'} 기준 · 신뢰 ${Math.round(Number(match.confidence) || 0)}%`; copy.append(kicker,title,desc);
+    const score = document.createElement('div'); score.className = `reference-match-score ${match.score >= 85 ? 'excellent' : match.score >= 70 ? 'good' : 'needs-work'}`;
+    const scoreValue=document.createElement('b'), scoreUnit=document.createElement('span'); scoreValue.textContent=String(Math.round(Number(match.score)||0)); scoreUnit.textContent='/ 100'; score.append(scoreValue,scoreUnit); head.append(copy,score);
+    const metricGrid=document.createElement('div'); metricGrid.className='reference-match-metrics';
+    [['Tonal',match.tonal?.score],['Dynamics',match.dynamics?.score],['Stereo',match.stereo?.score],['Character',match.character?.score]].forEach(([label,value])=>{ const item=document.createElement('div'),name=document.createElement('span'),val=document.createElement('b'); item.className='reference-match-metric'; name.textContent=label; val.textContent=String(Math.round(Number(value)||0)); item.append(name,val); metricGrid.appendChild(item); });
+    const labels={sub:'Sub 20–60Hz',bass:'Bass 60–180Hz',mud:'Mud 180–420Hz',body:'Body 420Hz–1.2k',vocal:'Vocal 1.2–2.8k',presence:'Presence 2.8–5k',harsh:'Harsh 4–7.1k',sibilance:'Sibilance 5.6–10k',air:'Air 10–20k'};
+    const differences=[]; Object.entries(match.tonal?.regions||{}).forEach(([key,value])=>{ const n=Number(value)||0; differences.push({label:labels[key]||key,amount:n,weight:Math.abs(n)}); });
+    const dyn=match.dynamics?.delta||{}, stereo=match.stereo?.delta||{}, character=match.character?.delta||{};
+    [['Loudness',dyn.loudness,.8],['Crest / Punch',dyn.crest,.65],['Stereo Width',stereo.width,.7],['Brightness',character.brightness,.65]].forEach(([label,value,mult])=>{ const n=Number(value); if(Number.isFinite(n)) differences.push({label,amount:n,weight:Math.abs(n)*mult}); });
+    const diffWrap=document.createElement('div'); diffWrap.className='reference-match-differences'; const diffTitle=document.createElement('span'); diffTitle.textContent='가장 큰 차이'; const diffList=document.createElement('div'); diffList.className='reference-match-difference-list';
+    differences.sort((a,b)=>b.weight-a.weight).slice(0,3).forEach(item=>{ const chip=document.createElement('em'); chip.className=item.amount>=0?'reference-diff-up':'reference-diff-down'; chip.textContent=`${item.label} · ${item.amount>=0?'보강':'절제'} ${Math.max(1,Math.round(Math.abs(item.amount)*100))}%`; diffList.appendChild(chip); });
+    if(!diffList.childNodes.length){ const chip=document.createElement('em'); chip.textContent='레퍼런스와 큰 차이가 없습니다'; diffList.appendChild(chip); } diffWrap.append(diffTitle,diffList);
+    const decision=document.createElement('div'); decision.className='reference-match-decision'; const dl=document.createElement('span'),dv=document.createElement('b'); dl.textContent='Adaptive 선택'; const adaptive=track.adaptiveDecisionInfo; dv.textContent=adaptive?.selectedLabel?`${adaptive.selectedLabel} · 신뢰 ${Math.round(Number(adaptive.confidence)||0)}%`:'다음 마스터링에서 자동 평가'; decision.append(dl,dv);
+    panel.append(head,metricGrid,diffWrap,decision); el.trackDetail.appendChild(panel);
 }
 
 function makeAiMasteringMetric(label, value, tone = 'neutral') {

@@ -1,4 +1,4 @@
-// FoxBear Modal State Machine Controller v1.7.2
+// FoxBear Modal State Machine Controller v1.7.4
 'use strict';
 
 (function exposeFoxBearModalStateMachine(global) {
@@ -140,7 +140,7 @@
     function getHistoryDiagnostics() {
         prunePendingHistoryReleaseGenerations();
         return Object.freeze({
-            version: '1.7.2-expert-workspace-default-entry',
+            version: '1.7.4-reload-reentry-mode-chooser',
             sentinelActive: historySentinelActive,
             sentinelGeneration: historySentinelGeneration,
             releaseInFlight: historyReleaseInFlight,

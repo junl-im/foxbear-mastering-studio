@@ -1,11 +1,13 @@
-// FoxBear AI Mastering Studio Pro v1.7.2 - AI mastering / expert workspace mode controller
+// FoxBear AI Mastering Studio Pro v1.7.4 - AI mastering / expert workspace mode controller
 'use strict';
 (function exposeFoxBearUiModeService(global) {
     const MODES = Object.freeze({ AI: 'ai', EXPERT: 'expert' });
     const SESSION_KEY = 'foxbear-ui-mode-session-v1';
+    const ENTRY_KEY = 'foxbear-ui-mode-entry-v1';
     const SESSION_CONTRACT = Object.freeze({
         storage: 'sessionStorage',
-        sameTabReload: 'default-expert',
+        sameTabReload: 'show-chooser',
+        sameUrlReentry: 'show-chooser',
         freshBrowsingSession: 'default-expert',
         manualSwitch: 'reopen'
     });
@@ -25,6 +27,18 @@
         if (!storage || typeof storage.setItem !== 'function') return false;
         try { storage.setItem(SESSION_KEY, normalizeMode(mode)); return true; }
         catch (error) { return false; }
+    }
+
+
+    function consumeEntryState(storage) {
+        if (!storage || typeof storage.getItem !== 'function' || typeof storage.setItem !== 'function') return Object.freeze({ revisit: false, marked: false });
+        try {
+            const revisit = storage.getItem(ENTRY_KEY) === '1';
+            storage.setItem(ENTRY_KEY, '1');
+            return Object.freeze({ revisit, marked: true });
+        } catch (error) {
+            return Object.freeze({ revisit: false, marked: false });
+        }
     }
 
     function safeReadE2eMode() {
@@ -154,6 +168,7 @@
         let backgroundInertPrevious = null;
         let initialSource = 'uninitialized';
         let initialRestored = false;
+        let initialRevisit = false;
 
         const get = key => documentRef?.getElementById?.(ids[key]) || null;
         const body = () => documentRef?.body || null;
@@ -370,9 +385,11 @@
             if (initialized) return getSnapshot();
             initialized = true;
             const initialState = readInitialModeState(storage);
+            const entryState = consumeEntryState(storage);
             const restored = initialState.mode;
             initialSource = initialState.source;
             initialRestored = initialState.source === 'session';
+            initialRevisit = Boolean(entryState.revisit && initialState.source === 'default-expert');
             const root = body();
             if (restored) {
                 apply(restored, { persist: false });
@@ -402,6 +419,10 @@
                 const raf = global.requestAnimationFrame || (callback => global.setTimeout?.(callback, 0));
                 if (typeof raf === 'function') raf(() => open({ required: true }));
                 else open({ required: true });
+            } else if (initialRevisit) {
+                const raf = global.requestAnimationFrame || (callback => global.setTimeout?.(callback, 0));
+                if (typeof raf === 'function') raf(() => open({ required: false }));
+                else open({ required: false });
             }
             return getSnapshot();
         }
@@ -412,6 +433,7 @@
                 mode, chooserOpen, chooserRequired, initialized, overlayRegistered,
                 restored: initialized ? initialRestored : initialState.source === 'session',
                 restoredSource: initialized ? initialSource : initialState.source,
+                revisitPrompt: initialized ? initialRevisit : false,
                 sessionContract: SESSION_CONTRACT
             });
         }
@@ -419,5 +441,5 @@
         return Object.freeze({ init, apply, openChooser: open, closeChooser: close, releaseForEmergency, select, getSnapshot, normalizeMode });
     }
 
-    global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, SESSION_CONTRACT, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
+    global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, ENTRY_KEY, SESSION_CONTRACT, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
 })(window);

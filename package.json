@@ -1,8 +1,8 @@
 {
   "name": "foxbear-mastering-studio",
-  "version": "1.7.2",
+  "version": "1.7.4",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.7.2 - expert workspace default entry",
+  "description": "FoxBear AI Mastering Studio Pro v1.7.4 - reload reentry mode chooser",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -18,8 +18,8 @@
     "check:static": "node qa/run_all_checks.js",
     "check:release": "node tools/run-release-gate.js",
     "handoff:check": "node tools/verify-handoff-state.js",
-    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.7.2-overwrite.zip",
-    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.7.2-release.zip",
+    "package:verify:overwrite": "node tools/verify-overwrite-zip.js dist/foxbear-mastering-studio-v1.7.4-overwrite.zip",
+    "package:verify:release": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.7.4-release.zip",
     "package:all": "npm run package:clean && npm run package:overwrite",
     "hooks:install": "bash tools/install-git-hooks.sh",
     "functions:check": "npm --prefix functions run check",
@@ -39,8 +39,8 @@
     "hosting:stage": "node tools/stage-hosting-payload.js",
     "source:hygiene": "node tools/check-source-hygiene.js",
     "package:delivery": "node tools/create-delivery-zips.js",
-    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.7.2-full.zip",
-    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.7.2-patch.zip",
+    "package:verify:full": "node tools/verify-release-zip.js dist/foxbear-mastering-studio-v1.7.4-full.zip",
+    "package:verify:patch": "node tools/verify-patch-zip.js dist/foxbear-mastering-studio-v1.7.4-patch.zip",
     "source:hygiene:repair": "node tools/repair-source-hygiene.js",
     "source:hygiene:gate": "node tools/run-source-hygiene-gate.js",
     "appcheck:policy:check": "node tools/check-app-check-policy.js",
@@ -49,6 +49,7 @@
     "functions:audit:official": "npm --prefix functions audit --omit=dev --registry=https://registry.npmjs.org"
   },
   "qaChecks": [
+    "node qa/v174_ui_mode_reentry_chooser_smoke.js",
     "node --check src/firebase-bootstrap.js",
     "node --check src/config/mastering-presets.js",
     "node --check src/config/genre-presets.js",
@@ -524,12 +525,12 @@
     "node qa/v16114_reference_profile_64band_upgrade_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "expert-workspace-default-entry",
-    "assetVersion": "1.7.2-expert-workspace-default-entry",
-    "cacheName": "foxbear-shell-v1.7.2-expert-workspace-default-entry",
-    "bootRevision": "boot-sri-v172",
-    "updateSafetyRevision": "update-safety-v172",
-    "serviceWorkerRevision": "sw-v172"
+    "buildId": "reload-reentry-mode-chooser",
+    "assetVersion": "1.7.4-reload-reentry-mode-chooser",
+    "cacheName": "foxbear-shell-v1.7.4-reload-reentry-mode-chooser",
+    "bootRevision": "boot-sri-v174",
+    "updateSafetyRevision": "update-safety-v174",
+    "serviceWorkerRevision": "sw-v174"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"

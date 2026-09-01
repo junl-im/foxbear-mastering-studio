@@ -1,0 +1,11 @@
+const fs=require('fs'),assert=require('assert');
+const view=fs.readFileSync('src/ui/detail-view.js','utf8');
+const css=fs.readFileSync('assets/css/studio.css','utf8');
+assert(view.includes('renderReferenceMatchInspector(track, deps)'));
+assert(view.includes('REFERENCE MATCH 2.0'));
+assert(view.includes('Tonal') && view.includes('Dynamics') && view.includes('Stereo') && view.includes('Character'));
+assert(view.includes('가장 큰 차이') && view.includes('Adaptive 선택'));
+assert(view.includes("state?.referenceProfile?.status !== 'ready' || !match"));
+assert(css.includes('.reference-match-inspector'));
+assert(css.includes('@media(max-width:720px)'));
+console.log('v1.7.3 Reference Match Inspector smoke: PASS');

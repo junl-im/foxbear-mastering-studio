@@ -1,8 +1,8 @@
-// FoxBear worker job service v1.7.2 - cancellable jobs, health levels, recovery controls, and stale-result isolation
+// FoxBear worker job service v1.7.4 - cancellable jobs, health levels, recovery controls, and stale-result isolation
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.7.2-expert-workspace-default-entry';
+    const VERSION = '1.7.4-reload-reentry-mode-chooser';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

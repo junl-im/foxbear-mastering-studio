@@ -8,7 +8,7 @@ const vm = require('vm');
 const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.7.2');
+assert.strictEqual(pkg.version, '1.7.4');
 assert(pkg.qaChecks.includes('node qa/v16110_ui_mode_early_choice_boot_recovery_smoke.js'));
 assert(serviceSource.includes('function installEarlyChoiceBridge()'));
 assert(serviceSource.includes('function applyEarlyModeSelection(nextMode)'));

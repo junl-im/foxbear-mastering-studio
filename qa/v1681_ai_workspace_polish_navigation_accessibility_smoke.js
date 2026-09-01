@@ -10,7 +10,7 @@ const html = fs.readFileSync('index.html', 'utf8');
 const css = fs.readFileSync('assets/css/ui-mode.css', 'utf8');
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.7.2');
+assert.strictEqual(pkg.version, '1.7.4');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')), 'current build ID must remain valid kebab-case');
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1681_ai_workspace_polish_navigation_accessibility_smoke.js'));

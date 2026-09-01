@@ -1,3 +1,20 @@
+# v1.7.4 - Reload / same-URL mode chooser
+
+- Keep the full Expert Studio as the direct first screen on PC and mobile.
+- Show `작업 방식을 선택하세요` after F5, browser reload, or a same-tab document re-entry such as entering the same URL again.
+- Keep the revisit chooser optional/closable; Expert Studio remains the safe underlying default.
+- Preserve imported tracks, analysis/mastering state contracts, Reference Match 2.0, and manual mode switching.
+- Add a session-scoped entry marker and `qa/v174_ui_mode_reentry_chooser_smoke.js`.
+
+# v1.7.3 - Reference Match Inspector
+
+- Add a Reference Match 2.0 Inspector to the selected-track analysis detail when an uploaded reference is ready.
+- Show overall Match Score plus Tonal, Dynamics, Stereo, and Character domain scores.
+- Surface the three largest reference differences and the Adaptive candidate selected for mastering.
+- Keep the Inspector hidden when no reference is loaded and use a compact two-column metric layout on mobile.
+- Preserve the v1.7.2 Expert Studio default first-screen policy.
+- Add `qa/v173_reference_match_inspector_smoke.js`.
+
 # v1.7.2 - Expert workspace default first screen
 
 - Make the full Expert Studio workspace the unconditional first screen on PC and mobile.

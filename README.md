@@ -1,3 +1,15 @@
+# FoxBear AI Mastering Studio Pro v1.7.4
+
+> Current release: v1.7.4 · reload-reentry-mode-chooser
+
+This release keeps the full Expert Studio as the direct first screen, but reopens the `작업 방식을 선택하세요` chooser after F5/browser reload or same-tab URL re-entry. The chooser remains closable and does not erase mastering state.
+
+# FoxBear AI Mastering Studio Pro v1.7.3
+
+> Current release: v1.7.3 · reference-match-inspector
+
+This release exposes Reference Match 2.0 in the track analysis UI: overall Match Score, Tonal/Dynamics/Stereo/Character scores, the largest detected differences, and the Adaptive candidate decision. The Expert Studio remains the unconditional first screen on PC and mobile.
+
 # FoxBear AI Mastering Studio Pro v1.7.2
 
 > Current release: v1.7.2 · expert-workspace-default-entry

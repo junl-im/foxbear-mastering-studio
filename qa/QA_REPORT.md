@@ -1,3 +1,22 @@
+# FoxBear QA Report - v1.7.4
+
+## v1.7.4 Reload / same-URL mode chooser
+
+- First entry must open the full Expert Studio directly on PC and mobile.
+- F5/browser reload and same-tab same-URL document re-entry must reopen the optional `작업 방식을 선택하세요` chooser.
+- Closing the revisit chooser must keep Expert Studio active and must not erase mastering state.
+- New regression: `qa/v174_ui_mode_reentry_chooser_smoke.js`.
+- Existing Reference Match 2.0, Adaptive Decision, mastering engine, Dock, and export contracts remain unchanged.
+
+# FoxBear QA Report - v1.7.3
+
+## v1.7.3 Reference Match Inspector
+
+- Reference Match Inspector smoke: PASS.
+- SRI validation: PASS.
+- Source hygiene: PASS.
+- Existing Reference Match 2.0, Adaptive Decision, engine bench, piano transient, and golden-audio checks remain in the static regression suite.
+
 # FoxBear QA Report - v1.7.2
 
 ## v1.7.2 Expert workspace default first screen

@@ -30,7 +30,7 @@ function createSandbox(url = 'https://example.test/index.html?foxbearExternal=1'
     history: { state: null, replaceState: (...args) => historyCalls.push(args) },
     btoa: value => Buffer.from(value, 'binary').toString('base64'),
     atob: value => Buffer.from(value, 'base64').toString('binary'),
-    FoxBearBuildInfo: { assetVersion: '1.7.2-expert-workspace-default-entry' }
+    FoxBearBuildInfo: { assetVersion: '1.7.4-reload-reentry-mode-chooser' }
   };
   sandbox.window = sandbox;
   sandbox.globalThis = sandbox;

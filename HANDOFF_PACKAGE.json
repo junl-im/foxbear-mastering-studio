@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
-  "productVersion": "1.7.2",
-  "buildId": "expert-workspace-default-entry",
+  "productVersion": "1.7.4",
+  "buildId": "reload-reentry-mode-chooser",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

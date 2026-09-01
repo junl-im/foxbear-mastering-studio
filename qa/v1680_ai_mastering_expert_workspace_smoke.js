@@ -12,7 +12,7 @@ const app = fs.readFileSync('src/app.js', 'utf8');
 const stateSource = fs.readFileSync('src/state/app-state.js', 'utf8');
 const serviceSource = fs.readFileSync('src/ui/ui-mode-service.js', 'utf8');
 
-assert.strictEqual(pkg.version, '1.7.2');
+assert.strictEqual(pkg.version, '1.7.4');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(String(pkg.foxbearRelease?.buildId || '')));
 assert.strictEqual(pkg.foxbearRelease?.assetVersion, `${pkg.version}-${pkg.foxbearRelease?.buildId}`);
 assert(pkg.qaChecks.includes('node qa/v1680_ai_mastering_expert_workspace_smoke.js'));
@@ -130,8 +130,8 @@ const restoredDocument = makeDocument();
 const restoredController = service.createController({ document: restoredDocument, sessionStorage: storage });
 const restored = restoredController.init();
 assert.strictEqual(restored.mode, 'expert');
-assert.strictEqual(restored.chooserOpen, false, 'entry must return to the expert workspace without reopening the chooser');
+assert.strictEqual(restored.chooserOpen, true, 'same-tab document re-entry must reopen the optional mode chooser');
 assert.strictEqual(restored.restoredSource, 'default-expert');
 assert.strictEqual(restoredDocument.body.dataset.uiMode, 'expert');
 
-console.log('PASS v1.7.2 expert-default entry with manual AI/expert switching contract');
+console.log('PASS v1.7.4 expert-first entry with revisit mode chooser contract');

@@ -1,7 +1,7 @@
-// FoxBear main-thread finalizer recovery service v1.7.2
+// FoxBear main-thread finalizer recovery service v1.7.4
 'use strict';
 (function attachFoxBearMasterFinalizerFallbackService(global) {
-    const VERSION = '1.7.2-expert-workspace-default-entry';
+    const VERSION = '1.7.4-reload-reentry-mode-chooser';
     function requireFn(value, name) { if (typeof value !== 'function') throw new Error(`파이널라이저 복구 의존성이 없습니다: ${name}`); return value; }
     async function run(buffer, options = {}, deps = {}) {
         const clamp = requireFn(deps.clamp, 'clamp');

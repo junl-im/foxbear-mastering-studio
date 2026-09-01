@@ -1,8 +1,8 @@
-// FoxBear playback lifecycle recovery service - v1.7.2
+// FoxBear playback lifecycle recovery service - v1.7.4
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.2-expert-workspace-default-entry';
+    const SERVICE_VERSION = '1.7.4-reload-reentry-mode-chooser';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

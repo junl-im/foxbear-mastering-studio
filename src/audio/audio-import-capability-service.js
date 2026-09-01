@@ -1,8 +1,8 @@
-// FoxBear audio import capability service - v1.7.2
+// FoxBear audio import capability service - v1.7.4
 (function attachFoxBearAudioImportCapabilityService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.2-expert-workspace-default-entry';
+    const SERVICE_VERSION = '1.7.4-reload-reentry-mode-chooser';
     const FORMAT_DEFINITIONS = Object.freeze([
         Object.freeze({ id: 'wav', label: 'WAV', extensions: ['.wav', '.wave'], mimes: ['audio/wav', 'audio/x-wav'], tier: 'core' }),
         Object.freeze({ id: 'mp3', label: 'MP3', extensions: ['.mp3', '.mpeg', '.mpga'], mimes: ['audio/mpeg'], tier: 'core' }),

@@ -1,4 +1,4 @@
-// FoxBear AI Mastering Studio Pro v1.7.2 - cooperative PCM utility module
+// FoxBear AI Mastering Studio Pro v1.7.4 - cooperative PCM utility module
 (function registerFoxBearCoreUtils(global) {
     'use strict';
 

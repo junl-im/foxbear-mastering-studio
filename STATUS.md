@@ -1,19 +1,19 @@
-# FoxBear Status - v1.7.2
+# FoxBear Status - v1.7.4
 
 ## Current release
 
-- Product version: `1.7.2`
-- Build ID: `expert-workspace-default-entry`
-- Asset version: `1.7.2-expert-workspace-default-entry`
-- Service worker cache: `foxbear-shell-v1.7.2-expert-workspace-default-entry`
+- Product version: `1.7.4`
+- Build ID: `reload-reentry-mode-chooser`
+- Asset version: `1.7.4-reload-reentry-mode-chooser`
+- Service worker cache: `foxbear-shell-v1.7.4-reload-reentry-mode-chooser`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
-- Product version: `1.7.2`
-- Build ID: `expert-workspace-default-entry`
-- Asset version: `1.7.2-expert-workspace-default-entry`
-- Service worker cache: `foxbear-shell-v1.7.2-expert-workspace-default-entry`
+- Product version: `1.7.4`
+- Build ID: `reload-reentry-mode-chooser`
+- Asset version: `1.7.4-reload-reentry-mode-chooser`
+- Service worker cache: `foxbear-shell-v1.7.4-reload-reentry-mode-chooser`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`
