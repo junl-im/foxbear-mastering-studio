@@ -2,7 +2,7 @@
   "name": "foxbear-mastering-studio",
   "version": "1.7.4",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.7.4 - reload reentry mode chooser",
+  "description": "FoxBear AI Mastering Studio Pro v1.7.4 - workflow guidance",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -525,9 +525,9 @@
     "node qa/v16114_reference_profile_64band_upgrade_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "reload-reentry-mode-chooser",
-    "assetVersion": "1.7.4-reload-reentry-mode-chooser",
-    "cacheName": "foxbear-shell-v1.7.4-reload-reentry-mode-chooser",
+    "buildId": "workflow-guidance",
+    "assetVersion": "1.7.4-workflow-guidance",
+    "cacheName": "foxbear-shell-v1.7.4-workflow-guidance",
     "bootRevision": "boot-sri-v174",
     "updateSafetyRevision": "update-safety-v174",
     "serviceWorkerRevision": "sw-v174"

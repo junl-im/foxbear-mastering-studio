@@ -415,5 +415,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-reload-reentry-mode-chooser', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-workflow-guidance', create });
 })(typeof window !== 'undefined' ? window : globalThis);

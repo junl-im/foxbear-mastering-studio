@@ -3,9 +3,9 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `reload-reentry-mode-chooser`
-- Asset version: `1.7.4-reload-reentry-mode-chooser`
-- Service worker cache: `foxbear-shell-v1.7.4-reload-reentry-mode-chooser`
+- Build ID: `workflow-guidance`
+- Asset version: `1.7.4-workflow-guidance`
+- Service worker cache: `foxbear-shell-v1.7.4-workflow-guidance`
 - Configured static/regression target: 474 checks.
 - Base release: v1.6.114.
 - Scope: Adaptive Mastering Decision phase 1; three candidate setting plans are risk-scored before a single render, while custom/original manual mastering remains untouched.

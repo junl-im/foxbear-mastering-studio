@@ -24,7 +24,7 @@ const docs = read('docs/V1.5.65_INCIDENT_RECOVERY_CONTROL_ALERT_HISTORY.md');
 const envExample = read('functions/.env.example');
 
 assert.strictEqual(pkg.version, '1.7.4');
-assert.strictEqual(meta.assetVersion, '1.7.4-reload-reentry-mode-chooser');
+assert.strictEqual(meta.assetVersion, '1.7.4-workflow-guidance');
 assert(pkg.scripts['deploy:incident'].includes('functions:retryIncidentBatchRequest'));
 
 for (const token of [

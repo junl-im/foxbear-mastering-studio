@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.7.4-reload-reentry-mode-chooser';
+    const VERSION = '1.7.4-workflow-guidance';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

@@ -1,3 +1,9 @@
+# Workflow guidance · 2026-10-10
+
+작업 단계 안내, 빈 대기열 안내, 출력 설정 도움말을 추가했습니다. PR에서 정적·브라우저 CI를 실행하며 main에서만 배포합니다. 오디오 엔진은 변경하지 않았습니다. 캐시와 SRI를 동기화했습니다.
+
+삭제 파일 없음.
+
 # v1.6.113 patch notes
 
 - Incident report creation is now server-only; direct browser writes to `incidentReports` are denied.

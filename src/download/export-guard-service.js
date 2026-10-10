@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.7.4-reload-reentry-mode-chooser';
+    const VERSION = 'v1.7.4-workflow-guidance';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

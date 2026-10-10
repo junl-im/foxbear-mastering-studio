@@ -3,6 +3,8 @@ name: Deploy static site to GitHub Pages
 on:
   push:
     branches: ["main"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -143,6 +145,7 @@ jobs:
           compression-level: 6
 
   build:
+    if: github.event_name != 'pull_request'
     name: Prepare Pages artifact
     needs: [static-qa, browser-qa]
     runs-on: ubuntu-latest
