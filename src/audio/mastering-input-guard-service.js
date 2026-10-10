@@ -119,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.7.4-reload-reentry-mode-chooser',
+        version: '1.7.4-workflow-guidance',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

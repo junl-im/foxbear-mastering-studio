@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackSourceRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.4-reload-reentry-mode-chooser';
+    const SERVICE_VERSION = '1.7.4-workflow-guidance';
     const DEFAULT_READY_TIMEOUT_MS = 2600;
     const RETIRE_RECHECK_MS = 1800;
     const RETIRE_MAX_WAIT_MS = 45000;

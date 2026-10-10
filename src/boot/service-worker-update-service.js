@@ -2,7 +2,7 @@
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.7.4-reload-reentry-mode-chooser';
+  const VERSION = '1.7.4-workflow-guidance';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

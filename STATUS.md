@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `reload-reentry-mode-chooser`
-- Asset version: `1.7.4-reload-reentry-mode-chooser`
-- Service worker cache: `foxbear-shell-v1.7.4-reload-reentry-mode-chooser`
+- Build ID: `workflow-guidance`
+- Asset version: `1.7.4-workflow-guidance`
+- Service worker cache: `foxbear-shell-v1.7.4-workflow-guidance`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `reload-reentry-mode-chooser`
-- Asset version: `1.7.4-reload-reentry-mode-chooser`
-- Service worker cache: `foxbear-shell-v1.7.4-reload-reentry-mode-chooser`
+- Build ID: `workflow-guidance`
+- Asset version: `1.7.4-workflow-guidance`
+- Service worker cache: `foxbear-shell-v1.7.4-workflow-guidance`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

@@ -2,7 +2,7 @@
 (function attachFoxBearAudioContextManager(global) {
     'use strict';
 
-    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-reload-reentry-mode-chooser';
+    const SERVICE_VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-workflow-guidance';
     const MAX_EVENTS = 40;
     const records = new Map();
     const contextIds = new WeakMap();

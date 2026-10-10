@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.7.4-reload-reentry-mode-chooser';
+    const VERSION = '1.7.4-workflow-guidance';
     const handlers = [];
 
     function normalizeJob(job) {

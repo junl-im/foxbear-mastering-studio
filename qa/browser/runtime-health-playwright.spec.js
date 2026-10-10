@@ -311,3 +311,39 @@ test.describe('FoxBear browser runtime health', () => {
   });
 
 });
+
+
+test('workflow guidance follows real import, master and clear in both workspaces', async ({ page }) => {
+  const { createSyntheticWavFiles, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
+  const temp = createSyntheticWavFiles(1, { seconds: 2, gain: 0.08 });
+  try {
+    await navigateToApp(page, { disableAutoDialogs: true, uiMode: 'ai' });
+    await expect(page.locator('[data-workflow-step][aria-current="step"]')).toHaveAttribute('data-workflow-step', '1');
+    await expect(page.locator('#queueEmptyState')).toBeVisible();
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.locator('.workflow-guide').evaluate(node => node.scrollWidth <= node.clientWidth)).toBeTruthy();
+    }
+    await page.setInputFiles('#fileInput', temp.files);
+    await expect(page.locator('#queueEmptyState')).toBeHidden();
+    await expect(page.locator('#masterSelectedBtn')).toBeEnabled({ timeout: 30000 });
+    await expect(page.locator('#workflowStatus')).toContainText('추천 설정');
+    await expect(page.locator('[data-workflow-step][aria-current="step"]')).toHaveAttribute('data-workflow-step', '2');
+    await page.locator('#bottomPreviewMasterBtn').click();
+    await expect(page.locator('[data-workflow-step][aria-current="step"]')).toHaveAttribute('data-workflow-step', '4', { timeout: 45000 });
+    await expect(page.locator('#workflowStatus')).toContainText('마스터링이 완료');
+    await page.locator('#uiModeSwitchBtn').click();
+    await page.locator('#uiModeExpertBtn').click();
+    await expect(page.locator('#workflowStatus')).toContainText('마스터링이 완료');
+    const summary = page.locator('.output-help summary');
+    await summary.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('.output-help')).toHaveAttribute('open', '');
+    await expect(page.locator('.output-help dd').first()).toBeVisible();
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#clearBtn').click();
+    await expect(page.locator('#queueEmptyState')).toBeVisible();
+    await expect(page.locator('[data-workflow-step][aria-current="step"]')).toHaveAttribute('data-workflow-step', '1');
+    await expectRuntimeHealthy(expect, page);
+  } finally { removeDirSafe(temp.dir); }
+});

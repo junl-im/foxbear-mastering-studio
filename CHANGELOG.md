@@ -1,3 +1,9 @@
+# v1.7.4 - Workflow guidance (2026-10-10)
+
+- 작업 상태에 맞춘 4단계 안내와 빈 대기열 안내를 추가했습니다.
+- 저장 형식·목표 음량·피크 설정 도움말을 추가했습니다.
+- 오디오 처리 엔진은 변경하지 않았습니다.
+
 # v1.7.4 - Reload / same-URL mode chooser
 
 - Keep the full Expert Studio as the direct first screen on PC and mobile.

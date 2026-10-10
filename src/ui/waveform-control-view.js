@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.4-reload-reentry-mode-chooser';
+  const VIEW_VERSION = '1.7.4-workflow-guidance';
   const DEFAULT_BINS = 96;
 
   function getService() {

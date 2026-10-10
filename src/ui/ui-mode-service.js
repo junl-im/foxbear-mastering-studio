@@ -441,5 +441,43 @@
         return Object.freeze({ init, apply, openChooser: open, closeChooser: close, releaseForEmergency, select, getSnapshot, normalizeMode });
     }
 
-    global.FoxBearUiModeService = Object.freeze({ MODES, SESSION_KEY, ENTRY_KEY, SESSION_CONTRACT, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
+function renderWorkflowGuide(state, document) {
+    const status = document.getElementById('workflowStatus');
+    if (!status) return;
+    const tracks = state.tracks;
+    const analyzing = tracks.filter(track => track.status === 'analyzing').length;
+    const processing = tracks.filter(track => track.status === 'processing').length;
+    const completed = tracks.filter(track => track.outBlob).length;
+    const failed = tracks.filter(track => track.error).length;
+    let step = 1;
+    let message = '파일열기에서 음원을 선택하세요. 여러 곡을 함께 불러올 수 있습니다.';
+    if (tracks.length) {
+        step = 2;
+        message = '추천 설정을 확인한 뒤 15초 하이라이트를 들어보거나 마스터링을 시작하세요.';
+        if (processing) {
+            step = 3;
+            message = '마스터링 중입니다. 진행 상태는 곡 카드에서 확인할 수 있습니다.';
+        } else if (analyzing) {
+            message = '음원을 분석하고 있습니다. 분석이 끝나면 추천 설정이 표시됩니다.';
+        } else if (completed) {
+            step = 4;
+            message = completed === tracks.length
+                ? '마스터링이 완료됐습니다. 하단 비교에서 원본과 들어본 뒤 완성 파일을 저장하세요.'
+                : completed + '곡 완료 · 나머지 곡을 처리하거나 완료된 곡을 비교하고 저장하세요.';
+        } else if (failed) {
+            message = '처리하지 못한 곡이 있습니다. 곡 카드의 오류 안내를 확인하고 다시 시도하세요.';
+        }
+        if (failed && (completed || processing || analyzing)) message += ' 오류가 있는 곡은 곡 카드에서 확인하세요.';
+    }
+    if (status.textContent !== message) status.textContent = message;
+    document.querySelectorAll('[data-workflow-step]').forEach(node => {
+        const current = Number(node.dataset.workflowStep) === step;
+        if (current) node.setAttribute('aria-current', 'step');
+        else node.removeAttribute('aria-current');
+    });
+    const emptyState = document.getElementById('queueEmptyState');
+    if (emptyState) emptyState.hidden = tracks.length > 0;
+}
+
+    global.FoxBearUiModeService = Object.freeze({ renderWorkflowGuide, MODES, SESSION_KEY, ENTRY_KEY, SESSION_CONTRACT, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
 })(window);

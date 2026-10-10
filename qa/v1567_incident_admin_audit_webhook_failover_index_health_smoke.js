@@ -23,7 +23,7 @@ const status = read('STATUS.md');
 const docs = read('docs/V1.5.67_INCIDENT_ADMIN_AUDIT_WEBHOOK_FAILOVER_INDEX_HEALTH.md');
 
 assert.strictEqual(pkg.version, '1.7.4');
-assert.strictEqual(meta.assetVersion, '1.7.4-reload-reentry-mode-chooser');
+assert.strictEqual(meta.assetVersion, '1.7.4-workflow-guidance');
 assert(pkg.scripts['deploy:incident'].includes('functions:verifyIncidentPostDeployHealth'));
 for (const token of [
   "const PRODUCT_VERSION = '1.7.4'", 'const OPERATIONS_SCHEMA_VERSION =',
