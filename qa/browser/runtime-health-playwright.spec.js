@@ -300,6 +300,7 @@ test.describe('FoxBear browser runtime health', () => {
     await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'ai');
     await page.locator('#uiModeSwitchBtn').click();
     await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
+    await expect(page.locator('#uiModeAiBtn')).toBeFocused();
     await page.keyboard.press('Escape');
     await expect(page.locator('#uiModeChooser')).toBeHidden();
     await page.reload({ waitUntil: 'domcontentloaded' });

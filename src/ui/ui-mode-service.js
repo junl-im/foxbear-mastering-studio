@@ -303,8 +303,7 @@
             updateControls();
             const preferred = mode === MODES.EXPERT ? get('expert') : get('ai');
             const focusTarget = preferred || getFocusable()[0] || panel;
-            const raf = global.requestAnimationFrame || (callback => global.setTimeout?.(callback, 0));
-            if (typeof raf === 'function') raf(() => focusSafe(focusTarget));
+            focusSafe(focusTarget);
             return true;
         }
 
@@ -350,8 +349,7 @@
             close({ force: true, restoreFocus: false });
             const switcher = get('switcher');
             const preferredFocus = selected === MODES.AI ? documentRef?.getElementById?.('fileDrop') : switcher;
-            const raf = global.requestAnimationFrame || (callback => global.setTimeout?.(callback, 0));
-            if (typeof raf === 'function') raf(() => focusSafe(preferredFocus || switcher));
+            focusSafe(preferredFocus || switcher);
             return true;
         }
 
