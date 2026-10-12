@@ -354,3 +354,47 @@ test('workflow guidance follows real import, master and clear in both workspaces
     await expectRuntimeHealthy(expect, page);
   } finally { removeDirSafe(temp.dir); }
 });
+
+
+test('studio redesign keeps panels and controls usable across viewport sizes', async ({ page }) => {
+  await navigateToApp(page, { disableAutoDialogs: true, uiMode: 'expert' });
+  await expectRuntimeHealthy(expect, page);
+  const advanced = page.locator('.console-advanced');
+  expect(await advanced.evaluate(n => n.open)).toBe(page.viewportSize().width >= 900);
+  if (!(await advanced.evaluate(n => n.open))) await advanced.locator('summary').click();
+  await expect(page.locator('#genreSelect')).toBeAttached();
+  const before = await page.locator('#genreSelect').inputValue();
+  await advanced.locator('summary').click();
+  await expect(page.locator('.control-zone-genre')).toBeHidden();
+  await advanced.locator('summary').press('Enter');
+  await expect(page.locator('.control-zone-genre')).toBeVisible();
+  expect(await page.locator('#genreSelect').inputValue()).toBe(before);
+  for (const width of [320, 390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const mode of ['expert', 'ai']) {
+      await page.locator('#uiModeSwitchBtn').click();
+      await page.locator(mode === 'ai' ? '#uiModeAiBtn' : '#uiModeExpertBtn').click();
+      await expect(page.locator('body')).toHaveAttribute('data-ui-mode', mode);
+      const geometry = await page.evaluate(() => {
+        const selectors = ['.workflow-guide', '.console-panel', '.queue-panel', '.inspect-panel', '.action-panel', '.engine-control-grid', '.upload-stage'];
+        const bounds = selectors.flatMap(selector => Array.from(document.querySelectorAll(selector))).filter(n => n.getBoundingClientRect().width && getComputedStyle(n).visibility !== 'hidden').map(n => {
+          const r = n.getBoundingClientRect();
+          return { name: n.className, left: r.left, right: r.right, overflow: n.scrollWidth - n.clientWidth };
+        });
+        const consoleRect = document.querySelector('.console-panel').getBoundingClientRect();
+        const queueRect = document.querySelector('.queue-panel').getBoundingClientRect();
+        return { bounds, consoleRight: consoleRect.right, queueLeft: queueRect.left, queueTop: queueRect.top, consoleBottom: consoleRect.bottom };
+      });
+      for (const box of geometry.bounds) {
+        expect(box.left, `${mode} ${width}px ${box.name}`).toBeGreaterThanOrEqual(-1);
+        expect(box.right, `${mode} ${width}px ${box.name}`).toBeLessThanOrEqual(width + 1);
+        expect(box.overflow, `${mode} ${width}px ${box.name}`).toBeLessThanOrEqual(2);
+      }
+      if (mode === 'expert' && width >= 900) expect(geometry.queueLeft).toBeGreaterThanOrEqual(geometry.consoleRight);
+      else expect(geometry.queueTop).toBeGreaterThanOrEqual(geometry.consoleBottom);
+    }
+  }
+  await page.locator('#subscribeNudge').evaluate(n => n.classList.add('show'));
+  expect(await page.locator('#subscribeNudge').evaluate(n => getComputedStyle(n).position)).toBe('static');
+  await expectRuntimeHealthy(expect, page);
+});

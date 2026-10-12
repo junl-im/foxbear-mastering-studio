@@ -55,7 +55,7 @@ const reporterSandbox = {
     createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-required-workspace-entry' }
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-studio-visual-redesign' }
 };
 reporterSandbox.window = reporterSandbox;
 reporterSandbox.globalThis = reporterSandbox;

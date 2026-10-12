@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `required-workspace-entry`
-- Asset version: `1.7.4-required-workspace-entry`
-- Service worker cache: `foxbear-shell-v1.7.4-required-workspace-entry`
+- Build ID: `studio-visual-redesign`
+- Asset version: `1.7.4-studio-visual-redesign`
+- Service worker cache: `foxbear-shell-v1.7.4-studio-visual-redesign`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `required-workspace-entry`
-- Asset version: `1.7.4-required-workspace-entry`
-- Service worker cache: `foxbear-shell-v1.7.4-required-workspace-entry`
+- Build ID: `studio-visual-redesign`
+- Asset version: `1.7.4-studio-visual-redesign`
+- Service worker cache: `foxbear-shell-v1.7.4-studio-visual-redesign`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

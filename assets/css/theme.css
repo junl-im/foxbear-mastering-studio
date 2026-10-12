@@ -1,23 +1,23 @@
 /* FoxBear AI Mastering Studio Pro v1.4.21 - theme tokens */
 :root {
     color-scheme: dark;
-    --bg: #070711;
-    --ink: #f3f0e8;
-    --muted: #a49fae;
-    --subtle: #747184;
-    --panel: rgba(20, 18, 33, 0.78);
-    --panel-solid: #141221;
+    --bg: #0b0d10;
+    --ink: #f5f3ed;
+    --muted: #adb4bf;
+    --subtle: #828c9b;
+    --panel: #14181e;
+    --panel-solid: #14181e;
     --card: rgba(255,255,255,0.065);
     --card-2: rgba(255,255,255,0.035);
     --line: rgba(255,255,255,0.12);
     --line-strong: rgba(255,255,255,0.22);
-    --mint: #78d7ff;
-    --violet: #b89cff;
-    --rose: #ff8fb3;
-    --amber: #ffd27a;
-    --cyan: #8df5e8;
+    --mint: #efb86d;
+    --violet: #a4b3d1;
+    --rose: #e99b96;
+    --amber: #efb86d;
+    --cyan: #76d9cc;
     --danger: #ff6f7d;
-    --ok: #8ee9ff;
+    --ok: #76d9cc;
     --shadow: 0 26px 80px rgba(0,0,0,0.34);
     --radius-lg: 28px;
     --radius-md: 18px;

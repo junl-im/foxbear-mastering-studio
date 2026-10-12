@@ -2,7 +2,7 @@
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.4-required-workspace-entry';
+    const SERVICE_VERSION = '1.7.4-studio-visual-redesign';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;

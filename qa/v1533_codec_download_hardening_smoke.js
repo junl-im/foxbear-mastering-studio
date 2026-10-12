@@ -14,7 +14,7 @@ const dialog = read('src/ui/download-dialog-view.js');
 const sw = read('sw.js');
 
 must(index.includes('audio-import-capability-service.js'), 'capability service is not loaded');
-must(index.includes('브라우저 확인 코덱만 표시'), 'truthful codec label missing');
+must(index.includes('WAV · MP3 · AIFF') && index.includes('추가 형식은 브라우저 지원 시 표시'), 'truthful codec label missing');
 must(!read('src/app.js').includes("AUDIO_IMPORT_ACCEPT = 'audio/*'"), 'app fallback still advertises every audio MIME');
 must(!index.includes('.amr,.wma'), 'unsupported AMR/WMA still exposed by file input');
 must(!index.includes('.caf'), 'unsupported CAF still exposed by file input');
