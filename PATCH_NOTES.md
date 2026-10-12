@@ -1,3 +1,10 @@
+# v1.7.4 - Readable studio contrast (2026-10-12)
+
+- Increase secondary text contrast and remove translucent header labels.
+- Separate background, panels and controls with clearer surfaces and borders.
+- Keep disabled actions readable and strengthen keyboard focus indicators.
+- Preserve required workflow selection, mastering behavior and responsive layout.
+
 # v1.7.4 - Studio visual redesign (2026-10-12)
 
 - Graphite/amber/teal studio identity with decorative audio waveform artwork.

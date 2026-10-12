@@ -26,8 +26,8 @@ const changelog = read('CHANGELOG.md');
 assert(pkg.version === '1.7.4', 'package version should be 1.7.4');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
 assert(index.includes('data-build="1.7.4"'), 'index build marker should be 1.7.4');
-assert(config.includes("ASSET_VERSION = '1.7.4-studio-visual-redesign'"), 'runtime asset key should be v1.7.4');
-assert(sw.includes('foxbear-shell-v1.7.4-studio-visual-redesign'), 'service worker cache should use v1.7.4 key');
+assert(config.includes("ASSET_VERSION = '1.7.4-studio-readable-contrast'"), 'runtime asset key should be v1.7.4');
+assert(sw.includes('foxbear-shell-v1.7.4-studio-readable-contrast'), 'service worker cache should use v1.7.4 key');
 
 assert(config.includes('MASTERING_PROGRESS_RENDER_DELAY_MS: 110'), 'runtime config should expose progress render delay');
 assert(app.includes('SAFE_MASTERING_PROGRESS_RENDER_DELAY_MS'), 'app should normalize mastering progress render delay');

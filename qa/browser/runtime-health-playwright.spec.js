@@ -398,3 +398,52 @@ test('studio redesign keeps panels and controls usable across viewport sizes', a
   expect(await page.locator('#subscribeNudge').evaluate(n => getComputedStyle(n).position)).toBe('static');
   await expectRuntimeHealthy(expect, page);
 });
+
+
+test('studio text stays readable on chooser, controls and loaded tracks', async ({ page }) => {
+  const { createSyntheticWavFiles, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
+  const temp = createSyntheticWavFiles(1, { seconds: 2 });
+  const assertContrast = async selector => {
+    const samples = await page.locator(selector).evaluateAll(nodes => {
+      const rgba = color => (color.match(/[\d.]+/g) || []).map(Number);
+      const blend = (front, back) => {
+        const alpha = front[3] ?? 1;
+        return front.slice(0, 3).map((v, i) => v * alpha + back[i] * (1 - alpha)).concat(1);
+      };
+      const luminance = color => color.slice(0, 3).map(v => {
+        v /= 255;
+        return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+      }).reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+      return nodes.filter(n => n.checkVisibility() && n.textContent.trim()).map(n => {
+        let background = [13, 20, 28, 1];
+        const ancestors = [];
+        for (let node = n; node; node = node.parentElement) ancestors.unshift(node);
+        for (const node of ancestors) background = blend(rgba(getComputedStyle(node).backgroundColor), background);
+        const style = getComputedStyle(n);
+        const foreground = blend(rgba(style.color), background);
+        const light = luminance(foreground), dark = luminance(background);
+        return { text: n.textContent.trim().slice(0, 60), ratio: (Math.max(light, dark) + 0.05) / (Math.min(light, dark) + 0.05), opacity: Number(style.opacity) };
+      });
+    });
+    expect(samples.length).toBeGreaterThan(0);
+    for (const sample of samples) {
+      expect(sample.opacity, sample.text).toBe(1);
+      expect(sample.ratio, sample.text).toBeGreaterThanOrEqual(4.5);
+    }
+  };
+  try {
+    await navigateToApp(page, { disableAutoDialogs: true, uiMode: 'unselected' });
+    await expect(page.locator('#uiModeChooser')).toBeVisible();
+    await assertContrast('.ui-mode-choice-copy, .ui-mode-choice-card > small, .ui-mode-chooser-footnote');
+    await page.locator('#uiModeExpertBtn').click();
+    await assertContrast('.brand-command-label, .brand-command-device-text, .brand-command-studio, .designer-mini > span, .workflow-status, .queue-empty-state p, .stat-card span, .select-popup-trigger');
+    await assertContrast('#masterSelectedBtn, #masterAllBtn');
+    await page.setInputFiles('#fileInput', temp.files);
+    await expect(page.locator('#masterSelectedBtn')).toBeEnabled({ timeout: 30000 });
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      await assertContrast('.track-card h3, .track-meta, #masterSelectedBtn, #bottomPreviewMasterBtn');
+    }
+    await expectRuntimeHealthy(expect, page);
+  } finally { removeDirSafe(temp.dir); }
+});

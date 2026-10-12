@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.7.4-studio-visual-redesign';
+    const VERSION = 'v1.7.4-studio-readable-contrast';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
     const getFileNamePolicy = () => global.FoxBearFileNamePolicyService || null;
 

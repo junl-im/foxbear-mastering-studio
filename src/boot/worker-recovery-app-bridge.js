@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.7.4-studio-visual-redesign';
+    const VERSION = '1.7.4-studio-readable-contrast';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

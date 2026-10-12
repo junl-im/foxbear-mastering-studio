@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `studio-visual-redesign`
-- Asset version: `1.7.4-studio-visual-redesign`
-- Service worker cache: `foxbear-shell-v1.7.4-studio-visual-redesign`
+- Build ID: `studio-readable-contrast`
+- Asset version: `1.7.4-studio-readable-contrast`
+- Service worker cache: `foxbear-shell-v1.7.4-studio-readable-contrast`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `studio-visual-redesign`
-- Asset version: `1.7.4-studio-visual-redesign`
-- Service worker cache: `foxbear-shell-v1.7.4-studio-visual-redesign`
+- Build ID: `studio-readable-contrast`
+- Asset version: `1.7.4-studio-readable-contrast`
+- Service worker cache: `foxbear-shell-v1.7.4-studio-readable-contrast`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

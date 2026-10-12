@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.7.4-studio-visual-redesign';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.7.4-studio-readable-contrast';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

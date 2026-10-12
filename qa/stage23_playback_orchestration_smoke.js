@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.7.4-studio-visual-redesign';
+const version = '1.7.4-studio-readable-contrast';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');

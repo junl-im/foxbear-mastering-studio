@@ -5,9 +5,9 @@
   const info = Object.freeze({
     productVersion: '1.7.4',
     appVersion: 'Pro v1.7.4',
-    buildId: 'studio-visual-redesign',
-    assetVersion: '1.7.4-studio-visual-redesign',
-    cacheName: 'foxbear-shell-v1.7.4-studio-visual-redesign',
+    buildId: 'studio-readable-contrast',
+    assetVersion: '1.7.4-studio-readable-contrast',
+    cacheName: 'foxbear-shell-v1.7.4-studio-readable-contrast',
     bootRevision: 'boot-sri-v174',
     updateSafetyRevision: 'update-safety-v174',
     serviceWorkerRevision: 'sw-v174',

@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearExportProgressView(global) {
-    const VERSION = 'v1.7.4-studio-visual-redesign';
+    const VERSION = 'v1.7.4-studio-readable-contrast';
     const LEGACY_VERSION = 'v1.5.6-export-progress-recovery';
     let snapshot = Object.freeze({ version: VERSION, visible: false, mode: 'zip', state: 'idle', percent: 0, completedCount: 0, outputBytes: 0, message: '', cancellable: false });
     let refs = null;

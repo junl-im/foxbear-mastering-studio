@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.7.4-studio-visual-redesign';
+    const VERSION = '1.7.4-studio-readable-contrast';
     const handlers = [];
 
     function normalizeJob(job) {

@@ -3,7 +3,7 @@
 
 (function attachFoxBearSessionHandoffService(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.7.4-studio-visual-redesign';
+    const VERSION = BUILD_INFO.assetVersion || '1.7.4-studio-readable-contrast';
     const PARAM = 'foxbearHandoff';
     const MAX_TOKEN_LENGTH = 7200;
     const MAX_AGE_MS = 20 * 60 * 1000;
