@@ -187,3 +187,15 @@ body { color: var(--ink); background: #0d141c !important; }
 .app-shell :is(button, input, select, textarea, summary):focus-visible, .ui-mode-chooser button:focus-visible { outline: 3px solid #9cebe0 !important; outline-offset: 3px; }
 .bottom-preview-dock { background: #19222dfa !important; border-color: #718299 !important; }
 .brand-panel-unified p, .workflow-status, .queue-empty-state p { font-size: 13px !important; line-height: 1.65 !important; }
+
+/* Signature motion is decorative; it never reflects the current audio level. */
+@keyframes studio-signature-wave {
+    0%, 100% { transform: translate(0, 0) scaleY(.94) skewX(0deg); }
+    25% { transform: translate(1px, -1px) scaleY(1.015) skewX(.6deg); }
+    50% { transform: translate(0, 1px) scaleY(.97) skewX(-.4deg); }
+    75% { transform: translate(-1px, -.5px) scaleY(1.01) skewX(.4deg); }
+}
+.studio-wave-trace { transform-box: view-box; transform-origin: 50% 50%; animation: studio-signature-wave 7s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+    .studio-wave-trace { animation: none !important; transform: none !important; }
+}

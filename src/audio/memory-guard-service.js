@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearMemoryGuardService(global) {
-    const VERSION = 'v1.7.4-studio-readable-contrast';
+    const VERSION = 'v1.7.4-signature-wave-motion';
     const LEGACY_POLICY_VERSION = 'v1.4.29-memory-stabilization';
     const MB = 1024 * 1024;
 

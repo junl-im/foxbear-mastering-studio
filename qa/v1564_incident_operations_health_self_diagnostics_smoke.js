@@ -21,7 +21,7 @@ const status = read('STATUS.md');
 const docs = read('docs/V1.5.64_INCIDENT_OPERATIONS_HEALTH_SELF_DIAGNOSTICS.md');
 
 assert.strictEqual(pkg.version, '1.7.4');
-assert.strictEqual(meta.assetVersion, '1.7.4-studio-readable-contrast');
+assert.strictEqual(meta.assetVersion, '1.7.4-signature-wave-motion');
 assert(pkg.scripts['deploy:incident'].includes('functions:auditIncidentMailOperations'));
 
 for (const token of [

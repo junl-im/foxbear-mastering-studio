@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.7.4-studio-readable-contrast';
+    const VERSION = '1.7.4-signature-wave-motion';
     let sequence = 0;
 
     function createFallbackAbortController() {

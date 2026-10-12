@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `studio-readable-contrast`
-- Asset version: `1.7.4-studio-readable-contrast`
-- Service worker cache: `foxbear-shell-v1.7.4-studio-readable-contrast`
+- Build ID: `signature-wave-motion`
+- Asset version: `1.7.4-signature-wave-motion`
+- Service worker cache: `foxbear-shell-v1.7.4-signature-wave-motion`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `studio-readable-contrast`
-- Asset version: `1.7.4-studio-readable-contrast`
-- Service worker cache: `foxbear-shell-v1.7.4-studio-readable-contrast`
+- Build ID: `signature-wave-motion`
+- Asset version: `1.7.4-signature-wave-motion`
+- Service worker cache: `foxbear-shell-v1.7.4-signature-wave-motion`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

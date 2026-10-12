@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.4-studio-readable-contrast';
+  const VIEW_VERSION = '1.7.4-signature-wave-motion';
   const DEFAULT_BINS = 96;
 
   function getService() {
