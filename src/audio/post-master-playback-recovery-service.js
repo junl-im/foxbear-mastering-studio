@@ -2,7 +2,7 @@
 (function attachFoxBearPostMasterPlaybackRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.4-required-workspace-entry';
+    const SERVICE_VERSION = '1.7.4-studio-visual-redesign';
     const DEFAULT_READY_TIMEOUT_MS = 2200;
 
     function getExpectedSource(track, mode = 'original') {

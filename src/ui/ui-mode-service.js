@@ -382,6 +382,8 @@
         function init() {
             if (initialized) return getSnapshot();
             initialized = true;
+            const advanced = documentRef?.querySelector?.('.console-advanced');
+            if (advanced) advanced.open = Boolean(global.matchMedia?.('(min-width: 900px)')?.matches);
             const initialState = readInitialModeState(storage);
             const entryState = consumeEntryState(storage);
             const restored = initialState.mode;

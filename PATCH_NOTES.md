@@ -1,3 +1,10 @@
+# v1.7.4 - Studio visual redesign (2026-10-12)
+
+- Graphite/amber/teal studio identity with decorative audio waveform artwork.
+- Two-column Expert workspace, single-column mobile flow, and collapsible advanced sound controls.
+- Compact workflow, legible forms and track cards, one empty queue message, consistent surfaces.
+- Preserve mandatory entry mode chooser, all audio processing and working session state.
+
 ## 2026-10-12 · Required workspace entry
 
 - First visit, reload and URL re-entry require choosing AI or Expert before opening the workspace.

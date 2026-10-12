@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.4-required-workspace-entry';
+    const VERSION = '1.7.4-studio-visual-redesign';
 
     function createController(options = {}) {
         const state = options.state || {};
