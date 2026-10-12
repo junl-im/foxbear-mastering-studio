@@ -415,5 +415,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-workflow-guidance', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-required-workspace-entry', create });
 })(typeof window !== 'undefined' ? window : globalThis);

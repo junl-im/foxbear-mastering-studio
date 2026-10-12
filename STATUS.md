@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `workflow-guidance`
-- Asset version: `1.7.4-workflow-guidance`
-- Service worker cache: `foxbear-shell-v1.7.4-workflow-guidance`
+- Build ID: `required-workspace-entry`
+- Asset version: `1.7.4-required-workspace-entry`
+- Service worker cache: `foxbear-shell-v1.7.4-required-workspace-entry`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `workflow-guidance`
-- Asset version: `1.7.4-workflow-guidance`
-- Service worker cache: `foxbear-shell-v1.7.4-workflow-guidance`
+- Build ID: `required-workspace-entry`
+- Asset version: `1.7.4-required-workspace-entry`
+- Service worker cache: `foxbear-shell-v1.7.4-required-workspace-entry`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

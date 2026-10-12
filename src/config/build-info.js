@@ -5,9 +5,9 @@
   const info = Object.freeze({
     productVersion: '1.7.4',
     appVersion: 'Pro v1.7.4',
-    buildId: 'workflow-guidance',
-    assetVersion: '1.7.4-workflow-guidance',
-    cacheName: 'foxbear-shell-v1.7.4-workflow-guidance',
+    buildId: 'required-workspace-entry',
+    assetVersion: '1.7.4-required-workspace-entry',
+    cacheName: 'foxbear-shell-v1.7.4-required-workspace-entry',
     bootRevision: 'boot-sri-v174',
     updateSafetyRevision: 'update-safety-v174',
     serviceWorkerRevision: 'sw-v174',

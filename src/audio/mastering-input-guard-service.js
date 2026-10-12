@@ -119,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.7.4-workflow-guidance',
+        version: '1.7.4-required-workspace-entry',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

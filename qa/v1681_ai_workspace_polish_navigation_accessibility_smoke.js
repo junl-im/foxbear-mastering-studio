@@ -109,10 +109,10 @@ vm.runInNewContext(serviceSource, { window: fakeWindow, console, Object, String,
 const service = fakeWindow.FoxBearUiModeService;
 const controller = service.createController({ document: documentRef, sessionStorage: storage });
 let snapshot = controller.init();
-assert.strictEqual(snapshot.chooserOpen, false);
-assert.strictEqual(snapshot.chooserRequired, false);
-assert.strictEqual(snapshot.overlayRegistered, false);
-assert.strictEqual(documentRef.appShell.inert, false, 'background shell must remain interactive on default Expert entry');
+assert.strictEqual(snapshot.chooserOpen, true);
+assert.strictEqual(snapshot.chooserRequired, true);
+assert.strictEqual(snapshot.overlayRegistered, true);
+assert.strictEqual(documentRef.appShell.inert, true, 'background must be locked until a workspace is selected');
 controller.openChooser({ required: true });
 snapshot = controller.getSnapshot();
 assert.strictEqual(snapshot.chooserOpen, true);
@@ -132,8 +132,8 @@ keydown({ key: 'Tab', shiftKey: true, preventDefault() { prevented = true; } });
 assert.strictEqual(prevented, true);
 assert.strictEqual(documentRef.activeElement.id, 'uiModeExpertBtn', 'hidden required close button must not enter the focus loop');
 
-assert.strictEqual(controller.closeChooser(), true);
-assert.strictEqual(documentRef.appShell.inert, false);
+assert.strictEqual(controller.closeChooser(), false);
+assert.strictEqual(documentRef.appShell.inert, true);
 controller.openChooser({ required: true });
 assert.strictEqual(controller.select('ai'), true);
 assert.strictEqual(documentRef.appShell.inert, false);

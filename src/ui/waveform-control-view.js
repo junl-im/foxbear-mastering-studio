@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.4-workflow-guidance';
+  const VIEW_VERSION = '1.7.4-required-workspace-entry';
   const DEFAULT_BINS = 96;
 
   function getService() {

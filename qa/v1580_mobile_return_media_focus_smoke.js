@@ -33,7 +33,7 @@ function sourceBetween(source, startMarker, endMarker) {
 async function testInterruptedContextResumeDeduplication() {
   const listeners = new Map();
   const fakeWindow = {
-    FoxBearBuildInfo: { assetVersion: '1.7.4-workflow-guidance' },
+    FoxBearBuildInfo: { assetVersion: '1.7.4-required-workspace-entry' },
     addEventListener(type, handler) { listeners.set(type, handler); }
   };
   vm.runInNewContext(contextSource, {

@@ -10,7 +10,7 @@ const must = (condition, message) => {
   }
 };
 
-const version = '1.7.4-workflow-guidance';
+const version = '1.7.4-required-workspace-entry';
 const app = read('src/app.js');
 const service = read('src/audio/playback-transition-service.js');
 const index = read('index.html');
@@ -22,10 +22,10 @@ must(pkg.version === '1.7.4', 'package version should be 1.7.4');
 must(index.includes(`src/audio/playback-transition-service.js?v=${version}`), 'transition service should load before app');
 must(index.indexOf('src/audio/playback-transition-service.js') < index.indexOf('src/audio/waveform-control-service.js'), 'transition service should load before dependent playback UI');
 must(sw.includes(`./src/audio/playback-transition-service.js?v=${version}`), 'transition service should be precached');
-must(sw.includes(`foxbear-shell-v${version}`) || sw.includes(`foxbear-shell-${version}`) || sw.includes(`foxbear-shell-v1.7.4-workflow-guidance`), 'service worker cache should use v1.7.4 key');
+must(sw.includes(`foxbear-shell-v${version}`) || sw.includes(`foxbear-shell-${version}`) || sw.includes(`foxbear-shell-v1.7.4-required-workspace-entry`), 'service worker cache should use v1.7.4 key');
 must(runtime.includes('FoxBearPlaybackTransitionService.crossfadePair'), 'runtime health should require transition service');
 
-must(service.includes('SERVICE_VERSION = \'1.7.4-workflow-guidance\''), 'transition service version missing');
+must(service.includes('SERVICE_VERSION = \'1.7.4-required-workspace-entry\''), 'transition service version missing');
 must(service.includes('function playWithFadeIn'), 'playWithFadeIn missing');
 must(service.includes('function pauseWithFadeOut'), 'pauseWithFadeOut missing');
 must(service.includes('function crossfadePair'), 'crossfadePair missing');

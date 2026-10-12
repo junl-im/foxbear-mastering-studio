@@ -8,7 +8,7 @@
         storage: 'sessionStorage',
         sameTabReload: 'show-chooser',
         sameUrlReentry: 'show-chooser',
-        freshBrowsingSession: 'default-expert',
+        freshBrowsingSession: 'show-chooser',
         manualSwitch: 'reopen'
     });
 
@@ -55,7 +55,7 @@
         if (pending) return Object.freeze({ mode: pending, source: 'pending' });
         const e2e = safeReadE2eMode();
         if (e2e) return Object.freeze({ mode: e2e, source: 'e2e' });
-        return Object.freeze({ mode: MODES.EXPERT, source: 'default-expert' });
+        return Object.freeze({ mode: '', source: 'required-choice' });
     }
 
     function readInitialMode(storage) {
@@ -64,7 +64,7 @@
 
     function publishPrepaintMode() {
         const restored = readInitialMode(global.sessionStorage);
-        try { global.document?.documentElement?.setAttribute('data-ui-mode-pref', restored || MODES.EXPERT); }
+        try { global.document?.documentElement?.setAttribute('data-ui-mode-pref', restored || 'unselected'); }
         catch (error) {}
         return restored;
     }
@@ -298,8 +298,8 @@
             chooser.dataset.required = chooserRequired ? 'true' : 'false';
             chooser.setAttribute('aria-hidden', 'false');
             body()?.classList?.add('ui-mode-choice-open');
-            setBackgroundInert(true);
             syncOverlayRegistration(true);
+            setBackgroundInert(true);
             updateControls();
             const preferred = mode === MODES.EXPERT ? get('expert') : get('ai');
             const focusTarget = preferred || getFocusable()[0] || panel;
@@ -411,7 +411,7 @@
                 pageshowBound = true;
                 global.addEventListener('pageshow', () => {
                     if (mode) apply(mode, { persist: false });
-                    if (chooserOpen) { syncOverlayRegistration(true); updateControls(); }
+                    if (chooserOpen) { syncOverlayRegistration(true); setBackgroundInert(true); updateControls(); }
                 });
             }
             updateControls();

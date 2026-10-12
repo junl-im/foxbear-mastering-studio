@@ -3,7 +3,7 @@
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const PATCH_ID = BUILD_INFO.assetVersion ? `v${BUILD_INFO.assetVersion}` : 'v1.7.4-workflow-guidance';
+    const PATCH_ID = BUILD_INFO.assetVersion ? `v${BUILD_INFO.assetVersion}` : 'v1.7.4-required-workspace-entry';
     const EXPECTED_BOOT_KEY = BUILD_INFO.bootRevision || 'boot-sri-v174';
     const BOOT_CRITICAL_RE = /(?:src\/boot\/runtime-health\.js|src\/boot\/performance-diagnostics\.js|src\/app\.js)$/;
     const LOCAL_ASSET_RE = /^(?:\.\/)?(?:src\/|assets\/|manifest\.webmanifest|sw\.js|vendor\/)/;

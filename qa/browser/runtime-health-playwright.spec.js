@@ -256,58 +256,64 @@ test.describe('FoxBear browser runtime health', () => {
     expect(pageErrors, `pageErrors · ${JSON.stringify(pageErrors)}`).toEqual([]);
     expect(consoleErrors, `consoleErrors · ${JSON.stringify(consoleErrors)}`).toEqual([]);
   });
-  test('starts in expert on first entry and shows chooser on reload/re-entry', async ({ browser, page }) => {
-    const prepareSessionProbe = async targetPage => {
-      await installOptionalRemoteMocks(targetPage);
-      await targetPage.addInitScript(() => {
+  test('requires workspace choice on first entry, reload and re-entry', async ({ browser, page }) => {
+    const prepare = async p => {
+      await installOptionalRemoteMocks(p);
+      await p.addInitScript(() => {
         window.__FOXBEAR_E2E__ = true;
         window.__FOXBEAR_SKIP_OPTIONAL_REMOTE__ = true;
         window.__FOXBEAR_E2E_DISABLE_AUTO_DIALOGS__ = true;
       });
     };
-
-    await prepareSessionProbe(page);
+    const assertChoice = async p => {
+      await expectRuntimeHealthy(expect, p);
+      await expect(p.locator('#uiModeChooser')).toBeVisible();
+      await expect(p.locator('#uiModeChooser')).toHaveAttribute('data-required', 'true');
+      await expect(p.locator('body')).toHaveAttribute('data-ui-mode', 'unselected');
+      await expect(p.locator('#uiModeChooserClose')).toBeHidden();
+      await p.keyboard.press('Escape');
+      await expect(p.locator('#uiModeChooser')).toBeVisible();
+      expect(await p.locator('.app-shell').evaluate(n => n.inert)).toBeTruthy();
+      const snapshot = await p.evaluate(() => window.FoxBearUiModeController.getSnapshot());
+      expect(snapshot.restoredSource).toBe('required-choice');
+      expect(snapshot.sessionContract.sameUrlReentry).toBe('show-chooser');
+    };
+    await prepare(page);
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
-    await expectRuntimeHealthy(expect, page);
-    await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'expert');
-    await expect(page.locator('#uiModeChooser')).toBeHidden();
-    const entrySnapshot = await page.evaluate(() => window.FoxBearUiModeController?.getSnapshot?.() || null);
-    expect(entrySnapshot?.restoredSource).toBe('default-expert');
-    expect(entrySnapshot?.sessionContract?.sameTabReload).toBe('show-chooser');
-    expect(entrySnapshot?.sessionContract?.sameUrlReentry).toBe('show-chooser');
-
-    await page.locator('#uiModeSwitchBtn').click();
-    await expect(page.locator('#uiModeChooser')).toBeVisible();
-    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
+    await assertChoice(page);
+    for (const [width, height] of [[320,568],[390,844],[844,390],[768,1024],[1440,900]]) {
+      await page.setViewportSize({ width, height });
+      expect(await page.locator('#uiModeChooserPanel').evaluate(n => n.scrollWidth <= n.clientWidth)).toBeTruthy();
+      const panelBox = await page.locator('#uiModeChooserPanel').boundingBox();
+      expect(panelBox.x).toBeGreaterThanOrEqual(0);
+      expect(panelBox.x + panelBox.width).toBeLessThanOrEqual(width);
+      for (const id of ['uiModeAiBtn', 'uiModeExpertBtn']) {
+        const card = page.locator('#' + id);
+        await card.scrollIntoViewIfNeeded();
+        const box = await card.boundingBox();
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width);
+      }
+    }
     await page.locator('#uiModeAiBtn').click();
+    await expect(page.locator('#uiModeChooser')).toBeHidden();
     await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'ai');
+    await page.locator('#uiModeSwitchBtn').click();
+    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
+    await page.keyboard.press('Escape');
     await expect(page.locator('#uiModeChooser')).toBeHidden();
-
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await expectRuntimeHealthy(expect, page);
-    await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'expert');
-    await expect(page.locator('#uiModeChooser')).toBeVisible();
-    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
-    await page.locator('#uiModeChooserClose').click();
-    await expect(page.locator('#uiModeChooser')).toBeHidden();
-
+    await assertChoice(page);
+    await page.locator('#uiModeExpertBtn').click();
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded' });
-    await expectRuntimeHealthy(expect, page);
-    await expect(page.locator('body')).toHaveAttribute('data-ui-mode', 'expert');
-    await expect(page.locator('#uiModeChooser')).toBeVisible();
-    await expect(page.locator('#uiModeChooser')).toHaveAttribute('data-required', 'false');
-
+    await assertChoice(page);
     const freshContext = await browser.newContext();
     try {
       const freshPage = await freshContext.newPage();
-      await prepareSessionProbe(freshPage);
+      await prepare(freshPage);
       await freshPage.goto(APP_URL, { waitUntil: 'domcontentloaded' });
-      await expectRuntimeHealthy(expect, freshPage);
-      await expect(freshPage.locator('body')).toHaveAttribute('data-ui-mode', 'expert');
-      await expect(freshPage.locator('#uiModeChooser')).toBeHidden();
-    } finally {
-      await freshContext.close();
-    }
+      await assertChoice(freshPage);
+    } finally { await freshContext.close(); }
   });
 
 });

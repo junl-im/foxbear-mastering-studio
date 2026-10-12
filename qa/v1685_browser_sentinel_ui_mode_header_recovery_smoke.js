@@ -19,7 +19,7 @@ assert(pkg.qaChecks.includes('node qa/v1685_browser_sentinel_ui_mode_header_reco
 assert(serviceSource.includes('function safeReadE2eMode()'));
 assert(serviceSource.includes("global.__FOXBEAR_E2E__ !== true"));
 assert(serviceSource.includes('function readInitialModeState(storage)'));
-assert(serviceSource.includes("source: 'default-expert'"));
+assert(serviceSource.includes("source: 'required-choice'"));
 assert(serviceSource.indexOf('const pending = safeReadPendingMode()') < serviceSource.indexOf('const e2e = safeReadE2eMode()')); 
 assert(helperSource.includes("document.documentElement?.getAttribute?.('data-ui-mode-pref')"));
 assert(helperSource.includes('bodyMode === expectedMode'));
