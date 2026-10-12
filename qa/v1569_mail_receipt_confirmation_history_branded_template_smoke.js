@@ -15,7 +15,7 @@ const rules = read('firestore.rules');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.69_MAIL_RECEIPT_CONFIRMATION_HISTORY_BRANDED_TEMPLATE.md');
 assert.strictEqual(pkg.version, '1.7.4');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.4-signature-wave-motion');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.4-studio-scrollbars');
 for (const token of [
   "const MAIL_TEST_HISTORY_COLLECTION = 'incidentMailTestHistory'",
   "const MAIL_RECEIPT_CONFIRMATION_COLLECTION = 'incidentMailReceiptConfirmationRequests'",

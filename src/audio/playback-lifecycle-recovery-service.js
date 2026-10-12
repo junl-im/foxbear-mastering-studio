@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.4-signature-wave-motion';
+    const SERVICE_VERSION = '1.7.4-studio-scrollbars';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

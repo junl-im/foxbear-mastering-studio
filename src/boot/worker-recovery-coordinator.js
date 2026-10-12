@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.7.4-signature-wave-motion';
+    const VERSION = '1.7.4-studio-scrollbars';
     const handlers = [];
 
     function normalizeJob(job) {

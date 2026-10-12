@@ -2,7 +2,7 @@
 (function attachFoxBearPostMasterPlaybackRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.4-signature-wave-motion';
+    const SERVICE_VERSION = '1.7.4-studio-scrollbars';
     const DEFAULT_READY_TIMEOUT_MS = 2200;
 
     function getExpectedSource(track, mode = 'original') {

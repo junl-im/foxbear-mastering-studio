@@ -199,3 +199,25 @@ body { color: var(--ink); background: #0d141c !important; }
 @media (prefers-reduced-motion: reduce) {
     .studio-wave-trace { animation: none !important; transform: none !important; }
 }
+
+/* Native scrolling, styled for graphite surfaces. Preserve compact dock rails. */
+:root { --scrollbar-track: #101923; --scrollbar-thumb: #718299; --scrollbar-hover: #9fb0c5; }
+html, body, body *:not(.bottom-preview-controls):not(.bottom-preview-translation-modes) { scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track); }
+html { scrollbar-width: auto; }
+body *:not(.bottom-preview-controls):not(.bottom-preview-translation-modes) { scrollbar-width: thin; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 8px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border: 3px solid var(--scrollbar-track); border-radius: 8px; min-height: 32px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+::-webkit-scrollbar-thumb:active { background: #76d9cc; }
+::-webkit-scrollbar-corner { background: var(--scrollbar-track); }
+@supports selector(::-webkit-scrollbar) {
+    html, body, body *:not(.bottom-preview-controls):not(.bottom-preview-translation-modes) { scrollbar-color: auto; }
+    body *:not(.bottom-preview-controls):not(.bottom-preview-translation-modes) { scrollbar-width: auto; }
+    body *::-webkit-scrollbar { width: 10px; height: 10px; }
+}
+@media (forced-colors: active) {
+    ::-webkit-scrollbar { width: revert; height: revert; }
+    html, body, body *:not(.bottom-preview-controls):not(.bottom-preview-translation-modes) { scrollbar-color: auto; scrollbar-width: auto; }
+    ::-webkit-scrollbar-track, ::-webkit-scrollbar-thumb, ::-webkit-scrollbar-corner { background: revert; border-color: revert; }
+}

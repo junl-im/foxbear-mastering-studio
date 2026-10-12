@@ -82,7 +82,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-signature-wave-motion' }
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-studio-scrollbars' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;

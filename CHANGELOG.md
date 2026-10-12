@@ -1,3 +1,9 @@
+# v1.7.4 - Studio scrollbars (2026-10-12)
+
+- Style native page and nested scrollbars with graphite tracks, readable slate thumbs and teal active feedback.
+- Preserve native wheel, keyboard and touch scrolling and compact hidden dock rails.
+- Let system forced-color mode control scrollbar contrast.
+
 # v1.7.4 - Signature waveform motion (2026-10-12)
 
 - Add a subtle seven-second wave animation to the signature banner and shared chooser waveform.

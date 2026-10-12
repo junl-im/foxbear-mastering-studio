@@ -2,7 +2,7 @@
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-signature-wave-motion';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-studio-scrollbars';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

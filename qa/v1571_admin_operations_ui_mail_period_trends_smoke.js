@@ -15,7 +15,7 @@ const cssSource = read('assets/css/components/admin-incident-monitor.css');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.71_ADMIN_OPERATIONS_UI_MAIL_PERIOD_TRENDS.md');
 assert.strictEqual(pkg.version, '1.7.4');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.4-signature-wave-motion');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.4-studio-scrollbars');
 for (const token of [
   "const PRODUCT_VERSION = '1.7.4'", 'nextVerificationDueAt', 'verificationAgeDays', 'scheduleStatus',
   'mailTestPeriodTrends: true', 'mailVerificationSchedule: true', 'adminOperationsUiHierarchy: true'

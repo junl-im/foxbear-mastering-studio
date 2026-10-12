@@ -2,7 +2,7 @@
 (function attachFoxBearAudioDecodeService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.4-signature-wave-motion';
+    const SERVICE_VERSION = '1.7.4-studio-scrollbars';
     const DEFAULT_METADATA_TIMEOUT_MS = 4500;
     const MIN_DECODE_TIMEOUT_MS = 20000;
     const MAX_DECODE_TIMEOUT_MS = 120000;
