@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.7.4-workflow-guidance';
+    const VERSION = '1.7.4-required-workspace-entry';
     const handlers = [];
 
     function normalizeJob(job) {

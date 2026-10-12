@@ -15,7 +15,7 @@ assert(serviceSource.includes('function applyEarlyModeSelection(nextMode)'));
 assert(serviceSource.includes("documentRef.addEventListener('click'"));
 assert(serviceSource.includes("global.__FOXBEAR_PENDING_UI_MODE__ = normalized"));
 assert(serviceSource.includes('function readInitialModeState(storage)'));
-assert(serviceSource.includes("source: 'default-expert'"));
+assert(serviceSource.includes("source: 'required-choice'"));
 assert(serviceSource.indexOf('const pending = safeReadPendingMode()') < serviceSource.indexOf('const e2e = safeReadE2eMode()'));
 
 class FakeClassList {

@@ -2,7 +2,7 @@
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-workflow-guidance';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-required-workspace-entry';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',
@@ -237,7 +237,13 @@
     return notice;
   }
 
+  function isWorkspaceChoiceOpen() {
+    const chooser = global.document?.getElementById?.('uiModeChooser');
+    return Boolean(chooser && !chooser.hidden && chooser.getAttribute?.('aria-hidden') === 'false');
+  }
+
   function isShellVisible(shell) {
+    if (shell && isWorkspaceChoiceOpen()) return true;
     if (!shell || shell.hidden || shell.hasAttribute?.('inert')) return false;
     let style = null;
     try { style = global.getComputedStyle?.(shell) || null; } catch (error) {}
@@ -250,7 +256,7 @@
   }
 
   function clearAccidentalShellHiding(shell) {
-    if (!shell) return;
+    if (!shell || isWorkspaceChoiceOpen()) return;
     shell.hidden = false;
     shell.removeAttribute?.('hidden');
     shell.removeAttribute?.('inert');

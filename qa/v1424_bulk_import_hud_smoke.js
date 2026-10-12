@@ -34,7 +34,7 @@ assert(app.includes('function getBulkImportHudSnapshot'), 'app should expose HUD
 assert(app.includes('beginBulkImportHudBatch(addedTracks, { largeBatch, skippedByLimit:'), 'handleFiles should create HUD batch before analysis starts');
 assert(app.includes('if (!totalWorking)') && app.includes('updateBulkImportHud();') && app.includes('return snapshot;'), 'queue status should update HUD on completion');
 assert(app.includes('updateBulkImportHud();\n    updateMobileNativeUi();'), 'renderAll should refresh HUD');
-assert(bulkHud.includes("const VIEW_VERSION = '1.7.4-workflow-guidance'"), 'HUD module should carry v1.7.4 version');
+assert(bulkHud.includes("const VIEW_VERSION = '1.7.4-required-workspace-entry'"), 'HUD module should carry v1.7.4 version');
 assert(bulkHud.includes('const hudState'), 'HUD module should keep HUD batch state');
 assert(bulkHud.includes('function beginBatch'), 'HUD module should start a batch');
 assert(bulkHud.includes('function update()'), 'HUD module should render/update the HUD');
@@ -43,9 +43,9 @@ assert(bulkHud.includes('global.FoxBearBulkImportHudView'), 'HUD module should e
 assert(bulkHud.includes('global.FoxBearBulkImportHud'), 'HUD module should expose diagnostics global');
 assert(bulkHud.includes('track.bulkImportBatchId = batchId'), 'tracks should be assigned to a HUD batch');
 assert(bulkHud.includes('track.bulkImportOrder = index + 1'), 'tracks should keep visible row order');
-assert(index.includes('src/ui/bulk-import-hud-view.js?v=1.7.4-workflow-guidance'), 'index should load bulk import HUD module');
+assert(index.includes('src/ui/bulk-import-hud-view.js?v=1.7.4-required-workspace-entry'), 'index should load bulk import HUD module');
 
-assert(index.includes('assets/css/bulk-import-hud.css?v=1.7.4-workflow-guidance'), 'index should load bulk import HUD CSS');
+assert(index.includes('assets/css/bulk-import-hud.css?v=1.7.4-required-workspace-entry'), 'index should load bulk import HUD CSS');
 assert(css.includes('.bulk-import-hud'), 'CSS should style bulk import HUD');
 assert(css.includes('.bulk-import-hud-list'), 'CSS should style bulk import list');
 assert(css.includes('overflow: auto'), 'bulk import list should be scrollable');

@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.7.4-workflow-guidance';
+    const VERSION = '1.7.4-required-workspace-entry';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

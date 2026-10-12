@@ -1,3 +1,10 @@
+## 2026-10-12 · Required workspace entry
+
+- First visit, reload and URL re-entry require choosing AI or Expert before opening the workspace.
+- Preserve optional in-session mode switching and early boot choice recovery.
+- Compact mobile workflow/empty queue spacing and keep chooser badges in layout to prevent overlaps.
+- Cover fresh contexts, reload, re-entry, Escape guard, and 320/390/768/844/1440px chooser layouts in browser tests.
+
 # Workflow guidance · 2026-10-10
 
 작업 단계 안내, 빈 대기열 안내, 출력 설정 도움말을 추가했습니다. PR에서 정적·브라우저 CI를 실행하며 main에서만 배포합니다. 오디오 엔진은 변경하지 않았습니다. 캐시와 SRI를 동기화했습니다.

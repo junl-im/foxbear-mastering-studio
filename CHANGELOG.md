@@ -1,3 +1,10 @@
+# v1.7.4 - Required workspace entry (2026-10-12)
+
+- First visit, reload and URL re-entry require choosing AI or Expert before opening the workspace.
+- Preserve optional in-session mode switching and early boot choice recovery.
+- Compact mobile workflow/empty queue spacing and keep chooser badges in layout to prevent overlaps.
+- Cover fresh contexts, reload, re-entry, Escape guard, and 320/390/768/844/1440px chooser layouts in browser tests.
+
 # v1.7.4 - Workflow guidance (2026-10-10)
 
 - 작업 상태에 맞춘 4단계 안내와 빈 대기열 안내를 추가했습니다.
