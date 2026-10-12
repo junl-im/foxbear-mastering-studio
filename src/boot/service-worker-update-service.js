@@ -2,7 +2,7 @@
 (function attachFoxBearServiceWorkerUpdateService(global) {
   'use strict';
 
-  const VERSION = '1.7.4-signature-wave-motion';
+  const VERSION = '1.7.4-studio-scrollbars';
   const DEFAULT_POLL_MS = 500;
   const DEFAULT_STABLE_IDLE_MS = 1800;
   const PEER_TTL_MS = 5000;

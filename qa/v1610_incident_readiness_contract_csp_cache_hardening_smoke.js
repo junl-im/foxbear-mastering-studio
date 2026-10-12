@@ -65,7 +65,7 @@ const sandbox = {
     addEventListener() {}, createElement: makeElement, execCommand: () => true
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-signature-wave-motion' }
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-studio-scrollbars' }
 };
 const completeRemote = () => {
   const checkedAt = new Date().toISOString();

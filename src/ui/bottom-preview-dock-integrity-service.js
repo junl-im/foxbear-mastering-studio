@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.4-signature-wave-motion';
+    const VERSION = '1.7.4-studio-scrollbars';
 
     function createController(options = {}) {
         const state = options.state || {};

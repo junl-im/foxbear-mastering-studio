@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `signature-wave-motion`
-- Asset version: `1.7.4-signature-wave-motion`
-- Service worker cache: `foxbear-shell-v1.7.4-signature-wave-motion`
+- Build ID: `studio-scrollbars`
+- Asset version: `1.7.4-studio-scrollbars`
+- Service worker cache: `foxbear-shell-v1.7.4-studio-scrollbars`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `signature-wave-motion`
-- Asset version: `1.7.4-signature-wave-motion`
-- Service worker cache: `foxbear-shell-v1.7.4-signature-wave-motion`
+- Build ID: `studio-scrollbars`
+- Asset version: `1.7.4-studio-scrollbars`
+- Service worker cache: `foxbear-shell-v1.7.4-studio-scrollbars`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`
