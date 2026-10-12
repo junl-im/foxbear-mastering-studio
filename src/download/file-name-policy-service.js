@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearFileNamePolicyService(global) {
-    const VERSION = 'v1.7.4-studio-visual-redesign';
+    const VERSION = 'v1.7.4-studio-readable-contrast';
     const DEFAULT_MAX_FILENAME_BYTES = 240;
     const FILE_NAME_PREFERENCES_KEY = 'foxbear:download-filename-preferences:v1';
     const DEFAULT_FILE_NAME_PREFERENCES = Object.freeze({

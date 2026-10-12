@@ -29,10 +29,10 @@ must(pkg.version === '1.7.4', 'package version should be 1.7.4');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1-4-26');
 must(pkg.qaChecks.includes('node qa/v1425_exit_guard_fallback_smoke.js'), 'package should run v1.7.4 smoke');
 must(index.includes('data-build="1.7.4"'), 'index build marker should be 1.7.4');
-must(index.includes('src/security/site-guards.js?v=1.7.4-studio-visual-redesign'), 'site guard cache key should be updated');
-must(index.includes('assets/css/studio.css?v=1.7.4-studio-visual-redesign'), 'studio CSS cache key should be updated');
+must(index.includes('src/security/site-guards.js?v=1.7.4-studio-readable-contrast'), 'site guard cache key should be updated');
+must(index.includes('assets/css/studio.css?v=1.7.4-studio-readable-contrast'), 'studio CSS cache key should be updated');
 must(app.includes("const APP_VERSION = 'Pro v1.7.4'"), 'app version should be Pro v1.7.4');
-must(sw.includes('foxbear-shell-v1.7.4-studio-visual-redesign'), 'service worker cache should use v1.7.4 key');
+must(sw.includes('foxbear-shell-v1.7.4-studio-readable-contrast'), 'service worker cache should use v1.7.4 key');
 
 [
   'EXIT_FALLBACK_DELAY_MS',

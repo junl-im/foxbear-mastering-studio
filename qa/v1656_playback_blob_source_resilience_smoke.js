@@ -26,8 +26,8 @@ assert(trackLifecycleSource.includes('FoxBearPlaybackSourceRecoveryService?.rele
 assert(app.includes("recoverPlaybackSource('dock-source-error')"));
 assert(app.includes("recoverPlaybackSource('dock-source-emptied')"));
 assert(app.includes('retirePlaybackObjectUrl(track, previousMasteredUrl)'));
-assert(index.includes('src/audio/playback-source-recovery-service.js?v=1.7.4-studio-visual-redesign'));
-assert(sw.includes("'./src/audio/playback-source-recovery-service.js?v=1.7.4-studio-visual-redesign'"));
+assert(index.includes('src/audio/playback-source-recovery-service.js?v=1.7.4-studio-readable-contrast'));
+assert(sw.includes("'./src/audio/playback-source-recovery-service.js?v=1.7.4-studio-readable-contrast'"));
 
 const audios = [];
 const revoked = [];

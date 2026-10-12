@@ -415,5 +415,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-studio-visual-redesign', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-studio-readable-contrast', create });
 })(typeof window !== 'undefined' ? window : globalThis);

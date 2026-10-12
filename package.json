@@ -2,7 +2,7 @@
   "name": "foxbear-mastering-studio",
   "version": "1.7.4",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.7.4 - studio visual redesign",
+  "description": "FoxBear AI Mastering Studio Pro v1.7.4 - studio readable contrast",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -525,9 +525,9 @@
     "node qa/v16114_reference_profile_64band_upgrade_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "studio-visual-redesign",
-    "assetVersion": "1.7.4-studio-visual-redesign",
-    "cacheName": "foxbear-shell-v1.7.4-studio-visual-redesign",
+    "buildId": "studio-readable-contrast",
+    "assetVersion": "1.7.4-studio-readable-contrast",
+    "cacheName": "foxbear-shell-v1.7.4-studio-readable-contrast",
     "bootRevision": "boot-sri-v174",
     "updateSafetyRevision": "update-safety-v174",
     "serviceWorkerRevision": "sw-v174"
