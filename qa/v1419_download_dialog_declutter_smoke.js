@@ -27,8 +27,8 @@ const changelog = read('CHANGELOG.md');
 assert(pkg.version === '1.7.4', 'package version should be 1.7.4');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.7.4');
 assert(index.includes('data-build="1.7.4"'), 'index build marker should be 1.7.4');
-assert(index.includes('1.7.4-studio-readable-contrast'), 'index should use declutter asset key');
-assert(sw.includes('foxbear-shell-v1.7.4-studio-readable-contrast'), 'service worker should use v1.7.4 cache key');
+assert(index.includes('1.7.4-signature-wave-motion'), 'index should use declutter asset key');
+assert(sw.includes('foxbear-shell-v1.7.4-signature-wave-motion'), 'service worker should use v1.7.4 cache key');
 
 assert(service.includes('getDownloadDialogDisplayProfile'), 'download service should expose display profile helper');
 assert(service.includes("mode: restricted ? 'restricted-declutter' : 'standard-declutter'"), 'display profile should distinguish restricted and standard modes');

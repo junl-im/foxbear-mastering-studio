@@ -119,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.7.4-studio-readable-contrast',
+        version: '1.7.4-signature-wave-motion',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

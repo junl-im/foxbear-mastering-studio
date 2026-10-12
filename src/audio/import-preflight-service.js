@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.7.4-studio-readable-contrast';
+    const VERSION = '1.7.4-signature-wave-motion';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

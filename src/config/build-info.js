@@ -5,9 +5,9 @@
   const info = Object.freeze({
     productVersion: '1.7.4',
     appVersion: 'Pro v1.7.4',
-    buildId: 'studio-readable-contrast',
-    assetVersion: '1.7.4-studio-readable-contrast',
-    cacheName: 'foxbear-shell-v1.7.4-studio-readable-contrast',
+    buildId: 'signature-wave-motion',
+    assetVersion: '1.7.4-signature-wave-motion',
+    cacheName: 'foxbear-shell-v1.7.4-signature-wave-motion',
     bootRevision: 'boot-sri-v174',
     updateSafetyRevision: 'update-safety-v174',
     serviceWorkerRevision: 'sw-v174',

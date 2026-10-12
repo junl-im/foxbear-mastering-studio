@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.4-studio-readable-contrast';
+    const VERSION = '1.7.4-signature-wave-motion';
 
     function createController(options = {}) {
         const state = options.state || {};

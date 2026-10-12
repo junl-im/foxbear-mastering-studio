@@ -1,3 +1,9 @@
+# v1.7.4 - Signature waveform motion (2026-10-12)
+
+- Add a subtle seven-second wave animation to the signature banner and shared chooser waveform.
+- Keep labels, axes and layout fixed; respect reduced-motion preferences.
+- Decorative branding only: this waveform is not a live audio meter.
+
 # v1.7.4 - Readable studio contrast (2026-10-12)
 
 - Increase secondary text contrast and remove translucent header labels.

@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearExportGuardService(global) {
-    const VERSION = 'v1.7.4-studio-readable-contrast';
+    const VERSION = 'v1.7.4-signature-wave-motion';
     const LEGACY_VERSION = 'v1.5.2-export-guard-low-memory-ux';
     const MB = 1024 * 1024;
     const GB = 1024 * MB;

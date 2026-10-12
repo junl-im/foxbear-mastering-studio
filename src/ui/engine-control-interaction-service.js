@@ -2,7 +2,7 @@
 (function attachFoxBearEngineControlInteraction(global) {
     'use strict';
 
-    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-studio-readable-contrast';
+    const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-signature-wave-motion';
     const CONTROL_IDS = Object.freeze(['masterGoalSelect', 'masterStyleSelect', 'masterStrengthSelect', 'platformPresetSelect']);
     const CONTROL_ID_SET = new Set(CONTROL_IDS);
     const state = {

@@ -61,7 +61,7 @@ const sandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-studio-readable-contrast' }
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-signature-wave-motion' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;

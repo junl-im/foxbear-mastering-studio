@@ -3,9 +3,9 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `studio-readable-contrast`
-- Asset version: `1.7.4-studio-readable-contrast`
-- Service worker cache: `foxbear-shell-v1.7.4-studio-readable-contrast`
+- Build ID: `signature-wave-motion`
+- Asset version: `1.7.4-signature-wave-motion`
+- Service worker cache: `foxbear-shell-v1.7.4-signature-wave-motion`
 - Configured static/regression target: 474 checks.
 - Base release: v1.6.114.
 - Scope: Adaptive Mastering Decision phase 1; three candidate setting plans are risk-scored before a single render, while custom/original manual mastering remains untouched.
