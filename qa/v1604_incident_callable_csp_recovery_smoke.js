@@ -73,7 +73,7 @@ const sandbox = {
   removeEventListener() {},
   dispatchEvent() {},
   localStorage: { getItem: () => null, setItem() {} },
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-studio-scrollbars' },
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-completed-track-workflow' },
   FoxBearFirebase: { incidentFunctionsOrigin: origin }
 };
 sandbox.window = sandbox;

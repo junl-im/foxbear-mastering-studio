@@ -119,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.7.4-studio-scrollbars',
+        version: '1.7.4-completed-track-workflow',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

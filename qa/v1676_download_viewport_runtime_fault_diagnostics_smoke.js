@@ -40,8 +40,8 @@ assert(snapshot.entries.every(item => !('message' in item) && !('stack' in item)
 
 const index = read('index.html');
 const sw = read('sw.js');
-assert(index.includes('src/boot/runtime-fault-counters.js?v=1.7.4-studio-scrollbars'), 'runtime fault counters must load from index');
-assert(sw.includes('./src/boot/runtime-fault-counters.js?v=1.7.4-studio-scrollbars'), 'runtime fault counters must be precached');
+assert(index.includes('src/boot/runtime-fault-counters.js?v=1.7.4-completed-track-workflow'), 'runtime fault counters must load from index');
+assert(sw.includes('./src/boot/runtime-fault-counters.js?v=1.7.4-completed-track-workflow'), 'runtime fault counters must be precached');
 
 const perf = read('src/boot/performance-diagnostics.js');
 assert(perf.includes('runtimeFaults = safeCall'), 'performance diagnostics must collect runtime fault counters');

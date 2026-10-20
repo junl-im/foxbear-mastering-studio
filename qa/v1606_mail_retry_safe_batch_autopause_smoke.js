@@ -55,7 +55,7 @@ const reporterSandbox = {
     createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-studio-scrollbars' }
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-completed-track-workflow' }
 };
 reporterSandbox.window = reporterSandbox;
 reporterSandbox.globalThis = reporterSandbox;

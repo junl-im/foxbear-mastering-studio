@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.7.4-studio-scrollbars';
+    const VERSION = '1.7.4-completed-track-workflow';
     const handlers = [];
 
     function normalizeJob(job) {

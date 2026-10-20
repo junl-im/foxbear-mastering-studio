@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.7.4-studio-scrollbars';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.7.4-completed-track-workflow';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;
