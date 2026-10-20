@@ -3,7 +3,7 @@
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
   "productVersion": "1.7.4",
-  "buildId": "completed-track-workflow",
+  "buildId": "import-toast-reliability",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

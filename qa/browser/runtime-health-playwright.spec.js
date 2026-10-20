@@ -467,3 +467,57 @@ test('studio text stays readable on chooser, controls and loaded tracks', async 
     await expectRuntimeHealthy(expect, page);
   } finally { removeDirSafe(temp.dir); }
 });
+
+
+test('recovers a native file selection made while the app script is still loading', async ({ page }) => {
+  const { createSyntheticWavFiles, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
+  const temp = createSyntheticWavFiles(1, { seconds: 2 });
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  await installOptionalRemoteMocks(page);
+  await page.addInitScript(() => { window.__FOXBEAR_E2E__ = true; window.__FOXBEAR_SKIP_OPTIONAL_REMOTE__ = true; window.__FOXBEAR_E2E_DISABLE_AUTO_DIALOGS__ = true; });
+  await page.route('**/src/app.js?*', async route => { await held; await route.continue(); });
+  try {
+    await page.goto(APP_URL, { waitUntil: 'commit' });
+    await page.locator('#fileInput').waitFor({ state: 'attached' });
+    await page.setInputFiles('#fileInput', temp.files);
+    expect(await page.evaluate(() => Boolean(window.FoxBearRuntimeHealth?.getReport?.()?.appReady))).toBe(false);
+    release();
+    await expectRuntimeHealthy(expect, page);
+    await expect(page.locator('.track-card')).toHaveCount(1, { timeout: 30000 });
+    await page.locator('#uiModeAiBtn').click();
+    await expect(page.locator('#masterSelectedBtn')).toBeEnabled({ timeout: 30000 });
+    await page.locator('#uiModeSwitchBtn').click();
+    await page.locator('#uiModeExpertBtn').click();
+    await expect(page.locator('.track-card')).toHaveCount(1);
+  } finally { release(); removeDirSafe(temp.dir); }
+});
+
+test('notice bursts stay compact, dismissible and clear of the mobile transport', async ({ page }) => {
+  await navigateToApp(page, { uiMode: 'ai', disableAutoDialogs: true });
+  await expectRuntimeHealthy(expect, page);
+  await page.setInputFiles('#fileInput', { name: 'notice-test.wav', mimeType: 'audio/wav', buffer: require('./helpers/foxbear-e2e-helpers').makeTinyWavBuffer({ seconds: 2 }) });
+  await expect(page.locator('#masterSelectedBtn')).toBeEnabled({ timeout: 30000 });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 700 });
+    await page.evaluate(() => {
+      document.getElementById('toast').replaceChildren();
+      for (let i = 0; i < 8; i++) showToast(`notice ${i}`, { duration: 10000 });
+      showToast('notice 7', { duration: 10000 });
+    });
+    const items = page.locator('.foxbear-toast-item');
+    await expect(items).toHaveCount(width <= 720 ? 1 : 2);
+    const box = await items.last().boundingBox();
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    expect(box.height).toBeLessThanOrEqual(160);
+    await expect.poll(async () => {
+      const current = await items.last().boundingBox();
+      const dock = await page.locator('#bottomPreviewDock').boundingBox();
+      return current.y + current.height - dock.y;
+    }).toBeLessThanOrEqual(1);
+    await items.last().getByRole('button', { name: '알림 닫기' }).press('Enter');
+    await expect(items).toHaveCount(width <= 720 ? 0 : 1);
+  }
+  await expectRuntimeHealthy(expect, page);
+});

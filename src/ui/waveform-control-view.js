@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.4-completed-track-workflow';
+  const VIEW_VERSION = '1.7.4-import-toast-reliability';
   const DEFAULT_BINS = 96;
 
   function getService() {

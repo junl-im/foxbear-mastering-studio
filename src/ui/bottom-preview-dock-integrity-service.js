@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.4-completed-track-workflow';
+    const VERSION = '1.7.4-import-toast-reliability';
 
     function createController(options = {}) {
         const state = options.state || {};

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.7.4-completed-track-workflow';
+const version = '1.7.4-import-toast-reliability';
 const index = read('index.html');
 const sw = read('sw.js');
 const pkg = read('package.json');
