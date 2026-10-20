@@ -174,6 +174,7 @@ const CORE_ASSETS = [
   './src/ui/modal-controller.js?v=1.7.4-import-toast-reliability',
   './src/ui/engine-control-interaction-service.js?v=1.7.4-import-toast-reliability',
   './src/ui/ui-mode-service.js?v=1.7.4-import-toast-reliability',
+  './src/ui/toast-service.js?v=1.7.4-import-toast-reliability',
   './src/ui/bottom-preview-dock-integrity-service.js?v=1.7.4-import-toast-reliability',
   './src/ui/dock-controller.js?v=1.7.4-import-toast-reliability',
   './src/ui/mobile-native-view.js?v=1.7.4-import-toast-reliability&h=bulk-hud-restore-v153',
