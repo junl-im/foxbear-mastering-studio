@@ -1,3 +1,9 @@
+# v1.7.4 - Early import and compact notices (2026-10-20)
+
+- Recover files selected before app event binding, once after startup.
+- Limit notices to one on mobile and two on desktop; deduplicate repeated notices.
+- Add dismiss buttons and constrain long notice height without hiding its text.
+
 # v1.7.4 - Completed track workflow (2026-10-20)
 
 - Group original/master comparison and file download in each finished track panel.

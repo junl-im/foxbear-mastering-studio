@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.7.4-completed-track-workflow';
+    const VERSION = '1.7.4-import-toast-reliability';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

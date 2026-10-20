@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `completed-track-workflow`
-- Asset version: `1.7.4-completed-track-workflow`
-- Service worker cache: `foxbear-shell-v1.7.4-completed-track-workflow`
+- Build ID: `import-toast-reliability`
+- Asset version: `1.7.4-import-toast-reliability`
+- Service worker cache: `foxbear-shell-v1.7.4-import-toast-reliability`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `completed-track-workflow`
-- Asset version: `1.7.4-completed-track-workflow`
-- Service worker cache: `foxbear-shell-v1.7.4-completed-track-workflow`
+- Build ID: `import-toast-reliability`
+- Asset version: `1.7.4-import-toast-reliability`
+- Service worker cache: `foxbear-shell-v1.7.4-import-toast-reliability`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`
