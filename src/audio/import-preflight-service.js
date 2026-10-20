@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.7.4-studio-scrollbars';
+    const VERSION = '1.7.4-completed-track-workflow';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

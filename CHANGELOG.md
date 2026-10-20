@@ -1,3 +1,10 @@
+# v1.7.4 - Completed track workflow (2026-10-20)
+
+- Group original/master comparison and file download in each finished track panel.
+- Open comparison for the clicked track, even when another track was active.
+- Keep result actions touch-friendly and separate from remaster/delete controls.
+- Preserve the existing export dialog and audio processing engine.
+
 # v1.7.4 - Studio scrollbars (2026-10-12)
 
 - Style native page and nested scrollbars with graphite tracks, readable slate thumbs and teal active feedback.

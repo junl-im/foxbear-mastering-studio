@@ -19,7 +19,7 @@ const health = read('src/boot/runtime-health.js');
 const compare = read('src/ui/waveform-compare-view.js');
 const app = read('src/app.js');
 const pkg = JSON.parse(read('package.json'));
-const assetVersion = '1.7.4-studio-scrollbars';
+const assetVersion = '1.7.4-completed-track-workflow';
 
 assert(pkg.version === '1.7.4', 'Stage17 should keep official app version at 1.4.0');
 assert(pkg.description.includes('FoxBear'), 'package description should identify latest Stage17+ line');

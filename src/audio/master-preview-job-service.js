@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.7.4-studio-scrollbars';
+    const VERSION = '1.7.4-completed-track-workflow';
     let sequence = 0;
 
     function createFallbackAbortController() {

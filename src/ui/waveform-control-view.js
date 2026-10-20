@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.4-studio-scrollbars';
+  const VIEW_VERSION = '1.7.4-completed-track-workflow';
   const DEFAULT_BINS = 96;
 
   function getService() {

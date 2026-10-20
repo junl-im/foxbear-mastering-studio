@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearExportQueueService(global) {
-    const VERSION = 'v1.7.4-studio-scrollbars';
+    const VERSION = 'v1.7.4-completed-track-workflow';
     const MB = 1024 * 1024;
     const MAX_ITEMS = 200;
     const MIN_THROUGHPUT_BYTES_PER_MS = 0.5 * MB / 1000;

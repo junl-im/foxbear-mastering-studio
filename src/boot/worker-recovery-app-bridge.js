@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryAppBridge(global) {
-    const VERSION = '1.7.4-studio-scrollbars';
+    const VERSION = '1.7.4-completed-track-workflow';
     const coordinator = global.FoxBearWorkerRecoveryCoordinator;
     if (!coordinator?.registerHandler) return;
 

@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.7.4-studio-scrollbars';
+    const VERSION = '1.7.4-completed-track-workflow';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

@@ -415,5 +415,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-studio-scrollbars', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-completed-track-workflow', create });
 })(typeof window !== 'undefined' ? window : globalThis);

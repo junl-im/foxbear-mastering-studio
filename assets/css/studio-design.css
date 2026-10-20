@@ -221,3 +221,12 @@ body *:not(.bottom-preview-controls):not(.bottom-preview-translation-modes) { sc
     html, body, body *:not(.bottom-preview-controls):not(.bottom-preview-translation-modes) { scrollbar-color: auto; scrollbar-width: auto; }
     ::-webkit-scrollbar-track, ::-webkit-scrollbar-thumb, ::-webkit-scrollbar-corner { background: revert; border-color: revert; }
 }
+
+/* Finished tracks keep compare and export together, above maintenance actions. */
+.track-export-ready-panel { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important; border: 1px solid #76d9cc88 !important; background: #1c3439 !important; padding: 12px !important; }
+.track-export-ready-panel > :is(strong, span, small) { grid-column: 1 / -1; color: var(--ink) !important; }
+.track-export-ready-panel > small { color: var(--muted) !important; line-height: 1.6; }
+.track-export-ready-panel > button { min-height: 44px !important; white-space: normal; overflow-wrap: anywhere; }
+.track-export-ready-panel .track-result-download { color: #18140e !important; background: var(--amber) !important; border: 1px solid var(--amber) !important; font-weight: 750; }
+.track-export-ready-panel .track-result-compare { color: #d1fff7 !important; background: #16323a !important; border: 1px solid #76d9cc !important; }
+@media (max-width: 360px) { .track-export-ready-panel { grid-template-columns: minmax(0, 1fr); } }

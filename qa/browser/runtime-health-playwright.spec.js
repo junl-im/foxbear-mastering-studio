@@ -339,6 +339,26 @@ test('workflow guidance follows real import, master and clear in both workspaces
     await page.locator('#bottomPreviewMasterBtn').click();
     await expect(page.locator('[data-workflow-step][aria-current="step"]')).toHaveAttribute('data-workflow-step', '4', { timeout: 45000 });
     await expect(page.locator('#workflowStatus')).toContainText('마스터링이 완료');
+    const resultPanel = page.locator('.track-export-ready-panel').first();
+    await expect(resultPanel.locator('.track-result-compare')).toBeVisible();
+    await expect(resultPanel.locator('.track-result-download')).toBeVisible();
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const button of await resultPanel.locator('button').all()) {
+        const box = await button.boundingBox();
+        expect(box.height).toBeGreaterThanOrEqual(44);
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width + 1);
+      }
+    }
+    await resultPanel.locator('.track-result-compare').click();
+    await expect(page.locator('#previewDialog')).toBeVisible();
+    await expect(page.locator('.waveform-compare-head strong')).toContainText('foxbear-e2e-01');
+    await expect(page.locator('.waveform-compare-row')).toHaveCount(2);
+    await page.locator('#previewDialogClose').click();
+    await resultPanel.locator('.track-result-download').click();
+    await expect(page.locator('.download-options-panel-v1574')).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.locator('#uiModeSwitchBtn').click();
     await page.locator('#uiModeExpertBtn').click();
     await expect(page.locator('#workflowStatus')).toContainText('마스터링이 완료');
