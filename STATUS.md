@@ -7,10 +7,6 @@
 - Asset version: `1.7.4-batch-mobile-layout`
 - Service worker cache: `foxbear-shell-v1.7.4-batch-mobile-layout`
 - Configured static/regression target: 472 checks.
-- Product version: `1.7.4`
-- Build ID: `batch-mobile-layout`
-- Asset version: `1.7.4-batch-mobile-layout`
-- Service worker cache: `foxbear-shell-v1.7.4-batch-mobile-layout`
 
 ## Release metadata
 
@@ -23,10 +19,6 @@
 - Service worker revision: `sw-v170`
 
 # FoxBear Status - v1.6.114
-- Product version: `1.7.4`
-- Build ID: `batch-mobile-layout`
-- Asset version: `1.7.4-batch-mobile-layout`
-- Service worker cache: `foxbear-shell-v1.7.4-batch-mobile-layout`
 
 ## Current release
 
