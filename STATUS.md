@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `batch-recovery`
-- Asset version: `1.7.4-batch-recovery`
-- Service worker cache: `foxbear-shell-v1.7.4-batch-recovery`
+- Build ID: `batch-recovery-guidance`
+- Asset version: `1.7.4-batch-recovery-guidance`
+- Service worker cache: `foxbear-shell-v1.7.4-batch-recovery-guidance`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `batch-recovery`
-- Asset version: `1.7.4-batch-recovery`
-- Service worker cache: `foxbear-shell-v1.7.4-batch-recovery`
+- Build ID: `batch-recovery-guidance`
+- Asset version: `1.7.4-batch-recovery-guidance`
+- Service worker cache: `foxbear-shell-v1.7.4-batch-recovery-guidance`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

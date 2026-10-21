@@ -3,7 +3,7 @@
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
   "productVersion": "1.7.4",
-  "buildId": "batch-recovery",
+  "buildId": "batch-recovery-guidance",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",

@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.7.4-performance-recovery-stage-hud';
-    // v1.7.4 compatibility QA anchor: const VIEW_VERSION = '1.7.4-batch-recovery'
+    // v1.7.4 compatibility QA anchor: const VIEW_VERSION = '1.7.4-batch-recovery-guidance'
     // compatibility anchor: const VIEW_VERSION = '1.7.4-bulk-control-eta-result-filter'
     // Legacy copy contract retained for regression discovery: 대량 마스터링 HUD
     const defaultDeps = Object.freeze({});
@@ -13,6 +13,7 @@
     let currentTrackNavigationTimer = 0;
     let currentTrackNavigationToken = 0;
     let currentTrackNavigationPendingId = '';
+    const openRecoveryTrackIds = new Set();
     const hudState = {
         batchId: '',
         phase: 'import',
@@ -134,6 +135,7 @@
         const batchId = makeBatchId('bulk-import', items, Object.assign({}, options, { inheritImportBatch: false }));
         hudState.batchId = batchId;
         hudState.phase = 'import';
+        openRecoveryTrackIds.clear();
         hudState.total = items.length;
         hudState.startedAt = Date.now();
         hudState.completedAt = 0;
@@ -169,6 +171,7 @@
         const batchId = makeBatchId('bulk-mastering', items, options);
         hudState.batchId = batchId;
         hudState.phase = 'mastering';
+        openRecoveryTrackIds.clear();
         hudState.total = items.length;
         hudState.startedAt = Date.now();
         hudState.completedAt = 0;
@@ -868,6 +871,14 @@
         container.append(title, detail);
     }
 
+    function getRecoveryGuidance(track, result) {
+        if (result === 'cancelled') return '이 곡은 작업 취소로 완성되지 않았습니다. 위의 미완료 곡 다시 실행을 누르면 완료된 파일을 유지한 채 다시 처리합니다.';
+        const report = String(track?.report || '');
+        const suggested = report.match(/해결 제안:\s*(.*?)(?:\s*·\s*원문:|$)/)?.[1]?.trim();
+        if (suggested) return `${suggested} 문제가 해결되면 위의 실패 곡 다시 실행을 누르세요. 완료된 파일은 유지됩니다.`;
+        return '일시적인 오류일 수 있습니다. 위의 실패 곡 다시 실행을 눌러 보세요. 계속 실패하면 파일 재생 상태를 확인하고 WAV 24bit 출력으로 다시 시도하세요.';
+    }
+
     function trackMatchesFilter(track, filter) {
         if (!isMasteringPhase() || filter === 'all') return true;
         const result = getMasteringResult(track);
@@ -1022,6 +1033,21 @@
                 : (result === 'skipped' ? '관리자가 현재 곡을 건너뛰었습니다.' : (track.error || track.report || getStatusLabel(track)));
             report.textContent = timing ? `${reportText} · ${timing}` : reportText;
             main.append(name, report);
+            if (summary.phase === 'mastering' && (result === 'error' || result === 'cancelled')) {
+                const recovery = global.document.createElement('details');
+                recovery.className = 'bulk-import-row-recovery';
+                recovery.open = openRecoveryTrackIds.has(track.id);
+                recovery.addEventListener('toggle', () => {
+                    if (recovery.open) openRecoveryTrackIds.add(track.id);
+                    else openRecoveryTrackIds.delete(track.id);
+                });
+                const trigger = global.document.createElement('summary');
+                trigger.textContent = result === 'error' ? '해결 방법 보기' : '재실행 안내 보기';
+                const guidance = global.document.createElement('p');
+                guidance.textContent = getRecoveryGuidance(track, result);
+                recovery.append(trigger, guidance);
+                main.appendChild(recovery);
+            }
             const stateBadge = global.document.createElement('span');
             stateBadge.className = 'bulk-import-row-state';
             stateBadge.textContent = isCurrent ? '현재 진행' : getStatusLabel(track);

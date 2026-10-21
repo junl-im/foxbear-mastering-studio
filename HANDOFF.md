@@ -11,6 +11,11 @@
 - Scope: Adaptive Mastering Decision phase 1; three candidate setting plans are risk-scored before a single render, while custom/original manual mastering remains untouched.
 
 # Handoff - v1.6.114
+- Product version: `1.7.4`
+- Build ID: `batch-recovery-guidance`
+- Asset version: `1.7.4-batch-recovery-guidance`
+- Service worker cache: `foxbear-shell-v1.7.4-batch-recovery-guidance`
+- Configured static/regression target: 474 checks.
 
 ## Current release
 

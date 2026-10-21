@@ -119,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.7.4-batch-recovery',
+        version: '1.7.4-batch-recovery-guidance',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,
