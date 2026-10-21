@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.7.4-batch-analysis-readiness';
+    const VERSION = '1.7.4-batch-recovery';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

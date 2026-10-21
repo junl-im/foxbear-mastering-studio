@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.7.4-batch-analysis-readiness';
+    const VERSION = '1.7.4-batch-recovery';
     const handlers = [];
 
     function normalizeJob(job) {

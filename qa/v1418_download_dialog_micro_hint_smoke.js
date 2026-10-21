@@ -27,8 +27,8 @@ const readme = read('README.md');
 assert(pkg.version === '1.7.4', 'package version should be 1.7.4');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should match 1.7.4');
 assert(index.includes('data-build="1.7.4"'), 'index build marker should be 1.7.4');
-assert(index.includes('1.7.4-batch-analysis-readiness'), 'index should use micro hint asset key');
-assert(sw.includes('foxbear-shell-v1.7.4-batch-analysis-readiness'), 'service worker should use micro hint cache key');
+assert(index.includes('1.7.4-batch-recovery'), 'index should use micro hint asset key');
+assert(sw.includes('foxbear-shell-v1.7.4-batch-recovery'), 'service worker should use micro hint cache key');
 
 assert(service.includes('getDownloadDialogCompactHint'), 'download service should expose dialog micro hint helper');
 assert(service.includes("version: '1.7.4'"), 'download helpers should report v1.7.4');

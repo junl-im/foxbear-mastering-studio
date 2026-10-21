@@ -14,7 +14,7 @@ const indexSource = read('index.html');
 const handoff = read('HANDOFF.md');
 const docs = read('docs/V1.5.68_MAIL_DELIVERY_VERIFICATION_SENDER_SUBJECT_RULES.md');
 assert.strictEqual(pkg.version, '1.7.4');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.4-batch-analysis-readiness');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.4-batch-recovery');
 for (const token of [
   "const MAIL_FROM_NAME = 'AI마스터링 스튜디오'", "const MAIL_SUBJECT_PREFIX = '[AI마스터링 스튜디오]'",
   'mailFromHeader()', 'buildIncidentSubject', "'X-AI-Mastering-Mail-Type'", 'smtpAcceptedAt: Timestamp.fromMillis(now)'

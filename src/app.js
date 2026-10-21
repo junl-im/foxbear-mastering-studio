@@ -68,15 +68,15 @@ const {
     BULK_IMPORT_HUD_MIN_TRACKS = 2,
     BULK_IMPORT_HUD_DONE_HOLD_MS = 15000
 } = FoxBearRuntimeConfig;
-const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.7.4-batch-analysis-readiness'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v174'}`;
-const ADMIN_INCIDENT_MONITOR_SCRIPT_URL = `src/ui/admin-incident-monitor-view.js?v=${FoxBearBuildInfo.assetVersion || '1.7.4-batch-analysis-readiness'}`;
+const SERVICE_WORKER_URL = `./sw.js?v=${FoxBearBuildInfo.assetVersion || '1.7.4-batch-recovery'}&h=${FoxBearBuildInfo.serviceWorkerRevision || 'sw-v174'}`;
+const ADMIN_INCIDENT_MONITOR_SCRIPT_URL = `src/ui/admin-incident-monitor-view.js?v=${FoxBearBuildInfo.assetVersion || '1.7.4-batch-recovery'}`;
 const TRUSTED_SCRIPT_PATHS = Object.freeze([...(Array.isArray(FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS) ? FoxBearRuntimeConfig.TRUSTED_SCRIPT_PATHS : [WAV_ENCODER_WORKER_URL, MP3_ENCODER_WORKER_URL, ANALYSIS_WORKER_URL, MASTER_FINALIZER_WORKER_URL, PITCH_WSOLA_WORKER_URL, ZIP_ENCODER_WORKER_URL]), SERVICE_WORKER_URL, ADMIN_INCIDENT_MONITOR_SCRIPT_URL]);
 const TRUSTED_SCRIPT_URLS = new Set();
 const FOXBEAR_TRUSTED_TYPES_POLICY = createFoxBearTrustedTypesPolicy();
 const ANALYSIS_CACHE_DB = 'foxbear-analysis-cache-v1359';
 const ANALYSIS_CACHE_STORE = 'analysis';
 const ANALYSIS_ENGINE_CACHE_VERSION = 'analysis-engine-v1.4-stable';
-const SHARED_DSP_PROFILE_VERSION = 'v1.7.4-batch-analysis-readiness';
+const SHARED_DSP_PROFILE_VERSION = 'v1.7.4-batch-recovery';
 const PLAYBACK_CROSSFADE_MS = 140;
 const SAFE_IMPORT_ANALYSIS_CONCURRENCY = Math.max(1, Math.min(2, Number(IMPORT_ANALYSIS_CONCURRENCY) || 1));
 const SAFE_LARGE_IMPORT_BATCH_THRESHOLD = Math.max(4, Number(LARGE_IMPORT_BATCH_THRESHOLD) || 12);
@@ -3233,7 +3233,7 @@ function getPwaRuntimeBridge() {
     return pwaRuntimeBridge;
 }
 async function registerFoxBearServiceWorker(options = {}) {
-    // compatibility anchors: navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)) · navigator.serviceWorker.register('./sw.js?v=1.7.4-batch-analysis-readiness') · navigator.serviceWorker.register('./sw.js?v=1.7.4-batch-analysis-readiness&h=sw-v174')
+    // compatibility anchors: navigator.serviceWorker.register(resolveFoxBearScriptUrl(SERVICE_WORKER_URL)) · navigator.serviceWorker.register('./sw.js?v=1.7.4-batch-recovery') · navigator.serviceWorker.register('./sw.js?v=1.7.4-batch-recovery&h=sw-v174')
     return getPwaRuntimeBridge()?.registerServiceWorker?.(options);
 }
 async function processPwaShareTargetLaunch() {
@@ -4013,7 +4013,7 @@ function updateBulkImportHud() {
 }
 function getBulkImportHudSnapshot() {
     const view = getBulkImportHudView();
-    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.7.4-batch-analysis-readiness', total: 0, pending: 0, active: 0, fallback: true });
+    return view && typeof view.getSnapshot === 'function' ? view.getSnapshot() : Object.freeze({ version: '1.7.4-batch-recovery', total: 0, pending: 0, active: 0, fallback: true });
 }
 function showToastSafe(message) {
     try { showToast(message); } catch (error) { console.warn('toast unavailable:', message); }
@@ -4328,7 +4328,7 @@ window.FoxBearBulkImportGuard = Object.freeze({
 function getMasteringQueueSnapshot() {
     const activeIds = Array.from(masteringQueueState.activeIds);
     return Object.freeze({
-        version: '1.7.4-batch-analysis-readiness',
+        version: '1.7.4-batch-recovery',
         active: activeIds.length,
         activeIds,
         activeNames: activeIds.map(id => masteringQueueState.activeNames.get(id)).filter(Boolean),
@@ -4369,10 +4369,10 @@ function markMasteringQueueEnd(track, status = 'done') {
     return getMasteringQueueSnapshot();
 }
 window.FoxBearMasteringGuard = Object.freeze({
-    version: '1.7.4-batch-analysis-readiness',
+    version: '1.7.4-batch-recovery',
     getSnapshot: getMasteringQueueSnapshot
 });
-window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.7.4-batch-analysis-readiness', getSnapshot: getMasteringPerformanceSnapshot });
+window.FoxBearMasteringDiagnostics = Object.freeze({ version: '1.7.4-batch-recovery', getSnapshot: getMasteringPerformanceSnapshot });
 function getMasteringMemoryPolicyOptions(reason = 'release-after-encode', extra = {}) {
     const completedCount = state.tracks.filter(track => track && track.status === 'done').length;
     const activeBatchSize = Math.max(completedCount, ...state.tracks.map(track => Number(track?.bulkMasteringTotal || 0)).filter(Number.isFinite));
@@ -4397,12 +4397,12 @@ function applyCompletedMasteringMemoryPolicy(reason = 'completed-batch-policy', 
 }
 function getMemoryGuardSnapshot() {
     const service = getMemoryGuardService();
-    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.7.4-batch-analysis-readiness', unavailable: true, trackCount: state.tracks.length });
+    if (!service || typeof service.getSnapshot !== 'function') return Object.freeze({ version: 'v1.7.4-batch-recovery', unavailable: true, trackCount: state.tracks.length });
     return service.getSnapshot(state.tracks, getMasteringMemoryPolicyOptions('snapshot'));
 }
 function diagnoseCompletedMasteringMemory(reason = 'manual-diagnostic') {
     const service = getMemoryGuardService();
-    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.7.4-batch-analysis-readiness', unavailable: true });
+    if (!service || typeof service.diagnoseCompletedBatch !== 'function') return Object.freeze({ version: 'v1.7.4-batch-recovery', unavailable: true });
     const result = service.diagnoseCompletedBatch(state.tracks, getMasteringMemoryPolicyOptions(reason));
     console.info('FoxBear memory guard diagnostic:', result);
     return result;
@@ -4417,12 +4417,12 @@ function afterMasteringBatchMemorySweep(batchSummary = {}) {
     return result;
 }
 window.FoxBearMemoryGuard = Object.freeze({
-    version: 'v1.7.4-batch-analysis-readiness',
+    version: 'v1.7.4-batch-recovery',
     getSnapshot: getMemoryGuardSnapshot,
     applyPolicy: applyCompletedMasteringMemoryPolicy,
     diagnose: diagnoseCompletedMasteringMemory
 });
-window.FoxBearExportGuard = Object.freeze({ version: 'v1.7.4-batch-analysis-readiness', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
+window.FoxBearExportGuard = Object.freeze({ version: 'v1.7.4-batch-recovery', getReadiness: () => getExportGuardService()?.getExportReadiness?.(state.tracks, { memorySnapshot: getMemoryGuardSnapshot() }) || null, getDiagnostics: () => getExportGuardService()?.getDiagnostics?.() || [] });
 async function handleNativeInputFiles(fileList, kind = 'file') {
     const count = fileList && typeof fileList.length === 'number' ? fileList.length : 0;
     const input = kind === 'folder' ? el.folderInput : el.fileInput;
@@ -5522,17 +5522,17 @@ function cancelActiveMasteringBatch(reason = 'user-request') { return runMasteri
 function pauseActiveMasteringBatch(reason = 'user-request') { return runMasteringBatchControl('pauseActiveBatch', [reason]); } function resumeActiveMasteringBatch(reason = 'user-request') { return runMasteringBatchControl('resumeActiveBatch', [reason]); } function skipCurrentMasteringTrack(reason = 'user-skip') { return runMasteringBatchControl('skipCurrentTrack', [reason]); }
 function movePendingMasteringTrack(trackId, direction) { return runMasteringBatchControl('movePendingTrack', [trackId, direction]); }
 async function retryFailedBulkMasteringTracks() {
-    const failedTracks = getBulkImportHudView()?.getFailedTracks?.() || state.tracks.filter(track => track && (track.bulkMasteringResult === 'error' || track.status === 'error'));
-    if (!failedTracks.length) { showToast('다시 실행할 실패 곡이 없습니다.'); return false; }
+    const failedTracks = getBulkImportHudView()?.getRetryableTracks?.() || state.tracks.filter(track => track && ['error', 'cancelled'].includes(track.bulkMasteringResult));
+    if (!failedTracks.length) { showToast('다시 실행할 실패·취소 곡이 없습니다.'); return false; }
     clearStaleBusyFlagIfIdle('retry-failed-bulk-mastering');
-    if (state.busy && hasActiveBlockingWork()) { showToast('현재 작업이 끝난 뒤 실패 곡을 다시 실행해주세요.'); return false; }
-    failedTracks.forEach(track => Object.assign(track, { error: null, status: track.analysis ? 'ready' : 'queued', progress: 0, report: '실패 곡 재시도 대기', bulkMasteringResult: 'queued', bulkMasteringCancelReason: '' }));
+    if (state.busy && hasActiveBlockingWork()) { showToast('현재 작업이 끝난 뒤 미완료 곡을 다시 실행해주세요.'); return false; }
+    failedTracks.forEach(track => Object.assign(track, { error: null, status: track.analysis ? 'ready' : 'queued', progress: 0, report: '미완료 곡 재시도 대기', bulkMasteringResult: 'queued', bulkMasteringCancelReason: '' }));
     const result = await getMasteringBatchRunner().runBatch(failedTracks, {
         source: 'retry-failed', largeBatch: failedTracks.length >= SAFE_LARGE_IMPORT_BATCH_THRESHOLD, inheritImportBatch: false,
         initialRenderOptions: { keepDetailAudio: true }, finalRenderOptions: { keepDetailAudio: true }, masterOptions: { source: 'retry-failed' }
     });
-    if (result.completed) showToast(result.failed ? `실패 곡 재시도 완료 · 성공 ${result.completed} / 재실패 ${result.failed}` : `${result.completed}곡 재시도 마스터링 완료`);
-    else showToast(result.cancelled ? `실패 곡 재시도가 중단되었습니다. · 취소 ${result.cancelled}` : '실패 곡 재시도를 완료하지 못했습니다.');
+    if (result.completed) showToast(result.failed ? `미완료 곡 재시도 완료 · 성공 ${result.completed} / 재실패 ${result.failed}` : `${result.completed}곡 재시도 마스터링 완료`);
+    else showToast(result.cancelled ? `미완료 곡 재시도가 중단되었습니다. · 취소 ${result.cancelled}` : '미완료 곡 재시도를 완료하지 못했습니다.');
     return result.completed > 0;
 }
 function getMasteringBatchRunner() {

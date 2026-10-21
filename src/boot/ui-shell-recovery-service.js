@@ -2,7 +2,7 @@
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-batch-analysis-readiness';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.4-batch-recovery';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',
