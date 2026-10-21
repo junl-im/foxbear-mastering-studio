@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearFileNamePolicyService(global) {
-    const VERSION = 'v1.7.4-batch-analysis-readiness';
+    const VERSION = 'v1.7.4-batch-recovery';
     const DEFAULT_MAX_FILENAME_BYTES = 240;
     const FILE_NAME_PREFERENCES_KEY = 'foxbear:download-filename-preferences:v1';
     const DEFAULT_FILE_NAME_PREFERENCES = Object.freeze({

@@ -1,3 +1,9 @@
+# v1.7.4 - Batch recovery (2026-10-21)
+
+- Allow explicit retry of failed and cancelled tracks from the current batch.
+- Preserve completed outputs and exclude intentionally skipped tracks.
+- Show retry count and scope in the batch control.
+
 # v1.7.4 - Batch analysis readiness (2026-10-21)
 
 - Wait for all non-error tracks to finish analysis before enabling full-queue mastering.

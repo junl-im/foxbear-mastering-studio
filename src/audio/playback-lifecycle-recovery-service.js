@@ -2,7 +2,7 @@
 (function attachFoxBearPlaybackLifecycleRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.4-batch-analysis-readiness';
+    const SERVICE_VERSION = '1.7.4-batch-recovery';
     const RESTORE_DEBOUNCE_MS = 350;
     const NOTICE_COOLDOWN_MS = 60000;
 

@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.7.4-batch-analysis-readiness';
+    const VERSION = '1.7.4-batch-recovery';
     let sequence = 0;
 
     function createFallbackAbortController() {

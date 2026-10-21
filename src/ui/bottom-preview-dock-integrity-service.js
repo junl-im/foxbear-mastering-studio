@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.4-batch-analysis-readiness';
+    const VERSION = '1.7.4-batch-recovery';
 
     function createController(options = {}) {
         const state = options.state || {};

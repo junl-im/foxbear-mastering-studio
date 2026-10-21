@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.7.4-performance-recovery-stage-hud';
-    // v1.7.4 compatibility QA anchor: const VIEW_VERSION = '1.7.4-batch-analysis-readiness'
+    // v1.7.4 compatibility QA anchor: const VIEW_VERSION = '1.7.4-batch-recovery'
     // compatibility anchor: const VIEW_VERSION = '1.7.4-bulk-control-eta-result-filter'
     // Legacy copy contract retained for regression discovery: 대량 마스터링 HUD
     const defaultDeps = Object.freeze({});
@@ -283,7 +283,7 @@
     function retryFailedMasteringTracks() {
         if (!isMasteringPhase()) return false;
         const summary = getSummary();
-        if (summary.active || summary.pending || !summary.errors) return false;
+        if (summary.active || summary.pending || !(summary.errors + summary.cancelled)) return false;
         return typeof deps.onRetryFailed === 'function' ? deps.onRetryFailed() !== false : false;
     }
 
@@ -366,6 +366,11 @@
         items.forEach((track, index) => { if (track) track.bulkMasteringOrder = index + 1; });
         update();
         return true;
+    }
+
+    function getRetryableTracks() {
+        if (!isMasteringPhase()) return [];
+        return getTracks().filter(track => track && ['error', 'cancelled'].includes(getMasteringResult(track)));
     }
 
     function getFailedTracks() {
@@ -834,9 +839,10 @@
             controls.cancelBatch.textContent = summary.cancelRequested ? '취소 요청 중' : '다중 작업 취소';
         }
         if (controls.retryFailed) {
-            controls.retryFailed.hidden = !mastering || busy || summary.errors < 1;
-            controls.retryFailed.disabled = busy || summary.errors < 1;
-            controls.retryFailed.textContent = summary.errors > 0 ? `실패 ${summary.errors}곡 다시 실행` : '실패 곡 다시 실행';
+            controls.retryFailed.hidden = !mastering || busy || summary.errors + summary.cancelled < 1;
+            controls.retryFailed.disabled = busy || summary.errors + summary.cancelled < 1;
+            controls.retryFailed.textContent = summary.cancelled ? `미완료 ${summary.errors + summary.cancelled}곡 다시 실행` : (summary.errors > 0 ? `실패 ${summary.errors}곡 다시 실행` : '실패 곡 다시 실행');
+            controls.retryFailed.title = `실패 ${summary.errors}곡 · 취소 ${summary.cancelled}곡만 재실행합니다. 완료·건너뛴 곡은 유지합니다.`;
         }
         if (controls.resultFilter) {
             const filterWrap = controls.resultFilter.closest?.('.bulk-import-hud-filter-wrap');
@@ -1071,6 +1077,7 @@
         getSnapshot,
         getSummary,
         getFailedTracks,
+        getRetryableTracks,
         isActiveMasteringTrack,
         markMasteringTrackStart,
         markMasteringTrackResult,

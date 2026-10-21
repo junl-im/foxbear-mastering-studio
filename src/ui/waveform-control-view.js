@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.4-batch-analysis-readiness';
+  const VIEW_VERSION = '1.7.4-batch-recovery';
   const DEFAULT_BINS = 96;
 
   function getService() {

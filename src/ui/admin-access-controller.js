@@ -415,5 +415,5 @@
         });
     }
 
-    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-batch-analysis-readiness', create });
+    global.FoxBearAdminAccessController = Object.freeze({ version: '1.7.4-batch-recovery', create });
 })(typeof window !== 'undefined' ? window : globalThis);

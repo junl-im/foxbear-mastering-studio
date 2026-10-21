@@ -560,3 +560,61 @@ test('full queue waits for every analysis and masters both tracks without skippi
     await expectRuntimeHealthy(expect, page);
   } finally { removeDirSafe(temp.dir); }
 });
+
+
+for (const outcome of ['cancelled', 'error']) {
+  test(`batch recovery retries ${outcome} tracks and preserves completed audio`, async ({ page }) => {
+    const { createSyntheticWavFiles, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
+    const temp = createSyntheticWavFiles(3, { seconds: 2 });
+    try {
+      await navigateToApp(page, { uiMode: 'expert', disableAutoDialogs: true });
+      await expectRuntimeHealthy(expect, page);
+      await page.setInputFiles('#fileInput', temp.files);
+      await expect(page.locator('#masterAllBtn')).toBeEnabled({ timeout: 30000 });
+      await expect(page.locator('.track-card')).toHaveCount(3);
+      await page.evaluate(outcome => {
+        const original = window.masterTrack;
+        let injected = false;
+        window.masterTrack = async (track, batch, options = {}) => {
+          if (!injected && track.name.endsWith('02.wav')) {
+            injected = true;
+            if (outcome === 'cancelled') {
+              window.batchRecoveryWaiting = true;
+              await new Promise(resolve => {
+                if (options.signal.aborted) resolve();
+                else options.signal.addEventListener('abort', resolve, { once: true });
+              });
+            } else { track.error = 'Injected temporary failure'; track.status = 'error'; }
+            return false;
+          }
+          const ok = await original(track, batch, options);
+          if (track.name.endsWith('01.wav') && ok && !window.preservedBatchOutput) window.preservedBatchOutput = { blob: track.outBlob, url: track.masteredUrl, track };
+          return ok;
+        };
+      }, outcome);
+      await page.locator('#masterAllBtn').click();
+      if (outcome === 'cancelled') {
+        await expect.poll(() => page.evaluate(() => Boolean(window.batchRecoveryWaiting))).toBe(true);
+        await page.locator('#bulkImportHudCancel').click();
+      }
+      const retry = page.locator('#bulkImportHudRetryFailed');
+      await expect(retry).toBeVisible({ timeout: 45000 });
+      await expect(retry).toBeEnabled();
+      await expect(retry).toHaveText(outcome === 'cancelled' ? '미완료 2곡 다시 실행' : '실패 1곡 다시 실행');
+      const before = await page.evaluate(() => ({
+        retryCount: window.FoxBearBulkImportHudView.getRetryableTracks().length,
+        doneCount: document.querySelectorAll('.track-result-compare').length
+      }));
+      expect(before.retryCount).toBe(outcome === 'cancelled' ? 2 : 1);
+      expect(before.doneCount).toBe(outcome === 'cancelled' ? 1 : 2);
+      await retry.click();
+      await expect(page.locator('.track-result-compare')).toHaveCount(3, { timeout: 60000 });
+      expect(await page.evaluate(() => {
+        const saved = window.preservedBatchOutput;
+        return saved.track.outBlob === saved.blob && saved.track.masteredUrl === saved.url;
+      })).toBe(true);
+      await expect(retry).toBeHidden();
+      await expectRuntimeHealthy(expect, page);
+    } finally { removeDirSafe(temp.dir); }
+  });
+}

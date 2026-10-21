@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearZipExportService(global) {
-    const VERSION = 'v1.7.4-batch-analysis-readiness';
+    const VERSION = 'v1.7.4-batch-recovery';
     const state = { controller: null, jobId: '', startedAt: 0, options: null };
     const getFileNamePolicy = () => global.FoxBearFileNamePolicyService || null;
 
