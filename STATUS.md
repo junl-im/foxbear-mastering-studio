@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.4`
-- Build ID: `import-toast-reliability`
-- Asset version: `1.7.4-import-toast-reliability`
-- Service worker cache: `foxbear-shell-v1.7.4-import-toast-reliability`
+- Build ID: `batch-analysis-readiness`
+- Asset version: `1.7.4-batch-analysis-readiness`
+- Service worker cache: `foxbear-shell-v1.7.4-batch-analysis-readiness`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.4`
-- Build ID: `import-toast-reliability`
-- Asset version: `1.7.4-import-toast-reliability`
-- Service worker cache: `foxbear-shell-v1.7.4-import-toast-reliability`
+- Build ID: `batch-analysis-readiness`
+- Asset version: `1.7.4-batch-analysis-readiness`
+- Service worker cache: `foxbear-shell-v1.7.4-batch-analysis-readiness`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

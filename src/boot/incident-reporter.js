@@ -3,7 +3,7 @@
     'use strict';
 
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.7.4-import-toast-reliability';
+    const VERSION = BUILD_INFO.assetVersion || '1.7.4-batch-analysis-readiness';
     const CLIENT_PRODUCT_VERSION = String(BUILD_INFO.productVersion || document.body?.dataset?.build || '1.7.4').trim();
     const STORAGE_PREFIX = 'foxbear-incident-reporter-v1';
     const ENABLED_KEY = `${STORAGE_PREFIX}:enabled`;

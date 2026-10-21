@@ -119,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.7.4-import-toast-reliability',
+        version: '1.7.4-batch-analysis-readiness',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

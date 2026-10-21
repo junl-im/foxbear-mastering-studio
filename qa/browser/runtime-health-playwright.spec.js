@@ -521,3 +521,42 @@ test('notice bursts stay compact, dismissible and clear of the mobile transport'
   }
   await expectRuntimeHealthy(expect, page);
 });
+
+
+test('full queue waits for every analysis and masters both tracks without skipping', async ({ page }) => {
+  const { createSyntheticWavFiles, removeDirSafe } = require('./helpers/foxbear-e2e-helpers');
+  const temp = createSyntheticWavFiles(2, { seconds: 2 });
+  try {
+    await navigateToApp(page, { uiMode: 'expert', disableAutoDialogs: true });
+    await expectRuntimeHealthy(expect, page);
+    await page.evaluate(() => {
+      const original = window.analyzeTrack;
+      window.analyzeTrack = async (track, task) => {
+        if (track.name.endsWith('02.wav')) await new Promise(resolve => { window.releaseBatchAnalysis = resolve; });
+        return original(track, task);
+      };
+    });
+    await page.setInputFiles('#fileInput', temp.files);
+    await expect(page.locator('.track-card')).toHaveCount(2, { timeout: 30000 });
+    await expect(page.locator('.track-card .status-ready')).toHaveCount(1, { timeout: 30000 });
+    await expect(page.locator('#masterAllBtn')).toBeDisabled();
+    await expect(page.locator('#masterAllBtn')).toContainText('분석 대기 1곡');
+    await expect(page.locator('#workflowStatus')).toContainText('분석 준비 1/2곡');
+    expect(await page.evaluate(() => masterAllTracks())).toBe(false);
+    await expect(page.locator('.track-card .status-processing')).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => typeof window.releaseBatchAnalysis)).toBe('function');
+    await page.evaluate(() => window.releaseBatchAnalysis());
+    await expect(page.locator('#masterAllBtn')).toBeEnabled({ timeout: 30000 });
+    await expect(page.locator('#masterAllBtn')).toHaveText('전체 2곡 마스터링');
+    await page.locator('#masterAllBtn').evaluate(n => n.scrollIntoView({ block: 'center' }));
+    await page.locator('#masterAllBtn').click();
+    await expect(page.locator('.track-result-compare')).toHaveCount(2, { timeout: 60000 });
+    await expect(page.locator('.track-card .status-done')).toHaveCount(2);
+    await expect(page.locator('#workflowStatus')).toContainText('마스터링이 완료');
+    const readiness = await page.evaluate(() => window.FoxBearUiModeService.getBatchReadiness([
+      { status: 'ready', analysis: {} }, { status: 'error', error: 'invalid audio' }
+    ]));
+    expect(readiness).toMatchObject({ ready: 1, pending: 0, failed: 1, canStart: true });
+    await expectRuntimeHealthy(expect, page);
+  } finally { removeDirSafe(temp.dir); }
+});

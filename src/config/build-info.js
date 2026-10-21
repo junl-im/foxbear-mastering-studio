@@ -5,9 +5,9 @@
   const info = Object.freeze({
     productVersion: '1.7.4',
     appVersion: 'Pro v1.7.4',
-    buildId: 'import-toast-reliability',
-    assetVersion: '1.7.4-import-toast-reliability',
-    cacheName: 'foxbear-shell-v1.7.4-import-toast-reliability',
+    buildId: 'batch-analysis-readiness',
+    assetVersion: '1.7.4-batch-analysis-readiness',
+    cacheName: 'foxbear-shell-v1.7.4-batch-analysis-readiness',
     bootRevision: 'boot-sri-v174',
     updateSafetyRevision: 'update-safety-v174',
     serviceWorkerRevision: 'sw-v174',

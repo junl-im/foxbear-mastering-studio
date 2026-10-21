@@ -20,8 +20,8 @@ const pkg = JSON.parse(read('package.json'));
 
 assert(pkg.version === '1.7.4', 'package version should be 1.7.4');
 assert(index.includes('data-build="1.7.4"'), 'index data-build should be 1.7.4');
-assert(index.includes('1.7.4-import-toast-reliability'), 'index assets should use v1.7.4 cache key');
-assert(sw.includes('foxbear-shell-v1.7.4-import-toast-reliability'), 'service worker cache should use v1.7.4 key');
+assert(index.includes('1.7.4-batch-analysis-readiness'), 'index assets should use v1.7.4 cache key');
+assert(sw.includes('foxbear-shell-v1.7.4-batch-analysis-readiness'), 'service worker cache should use v1.7.4 key');
 
 assert(service.includes('getDownloadTroubleshootingText'), 'download service should expose troubleshooting text');
 assert(service.includes('copyDownloadTroubleshootingGuide'), 'download service should expose troubleshooting guide copy');

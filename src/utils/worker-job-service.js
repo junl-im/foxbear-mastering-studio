@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.7.4-import-toast-reliability';
+    const VERSION = '1.7.4-batch-analysis-readiness';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();
