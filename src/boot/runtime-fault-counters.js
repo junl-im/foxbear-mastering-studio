@@ -3,7 +3,7 @@
 (function attachFoxBearRuntimeFaultCounters(global) {
     'use strict';
 
-    const VERSION = '1.7.4-batch-recovery';
+    const VERSION = '1.7.4-batch-recovery-guidance';
     const MAX_KEYS = 48;
     const RECENT_WINDOW_MS = 5 * 60 * 1000;
     const MAX_RECENT_EVENTS = 96;

@@ -74,7 +74,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-batch-recovery' }
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-batch-recovery-guidance' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,

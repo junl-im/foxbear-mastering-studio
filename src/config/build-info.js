@@ -5,9 +5,9 @@
   const info = Object.freeze({
     productVersion: '1.7.4',
     appVersion: 'Pro v1.7.4',
-    buildId: 'batch-recovery',
-    assetVersion: '1.7.4-batch-recovery',
-    cacheName: 'foxbear-shell-v1.7.4-batch-recovery',
+    buildId: 'batch-recovery-guidance',
+    assetVersion: '1.7.4-batch-recovery-guidance',
+    cacheName: 'foxbear-shell-v1.7.4-batch-recovery-guidance',
     bootRevision: 'boot-sri-v174',
     updateSafetyRevision: 'update-safety-v174',
     serviceWorkerRevision: 'sw-v174',

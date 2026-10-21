@@ -584,7 +584,7 @@ for (const outcome of ['cancelled', 'error']) {
                 if (options.signal.aborted) resolve();
                 else options.signal.addEventListener('abort', resolve, { once: true });
               });
-            } else { track.error = 'Injected temporary failure'; track.status = 'error'; }
+            } else { track.error = 'Injected temporary failure'; track.report = '마스터링 실패: 임시 오류 · 해결 제안: WAV 24bit 출력으로 다시 시도하세요. · 원문: internal fixture'; track.status = 'error'; }
             return false;
           }
           const ok = await original(track, batch, options);
@@ -607,6 +607,13 @@ for (const outcome of ['cancelled', 'error']) {
       }));
       expect(before.retryCount).toBe(outcome === 'cancelled' ? 2 : 1);
       expect(before.doneCount).toBe(outcome === 'cancelled' ? 1 : 2);
+      const recovery = page.locator('.bulk-import-row-recovery').first();
+      await expect(recovery.locator('summary')).toHaveText(outcome === 'cancelled' ? '재실행 안내 보기' : '해결 방법 보기');
+      await recovery.locator('summary').click();
+      await expect(recovery.locator('p')).toContainText(outcome === 'cancelled' ? '완료된 파일을 유지' : 'WAV 24bit 출력으로 다시 시도하세요.');
+      if (outcome === 'error') await expect(recovery.locator('p')).not.toContainText('internal fixture');
+      await page.evaluate(() => window.FoxBearBulkImportHudView.update());
+      await expect(page.locator('.bulk-import-row-recovery').first()).toHaveAttribute('open', '');
       await retry.click();
       await expect(page.locator('.track-result-compare')).toHaveCount(3, { timeout: 60000 });
       expect(await page.evaluate(() => {

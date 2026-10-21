@@ -523,3 +523,25 @@ body.bottom-preview-active .bulk-import-hud {
 @media (prefers-reduced-motion: reduce) {
     .bulk-import-row.is-current.is-auto-navigated { animation: none; }
 }
+
+/* Explain recoverable batch outcomes without clipping the action text on narrow screens. */
+.bulk-import-row-recovery { min-width: 0; }
+.bulk-import-row-recovery summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    color: #8ff5e5;
+    font-size: .62rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.bulk-import-row-recovery summary:focus-visible { outline: 2px solid #8ff5e5; outline-offset: 2px; border-radius: 3px; }
+.bulk-import-row-recovery p {
+    margin: 1px 0 6px;
+    color: #dbe5ed;
+    font-size: .62rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}

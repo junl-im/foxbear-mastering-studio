@@ -61,7 +61,7 @@ const sandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent(event) { events.push(event); return true; },
-  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-batch-recovery' }
+  FoxBearBuildInfo: { productVersion: '1.7.4', assetVersion: '1.7.4-batch-recovery-guidance' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;

@@ -1,3 +1,9 @@
+# v1.7.4 - Batch recovery guidance (2026-10-21)
+
+- Show expandable, readable recovery advice on failed and cancelled batch tracks.
+- Use the mastering error service suggestion when available, without exposing raw diagnostics in the guidance.
+- Keep expanded guidance open during HUD refresh and preserve completed audio on retry.
+
 # v1.7.4 - Batch recovery (2026-10-21)
 
 - Allow explicit retry of failed and cancelled tracks from the current batch.
