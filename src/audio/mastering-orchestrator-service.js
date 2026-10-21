@@ -237,7 +237,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.7.4-import-toast-reliability',
+            version: '1.7.4-batch-analysis-readiness',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -615,7 +615,7 @@
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.7.4-import-toast-reliability',
+        version: '1.7.4-batch-analysis-readiness',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createAdaptiveDecisionPlan,

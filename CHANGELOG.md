@@ -1,3 +1,9 @@
+# v1.7.4 - Batch analysis readiness (2026-10-21)
+
+- Wait for all non-error tracks to finish analysis before enabling full-queue mastering.
+- Guard direct batch requests as well as the button, preventing silent skips of pending tracks.
+- Show ready/pending counts and batch completion progress; error tracks remain separately identified.
+
 # v1.7.4 - Early import and compact notices (2026-10-20)
 
 - Recover files selected before app event binding, once after startup.

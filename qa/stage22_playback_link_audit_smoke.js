@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.7.4-import-toast-reliability';
+const version = '1.7.4-batch-analysis-readiness';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

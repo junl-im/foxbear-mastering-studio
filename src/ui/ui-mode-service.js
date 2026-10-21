@@ -441,11 +441,19 @@
         return Object.freeze({ init, apply, openChooser: open, closeChooser: close, releaseForEmergency, select, getSnapshot, normalizeMode });
     }
 
+function getBatchReadiness(tracks = []) {
+    const valid = tracks.filter(track => track && !track.error);
+    const pending = valid.filter(track => track.status !== 'processing' && (!track.analysis || ['queued', 'analyzing'].includes(track.status))).length;
+    const processing = valid.filter(track => track.status === 'processing').length;
+    const ready = valid.length - pending - processing;
+    return Object.freeze({ total: tracks.length, ready, pending, processing, failed: tracks.length - valid.length, canStart: valid.length > 0 && pending === 0 && processing === 0 });
+}
 function renderWorkflowGuide(state, document) {
     const status = document.getElementById('workflowStatus');
     if (!status) return;
     const tracks = state.tracks;
-    const analyzing = tracks.filter(track => track.status === 'analyzing').length;
+    const batch = getBatchReadiness(tracks);
+    const analyzing = batch.pending;
     const processing = tracks.filter(track => track.status === 'processing').length;
     const completed = tracks.filter(track => track.outBlob).length;
     const failed = tracks.filter(track => track.error).length;
@@ -456,9 +464,9 @@ function renderWorkflowGuide(state, document) {
         message = '추천 설정을 확인한 뒤 15초 하이라이트를 들어보거나 마스터링을 시작하세요.';
         if (processing) {
             step = 3;
-            message = '마스터링 중입니다. 진행 상태는 곡 카드에서 확인할 수 있습니다.';
+            message = `마스터링 중 · 완료 ${completed}/${tracks.length - batch.failed}곡 · 처리 중 ${processing}곡. 진행 상태는 곡 카드에서 확인할 수 있습니다.`;
         } else if (analyzing) {
-            message = '음원을 분석하고 있습니다. 분석이 끝나면 추천 설정이 표시됩니다.';
+            message = `분석 준비 ${batch.ready}/${tracks.length - batch.failed}곡 · 분석 대기/진행 ${batch.pending}곡. 모든 곡의 분석이 끝나면 전체 마스터링을 시작할 수 있습니다.`;
         } else if (completed) {
             step = 4;
             message = completed === tracks.length
@@ -479,5 +487,5 @@ function renderWorkflowGuide(state, document) {
     if (emptyState) emptyState.hidden = tracks.length > 0;
 }
 
-    global.FoxBearUiModeService = Object.freeze({ renderWorkflowGuide, MODES, SESSION_KEY, ENTRY_KEY, SESSION_CONTRACT, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
+    global.FoxBearUiModeService = Object.freeze({ getBatchReadiness, renderWorkflowGuide, MODES, SESSION_KEY, ENTRY_KEY, SESSION_CONTRACT, normalizeMode, createController, applyEarlyModeSelection, installEarlyChoiceBridge });
 })(window);

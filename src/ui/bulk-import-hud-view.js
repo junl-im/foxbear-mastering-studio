@@ -3,7 +3,7 @@
     'use strict';
 
     const VIEW_VERSION = '1.7.4-performance-recovery-stage-hud';
-    // v1.7.4 compatibility QA anchor: const VIEW_VERSION = '1.7.4-import-toast-reliability'
+    // v1.7.4 compatibility QA anchor: const VIEW_VERSION = '1.7.4-batch-analysis-readiness'
     // compatibility anchor: const VIEW_VERSION = '1.7.4-bulk-control-eta-result-filter'
     // Legacy copy contract retained for regression discovery: 대량 마스터링 HUD
     const defaultDeps = Object.freeze({});

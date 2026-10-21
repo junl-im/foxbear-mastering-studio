@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.4-import-toast-reliability';
+    const VERSION = '1.7.4-batch-analysis-readiness';
 
     function createController(options = {}) {
         const state = options.state || {};
