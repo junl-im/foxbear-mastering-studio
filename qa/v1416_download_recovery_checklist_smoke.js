@@ -17,8 +17,8 @@ const handoff = read('HANDOFF.md');
 must(pkg.version === '1.7.4', 'package version should be 1.7.4');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
 must(html.includes('data-build="1.7.4"'), 'index build marker should be 1.7.4');
-must(html.includes('1.7.4-batch-recovery-guidance'), 'index should use v1.7.4 asset key');
-must(sw.includes('foxbear-shell-v1.7.4-batch-recovery-guidance'), 'service worker cache should use v1.7.4 key');
+must(html.includes('1.7.4-batch-mobile-layout'), 'index should use v1.7.4 asset key');
+must(sw.includes('foxbear-shell-v1.7.4-batch-mobile-layout'), 'service worker cache should use v1.7.4 key');
 
 must(service.includes('getDownloadRecoveryChecklist'), 'download service should expose recovery checklist helper');
 must(service.includes('copyDownloadRecoveryChecklist'), 'download service should expose checklist copy helper');

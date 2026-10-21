@@ -237,7 +237,7 @@
         const profileIds = Object.freeze(profiles.map(profile => profile.id));
         const profileLabels = Object.freeze(profiles.map(profile => profile.label));
         return Object.freeze({
-            version: '1.7.4-batch-recovery-guidance',
+            version: '1.7.4-batch-mobile-layout',
             attemptLimit: 1,
             failedFlags: Object.freeze(failedFlags),
             riskCodes,
@@ -615,7 +615,7 @@
     }
 
     global.FoxBearMasteringOrchestratorService = Object.freeze({
-        version: '1.7.4-batch-recovery-guidance',
+        version: '1.7.4-batch-mobile-layout',
         recoveryProfiles: RECOVERY_PROFILE_DEFS,
         createQualityRecoveryPlan,
         createAdaptiveDecisionPlan,

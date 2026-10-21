@@ -80,7 +80,7 @@ assert(closeCss.includes('.support-settings-panel') && closeCss.includes('.foxbe
 assert(!studioCss.includes('.program-info-panel-compact') && !studioCss.includes('.support-settings-backdrop'), 'popup styles must not regrow studio.css');
 assert(supportCss.includes('.program-info-panel-compact') && supportCss.includes('.support-settings-backdrop'), 'dedicated intro and settings dialog styles are required');
 assert(index.includes('assets/css/components/support-settings.css'), 'support settings stylesheet must be loaded');
-assert(sw.includes('./assets/css/components/support-settings.css?v=1.7.4-batch-recovery-guidance'), 'support settings stylesheet must be precached');
+assert(sw.includes('./assets/css/components/support-settings.css?v=1.7.4-batch-mobile-layout'), 'support settings stylesheet must be precached');
 
 const modalSandbox = { console };
 modalSandbox.window = modalSandbox;
