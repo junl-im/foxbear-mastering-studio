@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.7.4-batch-recovery-guidance';
+const version = '1.7.4-batch-mobile-layout';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

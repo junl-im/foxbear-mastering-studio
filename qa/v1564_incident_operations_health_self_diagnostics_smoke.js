@@ -21,7 +21,7 @@ const status = read('STATUS.md');
 const docs = read('docs/V1.5.64_INCIDENT_OPERATIONS_HEALTH_SELF_DIAGNOSTICS.md');
 
 assert.strictEqual(pkg.version, '1.7.4');
-assert.strictEqual(meta.assetVersion, '1.7.4-batch-recovery-guidance');
+assert.strictEqual(meta.assetVersion, '1.7.4-batch-mobile-layout');
 assert(pkg.scripts['deploy:incident'].includes('functions:auditIncidentMailOperations'));
 
 for (const token of [

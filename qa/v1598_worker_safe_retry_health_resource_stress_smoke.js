@@ -21,10 +21,10 @@ const handoff = read('HANDOFF.md');
 
 assert.strictEqual(pkg.version, '1.7.4');
 assert(/^[a-z0-9][a-z0-9-]*$/.test(pkg.foxbearRelease.buildId), 'current build ID must remain kebab-case');
-assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.7.4-batch-recovery-guidance'));
-assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.7.4-batch-recovery-guidance'));
-assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.7.4-batch-recovery-guidance'));
-assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.7.4-batch-recovery-guidance'));
+assert(index.includes('src/boot/worker-recovery-coordinator.js?v=1.7.4-batch-mobile-layout'));
+assert(index.includes('src/boot/worker-recovery-app-bridge.js?v=1.7.4-batch-mobile-layout'));
+assert(sw.includes('./src/boot/worker-recovery-coordinator.js?v=1.7.4-batch-mobile-layout'));
+assert(sw.includes('./src/boot/worker-recovery-app-bridge.js?v=1.7.4-batch-mobile-layout'));
 assert(workerSource.includes('function cancelStalledJob(identifier, options = {})'));
 assert(workerSource.includes("healthLevel, activeCount: jobs.length"));
 assert(workerSource.includes('watchThresholdMs: WATCH_THRESHOLD_MS'));

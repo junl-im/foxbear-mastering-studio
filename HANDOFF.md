@@ -16,6 +16,10 @@
 - Asset version: `1.7.4-batch-recovery-guidance`
 - Service worker cache: `foxbear-shell-v1.7.4-batch-recovery-guidance`
 - Configured static/regression target: 474 checks.
+- Product version: `1.7.4`
+- Build ID: `batch-mobile-layout`
+- Asset version: `1.7.4-batch-mobile-layout`
+- Service worker cache: `foxbear-shell-v1.7.4-batch-mobile-layout`
 
 ## Current release
 

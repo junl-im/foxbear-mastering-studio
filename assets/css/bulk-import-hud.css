@@ -545,3 +545,33 @@ body.bottom-preview-active .bulk-import-hud {
     line-height: 1.5;
     overflow-wrap: anywhere;
 }
+
+/* Keep the batch card inside short mobile viewports; only results scroll. */
+@media (max-width: 680px) {
+    .bulk-import-hud-card {
+        display: flex;
+        flex-direction: column;
+        max-height: inherit;
+        overflow: hidden;
+    }
+    .bulk-import-hud-card > .bulk-import-hud-list {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+    }
+    .bulk-import-hud-list > .bulk-import-row { flex-shrink: 0; }
+    .bulk-import-hud-master-all,
+    .bulk-import-hud-control,
+    .bulk-import-hud-filter { min-height: 44px; }
+    .bulk-import-row-recovery summary { min-height: 44px; font-size: .72rem; }
+    .bulk-import-row-recovery p { font-size: .72rem; }
+}
+@media (max-width: 680px) and (max-height: 520px) {
+    .bulk-import-hud,
+    body.bottom-preview-active .bulk-import-hud {
+        bottom: 8px !important;
+        max-height: calc(100dvh - 16px);
+    }
+}

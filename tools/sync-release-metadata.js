@@ -80,7 +80,8 @@ function escapeRegExp(value) {
 
 function replaceMarkdownSectionFields(text, heading, fields) {
   const pattern = new RegExp(`(^|\\n)(## ${escapeRegExp(heading)}\\s*\\n)([\\s\\S]*?)(?=\\n## |$)`);
-  return String(text).replace(pattern, (match, prefix, title, body) => {
+  const source = String(text).replace(/\r\n/g, '\n');
+  return source.replace(pattern, (match, prefix, title, body) => {
     let nextBody = body;
     for (const [label, value] of Object.entries(fields)) {
       const fieldPattern = new RegExp(`(^|\\n)(- ${escapeRegExp(label)}:) .*?(?=\\n|$)`);
@@ -98,7 +99,7 @@ function synchronizeStatusMetadata(text) {
     'Asset version': `\`${meta.assetVersion}\``,
     'Service worker cache': `\`${meta.cacheName}\``
   };
-  let status = String(text).replace(/^# FoxBear Status - v\d+\.\d+\.\d+$/m, `# FoxBear Status - v${meta.productVersion}`);
+  let status = String(text).replace(/\r\n/g, '\n').replace(/^# FoxBear Status - v\d+\.\d+\.\d+$/m, `# FoxBear Status - v${meta.productVersion}`);
   status = replaceMarkdownSectionFields(status, 'Current release', fields);
   status = replaceMarkdownSectionFields(status, 'Release metadata', fields);
   return status;
@@ -111,7 +112,7 @@ function synchronizeHandoffMetadata(text, qaTarget = 0) {
     'Asset version': `\`${meta.assetVersion}\``,
     'Service worker cache': `\`${meta.cacheName}\``
   };
-  let handoff = String(text).replace(/^# Handoff - v\d+\.\d+\.\d+$/m, `# Handoff - v${meta.productVersion}`);
+  let handoff = String(text).replace(/\r\n/g, '\n').replace(/^# Handoff - v\d+\.\d+\.\d+$/m, `# Handoff - v${meta.productVersion}`);
   handoff = replaceMarkdownSectionFields(handoff, 'Current release', fields);
   const pattern = /(^|\n)(## Current release\s*\n)([\s\S]*?)(?=\n## |$)/;
   handoff = handoff.replace(pattern, (match, prefix, title, body) => {

@@ -1,3 +1,10 @@
+# v1.7.4 - Batch mobile layout (2026-10-22)
+
+- Constrain the batch HUD card to the visible mobile viewport and keep its results scrollable.
+- Keep retry controls usable above the result list, including short landscape screens with the preview dock open.
+- Increase touch targets and recovery guidance text size on narrow screens.
+- Keep release status metadata stable when Windows CRLF files are synchronized.
+
 # v1.7.4 - Batch recovery guidance (2026-10-21)
 
 - Show expandable, readable recovery advice on failed and cancelled batch tracks.

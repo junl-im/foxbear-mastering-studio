@@ -22,8 +22,8 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 assert(pkg.version === '1.7.4', 'package version should be 1.7.4');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should match v1.7.4');
 assert(index.includes('data-build="1.7.4"'), 'index build should be v1.7.4');
-assert(index.includes('1.7.4-batch-recovery-guidance'), 'index should use v1.7.4 action clarity cache key');
-assert(sw.includes('foxbear-shell-v1.7.4-batch-recovery-guidance'), 'service worker should use action clarity cache key');
+assert(index.includes('1.7.4-batch-mobile-layout'), 'index should use v1.7.4 action clarity cache key');
+assert(sw.includes('foxbear-shell-v1.7.4-batch-mobile-layout'), 'service worker should use action clarity cache key');
 
 assert(service.includes("version: '1.7.4'"), 'download diagnostics/flow should report v1.7.4');
 assert(service.includes('getRecommendedDownloadFlow'), 'recommended flow helper should remain in download service');
