@@ -1,4 +1,4 @@
-// FoxBear bounded incident local queue with conflict-safe flush commits - v1.7.4
+// FoxBear bounded incident local queue with conflict-safe flush commits - v1.7.5
 (function attachFoxBearIncidentLocalQueue(global) {
     'use strict';
 
@@ -179,7 +179,7 @@
     }
 
     global.FoxBearIncidentLocalQueue = Object.freeze({
-        version: '1.7.4',
+        version: '1.7.5',
         defaultKey: DEFAULT_KEY,
         defaultMaxItems: DEFAULT_MAX_ITEMS,
         defaultMaxSerializedBytes: DEFAULT_MAX_SERIALIZED_BYTES,

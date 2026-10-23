@@ -1,3 +1,9 @@
+# v1.7.5 - First-choice studio redesign (2026-10-23)
+
+- Give the required first-entry workspace choice a music-first visual identity with the animated FoxBear waveform.
+- Clarify the difference between guided AI mastering and expert controls with high-contrast cards and direct actions.
+- Keep the chooser usable on narrow phones and short landscape screens, including keyboard focus and reduced motion.
+
 # v1.7.4 - Batch mobile layout (2026-10-22)
 
 - Constrain the batch HUD card to the visible mobile viewport and keep its results scrollable.

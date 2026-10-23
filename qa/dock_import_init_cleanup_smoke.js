@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '..');
 function read(p){ return fs.readFileSync(path.join(root,p),'utf8'); }
 function must(c,m){ if(!c){ console.error('FAIL ' + m); process.exit(1);} }
 const app=read('src/app.js'); const html=read('index.html'); const pkg=JSON.parse(read('package.json'));
-must(app.includes("const APP_VERSION = 'Pro v1.7.4'"),'version');
-must(html.includes('data-build="1.7.4"'),'build');
+must(app.includes("const APP_VERSION = 'Pro v1.7.5'"),'version');
+must(html.includes('data-build="1.7.5"'),'build');
 must(app.includes('function runInitStep'),'init helper');
 must(app.indexOf("runInitStep('파일 불러오기'") < app.indexOf("runInitStep('슬라이더 UI'"),'upload before ui');
 must(html.includes('WAV · MP3 · AIFF') && html.includes('id="fileInput"') && html.includes('audio/wav,audio/mpeg,audio/aiff'),'supported audio format label and native picker');
