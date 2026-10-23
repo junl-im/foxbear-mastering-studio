@@ -70,7 +70,7 @@ const sandbox = {
     createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {}, localStorage,
-  FoxBearBuildInfo: { productVersion: '1.7.5', assetVersion: '1.7.5-entry-choice-redesign' }
+  FoxBearBuildInfo: { productVersion: '1.7.5', assetVersion: '1.7.5-entry-choice-viewport-fit' }
 };
 sandbox.window = sandbox;
 sandbox.globalThis = sandbox;

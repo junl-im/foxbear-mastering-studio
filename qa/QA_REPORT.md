@@ -1,5 +1,11 @@
 # FoxBear QA Report - v1.7.5
 
+## v1.7.5 First screen viewport fit
+
+- Both workspace choices and start actions remain visible with zero chooser scroll at 320×480, 320×568, 390×667, 390×844, 568×320, 844×390, 768×1024, and 1440×900.
+- Keyboard focus stays inside each card and does not cover the section label.
+
+
 ## v1.7.5 First-choice studio redesign
 
 - Required first-entry choice remains visible after first load and reload.

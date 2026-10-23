@@ -2,7 +2,7 @@
 (function attachFoxBearPostMasterPlaybackRecoveryService(global) {
     'use strict';
 
-    const SERVICE_VERSION = '1.7.5-entry-choice-redesign';
+    const SERVICE_VERSION = '1.7.5-entry-choice-viewport-fit';
     const DEFAULT_READY_TIMEOUT_MS = 2200;
 
     function getExpectedSource(track, mode = 'original') {

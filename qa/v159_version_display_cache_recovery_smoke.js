@@ -100,7 +100,7 @@ assert(document.title === `FoxBear Mastering PRO v${meta.productVersion}`, 'docu
 assert(body.dataset.build === meta.productVersion && body.dataset.assetVersion === meta.assetVersion, 'body release markers not repaired');
 assert(description.attrs.content.includes(`v${meta.productVersion}`) && description.attrs.content.includes(meta.buildId), 'runtime description not repaired');
 
-assert(status.includes('FoxBearReleasePresentation') && status.includes('1.7.5-entry-choice-redesign'), 'STATUS current release/invariant missing');
+assert(status.includes('FoxBearReleasePresentation') && status.includes('1.7.5-entry-choice-viewport-fit'), 'STATUS current release/invariant missing');
 assert(changelog.includes(`# v${historicalVersion} - Version Display and Cache Recovery`), 'CHANGELOG v1.7.5 history missing');
 assert(readme.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'README v1.7.5 history missing');
 assert(handoff.includes(`v${historicalVersion} Version Display and Cache Recovery`), 'HANDOFF v1.7.5 history missing');

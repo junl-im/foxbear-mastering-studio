@@ -22,7 +22,7 @@ const releaseScript = read('tools/create-release-zip.sh');
 const overwriteScript = read('tools/create-overwrite-zip.sh');
 
 assert.strictEqual(pkg.version, '1.7.5');
-assert.strictEqual(meta.assetVersion, '1.7.5-entry-choice-redesign');
+assert.strictEqual(meta.assetVersion, '1.7.5-entry-choice-viewport-fit');
 assert(handoff.includes('## 필수 결과 보고 형식'));
 for (const heading of ['진행된 내용', '배포 파일 2종', '다음 예상 내용']) assert(handoff.includes(heading));
 

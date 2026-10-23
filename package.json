@@ -2,7 +2,7 @@
   "name": "foxbear-mastering-studio",
   "version": "1.7.5",
   "private": true,
-  "description": "FoxBear AI Mastering Studio Pro v1.7.5 - entry choice redesign",
+  "description": "FoxBear AI Mastering Studio Pro v1.7.5 - entry choice viewport fit",
   "scripts": {
     "serve": "python3 -m http.server 8080",
     "check": "npm run check:static",
@@ -525,9 +525,9 @@
     "node qa/v16114_reference_profile_64band_upgrade_smoke.js"
   ],
   "foxbearRelease": {
-    "buildId": "entry-choice-redesign",
-    "assetVersion": "1.7.5-entry-choice-redesign",
-    "cacheName": "foxbear-shell-v1.7.5-entry-choice-redesign",
+    "buildId": "entry-choice-viewport-fit",
+    "assetVersion": "1.7.5-entry-choice-viewport-fit",
+    "cacheName": "foxbear-shell-v1.7.5-entry-choice-viewport-fit",
     "bootRevision": "boot-sri-v175",
     "updateSafetyRevision": "update-safety-v175",
     "serviceWorkerRevision": "sw-v175"

@@ -12,7 +12,7 @@ const assert = (condition, message) => {
   }
 };
 
-const version = '1.7.5-entry-choice-redesign';
+const version = '1.7.5-entry-choice-viewport-fit';
 const index = read('index.html');
 const sw = read('sw.js');
 const app = read('src/app.js');

@@ -8,7 +8,7 @@ const exists = rel => fs.existsSync(path.join(root, rel));
 const must = (condition, message) => { if (!condition) { console.error(`FAIL: ${message}`); process.exit(1); } };
 
 const pkg=JSON.parse(read('package.json')); const index=read('index.html'); const sw=read('sw.js'); const runtime=read('src/boot/runtime-health.js'); const perf=read('src/boot/performance-diagnostics.js'); const perfCss=read('assets/css/boot/performance-diagnostics.css');
-const version='1.7.5-entry-choice-redesign';
+const version='1.7.5-entry-choice-viewport-fit';
 must(pkg.version==='1.7.5','package version');
 must(index.includes(`src/boot/performance-diagnostics.js?v=${version}`),'performance diagnostics JS load');
 must(sw.includes(`./src/boot/performance-diagnostics.js?v=${version}`),'performance diagnostics SW precache');

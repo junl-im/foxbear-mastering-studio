@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearMasterPreviewJobService(global) {
-    const VERSION = '1.7.5-entry-choice-redesign';
+    const VERSION = '1.7.5-entry-choice-viewport-fit';
     let sequence = 0;
 
     function createFallbackAbortController() {

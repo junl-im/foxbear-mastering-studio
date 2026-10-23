@@ -1,6 +1,6 @@
 # FoxBear AI Mastering Studio Pro v1.7.5
 
-> Current release: v1.7.5 · entry-choice-redesign
+> Current release: v1.7.5 · entry-choice-viewport-fit
 
 The required workspace chooser now opens with a music-first signal display and clear AI versus Expert paths on desktop and mobile. Both paths keep the same mastering engine and project state.
 

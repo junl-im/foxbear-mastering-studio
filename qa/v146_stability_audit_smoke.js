@@ -9,8 +9,8 @@ const must = (condition, message) => { if (!condition) { console.error(`FAIL: ${
 
 const pkg=JSON.parse(read('package.json')); const app=read('src/app.js'); const index=read('index.html'); const sw=read('sw.js'); const translation=read('src/audio/preview-translation-service.js');
 must(pkg.version==='1.7.5','package version');
-must(index.includes('1.7.5-entry-choice-redesign'),'asset version');
-must(sw.includes('foxbear-shell-v1.7.5-entry-choice-redesign'),'cache version');
+must(index.includes('1.7.5-entry-choice-viewport-fit'),'asset version');
+must(sw.includes('foxbear-shell-v1.7.5-entry-choice-viewport-fit'),'cache version');
 must(!exists('src/ui/spectrum-visualizer.js'),'spectrum visualizer must stay deleted');
 must(!app.includes('createSpectrumAnalyserTap') && !app.includes('registerExternalSpectrumAnalyser') && !app.includes('spectrumAnalyser'),'visualizer analyser plumbing must be absent');
 must(translation.includes('masterGain.connect(context.destination);'),'preview translation must connect directly to destination after analyser retirement');
