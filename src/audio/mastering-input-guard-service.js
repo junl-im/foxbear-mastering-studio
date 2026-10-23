@@ -119,7 +119,7 @@
     }
 
     global.FoxBearMasteringInputGuard = Object.freeze({
-        version: '1.7.5-entry-choice-redesign',
+        version: '1.7.5-entry-choice-viewport-fit',
         defaults: DEFAULTS,
         inspect,
         assertMasterable,

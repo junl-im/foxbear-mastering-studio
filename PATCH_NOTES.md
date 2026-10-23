@@ -1,3 +1,9 @@
+# v1.7.5 - First screen viewport fit (2026-10-24)
+
+- Fit the required workspace choice, both cards, and both start actions inside the visible phone and short-landscape viewport without internal scrolling.
+- Preserve the animated FoxBear waveform in a compact header and prevent the keyboard focus ring from covering nearby text.
+- Add zero-scroll and no-clipping browser checks from 320×480 through desktop sizes.
+
 # v1.7.5 - First-choice studio redesign (2026-10-23)
 
 - Give the required first-entry workspace choice a music-first visual identity with the animated FoxBear waveform.

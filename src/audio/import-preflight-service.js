@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearImportPreflightService(global) {
-    const VERSION = '1.7.5-entry-choice-redesign';
+    const VERSION = '1.7.5-entry-choice-viewport-fit';
 
     function formatBytes(bytes) {
         const value = Math.max(0, Number(bytes || 0));

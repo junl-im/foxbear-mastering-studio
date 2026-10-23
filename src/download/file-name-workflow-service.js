@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearFileNameWorkflowService(global) {
-    const VERSION = 'v1.7.5-entry-choice-redesign';
+    const VERSION = 'v1.7.5-entry-choice-viewport-fit';
     const PREFERENCE_KEYS = Object.freeze(['includeMastered', 'includeLoudness', 'includeStyle', 'includeFormat', 'includePlatform']);
     const EXPORT_REVIEW_LIMIT = 12;
 

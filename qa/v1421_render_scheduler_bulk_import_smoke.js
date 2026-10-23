@@ -28,8 +28,8 @@ const changelog = read('CHANGELOG.md');
 assert(pkg.version === '1.7.5', 'package version should be 1.7.5');
 assert(pkg.name === 'foxbear-mastering-studio', 'package name should be v1-4-26');
 assert(index.includes('data-build="1.7.5"'), 'index build marker should be 1.7.5');
-assert(config.includes("ASSET_VERSION = '1.7.5-entry-choice-redesign'"), 'runtime asset key should be v1.7.5');
-assert(sw.includes('foxbear-shell-v1.7.5-entry-choice-redesign'), 'service worker cache should use v1.7.5 key');
+assert(config.includes("ASSET_VERSION = '1.7.5-entry-choice-viewport-fit'"), 'runtime asset key should be v1.7.5');
+assert(sw.includes('foxbear-shell-v1.7.5-entry-choice-viewport-fit'), 'service worker cache should use v1.7.5 key');
 
 assert(app.includes('function scheduleRenderAll'), 'app should define render scheduler');
 assert(app.includes('window.FoxBearRenderScheduler'), 'render scheduler diagnostics should be exposed');
@@ -56,10 +56,10 @@ assert(runtime.includes('FoxBearPlaybackTransitionService.waitForMediaReady'), '
 assert(decode.includes('FoxBearAudioDecodeService'), 'audio decode service should exist');
 assert(decode.includes('decodeAudioFile'), 'audio decode service should expose decodeAudioFile');
 assert(app.includes('FoxBearAudioDecodeService'), 'app decode path should delegate to audio decode service');
-assert(index.includes('src/boot/render-scheduler.js?v=1.7.5-entry-choice-redesign'), 'index should load render scheduler service');
-assert(index.includes('src/audio/audio-decode-service.js?v=1.7.5-entry-choice-redesign'), 'index should load audio decode service');
-assert(sw.includes('./src/boot/render-scheduler.js?v=1.7.5-entry-choice-redesign'), 'service worker should precache render scheduler');
-assert(sw.includes('./src/audio/audio-decode-service.js?v=1.7.5-entry-choice-redesign'), 'service worker should precache audio decode service');
+assert(index.includes('src/boot/render-scheduler.js?v=1.7.5-entry-choice-viewport-fit'), 'index should load render scheduler service');
+assert(index.includes('src/audio/audio-decode-service.js?v=1.7.5-entry-choice-viewport-fit'), 'index should load audio decode service');
+assert(sw.includes('./src/boot/render-scheduler.js?v=1.7.5-entry-choice-viewport-fit'), 'service worker should precache render scheduler');
+assert(sw.includes('./src/audio/audio-decode-service.js?v=1.7.5-entry-choice-viewport-fit'), 'service worker should precache audio decode service');
 assert(runtime.includes('FoxBearAudioDecodeService.decodeAudioFile'), 'runtime health should require audio decode service');
 assert(pkg.qaChecks.includes('node --check src/boot/render-scheduler.js'), 'package QA should syntax-check render scheduler service');
 assert(pkg.qaChecks.includes('node --check src/audio/audio-decode-service.js'), 'package QA should syntax-check audio decode service');

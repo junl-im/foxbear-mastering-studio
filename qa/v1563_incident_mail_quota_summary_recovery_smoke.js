@@ -17,7 +17,7 @@ const status = read('STATUS.md');
 const docs = read('docs/V1.5.63_INCIDENT_MAIL_QUOTA_SUMMARY_RECOVERY.md');
 
 assert.strictEqual(pkg.version, '1.7.5');
-assert.strictEqual(meta.assetVersion, '1.7.5-entry-choice-redesign');
+assert.strictEqual(meta.assetVersion, '1.7.5-entry-choice-viewport-fit');
 
 for (const token of [
   'dailyKst_${dayKey}',

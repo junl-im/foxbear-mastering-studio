@@ -3,17 +3,17 @@
 ## Current release
 
 - Product version: `1.7.5`
-- Build ID: `entry-choice-redesign`
-- Asset version: `1.7.5-entry-choice-redesign`
-- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-redesign`
+- Build ID: `entry-choice-viewport-fit`
+- Asset version: `1.7.5-entry-choice-viewport-fit`
+- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-viewport-fit`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
 - Product version: `1.7.5`
-- Build ID: `entry-choice-redesign`
-- Asset version: `1.7.5-entry-choice-redesign`
-- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-redesign`
+- Build ID: `entry-choice-viewport-fit`
+- Asset version: `1.7.5-entry-choice-viewport-fit`
+- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-viewport-fit`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

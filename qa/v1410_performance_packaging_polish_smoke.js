@@ -26,7 +26,7 @@ const notes = read('PROJECT_NOTES.md');
 const readme = read('README.md');
 const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 const version = '1.7.5';
-const assetVersion = '1.7.5-entry-choice-redesign';
+const assetVersion = '1.7.5-entry-choice-viewport-fit';
 
 must(pkg.version === version, 'package version should be 1.7.5');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1.7.5');
@@ -37,7 +37,7 @@ must(sw.includes(`foxbear-shell-v${assetVersion}`), 'service worker should use v
 must(sw.includes(`./src/boot/performance-diagnostics.js?v=${assetVersion}`), 'service worker should precache diagnostics JS');
 must(sw.includes(`./assets/css/boot/performance-diagnostics.css?v=${assetVersion}`), 'service worker should precache diagnostics CSS');
 
-must(perf.includes('const DIAGNOSTICS_VERSION = \'1.7.5-entry-choice-redesign\''), 'diagnostics version should be v1.7.5');
+must(perf.includes('const DIAGNOSTICS_VERSION = \'1.7.5-entry-choice-viewport-fit\''), 'diagnostics version should be v1.7.5');
 must(perf.includes('PANEL_HIDDEN_REFRESH_MS'), 'diagnostics should throttle hidden-tab refresh');
 must(perf.includes('global.setTimeout'), 'diagnostics panel should use adaptive timeout scheduling');
 must(!perf.includes('setInterval(() => refreshPanel'), 'diagnostics panel should not use fixed interval refresh');

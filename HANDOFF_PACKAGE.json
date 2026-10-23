@@ -3,7 +3,7 @@
   "targetClient": "GitHub Desktop",
   "applyMode": "extract-overwrite-zip-into-repository-root",
   "productVersion": "1.7.5",
-  "buildId": "entry-choice-redesign",
+  "buildId": "entry-choice-viewport-fit",
   "requiredFiles": [
     ".githooks/pre-commit",
     ".github/workflows/pages-branch-fallback.yml",
