@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.4-batch-mobile-layout';
+    const VERSION = '1.7.5-entry-choice-redesign';
 
     function createController(options = {}) {
         const state = options.state || {};

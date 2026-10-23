@@ -1,9 +1,9 @@
-// FoxBear external-browser session handoff service v1.7.4.
+// FoxBear external-browser session handoff service v1.7.5.
 'use strict';
 
 (function attachFoxBearSessionHandoffService(global) {
     const BUILD_INFO = global.FoxBearBuildInfo || {};
-    const VERSION = BUILD_INFO.assetVersion || '1.7.4-batch-mobile-layout';
+    const VERSION = BUILD_INFO.assetVersion || '1.7.5-entry-choice-redesign';
     const PARAM = 'foxbearHandoff';
     const MAX_TOKEN_LENGTH = 7200;
     const MAX_AGE_MS = 20 * 60 * 1000;

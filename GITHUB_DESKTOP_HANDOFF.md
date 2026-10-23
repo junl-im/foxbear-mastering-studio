@@ -1,4 +1,4 @@
-# GitHub Desktop Handoff - v1.7.4
+# GitHub Desktop Handoff - v1.7.5
 
 ## Required apply sequence
 

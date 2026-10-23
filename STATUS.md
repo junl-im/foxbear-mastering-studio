@@ -1,19 +1,19 @@
-# FoxBear Status - v1.7.4
+# FoxBear Status - v1.7.5
 
 ## Current release
 
-- Product version: `1.7.4`
-- Build ID: `batch-mobile-layout`
-- Asset version: `1.7.4-batch-mobile-layout`
-- Service worker cache: `foxbear-shell-v1.7.4-batch-mobile-layout`
+- Product version: `1.7.5`
+- Build ID: `entry-choice-redesign`
+- Asset version: `1.7.5-entry-choice-redesign`
+- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-redesign`
 - Configured static/regression target: 472 checks.
 
 ## Release metadata
 
-- Product version: `1.7.4`
-- Build ID: `batch-mobile-layout`
-- Asset version: `1.7.4-batch-mobile-layout`
-- Service worker cache: `foxbear-shell-v1.7.4-batch-mobile-layout`
+- Product version: `1.7.5`
+- Build ID: `entry-choice-redesign`
+- Asset version: `1.7.5-entry-choice-redesign`
+- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-redesign`
 - Boot revision: `boot-sri-v170`
 - Update safety revision: `update-safety-v170`
 - Service worker revision: `sw-v170`

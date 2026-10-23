@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.4-batch-mobile-layout';
+  const VIEW_VERSION = '1.7.5-entry-choice-redesign';
   const DEFAULT_BINS = 96;
 
   function getService() {

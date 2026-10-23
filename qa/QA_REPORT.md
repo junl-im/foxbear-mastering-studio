@@ -1,3 +1,11 @@
+# FoxBear QA Report - v1.7.5
+
+## v1.7.5 First-choice studio redesign
+
+- Required first-entry choice remains visible after first load and reload.
+- Verify 320px phone, short landscape, desktop, keyboard focus, text contrast, and reduced motion.
+- AI and Expert choices must open the intended workspace without losing existing mastering state.
+
 # FoxBear QA Report - v1.7.4
 
 ## v1.7.4 Reload / same-URL mode chooser
