@@ -66,7 +66,7 @@ const reporterSandbox = {
     addEventListener() {}, createElement: () => ({ setAttribute() {}, style: {}, select() {}, remove() {} })
   },
   addEventListener() {}, removeEventListener() {}, dispatchEvent() {},
-  FoxBearBuildInfo: { productVersion: '1.7.5', assetVersion: '1.7.5-entry-choice-viewport-fit' }
+  FoxBearBuildInfo: { productVersion: '1.7.5', assetVersion: '1.7.5-entry-choice-short-landscape' }
 };
 reporterSandbox.FoxBearFirebase = {
   ready: true,

@@ -3,9 +3,9 @@
 ## Current release
 
 - Product version: `1.7.5`
-- Build ID: `entry-choice-viewport-fit`
-- Asset version: `1.7.5-entry-choice-viewport-fit`
-- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-viewport-fit`
+- Build ID: `entry-choice-short-landscape`
+- Asset version: `1.7.5-entry-choice-short-landscape`
+- Service worker cache: `foxbear-shell-v1.7.5-entry-choice-short-landscape`
 - Configured static/regression target: 474 checks.
 - Base release: v1.6.114.
 - Scope: Adaptive Mastering Decision phase 1; three candidate setting plans are risk-scored before a single render, while custom/original manual mastering remains untouched.

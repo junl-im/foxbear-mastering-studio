@@ -27,8 +27,8 @@ must(pkg.version === '1.7.5', 'package version should be 1.7.5');
 must(pkg.name === 'foxbear-mastering-studio', 'package name should use v1-4-26');
 must(pkg.qaChecks.includes('node qa/v1426_wake_lock_state_sync_smoke.js'), 'package QA should run v1.7.5 smoke');
 must(index.includes('data-build="1.7.5"'), 'index build marker should be 1.7.5');
-must(index.includes('1.7.5-entry-choice-viewport-fit'), 'index cache key should use v1.7.5 wake key');
-must(sw.includes('foxbear-shell-v1.7.5-entry-choice-viewport-fit'), 'service worker cache should use v1.7.5 wake key');
+must(index.includes('1.7.5-entry-choice-short-landscape'), 'index cache key should use v1.7.5 wake key');
+must(sw.includes('foxbear-shell-v1.7.5-entry-choice-short-landscape'), 'service worker cache should use v1.7.5 wake key');
 
 [
   'wakeLockAutoActive',
@@ -62,7 +62,7 @@ must(!app.includes("requestFoxBearWakeLock('작업 보호 중', { toast: false, 
 ].forEach(token => must(css.includes(token), `mobile CSS should include ${token}`));
 
 must(runtime.includes('FoxBearWakeLockController.getSnapshot'), 'runtime health should require wake lock diagnostics');
-must(runtime.includes('1.7.5-entry-choice-viewport-fit'), 'runtime health fallback version should be v1.7.5');
+must(runtime.includes('1.7.5-entry-choice-short-landscape'), 'runtime health fallback version should be v1.7.5');
 must(perf.includes('wakeLock = safeCall'), 'performance diagnostics should collect wake lock snapshot');
 must(perf.includes('wake-lock-auto-active'), 'performance diagnostics should warn on auto wake lock');
 must(perf.includes('wake-lock-last-error'), 'performance diagnostics should surface wake lock errors');

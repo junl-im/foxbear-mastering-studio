@@ -20,8 +20,8 @@ assert(transitionSource.includes('async function resumeAfterInterruption(audio, 
 assert(lifecycleSource.includes("collapseInterruptedCrossfade('lifecycle-return-crossfade')"));
 assert(lifecycleSource.includes("showToast('브라우저가 자동 재생 복구를 막았습니다. Dock 재생 버튼을 눌러주세요.')"));
 assert(app.includes("handleUnexpectedPause?.(audio, 'dock-visible-native-pause')"));
-assert(index.includes('src/audio/playback-lifecycle-recovery-service.js?v=1.7.5-entry-choice-viewport-fit'));
-assert(sw.includes("'./src/audio/playback-lifecycle-recovery-service.js?v=1.7.5-entry-choice-viewport-fit'"));
+assert(index.includes('src/audio/playback-lifecycle-recovery-service.js?v=1.7.5-entry-choice-short-landscape'));
+assert(sw.includes("'./src/audio/playback-lifecycle-recovery-service.js?v=1.7.5-entry-choice-short-landscape'"));
 assert(app.split(/\r?\n/).length < 13300, 'app line budget should remain intact');
 
 const fakeDocument = { visibilityState: 'visible' };

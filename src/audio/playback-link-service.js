@@ -3,7 +3,7 @@
 'use strict';
 
 (function attachFoxBearPlaybackLinkService(global) {
-    const SERVICE_VERSION = '1.7.5-entry-choice-viewport-fit';
+    const SERVICE_VERSION = '1.7.5-entry-choice-short-landscape';
     const DEBUG_VISIBLE_CHIPS = false;
     const EVENT_NAME = 'foxbear:playback-link-change';
     const ORCHESTRATION_EVENT_NAME = 'foxbear:playback-orchestration-change';

@@ -1,3 +1,8 @@
+# v1.7.5 - Short landscape entry choice (2026-10-24)
+
+- Keep both workspace choices and their start buttons clear at 375×300–480×320 after mobile rotation or browser chrome height changes.
+- Extend no-scroll browser coverage to 16 phone, landscape, tablet, and desktop viewport sizes.
+
 # v1.7.5 - First screen viewport fit (2026-10-24)
 
 - Fit the required workspace choice, both cards, and both start actions inside the visible phone and short-landscape viewport without internal scrolling.

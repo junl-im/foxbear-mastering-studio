@@ -2,7 +2,7 @@
 (function attachFoxBearUiShellRecoveryService(global) {
   'use strict';
 
-  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.5-entry-choice-viewport-fit';
+  const VERSION = global.FoxBearBuildInfo?.assetVersion || '1.7.5-entry-choice-short-landscape';
   const REQUIRED_STYLES = Object.freeze([
     'assets/css/theme.css',
     'assets/css/layout.css',

@@ -2,7 +2,7 @@
 (function attachFoxBearWaveformControlView(global) {
   'use strict';
 
-  const VIEW_VERSION = '1.7.5-entry-choice-viewport-fit';
+  const VIEW_VERSION = '1.7.5-entry-choice-short-landscape';
   const DEFAULT_BINS = 96;
 
   function getService() {

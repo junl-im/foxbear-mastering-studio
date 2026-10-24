@@ -117,7 +117,7 @@
     .entry-flow i { width: 8px; }
     .entry-section-label span:last-child { display: none; }
 }
-@media (max-height: 480px) and (min-width: 560px) {
+@media (max-height: 480px) and (min-width: 350px) and (orientation: landscape) {
     .ui-mode-chooser-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(210px, .8fr); gap: 16px; padding: 15px 0; }
     .ui-mode-chooser-heading h2 { font-size: 24px; }
     .entry-signal { margin: 0; }
@@ -187,7 +187,7 @@
     .entry-signal .studio-wave-art { height: 28px; }
     .ui-mode-choice-card { align-content: center; }
 }
-@media (max-height: 480px) and (min-width: 500px) {
+@media (max-height: 480px) and (min-width: 350px) and (orientation: landscape) {
     .ui-mode-chooser { padding: 5px; }
     .ui-mode-chooser-panel { width: min(1010px, 100%); height: calc(100dvh - 10px); max-height: none; display: flex; flex-direction: column; overflow: hidden; padding: 0 14px 6px; }
     .entry-topline { flex: 0 0 25px; min-height: 25px; font-size: 8px; }

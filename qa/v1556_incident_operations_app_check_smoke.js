@@ -21,7 +21,7 @@ const adminIncidentCss = read('assets/css/components/admin-incident-monitor.css'
 const adminIncidentView = read('src/ui/admin-incident-monitor-view.js');
 
 assert.strictEqual(pkg.version, '1.7.5');
-assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.5-entry-choice-viewport-fit');
+assert.strictEqual(pkg.foxbearRelease.assetVersion, '1.7.5-entry-choice-short-landscape');
 assert(!index.includes('name="foxbear-app-check-site-key"'), 'App Check site key must not be shipped');
 assert(index.includes('id="adminIncidentsTab"'));
 assert(index.includes('id="adminIncidentsRows"'));
