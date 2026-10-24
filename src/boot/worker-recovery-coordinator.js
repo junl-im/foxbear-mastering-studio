@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerRecoveryCoordinator(global) {
-    const VERSION = '1.7.5-entry-choice-viewport-fit';
+    const VERSION = '1.7.5-entry-choice-short-landscape';
     const handlers = [];
 
     function normalizeJob(job) {

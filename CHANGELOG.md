@@ -1,3 +1,8 @@
+# v1.7.5 - Short landscape entry choice (2026-10-24)
+
+- Fix overlapping choice text and action buttons on short, narrow landscape screens.
+- Expand viewport-fit regression coverage across orientation boundary sizes.
+
 # v1.7.5 - First screen viewport fit (2026-10-24)
 
 - Fit the required workspace choice, both cards, and both start actions inside the visible phone and short-landscape viewport without internal scrolling.

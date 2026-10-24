@@ -5,9 +5,9 @@
   const info = Object.freeze({
     productVersion: '1.7.5',
     appVersion: 'Pro v1.7.5',
-    buildId: 'entry-choice-viewport-fit',
-    assetVersion: '1.7.5-entry-choice-viewport-fit',
-    cacheName: 'foxbear-shell-v1.7.5-entry-choice-viewport-fit',
+    buildId: 'entry-choice-short-landscape',
+    assetVersion: '1.7.5-entry-choice-short-landscape',
+    cacheName: 'foxbear-shell-v1.7.5-entry-choice-short-landscape',
     bootRevision: 'boot-sri-v175',
     updateSafetyRevision: 'update-safety-v175',
     serviceWorkerRevision: 'sw-v175',

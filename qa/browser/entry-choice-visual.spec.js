@@ -10,7 +10,7 @@ test('first-entry choice fits without scroll on phone, landscape and desktop', a
   });
   await page.goto(APP_URL, {waitUntil: 'domcontentloaded'});
   await expect(page.locator('#uiModeChooser')).toBeVisible();
-  for (const [width, height] of [[320, 480], [320, 568], [390, 667], [390, 844], [568, 320], [844, 390], [768, 1024], [1440, 900]]) {
+  for (const [width, height] of [[320, 360], [320, 480], [320, 568], [360, 640], [390, 667], [390, 844], [375, 300], [390, 300], [400, 300], [430, 300], [480, 320], [568, 320], [667, 375], [844, 390], [768, 1024], [1440, 900]]) {
     await page.setViewportSize({width, height});
     const panel = page.locator('#uiModeChooserPanel');
     const geometry = await panel.evaluate(node => {

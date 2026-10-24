@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearWorkerJobService(global) {
-    const VERSION = '1.7.5-entry-choice-viewport-fit';
+    const VERSION = '1.7.5-entry-choice-short-landscape';
     let sequence = 0;
     let runSequence = 0;
     const activeJobs = new Map();

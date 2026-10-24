@@ -22,8 +22,8 @@ const matrix = read('qa/BROWSER_BACK_QA_MATRIX_1.4.26.md');
 
 assert(pkg.version === '1.7.5', 'package version should be 1.7.5');
 assert(index.includes('data-build="1.7.5"'), 'index build should be 1.7.5');
-assert(index.includes('1.7.5-entry-choice-viewport-fit'), 'asset cache key should use v1.7.5 flow polish');
-assert(sw.includes('foxbear-shell-v1.7.5-entry-choice-viewport-fit'), 'service worker cache should use v1.7.5 flow polish');
+assert(index.includes('1.7.5-entry-choice-short-landscape'), 'asset cache key should use v1.7.5 flow polish');
+assert(sw.includes('foxbear-shell-v1.7.5-entry-choice-short-landscape'), 'service worker cache should use v1.7.5 flow polish');
 
 assert(service.includes('getRecommendedDownloadFlow'), 'download service should expose a recommended flow helper');
 assert(service.includes("primaryAction: shareReady ? 'share' : 'assist'"), 'restricted flow should prefer share or assist');

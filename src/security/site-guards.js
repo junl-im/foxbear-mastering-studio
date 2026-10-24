@@ -2,7 +2,7 @@
 'use strict';
 
 (function attachFoxBearSiteGuards(global) {
-    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.7.5-entry-choice-viewport-fit';
+    const DEFAULT_CSS_HREF = 'assets/css/studio.css?v=1.7.5-entry-choice-short-landscape';
 
     function runSiteAccessGuard() {
         const protocol = global.location.protocol;

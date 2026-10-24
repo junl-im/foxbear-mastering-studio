@@ -1,7 +1,7 @@
 'use strict';
 
 (function exposeFoxBearBottomPreviewDockIntegrityService(global) {
-    const VERSION = '1.7.5-entry-choice-viewport-fit';
+    const VERSION = '1.7.5-entry-choice-short-landscape';
 
     function createController(options = {}) {
         const state = options.state || {};

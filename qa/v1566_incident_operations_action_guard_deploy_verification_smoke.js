@@ -23,7 +23,7 @@ const status = read('STATUS.md');
 const docs = read('docs/V1.5.66_INCIDENT_OPERATIONS_ACTION_GUARD_DEPLOY_VERIFICATION.md');
 
 assert.strictEqual(pkg.version, '1.7.5');
-assert.strictEqual(meta.assetVersion, '1.7.5-entry-choice-viewport-fit');
+assert.strictEqual(meta.assetVersion, '1.7.5-entry-choice-short-landscape');
 for (const name of ['testIncidentAlertChannelRequest', 'verifyIncidentDeploymentRequest']) {
   assert(pkg.scripts['deploy:incident'].includes(`functions:${name}`), `deploy script missing ${name}`);
 }

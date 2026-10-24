@@ -1,5 +1,10 @@
 # FoxBear QA Report - v1.7.5
 
+## v1.7.5 Short landscape entry choice
+
+- Reproduced action/text overlap at 430×300 and 375×300 before the fix.
+- Zero chooser scrolling, no clipped cards or action buttons at 16 viewport sizes from 320×360 and 375×300 through desktop; desktop and mobile Playwright projects pass.
+
 ## v1.7.5 First screen viewport fit
 
 - Both workspace choices and start actions remain visible with zero chooser scroll at 320×480, 320×568, 390×667, 390×844, 568×320, 844×390, 768×1024, and 1440×900.

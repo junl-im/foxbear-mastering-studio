@@ -3,7 +3,7 @@
 (function attachFoxBearRuntimeFaultCounters(global) {
     'use strict';
 
-    const VERSION = '1.7.5-entry-choice-viewport-fit';
+    const VERSION = '1.7.5-entry-choice-short-landscape';
     const MAX_KEYS = 48;
     const RECENT_WINDOW_MS = 5 * 60 * 1000;
     const MAX_RECENT_EVENTS = 96;

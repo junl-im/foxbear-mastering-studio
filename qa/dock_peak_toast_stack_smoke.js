@@ -13,7 +13,7 @@ const failures = [];
 function expect(condition, message) { if (!condition) failures.push(message); }
 
 expect(index.includes('v1.7.5'), 'index should show v1.7.5');
-expect(index.includes('1.7.5-entry-choice-viewport-fit'), 'index asset query should use stage12.2 cache-bust key');
+expect(index.includes('1.7.5-entry-choice-short-landscape'), 'index asset query should use stage12.2 cache-bust key');
 expect(pkg.version === '1.7.5', 'package version should be 1.7.5');
 expect(app.includes("const APP_VERSION = 'Pro v1.7.5'"), 'app version constant should be v1.4.0');
 expect(app.includes('function createDockIntegratedWaveformPlayer'), 'Dock should use integrated waveform player');

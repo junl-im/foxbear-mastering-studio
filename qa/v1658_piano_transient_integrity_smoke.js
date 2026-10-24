@@ -15,7 +15,7 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-assert(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.7.5-entry-choice-viewport-fit'"), 'shared DSP version not updated');
+assert(app.includes("const SHARED_DSP_PROFILE_VERSION = 'v1.7.5-entry-choice-short-landscape'"), 'shared DSP version not updated');
 assert(app.includes('function estimateMelodicTransientGlassRisk('), 'melodic transient glass-risk estimator missing');
 assert(app.includes('melodicGlassRisk > 0.46'), 'exciter piano/glass bypass missing');
 assert(app.includes('Worker finalizer owns lookahead/True-Peak limiting'), 'single limiter ownership contract missing');
